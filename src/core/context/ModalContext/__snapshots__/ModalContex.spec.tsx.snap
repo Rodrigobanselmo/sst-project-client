@@ -1,0 +1,20 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ModalContext i should return context value 1`] = `
+<DocumentFragment>
+  <p>
+    ["isOpen","registerModal","openByName","closeByName","onCloseAll"]
+  </p>
+</DocumentFragment>
+`;
+
+exports[`ModalContext i should return same context value for multiple children 1`] = `
+<DocumentFragment>
+  <p>
+    ["isOpen","registerModal","openByName","closeByName","onCloseAll"]
+  </p>
+  <p>
+    ["isOpen","registerModal","openByName","closeByName","onCloseAll"]
+  </p>
+</DocumentFragment>
+`;
