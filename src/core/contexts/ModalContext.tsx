@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { createContext, FC, useContext } from 'react';
 
-import { useControlModal } from '../../hooks/useControlModal/useControlModal';
+import { useControlModal } from '../hooks/useControlModal';
 
 interface ModalContextData {
   isOpen: (name: string) => boolean;

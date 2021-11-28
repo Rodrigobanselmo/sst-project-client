@@ -1,7 +1,4 @@
-import { PaletteOptions } from '@mui/material/styles';
-import { light } from '@mui/material/styles/createPalette';
-
-export default {
+const palette = {
   primary: {
     extraLight: '#fca557',
     light: '#f28338',
@@ -9,18 +6,64 @@ export default {
     dark: '#d9560b',
     extraDark: '#93421a',
   },
+  mainBlur: {
+    90: 'rgba(242, 115, 41, 0.9)',
+    80: 'rgba(242, 115, 41, 0.8)',
+    70: 'rgba(242, 115, 41, 0.7)',
+    60: 'rgba(242, 115, 41, 0.6)',
+    50: 'rgba(242, 115, 41, 0.5)',
+    40: 'rgba(242, 115, 41, 0.4)',
+    30: 'rgba(242, 115, 41, 0.3)',
+    20: 'rgba(242, 115, 41, 0.2)',
+    10: 'rgba(242, 115, 41, 0.1)',
+    5: 'rgba(242, 115, 41, 0.05)',
+  },
+  db: {
+    900: '#181B23',
+    800: '#1F2029',
+    700: '#353646',
+    600: '#4B4D63',
+    500: '#616480',
+    400: '#797D9A',
+    300: '#9699B0',
+    200: '#B3B5C6',
+    100: '#D1D2DC',
+    50: '#EEEEF2',
+  },
+  gray: {
+    900: '#171923',
+    800: '#1A202C',
+    700: '#2D3748',
+    600: '#4A5568',
+    500: '#718096',
+    400: '#A0AEC0',
+    300: '#CBD5E0',
+    200: '#E2E8F0',
+    100: '#EDF2F7',
+    50: '#F7FAFC',
+  },
   secondary: {
-    main: '#2b2b2b',
+    main: '#1A202C',
   },
   success: {
-    main: '#4CAF50',
+    dark: '#4CAF50',
+    main: '#3cbe7d',
   },
   error: {
     main: '#F44336',
   },
   background: {
-    default: '#F0F0F0',
+    default: '#dddee2',
     paper: '#FFFFFF',
     darkPaper: '#c4c4c4',
+    dark: '#2b2b2b',
   },
-} as PaletteOptions;
+  text: {
+    dark: '#000',
+    main: '#2f3645',
+    light: '#808080',
+    lightest: '#c4c4c4',
+  },
+};
+
+export default palette;

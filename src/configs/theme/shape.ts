@@ -1,5 +1,5 @@
 import { Shape } from '@mui/system';
 
 export default {
-  borderRadius: 12,
+  borderRadius: 8,
 } as Partial<Shape>;
