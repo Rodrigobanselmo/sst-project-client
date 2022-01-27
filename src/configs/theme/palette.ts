@@ -56,7 +56,7 @@ const palette = {
     default: '#dddee2',
     paper: '#FFFFFF',
     darkPaper: '#c4c4c4',
-    dark: '#2b2b2b',
+    dark: '#1A202C',
   },
   text: {
     dark: '#000',

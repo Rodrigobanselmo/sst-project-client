@@ -9,13 +9,13 @@ import {
 } from 'react';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
-import { Theme } from '@mui/system';
 import { useRouter } from 'next/router';
 
 import { useDisclosure } from '../hooks/useDisclosure';
 
 interface SidebarDrawerContextData {
   isMobile: boolean;
+  isTablet: boolean;
   alwaysOpen: boolean;
   setAlwaysOpen: Dispatch<SetStateAction<boolean>>;
   isOpen: boolean;
@@ -34,6 +34,7 @@ export function SidebarDrawerProvider({
   children,
 }: ISidebarDrawerProps): JSX.Element {
   const isMobile = !useMediaQuery('(min-width:600px)');
+  const isTablet = !useMediaQuery('(min-width:1100px)');
 
   const disclosure = useDisclosure(true);
   const router = useRouter();
@@ -53,6 +54,7 @@ export function SidebarDrawerProvider({
       value={{
         ...disclosure,
         isMobile: !!isMobile,
+        isTablet: !!isTablet,
         setAlwaysOpen,
         alwaysOpen,
         isOpen: disclosure.isOpen || alwaysOpen,

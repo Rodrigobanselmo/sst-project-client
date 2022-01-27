@@ -8,3 +8,5 @@ export const loginSchema = {
     .min(8, 'senha deve conter no mínimo 8 characteres')
     .required('Campo obrigatório'),
 };
+
+export type ILoginSchema = Record<keyof typeof loginSchema, string>;

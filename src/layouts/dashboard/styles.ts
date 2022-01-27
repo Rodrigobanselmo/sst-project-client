@@ -1,7 +1,7 @@
 import { Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
-export const GridBox = styled(Box)`
+export const STGridBox = styled(Box)`
   display: grid;
   grid-template-rows: 1fr;
   grid-template-columns: fit-content(0px) 1fr;
@@ -9,13 +9,13 @@ export const GridBox = styled(Box)`
   background-color: ${(props) => props.theme.palette.secondary.main};
 `;
 
-export const BoxSidebar = styled(Box)`
+export const STBoxSidebar = styled(Box)`
   grid-row: 1 / 3;
   grid-column: 1;
   background-color: ${(props) => props.theme.palette.secondary.main};
 `;
 
-export const BoxContent = styled(Box)`
+export const STBoxContent = styled(Box)`
   flex-flow: column;
   display: flex;
   overflow: hidden;
@@ -23,7 +23,7 @@ export const BoxContent = styled(Box)`
   background-color: ${(props) => props.theme.palette.background.default};
 `;
 
-export const BoxChildren = styled(Box)`
+export const STBoxChildren = styled(Box)`
   flex: 1;
   overflow: auto;
 `;

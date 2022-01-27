@@ -6,7 +6,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
 
-import { STextField } from './styles';
+import { STTextField } from './styles';
 import { ISInputProps } from './types';
 
 export const SInput: FC<ISInputProps> = ({
@@ -36,7 +36,7 @@ export const SInput: FC<ISInputProps> = ({
           {label}
         </Typography>
       )}
-      <STextField
+      <STTextField
         color={error ? 'error' : success ? 'success' : 'primary'}
         success={success && !error ? 1 : 0}
         secondary={secondary ? 1 : 0}

@@ -1,7 +1,7 @@
 import { useMutation } from 'react-query';
 
-import api from '../../../api';
-import { GetCEPResponse } from './@interfaces';
+import { api } from '../../../apiClient';
+import { GetCEPResponse } from './types';
 
 export async function getCep(cep: string) {
   const response = await api.get<GetCEPResponse>(

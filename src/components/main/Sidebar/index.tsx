@@ -5,15 +5,15 @@ import { SideBarNav } from './SideBarNav';
 import { FlexStyle } from './styles';
 
 export function Sidebar(): JSX.Element {
-  const { isOpen, close, open, isMobile } = useSidebarDrawer();
+  const { isOpen, close, isTablet } = useSidebarDrawer();
   return (
     <>
-      {isMobile ? (
+      {isTablet ? (
         <Drawer
           open={isOpen}
           onClose={close}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: false,
           }}
         >
           <FlexStyle is_close={!isOpen ? 1 : 0} as="aside">

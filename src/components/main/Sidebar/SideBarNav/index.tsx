@@ -10,12 +10,12 @@ import { SearchBox } from '../SearchBox';
 import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
-  const { isMobile, open, close } = useSidebarDrawer();
+  const { isTablet, open, close } = useSidebarDrawer();
 
   return (
     <BoxContainerStyled
-      onMouseEnter={isMobile ? () => {} : open}
-      onMouseLeave={isMobile ? () => {} : close}
+      onMouseEnter={isTablet ? () => {} : open}
+      onMouseLeave={isTablet ? () => {} : close}
       py={12}
     >
       <Stack mb={0} px={8} spacing={4}>

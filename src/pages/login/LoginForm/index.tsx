@@ -9,12 +9,19 @@ import * as Yup from 'yup';
 
 import { SButton } from '../../../components/atoms/SButton';
 import { InputForm } from '../../../components/form/input';
-import { loginSchema } from '../../../core/utils/schemas/login.schema';
+import { useMutationLogin } from '../../../core/services/hooks/mutations/useMutationLogin';
+import {
+  ILoginSchema,
+  loginSchema,
+} from '../../../core/utils/schemas/login.schema';
+import { STForgotButton } from './styles';
 
 export const LoginForm: FC = () => {
   const { handleSubmit, control, watch } = useForm({
     resolver: yupResolver(Yup.object().shape({ ...loginSchema })),
   });
+
+  const { mutate, isLoading } = useMutationLogin();
 
   const password = watch('password');
   const email = watch('email');
@@ -22,8 +29,9 @@ export const LoginForm: FC = () => {
   const successEmail = email && email.length > 3 && isValidEmail(email);
   const successPass = password && password.length > 7;
 
-  const onSubmit: SubmitHandler<typeof loginSchema> = (data) =>
-    console.log(data);
+  const onSubmit: SubmitHandler<ILoginSchema> = (data) => {
+    mutate(data);
+  };
 
   return (
     <Box
@@ -51,22 +59,15 @@ export const LoginForm: FC = () => {
         name="password"
         success={successPass}
       />
-      <SButton
+      <STForgotButton
         type="button"
         variant="text"
         size="small"
         disableTouchRipple
-        sx={{
-          mt: 3,
-          color: 'secondary.main',
-          marginLeft: 'auto',
-          fontSize: '0.75rem',
-          textTransform: 'none',
-        }}
       >
         Esqueceu sua senha ?
-      </SButton>
-      <SButton type="submit" sx={{ width: '100%', mt: 12 }}>
+      </STForgotButton>
+      <SButton loading={isLoading} type="submit" sx={{ width: '100%', mt: 12 }}>
         ENTRAR
       </SButton>
       <Typography color="text.light" variant="caption" align="center" mt={4}>
@@ -77,18 +78,6 @@ export const LoginForm: FC = () => {
           </Link>
         </NextLink>
       </Typography>
-      <SButton
-        type="button"
-        variant="text"
-        size="small"
-        disableTouchRipple
-        sx={{
-          color: 'secondary.main',
-          marginLeft: 'auto',
-          fontSize: '0.725rem',
-          textTransform: 'none',
-        }}
-      ></SButton>
     </Box>
   );
 };

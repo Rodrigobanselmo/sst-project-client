@@ -2,7 +2,7 @@ import { css } from '@emotion/react';
 import { styled } from '@mui/material';
 import TextField from '@mui/material/TextField';
 
-export const STextField = styled(TextField)<{
+export const STTextField = styled(TextField)<{
   success: number;
   errors: number;
   secondary: number;
