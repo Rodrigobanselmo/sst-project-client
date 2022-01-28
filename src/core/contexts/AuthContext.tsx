@@ -4,25 +4,18 @@ import {
   ReactNode,
   useEffect,
   useContext,
-  useState,
+  useCallback,
 } from 'react';
 
 import Router, { useRouter } from 'next/router';
 import { setCookie, parseCookies, destroyCookie } from 'nookies';
 
+import { createUser, selectUser } from '../../store/reducers/user/userSlice';
 import { RoutesEnum } from '../enums/routes.enums';
+import { useAppDispatch } from '../hooks/useAppDispatch';
+import { useAppSelector } from '../hooks/useAppSelector';
+import { IUser } from '../interfaces/IUser';
 import { api } from '../services/apiClient';
-
-export type UserDto = {
-  readonly userId: number;
-  readonly email: string;
-  readonly companies: {
-    readonly permissions: string[];
-    readonly roles: string[];
-    readonly companyId: string;
-  }[];
-  // readonly actualCompany: string;
-};
 
 export type SignInCredentials = {
   email: string;
@@ -32,7 +25,7 @@ export type SignInCredentials = {
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   signOut: () => void;
-  user: UserDto | null;
+  user: IUser | null;
   isAuthenticated: boolean;
 };
 
@@ -55,8 +48,13 @@ export function signOut() {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
+  const user = useAppSelector(selectUser);
+  const dispatch = useAppDispatch();
 
-  const [user, setUser] = useState<UserDto | null>(null);
+  const setUser = useCallback(
+    (user: IUser) => dispatch(createUser(user)),
+    [dispatch],
+  );
 
   const isAuthenticated = !!user;
 
@@ -79,7 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           signOut();
         });
     }
-  }, []);
+  }, [setUser]);
 
   useEffect(() => {
     authChannel = new BroadcastChannel('auth');
