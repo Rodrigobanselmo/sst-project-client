@@ -18,6 +18,7 @@ interface SidebarDrawerContextData {
   isTablet: boolean;
   alwaysOpen: boolean;
   setAlwaysOpen: Dispatch<SetStateAction<boolean>>;
+  setIsSearching: Dispatch<SetStateAction<boolean>>;
   isOpen: boolean;
   open: () => void;
   close: () => void;
@@ -41,6 +42,7 @@ export function SidebarDrawerProvider({
 
   const [urlRouter, setUrlRouter] = useState(router.asPath);
   const [alwaysOpen, setAlwaysOpen] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     if (urlRouter !== router.asPath && isMobile) {
@@ -55,9 +57,10 @@ export function SidebarDrawerProvider({
         ...disclosure,
         isMobile: !!isMobile,
         isTablet: !!isTablet,
-        setAlwaysOpen,
         alwaysOpen,
-        isOpen: disclosure.isOpen || alwaysOpen,
+        isOpen: disclosure.isOpen || alwaysOpen || isSearching,
+        setAlwaysOpen,
+        setIsSearching,
       }}
     >
       {children}

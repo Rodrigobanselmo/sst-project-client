@@ -5,7 +5,8 @@ import { useRouter } from 'next/router';
 import { Header } from '../../components/main/Header';
 import { Sidebar } from '../../components/main/Sidebar';
 import { SidebarDrawerProvider } from '../../core/contexts/SidebarContext';
-import { STGridBox, STBoxSidebar, STBoxContent, STBoxChildren } from './styles';
+import { DashboardLoadingFeedback } from './loading';
+import { STBoxContent, STBoxSidebar, STGridBox } from './styles';
 
 export const DashboardLayout: FC = ({ children }) => {
   const { asPath } = useRouter();
@@ -20,7 +21,7 @@ export const DashboardLayout: FC = ({ children }) => {
         </STBoxSidebar>
         <STBoxContent borderRadius={3}>
           <Header />
-          <STBoxChildren>{children}</STBoxChildren>
+          <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
         </STBoxContent>
       </STGridBox>
     </SidebarDrawerProvider>

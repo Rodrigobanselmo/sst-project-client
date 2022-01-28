@@ -13,14 +13,18 @@ export function NavLink({
   icon,
   text,
   description,
+  shouldMatchExactHref,
   ...rest
 }: INavLinkProps): JSX.Element {
   const { isOpen } = useSidebarDrawer();
-
   return (
     <Tooltip title={description} placement="right" enterDelay={700} arrow>
       <div>
-        <SActiveLink href={href} passHref>
+        <SActiveLink
+          shouldMatchExactHref={shouldMatchExactHref}
+          href={href}
+          passHref
+        >
           <LinkStyle py="0.45rem" px={8} {...rest}>
             <Icon
               component={icon}

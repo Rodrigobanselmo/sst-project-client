@@ -5,6 +5,8 @@ import {
 } from 'next';
 import { parseCookies } from 'nookies';
 
+import { RoutesEnum } from '../../enums/routes.enums';
+
 export function withSSRGuest<T>(fn: GetServerSideProps<T>): GetServerSideProps {
   return async (
     ctx: GetServerSidePropsContext,
@@ -14,7 +16,7 @@ export function withSSRGuest<T>(fn: GetServerSideProps<T>): GetServerSideProps {
     if (cookies['nextauth.token']) {
       return {
         redirect: {
-          destination: '/dashboard',
+          destination: RoutesEnum.DASHBOARD,
           permanent: false,
         },
       };

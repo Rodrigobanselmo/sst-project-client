@@ -14,7 +14,7 @@ export function validateUserPermissions({
   permissions,
   roles,
 }: ValidateUserPermissionsParams) {
-  if (permissions?.length > 0) {
+  if (permissions && permissions?.length > 0) {
     const hasAllPermissions = permissions.every((permission) => {
       return user.permissions.includes(permission);
     });
@@ -24,7 +24,7 @@ export function validateUserPermissions({
     }
   }
 
-  if (roles?.length > 0) {
+  if (roles && roles?.length > 0) {
     const hasAllRoles = roles.every((permission) => {
       return user.roles.includes(permission);
     });

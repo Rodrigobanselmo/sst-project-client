@@ -1,5 +1,7 @@
 import { Stack, styled, Typography } from '@mui/material';
 
+import LogoSimpleIcon from '../../../../assets/logo/logo-simple/logo-simple';
+
 export const StackStyled = styled(Stack)`
   width: 100%;
   align-items: center;
@@ -7,14 +9,15 @@ export const StackStyled = styled(Stack)`
   cursor: pointer;
 `;
 
-export const Image = styled('img')`
-  width: 2rem;
+export const STLogoSimple = styled(LogoSimpleIcon)`
+  min-width: 2rem;
+  min-height: 2rem;
   margin-top: -4px;
 `;
 
 export const SText = styled(Typography)`
   font-size: 24px;
-  font-weight: bold;
+  font-weight: 500;
   width: 100%;
   color: ${({ theme }) => theme.palette.grey[100]};
 `;

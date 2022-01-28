@@ -10,6 +10,7 @@ import {
 import Router, { useRouter } from 'next/router';
 import { setCookie, parseCookies, destroyCookie } from 'nookies';
 
+import { RoutesEnum } from '../enums/routes.enums';
 import { api } from '../services/apiClient';
 
 export type UserDto = {
@@ -49,7 +50,7 @@ export function signOut() {
 
   authChannel.postMessage('signOut');
 
-  Router.push('/');
+  Router.push(RoutesEnum.LOGIN);
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
@@ -120,7 +121,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       companies,
     });
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    router.push('/dashboard');
+    router.push(RoutesEnum.DASHBOARD);
 
     authChannel.postMessage('signIn');
   }

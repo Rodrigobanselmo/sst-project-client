@@ -22,8 +22,3 @@ export const STBoxContent = styled(Box)`
   box-shadow: inset 7px 0 9px -7px rgba(0, 0, 0, 0.9);
   background-color: ${(props) => props.theme.palette.background.default};
 `;
-
-export const STBoxChildren = styled(Box)`
-  flex: 1;
-  overflow: auto;
-`;

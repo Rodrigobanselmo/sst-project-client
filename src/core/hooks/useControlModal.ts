@@ -1,5 +1,3 @@
-/* eslint-disable consistent-return */
-/* eslint-disable no-return-assign */
 import { useCallback, useRef, useState } from 'react';
 
 export const useControlModal = () => {
@@ -19,12 +17,12 @@ export const useControlModal = () => {
     return array;
   };
 
-  const onCloseAll = useCallback(() => {
+  const onCloseAllModals = useCallback(() => {
     setCurrentModal(undefined);
     registerStackModal.current = [];
   }, []);
 
-  const closeByName = useCallback((name?: string) => {
+  const onCloseModal = useCallback((name?: string) => {
     const pile = [...registerStackModal.current];
 
     if (pile.length === 0) {
@@ -44,7 +42,7 @@ export const useControlModal = () => {
     return (registerStackModal.current = newPile);
   }, []);
 
-  const openByName = useCallback(
+  const onOpenModal = useCallback(
     (name: string) => {
       if (currentModal !== name) {
         registerStackModal.current = [...registerStackModal.current, name];
@@ -66,17 +64,17 @@ export const useControlModal = () => {
     (name: string) => {
       return {
         open: name === currentModal,
-        onClose: () => closeByName(name),
+        onClose: () => onCloseModal(name),
       };
     },
-    [closeByName, currentModal],
+    [onCloseModal, currentModal],
   );
 
   return {
     isOpen,
     registerModal,
-    openByName,
-    closeByName,
-    onCloseAll,
+    onOpenModal,
+    onCloseModal,
+    onCloseAllModals,
   };
 };

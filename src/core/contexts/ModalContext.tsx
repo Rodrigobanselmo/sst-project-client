@@ -9,19 +9,25 @@ interface ModalContextData {
     open: boolean;
     onClose: () => string[] | undefined;
   };
-  openByName: (name: string) => void;
-  closeByName: (name?: string | undefined) => string[] | undefined;
-  onCloseAll: () => void;
+  onOpenModal: (name: string) => void;
+  onCloseModal: (name?: string | undefined) => string[] | undefined;
+  onCloseAllModals: () => void;
 }
 
 const ModalContext = createContext({} as ModalContextData);
 
 export const ModalProvider: FC = ({ children }) => {
-  const { isOpen, registerModal, openByName, closeByName, onCloseAll } =
+  const { isOpen, registerModal, onOpenModal, onCloseModal, onCloseAllModals } =
     useControlModal();
   return (
     <ModalContext.Provider
-      value={{ isOpen, registerModal, openByName, closeByName, onCloseAll }}
+      value={{
+        isOpen,
+        registerModal,
+        onOpenModal,
+        onCloseModal,
+        onCloseAllModals,
+      }}
     >
       {children}
     </ModalContext.Provider>

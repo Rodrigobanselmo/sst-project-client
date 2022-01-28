@@ -18,6 +18,34 @@
     "body": ["${(props) =>", "  props.$1 &&", "    css`", "      $2", "  `}"],
     "description": "css in styled components"
   },
+  "styledBox: styledBox;": {
+    "scope": "javascript,typescript,javascriptreact,typescriptreact,css",
+    "prefix": "styledbox",
+    "body": ["export const ST$1Box = styled(Box)``;"],
+    "description": "styledBox in styled components"
+  },
+  "mediaQuerie: mediaQuerie;": {
+    "scope": "javascript,typescript,javascriptreact,typescriptreact,css",
+    "prefix": "mediaQuerie",
+    "body": [
+      "@media (min-width: ${({ theme }) => theme.breakpoints.values.$1}px) {",
+      "",
+      "}"
+    ],
+    "description": "media query"
+  },
+  "muiSpacing: muiSpacing;": {
+    "scope": "javascript,typescript,javascriptreact,typescriptreact,css",
+    "prefix": "muiSpacing",
+    "body": ["${({ theme }) => theme.spacing($1)}"],
+    "description": "mui spacing"
+  },
+  "muiColor: muiColor;": {
+    "scope": "javascript,typescript,javascriptreact,typescriptreact,css",
+    "prefix": "muiColor",
+    "body": ["${({ theme }) => theme.palette.$1)}"],
+    "description": "mui color"
+  },
   "background-image: background-image;": {
     "scope": "javascript,typescript,javascriptreact,typescriptreact,css",
     "prefix": "bilg",

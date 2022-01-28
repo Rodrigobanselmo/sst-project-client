@@ -35,6 +35,7 @@ export function SideBarNav(): JSX.Element {
                       icon={item.Icon}
                       text={item.text}
                       description={item.description}
+                      shouldMatchExactHref={item.shouldMatchExactHref}
                     />
                   );
                 })}

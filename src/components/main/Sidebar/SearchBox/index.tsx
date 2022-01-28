@@ -9,7 +9,7 @@ import { useSidebarDrawer } from '../../../../core/contexts/SidebarContext';
 
 // import { IconButtonStyle, InputStyle } from "./styles";
 export function SearchBox(): JSX.Element {
-  const { isOpen, open, setAlwaysOpen } = useSidebarDrawer();
+  const { isOpen, open, setIsSearching } = useSidebarDrawer();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
 
@@ -36,8 +36,8 @@ export function SearchBox(): JSX.Element {
         },
       }}
       size="small"
-      onFocus={() => setAlwaysOpen(true)}
-      onBlur={() => setAlwaysOpen(false)}
+      onFocus={() => setIsSearching(true)}
+      onBlur={() => setIsSearching(false)}
       value={text}
       startAdornment={
         <Icon

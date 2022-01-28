@@ -14,19 +14,18 @@ import { QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
 import { Provider } from 'react-redux';
 
-import { Global, ThemeProvider as EmotionProvider } from '@emotion/react';
+import { ThemeProvider as EmotionProvider } from '@emotion/react';
 import { ThemeProvider } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { PersistGate } from 'redux-persist/integration/react';
 
-import theme from '../../configs/theme';
-import { AuthProvider } from '../../core/contexts/AuthContext';
-import { queryClient } from '../../core/services/queryClient';
-import globalStyles from '../../core/styles/globalStyles';
-import store, { persistor } from '../../store';
-import { DashboardLayout } from '../dashboard';
+import theme from '../../../configs/theme';
+import { AuthProvider } from '../../../core/contexts/AuthContext';
+import { ModalProvider } from '../../../core/contexts/ModalContext';
+import { queryClient } from '../../../core/services/queryClient';
+import store, { persistor } from '../../../store';
 
-const DefaultLayout: FC = ({ children }) => {
+const DefaultProviders: FC = ({ children }) => {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
@@ -41,10 +40,7 @@ const DefaultLayout: FC = ({ children }) => {
             >
               <AuthProvider>
                 <QueryClientProvider client={queryClient}>
-                  <main>
-                    <Global styles={globalStyles} />
-                    <DashboardLayout>{children}</DashboardLayout>
-                  </main>
+                  <ModalProvider>{children}</ModalProvider>
                   <ReactQueryDevtools />
                 </QueryClientProvider>
               </AuthProvider>
@@ -56,4 +52,4 @@ const DefaultLayout: FC = ({ children }) => {
   );
 };
 
-export default DefaultLayout;
+export default DefaultProviders;

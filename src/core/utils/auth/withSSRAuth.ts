@@ -6,7 +6,8 @@ import {
 } from 'next';
 import { destroyCookie, parseCookies } from 'nookies';
 
-import { AuthTokenError } from '../services/errors/AuthTokenError';
+import { RoutesEnum } from '../../enums/routes.enums';
+import { AuthTokenError } from '../../services/errors/AuthTokenError';
 import { validateUserPermissions } from './validateUserPermissions';
 
 type WithSSRAuthOptions = {
@@ -27,7 +28,7 @@ export function withSSRAuth<T>(
     if (!cookies['nextauth.token']) {
       return {
         redirect: {
-          destination: '/',
+          destination: RoutesEnum.LOGIN,
           permanent: false,
         },
       };
@@ -37,16 +38,16 @@ export function withSSRAuth<T>(
       const user = decode<{ permissions: string[]; roles: string[] }>(token);
       const { permissions, roles } = options;
 
-      const userHasValidPermisions = validateUserPermissions({
+      const userHasValidPermissions = validateUserPermissions({
         user,
         permissions,
         roles,
       });
 
-      if (!userHasValidPermisions) {
+      if (!userHasValidPermissions) {
         return {
           redirect: {
-            destination: '/dashboard',
+            destination: RoutesEnum.DASHBOARD,
             permanent: false,
           },
         };
@@ -59,14 +60,13 @@ export function withSSRAuth<T>(
       if (err instanceof AuthTokenError) {
         destroyCookie(ctx, 'nextauth.token');
         destroyCookie(ctx, 'nextauth.refreshToken');
-
-        return {
-          redirect: {
-            destination: '/',
-            permanent: false,
-          },
-        };
       }
+      return {
+        redirect: {
+          destination: RoutesEnum.LOGIN,
+          permanent: false,
+        },
+      };
     }
   };
 }

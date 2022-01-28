@@ -43,6 +43,7 @@ export const LoginForm: FC = () => {
       }}
     >
       <InputForm
+        defaultValue="admin@simple.com"
         sx={{ mb: [8, 12] }}
         label="E-mail"
         placeholder="email@gmail.com"
@@ -52,6 +53,7 @@ export const LoginForm: FC = () => {
         success={successEmail}
       />
       <InputForm
+        defaultValue="12345678"
         label="Senha"
         placeholder="********"
         type="password"
