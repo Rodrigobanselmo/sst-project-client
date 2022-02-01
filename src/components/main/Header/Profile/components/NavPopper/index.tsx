@@ -2,6 +2,7 @@ import { FC } from 'react';
 
 import { Typography } from '@mui/material';
 import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 
 import { useAuth } from '../../../../../../core/contexts/AuthContext';
 import { SPopperArrow } from '../../../../../atoms/SPopperArrow';
@@ -16,10 +17,12 @@ export const NavPopper: FC<INavProfileProps> = ({
 }) => {
   const { signOut } = useAuth();
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
   const handleNavAction = (action?: string, href?: string) => {
     if (action === 'signOut') {
       signOut();
+      enqueueSnackbar('Logout realizado com sucesso', { variant: 'success' });
     } else {
       router.push({
         pathname: href,

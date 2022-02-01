@@ -4,4 +4,6 @@ export enum RoutesEnum {
   TEAM = '/dashboard/equipe',
   PROFILE = '/dashboard/perfil',
   PUBLIC = '/publico',
+
+  DND_TREE_DEMO = '/dashboard/test/dnd-tree',
 }

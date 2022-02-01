@@ -10,6 +10,11 @@ const globalStyles = css`
     margin: 0;
     padding: 0;
   }
+
+  .scroll-container {
+    height: calc(100vh - 120px);
+    overflow: auto;
+  }
 `;
 
 export default globalStyles;

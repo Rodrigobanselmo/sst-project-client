@@ -2,18 +2,15 @@
 import {
   createContext,
   ReactNode,
-  useEffect,
   useContext,
-  useCallback,
+  useEffect,
+  useState,
 } from 'react';
 
 import Router, { useRouter } from 'next/router';
-import { setCookie, parseCookies, destroyCookie } from 'nookies';
+import { destroyCookie, parseCookies, setCookie } from 'nookies';
 
-import { createUser, selectUser } from '../../store/reducers/user/userSlice';
 import { RoutesEnum } from '../enums/routes.enums';
-import { useAppDispatch } from '../hooks/useAppDispatch';
-import { useAppSelector } from '../hooks/useAppSelector';
 import { IUser } from '../interfaces/IUser';
 import { api } from '../services/apiClient';
 
@@ -48,13 +45,15 @@ export function signOut() {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
-  const user = useAppSelector(selectUser);
-  const dispatch = useAppDispatch();
+  const [user, setUser] = useState<IUser | null>(null);
 
-  const setUser = useCallback(
-    (user: IUser) => dispatch(createUser(user)),
-    [dispatch],
-  );
+  // !remove comment
+  // const user = useAppSelector(selectUser);
+  // const dispatch = useAppDispatch();
+  // const setUser = useCallback(
+  //   (user: IUser) => dispatch(createUser(user)),
+  //   [dispatch],
+  // );
 
   const isAuthenticated = !!user;
 
@@ -118,6 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       userId,
       companies,
     });
+
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     router.push(RoutesEnum.DASHBOARD);
 
