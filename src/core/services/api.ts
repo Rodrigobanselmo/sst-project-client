@@ -23,17 +23,17 @@ export function setupAPIClient(ctx = undefined) {
     },
     (error: AxiosError) => {
       if (error.response && error.response.status === 401) {
-        if (error.response.data?.code === 'token.expired') {
+        if (error.response.data?.message === 'Unauthorized') {
           cookies = parseCookies(ctx);
 
-          const { 'nextauth.refreshToken': refreshToken } = cookies;
+          const { 'nextauth.refreshToken': refresh_token } = cookies;
           const originalConfig = error.config;
 
           if (!isRefreshing) {
             isRefreshing = true;
 
             api
-              .post('/refresh', { refreshToken })
+              .post('/refresh', { refresh_token })
               .then((response) => {
                 const { token } = response.data;
 
@@ -45,7 +45,7 @@ export function setupAPIClient(ctx = undefined) {
                 setCookie(
                   ctx,
                   'nextauth.refreshToken',
-                  response.data.refreshToken,
+                  response.data.refresh_token,
                   {
                     maxAge: 60 * 60 * 25 * 30, // 30 days
                     path: '/',
@@ -62,6 +62,9 @@ export function setupAPIClient(ctx = undefined) {
                 failedRequestQueue = [];
               })
               .catch((err) => {
+                console.log(err);
+                console.log(err.response);
+                console.log(err.response.data);
                 failedRequestQueue.forEach((request) => request.onFailure(err));
                 failedRequestQueue = [];
 
@@ -83,6 +86,9 @@ export function setupAPIClient(ctx = undefined) {
                 resolve(api(originalConfig));
               },
               onFailure: (err: AxiosError) => {
+                console.log(err);
+                console.log(err.response);
+                console.log(err?.response?.data);
                 reject(err);
               },
             });

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { verify } from 'jsonwebtoken';
 import type { NextFetchEvent, NextRequest } from 'next/server';
@@ -9,15 +10,16 @@ export function middleware(req: NextRequest, ev: NextFetchEvent) {
   if (req.headers.get('accept')?.includes('text/html')) {
     const token = req.cookies['nextauth.token'];
     const secret = process.env.TOKEN_SECRET;
-    let isValidToken = true;
+    let isValidToken: boolean | string = true;
 
     if (secret && token) {
       try {
         verify(token, secret, {
           algorithms: ['HS256'],
         });
-      } catch (e) {
-        isValidToken = false;
+      } catch (e: any) {
+        if (e.message === 'jwt expired') isValidToken = 'invalid';
+        else isValidToken = false;
       }
     }
 

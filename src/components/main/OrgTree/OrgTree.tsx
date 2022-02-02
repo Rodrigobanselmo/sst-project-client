@@ -25,7 +25,7 @@ export const OrgTreeComponent = forwardRef<any, IOrgTreeProps>(
       data,
       onClick,
       collapsable = true,
-      expandAll = true,
+      expandAll = false,
       horizontal = false,
       ...props
     },

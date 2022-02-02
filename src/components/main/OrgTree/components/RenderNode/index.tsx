@@ -13,13 +13,17 @@ export const RenderNode = ({ data, prop, first, mock }: IRender) => {
     prop;
 
   const initialExpand =
-    expandAll !== null ? expandAll : node.expand in data && !!data[node.expand];
+    expandAll !== null
+      ? expandAll
+      : !!data && node.expand in data && !!data[node.expand];
 
-  const [expand, setExpand] = useState(initialExpand);
+  const [expand, setExpand] = useState(
+    data.id === 'mock' ? true : initialExpand,
+  );
 
   useEffect(() => {
-    if (expandAll !== null) setExpand(expandAll);
-  }, [expandAll]);
+    if (expandAll !== null) setExpand(data.id === 'mock' ? true : expandAll);
+  }, [expandAll, data.id]);
 
   if (isLastNode(data, prop)) {
     cls.push('is-leaf');

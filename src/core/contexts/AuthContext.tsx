@@ -47,14 +47,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
   const [user, setUser] = useState<IUser | null>(null);
 
-  // !remove comment
-  // const user = useAppSelector(selectUser);
-  // const dispatch = useAppDispatch();
-  // const setUser = useCallback(
-  //   (user: IUser) => dispatch(createUser(user)),
-  //   [dispatch],
-  // );
-
   const isAuthenticated = !!user;
 
   useEffect(() => {

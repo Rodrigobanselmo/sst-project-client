@@ -4,15 +4,15 @@ import { RiMenu3Fill } from '@react-icons/all-files/ri/RiMenu3Fill';
 
 import { useSidebarDrawer } from '../../../../core/contexts/SidebarContext';
 import SIconButton from '../../../atoms/SIconButton';
-import { StackStyled, SText, STLogoSimple } from './styles';
+import { STStack, STTypography, STLogoSimple } from './styles';
 
 export function LogoNavbar(): JSX.Element {
   const { isOpen, open, close, setAlwaysOpen, alwaysOpen } = useSidebarDrawer();
 
   return (
-    <StackStyled direction="row">
+    <STStack direction="row">
       <STLogoSimple onClick={isOpen ? close : open} />
-      <SText onClick={isOpen ? close : open} ml={2} align="left" noWrap>
+      <STTypography onClick={isOpen ? close : open} ml={2} align="left" noWrap>
         Simple
         <Typography
           color={'primary.main'}
@@ -23,7 +23,7 @@ export function LogoNavbar(): JSX.Element {
         >
           SST
         </Typography>
-      </SText>
+      </STTypography>
       <SIconButton color="info" onClick={() => setAlwaysOpen(!alwaysOpen)}>
         <Icon
           component={alwaysOpen ? RiCloseFill : RiMenu3Fill}
@@ -37,6 +37,6 @@ export function LogoNavbar(): JSX.Element {
           }}
         />
       </SIconButton>
-    </StackStyled>
+    </STStack>
   );
 }

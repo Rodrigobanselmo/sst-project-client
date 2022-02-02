@@ -71,30 +71,3 @@ export const RenderButton = styled.span<IButton>`
       margin-left: 9px;
     `}
 `;
-
-export const ContainerButton = styled.div<ITreeOptions>`
-  position: absolute;
-  display: inline-block;
-  top: 100%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  z-index: 10;
-  margin-left: -11px;
-  margin-top: 9px;
-  background-color: #fff;
-  border: 1px solid #ccc;
-  border-radius: 50%;
-  box-shadow: 0 0 2px rgba(0, 0, 0, 0.15);
-  cursor: pointer;
-  transition: all 0.35s ease;
-
-  ${(props) =>
-    props.horizontal &&
-    css`
-      top: 50%;
-      left: 100%;
-      margin-top: -11px;
-      margin-left: 9px;
-    `}
-`;

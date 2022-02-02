@@ -31,6 +31,7 @@
   ],
   "rules": {
     "prettier/prettier": "error",
+    "@typescript-eslint/no-empty-interface": "off",
     "indent": ["error", 2],
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],

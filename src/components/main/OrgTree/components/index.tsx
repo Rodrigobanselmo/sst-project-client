@@ -23,6 +23,7 @@ const mock_data = {
 export const TreeNode = (props: IOrgTreeNodeProps) => {
   const { hierarchy } = useHierarchyData();
   console.log('reload');
+
   return (
     <DndProvider backend={HTML5Backend}>
       <RenderNode data={hierarchy} prop={props} first />

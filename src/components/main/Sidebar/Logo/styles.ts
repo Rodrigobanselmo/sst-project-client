@@ -2,7 +2,7 @@ import { Stack, styled, Typography } from '@mui/material';
 
 import LogoSimpleIcon from '../../../../assets/logo/logo-simple/logo-simple';
 
-export const StackStyled = styled(Stack)`
+export const STStack = styled(Stack)`
   width: 100%;
   align-items: center;
   background-color: transparent;
@@ -15,7 +15,7 @@ export const STLogoSimple = styled(LogoSimpleIcon)`
   margin-top: -4px;
 `;
 
-export const SText = styled(Typography)`
+export const STTypography = styled(Typography)`
   font-size: 24px;
   font-weight: 500;
   width: 100%;

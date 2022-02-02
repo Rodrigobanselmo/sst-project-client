@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { MouseEvent } from 'react';
 import {
   CSSProperties,
   Dispatch,
@@ -17,19 +16,6 @@ export interface INestedObject extends Record<string, any> {
   style?: CSSProperties;
 }
 
-interface IRenderButton {
-  onClick: (event: MouseEvent<any>) => void;
-  isCollapsed: boolean | undefined;
-}
-
-interface IRenderCard {
-  isDragging: boolean;
-  label: string;
-  labelId: string;
-  data: INestedObject;
-  isPreviewCard: boolean;
-}
-
 export interface IOrgTreeProps {
   data: INestedObject;
   horizontal?: boolean;
@@ -40,8 +26,6 @@ export interface IOrgTreeProps {
   buttonBorderColor?: string;
   strokeWidth?: '1px' | '2px' | '3px' | '4px' | '5px';
   onClick?: (...data: any) => any;
-  renderButton?: ({ onClick, isCollapsed }: IRenderButton) => JSX.Element;
-  renderCard?: ({ isDragging, label, data, isPreviewCard }: IRenderCard) => any;
   cardStyle?: CSSProperties;
 }
 
@@ -67,23 +51,25 @@ export interface IOptionalNestedObject
   children: Partial<INestedObject>[];
 }
 
-export interface IParsedArray {
-  id: string | number;
-  label: string;
+export interface IParsedArray extends Omit<INestedObject, 'children'> {
   parentId: string | number | null;
 }
 
+export interface IParsedMap extends Record<string, IParsedArray> {}
+
 export interface IHierarchyContextData {
   hierarchyRef: MutableRefObject<INestedObject>;
+  hierarchyMapRef: MutableRefObject<IParsedMap>;
   draggingItemRef: MutableRefObject<INestedObject | null>;
   hierarchy: INestedObject;
   setHierarchy: Dispatch<SetStateAction<INestedObject>>;
   nestedObjectToArray: (data: INestedObject) => IParsedArray[];
   arrayToNestedObject: (data: IParsedArray[]) => INestedObject;
+  setHierarchyRef: (hierarchy: INestedObject) => void;
   editById: (
     id: number | string,
     data: Partial<INestedObject>,
-    action?: 'replace' | 'add' | 'remove',
+    action?: 'replace' | 'soft-edit' | 'remove',
     nestedObject?: INestedObject,
   ) => INestedObject;
   removeById: (
@@ -134,7 +120,7 @@ export type IRemoveById = (
 export type IEditById = (
   id: number | string,
   data: Partial<INestedObject>,
-  action?: 'replace' | 'add' | 'remove',
+  action?: 'replace' | 'soft-edit' | 'remove',
   nestedObject?: INestedObject | undefined,
 ) => INestedObject;
 
