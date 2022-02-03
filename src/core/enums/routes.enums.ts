@@ -6,4 +6,5 @@ export enum RoutesEnum {
   PUBLIC = '/publico',
 
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',
+  MODAL = '/dashboard/test/modal',
 }

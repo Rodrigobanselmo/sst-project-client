@@ -5,7 +5,7 @@ import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
 import { useAuth } from '../../../../../../core/contexts/AuthContext';
-import { SPopperArrow } from '../../../../../atoms/SPopperArrow';
+import { SPopperArrow } from '../../../../../molecules/SPopperArrow';
 import { navItems } from '../../constants/navItems';
 import { StackStyled } from './styles';
 import { INavProfileProps } from './types';

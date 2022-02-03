@@ -2,7 +2,7 @@ import { css } from '@emotion/react';
 import { styled, Typography } from '@mui/material';
 
 export const STTypography = styled(Typography)<{
-  line_number: number;
+  line_number?: number;
 }>`
   ${(props) =>
     props.line_number &&
