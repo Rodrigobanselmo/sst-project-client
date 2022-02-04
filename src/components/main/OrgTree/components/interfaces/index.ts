@@ -7,7 +7,7 @@ export interface ITreeOptions {
 
 export interface IRenderChildren {
   list: Array<number | string>;
-  data: ITreeMapObject;
+  nodeId: number | string;
   prop: IOrgTreeNodeProps;
 }
 

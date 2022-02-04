@@ -33,11 +33,11 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
     >
       <RenderCard data={data} prop={prop} />
       {(!collapsable || data.expand) && (
-        <RenderChildren data={data} list={data.childrenIds} prop={prop} />
+        <RenderChildren nodeId={data.id} list={data.childrenIds} prop={prop} />
       )}
       {data.childrenIds.includes('mock_id') && !data.expand && (
         <RenderChildren
-          data={data}
+          nodeId={data.id}
           list={data.childrenIds.filter((child) => child === 'mock_id')}
           prop={prop}
         />

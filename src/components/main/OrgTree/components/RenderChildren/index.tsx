@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 import { IRenderChildren } from '../interfaces';
 import { RenderNode } from '../RenderNode';
 import { ChildrenComponent } from './styles';
 
-export const RenderChildren = ({ data, prop, list }: IRenderChildren) => {
+const RenderChildrenNodes = ({ nodeId, prop, list }: IRenderChildren) => {
   if (Array.isArray(list) && list.length) {
     return (
       <ChildrenComponent
-        id={`children_${data.id}`}
+        id={`children_${nodeId}`}
         className={'org-tree-node-children'}
         horizontal={!!prop.horizontal}
       >
@@ -20,3 +20,5 @@ export const RenderChildren = ({ data, prop, list }: IRenderChildren) => {
   }
   return null;
 };
+
+export const RenderChildren = memo(RenderChildrenNodes);
