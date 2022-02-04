@@ -3,9 +3,11 @@ import React from 'react';
 
 import { isLastNode } from '..';
 
+import { useModal } from '../../../../../core/contexts/ModalContext';
+import { ModalEnum } from '../../../../../core/enums/modal.enums';
+import SText from '../../../../atoms/SText';
 import { IRenderCard } from '../interfaces';
 import { RenderBtn } from '../RenderBtn';
-import { TextLabel } from './components/TextLabel';
 import { useDnd } from './hooks/useDnd';
 import { CardArea, RenderLabel } from './styles';
 
@@ -17,6 +19,8 @@ export const RenderCard = ({
   prop,
 }: IRenderCard) => {
   const { drop, isDragging, drag } = useDnd(data);
+  const { onOpenModal } = useModal();
+  console.log(data.id);
 
   const clx = ['org-tree-node-label-inner'];
 
@@ -31,9 +35,7 @@ export const RenderCard = ({
       horizontal={!!prop.horizontal}
       className={'org-tree-node-label'}
       ref={drop}
-      onClick={(e) =>
-        typeof prop.onClick === 'function' && prop.onClick(e, data)
-      }
+      onClick={() => onOpenModal(ModalEnum.TREE_CARD)}
     >
       <RenderLabel
         key={`label_inner_${data.id}`}
@@ -42,7 +44,7 @@ export const RenderCard = ({
         className={clx.join(' ')}
         style={{ ...prop.cardStyle, ...data.style }}
       >
-        <TextLabel data={data} />
+        <SText lineNumber={2}>{data.label || '...carregando'}</SText>
         {prop.collapsable && !isLastNode(data, prop) && (
           <RenderBtn
             setExpand={setExpand}

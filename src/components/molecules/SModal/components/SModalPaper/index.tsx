@@ -1,8 +1,16 @@
-import React, { FC } from 'react';
+import React from 'react';
 
 import { STModalPaper } from './styles';
 import { SModalPaperProps } from './types';
 
-export const SModalPaper: FC<SModalPaperProps> = ({ ...props }) => {
-  return <STModalPaper maxWidth={['95%', '95%', 900]} {...props} />;
-};
+/* eslint-disable react/display-name */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const SModalPaper = React.forwardRef<any, SModalPaperProps>(
+  ({ children, ...props }, ref) => {
+    return (
+      <STModalPaper ref={ref} maxWidth={['95%', '95%', 900]} {...props}>
+        {children}
+      </STModalPaper>
+    );
+  },
+);

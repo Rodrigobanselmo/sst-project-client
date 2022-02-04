@@ -1,9 +1,18 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
+
+import { setModalName } from '../../store/reducers/modal/modalSlice';
+import { useAppDispatch } from './useAppDispatch';
 
 export const useControlModal = () => {
+  const dispatch = useAppDispatch();
   const registerStackModal = useRef<string[]>([]);
-  const [currentModal, setCurrentModal] = useState<string | undefined>(
-    undefined,
+  const currentModal = useRef<string | null>(null);
+
+  const setCurrentModal = useCallback(
+    (modalName: string | null) => {
+      dispatch(setModalName(modalName));
+    },
+    [dispatch],
   );
 
   const removeByNameLastOpenModal = (name: string, array: string[]) => {
@@ -18,61 +27,50 @@ export const useControlModal = () => {
   };
 
   const onCloseAllModals = useCallback(() => {
-    setCurrentModal(undefined);
+    setCurrentModal(null);
     registerStackModal.current = [];
-  }, []);
+  }, [setCurrentModal]);
 
-  const onCloseModal = useCallback((name?: string) => {
-    const pile = [...registerStackModal.current];
+  const onCloseModal = useCallback(
+    (name?: string) => {
+      const pile = [...registerStackModal.current];
 
-    if (pile.length === 0) {
-      setCurrentModal(undefined);
-      return (registerStackModal.current = []);
-    }
+      if (pile.length === 0) {
+        setCurrentModal(null);
+        return (registerStackModal.current = []);
+      }
 
-    if (name) {
-      const newPile = removeByNameLastOpenModal(name, pile);
-      const lastModalInPile = newPile[newPile.length - 1] || undefined;
-      setCurrentModal(lastModalInPile);
+      if (name) {
+        const newPile = removeByNameLastOpenModal(name, pile);
+        const lastModalInPile = newPile[newPile.length - 1] || null;
+        setCurrentModal(lastModalInPile);
+        return (registerStackModal.current = newPile);
+      }
+
+      const newPile = [...pile.slice(0, -1)];
+      setCurrentModal(newPile[newPile.length - 1]);
       return (registerStackModal.current = newPile);
-    }
-
-    const newPile = [...pile.slice(0, -1)];
-    setCurrentModal(newPile[newPile.length - 1]);
-    return (registerStackModal.current = newPile);
-  }, []);
+    },
+    [setCurrentModal],
+  );
 
   const onOpenModal = useCallback(
     (name: string) => {
-      if (currentModal !== name) {
+      if (currentModal.current !== name) {
         registerStackModal.current = [...registerStackModal.current, name];
         setCurrentModal(name);
       }
     },
-    [setCurrentModal, currentModal],
+    [setCurrentModal],
   );
 
-  const isOpen = useCallback(
-    (name: string) => {
-      if (currentModal === name) return true;
-      return false;
-    },
-    [currentModal],
-  );
-
-  const registerModal = useCallback(
-    (name: string) => {
-      return {
-        open: name === currentModal,
-        onClose: () => onCloseModal(name),
-      };
-    },
-    [onCloseModal, currentModal],
-  );
+  const getOpenModal = useCallback((name: string) => {
+    if (currentModal.current === name) return true;
+    return false;
+  }, []);
 
   return {
-    isOpen,
-    registerModal,
+    getOpenModal,
     onOpenModal,
     onCloseModal,
     onCloseAllModals,

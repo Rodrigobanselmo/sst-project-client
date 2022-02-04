@@ -6,6 +6,7 @@ import { Box } from '@mui/material';
 
 import { useZoom } from '../../../core/hooks/useZoom';
 import { TreeNode } from './components';
+import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
 import { HierarchyContextProvider } from './context/HierarchyContextProvider';
 import { INodeTree, IOrgTreeProps } from './interfaces';
@@ -72,6 +73,7 @@ export const OrgTreeComponent = forwardRef<any, IOrgTreeProps>(
               />
             </OrgTree>
           </OrgTreeContainer>
+          <ModalEditCard />
         </HierarchyContextProvider>
       </Box>
     );
