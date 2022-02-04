@@ -1,20 +1,31 @@
 import React from 'react';
 
-import { IRenderCard } from '../interfaces';
+import { useAppDispatch } from '../../../../../core/hooks/useAppDispatch';
+import { setEditNodes } from '../../../../../store/reducers/tree/treeSlice';
+import { IRenderButton } from '../interfaces';
 import { RenderButton } from './styles';
 
-export const RenderBtn = ({ setExpand, expand, prop }: IRenderCard) => {
+export const RenderBtn = ({ data, prop }: IRenderButton) => {
   const { horizontal } = prop;
+
+  const expand = data.expand;
+
+  const dispatch = useAppDispatch();
 
   return (
     <RenderButton
-      buttonBorderColor={prop.buttonBorderColor || ''}
-      buttonBackgroundColor={prop.buttonBackgroundColor || ''}
       horizontal={!!horizontal}
       expanded={expand}
       onClick={(e) => {
         e.stopPropagation();
-        setExpand(!expand);
+        dispatch(
+          setEditNodes([
+            {
+              id: data.id,
+              expand: !expand,
+            },
+          ]),
+        );
       }}
     />
   );

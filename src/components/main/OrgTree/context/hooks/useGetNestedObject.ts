@@ -8,50 +8,6 @@ import { INestedObject } from '../../interfaces';
 export const useGetNestedObject = (
   hierarchyRef: React.MutableRefObject<INestedObject>,
 ) => {
-  const findParentByChildId = useCallback(
-    (id: number | string, nestsObject?: INestedObject) => {
-      let nestedObject = nestsObject
-        ? { ...nestsObject }
-        : { ...hierarchyRef.current };
-      nestedObject = clone(nestedObject);
-
-      const loop = (
-        childObject: INestedObject,
-        parentObject: INestedObject | null,
-        arrayParentIdPaths = [] as Array<number | string>,
-      ) => {
-        const array: Array<number | string> = [...arrayParentIdPaths];
-
-        if (parentObject?.id) array.push(parentObject.id);
-
-        if (childObject.id === id) {
-          return { parent: parentObject, path: array };
-        }
-
-        if (!childObject?.children) return { parent: null, path: [] };
-
-        let parent: {
-          parent: INestedObject | null;
-          path: Array<number | string>;
-        } = { parent: null, path: [] };
-
-        childObject.children.map((child) => {
-          const loopParent = loop(child, childObject, array);
-          if (loopParent.parent !== null) {
-            parent = loopParent;
-          }
-        });
-
-        return parent;
-      };
-
-      const parentData = loop(nestedObject, null);
-
-      return parentData;
-    },
-    [],
-  );
-
   const findById = useCallback(
     (id: number | string, nestsObject?: INestedObject) => {
       let nestedObject = nestsObject

@@ -1,32 +1,28 @@
-import { Dispatch, SetStateAction } from 'react';
-
-import { INestedObject, IOrgTreeNodeProps } from '../../interfaces';
+import { IOrgTreeNodeProps, ITreeMapObject } from '../../interfaces';
 
 export interface ITreeOptions {
   horizontal?: boolean;
-  strokeColor?: string;
-  strokeWidth?: string;
   expanded?: boolean;
 }
 
 export interface IRenderChildren {
-  list: INestedObject[];
-  data: INestedObject;
+  list: Array<number | string>;
+  data: ITreeMapObject;
   prop: IOrgTreeNodeProps;
-  mock?: boolean;
 }
 
 export interface IRender {
-  data: INestedObject;
   prop: IOrgTreeNodeProps;
   first?: boolean;
-  mock?: boolean;
+  id: string | number;
 }
 
 export interface IRenderCard {
-  data: INestedObject;
+  data: ITreeMapObject;
   prop: IOrgTreeNodeProps;
-  expand?: boolean;
-  setExpand: Dispatch<SetStateAction<boolean>>;
-  mock?: boolean;
+}
+
+export interface IRenderButton {
+  prop: IOrgTreeNodeProps;
+  data: ITreeMapObject;
 }

@@ -39,7 +39,6 @@ export const TextLabel: FC<ITextLabelProps> = ({ data }) => {
   const handleChangeText = (
     e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
   ) => {
-    console.log('123213');
     onDebounce(e.target.value);
     setLabelText(e.target.value);
   };

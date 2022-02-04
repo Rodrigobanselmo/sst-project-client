@@ -1,20 +1,29 @@
+import { useEffect, useState } from 'react';
+
 import { NextPage } from 'next';
 
-import OrgTreeComponent, { useTree } from '../../../../components/main/OrgTree';
+import OrgTreeComponent from '../../../../components/main/OrgTree';
+import { useTreeActions } from '../../../../core/contexts/TreeActionsContextProvider';
 import { STFlexContainer } from './index.styles';
 import { dndData } from './utils/fakeData';
 
 const TestDND: NextPage = () => {
-  const { treeRef } = useTree();
+  const { setTree, onExpandAll } = useTreeActions();
+  const [expand, setExpand] = useState(false);
 
-  const onClick = () => {
-    treeRef.current?.onExpandNodes();
+  useEffect(() => {
+    setTree(dndData);
+  }, [setTree]);
+
+  const handleExpandAll = () => {
+    onExpandAll(!expand);
+    setExpand(!expand);
   };
 
   return (
     <STFlexContainer>
-      <button onClick={onClick}>close/open</button>
-      <OrgTreeComponent data={dndData} ref={treeRef} horizontal />
+      <button onClick={handleExpandAll}>close/open</button>
+      <OrgTreeComponent horizontal />
     </STFlexContainer>
   );
 };

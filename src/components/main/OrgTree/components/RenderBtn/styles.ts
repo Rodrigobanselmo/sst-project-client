@@ -2,11 +2,8 @@ import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
 import { ITreeOptions } from '../interfaces';
-type IButton = ITreeOptions & {
-  buttonBackgroundColor: string;
-  buttonBorderColor: string;
-};
-export const RenderButton = styled.span<IButton>`
+
+export const RenderButton = styled.span<ITreeOptions>`
   position: absolute;
   display: inline-block;
   top: 100%;
@@ -16,10 +13,8 @@ export const RenderButton = styled.span<IButton>`
   z-index: 10;
   margin-left: -11px;
   margin-top: 9px;
-  background-color: ${(prop) =>
-    prop.buttonBackgroundColor ? prop.buttonBackgroundColor : '#fff'};
-  border: 1px solid
-    ${(prop) => (prop.buttonBorderColor ? prop.buttonBorderColor : '#ccc')};
+  background-color: #fff;
+  border: 1px solid #ccc;
   border-radius: 50%;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.15);
   cursor: pointer;
@@ -41,8 +36,7 @@ export const RenderButton = styled.span<IButton>`
     left: 4px;
     right: 4px;
     height: 0;
-    border-top: 1px solid
-      ${(prop) => (prop.buttonBorderColor ? prop.buttonBorderColor : '#ccc')};
+    border-top: 1px solid #ccc;
   }
 
   :after {
@@ -50,8 +44,7 @@ export const RenderButton = styled.span<IButton>`
     left: 50%;
     bottom: 4px;
     width: 0;
-    border-left: 1px solid
-      ${(prop) => (prop.buttonBorderColor ? prop.buttonBorderColor : '#ccc')};
+    border-left: 1px solid #ccc;
   }
 
   ${(props) =>

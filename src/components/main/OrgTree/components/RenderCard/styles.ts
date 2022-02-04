@@ -1,5 +1,6 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
+import { Box } from '@mui/material';
 
 import { ITreeOptions } from '../interfaces';
 
@@ -19,7 +20,7 @@ export const CardArea = styled.div<ITreeOptions>`
 interface ICardCard {
   isDragging: boolean;
 }
-export const RenderLabel = styled.div<ICardCard>`
+export const RenderLabel = styled(Box)<ICardCard>`
   background-color: white;
   cursor: grab;
   display: flex;

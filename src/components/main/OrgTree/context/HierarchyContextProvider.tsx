@@ -10,11 +10,13 @@ import React, {
 
 import clone from 'clone';
 
+import { useAppDispatch } from '../../../../core/hooks/useAppDispatch';
+import { setEditTreeNode } from '../../../../store/reducers/tree/treeSlice';
 import {
   IHierarchyContextData,
   INestedObject,
   IParsedArray,
-  IParsedMap,
+  ITreeMap,
   ISidebarDrawerProps,
 } from '../interfaces';
 import { useAdaptNestedObject } from './hooks/useAdaptNestedObject';
@@ -29,12 +31,15 @@ export function HierarchyContextProvider({
   treeRef,
   data,
 }: ISidebarDrawerProps): JSX.Element {
-  const [hierarchy, setHierarchy] = useState<INestedObject>(data);
+  const dispatch = useAppDispatch();
+
   const hierarchyRef = useRef<INestedObject>(data);
   const draggingItemRef = useRef<INestedObject>(null);
 
   const { arrayToNestedObject, nestedObjectToArray, nestedObjectToMap } =
     useAdaptNestedObject(hierarchyRef);
+
+  const [hierarchy, setHierarchy] = useState<ITreeMap>(nestedObjectToMap(data));
 
   const { addChildrenById, editById, removeById } =
     useEditNestedObject(hierarchyRef);
@@ -42,7 +47,7 @@ export function HierarchyContextProvider({
   const { findById, findParentByChildId, isChild } =
     useGetNestedObject(hierarchyRef);
 
-  const hierarchyMapRef = useRef<IParsedMap>(nestedObjectToMap(data));
+  const hierarchyMapRef = useRef<ITreeMap>(nestedObjectToMap(data));
 
   const setHierarchyRef = useCallback(
     (hierarchy: INestedObject) => {
@@ -53,8 +58,9 @@ export function HierarchyContextProvider({
   );
 
   React.useEffect(() => {
-    setHierarchyRef(hierarchy);
-  }, [hierarchy, setHierarchyRef]);
+    dispatch(setEditTreeNode(nestedObjectToMap(data)));
+    // setHierarchyRef(hierarchy);
+  }, [data, dispatch, nestedObjectToMap]);
 
   useImperativeHandle(
     treeRef,

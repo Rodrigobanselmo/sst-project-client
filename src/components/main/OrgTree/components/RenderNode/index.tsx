@@ -1,33 +1,25 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-import { isLastNode } from '..';
-
+import { useAppSelector } from '../../../../../core/hooks/useAppSelector';
+import { selectTreeData } from '../../../../../store/reducers/tree/treeSlice';
 import { IRender } from '../interfaces';
 import { RenderCard } from '../RenderCard';
 import { RenderChildren } from '../RenderChildren';
 import { OrgTreeNode } from './styles';
 
-export const RenderNode = ({ data, prop, first, mock }: IRender) => {
+export const RenderNode = ({ prop, first, id }: IRender) => {
+  const data = useAppSelector(selectTreeData(id));
+
+  if (!data) return null;
+  console.log('data', data?.label || data);
+
   const cls = ['org-tree-node'];
-  const { node, expandAll, horizontal, strokeColor, strokeWidth, collapsable } =
-    prop;
 
-  const initialExpand =
-    expandAll !== null
-      ? expandAll
-      : !!data && node.expand in data && !!data[node.expand];
+  const { horizontal, collapsable } = prop;
 
-  const [expand, setExpand] = useState(
-    data.id === 'mock' ? true : initialExpand,
-  );
-
-  useEffect(() => {
-    if (expandAll !== null) setExpand(data.id === 'mock' ? true : expandAll);
-  }, [expandAll, data.id]);
-
-  if (isLastNode(data, prop)) {
+  if (data.childrenIds.length == 0) {
     cls.push('is-leaf');
-  } else if (collapsable && !expand) {
+  } else if (collapsable && !data.expand) {
     cls.push('collapsed');
   }
 
@@ -38,23 +30,16 @@ export const RenderNode = ({ data, prop, first, mock }: IRender) => {
       id={`node-tree-${data.id}`}
       horizontal={horizontal}
       className={cls.join(' ')}
-      strokeColor={strokeColor}
-      strokeWidth={strokeWidth}
-      style={data.id === 'mock' ? { display: 'none' } : {}}
     >
-      <RenderCard
-        setExpand={setExpand}
-        expand={expand}
-        data={data}
-        prop={prop}
-        mock={mock}
-      />
-      {(!collapsable || expand) && (
+      <RenderCard data={data} prop={prop} />
+      {(!collapsable || data.expand) && (
+        <RenderChildren data={data} list={data.childrenIds} prop={prop} />
+      )}
+      {data.childrenIds.includes('mock_id') && !data.expand && (
         <RenderChildren
           data={data}
-          list={data.children}
+          list={data.childrenIds.filter((child) => child === 'mock_id')}
           prop={prop}
-          mock={mock}
         />
       )}
     </OrgTreeNode>

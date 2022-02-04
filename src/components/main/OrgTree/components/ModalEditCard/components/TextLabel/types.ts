@@ -1,7 +1,7 @@
 import { BoxProps } from '@mui/material';
 
-import { INestedObject } from '../../../../interfaces';
+import { ITreeMapObject } from '../../../../interfaces';
 
 export interface ITextLabelProps extends BoxProps {
-  data: INestedObject;
+  data: ITreeMapObject;
 }

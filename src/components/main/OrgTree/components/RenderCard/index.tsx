@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { isLastNode } from '..';
-
 import { useModal } from '../../../../../core/contexts/ModalContext';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
 import SText from '../../../../atoms/SText';
@@ -11,22 +9,13 @@ import { RenderBtn } from '../RenderBtn';
 import { useDnd } from './hooks/useDnd';
 import { CardArea, RenderLabel } from './styles';
 
-export const RenderCard = ({
-  data,
-  setExpand,
-  expand,
-  mock,
-  prop,
-}: IRenderCard) => {
+export const RenderCard = ({ data, prop }: IRenderCard) => {
   const { drop, isDragging, drag } = useDnd(data);
   const { onOpenModal } = useModal();
-  console.log(data.id);
 
   const clx = ['org-tree-node-label-inner'];
 
-  if (mock) {
-    clx.push('mock_card');
-  }
+  if (data.className) clx.push(data.className);
 
   return (
     <CardArea
@@ -42,16 +31,11 @@ export const RenderCard = ({
         ref={drag}
         isDragging={isDragging}
         className={clx.join(' ')}
-        style={{ ...prop.cardStyle, ...data.style }}
+        style={{ ...data?.style }}
       >
         <SText lineNumber={2}>{data.label || '...carregando'}</SText>
-        {prop.collapsable && !isLastNode(data, prop) && (
-          <RenderBtn
-            setExpand={setExpand}
-            expand={expand}
-            data={data}
-            prop={prop}
-          />
+        {prop.collapsable && !!data.childrenIds.length && (
+          <RenderBtn prop={prop} data={data} />
         )}
       </RenderLabel>
     </CardArea>

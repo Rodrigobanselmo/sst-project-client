@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useCallback } from 'react';
 
-import { INestedObject, IParsedArray, IParsedMap } from '../../interfaces';
+import { INestedObject, IParsedArray, ITreeMap } from '../../interfaces';
 import { useEditNestedObject } from './useEditNestedObject';
 
 export const useAdaptNestedObject = (
@@ -42,7 +42,7 @@ export const useAdaptNestedObject = (
   }, []);
 
   const nestedObjectToMap = useCallback((data: INestedObject) => {
-    const mapObject: IParsedMap = {};
+    const mapObject: ITreeMap = {};
 
     const loopChildren = (
       { children, ...dataChildren }: INestedObject,
@@ -51,6 +51,7 @@ export const useAdaptNestedObject = (
       const insert = {
         ...dataChildren,
         parentId: null as number | string | null,
+        childrenIds: children.map((child) => child.id),
       };
 
       if (parentId || typeof parentId === 'number') {

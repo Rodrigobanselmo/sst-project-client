@@ -2,76 +2,65 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
+import { useStore } from 'react-redux';
 
-import { useHierarchyData } from '../../../context/HierarchyContextProvider';
+import { useTreeActions } from '../../../../../../core/contexts/TreeActionsContextProvider';
 import { useDebounce } from '../../../hooks/useDebounce';
-import { INestedObject } from './../../../interfaces/index';
+import { ITreeMap, ITreeMapObject } from './../../../interfaces';
 
-export const useDnd = (data: INestedObject) => {
-  const {
-    setHierarchy,
-    editById,
-    isChild,
-    findParentByChildId,
-    findById,
-    draggingItemRef,
-    setHierarchyRef,
-  } = useHierarchyData();
+export const useDnd = (node: ITreeMapObject) => {
+  const { setDraggingItem, isChild, editNodes, removeNodes } = useTreeActions();
+  const store = useStore();
 
-  const onAppendMock = (id: number | string, label: string) => {
-    // add renderNode if has already children inside
-    const componentChildren = document.getElementById(`children_${id}`);
-    if (componentChildren) {
-      const elementMockLabel = document.getElementById('label_text_mock');
-      const elementMockNode = document.getElementById('node-tree-mock');
-      if (!elementMockLabel) return;
-      if (!elementMockNode) return;
+  const onAppendMock = (id: number | string) => {
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+    const dropItem = nodesMap[id] as ITreeMapObject | null;
+    const dragItemId = store.getState().tree
+      .dragItemId as ITreeMapObject | null;
 
-      elementMockLabel.innerText = label;
+    const dropFilterChildren = dropItem?.childrenIds
+      ? dropItem.childrenIds.filter((childId) => childId !== id)
+      : [];
 
-      elementMockNode.style.display = 'table-cell';
-      elementMockNode.id = 'node-tree-mock-clone';
-      const elementMockNodeClone = elementMockNode?.cloneNode(true);
-      elementMockNode.style.display = 'none';
-      elementMockNode.id = 'node-tree-mock';
+    const AddMockToDrop = {
+      id: id,
+      childrenIds: [...dropFilterChildren, 'mock_id'],
+    };
 
-      const elementMockNodeLastChild = elementMockNodeClone.lastChild;
-      elementMockNodeLastChild &&
-        elementMockNodeClone.removeChild(elementMockNodeLastChild);
+    const CreateMock = {
+      id: 'mock_id',
+      childrenIds: [],
+      label: dragItemId?.label,
+      parentId: id,
+      className: 'mock_card',
+    };
 
-      componentChildren.appendChild(elementMockNodeClone);
-      return;
-    }
-
-    // add renderChildrenNode if does not have children inside
-    const componentNode = document.getElementById(`node-tree-${id}`);
-    if (componentNode) {
-      const elementMockLabel = document.getElementById('label_text_child_mock');
-      const componentMockChildren = document.getElementById('children_mock');
-
-      if (!elementMockLabel) return;
-      if (!componentMockChildren) return;
-
-      elementMockLabel.innerText = label;
-
-      const oldMockId = componentMockChildren.id;
-      componentMockChildren.id = 'node-tree-mock-clone';
-      const componentMockChildrenClone = componentMockChildren?.cloneNode(true);
-      componentMockChildren.id = oldMockId;
-
-      componentNode.appendChild(componentMockChildrenClone);
-    }
+    return editNodes([CreateMock, AddMockToDrop]);
   };
 
   const onRemoveMock = () => {
-    const componentCloneMock = document.getElementById('node-tree-mock-clone');
-    componentCloneMock && componentCloneMock.remove();
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+    const mockItem = nodesMap['mock_id'] as ITreeMapObject | null;
+    const dropItem = nodesMap[node.id] as ITreeMapObject | null;
+
+    if (mockItem && dropItem?.id === mockItem.parentId) {
+      const removeMock = {
+        id: mockItem?.parentId || '',
+        childrenIds:
+          nodesMap[mockItem?.parentId || '']?.childrenIds.filter(
+            (child) => child !== 'mock_id',
+          ) || [],
+      };
+
+      editNodes([removeMock]);
+      return removeNodes(mockItem.id);
+    }
   };
 
   const [{ isDragging }, drag] = useDrag(
     () => ({
       type: 'box',
-      item: data,
+      item: node,
       options: {
         dropEffect: 'copy',
       },
@@ -83,7 +72,7 @@ export const useDnd = (data: INestedObject) => {
   );
 
   useEffect(() => {
-    const labelDoc = document.getElementById(`node-tree-${data.id}`);
+    const labelDoc = document.getElementById(`node-tree-${node.id}`);
     if (!labelDoc) return;
 
     const LabelClassName = labelDoc.className;
@@ -92,64 +81,64 @@ export const useDnd = (data: INestedObject) => {
       ? labelDoc.className + ' RdtCant-drop'
       : LabelClassName.replace(' RdtCant-drop', '');
 
-    draggingItemRef.current = data;
+    setDraggingItem(node);
   }, [isDragging]);
 
   const onDragEnter = (dropId: string | number) => {
-    let dragLabel = 'Copiar aqui';
-    if (draggingItemRef.current) {
-      const dragItemId = draggingItemRef.current.id;
-      const canDrop = dragItemId !== data.id && !isChild(dragItemId, data.id);
-      dragLabel = draggingItemRef.current.label;
+    const dragItemId = store.getState().tree
+      .dragItemId as ITreeMapObject | null;
+
+    if (dragItemId) {
+      const canDrop =
+        dragItemId.id !== node?.id && !isChild(dragItemId.id, node.id);
       if (!canDrop) return;
     }
-    onAppendMock(dropId, dragLabel);
+
+    onAppendMock(dropId);
   };
 
   const onDragLeave = () => {
     onRemoveMock();
   };
 
-  const onDrop = (drag: INestedObject) => {
-    const dragItem = findById(drag.id);
-    const dropItem = data;
+  const onDrop = (drag: ITreeMapObject) => {
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+    const dragItem = nodesMap[drag.id] as ITreeMapObject | null;
+    const dropItem = nodesMap[node.id] as ITreeMapObject | null;
 
-    const { parent: parentDragItem } = findParentByChildId(drag.id);
+    const removeDragFromParent = {
+      id: dragItem?.parentId || '',
+      childrenIds:
+        nodesMap[dragItem?.parentId || '']?.childrenIds.filter(
+          (child) => child !== dragItem?.id,
+        ) || [],
+    };
 
-    if (parentDragItem && dragItem) {
-      const newParent = {
-        ...parentDragItem,
-        children: [...parentDragItem.children.filter((i) => i.id !== drag.id)],
-      };
+    const changeDragParent = {
+      id: dragItem?.id || '',
+      parentId: dropItem?.id,
+    };
 
-      const removedDragItemHierarchy = editById(
-        parentDragItem.id,
-        newParent,
-        'replace',
-      );
+    const dropFilterChildren = dropItem?.childrenIds
+      ? dropItem.childrenIds.filter((childId) => childId !== dragItem?.id)
+      : [];
 
-      const addedDragItemHierarchy = editById(
-        dropItem.id,
-        {
-          children: [dragItem],
-        },
-        'soft-edit',
-        removedDragItemHierarchy,
-      );
+    const AddDragToDrop = {
+      id: dropItem?.id || '',
+      childrenIds: [...dropFilterChildren, dragItem?.id || ''],
+    };
 
-      setHierarchy(addedDragItemHierarchy);
-      setHierarchyRef(addedDragItemHierarchy);
-    }
+    return editNodes([removeDragFromParent, changeDragParent, AddDragToDrop]);
   };
 
-  const { onDebounce } = useDebounce(onDragEnter, 300);
+  const { onDebounce } = useDebounce(onDragEnter, 500);
 
   const [{ isOver }, drop] = useDrop(
     () => ({
       accept: 'box',
-      canDrop: (item: INestedObject) =>
-        item.id !== data.id && !isChild(item.id, data.id),
-      drop: (drag: INestedObject) => onDrop(drag),
+      canDrop: (item: ITreeMapObject) =>
+        item.id !== node.id && !isChild(item.id, node.id),
+      drop: (drag: ITreeMapObject) => onDrop(drag),
       collect: (monitor: any) => ({
         isOver: !!monitor.isOver(),
       }),
@@ -158,7 +147,7 @@ export const useDnd = (data: INestedObject) => {
   );
 
   useEffect(() => {
-    if (isOver) onDebounce(data.id);
+    if (isOver) onDebounce(node.id);
     else onDragLeave();
   }, [isOver]);
 
