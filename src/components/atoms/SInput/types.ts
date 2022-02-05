@@ -10,5 +10,6 @@ export type ISInputProps = TextFieldProps & {
   circularProps?: CircularProgressProps;
   labelPosition?: 'center' | 'top';
   success?: boolean;
+  unstyled?: boolean;
   secondary?: boolean;
 };

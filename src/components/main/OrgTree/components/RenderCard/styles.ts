@@ -1,10 +1,12 @@
 import { css } from '@emotion/react';
-import styled from '@emotion/styled';
-import { Box } from '@mui/material';
+import { Box, styled } from '@mui/material';
 
-import { ITreeOptions } from '../interfaces';
+import { TreeTypeEnum } from '../../../../../core/enums/tree-type.enums';
 
-export const CardArea = styled.div<ITreeOptions>`
+export const STCardArea = styled('div')<{
+  horizontal?: number;
+  expanded?: number;
+}>`
   position: relative;
   display: inline-block;
   cursor: move;
@@ -19,22 +21,24 @@ export const CardArea = styled.div<ITreeOptions>`
 
 interface ICardCard {
   isDragging: boolean;
+  type?: TreeTypeEnum;
 }
-export const RenderLabel = styled(Box)<ICardCard>`
+export const STRenderLabel = styled(Box)<ICardCard>`
   background-color: white;
   cursor: grab;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 15px;
+  padding: 7px 15px;
   min-width: 100px;
   min-height: 45px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
   z-index: 100000;
-  text-align: center;
-  color: black;
+  color: ${(props) => props.theme.palette.text.main};
   position: relative;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
   border-radius: 5px;
+  width: 320px;
+  height: 98px;
 
   // no break line
   white-space: nowrap;
@@ -45,13 +49,19 @@ export const RenderLabel = styled(Box)<ICardCard>`
   }
 
   ${(props) =>
+    props.type === TreeTypeEnum.OPTION &&
+    css`
+      border-radius: 20px;
+    `}
+
+  ${(props) =>
     props.isDragging &&
     css`
       cursor: grabbing;
     `}
 `;
 
-export const StyledLabel = styled.div`
+export const StyledLabel = styled('div')`
   margin: 0;
   padding: 0;
 `;

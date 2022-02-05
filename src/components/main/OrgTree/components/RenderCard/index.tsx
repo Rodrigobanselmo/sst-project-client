@@ -1,43 +1,50 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
 import { useModal } from '../../../../../core/contexts/ModalContext';
+import { useTreeActions } from '../../../../../core/contexts/TreeActionsContextProvider';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
-import SText from '../../../../atoms/SText';
 import { IRenderCard } from '../interfaces';
 import { RenderBtn } from '../RenderBtn';
+import { NodeCard } from './components/NodeCard';
 import { useDnd } from './hooks/useDnd';
-import { CardArea, RenderLabel } from './styles';
+import { STCardArea, STRenderLabel } from './styles';
 
-export const RenderCard = ({ data, prop }: IRenderCard) => {
-  const { drop, isDragging, drag } = useDnd(data);
+export const RenderCard = ({ node, prop }: IRenderCard) => {
+  const { setSelectedItem } = useTreeActions();
+  const { drop, isDragging, drag } = useDnd(node);
   const { onOpenModal } = useModal();
 
   const clx = ['org-tree-node-label-inner'];
 
-  if (data.className) clx.push(data.className);
+  if (node.className) clx.push(node.className);
+
+  const handleClickCard = () => {
+    onOpenModal(ModalEnum.TREE_CARD);
+    setSelectedItem(node);
+  };
 
   return (
-    <CardArea
-      id={`label_${data.id}`}
-      key={`label_${data.id}`}
-      horizontal={!!prop.horizontal}
+    <STCardArea
+      id={`label_${node.id}`}
+      key={`label_${node.id}`}
+      horizontal={prop.horizontal ? 1 : 0}
       className={'org-tree-node-label'}
       ref={drop}
-      onClick={() => onOpenModal(ModalEnum.TREE_CARD)}
+      onClick={handleClickCard}
     >
-      <RenderLabel
-        key={`label_inner_${data.id}`}
+      <STRenderLabel
+        key={`label_inner_${node.id}`}
         ref={drag}
+        type={node.type}
         isDragging={isDragging}
         className={clx.join(' ')}
-        style={{ ...data?.style }}
+        style={{ ...node?.style }}
       >
-        <SText lineNumber={2}>{data.label || '...carregando'}</SText>
-        {prop.collapsable && !!data.childrenIds.length && (
-          <RenderBtn prop={prop} data={data} />
+        <NodeCard node={node} />
+        {prop.collapsable && !!node.childrenIds.length && (
+          <RenderBtn prop={prop} node={node} />
         )}
-      </RenderLabel>
-    </CardArea>
+      </STRenderLabel>
+    </STCardArea>
   );
 };

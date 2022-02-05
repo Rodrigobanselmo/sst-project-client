@@ -25,6 +25,7 @@ import {
   setExpandAll,
   setMapTree,
   setRemoveNode,
+  setSelectItem,
 } from '../../store/reducers/tree/treeSlice';
 import { useAppDispatch } from '../hooks/useAppDispatch';
 
@@ -88,13 +89,6 @@ export const TreeActionsContextProvider: FC<ITreeActionsContextProps> = ({
     [store],
   );
 
-  const setDraggingItem = useCallback(
-    (id: ITreeMapObject) => {
-      dispatch(setDragItem(id));
-    },
-    [dispatch],
-  );
-
   const isChild = useCallback(
     (parentId: number | string, childId: number | string) => {
       return getPathById(String(childId)).includes(String(parentId));
@@ -109,6 +103,20 @@ export const TreeActionsContextProvider: FC<ITreeActionsContextProps> = ({
     [dispatch],
   );
 
+  const setDraggingItem = useCallback(
+    (node: ITreeMapObject) => {
+      dispatch(setDragItem(node));
+    },
+    [dispatch],
+  );
+
+  const setSelectedItem = useCallback(
+    (node: ITreeMapObject, action: 'edit' | 'add' = 'edit') => {
+      dispatch(setSelectItem({ ...node, action }));
+    },
+    [dispatch],
+  );
+
   return (
     <TreeActionsContext.Provider
       value={{
@@ -119,6 +127,8 @@ export const TreeActionsContextProvider: FC<ITreeActionsContextProps> = ({
         setDraggingItem,
         onExpandAll,
         editTreeMap,
+        setSelectedItem,
+        getPathById,
       }}
     >
       {children}

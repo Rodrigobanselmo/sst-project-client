@@ -1,9 +1,10 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { ITreeOptions } from '../interfaces';
-
-export const ChildrenComponent = styled.div<ITreeOptions>`
+export const ChildrenComponent = styled.div<{
+  horizontal?: number;
+  expanded?: number;
+}>`
   position: relative;
   margin: 0;
   padding: 0;
@@ -25,8 +26,7 @@ export const ChildrenComponent = styled.div<ITreeOptions>`
     left: 50%;
     width: 0;
     height: 20px;
-    border-right: ${(prop) => (prop.strokeWidth ? prop.strokeWidth : '1px')}
-      solid ${(prop) => (prop.strokeColor ? prop.strokeColor : '#000')};
+    border-right: 1px solid #000;
   }
 
   &:after {
@@ -48,8 +48,7 @@ export const ChildrenComponent = styled.div<ITreeOptions>`
         width: 20px;
         height: 0;
         border-left: 0;
-        border-top: ${props.strokeWidth ? props.strokeWidth : '1px'} solid
-          ${props.strokeColor ? props.strokeColor : '#000'};
+        border-top: 1px solid #000;
       }
 
       &:after {

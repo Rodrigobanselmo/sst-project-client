@@ -12,6 +12,7 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
   left: 0;
   height: 100%;
   width: 100%;
+  padding: 30px;
 
   &::-webkit-scrollbar {
     width: 10px;

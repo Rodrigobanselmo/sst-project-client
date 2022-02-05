@@ -10,7 +10,7 @@ const RenderChildrenNodes = ({ nodeId, prop, list }: IRenderChildren) => {
       <ChildrenComponent
         id={`children_${nodeId}`}
         className={'org-tree-node-children'}
-        horizontal={!!prop.horizontal}
+        horizontal={prop.horizontal ? 1 : 0}
       >
         {list.map((childId) => {
           return <RenderNode key={childId} id={childId} prop={prop} />;

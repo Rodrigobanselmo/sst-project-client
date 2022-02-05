@@ -33,16 +33,19 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
     >
       {subtitle && (
         <Box>
-          <SText variant="h4">{title}</SText>
+          <SText variant="h5">{title}</SText>
           <SText lineHeight="1px">{subtitle}</SText>
         </Box>
       )}
-      {!subtitle && <SText variant="h4">{title}</SText>}
+      {!subtitle && typeof title === 'string' && (
+        <SText variant="h5">{title}</SText>
+      )}
+      {!(typeof title === 'string') && title}
       <SIconButton
         sx={{ ml: [10, 10, 50], mt: -4, mr: -4 }}
         onClick={onCloseAction}
       >
-        <Icon sx={{ fontSize: 30 }} component={RiCloseFill} />
+        <Icon sx={{ fontSize: 25 }} component={RiCloseFill} />
       </SIconButton>
     </Box>
   );

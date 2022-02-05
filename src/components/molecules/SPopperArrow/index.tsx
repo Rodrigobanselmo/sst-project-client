@@ -17,6 +17,8 @@ export const SPopperArrow: FC<IPopperProps> = ({
   anchorEl,
   sx,
   color = 'paper',
+  disabledArrow,
+  placement = 'bottom-end',
   ...props
 }) => {
   const [arrowRef, setArrowRef] = useState(null);
@@ -33,7 +35,8 @@ export const SPopperArrow: FC<IPopperProps> = ({
       open={isOpen}
       anchorEl={anchorEl.current}
       transition
-      placement="bottom-end"
+      placement={placement}
+      style={{ zIndex: 10000, padding: 0 }}
       modifiers={[
         {
           name: 'flip',
@@ -61,18 +64,23 @@ export const SPopperArrow: FC<IPopperProps> = ({
                 boxShadow: 3,
                 backgroundColor: `background.${color}`,
                 color: 'gray.200',
-                px: 6,
-                py: 4,
+                px: 0,
+                py: 0,
+                transform: !disabledArrow
+                  ? 'translateY(15px)'
+                  : 'translateY(5px)',
                 ...sx,
               }}
               {...props}
             >
               {children}
-              <STArrowStyled
-                color={color}
-                placement="bottom-end"
-                ref={setArrowRef as any}
-              />
+              {!disabledArrow && (
+                <STArrowStyled
+                  color={color}
+                  placement="bottom-end"
+                  ref={setArrowRef as any}
+                />
+              )}
             </Box>
           </Fade>
         </ClickAwayListener>

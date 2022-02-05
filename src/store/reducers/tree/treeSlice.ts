@@ -7,11 +7,14 @@ import {
   ITreeMapEdit,
   ITreeMapObject,
   ITreeMapPartial,
+  ITreeSelectedItem,
 } from '../../../components/main/OrgTree/interfaces';
+import { TreeTypeEnum } from '../../../core/enums/tree-type.enums';
 
 interface ITreeSlice {
   nodes: ITreeMap;
-  dragItemId: ITreeMapObject | null;
+  dragItem: ITreeMapObject | null;
+  selectItem: ITreeSelectedItem | null;
 }
 
 const initialState: ITreeSlice = {
@@ -21,9 +24,11 @@ const initialState: ITreeSlice = {
       label: 'Click para editar',
       parentId: null,
       childrenIds: [],
+      type: TreeTypeEnum.CHECKLIST,
     },
   },
-  dragItemId: null,
+  dragItem: null,
+  selectItem: null,
 };
 
 const name = 'tree';
@@ -63,7 +68,17 @@ export const treeSlice = createSlice({
       });
     },
     setDragItem: (state, action: PayloadAction<ITreeMapObject | null>) => {
-      state.dragItemId = action.payload;
+      state.dragItem = action.payload;
+    },
+    setSelectItem: (state, action: PayloadAction<ITreeSelectedItem | null>) => {
+      state.selectItem = action.payload;
+    },
+    setEditSelectItem: (
+      state,
+      action: PayloadAction<Partial<ITreeSelectedItem> | null>,
+    ) => {
+      if (state.selectItem)
+        state.selectItem = { ...state.selectItem, ...action.payload };
     },
     setExpandAll: (
       state,
@@ -93,11 +108,16 @@ export const {
   setRemoveNode,
   setExpandAll,
   setMapTree,
+  setSelectItem,
+  setEditSelectItem,
 } = treeSlice.actions;
+
+export const selectAllTreeNodes = (state: AppState) => state[name].nodes;
 
 export const selectTreeData = (id: string | number) => (state: AppState) =>
   state[name].nodes[id];
 
-export const selectTreeDragItem = (state: AppState) => state[name].dragItemId;
+export const selectTreeDragItem = (state: AppState) => state[name].dragItem;
+export const selectTreeSelectItem = (state: AppState) => state[name].selectItem;
 
 export default treeSlice.reducer;

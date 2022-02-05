@@ -18,11 +18,11 @@ export interface IRender {
 }
 
 export interface IRenderCard {
-  data: ITreeMapObject;
+  node: ITreeMapObject;
   prop: IOrgTreeNodeProps;
 }
 
 export interface IRenderButton {
   prop: IOrgTreeNodeProps;
-  data: ITreeMapObject;
+  node: ITreeMapObject;
 }

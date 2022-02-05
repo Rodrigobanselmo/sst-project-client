@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSProperties } from 'react';
 
+import { TreeTypeEnum } from '../../../../core/enums/tree-type.enums';
+
 export interface IOrgTreeProps {
   horizontal?: boolean;
   collapsable?: boolean;
@@ -13,11 +15,15 @@ export interface ITreeMapObject {
   childrenIds: Array<string | number>;
   id: string | number;
   label: string;
+  type: TreeTypeEnum;
   expand?: boolean;
   style?: CSSProperties;
   className?: string;
 }
 
+export interface ITreeSelectedItem extends ITreeMapObject {
+  action: 'edit' | 'add';
+}
 export interface ITreeMap extends Record<string, ITreeMapObject> {}
 
 export interface ITreeMapPartial
@@ -34,9 +40,11 @@ export interface ITreeActionsContextData {
   removeNodes: (id: Array<number | string> | number | string) => void;
   isChild: (parentId: number | string, childId: number | string) => boolean;
   setDraggingItem: (node: ITreeMapObject) => void;
+  setSelectedItem: (node: ITreeMapObject, action?: 'add' | 'edit') => void;
   onExpandAll: (expand: boolean, nodeId?: string | number | undefined) => void;
   editTreeMap: (nodesMap: ITreeMapPartial) => void;
   setTree: (nodesMap: ITreeMap) => void;
+  getPathById: (id: number | string) => string[];
 }
 
 export interface ITreeActionsContextProps {}

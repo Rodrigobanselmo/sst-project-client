@@ -2,24 +2,25 @@ import React from 'react';
 
 import { useAppSelector } from '../../../../../core/hooks/useAppSelector';
 import { selectTreeData } from '../../../../../store/reducers/tree/treeSlice';
+import { ITreeMapObject } from '../../interfaces';
 import { IRender } from '../interfaces';
 import { RenderCard } from '../RenderCard';
 import { RenderChildren } from '../RenderChildren';
 import { OrgTreeNode } from './styles';
 
 export const RenderNode = ({ prop, first, id }: IRender) => {
-  const data = useAppSelector(selectTreeData(id));
+  const node = useAppSelector(selectTreeData(id)) as ITreeMapObject | null;
 
-  if (!data) return null;
-  console.log('data', data?.label || data);
+  if (!node) return null;
+  console.log('node', node?.label || node);
 
   const cls = ['org-tree-node'];
 
   const { horizontal, collapsable } = prop;
 
-  if (data.childrenIds.length == 0) {
+  if (node.childrenIds.length == 0) {
     cls.push('is-leaf');
-  } else if (collapsable && !data.expand) {
+  } else if (collapsable && !node.expand) {
     cls.push('collapsed');
   }
 
@@ -27,18 +28,18 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
 
   return (
     <OrgTreeNode
-      id={`node-tree-${data.id}`}
-      horizontal={horizontal}
+      id={`node-tree-${node.id}`}
+      horizontal={horizontal ? 1 : 0}
       className={cls.join(' ')}
     >
-      <RenderCard data={data} prop={prop} />
-      {(!collapsable || data.expand) && (
-        <RenderChildren nodeId={data.id} list={data.childrenIds} prop={prop} />
+      <RenderCard node={node} prop={prop} />
+      {(!collapsable || node.expand) && (
+        <RenderChildren nodeId={node.id} list={node.childrenIds} prop={prop} />
       )}
-      {data.childrenIds.includes('mock_id') && !data.expand && (
+      {node.childrenIds.includes('mock_id') && !node.expand && (
         <RenderChildren
-          nodeId={data.id}
-          list={data.childrenIds.filter((child) => child === 'mock_id')}
+          nodeId={node.id}
+          list={node.childrenIds.filter((child) => child === 'mock_id')}
           prop={prop}
         />
       )}

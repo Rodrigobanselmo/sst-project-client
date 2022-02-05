@@ -42,6 +42,11 @@ const palette = {
     100: '#EDF2F7',
     50: '#F7FAFC',
   },
+  tag: {
+    edit: '#718096',
+    add: '#4CAF50',
+    delete: '#F44336',
+  },
   secondary: {
     main: '#1A202C',
   },
@@ -57,6 +62,7 @@ const palette = {
     paper: '#FFFFFF',
     darkPaper: '#c4c4c4',
     dark: '#1A202C',
+    divider: '#efefef',
   },
   text: {
     dark: '#000',

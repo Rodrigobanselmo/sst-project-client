@@ -31,7 +31,6 @@ export const SModalButtons: FC<SModalHeaderProps> = ({
         return (
           <SButton
             key={`${index}-button`}
-            size={'large'}
             variant={isFirst ? 'outlined' : 'contained'}
             onClick={onClose}
             {...buttonProps}

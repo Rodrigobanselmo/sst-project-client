@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -16,6 +17,7 @@ export const SInput: FC<ISInputProps> = ({
   endAdornment,
   loading,
   variant = 'outlined',
+  unstyled,
   size = 'medium',
   labelPosition = 'top',
   label,
@@ -63,7 +65,8 @@ export const SInput: FC<ISInputProps> = ({
           ...InputProps,
         }}
         label={labelPosition === 'center' ? label : ''}
-        variant={variant}
+        variant={variant as any}
+        unstyled={unstyled ? 1 : 0}
         helperText={helperText}
         {...props}
       />

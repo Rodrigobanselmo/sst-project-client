@@ -41,9 +41,11 @@ const nestedObjectToMap = (data: any) => {
 const dndNestedData = {
   id: 'seed',
   label: 'President',
+  type: 1,
   children: [
     {
       ...fakeData(),
+      type: 2,
       children: [
         {
           ...fakeData(),
@@ -372,6 +374,7 @@ const dndNestedData = {
     },
     {
       ...fakeData(),
+      type: 3,
       children: [
         {
           ...fakeData(),
@@ -652,6 +655,7 @@ const dndNestedData = {
     },
     {
       ...fakeData(),
+      type: 4,
       children: [
         {
           ...fakeData(),

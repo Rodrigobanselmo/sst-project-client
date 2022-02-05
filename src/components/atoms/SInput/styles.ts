@@ -7,12 +7,24 @@ export const STTextField = styled(TextField)<{
   errors: number;
   secondary: number;
   size: string;
+  unstyled: number;
 }>`
+  &&& .MuiOutlinedInput-notchedOutline {
+    border-color: ${(props) => props.theme.palette.background.divider};
+    border-width: 2px;
+  }
+
+  &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: ${(props) => props.theme.palette.primary.main};
+  }
+
   &:hover {
     &&& .MuiOutlinedInput-notchedOutline {
-      opacity: 0.3;
+      border-color: ${(props) => props.theme.palette.background.default};
+      border-width: 2px;
     }
     &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+      border-color: ${(props) => props.theme.palette.primary.main};
       opacity: 1;
     }
   }
@@ -79,6 +91,22 @@ export const STTextField = styled(TextField)<{
         color: ${props.theme.palette.gray[50]};
         background-color: ${props.theme.palette.db[900]};
         max-height: 2.2rem;
+      }
+    `}
+
+  ${(props) =>
+    props.unstyled &&
+    css`
+      border: none !important;
+
+      * {
+        &:after {
+          display: none;
+        }
+        &:before {
+          display: none;
+        }
+        border: none !important;
       }
     `}
 `;

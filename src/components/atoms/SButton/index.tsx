@@ -15,7 +15,7 @@ export const SButton: FC<SButtonProps> = ({
     <STButton
       variant={variant}
       loading={loading}
-      sx={{ minWidth: '120px', ...sx }}
+      sx={{ minWidth: '100px', textTransform: 'none', ...sx }}
       {...props}
     >
       {children}

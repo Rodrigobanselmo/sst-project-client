@@ -1,12 +1,13 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { ITreeOptions } from '../interfaces';
-
-export const RenderButton = styled.span<ITreeOptions>`
+export const RenderButton = styled.span<{
+  horizontal: number;
+  expanded: number;
+}>`
   position: absolute;
   display: inline-block;
-  top: 100%;
+  top: 50%;
   left: 50%;
   width: 20px;
   height: 20px;

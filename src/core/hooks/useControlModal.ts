@@ -74,5 +74,6 @@ export const useControlModal = () => {
     onOpenModal,
     onCloseModal,
     onCloseAllModals,
+    registerStackModal,
   };
 };

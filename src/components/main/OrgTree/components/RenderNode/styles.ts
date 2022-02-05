@@ -1,9 +1,10 @@
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
-import { ITreeOptions } from '../interfaces';
-
-export const OrgTreeNode = styled.div<ITreeOptions>`
+export const OrgTreeNode = styled.div<{
+  horizontal?: number;
+  expanded?: number;
+}>`
   position: relative;
   margin: 0;
   padding: 0;

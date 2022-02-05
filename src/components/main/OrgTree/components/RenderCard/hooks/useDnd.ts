@@ -15,8 +15,7 @@ export const useDnd = (node: ITreeMapObject) => {
   const onAppendMock = (id: number | string) => {
     const nodesMap = store.getState().tree.nodes as ITreeMap;
     const dropItem = nodesMap[id] as ITreeMapObject | null;
-    const dragItemId = store.getState().tree
-      .dragItemId as ITreeMapObject | null;
+    const dragItem = store.getState().tree.dragItem as ITreeMapObject | null;
 
     const dropFilterChildren = dropItem?.childrenIds
       ? dropItem.childrenIds.filter((childId) => childId !== id)
@@ -30,7 +29,7 @@ export const useDnd = (node: ITreeMapObject) => {
     const CreateMock = {
       id: 'mock_id',
       childrenIds: [],
-      label: dragItemId?.label,
+      label: dragItem?.label,
       parentId: id,
       className: 'mock_card',
     };
@@ -85,12 +84,11 @@ export const useDnd = (node: ITreeMapObject) => {
   }, [isDragging]);
 
   const onDragEnter = (dropId: string | number) => {
-    const dragItemId = store.getState().tree
-      .dragItemId as ITreeMapObject | null;
+    const dragItem = store.getState().tree.dragItem as ITreeMapObject | null;
 
-    if (dragItemId) {
+    if (dragItem) {
       const canDrop =
-        dragItemId.id !== node?.id && !isChild(dragItemId.id, node.id);
+        dragItem.id !== node?.id && !isChild(dragItem.id, node.id);
       if (!canDrop) return;
     }
 

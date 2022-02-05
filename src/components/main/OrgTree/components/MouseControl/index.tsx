@@ -1,11 +1,13 @@
 import React, { useState, useRef, FC } from 'react';
 
+import { useModal } from '../../../../../core/contexts/ModalContext';
 import { useKeypress } from '../../../../../core/hooks/useKeypress';
 import { STMouseControlBox } from './styles';
 
 export const MouseControl: FC<{
   orgContainerRef: React.RefObject<HTMLDivElement>;
 }> = ({ orgContainerRef }) => {
+  const { registerStackModal } = useModal();
   const [controlKeyPress, setControlKeyPress] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef<boolean>(false);
@@ -15,8 +17,13 @@ export const MouseControl: FC<{
   useKeypress(
     ' ',
     (e) => {
-      e.preventDefault();
-      setControlKeyPress(true);
+      if (
+        registerStackModal.current &&
+        registerStackModal.current.length === 0
+      ) {
+        e.preventDefault();
+        setControlKeyPress(true);
+      }
     },
     'keydown',
   );
@@ -24,8 +31,13 @@ export const MouseControl: FC<{
   useKeypress(
     ' ',
     (e) => {
-      e.preventDefault();
-      setControlKeyPress(false);
+      if (
+        registerStackModal.current &&
+        registerStackModal.current.length === 0
+      ) {
+        e.preventDefault();
+        setControlKeyPress(false);
+      }
     },
     'keyup',
   );
