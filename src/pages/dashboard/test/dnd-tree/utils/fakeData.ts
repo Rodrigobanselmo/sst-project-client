@@ -39,7 +39,7 @@ const nestedObjectToMap = (data: any) => {
 };
 
 const dndNestedData = {
-  id: 'seed',
+  id: 'principal',
   label: 'President',
   type: 1,
   children: [

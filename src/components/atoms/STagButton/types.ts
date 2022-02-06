@@ -4,7 +4,7 @@ import { ElementType } from 'react';
 import { BoxProps } from '@mui/material';
 
 export interface ISTagButtonProps extends BoxProps {
-  text: string;
+  text?: string;
   large?: boolean;
   icon?: ElementType<any>;
 }

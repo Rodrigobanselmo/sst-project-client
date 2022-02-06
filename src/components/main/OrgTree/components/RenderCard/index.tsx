@@ -30,7 +30,6 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
       horizontal={prop.horizontal ? 1 : 0}
       className={'org-tree-node-label'}
       ref={drop}
-      onClick={handleClickCard}
     >
       <STRenderLabel
         key={`label_inner_${node.id}`}
@@ -39,6 +38,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
         isDragging={isDragging}
         className={clx.join(' ')}
         style={{ ...node?.style }}
+        onClick={handleClickCard}
       >
         <NodeCard node={node} />
         {prop.collapsable && !!node.childrenIds.length && (

@@ -1,23 +1,39 @@
 import React, { FC, MouseEvent } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
-import MoreHorizIcon from '@mui/icons-material/MoreHoriz';
-import { Box, Icon, Stack } from '@mui/material';
+import { Box, Stack } from '@mui/material';
 
 import { useModal } from '../../../../../../../core/contexts/ModalContext';
 import { useTreeActions } from '../../../../../../../core/contexts/TreeActionsContextProvider';
 import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
+import { TreeTypeEnum } from '../../../../../../../core/enums/tree-type.enums';
+import { STagButton } from '../../../../../../atoms/STagButton';
 import SText from '../../../../../../atoms/SText';
-import { STSBoxButton } from './styles';
+import { ITreeSelectedItem } from '../../../../interfaces';
+import { nodeTypesConstant } from '../../../ModalEditCard/utils/node-type.constant';
+import { TypeSelect } from '../../../Selects/TypeSelect';
 import { INodeCardProps } from './types';
 
 export const NodeCard: FC<INodeCardProps> = ({ node }) => {
   const { onOpenModal } = useModal();
-  const { setSelectedItem } = useTreeActions();
+  const { setSelectedItem, addNodes, editNodes, getUniqueId } =
+    useTreeActions();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
     onOpenModal(ModalEnum.TREE_CARD);
-    setSelectedItem(node, 'add');
+
+    const newNode = {
+      id: getUniqueId(),
+      childrenIds: [],
+      type: nodeTypesConstant[node.type].childOptions[0],
+      label: '',
+      parentId: node.id,
+      expand: false,
+    };
+
+    editNodes([{ id: node.id, expand: true }]);
+    addNodes([newNode]);
+    setSelectedItem(newNode, 'add');
     e.stopPropagation();
   };
 
@@ -25,8 +41,14 @@ export const NodeCard: FC<INodeCardProps> = ({ node }) => {
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box>
-          <SText lineHeight="15px" fontSize="12px" color="text.light" mb={2}>
-            Categoria
+          <SText
+            className="node-tree-text-id"
+            lineHeight="15px"
+            fontSize="12px"
+            color="text.light"
+            mb={2}
+          >
+            {node.id}
           </SText>
           <SText
             sx={{ pr: 10, width: '100%', fontSize: '15px', lineHeight: '18px' }}
@@ -35,17 +57,16 @@ export const NodeCard: FC<INodeCardProps> = ({ node }) => {
             {node.label}
           </SText>
         </Box>
-        <STSBoxButton onClick={handleAddCard}>
-          <Icon sx={{ fontSize: 14 }} component={AddIcon} />
-        </STSBoxButton>
+        <STagButton sx={{ px: 2 }} onClick={handleAddCard} icon={AddIcon} />
       </Box>
       <Stack spacing={2} mt={3} direction="row">
-        <STSBoxButton onClick={handleAddCard}>
-          <Icon sx={{ fontSize: 14 }} component={MoreHorizIcon} />
-        </STSBoxButton>
-        <STSBoxButton onClick={handleAddCard}>
-          <Icon sx={{ fontSize: 14 }} component={AddIcon} />
-        </STSBoxButton>
+        <TypeSelect
+          node={node as ITreeSelectedItem}
+          parentId={node?.parentId || 'no-node'}
+          handleSelect={(option) =>
+            editNodes([{ id: node.id, type: option.value as TreeTypeEnum }])
+          }
+        />
       </Stack>
     </>
   );

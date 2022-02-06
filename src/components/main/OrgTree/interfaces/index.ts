@@ -16,7 +16,7 @@ export interface ITreeMapObject {
   id: string | number;
   label: string;
   type: TreeTypeEnum;
-  expand?: boolean;
+  expand: boolean;
   style?: CSSProperties;
   className?: string;
 }
@@ -37,6 +37,7 @@ export interface ITreeMapPartialEdit extends Record<string, ITreeMapEdit> {}
 
 export interface ITreeActionsContextData {
   editNodes: (nodesMap: ITreeMapEdit[]) => void;
+  addNodes: (nodesMap: ITreeMapObject[]) => void;
   removeNodes: (id: Array<number | string> | number | string) => void;
   isChild: (parentId: number | string, childId: number | string) => boolean;
   setDraggingItem: (node: ITreeMapObject) => void;
@@ -45,6 +46,7 @@ export interface ITreeActionsContextData {
   editTreeMap: (nodesMap: ITreeMapPartial) => void;
   setTree: (nodesMap: ITreeMap) => void;
   getPathById: (id: number | string) => string[];
+  getUniqueId: () => string;
 }
 
 export interface ITreeActionsContextProps {}

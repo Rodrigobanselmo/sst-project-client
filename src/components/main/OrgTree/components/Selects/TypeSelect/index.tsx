@@ -4,6 +4,8 @@ import MergeTypeIcon from '@mui/icons-material/MergeType';
 
 import { TreeTypeEnum } from '../../../../../../core/enums/tree-type.enums';
 import { useAppSelector } from '../../../../../../core/hooks/useAppSelector';
+import { useGlobalModal } from '../../../../../../core/hooks/useGlobalModal';
+import { IModalDataSlice } from '../../../../../../store/reducers/modal/modalSlice';
 import { selectTreeData } from '../../../../../../store/reducers/tree/treeSlice';
 import { IMenuOptionResponse } from '../../../../../molecules/SMenu/types';
 import { STagSelect } from '../../../../../molecules/STagSelect';
@@ -22,10 +24,18 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
     selectTreeData(parentId),
   ) as ITreeMapObject | null;
 
+  const { onOpenGlobalModal } = useGlobalModal();
+
   const handleEditTypeCard = ({ name, value }: IMenuOptionResponse) => {
     if (node.childrenIds.length > 0) {
-      // TODO create modal of warning/save/error/....
-      return '';
+      const data = {
+        title: 'Ação bloqueada',
+        text: 'Você só poderá mudar o tipo de cartão quando não hover nenhum cartão filho ligado a ele.',
+        confirmText: 'Ok',
+        tag: 'warning',
+      } as IModalDataSlice;
+
+      return onOpenGlobalModal(data);
     }
     handleSelect && handleSelect({ value: value as TreeTypeEnum, name });
   };
@@ -44,15 +54,13 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
   }, [parentNode]);
 
   return (
-    <>
-      <STagSelect
-        options={typeOptions}
-        text={nodeTypesConstant[node.type]?.name}
-        large={large}
-        icon={MergeTypeIcon}
-        handleSelectMenu={handleEditTypeCard}
-        {...props}
-      />
-    </>
+    <STagSelect
+      options={typeOptions}
+      text={nodeTypesConstant[node.type]?.name}
+      large={large}
+      icon={MergeTypeIcon}
+      handleSelectMenu={handleEditTypeCard}
+      {...props}
+    />
   );
 };

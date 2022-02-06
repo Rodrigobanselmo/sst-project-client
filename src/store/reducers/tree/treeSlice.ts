@@ -20,11 +20,12 @@ interface ITreeSlice {
 const initialState: ITreeSlice = {
   nodes: {
     seed: {
-      id: 'seed',
+      id: 'principal',
       label: 'Click para editar',
       parentId: null,
       childrenIds: [],
       type: TreeTypeEnum.CHECKLIST,
+      expand: false,
     },
   },
   dragItem: null,
@@ -53,6 +54,19 @@ export const treeSlice = createSlice({
         };
       });
     },
+    setAddNodes: (state, action: PayloadAction<ITreeMapObject[]>) => {
+      action.payload.forEach((node) => {
+        if (node.parentId) {
+          state.nodes[node.parentId].childrenIds = [
+            ...state.nodes[node.parentId].childrenIds,
+            node.id,
+          ];
+          state.nodes[node.id] = {
+            ...node,
+          };
+        }
+      });
+    },
     setCreateNodes: (state, action: PayloadAction<ITreeMapEdit[]>) => {
       action.payload.forEach((node) => {
         if (state.nodes[node.id])
@@ -64,7 +78,13 @@ export const treeSlice = createSlice({
     },
     setRemoveNode: (state, action: PayloadAction<Array<string | number>>) => {
       action.payload.forEach((nodeId) => {
-        delete state.nodes[nodeId];
+        const parentId = state.nodes[nodeId].parentId;
+        if (parentId) {
+          state.nodes[parentId].childrenIds = state.nodes[
+            parentId
+          ].childrenIds.filter((id) => id !== nodeId);
+          delete state.nodes[nodeId];
+        }
       });
     },
     setDragItem: (state, action: PayloadAction<ITreeMapObject | null>) => {
@@ -94,7 +114,7 @@ export const treeSlice = createSlice({
         });
       };
 
-      loop(action.payload.nodeId || 'seed');
+      loop(action.payload.nodeId || 'principal');
     },
   },
 });
@@ -105,6 +125,7 @@ export const {
   setEditMapTreeNode,
   setDragItem,
   setEditNodes,
+  setAddNodes,
   setRemoveNode,
   setExpandAll,
   setMapTree,

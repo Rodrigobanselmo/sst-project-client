@@ -29,9 +29,9 @@ export const useModalCard = () => {
     return [];
   }, [allTreeNodes, getPathById, selectedNode?.id]);
 
-  const setNodeSelectedItem = (node: Partial<ITreeSelectedItem>) => {
+  const setEditNodeSelectedItem = (node: Partial<ITreeSelectedItem> | null) => {
     dispatch(setEditSelectItem({ ...node }));
   };
 
-  return { nodePath, selectedNode, setNodeSelectedItem };
+  return { nodePath, selectedNode, setEditNodeSelectedItem };
 };

@@ -7,6 +7,7 @@ import { useAppDispatch } from '../../../core/hooks/useAppDispatch';
 import globalStyles from '../../../core/styles/globalStyles';
 import { setIsRouteLoading } from '../../../store/reducers/routeLoad/routeLoadSlice';
 import { DashboardLayout } from '../../dashboard';
+import DefaultModal from '../modal';
 
 const DefaultLayout: FC = ({ children }) => {
   const router = useRouter();
@@ -35,6 +36,7 @@ const DefaultLayout: FC = ({ children }) => {
     <main>
       <Global styles={globalStyles} />
       <DashboardLayout>{children}</DashboardLayout>
+      <DefaultModal />
     </main>
   );
 };

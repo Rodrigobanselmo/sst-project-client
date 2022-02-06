@@ -1,13 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, {
-  createContext,
-  FC,
-  useCallback,
-  useContext,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react';
+import React, { createContext, FC, useCallback, useContext } from 'react';
 import { useStore } from 'react-redux';
 
 import {
@@ -26,8 +18,10 @@ import {
   setMapTree,
   setRemoveNode,
   setSelectItem,
+  setAddNodes,
 } from '../../store/reducers/tree/treeSlice';
 import { useAppDispatch } from '../hooks/useAppDispatch';
+import { randomNumber } from '../utils/helpers/randomNumber';
 
 const TreeActionsContext = createContext({} as ITreeActionsContextData);
 
@@ -57,6 +51,13 @@ export const TreeActionsContextProvider: FC<ITreeActionsContextProps> = ({
   const editNodes = useCallback(
     (nodesMap: ITreeMapEdit[]) => {
       dispatch(setEditNodes(nodesMap));
+    },
+    [dispatch],
+  );
+
+  const addNodes = useCallback(
+    (nodesMap: ITreeMapObject[]) => {
+      dispatch(setAddNodes(nodesMap));
     },
     [dispatch],
   );
@@ -117,6 +118,22 @@ export const TreeActionsContextProvider: FC<ITreeActionsContextProps> = ({
     [dispatch],
   );
 
+  const getUniqueId = useCallback((): string => {
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+    let id = randomNumber(5);
+
+    const loop = (idNumber: string) => {
+      if (nodesMap[idNumber]) {
+        id = randomNumber(5);
+        loop(id);
+      }
+    };
+
+    loop(id);
+
+    return id;
+  }, [store]);
+
   return (
     <TreeActionsContext.Provider
       value={{
@@ -129,6 +146,8 @@ export const TreeActionsContextProvider: FC<ITreeActionsContextProps> = ({
         editTreeMap,
         setSelectedItem,
         getPathById,
+        getUniqueId,
+        addNodes,
       }}
     >
       {children}

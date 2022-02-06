@@ -2,24 +2,30 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { AppState } from '../..';
+import { ITagAction } from '../../../components/atoms/STag/types';
 
+export interface IModalDataSlice {
+  title: string;
+  text: string;
+  confirmText: string;
+  tag?: ITagAction;
+  confirmCancel: string;
+}
 interface IModalSlice {
   currentModal: string | null;
-  action: string | null;
-  data: {
-    title: string;
-    text: string;
-    confirmText: string;
-  };
+  action: boolean;
+  data: IModalDataSlice;
 }
 
 const initialState: IModalSlice = {
   currentModal: null,
-  action: null,
+  action: false,
   data: {
     title: '',
     text: '',
     confirmText: 'Continuar',
+    confirmCancel: 'Cancelar',
+    tag: 'none',
   },
 };
 
@@ -32,14 +38,22 @@ export const modalSlice = createSlice({
     setModalName: (state, action: PayloadAction<string | null>) => {
       state.currentModal = action.payload;
     },
+    setModalData: (state, action: PayloadAction<IModalDataSlice>) => {
+      state.data = action.payload;
+    },
+    setModalAction: (state, action: PayloadAction<boolean>) => {
+      state.action = action.payload;
+    },
   },
 });
 
 export const ModalName = name;
 
-export const { setModalName } = modalSlice.actions;
+export const { setModalName, setModalData, setModalAction } =
+  modalSlice.actions;
 
 export const selectCurrentModal = (state: AppState) => state[name].currentModal;
-export const selectDataModal = (state: AppState) => state[name].data;
+export const selectModalData = (state: AppState) => state[name].data;
+export const selectModalAction = (state: AppState) => state[name].action;
 
 export default modalSlice.reducer;

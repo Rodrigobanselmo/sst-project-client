@@ -6,7 +6,6 @@ export const STSBoxButton = styled(Box)<{ large?: number }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4px 10px 4px 8px;
   border-radius: 5px;
   box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.05);
   background-color: ${(props) => props.theme.palette.grey[100]};
@@ -17,9 +16,5 @@ export const STSBoxButton = styled(Box)<{ large?: number }>`
     background-color: ${(props) => props.theme.palette.grey[300]};
   }
 
-  ${(props) =>
-    props.large &&
-    css`
-      padding: 4px 10px 4px 8px;
-    `}
+  ${(props) => props.large && css``}
 `;

@@ -1,5 +1,3 @@
-/* eslint-disable no-param-reassign */
-/* eslint-disable no-unused-vars */
 export function mergeRefs<T extends { current: unknown } | ((ref: T) => void)>(
   ...inputRefs: T[]
 ) {

@@ -9,7 +9,7 @@ import { RenderNode } from './RenderNode';
 export const TreeNode = (props: IOrgTreeNodeProps) => {
   return (
     <DndProvider backend={HTML5Backend}>
-      <RenderNode id={'seed'} prop={props} first />
+      <RenderNode id={'principal'} prop={props} first />
     </DndProvider>
   );
 };

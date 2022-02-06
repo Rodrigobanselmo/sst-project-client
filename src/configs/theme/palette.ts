@@ -57,6 +57,12 @@ const palette = {
   error: {
     main: '#F44336',
   },
+  warning: {
+    main: '#d9d10b',
+  },
+  info: {
+    main: '#4559c9',
+  },
   background: {
     default: '#dddee2',
     paper: '#FFFFFF',

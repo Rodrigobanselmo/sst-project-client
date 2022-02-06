@@ -9,6 +9,7 @@ import SModal, {
   SModalPaper,
 } from '../../../../../components/molecules/SModal';
 import { useModal } from '../../../../../core/contexts/ModalContext';
+import { useTreeActions } from '../../../../../core/contexts/TreeActionsContextProvider';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
 import { TreeTypeEnum } from '../../../../../core/enums/tree-type.enums';
 import { useAppSelector } from '../../../../../core/hooks/useAppSelector';
@@ -31,9 +32,18 @@ export const ModalEditCard = () => {
 
   const { registerModal } = useRegisterModal();
   const { onCloseModal } = useModal();
-  const { nodePath, setNodeSelectedItem } = useModalCard();
+  const { nodePath, setEditNodeSelectedItem } = useModalCard();
+  const { editNodes, removeNodes } = useTreeActions();
 
-  // const {  } = useTreeActions();
+  const onSave = () => {
+    if (selectedNode) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { action, ...newNode } = selectedNode;
+
+      onCloseModal(ModalEnum.TREE_CARD);
+      editNodes([newNode]);
+    }
+  };
 
   const type = selectedNode?.type || 1;
 
@@ -41,11 +51,24 @@ export const ModalEditCard = () => {
     type,
   );
 
+  const onCloseUnsaved = () => {
+    onCloseModal(ModalEnum.TREE_CARD);
+    setEditNodeSelectedItem(null);
+    if (selectedNode?.action === 'add') {
+      removeNodes(selectedNode.id);
+    }
+  };
+
   return (
-    <SModal keepMounted={false} {...registerModal(ModalEnum.TREE_CARD)}>
+    <SModal
+      {...registerModal(ModalEnum.TREE_CARD)}
+      keepMounted={false}
+      onClose={onCloseUnsaved}
+    >
       <SModalPaper p={8}>
         <SModalHeader
           modalName={ModalEnum.TREE_CARD}
+          onClose={onCloseUnsaved}
           title={
             <Box>
               <SFlex mb={2} align="center">
@@ -83,7 +106,9 @@ export const ModalEditCard = () => {
           {isTextArea && (
             <STextarea
               value={selectedNode?.label}
-              onChange={(e) => setNodeSelectedItem({ label: e.target.value })}
+              onChange={(e) =>
+                setEditNodeSelectedItem({ label: e.target.value })
+              }
               unstyled
               maxRows={20}
               minRows={2}
@@ -95,7 +120,9 @@ export const ModalEditCard = () => {
           {!isTextArea && (
             <SInput
               value={selectedNode?.label}
-              onChange={(e) => setNodeSelectedItem({ label: e.target.value })}
+              onChange={(e) =>
+                setEditNodeSelectedItem({ label: e.target.value })
+              }
               unstyled
               variant="standard"
               sx={{ width: ['100%', 600], mb: 10 }}
@@ -108,7 +135,7 @@ export const ModalEditCard = () => {
               node={selectedNode as ITreeSelectedItem}
               parentId={selectedNode?.parentId || 'no-node'}
               handleSelect={(option) =>
-                setNodeSelectedItem({ type: option.value as TreeTypeEnum })
+                setEditNodeSelectedItem({ type: option.value as TreeTypeEnum })
               }
             />
           </SFlex>
@@ -122,12 +149,10 @@ export const ModalEditCard = () => {
           justifyContent="flex-end"
           gap={5}
         >
-          <SSwitch label="Criar mais" sx={{ mr: 4 }} color="text.light" />
-          <SButton
-            variant={'contained'}
-            size="small"
-            onClick={() => onCloseModal(ModalEnum.TREE_CARD)}
-          >
+          {selectedNode?.action === 'add' && (
+            <SSwitch label="Criar mais" sx={{ mr: 4 }} color="text.light" />
+          )}
+          <SButton variant={'contained'} size="small" onClick={onSave}>
             Savar
           </SButton>
         </Box>

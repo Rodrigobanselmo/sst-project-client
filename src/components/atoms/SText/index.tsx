@@ -6,9 +6,15 @@ import { STypographyProps } from './types';
 const SText: FC<STypographyProps> = ({
   textAlign = 'start',
   lineNumber,
+  color = 'text.main',
   ...props
 }) => (
-  <STTypography textAlign={textAlign} line_number={lineNumber} {...props} />
+  <STTypography
+    color={color}
+    textAlign={textAlign}
+    line_number={lineNumber}
+    {...props}
+  />
 );
 
 export default SText;

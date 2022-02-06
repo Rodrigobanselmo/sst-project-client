@@ -23,8 +23,18 @@ export const SMenu: FC<SMenuProps> = ({
     handleSelect(option, e);
   };
 
+  const onClose = (e: any) => {
+    e.stopPropagation();
+    close();
+  };
+
   return (
-    <STMenu anchorEl={anchorEl} open={isOpen} onClose={close} {...props}>
+    <STMenu
+      anchorEl={anchorEl}
+      open={isOpen}
+      onClose={(e) => onClose(e)}
+      {...props}
+    >
       {options.map((option) => (
         <STMenuItem
           key={option.value}

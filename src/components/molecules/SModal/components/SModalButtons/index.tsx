@@ -26,12 +26,12 @@ export const SModalButtons: FC<SModalHeaderProps> = ({
       gap={5}
       {...props}
     >
-      {buttons.map(({ text, ...buttonProps }, index) => {
+      {buttons.map(({ text, variant, ...buttonProps }, index) => {
         const isFirst = index === 0;
         return (
           <SButton
             key={`${index}-button`}
-            variant={isFirst ? 'outlined' : 'contained'}
+            variant={variant ? variant : isFirst ? 'outlined' : 'contained'}
             onClick={onClose}
             {...buttonProps}
           >
