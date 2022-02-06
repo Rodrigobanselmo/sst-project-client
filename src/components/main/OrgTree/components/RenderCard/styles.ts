@@ -8,7 +8,7 @@ interface ICardCard {
   type?: TreeTypeEnum;
 }
 
-export const STCardArea = styled('div')<{
+export const STCardArea = styled(Box)<{
   horizontal?: number;
   expanded?: number;
 }>`

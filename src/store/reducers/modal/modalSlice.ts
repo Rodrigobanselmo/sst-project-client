@@ -14,11 +14,13 @@ export interface IModalDataSlice {
 interface IModalSlice {
   currentModal: string | null;
   action: boolean;
+  globalModal: boolean;
   data: IModalDataSlice;
 }
 
 const initialState: IModalSlice = {
   currentModal: null,
+  globalModal: false,
   action: false,
   data: {
     title: '',
@@ -44,16 +46,20 @@ export const modalSlice = createSlice({
     setModalAction: (state, action: PayloadAction<boolean>) => {
       state.action = action.payload;
     },
+    setModalGlobal: (state, action: PayloadAction<boolean>) => {
+      state.globalModal = action.payload;
+    },
   },
 });
 
 export const ModalName = name;
 
-export const { setModalName, setModalData, setModalAction } =
+export const { setModalName, setModalData, setModalAction, setModalGlobal } =
   modalSlice.actions;
 
 export const selectCurrentModal = (state: AppState) => state[name].currentModal;
 export const selectModalData = (state: AppState) => state[name].data;
 export const selectModalAction = (state: AppState) => state[name].action;
+export const selectModalGlobal = (state: AppState) => state[name].globalModal;
 
 export default modalSlice.reducer;

@@ -1,5 +1,7 @@
 import React from 'react';
 
+import { Box } from '@mui/material';
+
 import { useModal } from '../../../../../core/contexts/ModalContext';
 import { useTreeActions } from '../../../../../core/contexts/TreeActionsContextProvider';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';

@@ -1,8 +1,11 @@
 import React from 'react';
+import { useStore } from 'react-redux';
 
 import CircleIcon from '@mui/icons-material/Circle';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
+import deepEqual from 'deep-equal';
 
 import SModal, {
   SModalHeader,
@@ -13,7 +16,9 @@ import { useTreeActions } from '../../../../../core/contexts/TreeActionsContextP
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
 import { TreeTypeEnum } from '../../../../../core/enums/tree-type.enums';
 import { useAppSelector } from '../../../../../core/hooks/useAppSelector';
+import { useGlobalModal } from '../../../../../core/hooks/useGlobalModal';
 import { useRegisterModal } from '../../../../../core/hooks/useRegisterModal';
+import { IModalDataSlice } from '../../../../../store/reducers/modal/modalSlice';
 import { selectTreeSelectItem } from '../../../../../store/reducers/tree/treeSlice';
 import { SButton } from '../../../../atoms/SButton';
 import SFlex from '../../../../atoms/SFlex';
@@ -22,7 +27,7 @@ import { SSwitch } from '../../../../atoms/SSwitch';
 import { STag } from '../../../../atoms/STag';
 import SText from '../../../../atoms/SText';
 import STextarea from '../../../../atoms/STextarea';
-import { ITreeSelectedItem } from '../../interfaces';
+import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
 import { TypeSelect } from '../Selects/TypeSelect';
 import { useModalCard } from './hooks/useModalCard';
 import { nodeTypesConstant } from './utils/node-type.constant';
@@ -34,6 +39,8 @@ export const ModalEditCard = () => {
   const { onCloseModal } = useModal();
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
   const { editNodes, removeNodes } = useTreeActions();
+  const { onOpenGlobalModal } = useGlobalModal();
+  const store = useStore();
 
   const onSave = () => {
     if (selectedNode) {
@@ -52,10 +59,52 @@ export const ModalEditCard = () => {
   );
 
   const onCloseUnsaved = () => {
-    onCloseModal(ModalEnum.TREE_CARD);
-    setEditNodeSelectedItem(null);
-    if (selectedNode?.action === 'add') {
-      removeNodes(selectedNode.id);
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+
+    const close = () => {
+      onCloseModal(ModalEnum.TREE_CARD);
+      setEditNodeSelectedItem(null);
+      if (selectedNode?.action === 'add') {
+        removeNodes(selectedNode.id);
+      }
+    };
+
+    if (
+      !deepEqual(
+        selectedNode,
+        { action: selectedNode?.action, ...nodesMap[selectedNode?.id || ''] } ||
+          {},
+      )
+    ) {
+      const data = {
+        title: 'Descartar mudançãs?',
+        text: 'Você tem certeza que deseja descartar as mudanças realizadas?',
+        confirmText: 'Descartar',
+        tag: 'warning',
+        confirmCancel: 'Cancel',
+      } as IModalDataSlice;
+
+      onOpenGlobalModal(data, close);
+    } else {
+      close();
+    }
+  };
+
+  const onRemoveNode = () => {
+    if (selectedNode?.id) {
+      const data = {
+        title: 'Você tem certeza?',
+        text: 'Ao remover esse item, você também removerá todos os items decendentes dele.',
+        confirmText: 'Deletar',
+        tag: 'delete',
+        confirmCancel: 'Cancel',
+      } as IModalDataSlice;
+
+      onOpenGlobalModal(data, () => {
+        onCloseModal(ModalEnum.TREE_CARD);
+        removeNodes(selectedNode.id);
+        setEditNodeSelectedItem(null);
+      });
     }
   };
 
@@ -69,8 +118,12 @@ export const ModalEditCard = () => {
         <SModalHeader
           modalName={ModalEnum.TREE_CARD}
           onClose={onCloseUnsaved}
+          secondIcon={
+            type === TreeTypeEnum.CHECKLIST ? undefined : DeleteOutlineIcon
+          }
+          secondIconClick={onRemoveNode}
           title={
-            <Box>
+            <Box width="100%">
               <SFlex mb={2} align="center">
                 <STag action={selectedNode?.action} />
                 <SText>
@@ -149,8 +202,12 @@ export const ModalEditCard = () => {
           justifyContent="flex-end"
           gap={5}
         >
-          {selectedNode?.action === 'add' && (
+          {selectedNode?.action === 'add' ? (
             <SSwitch label="Criar mais" sx={{ mr: 4 }} color="text.light" />
+          ) : (
+            <SButton variant={'outlined'} size="small" onClick={onCloseUnsaved}>
+              Cancelar
+            </SButton>
           )}
           <SButton variant={'contained'} size="small" onClick={onSave}>
             Savar

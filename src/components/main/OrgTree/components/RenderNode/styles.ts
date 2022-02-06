@@ -111,9 +111,9 @@ export const OrgTreeNode = styled.div<{
 
   .RdtCant-drop {
     opacity: 0.5;
-    cursor: no-drop;
+    cursor: no-drop !important;
     .org-tree-node-label-inner {
-      background-color: #aaaaaa33;
+      background-color: #fff;
     }
     .org-tree-node-label-inner-personal {
       opacity: 0.5;

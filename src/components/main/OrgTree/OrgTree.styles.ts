@@ -28,6 +28,7 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
     background: ${({ theme }) => theme.palette.grey[500]};
     border-radius: 24px;
   }
+
 `;
 
 export const OrgTree = styled.div<IHorizontal>`

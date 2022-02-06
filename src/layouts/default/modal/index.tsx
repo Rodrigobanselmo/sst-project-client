@@ -2,30 +2,27 @@ import React, { FC } from 'react';
 
 import SText from '../../../components/atoms/SText';
 import SModal, {
-  SModalPaper,
-  SModalHeader,
   SModalButtons,
+  SModalHeader,
+  SModalPaper,
 } from '../../../components/molecules/SModal';
 import { IModalButton } from '../../../components/molecules/SModal/components/SModalButtons/types';
-import { useModal } from '../../../core/contexts/ModalContext';
-import { ModalEnum } from '../../../core/enums/modal.enums';
 import { useAppDispatch } from '../../../core/hooks/useAppDispatch';
 import { useAppSelector } from '../../../core/hooks/useAppSelector';
-import { useRegisterModal } from '../../../core/hooks/useRegisterModal';
+import { useGlobalModal } from '../../../core/hooks/useGlobalModal';
 import {
   selectModalData,
   setModalAction,
 } from '../../../store/reducers/modal/modalSlice';
 
 const DefaultModal: FC = () => {
-  const { registerModal } = useRegisterModal();
-  const { onCloseModal } = useModal();
   const dispatch = useAppDispatch();
   const modalData = useAppSelector(selectModalData);
+  const { registerModal, onCloseGlobalModal } = useGlobalModal();
 
   const onConfirm = () => {
     dispatch(setModalAction(true));
-    onCloseModal(ModalEnum.GLOBAL);
+    onCloseGlobalModal();
   };
 
   const buttons = [
@@ -40,18 +37,18 @@ const DefaultModal: FC = () => {
     buttons.push({ text: 'Cancel', variant: 'outlined' } as IModalButton);
 
   return (
-    <SModal {...registerModal(ModalEnum.GLOBAL)}>
-      <SModalPaper>
+    <SModal {...registerModal()}>
+      <SModalPaper center>
         <SModalHeader
           tag={modalData.tag || 'none'}
-          modalName={ModalEnum.GLOBAL}
+          onClose={onCloseGlobalModal}
           title={modalData.title}
         />
         <SText color="text.light" maxWidth="450px">
           {modalData.text}
         </SText>
         <SModalButtons
-          modalName={ModalEnum.GLOBAL}
+          onClose={onCloseGlobalModal}
           buttons={buttons.reverse()}
         />
       </SModalPaper>

@@ -15,9 +15,9 @@ export const SModalHeaderTitle: FC<
 > = ({ title, tag }) => {
   if (tag && tag !== 'none' && title)
     return (
-      <SFlex mb={2} align="center">
+      <SFlex width="100%" mb={2} align="center">
         <STag action={tag} />
-        <SText>{title}</SText>
+        <SText width="70%">{title}</SText>
       </SFlex>
     );
 
@@ -35,13 +35,15 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
   modalName,
   onClose,
   tag,
+  secondIconClick,
+  secondIcon,
   ...props
 }) => {
   const { onCloseModal } = useModal();
 
   const onCloseAction = () => {
     onClose && onClose();
-    onCloseModal(modalName);
+    if (modalName) onCloseModal(modalName);
   };
 
   return (
@@ -61,14 +63,20 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
           </SText>
         </Box>
       )}
+
       {!subtitle && typeof title === 'string' && (
         <SModalHeaderTitle title={title} tag={tag} />
       )}
+
       {!(typeof title === 'string') && title}
-      <SIconButton
-        sx={{ ml: [10, 10, 50], mt: -4, mr: -4 }}
-        onClick={onCloseAction}
-      >
+
+      {secondIconClick && secondIcon && (
+        <SIconButton sx={{ ml: 5, mt: -4, mr: -4 }} onClick={secondIconClick}>
+          <Icon sx={{ fontSize: 25 }} component={secondIcon} />
+        </SIconButton>
+      )}
+
+      <SIconButton sx={{ ml: 5, mt: -4, mr: -4 }} onClick={onCloseAction}>
         <Icon sx={{ fontSize: 25 }} component={RiCloseFill} />
       </SIconButton>
     </Box>

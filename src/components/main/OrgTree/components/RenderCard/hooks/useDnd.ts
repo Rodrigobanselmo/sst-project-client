@@ -1,21 +1,35 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useStore } from 'react-redux';
 
 import { useTreeActions } from '../../../../../../core/contexts/TreeActionsContextProvider';
 import { useDebounce } from '../../../hooks/useDebounce';
+import { nodeTypesConstant } from '../../ModalEditCard/utils/node-type.constant';
 import { ITreeMap, ITreeMapObject } from './../../../interfaces';
 
 export const useDnd = (node: ITreeMapObject) => {
   const { setDraggingItem, isChild, editNodes, removeNodes } = useTreeActions();
+  const isMockAppend = useRef(false);
   const store = useStore();
 
   const onAppendMock = (id: number | string) => {
     const nodesMap = store.getState().tree.nodes as ITreeMap;
     const dropItem = nodesMap[id] as ITreeMapObject | null;
     const dragItem = store.getState().tree.dragItem as ITreeMapObject | null;
+
+    if (dragItem && dropItem) {
+      if (dragItem.id === dropItem.id) return;
+      if (isChild(dragItem.id, dropItem.id)) return;
+      if (
+        nodeTypesConstant[dropItem.type] &&
+        !nodeTypesConstant[dropItem.type].childOptions.includes(dragItem.type)
+      )
+        return;
+    }
+
+    isMockAppend.current = true;
 
     const dropFilterChildren = dropItem?.childrenIds
       ? dropItem.childrenIds.filter((childId) => childId !== id)
@@ -41,6 +55,7 @@ export const useDnd = (node: ITreeMapObject) => {
     const nodesMap = store.getState().tree.nodes as ITreeMap;
     const mockItem = nodesMap['mock_id'] as ITreeMapObject | null;
     const dropItem = nodesMap[node.id] as ITreeMapObject | null;
+    isMockAppend.current = false;
 
     if (mockItem && dropItem?.id === mockItem.parentId) {
       const removeMock = {
@@ -72,15 +87,15 @@ export const useDnd = (node: ITreeMapObject) => {
 
   useEffect(() => {
     const labelDoc = document.getElementById(`node-tree-${node.id}`);
-    if (!labelDoc) return;
+    if (labelDoc) {
+      const LabelClassName = labelDoc.className;
 
-    const LabelClassName = labelDoc.className;
+      labelDoc.className = isDragging
+        ? LabelClassName + ' RdtCant-drop'
+        : LabelClassName.replace(' RdtCant-drop', '');
 
-    labelDoc.className = isDragging
-      ? labelDoc.className + ' RdtCant-drop'
-      : LabelClassName.replace(' RdtCant-drop', '');
-
-    setDraggingItem(node);
+      if (node.id !== 'mock_id') setDraggingItem(node);
+    }
   }, [isDragging]);
 
   const onDragEnter = (dropId: string | number) => {
@@ -100,6 +115,8 @@ export const useDnd = (node: ITreeMapObject) => {
   };
 
   const onDrop = (drag: ITreeMapObject) => {
+    if (!isMockAppend.current) return;
+
     const nodesMap = store.getState().tree.nodes as ITreeMap;
     const dragItem = nodesMap[drag.id] as ITreeMapObject | null;
     const dropItem = nodesMap[node.id] as ITreeMapObject | null;
@@ -135,7 +152,10 @@ export const useDnd = (node: ITreeMapObject) => {
     () => ({
       accept: 'box',
       canDrop: (item: ITreeMapObject) =>
-        item.id !== node.id && !isChild(item.id, node.id),
+        item.id !== node.id &&
+        !isChild(item.id, node.id) &&
+        nodeTypesConstant[node.type] &&
+        nodeTypesConstant[node.type].childOptions.includes(item.type),
       drop: (drag: ITreeMapObject) => onDrop(drag),
       collect: (monitor: any) => ({
         isOver: !!monitor.isOver(),
@@ -153,5 +173,6 @@ export const useDnd = (node: ITreeMapObject) => {
     drag,
     drop,
     isDragging,
+    isOver,
   };
 };

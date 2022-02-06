@@ -77,12 +77,21 @@ export const treeSlice = createSlice({
       });
     },
     setRemoveNode: (state, action: PayloadAction<Array<string | number>>) => {
+      const loopRemoveChild = (childIds: Array<string | number>) => {
+        childIds.forEach((nodeId) => {
+          loopRemoveChild(state.nodes[nodeId].childrenIds);
+          delete state.nodes[nodeId];
+          console.log(nodeId);
+        });
+      };
+
       action.payload.forEach((nodeId) => {
         const parentId = state.nodes[nodeId].parentId;
         if (parentId) {
           state.nodes[parentId].childrenIds = state.nodes[
             parentId
           ].childrenIds.filter((id) => id !== nodeId);
+          loopRemoveChild(state.nodes[nodeId].childrenIds);
           delete state.nodes[nodeId];
         }
       });

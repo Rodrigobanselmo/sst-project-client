@@ -30,7 +30,7 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
     if (node.childrenIds.length > 0) {
       const data = {
         title: 'Ação bloqueada',
-        text: 'Você só poderá mudar o tipo de cartão quando não hover nenhum cartão filho ligado a ele.',
+        text: 'Você só poderá mudar o tipo de cartão quando não houver nenhum cartão descendente ligado a este.',
         confirmText: 'Ok',
         tag: 'warning',
       } as IModalDataSlice;

@@ -29,7 +29,11 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
       }}
     >
       <MouseControl orgContainerRef={orgContainerRef} />
-      <OrgTreeContainer ref={orgContainerRef} horizontal={horizontal}>
+      <OrgTreeContainer
+        id="org-tree-container"
+        ref={orgContainerRef}
+        horizontal={horizontal}
+      >
         <OrgTree horizontal={horizontal}>
           <TreeNode
             horizontal={horizontal}

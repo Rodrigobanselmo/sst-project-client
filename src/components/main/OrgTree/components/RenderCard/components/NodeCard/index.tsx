@@ -41,15 +41,17 @@ export const NodeCard: FC<INodeCardProps> = ({ node }) => {
     <>
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Box>
-          <SText
-            className="node-tree-text-id"
-            lineHeight="15px"
-            fontSize="12px"
-            color="text.light"
-            mb={2}
-          >
-            {node.id}
-          </SText>
+          {node.id !== 'mock_id' && (
+            <SText
+              className="node-tree-text-id"
+              lineHeight="15px"
+              fontSize="12px"
+              color="text.light"
+              mb={2}
+            >
+              {node.id}
+            </SText>
+          )}
           <SText
             sx={{ pr: 10, width: '100%', fontSize: '15px', lineHeight: '18px' }}
             lineNumber={2}

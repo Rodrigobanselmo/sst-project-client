@@ -9,12 +9,14 @@ import { SModalHeaderProps, IModalButton } from './types';
 export const SModalButtons: FC<SModalHeaderProps> = ({
   buttons = [{} as IModalButton, {} as IModalButton],
   modalName,
+  onClose: close,
   ...props
 }) => {
   const { onCloseModal } = useModal();
 
   const onClose = () => {
-    onCloseModal(modalName);
+    if (modalName) onCloseModal(modalName);
+    if (close) close();
   };
 
   return (
