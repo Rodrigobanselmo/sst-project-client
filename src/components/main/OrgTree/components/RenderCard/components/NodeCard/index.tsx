@@ -7,10 +7,12 @@ import { useModal } from '../../../../../../../core/contexts/ModalContext';
 import { useTreeActions } from '../../../../../../../core/contexts/TreeActionsContextProvider';
 import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
 import { TreeTypeEnum } from '../../../../../../../core/enums/tree-type.enums';
+import { IRiskFactors } from '../../../../../../../core/interfaces/IRiskFactors';
 import { STagButton } from '../../../../../../atoms/STagButton';
 import SText from '../../../../../../atoms/SText';
 import { ITreeSelectedItem } from '../../../../interfaces';
 import { nodeTypesConstant } from '../../../ModalEditCard/utils/node-type.constant';
+import { RiskSelect } from '../../../Selects/RiskSelect';
 import { TypeSelect } from '../../../Selects/TypeSelect';
 import { INodeCardProps } from './types';
 
@@ -67,6 +69,12 @@ export const NodeCard: FC<INodeCardProps> = ({ node }) => {
           parentId={node?.parentId || 'no-node'}
           handleSelect={(option) =>
             editNodes([{ id: node.id, type: option.value as TreeTypeEnum }])
+          }
+        />
+        <RiskSelect
+          node={node as ITreeSelectedItem}
+          handleSelect={(option: IRiskFactors) =>
+            editNodes([{ id: node.id, risks: [option.id] }])
           }
         />
       </Stack>

@@ -7,17 +7,12 @@ import { IMenuSearchOption } from '../SMenuSearch/types';
 
 export type IAnchorEvent = (EventTarget & HTMLDivElement) | null;
 
-export interface ISTagSelectProps extends BoxProps {
+export interface ISTagSearchSelectProps extends BoxProps {
   text: string;
   large?: boolean;
-  search?: boolean;
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
-  options?: {
-    value: string | number;
-    name: string;
-    icon?: ElementType<any>;
-  }[];
-  optionsSearch?: IMenuSearchOption[];
+  options: IMenuSearchOption[];
   startAdornment?: (option: any) => ReactNode;
+  optionsFieldName?: { valueField?: string; contentField?: string };
   icon?: ElementType<any>;
 }

@@ -5,6 +5,7 @@ import React, { FC, useRef } from 'react';
 import { Box } from '@mui/material';
 
 import { useZoom } from '../../../core/hooks/useZoom';
+import { useQueryRisk } from '../../../core/services/hooks/queries/useQueryRisk';
 import { TreeNode } from './components';
 import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
@@ -16,6 +17,8 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
   horizontal = false,
   ...props
 }) => {
+  useQueryRisk();
+
   const orgContainerRef = useRef<HTMLDivElement>(null);
 
   useZoom(orgContainerRef);

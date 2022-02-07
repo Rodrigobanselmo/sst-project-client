@@ -19,6 +19,7 @@ export interface ITreeMapObject {
   expand: boolean;
   style?: CSSProperties;
   className?: string;
+  risks?: string[];
 }
 
 export interface ITreeSelectedItem extends ITreeMapObject {

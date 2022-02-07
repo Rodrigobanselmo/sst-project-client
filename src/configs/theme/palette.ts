@@ -60,6 +60,13 @@ const palette = {
   warning: {
     main: '#d9d10b',
   },
+  risk: {
+    fis: '#1ca846',
+    bio: '#933d15',
+    qui: '#fa0215',
+    erg: '#9c9507',
+    aci: '#3d62ba',
+  },
   info: {
     main: '#4559c9',
   },

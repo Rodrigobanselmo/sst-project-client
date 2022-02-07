@@ -1,12 +1,11 @@
 import React, { FC, MouseEvent } from 'react';
 
 import { STagButton } from '../../atoms/STagButton';
-import { SMenu } from '../SMenu';
 import { SMenuSearch } from '../SMenuSearch';
 import { IMenuSearchOption } from '../SMenuSearch/types';
-import { IAnchorEvent, ISTagSelectProps } from './types';
+import { IAnchorEvent, ISTagSearchSelectProps } from './types';
 
-export const STagSelect: FC<ISTagSelectProps> = ({
+export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   options,
   text,
   large,
@@ -14,8 +13,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
   onClick,
   handleSelectMenu,
   startAdornment,
-  search,
-  optionsSearch,
+  optionsFieldName,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -47,27 +45,16 @@ export const STagSelect: FC<ISTagSelectProps> = ({
         text={text}
         {...props}
       />
-      {optionsSearch && search && (
-        <SMenuSearch
-          close={handleClose}
-          isOpen={Boolean(anchorEl)}
-          anchorEl={anchorEl}
-          handleSelect={handleSelect}
-          icon={icon}
-          options={optionsSearch}
-          startAdornment={startAdornment}
-        />
-      )}
-      {options && !search && (
-        <SMenu
-          close={handleClose}
-          isOpen={Boolean(anchorEl)}
-          anchorEl={anchorEl}
-          handleSelect={handleSelect}
-          icon={icon}
-          options={options}
-        />
-      )}
+      <SMenuSearch
+        close={handleClose}
+        isOpen={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        handleSelect={handleSelect}
+        icon={icon}
+        options={options}
+        startAdornment={startAdornment}
+        optionsFieldName={optionsFieldName}
+      />
     </>
   );
 };

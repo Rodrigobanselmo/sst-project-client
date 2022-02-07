@@ -21,8 +21,12 @@ export const MouseControl: FC<{
         registerStackModal.current &&
         registerStackModal.current.length === 0
       ) {
-        e.preventDefault();
-        setControlKeyPress(true);
+        if (e.target == document.body) e.preventDefault();
+        if (e.target) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const target = e.target as unknown as any;
+          if (target.tagName !== 'INPUT') setControlKeyPress(true);
+        }
       }
     },
     'keydown',
@@ -35,8 +39,12 @@ export const MouseControl: FC<{
         registerStackModal.current &&
         registerStackModal.current.length === 0
       ) {
-        e.preventDefault();
-        setControlKeyPress(false);
+        if (e.target == document.body) e.preventDefault();
+        if (e.target) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const target = e.target as unknown as any;
+          if (target.tagName !== 'INPUT') setControlKeyPress(false);
+        }
       }
     },
     'keyup',

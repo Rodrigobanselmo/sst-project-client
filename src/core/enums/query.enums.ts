@@ -1,3 +1,3 @@
 export enum QueryEnum {
-  PDP = 'pdp',
+  RISK = 'risk',
 }

@@ -15,7 +15,7 @@ export const STagButton: FC<ISTagButtonProps> = ({
 }) => {
   return (
     <STSBoxButton
-      sx={{ height: large ? 30 : 22, pl: 5, pr: 4, ...sx }}
+      sx={{ height: large ? 30 : 22, pl: 3, pr: 5, ...sx }}
       {...props}
     >
       {icon && <Icon sx={{ fontSize: 14 }} component={icon} />}

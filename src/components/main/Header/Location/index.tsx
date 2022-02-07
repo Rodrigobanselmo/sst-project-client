@@ -26,9 +26,13 @@ export function Location(): JSX.Element {
       {!isTablet && (
         <Breadcrumbs
           aria-label="breadcrumb"
-          sx={{ marginTop: -3 }}
+          sx={{
+            marginTop: -3,
+          }}
           separator={
-            <NavigateNextIcon sx={{ color: 'gray.500', fontSize: '20px' }} />
+            <NavigateNextIcon
+              sx={{ color: 'gray.500', ml: -2, mr: -4, fontSize: '20px' }}
+            />
           }
         >
           {routesToMap.map((route, index) => {
@@ -38,12 +42,7 @@ export function Location(): JSX.Element {
                 href={`/${routes.slice(0, index + 1).join('/')}`}
                 passHref
               >
-                <Link
-                  fontSize="0.875rem"
-                  pl={2}
-                  color="gray.500"
-                  underline="hover"
-                >
+                <Link fontSize="0.875rem" color="gray.500" underline="hover">
                   {route}
                 </Link>
               </NextLink>

@@ -33,6 +33,7 @@ export const SMenu: FC<SMenuProps> = ({
       anchorEl={anchorEl}
       open={isOpen}
       onClose={(e) => onClose(e)}
+      onClick={(e) => e.stopPropagation()}
       {...props}
     >
       {options.map((option) => (
