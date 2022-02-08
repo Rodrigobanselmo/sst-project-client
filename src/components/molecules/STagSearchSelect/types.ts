@@ -2,6 +2,7 @@
 import { ElementType, MouseEvent, ReactNode } from 'react';
 
 import { BoxProps } from '@mui/material';
+import Fuse from 'fuse.js';
 
 import { IMenuSearchOption } from '../SMenuSearch/types';
 
@@ -12,6 +13,7 @@ export interface ISTagSearchSelectProps extends BoxProps {
   placeholder?: string;
   large?: boolean;
   selected?: string[];
+  keys?: Fuse.FuseOptionKey[];
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
   options: IMenuSearchOption[];
   startAdornment?: (option: any) => ReactNode;
@@ -19,4 +21,6 @@ export interface ISTagSearchSelectProps extends BoxProps {
   icon?: ElementType<any>;
   iconItem?: ElementType<any>;
   multiple?: boolean;
+  additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
+  renderFilter?: () => React.ReactNode;
 }

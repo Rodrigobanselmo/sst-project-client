@@ -18,6 +18,9 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   placeholder,
   multiple,
   selected,
+  keys = ['name'],
+  renderFilter,
+  additionalButton,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -61,6 +64,9 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         placeholder={placeholder}
         multiple={multiple}
         selected={selected}
+        keys={keys}
+        additionalButton={additionalButton}
+        renderFilter={renderFilter}
       />
     </>
   );

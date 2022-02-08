@@ -11,6 +11,7 @@ export const STMenu = styled(Menu)<ISTMenuProps>`
   max-width: 600px;
 
   & .MuiPaper-root {
+    overflow: visible;
     border-radius: 4px;
     padding: 0;
     margin: 0;
@@ -32,8 +33,6 @@ export const STSInput = styled(SInput)`
     margin-top: -2px;
     font-size: 14px;
   }
-
-  border-bottom: 1px solid ${(props) => props.theme.palette.background.divider};
 
   & ::placeholder {
     opacity: 0.6;

@@ -1,6 +1,8 @@
 import { FC, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 
-import { Box } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { Box, Icon } from '@mui/material';
+import SIconButton from 'components/atoms/SIconButton';
 import Fuse from 'fuse.js';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -22,6 +24,8 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   width = 500,
   multiple,
   selected,
+  additionalButton,
+  renderFilter,
   ...props
 }) => {
   const [search, setSearch] = useState<string>('');
@@ -42,6 +46,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   const onClose = (e: any) => {
     e.stopPropagation();
     handleSelect(localSelected.current, e);
+    setSearch('');
     close();
     localSelected.current = [];
   };
@@ -78,7 +83,9 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options, selected]);
 
-  const fuse = new Fuse(optionsMemoized, { keys });
+  const fuse = new Fuse(optionsMemoized, { keys, ignoreLocation: true });
+
+  const numberOfRows = 20 + 200 * scroll;
 
   const fuseResults = fuse.search(search, { limit: 20 });
   const results = search
@@ -93,21 +100,35 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
       onClick={(e) => e.stopPropagation()}
       {...props}
     >
-      <STSInput
-        onChange={(e) => handleSearchChange(e.target.value)}
-        placeholder={placeholder}
-        variant="standard"
-        sx={{ width: '100%', minWidth: width }}
-        unstyled
-        onKeyDown={(e) => {
-          e.stopPropagation();
+      <Box
+        sx={{
+          borderBottom: '1px solid',
+          borderColor: 'background.divider',
+          pb: renderFilter ? 4 : 0,
         }}
-      />
+      >
+        <STSInput
+          onChange={(e) => handleSearchChange(e.target.value)}
+          placeholder={placeholder}
+          variant="standard"
+          sx={{ width: '100%', minWidth: width }}
+          unstyled
+          autoFocus
+          onKeyDown={(e) => {
+            e.stopPropagation();
+          }}
+        />
+        {renderFilter && renderFilter()}
+      </Box>
       <Box
         ref={listWrapperRef}
         onScroll={(e) => {
+          console.log(optionsMemoized.length, numberOfRows);
           const target = e.target as any;
-          if (target.scrollHeight - target.clientHeight == target.scrollTop)
+          if (
+            target.scrollHeight - target.clientHeight == target.scrollTop &&
+            optionsMemoized.length > numberOfRows
+          )
             setScroll((scroll) => scroll + 1);
         }}
         sx={{ maxHeight: 350, overflow: 'auto' }}
@@ -122,6 +143,28 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           multiple={multiple}
           defaultChecked
         />
+        {additionalButton && (
+          <SIconButton
+            bg="primary.light"
+            onClick={additionalButton}
+            sx={{
+              position: 'absolute',
+              top: renderFilter ? '' : results.length === 0 ? '-5px' : '12px',
+              bottom: renderFilter ? 10 : '',
+              right: results.length === 0 ? '20px' : '28px',
+              height: '35px',
+              width: '35px',
+            }}
+          >
+            <Icon
+              component={AddIcon}
+              sx={{
+                fontSize: ['1.7rem'],
+                color: 'common.white',
+              }}
+            />
+          </SIconButton>
+        )}
       </Box>
     </STMenu>
   );

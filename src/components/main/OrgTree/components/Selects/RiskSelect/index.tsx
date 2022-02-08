@@ -1,11 +1,15 @@
-import React, { FC } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
 
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
-import { Box, CircularProgress } from '@mui/material';
+import { Box } from '@mui/material';
+import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
+
+import { IRiskFactors } from 'core/interfaces/IRiskFactors';
 
 import { useQueryRisk } from '../../../../../../core/services/hooks/queries/useQueryRisk';
 import { STagSearchSelect } from '../../../../../molecules/STagSearchSelect';
 import { ITypeSelectProps } from './types';
+import { riskFilter } from './utils/filters';
 
 export const RiskSelect: FC<ITypeSelectProps> = ({
   large,
@@ -14,28 +18,61 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
   ...props
 }) => {
   const { data } = useQueryRisk();
-
-  if (!data) return <CircularProgress />;
+  const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
   const handleSelectRisk = (option: string[]) => {
     handleSelect && handleSelect(option);
   };
 
+  const handleAddRisk = () => {
+    console.log('// TODO add risk function');
+  };
+
   const riskLength = String(node.risks ? node.risks.length : 0);
+
+  const handleActiveRisk = useCallback(
+    (filterFilter: string) => {
+      if (activeFilters.includes(filterFilter))
+        return setActiveFilters(
+          activeFilters.filter((risk) => risk !== filterFilter),
+        );
+
+      return setActiveFilters([...activeFilters, filterFilter]);
+    },
+    [activeFilters, setActiveFilters],
+  );
+
+  const options = useMemo(() => {
+    if (activeFilters.length > 0 && data)
+      return data.filter((risk) => activeFilters.includes(risk.type));
+
+    if (data) return data;
+
+    return [];
+  }, [data, activeFilters]);
 
   return (
     <STagSearchSelect
-      options={data}
+      options={options}
       icon={ReportProblemOutlinedIcon}
       multiple
+      additionalButton={handleAddRisk}
       text={riskLength}
+      keys={['name', 'type']}
       large={large}
       handleSelectMenu={handleSelectRisk}
       selected={node?.risks ?? []}
-      startAdornment={(options: typeof data[0]) => (
+      renderFilter={() => (
+        <SMenuSimpleFilter
+          options={riskFilter}
+          activeFilters={activeFilters}
+          onClickFilter={handleActiveRisk}
+        />
+      )}
+      startAdornment={(options: IRiskFactors | undefined) => (
         <Box
           sx={{
-            backgroundColor: `risk.${options.type}`,
+            backgroundColor: `risk.${options?.type}`,
             color: 'common.white',
             px: 4,
             py: '1px',
@@ -43,7 +80,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
             mr: 6,
           }}
         >
-          {options.type}
+          {options?.type}
         </Box>
       )}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}

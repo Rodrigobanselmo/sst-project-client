@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 import { ElementType, MouseEvent } from 'react';
 
 import { MenuProps } from '@mui/material';
+import Fuse from 'fuse.js';
 
 export interface IMenuSearchOption extends Record<string, any> {
   value?: string | number;
@@ -14,7 +15,7 @@ export interface IMenuSearchOption extends Record<string, any> {
 export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   isOpen: boolean;
   width?: (string | number)[] | string | number;
-  keys?: string[];
+  keys?: Fuse.FuseOptionKey[];
   close: () => void;
   handleSelect: (
     option: IMenuSearchOption | string[],
@@ -27,4 +28,6 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   selected?: string[];
   optionsFieldName?: { valueField?: string; contentField?: string };
   multiple?: boolean;
+  additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
+  renderFilter?: () => React.ReactNode;
 }

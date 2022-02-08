@@ -11,9 +11,31 @@ const SIconButton: FC<SIconButtonProps> = ({
   children,
   disabled,
   size,
+  bg,
+  sx,
   ...props
 }) => (
-  <IconButton disabled={loading || disabled} size={size} {...props}>
+  <IconButton
+    sx={
+      bg
+        ? {
+            backgroundColor: bg,
+            boxShadow: 'rgb(0 0 0 / 9%) 0px 3px 12px',
+            '&:hover': {
+              backgroundColor: bg,
+              filter: 'brightness(0.9)',
+            },
+            '&:active': {
+              backgroundColor: bg,
+            },
+            ...sx,
+          }
+        : { ...sx }
+    }
+    disabled={loading || disabled}
+    size={size}
+    {...props}
+  >
     {loading ? (
       <CircularProgress size={size === 'small' ? 20 : 22} {...circularProps} />
     ) : (
