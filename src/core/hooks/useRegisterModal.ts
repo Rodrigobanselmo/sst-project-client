@@ -1,8 +1,8 @@
 import { useCallback } from 'react';
 
-import { useModal } from '../contexts/ModalContext';
 import { selectCurrentModal } from './../../store/reducers/modal/modalSlice';
 import { useAppSelector } from './useAppSelector';
+import { useModal } from './useModal';
 
 export const useRegisterModal = () => {
   const currentModal = useAppSelector(selectCurrentModal);
@@ -10,7 +10,7 @@ export const useRegisterModal = () => {
   const { onCloseModal } = useModal();
   const isOpen = useCallback(
     (name: string) => {
-      if (currentModal === name) return true;
+      if (currentModal.includes(name)) return true;
       return false;
     },
     [currentModal],
@@ -19,7 +19,7 @@ export const useRegisterModal = () => {
   const registerModal = useCallback(
     (name: string) => {
       return {
-        open: name === currentModal,
+        open: currentModal.includes(name),
         onClose: () => onCloseModal(name),
       };
     },

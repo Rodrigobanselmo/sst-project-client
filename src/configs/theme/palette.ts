@@ -48,7 +48,8 @@ const palette = {
     delete: '#F44336',
   },
   secondary: {
-    main: '#1A202C',
+    main: '#2153b7',
+    dark: '#1A202C',
   },
   success: {
     dark: '#4CAF50',

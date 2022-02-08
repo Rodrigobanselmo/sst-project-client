@@ -54,6 +54,13 @@ export const treeSlice = createSlice({
         };
       });
     },
+    setEditRisks: (state, action: PayloadAction<ITreeMapEdit>) => {
+      const node = action.payload;
+      const oldRisks = state.nodes[node.id].risks;
+      if (oldRisks && node.risks) {
+        state.nodes[node.id].risks = [...oldRisks, ...node.risks];
+      }
+    },
     setAddNodes: (state, action: PayloadAction<ITreeMapObject[]>) => {
       action.payload.forEach((node) => {
         if (node.parentId) {
@@ -81,7 +88,6 @@ export const treeSlice = createSlice({
         childIds.forEach((nodeId) => {
           loopRemoveChild(state.nodes[nodeId].childrenIds);
           delete state.nodes[nodeId];
-          console.log(nodeId);
         });
       };
 

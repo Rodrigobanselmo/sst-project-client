@@ -3,7 +3,8 @@ import { FC } from 'react';
 import { Box, Icon } from '@mui/material';
 import { RiCloseFill } from '@react-icons/all-files/ri/RiCloseFill';
 
-import { useModal } from '../../../../../core/contexts/ModalContext';
+import { useModal } from 'core/hooks/useModal';
+
 import SFlex from '../../../../atoms/SFlex';
 import SIconButton from '../../../../atoms/SIconButton';
 import { STag } from '../../../../atoms/STag';

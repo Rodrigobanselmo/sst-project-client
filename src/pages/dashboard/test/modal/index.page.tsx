@@ -3,12 +3,13 @@ import { useEffect } from 'react';
 import { Box } from '@mui/material';
 import { NextPage } from 'next';
 
+import { useModal } from 'core/hooks/useModal';
+
 import SModal, {
   SModalPaper,
   SModalHeader,
   SModalButtons,
 } from '../../../../components/molecules/SModal';
-import { useModal } from '../../../../core/contexts/ModalContext';
 import { ModalEnum } from '../../../../core/enums/modal.enums';
 
 const Home: NextPage = () => {

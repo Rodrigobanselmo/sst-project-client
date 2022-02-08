@@ -6,13 +6,13 @@ export const STGridBox = styled(Box)`
   grid-template-rows: 1fr;
   grid-template-columns: fit-content(0px) 1fr;
   height: 100vh;
-  background-color: ${(props) => props.theme.palette.secondary.main};
+  background-color: ${(props) => props.theme.palette.secondary.dark};
 `;
 
 export const STBoxSidebar = styled(Box)`
   grid-row: 1 / 3;
   grid-column: 1;
-  background-color: ${(props) => props.theme.palette.secondary.main};
+  background-color: ${(props) => props.theme.palette.secondary.dark};
 `;
 
 export const STBoxContent = styled(Box)`

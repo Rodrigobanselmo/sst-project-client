@@ -12,14 +12,16 @@ export interface IModalDataSlice {
   confirmCancel: string;
 }
 interface IModalSlice {
-  currentModal: string | null;
+  currentModal: string[];
+  pileModal: string[];
   action: boolean;
   globalModal: boolean;
   data: IModalDataSlice;
 }
 
 const initialState: IModalSlice = {
-  currentModal: null,
+  currentModal: [],
+  pileModal: [],
   globalModal: false,
   action: false,
   data: {
@@ -37,8 +39,11 @@ export const modalSlice = createSlice({
   name,
   initialState,
   reducers: {
-    setModalName: (state, action: PayloadAction<string | null>) => {
+    setModalName: (state, action: PayloadAction<string[]>) => {
       state.currentModal = action.payload;
+    },
+    setPileModalName: (state, action: PayloadAction<string[]>) => {
+      state.pileModal = action.payload;
     },
     setModalData: (state, action: PayloadAction<IModalDataSlice>) => {
       state.data = action.payload;
@@ -54,8 +59,13 @@ export const modalSlice = createSlice({
 
 export const ModalName = name;
 
-export const { setModalName, setModalData, setModalAction, setModalGlobal } =
-  modalSlice.actions;
+export const {
+  setModalName,
+  setModalData,
+  setModalAction,
+  setModalGlobal,
+  setPileModalName,
+} = modalSlice.actions;
 
 export const selectCurrentModal = (state: AppState) => state[name].currentModal;
 export const selectModalData = (state: AppState) => state[name].data;

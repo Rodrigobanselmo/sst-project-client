@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useStore } from 'react-redux';
 
-import { useTreeActions } from '../../../../../../core/contexts/TreeActionsContextProvider';
+import { useTreeActions } from '../../../../../../core/hooks/useTreeActions';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { nodeTypesConstant } from '../../ModalEditCard/utils/node-type.constant';
 import { ITreeMap, ITreeMapObject } from './../../../interfaces';

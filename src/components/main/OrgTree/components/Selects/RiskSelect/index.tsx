@@ -1,12 +1,10 @@
 import React, { FC } from 'react';
 
-import MergeTypeIcon from '@mui/icons-material/MergeType';
+import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import { Box, CircularProgress } from '@mui/material';
 
-import { IRiskFactors } from '../../../../../../core/interfaces/IRiskFactors';
 import { useQueryRisk } from '../../../../../../core/services/hooks/queries/useQueryRisk';
 import { STagSearchSelect } from '../../../../../molecules/STagSearchSelect';
-import { STagSelect } from '../../../../../molecules/STagSelect';
 import { ITypeSelectProps } from './types';
 
 export const RiskSelect: FC<ITypeSelectProps> = ({
@@ -19,7 +17,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 
   if (!data) return <CircularProgress />;
 
-  const handleSelectRisk = (option: IRiskFactors) => {
+  const handleSelectRisk = (option: string[]) => {
     handleSelect && handleSelect(option);
   };
 
@@ -28,9 +26,12 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
   return (
     <STagSearchSelect
       options={data}
+      icon={ReportProblemOutlinedIcon}
+      multiple
       text={riskLength}
       large={large}
       handleSelectMenu={handleSelectRisk}
+      selected={node?.risks ?? []}
       startAdornment={(options: typeof data[0]) => (
         <Box
           sx={{
@@ -39,7 +40,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
             px: 4,
             py: '1px',
             borderRadius: 3,
-            mr: 5,
+            mr: 6,
           }}
         >
           {options.type}

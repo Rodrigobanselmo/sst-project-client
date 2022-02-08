@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 
-import { useTreeActions } from '../../../../../../core/contexts/TreeActionsContextProvider';
 import { useAppDispatch } from '../../../../../../core/hooks/useAppDispatch';
 import { useAppSelector } from '../../../../../../core/hooks/useAppSelector';
+import { useTreeActions } from '../../../../../../core/hooks/useTreeActions';
 import {
   selectAllTreeNodes,
   selectTreeSelectItem,

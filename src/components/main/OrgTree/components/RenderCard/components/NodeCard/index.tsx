@@ -3,39 +3,25 @@ import React, { FC, MouseEvent } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import { Box, Stack } from '@mui/material';
 
-import { useModal } from '../../../../../../../core/contexts/ModalContext';
-import { useTreeActions } from '../../../../../../../core/contexts/TreeActionsContextProvider';
+import { useModal } from 'core/hooks/useModal';
+
 import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
 import { TreeTypeEnum } from '../../../../../../../core/enums/tree-type.enums';
-import { IRiskFactors } from '../../../../../../../core/interfaces/IRiskFactors';
+import { useTreeActions } from '../../../../../../../core/hooks/useTreeActions';
 import { STagButton } from '../../../../../../atoms/STagButton';
 import SText from '../../../../../../atoms/SText';
 import { ITreeSelectedItem } from '../../../../interfaces';
-import { nodeTypesConstant } from '../../../ModalEditCard/utils/node-type.constant';
 import { RiskSelect } from '../../../Selects/RiskSelect';
 import { TypeSelect } from '../../../Selects/TypeSelect';
 import { INodeCardProps } from './types';
 
 export const NodeCard: FC<INodeCardProps> = ({ node }) => {
   const { onOpenModal } = useModal();
-  const { setSelectedItem, addNodes, editNodes, getUniqueId } =
-    useTreeActions();
+  const { editNodes, createEmptyCard } = useTreeActions();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
+    createEmptyCard(node.id);
     onOpenModal(ModalEnum.TREE_CARD);
-
-    const newNode = {
-      id: getUniqueId(),
-      childrenIds: [],
-      type: nodeTypesConstant[node.type].childOptions[0],
-      label: '',
-      parentId: node.id,
-      expand: false,
-    };
-
-    editNodes([{ id: node.id, expand: true }]);
-    addNodes([newNode]);
-    setSelectedItem(newNode, 'add');
     e.stopPropagation();
   };
 
@@ -73,9 +59,9 @@ export const NodeCard: FC<INodeCardProps> = ({ node }) => {
         />
         <RiskSelect
           node={node as ITreeSelectedItem}
-          handleSelect={(option: IRiskFactors) =>
-            editNodes([{ id: node.id, risks: [option.id] }])
-          }
+          handleSelect={(selectedRisks: string[]) => {
+            editNodes([{ id: node.id, risks: selectedRisks }]);
+          }}
         />
       </Stack>
     </>

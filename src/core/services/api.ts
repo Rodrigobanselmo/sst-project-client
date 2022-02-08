@@ -62,9 +62,6 @@ export function setupAPIClient(ctx = undefined) {
                 failedRequestQueue = [];
               })
               .catch((err) => {
-                console.log(err);
-                console.log(err.response);
-                console.log(err.response.data);
                 failedRequestQueue.forEach((request) => request.onFailure(err));
                 failedRequestQueue = [];
 

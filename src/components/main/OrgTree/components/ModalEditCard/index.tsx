@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { useStore } from 'react-redux';
 
 import CircleIcon from '@mui/icons-material/Circle';
@@ -7,17 +7,18 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
 import deepEqual from 'deep-equal';
 
+import { useModal } from 'core/hooks/useModal';
+
 import SModal, {
   SModalHeader,
   SModalPaper,
 } from '../../../../../components/molecules/SModal';
-import { useModal } from '../../../../../core/contexts/ModalContext';
-import { useTreeActions } from '../../../../../core/contexts/TreeActionsContextProvider';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
 import { TreeTypeEnum } from '../../../../../core/enums/tree-type.enums';
 import { useAppSelector } from '../../../../../core/hooks/useAppSelector';
 import { useGlobalModal } from '../../../../../core/hooks/useGlobalModal';
 import { useRegisterModal } from '../../../../../core/hooks/useRegisterModal';
+import { useTreeActions } from '../../../../../core/hooks/useTreeActions';
 import { IModalDataSlice } from '../../../../../store/reducers/modal/modalSlice';
 import { selectTreeSelectItem } from '../../../../../store/reducers/tree/treeSlice';
 import { SButton } from '../../../../atoms/SButton';
@@ -38,17 +39,20 @@ export const ModalEditCard = () => {
   const { registerModal } = useRegisterModal();
   const { onCloseModal } = useModal();
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
-  const { editNodes, removeNodes } = useTreeActions();
+  const { editNodes, removeNodes, createEmptyCard } = useTreeActions();
   const { onOpenGlobalModal } = useGlobalModal();
   const store = useStore();
+  const switchRef = useRef<HTMLInputElement>(null);
 
   const onSave = () => {
     if (selectedNode) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { action, ...newNode } = selectedNode;
 
-      onCloseModal(ModalEnum.TREE_CARD);
       editNodes([newNode]);
+      if (!switchRef.current?.checked) onCloseModal(ModalEnum.TREE_CARD);
+      if (switchRef.current?.checked && newNode.parentId)
+        createEmptyCard(newNode.parentId);
     }
   };
 
@@ -116,7 +120,6 @@ export const ModalEditCard = () => {
     >
       <SModalPaper p={8}>
         <SModalHeader
-          modalName={ModalEnum.TREE_CARD}
           onClose={onCloseUnsaved}
           secondIcon={
             type === TreeTypeEnum.CHECKLIST ? undefined : DeleteOutlineIcon
@@ -203,7 +206,12 @@ export const ModalEditCard = () => {
           gap={5}
         >
           {selectedNode?.action === 'add' ? (
-            <SSwitch label="Criar mais" sx={{ mr: 4 }} color="text.light" />
+            <SSwitch
+              inputRef={switchRef}
+              label="Criar mais"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
           ) : (
             <SButton variant={'outlined'} size="small" onClick={onCloseUnsaved}>
               Cancelar

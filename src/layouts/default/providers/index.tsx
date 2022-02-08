@@ -22,7 +22,6 @@ import { PersistGate } from 'redux-persist/integration/react';
 import theme from '../../../configs/theme';
 import { AuthProvider } from '../../../core/contexts/AuthContext';
 import { ModalProvider } from '../../../core/contexts/ModalContext';
-import { TreeActionsContextProvider } from '../../../core/contexts/TreeActionsContextProvider';
 import { queryClient } from '../../../core/services/queryClient';
 import store, { persistor } from '../../../store';
 
@@ -41,11 +40,7 @@ const DefaultProviders: FC = ({ children }) => {
             >
               <AuthProvider>
                 <QueryClientProvider client={queryClient}>
-                  <ModalProvider>
-                    <TreeActionsContextProvider>
-                      {children}
-                    </TreeActionsContextProvider>
-                  </ModalProvider>
+                  {children}
                   <ReactQueryDevtools />
                 </QueryClientProvider>
               </AuthProvider>

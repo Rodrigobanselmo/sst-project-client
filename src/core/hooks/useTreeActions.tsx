@@ -1,16 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { createContext, FC, useCallback, useContext } from 'react';
+import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
+import { nodeTypesConstant } from 'components/main/OrgTree/components/ModalEditCard/utils/node-type.constant';
+
 import {
-  ITreeActionsContextData,
-  ITreeActionsContextProps,
   ITreeMap,
   ITreeMapEdit,
   ITreeMapObject,
   ITreeMapPartial,
 } from '../../components/main/OrgTree/interfaces';
 import {
+  setAddNodes,
   setDragItem,
   setEditMapTreeNode,
   setEditNodes,
@@ -18,16 +19,11 @@ import {
   setMapTree,
   setRemoveNode,
   setSelectItem,
-  setAddNodes,
 } from '../../store/reducers/tree/treeSlice';
-import { useAppDispatch } from '../hooks/useAppDispatch';
 import { randomNumber } from '../utils/helpers/randomNumber';
+import { useAppDispatch } from './useAppDispatch';
 
-const TreeActionsContext = createContext({} as ITreeActionsContextData);
-
-export const TreeActionsContextProvider: FC<ITreeActionsContextProps> = ({
-  children,
-}) => {
+export const useTreeActions = () => {
   const dispatch = useAppDispatch();
 
   const store = useStore();
@@ -134,26 +130,37 @@ export const TreeActionsContextProvider: FC<ITreeActionsContextProps> = ({
     return id;
   }, [store]);
 
-  return (
-    <TreeActionsContext.Provider
-      value={{
-        setTree,
-        isChild,
-        removeNodes,
-        editNodes,
-        setDraggingItem,
-        onExpandAll,
-        editTreeMap,
-        setSelectedItem,
-        getPathById,
-        getUniqueId,
-        addNodes,
-      }}
-    >
-      {children}
-    </TreeActionsContext.Provider>
-  );
-};
+  const createEmptyCard = (nodeId: string | number) => {
+    const node = store.getState().tree.nodes[nodeId] as ITreeMapObject;
 
-export const useTreeActions = (): ITreeActionsContextData =>
-  useContext(TreeActionsContext);
+    if (node) {
+      const newNode = {
+        id: getUniqueId(),
+        childrenIds: [],
+        type: nodeTypesConstant[node.type].childOptions[0],
+        label: '',
+        parentId: node.id,
+        expand: false,
+      };
+
+      editNodes([{ id: node.id, expand: true }]);
+      addNodes([newNode]);
+      setSelectedItem(newNode, 'add');
+    }
+  };
+
+  return {
+    setTree,
+    isChild,
+    removeNodes,
+    editNodes,
+    setDraggingItem,
+    onExpandAll,
+    editTreeMap,
+    setSelectedItem,
+    getPathById,
+    getUniqueId,
+    addNodes,
+    createEmptyCard,
+  };
+};

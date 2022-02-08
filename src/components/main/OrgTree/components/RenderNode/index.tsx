@@ -12,7 +12,6 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
   const node = useAppSelector(selectTreeData(id)) as ITreeMapObject | null;
 
   if (!node) return null;
-  console.log('node', node?.label || node);
 
   const cls = ['org-tree-node'];
 

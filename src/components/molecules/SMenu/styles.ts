@@ -23,10 +23,5 @@ export const STMenuItem = styled(MenuItem)<ISTMenuProps>`
     font-size: 13px;
     line-height: 16px;
     font-weight: 300;
-    & .MuiSvgIcon-root {
-      font-size: 18px;
-      margin-right: 8px;
-      color: ${(props) => props.theme.palette.text.light};
-    }
   }
 `;

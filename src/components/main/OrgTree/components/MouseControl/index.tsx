@@ -1,13 +1,14 @@
 import React, { useState, useRef, FC } from 'react';
 
-import { useModal } from '../../../../../core/contexts/ModalContext';
+import { useModal } from 'core/hooks/useModal';
+
 import { useKeypress } from '../../../../../core/hooks/useKeypress';
 import { STMouseControlBox } from './styles';
 
 export const MouseControl: FC<{
   orgContainerRef: React.RefObject<HTMLDivElement>;
 }> = ({ orgContainerRef }) => {
-  const { registerStackModal } = useModal();
+  const { getStackModal } = useModal();
   const [controlKeyPress, setControlKeyPress] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef<boolean>(false);
@@ -17,10 +18,7 @@ export const MouseControl: FC<{
   useKeypress(
     ' ',
     (e) => {
-      if (
-        registerStackModal.current &&
-        registerStackModal.current.length === 0
-      ) {
+      if (getStackModal().length === 0) {
         if (e.target == document.body) e.preventDefault();
         if (e.target) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,10 +33,7 @@ export const MouseControl: FC<{
   useKeypress(
     ' ',
     (e) => {
-      if (
-        registerStackModal.current &&
-        registerStackModal.current.length === 0
-      ) {
+      if (getStackModal().length === 0) {
         if (e.target == document.body) e.preventDefault();
         if (e.target) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any

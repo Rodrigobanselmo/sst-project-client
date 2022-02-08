@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { NextPage } from 'next';
 
 import OrgTreeComponent from '../../../../components/main/OrgTree';
-import { useTreeActions } from '../../../../core/contexts/TreeActionsContextProvider';
+import { useTreeActions } from '../../../../core/hooks/useTreeActions';
 import { STFlexContainer } from './index.styles';
 import { dndData } from './utils/fakeData';
 

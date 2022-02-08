@@ -2,7 +2,8 @@ import { FC } from 'react';
 
 import { Box } from '@mui/material';
 
-import { useModal } from '../../../../../core/contexts/ModalContext';
+import { useModal } from 'core/hooks/useModal';
+
 import { SButton } from '../../../../atoms/SButton';
 import { SModalHeaderProps, IModalButton } from './types';
 

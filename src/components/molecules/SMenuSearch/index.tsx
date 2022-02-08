@@ -1,12 +1,11 @@
-import { FC, MouseEvent, useState } from 'react';
+import { FC, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Box } from '@mui/material';
-import Icon from '@mui/material/Icon';
 import Fuse from 'fuse.js';
 import { useDebouncedCallback } from 'use-debounce';
 
-import SText from '../../atoms/SText';
-import { STMenu, STMenuItem, STSInput } from './styles';
+import { SMenuSearchItems } from './SMenuSearchItems';
+import { STMenu, STSInput } from './styles';
 import { IMenuSearchOption, SMenuSearchProps } from './types';
 
 export const SMenuSearch: FC<SMenuSearchProps> = ({
@@ -21,40 +20,70 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   optionsFieldName,
   startAdornment,
   width = 500,
+  multiple,
+  selected,
   ...props
 }) => {
   const [search, setSearch] = useState<string>('');
+  const [scroll, setScroll] = useState(0);
 
-  const fuse = new Fuse(options, { keys });
+  const localSelected = useRef<string[]>([]);
+  const listWrapperRef = useRef<HTMLDivElement>(null);
 
   const handleMenuSelect = (
     option: IMenuSearchOption,
     e: MouseEvent<HTMLLIElement>,
   ) => {
-    if (isOpen) close();
-    handleSelect(option, e);
+    if (isOpen && !multiple) close();
+    if (!multiple) handleSelect(option, e);
   };
 
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const onClose = (e: any) => {
     e.stopPropagation();
+    handleSelect(localSelected.current, e);
     close();
+    localSelected.current = [];
   };
 
-  const handleSearchChange = useDebouncedCallback(
-    (value: string) => setSearch(value),
-    300,
-  );
+  const handleSearchChange = useDebouncedCallback((value: string) => {
+    setScroll(0);
+    setSearch(value);
+    if (listWrapperRef.current) listWrapperRef.current.scrollTop = 0;
+  }, 300);
+
+  useEffect(() => {
+    setScroll(0);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (selected) localSelected.current = [...selected];
+  }, [isOpen, selected]);
+
+  const valueField =
+    (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
+
+  const optionsMemoized = useMemo(() => {
+    if (!selected) return options;
+
+    const selectedResult = options
+      .filter((option) => selected.includes(option[valueField]))
+      .map((select) => ({ ...select, checked: true }));
+
+    const optionsResult = options.filter(
+      (option) => !selected.includes(option[valueField]),
+    );
+
+    return [...selectedResult, ...optionsResult];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options, selected]);
+
+  const fuse = new Fuse(optionsMemoized, { keys });
 
   const fuseResults = fuse.search(search, { limit: 20 });
   const results = search
     ? fuseResults.map((result) => result.item)
-    : options.slice(0, 20000);
-
-  const valueField =
-    (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
-  const contentField =
-    (optionsFieldName && optionsFieldName?.contentField) ?? 'name';
+    : optionsMemoized.slice(0, 20 + 200 * scroll);
 
   return (
     <STMenu
@@ -74,25 +103,25 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           e.stopPropagation();
         }}
       />
-      <Box sx={{ maxHeight: 350, overflow: 'auto' }}>
-        {results.map((option) => {
-          const value = option[valueField];
-          const content = option[contentField];
-          const optionIcon = option?.icon ? option.icon : icon;
-
-          return (
-            <STMenuItem
-              key={value}
-              onClick={(e) => handleMenuSelect(option, e)}
-            >
-              {optionIcon && <Icon component={optionIcon} />}
-              {!optionIcon && startAdornment && startAdornment(option)}
-              <SText fontSize={13} lineNumber={2} sx={{ ml: 10 }}>
-                {content}
-              </SText>
-            </STMenuItem>
-          );
-        })}
+      <Box
+        ref={listWrapperRef}
+        onScroll={(e) => {
+          const target = e.target as any;
+          if (target.scrollHeight - target.clientHeight == target.scrollTop)
+            setScroll((scroll) => scroll + 1);
+        }}
+        sx={{ maxHeight: 350, overflow: 'auto' }}
+      >
+        <SMenuSearchItems
+          options={results}
+          optionsFieldName={optionsFieldName}
+          handleMenuSelect={handleMenuSelect}
+          startAdornment={startAdornment}
+          icon={icon}
+          localSelected={localSelected}
+          multiple={multiple}
+          defaultChecked
+        />
       </Box>
     </STMenu>
   );

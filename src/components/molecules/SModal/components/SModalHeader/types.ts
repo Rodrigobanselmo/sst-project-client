@@ -11,7 +11,7 @@ export interface SModalHeaderProps extends Omit<BoxProps, 'title'> {
   modalName?: string;
   tag?: ITagAction;
   subtitle?: string;
-  onClose?: () => void;
+  onClose: () => void;
   secondIcon?: ElementType<any>;
   secondIconClick?: () => void;
 }

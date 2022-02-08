@@ -92,8 +92,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user: { id: userId, companies },
     } = response.data;
 
-    console.log(response.data);
-
     setCookie(undefined, 'nextauth.token', token, {
       maxAge: 60 * 60 * 25 * 30, // 30 days
       path: '/',

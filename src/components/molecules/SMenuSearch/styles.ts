@@ -49,11 +49,5 @@ export const STMenuItem = styled(MenuItem)<ISTMenuProps>`
     font-weight: 400;
     color: ${(props) => props.theme.palette.text.main};
     opacity: 0.9;
-    & .MuiSvgIcon-root {
-      font-size: 18px;
-      margin-right: 8px;
-      color: ${(props) => props.theme.palette.text.light};
-      color: ${(props) => props.theme.palette.text.main};
-    }
   }
 `;

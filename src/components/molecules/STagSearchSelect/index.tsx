@@ -10,10 +10,14 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   text,
   large,
   icon,
+  iconItem,
   onClick,
   handleSelectMenu,
   startAdornment,
   optionsFieldName,
+  placeholder,
+  multiple,
+  selected,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -50,10 +54,13 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         isOpen={Boolean(anchorEl)}
         anchorEl={anchorEl}
         handleSelect={handleSelect}
-        icon={icon}
+        icon={iconItem}
         options={options}
         startAdornment={startAdornment}
         optionsFieldName={optionsFieldName}
+        placeholder={placeholder}
+        multiple={multiple}
+        selected={selected}
       />
     </>
   );

@@ -1,10 +1,9 @@
 import React from 'react';
 
-import { Box } from '@mui/material';
+import { useModal } from 'core/hooks/useModal';
 
-import { useModal } from '../../../../../core/contexts/ModalContext';
-import { useTreeActions } from '../../../../../core/contexts/TreeActionsContextProvider';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
+import { useTreeActions } from '../../../../../core/hooks/useTreeActions';
 import { IRenderCard } from '../interfaces';
 import { RenderBtn } from '../RenderBtn';
 import { NodeCard } from './components/NodeCard';
