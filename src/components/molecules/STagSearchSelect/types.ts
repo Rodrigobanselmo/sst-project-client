@@ -10,6 +10,7 @@ export type IAnchorEvent = (EventTarget & HTMLDivElement) | null;
 
 export interface ISTagSearchSelectProps extends BoxProps {
   text: string;
+  tooltipTitle?: string;
   placeholder?: string;
   large?: boolean;
   selected?: string[];

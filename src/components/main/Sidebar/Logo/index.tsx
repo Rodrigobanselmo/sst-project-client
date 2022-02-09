@@ -7,7 +7,8 @@ import SIconButton from '../../../atoms/SIconButton';
 import { STStack, STTypography, STLogoSimple } from './styles';
 
 export function LogoNavbar(): JSX.Element {
-  const { isOpen, open, close, setAlwaysOpen, alwaysOpen } = useSidebarDrawer();
+  const { isOpen, open, close, setAlwaysOpen, alwaysOpen, isTablet } =
+    useSidebarDrawer();
 
   return (
     <STStack direction="row">
@@ -24,7 +25,10 @@ export function LogoNavbar(): JSX.Element {
           SST
         </Typography>
       </STTypography>
-      <SIconButton color="info" onClick={() => setAlwaysOpen(!alwaysOpen)}>
+      <SIconButton
+        color="info"
+        onClick={() => (isTablet ? close() : setAlwaysOpen(!alwaysOpen))}
+      >
         <Icon
           component={alwaysOpen ? RiCloseFill : RiMenu3Fill}
           sx={{

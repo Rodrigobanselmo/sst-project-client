@@ -44,7 +44,7 @@ export const nodeTypesConstant = {
   [TreeTypeEnum.OPTION]: {
     value: TreeTypeEnum.OPTION,
     title: 'Nova opção de resposta',
-    name: 'Opção de resposta',
+    name: 'Opção',
     childOptions: [TreeTypeEnum.QUESTION, TreeTypeEnum.GROUP],
     placeholder: 'Descrição da opção de pergunta...',
   },

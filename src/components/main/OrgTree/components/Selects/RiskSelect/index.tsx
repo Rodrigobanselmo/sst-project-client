@@ -4,6 +4,7 @@ import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined
 import { Box } from '@mui/material';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 
+import { useTreeActions } from 'core/hooks/useTreeActions';
 import { IRiskFactors } from 'core/interfaces/IRiskFactors';
 
 import { useQueryRisk } from '../../../../../../core/services/hooks/queries/useQueryRisk';
@@ -19,9 +20,14 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 }) => {
   const { data } = useQueryRisk();
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const { editNodes } = useTreeActions();
 
-  const handleSelectRisk = (option: string[]) => {
-    handleSelect && handleSelect(option);
+  const handleSelectRisk = (options: string[]) => {
+    if (handleSelect) {
+      handleSelect(options);
+    } else {
+      editNodes([{ id: node.id, risks: options }]);
+    }
   };
 
   const handleAddRisk = () => {
@@ -62,6 +68,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
       large={large}
       handleSelectMenu={handleSelectRisk}
       selected={node?.risks ?? []}
+      tooltipTitle={`${riskLength} fatores de risco`}
       renderFilter={() => (
         <SMenuSimpleFilter
           options={riskFilter}

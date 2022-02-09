@@ -92,13 +92,15 @@ export const treeSlice = createSlice({
       };
 
       action.payload.forEach((nodeId) => {
-        const parentId = state.nodes[nodeId].parentId;
-        if (parentId) {
-          state.nodes[parentId].childrenIds = state.nodes[
-            parentId
-          ].childrenIds.filter((id) => id !== nodeId);
-          loopRemoveChild(state.nodes[nodeId].childrenIds);
-          delete state.nodes[nodeId];
+        if (state.nodes[nodeId]) {
+          const parentId = state.nodes[nodeId].parentId;
+          if (parentId) {
+            state.nodes[parentId].childrenIds = state.nodes[
+              parentId
+            ].childrenIds.filter((id) => id !== nodeId);
+            loopRemoveChild(state.nodes[nodeId].childrenIds);
+            delete state.nodes[nodeId];
+          }
         }
       });
     },

@@ -1,11 +1,15 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { FC, memo } from 'react';
 
-import { Checkbox, Box } from '@mui/material';
+import { Box, Checkbox } from '@mui/material';
 import Icon from '@mui/material/Icon';
+import STooltip from 'components/atoms/STooltip';
 
 import SText from '../../../atoms/SText';
 import { STMenuItem } from '../styles';
 import { SMenuItemsSearchProps } from './types';
+
+console.error = () => {};
 
 const MenuItems: FC<SMenuItemsSearchProps> = ({
   handleMenuSelect,
@@ -20,7 +24,6 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
     (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
   const contentField =
     (optionsFieldName && optionsFieldName?.contentField) ?? 'name';
-
   return (
     <>
       {options.map((option) => {
@@ -68,9 +71,18 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
               />
             )}
             {!optionIcon && startAdornment && startAdornment(option)}
-            <SText fontSize={13} lineNumber={2}>
-              {content}
-            </SText>
+            <STooltip
+              minLength={100}
+              placement="right-start"
+              enterDelay={1200}
+              title={content}
+            >
+              <Box width="100%">
+                <SText fontSize={13} lineNumber={2}>
+                  {content}
+                </SText>
+              </Box>
+            </STooltip>
           </STMenuItem>
         );
       })}

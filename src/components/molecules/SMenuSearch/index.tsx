@@ -123,7 +123,6 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
       <Box
         ref={listWrapperRef}
         onScroll={(e) => {
-          console.log(optionsMemoized.length, numberOfRows);
           const target = e.target as any;
           if (
             target.scrollHeight - target.clientHeight == target.scrollTop &&

@@ -37,7 +37,7 @@ export function SidebarDrawerProvider({
   const isMobile = !useMediaQuery('(min-width:600px)');
   const isTablet = !useMediaQuery('(min-width:1100px)');
 
-  const disclosure = useDisclosure(true);
+  const disclosure = useDisclosure(isTablet ? false : true);
   const router = useRouter();
 
   const [urlRouter, setUrlRouter] = useState(router.asPath);
@@ -45,11 +45,11 @@ export function SidebarDrawerProvider({
   const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
-    if (urlRouter !== router.asPath && isMobile) {
+    if (urlRouter !== router.asPath && isTablet) {
       disclosure.close();
       setUrlRouter(router.asPath);
     }
-  }, [disclosure, router.asPath, urlRouter, isMobile]);
+  }, [disclosure, router.asPath, urlRouter, isTablet]);
 
   return (
     <SidebarDrawerContext.Provider
