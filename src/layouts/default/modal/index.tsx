@@ -12,13 +12,16 @@ import { useAppSelector } from '../../../core/hooks/useAppSelector';
 import { useGlobalModal } from '../../../core/hooks/useGlobalModal';
 import {
   selectModalData,
+  selectModalGlobal,
   setModalAction,
+  setModalGlobal,
 } from '../../../store/reducers/modal/modalSlice';
 
 const DefaultModal: FC = () => {
   const dispatch = useAppDispatch();
   const modalData = useAppSelector(selectModalData);
-  const { registerModal, onCloseGlobalModal } = useGlobalModal();
+  const globalModal = useAppSelector(selectModalGlobal);
+  const { onCloseGlobalModal } = useGlobalModal();
 
   const onConfirm = () => {
     dispatch(setModalAction(true));
@@ -37,7 +40,7 @@ const DefaultModal: FC = () => {
     buttons.push({ text: 'Cancel', variant: 'outlined' } as IModalButton);
 
   return (
-    <SModal {...registerModal()}>
+    <SModal open={globalModal} onClose={() => dispatch(setModalGlobal(false))}>
       <SModalPaper center>
         <SModalHeader
           tag={modalData.tag || 'none'}

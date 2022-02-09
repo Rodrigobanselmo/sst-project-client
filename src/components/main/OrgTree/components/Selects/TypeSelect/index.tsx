@@ -1,16 +1,15 @@
 import React, { FC, useMemo } from 'react';
 
 import MergeTypeIcon from '@mui/icons-material/MergeType';
+import { usePreventEvent } from 'components/main/OrgTree/hooks/usePreventModal';
 
 import { TreeTypeEnum } from '../../../../../../core/enums/tree-type.enums';
 import { useAppSelector } from '../../../../../../core/hooks/useAppSelector';
-import { useGlobalModal } from '../../../../../../core/hooks/useGlobalModal';
-import { IModalDataSlice } from '../../../../../../store/reducers/modal/modalSlice';
 import { selectTreeData } from '../../../../../../store/reducers/tree/treeSlice';
 import { IMenuOptionResponse } from '../../../../../molecules/SMenu/types';
 import { STagSelect } from '../../../../../molecules/STagSelect';
 import { ITreeMapObject } from '../../../interfaces';
-import { nodeTypesConstant } from '../../ModalEditCard/utils/node-type.constant';
+import { nodeTypesConstant } from '../../ModalEditCard/constants/node-type.constant';
 import { ITypeSelectProps } from './types';
 
 export const TypeSelect: FC<ITypeSelectProps> = ({
@@ -24,19 +23,10 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
     selectTreeData(parentId),
   ) as ITreeMapObject | null;
 
-  const { onOpenGlobalModal } = useGlobalModal();
+  const { preventChangeCardType } = usePreventEvent();
 
   const handleEditTypeCard = ({ name, value }: IMenuOptionResponse) => {
-    if (node.childrenIds.length > 0) {
-      const data = {
-        title: 'Ação bloqueada',
-        text: 'Você só poderá mudar o tipo de cartão quando não houver nenhum cartão descendente ligado a este.',
-        confirmText: 'Ok',
-        tag: 'warning',
-      } as IModalDataSlice;
-
-      return onOpenGlobalModal(data);
-    }
+    if (preventChangeCardType(node)) return;
     handleSelect && handleSelect({ value: value as TreeTypeEnum, name });
   };
 

@@ -2,7 +2,7 @@
 import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
-import { nodeTypesConstant } from 'components/main/OrgTree/components/ModalEditCard/utils/node-type.constant';
+import { nodeTypesConstant } from 'components/main/OrgTree/components/ModalEditCard/constants/node-type.constant';
 
 import {
   ITreeMap,

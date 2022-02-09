@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 interface IDebounce {
   onDebounce: (...args: any[]) => void;
@@ -8,7 +8,7 @@ interface IDebounce {
 export const useDebounce = (
   fn: (...args: any[]) => void,
   delay: number,
-  continueUnmounted?: boolean // if want to continue to update after unmounted
+  continueUnmounted?: boolean, // if want to continue to update after unmounted
 ): IDebounce => {
   const ref = useRef<number | undefined | null>(null);
 

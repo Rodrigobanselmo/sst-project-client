@@ -5,7 +5,6 @@ import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import { Icon } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
 
-import { useTreeActions } from 'core/hooks/useTreeActions';
 import { IRecMed } from 'core/interfaces/IRecMed';
 import { useQueryRecMed } from 'core/services/hooks/queries/useQueryRecMed';
 
@@ -19,14 +18,9 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   ...props
 }) => {
   const { data } = useQueryRecMed();
-  const { editNodes } = useTreeActions();
 
   const handleSelectRecMed = (options: string[]) => {
-    if (handleSelect) {
-      handleSelect(options);
-    } else {
-      editNodes([{ id: node.id, med: options }]);
-    }
+    if (handleSelect) handleSelect(options);
   };
 
   const handleAddRecMed = () => {

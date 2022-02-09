@@ -4,13 +4,12 @@ import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined
 import { Box } from '@mui/material';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 
-import { useTreeActions } from 'core/hooks/useTreeActions';
 import { IRiskFactors } from 'core/interfaces/IRiskFactors';
 
 import { useQueryRisk } from '../../../../../../core/services/hooks/queries/useQueryRisk';
 import { STagSearchSelect } from '../../../../../molecules/STagSearchSelect';
+import { riskFilter } from './constants/filters';
 import { ITypeSelectProps } from './types';
-import { riskFilter } from './utils/filters';
 
 export const RiskSelect: FC<ITypeSelectProps> = ({
   large,
@@ -20,14 +19,9 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 }) => {
   const { data } = useQueryRisk();
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const { editNodes } = useTreeActions();
 
   const handleSelectRisk = (options: string[]) => {
-    if (handleSelect) {
-      handleSelect(options);
-    } else {
-      editNodes([{ id: node.id, risks: options }]);
-    }
+    if (handleSelect) handleSelect(options);
   };
 
   const handleAddRisk = () => {

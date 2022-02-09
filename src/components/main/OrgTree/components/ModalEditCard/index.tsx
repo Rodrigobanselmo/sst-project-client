@@ -7,6 +7,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
 import deepEqual from 'deep-equal';
 
+import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
 import { useModal } from 'core/hooks/useModal';
 
 import SModal, {
@@ -29,9 +30,13 @@ import { STag } from '../../../../atoms/STag';
 import SText from '../../../../atoms/SText';
 import STextarea from '../../../../atoms/STextarea';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
+import { MedSelect } from '../Selects/MedSelect';
+import { QuestionTypeSelect } from '../Selects/QuestionTypeSelect';
+import { RecSelect } from '../Selects/RecSelect';
+import { RiskSelect } from '../Selects/RiskSelect';
 import { TypeSelect } from '../Selects/TypeSelect';
+import { nodeTypesConstant } from './constants/node-type.constant';
 import { useModalCard } from './hooks/useModalCard';
-import { nodeTypesConstant } from './utils/node-type.constant';
 
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectTreeSelectItem);
@@ -112,6 +117,7 @@ export const ModalEditCard = () => {
     }
   };
 
+  if (!selectedNode) return null;
   return (
     <SModal
       {...registerModal(ModalEnum.TREE_CARD)}
@@ -191,9 +197,53 @@ export const ModalEditCard = () => {
               node={selectedNode as ITreeSelectedItem}
               parentId={selectedNode?.parentId || 'no-node'}
               handleSelect={(option) =>
-                setEditNodeSelectedItem({ type: option.value as TreeTypeEnum })
+                setEditNodeSelectedItem({
+                  type: option.value as TreeTypeEnum,
+                })
               }
             />
+            {selectedNode.type === TreeTypeEnum.OPTION && (
+              <>
+                <RiskSelect
+                  large
+                  node={selectedNode}
+                  handleSelect={(options) =>
+                    setEditNodeSelectedItem({
+                      risks: options,
+                    })
+                  }
+                />
+                <MedSelect
+                  large
+                  node={selectedNode}
+                  handleSelect={(options) =>
+                    setEditNodeSelectedItem({
+                      med: options,
+                    })
+                  }
+                />
+                <RecSelect
+                  large
+                  node={selectedNode}
+                  handleSelect={(options) =>
+                    setEditNodeSelectedItem({
+                      rec: options,
+                    })
+                  }
+                />
+              </>
+            )}
+            {selectedNode.type === TreeTypeEnum.QUESTION && (
+              <QuestionTypeSelect
+                large
+                node={selectedNode}
+                handleSelect={(option) =>
+                  setEditNodeSelectedItem({
+                    answerType: option.value as QuestionOptionsEnum,
+                  })
+                }
+              />
+            )}
           </SFlex>
         </Box>
         <Box

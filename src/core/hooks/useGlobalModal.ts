@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import {
   IModalDataSlice,
   selectModalAction,
-  selectModalGlobal,
   setModalAction,
   setModalData,
   setModalGlobal,
@@ -15,7 +14,6 @@ import { useAppSelector } from './useAppSelector';
 export const useGlobalModal = () => {
   const dispatch = useAppDispatch();
   const actionModal = useAppSelector(selectModalAction);
-  const globalModal = useAppSelector(selectModalGlobal);
   const callbackRef = useRef<(...args: any[]) => void>(() => null);
 
   const onOpenGlobalModal = useCallback(
@@ -35,16 +33,9 @@ export const useGlobalModal = () => {
     }
   }, [actionModal, dispatch]);
 
-  const registerModal = useCallback(() => {
-    return {
-      open: globalModal,
-      onClose: () => dispatch(setModalGlobal(false)),
-    };
-  }, [dispatch, globalModal]);
-
   const onCloseGlobalModal = useCallback(() => {
     dispatch(setModalGlobal(false));
   }, [dispatch]);
 
-  return { onOpenGlobalModal, registerModal, onCloseGlobalModal };
+  return { onOpenGlobalModal, onCloseGlobalModal };
 };

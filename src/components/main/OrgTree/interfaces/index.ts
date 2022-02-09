@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSProperties } from 'react';
 
+import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
+
 import { TreeTypeEnum } from '../../../../core/enums/tree-type.enums';
 
 export interface IOrgTreeProps {
@@ -22,6 +24,7 @@ export interface ITreeMapObject {
   risks?: string[];
   rec?: string[];
   med?: string[];
+  answerType?: QuestionOptionsEnum;
   generateSource?: string[];
 }
 
