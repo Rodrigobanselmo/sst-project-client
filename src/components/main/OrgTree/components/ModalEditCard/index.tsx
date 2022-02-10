@@ -5,17 +5,16 @@ import CircleIcon from '@mui/icons-material/Circle';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
-import deepEqual from 'deep-equal';
+import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
 
-import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
 import { useModal } from 'core/hooks/useModal';
+import { usePreventAction } from 'core/hooks/usePreventAction';
 
 import SModal, {
   SModalHeader,
   SModalPaper,
 } from '../../../../../components/molecules/SModal';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
-import { TreeTypeEnum } from '../../../../../core/enums/tree-type.enums';
 import { useAppSelector } from '../../../../../core/hooks/useAppSelector';
 import { useGlobalModal } from '../../../../../core/hooks/useGlobalModal';
 import { useRegisterModal } from '../../../../../core/hooks/useRegisterModal';
@@ -29,13 +28,14 @@ import { SSwitch } from '../../../../atoms/SSwitch';
 import { STag } from '../../../../atoms/STag';
 import SText from '../../../../atoms/SText';
 import STextarea from '../../../../atoms/STextarea';
+import { nodeTypesConstant } from '../../constants/node-type.constant';
+import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
 import { MedSelect } from '../Selects/MedSelect';
 import { QuestionTypeSelect } from '../Selects/QuestionTypeSelect';
 import { RecSelect } from '../Selects/RecSelect';
 import { RiskSelect } from '../Selects/RiskSelect';
 import { TypeSelect } from '../Selects/TypeSelect';
-import { nodeTypesConstant } from './constants/node-type.constant';
 import { useModalCard } from './hooks/useModalCard';
 
 export const ModalEditCard = () => {
@@ -46,6 +46,7 @@ export const ModalEditCard = () => {
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
   const { editNodes, removeNodes, createEmptyCard } = useTreeActions();
   const { onOpenGlobalModal } = useGlobalModal();
+  const { preventUnwantedChanges } = usePreventAction();
   const store = useStore();
   const switchRef = useRef<HTMLInputElement>(null);
 
@@ -57,15 +58,13 @@ export const ModalEditCard = () => {
       editNodes([newNode]);
       if (!switchRef.current?.checked) onCloseModal(ModalEnum.TREE_CARD);
       if (switchRef.current?.checked && newNode.parentId)
-        createEmptyCard(newNode.parentId);
+        createEmptyCard(newNode.parentId, { type: newNode.type });
     }
   };
 
   const type = selectedNode?.type || 1;
 
-  const isTextArea = [TreeTypeEnum.OPTION, TreeTypeEnum.QUESTION].includes(
-    type,
-  );
+  const isTextArea = TreeTypeEnum.QUESTION === type;
 
   const onCloseUnsaved = () => {
     const nodesMap = store.getState().tree.nodes as ITreeMap;
@@ -78,25 +77,12 @@ export const ModalEditCard = () => {
       }
     };
 
-    if (
-      !deepEqual(
-        selectedNode,
-        { action: selectedNode?.action, ...nodesMap[selectedNode?.id || ''] } ||
-          {},
-      )
-    ) {
-      const data = {
-        title: 'Descartar mudançãs?',
-        text: 'Você tem certeza que deseja descartar as mudanças realizadas?',
-        confirmText: 'Descartar',
-        tag: 'warning',
-        confirmCancel: 'Cancel',
-      } as IModalDataSlice;
+    const beforeNode =
+      { action: selectedNode?.action, ...nodesMap[selectedNode?.id || ''] } ||
+      {};
 
-      onOpenGlobalModal(data, close);
-    } else {
-      close();
-    }
+    if (preventUnwantedChanges(selectedNode, beforeNode, close)) return;
+    close();
   };
 
   const onRemoveNode = () => {

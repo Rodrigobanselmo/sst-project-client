@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { Box, styled } from '@mui/material';
 
-import { TreeTypeEnum } from '../../../../../core/enums/tree-type.enums';
+import { TreeTypeEnum } from '../../enums/tree-type.enums';
 
 interface ICardCard {
   isDragging: boolean;

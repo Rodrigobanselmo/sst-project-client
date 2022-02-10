@@ -1,15 +1,15 @@
 import React, { FC, useMemo } from 'react';
 
 import MergeTypeIcon from '@mui/icons-material/MergeType';
-import { usePreventEvent } from 'components/main/OrgTree/hooks/usePreventModal';
+import { usePreventNode } from 'components/main/OrgTree/hooks/usePreventNode';
 
-import { TreeTypeEnum } from '../../../../../../core/enums/tree-type.enums';
 import { useAppSelector } from '../../../../../../core/hooks/useAppSelector';
 import { selectTreeData } from '../../../../../../store/reducers/tree/treeSlice';
 import { IMenuOptionResponse } from '../../../../../molecules/SMenu/types';
 import { STagSelect } from '../../../../../molecules/STagSelect';
+import { nodeTypesConstant } from '../../../constants/node-type.constant';
+import { TreeTypeEnum } from '../../../enums/tree-type.enums';
 import { ITreeMapObject } from '../../../interfaces';
-import { nodeTypesConstant } from '../../ModalEditCard/constants/node-type.constant';
 import { ITypeSelectProps } from './types';
 
 export const TypeSelect: FC<ITypeSelectProps> = ({
@@ -23,7 +23,7 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
     selectTreeData(parentId),
   ) as ITreeMapObject | null;
 
-  const { preventChangeCardType } = usePreventEvent();
+  const { preventChangeCardType } = usePreventNode();
 
   const handleEditTypeCard = ({ name, value }: IMenuOptionResponse) => {
     if (preventChangeCardType(node)) return;

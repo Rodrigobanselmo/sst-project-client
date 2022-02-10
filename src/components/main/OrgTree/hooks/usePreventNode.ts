@@ -1,11 +1,11 @@
+import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
 import { IModalDataSlice } from 'store/reducers/modal/modalSlice';
 
-import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
 import { useGlobalModal } from 'core/hooks/useGlobalModal';
 
 import { ITreeMapObject, ITreeSelectedItem } from '../interfaces';
 
-export const usePreventEvent = () => {
+export const usePreventNode = () => {
   const { onOpenGlobalModal } = useGlobalModal();
 
   const preventMultipleTextOptions = (

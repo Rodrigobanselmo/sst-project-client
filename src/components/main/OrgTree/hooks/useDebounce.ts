@@ -1,12 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef } from 'react';
 
 interface IDebounce {
-  onDebounce: (...args: any[]) => void;
+  onDebounce: (...args: any[]) => any;
   onClearDebounce: () => void;
 }
 
 export const useDebounce = (
-  fn: (...args: any[]) => void,
+  fn: (...args: any[]) => any,
   delay: number,
   continueUnmounted?: boolean, // if want to continue to update after unmounted
 ): IDebounce => {

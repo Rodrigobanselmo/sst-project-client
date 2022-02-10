@@ -2,18 +2,20 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { AppState } from '../..';
+import { TreeTypeEnum } from '../../../components/main/OrgTree/enums/tree-type.enums';
 import {
   ITreeMap,
   ITreeMapEdit,
   ITreeMapObject,
   ITreeMapPartial,
   ITreeSelectedItem,
+  ITreeCopyItem,
 } from '../../../components/main/OrgTree/interfaces';
-import { TreeTypeEnum } from '../../../core/enums/tree-type.enums';
 
 interface ITreeSlice {
   nodes: ITreeMap;
   dragItem: ITreeMapObject | null;
+  copyItem: ITreeCopyItem | null;
   selectItem: ITreeSelectedItem | null;
 }
 
@@ -29,6 +31,7 @@ const initialState: ITreeSlice = {
     },
   },
   dragItem: null,
+  copyItem: null,
   selectItem: null,
 };
 
@@ -107,6 +110,9 @@ export const treeSlice = createSlice({
     setDragItem: (state, action: PayloadAction<ITreeMapObject | null>) => {
       state.dragItem = action.payload;
     },
+    setSelectCopy: (state, action: PayloadAction<ITreeCopyItem | null>) => {
+      state.copyItem = action.payload;
+    },
     setSelectItem: (state, action: PayloadAction<ITreeSelectedItem | null>) => {
       state.selectItem = action.payload;
     },
@@ -148,6 +154,7 @@ export const {
   setMapTree,
   setSelectItem,
   setEditSelectItem,
+  setSelectCopy,
 } = treeSlice.actions;
 
 export const selectAllTreeNodes = (state: AppState) => state[name].nodes;
@@ -157,5 +164,6 @@ export const selectTreeData = (id: string | number) => (state: AppState) =>
 
 export const selectTreeDragItem = (state: AppState) => state[name].dragItem;
 export const selectTreeSelectItem = (state: AppState) => state[name].selectItem;
+export const selectTreeCopyItem = (state: AppState) => state[name].copyItem;
 
 export default treeSlice.reducer;

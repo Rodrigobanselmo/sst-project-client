@@ -4,9 +4,11 @@ import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useStore } from 'react-redux';
 
+import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
+
 import { useTreeActions } from '../../../../../../core/hooks/useTreeActions';
+import { nodeTypesConstant } from '../../../constants/node-type.constant';
 import { useDebounce } from '../../../hooks/useDebounce';
-import { nodeTypesConstant } from '../../ModalEditCard/constants/node-type.constant';
 import { ITreeMap, ITreeMapObject } from './../../../interfaces';
 
 export const useDnd = (node: ITreeMapObject) => {
@@ -102,8 +104,7 @@ export const useDnd = (node: ITreeMapObject) => {
     const dragItem = store.getState().tree.dragItem as ITreeMapObject | null;
 
     if (dragItem) {
-      const canDrop =
-        dragItem.id !== node?.id && !isChild(dragItem.id, node.id);
+      const canDrop = onCanDrop(dragItem);
       if (!canDrop) return;
     }
 
@@ -148,14 +149,28 @@ export const useDnd = (node: ITreeMapObject) => {
 
   const { onDebounce } = useDebounce(onDragEnter, 500);
 
+  const onCanDrop = (dragItem: ITreeMapObject) => {
+    if (
+      node?.answerType &&
+      node.answerType === QuestionOptionsEnum.TEXT &&
+      node.childrenIds.length > 0
+    ) {
+      return false;
+    }
+
+    const differentId = dragItem.id !== node.id;
+    const notChildOfDrop = !isChild(dragItem.id, node.id);
+    const typeIncludesNode =
+      nodeTypesConstant[node.type] &&
+      nodeTypesConstant[node.type].childOptions.includes(dragItem.type);
+
+    return differentId && notChildOfDrop && typeIncludesNode;
+  };
+
   const [{ isOver }, drop] = useDrop(
     () => ({
       accept: 'box',
-      canDrop: (item: ITreeMapObject) =>
-        item.id !== node.id &&
-        !isChild(item.id, node.id) &&
-        nodeTypesConstant[node.type] &&
-        nodeTypesConstant[node.type].childOptions.includes(item.type),
+      canDrop: (item: ITreeMapObject) => onCanDrop(item),
       drop: (drag: ITreeMapObject) => onDrop(drag),
       collect: (monitor: any) => ({
         isOver: !!monitor.isOver(),

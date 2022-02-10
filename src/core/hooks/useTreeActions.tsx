@@ -2,9 +2,10 @@
 import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
-import { nodeTypesConstant } from 'components/main/OrgTree/components/ModalEditCard/constants/node-type.constant';
+import { nodeTypesConstant } from 'components/main/OrgTree/constants/node-type.constant';
 
 import {
+  ITreeCopyItem,
   ITreeMap,
   ITreeMapEdit,
   ITreeMapObject,
@@ -18,6 +19,7 @@ import {
   setExpandAll,
   setMapTree,
   setRemoveNode,
+  setSelectCopy,
   setSelectItem,
 } from '../../store/reducers/tree/treeSlice';
 import { randomNumber } from '../utils/helpers/randomNumber';
@@ -28,6 +30,22 @@ export const useTreeActions = () => {
 
   const store = useStore();
 
+  const getUniqueId = useCallback((): string => {
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+    let id = randomNumber(5);
+
+    const loop = (idNumber: string) => {
+      if (nodesMap[idNumber]) {
+        id = randomNumber(5);
+        loop(id);
+      }
+    };
+
+    loop(id);
+
+    return id;
+  }, [store]);
+
   const setTree = useCallback(
     (nodesMap: ITreeMap) => {
       dispatch(setMapTree(nodesMap));
@@ -35,7 +53,6 @@ export const useTreeActions = () => {
     [dispatch],
   );
 
-  // can delete new nodes, only edit/create
   const editTreeMap = useCallback(
     (nodesMap: ITreeMapPartial) => {
       dispatch(setEditMapTreeNode(nodesMap));
@@ -43,7 +60,6 @@ export const useTreeActions = () => {
     [dispatch],
   );
 
-  // can`t delete new nodes, only edit/create
   const editNodes = useCallback(
     (nodesMap: ITreeMapEdit[]) => {
       dispatch(setEditNodes(nodesMap));
@@ -86,6 +102,60 @@ export const useTreeActions = () => {
     [store],
   );
 
+  const cloneBranch = useCallback(
+    (
+      id: number | string,
+      parentId: number | string,
+      withChildren?: boolean,
+      shouldCloneMemory?: boolean,
+    ) => {
+      const treeData = store.getState().tree.nodes;
+      const cloneTree: ITreeMap = { [parentId]: { ...treeData[parentId] } };
+
+      const loop = (
+        id: number | string,
+        _parentId: number | string,
+        isFirst?: boolean,
+      ) => {
+        const node = treeData[id] as ITreeMapObject | null;
+        const cloneNodeParent = cloneTree[_parentId] as ITreeMapObject | null;
+
+        if (node) {
+          let memo = {} as ITreeCopyItem;
+
+          const copyItem = store.getState().tree
+            .copyItem as ITreeCopyItem | null;
+
+          if (shouldCloneMemory && copyItem) {
+            memo = copyItem;
+          }
+          const cloneNode = {
+            ...node,
+            id: getUniqueId(),
+            parentId: _parentId,
+            childrenIds: [],
+          } as ITreeMapObject;
+          cloneTree[cloneNode.id] = cloneNode;
+
+          if (withChildren || isFirst) {
+            if (cloneNodeParent)
+              cloneTree[_parentId].childrenIds = [
+                ...cloneTree[_parentId].childrenIds,
+                cloneNode.id,
+              ];
+            if (node.childrenIds && withChildren) {
+              node.childrenIds.map((childId) => loop(childId, cloneNode.id));
+            }
+          }
+        }
+      };
+
+      loop(id, parentId, true);
+      return cloneTree;
+    },
+    [getUniqueId, store],
+  );
+
   const isChild = useCallback(
     (parentId: number | string, childId: number | string) => {
       return getPathById(String(childId)).includes(String(parentId));
@@ -114,23 +184,29 @@ export const useTreeActions = () => {
     [dispatch],
   );
 
-  const getUniqueId = useCallback((): string => {
-    const nodesMap = store.getState().tree.nodes as ITreeMap;
-    let id = randomNumber(5);
+  const setCopyItem = useCallback(
+    (node: ITreeMapObject, isCopyAll: boolean) => {
+      dispatch(setSelectCopy({ ...node, all: isCopyAll }));
+    },
+    [dispatch],
+  );
 
-    const loop = (idNumber: string) => {
-      if (nodesMap[idNumber]) {
-        id = randomNumber(5);
-        loop(id);
+  const setPasteItem = useCallback(
+    (node: ITreeMapObject) => {
+      const copyItem = store.getState().tree.copyItem as ITreeCopyItem | null;
+
+      if (copyItem) {
+        const clone = cloneBranch(copyItem.id, node.id, copyItem.all);
+        editTreeMap(clone);
       }
-    };
+    },
+    [cloneBranch, editTreeMap, store],
+  );
 
-    loop(id);
-
-    return id;
-  }, [store]);
-
-  const createEmptyCard = (nodeId: string | number) => {
+  const createEmptyCard = (
+    nodeId: string | number,
+    exampleNode: Partial<ITreeMapObject> = {},
+  ) => {
     const node = store.getState().tree.nodes[nodeId] as ITreeMapObject;
 
     if (node) {
@@ -141,6 +217,7 @@ export const useTreeActions = () => {
         label: '',
         parentId: node.id,
         expand: false,
+        ...exampleNode,
       };
 
       editNodes([{ id: node.id, expand: true }]);
@@ -162,5 +239,7 @@ export const useTreeActions = () => {
     getUniqueId,
     addNodes,
     createEmptyCard,
+    setCopyItem,
+    setPasteItem,
   };
 };

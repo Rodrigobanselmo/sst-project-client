@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSProperties } from 'react';
 
-import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
+import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
 
-import { TreeTypeEnum } from '../../../../core/enums/tree-type.enums';
+import { TreeTypeEnum } from '../enums/tree-type.enums';
 
 export interface IOrgTreeProps {
   horizontal?: boolean;
@@ -31,6 +31,11 @@ export interface ITreeMapObject {
 export interface ITreeSelectedItem extends ITreeMapObject {
   action: 'edit' | 'add';
 }
+
+export interface ITreeCopyItem extends ITreeMapObject {
+  all: boolean;
+}
+
 export interface ITreeMap extends Record<string, ITreeMapObject> {}
 
 export interface ITreeMapPartial

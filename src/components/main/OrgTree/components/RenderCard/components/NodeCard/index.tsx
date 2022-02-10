@@ -3,18 +3,19 @@ import React, { FC, MouseEvent } from 'react';
 import AddIcon from '@mui/icons-material/Add';
 import { Box, Stack } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
-import { usePreventEvent } from 'components/main/OrgTree/hooks/usePreventModal';
+import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
+import { usePreventNode } from 'components/main/OrgTree/hooks/usePreventNode';
 
-import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
 import { useModal } from 'core/hooks/useModal';
 
 import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
-import { TreeTypeEnum } from '../../../../../../../core/enums/tree-type.enums';
 import { useTreeActions } from '../../../../../../../core/hooks/useTreeActions';
 import { STagButton } from '../../../../../../atoms/STagButton';
 import SText from '../../../../../../atoms/SText';
+import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { ITreeSelectedItem } from '../../../../interfaces';
 import { MedSelect } from '../../../Selects/MedSelect';
+import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { QuestionTypeSelect } from '../../../Selects/QuestionTypeSelect';
 import { RecSelect } from '../../../Selects/RecSelect';
 import { RiskSelect } from '../../../Selects/RiskSelect';
@@ -48,10 +49,10 @@ const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({
   );
 };
 
-export const NodeCard: FC<INodeCardProps> = ({ node }) => {
+export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
   const { onOpenModal } = useModal();
   const { editNodes, createEmptyCard } = useTreeActions();
-  const { preventMultipleTextOptions } = usePreventEvent();
+  const { preventMultipleTextOptions } = usePreventNode();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -125,6 +126,7 @@ export const NodeCard: FC<INodeCardProps> = ({ node }) => {
             }
           />
         )}
+        <OptionsHelpSelect menuRef={menuRef} node={node} />
       </Stack>
     </>
   );

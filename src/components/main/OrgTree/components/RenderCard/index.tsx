@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, MouseEvent } from 'react';
 
 import { useModal } from 'core/hooks/useModal';
 
@@ -14,6 +14,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   const { setSelectedItem } = useTreeActions();
   const { drop, isDragging, drag } = useDnd(node);
   const { onOpenModal } = useModal();
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const clx = ['org-tree-node-label-inner'];
 
@@ -22,6 +23,11 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   const handleClickCard = () => {
     onOpenModal(ModalEnum.TREE_CARD);
     setSelectedItem(node);
+  };
+
+  const onContextMenu = (e: MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (menuRef.current) menuRef.current.click();
   };
 
   return (
@@ -40,8 +46,9 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
         className={clx.join(' ')}
         style={{ ...node?.style }}
         onClick={handleClickCard}
+        onContextMenu={onContextMenu}
       >
-        <NodeCard node={node} />
+        <NodeCard menuRef={menuRef} node={node} />
         {prop.collapsable && !!node.childrenIds.length && (
           <RenderBtn prop={prop} node={node} />
         )}

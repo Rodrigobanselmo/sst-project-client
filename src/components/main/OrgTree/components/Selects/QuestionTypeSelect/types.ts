@@ -1,6 +1,5 @@
 import { BoxProps } from '@mui/material';
-
-import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
+import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
 
 import { ITreeMapObject, ITreeSelectedItem } from '../../../interfaces';
 

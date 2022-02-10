@@ -1,4 +1,4 @@
-import { TreeTypeEnum } from '../../../../../../core/enums/tree-type.enums';
+import { TreeTypeEnum } from '../enums/tree-type.enums';
 
 interface INodeTypes
   extends Record<
@@ -46,6 +46,6 @@ export const nodeTypesConstant = {
     title: 'Nova opção de resposta',
     name: 'Opção de resposta',
     childOptions: [TreeTypeEnum.QUESTION, TreeTypeEnum.GROUP],
-    placeholder: 'Descrição da opção de pergunta...',
+    placeholder: 'Descrição da opção de resposta...',
   },
 } as INodeTypes;

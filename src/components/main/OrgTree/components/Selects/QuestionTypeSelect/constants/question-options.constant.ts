@@ -4,8 +4,7 @@ import { ElementType } from 'react';
 import DynamicFeedOutlinedIcon from '@mui/icons-material/DynamicFeedOutlined';
 import LooksOneOutlinedIcon from '@mui/icons-material/LooksOneOutlined';
 import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
-
-import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
+import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
 
 export interface IQuestionOptions {
   value: QuestionOptionsEnum;

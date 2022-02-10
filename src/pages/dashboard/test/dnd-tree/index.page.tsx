@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 import { NextPage } from 'next';
 
@@ -8,21 +8,14 @@ import { STFlexContainer } from './index.styles';
 import { dndData } from './utils/fakeData';
 
 const TestDND: NextPage = () => {
-  const { setTree, onExpandAll } = useTreeActions();
-  const [expand, setExpand] = useState(false);
+  const { setTree } = useTreeActions();
 
   useEffect(() => {
     setTree(dndData);
   }, [setTree]);
 
-  const handleExpandAll = () => {
-    onExpandAll(!expand);
-    setExpand(!expand);
-  };
-
   return (
     <STFlexContainer>
-      <button onClick={handleExpandAll}>close/open</button>
       <OrgTreeComponent horizontal />
     </STFlexContainer>
   );

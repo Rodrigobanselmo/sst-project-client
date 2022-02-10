@@ -1,10 +1,9 @@
 import React, { FC, useMemo } from 'react';
 
-import { usePreventEvent } from 'components/main/OrgTree/hooks/usePreventModal';
+import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
+import { usePreventNode } from 'components/main/OrgTree/hooks/usePreventNode';
 import { IMenuOptionResponse } from 'components/molecules/SMenu/types';
 import { STagSelect } from 'components/molecules/STagSelect';
-
-import { QuestionOptionsEnum } from 'core/enums/question-options.enums';
 
 import {
   IQuestionOptions,
@@ -18,7 +17,7 @@ export const QuestionTypeSelect: FC<IQuestionTypeSelectSelectProps> = ({
   node,
   ...props
 }) => {
-  const { preventMultipleTextOptions } = usePreventEvent();
+  const { preventMultipleTextOptions } = usePreventNode();
 
   const handleSelectOption = ({ name, value }: IMenuOptionResponse) => {
     const VALUE = value as QuestionOptionsEnum;
