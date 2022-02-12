@@ -68,6 +68,14 @@ const palette = {
     erg: '#9c9507',
     aci: '#3d62ba',
   },
+  tree: {
+    card: {
+      category: '#d9d10b',
+      question: '#4CAF50',
+      group: '#2D3748',
+      option: '#718096',
+    },
+  },
   info: {
     main: '#4559c9',
   },

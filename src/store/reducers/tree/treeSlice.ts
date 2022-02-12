@@ -1,6 +1,8 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import { firstNodeId } from 'core/constants/first-node-id.constant';
+
 import { AppState } from '../..';
 import { TreeTypeEnum } from '../../../components/main/OrgTree/enums/tree-type.enums';
 import {
@@ -21,8 +23,8 @@ interface ITreeSlice {
 
 const initialState: ITreeSlice = {
   nodes: {
-    seed: {
-      id: 'principal',
+    [firstNodeId]: {
+      id: firstNodeId,
       label: 'Click para editar',
       parentId: null,
       childrenIds: [],
@@ -57,12 +59,37 @@ export const treeSlice = createSlice({
         };
       });
     },
-    setEditRisks: (state, action: PayloadAction<ITreeMapEdit>) => {
+    setEditBlockingNodes: (state, action: PayloadAction<ITreeMapEdit>) => {
       const node = action.payload;
-      const oldRisks = state.nodes[node.id].risks;
-      if (oldRisks && node.risks) {
-        state.nodes[node.id].risks = [...oldRisks, ...node.risks];
-      }
+
+      const nodes = state.nodes;
+
+      const newBlockId = node.block || [];
+      const oldBlockId = nodes[node.id].block || [];
+
+      // remove blocked nodes not used
+      oldBlockId
+        .filter((id) => !newBlockId.includes(id))
+        .forEach((blockedNodeId) => {
+          if (nodes[blockedNodeId]) {
+            const blockedNode = nodes[blockedNodeId].blockedBy || [];
+            state.nodes[blockedNodeId].blockedBy = blockedNode.filter(
+              (id) => id !== node.id,
+            );
+          }
+        });
+
+      // add new blocked nodes
+      newBlockId
+        .filter((id) => !oldBlockId.includes(id))
+        .forEach((blockedNodeId) => {
+          if (nodes[blockedNodeId]) {
+            const blockedNode = nodes[blockedNodeId].blockedBy || [];
+            state.nodes[blockedNodeId].blockedBy = [...blockedNode, node.id];
+          }
+        });
+
+      state.nodes[node.id].block = newBlockId;
     },
     setAddNodes: (state, action: PayloadAction<ITreeMapObject[]>) => {
       action.payload.forEach((node) => {
@@ -137,7 +164,7 @@ export const treeSlice = createSlice({
         });
       };
 
-      loop(action.payload.nodeId || 'principal');
+      loop(action.payload.nodeId || firstNodeId);
     },
   },
 });
@@ -155,6 +182,7 @@ export const {
   setSelectItem,
   setEditSelectItem,
   setSelectCopy,
+  setEditBlockingNodes,
 } = treeSlice.actions;
 
 export const selectAllTreeNodes = (state: AppState) => state[name].nodes;

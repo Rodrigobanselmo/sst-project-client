@@ -25,7 +25,7 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   startAdornment?: (option: IMenuSearchOption) => ReactNode;
   placeholder?: string;
   options: IMenuSearchOption[];
-  selected?: string[];
+  selected?: (string | number)[];
   optionsFieldName?: { valueField?: string; contentField?: string };
   multiple?: boolean;
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;

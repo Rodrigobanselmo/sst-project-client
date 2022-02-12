@@ -4,6 +4,8 @@ import { useStore } from 'react-redux';
 
 import { nodeTypesConstant } from 'components/main/OrgTree/constants/node-type.constant';
 
+import { firstNodeId } from 'core/constants/first-node-id.constant';
+
 import {
   ITreeCopyItem,
   ITreeMap,
@@ -14,6 +16,7 @@ import {
 import {
   setAddNodes,
   setDragItem,
+  setEditBlockingNodes,
   setEditMapTreeNode,
   setEditNodes,
   setExpandAll,
@@ -67,6 +70,13 @@ export const useTreeActions = () => {
     [dispatch],
   );
 
+  const setBlockNode = useCallback(
+    (node: ITreeMapEdit) => {
+      dispatch(setEditBlockingNodes(node));
+    },
+    [dispatch],
+  );
+
   const addNodes = useCallback(
     (nodesMap: ITreeMapObject[]) => {
       dispatch(setAddNodes(nodesMap));
@@ -83,11 +93,11 @@ export const useTreeActions = () => {
 
   const getPathById = useCallback(
     (id: number | string) => {
-      const path: string[] = [];
-      const treeData = store.getState().tree;
+      const path: (string | number)[] = [];
+      const nodes = store.getState().tree.nodes as ITreeMap;
 
       const loop = (id: number | string) => {
-        const node = treeData.nodes[id];
+        const node = nodes[id];
         if (node) {
           path.push(node.id);
           if (node.parentId) {
@@ -98,6 +108,30 @@ export const useTreeActions = () => {
 
       loop(id);
       return path.reverse();
+    },
+    [store],
+  );
+
+  const getHigherLevelNodes = useCallback(
+    (id: number | string) => {
+      const nodes = store.getState().tree.nodes as ITreeMap;
+      const higherNodesId: (string | number)[] = [];
+
+      let hasFoundNode = false;
+
+      const loop = (_id: number | string) => {
+        if (!hasFoundNode && id === _id) hasFoundNode = true;
+        if (hasFoundNode) return;
+
+        const node = nodes[_id];
+        if (node) {
+          higherNodesId.push(node.id);
+          node.childrenIds.forEach((childId) => loop(childId));
+        }
+      };
+
+      loop(firstNodeId);
+      return higherNodesId;
     },
     [store],
   );
@@ -241,5 +275,7 @@ export const useTreeActions = () => {
     createEmptyCard,
     setCopyItem,
     setPasteItem,
+    getHigherLevelNodes,
+    setBlockNode,
   };
 };

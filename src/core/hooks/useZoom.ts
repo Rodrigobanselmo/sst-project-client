@@ -1,29 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useRef } from 'react';
 
-import { useKeypress } from './useKeypress';
+import { useControlClick } from './useControlClick';
 
 export const useZoom = (containerRef: React.RefObject<HTMLDivElement>) => {
-  const controlKeyPress = useRef<boolean>(false);
   const wheelSumValue = useRef<number>(0);
 
-  useKeypress(
-    ['Control', 'Meta'],
-    (e) => {
-      e.preventDefault();
-      controlKeyPress.current = true;
-    },
-    'keydown',
-  );
-
-  useKeypress(
-    ['Control', 'Meta'],
-    (e) => {
-      e.preventDefault();
-      controlKeyPress.current = false;
-    },
-    'keyup',
-  );
+  const { controlKeyPress } = useControlClick();
 
   const eventListener = useCallback(
     (event: WheelEvent) => {
@@ -50,7 +33,7 @@ export const useZoom = (containerRef: React.RefObject<HTMLDivElement>) => {
         containerRef.current.style.height = `${100 / actualScale}%`;
       }
     },
-    [containerRef],
+    [containerRef, controlKeyPress],
   );
 
   useEffect(() => {

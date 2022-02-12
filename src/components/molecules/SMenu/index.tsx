@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { FC, MouseEvent } from 'react';
 
+import { Box } from '@mui/material';
 import Icon from '@mui/material/Icon';
+import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
 
 import { STMenu, STMenuItem } from './styles';
 import { SMenuProps, IMenuOptionResponse } from './types';
@@ -48,7 +51,18 @@ export const SMenu: FC<SMenuProps> = ({
               component={option.icon ? option.icon : (icon as any)}
             />
           )}
-          {option.name}
+          <STooltip
+            minLength={100}
+            placement="right-start"
+            enterDelay={1200}
+            title={option.name}
+          >
+            <Box width="100%" overflow="hidden">
+              <SText className="noBreakText" fontSize={13}>
+                {option.name}
+              </SText>
+            </Box>
+          </STooltip>
         </STMenuItem>
       ))}
     </STMenu>

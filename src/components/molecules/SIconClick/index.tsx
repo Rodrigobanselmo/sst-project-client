@@ -8,7 +8,7 @@ import { SIconClickProps } from './types';
 
 export const SIconClick: FC<SIconClickProps> = ({ ...props }) => {
   return (
-    <SIconButton>
+    <SIconButton {...props}>
       <Icon component={RiCloseFill} />
     </SIconButton>
   );

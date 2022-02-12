@@ -48,5 +48,17 @@ export const usePreventNode = () => {
     return false;
   };
 
-  return { preventMultipleTextOptions, preventChangeCardType };
+  const preventDelete = (callback: () => void) => {
+    const data = {
+      title: 'Você tem certeza?',
+      text: 'Ao remover esse item, você também removerá todos os items decendentes dele.',
+      confirmText: 'Deletar',
+      tag: 'delete',
+      confirmCancel: 'Cancel',
+    } as IModalDataSlice;
+
+    onOpenGlobalModal(data, callback);
+  };
+
+  return { preventMultipleTextOptions, preventChangeCardType, preventDelete };
 };

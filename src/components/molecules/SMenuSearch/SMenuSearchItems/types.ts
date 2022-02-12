@@ -8,13 +8,13 @@ import { IMenuSearchOption } from '../types';
 
 export interface SMenuItemsSearchProps extends Omit<MenuItemProps, 'selected'> {
   options: IMenuSearchOption[];
-  localSelected: MutableRefObject<string[]>;
+  localSelected: MutableRefObject<(string | number)[]>;
   handleMenuSelect: (
     option: IMenuSearchOption | string[],
     event: MouseEvent<HTMLLIElement>,
   ) => void;
   icon?: ElementType<any>;
-  selected?: string[];
+  selected?: (string | number)[];
   startAdornment?: (option: IMenuSearchOption) => ReactNode;
   optionsFieldName?: { valueField?: string; contentField?: string };
   multiple?: boolean;

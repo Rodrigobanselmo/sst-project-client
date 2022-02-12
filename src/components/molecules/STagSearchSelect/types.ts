@@ -13,7 +13,7 @@ export interface ISTagSearchSelectProps extends BoxProps {
   tooltipTitle?: string;
   placeholder?: string;
   large?: boolean;
-  selected?: string[];
+  selected?: (string | number)[];
   keys?: Fuse.FuseOptionKey[];
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
   options: IMenuSearchOption[];

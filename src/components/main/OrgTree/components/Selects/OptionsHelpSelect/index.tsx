@@ -8,6 +8,7 @@ import {
 import { nodeTypesConstant } from 'components/main/OrgTree/constants/node-type.constant';
 import { HelpOptionsEnum } from 'components/main/OrgTree/enums/help-options.enums';
 import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
+import { usePreventNode } from 'components/main/OrgTree/hooks/usePreventNode';
 import { useSnackbar } from 'notistack';
 import { selectTreeCopyItem } from 'store/reducers/tree/treeSlice';
 
@@ -25,8 +26,10 @@ export const OptionsHelpSelect: FC<IOptionsHelpSelectProps> = ({
   ...props
 }) => {
   const copyItem = useAppSelector(selectTreeCopyItem);
-  const { setCopyItem, onExpandAll, setPasteItem } = useTreeActions();
+  const { setCopyItem, onExpandAll, setPasteItem, removeNodes } =
+    useTreeActions();
   const { enqueueSnackbar } = useSnackbar();
+  const { preventDelete } = usePreventNode();
 
   const handleAction = ({ value }: IMenuOptionResponse) => {
     if (HelpOptionsEnum.OPEN_ALL === value) {
@@ -72,6 +75,10 @@ export const OptionsHelpSelect: FC<IOptionsHelpSelectProps> = ({
 
         return setPasteItem(node);
       }
+    }
+
+    if (HelpOptionsEnum.DELETE === value) {
+      if (node.parentId) return preventDelete(() => removeNodes(node.id));
     }
   };
 

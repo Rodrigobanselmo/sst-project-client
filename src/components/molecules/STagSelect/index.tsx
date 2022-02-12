@@ -1,5 +1,7 @@
 import React, { FC, MouseEvent } from 'react';
 
+import STooltip from 'components/atoms/STooltip';
+
 import { STagButton } from '../../atoms/STagButton';
 import { SMenu } from '../SMenu';
 import { IMenuSearchOption } from '../SMenuSearch/types';
@@ -13,6 +15,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
   onClick,
   handleSelectMenu,
   menuRef,
+  tooltipTitle,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -37,14 +40,16 @@ export const STagSelect: FC<ISTagSelectProps> = ({
 
   return (
     <>
-      <STagButton
-        ref={menuRef}
-        large={large}
-        onClick={handleSelectTag}
-        icon={icon}
-        text={text}
-        {...props}
-      />
+      <STooltip withWrapper title={tooltipTitle}>
+        <STagButton
+          ref={menuRef}
+          large={large}
+          onClick={handleSelectTag}
+          icon={icon}
+          text={text}
+          {...props}
+        />
+      </STooltip>
       <SMenu
         close={handleClose}
         isOpen={Boolean(anchorEl)}

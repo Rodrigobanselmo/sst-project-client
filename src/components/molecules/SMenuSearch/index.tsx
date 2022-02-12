@@ -31,7 +31,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   const [search, setSearch] = useState<string>('');
   const [scroll, setScroll] = useState(0);
 
-  const localSelected = useRef<string[]>([]);
+  const localSelected = useRef<(string | number)[]>([]);
   const listWrapperRef = useRef<HTMLDivElement>(null);
 
   const handleMenuSelect = (

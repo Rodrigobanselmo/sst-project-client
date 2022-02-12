@@ -4,4 +4,5 @@ export enum HelpOptionsEnum {
   PASTE = 3,
   OPEN_ALL = 4,
   CLOSE_ALL = 5,
+  DELETE = 6,
 }

@@ -6,6 +6,7 @@ interface ISTMenuProps {}
 
 export const STMenu = styled(Menu)<ISTMenuProps>`
   margin-top: 2px;
+  max-width: 500px;
   & .MuiPaper-root {
     border-radius: 4px;
     border: 1px solid ${(props) => props.theme.palette.background.divider};

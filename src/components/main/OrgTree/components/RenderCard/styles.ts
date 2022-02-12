@@ -1,4 +1,4 @@
-import { css } from '@emotion/react';
+import { css, keyframes } from '@emotion/react';
 import { Box, styled } from '@mui/material';
 
 import { TreeTypeEnum } from '../../enums/tree-type.enums';
@@ -7,6 +7,21 @@ interface ICardCard {
   isDragging: boolean;
   type?: TreeTypeEnum;
 }
+
+const FadeInAnimation = keyframes`  
+  0% { 
+    border: 2px solid #7de874;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+   }
+  50% { 
+    border: 2px solid #7de874;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
+   }
+  100% { 
+    border: 2px solid #7de874;
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
+   }
+`;
 
 export const STCardArea = styled(Box)<{
   horizontal?: number;
@@ -47,6 +62,10 @@ export const STRenderLabel = styled(Box)<ICardCard>`
 
   &.mock_card {
     border: 1px solid #7de874;
+  }
+
+  &.node_animation {
+    animation: ${FadeInAnimation} 2s linear 3;
   }
 
   .node-tree-text-id {

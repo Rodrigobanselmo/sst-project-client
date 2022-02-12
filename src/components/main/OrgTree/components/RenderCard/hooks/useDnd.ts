@@ -150,6 +150,9 @@ export const useDnd = (node: ITreeMapObject) => {
   const { onDebounce } = useDebounce(onDragEnter, 500);
 
   const onCanDrop = (dragItem: ITreeMapObject) => {
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+    const actualDragItem = nodesMap[dragItem.id];
+
     if (
       node?.answerType &&
       node.answerType === QuestionOptionsEnum.TEXT &&
@@ -158,11 +161,11 @@ export const useDnd = (node: ITreeMapObject) => {
       return false;
     }
 
-    const differentId = dragItem.id !== node.id;
-    const notChildOfDrop = !isChild(dragItem.id, node.id);
+    const differentId = actualDragItem.id !== node.id;
+    const notChildOfDrop = !isChild(actualDragItem.id, node.id);
     const typeIncludesNode =
       nodeTypesConstant[node.type] &&
-      nodeTypesConstant[node.type].childOptions.includes(dragItem.type);
+      nodeTypesConstant[node.type].childOptions.includes(actualDragItem.type);
 
     return differentId && notChildOfDrop && typeIncludesNode;
   };

@@ -7,6 +7,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
 import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
 
+import { useControlClick } from 'core/hooks/useControlClick';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 
@@ -16,10 +17,8 @@ import SModal, {
 } from '../../../../../components/molecules/SModal';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
 import { useAppSelector } from '../../../../../core/hooks/useAppSelector';
-import { useGlobalModal } from '../../../../../core/hooks/useGlobalModal';
 import { useRegisterModal } from '../../../../../core/hooks/useRegisterModal';
 import { useTreeActions } from '../../../../../core/hooks/useTreeActions';
-import { IModalDataSlice } from '../../../../../store/reducers/modal/modalSlice';
 import { selectTreeSelectItem } from '../../../../../store/reducers/tree/treeSlice';
 import { SButton } from '../../../../atoms/SButton';
 import SFlex from '../../../../atoms/SFlex';
@@ -30,6 +29,7 @@ import SText from '../../../../atoms/SText';
 import STextarea from '../../../../atoms/STextarea';
 import { nodeTypesConstant } from '../../constants/node-type.constant';
 import { TreeTypeEnum } from '../../enums/tree-type.enums';
+import { usePreventNode } from '../../hooks/usePreventNode';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
 import { MedSelect } from '../Selects/MedSelect';
 import { QuestionTypeSelect } from '../Selects/QuestionTypeSelect';
@@ -41,14 +41,21 @@ import { useModalCard } from './hooks/useModalCard';
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectTreeSelectItem);
 
-  const { registerModal } = useRegisterModal();
+  const { registerModal, isOpen } = useRegisterModal();
   const { onCloseModal } = useModal();
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
   const { editNodes, removeNodes, createEmptyCard } = useTreeActions();
-  const { onOpenGlobalModal } = useGlobalModal();
+
+  const { preventDelete } = usePreventNode();
   const { preventUnwantedChanges } = usePreventAction();
+
   const store = useStore();
+  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const switchRef = useRef<HTMLInputElement>(null);
+
+  useControlClick('s', () => {
+    if (isOpen(ModalEnum.TREE_CARD)) onSave();
+  });
 
   const onSave = () => {
     if (selectedNode) {
@@ -57,8 +64,10 @@ export const ModalEditCard = () => {
 
       editNodes([newNode]);
       if (!switchRef.current?.checked) onCloseModal(ModalEnum.TREE_CARD);
-      if (switchRef.current?.checked && newNode.parentId)
+      if (switchRef.current?.checked && newNode.parentId) {
+        inputRef.current?.focus();
         createEmptyCard(newNode.parentId, { type: newNode.type });
+      }
     }
   };
 
@@ -87,15 +96,7 @@ export const ModalEditCard = () => {
 
   const onRemoveNode = () => {
     if (selectedNode?.id) {
-      const data = {
-        title: 'Você tem certeza?',
-        text: 'Ao remover esse item, você também removerá todos os items decendentes dele.',
-        confirmText: 'Deletar',
-        tag: 'delete',
-        confirmCancel: 'Cancel',
-      } as IModalDataSlice;
-
-      onOpenGlobalModal(data, () => {
+      return preventDelete(() => {
         onCloseModal(ModalEnum.TREE_CARD);
         removeNodes(selectedNode.id);
         setEditNodeSelectedItem(null);
@@ -153,6 +154,8 @@ export const ModalEditCard = () => {
         <Box mt={8}>
           {isTextArea && (
             <STextarea
+              ref={inputRef}
+              autoFocus
               value={selectedNode?.label}
               onChange={(e) =>
                 setEditNodeSelectedItem({ label: e.target.value })
@@ -167,6 +170,8 @@ export const ModalEditCard = () => {
           )}
           {!isTextArea && (
             <SInput
+              inputRef={inputRef}
+              autoFocus
               value={selectedNode?.label}
               onChange={(e) =>
                 setEditNodeSelectedItem({ label: e.target.value })

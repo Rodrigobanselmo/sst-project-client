@@ -21,7 +21,6 @@ import { PersistGate } from 'redux-persist/integration/react';
 
 import theme from '../../../configs/theme';
 import { AuthProvider } from '../../../core/contexts/AuthContext';
-import { ModalProvider } from '../../../core/contexts/ModalContext';
 import { queryClient } from '../../../core/services/queryClient';
 import store, { persistor } from '../../../store';
 

@@ -21,9 +21,11 @@ export interface ITreeMapObject {
   expand: boolean;
   style?: CSSProperties;
   className?: string;
-  risks?: string[];
-  rec?: string[];
-  med?: string[];
+  risks?: (string | number)[];
+  block?: (string | number)[];
+  blockedBy?: (string | number)[];
+  rec?: (string | number)[];
+  med?: (string | number)[];
   answerType?: QuestionOptionsEnum;
   generateSource?: string[];
 }

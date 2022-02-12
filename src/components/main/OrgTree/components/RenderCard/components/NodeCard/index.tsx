@@ -14,6 +14,8 @@ import { STagButton } from '../../../../../../atoms/STagButton';
 import SText from '../../../../../../atoms/SText';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { ITreeSelectedItem } from '../../../../interfaces';
+import { BlockedBySelect } from '../../../Selects/BlockedBySelect';
+import { BlockSelect } from '../../../Selects/BlockSelect';
 import { MedSelect } from '../../../Selects/MedSelect';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { QuestionTypeSelect } from '../../../Selects/QuestionTypeSelect';
@@ -126,6 +128,13 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
             }
           />
         )}
+
+        {node.type === TreeTypeEnum.OPTION && <BlockSelect node={node} />}
+
+        {node.blockedBy && !!node.blockedBy.length && (
+          <BlockedBySelect node={node} />
+        )}
+
         <OptionsHelpSelect menuRef={menuRef} node={node} />
       </Stack>
     </>

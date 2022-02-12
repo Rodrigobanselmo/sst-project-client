@@ -40,6 +40,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
     >
       <STRenderLabel
         key={`label_inner_${node.id}`}
+        id={`node_card_${node.id}`}
         ref={drag}
         type={node.type}
         isDragging={isDragging}

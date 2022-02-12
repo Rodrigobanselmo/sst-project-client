@@ -9,14 +9,22 @@ import { STSBoxButton } from './styles';
 import { ISTagButtonProps } from './types';
 
 export const STagButton = React.forwardRef<any, ISTagButtonProps>(
-  ({ text, large, icon, sx, ...props }, ref) => {
+  ({ text, large, icon, sx, iconProps = {}, ...props }, ref) => {
+    const { sx: iconSx, ...restIconProps } = iconProps;
+
     return (
       <STSBoxButton
         ref={ref}
         sx={{ height: large ? 30 : 22, pl: 3, pr: 5, ...sx }}
         {...props}
       >
-        {icon && <Icon sx={{ fontSize: 14 }} component={icon} />}
+        {icon && (
+          <Icon
+            sx={{ fontSize: 14, ...iconSx }}
+            component={icon}
+            {...restIconProps}
+          />
+        )}
         {text && (
           <SText fontSize="13px" color="text.primary" ml={1}>
             {text}

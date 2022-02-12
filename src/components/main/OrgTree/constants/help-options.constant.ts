@@ -4,6 +4,7 @@ import { ElementType } from 'react';
 import CloseFullscreenOutlinedIcon from '@mui/icons-material/CloseFullscreenOutlined';
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 import ContentPasteGoOutlinedIcon from '@mui/icons-material/ContentPasteGoOutlined';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
 
@@ -40,5 +41,10 @@ export const helpOptionsConstant = {
     value: HelpOptionsEnum.CLOSE_ALL,
     name: 'Fechar tudo',
     icon: CloseFullscreenOutlinedIcon,
+  },
+  [HelpOptionsEnum.DELETE]: {
+    value: HelpOptionsEnum.DELETE,
+    name: 'Deletar',
+    icon: DeleteOutlineIcon,
   },
 } as IHelpOptions;
