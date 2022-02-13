@@ -5,8 +5,8 @@ import LogoSimpleIcon from '../../../assets/logo/logo-simple/logo-simple';
 
 export const STBoxChildren = styled(Box)`
   flex: 1;
-  overflow: auto;
   position: relative;
+  overflow: auto;
   &::-webkit-scrollbar {
     width: 10px;
     height: 10px;

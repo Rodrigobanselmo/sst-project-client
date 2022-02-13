@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ElementType, MouseEvent } from 'react';
+import { ElementType, MouseEvent, ReactNode } from 'react';
 
 import { MenuProps } from '@mui/material';
 
@@ -19,6 +19,8 @@ export interface SMenuProps extends Omit<MenuProps, 'open' | 'onClose'> {
   options: {
     value: string | number;
     name: string;
+    iconColor?: string;
     icon?: ElementType<any>;
   }[];
+  startAdornment?: (option: any) => ReactNode;
 }

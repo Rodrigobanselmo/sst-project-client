@@ -14,6 +14,7 @@ export interface ISTagSelectProps extends ISTagButtonProps {
     value: string | number;
     name: string;
     icon?: ElementType<any>;
+    iconColor?: string;
   }[];
   startAdornment?: (option: any) => ReactNode;
   icon?: ElementType<any>;

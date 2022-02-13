@@ -1,9 +1,9 @@
 import React, { FC } from 'react';
 
 import { STTypography } from './styles';
-import { STypographyProps } from './types';
+import { STextProps } from './types';
 
-const SText: FC<STypographyProps> = ({
+const SText: FC<STextProps> = ({
   textAlign = 'start',
   lineNumber,
   color = 'text.main',

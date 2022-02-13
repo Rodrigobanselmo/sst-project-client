@@ -1,7 +1,7 @@
 export enum RiskEnum {
-  BIO = 'bio',
-  QUI = 'qui',
-  FIS = 'fis',
-  ERG = 'erg',
-  ACI = 'aci',
+  BIO = 'BIO',
+  QUI = 'QUI',
+  FIS = 'FIS',
+  ERG = 'ERG',
+  ACI = 'ACI',
 }

@@ -8,6 +8,7 @@ export const STTextField = styled(TextField)<{
   secondary: number;
   size: string;
   unstyled: number;
+  sub_variant?: 'search' | 'standard';
 }>`
   &&& .MuiOutlinedInput-notchedOutline {
     border-color: ${(props) => props.theme.palette.background.divider};
@@ -94,6 +95,38 @@ export const STTextField = styled(TextField)<{
       }
     `}
 
+  ${(props) =>
+    props.sub_variant == 'search' &&
+    css`
+      border-color: ${props.theme.palette.grey[400]};
+      border-width: 1px;
+      box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      &&& .MuiOutlinedInput-notchedOutline {
+        border-color: ${props.theme.palette.grey[400]};
+        border-width: 1px;
+      }
+
+      &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+        border-width: 2px;
+        border-color: ${props.theme.palette.grey[400]};
+      }
+
+      &:hover {
+        &&& .MuiOutlinedInput-notchedOutline {
+          border-color: ${props.theme.palette.grey[400]};
+          border-width: 1px;
+        }
+        &&&
+          .MuiOutlinedInput-root.Mui-focused
+          .MuiOutlinedInput-notchedOutline {
+          border-width: 2px;
+          border-color: ${props.theme.palette.grey[400]};
+          opacity: 1;
+        }
+      }
+    `}
+  
   ${(props) =>
     props.unstyled &&
     css`

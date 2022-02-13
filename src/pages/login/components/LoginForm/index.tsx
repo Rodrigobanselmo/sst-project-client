@@ -7,13 +7,13 @@ import { Box, Link, Typography } from '@mui/material';
 import NextLink from 'next/link';
 import * as Yup from 'yup';
 
-import { SButton } from '../../../components/atoms/SButton';
-import { InputForm } from '../../../components/form/input';
-import { useMutationLogin } from '../../../core/services/hooks/mutations/useMutationLogin';
+import { SButton } from '../../../../components/atoms/SButton';
+import { InputForm } from '../../../../components/form/input';
+import { useMutationLogin } from '../../../../core/services/hooks/mutations/useMutationLogin';
 import {
   ILoginSchema,
   loginSchema,
-} from '../../../core/utils/schemas/login.schema';
+} from '../../../../core/utils/schemas/login.schema';
 import { STForgotButton } from './styles';
 
 export const LoginForm: FC = () => {

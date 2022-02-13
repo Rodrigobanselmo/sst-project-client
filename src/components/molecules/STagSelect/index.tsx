@@ -16,6 +16,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
   handleSelectMenu,
   menuRef,
   tooltipTitle,
+  startAdornment,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -52,6 +53,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
       </STooltip>
       <SMenu
         close={handleClose}
+        startAdornment={startAdornment}
         isOpen={Boolean(anchorEl)}
         anchorEl={anchorEl}
         handleSelect={handleSelect}

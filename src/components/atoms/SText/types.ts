@@ -1,5 +1,5 @@
 import { TypographyProps } from '@mui/material/Typography';
 
-export interface STypographyProps extends TypographyProps {
+export interface STextProps extends TypographyProps {
   lineNumber?: number;
 }

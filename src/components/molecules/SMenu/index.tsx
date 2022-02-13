@@ -47,7 +47,11 @@ export const SMenu: FC<SMenuProps> = ({
         >
           {(icon || option.icon) && (
             <Icon
-              sx={{ color: 'text.light', fontSize: '18px', mr: '5px' }}
+              sx={{
+                color: option?.iconColor ?? 'text.light',
+                fontSize: '18px',
+                mr: '5px',
+              }}
               component={option.icon ? option.icon : (icon as any)}
             />
           )}

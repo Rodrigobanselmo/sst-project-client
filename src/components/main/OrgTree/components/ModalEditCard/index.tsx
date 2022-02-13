@@ -71,10 +71,6 @@ export const ModalEditCard = () => {
     }
   };
 
-  const type = selectedNode?.type || 1;
-
-  const isTextArea = TreeTypeEnum.QUESTION === type;
-
   const onCloseUnsaved = () => {
     const nodesMap = store.getState().tree.nodes as ITreeMap;
 
@@ -103,6 +99,10 @@ export const ModalEditCard = () => {
       });
     }
   };
+
+  const type = selectedNode?.type || 1;
+
+  const isTextArea = TreeTypeEnum.QUESTION === type;
 
   if (!selectedNode) return null;
   return (

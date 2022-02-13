@@ -3,7 +3,7 @@ import { ReactNode } from 'react';
 import { CircularProgressProps } from '@mui/material/CircularProgress';
 import { TextFieldProps } from '@mui/material/TextField';
 
-export type ISInputProps = TextFieldProps & {
+export type SInputProps = TextFieldProps & {
   loading?: boolean;
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
@@ -12,4 +12,5 @@ export type ISInputProps = TextFieldProps & {
   success?: boolean;
   unstyled?: boolean;
   secondary?: boolean;
+  subVariant?: 'search' | 'standard';
 };

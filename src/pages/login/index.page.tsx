@@ -1,9 +1,11 @@
 import { Typography } from '@mui/material';
 import { NextPage } from 'next';
 
+import { withSSRGuest } from 'core/utils/auth/withSSRGuest';
+
 import { SLogo } from '../../components/atoms/SLogo';
 import { brandNameConstant } from '../../core/constants/brand.constant';
-import { LoginForm } from '../login/LoginForm';
+import { LoginForm } from './components/LoginForm';
 import { STContainer, STSectionBox } from './index.styles';
 
 const Home: NextPage = () => {
@@ -35,3 +37,9 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+export const getServerSideProps = withSSRGuest(async () => {
+  return {
+    props: {},
+  };
+});

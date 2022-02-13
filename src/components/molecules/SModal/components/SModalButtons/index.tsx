@@ -36,6 +36,7 @@ export const SModalButtons: FC<SModalHeaderProps> = ({
             key={`${index}-button`}
             variant={variant ? variant : isFirst ? 'outlined' : 'contained'}
             onClick={onClose}
+            style={{ minWidth: 100 }}
             {...buttonProps}
           >
             {text || (isFirst ? 'Cancelar' : 'Confirmar')}

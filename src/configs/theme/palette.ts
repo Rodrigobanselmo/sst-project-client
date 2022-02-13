@@ -44,7 +44,7 @@ const palette = {
   },
   tag: {
     edit: '#718096',
-    add: '#4CAF50',
+    add: '#3cbe7d',
     delete: '#F44336',
   },
   secondary: {
@@ -52,7 +52,7 @@ const palette = {
     dark: '#1A202C',
   },
   success: {
-    dark: '#4CAF50',
+    dark: '#28a767',
     main: '#3cbe7d',
   },
   error: {
@@ -89,6 +89,7 @@ const palette = {
   text: {
     dark: '#000',
     main: '#2f3645',
+    medium: '#424c61',
     light: '#808080',
     lightest: '#c4c4c4',
   },

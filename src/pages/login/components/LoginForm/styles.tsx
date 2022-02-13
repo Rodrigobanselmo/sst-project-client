@@ -1,6 +1,6 @@
 import { styled } from '@mui/material/styles';
 
-import { SButton } from '../../../components/atoms/SButton';
+import { SButton } from '../../../../components/atoms/SButton';
 
 export const STForgotButton = styled(SButton)`
   margin-top: ${({ theme }) => theme.spacing(3)};
