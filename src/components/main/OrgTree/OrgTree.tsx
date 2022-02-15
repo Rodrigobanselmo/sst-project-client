@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react/display-name */
 import React, { FC, useRef } from 'react';
 
 import { Box } from '@mui/material';
@@ -7,6 +5,7 @@ import { Box } from '@mui/material';
 import { useZoom } from '../../../core/hooks/useZoom';
 import { useQueryRisk } from '../../../core/services/hooks/queries/useQueryRisk';
 import { TreeNode } from './components';
+import { LoadingFeedback } from './components/LoadingFeedback';
 import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
 import { IOrgTreeProps } from './interfaces';
@@ -31,6 +30,7 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
         width: '100%',
       }}
     >
+      <LoadingFeedback />
       <MouseControl orgContainerRef={orgContainerRef} />
       <OrgTreeContainer
         id="org-tree-container"

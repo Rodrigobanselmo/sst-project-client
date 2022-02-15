@@ -23,7 +23,7 @@ export const BlockSelect: FC<ITypeSelectProps> = ({
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const store = useStore();
 
-  const handleSelectRisk = (options: string[]) => {
+  const handleSelectBlock = (options: string[]) => {
     if (handleSelect) handleSelect(options);
     else {
       setBlockNode({ id: node.id, block: options });
@@ -32,7 +32,7 @@ export const BlockSelect: FC<ITypeSelectProps> = ({
 
   const blockLength = String(node?.block ? node.block.length : 0);
 
-  const handleActiveRisk = useCallback(
+  const handleActiveBlock = useCallback(
     (filter: string) => {
       if (activeFilters.includes(filter))
         return setActiveFilters(
@@ -63,7 +63,7 @@ export const BlockSelect: FC<ITypeSelectProps> = ({
       text={blockLength}
       keys={['label', 'id']}
       large={large}
-      handleSelectMenu={handleSelectRisk}
+      handleSelectMenu={handleSelectBlock}
       selected={node?.block ?? []}
       tooltipTitle={'Bloquear outro card ao selecionar esta opção'}
       optionsFieldName={{ valueField: 'id', contentField: 'label' }}
@@ -71,7 +71,7 @@ export const BlockSelect: FC<ITypeSelectProps> = ({
         <SMenuSimpleFilter
           options={blockFilter}
           activeFilters={activeFilters}
-          onClickFilter={handleActiveRisk}
+          onClickFilter={handleActiveBlock}
         />
       )}
       startAdornment={(options: ITreeMapObject | undefined) => {

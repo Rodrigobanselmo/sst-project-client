@@ -83,9 +83,6 @@ export function setupAPIClient(ctx = undefined) {
                 resolve(api(originalConfig));
               },
               onFailure: (err: AxiosError) => {
-                console.log(err);
-                console.log(err.response);
-                console.log(err?.response?.data);
                 reject(err);
               },
             });

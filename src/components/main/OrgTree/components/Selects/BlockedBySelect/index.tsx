@@ -23,7 +23,6 @@ export const BlockedBySelect: FC<IBlockedBySelectProps> = ({
 
     if (card) {
       card.className = card.className + ' node_animation';
-      console.log(card);
       setTimeout(() => {
         card?.scrollIntoView({ behavior: 'smooth' });
       }, 100);

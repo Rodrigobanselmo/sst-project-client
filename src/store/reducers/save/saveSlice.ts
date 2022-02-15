@@ -34,6 +34,9 @@ export const SaveName = name;
 
 export const { setDocUnsaved, setDocSaved } = saveSlice.actions;
 
-export const selectSave = (state: AppState) => state[name];
+export const selectSave = (docName: string) => (state: AppState) =>
+  state[name].find((a) => a.docName === docName);
+
+export const selectAllSave = (state: AppState) => state[name];
 
 export default saveSlice.reducer;

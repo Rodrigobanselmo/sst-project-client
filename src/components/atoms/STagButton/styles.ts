@@ -3,9 +3,7 @@ import { styled, Box } from '@mui/material';
 
 export const STSBoxButton = styled(Box)<{ large?: number }>`
   border: 1px solid ${(props) => props.theme.palette.background.divider};
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
   border-radius: 5px;
   box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.05);
   background-color: ${(props) => props.theme.palette.grey[100]};

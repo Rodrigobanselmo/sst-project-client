@@ -15,6 +15,9 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
     return (
       <STSBoxButton
         ref={ref}
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
         sx={{ height: large ? 30 : 22, pl: 3, pr: 5, ...sx }}
         {...props}
       >

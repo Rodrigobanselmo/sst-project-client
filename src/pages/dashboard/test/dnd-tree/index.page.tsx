@@ -4,7 +4,7 @@ import { NextPage } from 'next';
 
 import OrgTreeComponent from '../../../../components/main/OrgTree';
 import { useTreeActions } from '../../../../core/hooks/useTreeActions';
-import { STFlexContainer } from './index.styles';
+import { STFlexContainer } from '../../checklist/index.styles';
 import { dndData } from './utils/fakeData';
 
 const TestDND: NextPage = () => {

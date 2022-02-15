@@ -35,4 +35,5 @@ export const STSTableRow = styled(Box)`
 
 export const STSTableHRow = styled(Box)`
   color: ${({ theme }) => theme.palette.text.secondary};
+  display: flex;
 `;

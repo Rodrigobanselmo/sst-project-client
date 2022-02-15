@@ -3,8 +3,13 @@ import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
 import { nodeTypesConstant } from 'components/main/OrgTree/constants/node-type.constant';
+import { useRouter } from 'next/router';
+import { setDocSaved, setDocUnsaved } from 'store/reducers/save/saveSlice';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
+import { SaveEnum } from 'core/enums/save.enum';
+import { useMutUpdateChecklist } from 'core/services/hooks/mutations/useMutUpdateChecklist';
 
 import {
   ITreeCopyItem,
@@ -30,8 +35,30 @@ import { useAppDispatch } from './useAppDispatch';
 
 export const useTreeActions = () => {
   const dispatch = useAppDispatch();
-
+  const saveMutation = useMutUpdateChecklist();
+  const router = useRouter();
   const store = useStore();
+
+  const saveApiDebounce = useDebouncedCallback(async () => {
+    const { checklistId } = router.query;
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+
+    const checklist = {
+      name: nodesMap[firstNodeId].label,
+      id: Number(checklistId),
+      data: {
+        json: JSON.stringify(nodesMap),
+      },
+    };
+
+    await saveMutation.mutateAsync(checklist);
+    dispatch(setDocSaved({ docName: SaveEnum.CHECKLIST }));
+  }, 3000);
+
+  const saveApi = useCallback(async () => {
+    saveApiDebounce();
+    dispatch(setDocUnsaved({ docName: SaveEnum.CHECKLIST }));
+  }, [saveApiDebounce, dispatch]);
 
   const getUniqueId = useCallback((): string => {
     const nodesMap = store.getState().tree.nodes as ITreeMap;
@@ -57,38 +84,49 @@ export const useTreeActions = () => {
   );
 
   const editTreeMap = useCallback(
-    (nodesMap: ITreeMapPartial) => {
+    (nodesMap: ITreeMapPartial, noSave?: boolean) => {
       dispatch(setEditMapTreeNode(nodesMap));
+      if (!noSave) saveApi();
     },
-    [dispatch],
+    [dispatch, saveApi],
   );
 
   const editNodes = useCallback(
-    (nodesMap: ITreeMapEdit[]) => {
+    (nodesMap: ITreeMapEdit[], noSave?: boolean) => {
       dispatch(setEditNodes(nodesMap));
+      if (!noSave) saveApi();
     },
-    [dispatch],
+    [dispatch, saveApi],
   );
 
   const setBlockNode = useCallback(
     (node: ITreeMapEdit) => {
       dispatch(setEditBlockingNodes(node));
+      saveApi();
     },
-    [dispatch],
+    [dispatch, saveApi],
   );
 
   const addNodes = useCallback(
-    (nodesMap: ITreeMapObject[]) => {
+    (nodesMap: ITreeMapObject[], noSave?: boolean) => {
       dispatch(setAddNodes(nodesMap));
+      if (!noSave) saveApi();
     },
-    [dispatch],
+    [dispatch, saveApi],
   );
 
-  const removeNodes = (id: Array<number | string> | number | string) => {
+  const removeNodes = (
+    id: Array<number | string> | number | string,
+    noSave?: boolean,
+  ) => {
     if (Array.isArray(id)) {
-      return dispatch(setRemoveNode(id));
+      dispatch(setRemoveNode(id));
+      if (!noSave) saveApi();
+      return;
     }
-    return dispatch(setRemoveNode([id]));
+    dispatch(setRemoveNode([id]));
+    if (!noSave) saveApi();
+    return;
   };
 
   const getPathById = useCallback(
@@ -254,8 +292,8 @@ export const useTreeActions = () => {
         ...exampleNode,
       };
 
-      editNodes([{ id: node.id, expand: true }]);
-      addNodes([newNode]);
+      editNodes([{ id: node.id, expand: true }], true);
+      addNodes([newNode], true);
       setSelectedItem(newNode, 'add');
     }
   };
@@ -277,5 +315,6 @@ export const useTreeActions = () => {
     setPasteItem,
     getHigherLevelNodes,
     setBlockNode,
+    saveMutation,
   };
 };

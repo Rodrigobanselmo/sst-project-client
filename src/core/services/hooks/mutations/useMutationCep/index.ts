@@ -13,11 +13,11 @@ export async function getCep(cep: string) {
 export function useMutationBrasilCep() {
   return useMutation(async (cep: string) => getCep(cep), {
     onSuccess: async (resp) => {
-      console.log('resp', resp);
+      console.log('resp', resp); // CEP Brasil
       return resp;
     },
     onError: (error) => {
-      console.log('error ok', error);
+      console.log('error ok', error); // CEP Brasil
     },
   });
 }

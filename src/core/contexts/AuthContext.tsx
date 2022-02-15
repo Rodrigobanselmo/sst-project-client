@@ -56,17 +56,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api
         .get('/users/me')
         .then((response) => {
-          const { email, id, companies } = response.data;
-
-          const yourCompany = companies[0] && companies[0].companyId;
-          const actualCompany = companies[0] && companies[0].companyId;
+          const { email, id, permissions, roles, companyId } = response.data;
 
           setUser({
             email,
             id,
-            companies,
-            yourCompany,
-            actualCompany,
+            permissions,
+            roles,
+            companyId,
           });
         })
         .catch(() => {
@@ -94,7 +91,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const {
       token,
       refresh_token,
-      user: { id, companies },
+      user: { id, permissions, roles, companyId },
     } = response.data;
 
     setCookie(undefined, 'nextauth.token', token, {
@@ -107,15 +104,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       path: '/',
     });
 
-    const yourCompany = companies[0] && companies[0].companyId;
-    const actualCompany = companies[0] && companies[0].companyId;
-
     setUser({
       email,
       id,
-      companies,
-      yourCompany,
-      actualCompany,
+      permissions,
+      roles,
+      companyId,
     });
 
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;

@@ -9,7 +9,7 @@ import { SInput } from 'components/atoms/SInput';
 import { STableSearchProps } from './types';
 
 const STableSearch: FC<STableSearchProps> = ({ onAddClick, ...props }) => (
-  <SFlex mb={10} align="center">
+  <SFlex ml={-2} mb={10} align="center">
     <SInput
       startAdornment={<SearchIcon sx={{ fontSize: '22px' }} />}
       size="small"
@@ -27,6 +27,7 @@ const STableSearch: FC<STableSearchProps> = ({ onAddClick, ...props }) => (
           height: 38,
           minWidth: 38,
           maxWidth: 38,
+          ml: 1,
         }}
       >
         <AddIcon />

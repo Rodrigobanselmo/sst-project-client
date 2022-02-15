@@ -11,6 +11,7 @@ export const SModalButtons: FC<SModalHeaderProps> = ({
   buttons = [{} as IModalButton, {} as IModalButton],
   modalName,
   onClose: close,
+  loading,
   ...props
 }) => {
   const { onCloseModal } = useModal();
@@ -31,8 +32,10 @@ export const SModalButtons: FC<SModalHeaderProps> = ({
     >
       {buttons.map(({ text, variant, ...buttonProps }, index) => {
         const isFirst = index === 0;
+        const isLast = index === buttons.length - 1;
         return (
           <SButton
+            loading={loading && isLast}
             key={`${index}-button`}
             variant={variant ? variant : isFirst ? 'outlined' : 'contained'}
             onClick={onClose}

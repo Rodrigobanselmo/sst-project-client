@@ -78,7 +78,7 @@ export const ModalEditCard = () => {
       onCloseModal(ModalEnum.TREE_CARD);
       setEditNodeSelectedItem(null);
       if (selectedNode?.action === 'add') {
-        removeNodes(selectedNode.id);
+        removeNodes(selectedNode.id, true);
       }
     };
 

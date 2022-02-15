@@ -16,6 +16,7 @@ export const SMenu: FC<SMenuProps> = ({
   handleSelect,
   options,
   icon,
+  startAdornment,
   ...props
 }) => {
   const handleMenuSelect = (
@@ -55,6 +56,7 @@ export const SMenu: FC<SMenuProps> = ({
               component={option.icon ? option.icon : (icon as any)}
             />
           )}
+          {startAdornment && startAdornment(option)}
           <STooltip
             minLength={100}
             placement="right-start"

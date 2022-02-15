@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 
-import CircleOutlinedIcon from '@mui/icons-material/CircleOutlined';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
@@ -10,15 +9,16 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { STagSelect } from 'components/molecules/STagSelect';
 import { useSnackbar } from 'notistack';
 
-import { statusOptionsConstant } from 'core/constants/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { StatusEnum } from 'core/enums/status.enum';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { useMutAddChecklist } from 'core/services/hooks/mutations/useMutAddChecklist';
+
+import { StatusSelect } from '../../tagSelects/StatusSelect';
 
 const initialState = {
   name: '',
@@ -29,28 +29,36 @@ const initialState = {
 export const ModalAddChecklist = () => {
   const { registerModal } = useRegisterModal();
   const { onCloseModal } = useModal();
+  const mutation = useMutAddChecklist();
 
   const { preventUnwantedChanges } = usePreventAction();
   const { enqueueSnackbar } = useSnackbar();
 
   const [checklistData, setChecklistData] = useState(initialState);
 
-  const onSave = () => {
+  const onClose = () => {
+    onCloseModal(ModalEnum.CHECKLIST_ADD);
+    setChecklistData(initialState);
+  };
+
+  const onSave = async () => {
     if (!checklistData.name) {
       setChecklistData({ ...checklistData, error: 'Name é obrigatório' });
       return enqueueSnackbar('Nome não pode estar vazio!', {
         variant: 'error',
       });
     }
+
+    await mutation.mutateAsync({
+      name: checklistData.name,
+      status: checklistData.status,
+    });
+    onClose();
   };
 
   const onCloseUnsaved = () => {
-    const close = () => {
-      onCloseModal(ModalEnum.CHECKLIST_ADD);
-    };
-
-    if (preventUnwantedChanges(checklistData, initialState, close)) return;
-    close();
+    if (preventUnwantedChanges(checklistData, initialState, onClose)) return;
+    onClose();
   };
 
   const buttons = [
@@ -69,7 +77,11 @@ export const ModalAddChecklist = () => {
       onClose={onCloseUnsaved}
     >
       <SModalPaper p={8}>
-        <SModalHeader tag="add" onClose={onCloseUnsaved} title={'Criar'} />
+        <SModalHeader
+          tag="add"
+          onClose={onCloseUnsaved}
+          title={'Novo checklist'}
+        />
         <Box mt={8}>
           <SInput
             autoFocus
@@ -88,27 +100,23 @@ export const ModalAddChecklist = () => {
           />
         </Box>
         <SFlex gap={8} mt={10} align="center">
-          <STagSelect
-            options={Object.keys(StatusEnum).map((key) => ({
-              ...statusOptionsConstant[key as StatusEnum],
-              iconColor: statusOptionsConstant[key as StatusEnum].color,
-            }))}
-            text={statusOptionsConstant[checklistData.status].name}
-            large
-            icon={CircleOutlinedIcon}
-            iconProps={{
-              sx: {
-                color: statusOptionsConstant[checklistData.status].color,
-                mr: 1,
-                fontSize: '18px',
-              },
-            }}
+          <StatusSelect
+            selected={checklistData.status}
+            statusOptions={[
+              StatusEnum.PROGRESS,
+              StatusEnum.ACTIVE,
+              StatusEnum.INACTIVE,
+            ]}
             handleSelectMenu={(option) =>
               setChecklistData({ ...checklistData, status: option.value })
             }
           />
         </SFlex>
-        <SModalButtons onClose={onCloseUnsaved} buttons={buttons} />
+        <SModalButtons
+          loading={mutation.isLoading}
+          onClose={onCloseUnsaved}
+          buttons={buttons}
+        />
       </SModalPaper>
     </SModal>
   );

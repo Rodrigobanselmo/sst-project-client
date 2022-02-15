@@ -9,6 +9,7 @@ export interface IModalButton extends Omit<SButtonProps, 'variant'> {
 
 export interface SModalHeaderProps extends BoxProps {
   modalName?: string;
+  loading?: boolean;
   buttons?: IModalButton[];
   onClose?: () => void;
 }

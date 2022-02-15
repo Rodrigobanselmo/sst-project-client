@@ -7,4 +7,8 @@ export interface IChecklist {
   companyId: string;
   system: boolean;
   created_at: Date;
+  data: {
+    json: string;
+    checklistId: number;
+  };
 }
