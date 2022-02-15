@@ -1,3 +1,5 @@
+import { RoleEnum } from './../../enums/roles.enums';
+
 type User = {
   permissions: string[];
   roles: string[];
@@ -9,14 +11,24 @@ type ValidateUserPermissionsParams = {
   roles?: string[];
 };
 
+const isMaster = (user: User) => {
+  return user.roles.some((_permission) => {
+    return _permission.split('-')[0] === RoleEnum.MASTER;
+  });
+};
+
 export function validateUserPermissions({
   user,
   permissions,
   roles,
 }: ValidateUserPermissionsParams) {
+  if (isMaster(user)) return true;
+
   if (permissions && permissions?.length > 0) {
-    const hasAllPermissions = permissions.every((permission) => {
-      return user.permissions.includes(permission);
+    const hasAllPermissions = permissions.some((permission) => {
+      return user.permissions.some((_permission) => {
+        return _permission.split('-')[0] === permission;
+      });
     });
 
     if (!hasAllPermissions) {
@@ -25,7 +37,7 @@ export function validateUserPermissions({
   }
 
   if (roles && roles?.length > 0) {
-    const hasAllRoles = roles.every((permission) => {
+    const hasAllRoles = roles.some((permission) => {
       return user.roles.includes(permission);
     });
 

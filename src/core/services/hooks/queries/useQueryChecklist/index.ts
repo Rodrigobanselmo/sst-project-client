@@ -18,9 +18,8 @@ export function useQueryChecklist(
   companyId?: string,
 ): IReactQuery<IChecklist[]> {
   const { user } = useAuth();
-
   const { data, ...query } = useQuery(
-    QueryEnum.CHECKLIST,
+    [QueryEnum.CHECKLIST, companyId || user?.companyId],
     () => queryChecklist(companyId || user?.companyId),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

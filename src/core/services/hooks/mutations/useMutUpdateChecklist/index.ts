@@ -41,11 +41,11 @@ export function useMutUpdateChecklist() {
       onSuccess: async (resp) => {
         if (resp)
           queryClient.setQueryData(
-            QueryEnum.CHECKLIST,
+            [QueryEnum.CHECKLIST, resp.companyId],
             (oldData: IChecklist[] | undefined) =>
               oldData
                 ? oldData.map((checklist) =>
-                    checklist.id === resp.id
+                    checklist.id == resp.id
                       ? {
                           ...checklist,
                           ...resp,

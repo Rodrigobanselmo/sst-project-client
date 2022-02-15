@@ -2,13 +2,18 @@
 import {
   createContext,
   ReactNode,
+  useCallback,
   useContext,
   useEffect,
-  useState,
 } from 'react';
+import { useStore } from 'react-redux';
 
 import Router, { useRouter } from 'next/router';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
+import { createUser, selectUser } from 'store/reducers/user/userSlice';
+
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { RoutesEnum } from '../enums/routes.enums';
 import { IUser } from '../interfaces/IUser';
@@ -44,33 +49,43 @@ export function signOut() {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
+  const dispatch = useAppDispatch();
   const router = useRouter();
-  const [user, setUser] = useState<IUser | null>(null);
+  const user = useAppSelector(selectUser);
+  const store = useStore();
 
   const isAuthenticated = !!user;
 
+  const signOutFunc = useCallback(() => {
+    signOut();
+    dispatch(createUser(null));
+  }, [dispatch]);
+
   useEffect(() => {
+    const user = store.getState().user.user as IUser;
     const { 'nextauth.token': token } = parseCookies();
 
     if (token) {
       api
-        .get('/users/me')
+        .get(`/users/me/${user?.companyId}}`)
         .then((response) => {
           const { email, id, permissions, roles, companyId } = response.data;
 
-          setUser({
-            email,
-            id,
-            permissions,
-            roles,
-            companyId,
-          });
+          dispatch(
+            createUser({
+              email,
+              id,
+              permissions,
+              roles,
+              companyId,
+            }),
+          );
         })
         .catch(() => {
-          signOut();
+          signOutFunc();
         });
     }
-  }, [setUser]);
+  }, [dispatch, store, signOutFunc]);
 
   useEffect(() => {
     authChannel = new BroadcastChannel('auth');
@@ -78,20 +93,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authChannel.onmessage = (message) => {
       switch (message.data) {
         case 'signOut':
-          if (parseCookies()['nextauth.token']) signOut();
+          if (parseCookies()['nextauth.token']) signOutFunc();
           break;
         default:
           break;
       }
     };
-  }, []);
+  }, [signOutFunc]);
 
   async function signIn({ email, password }: SignInCredentials) {
     const response = await api.post('session', { email, password });
     const {
       token,
       refresh_token,
-      user: { id, permissions, roles, companyId },
+      permissions,
+      roles,
+      companyId,
+      user: { id },
     } = response.data;
 
     setCookie(undefined, 'nextauth.token', token, {
@@ -104,13 +122,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       path: '/',
     });
 
-    setUser({
-      email,
-      id,
-      permissions,
-      roles,
-      companyId,
-    });
+    dispatch(
+      createUser({
+        email,
+        id,
+        permissions,
+        roles,
+        companyId,
+      }),
+    );
 
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     router.push(RoutesEnum.DASHBOARD);
@@ -119,7 +139,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   return (
-    <AuthContext.Provider value={{ signIn, signOut, user, isAuthenticated }}>
+    <AuthContext.Provider
+      value={{ signIn, signOut: signOutFunc, user, isAuthenticated }}
+    >
       {children}
     </AuthContext.Provider>
   );

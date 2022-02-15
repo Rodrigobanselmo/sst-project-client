@@ -4,7 +4,9 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppState } from '../..';
 import { IUser } from '../../../core/interfaces/IUser';
 
-const initialState: IUser = null as unknown as IUser;
+const initialState = {
+  user: null as IUser | null,
+};
 
 const name = 'user';
 
@@ -12,8 +14,8 @@ export const userSlice = createSlice({
   name,
   initialState,
   reducers: {
-    createUser: (_, action: PayloadAction<IUser>) => {
-      return action.payload;
+    createUser: (state, action: PayloadAction<IUser | null>) => {
+      state.user = action.payload;
     },
   },
 });
@@ -22,6 +24,6 @@ export const exampleName = name;
 
 export const { createUser } = userSlice.actions;
 
-export const selectUser = (state: AppState) => state[name];
+export const selectUser = (state: AppState) => state[name].user;
 
 export default userSlice.reducer;

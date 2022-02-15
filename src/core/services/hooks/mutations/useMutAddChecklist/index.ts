@@ -57,7 +57,7 @@ export function useMutAddChecklist() {
 
         if (resp)
           queryClient.setQueryData(
-            QueryEnum.CHECKLIST,
+            [QueryEnum.CHECKLIST, resp.companyId],
             (oldData: IChecklist[] | undefined) =>
               oldData ? [resp, ...oldData] : [resp],
           );
