@@ -27,6 +27,7 @@ import {
   setExpandAll,
   setMapTree,
   setRemoveNode,
+  setReorder,
   setSelectCopy,
   setSelectItem,
 } from '../../store/reducers/tree/treeSlice';
@@ -206,6 +207,8 @@ export const useTreeActions = () => {
             id: getUniqueId(),
             parentId: _parentId,
             childrenIds: [],
+            block: [],
+            blockedBy: [],
           } as ITreeMapObject;
           cloneTree[cloneNode.id] = cloneNode;
 
@@ -238,6 +241,13 @@ export const useTreeActions = () => {
   const onExpandAll = useCallback(
     (expand: boolean, nodeId?: number | string) => {
       dispatch(setExpandAll({ nodeId, expand }));
+    },
+    [dispatch],
+  );
+
+  const reorderNodes = useCallback(
+    (nodeId: number | string, move: 'up' | 'down' = 'up') => {
+      dispatch(setReorder({ id: nodeId, move }));
     },
     [dispatch],
   );
@@ -316,5 +326,6 @@ export const useTreeActions = () => {
     getHigherLevelNodes,
     setBlockNode,
     saveMutation,
+    reorderNodes,
   };
 };

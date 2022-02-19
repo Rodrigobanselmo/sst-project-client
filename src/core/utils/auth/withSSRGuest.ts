@@ -16,7 +16,7 @@ export function withSSRGuest<T>(fn: GetServerSideProps<T>): GetServerSideProps {
     if (cookies['nextauth.token']) {
       return {
         redirect: {
-          destination: RoutesEnum.DASHBOARD,
+          destination: `${RoutesEnum.DASHBOARD}`,
           permanent: false,
         },
       };

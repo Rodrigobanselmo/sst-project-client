@@ -28,7 +28,10 @@ export function withSSRAuth<T>(
     if (!cookies['nextauth.token']) {
       return {
         redirect: {
-          destination: RoutesEnum.LOGIN,
+          destination: `${RoutesEnum.LOGIN}?redirect=${ctx.resolvedUrl.replace(
+            /[/]/g,
+            '|',
+          )}`,
           permanent: false,
         },
       };
@@ -47,7 +50,9 @@ export function withSSRAuth<T>(
       if (!userHasValidPermissions) {
         return {
           redirect: {
-            destination: RoutesEnum.DASHBOARD,
+            destination: `${
+              RoutesEnum.DASHBOARD
+            }?redirect=${ctx.resolvedUrl.replace(/[/]/g, '|')}`,
             permanent: false,
           },
         };
@@ -63,7 +68,10 @@ export function withSSRAuth<T>(
       }
       return {
         redirect: {
-          destination: RoutesEnum.LOGIN,
+          destination: `${RoutesEnum.LOGIN}?redirect=${ctx.resolvedUrl.replace(
+            /[/]/g,
+            '|',
+          )}`,
           permanent: false,
         },
       };

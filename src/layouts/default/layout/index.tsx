@@ -3,6 +3,8 @@ import React, { FC, useEffect } from 'react';
 import { Global } from '@emotion/react';
 import { useRouter } from 'next/router';
 
+import { useRedirectDetect } from 'core/hooks/useRedirectDetect';
+
 import { useAppDispatch } from '../../../core/hooks/useAppDispatch';
 import globalStyles from '../../../core/styles/globalStyles';
 import { setIsRouteLoading } from '../../../store/reducers/routeLoad/routeLoadSlice';
@@ -10,6 +12,7 @@ import { DashboardLayout } from '../../dashboard';
 import DefaultModal from '../modal';
 
 const DefaultLayout: FC = ({ children }) => {
+  useRedirectDetect();
   const router = useRouter();
   const dispatch = useAppDispatch();
 

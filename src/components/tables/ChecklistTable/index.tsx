@@ -65,10 +65,10 @@ export const ChecklistTable: FC<BoxProps> = () => {
         onAddClick={() => onOpenModal(ModalEnum.CHECKLIST_ADD)}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
-      <STable loading={isLoading} columns="minmax(200px, 1fr) 100px 100px">
+      <STable loading={isLoading} columns="minmax(200px, 1fr) 50px 100px">
         <STableHeader>
           <STableHRow>Checklist</STableHRow>
-          <STableHRow justifyContent="center">Sistema</STableHRow>
+          <STableHRow justifyContent="center"></STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
         </STableHeader>
         <STableBody<typeof data[0]>

@@ -1,7 +1,10 @@
 import React, { FC, MouseEvent } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
+import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
+import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
 import { Box, Stack } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import STooltip from 'components/atoms/STooltip';
 import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
 import { usePreventNode } from 'components/main/OrgTree/hooks/usePreventNode';
@@ -53,7 +56,7 @@ const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({
 
 export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
   const { onOpenModal } = useModal();
-  const { editNodes, createEmptyCard } = useTreeActions();
+  const { editNodes, createEmptyCard, reorderNodes } = useTreeActions();
   const { preventMultipleTextOptions } = usePreventNode();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
@@ -62,6 +65,14 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
 
     createEmptyCard(node.id);
     onOpenModal(ModalEnum.TREE_CARD);
+  };
+
+  const handleMoveCard = (
+    e: MouseEvent<HTMLDivElement>,
+    move: 'up' | 'down',
+  ) => {
+    e.stopPropagation();
+    reorderNodes(node.id, move);
   };
 
   return (
@@ -81,7 +92,19 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
           )}
           <NodeLabel label={node.label} type={node.type} />
         </Box>
-        <STagButton sx={{ px: 2 }} onClick={handleAddCard} icon={AddIcon} />
+        <SFlex>
+          <STagButton
+            sx={{ px: 2 }}
+            onClick={(e) => handleMoveCard(e, 'up')}
+            icon={KeyboardArrowUpOutlinedIcon}
+          />
+          <STagButton
+            sx={{ px: 2 }}
+            onClick={(e) => handleMoveCard(e, 'down')}
+            icon={KeyboardArrowDownOutlinedIcon}
+          />
+          <STagButton sx={{ px: 2 }} onClick={handleAddCard} icon={AddIcon} />
+        </SFlex>
       </Box>
       <Stack spacing={2} mt={3} direction="row">
         {node.type !== TreeTypeEnum.OPTION && (

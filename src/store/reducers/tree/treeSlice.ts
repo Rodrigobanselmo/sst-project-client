@@ -150,6 +150,26 @@ export const treeSlice = createSlice({
       if (state.selectItem)
         state.selectItem = { ...state.selectItem, ...action.payload };
     },
+    setReorder: (
+      state,
+      action: PayloadAction<{ id: string | number; move: 'up' | 'down' }>,
+    ) => {
+      const { id, move } = action.payload;
+
+      const node = state.nodes[id];
+      if (node.parentId) {
+        const childrenIds = [...state.nodes[node.parentId].childrenIds];
+        const fromIndex = childrenIds.indexOf(id);
+        const toIndex = move === 'up' ? fromIndex - 1 : fromIndex + 1;
+
+        if (fromIndex >= 0 && toIndex >= 0 && toIndex < childrenIds.length) {
+          childrenIds.splice(fromIndex, 1);
+          childrenIds.splice(toIndex, 0, id);
+
+          state.nodes[node.parentId].childrenIds = childrenIds;
+        }
+      }
+    },
     setExpandAll: (
       state,
       action: PayloadAction<{
@@ -183,6 +203,7 @@ export const {
   setEditSelectItem,
   setSelectCopy,
   setEditBlockingNodes,
+  setReorder,
 } = treeSlice.actions;
 
 export const selectAllTreeNodes = (state: AppState) => state[name].nodes;

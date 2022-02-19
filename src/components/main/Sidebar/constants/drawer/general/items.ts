@@ -1,3 +1,4 @@
+import ImportExportOutlinedIcon from '@mui/icons-material/ImportExportOutlined';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { IoPeople } from '@react-icons/all-files/io5/IoPeople';
 import { MdDashboard } from '@react-icons/all-files/md/MdDashboard';
@@ -14,7 +15,7 @@ const dashboard = {
 };
 
 const team = {
-  text: 'Gerenciar Usuários',
+  text: 'Gerenciar usuários',
   Icon: IoPeople,
   description: 'Download dos dados obtidos em campo utilizando o App SimpleSST',
   id: 'Tu09jfdGCC',
@@ -29,4 +30,12 @@ const checklist = {
   href: RoutesEnum.CHECKLIST,
 };
 
-export const generalArray = [dashboard, team, checklist];
+const importExportData = {
+  text: 'Banco de dados',
+  Icon: ImportExportOutlinedIcon,
+  description: 'Criação e edição das tabelas presentes no banco de dados',
+  id: 'ZjP5Cs0eap',
+  href: RoutesEnum.DATABASE,
+};
+
+export const generalArray = [dashboard, team, checklist, importExportData];

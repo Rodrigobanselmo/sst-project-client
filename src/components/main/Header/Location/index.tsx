@@ -12,7 +12,10 @@ import { useSidebarDrawer } from '../../../../core/contexts/SidebarContext';
 export function Location(): JSX.Element {
   const { isTablet } = useSidebarDrawer();
   const { asPath } = useRouter();
-  const routes = asPath.split('/').filter((route) => route);
+  const routes = asPath
+    .split('?')[0]
+    .split('/')
+    .filter((route) => route);
   const routesToMap = [...routes];
 
   if (routes.length <= 1) {
