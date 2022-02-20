@@ -4,7 +4,7 @@ import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined
 import { Box } from '@mui/material';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 
-import { IRiskFactors } from 'core/interfaces/IRiskFactors';
+import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { useQueryRisk } from '../../../../../../core/services/hooks/queries/useQueryRisk';
 import { STagSearchSelect } from '../../../../../molecules/STagSearchSelect';

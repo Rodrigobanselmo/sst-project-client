@@ -1,6 +1,6 @@
 import * as faker from 'faker';
 
-import { IRecMed } from 'core/interfaces/IRecMed';
+import { IRecMed } from 'core/interfaces/api/IRecMed';
 
 const fakeData = (id?: string) => {
   return {

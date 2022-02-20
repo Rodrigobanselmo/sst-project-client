@@ -3,7 +3,7 @@ import { useMutation } from 'react-query';
 import { useSnackbar } from 'notistack';
 
 import { QueryEnum } from 'core/enums/query.enums';
-import { IChecklist } from 'core/interfaces/IChecklist';
+import { IChecklist } from 'core/interfaces/api/IChecklist';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 

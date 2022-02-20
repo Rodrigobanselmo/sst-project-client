@@ -7,7 +7,7 @@ import { useModal } from 'core/hooks/useModal';
 
 import SFlex from '../../../../atoms/SFlex';
 import SIconButton from '../../../../atoms/SIconButton';
-import { STag } from '../../../../atoms/STag';
+import { STagAction } from '../../../../atoms/STagAction';
 import SText from '../../../../atoms/SText';
 import { SModalHeaderProps } from './types';
 
@@ -17,14 +17,18 @@ export const SModalHeaderTitle: FC<
   if (tag && tag !== 'none' && title)
     return (
       <SFlex width="100%" mb={2} align="center">
-        <STag action={tag} />
+        <STagAction action={tag} />
         <SText width="70%">{title}</SText>
       </SFlex>
     );
 
   return (
     <>
-      {typeof title === 'string' && <SText variant="h5">{title}</SText>}
+      {typeof title === 'string' && (
+        <SText variant="h5" fontWeight="500">
+          {title}
+        </SText>
+      )}
       {!(typeof title === 'string') && title}
     </>
   );

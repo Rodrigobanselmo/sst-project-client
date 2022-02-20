@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from 'react-query';
 
-import { IGenerateSource } from 'core/interfaces/GenerateSource';
+import { IGenerateSource } from 'core/interfaces/api/IGenerateSource';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 import { simulateAwait } from '../../../../utils/helpers/simulateAwait';

@@ -10,9 +10,9 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { useSnackbar } from 'notistack';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { StatusEnum } from 'core/enums/status.enum';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';

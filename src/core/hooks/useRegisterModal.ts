@@ -17,9 +17,9 @@ export const useRegisterModal = () => {
   );
 
   const registerModal = useCallback(
-    (name: string) => {
+    (name: string, open?: boolean) => {
       return {
-        open: currentModal.includes(name),
+        open: currentModal.includes(name) || !!open,
         onClose: () => onCloseModal(name),
       };
     },

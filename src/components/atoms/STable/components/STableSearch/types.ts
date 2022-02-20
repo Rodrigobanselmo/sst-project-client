@@ -2,5 +2,5 @@
 import { SInputProps } from 'components/atoms/SInput/types';
 
 export type STableSearchProps = SInputProps & {
-  onAddClick: () => void;
+  onAddClick?: () => void;
 };

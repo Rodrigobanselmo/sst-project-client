@@ -1,4 +1,4 @@
-import { RoleEnum } from './../../enums/roles.enums';
+import { RoleEnum } from '../../../project/enum/roles.enums';
 
 type User = {
   permissions: string[];

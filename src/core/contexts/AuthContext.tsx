@@ -12,11 +12,12 @@ import Router, { useRouter } from 'next/router';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
 import { createUser, selectUser } from 'store/reducers/user/userSlice';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { RoutesEnum } from '../enums/routes.enums';
-import { IUser } from '../interfaces/IUser';
+import { IUser } from '../interfaces/api/IUser';
 import { api } from '../services/apiClient';
 
 export type SignInCredentials = {
@@ -62,15 +63,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [dispatch]);
 
   useEffect(() => {
-    const user = store.getState().user.user as IUser;
     const { 'nextauth.token': token } = parseCookies();
 
     if (token) {
       api
-        .get(`/users/me/${user?.companyId}}`)
+        .get(ApiRoutesEnum.ME)
         .then((response) => {
           const { email, id, permissions, roles, companyId } = response.data;
-
           dispatch(
             createUser({
               email,
@@ -102,7 +101,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [signOutFunc]);
 
   async function signIn({ email, password }: SignInCredentials) {
-    const response = await api.post('session', { email, password });
+    const response = await api.post(ApiRoutesEnum.SESSION, { email, password });
     const {
       token,
       refresh_token,

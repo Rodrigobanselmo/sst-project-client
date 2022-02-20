@@ -2,15 +2,27 @@ import { useEffect } from 'react';
 
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
+import { setRedirectRoute } from 'store/reducers/routeLoad/routeLoadSlice';
+
+import { useAppDispatch } from './useAppDispatch';
 
 export const useRedirectDetect = () => {
-  const { query } = useRouter();
+  const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
-    if (query.redirect)
+    if (router.query.redirect) {
+      dispatch(setRedirectRoute(router.query.redirect as string));
       enqueueSnackbar('Você não possui autorização para acessar essa rota', {
         variant: 'warning',
       });
-  }, [enqueueSnackbar, query]);
+      delete router.query.redirect;
+      router.replace(
+        { pathname: router.basePath, query: router.query },
+        undefined,
+        { shallow: true },
+      );
+    }
+  }, [enqueueSnackbar, router, dispatch]);
 };

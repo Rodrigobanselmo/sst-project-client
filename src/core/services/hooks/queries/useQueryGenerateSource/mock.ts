@@ -1,6 +1,6 @@
 import * as faker from 'faker';
 
-import { IGenerateSource } from 'core/interfaces/GenerateSource';
+import { IGenerateSource } from 'core/interfaces/api/IGenerateSource';
 
 const fakeData = (id?: string) => {
   return {

@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC } from 'react';
 
 import EditIcon from '@mui/icons-material/Edit';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
@@ -16,14 +16,13 @@ import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddChecklist } from 'components/modals/ModalAddChecklist';
 import { StatusSelect } from 'components/tagSelects/StatusSelect';
-import Fuse from 'fuse.js';
 import { useRouter } from 'next/router';
-import { useDebouncedCallback } from 'use-debounce';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
-import { StatusEnum } from 'core/enums/status.enum';
 import { useModal } from 'core/hooks/useModal';
+import { useTableSearch } from 'core/hooks/useTableSearch';
 import { useQueryChecklist } from 'core/services/hooks/queries/useQueryChecklist';
 import { sortData } from 'core/utils/sorts/data.sort';
 
@@ -32,8 +31,11 @@ export const ChecklistTable: FC<BoxProps> = () => {
 
   const { onOpenModal } = useModal();
   const { push } = useRouter();
-
-  const [search, setSearch] = useState<string>('');
+  const { handleSearchChange, results } = useTableSearch({
+    data,
+    keys: ['name'],
+    sort: (a, b) => sortData(a, b, 'created_at'),
+  });
 
   const handleEditStatus = (status: StatusEnum) => {
     console.log(status); // TODO edit checklist status
@@ -42,21 +44,6 @@ export const ChecklistTable: FC<BoxProps> = () => {
   const handleGoToChecklistTree = (id: number) => {
     push(`${RoutesEnum.CHECKLIST}/${id}`);
   };
-
-  const handleSearchChange = useDebouncedCallback((value: string) => {
-    setSearch(value);
-  }, 300);
-
-  const fuse = useMemo(() => {
-    return new Fuse(data, { keys: ['name'], ignoreLocation: true });
-  }, [data]);
-
-  const results = useMemo(() => {
-    const fuseResults = fuse.search(search, { limit: 20 });
-    return search
-      ? fuseResults.map((result) => result.item)
-      : data.sort((a, b) => sortData(b, a, 'created_at'));
-  }, [data, fuse, search]);
 
   return (
     <>

@@ -5,7 +5,7 @@ import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import { Icon } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
 
-import { IRecMed } from 'core/interfaces/IRecMed';
+import { IRecMed } from 'core/interfaces/api/IRecMed';
 import { useQueryRecMed } from 'core/services/hooks/queries/useQueryRecMed';
 
 import { STagSearchSelect } from '../../../../../molecules/STagSearchSelect';

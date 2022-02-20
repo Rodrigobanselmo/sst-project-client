@@ -2,7 +2,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { AppState } from '../..';
-import { ITagAction } from '../../../components/atoms/STag/types';
+import { ITagAction } from '../../../components/atoms/STagAction/types';
 
 export interface IModalDataSlice {
   title: string;

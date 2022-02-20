@@ -3,7 +3,7 @@ import { useQuery, UseQueryResult } from 'react-query';
 
 import { useRouter } from 'next/router';
 
-import { IChecklist } from 'core/interfaces/IChecklist';
+import { IChecklist } from 'core/interfaces/api/IChecklist';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';

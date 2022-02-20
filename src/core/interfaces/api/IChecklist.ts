@@ -1,4 +1,4 @@
-import { StatusEnum } from 'core/enums/status.enum';
+import { StatusEnum } from 'project/enum/status.enum';
 
 export interface IChecklist {
   id: number;

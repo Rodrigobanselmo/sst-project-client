@@ -15,7 +15,14 @@
   "css: css;": {
     "scope": "javascript,typescript,javascriptreact,typescriptreact,css",
     "prefix": "css",
-    "body": ["${(props) =>", "  props.$1 &&", "    css`", "      $2", "  `}"],
+    "body": [
+      "import { css } from '@emotion/react';",
+      "${(props) =>",
+      "  props.$1 &&",
+      "    css`",
+      "      $2",
+      "  `,}"
+    ],
     "description": "css in styled components"
   },
   "styledBox: styledBox;": {

@@ -1,12 +1,13 @@
-import { Box } from '@mui/material';
+import { SContainer } from 'components/atoms/SContainer';
+import { DatabaseTable } from 'components/tables/DatabaseTable';
 import { NextPage } from 'next';
 
-const Home: NextPage = () => {
+const Database: NextPage = () => {
   return (
-    <Box>
-      <p>Equipe</p>
-    </Box>
+    <SContainer>
+      <DatabaseTable />
+    </SContainer>
   );
 };
 
-export default Home;
+export default Database;

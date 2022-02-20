@@ -1,8 +1,7 @@
 import * as faker from 'faker';
+import { RiskEnum } from 'project/enum/risk.enums';
 
-import { RiskEnum } from 'core/enums/risk.enums';
-
-import { IRiskFactors } from '../../../../interfaces/IRiskFactors';
+import { IRiskFactors } from '../../../../interfaces/api/IRiskFactors';
 
 const fakeData = (type: RiskEnum) => {
   return {

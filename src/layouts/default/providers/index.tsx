@@ -36,6 +36,7 @@ const DefaultProviders: FC = ({ children }) => {
                 vertical: 'bottom',
                 horizontal: 'right',
               }}
+              style={{ maxWidth: '28rem' }}
             >
               <AuthProvider>
                 <QueryClientProvider client={queryClient}>

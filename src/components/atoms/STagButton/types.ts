@@ -8,4 +8,6 @@ export interface ISTagButtonProps extends BoxProps {
   large?: boolean;
   icon?: ElementType<any>;
   iconProps?: IconProps;
+  loading?: boolean;
+  disabled?: boolean;
 }

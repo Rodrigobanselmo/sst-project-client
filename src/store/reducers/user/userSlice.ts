@@ -2,7 +2,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { AppState } from '../..';
-import { IUser } from '../../../core/interfaces/IUser';
+import { IUser } from '../../../core/interfaces/api/IUser';
 
 const initialState = {
   user: null as IUser | null,

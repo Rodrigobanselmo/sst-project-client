@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FeedIcon from '@mui/icons-material/Feed';
+import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import ReportIcon from '@mui/icons-material/Report';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -11,7 +12,7 @@ import WarningIcon from '@mui/icons-material/Warning';
 import SFlex from '../SFlex';
 import { ISTagProps } from './types';
 
-export const STag: FC<ISTagProps> = ({
+export const STagAction: FC<ISTagProps> = ({
   text,
   action,
   icon: Icon,
@@ -36,6 +37,8 @@ export const STag: FC<ISTagProps> = ({
         return 'info.main';
       case 'error':
         return 'error.main';
+      case 'upload':
+        return 'info.main';
 
       default:
         break;
@@ -77,6 +80,11 @@ export const STag: FC<ISTagProps> = ({
       {action === 'error' && (
         <ReportIcon sx={{ fontSize: '18px', color: 'common.white' }} />
       )}
+      {action === 'upload' && (
+        <FileUploadOutlinedIcon
+          sx={{ fontSize: '16px', color: 'common.white' }}
+        />
+      )}
       {!action ? text : ''}
       {action === 'add' ? 'Adicionar' : ''}
       {action === 'edit' ? 'Editar' : ''}
@@ -85,6 +93,7 @@ export const STag: FC<ISTagProps> = ({
       {action === 'success' ? 'Sucesso' : ''}
       {action === 'warning' ? 'Atenção' : ''}
       {action === 'error' ? 'Erro' : ''}
+      {action === 'upload' ? 'Exportar' : ''}
 
       {Icon && <Icon sx={{ fontSize: '18px', color: 'common.white' }} />}
       {!action ? text : ''}

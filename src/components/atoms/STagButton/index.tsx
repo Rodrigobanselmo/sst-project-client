@@ -2,14 +2,27 @@
 /* eslint-disable react/display-name */
 import React from 'react';
 
-import { Icon } from '@mui/material';
+import { CircularProgress, Icon } from '@mui/material';
 
 import SText from '../SText';
 import { STSBoxButton } from './styles';
 import { ISTagButtonProps } from './types';
 
 export const STagButton = React.forwardRef<any, ISTagButtonProps>(
-  ({ text, large, icon, sx, iconProps = {}, ...props }, ref) => {
+  (
+    {
+      text,
+      large,
+      icon,
+      sx,
+      onClick,
+      disabled,
+      iconProps = {},
+      loading,
+      ...props
+    },
+    ref,
+  ) => {
     const { sx: iconSx, ...restIconProps } = iconProps;
 
     return (
@@ -19,13 +32,21 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
         alignItems="center"
         justifyContent="center"
         sx={{ height: large ? 30 : 22, pl: 3, pr: 5, ...sx }}
+        onClick={loading || disabled ? undefined : onClick}
         {...props}
       >
-        {icon && (
+        {icon && !loading && (
           <Icon
             sx={{ fontSize: 14, ...iconSx }}
             component={icon}
             {...restIconProps}
+          />
+        )}
+        {loading && (
+          <CircularProgress
+            size={large ? 13 : 11}
+            sx={{ mr: large ? 3 : 2, ...iconSx }}
+            color="secondary"
           />
         )}
         {text && (

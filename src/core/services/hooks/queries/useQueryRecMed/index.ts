@@ -1,6 +1,6 @@
 import { useQuery, UseQueryResult } from 'react-query';
 
-import { IRecMed } from 'core/interfaces/IRecMed';
+import { IRecMed } from 'core/interfaces/api/IRecMed';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 import { simulateAwait } from '../../../../utils/helpers/simulateAwait';

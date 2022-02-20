@@ -24,7 +24,7 @@ import { SButton } from '../../../../atoms/SButton';
 import SFlex from '../../../../atoms/SFlex';
 import { SInput } from '../../../../atoms/SInput';
 import { SSwitch } from '../../../../atoms/SSwitch';
-import { STag } from '../../../../atoms/STag';
+import { STagAction } from '../../../../atoms/STagAction';
 import SText from '../../../../atoms/SText';
 import STextarea from '../../../../atoms/STextarea';
 import { nodeTypesConstant } from '../../constants/node-type.constant';
@@ -121,7 +121,7 @@ export const ModalEditCard = () => {
           title={
             <Box width="100%">
               <SFlex mb={2} align="center">
-                <STag action={selectedNode?.action} />
+                <STagAction action={selectedNode?.action} />
                 <SText>
                   {selectedNode?.action === 'add'
                     ? nodeTypesConstant[type]?.title

@@ -1,4 +1,4 @@
-import { RiskEnum } from 'core/enums/risk.enums';
+import { RiskEnum } from 'project/enum/risk.enums';
 
 export interface IRiskFactors {
   id: string;
