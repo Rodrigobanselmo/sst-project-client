@@ -9,6 +9,7 @@ export interface IMenuSearchOption extends Record<string, any> {
   value?: string | number;
   name?: string;
   checked?: boolean;
+  hideWithoutSearch?: boolean;
   icon?: ElementType<any>;
 }
 

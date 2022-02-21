@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 
 import OrgTreeComponent from 'components/main/OrgTree';
+import { ModalAddRecMed } from 'components/modals/ModalAddRecMed';
+import { ModalAddRisk } from 'components/modals/ModalAddRisk';
 import { NextPage } from 'next';
 
 import { useTreeActions } from 'core/hooks/useTreeActions';
@@ -22,6 +24,8 @@ const Home: NextPage = () => {
   return (
     <STFlexContainer>
       <OrgTreeComponent horizontal />
+      <ModalAddRisk />
+      <ModalAddRecMed />
     </STFlexContainer>
   );
 };

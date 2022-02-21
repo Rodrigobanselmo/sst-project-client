@@ -5,8 +5,11 @@ import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import { Icon } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
 
-import { IRecMed } from 'core/interfaces/api/IRecMed';
-import { useQueryRecMed } from 'core/services/hooks/queries/useQueryRecMed';
+import { ModalEnum } from 'core/enums/modal.enums';
+import { useModal } from 'core/hooks/useModal';
+import { useTreeActions } from 'core/hooks/useTreeActions';
+import { IRecMed } from 'core/interfaces/api/IRiskFactors';
+import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk';
 
 import { STagSearchSelect } from '../../../../../molecules/STagSearchSelect';
 import { IRecMedSelectProps } from './types';
@@ -17,20 +20,36 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   node,
   ...props
 }) => {
-  const { data } = useQueryRecMed();
+  const { data } = useQueryRisk();
+  const { getAllParentRisksById } = useTreeActions();
+  const { onOpenModal } = useModal();
 
   const handleSelectRecMed = (options: string[]) => {
     if (handleSelect) handleSelect(options);
   };
 
   const handleAddRecMed = () => {
-    console.log('// TODO add risk function');
+    onOpenModal(ModalEnum.REC_MED_ADD);
   };
 
   const options = useMemo(() => {
-    if (data) return data.filter((recMed) => recMed.medName);
+    const nodeRisks = node.risks || [];
+    const allRisksIds = [...nodeRisks, ...getAllParentRisksById(node.id)];
+
+    if (data)
+      return data
+        .reduce((acc, risk) => {
+          const recMed = risk.recMed || [];
+          return [...acc, ...recMed];
+        }, [] as IRecMed[])
+        .map((recMed) => ({
+          ...recMed,
+          hideWithoutSearch: !allRisksIds?.includes(recMed.riskId),
+        }))
+        .filter((recMed) => recMed.medName);
+
     return [];
-  }, [data]);
+  }, [data, getAllParentRisksById, node.id, node.risks]);
 
   const recMedLength = String(node.med ? node.med.length : 0);
 

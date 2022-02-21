@@ -10,7 +10,7 @@ export const useRegisterModal = () => {
   const { onCloseModal } = useModal();
   const isOpen = useCallback(
     (name: string) => {
-      if (currentModal.includes(name)) return true;
+      if (currentModal.find((modal) => modal.name == name)) return true;
       return false;
     },
     [currentModal],
@@ -19,7 +19,7 @@ export const useRegisterModal = () => {
   const registerModal = useCallback(
     (name: string, open?: boolean) => {
       return {
-        open: currentModal.includes(name) || !!open,
+        open: !!currentModal.find((modal) => modal.name == name) || !!open,
         onClose: () => onCloseModal(name),
       };
     },

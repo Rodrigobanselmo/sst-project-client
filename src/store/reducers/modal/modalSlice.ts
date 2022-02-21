@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
@@ -11,9 +12,15 @@ export interface IModalDataSlice {
   tag?: ITagAction;
   confirmCancel: string;
 }
+
+export interface ICurrentModal {
+  name: string;
+  data?: any;
+}
+
 interface IModalSlice {
-  currentModal: string[];
-  pileModal: string[];
+  currentModal: ICurrentModal[];
+  pileModal: ICurrentModal[];
   action: boolean;
   globalModal: boolean;
   data: IModalDataSlice;
@@ -39,10 +46,10 @@ export const modalSlice = createSlice({
   name,
   initialState,
   reducers: {
-    setModalName: (state, action: PayloadAction<string[]>) => {
+    setModalName: (state, action: PayloadAction<ICurrentModal[]>) => {
       state.currentModal = action.payload;
     },
-    setPileModalName: (state, action: PayloadAction<string[]>) => {
+    setPileModalName: (state, action: PayloadAction<ICurrentModal[]>) => {
       state.pileModal = action.payload;
     },
     setModalData: (state, action: PayloadAction<IModalDataSlice>) => {

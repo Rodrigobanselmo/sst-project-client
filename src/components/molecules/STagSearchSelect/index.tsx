@@ -1,5 +1,6 @@
 import React, { FC, MouseEvent } from 'react';
 
+import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 
 import { STagButton } from '../../atoms/STagButton';
@@ -24,6 +25,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   renderFilter,
   additionalButton,
   tooltipTitle,
+  error,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -48,15 +50,25 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
 
   return (
     <>
-      <STooltip withWrapper title={tooltipTitle}>
-        <STagButton
-          large={large}
-          onClick={handleSelectTag}
-          icon={icon}
-          text={text}
-          {...props}
-        />
-      </STooltip>
+      <div>
+        <STooltip withWrapper title={tooltipTitle}>
+          <STagButton
+            large={large}
+            onClick={handleSelectTag}
+            icon={icon}
+            text={text}
+            error={error}
+            {...props}
+          />
+        </STooltip>
+        {error && (
+          <SText
+            sx={{ fontSize: 10, color: 'error.main', ml: 5, mt: '0.3rem' }}
+          >
+            Campo obrigatório
+          </SText>
+        )}
+      </div>
       <SMenuSearch
         close={handleClose}
         isOpen={Boolean(anchorEl)}

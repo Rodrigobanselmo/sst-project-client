@@ -1,7 +1,9 @@
+import { RiskEnum } from 'project/enum/risk.enums';
+
 export const riskFilter = [
-  { label: 'bio', filter: 'bio', activeColor: 'risk.bio' },
-  { label: 'fis', filter: 'fis', activeColor: 'risk.fis' },
-  { label: 'qui', filter: 'qui', activeColor: 'risk.qui' },
-  { label: 'aci', filter: 'aci', activeColor: 'risk.aci' },
-  { label: 'erg', filter: 'erg', activeColor: 'risk.erg' },
+  { label: 'fis', filter: RiskEnum.FIS, activeColor: 'risk.fis' },
+  { label: 'qui', filter: RiskEnum.QUI, activeColor: 'risk.qui' },
+  { label: 'bio', filter: RiskEnum.BIO, activeColor: 'risk.bio' },
+  { label: 'aci', filter: RiskEnum.ACI, activeColor: 'risk.aci' },
+  { label: 'erg', filter: RiskEnum.ERG, activeColor: 'risk.erg' },
 ];

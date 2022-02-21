@@ -65,7 +65,9 @@ export const BlockSelect: FC<ITypeSelectProps> = ({
       large={large}
       handleSelectMenu={handleSelectBlock}
       selected={node?.block ?? []}
-      tooltipTitle={'Bloquear outro card ao selecionar esta opção'}
+      tooltipTitle={
+        'Essa opção manterá outro card bloqueado e servirá como chave para desbloquea-lo, ou seja, o outro card só estará visivel caso esta opção seja selecionada.'
+      }
       optionsFieldName={{ valueField: 'id', contentField: 'label' }}
       renderFilter={() => (
         <SMenuSimpleFilter

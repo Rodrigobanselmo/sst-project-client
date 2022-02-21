@@ -24,4 +24,5 @@ export interface ISTagSearchSelectProps extends BoxProps {
   multiple?: boolean;
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
   renderFilter?: () => React.ReactNode;
+  error?: boolean;
 }

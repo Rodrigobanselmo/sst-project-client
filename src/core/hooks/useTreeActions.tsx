@@ -151,6 +151,17 @@ export const useTreeActions = () => {
     [store],
   );
 
+  const getAllParentRisksById = useCallback(
+    (id: number | string) => {
+      const nodes = store.getState().tree.nodes as ITreeMap;
+      return getPathById(id).reduce((acc, nodeId) => {
+        const risks = nodes[nodeId].risks || [];
+        return [...acc, ...risks];
+      }, [] as (string | number)[]);
+    },
+    [getPathById, store],
+  );
+
   const getHigherLevelNodes = useCallback(
     (id: number | string) => {
       const nodes = store.getState().tree.nodes as ITreeMap;
@@ -286,10 +297,10 @@ export const useTreeActions = () => {
   );
 
   const createEmptyCard = (
-    nodeId: string | number,
+    parentId: string | number,
     exampleNode: Partial<ITreeMapObject> = {},
   ) => {
-    const node = store.getState().tree.nodes[nodeId] as ITreeMapObject;
+    const node = store.getState().tree.nodes[parentId] as ITreeMapObject;
 
     if (node) {
       const newNode = {
@@ -305,6 +316,8 @@ export const useTreeActions = () => {
       editNodes([{ id: node.id, expand: true }], true);
       addNodes([newNode], true);
       setSelectedItem(newNode, 'add');
+
+      return newNode;
     }
   };
 
@@ -327,5 +340,6 @@ export const useTreeActions = () => {
     setBlockNode,
     saveMutation,
     reorderNodes,
+    getAllParentRisksById,
   };
 };

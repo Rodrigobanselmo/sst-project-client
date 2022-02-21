@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useMemo } from 'react';
 
 import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
@@ -15,6 +16,7 @@ export const QuestionTypeSelect: FC<IQuestionTypeSelectSelectProps> = ({
   large,
   handleSelect,
   node,
+  keepOnlyPersonalized,
   ...props
 }) => {
   const { preventMultipleTextOptions } = usePreventNode();
@@ -28,11 +30,19 @@ export const QuestionTypeSelect: FC<IQuestionTypeSelectSelectProps> = ({
   };
 
   const options = useMemo(() => {
-    return Object.values(questionOptionsConstant) as IQuestionOptions[];
-  }, []);
+    const personalized = [
+      QuestionOptionsEnum.ONE_ANSWER,
+      QuestionOptionsEnum.MULTIPLE,
+      QuestionOptionsEnum.TEXT,
+    ];
+
+    return Object.values(questionOptionsConstant).filter(
+      (q: any) => personalized.includes(q.value) || !keepOnlyPersonalized,
+    ) as IQuestionOptions[];
+  }, [keepOnlyPersonalized]);
 
   const actualQuestionOption =
-    questionOptionsConstant[node?.answerType || QuestionOptionsEnum.ONE_ANSWER];
+    questionOptionsConstant[node?.answerType || QuestionOptionsEnum.DEFAULT];
 
   return (
     <STagSelect
@@ -41,6 +51,7 @@ export const QuestionTypeSelect: FC<IQuestionTypeSelectSelectProps> = ({
       large={large}
       icon={actualQuestionOption.icon}
       handleSelectMenu={handleSelectOption}
+      tooltipProps={(option: any) => ({ title: option.desc, minLength: 1 })}
       {...props}
     />
   );

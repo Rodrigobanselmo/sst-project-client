@@ -4,6 +4,8 @@ import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined
 import { Box } from '@mui/material';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 
+import { ModalEnum } from 'core/enums/modal.enums';
+import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { useQueryRisk } from '../../../../../../core/services/hooks/queries/useQueryRisk';
@@ -19,13 +21,14 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 }) => {
   const { data } = useQueryRisk();
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
+  const { onOpenModal } = useModal();
 
   const handleSelectRisk = (options: string[]) => {
     if (handleSelect) handleSelect(options);
   };
 
   const handleAddRisk = () => {
-    console.log('// TODO add risk function');
+    onOpenModal(ModalEnum.RISK_ADD);
   };
 
   const riskLength = String(node.risks ? node.risks.length : 0);
@@ -73,11 +76,12 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
       startAdornment={(options: IRiskFactors | undefined) => (
         <Box
           sx={{
-            backgroundColor: `risk.${options?.type}`,
+            backgroundColor: `risk.${options?.type.toLowerCase()}`,
             color: 'common.white',
-            px: 4,
+            px: 3,
             py: '1px',
             borderRadius: 3,
+            fontSize: '0.7rem',
             mr: 6,
           }}
         >

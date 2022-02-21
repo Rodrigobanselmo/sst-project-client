@@ -2,6 +2,7 @@
 import { ElementType, MouseEvent, ReactNode, RefObject } from 'react';
 
 import { ISTagButtonProps } from 'components/atoms/STagButton/types';
+import { STooltipProps } from 'components/atoms/STooltip/types';
 
 export type IAnchorEvent = (EventTarget & HTMLDivElement) | null;
 
@@ -19,4 +20,5 @@ export interface ISTagSelectProps extends ISTagButtonProps {
   startAdornment?: (option: any) => ReactNode;
   icon?: ElementType<any>;
   menuRef?: RefObject<HTMLDivElement>;
+  tooltipProps?: (option?: any) => Partial<STooltipProps>;
 }

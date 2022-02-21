@@ -140,6 +140,7 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
         )}
         {node.type === TreeTypeEnum.QUESTION && (
           <QuestionTypeSelect
+            keepOnlyPersonalized
             node={node}
             handleSelect={(option) =>
               editNodes([

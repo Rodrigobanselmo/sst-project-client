@@ -2,6 +2,7 @@
 import { ElementType, MouseEvent, ReactNode } from 'react';
 
 import { MenuProps } from '@mui/material';
+import { STooltipProps } from 'components/atoms/STooltip/types';
 
 export interface IMenuOptionResponse {
   value: string | number;
@@ -23,4 +24,5 @@ export interface SMenuProps extends Omit<MenuProps, 'open' | 'onClose'> {
     icon?: ElementType<any>;
   }[];
   startAdornment?: (option: any) => ReactNode;
+  tooltipProps?: (option?: any) => Partial<STooltipProps>;
 }

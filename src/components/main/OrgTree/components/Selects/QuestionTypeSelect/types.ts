@@ -7,4 +7,5 @@ export interface IQuestionTypeSelectSelectProps extends BoxProps {
   node: ITreeMapObject | ITreeSelectedItem;
   large?: boolean;
   handleSelect?: (option: { value: QuestionOptionsEnum; name: string }) => void;
+  keepOnlyPersonalized?: boolean;
 }

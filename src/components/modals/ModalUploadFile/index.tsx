@@ -57,7 +57,7 @@ export const ModalUploadFile: FC<SModalUploadFile> = ({
       keepMounted={false}
       onClose={onClose}
     >
-      <SModalPaper p={8} width={800}>
+      <SModalPaper p={8} width={600}>
         <SModalHeader onClose={onClose} title={'Exportar arquivo'} />
         <DndProvider backend={HTML5Backend}>
           <SFileDndUpload

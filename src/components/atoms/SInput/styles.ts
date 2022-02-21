@@ -9,6 +9,7 @@ export const STTextField = styled(TextField)<{
   size: string;
   unstyled: number;
   sub_variant?: 'search' | 'standard';
+  multiline?: boolean;
 }>`
   &&& .MuiOutlinedInput-notchedOutline {
     border-color: ${(props) => props.theme.palette.background.divider};
@@ -18,7 +19,6 @@ export const STTextField = styled(TextField)<{
   &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
     border-color: ${(props) => props.theme.palette.primary.main};
   }
-
   &:hover {
     &&& .MuiOutlinedInput-notchedOutline {
       border-color: ${(props) => props.theme.palette.background.default};
@@ -33,17 +33,20 @@ export const STTextField = styled(TextField)<{
   ${(props) =>
     props.success &&
     css`
-      &:after {
-        content: '';
-        border-bottom: 2px solid ${props.theme.palette.success.main};
-        top: ${props.size === 'small' ? 28 : 44}px;
-        position: absolute;
-        width: 100%;
-        height: 10px;
-        border-bottom-left-radius: ${props.theme.spacing(4)};
-        border-bottom-right-radius: ${props.theme.spacing(4)};
-        pointer-events: none;
-      }
+      ${!props.multiline &&
+      css`
+        &:after {
+          content: '';
+          border-bottom: 2px solid ${props.theme.palette.success.main};
+          top: ${props.size === 'small' ? 28 : 44}px;
+          position: absolute;
+          width: 100%;
+          height: 10px;
+          border-bottom-left-radius: ${props.theme.spacing(4)};
+          border-bottom-right-radius: ${props.theme.spacing(4)};
+          pointer-events: none;
+        }
+      `}
     `};
 
   ${(props) =>
@@ -52,17 +55,48 @@ export const STTextField = styled(TextField)<{
       & .MuiFormHelperText-root {
         color: ${props.theme.palette.error.main};
       }
-      &:after {
-        content: '';
-        border-bottom: 2px solid ${props.theme.palette.error.main};
-        top: ${props.size === 'small' ? 28 : 44}px;
-        position: absolute;
-        width: 100%;
-        height: 10px;
-        border-bottom-left-radius: ${props.theme.spacing(4)};
-        border-bottom-right-radius: ${props.theme.spacing(4)};
-        pointer-events: none;
-      }
+
+      ${props.multiline &&
+      css`
+        &&& .MuiOutlinedInput-notchedOutline {
+          border-color: ${props.theme.palette.error.main};
+          border-width: 2px;
+        }
+
+        &&&
+          .MuiOutlinedInput-root.Mui-focused
+          .MuiOutlinedInput-notchedOutline {
+          border-color: ${props.theme.palette.error.main};
+        }
+
+        &:hover {
+          &&& .MuiOutlinedInput-notchedOutline {
+            border-color: ${props.theme.palette.error.main};
+            border-width: 2px;
+          }
+          &&&
+            .MuiOutlinedInput-root.Mui-focused
+            .MuiOutlinedInput-notchedOutline {
+            border-color: ${props.theme.palette.error.main};
+            opacity: 1;
+          }
+        }
+      `}
+
+      ${!props.multiline &&
+      css`
+        &:after {
+          content: '';
+          border-bottom: 2px solid ${props.theme.palette.error.main};
+          top: ${props.size === 'small' ? 28 : 44}px;
+          position: absolute;
+          width: 100%;
+          height: 10px;
+          border-bottom-left-radius: ${props.theme.spacing(4)};
+          border-bottom-right-radius: ${props.theme.spacing(4)};
+          pointer-events: none;
+        }
+      `}
     `};
 
   ${(props) =>

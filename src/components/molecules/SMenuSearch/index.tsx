@@ -2,6 +2,7 @@ import { FC, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
 import { Box, Icon } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import Fuse from 'fuse.js';
 import { useDebouncedCallback } from 'use-debounce';
@@ -90,7 +91,9 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   const fuseResults = fuse.search(search, { limit: 20 });
   const results = search
     ? fuseResults.map((result) => result.item)
-    : optionsMemoized.slice(0, 20 + 200 * scroll);
+    : optionsMemoized
+        .slice(0, 20 + 200 * scroll)
+        .filter((option) => !(option?.hideWithoutSearch && !option?.checked));
 
   return (
     <STMenu
@@ -120,6 +123,12 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         />
         {renderFilter && renderFilter()}
       </Box>
+      {!results.length && (
+        <SFlex center sx={{ fontSize: '0.85rem', color: 'text.light', py: 8 }}>
+          nenhum resultado encontrado
+        </SFlex>
+      )}
+
       <Box
         ref={listWrapperRef}
         onScroll={(e) => {

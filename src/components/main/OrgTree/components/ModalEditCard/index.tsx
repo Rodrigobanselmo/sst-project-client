@@ -7,6 +7,7 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
 import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
 
+import { standardQuestionsConstant } from 'core/constants/standard-questions';
 import { useControlClick } from 'core/hooks/useControlClick';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -33,6 +34,7 @@ import { usePreventNode } from '../../hooks/usePreventNode';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
 import { MedSelect } from '../Selects/MedSelect';
 import { QuestionTypeSelect } from '../Selects/QuestionTypeSelect';
+import { questionOptionsConstant } from '../Selects/QuestionTypeSelect/constants/question-options.constant';
 import { RecSelect } from '../Selects/RecSelect';
 import { RiskSelect } from '../Selects/RiskSelect';
 import { TypeSelect } from '../Selects/TypeSelect';
@@ -61,6 +63,27 @@ export const ModalEditCard = () => {
     if (selectedNode) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { action, ...newNode } = selectedNode;
+
+      if (newNode.type === TreeTypeEnum.QUESTION) {
+        const selectedAnswer =
+          newNode.answerType || QuestionOptionsEnum.DEFAULT;
+
+        const standardOptions = standardQuestionsConstant[selectedAnswer];
+
+        if (standardOptions && newNode.parentId) {
+          newNode.childrenIds = standardOptions.options
+            .map((option) => {
+              return createEmptyCard(newNode.id, { ...option })?.id;
+            })
+            .filter((option) => option) as string[];
+
+          newNode.expand = true;
+        }
+
+        newNode.answerType =
+          questionOptionsConstant[selectedAnswer]?.selected ??
+          newNode.answerType;
+      }
 
       editNodes([newNode]);
       if (!switchRef.current?.checked) onCloseModal(ModalEnum.TREE_CARD);
@@ -227,6 +250,7 @@ export const ModalEditCard = () => {
             {selectedNode.type === TreeTypeEnum.QUESTION && (
               <QuestionTypeSelect
                 large
+                keepOnlyPersonalized={!(selectedNode?.action === 'add')}
                 node={selectedNode}
                 handleSelect={(option) =>
                   setEditNodeSelectedItem({

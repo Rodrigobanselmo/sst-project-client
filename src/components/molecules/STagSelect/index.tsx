@@ -17,6 +17,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
   menuRef,
   tooltipTitle,
   startAdornment,
+  tooltipProps,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -58,6 +59,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
         anchorEl={anchorEl}
         handleSelect={handleSelect}
         icon={icon}
+        tooltipProps={tooltipProps}
         options={options}
       />
     </>

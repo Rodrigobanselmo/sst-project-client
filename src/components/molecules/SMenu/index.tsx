@@ -17,6 +17,7 @@ export const SMenu: FC<SMenuProps> = ({
   options,
   icon,
   startAdornment,
+  tooltipProps = () => null,
   ...props
 }) => {
   const handleMenuSelect = (
@@ -62,6 +63,7 @@ export const SMenu: FC<SMenuProps> = ({
             placement="right-start"
             enterDelay={1200}
             title={option.name}
+            {...tooltipProps(option)}
           >
             <Box width="100%" overflow="hidden">
               <SText className="noBreakText" fontSize={13}>

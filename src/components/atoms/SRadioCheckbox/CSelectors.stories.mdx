@@ -1,0 +1,342 @@
+import { Meta, Canvas, Story, Props } from '@storybook/addon-docs/blocks';
+import Direction from '../../../assets/direction.svg';
+import { action } from '@storybook/addon-actions';
+import SvgIcon from '@mui/material/SvgIcon';
+
+import SRadioCheckbox from '.';
+
+<Meta
+  title="Atoms/SRadioCheckbox"
+  component={SRadioCheckbox}
+  argTypes={{
+    size: {
+      control: {
+        type: 'number',
+      },
+    },
+    columns: {
+      control: {
+        type: 'number',
+      },
+    },
+    color: {
+      control: {
+        type: 'text',
+      },
+    },
+    name: {
+      control: {
+        type: 'text',
+      },
+    },
+    color: {
+      control: {
+        type: 'text',
+      },
+    },
+    disabled: {
+      control: {
+        type: 'boolean',
+      },
+    },
+    type: {
+      control: {
+        type: 'select',
+        options: ['radio', 'checkbox'],
+      },
+    },
+    onClick: {
+      action: 'clicked',
+    },
+  }}
+/>
+
+export const options = [
+  '2000',
+  '2001',
+  '2002',
+  '2003',
+  '2004',
+  '2005',
+  '2006',
+  '2007',
+  '2008',
+  '2009',
+  '20010',
+  '2011',
+  '2012',
+];
+export const lessOptions = options.slice(0, 6);
+
+export const containerStyles = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  alignItens: 'center',
+  margin: 'auto',
+  gap: 20,
+};
+
+export const stackStyles = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 20,
+};
+
+export const Template = (args) => <SRadioCheckbox {...args} />;
+
+# SRadioCheckbox
+
+Selectors allow users to take actions, select multiple or a single options. Supports all default HTML Text, Input and Div properties.
+
+## Import
+
+```tsx
+import { SRadioCheckbox } from '@camel/camel-react';
+```
+
+## Usage
+
+```tsx
+<SRadioCheckbox options={['2020', '2021', '2022', '2023']} columns={2} />
+```
+
+### Default
+
+<Canvas>
+  <Story
+    name="Default"
+    args={{
+      options,
+    }}
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Type
+
+2 types are supported, single select ("radio") or multiple selection ("checkbox").
+
+<Canvas>
+  <Story name="Type">
+    <div style={containerStyles}>
+      <p>Checkbox</p>
+      <SRadioCheckbox type="checkbox" options={lessOptions} />
+      <p>Radio</p>
+      <SRadioCheckbox name="name" type="radio" options={lessOptions} />
+    </div>
+  </Story>
+</Canvas>
+
+### Styles
+
+any color or styles are supported.
+
+<Canvas>
+  <Story name="Color">
+    <div style={containerStyles}>
+      <p>Standard color</p>
+      <SRadioCheckbox
+        color={'red'}
+        backgroundColorItem={'#525252'}
+        colorItem={'white'}
+        itemProps={{ style: { borderRadius: 100 } }}
+        options={lessOptions}
+      />
+      <p>Checked color</p>
+      <SRadioCheckbox
+        colorChecked={'#37c'}
+        backgroundColorChecked={'#101100'}
+        options={lessOptions}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Options
+
+you can supplie a different content and value on the options property.
+
+<Canvas>
+  <Story name="Content">
+    <div style={containerStyles}>
+      <SRadioCheckbox
+        options={[
+          { value: '1', content: '2020 😓' },
+          { value: '2', content: '2021 💔' },
+          { value: '3', content: '2022 👄' },
+          {
+            value: '4',
+            content: (
+              <span>
+                2023 <b>HOT</b>
+              </span>
+            ),
+            icon: '👄',
+          },
+        ]}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Options FieldName
+
+With this you can use different field name for the value and content of the selector itens, by passing an options array with any field name and specifing the field name on the optionsFieldName prop.
+
+<Canvas>
+  <Story name="Options FieldName">
+    <div style={containerStyles}>
+      <SRadioCheckbox
+        optionsFieldName={{ valueField: 'id', contentField: 'planet' }}
+        options={[
+          { id: 1, planet: 'Jupter' },
+          { id: 2, planet: 'Sapturne' },
+          { id: 3, planet: 'Uranio' },
+        ]}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Register inputProps
+
+you can applie different input props depending on options.
+
+<Canvas>
+  <Story name="Register inputProps">
+    <div style={containerStyles}>
+      <SRadioCheckbox
+        options={[
+          { value: '1', content: '2020 -- name: item1 ', name: 'item1' },
+          { value: '2', content: '2021 -- name: item2', name: 'item2' },
+          { value: '3', content: '2022 -- name: item3', name: 'item3' },
+        ]}
+        inputProps={(option) => ({
+          name: option.name,
+          onChange: (e) =>
+            console.log('checkbox', e.target.checked, 'name:', option.name),
+        })}
+        itemProps={{ fontSize: 14 }}
+      />
+      <p>You can see in your console the logs of selecting an item</p>
+    </div>
+  </Story>
+</Canvas>
+
+### Size
+
+any size are supported by passig a number or string.
+
+<Canvas>
+  <Story name="Size">
+    <div style={containerStyles}>
+      <SRadioCheckbox options={lessOptions} itemProps={{ fontSize: 16 }} />
+      <SRadioCheckbox
+        options={lessOptions}
+        itemProps={{ fontSize: '0.8rem', py: 2 }}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Columns
+
+any grid template collumns are supported by passig the number of collumns.
+
+<Canvas>
+  <Story name="Columns">
+    <div style={containerStyles}>
+      <p>2 columns</p>
+      <SRadioCheckbox options={lessOptions} columns={2} />
+      <p>6 columns</p>
+      <SRadioCheckbox options={options} columns={6} />
+      <p>Custom grid item</p>
+      <SRadioCheckbox
+        options={[
+          { value: '2020', gridSize: { xs: 2 } },
+          { value: '2021', gridSize: { xs: 1 } },
+          { value: '2022', gridSize: { xs: 1 } },
+        ]}
+        columns={2}
+      />
+      <p>Wrap</p>
+      <SRadioCheckbox
+        options={options}
+        columns={0}
+        justifyContent="center"
+        gridItemsProps={{ minWidth: '100px' }}
+      />
+      <p>Responsivines</p>
+      <SRadioCheckbox
+        options={lessOptions}
+        columns={12}
+        gridItemsProps={{ xs: 12, md: 6, lg: 3 }}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Disabled
+
+<Canvas>
+  <Story name="Disabled">
+    <SRadioCheckbox options={lessOptions} disabled />
+  </Story>
+</Canvas>
+
+## Other Props
+
+<table style={{ width: '100%' }}>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>itemProps</td>
+    <td style={{ color: '#6168e1' }}>object</td>
+    <td></td>
+    <td>
+      object Props applied to the <b>item</b> element, it accepts all typegraphy
+      props
+    </td>
+  </tr>
+  <tr>
+    <td>gridItemsProps</td>
+    <td style={{ color: '#6168e1' }}>object</td>
+    <td></td>
+    <td>
+      object Props applied to the <b>grid item</b> element
+    </td>
+  </tr>
+  <tr>
+    <td>inputProps</td>
+    <td style={{ color: '#6168e1' }}>(option) => object</td>
+    <td></td>
+    <td>
+      function that recieves the option aplied to the input and return an object
+      Props that will also be applied to the <b>input</b> element
+    </td>
+  </tr>
+</table>
+
+## Structure
+
+```tsx
+const SRadioCheckbox: FC<SRadioCheckboxType> = ({ inputProps, itemProps, gridItemsProps, ...props }) => {
+  return (
+    <Grid container {...props}>
+      {options.map((option) => {
+        return (
+         <GridItem {...gridItemsProps} >
+            <input {...inputProps} />
+            <Item {...itemProps} >
+              {value || content}
+            </Item>
+          </GridItem>
+        );
+      })}
+    </Grid>
+```

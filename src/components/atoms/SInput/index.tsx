@@ -29,7 +29,7 @@ export const SInput: FC<SInputProps> = ({
   ...props
 }) => {
   return (
-    <>
+    <div>
       {labelPosition === 'top' && (
         <Typography
           fontSize={14}
@@ -76,6 +76,6 @@ export const SInput: FC<SInputProps> = ({
         helperText={helperText}
         {...props}
       />
-    </>
+    </div>
   );
 };

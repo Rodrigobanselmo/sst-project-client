@@ -19,6 +19,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
       disabled,
       iconProps = {},
       loading,
+      error,
       ...props
     },
     ref,
@@ -32,12 +33,13 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
         alignItems="center"
         justifyContent="center"
         sx={{ height: large ? 30 : 22, pl: 3, pr: 5, ...sx }}
+        error={error ? 1 : 0}
         onClick={loading || disabled ? undefined : onClick}
         {...props}
       >
         {icon && !loading && (
           <Icon
-            sx={{ fontSize: 14, ...iconSx }}
+            sx={{ fontSize: 14, mr: 2, ...iconSx }}
             component={icon}
             {...restIconProps}
           />
@@ -50,7 +52,15 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
           />
         )}
         {text && (
-          <SText fontSize="13px" color="text.primary" ml={1}>
+          <SText
+            fontSize="13px"
+            color="text.primary"
+            sx={{
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
             {text}
           </SText>
         )}

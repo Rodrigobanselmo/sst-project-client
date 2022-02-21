@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { styled, Box } from '@mui/material';
 
-export const STSBoxButton = styled(Box)<{ large?: number }>`
+export const STSBoxButton = styled(Box)<{ large?: number; error?: number }>`
   border: 1px solid ${(props) => props.theme.palette.background.divider};
 
   border-radius: 5px;
@@ -19,4 +19,9 @@ export const STSBoxButton = styled(Box)<{ large?: number }>`
   }
 
   ${(props) => props.large && css``}
+  ${(props) =>
+    props.error &&
+    css`
+      border: 2px solid ${props.theme.palette.error.main};
+    `}
 `;
