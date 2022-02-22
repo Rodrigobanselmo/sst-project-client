@@ -18,6 +18,7 @@ export interface ISTagSearchSelectProps extends BoxProps {
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
   options: IMenuSearchOption[];
   startAdornment?: (option: any) => ReactNode;
+  endAdornment?: (option: any) => ReactNode;
   optionsFieldName?: { valueField?: string; contentField?: string };
   icon?: ElementType<any>;
   iconItem?: ElementType<any>;

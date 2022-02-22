@@ -2,10 +2,11 @@ import React, { useRef } from 'react';
 import { useStore } from 'react-redux';
 
 import CircleIcon from '@mui/icons-material/Circle';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
 import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
+
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { standardQuestionsConstant } from 'core/constants/standard-questions';
 import { useControlClick } from 'core/hooks/useControlClick';
@@ -137,9 +138,7 @@ export const ModalEditCard = () => {
       <SModalPaper p={8}>
         <SModalHeader
           onClose={onCloseUnsaved}
-          secondIcon={
-            type === TreeTypeEnum.CHECKLIST ? undefined : DeleteOutlineIcon
-          }
+          secondIcon={type === TreeTypeEnum.CHECKLIST ? undefined : SDeleteIcon}
           secondIconClick={onRemoveNode}
           title={
             <Box width="100%">

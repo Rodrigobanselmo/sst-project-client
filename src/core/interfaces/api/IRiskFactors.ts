@@ -17,6 +17,7 @@ export interface IRecMedCreate {
   medName?: string;
   riskId?: number;
   status?: StatusEnum;
+  localId?: string | number;
 }
 
 export interface IRiskFactors {

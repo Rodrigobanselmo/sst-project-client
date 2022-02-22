@@ -1,8 +1,13 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useMemo, useState, MouseEvent } from 'react';
 
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
-import { Box } from '@mui/material';
+import { Box, Icon } from '@mui/material';
+import SIconButton from 'components/atoms/SIconButton';
+import STooltip from 'components/atoms/STooltip';
+import { initialAddRiskState } from 'components/modals/ModalAddRisk/hooks/useAddRisk';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
+
+import EditIcon from 'assets/icons/SEditIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -29,6 +34,22 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 
   const handleAddRisk = () => {
     onOpenModal(ModalEnum.RISK_ADD);
+  };
+
+  const handleEditRisk = (
+    e: MouseEvent<HTMLButtonElement>,
+    option?: IRiskFactors,
+  ) => {
+    e.stopPropagation();
+
+    if (option)
+      onOpenModal<Partial<typeof initialAddRiskState>>(ModalEnum.RISK_ADD, {
+        name: option.name,
+        recMed: option.recMed,
+        status: option.status,
+        id: option.id,
+        type: option.type,
+      });
   };
 
   const riskLength = String(node.risks ? node.risks.length : 0);
@@ -60,7 +81,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
       icon={ReportProblemOutlinedIcon}
       multiple
       additionalButton={handleAddRisk}
-      text={riskLength}
+      text={riskLength === '0' ? '' : riskLength}
       keys={['name', 'type']}
       large={large}
       handleSelectMenu={handleSelectRisk}
@@ -88,6 +109,21 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
           {options?.type}
         </Box>
       )}
+      endAdornment={(options: IRiskFactors | undefined) => {
+        return (
+          <STooltip enterDelay={1200} withWrapper title={'editar'}>
+            <SIconButton
+              onClick={(e) => handleEditRisk(e, options)}
+              sx={{ width: '2rem', height: '2rem' }}
+            >
+              <Icon
+                sx={{ color: 'text.light', fontSize: '18px' }}
+                component={EditIcon}
+              />
+            </SIconButton>
+          </STooltip>
+        );
+      }}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}
       {...props}
     />

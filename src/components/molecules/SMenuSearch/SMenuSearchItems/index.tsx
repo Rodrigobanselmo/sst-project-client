@@ -19,6 +19,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
   options,
   optionsFieldName,
   localSelected,
+  endAdornment,
 }) => {
   const valueField =
     (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
@@ -70,7 +71,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
                 component={optionIcon}
               />
             )}
-            {!optionIcon && startAdornment && startAdornment(option)}
+            {startAdornment && startAdornment(option)}
             <STooltip
               minLength={100}
               placement="right-start"
@@ -83,6 +84,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
                 </SText>
               </Box>
             </STooltip>
+            {endAdornment && endAdornment(option)}
           </STMenuItem>
         );
       })}

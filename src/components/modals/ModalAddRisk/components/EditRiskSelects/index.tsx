@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useMemo } from 'react';
 
-import StraightenIcon from '@mui/icons-material/Straighten';
-import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import { Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import STooltip from 'components/atoms/STooltip';
 import { STagSearchSelect } from 'components/molecules/STagSearchSelect';
 import { StatusSelect } from 'components/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
+
+import SMeasureControl from 'assets/icons/SMeasureControl';
+import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -26,8 +27,14 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
 }) => {
   const { onOpenModal } = useModal();
 
-  const handleSelectRecMed = (option: string) => {
-    //
+  const handleSelectRecMed = (option: IRecMed & IRecMedCreate) => {
+    if (option?.medName || option?.recName)
+      onOpenModal(ModalEnum.REC_MED_ADD, {
+        passDataBack: true,
+        edit: true,
+        localId: option?.localId,
+        ...option,
+      });
   };
 
   const handleAddRecMed = () => {
@@ -38,27 +45,28 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
     return riskData.recMed.filter((r) => r.recName);
   }, [riskData]);
 
-  const recMedLength = String(optionsRec.length);
+  const optionsMed = useMemo(() => {
+    return riskData.recMed.filter((r) => r.medName);
+  }, [riskData]);
+
+  const recLength = String(optionsRec.length);
+  const medLength = String(optionsMed.length);
 
   return (
     <SFlex gap={8} mt={10} align="center">
       <StatusSelect
         selected={riskData.status}
-        statusOptions={[
-          StatusEnum.PROGRESS,
-          StatusEnum.ACTIVE,
-          StatusEnum.INACTIVE,
-        ]}
+        statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
         handleSelectMenu={(option: any) =>
           setRiskData({ ...riskData, status: option.value })
         }
       />
       <STagSearchSelect
         options={optionsRec}
-        icon={ThumbUpOffAltIcon}
+        icon={SRecommendationIcon}
         additionalButton={handleAddRecMed}
-        tooltipTitle={`${recMedLength} recomendações`}
-        text={recMedLength}
+        tooltipTitle={`${recLength} recomendações`}
+        text={recLength}
         keys={['recName']}
         large={true}
         handleSelectMenu={handleSelectRecMed}
@@ -69,12 +77,35 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
             <STooltip enterDelay={1200} withWrapper title={options.medName}>
               <Icon
                 sx={{ color: 'text.light', fontSize: '18px', mr: '10px' }}
-                component={StraightenIcon}
+                component={SMeasureControl}
               />
             </STooltip>
           );
         }}
         optionsFieldName={{ valueField: 'id', contentField: 'recName' }}
+      />
+      <STagSearchSelect
+        options={optionsMed}
+        icon={SMeasureControl}
+        additionalButton={handleAddRecMed}
+        tooltipTitle={`${medLength} medidas de controle`}
+        text={medLength}
+        keys={['medName']}
+        large={true}
+        handleSelectMenu={handleSelectRecMed}
+        startAdornment={(options: IRecMed | undefined) => {
+          if (!options?.recName) return <></>;
+
+          return (
+            <STooltip enterDelay={1200} withWrapper title={options.recName}>
+              <Icon
+                sx={{ color: 'text.light', fontSize: '18px', mr: '10px' }}
+                component={SMeasureControl}
+              />
+            </STooltip>
+          );
+        }}
+        optionsFieldName={{ valueField: 'id', contentField: 'medName' }}
       />
     </SFlex>
   );

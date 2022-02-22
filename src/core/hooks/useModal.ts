@@ -76,7 +76,7 @@ export const useModal = () => {
   );
 
   const onOpenModal = useCallback(
-    (name: string, data?: any) => {
+    <T>(name: string, data?: T) => {
       const registerStackModal = store.getState().modal
         .pileModal as ICurrentModal[];
 

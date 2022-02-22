@@ -60,7 +60,7 @@ export const BlockSelect: FC<ITypeSelectProps> = ({
       options={options}
       icon={KeyIcon}
       multiple
-      text={blockLength}
+      text={blockLength === '0' ? '' : blockLength}
       keys={['label', 'id']}
       large={large}
       handleSelectMenu={handleSelectBlock}

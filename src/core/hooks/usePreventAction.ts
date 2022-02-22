@@ -27,5 +27,19 @@ export const usePreventAction = () => {
     return false;
   };
 
-  return { preventUnwantedChanges };
+  const preventDelete = (callback: () => void, message?: string) => {
+    const data = {
+      title: 'Você tem certeza?',
+      text:
+        message ||
+        'Você tem certeza que deseja excluir este item permanentemente?',
+      confirmText: 'Deletar',
+      tag: 'delete',
+      confirmCancel: 'Cancel',
+    } as IModalDataSlice;
+
+    onOpenGlobalModal(data, callback);
+  };
+
+  return { preventUnwantedChanges, preventDelete };
 };

@@ -1,9 +1,13 @@
-import React, { FC, useMemo } from 'react';
+import React, { FC, useMemo, MouseEvent } from 'react';
 
-import StraightenIcon from '@mui/icons-material/Straighten';
-import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 import { Icon } from '@mui/material';
+import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
+import { initialAddRecMedState } from 'components/modals/ModalAddRecMed/hooks/useAddRecMed';
+
+import EditIcon from 'assets/icons/SEditIcon';
+import SMeasureControl from 'assets/icons/SMeasureControl';
+import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -29,7 +33,34 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   };
 
   const handleAddRecMed = () => {
-    onOpenModal(ModalEnum.REC_MED_ADD);
+    const nodeRisks = node.risks || [];
+
+    onOpenModal<Partial<typeof initialAddRecMedState>>(ModalEnum.REC_MED_ADD, {
+      riskIds: [...nodeRisks, ...getAllParentRisksById(node.id)],
+    });
+  };
+
+  const handleEditRecMed = (
+    e: MouseEvent<HTMLButtonElement>,
+    option?: IRecMed,
+  ) => {
+    e.stopPropagation();
+    const nodeRisks = node.risks || [];
+    const risk = data.find((r) => r.id === option?.riskId);
+
+    if (risk)
+      onOpenModal<Partial<typeof initialAddRecMedState>>(
+        ModalEnum.REC_MED_ADD,
+        {
+          riskIds: [...nodeRisks, ...getAllParentRisksById(node.id)],
+          edit: true,
+          risk,
+          medName: option?.medName || '',
+          recName: option?.recName || '',
+          status: option?.status,
+          localId: option?.id,
+        },
+      );
   };
 
   const options = useMemo(() => {
@@ -56,11 +87,11 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   return (
     <STagSearchSelect
       options={options}
-      icon={StraightenIcon}
+      icon={SMeasureControl}
       multiple
       additionalButton={handleAddRecMed}
       tooltipTitle={`${recMedLength} medidas de controle`}
-      text={recMedLength}
+      text={recMedLength === '0' ? '' : recMedLength}
       keys={['medName']}
       large={large}
       handleSelectMenu={handleSelectRecMed}
@@ -72,8 +103,23 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
           <STooltip enterDelay={1200} withWrapper title={options.recName}>
             <Icon
               sx={{ color: 'text.light', fontSize: '18px', mr: '10px' }}
-              component={ThumbUpOffAltIcon}
+              component={SRecommendationIcon}
             />
+          </STooltip>
+        );
+      }}
+      endAdornment={(options: IRecMed | undefined) => {
+        return (
+          <STooltip enterDelay={1200} withWrapper title={'editar'}>
+            <SIconButton
+              onClick={(e) => handleEditRecMed(e, options)}
+              sx={{ width: '2rem', height: '2rem' }}
+            >
+              <Icon
+                sx={{ color: 'text.light', fontSize: '18px' }}
+                component={EditIcon}
+              />
+            </SIconButton>
           </STooltip>
         );
       }}

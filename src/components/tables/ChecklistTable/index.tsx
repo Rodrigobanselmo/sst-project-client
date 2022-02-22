@@ -1,6 +1,5 @@
 import { FC } from 'react';
 
-import EditIcon from '@mui/icons-material/Edit';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { BoxProps } from '@mui/material';
 import {
@@ -18,6 +17,8 @@ import { ModalAddChecklist } from 'components/modals/ModalAddChecklist';
 import { StatusSelect } from 'components/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
+
+import EditIcon from 'assets/icons/SEditIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';

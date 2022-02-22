@@ -15,16 +15,10 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { queryClient } from 'core/services/queryClient';
 
+import { initialAddRecMedState } from '../../hooks/useAddRecMed';
+
 interface IEditRecMedSelects {
-  recMedData: {
-    status: StatusEnum;
-    recName: string;
-    medName: string;
-    hasSubmit: boolean;
-    passDataBack: boolean;
-    riskIds: number[];
-    risk: IRiskFactors;
-  };
+  recMedData: typeof initialAddRecMedState;
   setRecMedData: React.Dispatch<any>;
 }
 
@@ -62,7 +56,7 @@ export const EditRecMedSelects: FC<IEditRecMedSelects> = ({
       return risks.filter((risk) => activeFilters.includes(risk.type));
 
     if (!recMedData.riskIds.length) return risks;
-
+    console.log(recMedData.riskIds);
     return risks.map((risk) => ({
       ...risk,
       hideWithoutSearch: !recMedData.riskIds.includes(risk.id),
@@ -70,7 +64,7 @@ export const EditRecMedSelects: FC<IEditRecMedSelects> = ({
   }, [activeFilters, recMedData.riskIds, user?.companyId]);
 
   return (
-    <SFlex gap={8} mt={10} align="center">
+    <SFlex gap={8} mt={10} align="flex-start">
       <StatusSelect
         selected={recMedData.status}
         statusOptions={[

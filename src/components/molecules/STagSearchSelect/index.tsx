@@ -25,6 +25,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   renderFilter,
   additionalButton,
   tooltipTitle,
+  endAdornment,
   error,
   ...props
 }) => {
@@ -77,6 +78,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         icon={iconItem}
         options={options}
         startAdornment={startAdornment}
+        endAdornment={endAdornment}
         optionsFieldName={optionsFieldName}
         placeholder={placeholder}
         multiple={multiple}

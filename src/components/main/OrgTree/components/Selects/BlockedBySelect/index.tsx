@@ -57,7 +57,6 @@ export const BlockedBySelect: FC<IBlockedBySelectProps> = ({
       iconProps={{ sx: { color: 'common.white' } }}
       sx={{
         backgroundColor: 'error.main',
-        px: 2,
         '&:hover': { backgroundColor: 'error.dark' },
       }}
       icon={LockIcon}

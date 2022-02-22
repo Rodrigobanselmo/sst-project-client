@@ -23,6 +23,7 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
     event: MouseEvent<HTMLLIElement>,
   ) => void;
   icon?: ElementType<any>;
+  endAdornment?: (option: any) => ReactNode;
   startAdornment?: (option: IMenuSearchOption) => ReactNode;
   placeholder?: string;
   options: IMenuSearchOption[];

@@ -94,16 +94,20 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
         </Box>
         <SFlex>
           <STagButton
-            sx={{ px: 2 }}
+            sx={{ pr: 1, pl: 2 }}
             onClick={(e) => handleMoveCard(e, 'up')}
             icon={KeyboardArrowUpOutlinedIcon}
           />
           <STagButton
-            sx={{ px: 2 }}
+            sx={{ pr: 1, pl: 2 }}
             onClick={(e) => handleMoveCard(e, 'down')}
             icon={KeyboardArrowDownOutlinedIcon}
           />
-          <STagButton sx={{ px: 2 }} onClick={handleAddCard} icon={AddIcon} />
+          <STagButton
+            sx={{ pr: 1, pl: 2 }}
+            onClick={handleAddCard}
+            icon={AddIcon}
+          />
         </SFlex>
       </Box>
       <Stack spacing={2} mt={3} direction="row">

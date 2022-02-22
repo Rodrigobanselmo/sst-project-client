@@ -26,9 +26,20 @@ export const useRegisterModal = () => {
     [onCloseModal, currentModal],
   );
 
+  const getModalData = useCallback(
+    <T>(name: string) => {
+      return (
+        (currentModal.reverse().find((modal) => modal.name === name)
+          ?.data as T) ?? ({} as T)
+      );
+    },
+    [currentModal],
+  );
+
   return {
     isOpen,
     registerModal,
     currentModal,
+    getModalData,
   };
 };

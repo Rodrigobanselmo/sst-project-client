@@ -4,9 +4,10 @@ import { ElementType } from 'react';
 import CloseFullscreenOutlinedIcon from '@mui/icons-material/CloseFullscreenOutlined';
 import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 import ContentPasteGoOutlinedIcon from '@mui/icons-material/ContentPasteGoOutlined';
-import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import InsertDriveFileOutlinedIcon from '@mui/icons-material/InsertDriveFileOutlined';
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
+
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { HelpOptionsEnum } from '../enums/help-options.enums';
 export interface IHelpOption {
@@ -45,6 +46,6 @@ export const helpOptionsConstant = {
   [HelpOptionsEnum.DELETE]: {
     value: HelpOptionsEnum.DELETE,
     name: 'Deletar',
-    icon: DeleteOutlineIcon,
+    icon: SDeleteIcon,
   },
 } as IHelpOptions;

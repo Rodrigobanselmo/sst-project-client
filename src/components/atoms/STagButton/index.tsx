@@ -32,7 +32,14 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
         display="flex"
         alignItems="center"
         justifyContent="center"
-        sx={{ height: large ? 30 : 22, pl: 3, pr: 5, ...sx }}
+        sx={{
+          minHeight: large ? 30 : 22,
+          maxHeight: large ? 30 : 22,
+          height: large ? 30 : 22,
+          pl: 3,
+          pr: text ? 5 : 2,
+          ...sx,
+        }}
         error={error ? 1 : 0}
         onClick={loading || disabled ? undefined : onClick}
         {...props}

@@ -1,10 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
-import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import SRadioCheckbox from 'components/atoms/SRadioCheckbox';
 import { InputForm } from 'components/form/input';
 import SModal, {
   SModalButtons,
@@ -12,103 +9,31 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { RiskEnum } from 'project/enum/risk.enums';
-import { StatusEnum } from 'project/enum/status.enum';
-import * as Yup from 'yup';
+
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { useModal } from 'core/hooks/useModal';
-import { usePreventAction } from 'core/hooks/usePreventAction';
-import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
-import { useMutAddChecklist } from 'core/services/hooks/mutations/useMutAddChecklist';
-import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 
-import { StatusSelect } from '../../tagSelects/StatusSelect';
 import { EditRecMedSelects } from './components/EditRecMedSelects';
-import { recMedSchema } from 'core/utils/schemas/recMed.schema';
-import { ICurrentModal } from 'store/reducers/modal/modalSlice';
-
-const initialState = {
-  status: StatusEnum.ACTIVE,
-  recName: '',
-  medName: '',
-  risk: {} as IRiskFactors,
-  riskIds: [],
-  hasSubmit: false,
-  passDataBack: false,
-};
+import { useAddRecMed } from './hooks/useAddRecMed';
 
 export const ModalAddRecMed = () => {
-  const { registerModal, currentModal } = useRegisterModal();
-  const { onCloseModal } = useModal();
-
-  const { handleSubmit, control, reset, getValues } = useForm({
-    resolver: yupResolver(recMedSchema),
-  });
-  const mutation = useMutAddChecklist();
-
-  const { preventUnwantedChanges } = usePreventAction();
-
-  const [recMedData, setRecMedData] = useState({
-    ...initialState,
-  });
-
-  useEffect(() => {
-    const initialData = currentModal
-      .reverse()
-      .find((modal) => modal.name === ModalEnum.REC_MED_ADD);
-
-    if (initialData && initialData.data) {
-      setRecMedData((oldData) => ({
-        ...oldData,
-        ...initialData.data,
-      }));
-    }
-  }, [currentModal]);
-
-  const onClose = (data?: any) => {
-    onCloseModal(ModalEnum.REC_MED_ADD, data);
-    setRecMedData(initialState);
-    reset();
-  };
-
-  const onSubmit: SubmitHandler<any> = (data) => {
-    if (recMedData.passDataBack)
-      return onClose({
-        status: recMedData.status,
-        isRecMed: true,
-        ...data,
-      });
-
-    const submitData = {
-      status: recMedData.status,
-      riskId: recMedData.risk.id,
-      ...data,
-    };
-
-    console.log(submitData);
-
-    // TODO create rec med
-  };
-
-  const onCloseUnsaved = () => {
-    const values = getValues();
-    if (
-      preventUnwantedChanges(
-        { ...recMedData, ...values },
-        initialState,
-        onClose,
-      )
-    )
-      return;
-    onClose();
-  };
+  const {
+    registerModal,
+    onCloseUnsaved,
+    onSubmit,
+    loading,
+    recMedData,
+    setRecMedData,
+    control,
+    handleSubmit,
+    onRemove,
+  } = useAddRecMed();
 
   const buttons = [
     {},
     {
-      text: 'Criar',
+      text: recMedData.edit ? 'Editar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => setRecMedData({ ...recMedData, hasSubmit: true }),
@@ -123,13 +48,16 @@ export const ModalAddRecMed = () => {
     >
       <SModalPaper p={8} component="form" onSubmit={handleSubmit(onSubmit)}>
         <SModalHeader
-          tag="add"
+          tag={recMedData.edit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
           title={'Recomendação e medida de controle'}
+          secondIcon={recMedData?.edit ? SDeleteIcon : undefined}
+          secondIconClick={onRemove}
         />
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
             autoFocus
+            defaultValue={recMedData.recName}
             multiline
             minRows={2}
             maxRows={4}
@@ -142,6 +70,7 @@ export const ModalAddRecMed = () => {
           />
           <InputForm
             multiline
+            defaultValue={recMedData.medName}
             minRows={2}
             maxRows={4}
             label="Medida de controle"
@@ -157,7 +86,7 @@ export const ModalAddRecMed = () => {
           setRecMedData={setRecMedData}
         />
         <SModalButtons
-          loading={mutation.isLoading}
+          loading={loading}
           onClose={onCloseUnsaved}
           buttons={buttons}
         />

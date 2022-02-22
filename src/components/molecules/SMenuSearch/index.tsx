@@ -22,6 +22,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   placeholder = 'Pesquisa ...',
   optionsFieldName,
   startAdornment,
+  endAdornment,
   width = 500,
   multiple,
   selected,
@@ -146,6 +147,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           optionsFieldName={optionsFieldName}
           handleMenuSelect={handleMenuSelect}
           startAdornment={startAdornment}
+          endAdornment={endAdornment}
           icon={icon}
           localSelected={localSelected}
           multiple={multiple}
