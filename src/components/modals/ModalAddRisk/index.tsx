@@ -2,8 +2,8 @@
 import React from 'react';
 
 import { Box } from '@mui/material';
-import SRadioCheckbox from 'components/atoms/SRadioCheckbox';
 import { InputForm } from 'components/form/input';
+import { RadioForm } from 'components/form/radio';
 import SModal, {
   SModalButtons,
   SModalHeader,
@@ -65,17 +65,14 @@ export const ModalAddRisk = () => {
             name="name"
             size="small"
           />
-          <SRadioCheckbox
+          <RadioForm
             type="radio"
-            error={riskData?.type ? false : riskData.hasSubmit}
+            control={control}
+            defaultValue={riskData.type}
             options={Object.keys(RiskEnum)}
             name="type"
             mt={3}
             columns={5}
-            inputProps={(option) => ({
-              onChange: () => setRiskData({ ...riskData, type: option }),
-              checked: option === riskData.type,
-            })}
           />
         </Box>
         <EditRiskSelects riskData={riskData} setRiskData={setRiskData} />

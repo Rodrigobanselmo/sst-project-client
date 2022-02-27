@@ -2,7 +2,6 @@ import { FC } from 'react';
 
 import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
-import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { BoxProps } from '@mui/material';
 import {
   STable,
@@ -16,6 +15,8 @@ import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import { ModalUploadFile } from 'components/modals/ModalUploadFile';
+
+import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -40,14 +41,14 @@ export const DatabaseTable: FC<BoxProps> = () => {
 
   return (
     <>
-      <STableTitle icon={LibraryAddCheckIcon}>Checklist</STableTitle>
+      <STableTitle icon={SDatabaseIcon}>Banco de dados</STableTitle>
       <STableSearch onChange={(e) => handleSearchChange(e.target.value)} />
       <STable
         loading={isLoading}
         columns="minmax(200px, 1fr) minmax(100px, 150px) minmax(100px, 150px)"
       >
         <STableHeader>
-          <STableHRow>Checklist</STableHRow>
+          <STableHRow>Tabelas</STableHRow>
           <STableHRow justifyContent="center">Importar</STableHRow>
           <STableHRow justifyContent="center">Exportar</STableHRow>
         </STableHeader>

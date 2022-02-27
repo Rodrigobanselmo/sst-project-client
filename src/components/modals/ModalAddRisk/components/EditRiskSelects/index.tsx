@@ -8,7 +8,7 @@ import { STagSearchSelect } from 'components/molecules/STagSearchSelect';
 import { StatusSelect } from 'components/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import SMeasureControl from 'assets/icons/SMeasureControl';
+import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
 import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -77,7 +77,7 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
             <STooltip enterDelay={1200} withWrapper title={options.medName}>
               <Icon
                 sx={{ color: 'text.light', fontSize: '18px', mr: '10px' }}
-                component={SMeasureControl}
+                component={SMeasureControlIcon}
               />
             </STooltip>
           );
@@ -86,7 +86,7 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
       />
       <STagSearchSelect
         options={optionsMed}
-        icon={SMeasureControl}
+        icon={SMeasureControlIcon}
         additionalButton={handleAddRecMed}
         tooltipTitle={`${medLength} medidas de controle`}
         text={medLength}
@@ -100,7 +100,7 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
             <STooltip enterDelay={1200} withWrapper title={options.recName}>
               <Icon
                 sx={{ color: 'text.light', fontSize: '18px', mr: '10px' }}
-                component={SMeasureControl}
+                component={SMeasureControlIcon}
               />
             </STooltip>
           );

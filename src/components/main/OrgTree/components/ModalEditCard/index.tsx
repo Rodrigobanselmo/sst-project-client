@@ -65,6 +65,7 @@ export const ModalEditCard = () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { action, ...newNode } = selectedNode;
 
+      // add YES/NO/NA
       if (newNode.type === TreeTypeEnum.QUESTION) {
         const selectedAnswer =
           newNode.answerType || QuestionOptionsEnum.DEFAULT;
@@ -74,7 +75,10 @@ export const ModalEditCard = () => {
         if (standardOptions && newNode.parentId) {
           newNode.childrenIds = standardOptions.options
             .map((option) => {
-              return createEmptyCard(newNode.id, { ...option })?.id;
+              return createEmptyCard(newNode.id, {
+                ...option,
+                type: TreeTypeEnum.OPTION,
+              })?.id;
             })
             .filter((option) => option) as string[];
 

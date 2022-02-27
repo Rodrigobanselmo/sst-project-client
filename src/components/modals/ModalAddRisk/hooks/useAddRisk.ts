@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 import * as Yup from 'yup';
 
@@ -11,7 +12,8 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IRecMedCreate } from 'core/interfaces/api/IRiskFactors';
-import { useMutAddChecklist } from 'core/services/hooks/mutations/useMutAddChecklist';
+import { useMutCreateRisk } from 'core/services/hooks/mutations/useMutCreateRisk';
+import { useMutUpdateRisk } from 'core/services/hooks/mutations/useMutUpdateRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 
@@ -22,6 +24,7 @@ export const initialAddRiskState = {
   recMed: [] as IRecMedCreate[],
   hasSubmit: false,
   id: 0,
+  companyId: '',
 };
 
 export const useAddRisk = () => {
@@ -33,7 +36,8 @@ export const useAddRisk = () => {
     resolver: yupResolver(Yup.object().shape(riskSchema)),
   });
 
-  const mutation = useMutAddChecklist();
+  const createRiskMut = useMutCreateRisk();
+  const updateRiskMut = useMutUpdateRisk();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -98,11 +102,21 @@ export const useAddRisk = () => {
     }
   }, [getModalData]);
 
-  const onSubmit: SubmitHandler<IRiskSchema> = (data) => {
-    if (!riskData.type) return;
+  const onSubmit: SubmitHandler<IRiskSchema> = ({ name, type }) => {
+    const { id, companyId, recMed, status } = riskData;
+    const typeValue = type as RiskEnum;
 
-    console.log('riskData', { ...riskData, ...data });
-    // TODO CREATE RISK
+    const risk = { id, companyId, recMed, status, name, type: typeValue };
+
+    if (riskData.companyId) risk.companyId = riskData.companyId;
+
+    if (risk.id == 0) {
+      createRiskMut.mutateAsync(risk);
+    } else {
+      updateRiskMut.mutateAsync(risk);
+    }
+
+    onClose();
   };
 
   const onClose = () => {
@@ -129,7 +143,7 @@ export const useAddRisk = () => {
     onCloseUnsaved,
     onSubmit,
     onClose,
-    loading: mutation.isLoading,
+    loading: createRiskMut.isLoading || updateRiskMut.isLoading,
     riskData,
     setRiskData,
     control,

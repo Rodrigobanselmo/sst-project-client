@@ -6,7 +6,7 @@ import STooltip from 'components/atoms/STooltip';
 import { initialAddRecMedState } from 'components/modals/ModalAddRecMed/hooks/useAddRecMed';
 
 import EditIcon from 'assets/icons/SEditIcon';
-import SMeasureControl from 'assets/icons/SMeasureControl';
+import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
 import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -87,7 +87,7 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   return (
     <STagSearchSelect
       options={options}
-      icon={SMeasureControl}
+      icon={SMeasureControlIcon}
       multiple
       additionalButton={handleAddRecMed}
       tooltipTitle={`${recMedLength} medidas de controle`}

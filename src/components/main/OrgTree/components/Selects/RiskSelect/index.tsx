@@ -49,6 +49,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
         status: option.status,
         id: option.id,
         type: option.type,
+        companyId: option.companyId,
       });
   };
 

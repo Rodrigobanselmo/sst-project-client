@@ -25,25 +25,6 @@ interface IOption extends Record<string, any> {
   };
 }
 
-export type ISRadioCheckboxType = GridProps & {
-  options: Array<string | IOption>;
-  inputProps?: (
-    option: string | IOption | any,
-  ) => InputHTMLAttributes<HTMLInputElement>;
-  type?: 'radio' | 'checkbox';
-  name?: string;
-  itemProps?: TypographyProps;
-  gridItemsProps?: GridProps;
-  optionsFieldName?: { valueField?: string; contentField?: string };
-  backgroundColorChecked?: string;
-  colorChecked?: string;
-  backgroundColorItem?: string;
-  colorItem?: string;
-  error?: boolean;
-  size?: number;
-  disabled?: boolean;
-};
-
 export interface IInputCheckboxProps
   extends InputHTMLAttributes<HTMLInputElement> {
   option: string | IOption;
@@ -58,4 +39,26 @@ export interface IInputCheckboxProps
   contentField: string;
   backgroundColor?: string;
   color?: string;
+  defaultValue?: string;
 }
+
+export type SRadioCheckboxProps = GridProps & {
+  options: Array<string | IOption>;
+  inputProps?: (
+    option: string | IOption | any,
+  ) => InputHTMLAttributes<HTMLInputElement>;
+  type?: 'radio' | 'checkbox';
+  name?: string;
+  itemProps?: TypographyProps;
+  gridItemsProps?: GridProps;
+  optionsFieldName?: { valueField?: string; contentField?: string };
+  backgroundColorChecked?: string;
+  colorChecked?: string;
+  backgroundColorItem?: string;
+  colorItem?: string;
+  helperText?: string;
+  error?: boolean;
+  size?: number;
+  disabled?: boolean;
+  defaultValue?: string;
+};

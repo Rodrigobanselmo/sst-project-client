@@ -6,7 +6,7 @@ import STooltip from 'components/atoms/STooltip';
 import { initialAddRecMedState } from 'components/modals/ModalAddRecMed/hooks/useAddRecMed';
 
 import EditIcon from 'assets/icons/SEditIcon';
-import SMeasureControl from 'assets/icons/SMeasureControl';
+import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
 import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -103,7 +103,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
           <STooltip enterDelay={1200} withWrapper title={options.medName}>
             <Icon
               sx={{ color: 'text.light', fontSize: '18px', mr: '10px' }}
-              component={SMeasureControl}
+              component={SMeasureControlIcon}
             />
           </STooltip>
         );

@@ -14,6 +14,7 @@ export const STSFileUploaderContainer = styled('div')<{
   min-height: 12rem;
   gap: 0;
   flex-direction: column;
+  cursor: pointer;
 
   p {
     padding: 0rem;

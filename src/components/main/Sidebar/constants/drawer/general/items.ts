@@ -1,7 +1,8 @@
-import ImportExportOutlinedIcon from '@mui/icons-material/ImportExportOutlined';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { IoPeople } from '@react-icons/all-files/io5/IoPeople';
 import { MdDashboard } from '@react-icons/all-files/md/MdDashboard';
+
+import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
 
 import { RoutesEnum } from '../../../../../../core/enums/routes.enums';
 
@@ -32,7 +33,7 @@ const checklist = {
 
 const importExportData = {
   text: 'Banco de dados',
-  Icon: ImportExportOutlinedIcon,
+  Icon: SDatabaseIcon,
   description: 'Criação e edição das tabelas presentes no banco de dados',
   id: 'ZjP5Cs0eap',
   href: RoutesEnum.DATABASE,
