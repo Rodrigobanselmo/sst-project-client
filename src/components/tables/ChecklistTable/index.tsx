@@ -9,6 +9,7 @@ import {
   STableHRow,
   STableRow,
 } from 'components/atoms/STable';
+import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import SystemRow from 'components/atoms/STable/components/Rows/SystemRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
@@ -53,10 +54,11 @@ export const ChecklistTable: FC<BoxProps> = () => {
         onAddClick={() => onOpenModal(ModalEnum.CHECKLIST_ADD)}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
-      <STable loading={isLoading} columns="minmax(200px, 1fr) 50px 100px">
+      <STable loading={isLoading} columns="minmax(200px, 1fr) 50px  70px 100px">
         <STableHeader>
           <STableHRow>Checklist</STableHRow>
           <STableHRow justifyContent="center"></STableHRow>
+          <STableHRow justifyContent="center">Editar</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
         </STableHeader>
         <STableBody<typeof data[0]>
@@ -65,12 +67,12 @@ export const ChecklistTable: FC<BoxProps> = () => {
           renderRow={(row) => {
             return (
               <STableRow key={row.id}>
-                <TextIconRow
-                  onClick={() => handleGoToChecklistTree(row.id)}
-                  icon={EditIcon}
-                  text={row.name}
-                />
+                <TextIconRow text={row.name} />
                 <SystemRow system={row.system} />
+                <IconButtonRow
+                  onClick={() => handleGoToChecklistTree(row.id)}
+                  icon={<EditIcon />}
+                />
                 <StatusSelect
                   large
                   sx={{ maxWidth: '120px', justifyContent: 'flex-start' }}

@@ -24,6 +24,7 @@ export function withSSRAuth<T>(
   ): Promise<GetServerSidePropsResult<T>> => {
     const cookies = parseCookies(ctx);
     const token = cookies['nextauth.token'];
+    const refreshToken = cookies['nextauth.refreshToken'];
 
     if (!cookies['nextauth.token']) {
       return {
@@ -38,8 +39,14 @@ export function withSSRAuth<T>(
     }
 
     if (options) {
-      const user = decode<{ permissions: string[]; roles: string[] }>(token);
+      const user =
+        decode<{ permissions: string[]; roles: string[]; exp: number }>(token);
+      const refresh = decode<{ exp: number }>(refreshToken);
       const { permissions, roles } = options;
+
+      const isExpiredTokens =
+        new Date(refresh.exp * 1000) < new Date() &&
+        new Date(user.exp * 1000) < new Date();
 
       const userHasValidPermissions = validateUserPermissions({
         user,
@@ -47,6 +54,19 @@ export function withSSRAuth<T>(
         roles,
       });
 
+      if (isExpiredTokens) {
+        destroyCookie(ctx, 'nextauth.token');
+        destroyCookie(ctx, 'nextauth.refreshToken');
+
+        return {
+          redirect: {
+            destination: `${
+              RoutesEnum.LOGIN
+            }?redirect=${ctx.resolvedUrl.replace(/[/]/g, '|')}`,
+            permanent: false,
+          },
+        };
+      }
       if (!userHasValidPermissions) {
         return {
           redirect: {

@@ -6,10 +6,7 @@ interface IDuplicateOptions {
   removeFields?: string[];
 }
 
-export function removeDuplicate(
-  array: Record<string, any>[],
-  options?: IDuplicateOptions,
-) {
+export function removeDuplicate(array: any[], options?: IDuplicateOptions) {
   if (options?.simpleCompare)
     return array.filter(
       (item, index, self) => index === self.findIndex((t) => t == item),

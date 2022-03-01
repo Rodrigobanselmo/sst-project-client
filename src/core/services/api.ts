@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios, { AxiosError } from 'axios';
-import { parseCookies, setCookie } from 'nookies';
+import { destroyCookie, parseCookies, setCookie } from 'nookies';
 
 import { signOut } from '../contexts/AuthContext';
 import { AuthTokenError } from './errors/AuthTokenError';
@@ -66,7 +66,9 @@ export function setupAPIClient(ctx = undefined) {
                 failedRequestQueue = [];
 
                 if (process.browser) {
-                  signOut();
+                  destroyCookie(ctx, 'nextauth.token');
+                  destroyCookie(ctx, 'nextauth.refreshToken');
+                  signOut(ctx);
                 }
               })
               .finally(() => {

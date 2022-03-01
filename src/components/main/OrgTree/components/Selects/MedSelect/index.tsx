@@ -58,7 +58,7 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
           medName: option?.medName || '',
           recName: option?.recName || '',
           status: option?.status,
-          localId: option?.id,
+          id: option?.id,
         },
       );
   };

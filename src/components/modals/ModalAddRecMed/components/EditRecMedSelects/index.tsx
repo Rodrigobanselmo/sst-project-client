@@ -56,7 +56,7 @@ export const EditRecMedSelects: FC<IEditRecMedSelects> = ({
       return risks.filter((risk) => activeFilters.includes(risk.type));
 
     if (!recMedData.riskIds.length) return risks;
-    console.log(recMedData.riskIds);
+
     return risks.map((risk) => ({
       ...risk,
       hideWithoutSearch: !recMedData.riskIds.includes(risk.id),
@@ -67,11 +67,7 @@ export const EditRecMedSelects: FC<IEditRecMedSelects> = ({
     <SFlex gap={8} mt={10} align="flex-start">
       <StatusSelect
         selected={recMedData.status}
-        statusOptions={[
-          StatusEnum.PROGRESS,
-          StatusEnum.ACTIVE,
-          StatusEnum.INACTIVE,
-        ]}
+        statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
         handleSelectMenu={(option: any) => {
           if (option?.value)
             setRecMedData({ ...recMedData, status: option.value });

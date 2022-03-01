@@ -10,13 +10,15 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
-import { useMutAddChecklist } from 'core/services/hooks/mutations/useMutAddChecklist';
+import { useMutCreateRecMed } from 'core/services/hooks/mutations/useMutCreateRecMed';
+import { useMutUpdateRecMed } from 'core/services/hooks/mutations/useMutUpdateRecMed';
 import { recMedSchema } from 'core/utils/schemas/recMed.schema';
 
 export const initialAddRecMedState = {
   status: StatusEnum.ACTIVE,
   recName: '',
   medName: '',
+  id: 0,
   localId: '' as string | number,
   risk: {} as IRiskFactors,
   riskIds: [] as (string | number)[],
@@ -33,7 +35,9 @@ export const useAddRecMed = () => {
   const { handleSubmit, control, reset, getValues } = useForm({
     resolver: yupResolver(recMedSchema),
   });
-  const mutation = useMutAddChecklist();
+
+  const createRecMedMut = useMutCreateRecMed();
+  const updateRecMedMut = useMutUpdateRecMed();
 
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
@@ -78,7 +82,7 @@ export const useAddRecMed = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ recName: string; medName: string }> = (
+  const onSubmit: SubmitHandler<{ recName: string; medName: string }> = async (
     data,
   ) => {
     if (recMedData.passDataBack)
@@ -98,9 +102,16 @@ export const useAddRecMed = () => {
       ...data,
     };
 
-    console.log(submitData);
+    if (initialAddRecMedState.id == 0) {
+      await createRecMedMut.mutateAsync(submitData);
+    } else {
+      await updateRecMedMut.mutateAsync({
+        ...submitData,
+        id: initialAddRecMedState.id,
+      });
+    }
 
-    // TODO create rec med
+    onClose();
   };
 
   const onCloseUnsaved = () => {
@@ -121,7 +132,7 @@ export const useAddRecMed = () => {
     onCloseUnsaved,
     onSubmit,
     onClose,
-    loading: mutation.isLoading,
+    loading: createRecMedMut.isLoading || updateRecMedMut.isLoading,
     recMedData,
     setRecMedData,
     control,

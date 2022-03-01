@@ -1,3 +1,4 @@
+import decode from 'jwt-decode';
 import {
   GetServerSideProps,
   GetServerSidePropsContext,
@@ -13,13 +14,19 @@ export function withSSRGuest<T>(fn: GetServerSideProps<T>): GetServerSideProps {
   ): Promise<GetServerSidePropsResult<T>> => {
     const cookies = parseCookies(ctx);
 
-    if (cookies['nextauth.token']) {
-      return {
-        redirect: {
-          destination: `${RoutesEnum.DASHBOARD}`,
-          permanent: false,
-        },
-      };
+    const token = cookies['nextauth.token'];
+    const refreshToken = cookies['nextauth.refreshToken'];
+
+    if (token && refreshToken) {
+      const refresh = decode<{ exp: number }>(refreshToken);
+
+      if (new Date(refresh.exp * 1000) > new Date())
+        return {
+          redirect: {
+            destination: `${RoutesEnum.DASHBOARD}`,
+            permanent: false,
+          },
+        };
     }
 
     return await fn(ctx);

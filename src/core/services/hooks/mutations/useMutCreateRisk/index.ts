@@ -17,7 +17,7 @@ interface ICreateRisk
   recMed: IRecMedCreate[];
 }
 
-export async function upsertRisk(data: ICreateRisk, companyId?: string) {
+export async function createRisk(data: ICreateRisk, companyId?: string) {
   if (!companyId) return null;
 
   const response = await api.post<IRiskFactors>('/risk', {
@@ -34,7 +34,7 @@ export function useMutCreateRisk() {
 
   return useMutation(
     async (data: ICreateRisk) =>
-      upsertRisk(data, data.companyId || user?.companyId),
+      createRisk(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
         if (resp)

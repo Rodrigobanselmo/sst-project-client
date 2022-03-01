@@ -50,7 +50,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
           medName: option?.medName || '',
           recName: option?.recName || '',
           status: option?.status,
-          localId: option?.id,
+          id: option?.id,
         },
       );
   };
@@ -73,10 +73,12 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
           const recMed = risk.recMed || [];
           return [...acc, ...recMed];
         }, [] as IRecMed[])
-        .map((recMed) => ({
-          ...recMed,
-          hideWithoutSearch: !allRisksIds?.includes(recMed.riskId),
-        }))
+        .map((recMed) => {
+          return {
+            ...recMed,
+            hideWithoutSearch: !allRisksIds?.includes(recMed.riskId),
+          };
+        })
         .filter((recMed) => recMed.recName);
 
     return [];

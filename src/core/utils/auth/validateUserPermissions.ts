@@ -22,6 +22,8 @@ export function validateUserPermissions({
   permissions,
   roles,
 }: ValidateUserPermissionsParams) {
+  if (!user) return false;
+
   if (isMaster(user)) return true;
 
   if (permissions && permissions?.length > 0) {

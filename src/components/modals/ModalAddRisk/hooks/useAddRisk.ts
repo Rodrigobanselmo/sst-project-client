@@ -102,7 +102,7 @@ export const useAddRisk = () => {
     }
   }, [getModalData]);
 
-  const onSubmit: SubmitHandler<IRiskSchema> = ({ name, type }) => {
+  const onSubmit: SubmitHandler<IRiskSchema> = async ({ name, type }) => {
     const { id, companyId, recMed, status } = riskData;
     const typeValue = type as RiskEnum;
 
@@ -111,9 +111,9 @@ export const useAddRisk = () => {
     if (riskData.companyId) risk.companyId = riskData.companyId;
 
     if (risk.id == 0) {
-      createRiskMut.mutateAsync(risk);
+      await createRiskMut.mutateAsync(risk);
     } else {
-      updateRiskMut.mutateAsync(risk);
+      await updateRiskMut.mutateAsync(risk);
     }
 
     onClose();

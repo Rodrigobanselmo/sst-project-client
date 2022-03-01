@@ -40,11 +40,12 @@ export const AuthContext = createContext({} as AuthContextData);
 
 let authChannel: BroadcastChannel;
 
-export function signOut() {
-  destroyCookie(undefined, 'nextauth.token');
-  destroyCookie(undefined, 'nextauth.refreshToken');
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function signOut(ctx?: any) {
+  destroyCookie(ctx, 'nextauth.token');
+  destroyCookie(ctx, 'nextauth.refreshToken');
 
-  authChannel.postMessage('signOut');
+  if (authChannel) authChannel.postMessage('signOut');
 
   Router.push(RoutesEnum.LOGIN);
 }
