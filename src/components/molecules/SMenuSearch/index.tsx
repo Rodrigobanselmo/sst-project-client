@@ -93,8 +93,8 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   const results = search
     ? fuseResults.map((result) => result.item)
     : optionsMemoized
-        .slice(0, 20 + 200 * scroll)
-        .filter((option) => !(option?.hideWithoutSearch && !option?.checked));
+        .filter((option) => !(option?.hideWithoutSearch && !option?.checked))
+        .slice(0, 20 + 200 * scroll);
 
   return (
     <STMenu

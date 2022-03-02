@@ -40,7 +40,10 @@ export const useTreeActions = () => {
   const router = useRouter();
   const store = useStore();
 
-  const saveApiDebounce = useDebouncedCallback(async () => {
+  const saveApi = useCallback(async () => {
+    dispatch(setDocUnsaved({ docName: SaveEnum.CHECKLIST }));
+
+    // saving
     const { checklistId } = router.query;
     const nodesMap = store.getState().tree.nodes as ITreeMap;
 
@@ -53,13 +56,10 @@ export const useTreeActions = () => {
     };
 
     await saveMutation.mutateAsync(checklist);
-    dispatch(setDocSaved({ docName: SaveEnum.CHECKLIST }));
-  }, 3000);
 
-  const saveApi = useCallback(async () => {
-    saveApiDebounce();
-    dispatch(setDocUnsaved({ docName: SaveEnum.CHECKLIST }));
-  }, [saveApiDebounce, dispatch]);
+    // saved
+    dispatch(setDocSaved({ docName: SaveEnum.CHECKLIST }));
+  }, [dispatch, router.query, saveMutation, store]);
 
   const getUniqueId = useCallback((): string => {
     const nodesMap = store.getState().tree.nodes as ITreeMap;

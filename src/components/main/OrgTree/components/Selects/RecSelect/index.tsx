@@ -65,7 +65,9 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
 
   const options = useMemo(() => {
     const nodeRisks = node.risks || [];
-    const allRisksIds = [...nodeRisks, ...getAllParentRisksById(node.id)];
+    const allRisksIds = [...nodeRisks, ...getAllParentRisksById(node.id)].map(
+      (id) => String(id),
+    );
 
     if (data)
       return data
@@ -76,7 +78,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
         .map((recMed) => {
           return {
             ...recMed,
-            hideWithoutSearch: !allRisksIds?.includes(recMed.riskId),
+            hideWithoutSearch: !allRisksIds.includes(String(recMed.riskId)),
           };
         })
         .filter((recMed) => recMed.recName);
