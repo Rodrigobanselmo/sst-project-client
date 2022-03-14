@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable indent */
 import {
   createContext,
@@ -41,6 +40,7 @@ export const AuthContext = createContext({} as AuthContextData);
 
 let authChannel: BroadcastChannel;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function signOut(ctx?: any) {
   destroyCookie(ctx, 'nextauth.token');
   destroyCookie(ctx, 'nextauth.refreshToken');
