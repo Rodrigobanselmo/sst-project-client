@@ -44,7 +44,6 @@ let authChannel: BroadcastChannel;
 export function signOut(ctx?: any) {
   destroyCookie(ctx, 'nextauth.token');
   destroyCookie(ctx, 'nextauth.refreshToken');
-
   if (authChannel) authChannel.postMessage('signOut');
 
   Router.push(RoutesEnum.LOGIN);
