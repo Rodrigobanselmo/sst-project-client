@@ -22,7 +22,7 @@ export const ModalUploadFile: FC<SModalUploadFile> = ({
   maxFiles,
   accept,
 }) => {
-  const { registerModal } = useRegisterModal();
+  const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const filesRef = useRef<File[]>([]);
 
@@ -32,7 +32,7 @@ export const ModalUploadFile: FC<SModalUploadFile> = ({
   };
 
   const onConfirmButton = async () => {
-    onConfirm && onConfirm(filesRef.current);
+    onConfirm && onConfirm(filesRef.current, getModalData(ModalEnum.UPLOAD));
     setTimeout(() => {
       onClose();
     }, 100);

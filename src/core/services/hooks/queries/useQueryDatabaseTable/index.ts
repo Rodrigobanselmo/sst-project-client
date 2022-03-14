@@ -12,7 +12,7 @@ export const queryDatabaseTable = async (): Promise<IDatabaseTable[]> => {
     ApiRoutesEnum.DATABASE_TABLE,
   );
 
-  return response.data;
+  return response.data.filter((table) => table.path);
 };
 
 export function useQueryDatabaseTable(): IReactQuery<IDatabaseTable[]> {

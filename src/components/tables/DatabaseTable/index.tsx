@@ -1,7 +1,5 @@
 import { FC } from 'react';
 
-import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
-import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 import { BoxProps } from '@mui/material';
 import {
   STable,
@@ -17,8 +15,9 @@ import { STagButton } from 'components/atoms/STagButton';
 import { ModalUploadFile } from 'components/modals/ModalUploadFile';
 
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
+import SDownloadIcon from 'assets/icons/SDownloadIcon';
+import SUploadIcon from 'assets/icons/SUploadIcon';
 
-import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
@@ -60,18 +59,24 @@ export const DatabaseTable: FC<BoxProps> = () => {
                 <TextIconRow text={row.name} />
                 <STagButton
                   text="Importar"
-                  loading={downloadMutation.isLoading}
+                  loading={
+                    downloadMutation.isLoading &&
+                    !!downloadMutation.variables &&
+                    !!downloadMutation.variables.includes(row.path)
+                  }
                   onClick={() =>
-                    downloadMutation.mutate(ApiRoutesEnum.DOWNLOAD_RISKS)
+                    downloadMutation.mutate(row.path + '/download')
                   }
                   large
-                  icon={FileDownloadOutlinedIcon}
+                  icon={SDownloadIcon}
                 />
                 <STagButton
                   text="Exportar"
                   large
-                  icon={FileUploadOutlinedIcon}
-                  onClick={() => onOpenModal(ModalEnum.UPLOAD)}
+                  icon={SUploadIcon}
+                  onClick={() =>
+                    onOpenModal(ModalEnum.UPLOAD, row.path + '/upload')
+                  }
                 />
               </STableRow>
             );
@@ -80,10 +85,10 @@ export const DatabaseTable: FC<BoxProps> = () => {
       </STable>
       <ModalUploadFile
         loading={uploadMutation.isLoading}
-        onConfirm={(files: File[]) =>
+        onConfirm={(files: File[], path: string) =>
           uploadMutation.mutate({
             file: files[0],
-            path: ApiRoutesEnum.UPLOAD_RISKS,
+            path: path,
           })
         }
         maxFiles={1}

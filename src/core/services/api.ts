@@ -2,11 +2,14 @@
 import axios, { AxiosError } from 'axios';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
 
+import { simulateAwait } from 'core/utils/helpers/simulateAwait';
+
 import { signOut } from '../contexts/AuthContext';
 import { AuthTokenError } from './errors/AuthTokenError';
 
 let isRefreshing = false;
 let failedRequestQueue: any[] = [];
+let isAuthTokenError = false;
 
 export function setupAPIClient(ctx = undefined) {
   let cookies = parseCookies(ctx);
@@ -21,10 +24,32 @@ export function setupAPIClient(ctx = undefined) {
     (response) => {
       return response;
     },
-    (error: AxiosError) => {
+    async (error: AxiosError) => {
       if (error.response && error.response.status === 401) {
-        if (error.response.data?.message === 'Unauthorized') {
+        if (error.response.data.type == 'application/json') {
+          const fr = new FileReader();
+
+          fr.onload = function () {
+            if (JSON.parse(this.result as string)?.message === 'Unauthorized') {
+              isAuthTokenError = true;
+            } else {
+              rejectAuth();
+            }
+          };
+
+          fr.readAsText(error.response.data as unknown as Blob);
+
+          await simulateAwait(2000);
+
+          if (!isAuthTokenError) return Promise.reject(error);
+        }
+
+        if (
+          error.response.data?.message === 'Unauthorized' ||
+          isAuthTokenError
+        ) {
           cookies = parseCookies(ctx);
+          isAuthTokenError = false;
 
           const { 'nextauth.refreshToken': refresh_token } = cookies;
           const originalConfig = error.config;
@@ -90,11 +115,7 @@ export function setupAPIClient(ctx = undefined) {
             });
           });
         } else {
-          if (process.browser) {
-            signOut();
-          } else {
-            return Promise.reject(new AuthTokenError());
-          }
+          rejectAuth();
         }
       }
 
@@ -104,3 +125,11 @@ export function setupAPIClient(ctx = undefined) {
 
   return api;
 }
+
+const rejectAuth = () => {
+  if (process.browser) {
+    signOut();
+  } else {
+    return Promise.reject(new AuthTokenError());
+  }
+};

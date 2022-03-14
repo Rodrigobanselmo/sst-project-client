@@ -30,7 +30,7 @@ export const SInput: FC<SInputProps> = ({
 }) => {
   return (
     <div>
-      {labelPosition === 'top' && (
+      {label && labelPosition === 'top' && (
         <Typography
           fontSize={14}
           color={error ? 'error.main' : 'grey.500'}

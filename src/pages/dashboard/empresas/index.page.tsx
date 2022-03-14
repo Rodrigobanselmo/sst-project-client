@@ -1,18 +1,18 @@
 import { SContainer } from 'components/atoms/SContainer';
-import { ChecklistTable } from 'components/tables/ChecklistTable';
+import { CompaniesTable } from 'components/tables/CompaniesTable';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
-const Checklist: NextPage = () => {
+const Companies: NextPage = () => {
   return (
     <SContainer>
-      <ChecklistTable />
+      <CompaniesTable />
     </SContainer>
   );
 };
 
-export default Checklist;
+export default Companies;
 
 export const getServerSideProps = withSSRAuth(async () => {
   return {

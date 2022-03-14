@@ -7,10 +7,11 @@ import { NextPage } from 'next';
 
 import { useTreeActions } from 'core/hooks/useTreeActions';
 import { useQueryChecklistData } from 'core/services/hooks/queries/useQueryChecklistData';
+import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 import { STFlexContainer } from './index.styles';
 
-const Home: NextPage = () => {
+const Checklist: NextPage = () => {
   const { data } = useQueryChecklistData();
 
   const { setTree } = useTreeActions();
@@ -30,4 +31,10 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default Checklist;
+
+export const getServerSideProps = withSSRAuth(async () => {
+  return {
+    props: {},
+  };
+});

@@ -53,7 +53,7 @@ export const LoginForm: FC = () => {
         success={successEmail}
       />
       <InputForm
-        defaultValue="12345678"
+        defaultValue="aaaa0123"
         label="Senha"
         placeholder="********"
         type="password"

@@ -11,7 +11,7 @@ import { STableSearchProps } from './types';
 const STableSearch: FC<STableSearchProps> = ({ onAddClick, ...props }) => (
   <SFlex ml={-2} mb={10} align="center">
     <SInput
-      startAdornment={<SearchIcon sx={{ fontSize: '22px' }} />}
+      startAdornment={<SearchIcon sx={{ fontSize: '22px', mt: 0 }} />}
       size="small"
       variant="outlined"
       placeholder={'Pesquisar...'}
@@ -27,6 +27,7 @@ const STableSearch: FC<STableSearchProps> = ({ onAddClick, ...props }) => (
           height: 38,
           minWidth: 38,
           maxWidth: 38,
+          m: 0,
           ml: 1,
         }}
       >

@@ -5,6 +5,7 @@ export enum RoutesEnum {
   PROFILE = '/dashboard/perfil',
   PUBLIC = '/publico',
   CHECKLIST = '/dashboard/checklist',
+  COMPANIES = '/dashboard/empresas',
   DATABASE = '/dashboard/dados',
 
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',

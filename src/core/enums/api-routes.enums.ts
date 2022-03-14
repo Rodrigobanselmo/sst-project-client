@@ -1,7 +1,8 @@
 export enum ApiRoutesEnum {
-  DOWNLOAD_RISKS = '/checklist/files/download',
-  UPLOAD_RISKS = '/checklist/files/upload',
+  COMPANIES = '/company/all',
   DATABASE_TABLE = '/files/database-tables',
+  DOWNLOAD_EMPLOYEES = '/files/company/download/unique',
+  UPLOAD_EMPLOYEES = '/files/company/upload',
   ME = '/users/me',
   SESSION = '/session',
   CHECKLIST_ALL = '/checklist',

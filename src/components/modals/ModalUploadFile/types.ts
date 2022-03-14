@@ -7,7 +7,7 @@ export interface SModalUploadFile extends Omit<BoxProps, 'title'> {
   title?: string | ReactNode;
   subtitle?: string;
   loading?: boolean;
-  onConfirm?: (files: File[]) => void;
+  onConfirm?: (files: File[], path: string) => void;
   accept?: string | string[];
   maxFiles?: number;
 }
