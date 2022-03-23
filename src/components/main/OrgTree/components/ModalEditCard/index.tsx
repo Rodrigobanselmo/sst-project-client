@@ -13,10 +13,6 @@ import { useControlClick } from 'core/hooks/useControlClick';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 
-import SModal, {
-  SModalHeader,
-  SModalPaper,
-} from '../../../../../components/molecules/SModal';
 import { ModalEnum } from '../../../../../core/enums/modal.enums';
 import { useAppSelector } from '../../../../../core/hooks/useAppSelector';
 import { useRegisterModal } from '../../../../../core/hooks/useRegisterModal';
@@ -29,6 +25,10 @@ import { SSwitch } from '../../../../atoms/SSwitch';
 import { STagAction } from '../../../../atoms/STagAction';
 import SText from '../../../../atoms/SText';
 import STextarea from '../../../../atoms/STextarea';
+import SModal, {
+  SModalHeader,
+  SModalPaper,
+} from '../../../../molecules/SModal';
 import { nodeTypesConstant } from '../../constants/node-type.constant';
 import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { usePreventNode } from '../../hooks/usePreventNode';

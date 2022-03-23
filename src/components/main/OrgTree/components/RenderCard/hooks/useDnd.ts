@@ -9,7 +9,7 @@ import { QuestionOptionsEnum } from 'components/main/ChecklistTree/enums/questio
 import { useTreeActions } from '../../../../../../core/hooks/useTreeActions';
 import { nodeTypesConstant } from '../../../constants/node-type.constant';
 import { useDebounce } from '../../../hooks/useDebounce';
-import { ITreeMap, ITreeMapObject } from './../../../interfaces';
+import { ITreeMap, ITreeMapObject } from '../../../interfaces';
 
 export const useDnd = (node: ITreeMapObject) => {
   const { setDraggingItem, isChild, editNodes, removeNodes } = useTreeActions();

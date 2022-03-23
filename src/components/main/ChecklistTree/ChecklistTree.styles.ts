@@ -18,17 +18,16 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
     width: 10px;
     height: 10px;
   }
-  
+
   &::-webkit-scrollbar-track {
     width: 10px;
     height: 10px;
   }
-  
+
   &::-webkit-scrollbar-thumb {
     background: ${({ theme }) => theme.palette.grey[500]};
     border-radius: 24px;
   }
-
 `;
 
 export const OrgTree = styled.div<IHorizontal>`

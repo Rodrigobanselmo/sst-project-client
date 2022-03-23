@@ -1,3 +1,3 @@
-import { OrgTreeComponent } from './OrgTree';
+import { ChecklistTreeComponent } from './ChecklistTree';
 
-export default OrgTreeComponent;
+export default ChecklistTreeComponent;

@@ -4,14 +4,14 @@ import { Box } from '@mui/material';
 
 import { useZoom } from '../../../core/hooks/useZoom';
 import { useQueryRisk } from '../../../core/services/hooks/queries/useQueryRisk';
+import { OrgTree, OrgTreeContainer } from './ChecklistTree.styles';
 import { TreeNode } from './components';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
 import { IOrgTreeProps } from './interfaces';
-import { OrgTree, OrgTreeContainer } from './OrgTree.styles';
 
-export const OrgTreeComponent: FC<IOrgTreeProps> = ({
+export const ChecklistTreeComponent: FC<IOrgTreeProps> = ({
   collapsable = true,
   horizontal = false,
   ...props
