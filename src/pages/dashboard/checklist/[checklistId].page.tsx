@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 
-import OrgTreeComponent from 'components/main/OrgTree';
+import OrgTreeComponent from 'components/main/ChecklistTree';
 import { ModalAddRecMed } from 'components/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/modals/ModalAddRisk';
 import { NextPage } from 'next';

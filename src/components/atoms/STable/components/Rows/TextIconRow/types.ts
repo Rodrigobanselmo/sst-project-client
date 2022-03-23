@@ -8,4 +8,5 @@ export type TextIconRowProps = SFlexProps & {
   lineNumber?: number;
   tooltipTitle?: string;
   text?: string;
+  loading?: boolean;
 };

@@ -4,7 +4,7 @@ import React, { FC, useCallback, useMemo, useState } from 'react';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import { riskFilter } from 'components/main/OrgTree/components/Selects/RiskSelect/constants/filters';
+import { riskFilter } from 'components/main/ChecklistTree/components/Selects/RiskSelect/constants/filters';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 import { STagSearchSelect } from 'components/molecules/STagSearchSelect';
 import { StatusSelect } from 'components/tagSelects/StatusSelect';

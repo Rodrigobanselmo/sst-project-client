@@ -1,6 +1,6 @@
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 
-import { Icon } from '@mui/material';
+import { CircularProgress, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
@@ -14,23 +14,36 @@ const TextIconRow: FC<TextIconRowProps> = ({
   lineNumber = 2,
   children,
   onClick,
+  loading,
   sx,
   ...props
-}) => (
-  <STooltip title={tooltipTitle}>
-    <SFlex
-      onClick={onClick}
-      sx={{ cursor: onClick ? 'pointer' : 'default', ...sx }}
-      align="center"
-      {...props}
-    >
-      {icon && (
-        <Icon component={icon} sx={{ color: 'gray.600', mr: 4, ml: 2 }} />
-      )}
-      {text && <SText lineNumber={lineNumber}>{text}</SText>}
-      {children}
-    </SFlex>
-  </STooltip>
-);
+}) => {
+  const memoizedChildren = useMemo(() => {
+    if (loading) return <CircularProgress size={16} />;
+
+    return (
+      <>
+        {icon && (
+          <Icon component={icon} sx={{ color: 'gray.600', mr: 4, ml: 2 }} />
+        )}
+        {text && <SText lineNumber={lineNumber}>{text}</SText>}
+        {children}
+      </>
+    );
+  }, [children, icon, lineNumber, loading, text]);
+
+  return (
+    <STooltip title={tooltipTitle}>
+      <SFlex
+        onClick={onClick}
+        sx={{ cursor: onClick ? 'pointer' : 'default', ...sx }}
+        align="center"
+        {...props}
+      >
+        {memoizedChildren}
+      </SFlex>
+    </STooltip>
+  );
+};
 
 export default TextIconRow;

@@ -48,7 +48,7 @@ export function STableBody<T>({
   renderRow,
   rowsData,
   rowsInitialNumber = 8,
-  numberRowsToLoadMore = 100,
+  numberRowsToLoadMore = 8,
   ...props
 }: STableBodyProps<T>) {
   const [numberRows, setNumberRows] = useState(rowsInitialNumber);

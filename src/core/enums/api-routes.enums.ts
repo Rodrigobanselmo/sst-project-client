@@ -1,5 +1,7 @@
 export enum ApiRoutesEnum {
-  COMPANIES = '/company/all',
+  HIERARCHY = '/hierarchy',
+  EMPLOYEES = '/employee',
+  COMPANIES = '/company',
   DATABASE_TABLE = '/files/database-tables',
   DOWNLOAD_EMPLOYEES = '/files/company/download/unique',
   UPLOAD_EMPLOYEES = '/files/company/upload',

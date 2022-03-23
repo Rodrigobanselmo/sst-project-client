@@ -5,6 +5,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
+import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
@@ -20,7 +21,8 @@ export function useQueryCompanies(): IReactQuery<ICompany[]> {
 
   const { data, ...query } = useQuery(
     [QueryEnum.COMPANIES, company],
-    () => queryCompanies(),
+    () =>
+      company ? queryCompanies() : <Promise<ICompany[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60, // 1 minute
     },

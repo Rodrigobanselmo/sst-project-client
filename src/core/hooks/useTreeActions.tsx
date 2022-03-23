@@ -2,7 +2,7 @@
 import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
-import { nodeTypesConstant } from 'components/main/OrgTree/constants/node-type.constant';
+import { nodeTypesConstant } from 'components/main/ChecklistTree/constants/node-type.constant';
 import { useRouter } from 'next/router';
 import { setDocSaved, setDocUnsaved } from 'store/reducers/save/saveSlice';
 import { useDebouncedCallback } from 'use-debounce';
@@ -17,7 +17,7 @@ import {
   ITreeMapEdit,
   ITreeMapObject,
   ITreeMapPartial,
-} from '../../components/main/OrgTree/interfaces';
+} from '../../components/main/ChecklistTree/interfaces';
 import {
   setAddNodes,
   setDragItem,

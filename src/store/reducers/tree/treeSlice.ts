@@ -4,7 +4,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 
 import { AppState } from '../..';
-import { TreeTypeEnum } from '../../../components/main/OrgTree/enums/tree-type.enums';
+import { TreeTypeEnum } from '../../../components/main/ChecklistTree/enums/tree-type.enums';
 import {
   ITreeMap,
   ITreeMapEdit,
@@ -12,7 +12,7 @@ import {
   ITreeMapPartial,
   ITreeSelectedItem,
   ITreeCopyItem,
-} from '../../../components/main/OrgTree/interfaces';
+} from '../../../components/main/ChecklistTree/interfaces';
 
 interface ITreeSlice {
   nodes: ITreeMap;

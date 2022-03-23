@@ -1,5 +1,5 @@
-import { QuestionOptionsEnum } from 'components/main/OrgTree/enums/question-options.enums';
-import { ITreeMapObject } from 'components/main/OrgTree/interfaces';
+import { QuestionOptionsEnum } from 'components/main/ChecklistTree/enums/question-options.enums';
+import { ITreeMapObject } from 'components/main/ChecklistTree/interfaces';
 
 export interface IStandardQuestionOptions {
   value: QuestionOptionsEnum;

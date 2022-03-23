@@ -16,6 +16,7 @@ export interface ICompany {
   license?: ILicense;
   workspace?: IWorkspace[];
 }
+
 export interface IWorkspace {
   id: number;
   name: string;
