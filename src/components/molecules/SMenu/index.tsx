@@ -47,7 +47,7 @@ export const SMenu: FC<SMenuProps> = ({
           onClick={(e) => handleMenuSelect(option, e)}
           sx={{ p: 0, m: 0 }}
         >
-          {(icon || option.icon) && (
+          {option && (icon || option.icon) && (
             <Icon
               sx={{
                 color: option?.iconColor ?? 'text.light',

@@ -2,13 +2,13 @@ import { useEffect } from 'react';
 
 import { NextPage } from 'next';
 
-import OrgTreeComponent from '../../../../components/main/ChecklistTree';
-import { useTreeActions } from '../../../../core/hooks/useTreeActions';
+import OrgTreeComponent from '../../../../components/main/Tree/ChecklistTree';
+import { useChecklistTreeActions } from '../../../../core/hooks/useChecklistTreeActions';
 import { STFlexContainer } from '../../checklist/index.styles';
 import { dndData } from './utils/fakeData';
 
 const TestDND: NextPage = () => {
-  const { setTree } = useTreeActions();
+  const { setTree } = useChecklistTreeActions();
 
   useEffect(() => {
     setTree(dndData);

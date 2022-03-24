@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 
-import OrgTreeComponent from 'components/main/ChecklistTree';
+import ChecklistTree from 'components/main/Tree/ChecklistTree';
 import { ModalAddRecMed } from 'components/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/modals/ModalAddRisk';
 import { NextPage } from 'next';
 
-import { useTreeActions } from 'core/hooks/useTreeActions';
+import { useChecklistTreeActions } from 'core/hooks/useChecklistTreeActions';
 import { useQueryChecklistData } from 'core/services/hooks/queries/useQueryChecklistData';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
@@ -14,7 +14,7 @@ import { STFlexContainer } from './index.styles';
 const Checklist: NextPage = () => {
   const { data } = useQueryChecklistData();
 
-  const { setTree } = useTreeActions();
+  const { setTree } = useChecklistTreeActions();
 
   useEffect(() => {
     if (data && data.data && data.data.json) {
@@ -24,7 +24,7 @@ const Checklist: NextPage = () => {
 
   return (
     <STFlexContainer>
-      <OrgTreeComponent horizontal />
+      <ChecklistTree horizontal />
       <ModalAddRisk />
       <ModalAddRecMed />
     </STFlexContainer>

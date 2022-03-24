@@ -45,6 +45,10 @@ export const EmployeesTable: FC<BoxProps> = () => {
     push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
   };
 
+  const handleGoToHierarchy = (companyId: string) => {
+    push(RoutesEnum.HIERARCHY.replace(/companyId/g, companyId));
+  };
+
   return (
     <>
       <STableTitle icon={BadgeIcon}>Empregados</STableTitle>
@@ -75,6 +79,7 @@ export const EmployeesTable: FC<BoxProps> = () => {
                     hierarchy[row.hierarchyId].name
                   }
                   loading={loadHierarchy}
+                  onClick={() => handleGoToHierarchy(row.companyId)}
                 />
                 <TextIconRow text={row.cpf} />
                 <StatusSelect

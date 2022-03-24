@@ -1,5 +1,6 @@
 // import { Reducer } from '@reduxjs/toolkit';
 
+import hierarchyReducer from './hierarchy/hierarchySlice';
 import modalReducer from './modal/modalSlice';
 import routeLoadingReducer from './routeLoad/routeLoadSlice';
 import saveReducer from './save/saveSlice';
@@ -14,4 +15,5 @@ export const rootReducer = {
   save: saveReducer,
   tree: treeReducer,
   modal: modalReducer,
+  hierarchy: hierarchyReducer,
 };

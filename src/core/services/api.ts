@@ -2,8 +2,6 @@
 import axios, { AxiosError } from 'axios';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
 
-import { simulateAwait } from 'core/utils/helpers/simulateAwait';
-
 import { signOut } from '../contexts/AuthContext';
 import { AuthTokenError } from './errors/AuthTokenError';
 
@@ -38,8 +36,6 @@ export function setupAPIClient(ctx = undefined) {
           };
 
           fr.readAsText(error.response.data as unknown as Blob);
-
-          await simulateAwait(2000);
 
           if (!isAuthTokenError) return Promise.reject(error);
         }

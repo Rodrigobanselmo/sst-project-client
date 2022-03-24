@@ -1,12 +1,13 @@
 import { useQuery } from 'react-query';
 
+import { useRouter } from 'next/router';
+
 import { useAuth } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { IHierarchy, IHierarchyMap } from 'core/interfaces/api/IHierarchy';
 import { IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 import { emptyMapReturn } from 'core/utils/helpers/emptyFunc';
-import { simulateAwait } from 'core/utils/helpers/simulateAwait';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
@@ -24,13 +25,15 @@ export const queryHierarchies = async () => {
     }
   });
 
-  await simulateAwait(4000);
   return hierarchyTree;
 };
 
 export function useQueryHierarchies(): IReactQuery<IHierarchyMap> {
   const { user } = useAuth();
-  const company = user?.companyId;
+  const router = useRouter();
+
+  const company =
+    user && ((router.query.companyId as string) || user?.companyId);
 
   const { data, ...query } = useQuery(
     [QueryEnum.HIERARCHY, company],

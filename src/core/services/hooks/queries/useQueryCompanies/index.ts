@@ -1,5 +1,7 @@
 import { useQuery } from 'react-query';
 
+import { useRouter } from 'next/router';
+
 import { useAuth } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
@@ -17,7 +19,10 @@ export const queryCompanies = async () => {
 
 export function useQueryCompanies(): IReactQuery<ICompany[]> {
   const { user } = useAuth();
-  const company = user?.companyId;
+  const router = useRouter();
+
+  const company =
+    user && ((router.query.companyId as string) || user?.companyId);
 
   const { data, ...query } = useQuery(
     [QueryEnum.COMPANIES, company],

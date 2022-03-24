@@ -3,11 +3,9 @@ import { useQuery, UseQueryResult } from 'react-query';
 import { IGenerateSource } from 'core/interfaces/api/IGenerateSource';
 
 import { QueryEnum } from '../../../../enums/query.enums';
-import { simulateAwait } from '../../../../utils/helpers/simulateAwait';
 import { mockedSource } from './mock';
 
 export const queryGenerateSource = async (): Promise<IGenerateSource[]> => {
-  await simulateAwait(500);
   const response = {
     data: mockedSource,
   };
