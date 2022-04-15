@@ -18,41 +18,43 @@ export function NavLink({
 }: INavLinkProps): JSX.Element {
   const { isOpen } = useSidebarDrawer();
   return (
-    <STooltip
-      withWrapper
-      title={description}
-      placement="right"
-      enterDelay={700}
-      arrow
-    >
-      <SActiveLink
-        shouldMatchExactHref={shouldMatchExactHref}
-        href={href}
-        passHref
+    <Box>
+      <STooltip
+        withWrapper
+        title={description}
+        placement="right"
+        enterDelay={700}
+        arrow
       >
-        <LinkStyle py="0.45rem" px={8} {...rest}>
-          <Icon
-            component={icon}
-            sx={{ fontSize: 20, alignSelf: 'center', ml: isOpen ? 0 : 2 }}
-          />
-          <Box>
-            <SText
-              ml={8}
-              fontSize={'0.875rem'}
-              fontWeight="medium"
-              align="left"
-              sx={{
-                width: '11.8rem',
-                height: isOpen ? 'fit-content' : '6',
-                opacity: isOpen ? '1' : '0',
-                transition: 'all 0.5s ease-in-out',
-              }}
-            >
-              {text}
-            </SText>
-          </Box>
-        </LinkStyle>
-      </SActiveLink>
-    </STooltip>
+        <SActiveLink
+          shouldMatchExactHref={shouldMatchExactHref}
+          href={href}
+          passHref
+        >
+          <LinkStyle py="0.45rem" px={8} {...rest}>
+            <Icon
+              component={icon}
+              sx={{ fontSize: 20, alignSelf: 'center', ml: isOpen ? 0 : 2 }}
+            />
+            <Box>
+              <SText
+                ml={8}
+                fontSize={'0.875rem'}
+                fontWeight="medium"
+                align="left"
+                sx={{
+                  width: '11.8rem',
+                  height: isOpen ? 'fit-content' : '6',
+                  opacity: isOpen ? '1' : '0',
+                  transition: 'all 0.5s ease-in-out',
+                }}
+              >
+                {text}
+              </SText>
+            </Box>
+          </LinkStyle>
+        </SActiveLink>
+      </STooltip>
+    </Box>
   );
 }

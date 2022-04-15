@@ -42,3 +42,12 @@ export const STLoadLogoSimpleIcon = styled(LogoSimpleIcon)`
   animation: ${SlideUp} 1.5s;
   animation-iteration-count: infinite;
 `;
+
+export const STBoxLoading = styled(Box)`
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  background-color: ${({ theme }) => theme.palette.background.default};
+  z-index: ${({ theme }) => theme.mixins.loadingFeedback};
+`;

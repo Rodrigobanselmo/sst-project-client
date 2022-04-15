@@ -5,6 +5,7 @@ export enum QueryEnum {
   HIERARCHY = 'hierarchy',
   EMPLOYEES = 'employees',
   COMPANIES = 'companies',
+  COMPANY = 'company',
   CHECKLIST_DATA = 'checklist-data',
   REC_MED = 'rec-med',
   GENERATE_SOURCE = 'risk',

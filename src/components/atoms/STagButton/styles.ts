@@ -1,7 +1,11 @@
 import { css } from '@emotion/react';
 import { styled, Box } from '@mui/material';
 
-export const STSBoxButton = styled(Box)<{ large?: number; error?: number }>`
+export const STSBoxButton = styled(Box)<{
+  large?: number;
+  error?: number;
+  active?: number;
+}>`
   border: 1px solid ${(props) => props.theme.palette.background.divider};
 
   border-radius: 5px;
@@ -19,6 +23,22 @@ export const STSBoxButton = styled(Box)<{ large?: number; error?: number }>`
   }
 
   ${(props) => props.large && css``}
+
+  ${(props) =>
+    props.active &&
+    css`
+      background-color: ${props.theme.palette.primary.main};
+
+      &:hover {
+        background-color: ${props.theme.palette.primary.dark};
+      }
+
+      &:active {
+        background-color: ${props.theme.palette.primary.light};
+      }
+    `}
+
+  
   ${(props) =>
     props.error &&
     css`

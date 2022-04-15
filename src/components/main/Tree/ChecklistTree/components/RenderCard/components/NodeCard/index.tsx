@@ -19,6 +19,7 @@ import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { ITreeSelectedItem } from '../../../../interfaces';
 import { BlockedBySelect } from '../../../Selects/BlockedBySelect';
 import { BlockSelect } from '../../../Selects/BlockSelect';
+import { CameraSelect } from '../../../Selects/CameraSelect';
 import { MedSelect } from '../../../Selects/MedSelect';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { QuestionTypeSelect } from '../../../Selects/QuestionTypeSelect';
@@ -144,18 +145,32 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
           </>
         )}
         {node.type === TreeTypeEnum.QUESTION && (
-          <QuestionTypeSelect
-            keepOnlyPersonalized
-            node={node}
-            handleSelect={(option) =>
-              editNodes([
-                {
-                  id: node.id,
-                  answerType: option.value as QuestionOptionsEnum,
-                },
-              ])
-            }
-          />
+          <>
+            <QuestionTypeSelect
+              keepOnlyPersonalized
+              node={node}
+              handleSelect={(option) =>
+                editNodes([
+                  {
+                    id: node.id,
+                    answerType: option.value as QuestionOptionsEnum,
+                  },
+                ])
+              }
+            />
+            <CameraSelect
+              active={!!node?.photo}
+              onClick={(e) => {
+                e.stopPropagation();
+                editNodes([
+                  {
+                    id: node.id,
+                    photo: !node?.photo,
+                  },
+                ]);
+              }}
+            />
+          </>
         )}
 
         {node.type === TreeTypeEnum.OPTION && <BlockSelect node={node} />}

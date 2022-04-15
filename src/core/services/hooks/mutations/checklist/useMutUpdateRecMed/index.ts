@@ -2,13 +2,14 @@ import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../contexts/AuthContext';
-import { IErrorResp } from '../../../errors/types';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { IErrorResp } from '../../../../errors/types';
 
 interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
   id: number;
@@ -19,10 +20,13 @@ interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
 export async function updateRecMed(data: ICreateRecMed, companyId?: string) {
   if (!companyId) return null;
 
-  const response = await api.patch<IRecMed>(`/rec-med/${data.id}`, {
-    ...data,
-    companyId,
-  });
+  const response = await api.patch<IRecMed>(
+    `${ApiRoutesEnum.REC_MED}/${data.id}`,
+    {
+      ...data,
+      companyId,
+    },
+  );
 
   return response.data;
 }

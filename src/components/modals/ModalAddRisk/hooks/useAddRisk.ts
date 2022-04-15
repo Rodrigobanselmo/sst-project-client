@@ -12,8 +12,8 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IRecMedCreate } from 'core/interfaces/api/IRiskFactors';
-import { useMutCreateRisk } from 'core/services/hooks/mutations/useMutCreateRisk';
-import { useMutUpdateRisk } from 'core/services/hooks/mutations/useMutUpdateRisk';
+import { useMutCreateRisk } from 'core/services/hooks/mutations/checklist/useMutCreateRisk';
+import { useMutUpdateRisk } from 'core/services/hooks/mutations/checklist/useMutUpdateRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 

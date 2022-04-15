@@ -34,6 +34,8 @@ export const QuestionTypeSelect: FC<IQuestionTypeSelectSelectProps> = ({
       QuestionOptionsEnum.ONE_ANSWER,
       QuestionOptionsEnum.MULTIPLE,
       QuestionOptionsEnum.TEXT,
+      QuestionOptionsEnum.EPI_CA,
+      QuestionOptionsEnum.PHOTO,
     ];
 
     return Object.values(questionOptionsConstant).filter(

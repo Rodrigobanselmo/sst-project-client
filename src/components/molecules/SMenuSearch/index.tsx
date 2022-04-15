@@ -159,9 +159,9 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
             onClick={additionalButton}
             sx={{
               position: 'absolute',
-              top: renderFilter ? '' : results.length === 0 ? '-5px' : '12px',
+              top: renderFilter ? '18px' : results.length === 0 ? '5px' : '5px',
               bottom: renderFilter ? 10 : '',
-              right: results.length === 0 ? '20px' : '28px',
+              right: results.length === 0 ? '10px' : '10px',
               height: '35px',
               width: '35px',
             }}

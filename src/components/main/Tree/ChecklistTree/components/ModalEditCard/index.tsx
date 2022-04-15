@@ -33,6 +33,7 @@ import { nodeTypesConstant } from '../../constants/node-type.constant';
 import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { usePreventNode } from '../../hooks/usePreventNode';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
+import { CameraSelect } from '../Selects/CameraSelect';
 import { MedSelect } from '../Selects/MedSelect';
 import { QuestionTypeSelect } from '../Selects/QuestionTypeSelect';
 import { questionOptionsConstant } from '../Selects/QuestionTypeSelect/constants/question-options.constant';
@@ -251,16 +252,27 @@ export const ModalEditCard = () => {
               </>
             )}
             {selectedNode.type === TreeTypeEnum.QUESTION && (
-              <QuestionTypeSelect
-                large
-                keepOnlyPersonalized={!(selectedNode?.action === 'add')}
-                node={selectedNode}
-                handleSelect={(option) =>
-                  setEditNodeSelectedItem({
-                    answerType: option.value as QuestionOptionsEnum,
-                  })
-                }
-              />
+              <>
+                <QuestionTypeSelect
+                  large
+                  keepOnlyPersonalized={!(selectedNode?.action === 'add')}
+                  node={selectedNode}
+                  handleSelect={(option) =>
+                    setEditNodeSelectedItem({
+                      answerType: option.value as QuestionOptionsEnum,
+                    })
+                  }
+                />
+                <CameraSelect
+                  large
+                  active={!!selectedNode?.photo}
+                  onClick={() =>
+                    setEditNodeSelectedItem({
+                      photo: !selectedNode?.photo,
+                    })
+                  }
+                />
+              </>
             )}
           </SFlex>
         </Box>

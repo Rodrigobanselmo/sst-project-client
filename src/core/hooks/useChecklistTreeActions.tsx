@@ -9,7 +9,7 @@ import { useDebouncedCallback } from 'use-debounce';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 import { SaveEnum } from 'core/enums/save.enum';
-import { useMutUpdateChecklist } from 'core/services/hooks/mutations/useMutUpdateChecklist';
+import { useMutUpdateChecklist } from 'core/services/hooks/mutations/checklist/useMutUpdateChecklist';
 
 import {
   ITreeCopyItem,

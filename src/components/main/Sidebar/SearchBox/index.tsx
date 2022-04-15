@@ -7,7 +7,6 @@ import { RiSearchLine } from '@react-icons/all-files/ri/RiSearchLine';
 import { SInput } from '../../../../components/atoms/SInput';
 import { useSidebarDrawer } from '../../../../core/contexts/SidebarContext';
 
-// import { IconButtonStyle, InputStyle } from "./styles";
 export function SearchBox(): JSX.Element {
   const { isOpen, open, setIsSearching } = useSidebarDrawer();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -16,6 +15,7 @@ export function SearchBox(): JSX.Element {
   function onClean() {
     setText('');
   }
+
   function onSearchButton() {
     setTimeout(() => {
       searchInputRef.current?.focus();
@@ -34,6 +34,7 @@ export function SearchBox(): JSX.Element {
         '& .MuiOutlinedInput-root': {
           fontSize: '0.9rem',
         },
+        width: '100%',
       }}
       size="small"
       onFocus={() => setIsSearching(true)}

@@ -2,24 +2,27 @@ import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../contexts/AuthContext';
-import { IErrorResp } from '../../../errors/types';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { IErrorResp } from '../../../../errors/types';
 
 interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
   id?: number;
   status?: string;
+  medName?: string;
+  redName?: string;
   companyId?: string;
 }
 
 export async function createRecMed(data: ICreateRecMed, companyId?: string) {
   if (!companyId) return null;
 
-  const response = await api.post<IRecMed>('/rec-med', {
+  const response = await api.post<IRecMed>(ApiRoutesEnum.REC_MED, {
     ...data,
     companyId,
   });

@@ -7,6 +7,8 @@ export enum ApiRoutesEnum {
   UPLOAD_EMPLOYEES = '/files/company/upload',
   ME = '/users/me',
   SESSION = '/session',
-  CHECKLIST_ALL = '/checklist',
-  RISK_FIND_ALL = '/risk',
+  CHECKLIST = '/checklist',
+  RISK = '/risk',
+  REC_MED = '/rec-med',
+  GENERATE_SOURCE = '/generate-source',
 }

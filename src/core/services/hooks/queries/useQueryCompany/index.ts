@@ -27,7 +27,7 @@ export function useQueryCompany(): IReactQuery<ICompany> {
     user && ((router.query.companyId as string) || user?.companyId);
 
   const { data, ...query } = useQuery(
-    [QueryEnum.COMPANIES, company],
+    [QueryEnum.COMPANY, company],
     () =>
       company ? queryCompany(company) : <Promise<ICompany>>emptyMapReturn(),
     {

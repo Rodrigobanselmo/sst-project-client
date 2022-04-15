@@ -48,7 +48,7 @@ export const STRenderLabel = styled(Box)<ICardCard>`
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  z-index: 100000;
+  z-index: 11;
   color: ${(props) => props.theme.palette.text.main};
   position: relative;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);

@@ -7,5 +7,5 @@ export const STMouseControlBox = styled(Box)`
   left: 0;
   width: 100%;
   height: 100%;
-  z-index: 100;
+  z-index: ${({ theme }) => theme.mixins.mouseControl};
 `;

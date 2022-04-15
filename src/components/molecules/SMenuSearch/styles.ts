@@ -27,10 +27,8 @@ export const STMenu = styled(Menu)<ISTMenuProps>`
 
 export const STSInput = styled(SInput)`
   * {
-    padding: 3px;
-    padding-left: 7px;
-    padding-top: 0px;
-    margin-top: -2px;
+    padding: 0.4rem;
+    padding-left: 0.5rem;
     font-size: 14px;
   }
 

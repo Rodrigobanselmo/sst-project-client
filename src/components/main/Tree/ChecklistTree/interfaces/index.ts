@@ -21,6 +21,7 @@ export interface ITreeMapObject {
   expand: boolean;
   style?: CSSProperties;
   className?: string;
+  photo?: boolean;
   risks?: (string | number)[];
   block?: (string | number)[];
   blockedBy?: (string | number)[];

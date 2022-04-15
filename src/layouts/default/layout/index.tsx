@@ -19,9 +19,11 @@ const DefaultLayout: FC = ({ children }) => {
   useEffect(() => {
     const handleStart = () => {
       dispatch(setIsRouteLoading(true));
+      console.log('start');
     };
     const handleStop = () => {
       dispatch(setIsRouteLoading(false));
+      console.log('stop');
     };
 
     router.events.on('routeChangeStart', handleStart);

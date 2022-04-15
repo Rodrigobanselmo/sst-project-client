@@ -11,7 +11,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export const queryChecklist = async (companyId = '') => {
   if (!companyId) return [];
   const response = await api.get<IChecklist[]>(
-    `${ApiRoutesEnum.CHECKLIST_ALL}/${companyId}`,
+    `${ApiRoutesEnum.CHECKLIST}/${companyId}`,
   );
 
   return response.data;

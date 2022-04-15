@@ -2,13 +2,14 @@ import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { IChecklist } from 'core/interfaces/api/IChecklist';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../contexts/AuthContext';
-import { IErrorResp } from '../../../errors/types';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { IErrorResp } from '../../../../errors/types';
 
 interface IUpdateChecklistData extends Partial<Omit<IChecklist, 'data'>> {
   data: {
@@ -22,10 +23,13 @@ export async function updateNewChecklist(
 ) {
   if (!companyId) return null;
 
-  const response = await api.patch<IChecklist>(`/checklist/${data.id}`, {
-    ...data,
-    companyId,
-  });
+  const response = await api.patch<IChecklist>(
+    `${ApiRoutesEnum.CHECKLIST}/${data.id}`,
+    {
+      ...data,
+      companyId,
+    },
+  );
 
   return response.data;
 }

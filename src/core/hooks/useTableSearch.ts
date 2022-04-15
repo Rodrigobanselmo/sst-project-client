@@ -26,7 +26,9 @@ export const useTableSearch = ({ data, keys, sort }: IUseTableSearch) => {
     return search
       ? fuseResults.map((result) => result.item)
       : sort
-      ? data.sort(sort)
+      ? Array.isArray(data)
+        ? data.sort(sort)
+        : []
       : data;
   }, [data, fuse, search, sort]);
 

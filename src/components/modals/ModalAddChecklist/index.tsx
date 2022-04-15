@@ -16,7 +16,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { useMutAddChecklist } from 'core/services/hooks/mutations/useMutAddChecklist';
+import { useMutAddChecklist } from 'core/services/hooks/mutations/checklist/useMutAddChecklist';
 
 import { StatusSelect } from '../../tagSelects/StatusSelect';
 

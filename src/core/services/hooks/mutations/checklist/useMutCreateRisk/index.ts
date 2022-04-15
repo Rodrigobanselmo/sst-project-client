@@ -2,25 +2,31 @@ import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
-import { IRecMedCreate, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import {
+  IGenerateSourceCreate,
+  IRecMedCreate,
+  IRiskFactors,
+} from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../contexts/AuthContext';
-import { IErrorResp } from '../../../errors/types';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { IErrorResp } from '../../../../errors/types';
 
-interface IUpdateRisk
+interface ICreateRisk
   extends Partial<Pick<IRiskFactors, 'name' | 'type' | 'status'>> {
-  id: number;
-  recMed: IRecMedCreate[];
+  id?: number;
   companyId?: string;
+  recMed: IRecMedCreate[];
+  generateSource: IGenerateSourceCreate[];
 }
 
-export async function updateRisk(data: IUpdateRisk, companyId?: string) {
+export async function createRisk(data: ICreateRisk, companyId?: string) {
   if (!companyId) return null;
 
-  const response = await api.patch<IRiskFactors>(`/risk/${data.id}`, {
+  const response = await api.post<IRiskFactors>(ApiRoutesEnum.RISK, {
     ...data,
     companyId,
   });
@@ -28,33 +34,23 @@ export async function updateRisk(data: IUpdateRisk, companyId?: string) {
   return response.data;
 }
 
-export function useMutUpdateRisk() {
+export function useMutCreateRisk() {
   const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: IUpdateRisk) =>
-      updateRisk(data, data.companyId || user?.companyId),
+    async (data: ICreateRisk) =>
+      createRisk(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
         if (resp)
           queryClient.setQueryData(
             [QueryEnum.RISK, resp.companyId],
             (oldData: IRiskFactors[] | undefined) =>
-              oldData
-                ? oldData.map((risk) =>
-                    risk.id == resp.id
-                      ? {
-                          ...risk,
-                          ...resp,
-                          recMed: [...resp.recMed],
-                        }
-                      : risk,
-                  )
-                : [],
+              oldData ? [...oldData, resp] : [resp],
           );
 
-        enqueueSnackbar('Fator de risco editado com sucesso', {
+        enqueueSnackbar('Fator de risco criado com sucesso', {
           variant: 'success',
         });
         return resp;

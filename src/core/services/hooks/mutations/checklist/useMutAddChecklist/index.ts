@@ -4,13 +4,14 @@ import { TreeTypeEnum } from 'components/main/Tree/ChecklistTree/enums/tree-type
 import { useSnackbar } from 'notistack';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { IChecklist } from 'core/interfaces/api/IChecklist';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../contexts/AuthContext';
-import { IErrorResp } from '../../../errors/types';
+import { useAuth } from '../../../../../contexts/AuthContext';
+import { IErrorResp } from '../../../../errors/types';
 
 interface ICreateChecklistData extends Pick<IChecklist, 'name' | 'status'> {
   companyId?: string;
@@ -33,7 +34,7 @@ export async function createNewChecklist(
     },
   };
 
-  const response = await api.post<IChecklist>('/checklist', {
+  const response = await api.post<IChecklist>(ApiRoutesEnum.CHECKLIST, {
     ...data,
     companyId,
     data: {

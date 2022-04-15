@@ -4,10 +4,9 @@ import { useEffect, useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
 import { useStore } from 'react-redux';
 
-import { QuestionOptionsEnum } from 'components/main/Tree/ChecklistTree/enums/question-options.enums';
-
 import { useChecklistTreeActions } from '../../../../../../../core/hooks/useChecklistTreeActions';
 import { nodeTypesConstant } from '../../../constants/node-type.constant';
+import { questionsTextTypesConstant } from '../../../constants/questions-text-types.constant';
 import { useDebounce } from '../../../hooks/useDebounce';
 import { ITreeMap, ITreeMapObject } from '../../../interfaces';
 
@@ -156,7 +155,7 @@ export const useDnd = (node: ITreeMapObject) => {
 
     if (
       node?.answerType &&
-      node.answerType === QuestionOptionsEnum.TEXT &&
+      questionsTextTypesConstant.includes(node.answerType) &&
       node.childrenIds.length > 0
     ) {
       return false;

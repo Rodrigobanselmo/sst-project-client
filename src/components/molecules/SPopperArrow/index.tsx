@@ -7,6 +7,8 @@ import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Fade from '@mui/material/Fade';
 import Popper from '@mui/material/Popper';
 
+import defaultTheme from 'configs/theme';
+
 import { STArrowStyled } from './styles';
 import { IPopperProps } from './types';
 
@@ -36,7 +38,7 @@ export const SPopperArrow: FC<IPopperProps> = ({
       anchorEl={anchorEl.current}
       transition
       placement={placement}
-      style={{ zIndex: 10000, padding: 0 }}
+      style={{ zIndex: defaultTheme.mixins.popper, padding: 0 }}
       modifiers={[
         {
           name: 'flip',

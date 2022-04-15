@@ -20,6 +20,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
       iconProps = {},
       loading,
       error,
+      active,
       ...props
     },
     ref,
@@ -32,6 +33,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
         display="flex"
         alignItems="center"
         justifyContent="center"
+        active={active ? 1 : 0}
         sx={{
           minHeight: large ? 30 : 22,
           maxHeight: large ? 30 : 22,
@@ -46,7 +48,12 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
       >
         {icon && !loading && (
           <Icon
-            sx={{ fontSize: 14, mr: 2, ...iconSx }}
+            sx={{
+              fontSize: 14,
+              mr: 2,
+              color: active ? 'common.white' : 'common.black',
+              ...iconSx,
+            }}
             component={icon}
             {...restIconProps}
           />

@@ -3,6 +3,7 @@ import { IModalDataSlice } from 'store/reducers/modal/modalSlice';
 
 import { useGlobalModal } from 'core/hooks/useGlobalModal';
 
+import { questionsTextTypesConstant } from '../constants/questions-text-types.constant';
 import { ITreeMapObject, ITreeSelectedItem } from '../interfaces';
 
 export const usePreventNode = () => {
@@ -12,8 +13,11 @@ export const usePreventNode = () => {
     node: ITreeMapObject | ITreeSelectedItem,
     type?: QuestionOptionsEnum,
   ) => {
+    const answerType = type ? type : node?.answerType;
+
     if (
-      (type ? type : node?.answerType) === QuestionOptionsEnum.TEXT &&
+      answerType &&
+      questionsTextTypesConstant.includes(answerType) &&
       node.childrenIds.length > (type ? 1 : 0)
     ) {
       const text = type

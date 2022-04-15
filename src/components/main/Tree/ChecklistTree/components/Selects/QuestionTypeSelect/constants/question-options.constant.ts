@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ElementType } from 'react';
 
+import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import DynamicFeedOutlinedIcon from '@mui/icons-material/DynamicFeedOutlined';
 import FlakyOutlinedIcon from '@mui/icons-material/FlakyOutlined';
 import LooksOneOutlinedIcon from '@mui/icons-material/LooksOneOutlined';
+import SportsMotorsportsOutlinedIcon from '@mui/icons-material/SportsMotorsportsOutlined';
 import TextSnippetOutlinedIcon from '@mui/icons-material/TextSnippetOutlined';
 import { QuestionOptionsEnum } from 'components/main/Tree/ChecklistTree/enums/question-options.enums';
+
 export interface IQuestionOptions {
   value: QuestionOptionsEnum;
   name: string;
@@ -45,5 +48,19 @@ export const questionOptionsConstant = {
     label: 'texto',
     icon: TextSnippetOutlinedIcon,
     desc: 'O usuário terá que digitar uma resposta',
+  },
+  [QuestionOptionsEnum.EPI_CA]: {
+    value: QuestionOptionsEnum.EPI_CA,
+    name: 'Certificado de Aprovação – CA',
+    label: 'ca',
+    icon: SportsMotorsportsOutlinedIcon,
+    desc: 'O usuário terá que inserir o CA referente ao epi',
+  },
+  [QuestionOptionsEnum.PHOTO]: {
+    value: QuestionOptionsEnum.PHOTO,
+    name: 'Fotografia',
+    label: 'photo',
+    icon: AddPhotoAlternateOutlinedIcon,
+    desc: 'O usuário terá que inserir uma foto',
   },
 } as IQuestionTypes;

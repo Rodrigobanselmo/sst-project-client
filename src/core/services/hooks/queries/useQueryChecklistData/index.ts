@@ -22,6 +22,7 @@ export const queryChecklistData = async (checklistId: string) => {
 
 export function useQueryChecklistData(): UseQueryResult<IChecklist> {
   const router = useRouter();
+
   const { checklistId } = router.query;
 
   const data = useQuery(
@@ -36,5 +37,6 @@ export function useQueryChecklistData(): UseQueryResult<IChecklist> {
     data.refetch();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
   return data;
 }

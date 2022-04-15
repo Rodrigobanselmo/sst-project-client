@@ -7,7 +7,6 @@ import {
 } from 'components/main/Tree/ChecklistTree/constants/help-options.constant';
 import { nodeTypesConstant } from 'components/main/Tree/ChecklistTree/constants/node-type.constant';
 import { HelpOptionsEnum } from 'components/main/Tree/ChecklistTree/enums/help-options.enums';
-import { QuestionOptionsEnum } from 'components/main/Tree/ChecklistTree/enums/question-options.enums';
 import { usePreventNode } from 'components/main/Tree/ChecklistTree/hooks/usePreventNode';
 import { useSnackbar } from 'notistack';
 import { selectTreeCopyItem } from 'store/reducers/tree/treeSlice';
@@ -17,6 +16,7 @@ import { useChecklistTreeActions } from 'core/hooks/useChecklistTreeActions';
 
 import { IMenuOptionResponse } from '../../../../../../molecules/SMenu/types';
 import { STagSelect } from '../../../../../../molecules/STagSelect';
+import { questionsTextTypesConstant } from '../../../constants/questions-text-types.constant';
 import { IOptionsHelpSelectProps } from './types';
 
 export const OptionsHelpSelect: FC<IOptionsHelpSelectProps> = ({
@@ -67,7 +67,7 @@ export const OptionsHelpSelect: FC<IOptionsHelpSelectProps> = ({
         }
         if (
           node?.answerType &&
-          node.answerType === QuestionOptionsEnum.TEXT &&
+          questionsTextTypesConstant.includes(node.answerType) &&
           node.childrenIds.length > 0
         ) {
           return enqueueSnackbar(
