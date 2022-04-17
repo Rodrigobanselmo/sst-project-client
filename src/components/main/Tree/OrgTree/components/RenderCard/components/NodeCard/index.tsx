@@ -23,6 +23,7 @@ import { STagButton } from '../../../../../../../atoms/STagButton';
 import SText from '../../../../../../../atoms/SText';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { ITreeSelectedItem } from '../../../../interfaces';
+import { GhoSelect } from '../../../Selects/GhoSelect';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { TypeSelect } from '../../../Selects/TypeSelect';
 import { STSelectBox } from './styles';
@@ -134,6 +135,9 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
             editNodes([{ id: node.id, type: option.value as TreeTypeEnum }])
           }
         />
+        {node.ghos && node.ghos.length > 0 && (
+          <GhoSelect node={node} showAll={!!GhoId} />
+        )}
         <OptionsHelpSelect disabled={!!GhoId} menuRef={menuRef} node={node} />
       </Stack>
     </>

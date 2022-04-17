@@ -8,7 +8,6 @@ export const useFetchFeedback = (isLoading?: boolean) => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
-    console.log(isLoading);
     if (typeof isLoading === 'boolean') dispatch(setIsFetchingData(isLoading));
   }, [dispatch, isLoading]);
 

@@ -50,6 +50,7 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
       large={large}
       icon={MergeTypeIcon}
       handleSelectMenu={handleEditTypeCard}
+      title={'Tipo de hierarquia'}
       {...props}
     />
   );

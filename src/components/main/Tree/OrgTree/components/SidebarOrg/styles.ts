@@ -6,7 +6,7 @@ export const STBoxContainer = styled(Box)`
   width: 100%;
   max-height: 100%;
   z-index: ${({ theme }) => theme.mixins.sidebarTree};
-  margin: ${(props) => props.theme.spacing(4, 4, 4, 1)};
+  margin: ${(props) => props.theme.spacing(4, 8, 12, 1)};
   box-shadow: 1px 1px 3px 3px rgba(0, 0, 0, 0.1);
   border-radius: ${({ theme }) => theme.spacing(3, 3, 12, 3)};
   position: relative;
@@ -35,7 +35,7 @@ export const STSInput = styled(SInput)`
 export const STBoxInput = styled(Box)`
   position: fixed;
   background-color: ${(props) => props.theme.palette.background.paper};
-  width: ${(props) => props.theme.spacing(142)};
+  width: ${(props) => props.theme.spacing(148)};
   z-index: 20;
   padding: ${(props) => props.theme.spacing(5)};
   padding-right: 0;
@@ -53,7 +53,8 @@ export const STBoxStack = styled(Box)`
 `;
 
 export const STBoxItem = styled(Box)`
-  border: 1px solid ${(props) => props.theme.palette.divider};
+  border: 2px solid ${(props) => props.theme.palette.divider};
+  background-color: ${(props) => props.theme.palette.background.box};
   display: flex;
   justify-content: space-between;
   align-items: center;

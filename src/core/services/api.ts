@@ -58,13 +58,13 @@ export function setupAPIClient(ctx = undefined) {
               .then((response) => {
                 const { token } = response.data;
 
-                setCookie(ctx, 'nextauth.token', token, {
+                setCookie(null, 'nextauth.token', token, {
                   maxAge: 60 * 60 * 25 * 30, // 30 days
                   path: '/',
                 });
 
                 setCookie(
-                  ctx,
+                  null,
                   'nextauth.refreshToken',
                   response.data.refresh_token,
                   {
@@ -87,8 +87,10 @@ export function setupAPIClient(ctx = undefined) {
                 failedRequestQueue = [];
 
                 if (process.browser) {
-                  destroyCookie(ctx || {}, 'nextauth.token');
-                  destroyCookie(ctx || {}, 'nextauth.refreshToken');
+                  destroyCookie(null, 'nextauth.token', { path: '/' });
+                  destroyCookie(null, 'nextauth.refreshToken', {
+                    path: '/',
+                  });
                   signOut(ctx);
                 }
               })

@@ -41,7 +41,6 @@ export function useMutUpdateRisk() {
       updateRisk(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
-        console.log(resp);
         if (resp)
           queryClient.setQueryData(
             [QueryEnum.RISK, resp.companyId],

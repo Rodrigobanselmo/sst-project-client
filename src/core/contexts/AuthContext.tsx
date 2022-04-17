@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable indent */
 import {
   createContext,
@@ -42,9 +43,9 @@ let authChannel: BroadcastChannel;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function signOut(ctx?: any) {
-  destroyCookie(ctx || {}, 'nextauth.token');
+  destroyCookie(null, 'nextauth.token', { path: '/' });
 
-  destroyCookie(ctx || {}, 'nextauth.refreshToken');
+  destroyCookie(null, 'nextauth.refreshToken', { path: '/' });
   if (authChannel) authChannel.postMessage('signOut');
 
   Router.push(RoutesEnum.LOGIN);
@@ -112,12 +113,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user: { id },
     } = response.data;
 
-    setCookie(undefined, 'nextauth.token', token, {
+    setCookie(null, 'nextauth.token', token, {
       maxAge: 60 * 60 * 25 * 30, // 30 days
       path: '/',
     });
 
-    setCookie(undefined, 'nextauth.refreshToken', refresh_token, {
+    setCookie(null, 'nextauth.refreshToken', refresh_token, {
       maxAge: 60 * 60 * 25 * 30, // 30 days
       path: '/',
     });

@@ -43,7 +43,7 @@ export const STRenderLabel = styled(Box)<ICardCard>`
   background-color: white;
   cursor: grab;
   padding: ${(props) => props.theme.spacing(3, 6)};
-  min-width: ${(props) => props.theme.spacing(50)};
+  min-width: ${(props) => props.theme.spacing(100)};
   min-height: ${(props) => props.theme.spacing(20)};
   display: flex;
   flex-direction: column;
@@ -53,7 +53,6 @@ export const STRenderLabel = styled(Box)<ICardCard>`
   position: relative;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
   border-radius: 5px;
-  width: ${(props) => props.theme.spacing(110)};
   height: ${(props) => props.theme.spacing(35)};
 
   // no break line

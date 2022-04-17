@@ -33,7 +33,7 @@ export async function upsertManyHierarchy(
   const sendData = {
     data: data.map((item) => ({ ...item, companyId })),
   };
-  console.log('sendData', sendData);
+
   const response = await api.post<IHierarchy[]>(
     ApiRoutesEnum.HIERARCHY + '/upsert-many',
     sendData,

@@ -24,6 +24,10 @@ export const ghoSlice = createSlice({
     setGhoState: (state, action: PayloadAction<Partial<IGhoState>>) => {
       return { ...state, ...action.payload };
     },
+    setGhoOpen: (state, action: PayloadAction<boolean | undefined>) => {
+      if (action.payload === undefined) state.open = !state.open;
+      else state.open = action.payload;
+    },
     setGhoAddHierarchy: (state, action: PayloadAction<string | string[]>) => {
       const hierarchies = Array.isArray(action.payload)
         ? action.payload
@@ -44,8 +48,12 @@ export const ghoSlice = createSlice({
 
 export const SaveName = name;
 
-export const { setGhoState, setGhoAddHierarchy, setGhoRemoveHierarchy } =
-  ghoSlice.actions;
+export const {
+  setGhoState,
+  setGhoAddHierarchy,
+  setGhoRemoveHierarchy,
+  setGhoOpen,
+} = ghoSlice.actions;
 
 export const selectGhoOpen = (state: AppState) => state.gho.open;
 export const selectGho = (state: AppState) => state.gho;

@@ -1,9 +1,10 @@
 import React, { FC, useRef } from 'react';
 
-import { Box, Slide } from '@mui/material';
+import { Box } from '@mui/material';
 
 import { useZoom } from '../../../../core/hooks/useZoom';
 import { TreeNode } from './components';
+import { BottomButton } from './components/BottomButton';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
@@ -30,6 +31,7 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
         }}
       >
         <LoadingFeedback />
+        <BottomButton />
         <MouseControl orgContainerRef={orgContainerRef} />
         <OrgTreeContainer
           id="org-tree-container"
@@ -51,20 +53,10 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
           height: '95%',
           width: '306px',
           position: 'absolute',
-          right: 10,
+          right: 45,
         }}
       >
-        <Slide direction="left" in={true} mountOnEnter unmountOnExit>
-          <Box
-            sx={{
-              paddingRight: 4,
-              height: '100%',
-              paddingBottom: 8,
-            }}
-          >
-            <SidebarOrg />
-          </Box>
-        </Slide>
+        <SidebarOrg />
       </Box>
     </Box>
   );

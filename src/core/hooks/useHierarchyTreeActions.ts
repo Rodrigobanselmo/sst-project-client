@@ -13,6 +13,7 @@ import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { SaveEnum } from 'core/enums/save.enum';
 import { ICompany } from 'core/interfaces/api/ICompany';
+import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchyMap } from 'core/interfaces/api/IHierarchy';
 import { useMutDeleteHierarchy } from 'core/services/hooks/mutations/checklist/useMutDeleteHierarchy';
 import { useMutUpdateChecklist } from 'core/services/hooks/mutations/checklist/useMutUpdateChecklist';
@@ -57,7 +58,6 @@ export const useHierarchyTreeActions = () => {
 
   const getPathById = useCallback(
     (id: number | string) => {
-      console.log('relod');
       const path: (string | number)[] = [];
       const nodes = store.getState().hierarchy.nodes as ITreeMap;
 
@@ -104,6 +104,9 @@ export const useHierarchyTreeActions = () => {
     (hierarchyMap: IHierarchyMap, company: ICompany): ITreeMap => {
       const treeMap = {} as ITreeMap;
       const nodesTree = store.getState().hierarchy.nodes as ITreeMap;
+      const ghos =
+        queryClient.getQueryData<IGho[]>([QueryEnum.GHO, company.id]) ||
+        ([] as IGho[]);
 
       treeMap[firstNodeId] = {
         id: firstNodeId,
@@ -112,6 +115,7 @@ export const useHierarchyTreeActions = () => {
         childrenIds: [],
         type: TreeTypeEnum.COMPANY,
         expand: true,
+        ghos: [],
       };
 
       if (company.workspace) {
@@ -123,6 +127,7 @@ export const useHierarchyTreeActions = () => {
             childrenIds: [],
             type: TreeTypeEnum.WORKSPACE,
             expand: false,
+            ghos: [],
           };
 
           treeMap[firstNodeId].childrenIds.push(workspace.id);
@@ -136,6 +141,11 @@ export const useHierarchyTreeActions = () => {
             expand: true,
             parentId: values.parentId || values.workplaceId,
             type: TreeTypeEnum[values.type] as unknown as TreeTypeEnum,
+            ghos: ghos.filter(
+              (gho) =>
+                gho.hierarchies &&
+                gho.hierarchies.some((hierarchy) => values.id === hierarchy.id),
+            ),
           };
 
           if (!values.parentId)
@@ -200,7 +210,6 @@ export const useHierarchyTreeActions = () => {
             parentId:
               node.parentId === 'seed' ? null : (node.parentId as string),
           }));
-        console.log('data', data);
 
         saveApi(() => upsertManyMutation.mutateAsync(data), nodes);
       }
@@ -374,6 +383,7 @@ export const useHierarchyTreeActions = () => {
         label: '',
         parentId: node.id,
         expand: false,
+        ghos: [],
         ...exampleNode,
       };
 

@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { Typography } from '@mui/material';
+import SText from 'components/atoms/SText';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
@@ -47,14 +47,14 @@ export const NavPopper: FC<INavProfileProps> = ({
       {navItems.map(({ label, icon: Icon, action, href }) => (
         <StackStyled
           key={label}
-          px={12}
-          py={6}
+          px={6}
+          py={3}
           direction="row"
-          spacing={8}
+          spacing={5}
           onClick={() => handleNavAction(action, href)}
         >
           <Icon sx={{ color: 'primary.dark' }} />
-          <Typography>{label}</Typography>
+          <SText>{label}</SText>
         </StackStyled>
       ))}
     </SPopperArrow>

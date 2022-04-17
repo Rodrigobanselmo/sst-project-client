@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSProperties } from 'react';
 
+import { IGho } from 'core/interfaces/api/IGho';
+
 import { TreeTypeEnum } from '../enums/tree-type.enums';
 export interface IOrgTreeProps {
   horizontal?: boolean;
@@ -16,6 +18,7 @@ export interface ITreeMapObject {
   label: string;
   type: TreeTypeEnum;
   expand: boolean;
+  ghos: IGho[];
   style?: CSSProperties;
   className?: string;
 }

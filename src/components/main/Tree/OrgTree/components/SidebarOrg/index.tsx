@@ -1,12 +1,17 @@
 import React, { useMemo, useRef, useCallback } from 'react';
 
-import { Box, Icon } from '@mui/material';
+import { Box, Icon, Slide } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import { SEndButton } from 'components/atoms/SIconButton/SEndButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
-import { selectGhoId, setGhoState } from 'store/reducers/gho/ghoSlice';
+import {
+  selectGhoId,
+  setGhoState,
+  selectGhoOpen,
+  setGhoOpen,
+} from 'store/reducers/gho/ghoSlice';
 
 import SCloseIcon from 'assets/icons/SCloseIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
@@ -36,23 +41,17 @@ export const SidebarOrg = () => {
   const { data } = useQueryGHO();
   const dispatch = useAppDispatch();
   const selectedGhoId = useAppSelector(selectGhoId);
+  const isGhoOpen = useAppSelector(selectGhoOpen);
   const addMutation = useMutCreateGho();
   const updateMutation = useMutUpdateGho();
   const deleteMutation = useMutDeleteGho();
 
   const handleAddGHO = async () => {
     if (inputRef.current?.value) {
-      // const gho =
       await addMutation.mutateAsync({
         name: inputRef.current.value,
       });
 
-      // dispatch(
-      //   setGhoState({
-      //     id: gho?.id,
-      //     hierarchies: [],
-      //   }),
-      // );
       inputRef.current.value = '';
       inputRef.current.focus();
     }
@@ -149,45 +148,61 @@ export const SidebarOrg = () => {
   ]);
 
   return (
-    <STBoxContainer>
-      <STBoxInput>
-        <STSInput
-          endAdornment={
-            <SFlex gap={2} center>
-              {selectedGhoId && (
-                <SIconButton
-                  onClick={() => handleSelectGHO(null, [])}
-                  size="small"
+    <Slide direction="left" in={isGhoOpen} mountOnEnter unmountOnExit>
+      <STBoxContainer>
+        <STBoxInput>
+          <SFlex align="center" gap="1" mb={2}>
+            <SIconButton
+              onClick={() => {
+                dispatch(setGhoOpen());
+                handleSelectGHO(null, []);
+              }}
+              size="small"
+            >
+              <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
+            </SIconButton>
+            <SText fontSize="0.9rem" color="GrayText">
+              G.H.E
+            </SText>
+          </SFlex>
+          <STSInput
+            endAdornment={
+              <SFlex gap={2} center>
+                {selectedGhoId && (
+                  <SIconButton
+                    onClick={() => handleSelectGHO(null, [])}
+                    size="small"
+                  >
+                    <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
+                  </SIconButton>
+                )}
+                <STooltip
+                  withWrapper
+                  title={selectedGhoId ? 'Salvar' : 'Adicionar'}
                 >
-                  <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
-                </SIconButton>
-              )}
-              <STooltip
-                withWrapper
-                title={selectedGhoId ? 'Salvar' : 'Adicionar'}
-              >
-                <SEndButton
-                  icon={selectedGhoId ? SSaveIcon : undefined}
-                  bg={selectedGhoId ? 'info.main' : 'tag.add'}
-                  onClick={
-                    selectedGhoId
-                      ? () => handleEditGHO(selectedGhoId)
-                      : () => handleAddGHO()
-                  }
-                />
-              </STooltip>
-            </SFlex>
-          }
-          loading={addMutation.isLoading}
-          size="small"
-          variant="outlined"
-          placeholder={'Adicionar G.H.E'}
-          subVariant="search"
-          inputRef={inputRef}
-          fullWidth
-        />
-      </STBoxInput>
-      <STBoxStack mt={35}>{memoItems}</STBoxStack>
-    </STBoxContainer>
+                  <SEndButton
+                    icon={selectedGhoId ? SSaveIcon : undefined}
+                    bg={selectedGhoId ? 'info.main' : 'tag.add'}
+                    onClick={
+                      selectedGhoId
+                        ? () => handleEditGHO(selectedGhoId)
+                        : () => handleAddGHO()
+                    }
+                  />
+                </STooltip>
+              </SFlex>
+            }
+            loading={addMutation.isLoading}
+            size="small"
+            variant="outlined"
+            placeholder={'Adicionar novo G.H.E'}
+            subVariant="search"
+            inputRef={inputRef}
+            fullWidth
+          />
+        </STBoxInput>
+        <STBoxStack mt={50}>{memoItems}</STBoxStack>
+      </STBoxContainer>
+    </Slide>
   );
 };
