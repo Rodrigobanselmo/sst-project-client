@@ -23,7 +23,7 @@ const STableEmpty: FC<STableEmptyProps> = ({ ...props }) => (
       sx={{ color: 'gray.400', fontSize: '50px', mr: 6 }}
     />
     <SText sx={{}}>
-      Nenhum dado <br /> emcontrado
+      Nenhum dado <br /> encontrado
     </SText>
   </SFlex>
 );

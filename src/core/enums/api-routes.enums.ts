@@ -1,10 +1,11 @@
 export enum ApiRoutesEnum {
   HIERARCHY = '/hierarchy',
+  GHO = '/homogeneous-groups',
   EMPLOYEES = '/employee',
   COMPANIES = '/company',
   DATABASE_TABLE = '/files/database-tables',
   DOWNLOAD_EMPLOYEES = '/files/company/download/unique',
-  UPLOAD_EMPLOYEES = '/files/company/upload',
+  UPLOAD_EMPLOYEES = '/files/company/upload/unique',
   ME = '/users/me',
   SESSION = '/session',
   CHECKLIST = '/checklist',

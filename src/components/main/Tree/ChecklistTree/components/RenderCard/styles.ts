@@ -30,7 +30,7 @@ export const STCardArea = styled(Box)<{
   position: relative;
   display: inline-block;
   cursor: move;
-  z-index: 10;
+  z-index: ${({ theme }) => theme.mixins.nodeCard};
   ${(props) =>
     props.horizontal &&
     css`
@@ -48,7 +48,7 @@ export const STRenderLabel = styled(Box)<ICardCard>`
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  z-index: 11;
+  z-index: ${({ theme }) => theme.mixins.nodeLabel};
   color: ${(props) => props.theme.palette.text.main};
   position: relative;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);

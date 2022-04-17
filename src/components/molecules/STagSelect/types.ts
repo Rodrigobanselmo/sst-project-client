@@ -10,6 +10,7 @@ export interface ISTagSelectProps extends ISTagButtonProps {
   text: string;
   tooltipTitle?: string;
   large?: boolean;
+  disabled?: boolean;
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
   options: {
     value: string | number;

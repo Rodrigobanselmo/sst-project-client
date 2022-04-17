@@ -7,5 +7,6 @@ export interface ITypeSelectProps extends BoxProps {
   node: ITreeMapObject | ITreeSelectedItem;
   parentId: string | number;
   large?: boolean;
+  disabled?: boolean;
   handleSelect?: (option: { value: TreeTypeEnum; name: string }) => void;
 }

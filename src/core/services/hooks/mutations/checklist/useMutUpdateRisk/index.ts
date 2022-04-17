@@ -41,6 +41,7 @@ export function useMutUpdateRisk() {
       updateRisk(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
+        console.log(resp);
         if (resp)
           queryClient.setQueryData(
             [QueryEnum.RISK, resp.companyId],
@@ -52,6 +53,7 @@ export function useMutUpdateRisk() {
                           ...risk,
                           ...resp,
                           recMed: [...resp.recMed],
+                          generateSource: [...resp.generateSource],
                         }
                       : risk,
                   )
@@ -64,7 +66,8 @@ export function useMutUpdateRisk() {
         return resp;
       },
       onError: (error: IErrorResp) => {
-        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        if (error.response?.data)
+          enqueueSnackbar(error.response.data.message, { variant: 'error' });
       },
     },
   );

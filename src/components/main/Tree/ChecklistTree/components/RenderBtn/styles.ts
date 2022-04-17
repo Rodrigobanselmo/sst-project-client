@@ -11,7 +11,7 @@ export const RenderButton = styled.span<{
   left: 50%;
   width: 20px;
   height: 20px;
-  z-index: 10;
+  z-index: ${({ theme }) => theme.mixins.nodeCard};
   margin-left: -11px;
   margin-top: 9px;
   background-color: #fff;

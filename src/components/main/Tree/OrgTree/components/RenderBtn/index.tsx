@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useAppDispatch } from '../../../../../../core/hooks/useAppDispatch';
-import { setEditNodes } from '../../../../../../store/reducers/tree/treeSlice';
+import { setEditNodes } from '../../../../../../store/reducers/hierarchy/hierarchySlice';
 import { IRenderButton } from '../interfaces';
 import { RenderButton } from './styles';
 

@@ -50,7 +50,7 @@ export const useDnd = (node: ITreeMapObject) => {
       className: 'mock_card',
     };
 
-    return editNodes([CreateMock, AddMockToDrop], true);
+    editNodes([CreateMock, AddMockToDrop], true);
   };
 
   const onRemoveMock = () => {
@@ -69,7 +69,7 @@ export const useDnd = (node: ITreeMapObject) => {
       };
 
       editNodes([removeMock], true);
-      return removeNodes(mockItem.id, true);
+      removeNodes(mockItem.id, true);
     }
   };
 

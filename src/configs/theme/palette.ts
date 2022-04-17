@@ -85,6 +85,8 @@ const palette = {
     darkPaper: '#c4c4c4',
     dark: '#1A202C',
     divider: '#efefef',
+    lightGray: '#F3F5F8',
+    box: '#F7FAFC',
   },
   text: {
     dark: '#000',

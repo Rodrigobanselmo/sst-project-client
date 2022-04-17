@@ -8,10 +8,7 @@ import { ITreeMapObject, ITreeSelectedItem } from '../interfaces';
 export const usePreventNode = () => {
   const { onOpenGlobalModal } = useGlobalModal();
 
-  const preventMultipleTextOptions = (
-    node: ITreeMapObject | ITreeSelectedItem,
-    type?: QuestionOptionsEnum,
-  ) => {
+  const preventMultipleTextOptions = () => {
     return false;
   };
 

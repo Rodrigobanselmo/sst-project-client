@@ -29,8 +29,10 @@ export const useControlClick = (
   useKeypress(
     key,
     (e) => {
-      e.preventDefault();
-      if (controlKeyPress.current && callback) callback(e);
+      if (controlKeyPress.current && callback) {
+        e.preventDefault();
+        callback(e);
+      }
     },
     'keydown',
   );

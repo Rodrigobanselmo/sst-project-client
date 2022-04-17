@@ -47,6 +47,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
         name: option.name,
         recMed: option.recMed,
         status: option.status,
+        generateSource: option.generateSource,
         id: option.id,
         type: option.type,
         companyId: option.companyId,

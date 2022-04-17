@@ -11,7 +11,10 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IRecMedCreate } from 'core/interfaces/api/IRiskFactors';
+import {
+  IGenerateSourceCreate,
+  IRecMedCreate,
+} from 'core/interfaces/api/IRiskFactors';
 import { useMutCreateRisk } from 'core/services/hooks/mutations/checklist/useMutCreateRisk';
 import { useMutUpdateRisk } from 'core/services/hooks/mutations/checklist/useMutUpdateRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
@@ -22,6 +25,7 @@ export const initialAddRiskState = {
   name: '',
   type: '',
   recMed: [] as IRecMedCreate[],
+  generateSource: [] as IGenerateSourceCreate[],
   hasSubmit: false,
   id: 0,
   companyId: '',
@@ -44,9 +48,8 @@ export const useAddRisk = () => {
   const [riskData, setRiskData] = useState(initialAddRiskState);
 
   useEffect(() => {
-    const { isAddRecMed, remove, edit, ...initialData } = getModalData<any>(
-      ModalEnum.RISK_ADD,
-    );
+    const { isAddRecMed, isAddGenerateSource, remove, edit, ...initialData } =
+      getModalData<any>(ModalEnum.RISK_ADD);
 
     if (isAddRecMed) {
       return setRiskData((oldData) => {
@@ -88,6 +91,46 @@ export const useAddRisk = () => {
       });
     }
 
+    if (isAddGenerateSource) {
+      return setRiskData((oldData) => {
+        if (remove) {
+          return {
+            ...oldData,
+            generateSource: oldData.generateSource.filter(
+              (item) => item.localId !== initialData.localId,
+            ),
+          };
+        }
+
+        if (edit) {
+          const data = [...oldData.generateSource];
+          const indexItem = oldData.generateSource.findIndex(
+            (item) => item.localId === initialData.localId,
+          );
+
+          data[indexItem] = { ...data[indexItem], ...initialData };
+
+          return {
+            ...oldData,
+            generateSource: data,
+          };
+        }
+
+        const result = removeDuplicate(
+          [
+            ...oldData.generateSource,
+            { ...initialData, localId: oldData.generateSource.length },
+          ],
+          { removeFields: ['status'] },
+        );
+
+        return {
+          ...oldData,
+          generateSource: result,
+        };
+      });
+    }
+
     if (initialData) {
       setRiskData((oldData) => {
         const newData = {
@@ -103,10 +146,18 @@ export const useAddRisk = () => {
   }, [getModalData]);
 
   const onSubmit: SubmitHandler<IRiskSchema> = async ({ name, type }) => {
-    const { id, companyId, recMed, status } = riskData;
+    const { id, companyId, recMed, generateSource, status } = riskData;
     const typeValue = type as RiskEnum;
 
-    const risk = { id, companyId, recMed, status, name, type: typeValue };
+    const risk = {
+      id,
+      companyId,
+      recMed,
+      generateSource,
+      status,
+      name,
+      type: typeValue,
+    };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;
 

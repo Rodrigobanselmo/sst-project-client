@@ -11,11 +11,10 @@ import { emptyMapReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export const queryHierarchies = async () => {
-  const response = await api.get<IHierarchy[]>(`${ApiRoutesEnum.HIERARCHY}`);
+export const setMapHierarchies = async (hierarchyData: IHierarchy[]) => {
   const hierarchyTree = {} as IHierarchyMap;
 
-  response.data.forEach((hierarchy) => {
+  hierarchyData.forEach((hierarchy) => {
     hierarchyTree[hierarchy.id] = { ...hierarchy, children: [] };
   });
 
@@ -26,6 +25,12 @@ export const queryHierarchies = async () => {
   });
 
   return hierarchyTree;
+};
+
+export const queryHierarchies = async () => {
+  const response = await api.get<IHierarchy[]>(`${ApiRoutesEnum.HIERARCHY}`);
+
+  return setMapHierarchies(response.data);
 };
 
 export function useQueryHierarchies(): IReactQuery<IHierarchyMap> {

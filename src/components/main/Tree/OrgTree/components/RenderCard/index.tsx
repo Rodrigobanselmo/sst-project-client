@@ -1,4 +1,7 @@
 import React, { useRef, MouseEvent } from 'react';
+import { useStore } from 'react-redux';
+
+import { IGhoState } from 'store/reducers/gho/ghoSlice';
 
 import { useModal } from 'core/hooks/useModal';
 
@@ -15,12 +18,16 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   const { drop, isDragging, drag } = useDnd(node);
   const { onOpenModal } = useModal();
   const menuRef = useRef<HTMLDivElement>(null);
+  const store = useStore();
 
   const clx = ['org-tree-node-label-inner'];
 
   if (node.className) clx.push(node.className);
 
   const handleClickCard = () => {
+    const ghoState = store.getState().gho as IGhoState;
+    if (ghoState.id) return null;
+
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
     setSelectedItem(node);
   };

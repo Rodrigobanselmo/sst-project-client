@@ -8,4 +8,5 @@ export interface IOptionsHelpSelectProps extends BoxProps {
   node: ITreeMapObject | ITreeSelectedItem;
   large?: boolean;
   menuRef: RefObject<HTMLDivElement>;
+  disabled?: boolean;
 }

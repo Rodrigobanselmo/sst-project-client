@@ -1,3 +1,4 @@
+import { css } from '@emotion/react';
 import { styled, Box } from '@mui/material';
 
 import SIconButton from '../../../../../../../atoms/SIconButton';
@@ -22,4 +23,22 @@ export const STAddSIconButton = styled(SIconButton)`
   max-width: 30px;
   position: absolute;
   left: 4px;
+`;
+
+export const STSelectBox = styled(Box)<{ selected?: number }>`
+  max-height: ${(props) => props.theme.spacing(10)};
+  min-height: ${(props) => props.theme.spacing(10)};
+  min-width: ${(props) => props.theme.spacing(10)};
+  max-width: ${(props) => props.theme.spacing(10)};
+  margin-right: ${(props) => props.theme.spacing(2)};
+  background-color: ${(props) => props.theme.palette.background.lightGray};
+  border-radius: 50%;
+  border: 1px solid ${(props) => props.theme.palette.background.divider};
+  cursor: pointer;
+
+  ${(props) =>
+    props.selected &&
+    css`
+      background-color: ${props.theme.palette.info.main};
+    `}
 `;

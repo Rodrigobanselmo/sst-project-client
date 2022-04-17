@@ -1,9 +1,9 @@
 import { ChangeEvent } from 'react';
 import { Control, FieldValues } from 'react-hook-form';
 
-import { ISInputProps } from '../../atoms/SInput/types';
+import { SInputProps } from '../../atoms/SInput/types';
 
-export type InputFormProps = ISInputProps & {
+export type InputFormProps = SInputProps & {
   name: string;
   control: Control<FieldValues, object>;
   label?: string;

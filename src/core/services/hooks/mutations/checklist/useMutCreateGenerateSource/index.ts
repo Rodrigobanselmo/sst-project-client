@@ -66,12 +66,9 @@ export function useMutCreateGenerateSource() {
                 : [],
           );
 
-        enqueueSnackbar(
-          'Recomendação e/ou Medida de controle criado com sucesso',
-          {
-            variant: 'success',
-          },
-        );
+        enqueueSnackbar('Fonte geradora criado com sucesso', {
+          variant: 'success',
+        });
         return newGenerateSource;
       },
       onError: (error: IErrorResp) => {

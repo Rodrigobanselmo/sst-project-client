@@ -96,7 +96,7 @@ export const ModalEditCard = () => {
     }
   };
 
-  const type = selectedNode?.type || 1;
+  const type = selectedNode?.type || TreeTypeEnum.COMPANY;
 
   if (!selectedNode) return null;
   return (

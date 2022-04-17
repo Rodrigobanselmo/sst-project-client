@@ -8,15 +8,25 @@ import { STagSearchSelect } from 'components/molecules/STagSearchSelect';
 import { StatusSelect } from 'components/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import SGenerateSource from 'assets/icons/SGenerateSource';
 import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
 import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
-import { IRecMed, IRecMedCreate } from 'core/interfaces/api/IRiskFactors';
+import {
+  IGenerateSourceCreate,
+  IGenerateSource,
+  IRecMed,
+  IRecMedCreate,
+} from 'core/interfaces/api/IRiskFactors';
 
 interface IEditRiskSelects {
-  riskData: { status: StatusEnum; recMed: IRecMedCreate[] };
+  riskData: {
+    status: StatusEnum;
+    recMed: IRecMedCreate[];
+    generateSource: IGenerateSourceCreate[];
+  };
   setRiskData: React.Dispatch<any>;
   id?: number;
 }
@@ -37,8 +47,24 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
       });
   };
 
+  const handleSelectGenerateSource = (
+    option: IGenerateSource & IGenerateSourceCreate,
+  ) => {
+    if (option?.name)
+      onOpenModal(ModalEnum.GENERATE_SOURCE_ADD, {
+        passDataBack: true,
+        edit: true,
+        localId: option?.localId,
+        ...option,
+      });
+  };
+
   const handleAddRecMed = () => {
     onOpenModal(ModalEnum.REC_MED_ADD, { passDataBack: true });
+  };
+
+  const handleAddGenerateSource = () => {
+    onOpenModal(ModalEnum.GENERATE_SOURCE_ADD, { passDataBack: true });
   };
 
   const optionsRec = useMemo(() => {
@@ -49,8 +75,13 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
     return riskData.recMed.filter((r) => r.medName);
   }, [riskData]);
 
+  const optionsGenerateSource = useMemo(() => {
+    return riskData.generateSource.filter((r) => r.name);
+  }, [riskData]);
+
   const recLength = String(optionsRec.length);
   const medLength = String(optionsMed.length);
+  const generateSourceLength = String(optionsGenerateSource.length);
 
   return (
     <SFlex gap={8} mt={10} align="center">
@@ -106,6 +137,17 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
           );
         }}
         optionsFieldName={{ valueField: 'id', contentField: 'medName' }}
+      />
+      <STagSearchSelect
+        options={optionsGenerateSource}
+        icon={SGenerateSource}
+        additionalButton={handleAddGenerateSource}
+        tooltipTitle={`${generateSourceLength} fontes geradoras`}
+        text={generateSourceLength}
+        keys={['name']}
+        large={true}
+        handleSelectMenu={handleSelectGenerateSource}
+        optionsFieldName={{ valueField: 'id', contentField: 'name' }}
       />
     </SFlex>
   );

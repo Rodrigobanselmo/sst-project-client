@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 
-import { SIconButtonProps } from '.';
+import { SIconButtonProps } from './types';
 
 const SIconButton: FC<SIconButtonProps> = ({
   circularProps,

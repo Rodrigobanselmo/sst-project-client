@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
@@ -18,16 +19,12 @@ export const queryEmployees = async () => {
 };
 
 export function useQueryEmployees(): IReactQuery<IEmployee[]> {
-  const { user } = useAuth();
-  const router = useRouter();
-
-  const company =
-    user && ((router.query.companyId as string) || user?.companyId);
+  const { companyId } = useGetCompanyId();
 
   const { data, ...query } = useQuery(
-    [QueryEnum.EMPLOYEES, company],
+    [QueryEnum.EMPLOYEES, companyId],
     () =>
-      company ? queryEmployees() : <Promise<IEmployee[]>>emptyArrayReturn(),
+      companyId ? queryEmployees() : <Promise<IEmployee[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },

@@ -1,5 +1,6 @@
 export enum QueryEnum {
   RISK = 'risk',
+  GHO = 'gho',
   DATABASE_TABLE = 'database-table',
   CHECKLIST = 'checklist',
   HIERARCHY = 'hierarchy',

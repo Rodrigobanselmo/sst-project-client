@@ -2,15 +2,12 @@
 import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
-import { nodeTypesConstant } from 'components/main/Tree/OrgTree/constants/node-type.constant';
-import { TreeTypeEnum } from 'components/main/Tree/OrgTree/enums/tree-type.enums';
+import { nodeTypesConstant } from 'components/main/Tree/ChecklistTree/constants/node-type.constant';
+import { useRouter } from 'next/router';
 import { setDocSaved, setDocUnsaved } from 'store/reducers/save/saveSlice';
-import { v4 } from 'uuid';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 import { SaveEnum } from 'core/enums/save.enum';
-import { ICompany } from 'core/interfaces/api/ICompany';
-import { IHierarchyMap } from 'core/interfaces/api/IHierarchy';
 import { useMutUpdateChecklist } from 'core/services/hooks/mutations/checklist/useMutUpdateChecklist';
 
 import {
@@ -19,77 +16,76 @@ import {
   ITreeMapEdit,
   ITreeMapObject,
   ITreeMapPartial,
-} from '../../components/main/Tree/OrgTree/interfaces';
+} from '../../components/main/Tree/ChecklistTree/interfaces';
 import {
   setAddNodes,
   setDragItem,
-  setEditMapHierarchyTreeNode,
+  setEditBlockingNodes,
+  setEditMapTreeNode,
   setEditNodes,
   setExpandAll,
-  setMapHierarchyTree,
+  setMapTree,
   setRemoveNode,
   setReorder,
   setSelectCopy,
   setSelectItem,
-} from '../../store/reducers/hierarchy/hierarchySlice';
+} from '../../store/reducers/tree/treeSlice';
+import { randomNumber } from '../utils/helpers/randomNumber';
 import { useAppDispatch } from './useAppDispatch';
 
-export const useHierarchyTreeActions = () => {
+export const useChecklistTreeActions = () => {
   const dispatch = useAppDispatch();
   const saveMutation = useMutUpdateChecklist();
+  const router = useRouter();
   const store = useStore();
 
   const saveApi = useCallback(async () => {
-    dispatch(setDocUnsaved({ docName: SaveEnum.HIERARCHY }));
+    dispatch(setDocUnsaved({ docName: SaveEnum.CHECKLIST }));
 
-    dispatch(setDocSaved({ docName: SaveEnum.HIERARCHY }));
-  }, [dispatch]);
+    // saving
+    const { checklistId } = router.query;
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+
+    const checklist = {
+      name: nodesMap[firstNodeId].label,
+      id: Number(checklistId),
+      data: {
+        json: JSON.stringify(nodesMap),
+      },
+    };
+
+    await saveMutation.mutateAsync(checklist);
+
+    // saved
+    dispatch(setDocSaved({ docName: SaveEnum.CHECKLIST }));
+  }, [dispatch, router.query, saveMutation, store]);
 
   const getUniqueId = useCallback((): string => {
-    return v4();
-  }, []);
+    const nodesMap = store.getState().tree.nodes as ITreeMap;
+    let id = randomNumber(5);
 
-  const transformToTreeMap = useCallback(
-    (hierarchyMap: IHierarchyMap, company: ICompany): ITreeMap => {
-      const treeMap = {} as ITreeMap;
+    const loop = (idNumber: string) => {
+      if (nodesMap[idNumber]) {
+        id = randomNumber(5);
+        loop(id);
+      }
+    };
 
-      treeMap[firstNodeId] = {
-        id: firstNodeId,
-        label: company.name,
-        parentId: null,
-        childrenIds: [],
-        type: TreeTypeEnum.COMPANY,
-        expand: true,
-      };
+    loop(id);
 
-      Object.values(hierarchyMap).forEach((values) => {
-        treeMap[values.id] = {
-          id: values.id,
-          label: values.name,
-          childrenIds: values.children,
-          expand: true,
-          parentId: values.parentId || firstNodeId,
-          type: TreeTypeEnum[values.type] as unknown as TreeTypeEnum,
-        };
-
-        if (!values.parentId) treeMap[firstNodeId].childrenIds.push(values.id);
-      });
-
-      return treeMap;
-    },
-    [],
-  );
+    return id;
+  }, [store]);
 
   const setTree = useCallback(
     (nodesMap: ITreeMap) => {
-      dispatch(setMapHierarchyTree(nodesMap));
+      dispatch(setMapTree(nodesMap));
     },
     [dispatch],
   );
 
   const editTreeMap = useCallback(
     (nodesMap: ITreeMapPartial, noSave?: boolean) => {
-      dispatch(setEditMapHierarchyTreeNode(nodesMap));
+      dispatch(setEditMapTreeNode(nodesMap));
       if (!noSave) saveApi();
     },
     [dispatch, saveApi],
@@ -99,6 +95,14 @@ export const useHierarchyTreeActions = () => {
     (nodesMap: ITreeMapEdit[], noSave?: boolean) => {
       dispatch(setEditNodes(nodesMap));
       if (!noSave) saveApi();
+    },
+    [dispatch, saveApi],
+  );
+
+  const setBlockNode = useCallback(
+    (node: ITreeMapEdit) => {
+      dispatch(setEditBlockingNodes(node));
+      saveApi();
     },
     [dispatch, saveApi],
   );
@@ -128,7 +132,7 @@ export const useHierarchyTreeActions = () => {
   const getPathById = useCallback(
     (id: number | string) => {
       const path: (string | number)[] = [];
-      const nodes = store.getState().hierarchy.nodes as ITreeMap;
+      const nodes = store.getState().tree.nodes as ITreeMap;
 
       const loop = (id: number | string) => {
         const node = nodes[id];
@@ -146,9 +150,20 @@ export const useHierarchyTreeActions = () => {
     [store],
   );
 
+  const getAllParentRisksById = useCallback(
+    (id: number | string) => {
+      const nodes = store.getState().tree.nodes as ITreeMap;
+      return getPathById(id).reduce((acc, nodeId) => {
+        const risks = nodes[nodeId].risks || [];
+        return [...acc, ...risks];
+      }, [] as (string | number)[]);
+    },
+    [getPathById, store],
+  );
+
   const getHigherLevelNodes = useCallback(
     (id: number | string) => {
-      const nodes = store.getState().hierarchy.nodes as ITreeMap;
+      const nodes = store.getState().tree.nodes as ITreeMap;
       const higherNodesId: (string | number)[] = [];
 
       let hasFoundNode = false;
@@ -177,7 +192,7 @@ export const useHierarchyTreeActions = () => {
       withChildren?: boolean,
       shouldCloneMemory?: boolean,
     ) => {
-      const treeData = store.getState().hierarchy.nodes;
+      const treeData = store.getState().tree.nodes;
       const cloneTree: ITreeMap = { [parentId]: { ...treeData[parentId] } };
 
       const loop = (
@@ -189,6 +204,14 @@ export const useHierarchyTreeActions = () => {
         const cloneNodeParent = cloneTree[_parentId] as ITreeMapObject | null;
 
         if (node) {
+          let memo = {} as ITreeCopyItem;
+
+          const copyItem = store.getState().tree
+            .copyItem as ITreeCopyItem | null;
+
+          if (shouldCloneMemory && copyItem) {
+            memo = copyItem;
+          }
           const cloneNode = {
             ...node,
             id: getUniqueId(),
@@ -276,7 +299,7 @@ export const useHierarchyTreeActions = () => {
     parentId: string | number,
     exampleNode: Partial<ITreeMapObject> = {},
   ) => {
-    const node = store.getState().hierarchy.nodes[parentId] as ITreeMapObject;
+    const node = store.getState().tree.nodes[parentId] as ITreeMapObject;
 
     if (node) {
       const newNode = {
@@ -313,8 +336,9 @@ export const useHierarchyTreeActions = () => {
     setCopyItem,
     setPasteItem,
     getHigherLevelNodes,
+    setBlockNode,
     saveMutation,
     reorderNodes,
-    transformToTreeMap,
+    getAllParentRisksById,
   };
 };

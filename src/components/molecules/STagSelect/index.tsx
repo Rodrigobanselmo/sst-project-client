@@ -18,6 +18,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
   tooltipTitle,
   startAdornment,
   tooltipProps,
+  disabled,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -27,6 +28,8 @@ export const STagSelect: FC<ISTagSelectProps> = ({
   };
 
   const handleSelectTag = (e: MouseEvent<HTMLDivElement>) => {
+    if (disabled) return;
+
     e.stopPropagation();
     setAnchorEl(e.currentTarget);
     onClick && onClick(e);

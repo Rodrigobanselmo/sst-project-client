@@ -5,7 +5,6 @@ interface IHorizontal {
 }
 export const OrgTreeContainer = styled.div<IHorizontal>`
   display: block;
-  padding: 15px;
   overflow: auto;
   position: absolute;
   top: 0;
@@ -13,6 +12,7 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
   height: 100%;
   width: 100%;
   padding: 30px;
+  padding-right: 600px;
 
   &::-webkit-scrollbar {
     width: 10px;

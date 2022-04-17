@@ -87,8 +87,8 @@ export function setupAPIClient(ctx = undefined) {
                 failedRequestQueue = [];
 
                 if (process.browser) {
-                  destroyCookie(ctx, 'nextauth.token');
-                  destroyCookie(ctx, 'nextauth.refreshToken');
+                  destroyCookie(ctx || {}, 'nextauth.token');
+                  destroyCookie(ctx || {}, 'nextauth.refreshToken');
                   signOut(ctx);
                 }
               })

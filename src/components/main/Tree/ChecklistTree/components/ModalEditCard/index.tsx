@@ -34,6 +34,7 @@ import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { usePreventNode } from '../../hooks/usePreventNode';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
 import { CameraSelect } from '../Selects/CameraSelect';
+import { GenerateSourceSelect } from '../Selects/GenerateSourceSelect';
 import { MedSelect } from '../Selects/MedSelect';
 import { QuestionTypeSelect } from '../Selects/QuestionTypeSelect';
 import { questionOptionsConstant } from '../Selects/QuestionTypeSelect/constants/question-options.constant';
@@ -246,6 +247,15 @@ export const ModalEditCard = () => {
                   handleSelect={(options) =>
                     setEditNodeSelectedItem({
                       rec: options,
+                    })
+                  }
+                />
+                <GenerateSourceSelect
+                  large
+                  node={selectedNode}
+                  handleSelect={(options) =>
+                    setEditNodeSelectedItem({
+                      generateSource: options,
                     })
                   }
                 />

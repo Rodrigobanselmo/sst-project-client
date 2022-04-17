@@ -42,8 +42,9 @@ let authChannel: BroadcastChannel;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function signOut(ctx?: any) {
-  destroyCookie(ctx, 'nextauth.token');
-  destroyCookie(ctx, 'nextauth.refreshToken');
+  destroyCookie(ctx || {}, 'nextauth.token');
+
+  destroyCookie(ctx || {}, 'nextauth.refreshToken');
   if (authChannel) authChannel.postMessage('signOut');
 
   Router.push(RoutesEnum.LOGIN);

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import ChecklistTree from 'components/main/Tree/ChecklistTree';
+import { ModalAddGenerateSource } from 'components/modals/ModalAddGenerateSource';
 import { ModalAddRecMed } from 'components/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/modals/ModalAddRisk';
 import { NextPage } from 'next';
@@ -31,6 +32,7 @@ const Checklist: NextPage = () => {
       <ChecklistTree horizontal />
       <ModalAddRisk />
       <ModalAddRecMed />
+      <ModalAddGenerateSource />
     </STFlexContainer>
   );
 };

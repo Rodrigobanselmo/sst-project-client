@@ -30,7 +30,7 @@ export const STCardArea = styled(Box)<{
   position: relative;
   display: inline-block;
   cursor: move;
-  z-index: 10;
+  z-index: ${({ theme }) => theme.mixins.nodeCard};
   ${(props) =>
     props.horizontal &&
     css`
@@ -42,19 +42,19 @@ export const STCardArea = styled(Box)<{
 export const STRenderLabel = styled(Box)<ICardCard>`
   background-color: white;
   cursor: grab;
-  padding: 7px 15px;
-  min-width: 100px;
-  min-height: 45px;
+  padding: ${(props) => props.theme.spacing(3, 6)};
+  min-width: ${(props) => props.theme.spacing(50)};
+  min-height: ${(props) => props.theme.spacing(20)};
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  z-index: 11;
+  z-index: ${({ theme }) => theme.mixins.nodeLabel};
   color: ${(props) => props.theme.palette.text.main};
   position: relative;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.15);
   border-radius: 5px;
-  width: 320px;
-  height: 98px;
+  width: ${(props) => props.theme.spacing(110)};
+  height: ${(props) => props.theme.spacing(35)};
 
   // no break line
   white-space: nowrap;

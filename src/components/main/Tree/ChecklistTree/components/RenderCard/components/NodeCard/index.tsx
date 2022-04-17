@@ -20,6 +20,7 @@ import { ITreeSelectedItem } from '../../../../interfaces';
 import { BlockedBySelect } from '../../../Selects/BlockedBySelect';
 import { BlockSelect } from '../../../Selects/BlockSelect';
 import { CameraSelect } from '../../../Selects/CameraSelect';
+import { GenerateSourceSelect } from '../../../Selects/GenerateSourceSelect';
 import { MedSelect } from '../../../Selects/MedSelect';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { QuestionTypeSelect } from '../../../Selects/QuestionTypeSelect';
@@ -140,6 +141,12 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
               node={node}
               handleSelect={(options) =>
                 editNodes([{ id: node.id, rec: options }])
+              }
+            />
+            <GenerateSourceSelect
+              node={node}
+              handleSelect={(options) =>
+                editNodes([{ id: node.id, generateSource: options }])
               }
             />
           </>

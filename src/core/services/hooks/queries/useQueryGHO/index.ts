@@ -1,0 +1,30 @@
+import { useQuery } from 'react-query';
+
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { IGho } from 'core/interfaces/api/IGho';
+import { IReactQuery } from 'core/interfaces/IReactQuery';
+import { api } from 'core/services/apiClient';
+import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
+
+import { QueryEnum } from '../../../../enums/query.enums';
+
+export const queryGHO = async () => {
+  const response = await api.get<IGho[]>(ApiRoutesEnum.GHO);
+
+  return response.data;
+};
+
+export function useQueryGHO(): IReactQuery<IGho[]> {
+  const { companyId } = useGetCompanyId();
+
+  const { data, ...query } = useQuery(
+    [QueryEnum.GHO, companyId],
+    () => (companyId ? queryGHO() : <Promise<IGho[]>>emptyArrayReturn()),
+    {
+      staleTime: 1000 * 60 * 60, // 1 hour
+    },
+  );
+
+  return { ...query, data: data || [] };
+}
