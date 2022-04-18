@@ -16,6 +16,7 @@ import {
   IRecMedCreate,
 } from 'core/interfaces/api/IRiskFactors';
 import { useMutCreateRisk } from 'core/services/hooks/mutations/checklist/useMutCreateRisk';
+import { useMutUpdateGenerateSource } from 'core/services/hooks/mutations/checklist/useMutUpdateGenerateSource';
 import { useMutUpdateRisk } from 'core/services/hooks/mutations/checklist/useMutUpdateRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
@@ -24,7 +25,7 @@ export const initialAddRiskState = {
   status: StatusEnum.ACTIVE,
   name: '',
   type: '',
-  recMed: [] as IRecMedCreate[],
+  recMed: [] as (IRecMedCreate & { generateSourceLocalId?: number })[],
   generateSource: [] as IGenerateSourceCreate[],
   hasSubmit: false,
   id: 0,
@@ -42,6 +43,7 @@ export const useAddRisk = () => {
 
   const createRiskMut = useMutCreateRisk();
   const updateRiskMut = useMutUpdateRisk();
+  const updateGenerateSourceMut = useMutUpdateGenerateSource();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -50,7 +52,7 @@ export const useAddRisk = () => {
   useEffect(() => {
     const { isAddRecMed, isAddGenerateSource, remove, edit, ...initialData } =
       getModalData<any>(ModalEnum.RISK_ADD);
-
+    console.log('initialData', initialData);
     if (isAddRecMed) {
       return setRiskData((oldData) => {
         if (remove) {
@@ -124,9 +126,22 @@ export const useAddRisk = () => {
           { removeFields: ['status'] },
         );
 
+        const resultRecMedFromSource = removeDuplicate(
+          [
+            ...oldData.recMed,
+            {
+              ...initialData.recMeds[0],
+              localId: oldData.recMed.length,
+              generateSourceLocalId: oldData.generateSource.length,
+            },
+          ],
+          { removeFields: ['status'] },
+        ).filter((i) => i.recName || i.medName);
+
         return {
           ...oldData,
           generateSource: result,
+          recMed: resultRecMedFromSource,
         };
       });
     }
@@ -161,8 +176,33 @@ export const useAddRisk = () => {
 
     if (riskData.companyId) risk.companyId = riskData.companyId;
 
+    //  add risk then connect generate source with recMed
     if (risk.id == 0) {
-      await createRiskMut.mutateAsync(risk);
+      const create = await createRiskMut.mutateAsync(risk);
+      recMed.map(async (rm) => {
+        if (rm.generateSourceLocalId != undefined) {
+          const gsLocal = generateSource.find(
+            (gs) => gs.localId === rm.generateSourceLocalId,
+          );
+          if (gsLocal && create?.id) {
+            const gsServer = create.generateSource.find(
+              (gs) => gs.name === gsLocal.name,
+            );
+
+            const rmServer = create.recMed.find(
+              (rmServer) =>
+                rmServer.recName === rm.recName &&
+                rmServer.medName === rm.medName,
+            );
+            if (gsServer && rmServer)
+              updateGenerateSourceMut.mutate({
+                id: gsServer.id,
+                riskId: create.id,
+                recMeds: [{ id: rmServer.id }],
+              });
+          }
+        }
+      });
     } else {
       await updateRiskMut.mutateAsync(risk);
     }

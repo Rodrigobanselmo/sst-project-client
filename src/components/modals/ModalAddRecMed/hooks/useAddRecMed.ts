@@ -102,12 +102,12 @@ export const useAddRecMed = () => {
       ...data,
     };
 
-    if (initialAddRecMedState.id == 0) {
+    if (recMedData.id == 0) {
       await createRecMedMut.mutateAsync(submitData);
     } else {
       await updateRecMedMut.mutateAsync({
         ...submitData,
-        id: initialAddRecMedState.id,
+        id: recMedData.id,
       });
     }
 

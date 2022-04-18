@@ -232,6 +232,15 @@ export const ModalEditCard = () => {
                     })
                   }
                 />
+                <GenerateSourceSelect
+                  large
+                  node={selectedNode}
+                  handleSelect={(options) =>
+                    setEditNodeSelectedItem({
+                      generateSource: options,
+                    })
+                  }
+                />
                 <MedSelect
                   large
                   node={selectedNode}
@@ -247,15 +256,6 @@ export const ModalEditCard = () => {
                   handleSelect={(options) =>
                     setEditNodeSelectedItem({
                       rec: options,
-                    })
-                  }
-                />
-                <GenerateSourceSelect
-                  large
-                  node={selectedNode}
-                  handleSelect={(options) =>
-                    setEditNodeSelectedItem({
-                      generateSource: options,
                     })
                   }
                 />

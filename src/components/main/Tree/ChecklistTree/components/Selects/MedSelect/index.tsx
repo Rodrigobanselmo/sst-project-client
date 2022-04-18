@@ -14,6 +14,7 @@ import { useChecklistTreeActions } from 'core/hooks/useChecklistTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { STagSearchSelect } from '../../../../../../molecules/STagSearchSelect';
 import { IRecMedSelectProps } from './types';
@@ -65,17 +66,35 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
 
   const options = useMemo(() => {
     const nodeRisks = node.risks || [];
-    const allRisksIds = [...nodeRisks, ...getAllParentRisksById(node.id)];
+    const allRisksIds = [...nodeRisks, ...getAllParentRisksById(node.id)].map(
+      (id) => String(id),
+    );
+
+    [...allRisksIds].map((riskId) => {
+      const riskFound = data.find((r) => r.id == Number(riskId));
+      if (riskFound) {
+        const riskFoundAll = data.find(
+          (r) => r.type === riskFound.type && r.representAll,
+        );
+        if (riskFoundAll) allRisksIds.push(String(riskFoundAll.id));
+      }
+    });
+
+    const allRisksIdsUnique = removeDuplicate(allRisksIds, {
+      simpleCompare: true,
+    });
 
     if (data)
       return data
         .reduce((acc, risk) => {
-          const recMed = risk.recMed || [];
+          const recMed = risk.recMed || ([] as IRecMed[]);
           return [...acc, ...recMed];
         }, [] as IRecMed[])
         .map((recMed) => ({
           ...recMed,
-          hideWithoutSearch: !allRisksIds?.includes(recMed.riskId),
+          hideWithoutSearch: !allRisksIdsUnique?.includes(
+            String(recMed.riskId),
+          ),
         }))
         .filter((recMed) => recMed.medName);
 

@@ -6,6 +6,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import {
   IGenerateSource,
+  IRecMedCreate,
   IRiskFactors,
 } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
@@ -19,6 +20,7 @@ interface ICreateGenerateSource extends Pick<IGenerateSource, 'riskId'> {
   status?: string;
   name?: string;
   companyId?: string;
+  recMeds?: (IRecMedCreate & { id?: number })[];
 }
 
 export async function updateGenerateSource(
@@ -69,7 +71,7 @@ export function useMutUpdateGenerateSource() {
                 : [],
           );
 
-        enqueueSnackbar('Fonte geradora criado com sucesso', {
+        enqueueSnackbar('Fonte geradora editado com sucesso', {
           variant: 'success',
         });
         return newGenerateSource;

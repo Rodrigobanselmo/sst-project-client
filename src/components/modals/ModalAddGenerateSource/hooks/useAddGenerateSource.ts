@@ -82,7 +82,16 @@ export const useAddGenerateSource = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
+  const onSubmit: SubmitHandler<{
+    name: string;
+    recName: string;
+    medName: string;
+  }> = async ({ recName, medName, ...formData }) => {
+    const data = {
+      ...formData,
+      recMeds: [{ recName, medName }],
+    };
+
     if (generateSourceData.passDataBack)
       return onClose({
         status: generateSourceData.status,
@@ -100,12 +109,12 @@ export const useAddGenerateSource = () => {
       ...data,
     };
 
-    if (initialAddGenerateSourceState.id == 0) {
+    if (generateSourceData.id == 0) {
       await createGenerateSourceMut.mutateAsync(submitData);
     } else {
       await updateGenerateSourceMut.mutateAsync({
         ...submitData,
-        id: initialAddGenerateSourceState.id,
+        id: generateSourceData.id,
       });
     }
 

@@ -69,6 +69,33 @@ export const ModalAddGenerateSource = () => {
             name="name"
             size="small"
           />
+
+          {!generateSourceData.edit && (
+            <>
+              <InputForm
+                multiline
+                minRows={2}
+                maxRows={4}
+                label="Recomendação"
+                control={control}
+                sx={{ width: ['100%', 600] }}
+                placeholder={'descrição da recomendação...'}
+                name="recName"
+                size="small"
+              />
+              <InputForm
+                multiline
+                minRows={2}
+                maxRows={4}
+                label="Medida de controle"
+                control={control}
+                sx={{ width: ['100%', 600] }}
+                placeholder={'descrição da medida de controle...'}
+                name="medName"
+                size="small"
+              />
+            </>
+          )}
         </SFlex>
         <EditGenerateSourceSelects
           generateSourceData={generateSourceData}

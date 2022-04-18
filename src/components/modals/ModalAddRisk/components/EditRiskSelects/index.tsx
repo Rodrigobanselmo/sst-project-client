@@ -93,6 +93,17 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
         }
       />
       <STagSearchSelect
+        options={optionsGenerateSource}
+        icon={SGenerateSource}
+        additionalButton={handleAddGenerateSource}
+        tooltipTitle={`${generateSourceLength} fontes geradoras`}
+        text={generateSourceLength}
+        keys={['name']}
+        large={true}
+        handleSelectMenu={handleSelectGenerateSource}
+        optionsFieldName={{ valueField: 'id', contentField: 'name' }}
+      />
+      <STagSearchSelect
         options={optionsRec}
         icon={SRecommendationIcon}
         additionalButton={handleAddRecMed}
@@ -137,17 +148,6 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
           );
         }}
         optionsFieldName={{ valueField: 'id', contentField: 'medName' }}
-      />
-      <STagSearchSelect
-        options={optionsGenerateSource}
-        icon={SGenerateSource}
-        additionalButton={handleAddGenerateSource}
-        tooltipTitle={`${generateSourceLength} fontes geradoras`}
-        text={generateSourceLength}
-        keys={['name']}
-        large={true}
-        handleSelectMenu={handleSelectGenerateSource}
-        optionsFieldName={{ valueField: 'id', contentField: 'name' }}
       />
     </SFlex>
   );

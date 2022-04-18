@@ -131,6 +131,12 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
                 editNodes([{ id: node.id, risks: options }])
               }
             />
+            <GenerateSourceSelect
+              node={node}
+              handleSelect={(options) =>
+                editNodes([{ id: node.id, generateSource: options }])
+              }
+            />
             <MedSelect
               node={node}
               handleSelect={(options) =>
@@ -141,12 +147,6 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
               node={node}
               handleSelect={(options) =>
                 editNodes([{ id: node.id, rec: options }])
-              }
-            />
-            <GenerateSourceSelect
-              node={node}
-              handleSelect={(options) =>
-                editNodes([{ id: node.id, generateSource: options }])
               }
             />
           </>

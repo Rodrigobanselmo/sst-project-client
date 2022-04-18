@@ -13,6 +13,7 @@ import { useChecklistTreeActions } from 'core/hooks/useChecklistTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { STagSearchSelect } from '../../../../../../molecules/STagSearchSelect';
 import { IGenerateSourceSelectProps } from './types';
@@ -70,6 +71,20 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
       (id) => String(id),
     );
 
+    [...allRisksIds].map((riskId) => {
+      const riskFound = data.find((r) => r.id == Number(riskId));
+      if (riskFound) {
+        const riskFoundAll = data.find(
+          (r) => r.type === riskFound.type && r.representAll,
+        );
+        if (riskFoundAll) allRisksIds.push(String(riskFoundAll.id));
+      }
+    });
+
+    const allRisksIdsUnique = removeDuplicate(allRisksIds, {
+      simpleCompare: true,
+    });
+
     if (data)
       return data
         .reduce((acc, risk) => {
@@ -79,7 +94,7 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
         .map((generateSource) => {
           return {
             ...generateSource,
-            hideWithoutSearch: !allRisksIds.includes(
+            hideWithoutSearch: !allRisksIdsUnique.includes(
               String(generateSource.riskId),
             ),
           };
