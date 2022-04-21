@@ -30,6 +30,7 @@ const initialState: IHierarchySlice = {
       childrenIds: [],
       type: TreeTypeEnum.COMPANY,
       expand: false,
+      ghos: [],
     },
   },
   dragItem: null,

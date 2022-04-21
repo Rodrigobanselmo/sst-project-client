@@ -9,8 +9,9 @@ import {
   IGhoState,
   selectGhoHierarchy,
   selectGhoId,
+  selectGhoOpen,
   setGhoAddHierarchy,
-} from 'store/reducers/gho/ghoSlice';
+} from 'store/reducers/hierarchy/ghoSlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -56,6 +57,7 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
     selectGhoHierarchy(getPathById(node.id) as string[]),
   );
   const GhoId = useAppSelector(selectGhoId);
+  const isGhoOpen = useAppSelector(selectGhoOpen);
   const store = useStore();
   const dispatch = useAppDispatch();
 
@@ -115,20 +117,14 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
           ) && (
             <STagButton
               sx={{ pr: 1, pl: 2 }}
-              onClick={GhoId ? handleAddGhoHierarchy : handleAddCard}
+              onClick={handleAddCard}
               icon={AddIcon}
             />
           )}
         </SFlex>
       </Box>
-      <Stack
-        onClick={GhoId ? handleAddGhoHierarchy : () => null}
-        spacing={2}
-        mt={3}
-        direction="row"
-      >
+      <Stack onClick={handleAddGhoHierarchy} spacing={2} mt={3} direction="row">
         <TypeSelect
-          disabled={!!GhoId}
           node={node as ITreeSelectedItem}
           parentId={node?.parentId || 'no-node'}
           handleSelect={(option) =>
@@ -136,7 +132,7 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
           }
         />
         {node.ghos && node.ghos.length > 0 && (
-          <GhoSelect node={node} showAll={!!GhoId} />
+          <GhoSelect node={node} showAll={!!isGhoOpen} />
         )}
         <OptionsHelpSelect disabled={!!GhoId} menuRef={menuRef} node={node} />
       </Stack>

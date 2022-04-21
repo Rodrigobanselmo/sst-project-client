@@ -1,6 +1,13 @@
 import React, { FC, useRef } from 'react';
 
 import { Box } from '@mui/material';
+import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
+import {
+  selectRiskAddExpand,
+  selectRiskAddInit,
+} from 'store/reducers/hierarchy/riskAddSlice';
+
+import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { useZoom } from '../../../../core/hooks/useZoom';
 import { TreeNode } from './components';
@@ -10,7 +17,7 @@ import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
 import { SidebarOrg } from './components/SidebarOrg';
 import { IOrgTreeProps } from './interfaces';
-import { OrgTree, OrgTreeContainer } from './OrgTree.styles';
+import { OrgTree, OrgTreeContainer, STGhoBox } from './OrgTree.styles';
 
 export const OrgTreeComponent: FC<IOrgTreeProps> = ({
   collapsable = true,
@@ -18,6 +25,9 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
   ...props
 }) => {
   const orgContainerRef = useRef<HTMLDivElement>(null);
+  const riskInit = useAppSelector(selectRiskAddInit);
+  const selectExpanded = useAppSelector(selectRiskAddExpand);
+  const isGhoOpen = useAppSelector(selectGhoOpen);
 
   useZoom(orgContainerRef);
 
@@ -48,16 +58,13 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
         </OrgTreeContainer>
         <ModalEditCard />
       </Box>
-      <Box
-        sx={{
-          height: '95%',
-          width: '306px',
-          position: 'absolute',
-          right: 45,
-        }}
+      <STGhoBox
+        expanded={selectExpanded ? 1 : 0}
+        gho={isGhoOpen ? 1 : 0}
+        risk_init={riskInit ? 1 : 0}
       >
         <SidebarOrg />
-      </Box>
+      </STGhoBox>
     </Box>
   );
 };

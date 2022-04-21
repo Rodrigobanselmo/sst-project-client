@@ -1,3 +1,4 @@
+  import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 
 interface IHorizontal {
@@ -12,7 +13,7 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
   height: 100%;
   width: 100%;
   padding: 30px;
-  padding-right: 600px;
+  padding-right: 1600px;
 
   &::-webkit-scrollbar {
     width: 10px;
@@ -34,6 +35,7 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
 export const OrgTree = styled.div<IHorizontal>`
   display: table;
   text-align: center;
+  padding-bottom: 1600px;
 
   &:before,
   &:after {
@@ -44,4 +46,35 @@ export const OrgTree = styled.div<IHorizontal>`
   &:after {
     clear: both;
   }
+`;
+
+export const STGhoBox = styled.div<{ risk_init:number; gho:number; expanded?:number  }>`
+  height: 95%;
+  width: 306px;
+  position: absolute;
+  left: calc(100% - 338px);
+  pointer-events: none;
+  transition: left 0.5s ease-in-out;
+
+  ${(props) =>
+    props.gho &&
+      css`
+        pointer-events: auto;
+    `}
+
+  ${(props) =>
+    props.risk_init &&
+      css`
+        max-height: 600px;
+        height: auto;
+        bottom: 50px;
+        left: 25px;
+        width: auto;
+    `}
+
+${(props) =>
+    props.expanded &&
+      css`
+        min-height: calc(100vh - 150px);
+    `}
 `;

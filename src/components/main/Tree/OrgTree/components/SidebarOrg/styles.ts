@@ -1,7 +1,10 @@
+import { css } from '@emotion/react';
 import { Box, styled } from '@mui/material';
-import { SInput } from 'components/atoms/SInput';
 
-export const STBoxContainer = styled(Box)`
+export const STBoxContainer = styled(Box)<{
+  risk_init?: number;
+  expanded?: number;
+}>`
   background-color: ${(props) => props.theme.palette.background.paper};
   width: 100%;
   max-height: 100%;
@@ -10,7 +13,21 @@ export const STBoxContainer = styled(Box)`
   box-shadow: 1px 1px 3px 3px rgba(0, 0, 0, 0.1);
   border-radius: ${({ theme }) => theme.spacing(3, 3, 12, 3)};
   position: relative;
-  overflow: auto;
+  overflow: hidden;
+
+  ${(props) =>
+    props.risk_init &&
+    css`
+      max-height: 500px;
+      border-radius: ${props.theme.spacing(3, 3, 3, 3)};
+      width: calc(100vw - 130px);
+    `}
+
+  ${(props) =>
+    props.expanded &&
+    css`
+      min-height: calc(100vh - 130px);
+    `}
 
   &::-webkit-scrollbar {
     border-radius: 24px;
@@ -26,38 +43,28 @@ export const STBoxContainer = styled(Box)`
   }
 `;
 
-export const STSInput = styled(SInput)`
-  &&& .MuiInputBase-adornedEnd {
-    padding-right: 2.2rem !important;
-  }
-`;
-
-export const STBoxInput = styled(Box)`
-  position: fixed;
-  background-color: ${(props) => props.theme.palette.background.paper};
-  width: ${(props) => props.theme.spacing(148)};
-  z-index: 20;
-  padding: ${(props) => props.theme.spacing(5)};
-  padding-right: 0;
-  border-radius: ${({ theme }) => theme.spacing(8)};
-`;
-
-export const STBoxStack = styled(Box)`
+export const STBoxStack = styled(Box)<{
+  risk_init?: number;
+  expanded?: number;
+}>`
   display: flex;
   flex-direction: column;
   gap: ${(props) => props.theme.spacing(3)};
-  height: 100%;
   padding: ${(props) => props.theme.spacing(0, 5)};
   padding-bottom: ${(props) => props.theme.spacing(10)};
+  max-height: calc(100vh - 300px);
   min-height: ${(props) => props.theme.spacing(100)};
-`;
+  overflow: auto;
 
-export const STBoxItem = styled(Box)`
-  border: 2px solid ${(props) => props.theme.palette.divider};
-  background-color: ${(props) => props.theme.palette.background.box};
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-radius: ${(props) => props.theme.shape.borderRadius}px;
-  padding: ${(props) => props.theme.spacing(2, 4)};
+  ${(props) =>
+    props.risk_init &&
+    css`
+      max-height: 400px;
+    `}
+
+  ${(props) =>
+    props.expanded &&
+    css`
+      min-height: calc(100vh - 220px);
+    `}
 `;

@@ -1,7 +1,7 @@
 import React, { useRef, MouseEvent } from 'react';
 import { useStore } from 'react-redux';
 
-import { IGhoState } from 'store/reducers/gho/ghoSlice';
+import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { useModal } from 'core/hooks/useModal';
 

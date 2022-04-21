@@ -1,7 +1,8 @@
 // import { Reducer } from '@reduxjs/toolkit';
 
-import ghoReducer from './gho/ghoSlice';
+import ghoReducer from './hierarchy/ghoSlice';
 import hierarchyReducer from './hierarchy/hierarchySlice';
+import riskAddReducer from './hierarchy/riskAddSlice';
 import modalReducer from './modal/modalSlice';
 import routeLoadingReducer from './routeLoad/routeLoadSlice';
 import saveReducer from './save/saveSlice';
@@ -11,6 +12,7 @@ import userReducer from './user/userSlice';
 
 export const rootReducer = {
   sidebar: sidebarReducer,
+  riskAdd: riskAddReducer,
   routeLoad: routeLoadingReducer,
   user: userReducer,
   save: saveReducer,
