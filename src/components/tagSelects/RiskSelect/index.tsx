@@ -13,15 +13,17 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
-import { useQueryRisk } from '../../../../../../../core/services/hooks/queries/useQueryRisk';
-import { STagSearchSelect } from '../../../../../../molecules/STagSearchSelect';
+import { useQueryRisk } from '../../../core/services/hooks/queries/useQueryRisk';
+import { STagSearchSelect } from '../../molecules/STagSearchSelect';
 import { riskFilter } from './constants/filters';
 import { ITypeSelectProps } from './types';
 
 export const RiskSelect: FC<ITypeSelectProps> = ({
   large,
   handleSelect,
-  node,
+  selectedRiskIds,
+  text,
+  multiple = true,
   ...props
 }) => {
   const { data } = useQueryRisk();
@@ -54,7 +56,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
       });
   };
 
-  const riskLength = String(node.risks ? node.risks.length : 0);
+  const riskLength = String(selectedRiskIds ? selectedRiskIds.length : 0);
 
   const handleActiveRisk = useCallback(
     (filterFilter: string) => {
@@ -83,13 +85,13 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
     <STagSearchSelect
       options={options}
       icon={ReportProblemOutlinedIcon}
-      multiple
+      multiple={multiple}
       additionalButton={handleAddRisk}
-      text={riskLength === '0' ? '' : riskLength}
+      text={text || (riskLength === '0' ? '' : riskLength)}
       keys={['name', 'type']}
       large={large}
       handleSelectMenu={handleSelectRisk}
-      selected={node?.risks ?? []}
+      selected={selectedRiskIds || []}
       tooltipTitle={`${riskLength} fatores de risco`}
       renderFilter={() => (
         <SMenuSimpleFilter

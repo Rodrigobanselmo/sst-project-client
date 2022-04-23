@@ -15,6 +15,7 @@ import { ModalEnum } from '../../../../../../../../core/enums/modal.enums';
 import { useChecklistTreeActions } from '../../../../../../../../core/hooks/useChecklistTreeActions';
 import { STagButton } from '../../../../../../../atoms/STagButton';
 import SText from '../../../../../../../atoms/SText';
+import { RiskSelect } from '../../../../../../../tagSelects/RiskSelect';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { ITreeSelectedItem } from '../../../../interfaces';
 import { BlockedBySelect } from '../../../Selects/BlockedBySelect';
@@ -25,7 +26,6 @@ import { MedSelect } from '../../../Selects/MedSelect';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { QuestionTypeSelect } from '../../../Selects/QuestionTypeSelect';
 import { RecSelect } from '../../../Selects/RecSelect';
-import { RiskSelect } from '../../../Selects/RiskSelect';
 import { TypeSelect } from '../../../Selects/TypeSelect';
 import { INodeCardProps } from './types';
 
@@ -126,7 +126,7 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
         {node.type === TreeTypeEnum.OPTION && (
           <>
             <RiskSelect
-              node={node}
+              selectedRiskIds={node.risks}
               handleSelect={(options) =>
                 editNodes([{ id: node.id, risks: options }])
               }

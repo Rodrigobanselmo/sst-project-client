@@ -8,10 +8,12 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { parseCookies, setCookie } from 'nookies';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { api } from 'core/services/apiClient';
 
 import { SFileDndUpload } from '../../molecules/SFileDndUpload';
 import { SModalUploadFile } from './types';
@@ -32,7 +34,26 @@ export const ModalUploadFile: FC<SModalUploadFile> = ({
   };
 
   const onConfirmButton = async () => {
+    const { 'nextauth.refreshToken': refresh_token } = parseCookies();
+
+    const response = await api.post('/refresh', { refresh_token });
+
+    const { token } = response.data;
+
+    setCookie(null, 'nextauth.token', token, {
+      maxAge: 60 * 60 * 25 * 30, // 30 days
+      path: '/',
+    });
+
+    setCookie(null, 'nextauth.refreshToken', response.data.refresh_token, {
+      maxAge: 60 * 60 * 25 * 30, // 30 days
+      path: '/',
+    });
+
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
     onConfirm && onConfirm(filesRef.current, getModalData(ModalEnum.UPLOAD));
+
     setTimeout(() => {
       onClose();
     }, 100);

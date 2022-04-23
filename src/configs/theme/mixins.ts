@@ -1,4 +1,4 @@
-const customMixins = {
+const customMixinsIndex = {
   loadingFeedback: 1001,
   saveFeedback: 997,
   mouseControl: 999,
@@ -7,5 +7,12 @@ const customMixins = {
   nodeCard: 10,
   sidebarTree: 998,
 };
+
+const customMixinsSize = {
+  closedSideBarWidth: '4rem',
+  openSideBarWidth: '16rem',
+};
+
+const customMixins = { ...customMixinsSize, ...customMixinsIndex };
 
 export default customMixins;

@@ -4,9 +4,9 @@ import React, { FC, useCallback, useMemo, useState } from 'react';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import { riskFilter } from 'components/main/Tree/ChecklistTree/components/Selects/RiskSelect/constants/filters';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 import { STagSearchSelect } from 'components/molecules/STagSearchSelect';
+import { riskFilter } from 'components/tagSelects/RiskSelect/constants/filters';
 import { StatusSelect } from 'components/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
 

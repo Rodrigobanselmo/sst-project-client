@@ -1,10 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { css } from '@emotion/react';
-import { styled, Box } from '@mui/material';
+import { Box, styled } from '@mui/material';
 
 export const STSBoxButton = styled(Box)<{
   large?: number;
   error?: number;
   active?: number;
+  bg?: string;
 }>`
   border: 1px solid ${(props) => props.theme.palette.background.divider};
 
@@ -35,6 +37,27 @@ export const STSBoxButton = styled(Box)<{
 
       &:active {
         background-color: ${props.theme.palette.primary.light};
+      }
+    `}
+
+  ${(props) =>
+    props.bg &&
+    css`
+      background-color: ${(props.theme.palette as any)[props.bg.split('.')[0]][
+        props.bg.split('.')[1]
+      ]};
+
+      &:hover {
+        opacity: 0.8;
+        background-color: ${(props.theme.palette as any)[
+          props.bg.split('.')[0]
+        ][props.bg.split('.')[1]]};
+      }
+
+      &:active {
+        background-color: ${(props.theme.palette as any)[
+          props.bg.split('.')[0]
+        ][props.bg.split('.')[1]]};
       }
     `}
 

@@ -1,16 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
 
-export interface SideHeaderProps {
-  isAddLoading?: boolean;
-  riskInit?: boolean;
-  inputRef: any;
-  handleAddGHO: () => Promise<void>;
-  handleEditGHO: (id: string) => void;
+export interface SideTableProps {
+  isSelected?: boolean;
+  gho: IGho;
   handleSelectGHO: (
-    gho: IGho | null,
+    data: IGho | null,
     hierarchies: string[],
   ) =>
     | {

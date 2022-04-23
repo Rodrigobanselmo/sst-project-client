@@ -12,6 +12,7 @@ import {
   selectRiskAddInit,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { useSidebarDrawer } from 'core/contexts/SidebarContext';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -23,12 +24,15 @@ import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 
 import { SideHeader } from './components/SideHeader';
 import { SideItems } from './components/SideItems';
+import { SideTable } from './components/SideTable';
+import { SideTop } from './components/SideTop';
 import { STBoxContainer, STBoxStack } from './styles';
 
 export const SidebarOrg = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data } = useQueryGHO();
+  const { isOpen } = useSidebarDrawer();
   const dispatch = useAppDispatch();
   const selectedGhoId = useAppSelector(selectGhoId);
   const isGhoOpen = useAppSelector(selectGhoOpen);
@@ -104,6 +108,13 @@ export const SidebarOrg = () => {
             handleDeleteGHO={handleDeleteGHO}
             isDeleteLoading={deleteMutation.isLoading}
           />
+          {riskInit && (
+            <SideTable
+              handleSelectGHO={handleSelectGHO}
+              isSelected={isSelected}
+              gho={gho}
+            />
+          )}
         </SFlex>
       );
     });
@@ -113,6 +124,7 @@ export const SidebarOrg = () => {
     handleDeleteGHO,
     handleSelectGHO,
     selectedGhoId,
+    riskInit,
   ]);
 
   return (
@@ -120,20 +132,27 @@ export const SidebarOrg = () => {
       <STBoxContainer
         expanded={selectExpanded ? 1 : 0}
         risk_init={riskInit ? 1 : 0}
+        open={isOpen ? 1 : 0}
       >
-        <SideHeader
-          ref={inputRef}
-          handleSelectGHO={handleSelectGHO}
-          handleEditGHO={handleEditGHO}
-          handleAddGHO={handleAddGHO}
-          isAddLoading={addMutation.isLoading}
-        />
-        <STBoxStack
-          expanded={selectExpanded ? 1 : 0}
-          risk_init={riskInit ? 1 : 0}
-        >
-          {memoItems}
-        </STBoxStack>
+        <SideTop handleSelectGHO={handleSelectGHO} riskInit={riskInit} />
+        <div style={{ overflow: 'auto', minWidth: '320px' }}>
+          <table style={{ width: '100%' }}>
+            <SideHeader
+              handleSelectGHO={handleSelectGHO}
+              handleEditGHO={handleEditGHO}
+              handleAddGHO={handleAddGHO}
+              isAddLoading={addMutation.isLoading}
+              riskInit={riskInit}
+              inputRef={inputRef}
+            />
+            <STBoxStack
+              expanded={selectExpanded ? 1 : 0}
+              risk_init={riskInit ? 1 : 0}
+            >
+              {memoItems}
+            </STBoxStack>
+          </table>
+        </div>
       </STBoxContainer>
     </Slide>
   );

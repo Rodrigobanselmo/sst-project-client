@@ -11,7 +11,7 @@ export const STTypography = styled(Typography)<{
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: initial;
-      /* display: -webkit-box; */
+      display: -webkit-box;
       -webkit-line-clamp: ${props.line_number};
       -webkit-box-orient: vertical;
     `}

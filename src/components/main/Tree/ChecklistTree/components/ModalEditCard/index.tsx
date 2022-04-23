@@ -29,6 +29,7 @@ import SModal, {
   SModalHeader,
   SModalPaper,
 } from '../../../../../molecules/SModal';
+import { RiskSelect } from '../../../../../tagSelects/RiskSelect';
 import { nodeTypesConstant } from '../../constants/node-type.constant';
 import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { usePreventNode } from '../../hooks/usePreventNode';
@@ -39,7 +40,6 @@ import { MedSelect } from '../Selects/MedSelect';
 import { QuestionTypeSelect } from '../Selects/QuestionTypeSelect';
 import { questionOptionsConstant } from '../Selects/QuestionTypeSelect/constants/question-options.constant';
 import { RecSelect } from '../Selects/RecSelect';
-import { RiskSelect } from '../Selects/RiskSelect';
 import { TypeSelect } from '../Selects/TypeSelect';
 import { useModalCard } from './hooks/useModalCard';
 
@@ -225,7 +225,7 @@ export const ModalEditCard = () => {
               <>
                 <RiskSelect
                   large
-                  node={selectedNode}
+                  selectedRiskIds={selectedNode.risks}
                   handleSelect={(options) =>
                     setEditNodeSelectedItem({
                       risks: options,

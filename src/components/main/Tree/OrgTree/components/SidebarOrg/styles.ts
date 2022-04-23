@@ -4,6 +4,7 @@ import { Box, styled } from '@mui/material';
 export const STBoxContainer = styled(Box)<{
   risk_init?: number;
   expanded?: number;
+  open?: number;
 }>`
   background-color: ${(props) => props.theme.palette.background.paper};
   width: 100%;
@@ -14,13 +15,16 @@ export const STBoxContainer = styled(Box)<{
   border-radius: ${({ theme }) => theme.spacing(3, 3, 12, 3)};
   position: relative;
   overflow: hidden;
+  padding: ${(props) => props.theme.spacing(5, 5)};
 
   ${(props) =>
     props.risk_init &&
     css`
       max-height: 500px;
       border-radius: ${props.theme.spacing(3, 3, 3, 3)};
-      width: calc(100vw - 130px);
+      width: ${props.open
+        ? `calc(100vw - ${props.theme.mixins.openSideBarWidth} - 55px)`
+        : `calc(100vw - ${props.theme.mixins.closedSideBarWidth} - 55px)`};
     `}
 
   ${(props) =>
@@ -50,7 +54,6 @@ export const STBoxStack = styled(Box)<{
   display: flex;
   flex-direction: column;
   gap: ${(props) => props.theme.spacing(3)};
-  padding: ${(props) => props.theme.spacing(0, 5)};
   padding-bottom: ${(props) => props.theme.spacing(10)};
   max-height: calc(100vh - 300px);
   min-height: ${(props) => props.theme.spacing(100)};
@@ -67,4 +70,16 @@ export const STBoxStack = styled(Box)<{
     css`
       min-height: calc(100vh - 220px);
     `}
+`;
+
+export const STGridExtend = styled(Box)`
+  display: grid;
+  grid-template-columns:
+    minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr)
+    minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr);
+  justify-content: center;
+  align-items: center;
+  padding: ${(props) => props.theme.spacing(2, 4)};
+  gap: ${(props) => props.theme.spacing(5)};
+  width: 100%;
 `;

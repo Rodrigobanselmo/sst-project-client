@@ -12,6 +12,16 @@ export interface IRecMed {
   created_at: string;
 }
 
+export interface IAdmMeasures {
+  id: number;
+  name: string;
+  riskId: number;
+  companyId: string;
+  system: true;
+  status: StatusEnum;
+  created_at: string;
+}
+
 export interface IGenerateSource {
   id: number;
   name: string;

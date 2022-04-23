@@ -21,6 +21,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
       loading,
       error,
       active,
+      bg,
       ...props
     },
     ref,
@@ -29,6 +30,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
 
     return (
       <STSBoxButton
+        bg={bg}
         ref={ref}
         display="flex"
         alignItems="center"
@@ -73,6 +75,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
+              color: active ? 'common.white' : 'common.black',
             }}
           >
             {text}

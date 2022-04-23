@@ -7,7 +7,7 @@ interface StyledStackPros extends StackProps {
 export const FlexStyle = styled(Stack)<StyledStackPros>`
   height: 100%;
   background-color: ${({ theme }) => theme.palette.secondary.dark};
-  width: 16rem;
+  width: ${({ theme }) => theme.mixins.openSideBarWidth};
   transition: all 0.5s ease-in-out;
   display: flex;
   position: relative;
@@ -15,6 +15,6 @@ export const FlexStyle = styled(Stack)<StyledStackPros>`
   ${(props) =>
     props.is_close &&
     css`
-      width: 4rem;
+      width: ${props.theme.mixins.closedSideBarWidth};
     `}
 `;

@@ -45,7 +45,7 @@ export const SideItems: FC<SideItemsProps> = ({
           <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
         </SIconButton>
         <SIconButton
-          onClick={() => handleSelectGHO(data, hierarchies)}
+          onClick={() => handleSelectGHO(isSelected ? null : data, hierarchies)}
           size="small"
         >
           <Icon

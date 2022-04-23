@@ -3,12 +3,8 @@ import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
 
-export interface SideHeaderProps {
-  isAddLoading?: boolean;
+export interface SideTopProps {
   riskInit?: boolean;
-  inputRef: any;
-  handleAddGHO: () => Promise<void>;
-  handleEditGHO: (id: string) => void;
   handleSelectGHO: (
     gho: IGho | null,
     hierarchies: string[],

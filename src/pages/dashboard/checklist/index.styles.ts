@@ -7,6 +7,7 @@ export const STFlexContainer = styled(Box)`
   height: calc(100% - 3rem);
   width: 100%;
   position: relative;
+  overflow: hidden;
   
   @media (min-width: ${({ theme }) => theme.breakpoints.values.sm}px) {
     height: calc(100% - 4rem);
