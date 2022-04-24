@@ -17,7 +17,7 @@ import { IErrorResp } from '../../../../errors/types';
 
 interface ICreateRisk
   extends Partial<Pick<IRiskFactors, 'name' | 'type' | 'status'>> {
-  id?: number;
+  id?: '';
   companyId?: string;
   recMed: IRecMedCreate[];
   generateSource: IGenerateSourceCreate[];

@@ -29,6 +29,7 @@ export const STSInput = styled(SInput)`
   * {
     padding: 0.4rem;
     padding-left: 0.5rem;
+    padding-right: 2rem;
     font-size: 14px;
   }
 

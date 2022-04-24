@@ -12,7 +12,7 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
-  id: number;
+  id: string;
   status?: string;
   companyId?: string;
 }

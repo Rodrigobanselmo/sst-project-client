@@ -7,6 +7,7 @@ const SText: FC<STextProps> = ({
   textAlign = 'start',
   lineNumber,
   color = 'text.main',
+
   ...props
 }) => (
   <STTypography

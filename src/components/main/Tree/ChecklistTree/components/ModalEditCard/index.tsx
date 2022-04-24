@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { useStore } from 'react-redux';
 
 import CircleIcon from '@mui/icons-material/Circle';
@@ -29,17 +29,17 @@ import SModal, {
   SModalHeader,
   SModalPaper,
 } from '../../../../../molecules/SModal';
+import { GenerateSourceSelect } from '../../../../../tagSelects/GenerateSourceSelect';
+import { MedSelect } from '../../../../../tagSelects/MedSelect';
+import { RecSelect } from '../../../../../tagSelects/RecSelect';
 import { RiskSelect } from '../../../../../tagSelects/RiskSelect';
 import { nodeTypesConstant } from '../../constants/node-type.constant';
 import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { usePreventNode } from '../../hooks/usePreventNode';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
 import { CameraSelect } from '../Selects/CameraSelect';
-import { GenerateSourceSelect } from '../Selects/GenerateSourceSelect';
-import { MedSelect } from '../Selects/MedSelect';
 import { QuestionTypeSelect } from '../Selects/QuestionTypeSelect';
 import { questionOptionsConstant } from '../Selects/QuestionTypeSelect/constants/question-options.constant';
-import { RecSelect } from '../Selects/RecSelect';
 import { TypeSelect } from '../Selects/TypeSelect';
 import { useModalCard } from './hooks/useModalCard';
 
@@ -49,7 +49,8 @@ export const ModalEditCard = () => {
   const { registerModal, isOpen } = useRegisterModal();
   const { onCloseModal } = useModal();
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
-  const { editNodes, removeNodes, createEmptyCard } = useChecklistTreeActions();
+  const { editNodes, removeNodes, createEmptyCard, getAllParentRisksById } =
+    useChecklistTreeActions();
 
   const { preventDelete } = usePreventNode();
   const { preventUnwantedChanges } = usePreventAction();
@@ -129,6 +130,14 @@ export const ModalEditCard = () => {
       });
     }
   };
+
+  const selectedNodeRisks = useMemo(() => {
+    const nodeRisks = selectedNode?.risks ?? [];
+
+    const nodeId = selectedNode?.id ?? '-1';
+
+    return [...nodeRisks, ...getAllParentRisksById(nodeId)];
+  }, [getAllParentRisksById, selectedNode]);
 
   const type = selectedNode?.type || 1;
 
@@ -228,34 +237,37 @@ export const ModalEditCard = () => {
                   selectedRiskIds={selectedNode.risks}
                   handleSelect={(options) =>
                     setEditNodeSelectedItem({
-                      risks: options,
+                      risks: options as (string | number)[],
                     })
                   }
                 />
                 <GenerateSourceSelect
                   large
-                  node={selectedNode}
+                  selectedGS={selectedNode?.generateSource ?? []}
+                  riskIds={selectedNodeRisks}
                   handleSelect={(options) =>
                     setEditNodeSelectedItem({
-                      generateSource: options,
+                      generateSource: options as string[],
                     })
                   }
                 />
                 <MedSelect
                   large
-                  node={selectedNode}
+                  selectedMed={selectedNode?.med ?? []}
+                  riskIds={selectedNodeRisks}
                   handleSelect={(options) =>
                     setEditNodeSelectedItem({
-                      med: options,
+                      med: options as string[],
                     })
                   }
                 />
                 <RecSelect
                   large
-                  node={selectedNode}
+                  selectedRec={selectedNode?.rec ?? []}
+                  riskIds={selectedNodeRisks}
                   handleSelect={(options) =>
                     setEditNodeSelectedItem({
-                      rec: options,
+                      rec: options as string[],
                     })
                   }
                 />

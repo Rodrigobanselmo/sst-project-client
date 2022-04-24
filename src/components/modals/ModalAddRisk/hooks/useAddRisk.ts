@@ -28,7 +28,7 @@ export const initialAddRiskState = {
   recMed: [] as (IRecMedCreate & { generateSourceLocalId?: number })[],
   generateSource: [] as IGenerateSourceCreate[],
   hasSubmit: false,
-  id: 0,
+  id: '',
   companyId: '',
 };
 
@@ -177,8 +177,10 @@ export const useAddRisk = () => {
     if (riskData.companyId) risk.companyId = riskData.companyId;
 
     //  add risk then connect generate source with recMed
-    if (risk.id == 0) {
-      const create = await createRiskMut.mutateAsync(risk);
+    if (risk.id == '') {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id, ...riskData } = risk;
+      const create = await createRiskMut.mutateAsync(riskData);
       recMed.map(async (rm) => {
         if (rm.generateSourceLocalId != undefined) {
           const gsLocal = generateSource.find(

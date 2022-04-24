@@ -7,6 +7,7 @@ export const STSBoxButton = styled(Box)<{
   error?: number;
   active?: number;
   bg?: string;
+  disabled?: number;
 }>`
   border: 1px solid ${(props) => props.theme.palette.background.divider};
 
@@ -23,6 +24,22 @@ export const STSBoxButton = styled(Box)<{
   &:active {
     background-color: ${(props) => props.theme.palette.grey[400]};
   }
+
+  ${(props) =>
+    props.disabled &&
+    css`
+      background-color: ${props.theme.palette.background.disabled};
+      opacity: 0.7;
+      cursor: not-allowed;
+
+      &:hover {
+        background-color: ${props.theme.palette.background.disabled};
+      }
+
+      &:active {
+        background-color: ${props.theme.palette.background.disabled};
+      }
+    `}
 
   ${(props) => props.large && css``}
 

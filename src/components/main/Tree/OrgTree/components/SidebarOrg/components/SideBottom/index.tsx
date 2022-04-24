@@ -1,29 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
-import { Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import SIconButton from 'components/atoms/SIconButton';
-import SText from 'components/atoms/SText';
 import { RiskSelect } from 'components/tagSelects/RiskSelect';
-import { setGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
 import {
   selectRisk,
-  setRiskAddInit,
   setRiskAddState,
-  setRiskAddToggleExpand,
 } from 'store/reducers/hierarchy/riskAddSlice';
-
-import SCloseIcon from 'assets/icons/SCloseIcon';
-import SExpandIcon from 'assets/icons/SExpandIcon';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
-import { SideTopProps } from './types';
+import { SideBottomProps } from './types';
 
-export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
+export const SideBottom: FC<SideBottomProps> = ({ riskInit }) => {
   const dispatch = useAppDispatch();
   const selectedRisk = useAppSelector(selectRisk);
 
@@ -32,24 +23,10 @@ export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
   };
 
   return (
-    <SFlex align="center" gap="1" mb={2}>
-      <SIconButton
-        onClick={() => {
-          dispatch(setGhoOpen());
-          dispatch(setRiskAddInit());
-          handleSelectGHO(null, []);
-        }}
-        size="small"
-      >
-        <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
-      </SIconButton>
-      <SText fontSize="0.9rem" color="GrayText">
-        G.H.E
-      </SText>
+    <>
       {riskInit && (
-        <SFlex sx={{ ml: 'auto' }}>
+        <SFlex justify="flex-end">
           <RiskSelect
-            sx={{ minWidth: 230, mr: 5 }}
             large
             active={!!selectedRisk?.type}
             bg={
@@ -63,16 +40,8 @@ export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
             text={selectedRisk ? selectedRisk.name : 'selecione um risco'}
             multiple={false}
           />
-          <SIconButton
-            onClick={() => {
-              dispatch(setRiskAddToggleExpand());
-            }}
-            size="small"
-          >
-            <Icon component={SExpandIcon} sx={{ fontSize: '1.2rem' }} />
-          </SIconButton>
         </SFlex>
       )}
-    </SFlex>
+    </>
   );
 };

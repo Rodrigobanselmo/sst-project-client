@@ -36,6 +36,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
         alignItems="center"
         justifyContent="center"
         active={active ? 1 : 0}
+        disabled={disabled ? 1 : 0}
         sx={{
           minHeight: large ? 30 : 22,
           maxHeight: large ? 30 : 22,

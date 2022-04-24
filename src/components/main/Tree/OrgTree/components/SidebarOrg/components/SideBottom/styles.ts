@@ -24,8 +24,6 @@ export const STBoxInput = styled(Box)`
 `;
 
 export const STGridHeader = styled(STGridExtend)`
-  margin-bottom: ${(props) => props.theme.spacing(-8)};
-
   p {
     font-size: 0.8rem;
   }

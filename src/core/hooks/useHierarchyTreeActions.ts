@@ -206,7 +206,7 @@ export const useHierarchyTreeActions = () => {
             id: node.id as string,
             type: (node.type as unknown as HierarchyEnum) || undefined,
             name: node.label ? node.label : undefined,
-            workplaceId: Number(getPathById(node.id)[1]),
+            workplaceId: String(getPathById(node.id)[1]),
             parentId:
               node.parentId === 'seed' ? null : (node.parentId as string),
           }));

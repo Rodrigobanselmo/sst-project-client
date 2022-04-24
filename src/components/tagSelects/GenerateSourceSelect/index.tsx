@@ -1,4 +1,4 @@
-import React, { FC, useMemo, MouseEvent } from 'react';
+import React, { FC, MouseEvent, useMemo } from 'react';
 
 import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
@@ -9,23 +9,25 @@ import EditIcon from 'assets/icons/SEditIcon';
 import SGenerateSource from 'assets/icons/SGenerateSource';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { useChecklistTreeActions } from 'core/hooks/useChecklistTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
-import { STagSearchSelect } from '../../../../../../molecules/STagSearchSelect';
+import { STagSearchSelect } from '../../molecules/STagSearchSelect';
 import { IGenerateSourceSelectProps } from './types';
 
 export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
   large,
   handleSelect,
-  node,
+  riskIds,
+  selectedGS,
+  text,
+  multiple = true,
+  risk,
   ...props
 }) => {
   const { data } = useQueryRisk();
-  const { getAllParentRisksById } = useChecklistTreeActions();
   const { onOpenModal } = useModal();
 
   const handleSelectGenerateSource = (options: string[]) => {
@@ -37,14 +39,13 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
     option?: IGenerateSource,
   ) => {
     e.stopPropagation();
-    const nodeRisks = node.risks || [];
     const risk = data.find((r) => r.id === option?.riskId);
 
     if (risk)
       onOpenModal<Partial<typeof initialAddGenerateSourceState>>(
         ModalEnum.GENERATE_SOURCE_ADD,
         {
-          riskIds: [...nodeRisks, ...getAllParentRisksById(node.id)],
+          riskIds: riskIds,
           edit: true,
           risk,
           name: option?.name || '',
@@ -55,24 +56,23 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
   };
 
   const handleAddGenerateSource = () => {
-    const nodeRisks = node.risks || [];
+    const passModalData = {
+      riskIds: riskIds,
+    } as Partial<typeof initialAddGenerateSourceState>;
+
+    if (risk) passModalData.risk = risk;
 
     onOpenModal<Partial<typeof initialAddGenerateSourceState>>(
       ModalEnum.GENERATE_SOURCE_ADD,
-      {
-        riskIds: [...nodeRisks, ...getAllParentRisksById(node.id)],
-      },
+      passModalData,
     );
   };
 
   const options = useMemo(() => {
-    const nodeRisks = node.risks || [];
-    const allRisksIds = [...nodeRisks, ...getAllParentRisksById(node.id)].map(
-      (id) => String(id),
-    );
+    const allRisksIds = riskIds.map((id) => String(id));
 
     [...allRisksIds].map((riskId) => {
-      const riskFound = data.find((r) => r.id == Number(riskId));
+      const riskFound = data.find((r) => r.id == riskId);
       if (riskFound) {
         const riskFoundAll = data.find(
           (r) => r.type === riskFound.type && r.representAll,
@@ -101,24 +101,24 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
         });
 
     return [];
-  }, [data, getAllParentRisksById, node.id, node.risks]);
+  }, [data, riskIds]);
 
-  const generateSourceLength = String(
-    node.generateSource ? node.generateSource.length : 0,
-  );
+  const generateSourceLength = String(selectedGS ? selectedGS.length : 0);
 
   return (
     <STagSearchSelect
       options={options}
       icon={SGenerateSource}
-      multiple
+      multiple={multiple}
       additionalButton={handleAddGenerateSource}
       tooltipTitle={`${generateSourceLength} fontes geradas`}
-      text={generateSourceLength === '0' ? '' : generateSourceLength}
+      text={
+        text ? text : generateSourceLength === '0' ? '' : generateSourceLength
+      }
       keys={['name']}
       large={large}
       handleSelectMenu={handleSelectGenerateSource}
-      selected={node?.generateSource ?? []}
+      selected={selectedGS || []}
       endAdornment={(options: IGenerateSource | undefined) => {
         return (
           <STooltip enterDelay={1200} withWrapper title={'editar'}>

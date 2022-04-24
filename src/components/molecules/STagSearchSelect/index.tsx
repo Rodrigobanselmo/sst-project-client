@@ -27,6 +27,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   tooltipTitle,
   endAdornment,
   error,
+  onEnter,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -86,6 +87,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         keys={keys}
         additionalButton={additionalButton}
         renderFilter={renderFilter}
+        onEnter={onEnter}
       />
     </>
   );

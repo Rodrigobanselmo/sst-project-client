@@ -1,4 +1,4 @@
-import React, { FC, MouseEvent } from 'react';
+import React, { FC, MouseEvent, useMemo } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
 import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
@@ -15,17 +15,17 @@ import { ModalEnum } from '../../../../../../../../core/enums/modal.enums';
 import { useChecklistTreeActions } from '../../../../../../../../core/hooks/useChecklistTreeActions';
 import { STagButton } from '../../../../../../../atoms/STagButton';
 import SText from '../../../../../../../atoms/SText';
+import { GenerateSourceSelect } from '../../../../../../../tagSelects/GenerateSourceSelect';
+import { MedSelect } from '../../../../../../../tagSelects/MedSelect';
+import { RecSelect } from '../../../../../../../tagSelects/RecSelect';
 import { RiskSelect } from '../../../../../../../tagSelects/RiskSelect';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { ITreeSelectedItem } from '../../../../interfaces';
 import { BlockedBySelect } from '../../../Selects/BlockedBySelect';
 import { BlockSelect } from '../../../Selects/BlockSelect';
 import { CameraSelect } from '../../../Selects/CameraSelect';
-import { GenerateSourceSelect } from '../../../Selects/GenerateSourceSelect';
-import { MedSelect } from '../../../Selects/MedSelect';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { QuestionTypeSelect } from '../../../Selects/QuestionTypeSelect';
-import { RecSelect } from '../../../Selects/RecSelect';
 import { TypeSelect } from '../../../Selects/TypeSelect';
 import { INodeCardProps } from './types';
 
@@ -58,7 +58,7 @@ const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({
 
 export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
   const { onOpenModal } = useModal();
-  const { editNodes, createEmptyCard, reorderNodes } =
+  const { editNodes, createEmptyCard, reorderNodes, getAllParentRisksById } =
     useChecklistTreeActions();
   const { preventMultipleTextOptions } = usePreventNode();
 
@@ -77,6 +77,14 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
     e.stopPropagation();
     reorderNodes(node.id, move);
   };
+
+  const selectedNodeRisks = useMemo(() => {
+    const nodeRisks = node?.risks ?? [];
+
+    const nodeId = node?.id ?? '-1';
+
+    return [...nodeRisks, ...getAllParentRisksById(nodeId)];
+  }, [getAllParentRisksById, node]);
 
   return (
     <>
@@ -128,25 +136,30 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
             <RiskSelect
               selectedRiskIds={node.risks}
               handleSelect={(options) =>
-                editNodes([{ id: node.id, risks: options }])
+                editNodes([{ id: node.id, risks: options as string[] }])
               }
             />
             <GenerateSourceSelect
-              node={node}
+              selectedGS={node?.generateSource ?? []}
+              riskIds={selectedNodeRisks}
               handleSelect={(options) =>
-                editNodes([{ id: node.id, generateSource: options }])
+                editNodes([
+                  { id: node.id, generateSource: options as string[] },
+                ])
               }
             />
             <MedSelect
-              node={node}
+              selectedMed={node?.med ?? []}
+              riskIds={selectedNodeRisks}
               handleSelect={(options) =>
-                editNodes([{ id: node.id, med: options }])
+                editNodes([{ id: node.id, med: options as string[] }])
               }
             />
             <RecSelect
-              node={node}
+              selectedRec={node?.rec ?? []}
+              riskIds={selectedNodeRisks}
               handleSelect={(options) =>
-                editNodes([{ id: node.id, rec: options }])
+                editNodes([{ id: node.id, rec: options as string[] }])
               }
             />
           </>

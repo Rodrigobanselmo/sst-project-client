@@ -16,11 +16,11 @@ import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 interface ICreateGenerateSource extends Pick<IGenerateSource, 'riskId'> {
-  id: number;
+  id: string;
   status?: string;
   name?: string;
   companyId?: string;
-  recMeds?: (IRecMedCreate & { id?: number })[];
+  recMeds?: (IRecMedCreate & { id?: string })[];
 }
 
 export async function updateGenerateSource(

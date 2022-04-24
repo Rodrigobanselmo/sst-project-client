@@ -13,7 +13,7 @@ import { IErrorResp } from '../../../../errors/types';
 
 interface IUpdateRisk
   extends Partial<Pick<IRiskFactors, 'name' | 'type' | 'status'>> {
-  id: number;
+  id: string;
   recMed: IRecMedCreate[];
   companyId?: string;
 }

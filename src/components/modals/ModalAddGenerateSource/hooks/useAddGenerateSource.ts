@@ -18,7 +18,7 @@ import { generateSourceSchema } from 'core/utils/schemas/generateSource.schema';
 export const initialAddGenerateSourceState = {
   status: StatusEnum.ACTIVE,
   name: '',
-  id: 0,
+  id: '',
   localId: '' as string | number,
   risk: {} as IRiskFactors,
   riskIds: [] as (string | number)[],
@@ -109,7 +109,7 @@ export const useAddGenerateSource = () => {
       ...data,
     };
 
-    if (generateSourceData.id == 0) {
+    if (generateSourceData.id == '') {
       await createGenerateSourceMut.mutateAsync(submitData);
     } else {
       await updateGenerateSourceMut.mutateAsync({

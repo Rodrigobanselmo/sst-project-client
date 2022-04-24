@@ -1,4 +1,4 @@
-import React, { FC, useMemo, MouseEvent } from 'react';
+import React, { FC, MouseEvent, useMemo } from 'react';
 
 import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
@@ -10,23 +10,25 @@ import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
 import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { useChecklistTreeActions } from 'core/hooks/useChecklistTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
-import { STagSearchSelect } from '../../../../../../molecules/STagSearchSelect';
+import { STagSearchSelect } from '../../molecules/STagSearchSelect';
 import { IRecMedSelectProps } from './types';
 
 export const RecSelect: FC<IRecMedSelectProps> = ({
   large,
   handleSelect,
-  node,
+  riskIds,
+  selectedRec,
+  text,
+  multiple = true,
+  risk,
   ...props
 }) => {
   const { data } = useQueryRisk();
-  const { getAllParentRisksById } = useChecklistTreeActions();
   const { onOpenModal } = useModal();
 
   const handleSelectRecMed = (options: string[]) => {
@@ -38,14 +40,13 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
     option?: IRecMed,
   ) => {
     e.stopPropagation();
-    const nodeRisks = node.risks || [];
     const risk = data.find((r) => r.id === option?.riskId);
 
     if (risk)
       onOpenModal<Partial<typeof initialAddRecMedState>>(
         ModalEnum.REC_MED_ADD,
         {
-          riskIds: [...nodeRisks, ...getAllParentRisksById(node.id)],
+          riskIds: riskIds,
           edit: true,
           risk,
           medName: option?.medName || '',
@@ -57,21 +58,23 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
   };
 
   const handleAddRecMed = () => {
-    const nodeRisks = node.risks || [];
+    const passModalData = {
+      riskIds: riskIds,
+    } as Partial<typeof initialAddRecMedState>;
 
-    onOpenModal<Partial<typeof initialAddRecMedState>>(ModalEnum.REC_MED_ADD, {
-      riskIds: [...nodeRisks, ...getAllParentRisksById(node.id)],
-    });
+    if (risk) passModalData.risk = risk;
+
+    onOpenModal<Partial<typeof initialAddRecMedState>>(
+      ModalEnum.REC_MED_ADD,
+      passModalData,
+    );
   };
 
   const options = useMemo(() => {
-    const nodeRisks = node.risks || [];
-    const allRisksIds = [...nodeRisks, ...getAllParentRisksById(node.id)].map(
-      (id) => String(id),
-    );
+    const allRisksIds = riskIds.map((id) => String(id));
 
     [...allRisksIds].map((riskId) => {
-      const riskFound = data.find((r) => r.id == Number(riskId));
+      const riskFound = data.find((r) => r.id == riskId);
       if (riskFound) {
         const riskFoundAll = data.find(
           (r) => r.type === riskFound.type && r.representAll,
@@ -101,22 +104,22 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
         .filter((recMed) => recMed.recName);
 
     return [];
-  }, [data, getAllParentRisksById, node.id, node.risks]);
+  }, [data, riskIds]);
 
-  const recMedLength = String(node.rec ? node.rec.length : 0);
+  const recMedLength = String(selectedRec ? selectedRec.length : 0);
 
   return (
     <STagSearchSelect
       options={options}
       icon={SRecommendationIcon}
-      multiple
+      multiple={multiple}
       additionalButton={handleAddRecMed}
       tooltipTitle={`${recMedLength} recomendações`}
-      text={recMedLength === '0' ? '' : recMedLength}
+      text={text ? text : recMedLength === '0' ? '' : recMedLength}
       keys={['recName']}
       large={large}
       handleSelectMenu={handleSelectRecMed}
-      selected={node?.rec ?? []}
+      selected={selectedRec || []}
       startAdornment={(options: IRecMed | undefined) => {
         if (!options?.medName) return <></>;
 

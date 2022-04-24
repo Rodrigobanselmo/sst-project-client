@@ -11,6 +11,7 @@ import { IErrorResp } from '../../../errors/types';
 
 export async function uploadFile(file: File, path: string) {
   const formData = new FormData();
+  formData.append('file', file);
 
   const { 'nextauth.refreshToken': refresh_token } = parseCookies();
 

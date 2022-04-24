@@ -100,6 +100,7 @@ export const SidebarOrg = () => {
             gridTemplateColumns: '285px 1fr',
             display: 'grid',
           }}
+          gap={5}
         >
           <SideItems
             data={gho}

@@ -53,7 +53,7 @@ export const STBoxStack = styled(Box)<{
 }>`
   display: flex;
   flex-direction: column;
-  gap: ${(props) => props.theme.spacing(3)};
+  gap: ${(props) => props.theme.spacing(4)};
   padding-bottom: ${(props) => props.theme.spacing(10)};
   max-height: calc(100vh - 300px);
   min-height: ${(props) => props.theme.spacing(100)};
@@ -75,8 +75,8 @@ export const STBoxStack = styled(Box)<{
 export const STGridExtend = styled(Box)`
   display: grid;
   grid-template-columns:
-    minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr)
-    minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr);
+    minmax(100px, 1fr) 100px minmax(100px, 1fr)
+    100px minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr);
   justify-content: center;
   align-items: center;
   padding: ${(props) => props.theme.spacing(2, 4)};

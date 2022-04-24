@@ -21,7 +21,7 @@ interface IUpsertHierarchy {
   name?: string;
   companyId?: string;
   parentId?: string | null;
-  workplaceId?: number;
+  workplaceId?: string;
 }
 
 export async function upsertManyHierarchy(
@@ -73,7 +73,7 @@ export function useMutUpsertManyHierarchy() {
           parentId:
             hierarchy.parentId === null
               ? null
-              : Number(hierarchy.parentId)
+              : hierarchy.parentId
               ? undefined
               : hierarchy.parentId,
         };

@@ -10,7 +10,7 @@ export interface IHierarchy {
   name: string;
   companyId: string;
   parentId: string | null;
-  workplaceId: number;
+  workplaceId: string;
 }
 
 export type IHierarchyMap = Record<

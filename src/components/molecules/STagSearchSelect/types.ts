@@ -2,13 +2,16 @@
 import { ElementType, MouseEvent, ReactNode } from 'react';
 
 import { BoxProps } from '@mui/material';
+import { ISTagButtonProps } from 'components/atoms/STagButton/types';
 import Fuse from 'fuse.js';
 
 import { IMenuSearchOption } from '../SMenuSearch/types';
 
 export type IAnchorEvent = (EventTarget & HTMLDivElement) | null;
 
-export interface ISTagSearchSelectProps extends BoxProps {
+export interface ISTagSearchSelectProps
+  extends BoxProps,
+    Partial<ISTagButtonProps> {
   text: string;
   tooltipTitle?: string;
   bg?: string;
@@ -24,6 +27,7 @@ export interface ISTagSearchSelectProps extends BoxProps {
   icon?: ElementType<any>;
   iconItem?: ElementType<any>;
   multiple?: boolean;
+  onEnter?: (value: string) => void;
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
   renderFilter?: () => React.ReactNode;
   error?: boolean;

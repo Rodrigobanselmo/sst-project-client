@@ -18,7 +18,7 @@ export const initialAddRecMedState = {
   status: StatusEnum.ACTIVE,
   recName: '',
   medName: '',
-  id: 0,
+  id: '',
   localId: '' as string | number,
   risk: {} as IRiskFactors,
   riskIds: [] as (string | number)[],
@@ -102,7 +102,7 @@ export const useAddRecMed = () => {
       ...data,
     };
 
-    if (recMedData.id == 0) {
+    if (recMedData.id == '') {
       await createRecMedMut.mutateAsync(submitData);
     } else {
       await updateRecMedMut.mutateAsync({

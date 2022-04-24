@@ -28,6 +28,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   selected,
   additionalButton,
   renderFilter,
+  onEnter,
   ...props
 }) => {
   const [search, setSearch] = useState<string>('');
@@ -119,7 +120,9 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           unstyled
           autoFocus
           onKeyDown={(e) => {
-            e.stopPropagation();
+            // e.stopPropagation();
+            const target = e.target as unknown as { value: string };
+            if (e.key === 'Enter') if (onEnter) onEnter(target.value);
           }}
         />
         {renderFilter && renderFilter()}

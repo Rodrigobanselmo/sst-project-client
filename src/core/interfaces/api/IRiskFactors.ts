@@ -2,10 +2,10 @@ import { RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 export interface IRecMed {
-  id: number;
+  id: string;
   recName: string;
   medName: string;
-  riskId: number;
+  riskId: string;
   companyId: string;
   system: true;
   status: StatusEnum;
@@ -13,9 +13,9 @@ export interface IRecMed {
 }
 
 export interface IAdmMeasures {
-  id: number;
+  id: string;
   name: string;
-  riskId: number;
+  riskId: string;
   companyId: string;
   system: true;
   status: StatusEnum;
@@ -23,9 +23,9 @@ export interface IAdmMeasures {
 }
 
 export interface IGenerateSource {
-  id: number;
+  id: string;
   name: string;
-  riskId: number;
+  riskId: string;
   companyId: string;
   system: true;
   status: StatusEnum;
@@ -35,20 +35,20 @@ export interface IGenerateSource {
 export interface IRecMedCreate {
   recName?: string;
   medName?: string;
-  riskId?: number;
+  riskId?: string;
   status?: StatusEnum;
   localId?: string | number;
 }
 
 export interface IGenerateSourceCreate {
   name?: string;
-  riskId?: number;
+  riskId?: string;
   status?: StatusEnum;
   localId?: string | number;
 }
 
 export interface IRiskFactors {
-  id: number;
+  id: string;
   name: string;
   type: RiskEnum;
   system: boolean;

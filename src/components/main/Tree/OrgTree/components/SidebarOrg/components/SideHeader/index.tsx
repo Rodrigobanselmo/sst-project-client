@@ -19,7 +19,7 @@ export const SideHeader: FC<SideHeaderProps> = ({
   riskInit,
 }) => {
   return (
-    <SFlex align="center" gap="1" mb={2}>
+    <SFlex align="center" gap={4} mb={5}>
       <SideInput
         ref={inputRef}
         handleSelectGHO={handleSelectGHO}
@@ -31,7 +31,7 @@ export const SideHeader: FC<SideHeaderProps> = ({
         <STGridHeader>
           {headerRows.map((row) => (
             <STooltip key={row.label} title={row.tooltip}>
-              <SFlex>
+              <SFlex center>
                 <SText lineNumber={1}>{row.label}</SText>
               </SFlex>
             </STooltip>

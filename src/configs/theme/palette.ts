@@ -87,6 +87,7 @@ const palette = {
     divider: '#efefef',
     lightGray: '#F3F5F8',
     box: '#F7FAFC',
+    disabled: '#ddd',
   },
   text: {
     dark: '#000',
