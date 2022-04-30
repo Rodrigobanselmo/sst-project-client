@@ -34,6 +34,8 @@ export async function upsertManyHierarchy(
     data: data.map((item) => ({ ...item, companyId })),
   };
 
+  console.log('data', data);
+
   const response = await api.post<IHierarchy[]>(
     ApiRoutesEnum.HIERARCHY + '/upsert-many',
     sendData,
@@ -74,8 +76,8 @@ export function useMutUpsertManyHierarchy() {
             hierarchy.parentId === null
               ? null
               : hierarchy.parentId
-              ? undefined
-              : hierarchy.parentId,
+              ? hierarchy.parentId
+              : undefined,
         };
       });
 

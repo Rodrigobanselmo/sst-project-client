@@ -113,6 +113,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         }}
       >
         <STSInput
+          inputProps={{ id: 'input-menu-search', tabIndex: -1 }}
           onChange={(e) => handleSearchChange(e.target.value)}
           placeholder={placeholder}
           variant="standard"
@@ -120,9 +121,24 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           unstyled
           autoFocus
           onKeyDown={(e) => {
-            // e.stopPropagation();
             const target = e.target as unknown as { value: string };
             if (e.key === 'Enter') if (onEnter) onEnter(target.value);
+            if (e.key === 'ArrowDown') {
+              const listItem = document.getElementById('menu-item-id-0');
+              if (listItem) {
+                listItem.focus();
+                if (listWrapperRef.current?.style)
+                  (listWrapperRef.current.style.overflowY as any) = 'hidden';
+                setTimeout(() => {
+                  if (listWrapperRef.current?.style)
+                    (listWrapperRef.current.style.overflowY as any) = 'auto';
+                }, 100);
+                e.stopPropagation();
+              }
+            }
+            if (e.key === 'ArrowUp') {
+              e.stopPropagation();
+            }
           }}
         />
         {renderFilter && renderFilter()}
@@ -146,7 +162,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         sx={{ maxHeight: 350, overflow: 'auto' }}
       >
         <SMenuSearchItems
-          options={results}
+          options={options}
           optionsFieldName={optionsFieldName}
           handleMenuSelect={handleMenuSelect}
           startAdornment={startAdornment}
@@ -155,6 +171,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           localSelected={localSelected}
           multiple={multiple}
           defaultChecked
+          setScroll={setScroll}
         />
         {additionalButton && (
           <SIconButton

@@ -1,4 +1,4 @@
-import { ReactNode, MutableRefObject } from 'react';
+import { ReactNode, MutableRefObject, SetStateAction, Dispatch } from 'react';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ElementType, MouseEvent } from 'react';
 
@@ -19,4 +19,5 @@ export interface SMenuItemsSearchProps extends Omit<MenuItemProps, 'selected'> {
   endAdornment?: (option: IMenuSearchOption) => ReactNode;
   optionsFieldName?: { valueField?: string; contentField?: string };
   multiple?: boolean;
+  setScroll: Dispatch<SetStateAction<number>>;
 }

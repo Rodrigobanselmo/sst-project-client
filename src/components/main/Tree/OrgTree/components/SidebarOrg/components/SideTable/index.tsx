@@ -1,10 +1,9 @@
 import React, { FC } from 'react';
 
-import { Box, Icon } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
-import SIconButton from 'components/atoms/SIconButton';
+import { Box } from '@mui/material';
+import { STag } from 'components/atoms/STag';
+import { ITagActionColors } from 'components/atoms/STag/types';
 import SText from 'components/atoms/SText';
-import STooltip from 'components/atoms/STooltip';
 import { GenerateSourceSelect } from 'components/tagSelects/GenerateSourceSelect';
 import {
   IDataAddRisk,
@@ -14,12 +13,13 @@ import {
   setGhoRiskRemoveParams,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
-import SDeleteIcon from 'assets/icons/SDeleteIcon';
-
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
+import { getMatrizRisk } from 'core/utils/helpers/matrizConvertion';
 
+import { SelectedNumber } from './components/SelectedNumber';
+import { SelectedTableItem } from './components/SelectedTableItem';
 import { STGridItem } from './styles';
 import { SideTableProps } from './types';
 
@@ -44,6 +44,8 @@ export const SideTable: FC<SideTableProps> = ({ gho, isSelected }) => {
     );
   };
 
+  const actualMatrixLevel = getMatrizRisk(data.probability, risk?.severity);
+
   return (
     <STGridItem key={gho.id} selected={isSelected ? 1 : 0}>
       <Box>
@@ -63,34 +65,25 @@ export const SideTable: FC<SideTableProps> = ({ gho, isSelected }) => {
           }}
         />
         {data.gs?.map((gs) => (
-          <STooltip title={gs.name} key={gs.id}>
-            <SFlex mt={4} align="center">
-              <SIconButton
-                color="error"
-                onClick={() =>
-                  handleRemove({
-                    gs: [{ id: gs.id, name: '' }],
-                  })
-                }
-              >
-                <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
-              </SIconButton>
-              <SText lineNumber={2} variant="body2">
-                {gs.name}
-              </SText>
-            </SFlex>
-          </STooltip>
+          <SelectedTableItem
+            key={gs.id}
+            name={gs.name}
+            handleRemove={() =>
+              handleRemove({
+                gs: [{ id: gs.id, name: '' }],
+              })
+            }
+          />
         ))}
       </Box>
-      <Box>
-        <SText lineNumber={2}>{gho.name}</SText>
-      </Box>
-      <Box>
-        <SText lineNumber={2}>{gho.name}</SText>
-      </Box>
-      <Box>
-        <SText lineNumber={2}>{gho.name}</SText>
-      </Box>
+      <SelectedNumber
+        handleSelect={(number) => handleSelect({ probability: number })}
+        selectedNumber={data.probability}
+      />
+      <STag
+        action={String(actualMatrixLevel?.level) as unknown as ITagActionColors}
+        text={actualMatrixLevel?.label || 'indisponivel'}
+      />
       <Box>
         <SText lineNumber={2}>{gho.name}</SText>
       </Box>

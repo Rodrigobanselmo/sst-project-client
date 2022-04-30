@@ -96,7 +96,6 @@ export const STagAction: FC<ISTagProps> = ({
       {action === 'upload' ? 'Exportar' : ''}
 
       {Icon && <Icon sx={{ fontSize: '18px', color: 'common.white' }} />}
-      {!action ? text : ''}
     </SFlex>
   );
 };

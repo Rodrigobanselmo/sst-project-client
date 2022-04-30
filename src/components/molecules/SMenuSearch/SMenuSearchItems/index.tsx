@@ -17,6 +17,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
   startAdornment,
   multiple,
   options,
+  setScroll,
   optionsFieldName,
   localSelected,
   endAdornment,
@@ -28,7 +29,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
 
   return (
     <>
-      {options.map((option) => {
+      {options.map((option, index, arr) => {
         const value = option[valueField];
         const content = option[contentField];
         const checked =
@@ -38,7 +39,28 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
         return (
           <STMenuItem
             key={value}
+            id={'menu-item-id-' + index}
             className="checkbox-menu-item"
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowUp' && index === 0) {
+                const input = document.getElementById('input-menu-search');
+                if (input) {
+                  input.focus();
+                  e.stopPropagation();
+                }
+              }
+              if (e.key === 'ArrowDown') {
+                if (index === arr.length - 2)
+                  setScroll && setScroll((scroll) => scroll + 1);
+                if (index === arr.length - 1) {
+                  const input = document.getElementById('input-menu-search');
+                  if (input) {
+                    input.focus();
+                    e.stopPropagation();
+                  }
+                }
+              }
+            }}
             onClick={(e) => {
               if (!multiple) handleMenuSelect(option, e);
               if (multiple) {

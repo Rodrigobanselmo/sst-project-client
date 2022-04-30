@@ -55,6 +55,13 @@ const palette = {
     dark: '#28a767',
     main: '#3cbe7d',
   },
+  scale: {
+    low: '#3cbe7d',
+    mediumLow: '#8fa728',
+    medium: '#d9d10b',
+    mediumHigh: '#d96c2f',
+    high: '#F44336',
+  },
   error: {
     main: '#F44336',
   },

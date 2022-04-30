@@ -52,6 +52,7 @@ export interface IRiskFactors {
   name: string;
   type: RiskEnum;
   system: boolean;
+  severity: number;
   representAll: boolean;
   recMed: IRecMed[];
   generateSource: IGenerateSource[];

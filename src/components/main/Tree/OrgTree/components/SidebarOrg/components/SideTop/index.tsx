@@ -4,6 +4,7 @@ import React, { FC } from 'react';
 import { Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
+import { STag } from 'components/atoms/STag';
 import SText from 'components/atoms/SText';
 import { RiskSelect } from 'components/tagSelects/RiskSelect';
 import { setGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
@@ -47,7 +48,19 @@ export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
         G.H.E
       </SText>
       {riskInit && (
-        <SFlex sx={{ ml: 'auto' }}>
+        <SFlex center sx={{ ml: 'auto' }}>
+          {selectedRisk?.severity && (
+            <>
+              <SText fontSize={15} color="text.light" mr={2}>
+                Severidade
+              </SText>
+              <STag
+                sx={{ px: 4, mr: 15, fontWeight: 'bold' }}
+                text={String(selectedRisk?.severity)}
+                action={String(selectedRisk?.severity) as any}
+              />
+            </>
+          )}
           <RiskSelect
             sx={{ minWidth: 230, mr: 5 }}
             large
@@ -63,6 +76,7 @@ export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
             text={selectedRisk ? selectedRisk.name : 'selecione um risco'}
             multiple={false}
           />
+
           <SIconButton
             onClick={() => {
               dispatch(setRiskAddToggleExpand());
