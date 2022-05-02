@@ -23,6 +23,7 @@ import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 
 export const initialAddRiskState = {
   status: StatusEnum.ACTIVE,
+  severity: 0,
   name: '',
   type: '',
   recMed: [] as (IRecMedCreate & { generateSourceLocalId?: number })[],
@@ -50,9 +51,16 @@ export const useAddRisk = () => {
   const [riskData, setRiskData] = useState(initialAddRiskState);
 
   useEffect(() => {
-    const { isAddRecMed, isAddGenerateSource, remove, edit, ...initialData } =
-      getModalData<any>(ModalEnum.RISK_ADD);
-    console.log('initialData', initialData);
+    const {
+      isAddRecMed,
+      isAddGenerateSource,
+      remove,
+      edit: editPass,
+      ...initialData
+    } = getModalData<any>(ModalEnum.RISK_ADD);
+
+    const edit = !!initialData.id || editPass;
+
     if (isAddRecMed) {
       return setRiskData((oldData) => {
         if (remove) {
@@ -160,7 +168,11 @@ export const useAddRisk = () => {
     }
   }, [getModalData]);
 
-  const onSubmit: SubmitHandler<IRiskSchema> = async ({ name, type }) => {
+  const onSubmit: SubmitHandler<IRiskSchema> = async ({
+    name,
+    type,
+    severity,
+  }) => {
     const { id, companyId, recMed, generateSource, status } = riskData;
     const typeValue = type as RiskEnum;
 
@@ -172,6 +184,7 @@ export const useAddRisk = () => {
       status,
       name,
       type: typeValue,
+      severity,
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;

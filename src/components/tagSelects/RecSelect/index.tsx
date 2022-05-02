@@ -26,6 +26,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
   text,
   multiple = true,
   risk,
+  onlyFromActualRisks,
   ...props
 }) => {
   const { data } = useQueryRisk();
@@ -101,10 +102,14 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
             ),
           };
         })
-        .filter((recMed) => recMed.recName);
+        .filter(
+          (recMed) =>
+            recMed.recName &&
+            (onlyFromActualRisks ? !recMed.hideWithoutSearch : true),
+        );
 
     return [];
-  }, [data, riskIds]);
+  }, [data, onlyFromActualRisks, riskIds]);
 
   const recMedLength = String(selectedRec ? selectedRec.length : 0);
 

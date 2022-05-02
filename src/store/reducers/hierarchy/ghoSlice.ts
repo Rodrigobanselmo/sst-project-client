@@ -1,18 +1,20 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import { IGho } from 'core/interfaces/api/IGho';
+
 import { AppState } from '../..';
 
 export interface IGhoState {
   open: boolean;
-  id: string;
+  data: IGho | null;
   hierarchies: string[];
 }
 
 const initialState: IGhoState = {
-  id: '',
   hierarchies: [],
   open: false,
+  data: null,
 };
 
 const name = 'gho';
@@ -57,7 +59,9 @@ export const {
 
 export const selectGhoOpen = (state: AppState) => state.gho.open;
 export const selectGho = (state: AppState) => state.gho;
-export const selectGhoId = (state: AppState) => state.gho.id;
+export const selectGhoData = (state: AppState) => state.gho.data;
+export const selectGhoId = (state: AppState) =>
+  state.gho.data ? state.gho.data.id : null;
 export const selectGhoHierarchy =
   (hierarchies: string[]) => (state: AppState) =>
     hierarchies.some((hierarchyId) =>

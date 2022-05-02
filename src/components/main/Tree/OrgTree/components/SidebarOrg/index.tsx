@@ -10,16 +10,18 @@ import {
 import {
   selectRiskAddExpand,
   selectRiskAddInit,
+  setRemoveGhoRisk,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { useSidebarDrawer } from 'core/contexts/SidebarContext';
+import { ModalEnum } from 'core/enums/modal.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IGho } from 'core/interfaces/api/IGho';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/useMutDeleteGho';
-import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/useMutUpdateGho';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 
 import { SideHeader } from './components/SideHeader';
@@ -33,54 +35,48 @@ export const SidebarOrg = () => {
   const { preventDelete } = usePreventAction();
   const { data } = useQueryGHO();
   const { isOpen } = useSidebarDrawer();
+  const { onOpenModal } = useModal();
   const dispatch = useAppDispatch();
   const selectedGhoId = useAppSelector(selectGhoId);
   const isGhoOpen = useAppSelector(selectGhoOpen);
   const riskInit = useAppSelector(selectRiskAddInit);
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const addMutation = useMutCreateGho();
-  const updateMutation = useMutUpdateGho();
   const deleteMutation = useMutDeleteGho();
 
   const handleAddGHO = async () => {
-    if (inputRef.current?.value) {
-      await addMutation.mutateAsync({
-        name: inputRef.current.value,
-      });
-
-      inputRef.current.value = '';
-      inputRef.current.focus();
-    }
+    onOpenModal(ModalEnum.GHO_ADD);
   };
 
-  const handleEditGHO = (id: string) => {
-    if (inputRef.current?.value) {
-      updateMutation.mutate({ name: inputRef.current.value, id });
-    }
+  const handleEditGHO = (data: IGho) => {
+    onOpenModal(ModalEnum.GHO_ADD, {
+      id: data.id,
+      name: data.name,
+      status: data.status,
+    });
   };
 
   const handleDeleteGHO = useCallback(
     (id: string) => {
-      preventDelete(() => deleteMutation.mutate(id));
+      preventDelete(async () => {
+        await deleteMutation.mutateAsync(id);
+        dispatch(setGhoState({ hierarchies: [], data: null }));
+        dispatch(setRemoveGhoRisk({ ghoId: id }));
+      });
     },
-    [deleteMutation, preventDelete],
+    [deleteMutation, dispatch, preventDelete],
   );
 
   const handleSelectGHO = useCallback(
     (gho: IGho | null, hierarchies: string[]) => {
-      if (!gho) {
-        if (inputRef.current) inputRef.current.value = '';
-        return dispatch(setGhoState({ id: '', hierarchies: [] }));
-      }
+      if (!gho) return dispatch(setGhoState({ hierarchies: [], data: null }));
 
       const isSelected = selectedGhoId === gho.id;
 
       const data = {
-        id: isSelected ? '' : gho.id,
         hierarchies: isSelected ? [] : hierarchies,
+        data: gho,
       };
-
-      if (inputRef.current) inputRef.current.value = gho.name;
 
       dispatch(setGhoState(data));
     },
@@ -109,13 +105,7 @@ export const SidebarOrg = () => {
             handleDeleteGHO={handleDeleteGHO}
             isDeleteLoading={deleteMutation.isLoading}
           />
-          {riskInit && (
-            <SideTable
-              handleSelectGHO={handleSelectGHO}
-              isSelected={isSelected}
-              gho={gho}
-            />
-          )}
+          {riskInit && <SideTable isSelected={isSelected} gho={gho} />}
         </SFlex>
       );
     });
@@ -129,7 +119,12 @@ export const SidebarOrg = () => {
   ]);
 
   return (
-    <Slide direction="left" in={isGhoOpen} mountOnEnter unmountOnExit>
+    <Slide
+      direction="left"
+      in={isGhoOpen || riskInit}
+      mountOnEnter
+      unmountOnExit
+    >
       <STBoxContainer
         expanded={selectExpanded ? 1 : 0}
         risk_init={riskInit ? 1 : 0}

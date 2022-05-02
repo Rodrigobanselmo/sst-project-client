@@ -29,6 +29,8 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   additionalButton,
   renderFilter,
   onEnter,
+  onSearch,
+  asyncLoad,
   ...props
 }) => {
   const [search, setSearch] = useState<string>('');
@@ -36,6 +38,10 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
 
   const localSelected = useRef<(string | number)[]>([]);
   const listWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    onSearch && onSearch(search);
+  }, [onSearch, search]);
 
   const handleMenuSelect = (
     option: IMenuSearchOption,
@@ -86,13 +92,17 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options, selected]);
 
-  const fuse = new Fuse(optionsMemoized, { keys, ignoreLocation: true });
+  const fuse = asyncLoad
+    ? ({} as any)
+    : new Fuse(optionsMemoized, { keys, ignoreLocation: true });
 
   const numberOfRows = 20 + 200 * scroll;
 
-  const fuseResults = fuse.search(search, { limit: 20 });
-  const results = search
-    ? fuseResults.map((result) => result.item)
+  const fuseResults = asyncLoad ? null : fuse.search(search, { limit: 20 });
+  const results = asyncLoad
+    ? optionsMemoized
+    : search
+    ? fuseResults.map((result: any) => result.item)
     : optionsMemoized
         .filter((option) => !(option?.hideWithoutSearch && !option?.checked))
         .slice(0, 20 + 200 * scroll);
@@ -162,7 +172,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         sx={{ maxHeight: 350, overflow: 'auto' }}
       >
         <SMenuSearchItems
-          options={options}
+          options={results}
           optionsFieldName={optionsFieldName}
           handleMenuSelect={handleMenuSelect}
           startAdornment={startAdornment}

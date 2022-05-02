@@ -34,8 +34,8 @@ export const BottomButton: FC = () => {
       <STooltip placement="top" title="Adicionar Fatores de Risco">
         <SFlexButton
           onClick={() => {
-            if (!isGhoOpen) dispatch(setGhoOpen());
             dispatch(setRiskAddInit());
+            dispatch(setGhoOpen(false));
           }}
           active={isRiskOpen ? 1 : 0}
           gap={4}
@@ -52,7 +52,7 @@ export const BottomButton: FC = () => {
         <SFlexButton
           active={isGhoOpen ? 1 : 0}
           onClick={() => {
-            if (isRiskOpen) dispatch(setRiskAddInit());
+            dispatch(setRiskAddInit(false));
             dispatch(setGhoOpen());
           }}
           gap={3}

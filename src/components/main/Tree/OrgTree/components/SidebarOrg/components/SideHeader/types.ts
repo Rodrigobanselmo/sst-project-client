@@ -8,7 +8,7 @@ export interface SideHeaderProps {
   riskInit?: boolean;
   inputRef: any;
   handleAddGHO: () => Promise<void>;
-  handleEditGHO: (id: string) => void;
+  handleEditGHO: (data: IGho) => void;
   handleSelectGHO: (
     gho: IGho | null,
     hierarchies: string[],

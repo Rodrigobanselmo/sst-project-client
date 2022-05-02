@@ -22,6 +22,7 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
     option: IMenuSearchOption | string[],
     event: MouseEvent<HTMLLIElement>,
   ) => void;
+  onSearch?: (value: string) => void;
   onEnter?: (value: string) => void;
   icon?: ElementType<any>;
   endAdornment?: (option: any) => ReactNode;
@@ -33,4 +34,5 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   multiple?: boolean;
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
   renderFilter?: () => React.ReactNode;
+  asyncLoad?: boolean;
 }

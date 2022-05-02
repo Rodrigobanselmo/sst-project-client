@@ -6,7 +6,7 @@ import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import { SEndButton } from 'components/atoms/SIconButton/SEndButton';
 import STooltip from 'components/atoms/STooltip';
-import { selectGhoId } from 'store/reducers/hierarchy/ghoSlice';
+import { selectGhoData } from 'store/reducers/hierarchy/ghoSlice';
 
 import SCloseIcon from 'assets/icons/SCloseIcon';
 import SSaveIcon from 'assets/icons/SSaveIcon';
@@ -19,13 +19,13 @@ import { SideInputProps } from './types';
 // eslint-disable-next-line react/display-name
 export const SideInput = React.forwardRef<any, SideInputProps>(
   ({ handleAddGHO, handleEditGHO, handleSelectGHO, isAddLoading }, ref) => {
-    const selectedGhoId = useAppSelector(selectGhoId);
+    const selectedGho = useAppSelector(selectGhoData);
 
     return (
       <STSInput
         endAdornment={
           <SFlex gap={2} center>
-            {selectedGhoId && (
+            {selectedGho?.id && (
               <SIconButton
                 onClick={() => handleSelectGHO(null, [])}
                 size="small"
@@ -35,14 +35,14 @@ export const SideInput = React.forwardRef<any, SideInputProps>(
             )}
             <STooltip
               withWrapper
-              title={selectedGhoId ? 'Salvar' : 'Adicionar'}
+              title={selectedGho?.id ? 'Salvar' : 'Adicionar'}
             >
               <SEndButton
-                icon={selectedGhoId ? SSaveIcon : undefined}
-                bg={selectedGhoId ? 'info.main' : 'tag.add'}
+                icon={selectedGho?.id ? SSaveIcon : undefined}
+                bg={selectedGho?.id ? 'info.main' : 'tag.add'}
                 onClick={
-                  selectedGhoId
-                    ? () => handleEditGHO(selectedGhoId)
+                  selectedGho?.id
+                    ? () => handleEditGHO(selectedGho)
                     : () => handleAddGHO()
                 }
               />
@@ -57,7 +57,7 @@ export const SideInput = React.forwardRef<any, SideInputProps>(
         inputRef={ref}
         onKeyDown={(e) => {
           if (e.key === 'Enter')
-            if (selectedGhoId) handleEditGHO(selectedGhoId);
+            if (selectedGho?.id) handleEditGHO(selectedGho);
             else handleAddGHO();
         }}
         fullWidth

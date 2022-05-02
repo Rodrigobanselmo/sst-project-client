@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { MedTypeEnum } from 'project/enum/medType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -25,6 +26,7 @@ export const initialAddRecMedState = {
   hasSubmit: false,
   passDataBack: false,
   edit: false,
+  medType: null as MedTypeEnum | null,
 };
 
 export const useAddRecMed = () => {
@@ -82,9 +84,11 @@ export const useAddRecMed = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ recName: string; medName: string }> = async (
-    data,
-  ) => {
+  const onSubmit: SubmitHandler<{
+    recName: string;
+    medName: string;
+    medType: string;
+  }> = async (data) => {
     if (recMedData.passDataBack)
       return onClose({
         status: recMedData.status,

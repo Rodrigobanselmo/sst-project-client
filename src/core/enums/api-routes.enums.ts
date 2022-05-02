@@ -1,6 +1,7 @@
 export enum ApiRoutesEnum {
   HIERARCHY = '/hierarchy',
   GHO = '/homogeneous-groups',
+  EPI = '/epi',
   EMPLOYEES = '/employee',
   COMPANIES = '/company',
   DATABASE_TABLE = '/files/database-tables',

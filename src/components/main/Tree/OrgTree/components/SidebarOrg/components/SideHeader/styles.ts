@@ -1,6 +1,8 @@
 import { Box, styled } from '@mui/material';
 import { SInput } from 'components/atoms/SInput';
 
+import SInfoIcon from 'assets/icons/SDeleteIcon';
+
 import { STGridExtend } from '../../styles';
 
 export const STGridItem = styled(STGridExtend)`
@@ -29,4 +31,9 @@ export const STGridHeader = styled(STGridExtend)`
   p {
     font-size: 0.8rem;
   }
+`;
+
+export const StyledSInfoIcon = styled(SInfoIcon)`
+  font-size: 12px;
+  color: ${(props) => props.theme.palette.text.disabled};
 `;

@@ -11,8 +11,10 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { RiskEnum } from 'project/enum/risk.enums';
+import { SeverityEnum } from 'project/enum/severity.enums';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { enumToArray } from 'core/utils/helpers/convertEnum';
 
 import { EditRiskSelects } from './components/EditRiskSelects';
 import { useAddRisk } from './hooks/useAddRisk';
@@ -32,7 +34,7 @@ export const ModalAddRisk = () => {
   const buttons = [
     {},
     {
-      text: 'Criar',
+      text: riskData?.id ? 'Editar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => setRiskData({ ...riskData, hasSubmit: true }),
@@ -47,7 +49,7 @@ export const ModalAddRisk = () => {
     >
       <SModalPaper p={8} component="form" onSubmit={handleSubmit(onSubmit)}>
         <SModalHeader
-          tag="add"
+          tag={riskData?.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
           title={'Fator de risco'}
         />
@@ -72,6 +74,16 @@ export const ModalAddRisk = () => {
             options={Object.keys(RiskEnum)}
             name="type"
             mt={3}
+            columns={5}
+          />
+          <RadioForm
+            type="radio"
+            label="Severidade"
+            control={control}
+            defaultValue={String(riskData.severity)}
+            options={enumToArray(SeverityEnum, 'value')}
+            name="severity"
+            mt={5}
             columns={5}
           />
         </Box>

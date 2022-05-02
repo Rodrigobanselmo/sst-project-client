@@ -12,10 +12,11 @@ import { SelectedTableItemProps } from './types';
 
 export const SelectedTableItem: FC<SelectedTableItemProps> = ({
   name,
+  tooltip,
   handleRemove,
 }) => {
   return (
-    <STooltip title={name}>
+    <STooltip title={tooltip || name}>
       <SFlex
         sx={{
           border: '1px solid',

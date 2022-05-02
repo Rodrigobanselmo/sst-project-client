@@ -28,12 +28,16 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   endAdornment,
   error,
   onEnter,
+  onSearch,
+  asyncLoad,
+  onClose,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
 
   const handleClose = () => {
     setAnchorEl(null);
+    onClose && onClose();
   };
 
   const handleSelectTag = (e: MouseEvent<HTMLDivElement>) => {
@@ -72,6 +76,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         )}
       </div>
       <SMenuSearch
+        asyncLoad={asyncLoad}
         close={handleClose}
         isOpen={Boolean(anchorEl)}
         anchorEl={anchorEl}
@@ -88,6 +93,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         additionalButton={additionalButton}
         renderFilter={renderFilter}
         onEnter={onEnter}
+        onSearch={onSearch}
       />
     </>
   );

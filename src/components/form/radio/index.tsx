@@ -1,17 +1,23 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
 
+import { Box, Typography } from '@mui/material';
 import SRadioCheckbox from 'components/atoms/SRadioCheckbox';
 
-import { InputFormProps } from './types';
+import { InputFormBoxProps } from './types';
 
 export const RadioForm = ({
   defaultValue,
   name,
   control,
+  label,
   onChange,
-  ...restInput
-}: InputFormProps) => {
+  options,
+  inputProps = {},
+  type,
+  columns,
+  ...props
+}: InputFormBoxProps) => {
   return (
     <Controller
       name={name}
@@ -22,20 +28,34 @@ export const RadioForm = ({
         fieldState: { error },
       }) => {
         return (
-          <SRadioCheckbox
-            name={name}
-            helperText={error?.message ?? undefined}
-            defaultValue={defaultValue}
-            error={!!error}
-            inputProps={() => ({
-              onChange: (e) => {
-                onChange && onChange(e);
-                func(e);
-              },
-              ...rest,
-            })}
-            {...restInput}
-          />
+          <Box {...props}>
+            {label && (
+              <Typography
+                fontSize={14}
+                color={error ? 'error.main' : 'grey.500'}
+                mb={3}
+              >
+                {label}
+              </Typography>
+            )}
+            <SRadioCheckbox
+              type={type}
+              columns={columns}
+              options={options}
+              name={name}
+              helperText={error?.message ?? undefined}
+              defaultValue={defaultValue}
+              error={!!error}
+              inputProps={() => ({
+                onChange: (e) => {
+                  onChange && onChange(e);
+                  func(e);
+                },
+                ...rest,
+              })}
+              {...inputProps}
+            />
+          </Box>
         );
       }}
     />

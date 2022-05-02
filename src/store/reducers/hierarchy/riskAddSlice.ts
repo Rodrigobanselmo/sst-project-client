@@ -12,8 +12,13 @@ export interface IDataAddRisk {
     name: string;
   }[];
   probability?: number;
-  epi?: string[];
-  med?: {
+  probabilityAfter?: number;
+  epi?: {
+    id: number;
+    name: string;
+    ca: string;
+  }[];
+  eng?: {
     id: string;
     name: string;
   }[];
@@ -81,6 +86,15 @@ export const riskAddSlice = createSlice({
         ...state.gho[action.payload.ghoId][action.payload.riskId],
         ...action.payload.data,
       };
+    },
+    setRemoveGhoRisk: (
+      state,
+      action: PayloadAction<{
+        ghoId: string;
+      }>,
+    ) => {
+      if (state.gho[action.payload.ghoId])
+        delete state.gho[action.payload.ghoId];
     },
     setGhoRiskAddParams: (
       state,
@@ -174,6 +188,7 @@ export const {
   setGhoRiskAddParams,
   setGhoRisk,
   setGhoRiskRemoveParams,
+  setRemoveGhoRisk,
 } = riskAddSlice.actions;
 
 export const selectRiskAddInit = (state: AppState) => state.riskAdd.init;

@@ -86,10 +86,11 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
 
       const newGhoState = store.getState().gho as IGhoState;
 
-      updateMutation.mutate({
-        id: GhoId,
-        hierarchies: newGhoState.hierarchies,
-      });
+      if (GhoId)
+        updateMutation.mutate({
+          id: GhoId,
+          hierarchies: newGhoState.hierarchies,
+        });
     }
   };
 

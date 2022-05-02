@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { MedTypeEnum } from 'project/enum/medType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 import * as Yup from 'yup';
 
@@ -23,6 +24,7 @@ export const initialAddGenerateSourceState = {
   risk: {} as IRiskFactors,
   riskIds: [] as (string | number)[],
   hasSubmit: false,
+  medType: null as MedTypeEnum | null,
   passDataBack: false,
   edit: false,
 };
@@ -86,10 +88,11 @@ export const useAddGenerateSource = () => {
     name: string;
     recName: string;
     medName: string;
-  }> = async ({ recName, medName, ...formData }) => {
+    medType: string;
+  }> = async ({ recName, medName, medType, ...formData }) => {
     const data = {
       ...formData,
-      recMeds: [{ recName, medName }],
+      recMeds: [{ recName, medName, medType }],
     };
 
     if (generateSourceData.passDataBack)

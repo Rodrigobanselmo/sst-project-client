@@ -1,10 +1,7 @@
 import React, { FC } from 'react';
 
-import { Box } from '@mui/material';
 import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
-import SText from 'components/atoms/SText';
-import { GenerateSourceSelect } from 'components/tagSelects/GenerateSourceSelect';
 import {
   IDataAddRisk,
   selectGhoRiskData,
@@ -15,11 +12,15 @@ import {
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
-import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
-import { getMatrizRisk } from 'core/utils/helpers/matrizConvertion';
+import { getMatrizRisk } from 'core/utils/helpers/matriz';
 
-import { SelectedNumber } from './components/SelectedNumber';
-import { SelectedTableItem } from './components/SelectedTableItem';
+import { AdmColumn } from './components/columns/AdmColumn';
+import { EngColumn } from './components/columns/EngColumn';
+import { EpiColumn } from './components/columns/EpiColumn';
+import { ProbabilityAfterColumn } from './components/columns/ProbabilityAfterColumn';
+import { ProbabilityColumn } from './components/columns/ProbabilityColumn';
+import { RecColumn } from './components/columns/RecColumn';
+import { SourceColumn } from './components/columns/SourceColumn';
 import { STGridItem } from './styles';
 import { SideTableProps } from './types';
 
@@ -45,57 +46,57 @@ export const SideTable: FC<SideTableProps> = ({ gho, isSelected }) => {
   };
 
   const actualMatrixLevel = getMatrizRisk(data.probability, risk?.severity);
+  const actualMatrixLevelAfter = getMatrizRisk(
+    data.probabilityAfter,
+    risk?.severity,
+  );
 
   return (
     <STGridItem key={gho.id} selected={isSelected ? 1 : 0}>
-      <Box>
-        <GenerateSourceSelect
-          disabled={!risk?.id}
-          text={'adicionar'}
-          tooltipTitle=""
-          multiple={false}
-          riskIds={[risk?.id || '']}
-          risk={risk ? risk : undefined}
-          handleSelect={(options) => {
-            const op = options as IGenerateSource;
-            if (op.id)
-              handleSelect({
-                gs: [{ id: op.id, name: op.name }],
-              });
-          }}
-        />
-        {data.gs?.map((gs) => (
-          <SelectedTableItem
-            key={gs.id}
-            name={gs.name}
-            handleRemove={() =>
-              handleRemove({
-                gs: [{ id: gs.id, name: '' }],
-              })
-            }
-          />
-        ))}
-      </Box>
-      <SelectedNumber
-        handleSelect={(number) => handleSelect({ probability: number })}
-        selectedNumber={data.probability}
+      <SourceColumn
+        handleSelect={handleSelect}
+        handleRemove={handleRemove}
+        data={data}
+        risk={risk}
       />
+      <EpiColumn
+        handleSelect={handleSelect}
+        handleRemove={handleRemove}
+        data={data}
+        risk={risk}
+      />
+      <EngColumn
+        handleSelect={handleSelect}
+        handleRemove={handleRemove}
+        data={data}
+        risk={risk}
+      />
+      <AdmColumn
+        handleSelect={handleSelect}
+        handleRemove={handleRemove}
+        data={data}
+        risk={risk}
+      />
+      <ProbabilityColumn handleSelect={handleSelect} data={data} />
       <STag
         action={String(actualMatrixLevel?.level) as unknown as ITagActionColors}
-        text={actualMatrixLevel?.label || 'indisponivel'}
+        text={actualMatrixLevel?.label || '--'}
+        maxHeight={24}
       />
-      <Box>
-        <SText lineNumber={2}>{gho.name}</SText>
-      </Box>
-      <Box>
-        <SText lineNumber={2}>{gho.name}</SText>
-      </Box>
-      <Box>
-        <SText lineNumber={2}>{gho.name}</SText>
-      </Box>
-      <Box>
-        <SText lineNumber={2}>{gho.name}</SText>
-      </Box>
+      <RecColumn
+        handleSelect={handleSelect}
+        handleRemove={handleRemove}
+        data={data}
+        risk={risk}
+      />
+      <ProbabilityAfterColumn handleSelect={handleSelect} data={data} />
+      <STag
+        action={
+          String(actualMatrixLevelAfter?.level) as unknown as ITagActionColors
+        }
+        maxHeight={24}
+        text={actualMatrixLevelAfter?.label || '--'}
+      />
     </STGridItem>
   );
 };

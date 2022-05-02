@@ -18,6 +18,7 @@ interface ICreateGenerateSource extends Pick<IGenerateSource, 'riskId'> {
   id?: number;
   status?: string;
   name?: string;
+  recMeds?: { recName: string; medName: string; medType: string }[];
   companyId?: string;
 }
 
@@ -27,6 +28,8 @@ export async function createGenerateSource(
 ) {
   if (!companyId) return null;
 
+  console.log(data);
+
   const response = await api.post<IGenerateSource>(
     ApiRoutesEnum.GENERATE_SOURCE,
     {
@@ -34,6 +37,8 @@ export async function createGenerateSource(
       companyId,
     },
   );
+
+  console.log(response.data);
 
   return response.data;
 }
@@ -59,6 +64,10 @@ export function useMutCreateGenerateSource() {
                           generateSource: [
                             ...risk.generateSource,
                             newGenerateSource,
+                          ],
+                          recMed: [
+                            ...risk.recMed,
+                            ...(newGenerateSource?.recMeds || []),
                           ],
                         }
                       : risk,

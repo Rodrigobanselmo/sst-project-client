@@ -57,7 +57,7 @@ export const STGhoBox = styled.div<{ risk_init:number; gho:number; expanded?:num
   transition: left 0.5s ease-in-out;
 
   ${(props) =>
-    props.gho &&
+    props.gho || props.risk_init &&
       css`
         pointer-events: auto;
     `}

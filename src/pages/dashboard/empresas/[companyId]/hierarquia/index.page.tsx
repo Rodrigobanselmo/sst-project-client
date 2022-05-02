@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 
 import OrgTreeComponent from 'components/main/Tree/OrgTree';
+import { ModalAddEpi } from 'components/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/modals/ModalAddGenerateSource';
+import { ModalAddGho } from 'components/modals/ModalAddGHO';
 import { ModalAddRecMed } from 'components/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/modals/ModalAddRisk';
 import { NextPage } from 'next';
@@ -32,8 +34,10 @@ const Hierarchy: NextPage = () => {
     <STFlexContainer>
       <OrgTreeComponent horizontal />
       <ModalAddRisk />
-      <ModalAddRecMed />
+      <ModalAddGho />
       <ModalAddGenerateSource />
+      <ModalAddRecMed />
+      <ModalAddEpi />
     </STFlexContainer>
   );
 };

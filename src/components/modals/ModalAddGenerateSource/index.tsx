@@ -3,12 +3,14 @@ import React from 'react';
 
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/form/input';
+import { RadioForm } from 'components/form/radio';
 import SModal, {
   SModalButtons,
   SModalHeader,
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { MedTypeEnum } from 'project/enum/medType.enum';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
@@ -93,6 +95,20 @@ export const ModalAddGenerateSource = () => {
                 placeholder={'descrição da medida de controle...'}
                 name="medName"
                 size="small"
+              />
+              <RadioForm
+                type="radio"
+                control={control}
+                options={[
+                  {
+                    content: 'Medidas administrativas',
+                    value: MedTypeEnum.ADM,
+                  },
+                  { content: 'Medidas de engenharia', value: MedTypeEnum.ENG },
+                ]}
+                name="medType"
+                mt={-5}
+                columns={2}
               />
             </>
           )}

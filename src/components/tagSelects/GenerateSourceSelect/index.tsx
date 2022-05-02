@@ -25,6 +25,7 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
   text,
   multiple = true,
   risk,
+  onlyFromActualRisks,
   ...props
 }) => {
   const { data } = useQueryRisk();
@@ -98,10 +99,13 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
               String(generateSource.riskId),
             ),
           };
-        });
+        })
+        .filter((generateSource) =>
+          onlyFromActualRisks ? !generateSource.hideWithoutSearch : true,
+        );
 
     return [];
-  }, [data, riskIds]);
+  }, [data, onlyFromActualRisks, riskIds]);
 
   const generateSourceLength = String(selectedGS ? selectedGS.length : 0);
 

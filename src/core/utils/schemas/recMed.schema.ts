@@ -14,6 +14,12 @@ export const recMedSchema = yup.object().shape(
         .string()
         .required('Preencha ao menos um dos campos para continuar'),
     }),
+    medType: yup.string().when(['medName'], {
+      is: (medName: string) => medName,
+      then: yup
+        .string()
+        .required('Campo obrigatório para cadastrar medida de controle'),
+    }),
   },
   [
     ['recName', 'medName'],

@@ -1,3 +1,4 @@
+import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -9,6 +10,7 @@ export interface IRecMed {
   companyId: string;
   system: true;
   status: StatusEnum;
+  medType?: MedTypeEnum;
   created_at: string;
 }
 
@@ -30,6 +32,7 @@ export interface IGenerateSource {
   system: true;
   status: StatusEnum;
   created_at: string;
+  recMeds?: IRecMed[];
 }
 
 export interface IRecMedCreate {

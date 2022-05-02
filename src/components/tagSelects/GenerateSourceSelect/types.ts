@@ -16,6 +16,7 @@ export interface IGenerateSourceSelectProps
   large?: boolean;
   multiple?: boolean;
   risk?: IRiskFactors;
+  onlyFromActualRisks?: boolean;
   handleSelect?: (selectedIds: string[] | IGenerateSource) => void;
   onEnter?: (value: string) => void;
 }

@@ -17,11 +17,13 @@ export interface ISTagSearchSelectProps
   bg?: string;
   placeholder?: string;
   large?: boolean;
+  asyncLoad?: boolean;
   selected?: (string | number)[];
   keys?: Fuse.FuseOptionKey[];
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
   options: IMenuSearchOption[];
   startAdornment?: (option: any) => ReactNode;
+  onClose?: () => void;
   endAdornment?: (option: any) => ReactNode;
   optionsFieldName?: { valueField?: string; contentField?: string };
   icon?: ElementType<any>;
@@ -31,4 +33,5 @@ export interface ISTagSearchSelectProps
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
   renderFilter?: () => React.ReactNode;
   error?: boolean;
+  onSearch?: (value: string) => void;
 }

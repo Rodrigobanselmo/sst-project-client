@@ -43,16 +43,9 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
     option?: IRiskFactors,
   ) => {
     e.stopPropagation();
-
     if (option)
       onOpenModal<Partial<typeof initialAddRiskState>>(ModalEnum.RISK_ADD, {
-        name: option.name,
-        recMed: option.recMed,
-        status: option.status,
-        generateSource: option.generateSource,
-        id: option.id,
-        type: option.type,
-        companyId: option.companyId,
+        ...option,
       });
   };
 

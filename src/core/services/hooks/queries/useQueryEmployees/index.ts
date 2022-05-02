@@ -1,8 +1,5 @@
 import { useQuery } from 'react-query';
 
-import { useRouter } from 'next/router';
-
-import { useAuth } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEmployee } from 'core/interfaces/api/IEmployee';

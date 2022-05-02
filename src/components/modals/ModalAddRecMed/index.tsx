@@ -3,12 +3,14 @@ import React from 'react';
 
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/form/input';
+import { RadioForm } from 'components/form/radio';
 import SModal, {
   SModalButtons,
   SModalHeader,
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { MedTypeEnum } from 'project/enum/medType.enum';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
@@ -63,22 +65,35 @@ export const ModalAddRecMed = () => {
             maxRows={4}
             label="Recomendação"
             control={control}
-            sx={{ width: ['100%', 600] }}
+            sx={{ minWidth: ['100%', 600] }}
             placeholder={'descrição da recomendação...'}
             name="recName"
             size="small"
           />
           <InputForm
             multiline
+            fullWidth
             defaultValue={recMedData.medName}
             minRows={2}
             maxRows={4}
             label="Medida de controle"
             control={control}
-            sx={{ width: ['100%', 600] }}
+            sx={{ minWidth: ['100%', 600] }}
             placeholder={'descrição da medida de controle...'}
             name="medName"
             size="small"
+          />
+          <RadioForm
+            type="radio"
+            control={control}
+            defaultValue={String(recMedData.medType)}
+            options={[
+              { content: 'Medidas administrativas', value: MedTypeEnum.ADM },
+              { content: 'Medidas de engenharia', value: MedTypeEnum.ENG },
+            ]}
+            name="medType"
+            mt={-5}
+            columns={2}
           />
         </SFlex>
         <EditRecMedSelects
