@@ -46,7 +46,7 @@ export const EmployeesTable: FC<BoxProps> = () => {
   };
 
   const handleGoToHierarchy = (companyId: string) => {
-    push(RoutesEnum.HIERARCHY.replace(/companyId/g, companyId));
+    push(RoutesEnum.HIERARCHY.replace(/:companyId/g, companyId));
   };
 
   return (

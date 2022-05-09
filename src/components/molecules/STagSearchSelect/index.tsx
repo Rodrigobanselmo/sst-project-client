@@ -59,6 +59,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
       <div>
         <STooltip withWrapper title={tooltipTitle}>
           <STagButton
+            maxWidth={'300px'}
             large={large}
             onClick={handleSelectTag}
             icon={icon}

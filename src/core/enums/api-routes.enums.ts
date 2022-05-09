@@ -11,6 +11,8 @@ export enum ApiRoutesEnum {
   SESSION = '/session',
   CHECKLIST = '/checklist',
   RISK = '/risk',
+  RISK_DATA = '/risk-data',
+  RISK_GROUP_DATA = '/risk-group-data',
   REC_MED = '/rec-med',
   GENERATE_SOURCE = '/generate-source',
 }

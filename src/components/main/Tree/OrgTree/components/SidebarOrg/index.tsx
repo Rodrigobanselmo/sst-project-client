@@ -1,15 +1,15 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 
 import { Slide } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
+import { useRouter } from 'next/router';
 import {
   selectGhoId,
   selectGhoOpen,
   setGhoState,
 } from 'store/reducers/hierarchy/ghoSlice';
 import {
+  selectRisk,
   selectRiskAddExpand,
-  selectRiskAddInit,
   setRemoveGhoRisk,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
@@ -23,10 +23,10 @@ import { IGho } from 'core/interfaces/api/IGho';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/useMutDeleteGho';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 
 import { SideHeader } from './components/SideHeader';
-import { SideItems } from './components/SideItems';
-import { SideTable } from './components/SideTable';
+import { SideRow } from './components/SideRow';
 import { SideTop } from './components/SideTop';
 import { STBoxContainer, STBoxStack } from './styles';
 
@@ -39,10 +39,18 @@ export const SidebarOrg = () => {
   const dispatch = useAppDispatch();
   const selectedGhoId = useAppSelector(selectGhoId);
   const isGhoOpen = useAppSelector(selectGhoOpen);
-  const riskInit = useAppSelector(selectRiskAddInit);
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const addMutation = useMutCreateGho();
   const deleteMutation = useMutDeleteGho();
+
+  const { query } = useRouter();
+  const isRiskOpen = useMemo(() => !!query.riskGroupId, [query]);
+
+  const risk = useAppSelector(selectRisk);
+  const { data: riskData } = useQueryRiskData(
+    query.riskGroupId as string,
+    risk?.id as string,
+  );
 
   const handleAddGHO = async () => {
     onOpenModal(ModalEnum.GHO_ADD);
@@ -83,54 +91,19 @@ export const SidebarOrg = () => {
     [dispatch, selectedGhoId],
   );
 
-  const memoItems = useMemo(() => {
-    if (!data) return null;
-
-    return data.map((gho) => {
-      const isSelected = selectedGhoId === gho.id;
-
-      return (
-        <SFlex
-          key={gho.id}
-          sx={{
-            gridTemplateColumns: '285px 1fr',
-            display: 'grid',
-          }}
-          gap={5}
-        >
-          <SideItems
-            data={gho}
-            isSelected={isSelected}
-            handleSelectGHO={handleSelectGHO}
-            handleDeleteGHO={handleDeleteGHO}
-            isDeleteLoading={deleteMutation.isLoading}
-          />
-          {riskInit && <SideTable isSelected={isSelected} gho={gho} />}
-        </SFlex>
-      );
-    });
-  }, [
-    data,
-    deleteMutation.isLoading,
-    handleDeleteGHO,
-    handleSelectGHO,
-    selectedGhoId,
-    riskInit,
-  ]);
-
   return (
     <Slide
       direction="left"
-      in={isGhoOpen || riskInit}
+      in={isGhoOpen || isRiskOpen}
       mountOnEnter
       unmountOnExit
     >
       <STBoxContainer
         expanded={selectExpanded ? 1 : 0}
-        risk_init={riskInit ? 1 : 0}
+        risk_init={isRiskOpen ? 1 : 0}
         open={isOpen ? 1 : 0}
       >
-        <SideTop handleSelectGHO={handleSelectGHO} riskInit={riskInit} />
+        <SideTop handleSelectGHO={handleSelectGHO} riskInit={isRiskOpen} />
         <div style={{ overflow: 'auto', minWidth: '320px' }}>
           <table style={{ width: '100%' }}>
             <SideHeader
@@ -138,14 +111,27 @@ export const SidebarOrg = () => {
               handleEditGHO={handleEditGHO}
               handleAddGHO={handleAddGHO}
               isAddLoading={addMutation.isLoading}
-              riskInit={riskInit}
+              riskInit={isRiskOpen}
               inputRef={inputRef}
             />
             <STBoxStack
               expanded={selectExpanded ? 1 : 0}
-              risk_init={riskInit ? 1 : 0}
+              risk_init={isRiskOpen ? 1 : 0}
             >
-              {memoItems}
+              {data.map((gho) => (
+                <SideRow
+                  key={gho.id}
+                  gho={gho}
+                  handleSelectGHO={handleSelectGHO}
+                  handleDeleteGHO={handleDeleteGHO}
+                  selectedGhoId={selectedGhoId}
+                  isDeleteLoading={deleteMutation.isLoading}
+                  isRiskOpen={isRiskOpen}
+                  riskData={riskData.find(
+                    (data) => data.homogeneousGroupId == gho.id,
+                  )}
+                />
+              ))}
             </STBoxStack>
           </table>
         </div>

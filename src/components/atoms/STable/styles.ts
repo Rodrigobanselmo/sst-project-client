@@ -1,3 +1,4 @@
+import { css } from '@emotion/react';
 import { Box, styled } from '@mui/material';
 
 export const STSTable = styled(Box)<{ columns: string; rowGap: string }>`
@@ -36,7 +37,7 @@ export const STSTableHeader = styled(Box)`
   width: 100%;
 `;
 
-export const STSTableRow = styled(Box)`
+export const STSTableRow = styled(Box)<{ clickable: number }>`
   display: grid;
   flex-shrink: 0;
   -webkit-box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
@@ -45,6 +46,15 @@ export const STSTableRow = styled(Box)`
   border-radius: 0.25rem;
   align-items: center;
   width: 100%;
+
+  ${(props) =>
+    props.clickable &&
+    css`
+      cursor: pointer;
+      &:hover {
+        background-color: ${props.theme.palette.background.box};
+      }
+    `}
 `;
 
 export const STSTableHRow = styled(Box)`

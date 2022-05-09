@@ -76,8 +76,18 @@ export function STableBody<T>({
   );
 }
 
-export const STableRow: FC<BoxProps> = ({ className, ...props }) => (
-  <STSTableRow px={6} py={4} className={'table_grid ' + className} {...props} />
+export const STableRow: FC<BoxProps & { clickable?: boolean }> = ({
+  className,
+  clickable,
+  ...props
+}) => (
+  <STSTableRow
+    clickable={clickable ? 1 : 0}
+    px={6}
+    py={4}
+    className={'table_grid ' + className}
+    {...props}
+  />
 );
 
 export const STableHRow: FC<BoxProps> = ({ ...props }) => (

@@ -1,11 +1,9 @@
 import React, { FC, useRef } from 'react';
 
 import { Box } from '@mui/material';
+import { useRouter } from 'next/router';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
-import {
-  selectRiskAddExpand,
-  selectRiskAddInit,
-} from 'store/reducers/hierarchy/riskAddSlice';
+import { selectRiskAddExpand } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
@@ -25,9 +23,12 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
   ...props
 }) => {
   const orgContainerRef = useRef<HTMLDivElement>(null);
-  const riskInit = useAppSelector(selectRiskAddInit);
+  // const isRiskOpen = useAppSelector(selectRiskAddInit);
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const isGhoOpen = useAppSelector(selectGhoOpen);
+
+  const { query } = useRouter();
+  const isRiskOpen = query.riskGroupId;
 
   useZoom(orgContainerRef);
 
@@ -61,7 +62,7 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
       <STGhoBox
         expanded={selectExpanded ? 1 : 0}
         gho={isGhoOpen ? 1 : 0}
-        risk_init={riskInit ? 1 : 0}
+        risk_init={isRiskOpen ? 1 : 0}
       >
         <SidebarOrg />
       </STGhoBox>
