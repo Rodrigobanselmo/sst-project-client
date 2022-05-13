@@ -15,4 +15,5 @@ export enum ApiRoutesEnum {
   RISK_GROUP_DATA = '/risk-group-data',
   REC_MED = '/rec-med',
   GENERATE_SOURCE = '/generate-source',
+  DOCUMENTS_PGR = '/documents/pgr',
 }

@@ -14,7 +14,7 @@ export const usePreventAction = () => {
   ) => {
     if (!deepEqual(object1, object2)) {
       const data = {
-        title: 'Descartar mudançãs?',
+        title: 'Descartar mudanças?',
         text: 'Você tem certeza que deseja descartar as mudanças realizadas?',
         confirmText: 'Descartar',
         tag: 'warning',

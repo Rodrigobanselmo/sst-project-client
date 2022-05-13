@@ -200,15 +200,20 @@ export const useHierarchyTreeActions = () => {
           queryCompany as ICompany,
         ) as ITreeMap;
 
+        const workplaceId = (node: ITreeMapEdit) =>
+          String(getPathById(node.id)[1]);
+
         const data = nodesMap
           .filter((node) => !node.childrenIds || node.label)
           .map((node) => ({
             id: node.id as string,
             type: (node.type as unknown as HierarchyEnum) || undefined,
             name: node.label ? node.label : undefined,
-            workplaceId: String(getPathById(node.id)[1]),
-            parentId:
-              node.parentId === 'seed' ? null : (node.parentId as string),
+            workplaceId: workplaceId(node),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            parentId: [workplaceId(node), 'seed'].includes(node.parentId as any)
+              ? null
+              : (node.parentId as string),
           }));
 
         saveApi(() => upsertManyMutation.mutateAsync(data), nodes);

@@ -61,7 +61,7 @@ export const EmployeesTable: FC<BoxProps> = () => {
         columns="minmax(200px, 5fr) minmax(150px, 1fr) minmax(100px, 150px) 90px 80px"
       >
         <STableHeader>
-          <STableHRow>Empresa</STableHRow>
+          <STableHRow>Nome</STableHRow>
           <STableHRow>Cargo</STableHRow>
           <STableHRow>CPF</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>

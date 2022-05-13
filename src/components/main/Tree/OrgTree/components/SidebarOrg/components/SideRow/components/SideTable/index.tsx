@@ -85,11 +85,14 @@ export const SideTable: FC<SideTableProps> = ({
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
       ([key, value]) => {
+        console.log(key, value?.length);
         if (value?.length)
           (submitData as any)[key] = [
-            ...((riskData as any)?.[key]?.filter(
-              (data: any) => !(value as any).includes(data.id),
-            ) ?? []),
+            ...(
+              (riskData as any)?.[key]?.filter(
+                (data: any) => !(value as any).includes(data.id),
+              ) ?? []
+            ).map((d: any) => d.id),
           ];
       },
     );

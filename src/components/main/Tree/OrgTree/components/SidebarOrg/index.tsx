@@ -10,7 +10,6 @@ import {
 import {
   selectRisk,
   selectRiskAddExpand,
-  setRemoveGhoRisk,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { useSidebarDrawer } from 'core/contexts/SidebarContext';
@@ -69,7 +68,6 @@ export const SidebarOrg = () => {
       preventDelete(async () => {
         await deleteMutation.mutateAsync(id);
         dispatch(setGhoState({ hierarchies: [], data: null }));
-        dispatch(setRemoveGhoRisk({ ghoId: id }));
       });
     },
     [deleteMutation, dispatch, preventDelete],

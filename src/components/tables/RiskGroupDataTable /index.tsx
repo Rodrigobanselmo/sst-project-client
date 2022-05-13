@@ -29,6 +29,7 @@ import EditIcon from 'assets/icons/SEditIcon';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
@@ -41,6 +42,7 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
   const { onOpenModal } = useModal();
   const downloadMutation = useMutDownloadFile();
   const { push } = useRouter();
+  const { companyId } = useGetCompanyId();
 
   const { handleSearchChange, results } = useTableSearch({
     data,
@@ -126,11 +128,10 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
                       ApiRoutesEnum.DOWNLOAD_EMPLOYEES,
                     )
                   }
-                  onClick={
-                    () => null
-                    // downloadMutation.mutate(
-                    //   ApiRoutesEnum.DOWNLOAD_EMPLOYEES + `/${row.id}`,
-                    // )
+                  onClick={() =>
+                    downloadMutation.mutate(
+                      ApiRoutesEnum.DOCUMENTS_PGR + `/${row.id}/${companyId}`,
+                    )
                   }
                   large
                   icon={SDownloadIcon}
