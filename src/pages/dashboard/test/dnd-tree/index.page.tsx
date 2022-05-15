@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 import { NextPage } from 'next';
 
-import OrgTreeComponent from '../../../../components/main/Tree/ChecklistTree';
+import OrgTreeComponent from '../../../../components/organisms/main/Tree/ChecklistTree';
 import { useChecklistTreeActions } from '../../../../core/hooks/useChecklistTreeActions';
 import { STFlexContainer } from '../../checklist/index.styles';
 import { dndData } from './utils/fakeData';

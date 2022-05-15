@@ -2,8 +2,8 @@
 import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
-import { nodeTypesConstant } from 'components/main/Tree/OrgTree/constants/node-type.constant';
-import { TreeTypeEnum } from 'components/main/Tree/OrgTree/enums/tree-type.enums';
+import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/constants/node-type.constant';
+import { TreeTypeEnum } from 'components/organisms/main/Tree/OrgTree/enums/tree-type.enums';
 import { useRouter } from 'next/router';
 import { setDocSaved, setDocUnsaved } from 'store/reducers/save/saveSlice';
 import { v4 } from 'uuid';
@@ -26,7 +26,7 @@ import {
   ITreeMapEdit,
   ITreeMapObject,
   ITreeMapPartial,
-} from '../../components/main/Tree/OrgTree/interfaces';
+} from '../../components/organisms/main/Tree/OrgTree/interfaces';
 import {
   setAddNodes,
   setDragItem,

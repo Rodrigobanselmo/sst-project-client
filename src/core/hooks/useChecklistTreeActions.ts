@@ -2,7 +2,7 @@
 import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
-import { nodeTypesConstant } from 'components/main/Tree/ChecklistTree/constants/node-type.constant';
+import { nodeTypesConstant } from 'components/organisms/main/Tree/ChecklistTree/constants/node-type.constant';
 import { useRouter } from 'next/router';
 import { setDocSaved, setDocUnsaved } from 'store/reducers/save/saveSlice';
 
@@ -16,7 +16,7 @@ import {
   ITreeMapEdit,
   ITreeMapObject,
   ITreeMapPartial,
-} from '../../components/main/Tree/ChecklistTree/interfaces';
+} from '../../components/organisms/main/Tree/ChecklistTree/interfaces';
 import {
   setAddNodes,
   setDragItem,

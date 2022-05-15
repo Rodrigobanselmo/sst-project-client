@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { Global } from '@emotion/react';
 import { useRouter } from 'next/router';
 
-import { Sidebar } from '../../components/main/Sidebar';
+import { Sidebar } from '../../components/organisms/main/Sidebar';
 import { SidebarDrawerProvider } from '../../core/contexts/SidebarContext';
 import { RoutesEnum } from '../../core/enums/routes.enums';
 import globalStylesDashboard from '../../core/styles/globalStylesDashboard';

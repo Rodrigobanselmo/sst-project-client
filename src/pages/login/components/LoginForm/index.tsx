@@ -8,7 +8,7 @@ import NextLink from 'next/link';
 import * as Yup from 'yup';
 
 import { SButton } from '../../../../components/atoms/SButton';
-import { InputForm } from '../../../../components/form/input';
+import { InputForm } from '../../../../components/molecules/form/input';
 import { useMutationLogin } from '../../../../core/services/hooks/mutations/useMutationLogin';
 import {
   ILoginSchema,

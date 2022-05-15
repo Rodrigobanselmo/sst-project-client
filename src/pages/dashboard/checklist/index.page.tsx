@@ -1,5 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
-import { ChecklistTable } from 'components/tables/ChecklistTable';
+import { ChecklistTable } from 'components/organisms/tables/ChecklistTable';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';

@@ -1,5 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
-import { RiskGroupDataTable } from 'components/tables/RiskGroupDataTable ';
+import { RiskGroupDataTable } from 'components/organisms/tables/RiskGroupDataTable ';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';

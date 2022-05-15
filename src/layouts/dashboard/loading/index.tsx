@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Header } from 'components/main/Header';
+import { Header } from 'components/organisms/main/Header';
 
 import { useAppSelector } from '../../../core/hooks/useAppSelector';
 import { selectRouteLoad } from '../../../store/reducers/routeLoad/routeLoadSlice';

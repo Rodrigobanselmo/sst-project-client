@@ -1,5 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
-import { DatabaseTable } from 'components/tables/DatabaseTable';
+import { DatabaseTable } from 'components/organisms/tables/DatabaseTable';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';

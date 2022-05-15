@@ -1,6 +1,6 @@
 import { useMutation } from 'react-query';
 
-import { TreeTypeEnum } from 'components/main/Tree/ChecklistTree/enums/tree-type.enums';
+import { TreeTypeEnum } from 'components/organisms/main/Tree/ChecklistTree/enums/tree-type.enums';
 import { useSnackbar } from 'notistack';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';

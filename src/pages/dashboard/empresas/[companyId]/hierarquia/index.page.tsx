@@ -1,11 +1,11 @@
 import { useEffect } from 'react';
 
-import OrgTreeComponent from 'components/main/Tree/OrgTree';
-import { ModalAddEpi } from 'components/modals/ModalAddEpi';
-import { ModalAddGenerateSource } from 'components/modals/ModalAddGenerateSource';
-import { ModalAddGho } from 'components/modals/ModalAddGHO';
-import { ModalAddRecMed } from 'components/modals/ModalAddRecMed';
-import { ModalAddRisk } from 'components/modals/ModalAddRisk';
+import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
+import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
+import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
+import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
+import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
+import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { NextPage } from 'next';
 import { STFlexContainer } from 'pages/dashboard/checklist/index.styles';
 

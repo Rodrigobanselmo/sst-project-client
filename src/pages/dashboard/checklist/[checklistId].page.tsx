@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 
-import ChecklistTree from 'components/main/Tree/ChecklistTree';
-import { ModalAddGenerateSource } from 'components/modals/ModalAddGenerateSource';
-import { ModalAddRecMed } from 'components/modals/ModalAddRecMed';
-import { ModalAddRisk } from 'components/modals/ModalAddRisk';
+import ChecklistTree from 'components/organisms/main/Tree/ChecklistTree';
+import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
+import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
+import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { NextPage } from 'next';
 
 import { useChecklistTreeActions } from 'core/hooks/useChecklistTreeActions';
