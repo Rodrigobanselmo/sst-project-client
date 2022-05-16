@@ -42,7 +42,7 @@ export const EmployeesTable: FC<BoxProps> = () => {
 
   const handleGoToEmployee = (companyId: string, employeeId: number) => {
     console.log(employeeId); // TODO edit checklist status
-    push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
+    //push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
   };
 
   const handleGoToHierarchy = (companyId: string) => {

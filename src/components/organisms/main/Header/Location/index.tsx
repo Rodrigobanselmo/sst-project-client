@@ -3,6 +3,7 @@ import Box from '@mui/material/Box';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
+import SText from 'components/atoms/SText';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 
@@ -61,8 +62,16 @@ export function Location(): JSX.Element {
                 href={handleChangeRoute(route, index)}
                 passHref
               >
-                <Link fontSize="0.875rem" color="gray.500" underline="hover">
-                  {route}
+                <Link underline="hover">
+                  <SText
+                    sx={{ textTransform: 'capitalize' }}
+                    maxWidth="150px"
+                    fontSize="0.825rem"
+                    color="gray.500"
+                    lineNumber={1}
+                  >
+                    {route}
+                  </SText>
                 </Link>
               </NextLink>
             );

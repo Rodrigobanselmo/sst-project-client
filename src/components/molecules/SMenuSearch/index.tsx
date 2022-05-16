@@ -4,6 +4,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
+import diacritics from 'diacritics';
 import Fuse from 'fuse.js';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -92,13 +93,34 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options, selected]);
 
+  function removeAccents(obj: any) {
+    if (typeof obj === 'string' || obj instanceof String) {
+      return obj.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    }
+    return obj;
+  }
+
+  const getFn = (obj: any, path: any) => {
+    const value = Fuse.config.getFn(obj, path);
+    if (Array.isArray(value)) {
+      return value.map((el) => removeAccents(el));
+    }
+    return removeAccents(value);
+  };
+
   const fuse = asyncLoad
     ? ({} as any)
-    : new Fuse(optionsMemoized, { keys, ignoreLocation: true });
+    : new Fuse(optionsMemoized, {
+        keys,
+        getFn,
+        ignoreLocation: true,
+      });
 
   const numberOfRows = 20 + 200 * scroll;
 
-  const fuseResults = asyncLoad ? null : fuse.search(search, { limit: 20 });
+  const fuseResults = asyncLoad
+    ? null
+    : fuse.search(diacritics.remove(search), { limit: 20 });
   const results = asyncLoad
     ? optionsMemoized
     : search

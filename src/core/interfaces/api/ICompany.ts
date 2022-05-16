@@ -11,8 +11,8 @@ export interface ICompany {
   isConsulting: boolean;
   created_at: Date;
   updated_at: Date;
-  licenseId: number;
-  parentCompanyId: string;
+  licenseId?: number;
+  parentCompanyId?: string;
   license?: ILicense;
   workspace?: IWorkspace[];
 }

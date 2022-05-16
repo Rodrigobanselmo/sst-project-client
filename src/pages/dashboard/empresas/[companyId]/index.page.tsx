@@ -4,12 +4,15 @@ import SPageTitle from 'components/atoms/SPageTitle';
 import { EmployeesTable } from 'components/organisms/tables/EmployeesTable';
 import { NextPage } from 'next';
 
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const CompanyPage: NextPage = () => {
+  const { data: company } = useQueryCompany();
+
   return (
     <SContainer>
-      <SPageTitle icon={BusinessTwoToneIcon}>Empregados</SPageTitle>
+      <SPageTitle icon={BusinessTwoToneIcon}>{company.name}</SPageTitle>
       <EmployeesTable />
     </SContainer>
   );

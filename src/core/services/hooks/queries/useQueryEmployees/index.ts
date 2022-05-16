@@ -9,8 +9,10 @@ import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export const queryEmployees = async () => {
-  const response = await api.get<IEmployee[]>(`${ApiRoutesEnum.EMPLOYEES}`);
+export const queryEmployees = async (companyId: string) => {
+  const response = await api.get<IEmployee[]>(
+    `${ApiRoutesEnum.EMPLOYEES}/${companyId}`,
+  );
 
   return response.data;
 };
@@ -21,7 +23,9 @@ export function useQueryEmployees(): IReactQuery<IEmployee[]> {
   const { data, ...query } = useQuery(
     [QueryEnum.EMPLOYEES, companyId],
     () =>
-      companyId ? queryEmployees() : <Promise<IEmployee[]>>emptyArrayReturn(),
+      companyId
+        ? queryEmployees(companyId)
+        : <Promise<IEmployee[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },

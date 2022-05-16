@@ -1,9 +1,7 @@
 import { useQuery } from 'react-query';
 
-import { useRouter } from 'next/router';
-
-import { useAuth } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
@@ -20,16 +18,12 @@ export const queryCompany = async (company: string) => {
 };
 
 export function useQueryCompany(): IReactQuery<ICompany> {
-  const { user } = useAuth();
-  const router = useRouter();
-
-  const company =
-    user && ((router.query.companyId as string) || user?.companyId);
+  const { companyId } = useGetCompanyId();
 
   const { data, ...query } = useQuery(
-    [QueryEnum.COMPANY, company],
+    [QueryEnum.COMPANY, companyId],
     () =>
-      company ? queryCompany(company) : <Promise<ICompany>>emptyMapReturn(),
+      companyId ? queryCompany(companyId) : <Promise<ICompany>>emptyMapReturn(),
     {
       staleTime: 1000 * 60, // 1 minute
     },

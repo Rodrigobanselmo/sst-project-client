@@ -93,7 +93,7 @@ export const STagAction: FC<ISTagProps> = ({
       {action === 'success' ? 'Sucesso' : ''}
       {action === 'warning' ? 'Atenção' : ''}
       {action === 'error' ? 'Erro' : ''}
-      {action === 'upload' ? 'Exportar' : ''}
+      {action === 'upload' ? 'Envio' : ''}
 
       {Icon && <Icon sx={{ fontSize: '18px', color: 'common.white' }} />}
     </SFlex>

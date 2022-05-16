@@ -48,8 +48,8 @@ export const DatabaseTable: FC<BoxProps> = () => {
       >
         <STableHeader>
           <STableHRow>Tabelas</STableHRow>
-          <STableHRow justifyContent="center">Importar</STableHRow>
-          <STableHRow justifyContent="center">Exportar</STableHRow>
+          <STableHRow justifyContent="center">Baixar</STableHRow>
+          <STableHRow justifyContent="center">Enviar</STableHRow>
         </STableHeader>
         <STableBody<typeof data[0]>
           rowsData={results}
@@ -58,7 +58,7 @@ export const DatabaseTable: FC<BoxProps> = () => {
               <STableRow key={row.id}>
                 <TextIconRow text={row.name} />
                 <STagButton
-                  text="Importar"
+                  text="Baixar"
                   loading={
                     downloadMutation.isLoading &&
                     !!downloadMutation.variables &&
@@ -71,7 +71,7 @@ export const DatabaseTable: FC<BoxProps> = () => {
                   icon={SDownloadIcon}
                 />
                 <STagButton
-                  text="Exportar"
+                  text="Enviar"
                   large
                   icon={SUploadIcon}
                   onClick={() =>

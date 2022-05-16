@@ -19,7 +19,8 @@ export const StyledGrid = styled(Grid)<IStyledGrid>`
   }
 
   input + span {
-    border: 1px solid ${(props) => props.theme.palette.grey[300]};
+    border: 2px solid;
+    border-color: ${(props) => props.theme.palette.background.divider};
     box-sizing: border-box;
     cursor: pointer;
     display: inline-block;

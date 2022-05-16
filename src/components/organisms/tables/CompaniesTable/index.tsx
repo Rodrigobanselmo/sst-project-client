@@ -14,6 +14,7 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
+import { ModalAddCompany } from 'components/organisms/modals/ModalAddCompany';
 import { ModalUploadFile } from 'components/organisms/modals/ModalUploadFile';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
@@ -59,7 +60,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
     <>
       <STableTitle icon={BusinessTwoToneIcon}>Empresas</STableTitle>
       <STableSearch
-        // onAddClick={() => onOpenModal(ModalEnum.CHECKLIST_ADD)}
+        onAddClick={() => onOpenModal(ModalEnum.COMPANY_ADD)}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable
@@ -71,12 +72,11 @@ export const CompaniesTable: FC<BoxProps> = () => {
           <STableHRow>CNPJ</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
-          <STableHRow justifyContent="center">Importar</STableHRow>
-          <STableHRow justifyContent="center">Exportar</STableHRow>
+          <STableHRow justifyContent="center">Baixar</STableHRow>
+          <STableHRow justifyContent="center">Enviar</STableHRow>
         </STableHeader>
         <STableBody<typeof data[0]>
           rowsData={results}
-          maxHeight={500}
           renderRow={(row) => {
             return (
               <STableRow key={row.id}>
@@ -98,7 +98,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />
                 <STagButton
-                  text="Importar"
+                  text="Baixar"
                   loading={
                     downloadMutation.isLoading &&
                     !!downloadMutation.variables &&
@@ -115,7 +115,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
                   icon={SDownloadIcon}
                 />
                 <STagButton
-                  text="Exportar"
+                  text="Enviar"
                   large
                   icon={SUploadIcon}
                   onClick={() =>
@@ -130,6 +130,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
+      <ModalAddCompany />
       <ModalUploadFile
         loading={uploadMutation.isLoading}
         onConfirm={(files: File[], path: string) =>

@@ -28,7 +28,7 @@ export const RadioForm = ({
         fieldState: { error },
       }) => {
         return (
-          <Box {...props}>
+          <Box mr={-3} {...props}>
             {label && (
               <Typography
                 fontSize={14}
