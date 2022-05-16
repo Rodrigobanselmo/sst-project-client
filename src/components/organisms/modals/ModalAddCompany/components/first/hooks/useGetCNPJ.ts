@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
@@ -7,14 +5,19 @@ import { useMutCreateCompany } from 'core/services/hooks/mutations/company/useMu
 
 import { IUseAddCompany } from '../../../hooks/useAddCompany';
 
-export const useGetCNPJ = ({ setCompanyData }: IUseAddCompany) => {
-  const { trigger, getValues, control } = useFormContext();
+export const useGetCNPJ = ({ setCompanyData, ...rest }: IUseAddCompany) => {
+  const { trigger, getValues, control, reset } = useFormContext();
   const { nextStep } = useWizard();
 
   const createCompany = useMutCreateCompany();
   const updateCompany = useMutCreateCompany();
 
   const fields = ['cnpj'];
+
+  const onCloseUnsaved = async () => {
+    rest.onCloseUnsaved();
+    reset();
+  };
 
   const onSubmit = async () => {
     const isValid = await trigger(fields);
@@ -33,5 +36,6 @@ export const useGetCNPJ = ({ setCompanyData }: IUseAddCompany) => {
     onSubmit,
     loading: createCompany.isLoading || updateCompany.isLoading,
     control,
+    onCloseUnsaved,
   };
 };

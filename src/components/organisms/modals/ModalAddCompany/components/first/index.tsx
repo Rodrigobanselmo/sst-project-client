@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { useWizard } from 'react-use-wizard';
 
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
@@ -12,13 +11,13 @@ import { IUseAddCompany } from '../../hooks/useAddCompany';
 import { useGetCNPJ } from './hooks/useGetCNPJ';
 
 export const FirstModalCompanyStep = (props: IUseAddCompany) => {
-  const { onSubmit, control } = useGetCNPJ(props);
+  const { onSubmit, control, onCloseUnsaved } = useGetCNPJ(props);
 
   const { companyData } = props;
   const buttons = [
     {},
     {
-      text: companyData.id ? 'Editar' : 'Criar',
+      text: 'Continuar',
       variant: 'contained',
       onClick: () => onSubmit(),
     },
@@ -43,7 +42,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
       </AnimatedStep>
       <SModalButtons
         // loading={loading}
-        // onClose={onCloseUnsaved}
+        onClose={onCloseUnsaved}
         buttons={buttons}
       />
     </>

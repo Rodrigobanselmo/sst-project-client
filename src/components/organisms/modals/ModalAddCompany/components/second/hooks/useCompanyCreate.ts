@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
@@ -7,25 +6,46 @@ import { useMutCreateCompany } from 'core/services/hooks/mutations/company/useMu
 
 import { IUseAddCompany } from '../../../hooks/useAddCompany';
 
-export const useCompanyCreate = ({ setCompanyData }: IUseAddCompany) => {
-  const { trigger, getValues, control } = useFormContext();
+export const useCompanyCreate = ({
+  companyData,
+  onClose,
+  ...rest
+}: IUseAddCompany) => {
+  const { trigger, getValues, control, reset } = useFormContext();
   const { nextStep } = useWizard();
 
   const createCompany = useMutCreateCompany();
   const updateCompany = useMutCreateCompany();
 
-  const fields = ['cnpj'];
+  const fields = ['cnpj', 'name', 'description', 'fantasy', 'type'];
+
+  const onCloseUnsaved = async () => {
+    rest.onCloseUnsaved;
+    reset();
+  };
 
   const onSubmit = async () => {
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { cnpj } = getValues();
+      const { cnpj, name, description, fantasy, type } = getValues();
       nextStep();
-      setCompanyData((state) => ({
-        ...state,
+      onClose();
+
+      const submitData = {
+        status: companyData.status,
         cnpj,
-      }));
+        name,
+        description,
+        fantasy,
+        type,
+      };
+
+      if (companyData.id == '') {
+        await createCompany.mutateAsync(submitData);
+      } else {
+        await updateCompany.mutateAsync(submitData);
+      }
     }
   };
 
@@ -33,5 +53,6 @@ export const useCompanyCreate = ({ setCompanyData }: IUseAddCompany) => {
     onSubmit,
     loading: createCompany.isLoading || updateCompany.isLoading,
     control,
+    onCloseUnsaved,
   };
 };

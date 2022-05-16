@@ -12,7 +12,7 @@ import { IWizardLeadProps } from './types';
 const resolver = (schemas: any[]) =>
   yupResolver(mergeValidationSchemas(...schemas));
 
-export const Wizard: FC<IWizardLeadProps> = ({ children, key, schemas }) => {
+export const Wizard: FC<IWizardLeadProps> = ({ children, schemas }) => {
   const prevStepRef = useRef<number>(0);
   const methods = useForm({ resolver: resolver(schemas) });
 

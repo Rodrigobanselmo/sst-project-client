@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from 'react';
-import { SubmitHandler, useForm, useFormContext } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -10,8 +8,6 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { useMutCreateCompany } from 'core/services/hooks/mutations/company/useMutCreateCompany';
-import { companySchema } from 'core/utils/schemas/company.schema';
 
 export const initialCompanyState = {
   status: StatusEnum.ACTIVE,
@@ -27,9 +23,6 @@ export const useAddCompany = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialCompanyState);
-
-  const createCompany = useMutCreateCompany();
-  const updateCompany = useMutCreateCompany();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -59,28 +52,6 @@ export const useAddCompany = () => {
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.COMPANY_ADD, data);
     setCompanyData(initialCompanyState);
-    // reset();
-  };
-
-  const onSubmit: SubmitHandler<{
-    name: string;
-    description: string;
-    fantasy: string;
-    cnpj: string;
-    type: CompanyTypesEnum;
-  }> = async (data) => {
-    const submitData = {
-      status: companyData.status,
-      ...data,
-    };
-
-    if (companyData.id == '') {
-      await createCompany.mutateAsync(submitData);
-    } else {
-      await updateCompany.mutateAsync(submitData);
-    }
-
-    onClose();
   };
 
   const onCloseUnsaved = () => {
@@ -92,9 +63,7 @@ export const useAddCompany = () => {
   return {
     registerModal,
     onCloseUnsaved,
-    onSubmit,
     onClose,
-    loading: createCompany.isLoading || updateCompany.isLoading,
     companyData,
     setCompanyData,
   };

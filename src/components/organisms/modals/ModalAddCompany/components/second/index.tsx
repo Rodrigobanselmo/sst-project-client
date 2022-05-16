@@ -15,12 +15,13 @@ import { IUseAddCompany } from '../../hooks/useAddCompany';
 import { useCompanyCreate } from './hooks/useCompanyCreate';
 
 export const SecondModalCompanyStep = (props: IUseAddCompany) => {
-  const { control, onSubmit } = useCompanyCreate(props);
-  const { nextStep, previousStep } = useWizard();
+  const { control, onSubmit, loading, onCloseUnsaved } =
+    useCompanyCreate(props);
+  const { previousStep } = useWizard();
   const { companyData } = props;
 
   const buttons = [
-    {},
+    { onClick: () => previousStep(), text: 'Voltar' },
     {
       text: companyData.id ? 'Editar' : 'Criar',
       variant: 'contained',
@@ -33,7 +34,6 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
-            autoFocus
             defaultValue={companyData.name}
             minRows={2}
             maxRows={4}
@@ -98,8 +98,8 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
         </SFlex>
       </AnimatedStep>
       <SModalButtons
-        // loading={loading}
-        // onClose={onCloseUnsaved}
+        loading={loading}
+        onClose={onCloseUnsaved}
         buttons={buttons}
       />
     </>
