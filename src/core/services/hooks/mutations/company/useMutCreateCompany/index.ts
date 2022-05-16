@@ -11,17 +11,30 @@ import { queryClient } from 'core/services/queryClient';
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
-interface ICreateCompany extends Pick<ICompany, 'type'> {
-  id?: number;
+interface ICreateCompany
+  extends Pick<
+    ICompany,
+    'type' | 'address' | 'primary_activity' | 'secondary_activity'
+  > {
+  id?: string;
   status?: string;
   name: string;
   cnpj: string;
   description?: string;
   fantasy?: string;
+  size?: string;
+  phone?: string;
+  legal_nature?: string;
+  cadastral_situation?: string;
+  activity_start_date?: string;
+  cadastral_situation_date?: string;
+  legal_nature_code?: string;
+  cadastral_situation_description?: string;
 }
 
 export async function createCompany(data: ICreateCompany, companyId?: string) {
   if (!companyId) return null;
+  console.log('data', data);
 
   const response = await api.post<ICompany>(ApiRoutesEnum.COMPANIES, {
     ...data,

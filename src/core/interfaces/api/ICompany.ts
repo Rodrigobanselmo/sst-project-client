@@ -15,11 +15,24 @@ export interface ICompany {
   parentCompanyId?: string;
   license?: ILicense;
   workspace?: IWorkspace[];
+  address?: IAddress;
+  size: string;
+  phone: string;
+  legal_nature: string;
+  cadastral_situation: string;
+  addressId: string;
+  activity_start_date: string;
+  cadastral_situation_date: string;
+  legal_nature_code: string;
+  cadastral_situation_description: string;
+  primary_activity: ActivityDto[];
+  secondary_activity: ActivityDto[];
 }
 
 export interface IWorkspace {
   id: number;
   name: string;
+  description: string;
   status: StatusEnum;
   created_at: Date;
   updated_at: Date;
@@ -29,15 +42,15 @@ export interface IWorkspace {
 }
 
 export interface IAddress {
-  id: number;
+  id?: string;
   number: string;
   cep: string;
   street: string;
   complement: string;
   neighborhood: string;
   city: string;
-  state: StatusEnum;
-  workspaceId: number;
+  state: string;
+  workspaceId?: number;
   workspace?: IWorkspace;
 }
 
@@ -47,4 +60,8 @@ export interface ILicense {
   status: StatusEnum;
   created_at: Date;
   companies?: ICompany[];
+}
+export interface ActivityDto {
+  name: string;
+  code: string;
 }

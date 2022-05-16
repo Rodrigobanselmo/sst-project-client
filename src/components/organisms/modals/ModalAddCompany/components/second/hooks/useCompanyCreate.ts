@@ -33,7 +33,7 @@ export const useCompanyCreate = ({
       onClose();
 
       const submitData = {
-        status: companyData.status,
+        ...companyData,
         cnpj,
         name,
         description,

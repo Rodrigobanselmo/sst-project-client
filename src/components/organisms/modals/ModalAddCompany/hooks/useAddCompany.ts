@@ -8,6 +8,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { ActivityDto } from 'core/interfaces/api/ICompany';
 
 export const initialCompanyState = {
   status: StatusEnum.ACTIVE,
@@ -17,6 +18,25 @@ export const initialCompanyState = {
   fantasy: '',
   description: '',
   id: '',
+  size: '',
+  primary_activity: [] as ActivityDto[],
+  secondary_activity: [] as ActivityDto[],
+  phone: '',
+  legal_nature: '',
+  cadastral_situation: '',
+  activity_start_date: '',
+  cadastral_situation_date: '',
+  legal_nature_code: '',
+  cadastral_situation_description: '',
+  address: {
+    neighborhood: '',
+    number: '',
+    city: '',
+    street: '',
+    cep: '',
+    complement: '',
+    state: '',
+  },
 };
 
 export const useAddCompany = () => {

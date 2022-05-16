@@ -4,26 +4,42 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
-import { ICompany } from 'core/interfaces/api/ICompany';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
-interface IUpdateCompany extends Pick<ICompany, 'type'> {
-  id: number;
+export interface IUpdateCompany
+  extends Partial<
+    Pick<
+      ICompany,
+      'type' | 'address' | 'primary_activity' | 'secondary_activity'
+    >
+  > {
+  id?: string;
   status?: string;
   name?: string;
   cnpj?: string;
   description?: string;
   fantasy?: string;
+  size?: string;
+  phone?: string;
+  legal_nature?: string;
+  cadastral_situation?: string;
+  activity_start_date?: string;
+  cadastral_situation_date?: string;
+  legal_nature_code?: string;
+  cadastral_situation_description?: string;
+  workspace?: Partial<IWorkspace>[];
 }
 
 export async function updateCompany(data: IUpdateCompany, companyId?: string) {
   if (!companyId) return null;
 
-  const response = await api.post<ICompany>(ApiRoutesEnum.COMPANIES, {
+  const response = await api.patch<ICompany>(ApiRoutesEnum.COMPANIES, {
     ...data,
     companyId,
   });
@@ -31,16 +47,16 @@ export async function updateCompany(data: IUpdateCompany, companyId?: string) {
 }
 
 export function useMutUpdateCompany() {
-  const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
+  const { getCompanyId } = useGetCompanyId();
 
   return useMutation(
-    async (data: IUpdateCompany) => updateCompany(data, user?.companyId),
+    async (data: IUpdateCompany) => updateCompany(data, getCompanyId(data)),
     {
       onSuccess: async (companyResp) => {
         if (companyResp)
           queryClient.setQueryData(
-            [QueryEnum.COMPANIES, user?.companyId],
+            [QueryEnum.COMPANIES, companyResp.id],
             (oldData: ICompany[] | undefined) =>
               oldData
                 ? oldData.map((data) =>

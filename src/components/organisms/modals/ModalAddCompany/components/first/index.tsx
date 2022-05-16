@@ -8,10 +8,10 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
 import { IUseAddCompany } from '../../hooks/useAddCompany';
-import { useGetCNPJ } from './hooks/useGetCNPJ';
+import { useCheckCompany } from './hooks/useCheckCompany';
 
 export const FirstModalCompanyStep = (props: IUseAddCompany) => {
-  const { onSubmit, control, onCloseUnsaved } = useGetCNPJ(props);
+  const { onSubmit, control, onCloseUnsaved, loading } = useCheckCompany(props);
 
   const { companyData } = props;
   const buttons = [
@@ -24,10 +24,11 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
   ] as IModalButton[];
 
   return (
-    <>
+    <div>
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
+            autoFocus
             defaultValue={companyData.cnpj}
             minRows={2}
             maxRows={4}
@@ -41,10 +42,10 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
         </SFlex>
       </AnimatedStep>
       <SModalButtons
-        // loading={loading}
+        loading={loading}
         onClose={onCloseUnsaved}
         buttons={buttons}
       />
-    </>
+    </div>
   );
 };

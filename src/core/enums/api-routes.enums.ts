@@ -4,6 +4,8 @@ export enum ApiRoutesEnum {
   EPI = '/epi',
   EMPLOYEES = '/employee',
   COMPANIES = '/company',
+  CNPJ = '/company/cnpj',
+  CEP = '/company/cep',
   DATABASE_TABLE = '/files/database-tables',
   DOWNLOAD_EMPLOYEES = '/files/company/download/unique',
   UPLOAD_EMPLOYEES = '/files/company/upload/unique',
