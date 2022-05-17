@@ -148,7 +148,7 @@ export const useHierarchyTreeActions = () => {
             ),
           };
 
-          if (!values.parentId)
+          if (!values.parentId && treeMap[values.workplaceId])
             treeMap[values.workplaceId].childrenIds = [
               ...treeMap[values.workplaceId].childrenIds,
               values.id,

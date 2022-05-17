@@ -24,7 +24,7 @@ export const ModalAddCompany = () => {
         <SModalHeader
           tag={props.companyData.id ? 'edit' : 'add'}
           onClose={props.onCloseUnsaved}
-          title={'Grupo similar de exposição'}
+          title={'Empresa'}
         />
         <Wizard schemas={[companySchema]}>
           <FirstModalCompanyStep {...props} />

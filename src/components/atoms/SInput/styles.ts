@@ -12,8 +12,8 @@ export const STTextField = styled(TextField)<{
   multiline?: boolean;
 }>`
   &&& .MuiOutlinedInput-notchedOutline {
-    border-color: ${(props) => props.theme.palette.background.divider};
-    border-width: 2px;
+    border-color: ${(props) => props.theme.palette.background.border};
+    border-width: 1px;
   }
 
   &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {

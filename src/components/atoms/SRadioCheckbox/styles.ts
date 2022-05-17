@@ -14,7 +14,14 @@ export const StyledGrid = styled(Grid)<IStyledGrid>`
   user-select: none;
   width: 100%;
 
+  &:focus {
+    outline: 10px solid #000;
+    background-color: #000;
+  }
+
   input {
+    position: absolute;
+    opacity: 0;
     display: none;
   }
 

@@ -62,6 +62,7 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
       />
       <Typography
         borderRadius={'8px'}
+        tabIndex={0}
         px={1}
         py={2}
         component="span"
@@ -72,6 +73,7 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
           ...sx,
         }}
         onClick={handleCheckbox}
+        onKeyPress={(event: any) => event.key === 'Enter' && handleCheckbox()}
         {...props}
       >
         {content}

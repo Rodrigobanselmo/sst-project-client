@@ -55,23 +55,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             name="cnpj"
             size="small"
           />
-          <RadioForm
-            type="radio"
-            control={control}
-            defaultValue={String(companyData.type)}
-            options={[
-              {
-                content: companyOptionsConstant[CompanyTypesEnum.MATRIZ].name,
-                value: CompanyTypesEnum.MATRIZ,
-              },
-              {
-                content: companyOptionsConstant[CompanyTypesEnum.FILIAL].name,
-                value: CompanyTypesEnum.FILIAL,
-              },
-            ]}
-            name="type"
-            columns={2}
-          />
+
           <InputForm
             defaultValue={companyData.fantasy}
             minRows={2}
@@ -94,6 +78,23 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             placeholder={'descrição opcional do empresa...'}
             name="description"
             size="small"
+          />
+          <RadioForm
+            type="radio"
+            control={control}
+            defaultValue={String(companyData.type)}
+            options={[
+              {
+                content: companyOptionsConstant[CompanyTypesEnum.MATRIZ].name,
+                value: CompanyTypesEnum.MATRIZ,
+              },
+              {
+                content: companyOptionsConstant[CompanyTypesEnum.FILIAL].name,
+                value: CompanyTypesEnum.FILIAL,
+              },
+            ]}
+            name="type"
+            columns={2}
           />
         </SFlex>
       </AnimatedStep>

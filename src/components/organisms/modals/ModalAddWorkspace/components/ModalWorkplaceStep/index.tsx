@@ -46,30 +46,30 @@ export const ModalWorkplaceStep = ({
       <SText color="text.label" fontSize={14}>
         Endereço
       </SText>
-      <InputForm
-        defaultValue={companyData.cep}
-        minRows={2}
-        maxRows={4}
-        label="Cep"
-        labelPosition="center"
-        control={control}
-        onChange={({ target: { value } }) => onChangeCep(value)}
-        sx={{ minWidth: ['100%', 600] }}
-        placeholder={'descrição...'}
-        name="cep"
-        size="small"
-      />
-      <InputForm
-        defaultValue={companyData.street}
-        minRows={2}
-        maxRows={4}
-        label="Logradouro"
-        labelPosition="center"
-        control={control}
-        sx={{ minWidth: ['100%', 600] }}
-        name="street"
-        size="small"
-      />
+      <SFlex sx={{ display: 'grid', gridTemplateColumns: '150px 1fr' }}>
+        <InputForm
+          defaultValue={companyData.cep}
+          minRows={2}
+          maxRows={4}
+          label="Cep"
+          labelPosition="center"
+          control={control}
+          onChange={({ target: { value } }) => onChangeCep(value)}
+          placeholder={'descrição...'}
+          name="cep"
+          size="small"
+        />
+        <InputForm
+          defaultValue={companyData.street}
+          minRows={2}
+          maxRows={4}
+          label="Logradouro"
+          labelPosition="center"
+          control={control}
+          name="street"
+          size="small"
+        />
+      </SFlex>
       <InputForm
         defaultValue={companyData.neighborhood}
         minRows={2}
@@ -81,9 +81,7 @@ export const ModalWorkplaceStep = ({
         name="neighborhood"
         size="small"
       />
-
       <SFlex sx={{ display: 'grid', gridTemplateColumns: '1fr 150px ' }}>
-        {' '}
         <InputForm
           defaultValue={companyData.city}
           minRows={2}

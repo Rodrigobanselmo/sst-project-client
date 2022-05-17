@@ -92,6 +92,7 @@ const palette = {
     darkPaper: '#c4c4c4',
     dark: '#1A202C',
     divider: '#efefef',
+    border: '#e2e2e2',
     lightGray: '#F3F5F8',
     box: '#F7FAFC',
     disabled: '#ddd',

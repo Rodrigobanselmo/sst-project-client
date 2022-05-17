@@ -10,9 +10,10 @@ const STableTitle: FC<STableTitleProps> = ({
   children,
   icon,
   mb = 12,
+  mt = 0,
   ...props
 }) => (
-  <SFlex mb={mb} align="center">
+  <SFlex mb={mb} mt={mt} align="center">
     {icon && (
       <Icon
         component={icon}

@@ -27,11 +27,13 @@ export interface ICompany {
   cadastral_situation_description: string;
   primary_activity: ActivityDto[];
   secondary_activity: ActivityDto[];
+  employeeCount: number;
 }
 
 export interface IWorkspace {
   id: number;
   name: string;
+  abbreviation: string;
   description: string;
   status: StatusEnum;
   created_at: Date;

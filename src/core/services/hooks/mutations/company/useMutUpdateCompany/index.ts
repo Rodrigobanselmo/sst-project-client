@@ -9,7 +9,6 @@ import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 export interface IUpdateCompany
@@ -54,7 +53,7 @@ export function useMutUpdateCompany() {
     async (data: IUpdateCompany) => updateCompany(data, getCompanyId(data)),
     {
       onSuccess: async (companyResp) => {
-        if (companyResp)
+        if (companyResp) {
           queryClient.setQueryData(
             [QueryEnum.COMPANIES, companyResp.id],
             (oldData: ICompany[] | undefined) =>
@@ -66,6 +65,12 @@ export function useMutUpdateCompany() {
                   )
                 : [companyResp],
           );
+
+          queryClient.setQueryData(
+            [QueryEnum.COMPANY, companyResp.id],
+            () => companyResp,
+          );
+        }
 
         enqueueSnackbar('Empresa editada com sucesso', {
           variant: 'success',

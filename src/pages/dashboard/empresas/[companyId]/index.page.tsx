@@ -1,48 +1,122 @@
+import { useCallback, useMemo } from 'react';
+
+import BadgeIcon from '@mui/icons-material/Badge';
 import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
-import { Box } from '@mui/material';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SText from 'components/atoms/SText';
+import { ModalAddEmployees } from 'components/organisms/modals/ModalAddEmployees';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
+import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
+import { WorkplaceTable } from 'components/organisms/tables/WorkplaceTable';
 import { NextPage } from 'next';
+
+import SCompanyIcon from 'assets/icons/SCompanyIcon';
+import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
+import { NextStepButton } from './components/NextStepButton/index.page';
+
 const CompanyPage: NextPage = () => {
   const { data: company } = useQueryCompany();
   const { onOpenModal } = useModal();
 
-  const handleAddWorkspace = () => {
-    onOpenModal(ModalEnum.WORKSPACE_ADD);
-  };
+  const handleAddWorkspace = useCallback(() => {
+    const data: Partial<typeof initialWorkspaceState> = {
+      name: company.type,
+      cep: company?.address?.cep,
+      number: company?.address?.number,
+      city: company?.address?.city,
+      complement: company?.address?.complement,
+      state: company?.address?.state,
+      street: company?.address?.street,
+      neighborhood: company?.address?.neighborhood,
+    };
+
+    const isFirstWorkspace = company.workspace && company.workspace.length == 0;
+    console.log(data, isFirstWorkspace, company);
+    onOpenModal(ModalEnum.WORKSPACE_ADD, isFirstWorkspace ? data : {});
+  }, [company, onOpenModal]);
+
+  const handleAddEmployees = useCallback(() => {
+    onOpenModal(ModalEnum.EMPLOYEES_ADD);
+  }, [onOpenModal]);
+
+  const actionsStepMemo = useMemo(() => {
+    return [
+      {
+        icon: SCompanyIcon,
+        onClick: handleAddWorkspace,
+        text: 'Cadastrar Unidades',
+      },
+      {
+        icon: BadgeIcon,
+        onClick: handleAddEmployees,
+        text: 'Cadastrar Empregados',
+      },
+      {
+        icon: WarningAmberIcon,
+        onClick: handleAddWorkspace,
+        text: 'Cadastrar Riscos',
+      },
+      {
+        icon: SEditIcon,
+        onClick: handleAddWorkspace,
+        text: 'Editar Dados da Empresa',
+      },
+    ];
+  }, [handleAddEmployees, handleAddWorkspace]);
+
+  const nextStepMemo = useMemo(() => {
+    if (company.workspace && company.workspace.length == 0)
+      return {
+        ...actionsStepMemo[0],
+        active: true,
+      };
+
+    if (!company.employeeCount)
+      return {
+        ...actionsStepMemo[1],
+        sx: { backgroundColor: 'success.main' },
+        active: true,
+      };
+
+    if (company.employeeCount)
+      return {
+        ...actionsStepMemo[2],
+        sx: { backgroundColor: 'primary.main' },
+        active: true,
+      };
+
+    return null;
+  }, [actionsStepMemo, company.employeeCount, company.workspace]);
 
   return (
     <SContainer>
       <SPageTitle icon={BusinessTwoToneIcon}>{company.name}</SPageTitle>
-      <SText mt={20}>Proximo passo</SText>
-      <SFlex mt={5}>
-        <Box
-          onClick={handleAddWorkspace}
-          sx={{ p: 5, backgroundColor: 'background.box' }}
-        >
-          <SText>Cadastrar Unidades</SText>
-        </Box>
-      </SFlex>
-      <SText mt={20}>A seguir</SText>
+      {nextStepMemo && (
+        <>
+          <SText mt={20}>Proximo passo</SText>
+          <SFlex mt={5}>
+            <NextStepButton {...nextStepMemo} />
+          </SFlex>
+        </>
+      )}
+      <SText mt={20}>Ações</SText>
       <SFlex mt={5} gap={10}>
-        <Box sx={{ p: 5, backgroundColor: 'background.box' }}>
-          <SText>Cadastrar Empregados</SText>
-        </Box>
-        <Box sx={{ p: 5, backgroundColor: 'background.box' }}>
-          <SText>Cadastrar Riscos</SText>
-        </Box>
+        {actionsStepMemo.map((props) => (
+          <NextStepButton key={props.text} {...props} />
+        ))}
       </SFlex>
-      {/* <EmployeesTable /> */}
+      <WorkplaceTable />
       <ModalAddWorkspace />
+      <ModalAddEmployees />
     </SContainer>
   );
 };
