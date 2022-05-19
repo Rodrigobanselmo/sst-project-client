@@ -1,5 +1,3 @@
-import { RefObject } from 'react';
-
 import { BoxProps } from '@mui/material';
 
 import { ITreeMapObject, ITreeSelectedItem } from '../../../interfaces';

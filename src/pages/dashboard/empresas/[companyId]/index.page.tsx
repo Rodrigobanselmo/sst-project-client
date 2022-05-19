@@ -23,7 +23,7 @@ import { useModal } from 'core/hooks/useModal';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
-import { NextStepButton } from './components/NextStepButton/index.page';
+import { NextStepButton } from './components/NextStepButton';
 
 const CompanyPage: NextPage = () => {
   const { data: company } = useQueryCompany();

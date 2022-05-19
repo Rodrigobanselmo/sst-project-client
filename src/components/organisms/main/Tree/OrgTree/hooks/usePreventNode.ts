@@ -1,4 +1,3 @@
-import { QuestionOptionsEnum } from 'components/organisms/main/Tree/ChecklistTree/enums/question-options.enums';
 import { IModalDataSlice } from 'store/reducers/modal/modalSlice';
 
 import { useGlobalModal } from 'core/hooks/useGlobalModal';

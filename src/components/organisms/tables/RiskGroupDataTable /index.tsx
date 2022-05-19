@@ -14,10 +14,7 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
-import {
-  initialRiskGroupState,
-  ModalAddRiskGroup,
-} from 'components/organisms/modals/ModalAddRiskGroup';
+import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';

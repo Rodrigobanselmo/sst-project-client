@@ -7,7 +7,7 @@ import SDocumentIcon from 'assets/icons/SDocumentIcon';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
-import { DocumentFormPgr } from '../../components/DocumentFormPgr/index.page';
+import { DocumentFormPgr } from '../../components/DocumentFormPgr';
 
 const Companies: NextPage = () => {
   return (
