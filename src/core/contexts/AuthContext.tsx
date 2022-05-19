@@ -134,6 +134,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     );
 
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
     router.push(RoutesEnum.DASHBOARD);
 
     authChannel.postMessage('signIn');
