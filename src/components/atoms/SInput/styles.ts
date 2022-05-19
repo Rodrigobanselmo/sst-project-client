@@ -7,10 +7,34 @@ export const STTextField = styled(TextField)<{
   errors: number;
   secondary: number;
   size: string;
+  backgroundColor?: string;
   unstyled: number;
   sub_variant?: 'search' | 'standard';
   multiline?: boolean;
+  smallPlaceholder?: number;
 }>`
+  ${(props) =>
+    props.smallPlaceholder &&
+    css`
+      input::placeholder {
+        opacity: 0.4;
+        font-size: 0.85rem;
+      }
+
+      textarea::placeholder {
+        opacity: 0.4;
+        font-size: 0.85rem;
+      }
+    `}
+
+  &&& .MuiOutlinedInput-root {
+    background-color: ${(props) => props.theme.palette.background.paper};
+  }
+
+  &&& .MuiInputBase-root {
+    background-color: ${(props) => props.theme.palette.background.paper};
+  }
+
   &&& .MuiOutlinedInput-notchedOutline {
     border-color: ${(props) => props.theme.palette.background.border};
     border-width: 1px;

@@ -8,6 +8,7 @@ import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SText from 'components/atoms/SText';
 import { ModalAddEmployees } from 'components/organisms/modals/ModalAddEmployees';
+import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { WorkplaceTable } from 'components/organisms/tables/WorkplaceTable';
@@ -17,6 +18,7 @@ import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
@@ -48,6 +50,12 @@ const CompanyPage: NextPage = () => {
     onOpenModal(ModalEnum.EMPLOYEES_ADD);
   }, [onOpenModal]);
 
+  const handleAddPgrDocument = useCallback(() => {
+    onOpenModal(ModalEnum.RISK_GROUP_ADD, {
+      goTo: RoutesEnum.COMPANY_PGR_DOCUMENT.replace(':companyId', company.id),
+    });
+  }, [company.id, onOpenModal]);
+
   const actionsStepMemo = useMemo(() => {
     return [
       {
@@ -62,7 +70,7 @@ const CompanyPage: NextPage = () => {
       },
       {
         icon: WarningAmberIcon,
-        onClick: handleAddWorkspace,
+        onClick: handleAddPgrDocument,
         text: 'Cadastrar Riscos',
       },
       {
@@ -71,7 +79,7 @@ const CompanyPage: NextPage = () => {
         text: 'Editar Dados da Empresa',
       },
     ];
-  }, [handleAddEmployees, handleAddWorkspace]);
+  }, [handleAddEmployees, handleAddWorkspace, handleAddPgrDocument]);
 
   const nextStepMemo = useMemo(() => {
     if (company.workspace && company.workspace.length == 0)
@@ -117,6 +125,7 @@ const CompanyPage: NextPage = () => {
       <WorkplaceTable />
       <ModalAddWorkspace />
       <ModalAddEmployees />
+      <ModalAddRiskGroup />
     </SContainer>
   );
 };

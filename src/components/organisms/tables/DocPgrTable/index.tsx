@@ -37,7 +37,7 @@ import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownload
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { sortData } from 'core/utils/sorts/data.sort';
 
-export const RiskGroupDataTable: FC<BoxProps> = () => {
+export const DocPgrTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryRiskGroupData();
   const { onOpenModal } = useModal();
   const downloadMutation = useMutDownloadFile();
@@ -55,17 +55,11 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
   };
 
   const handleEditRiskGroup = (data: IRiskGroupData) => {
-    // onOpenModal(ModalEnum.RISK_GROUP_ADD, {
-    //   id: data.id,
-    //   name: data.name,
-    //   status: data.status,
-    // } as typeof initialRiskGroupState);
-    push(
-      RoutesEnum.COMPANY_PGR_DOCUMENT.replace(
-        /:companyId/g,
-        data.companyId,
-      ).replace(/:docId/g, data.id),
-    );
+    onOpenModal(ModalEnum.RISK_GROUP_ADD, {
+      id: data.id,
+      name: data.name,
+      status: data.status,
+    } as typeof initialRiskGroupState);
   };
 
   const handleGoToRiskData = (row: IRiskGroupData) => {

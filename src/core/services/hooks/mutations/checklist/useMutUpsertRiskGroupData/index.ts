@@ -12,10 +12,14 @@ import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
 
-interface IUpsertRiskGroupData {
+export interface IUpsertRiskGroupData {
   id?: string;
-  name: string;
+  name?: string;
   status?: StatusEnum;
+  elaboratedBy?: string;
+  revisionBy?: string;
+  approvedBy?: string;
+  visitDate?: string;
   companyId?: string;
 }
 

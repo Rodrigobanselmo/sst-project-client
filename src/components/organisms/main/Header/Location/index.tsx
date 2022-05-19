@@ -31,11 +31,11 @@ export function Location(): JSX.Element {
     routesToMap.unshift(brandNameConstant.toLowerCase());
   }
 
-  const handleChangeRoute = (route: string, index: number) => {
-    if (companyId && (route === 'empresa' || route === company?.name))
-      return `/${routes.slice(0, index).join('/')}/${companyId}`;
+  const handleChangeRoute = (index: number) => {
+    const route = routes.slice(0, index + 1).join('/');
+    console.log(route.replace(company?.name || 'empresa', companyId || ''));
 
-    return `/${routes.slice(0, index + 1).join('/')}`;
+    return `/${route.replace(company?.name || 'empresa', companyId || '')}`;
   };
 
   return (
@@ -56,12 +56,9 @@ export function Location(): JSX.Element {
           }
         >
           {routesToMap.map((route, index) => {
+            if (route.split('-').length > 2) return null;
             return (
-              <NextLink
-                key={index}
-                href={handleChangeRoute(route, index)}
-                passHref
-              >
+              <NextLink key={index} href={handleChangeRoute(index)} passHref>
                 <Link underline="hover">
                   <SText
                     sx={{ textTransform: 'capitalize' }}

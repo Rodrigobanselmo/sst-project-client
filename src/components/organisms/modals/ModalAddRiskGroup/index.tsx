@@ -9,6 +9,7 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -25,12 +26,14 @@ export const initialRiskGroupState = {
   status: StatusEnum.PROGRESS,
   error: '',
   id: '',
+  goTo: '',
 };
 
 export const ModalAddRiskGroup = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const mutation = useMutUpsertRiskGroupData();
+  const { push } = useRouter();
   const initialDataRef = useRef(initialRiskGroupState);
 
   const { preventUnwantedChanges } = usePreventAction();
@@ -54,11 +57,15 @@ export const ModalAddRiskGroup = () => {
       });
     }
 
-    await mutation.mutateAsync({
+    const doc = await mutation.mutateAsync({
       id: riskGroupData.id,
       name: riskGroupData.name,
       status: riskGroupData.status,
     });
+
+    if (riskGroupData.goTo && doc)
+      push(riskGroupData.goTo.replace(':docId', doc.id));
+
     onClose();
   };
 

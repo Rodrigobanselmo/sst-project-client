@@ -26,6 +26,8 @@ export const SInput: FC<SInputProps> = ({
   success,
   helperText,
   secondary,
+  smallPlaceholder,
+  backgroundColor,
   ...props
 }) => {
   return (
@@ -40,6 +42,8 @@ export const SInput: FC<SInputProps> = ({
         </Typography>
       )}
       <STTextField
+        backgroundColor={backgroundColor}
+        smallPlaceholder={smallPlaceholder ? 1 : 0}
         color={error ? 'error' : success ? 'success' : 'primary'}
         success={success && !error ? 1 : 0}
         secondary={secondary ? 1 : 0}
