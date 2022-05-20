@@ -30,6 +30,26 @@ export interface IRiskGroupData {
   created_at: Date;
   companyId: string;
   status: StatusEnum;
+  elaboratedBy: null | string;
+  revisionBy: null | string;
+  approvedBy: null | string;
+  source: null | string;
+  visitDate: null | string;
+
+  data?: IRiskData[];
+}
+
+export interface IPrgDocData {
+  id: string;
+  name: string;
+  created_at: Date;
+  companyId: string;
+  status: StatusEnum;
+  elaboratedBy: null | string;
+  revisionBy: null | string;
+  approvedBy: null | string;
+  source: null | string;
+  visitDate: null | string;
 
   data?: IRiskData[];
 }

@@ -1,20 +1,48 @@
+import { SButton } from 'components/atoms/SButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SPageTitle from 'components/atoms/SPageTitle';
-import { RiskGroupDataTable } from 'components/organisms/tables/RiskGroupDataTable ';
+import { DocPgrTable } from 'components/organisms/tables/DocPgrTable';
 import { NextPage } from 'next';
+import { useRouter } from 'next/router';
 
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
+import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 import { DocumentFormPgr } from '../../components/DocumentFormPgr';
 
 const Companies: NextPage = () => {
+  const { query, push } = useRouter();
+
+  const handleGoToRiskData = () => {
+    push(
+      RoutesEnum.RISK_DATA.replace(
+        /:companyId/g,
+        query.companyId as string,
+      ).replace(/:riskGroupId/g, query.docId as string),
+    );
+  };
+
   return (
     <SContainer>
-      <SPageTitle icon={SDocumentIcon}>Documento PGR</SPageTitle>
-      <DocumentFormPgr />
-      <RiskGroupDataTable />
+      <SPageTitle mb={15} icon={SDocumentIcon}>
+        Documento PGR
+      </SPageTitle>
+      <SButton
+        sx={{ mb: 15 }}
+        variant={'contained'}
+        color="success"
+        type="submit"
+        onClick={handleGoToRiskData}
+      >
+        <SRiskFactorIcon sx={{ mr: 5, fontSize: 18 }} />
+        Adicionar fatores de risco
+      </SButton>
+
+      <DocumentFormPgr mb={15} riskGroupId={query.docId as string} />
+      <DocPgrTable riskGroupId={query.docId as string} />
     </SContainer>
   );
 };

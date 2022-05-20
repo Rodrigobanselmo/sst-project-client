@@ -1,18 +1,27 @@
 import { Box } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
+import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
-import { useRouter } from 'next/router';
+
+import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
+import { useQueryRiskGroupDataOne } from 'core/services/hooks/queries/useQueryRiskGroupDataOne';
 
 import { usePgrForm } from './hooks/usePgrForm';
 import { STBox } from './styles';
 import { INextStepButtonProps } from './types';
 
-export const DocumentFormPgr = ({ ...props }: INextStepButtonProps) => {
-  const { query } = useRouter();
+export const DocumentFormPgr = ({
+  riskGroupId,
+  ...props
+}: INextStepButtonProps) => {
+  const { data } = useQueryRiskGroupDataOne(riskGroupId as string);
 
   const { onSave, loading, handleSubmit, onSubmitNewVersion, control } =
-    usePgrForm(query.docId as string);
+    usePgrForm(riskGroupId);
 
+  useFetchFeedback(!data);
+
+  if (!data) return null;
   return (
     <STBox
       onSubmit={handleSubmit(onSubmitNewVersion)}
@@ -20,7 +29,7 @@ export const DocumentFormPgr = ({ ...props }: INextStepButtonProps) => {
       {...props}
     >
       <InputForm
-        // defaultValue={generateSourceData.name}
+        defaultValue={data?.name}
         multiline
         minRows={2}
         maxRows={4}
@@ -40,7 +49,7 @@ export const DocumentFormPgr = ({ ...props }: INextStepButtonProps) => {
         }}
       >
         <InputForm
-          // defaultValue={companyData.name}
+          defaultValue={data?.source || ''}
           label="Fonte"
           control={control}
           placeholder={'local onde os dados foram obtidos...'}
@@ -49,8 +58,8 @@ export const DocumentFormPgr = ({ ...props }: INextStepButtonProps) => {
           smallPlaceholder
         />
         <InputForm
-          // defaultValue={companyData.name}
-          label="Data da visita"
+          defaultValue={data?.visitDate || ''}
+          label="Data da vista"
           control={control}
           placeholder={'data em que os dados foram obtidos...'}
           name="visitDate"
@@ -68,7 +77,7 @@ export const DocumentFormPgr = ({ ...props }: INextStepButtonProps) => {
         }}
       >
         <InputForm
-          // defaultValue={companyData.name}
+          defaultValue={data?.elaboratedBy || ''}
           label="Elabora por"
           control={control}
           placeholder={'nome do elaborador do documento...'}
@@ -77,16 +86,16 @@ export const DocumentFormPgr = ({ ...props }: INextStepButtonProps) => {
           smallPlaceholder
         />
         <InputForm
-          // defaultValue={companyData.name}
+          defaultValue={data?.revisionBy || ''}
           label="Revisado por"
           control={control}
-          placeholder={'nome do resonsável pela revisão do documento...'}
+          placeholder={' nome do resonsável pela revisão do documento...'}
           name="revisionBy"
           size="small"
           smallPlaceholder
         />
         <InputForm
-          // defaultValue={companyData.name}
+          defaultValue={data?.approvedBy || ''}
           label="Aprovado por"
           control={control}
           placeholder={'nome de quem aprovou o documento...'}
@@ -95,22 +104,24 @@ export const DocumentFormPgr = ({ ...props }: INextStepButtonProps) => {
           smallPlaceholder
         />
       </Box>
-      <SButton
-        variant={'outlined'}
-        size="small"
-        loading={loading}
-        onClick={onSave}
-      >
-        Salvar
-      </SButton>
-      <SButton
-        variant={'contained'}
-        size="small"
-        type="submit"
-        onClick={onSave}
-      >
-        Gerar Nova Versão
-      </SButton>
+      <SFlex gap={5} mt={10} justifyContent="flex-end" width="100%">
+        <SButton
+          disabled={true}
+          variant={'outlined'}
+          size="small"
+          type="submit"
+        >
+          Gerar Nova Versão
+        </SButton>
+        <SButton
+          size="small"
+          variant={'contained'}
+          loading={loading}
+          onClick={onSave}
+        >
+          Salvar
+        </SButton>
+      </SFlex>
     </STBox>
   );
 };

@@ -23,7 +23,7 @@ export const STTextField = styled(TextField)<{
 
       textarea::placeholder {
         opacity: 0.4;
-        font-size: 0.85rem;
+        font-size: 0.9rem;
       }
     `}
 

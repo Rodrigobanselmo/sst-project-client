@@ -30,6 +30,7 @@ const MenuFilter: FC<SMenuSimpleFilterSearchProps> = ({
               px: 4,
               py: '1px',
               borderRadius: 3,
+              zIndex: 1,
               fontSize: '12px',
               mb: 1,
               mt: -1,

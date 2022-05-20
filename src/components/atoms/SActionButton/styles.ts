@@ -3,6 +3,8 @@ import { Box, styled } from '@mui/material';
 
 interface IProps {
   active?: 0 | 1;
+  success?: 0 | 1;
+  primary?: 0 | 1;
 }
 
 export const STBox = styled(Box)<IProps>`
@@ -12,6 +14,7 @@ export const STBox = styled(Box)<IProps>`
   cursor: pointer;
   transition: all 0.2s ease;
   user-select: none;
+  box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 
   &:hover {
     filter: brightness(0.9);
@@ -38,5 +41,29 @@ export const STBox = styled(Box)<IProps>`
       p {
         color: ${props.theme.palette.common.white};
       }
-    `}
+    `};
+
+  ${(props) =>
+    props.primary &&
+    css`
+      background-color: ${props.theme.palette.primary.main};
+      svg {
+        color: ${props.theme.palette.common.white};
+      }
+      p {
+        color: ${props.theme.palette.common.white};
+      }
+    `};
+
+  ${(props) =>
+    props.success &&
+    css`
+      background-color: ${props.theme.palette.success.main};
+      svg {
+        color: ${props.theme.palette.common.white};
+      }
+      p {
+        color: ${props.theme.palette.common.white};
+      }
+    `};
 `;

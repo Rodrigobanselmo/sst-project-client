@@ -65,18 +65,18 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
     );
   };
 
-  const handleGoToRiskData = (row: IRiskGroupData) => {
-    push(
-      RoutesEnum.RISK_DATA.replace(/:companyId/g, row.companyId).replace(
-        /:riskGroupId/g,
-        row.id,
-      ),
-    );
-  };
+  // const handleGoToRiskData = (row: IRiskGroupData) => {
+  //   push(
+  //     RoutesEnum.RISK_DATA.replace(/:companyId/g, row.companyId).replace(
+  //       /:riskGroupId/g,
+  //       row.id,
+  //     ),
+  //   );
+  // };
 
   return (
     <>
-      <STableTitle icon={LibraryAddCheckIcon}>Empresas</STableTitle>
+      <STableTitle icon={LibraryAddCheckIcon}>Documentos PRG</STableTitle>
       <STableSearch
         onAddClick={() => onOpenModal(ModalEnum.RISK_GROUP_ADD)}
         onChange={(e) => handleSearchChange(e.target.value)}
@@ -99,12 +99,12 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
             return (
               <STableRow clickable key={row.id}>
                 <TextIconRow
-                  onClick={() => handleGoToRiskData(row)}
+                  onClick={() => handleEditRiskGroup(row)}
                   text={row.name}
                   height={'100%'}
                 />
                 <TextIconRow
-                  onClick={() => handleGoToRiskData(row)}
+                  onClick={() => handleEditRiskGroup(row)}
                   text={dayjs(row.created_at).format('DD/MM/YYYY')}
                   height={'100%'}
                 />

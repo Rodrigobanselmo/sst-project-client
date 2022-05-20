@@ -19,6 +19,7 @@ export interface IUpsertRiskGroupData {
   elaboratedBy?: string;
   revisionBy?: string;
   approvedBy?: string;
+  source?: string;
   visitDate?: string;
   companyId?: string;
 }
@@ -71,6 +72,9 @@ export function useMutUpsertRiskGroupData() {
             },
           );
 
+        enqueueSnackbar('Documento editado com sucesso', {
+          variant: 'success',
+        });
         return resp;
       },
       onError: (error: IErrorResp) => {

@@ -13,6 +13,7 @@ import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { WorkplaceTable } from 'components/organisms/tables/WorkplaceTable';
 import { NextPage } from 'next';
+import { useRouter } from 'next/router';
 
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import { SEditIcon } from 'assets/icons/SEditIcon';
@@ -23,11 +24,12 @@ import { useModal } from 'core/hooks/useModal';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
-import { NextStepButton } from './components/NextStepButton';
+import { SActionButton } from '../../../../components/atoms/SActionButton';
 
 const CompanyPage: NextPage = () => {
   const { data: company } = useQueryCompany();
   const { onOpenModal } = useModal();
+  const { push } = useRouter();
 
   const handleAddWorkspace = useCallback(() => {
     const data: Partial<typeof initialWorkspaceState> = {
@@ -51,10 +53,16 @@ const CompanyPage: NextPage = () => {
   }, [onOpenModal]);
 
   const handleAddPgrDocument = useCallback(() => {
-    onOpenModal(ModalEnum.RISK_GROUP_ADD, {
-      goTo: RoutesEnum.COMPANY_PGR_DOCUMENT.replace(':companyId', company.id),
-    });
-  }, [company.id, onOpenModal]);
+    if (company.riskGroupCount) {
+      push({
+        pathname: RoutesEnum.COMPANY_PGR.replace(':companyId', company.id),
+      });
+    } else {
+      onOpenModal(ModalEnum.RISK_GROUP_ADD, {
+        goTo: RoutesEnum.COMPANY_PGR_DOCUMENT.replace(':companyId', company.id),
+      });
+    }
+  }, [company.id, company.riskGroupCount, onOpenModal, push]);
 
   const actionsStepMemo = useMemo(() => {
     return [
@@ -75,7 +83,7 @@ const CompanyPage: NextPage = () => {
       },
       {
         icon: SEditIcon,
-        onClick: handleAddWorkspace,
+        // onClick: handleAddWorkspace,
         text: 'Editar Dados da Empresa',
       },
     ];
@@ -92,14 +100,14 @@ const CompanyPage: NextPage = () => {
       return {
         ...actionsStepMemo[1],
         sx: { backgroundColor: 'success.main' },
-        active: true,
+        success: true,
       };
 
     if (company.employeeCount)
       return {
         ...actionsStepMemo[2],
         sx: { backgroundColor: 'primary.main' },
-        active: true,
+        primary: true,
       };
 
     return null;
@@ -112,14 +120,14 @@ const CompanyPage: NextPage = () => {
         <>
           <SText mt={20}>Proximo passo</SText>
           <SFlex mt={5}>
-            <NextStepButton {...nextStepMemo} />
+            <SActionButton {...nextStepMemo} />
           </SFlex>
         </>
       )}
       <SText mt={20}>Ações</SText>
       <SFlex mt={5} gap={10}>
         {actionsStepMemo.map((props) => (
-          <NextStepButton key={props.text} {...props} />
+          <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
       <WorkplaceTable />

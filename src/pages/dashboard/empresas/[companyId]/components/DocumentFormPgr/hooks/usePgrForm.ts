@@ -30,14 +30,21 @@ export const usePgrForm = (docId: string) => {
     const isValid = await trigger(['name']);
 
     if (isValid) {
-      const { name, approvedBy, elaboratedBy, visitDate, revisionBy }: ISubmit =
-        getValues();
+      const {
+        name,
+        approvedBy,
+        elaboratedBy,
+        visitDate,
+        revisionBy,
+        source,
+      }: ISubmit = getValues();
       await updateMutation.mutateAsync({
         id: docId,
         name,
         approvedBy,
         elaboratedBy,
         visitDate,
+        source,
         revisionBy,
       });
     }

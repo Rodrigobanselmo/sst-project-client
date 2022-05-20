@@ -28,6 +28,7 @@ export interface ICompany {
   primary_activity: ActivityDto[];
   secondary_activity: ActivityDto[];
   employeeCount: number;
+  riskGroupCount: number;
 }
 
 export interface IWorkspace {

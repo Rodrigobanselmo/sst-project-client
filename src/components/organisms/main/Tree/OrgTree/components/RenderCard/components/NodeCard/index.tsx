@@ -38,8 +38,9 @@ const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({ label }) => {
         sx={{
           pr: 10,
           width: '100%',
-          fontSize: 14,
-          lineHeight: 1,
+          fontSize: 13,
+          lineHeight: '15px',
+          pb: '1px',
         }}
         lineNumber={2}
       >
