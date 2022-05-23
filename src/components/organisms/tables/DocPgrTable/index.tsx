@@ -35,8 +35,6 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
     console.log(status); // TODO edit checklist status
   };
 
-  console.log('variables', downloadMutation.variables);
-
   return (
     <>
       <STableTitle icon={LibraryAddCheckIcon}>Versões</STableTitle>

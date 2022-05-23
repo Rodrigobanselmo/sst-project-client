@@ -1,6 +1,7 @@
 import React, { FC } from 'react';
 
 import { Global } from '@emotion/react';
+import { LoadingFeedback } from 'layouts/default/loading';
 import { useRouter } from 'next/router';
 
 import { Sidebar } from '../../components/organisms/main/Sidebar';
@@ -13,7 +14,8 @@ import { STBoxContent, STBoxSidebar, STGridBox } from './styles';
 export const DashboardLayout: FC = ({ children }) => {
   const { asPath } = useRouter();
 
-  if (!asPath.includes(RoutesEnum.DASHBOARD)) return <>{children}</>;
+  if (!asPath.includes(RoutesEnum.DASHBOARD))
+    return <LoadingFeedback>{children}</LoadingFeedback>;
 
   return (
     <SidebarDrawerProvider>

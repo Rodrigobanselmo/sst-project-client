@@ -29,7 +29,7 @@ export const LoginForm: FC = () => {
   const successEmail = email && email.length > 3 && isValidEmail(email);
   const successPass = password && password.length > 7;
 
-  const onSubmit: SubmitHandler<ILoginSchema> = (data) => {
+  const onSubmit: SubmitHandler<ILoginSchema> = async (data) => {
     mutate(data);
   };
 

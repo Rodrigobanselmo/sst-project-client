@@ -36,6 +36,8 @@ export const SecondModalStep = (props: IUseAddCompany) => {
       data.id,
     ]) as IPrgDocData[];
 
+    if (!docs) '0.0.0';
+
     return docs[0] ? docs[0].version : '0.0.0';
   }, [data.companyId, data.id]);
 
