@@ -25,6 +25,8 @@ export const STagAction: FC<ISTagProps> = ({
     switch (action) {
       case 'add':
         return 'tag.add';
+      case 'version':
+        return 'info.main';
       case 'edit':
         return 'tag.edit';
       case 'delete':
@@ -59,7 +61,7 @@ export const STagAction: FC<ISTagProps> = ({
       align="center"
       {...props}
     >
-      {action === 'add' && (
+      {(action === 'add' || action === 'version') && (
         <AddIcon sx={{ fontSize: '18px', color: 'common.white' }} />
       )}
       {action === 'edit' && (
@@ -94,6 +96,7 @@ export const STagAction: FC<ISTagProps> = ({
       {action === 'warning' ? 'Atenção' : ''}
       {action === 'error' ? 'Erro' : ''}
       {action === 'upload' ? 'Envio' : ''}
+      {action === 'version' ? 'Nova versão' : ''}
 
       {Icon && <Icon sx={{ fontSize: '18px', color: 'common.white' }} />}
     </SFlex>

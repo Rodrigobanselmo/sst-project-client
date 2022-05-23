@@ -30,11 +30,11 @@ export interface IRiskGroupData {
   created_at: Date;
   companyId: string;
   status: StatusEnum;
-  elaboratedBy: null | string;
-  revisionBy: null | string;
-  approvedBy: null | string;
-  source: null | string;
-  visitDate: null | string;
+  elaboratedBy?: string;
+  revisionBy?: string;
+  approvedBy?: string;
+  source?: string;
+  visitDate?: string;
 
   data?: IRiskData[];
 }
@@ -42,14 +42,12 @@ export interface IRiskGroupData {
 export interface IPrgDocData {
   id: string;
   name: string;
+  description: string;
+  fileUrl: string;
+  version: string;
+  riskGroupId: string;
   created_at: Date;
+  updated_at: Date;
   companyId: string;
   status: StatusEnum;
-  elaboratedBy: null | string;
-  revisionBy: null | string;
-  approvedBy: null | string;
-  source: null | string;
-  visitDate: null | string;
-
-  data?: IRiskData[];
 }

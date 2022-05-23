@@ -12,6 +12,7 @@ export type ITagAction =
   | 'warning'
   | 'info'
   | 'upload'
+  | 'version'
   | 'none';
 
 export interface ISTagProps extends BoxProps {

@@ -72,6 +72,12 @@ export function useMutUpsertRiskGroupData() {
             },
           );
 
+        queryClient.refetchQueries([
+          QueryEnum.RISK_GROUP_DATA,
+          getCompanyId(resp),
+          resp?.id,
+        ]);
+
         enqueueSnackbar('Documento editado com sucesso', {
           variant: 'success',
         });

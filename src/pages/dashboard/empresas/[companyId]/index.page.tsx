@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react';
 
 import BadgeIcon from '@mui/icons-material/Badge';
 import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
-import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
@@ -17,6 +16,7 @@ import { useRouter } from 'next/router';
 
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import { SEditIcon } from 'assets/icons/SEditIcon';
+import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
@@ -77,7 +77,7 @@ const CompanyPage: NextPage = () => {
         text: 'Cadastrar Empregados',
       },
       {
-        icon: WarningAmberIcon,
+        icon: SRiskFactorIcon,
         onClick: handleAddPgrDocument,
         text: 'Cadastrar Riscos',
       },
@@ -130,7 +130,7 @@ const CompanyPage: NextPage = () => {
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
-      <WorkplaceTable />
+      <WorkplaceTable hideModal />
       <ModalAddWorkspace />
       <ModalAddEmployees />
       <ModalAddRiskGroup />

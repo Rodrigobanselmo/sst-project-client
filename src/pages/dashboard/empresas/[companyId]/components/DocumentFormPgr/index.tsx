@@ -16,8 +16,16 @@ export const DocumentFormPgr = ({
 }: INextStepButtonProps) => {
   const { data } = useQueryRiskGroupDataOne(riskGroupId as string);
 
-  const { onSave, loading, handleSubmit, onSubmitNewVersion, control } =
-    usePgrForm(riskGroupId);
+  const {
+    onSave,
+    onGenerateVersion,
+    loading,
+    handleSubmit,
+    onSubmitNewVersion,
+    control,
+    uneditable,
+    onEdit,
+  } = usePgrForm(riskGroupId, data);
 
   useFetchFeedback(!data);
 
@@ -30,6 +38,7 @@ export const DocumentFormPgr = ({
     >
       <InputForm
         defaultValue={data?.name}
+        uneditable={uneditable}
         multiline
         minRows={2}
         maxRows={4}
@@ -49,7 +58,8 @@ export const DocumentFormPgr = ({
         }}
       >
         <InputForm
-          defaultValue={data?.source || ''}
+          defaultValue={data?.source}
+          uneditable={uneditable}
           label="Fonte"
           control={control}
           placeholder={'local onde os dados foram obtidos...'}
@@ -58,8 +68,9 @@ export const DocumentFormPgr = ({
           smallPlaceholder
         />
         <InputForm
-          defaultValue={data?.visitDate || ''}
-          label="Data da vista"
+          defaultValue={data?.visitDate}
+          uneditable={uneditable}
+          label="Data da visita"
           control={control}
           placeholder={'data em que os dados foram obtidos...'}
           name="visitDate"
@@ -77,7 +88,8 @@ export const DocumentFormPgr = ({
         }}
       >
         <InputForm
-          defaultValue={data?.elaboratedBy || ''}
+          defaultValue={data?.elaboratedBy}
+          uneditable={uneditable}
           label="Elabora por"
           control={control}
           placeholder={'nome do elaborador do documento...'}
@@ -86,7 +98,8 @@ export const DocumentFormPgr = ({
           smallPlaceholder
         />
         <InputForm
-          defaultValue={data?.revisionBy || ''}
+          defaultValue={data?.revisionBy}
+          uneditable={uneditable}
           label="Revisado por"
           control={control}
           placeholder={' nome do resonsável pela revisão do documento...'}
@@ -95,7 +108,8 @@ export const DocumentFormPgr = ({
           smallPlaceholder
         />
         <InputForm
-          defaultValue={data?.approvedBy || ''}
+          defaultValue={data?.approvedBy}
+          uneditable={uneditable}
           label="Aprovado por"
           control={control}
           placeholder={'nome de quem aprovou o documento...'}
@@ -105,19 +119,23 @@ export const DocumentFormPgr = ({
         />
       </Box>
       <SFlex gap={5} mt={10} justifyContent="flex-end" width="100%">
-        <SButton
-          disabled={true}
-          variant={'outlined'}
-          size="small"
-          type="submit"
-        >
+        <SButton variant={'outlined'} size="small" onClick={onGenerateVersion}>
           Gerar Nova Versão
+        </SButton>
+        <SButton
+          size="small"
+          variant={uneditable ? 'contained' : 'outlined'}
+          loading={loading}
+          onClick={onEdit}
+        >
+          {uneditable ? 'Editar' : 'Cancelar'}
         </SButton>
         <SButton
           size="small"
           variant={'contained'}
           loading={loading}
           onClick={onSave}
+          disabled={uneditable}
         >
           Salvar
         </SButton>

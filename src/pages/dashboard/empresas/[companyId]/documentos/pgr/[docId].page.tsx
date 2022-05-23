@@ -1,6 +1,7 @@
-import { SButton } from 'components/atoms/SButton';
+import { SActionButton } from 'components/atoms/SActionButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SPageTitle from 'components/atoms/SPageTitle';
+import { ModalAddDocPgr } from 'components/organisms/modals/ModalAddDocPgr';
 import { DocPgrTable } from 'components/organisms/tables/DocPgrTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -30,19 +31,17 @@ const Companies: NextPage = () => {
       <SPageTitle mb={15} icon={SDocumentIcon}>
         Documento PGR
       </SPageTitle>
-      <SButton
-        sx={{ mb: 15 }}
-        variant={'contained'}
-        color="success"
-        type="submit"
+      <SActionButton
+        icon={SRiskFactorIcon}
         onClick={handleGoToRiskData}
-      >
-        <SRiskFactorIcon sx={{ mr: 5, fontSize: 18 }} />
-        Adicionar fatores de risco
-      </SButton>
+        text={'Adicionar fatores de risco'}
+        primary
+        mb={15}
+      />
 
       <DocumentFormPgr mb={15} riskGroupId={query.docId as string} />
       <DocPgrTable riskGroupId={query.docId as string} />
+      <ModalAddDocPgr />
     </SContainer>
   );
 };

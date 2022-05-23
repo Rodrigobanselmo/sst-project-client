@@ -9,6 +9,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { IWorkspace } from 'core/interfaces/api/ICompany';
 import {
   IUpdateCompany,
   useMutUpdateCompany,
@@ -123,27 +124,29 @@ export const useEditWorkspace = () => {
   };
 
   const onSubmit: SubmitHandler<ISubmit> = async (data) => {
-    const submitData: IUpdateCompany = {
-      workspace: [
-        {
-          name: data.name,
-          description: data.description,
-          status: companyData.status,
-          address: {
-            neighborhood: data.neighborhood,
-            number: data.number,
-            city: data.city,
-            street: data.street,
-            cep: data.cep,
-            complement: data.complement,
-            state: data.state,
-          },
-        },
-      ],
+    const workplace: Partial<IWorkspace> = {
+      name: data.name,
+      description: data.description,
+      status: companyData.status,
+      address: {
+        neighborhood: data.neighborhood,
+        number: data.number,
+        city: data.city,
+        street: data.street,
+        cep: data.cep,
+        complement: data.complement,
+        state: data.state,
+      },
     };
-    if (companyData.id == '') {
-      await updateMutation.mutateAsync(submitData);
-    }
+
+    if (companyData.id) workplace.id = companyData.id;
+    if (companyData.status) workplace.status = companyData.status;
+
+    const submitData: IUpdateCompany = {
+      workspace: [workplace],
+    };
+
+    await updateMutation.mutateAsync(submitData);
 
     onClose();
   };

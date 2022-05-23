@@ -2,7 +2,7 @@
 import { saveAs } from 'file-saver';
 
 export async function downloadFile(response: any) {
-  const fileExcelBlob = new Blob([response.data], {
+  const file = new Blob([response.data], {
     type: response.headers['content-type'],
   });
 
@@ -18,7 +18,7 @@ export async function downloadFile(response: any) {
     // eslint-disable-next-line no-empty
   } catch (error) {}
 
-  saveAs(fileExcelBlob, fileName);
+  saveAs(file, fileName);
 
   return response.data;
 }

@@ -1,46 +1,44 @@
 import React from 'react';
 import { Controller } from 'react-hook-form';
 
-import { SInput } from '../../../atoms/SInput';
-import { InputFormProps } from './types';
+import SSelect from 'components/atoms/SSelect';
 
-export const InputForm = ({
+import { SelectFormProps } from './types';
+
+export const SelectForm = ({
   defaultValue = '',
-  mask,
   name,
   control,
   label = '',
   variant = 'outlined',
   onChange,
-  uneditable,
-  ...restInput
-}: InputFormProps) => {
+  options,
+  ...restSelect
+}: SelectFormProps) => {
   return (
     <Controller
       name={name}
       control={control}
-      defaultValue={defaultValue || ''}
       render={({
-        field: { onBlur, onChange: func, ref, value: _value, ...rest },
+        field: { onChange: func, ref, value, ...rest },
         fieldState: { error },
       }) => (
-        <SInput
+        <SSelect
+          defaultValue={defaultValue}
           helperText={error?.message ?? null}
+          options={options}
           error={!!error}
           onChange={(e) => {
-            mask && mask(e);
             onChange && onChange(e);
             func(e);
           }}
-          onBlur={onBlur}
           inputRef={ref}
           fullWidth
           label={label}
           variant={variant}
-          value={uneditable ? defaultValue : _value || ''}
-          disabled={uneditable}
+          value={value || ''}
           {...rest}
-          {...restInput}
+          {...restSelect}
         />
       )}
     />

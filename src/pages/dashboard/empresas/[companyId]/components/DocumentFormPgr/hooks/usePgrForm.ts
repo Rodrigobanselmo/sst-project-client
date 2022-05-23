@@ -1,7 +1,12 @@
+import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { initialPgrDocState } from 'components/organisms/modals/ModalAddDocPgr/hooks/useHandleActions';
 
+import { ModalEnum } from 'core/enums/modal.enums';
+import { useModal } from 'core/hooks/useModal';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
@@ -11,10 +16,13 @@ import { pgrSchema } from 'core/utils/schemas/pgr.schema';
 interface ISubmit
   extends Omit<IUpsertRiskGroupData, 'status' | 'id' | 'companyId'> {}
 
-export const usePgrForm = (docId: string) => {
-  const { handleSubmit, control, getValues, trigger } = useForm({
+export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
+  const { onOpenModal } = useModal();
+  const { handleSubmit, control, getValues, trigger, setFocus } = useForm({
     resolver: yupResolver(pgrSchema),
   });
+
+  const [uneditable, setUneditable] = useState(true);
 
   const updateMutation = useMutUpsertRiskGroupData();
 
@@ -47,7 +55,42 @@ export const usePgrForm = (docId: string) => {
         source,
         revisionBy,
       });
+
+      setUneditable(true);
+      return true;
     }
+    return false;
+  };
+
+  const onEdit = () => {
+    if (uneditable) {
+      setUneditable(false);
+
+      setTimeout(() => {
+        setFocus('name');
+      }, 100);
+      return;
+    }
+    setUneditable(true);
+  };
+
+  const onGenerateVersion = async () => {
+    if (!data) return;
+    setUneditable(true);
+
+    const initialState: Partial<typeof initialPgrDocState> = {
+      approvedBy: data.approvedBy,
+      elaboratedBy: data.elaboratedBy,
+      revisionBy: data.revisionBy,
+      visitDate: data.visitDate,
+      source: data.source,
+      id: data.id,
+      name: data.name,
+      companyId: data.companyId,
+      status: data.status,
+    };
+
+    onOpenModal(ModalEnum.RISK_GROUP_DOC_ADD, initialState);
   };
 
   return {
@@ -56,6 +99,10 @@ export const usePgrForm = (docId: string) => {
     control,
     handleSubmit,
     onSave,
+    onGenerateVersion,
+    uneditable,
+    setUneditable,
+    onEdit,
   };
 };
 

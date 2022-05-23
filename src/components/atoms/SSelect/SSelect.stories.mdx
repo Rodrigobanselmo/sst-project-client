@@ -1,0 +1,515 @@
+import Box from '@mui/material/Box';
+import Checkbox from '@mui/material/Checkbox';
+import Chip from '@mui/material/Chip';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import Typography from '@mui/material/Typography';
+import { Canvas, Meta, Props, Story } from '@storybook/addon-docs/blocks';
+
+import CSelect from '.';
+
+<Meta
+  title="Atoms/CSelect"
+  component={CSelect}
+  argTypes={{
+    size: {
+      options: ['small', 'Normal'],
+      control: { type: 'radio' },
+    },
+    variant: {
+      options: ['outlined', 'filled', 'standard'],
+      control: { type: 'radio' },
+    },
+    helperText: {
+      control: {
+        type: 'text',
+      },
+    },
+    label: {
+      control: {
+        type: 'text',
+      },
+    },
+    color: {
+      control: {
+        type: 'select',
+        options: [
+          'primary',
+          'secondary',
+          'success',
+          'error',
+          'warning',
+          'info',
+          'string',
+        ],
+      },
+    },
+    disabled: {
+      control: {
+        type: 'boolean',
+      },
+    },
+    required: {
+      control: {
+        type: 'boolean',
+      },
+    },
+    error: {
+      control: {
+        type: 'boolean',
+      },
+    },
+  }}
+/>
+
+export const containerStyles = {
+  display: 'flex',
+  flexWrap: 'wrap',
+  gap: 20,
+};
+
+export const stackStyles = {
+  display: 'flex',
+  flexDirection: 'column',
+  gap: 20,
+};
+
+export const options = ['field 1', 'field 2', 'field 3'];
+export const names = [
+  'Oliver Hansen',
+  'Van Henry',
+  'April Tucker',
+  'Ralph Hubbard',
+  'Omar Alexander',
+  'Carlos Abbott',
+  'Miriam Wagner',
+  'Bradley Wilkerson',
+  'Virginia Andrews',
+  'Kelly Snyder',
+];
+
+export const Template = (args) => <CSelect width={200} {...args} />;
+
+# CSelect
+
+TextFields allow users to take write text with a single the keyboard. Supports all default HTML input properties.
+
+## Import
+
+```tsx
+import { CSelect } from '@camel/camel-react';
+```
+
+## Usage
+
+```tsx
+<CSelect label="Primary" />
+```
+
+### Default
+
+<Canvas>
+  <Story
+    name="Default"
+    args={{
+      label: 'Default',
+      options: ['field 1', 'field 2', 'field 3'],
+    }}
+  >
+    {Template.bind({})}
+  </Story>
+</Canvas>
+
+### Options
+
+In the options prop ypu can pass an array of strings or an object with the following properties: "value", "content". You can also pass an array of objects with any properties you want as long as you pass the correspondent fields to the optionsFieldName prop.
+
+<Canvas>
+  <Story name="Options Prop">
+    <div style={containerStyles}>
+      <CSelect
+        label="Options"
+        options={[
+          { value: 1, content: 'Jupter' },
+          { value: 2, content: 'Sapturne' },
+          { value: 3, content: 'Uranio' },
+        ]}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Options FieldName
+
+With this you can use different field name for the value and content of the select menu itens, by passing an options array with any field name and specifing the field name on the optionsFieldName prop.
+
+<Canvas>
+  <Story name="Options FieldName">
+    <div style={containerStyles}>
+      <CSelect
+        label="OptionsFieldName"
+        optionsFieldName={{ valueField: 'id', contentField: 'planet' }}
+        options={[
+          { id: 1, planet: 'Jupter' },
+          { id: 2, planet: 'Sapturne' },
+          { id: 3, planet: 'Uranio' },
+        ]}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Custom Item
+
+With this you can use different field name for the value and content of the select menu itens, by passing an options array with any field name and specifing the field name on the optionsFieldName prop.
+
+<Canvas>
+  <Story name="Custom Item">
+    <div style={containerStyles}>
+      <CSelect
+        label="RenderMenuItemChildren"
+        options={[
+          { value: 1, content: 'Jupter', type: '⭐' },
+          { value: 2, content: 'Sapturne', type: '😁' },
+          { value: 3, content: 'Uranio', type: '🧑‍🍼' },
+        ]}
+        renderMenuItemChildren={(option) => (
+          <>
+            <Typography mr={1}>{option.content}</Typography>
+            <Typography>{option.type}</Typography>
+          </>
+        )}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Color
+
+5 color variants are supported.
+
+<Canvas>
+  <Story name="Color">
+    <div style={containerStyles}>
+      <CSelect label="Primary" width={200} color="primary" options={options} />
+      <CSelect
+        label="Secondary"
+        width={200}
+        color="secondary"
+        options={options}
+      />
+      <CSelect label="Success" width={200} color="success" options={options} />
+      <CSelect label="Warning" width={200} color="warning" options={options} />
+      <CSelect label="Error" width={200} color="error" options={options} />
+    </div>
+  </Story>
+</Canvas>
+
+### Variant
+
+3 variants are supported. Default is outlined.
+
+<Canvas>
+  <Story name="Variant">
+    <div style={containerStyles}>
+      <CSelect label="Filled" options={options} variant="filled" />
+      <CSelect label="Outlined" options={options} variant="outlined" />
+      <CSelect label="Standard" options={options} variant="standard" />
+    </div>
+  </Story>
+</Canvas>
+
+### Size
+
+2 sizes are supported.
+
+<Canvas>
+  <Story name="Size">
+    <div style={containerStyles}>
+      <CSelect options={options} label="Nomal" size="normal" />
+      <CSelect options={options} label="Small" size="small" />
+    </div>
+  </Story>
+</Canvas>
+
+### Disabled
+
+If true, the component is disabled.
+
+<Canvas>
+  <Story name="Disabled">
+    <CSelect options={options} label="Disabled" disabled />
+  </Story>
+</Canvas>
+
+### Required
+
+If true, the label is displayed as required and the input element is required.
+
+<Canvas>
+  <Story name="Required">
+    <CSelect options={options} label="Required" required />
+  </Story>
+</Canvas>
+
+### Empty Item
+
+If true, the label is displayed as required and the input element is required.
+
+<Canvas>
+  <Story name="EmptyItem">
+    <CSelect options={options} label="EmptyItem" emptyItem={<em>empty</em>} />
+  </Story>
+</Canvas>
+
+### Error
+
+If true, the label is displayed in an error state.
+
+<Canvas>
+  <Story name="Error">
+    <CSelect
+      label="Error"
+      options={options}
+      error
+      helperText="error helper text"
+    />
+  </Story>
+</Canvas>
+
+### Loading
+
+If true, it adds a circular loading indicator to the end of the input. You can pass a circularProps that accepts any CircularProgress props.
+
+<Canvas>
+  <Story name="Loading">
+    <div style={containerStyles}>
+      <CSelect label="Loading" options={options} loading />
+      <CSelect
+        label="Loading"
+        options={options}
+        loading
+        size="small"
+        circularProps={{
+          color: 'secondary',
+          style: { opacity: 0.2 },
+          size: 15,
+        }}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Multiple
+
+If true, you will be able to select multiple values. The "value" and "onChange" props will be required and "value" has to be an array of strings
+
+<Canvas>
+  <Story name="Multiple">
+    <div style={containerStyles}>
+      <CSelect
+        multiple
+        width={220}
+        value={['Oliver Hansen', 'Van Henry']}
+        options={names}
+        label="Default"
+      />
+    </div>
+  </Story>
+</Canvas>
+
+#### Checkbox
+
+<Canvas>
+  <Story name="Checkbox">
+    <div style={containerStyles}>
+      <CSelect
+        multiple
+        width={220}
+        value={['Oliver Hansen', 'Van Henry']}
+        options={names}
+        label="Checkbox"
+        renderMenuItemChildren={(option) => (
+          <>
+            <Checkbox
+              checked={['Oliver Hansen', 'Van Henry'].indexOf(option) > -1}
+            />
+            <Typography mr={1}>{option}</Typography>
+          </>
+        )}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+#### Chip
+
+<Canvas>
+  <Story name="Chip">
+    <div style={containerStyles}>
+      <CSelect
+        multiple
+        width={220}
+        value={['Oliver Hansen', 'Van Henry']}
+        options={names}
+        label="Chip"
+        renderValue={(selected) => (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            {selected.map((value) => (
+              <Chip key={value} label={value} />
+            ))}
+          </Box>
+        )}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Helper Text
+
+Short content that helps user expirieence.
+
+<Canvas>
+  <Story name="Helper Text">
+    <div style={containerStyles}>
+      <CSelect label="HelperText" helperText="helper text" options={options} />
+      <CSelect
+        options={options}
+        label="HelperText"
+        helperText={
+          <FormControlLabel
+            label="Jason Killian"
+            control={
+              <Checkbox
+                sx={{ m: 0, p: 0, mx: 1 }}
+                size="small"
+                defaultChecked
+              />
+            }
+            sx={{
+              '& .MuiFormControlLabel-label': {
+                fontSize: '0.75rem',
+              },
+            }}
+          />
+        }
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### Start Adornment
+
+This can be used to add a Prefix to an select input element. It accept an ReactNode component.
+
+<Canvas>
+  <Story name="StartAdornment">
+    <div style={containerStyles}>
+      <CSelect
+        label="StartAdornment"
+        options={options}
+        startAdornment={<Switch defaultChecked />}
+      />
+    </div>
+  </Story>
+</Canvas>
+
+### DropDown Props
+
+The props used for customization the drop down menu.
+
+<Canvas>
+  <Story name="DropDown Props">
+    <div style={containerStyles}>
+      <CSelect
+        dropDownProps={{
+          style: {
+            maxHeight: 200,
+            backgroundColor: 'grey',
+          },
+        }}
+        options={names}
+        label="Drop down menu"
+      />
+    </div>
+  </Story>
+</Canvas>
+
+## Other Props
+
+<table style={{ width: '100%' }}>
+  <tr>
+    <th>Name</th>
+    <th>Type</th>
+    <th>Default</th>
+    <th>Description</th>
+  </tr>
+  <tr>
+    <td>width</td>
+    <td style={{ color: '#6168e1' }}>number | string</td>
+    <td></td>
+    <td>width applied to the select element</td>
+  </tr>
+  <tr>
+    <td>formControlProps</td>
+    <td style={{ color: '#6168e1' }}>object</td>
+    <td></td>
+    <td>
+      object Props applied to the <b>form control</b> element
+    </td>
+  </tr>
+  <tr>
+    <td>formHelperTextProps</td>
+    <td style={{ color: '#6168e1' }}>object</td>
+    <td></td>
+    <td>
+      object Props applied to the <b>fomr helper text</b> element
+    </td>
+  </tr>
+  <tr>
+    <td>inputLabelProps</td>
+    <td style={{ color: '#6168e1' }}>object</td>
+    <td></td>
+    <td>
+      object Props applied to the <b>input label</b> element
+    </td>
+  </tr>
+  <tr>
+    <td>circularProps</td>
+    <td style={{ color: '#6168e1' }}>object</td>
+    <td></td>
+    <td>
+      object Props applied to the <b>circular loading</b> element if "loading"
+      prop is true
+    </td>
+  </tr>
+  <tr>
+    <td>menuItemProps</td>
+    <td style={{ color: '#6168e1' }}>object</td>
+    <td></td>
+    <td>
+      object Props applied to the <b>menu item</b> element
+    </td>
+  </tr>
+  <tr>
+    <td>menuEmptyItemProps</td>
+    <td style={{ color: '#6168e1' }}>object</td>
+    <td></td>
+    <td>
+      object Props applied to the <b>menu empty item</b> element, if "emptyItem"
+      prop is applied
+    </td>
+  </tr>
+</table>
+
+<p>
+  Material-ui examples:
+  <a style={{ marginLeft: '10px' }} href="https://mui.com/components/selects/">
+    https://mui.com/components/selects/
+  </a>
+  <br />
+  Material-ui Props:
+  <a style={{ marginLeft: '10px' }} href="https://mui.com/api/select/">
+    https://mui.com/api/select/
+  </a>
+</p>

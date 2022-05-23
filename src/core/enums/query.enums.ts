@@ -2,6 +2,7 @@ export enum QueryEnum {
   RISK = 'risk',
   RISK_DATA = 'risk-data',
   RISK_GROUP_DATA = 'risk-group-data',
+  RISK_GROUP_DOCS = 'risk-group-docs',
   GHO = 'gho',
   DATABASE_TABLE = 'database-table',
   CHECKLIST = 'checklist',

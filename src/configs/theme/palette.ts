@@ -46,6 +46,7 @@ const palette = {
     edit: '#718096',
     add: '#3cbe7d',
     delete: '#F44336',
+    info: '#2153b7',
   },
   secondary: {
     main: '#2153b7',

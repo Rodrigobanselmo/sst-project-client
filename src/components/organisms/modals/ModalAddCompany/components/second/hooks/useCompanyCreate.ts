@@ -1,6 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useFormContext } from 'react-hook-form';
-import { useWizard } from 'react-use-wizard';
 
 import { useMutCreateCompany } from 'core/services/hooks/mutations/company/useMutCreateCompany';
 
@@ -12,7 +10,6 @@ export const useCompanyCreate = ({
   ...rest
 }: IUseAddCompany) => {
   const { trigger, getValues, control, reset } = useFormContext();
-  const { nextStep } = useWizard();
 
   const createCompany = useMutCreateCompany();
   const updateCompany = useMutCreateCompany();
@@ -29,8 +26,6 @@ export const useCompanyCreate = ({
 
     if (isValid) {
       const { cnpj, name, description, fantasy, type } = getValues();
-      nextStep();
-      onClose();
 
       const submitData = {
         ...companyData,
@@ -46,6 +41,8 @@ export const useCompanyCreate = ({
       } else {
         await updateCompany.mutateAsync(submitData);
       }
+
+      onClose();
     }
   };
 

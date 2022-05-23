@@ -32,7 +32,7 @@ export interface ICompany {
 }
 
 export interface IWorkspace {
-  id: number;
+  id: string;
   name: string;
   abbreviation: string;
   description: string;

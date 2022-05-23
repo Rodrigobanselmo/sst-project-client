@@ -10,11 +10,12 @@ const STableEmpty: FC<STableEmptyProps> = ({ ...props }) => (
   <SFlex
     sx={{
       borderRadius: 2,
-      backgroundColor: 'grey.200',
       p: 8,
       py: 5,
       opacity: 0.8,
-      boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
+      border: '1px solid',
+      borderColor: 'grey.200',
+      boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.15)',
     }}
     align="center"
     {...props}

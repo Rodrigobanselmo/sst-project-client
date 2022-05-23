@@ -10,4 +10,5 @@ export type InputFormProps = SInputProps & {
   defaultValue?: string;
   onChange?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
   mask?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
+  uneditable?: boolean;
 };

@@ -11,6 +11,8 @@ import {
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
+import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -18,12 +20,17 @@ import { StatusEnum } from 'project/enum/status.enum';
 import EditIcon from 'assets/icons/SEditIcon';
 import SWorkspaceIcon from 'assets/icons/SWorkspaceIcon';
 
+import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useModal } from 'core/hooks/useModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
-export const WorkplaceTable: FC<BoxProps> = () => {
+export const WorkplaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
+  hideModal,
+}) => {
   const { data, isLoading } = useQueryCompany();
+  const { onOpenModal } = useModal();
 
   const { push } = useRouter();
 
@@ -31,9 +38,22 @@ export const WorkplaceTable: FC<BoxProps> = () => {
     console.log(status); // TODO edit checklist status
   };
 
-  const handleGoToEmployee = (companyId: string, employeeId: number) => {
-    console.log(employeeId); // TODO edit checklist status
-    //push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
+  const handleEdit = (row: IWorkspace) => {
+    const data: Partial<typeof initialWorkspaceState> = {
+      cep: row?.address?.cep,
+      number: row?.address?.number,
+      city: row?.address?.city,
+      complement: row?.address?.complement,
+      state: row?.address?.state,
+      street: row?.address?.street,
+      neighborhood: row?.address?.neighborhood,
+      description: row?.description,
+      name: row?.name,
+      id: row?.id,
+      status: row?.status,
+    };
+
+    onOpenModal(ModalEnum.WORKSPACE_ADD, data);
   };
 
   const handleGoToHierarchy = (companyId: string) => {
@@ -42,14 +62,7 @@ export const WorkplaceTable: FC<BoxProps> = () => {
 
   return (
     <>
-      <STableTitle
-        color="text.light"
-        fontSize={18}
-        mb={8}
-        mt={40}
-        variant="body1"
-        icon={SWorkspaceIcon}
-      >
+      <STableTitle mb={8} mt={40} variant="h6" icon={SWorkspaceIcon}>
         Unidade (Área de trabalho)
       </STableTitle>
       <STable
@@ -82,7 +95,7 @@ export const WorkplaceTable: FC<BoxProps> = () => {
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />
                 <IconButtonRow
-                  onClick={() => handleGoToEmployee(row.companyId, row.id)}
+                  onClick={() => handleEdit(row)}
                   icon={<EditIcon />}
                 />
               </STableRow>
@@ -90,6 +103,7 @@ export const WorkplaceTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
+      {!hideModal && <ModalAddWorkspace />}
     </>
   );
 };
