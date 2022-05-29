@@ -3,7 +3,6 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { Box } from '@mui/material';
-import * as Yup from 'yup';
 
 import { useMutUpdateUser } from 'core/services/hooks/mutations/company/useMutUpdateUser';
 import { userUpdateSchema } from 'core/utils/schemas/user-update.schema';

@@ -1,5 +1,3 @@
-
-
 import React, { FC, MouseEvent, useMemo, useState } from 'react';
 
 import { Icon } from '@mui/material';

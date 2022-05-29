@@ -1,5 +1,4 @@
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
-import { IoPeople } from '@react-icons/all-files/io5/IoPeople';
 import { MdDashboard } from '@react-icons/all-files/md/MdDashboard';
 
 import SCompany from 'assets/icons/SCompanyIcon';

@@ -27,7 +27,6 @@ import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { useQueryInvites } from 'core/services/hooks/queries/useQueryInvites';
 import { useQueryUsers } from 'core/services/hooks/queries/useQueryUsers';
-import { sortData } from 'core/utils/sorts/data.sort';
 
 export const UsersTable: FC<BoxProps> = () => {
   const { data: users, isLoading } = useQueryUsers();

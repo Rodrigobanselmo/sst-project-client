@@ -1,5 +1,4 @@
 import { SContainer } from 'components/atoms/SContainer';
-import SPageTitle from 'components/atoms/SPageTitle';
 import { UsersTable } from 'components/organisms/tables/UsersTable';
 import { NextPage } from 'next';
 
