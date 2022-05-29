@@ -36,7 +36,7 @@ export const rolesConstantMap = {
   [RoleEnum.MANAGEMENT]: {
     value: RoleEnum.MANAGEMENT,
     label: 'Sua empresa',
-    info: 'pode ver e editar os dados de sua empresa (adcionar e editar empregados, unidades, documentos e etc)',
+    info: 'pode ver e editar os dados de sua empresa (adcionar e editar empregados, estabelecimentos, documentos e etc)',
   },
   [RoleEnum.RISK]: {
     value: RoleEnum.RISK,

@@ -69,7 +69,7 @@ const CompanyPage: NextPage = () => {
       {
         icon: SCompanyIcon,
         onClick: handleAddWorkspace,
-        text: 'Cadastrar Unidades',
+        text: 'Cadastrar Estabelecimentos',
       },
       {
         icon: BadgeIcon,
@@ -79,7 +79,7 @@ const CompanyPage: NextPage = () => {
       {
         icon: SRiskFactorIcon,
         onClick: handleAddPgrDocument,
-        text: 'Cadastrar Riscos',
+        text: 'Documento PGR',
       },
       {
         icon: SEditIcon,

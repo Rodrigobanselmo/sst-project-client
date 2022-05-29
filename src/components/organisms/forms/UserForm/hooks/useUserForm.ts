@@ -5,7 +5,7 @@ import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 
 import { IUser } from 'core/interfaces/api/IUser';
 import { useMutUpdateUser } from 'core/services/hooks/mutations/company/useMutUpdateUser';
-import { userUpdateSchema } from 'core/utils/schemas/user.update.schema';
+import { userUpdateSchema } from 'core/utils/schemas/user-update.schema';
 
 interface ISubmit extends Partial<IUser> {}
 

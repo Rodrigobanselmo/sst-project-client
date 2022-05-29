@@ -38,12 +38,14 @@ export const ModalAddEmployees = () => {
       </SModal>
       <ModalUploadFile
         loading={uploadMutation.isLoading}
-        onConfirm={(files: File[], path: string) =>
-          uploadMutation.mutate({
+        onConfirm={async (files: File[], path: string) => {
+          await uploadMutation.mutateAsync({
             file: files[0],
             path: path,
-          })
-        }
+          });
+
+          onClose();
+        }}
         maxFiles={1}
         accept={
           'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'

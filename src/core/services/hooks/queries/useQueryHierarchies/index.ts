@@ -1,9 +1,7 @@
 import { useQuery } from 'react-query';
 
-import { useRouter } from 'next/router';
-
-import { useAuth } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IHierarchy, IHierarchyMap } from 'core/interfaces/api/IHierarchy';
 import { IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
@@ -27,23 +25,23 @@ export const setMapHierarchies = async (hierarchyData: IHierarchy[]) => {
   return hierarchyTree;
 };
 
-export const queryHierarchies = async () => {
-  const response = await api.get<IHierarchy[]>(`${ApiRoutesEnum.HIERARCHY}`);
+export const queryHierarchies = async (companyId: string) => {
+  const response = await api.get<IHierarchy[]>(
+    `${ApiRoutesEnum.HIERARCHY}/${companyId}`,
+  );
 
   return setMapHierarchies(response.data);
 };
 
 export function useQueryHierarchies(): IReactQuery<IHierarchyMap> {
-  const { user } = useAuth();
-  const router = useRouter();
-
-  const company =
-    user && ((router.query.companyId as string) || user?.companyId);
+  const { companyId } = useGetCompanyId();
 
   const { data, ...query } = useQuery(
-    [QueryEnum.HIERARCHY, company],
+    [QueryEnum.HIERARCHY, companyId],
     () =>
-      company ? queryHierarchies() : <Promise<IHierarchyMap>>emptyMapReturn(),
+      companyId
+        ? queryHierarchies(companyId)
+        : <Promise<IHierarchyMap>>emptyMapReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },

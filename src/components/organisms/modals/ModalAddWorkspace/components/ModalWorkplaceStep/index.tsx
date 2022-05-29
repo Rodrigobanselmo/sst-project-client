@@ -26,7 +26,7 @@ export const ModalWorkplaceStep = ({
         labelPosition="center"
         control={control}
         sx={{ minWidth: ['100%', 600] }}
-        placeholder={'nome da unidade de trabalho...'}
+        placeholder={'nome do estabelecimento de trabalho...'}
         name="name"
         size="small"
       />

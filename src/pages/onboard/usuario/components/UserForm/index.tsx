@@ -6,7 +6,7 @@ import { Box } from '@mui/material';
 import * as Yup from 'yup';
 
 import { useMutUpdateUser } from 'core/services/hooks/mutations/company/useMutUpdateUser';
-import { userUpdateSchema } from 'core/utils/schemas/user.update.schema';
+import { userUpdateSchema } from 'core/utils/schemas/user-update.schema';
 
 import { SButton } from '../../../../../components/atoms/SButton';
 import { InputForm } from '../../../../../components/molecules/form/input';

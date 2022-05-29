@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { PermissionEnum } from 'project/enum/permission.enum';
+import { RoleEnum } from 'project/enum/roles.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -11,12 +13,15 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useMutInviteUser } from 'core/services/hooks/mutations/company/useMutInviteUser';
 import { useMutUpdateUserCompany } from 'core/services/hooks/mutations/company/useMutUpdateUserCompany';
-import { ghoSchema } from 'core/utils/schemas/gho.schema';
+import { userManageSchema } from 'core/utils/schemas/user-manage.schema';
 
 export const initialUserState = {
   status: StatusEnum.ACTIVE,
-  roles: [] as string[],
-  permissions: [] as string[],
+  roles: [] as RoleEnum[],
+  permissions: [] as PermissionEnum[],
+  errors: {
+    roles: '',
+  },
   email: '',
   id: '',
 };
@@ -27,7 +32,7 @@ export const useAddUser = () => {
   const initialDataRef = useRef(initialUserState);
 
   const { handleSubmit, control, reset, getValues } = useForm({
-    resolver: yupResolver(ghoSchema),
+    resolver: yupResolver(userManageSchema),
   });
 
   const inviteUserMut = useMutInviteUser();
@@ -65,8 +70,15 @@ export const useAddUser = () => {
   };
 
   const onSubmit: SubmitHandler<{ email: string }> = async (data) => {
+    if (userData.roles.length === 0)
+      return setUserData((oldData) => ({
+        ...oldData,
+        errors: { roles: 'selecione ao menos uma role' },
+      }));
+
     const submitData = {
       status: userData.status,
+      roles: userData.roles,
       ...data,
     };
 

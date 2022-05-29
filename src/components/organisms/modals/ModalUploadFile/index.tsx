@@ -51,6 +51,8 @@ export const ModalUploadFile: FC<SModalUploadFile> = ({
     });
 
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
 
     onConfirm && onConfirm(filesRef.current, getModalData(ModalEnum.UPLOAD));
 

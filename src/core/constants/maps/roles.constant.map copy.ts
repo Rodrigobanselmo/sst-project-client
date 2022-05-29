@@ -42,7 +42,7 @@ const newRoleMap = () => {
   map.set(RoleEnum.MANAGEMENT, {
     value: RoleEnum.MANAGEMENT,
     label: 'Sua empresa',
-    info: 'pode ver e editar os dados de sua empresa (adcionar e editar empregados, unidades, documentos e etc)',
+    info: 'pode ver e editar os dados de sua empresa (adcionar e editar empregados, estabelecimentos, documentos e etc)',
   });
 
   map.set(RoleEnum.RISK, {

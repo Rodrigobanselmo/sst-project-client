@@ -30,7 +30,7 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
   ...props
 }) => {
   const { user } = useAuth();
-  const handleSelectRole = (role: string) => {
+  const handleSelectRole = (role: RoleEnum) => {
     let roles = [...userData.roles];
     if (roles.includes(role)) {
       roles = roles.filter((r) => r !== role);
@@ -38,7 +38,11 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
       roles.push(role);
     }
 
-    setUserData({ ...userData, roles });
+    setUserData({
+      ...userData,
+      roles,
+      errors: { roles: '' },
+    });
   };
 
   const AllRoles = useMemo(() => {
@@ -54,12 +58,16 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
   const handleSelectAll = () => {
     const isAllSelected = userData.roles.length == AllRoles.length;
     const roles = isAllSelected ? [] : Object.keys(rolesConstantMap);
-    setUserData({ ...userData, roles });
+    setUserData({ ...userData, roles, errors: { roles: '' } });
   };
 
   return (
     <Box {...props}>
-      <FormControl component="fieldset" variant="standard">
+      <FormControl
+        error={!!userData.errors.roles}
+        component="fieldset"
+        variant="standard"
+      >
         <FormLabel
           sx={{
             fontSize: 14,

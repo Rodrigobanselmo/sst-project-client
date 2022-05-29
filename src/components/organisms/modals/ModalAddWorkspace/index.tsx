@@ -50,7 +50,7 @@ export const ModalAddWorkspace = () => {
         <SModalHeader
           tag={companyData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Unidade (área de trabalho)'}
+          title={'Estabelecimento (área de trabalho)'}
         />
 
         <ModalWorkplaceStep {...props} />

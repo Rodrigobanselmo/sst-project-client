@@ -63,7 +63,7 @@ export const WorkplaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
   return (
     <>
       <STableTitle mb={8} mt={40} variant="h6" icon={SWorkspaceIcon}>
-        Unidade (Área de trabalho)
+        Estabelecimento (Área de trabalho)
       </STableTitle>
       <STable
         loading={isLoading}

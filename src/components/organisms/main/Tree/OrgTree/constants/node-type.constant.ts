@@ -25,9 +25,9 @@ export const nodeTypesConstant = {
   [TreeTypeEnum.WORKSPACE]: {
     value: TreeTypeEnum.WORKSPACE,
     color: 'option',
-    title: 'Unidade',
-    name: 'Unidade',
-    placeholder: 'Nome da unidade...',
+    title: 'Estabelecimento',
+    name: 'Estabelecimento',
+    placeholder: 'Nome da estabelecimento...',
     childOptions: [
       TreeTypeEnum.DIRECTORY,
       TreeTypeEnum.MANAGEMENT,
