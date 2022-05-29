@@ -45,7 +45,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
       >
         <STableHeader>
           <STableHRow>Identificação</STableHRow>
-          <STableHRow>Descrição</STableHRow>
+          <STableHRow>Nome</STableHRow>
           <STableHRow justifyContent="center">Versão</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>

@@ -34,7 +34,7 @@ const Companies: NextPage = () => {
       <SActionButton
         icon={SRiskFactorIcon}
         onClick={handleGoToRiskData}
-        text={'Adicionar fatores de risco'}
+        text={'Vincular fatores de risco'}
         primary
         mb={15}
       />

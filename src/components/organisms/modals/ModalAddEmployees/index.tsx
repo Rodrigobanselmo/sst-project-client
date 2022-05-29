@@ -10,6 +10,9 @@ import SModal, {
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { queryClient } from 'core/services/queryClient';
 
 import { ModalUploadFile } from '../ModalUploadFile';
 import { ModalExportEmployees } from './components/ModalExportEmployees';
@@ -17,6 +20,7 @@ import { useEditEmployees } from './hooks/useEditEmployees';
 
 export const ModalAddEmployees = () => {
   const props = useEditEmployees();
+  const { companyId } = useGetCompanyId();
   const { registerModal, onClose, uploadMutation } = props;
 
   const buttons = [{}] as IModalButton[];
@@ -43,7 +47,7 @@ export const ModalAddEmployees = () => {
             file: files[0],
             path: path,
           });
-
+          queryClient.refetchQueries([QueryEnum.COMPANY, companyId]);
           onClose();
         }}
         maxFiles={1}

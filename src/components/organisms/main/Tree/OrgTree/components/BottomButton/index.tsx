@@ -40,7 +40,7 @@ export const BottomButton: FC = () => {
         position: 'absolute',
       }}
     >
-      <STooltip placement="top" title="Adicionar Fatores de Risco">
+      <STooltip placement="top" title="Vincular Fatores de Risco">
         <SFlexButton
           onClick={() => {
             handleRiskData();

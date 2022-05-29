@@ -126,7 +126,7 @@ export const useHierarchyTreeActions = () => {
             parentId: firstNodeId,
             childrenIds: [],
             type: TreeTypeEnum.WORKSPACE,
-            expand: false,
+            expand: true,
             ghos: [],
           };
 

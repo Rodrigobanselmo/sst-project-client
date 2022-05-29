@@ -9,8 +9,8 @@ import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export const queryGHO = async () => {
-  const response = await api.get<IGho[]>(ApiRoutesEnum.GHO);
+export const queryGHO = async (companyId: string) => {
+  const response = await api.get<IGho[]>(ApiRoutesEnum.GHO + `/${companyId}`);
 
   return response.data;
 };
@@ -20,7 +20,8 @@ export function useQueryGHO(): IReactQuery<IGho[]> {
 
   const { data, ...query } = useQuery(
     [QueryEnum.GHO, companyId],
-    () => (companyId ? queryGHO() : <Promise<IGho[]>>emptyArrayReturn()),
+    () =>
+      companyId ? queryGHO(companyId) : <Promise<IGho[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },

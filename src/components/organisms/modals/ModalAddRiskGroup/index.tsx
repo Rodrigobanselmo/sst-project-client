@@ -113,7 +113,7 @@ export const ModalAddRiskGroup = () => {
         <SModalHeader
           tag={riskGroupData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={riskGroupData.id ? 'Novo PGR' : 'PGR'}
+          title={riskGroupData.id ? 'PGR' : 'Novo documento PGR'}
         />
         <Box mt={8}>
           <SInput
@@ -129,7 +129,7 @@ export const ModalAddRiskGroup = () => {
             error={!!riskGroupData.error}
             helperText={riskGroupData.error}
             sx={{ width: ['100%', 600] }}
-            placeholder={'Descrição...'}
+            placeholder={'Nome do documento PGR...'}
           />
         </Box>
         <SFlex gap={8} mt={10} align="center">

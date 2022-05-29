@@ -10,11 +10,5 @@ export enum RoleEnum {
   CHECKLIST = 'checklist',
 }
 
-// empregado recarregar proximo passo
-
-// cadastrar riscos --> vincular risco // falta label de criar novo documento pgr
 // revisado por nao sugere nome
-
-//incluir
-
-// estabelecimento
+// org ja aparecer expandido
