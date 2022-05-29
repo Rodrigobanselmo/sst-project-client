@@ -79,11 +79,11 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
     setUneditable(true);
 
     const initialState: Partial<typeof initialPgrDocState> = {
-      approvedBy: data.approvedBy,
-      elaboratedBy: data.elaboratedBy,
-      revisionBy: data.revisionBy,
-      visitDate: data.visitDate,
-      source: data.source,
+      approvedBy: data.approvedBy || '',
+      elaboratedBy: data.elaboratedBy || '',
+      revisionBy: data.revisionBy || '',
+      visitDate: data.visitDate || '',
+      source: data.source || '',
       id: data.id,
       name: data.name,
       companyId: data.companyId,

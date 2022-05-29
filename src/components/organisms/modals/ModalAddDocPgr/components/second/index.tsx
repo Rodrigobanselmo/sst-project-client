@@ -61,6 +61,15 @@ export const SecondModalStep = (props: IUseAddCompany) => {
     <>
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
+          <SelectForm
+            label="Versão*"
+            control={control}
+            sx={{ minWidth: ['100%', 600] }}
+            placeholder={`versão atual ${actualVersion}`}
+            name="version"
+            size="small"
+            options={options}
+          />
           <InputForm
             label="Nome (opcional)"
             control={control}
@@ -79,15 +88,6 @@ export const SecondModalStep = (props: IUseAddCompany) => {
             size="small"
             smallPlaceholder
             multiline
-          />
-          <SelectForm
-            label="Versão*"
-            control={control}
-            sx={{ minWidth: ['100%', 600] }}
-            placeholder={`versão atual ${actualVersion}`}
-            name="version"
-            size="small"
-            options={options}
           />
         </SFlex>
       </AnimatedStep>

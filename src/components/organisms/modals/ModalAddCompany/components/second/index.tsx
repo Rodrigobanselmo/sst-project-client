@@ -9,7 +9,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 
-import { companyOptionsConstant } from 'core/constants/company.constant';
+import { companyOptionsConstant } from 'core/constants/maps/company.constant';
 
 import { IUseAddCompany } from '../../hooks/useAddCompany';
 import { useCompanyCreate } from './hooks/useCompanyCreate';

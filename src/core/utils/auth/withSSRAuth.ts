@@ -13,6 +13,7 @@ import { validateUserPermissions } from './validateUserPermissions';
 type WithSSRAuthOptions = {
   permissions?: string[];
   roles?: string[];
+  skipCompanyCheck?: boolean;
 };
 
 export function withSSRAuth<T>(
@@ -38,12 +39,26 @@ export function withSSRAuth<T>(
       };
     }
 
+    const user = decode<{
+      permissions: string[];
+      roles: string[];
+      exp: number;
+      companyId?: string;
+    }>(token);
+
+    if (!user.companyId && !options?.skipCompanyCheck)
+      return {
+        redirect: {
+          destination: `${
+            RoutesEnum.ONBOARD_NO_TEAM
+          }?redirect=${ctx.resolvedUrl.replace(/[/]/g, '|')}`,
+          permanent: false,
+        },
+      };
+
     if (options) {
-      const user =
-        decode<{ permissions: string[]; roles: string[]; exp: number }>(token);
       const refresh = decode<{ exp: number }>(refreshToken);
       const { permissions, roles } = options;
-
       const isExpiredTokens =
         new Date(refresh.exp * 1000) < new Date() &&
         new Date(user.exp * 1000) < new Date();

@@ -34,7 +34,6 @@ interface ICreateCompany
 
 export async function createCompany(data: ICreateCompany, companyId?: string) {
   if (!companyId) return null;
-  console.log('data', data);
 
   const response = await api.post<ICompany>(ApiRoutesEnum.COMPANIES, {
     ...data,

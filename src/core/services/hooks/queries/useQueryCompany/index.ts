@@ -25,7 +25,7 @@ export function useQueryCompany(): IReactQuery<ICompany> {
     () =>
       companyId ? queryCompany(companyId) : <Promise<ICompany>>emptyMapReturn(),
     {
-      staleTime: 1000 * 60, // 1 minute
+      staleTime: 1000 * 60 * 60, // 60 minute
     },
   );
 

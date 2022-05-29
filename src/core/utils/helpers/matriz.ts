@@ -1,4 +1,7 @@
-import { matrixRisk, matrixRiskMap } from 'core/constants/matriz-risk.constant';
+import {
+  matrixRisk,
+  matrixRiskMap,
+} from 'core/constants/maps/matriz-risk.constant';
 
 export const getMatrizRisk = (severity?: number, probability?: number) => {
   if (!severity || !probability) return null;

@@ -1,13 +1,15 @@
-import { Box } from '@mui/material';
+import { SContainer } from 'components/atoms/SContainer';
+import SPageTitle from 'components/atoms/SPageTitle';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Home: NextPage = () => {
   return (
-    <Box>
-      <p> </p>
-    </Box>
+    <SContainer>
+      <SPageTitle>Site em desenvolvimento</SPageTitle>
+      <p>Novas atualizações em breve</p>
+    </SContainer>
   );
 };
 

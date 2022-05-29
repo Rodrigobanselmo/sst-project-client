@@ -9,13 +9,16 @@ import {
 } from 'react';
 import { useStore } from 'react-redux';
 
+import { route } from 'next/dist/server/router';
 import Router, { useRouter } from 'next/router';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
+import { selectRedirectRoute } from 'store/reducers/routeLoad/routeLoadSlice';
 import { createUser, selectUser } from 'store/reducers/user/userSlice';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { ISession } from 'core/interfaces/api/ISession';
 
 import { RoutesEnum } from '../enums/routes.enums';
 import { IUser } from '../interfaces/api/IUser';
@@ -24,12 +27,14 @@ import { api } from '../services/apiClient';
 export type SignInCredentials = {
   email: string;
   password: string;
+  inviteToken?: string;
 };
 
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
+  signUp(credentials: SignInCredentials): Promise<void>;
   signOut: () => void;
-  user: IUser | null;
+  user: Partial<IUser> | null;
   isAuthenticated: boolean;
 };
 
@@ -56,6 +61,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
   const user = useAppSelector(selectUser);
   const store = useStore();
+  const redirect = useAppSelector(selectRedirectRoute);
 
   const isAuthenticated = !!user;
 
@@ -71,22 +77,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       api
         .get(ApiRoutesEnum.ME)
         .then((response) => {
-          const { email, id, permissions, roles, companyId } = response.data;
           dispatch(
             createUser({
-              email,
-              id,
-              permissions,
-              roles,
-              companyId,
+              ...response.data,
             }),
           );
+
+          if (
+            !response.data.name &&
+            !router.asPath.includes(RoutesEnum.ONBOARD_USER)
+          ) {
+            router.replace(RoutesEnum.ONBOARD_USER);
+          }
         })
         .catch(() => {
           signOutFunc();
         });
     }
-  }, [dispatch, store, signOutFunc]);
+  }, [dispatch, store, signOutFunc, router]);
 
   useEffect(() => {
     authChannel = new BroadcastChannel('auth');
@@ -102,17 +110,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, [signOutFunc]);
 
-  async function signIn({ email, password }: SignInCredentials) {
-    const response = await api.post(ApiRoutesEnum.SESSION, { email, password });
-    const {
+  const signToken = (
+    {
       token,
       refresh_token,
       permissions,
       roles,
       companyId,
-      user: { id },
-    } = response.data;
-
+      user: { id, email },
+    }: ISession,
+    type: 'signIn' | 'signUp',
+  ) => {
     setCookie(null, 'nextauth.token', token, {
       maxAge: 60 * 60 * 25 * 30, // 30 days
       path: '/',
@@ -136,14 +144,40 @@ export function AuthProvider({ children }: AuthProviderProps) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
-    router.push(RoutesEnum.DASHBOARD);
+
+    if (type === 'signIn') {
+      router.push(redirect || RoutesEnum.DASHBOARD);
+    }
+
+    if (type === 'signUp') {
+      router.push(RoutesEnum.ONBOARD_USER);
+    }
 
     authChannel.postMessage('signIn');
+  };
+
+  async function signIn({ email, password }: SignInCredentials) {
+    const response = await api.post<ISession>(ApiRoutesEnum.SESSION, {
+      email,
+      password,
+    });
+
+    signToken(response.data, 'signIn');
+  }
+
+  async function signUp({ email, password, inviteToken }: SignInCredentials) {
+    const response = await api.post<ISession>(ApiRoutesEnum.USERS, {
+      email,
+      password,
+      inviteToken,
+    });
+
+    signToken(response.data, 'signUp');
   }
 
   return (
     <AuthContext.Provider
-      value={{ signIn, signOut: signOutFunc, user, isAuthenticated }}
+      value={{ signIn, signOut: signOutFunc, user, isAuthenticated, signUp }}
     >
       {children}
     </AuthContext.Provider>

@@ -41,7 +41,7 @@ export default {
     fontWeight: 400,
   },
   caption: {
-    fontSize: '0.64rem',
+    fontSize: '0.70rem',
     fontWeight: 400,
   },
 } as TypographyOptions;

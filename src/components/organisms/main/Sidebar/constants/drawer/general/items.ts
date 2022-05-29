@@ -4,6 +4,7 @@ import { MdDashboard } from '@react-icons/all-files/md/MdDashboard';
 
 import SCompany from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
+import STeamIcon from 'assets/icons/STeamIcon';
 
 import { RoutesEnum } from '../../../../../../../core/enums/routes.enums';
 
@@ -19,7 +20,7 @@ const dashboard = {
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const team = {
   text: 'Gerenciar usuários',
-  Icon: IoPeople,
+  Icon: STeamIcon,
   description: 'Download dos dados obtidos em campo utilizando o App SimpleSST',
   id: 'Tu09jfdGCC',
   href: RoutesEnum.TEAM,
@@ -51,6 +52,7 @@ const allCompaniesData = {
 
 export const generalArray = [
   dashboard,
+  team,
   allCompaniesData,
   checklist,
   importExportData,

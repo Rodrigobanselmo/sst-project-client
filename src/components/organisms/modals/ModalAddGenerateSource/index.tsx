@@ -57,7 +57,12 @@ export const ModalAddGenerateSource = () => {
           secondIcon={generateSourceData?.edit ? SDeleteIcon : undefined}
           secondIconClick={onRemove}
         />
-        <SFlex gap={8} direction="column" mt={8}>
+        <SFlex
+          sx={{ minWidth: ['100%', 600] }}
+          gap={8}
+          direction="column"
+          mt={8}
+        >
           <InputForm
             autoFocus
             defaultValue={generateSourceData.name}
@@ -66,7 +71,6 @@ export const ModalAddGenerateSource = () => {
             maxRows={4}
             label="Fonte geradora"
             control={control}
-            sx={{ width: ['100%', 600] }}
             placeholder={'descrição da fonte geradora...'}
             name="name"
             size="small"
@@ -80,7 +84,6 @@ export const ModalAddGenerateSource = () => {
                 maxRows={4}
                 label="Recomendação"
                 control={control}
-                sx={{ width: ['100%', 600] }}
                 placeholder={'descrição da recomendação...'}
                 name="recName"
                 size="small"
@@ -91,7 +94,6 @@ export const ModalAddGenerateSource = () => {
                 maxRows={4}
                 label="Medida de controle"
                 control={control}
-                sx={{ width: ['100%', 600] }}
                 placeholder={'descrição da medida de controle...'}
                 name="medName"
                 size="small"

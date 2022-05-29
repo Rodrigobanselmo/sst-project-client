@@ -12,9 +12,12 @@ type ValidateUserPermissionsParams = {
 };
 
 const isMaster = (user: User) => {
-  return user.roles.some((_permission) => {
-    return _permission.split('-')[0] === RoleEnum.MASTER;
-  });
+  if (user.roles)
+    return user.roles.some((_permission) => {
+      return _permission.split('-')[0] === RoleEnum.MASTER;
+    });
+
+  return false;
 };
 
 export function validateUserPermissions({

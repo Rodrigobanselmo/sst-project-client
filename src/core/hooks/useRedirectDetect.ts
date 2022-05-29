@@ -13,7 +13,9 @@ export const useRedirectDetect = () => {
 
   useEffect(() => {
     if (router.query.redirect) {
-      dispatch(setRedirectRoute(router.query.redirect as string));
+      dispatch(
+        setRedirectRoute((router.query.redirect as string).replace(/\|/g, '/')),
+      );
       enqueueSnackbar('Você não possui autorização para acessar essa rota', {
         variant: 'warning',
       });

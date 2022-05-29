@@ -12,6 +12,8 @@ export enum ApiRoutesEnum {
   DOWNLOAD_UNIQUE_EMPLOYEES = '/files/company/download/unique',
   UPLOAD_UNIQUE_EMPLOYEES = '/files/company/upload/unique',
   ME = '/users/me',
+  USERS = '/users',
+  INVITES = '/invites',
   SESSION = '/session',
   CHECKLIST = '/checklist',
   RISK = '/risk',

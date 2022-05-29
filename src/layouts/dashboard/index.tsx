@@ -14,6 +14,19 @@ import { STBoxContent, STBoxSidebar, STGridBox } from './styles';
 export const DashboardLayout: FC = ({ children }) => {
   const { asPath } = useRouter();
 
+  if (asPath.includes(RoutesEnum.ONBOARD))
+    return (
+      <>
+        <Global styles={globalStylesDashboard} />
+        <STGridBox p={2} pl={0}>
+          <div />
+          <STBoxContent borderRadius={3}>
+            <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
+          </STBoxContent>
+        </STGridBox>
+      </>
+    );
+
   if (!asPath.includes(RoutesEnum.DASHBOARD))
     return <LoadingFeedback>{children}</LoadingFeedback>;
 

@@ -89,7 +89,7 @@ export const WorkplaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
                 />
                 <StatusSelect
                   large
-                  sx={{ maxWidth: '120px', justifyContent: 'flex-start' }}
+                  sx={{ maxWidth: '120px' }}
                   selected={row.status}
                   statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
                   handleSelectMenu={(option) => handleEditStatus(option.value)}

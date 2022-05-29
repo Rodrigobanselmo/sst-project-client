@@ -8,6 +8,8 @@ export enum QueryEnum {
   CHECKLIST = 'checklist',
   HIERARCHY = 'hierarchy',
   EMPLOYEES = 'employees',
+  USERS = 'users',
+  INVITES = 'invites',
   COMPANIES = 'companies',
   COMPANY = 'company',
   EPIS = 'epis',

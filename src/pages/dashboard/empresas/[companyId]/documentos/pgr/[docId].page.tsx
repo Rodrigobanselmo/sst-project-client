@@ -12,7 +12,7 @@ import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
-import { DocumentFormPgr } from '../../components/DocumentFormPgr';
+import { DocumentPgrForm } from '../../../../../../components/organisms/forms/DocumentPgrForm';
 
 const Companies: NextPage = () => {
   const { query, push } = useRouter();
@@ -39,7 +39,7 @@ const Companies: NextPage = () => {
         mb={15}
       />
 
-      <DocumentFormPgr mb={15} riskGroupId={query.docId as string} />
+      <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
       <DocPgrTable riskGroupId={query.docId as string} />
       <ModalAddDocPgr />
     </SContainer>

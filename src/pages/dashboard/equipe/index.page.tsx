@@ -1,12 +1,22 @@
-import { Box } from '@mui/material';
+import { SContainer } from 'components/atoms/SContainer';
+import SPageTitle from 'components/atoms/SPageTitle';
+import { UsersTable } from 'components/organisms/tables/UsersTable';
 import { NextPage } from 'next';
 
-const Home: NextPage = () => {
+import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+
+const Team: NextPage = () => {
   return (
-    <Box>
-      <p>Equipe</p>
-    </Box>
+    <SContainer>
+      <UsersTable />
+    </SContainer>
   );
 };
 
-export default Home;
+export default Team;
+
+export const getServerSideProps = withSSRAuth(async () => {
+  return {
+    props: {},
+  };
+});

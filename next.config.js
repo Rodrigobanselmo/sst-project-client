@@ -12,6 +12,10 @@ module.exports = {
         destination: '/login',
         source: '/',
       },
+      {
+        destination: '/onboard/usuario',
+        source: '/onboard',
+      },
     ];
   },
 };

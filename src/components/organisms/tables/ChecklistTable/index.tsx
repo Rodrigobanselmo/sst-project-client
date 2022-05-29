@@ -75,7 +75,7 @@ export const ChecklistTable: FC<BoxProps> = () => {
                 />
                 <StatusSelect
                   large
-                  sx={{ maxWidth: '120px', justifyContent: 'flex-start' }}
+                  sx={{ maxWidth: '120px' }}
                   selected={row.status}
                   statusOptions={[
                     StatusEnum.PROGRESS,

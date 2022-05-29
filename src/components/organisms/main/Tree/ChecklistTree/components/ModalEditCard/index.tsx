@@ -8,7 +8,7 @@ import { QuestionOptionsEnum } from 'components/organisms/main/Tree/ChecklistTre
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
-import { standardQuestionsConstant } from 'core/constants/standard-questions';
+import { standardQuestionsConstant } from 'core/constants/maps/standard-questions';
 import { useControlClick } from 'core/hooks/useControlClick';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';

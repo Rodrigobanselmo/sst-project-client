@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import CircleTwoToneIcon from '@mui/icons-material/CircleTwoTone';
 import { STagSelect } from 'components/molecules/STagSelect';
 
-import { statusOptionsConstant } from 'core/constants/status-options.constant';
+import { statusOptionsConstant } from 'core/constants/maps/status-options.constant';
 
 import { IStatusSelectProps } from './types';
 export const StatusSelect: FC<IStatusSelectProps> = ({

@@ -10,7 +10,7 @@ import { usePgrForm } from './hooks/usePgrForm';
 import { STBox } from './styles';
 import { INextStepButtonProps } from './types';
 
-export const DocumentFormPgr = ({
+export const DocumentPgrForm = ({
   riskGroupId,
   ...props
 }: INextStepButtonProps) => {

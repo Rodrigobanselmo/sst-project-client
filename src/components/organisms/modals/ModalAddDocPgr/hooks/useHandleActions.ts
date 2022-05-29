@@ -40,6 +40,7 @@ export const useHandleModal = () => {
     if (initialData) {
       setData((oldData) => {
         const newData = {
+          ...initialPgrDocState,
           ...oldData,
           ...initialData,
         };

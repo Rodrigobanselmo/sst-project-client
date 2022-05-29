@@ -29,7 +29,7 @@ export function useQueryCompanies(): IReactQuery<ICompany[]> {
     () =>
       company ? queryCompanies() : <Promise<ICompany[]>>emptyArrayReturn(),
     {
-      staleTime: 1000 * 60, // 1 minute
+      staleTime: 1000 * 60 * 60, // 60 minute
     },
   );
 

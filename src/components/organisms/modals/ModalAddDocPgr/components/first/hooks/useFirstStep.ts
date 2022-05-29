@@ -1,6 +1,8 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
+import deepEqual from 'deep-equal';
+
 import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
@@ -46,8 +48,11 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
       };
 
       if (data.id) {
-        await updateMutation.mutateAsync(submitData);
-        setData((data) => ({ ...data, ...submitData }));
+        console.log({ ...data, ...submitData }, data);
+        if (!deepEqual({ ...data, ...submitData }, data)) {
+          await updateMutation.mutateAsync(submitData);
+          setData((data) => ({ ...data, ...submitData }));
+        }
         nextStep();
       }
     }
