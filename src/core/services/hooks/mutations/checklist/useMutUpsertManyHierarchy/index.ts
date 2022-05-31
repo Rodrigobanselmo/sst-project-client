@@ -21,7 +21,7 @@ interface IUpsertHierarchy {
   name?: string;
   companyId?: string;
   parentId?: string | null;
-  workplaceId?: string;
+  workspaceId?: string; //!
 }
 
 export async function upsertManyHierarchy(

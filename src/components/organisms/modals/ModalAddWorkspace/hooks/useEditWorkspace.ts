@@ -124,7 +124,7 @@ export const useEditWorkspace = () => {
   };
 
   const onSubmit: SubmitHandler<ISubmit> = async (data) => {
-    const workplace: Partial<IWorkspace> = {
+    const workspace: Partial<IWorkspace> = {
       name: data.name,
       description: data.description,
       status: companyData.status,
@@ -139,11 +139,11 @@ export const useEditWorkspace = () => {
       },
     };
 
-    if (companyData.id) workplace.id = companyData.id;
-    if (companyData.status) workplace.status = companyData.status;
+    if (companyData.id) workspace.id = companyData.id;
+    if (companyData.status) workspace.status = companyData.status;
 
     const submitData: IUpdateCompany = {
-      workspace: [workplace],
+      workspace: [workspace],
     };
 
     await updateMutation.mutateAsync(submitData);

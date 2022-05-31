@@ -132,14 +132,13 @@ export const useHierarchyTreeActions = () => {
 
           treeMap[firstNodeId].childrenIds.push(workspace.id);
         });
-
         Object.values(hierarchyMap).forEach((values) => {
           treeMap[values.id] = {
             id: values.id,
             label: values.name,
             childrenIds: values.children,
             expand: true,
-            parentId: values.parentId || values.workplaceId,
+            parentId: values.parentId || values.workspaceIds[0], //! // selecionar um estabelecimento e so mostrar ele
             type: TreeTypeEnum[values.type] as unknown as TreeTypeEnum,
             ghos: ghos.filter(
               (gho) =>
@@ -148,9 +147,11 @@ export const useHierarchyTreeActions = () => {
             ),
           };
 
-          if (!values.parentId && treeMap[values.workplaceId])
-            treeMap[values.workplaceId].childrenIds = [
-              ...treeMap[values.workplaceId].childrenIds,
+          if (!values.parentId && treeMap[values.workspaceIds[0]])
+            //!
+            treeMap[values.workspaceIds[0]].childrenIds = [
+              //!
+              ...treeMap[values.workspaceIds[0]].childrenIds, //!
               values.id,
             ];
         });
@@ -200,7 +201,7 @@ export const useHierarchyTreeActions = () => {
           queryCompany as ICompany,
         ) as ITreeMap;
 
-        const workplaceId = (node: ITreeMapEdit) =>
+        const workspaceId = (node: ITreeMapEdit) =>
           String(getPathById(node.id)[1]);
 
         const data = nodesMap
@@ -209,9 +210,9 @@ export const useHierarchyTreeActions = () => {
             id: node.id as string,
             type: (node.type as unknown as HierarchyEnum) || undefined,
             name: node.label ? node.label : undefined,
-            workplaceId: workplaceId(node),
+            workspaceId: workspaceId(node),
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            parentId: [workplaceId(node), 'seed'].includes(node.parentId as any)
+            parentId: [workspaceId(node), 'seed'].includes(node.parentId as any)
               ? null
               : (node.parentId as string),
           }));

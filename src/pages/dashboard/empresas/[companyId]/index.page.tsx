@@ -10,7 +10,7 @@ import { ModalAddEmployees } from 'components/organisms/modals/ModalAddEmployees
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
-import { WorkplaceTable } from 'components/organisms/tables/WorkplaceTable';
+import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
@@ -130,7 +130,7 @@ const CompanyPage: NextPage = () => {
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
-      <WorkplaceTable hideModal />
+      <WorkspaceTable hideModal />
       <ModalAddWorkspace />
       <ModalAddEmployees />
       <ModalAddRiskGroup />

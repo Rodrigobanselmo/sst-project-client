@@ -26,7 +26,7 @@ import { useModal } from 'core/hooks/useModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
-export const WorkplaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
+export const WorkspaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
   hideModal,
 }) => {
   const { data, isLoading } = useQueryCompany();

@@ -11,7 +11,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 
 import { ModalEnum } from 'core/enums/modal.enums';
 
-import { ModalWorkplaceStep } from './components/ModalWorkplaceStep';
+import { ModalWorkspaceStep } from './components/ModalWorkspaceStep';
 import { useEditWorkspace } from './hooks/useEditWorkspace';
 
 export const ModalAddWorkspace = () => {
@@ -53,7 +53,7 @@ export const ModalAddWorkspace = () => {
           title={'Estabelecimento (área de trabalho)'}
         />
 
-        <ModalWorkplaceStep {...props} />
+        <ModalWorkspaceStep {...props} />
 
         <SModalButtons
           loading={loading}

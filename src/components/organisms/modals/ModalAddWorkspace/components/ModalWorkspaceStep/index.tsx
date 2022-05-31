@@ -7,7 +7,7 @@ import { InputForm } from 'components/molecules/form/input';
 
 import { IUseEditWorkspace } from '../../hooks/useEditWorkspace';
 
-export const ModalWorkplaceStep = ({
+export const ModalWorkspaceStep = ({
   companyData,
   control,
   onChangeCep,

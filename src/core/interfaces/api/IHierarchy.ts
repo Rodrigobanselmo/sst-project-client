@@ -2,6 +2,8 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 
+import { IWorkspace } from './ICompany';
+
 export interface IHierarchy {
   id: string;
   created_at: Date;
@@ -10,7 +12,8 @@ export interface IHierarchy {
   name: string;
   companyId: string;
   parentId: string | null;
-  workplaceId: string;
+  workspaces?: IWorkspace[];
+  workspaceIds: string[];
 }
 
 export type IHierarchyMap = Record<
