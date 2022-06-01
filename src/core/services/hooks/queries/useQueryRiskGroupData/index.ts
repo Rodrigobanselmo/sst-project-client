@@ -11,22 +11,23 @@ import { IRiskGroupData } from '../../../../interfaces/api/IRiskData';
 
 export const queryGroupRiskData = async (
   companyId: string,
+  workspaceId: string,
 ): Promise<IRiskGroupData[]> => {
   const response = await api.get<IRiskGroupData[]>(
-    `${ApiRoutesEnum.RISK_GROUP_DATA}/${companyId}`,
+    `${ApiRoutesEnum.RISK_GROUP_DATA}/${workspaceId}/${companyId}`,
   );
 
   return response.data;
 };
 
 export function useQueryRiskGroupData(): IReactQuery<IRiskGroupData[]> {
-  const { companyId } = useGetCompanyId();
+  const { companyId, workspaceId } = useGetCompanyId();
 
   const { data, ...query } = useQuery(
-    [QueryEnum.RISK_GROUP_DATA, companyId],
+    [QueryEnum.RISK_GROUP_DATA, companyId, workspaceId],
     () =>
       companyId
-        ? queryGroupRiskData(companyId)
+        ? queryGroupRiskData(companyId, workspaceId)
         : <Promise<IRiskGroupData[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

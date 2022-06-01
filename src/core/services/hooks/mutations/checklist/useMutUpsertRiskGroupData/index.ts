@@ -22,6 +22,7 @@ export interface IUpsertRiskGroupData {
   source?: string;
   visitDate?: string;
   companyId?: string;
+  workspaceId?: string;
 }
 
 export async function upsertRiskGroupData(
@@ -42,12 +43,15 @@ export async function upsertRiskGroupData(
 }
 
 export function useMutUpsertRiskGroupData() {
-  const { getCompanyId } = useGetCompanyId();
+  const { getCompanyId, workspaceId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
     async (data: IUpsertRiskGroupData) =>
-      upsertRiskGroupData(data, getCompanyId(data)),
+      upsertRiskGroupData(
+        { ...data, workspaceId: data.workspaceId || workspaceId },
+        getCompanyId(data),
+      ),
     {
       onSuccess: async (resp) => {
         if (resp)
@@ -77,6 +81,8 @@ export function useMutUpsertRiskGroupData() {
           getCompanyId(resp),
           resp?.id,
         ]);
+
+        queryClient.refetchQueries([QueryEnum.COMPANY, getCompanyId(resp)]);
 
         enqueueSnackbar('Documento editado com sucesso', {
           variant: 'success',

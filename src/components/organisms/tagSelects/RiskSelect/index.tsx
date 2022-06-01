@@ -53,14 +53,17 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 
   const handleActiveRisk = useCallback(
     (filterFilter: string) => {
-      if (activeFilters.includes(filterFilter))
-        return setActiveFilters(
-          activeFilters.filter((risk) => risk !== filterFilter),
-        );
+      //? select many filters at once
+      // if (activeFilters.includes(filterFilter))
+      //   return setActiveFilters(
+      //     activeFilters.filter((risk) => risk !== filterFilter),
+      //   );
 
-      return setActiveFilters([...activeFilters, filterFilter]);
+      // return setActiveFilters([...activeFilters, filterFilter]);
+      //? select one at a time
+      return setActiveFilters([filterFilter]);
     },
-    [activeFilters, setActiveFilters],
+    [setActiveFilters],
   );
 
   const options = useMemo(() => {

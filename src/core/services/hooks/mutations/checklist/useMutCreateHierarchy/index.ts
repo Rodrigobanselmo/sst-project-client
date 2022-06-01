@@ -19,7 +19,7 @@ interface ICreateHierarchy {
   name: string;
   companyId?: string;
   parentId?: string | null;
-  workspaceId: number; //!
+  workspaceIds: string[];
 }
 
 export async function createHierarchy(

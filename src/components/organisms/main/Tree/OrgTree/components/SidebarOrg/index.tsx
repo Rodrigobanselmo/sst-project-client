@@ -120,6 +120,7 @@ export const SidebarOrg = () => {
                 <SideRow
                   key={gho.id}
                   gho={gho}
+                  handleEditGHO={handleEditGHO}
                   handleSelectGHO={handleSelectGHO}
                   handleDeleteGHO={handleDeleteGHO}
                   selectedGhoId={selectedGhoId}

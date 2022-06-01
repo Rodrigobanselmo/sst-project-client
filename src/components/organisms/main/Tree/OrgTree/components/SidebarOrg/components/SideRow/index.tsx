@@ -12,6 +12,7 @@ export const SideRow = React.memo<SideRowProps>(
   ({
     handleDeleteGHO,
     handleSelectGHO,
+    handleEditGHO,
     selectedGhoId,
     gho,
     isRiskOpen,
@@ -31,6 +32,7 @@ export const SideRow = React.memo<SideRowProps>(
         <SideItems
           data={gho}
           isSelected={isSelected}
+          handleEditGHO={handleEditGHO}
           handleSelectGHO={handleSelectGHO}
           handleDeleteGHO={handleDeleteGHO}
           isDeleteLoading={isDeleteLoading}

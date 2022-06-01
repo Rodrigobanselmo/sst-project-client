@@ -7,6 +7,7 @@ import { useModal } from 'core/hooks/useModal';
 
 import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
 import { useHierarchyTreeActions } from '../../../../../../../core/hooks/useHierarchyTreeActions';
+import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { IRenderCard } from '../interfaces';
 import { RenderBtn } from '../RenderBtn';
 import { NodeCard } from './components/NodeCard';
@@ -37,6 +38,8 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
     if (menuRef.current) menuRef.current.click();
   };
 
+  const isWorkspace = node.type === TreeTypeEnum.WORKSPACE;
+
   return (
     <STCardArea
       id={`label_${node.id}`}
@@ -57,7 +60,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
         onContextMenu={onContextMenu}
       >
         <NodeCard menuRef={menuRef} node={node} />
-        {prop.collapsable && !!node.childrenIds.length && (
+        {((prop.collapsable && !!node.childrenIds.length) || isWorkspace) && (
           <RenderBtn prop={prop} node={node} />
         )}
       </STRenderLabel>

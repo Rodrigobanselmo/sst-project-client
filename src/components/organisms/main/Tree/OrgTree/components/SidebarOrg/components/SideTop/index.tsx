@@ -45,7 +45,7 @@ export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
         <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
       </SIconButton>
       <SText fontSize="0.9rem" color="GrayText">
-        G.H.E
+        Grupo similar de exposição
       </SText>
       {riskInit && (
         <SFlex center sx={{ ml: 'auto' }}>
@@ -62,6 +62,7 @@ export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
             </>
           )}
           <RiskSelect
+            id="risk-select-id"
             sx={{ minWidth: 230, mr: 5 }}
             large
             active={!!selectedRisk?.type}

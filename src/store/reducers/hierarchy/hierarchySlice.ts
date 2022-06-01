@@ -19,6 +19,7 @@ interface IHierarchySlice {
   dragItem: ITreeMapObject | null;
   copyItem: ITreeCopyItem | null;
   selectItem: ITreeSelectedItem | null;
+  workspaceId: string | null;
 }
 
 const initialState: IHierarchySlice = {
@@ -36,6 +37,7 @@ const initialState: IHierarchySlice = {
   dragItem: null,
   copyItem: null,
   selectItem: null,
+  workspaceId: null,
 };
 
 const name = 'hierarchy';
@@ -44,6 +46,9 @@ export const hierarchySlice = createSlice({
   name,
   initialState,
   reducers: {
+    setWorkplaceId: (state, action: PayloadAction<string>) => {
+      state.workspaceId = action.payload;
+    },
     setMapHierarchyTree: (state, action: PayloadAction<ITreeMap>) => {
       state.nodes = action.payload;
     },
@@ -175,6 +180,7 @@ export const {
   setEditSelectItem,
   setSelectCopy,
   setReorder,
+  setWorkplaceId,
 } = hierarchySlice.actions;
 
 export const selectAllHierarchyTreeNodes = (state: AppState) =>
@@ -190,5 +196,6 @@ export const selectHierarchyTreeSelectItem = (state: AppState) =>
   state[name].selectItem;
 export const selectHierarchyTreeCopyItem = (state: AppState) =>
   state[name].copyItem;
+export const selectWorkplaceId = (state: AppState) => state[name].workspaceId;
 
 export default hierarchySlice.reducer;

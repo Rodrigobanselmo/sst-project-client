@@ -4,6 +4,8 @@ import styled from '@emotion/styled';
 export const RenderButton = styled.span<{
   horizontal: number;
   expanded: number;
+  workspace: number;
+  seed: number;
 }>`
   position: absolute;
   display: inline-block;
@@ -13,17 +15,18 @@ export const RenderButton = styled.span<{
   height: 20px;
   z-index: ${({ theme }) => theme.mixins.nodeCard};
   margin-left: -11px;
-  margin-top: 9px;
+  margin-top: 11px;
   background-color: #fff;
   border: 1px solid #ccc;
   border-radius: 50%;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.15);
   cursor: pointer;
   transition: all 0.35s ease;
+  transform: translateY(2px);
 
   :hover {
     filter: brightness(0.9);
-    transform: scale(1.1);
+    transform: scale(1.1) translateY(2px);
   }
 
   :before,
@@ -54,7 +57,7 @@ export const RenderButton = styled.span<{
       &:after {
         border: none;
       }
-    `}
+    `};
 
   ${(props) =>
     props.horizontal &&
@@ -63,5 +66,25 @@ export const RenderButton = styled.span<{
       left: 100%;
       margin-top: -11px;
       margin-left: 9px;
-    `}
+    `};
+
+  ${(props) =>
+    props.seed &&
+    css`
+      display: none;
+      :before,
+      :after {
+        display: none;
+      }
+    `};
+
+  ${(props) =>
+    props.workspace &&
+    props.expanded &&
+    css`
+      :before,
+      :after {
+        display: none;
+      }
+    `};
 `;

@@ -29,6 +29,8 @@ export const STagAction: FC<ISTagProps> = ({
         return 'info.main';
       case 'edit':
         return 'tag.edit';
+      case 'select':
+        return 'tag.edit';
       case 'delete':
         return 'tag.delete';
       case 'success':
@@ -76,6 +78,9 @@ export const STagAction: FC<ISTagProps> = ({
       {action === 'success' && (
         <CheckBoxIcon sx={{ fontSize: '18px', color: 'common.white' }} />
       )}
+      {action === 'select' && (
+        <CheckBoxIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+      )}
       {action === 'warning' && (
         <WarningIcon sx={{ fontSize: '18px', color: 'common.white' }} />
       )}
@@ -97,6 +102,7 @@ export const STagAction: FC<ISTagProps> = ({
       {action === 'error' ? 'Erro' : ''}
       {action === 'upload' ? 'Envio' : ''}
       {action === 'version' ? 'Nova versão' : ''}
+      {action === 'select' ? 'Selecione' : ''}
 
       {Icon && <Icon sx={{ fontSize: '18px', color: 'common.white' }} />}
     </SFlex>

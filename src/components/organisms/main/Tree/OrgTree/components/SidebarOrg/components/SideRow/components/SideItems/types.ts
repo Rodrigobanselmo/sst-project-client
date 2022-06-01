@@ -6,6 +6,7 @@ export interface SideItemsProps {
   isSelected?: boolean;
   data: IGho;
   isDeleteLoading?: boolean;
+  handleEditGHO: (data: IGho) => void;
   handleDeleteGHO: (id: string) => void;
   handleSelectGHO: (
     data: IGho | null,

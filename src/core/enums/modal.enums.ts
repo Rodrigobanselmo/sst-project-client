@@ -4,6 +4,7 @@ export enum ModalEnum {
   USER_ADD = 'user-add',
   CHECKLIST_ADD = 'checklist-add',
   RISK_GROUP_ADD = 'risk-group-add',
+  WORKSPACE_SELECT = 'workspace-select',
   RISK_GROUP_DOC_ADD = 'risk-group-doc-add',
   COMPANY_ADD = 'company-add',
   WORKSPACE_ADD = 'workspace-add',

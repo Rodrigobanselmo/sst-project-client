@@ -112,7 +112,13 @@ export const SideTable: FC<SideTableProps> = ({
   );
 
   return (
-    <STGridItem key={gho.id} selected={isSelected ? 1 : 0}>
+    <STGridItem
+      onClick={() =>
+        risk?.id ? null : document.getElementById('risk-select-id')?.click()
+      }
+      key={gho.id}
+      selected={isSelected ? 1 : 0}
+    >
       <SourceColumn
         handleSelect={handleSelect}
         handleRemove={handleRemove}

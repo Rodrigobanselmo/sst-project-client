@@ -62,12 +62,11 @@ export function Location(): JSX.Element {
                 <Link underline="hover">
                   <SText
                     sx={{ textTransform: 'capitalize' }}
-                    maxWidth="150px"
                     fontSize="0.825rem"
                     color="gray.500"
-                    lineNumber={1}
                   >
-                    {route}
+                    {}
+                    {route.length > 20 ? `${route.slice(0, 20)}...` : route}
                   </SText>
                 </Link>
               </NextLink>

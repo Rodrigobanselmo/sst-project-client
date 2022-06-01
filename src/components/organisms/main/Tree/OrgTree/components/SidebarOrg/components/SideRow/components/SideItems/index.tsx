@@ -9,6 +9,7 @@ import STooltip from 'components/atoms/STooltip';
 import SCloseIcon from 'assets/icons/SCloseIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
+import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
 import { STBoxItem } from './styles';
 import { SideItemsProps } from './types';
@@ -19,6 +20,7 @@ export const SideItems: FC<SideItemsProps> = ({
   isDeleteLoading,
   handleDeleteGHO,
   handleSelectGHO,
+  handleEditGHO,
 }) => {
   const hierarchies = data.hierarchies
     ? data.hierarchies.map((value) => value.id)
@@ -37,25 +39,36 @@ export const SideItems: FC<SideItemsProps> = ({
         </Box>
       </STooltip>
       <SFlex>
-        <SIconButton
-          loading={isDeleteLoading}
-          onClick={() => handleDeleteGHO(data.id)}
-          size="small"
-        >
-          <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
-        </SIconButton>
-        <SIconButton
-          onClick={() => handleSelectGHO(isSelected ? null : data, hierarchies)}
-          size="small"
-        >
-          <Icon
-            component={isSelected ? SCloseIcon : SEditIcon}
-            sx={{
-              fontSize: '1.2rem',
-              color: isSelected ? 'info.main' : '',
-            }}
-          />
-        </SIconButton>
+        <STooltip withWrapper title={'Deletar'}>
+          <SIconButton
+            loading={isDeleteLoading}
+            onClick={() => handleDeleteGHO(data.id)}
+            size="small"
+          >
+            <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
+          </SIconButton>
+        </STooltip>
+        <STooltip withWrapper title={'Editar'}>
+          <SIconButton onClick={() => handleEditGHO(data)} size="small">
+            <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
+          </SIconButton>
+        </STooltip>
+        <STooltip withWrapper title={'Adicionar setores e cargos ao grupo'}>
+          <SIconButton
+            onClick={() =>
+              handleSelectGHO(isSelected ? null : data, hierarchies)
+            }
+            size="small"
+          >
+            <Icon
+              component={isSelected ? SCloseIcon : SHierarchyIcon}
+              sx={{
+                fontSize: '1.2rem',
+                color: isSelected ? 'info.main' : '',
+              }}
+            />
+          </SIconButton>
+        </STooltip>
       </SFlex>
     </STBoxItem>
   );

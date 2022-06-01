@@ -10,6 +10,8 @@ export const useGetCompanyId = () => {
     (user && ((router.query.companyId as string) || user?.companyId)) ||
     undefined;
 
+  const workspaceId = router.query.workspaceId as string;
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getCompanyId = (data: any) => {
     if (Array.isArray(data) && data.length > 0 && data[0]?.companyId) {
@@ -23,5 +25,5 @@ export const useGetCompanyId = () => {
     return companyId || '';
   };
 
-  return { companyId, getCompanyId, user, router };
+  return { companyId, getCompanyId, user, router, workspaceId };
 };

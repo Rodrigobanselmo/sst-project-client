@@ -10,6 +10,7 @@ export interface SideRowProps {
   isDeleteLoading: boolean;
   selectedGhoId: string | null;
   riskData?: IRiskData;
+  handleEditGHO: (data: IGho) => void;
   handleSelectGHO: (
     gho: IGho | null,
     hierarchies: string[],

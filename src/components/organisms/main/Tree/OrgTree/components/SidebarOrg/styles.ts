@@ -16,6 +16,7 @@ export const STBoxContainer = styled(Box)<{
   position: relative;
   overflow: hidden;
   padding: ${(props) => props.theme.spacing(5, 5)};
+  transition: all 3s ease-in-out;
 
   ${(props) =>
     props.risk_init &&

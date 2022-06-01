@@ -1,8 +1,12 @@
 import React from 'react';
 
-import { selectHierarchyTreeData } from 'store/reducers/hierarchy/hierarchySlice';
+import {
+  selectHierarchyTreeData,
+  selectWorkplaceId,
+} from 'store/reducers/hierarchy/hierarchySlice';
 
 import { useAppSelector } from '../../../../../../../core/hooks/useAppSelector';
+import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { ITreeMapObject } from '../../interfaces';
 import { IRender } from '../interfaces';
 import { RenderCard } from '../RenderCard';
@@ -13,7 +17,7 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
   const node = useAppSelector(
     selectHierarchyTreeData(id),
   ) as unknown as ITreeMapObject | null;
-
+  const workspaceId = useAppSelector(selectWorkplaceId);
   if (!node) return null;
 
   const cls = ['org-tree-node'];
@@ -27,6 +31,7 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
   }
 
   if (first) cls.push('org-tree-node-first');
+  const isWorkspace = node.type === TreeTypeEnum.WORKSPACE;
 
   return (
     <OrgTreeNode
@@ -35,7 +40,9 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
       className={cls.join(' ')}
     >
       <RenderCard node={node} prop={prop} />
-      {(!collapsable || node.expand) && (
+      {(!isWorkspace
+        ? !collapsable || node.expand
+        : workspaceId == node.id) && (
         <RenderChildren nodeId={node.id} list={node.childrenIds} prop={prop} />
       )}
       {node.childrenIds.includes('mock_id') && !node.expand && (

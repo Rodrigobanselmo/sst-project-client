@@ -3,7 +3,16 @@ import { styled, Typography } from '@mui/material';
 
 export const STTypography = styled(Typography)<{
   line_number?: number;
+  no_break?: number;
 }>`
+  ${(props) =>
+    props.no_break &&
+    css`
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    `}
+
   ${(props) =>
     props.line_number &&
     css`

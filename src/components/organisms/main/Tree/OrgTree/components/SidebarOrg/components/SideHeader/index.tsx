@@ -32,7 +32,7 @@ export const SideHeader: FC<SideHeaderProps> = ({
           {headerRows.map((row) => (
             <STooltip key={row.label} title={row.tooltip}>
               <SFlex center sx={{ position: 'relative' }}>
-                <SText lineNumber={1}>{row.label}</SText>
+                <SText noBreak={1}>{row.label}</SText>
                 {/* <StyledSInfoIcon /> */}
               </SFlex>
             </STooltip>

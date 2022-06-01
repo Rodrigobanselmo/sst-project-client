@@ -6,6 +6,7 @@ import { STextProps } from './types';
 const SText: FC<STextProps> = ({
   textAlign = 'start',
   lineNumber,
+  noBreak,
   color = 'text.main',
 
   ...props
@@ -14,6 +15,7 @@ const SText: FC<STextProps> = ({
     color={color}
     textAlign={textAlign}
     line_number={lineNumber}
+    no_break={noBreak}
     {...props}
   />
 );
