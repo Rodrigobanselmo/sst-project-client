@@ -17,7 +17,6 @@ export const initialPgrDocState = {
   approvedBy: '',
   source: '',
   visitDate: '',
-  workspaceId: '',
   companyId: '',
 };
 

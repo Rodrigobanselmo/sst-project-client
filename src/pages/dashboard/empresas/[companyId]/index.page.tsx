@@ -10,9 +10,9 @@ import { ModalAddEmployees } from 'components/organisms/modals/ModalAddEmployees
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
-import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
+import { useRouter } from 'next/router';
 
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import { SEditIcon } from 'assets/icons/SEditIcon';
@@ -29,6 +29,7 @@ import { SActionButton } from '../../../../components/atoms/SActionButton';
 const CompanyPage: NextPage = () => {
   const { data: company } = useQueryCompany();
   const { onOpenModal } = useModal();
+  const { push } = useRouter();
 
   const handleAddWorkspace = useCallback(() => {
     const data: Partial<typeof initialWorkspaceState> = {
@@ -53,18 +54,15 @@ const CompanyPage: NextPage = () => {
 
   const handleAddPgrDocument = useCallback(() => {
     if (company.riskGroupCount) {
-      onOpenModal(ModalEnum.WORKSPACE_SELECT);
+      push({
+        pathname: RoutesEnum.COMPANY_PGR.replace(':companyId', company.id),
+      });
     } else {
-      if (company.workspace && company.workspace[0])
-        onOpenModal(ModalEnum.RISK_GROUP_ADD, {
-          workspaceId: company.workspace[0].id,
-          goTo: RoutesEnum.COMPANY_PGR_DOCUMENT.replace(
-            ':companyId',
-            company.id,
-          ).replace(':workspaceId', company.workspace[0].id),
-        });
+      onOpenModal(ModalEnum.RISK_GROUP_ADD, {
+        goTo: RoutesEnum.COMPANY_PGR_DOCUMENT.replace(':companyId', company.id),
+      });
     }
-  }, [company.id, company.riskGroupCount, company.workspace, onOpenModal]);
+  }, [company.id, company.riskGroupCount, onOpenModal, push]);
 
   const actionsStepMemo = useMemo(() => {
     return [
@@ -136,7 +134,6 @@ const CompanyPage: NextPage = () => {
       <ModalAddWorkspace />
       <ModalAddEmployees />
       <ModalAddRiskGroup />
-      <ModalSelectWorkspace />
     </SContainer>
   );
 };

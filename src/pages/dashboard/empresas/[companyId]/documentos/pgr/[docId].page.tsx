@@ -12,7 +12,7 @@ import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
-import { DocumentPgrForm } from '../../../../../../../components/organisms/forms/DocumentPgrForm';
+import { DocumentPgrForm } from '../../../../../../components/organisms/forms/DocumentPgrForm';
 
 const Companies: NextPage = () => {
   const { query, push } = useRouter();

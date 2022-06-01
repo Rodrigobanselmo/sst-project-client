@@ -29,7 +29,6 @@ export interface IRiskGroupData {
   name: string;
   created_at: Date;
   companyId: string;
-  workspaceId: string;
   status: StatusEnum;
   elaboratedBy?: string;
   revisionBy?: string;

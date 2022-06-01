@@ -23,7 +23,6 @@ import { StatusSelect } from '../../tagSelects/StatusSelect';
 
 export const initialRiskGroupState = {
   name: '',
-  workspaceId: '',
   status: StatusEnum.PROGRESS,
   error: '',
   id: '',
@@ -62,7 +61,6 @@ export const ModalAddRiskGroup = () => {
       id: riskGroupData.id,
       name: riskGroupData.name,
       status: riskGroupData.status,
-      workspaceId: riskGroupData.workspaceId,
     });
 
     if (riskGroupData.goTo && doc)

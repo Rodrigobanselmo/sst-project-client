@@ -22,7 +22,6 @@ export interface IUpsertRiskGroupData {
   source?: string;
   visitDate?: string;
   companyId?: string;
-  workspaceId?: string;
 }
 
 export async function upsertRiskGroupData(
@@ -43,15 +42,12 @@ export async function upsertRiskGroupData(
 }
 
 export function useMutUpsertRiskGroupData() {
-  const { getCompanyId, workspaceId } = useGetCompanyId();
+  const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
     async (data: IUpsertRiskGroupData) =>
-      upsertRiskGroupData(
-        { ...data, workspaceId: data.workspaceId || workspaceId },
-        getCompanyId(data),
-      ),
+      upsertRiskGroupData({ ...data }, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
         if (resp)
