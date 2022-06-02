@@ -77,7 +77,6 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
       .slice(0, -1)
       .some((hierarchy) => ghoState.hierarchies.includes(hierarchy as string));
     if (!isParentSelected && node.id && node.parentId !== firstNodeId) {
-      console.log(node);
       const newHierarchyIds = [node.id as string];
 
       ghoState.hierarchies.map((hierarchy) => {
@@ -91,7 +90,10 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
       if (GhoId)
         updateMutation.mutate({
           id: GhoId,
-          hierarchies: newGhoState.hierarchies,
+          hierarchies: newGhoState.hierarchies.map((hierarchy) => ({
+            id: hierarchy.split('//')[0],
+            workspaceId: hierarchy.split('//')[1],
+          })),
         });
     }
   };

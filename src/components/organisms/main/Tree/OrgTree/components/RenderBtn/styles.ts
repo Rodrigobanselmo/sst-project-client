@@ -4,7 +4,6 @@ import styled from '@emotion/styled';
 export const RenderButton = styled.span<{
   horizontal: number;
   expanded: number;
-  workspace: number;
   seed: number;
 }>`
   position: absolute;

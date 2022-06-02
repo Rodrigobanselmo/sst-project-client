@@ -23,7 +23,7 @@ export const SideItems: FC<SideItemsProps> = ({
   handleEditGHO,
 }) => {
   const hierarchies = data.hierarchies
-    ? data.hierarchies.map((value) => value.id)
+    ? data.hierarchies.map((value) => value.id + '//' + value.workspaceId)
     : [];
 
   return (

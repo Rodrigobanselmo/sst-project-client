@@ -11,7 +11,6 @@ import { QueryEnum } from '../../../../enums/query.enums';
 
 export const queryGHO = async (companyId: string) => {
   const response = await api.get<IGho[]>(ApiRoutesEnum.GHO + `/${companyId}`);
-
   return response.data;
 };
 

@@ -13,7 +13,7 @@ import { IErrorResp } from '../../../../errors/types';
 
 interface IUpdateGho extends Partial<Pick<IGho, 'name' | 'status'>> {
   id: string;
-  hierarchies?: string[];
+  hierarchies?: { id: string; workspaceId: string }[];
   companyId?: string;
 }
 

@@ -93,7 +93,6 @@ export const useEditWorkspace = () => {
 
         Object.entries(data).forEach(([key, value]) => {
           setValue(key, value);
-          console.log(key, value);
         });
 
         setCompanyData((oldData) => {

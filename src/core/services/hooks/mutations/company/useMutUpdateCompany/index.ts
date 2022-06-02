@@ -66,10 +66,7 @@ export function useMutUpdateCompany() {
                 : [companyResp],
           );
 
-          queryClient.setQueryData(
-            [QueryEnum.COMPANY, companyResp.id],
-            () => companyResp,
-          );
+          queryClient.refetchQueries([QueryEnum.COMPANY, companyResp.id]);
         }
 
         enqueueSnackbar('Empresa editada com sucesso', {

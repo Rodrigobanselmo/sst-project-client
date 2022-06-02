@@ -85,7 +85,6 @@ export const SideTable: FC<SideTableProps> = ({
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
       ([key, value]) => {
-        console.log(key, value?.length);
         if (value?.length)
           (submitData as any)[key] = [
             ...(

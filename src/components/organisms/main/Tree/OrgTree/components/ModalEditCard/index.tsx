@@ -56,8 +56,7 @@ export const ModalEditCard = () => {
     if (selectedNode) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { action, ...newNode } = selectedNode;
-
-      editNodes([newNode]);
+      editNodes([newNode], false, { isAdd: true });
       if (!switchRef.current?.checked)
         onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
       if (switchRef.current?.checked && newNode.parentId) {
@@ -189,7 +188,7 @@ export const ModalEditCard = () => {
             </SButton>
           )}
           <SButton variant={'contained'} size="small" onClick={onSave}>
-            Savar
+            Salvar
           </SButton>
         </Box>
       </SModalPaper>

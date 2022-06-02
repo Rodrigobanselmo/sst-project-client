@@ -44,7 +44,6 @@ const CompanyPage: NextPage = () => {
     };
 
     const isFirstWorkspace = company.workspace && company.workspace.length == 0;
-    console.log(data, isFirstWorkspace, company);
     onOpenModal(ModalEnum.WORKSPACE_ADD, isFirstWorkspace ? data : {});
   }, [company, onOpenModal]);
 

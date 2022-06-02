@@ -67,7 +67,6 @@ export function useMutUpsertRiskData() {
 
                 if (updateIndexData != -1) {
                   newData[updateIndexData] = resp;
-                  console.log('updateIndexData', newData);
                 } else {
                   newData.push(resp);
                 }

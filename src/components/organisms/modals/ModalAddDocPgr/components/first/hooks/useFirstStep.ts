@@ -48,7 +48,6 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
       };
 
       if (data.id) {
-        console.log({ ...data, ...submitData }, data);
         if (!deepEqual({ ...data, ...submitData }, data)) {
           await updateMutation.mutateAsync(submitData);
           setData((data) => ({ ...data, ...submitData }));

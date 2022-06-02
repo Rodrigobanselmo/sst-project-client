@@ -33,7 +33,6 @@ export function Location(): JSX.Element {
 
   const handleChangeRoute = (index: number) => {
     const route = routes.slice(0, index + 1).join('/');
-    console.log(route.replace(company?.name || 'empresa', companyId || ''));
 
     return `/${route.replace(company?.name || 'empresa', companyId || '')}`;
   };
