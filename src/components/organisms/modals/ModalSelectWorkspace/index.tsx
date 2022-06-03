@@ -1,4 +1,5 @@
-import React from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { FC, useEffect, useRef } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -10,15 +11,19 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+
+interface IModalSelectWorkspace {
+  onSelect: (workspace: IWorkspace, passData: any) => void;
+  title?: string;
+  onCloseWithoutSelect?: () => void;
+}
 
 export const initialRiskGroupState = {
   name: '',
@@ -28,24 +33,29 @@ export const initialRiskGroupState = {
   goTo: '',
 };
 
-export const ModalSelectWorkspace = () => {
-  const { registerModal } = useRegisterModal();
+export const ModalSelectWorkspace: FC<IModalSelectWorkspace> = ({
+  onSelect,
+  title = 'Selecione o estabelecimento',
+  onCloseWithoutSelect,
+}) => {
+  const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const { data: company } = useQueryCompany();
-  const { push } = useRouter();
+  const initData = useRef<any>({});
 
-  const onClose = () => {
+  useEffect(() => {
+    const initialData = getModalData(ModalEnum.WORKSPACE_SELECT);
+    if (initialData) initData.current = initialData;
+  }, [getModalData]);
+
+  const onCloseNoSelect = () => {
+    onCloseWithoutSelect?.();
     onCloseModal(ModalEnum.WORKSPACE_SELECT);
   };
 
   const handleSelect = (work: IWorkspace) => () => {
-    push({
-      pathname: RoutesEnum.COMPANY_PGR.replace(
-        ':companyId',
-        company.id,
-      ).replace(':workspaceId', work.id),
-    });
-    onClose();
+    onCloseModal(ModalEnum.WORKSPACE_SELECT);
+    onSelect(work, initData.current);
   };
 
   const buttons = [{}] as IModalButton[];
@@ -54,16 +64,16 @@ export const ModalSelectWorkspace = () => {
     <SModal
       {...registerModal(ModalEnum.WORKSPACE_SELECT)}
       keepMounted={false}
-      onClose={onClose}
+      onClose={onCloseNoSelect}
     >
       <SModalPaper p={8}>
-        <SModalHeader tag={'select'} onClose={onClose} title=" " />
+        <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <Box mt={8}>
           {company.workspace ? (
             <SFlex direction="column" gap={5}>
               <SText mt={-4} mr={40}>
-                Selecione o estabelecimento para o documento PGR
+                {title}
               </SText>
               {company.workspace.map((work) => (
                 <STableRow clickable onClick={handleSelect(work)} key={work.id}>
@@ -78,7 +88,7 @@ export const ModalSelectWorkspace = () => {
             </SText>
           )}
         </Box>
-        <SModalButtons onClose={onClose} buttons={buttons} />
+        <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />
       </SModalPaper>
     </SModal>
   );

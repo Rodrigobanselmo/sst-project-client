@@ -1,4 +1,4 @@
-import { css } from '@emotion/react';
+import { css, keyframes } from '@emotion/react';
 import { styled, Box } from '@mui/material';
 
 import SIconButton from '../../../../../../../../atoms/SIconButton';
@@ -25,6 +25,18 @@ export const STAddSIconButton = styled(SIconButton)`
   left: 4px;
 `;
 
+const AttentionAnimation = keyframes`  
+  0% { 
+   }
+
+   50% { 
+    filter: brightness(0.8);
+
+  }
+  100% { 
+   }
+`;
+
 export const STSelectBox = styled(Box)<{ selected?: number }>`
   max-height: ${(props) => props.theme.spacing(10)};
   min-height: ${(props) => props.theme.spacing(10)};
@@ -35,6 +47,8 @@ export const STSelectBox = styled(Box)<{ selected?: number }>`
   border-radius: 50%;
   border: 1px solid ${(props) => props.theme.palette.background.divider};
   cursor: pointer;
+
+  animation: ${AttentionAnimation} 1s linear 5;
 
   ${(props) =>
     props.selected &&

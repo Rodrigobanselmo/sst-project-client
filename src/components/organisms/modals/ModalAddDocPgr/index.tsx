@@ -24,7 +24,7 @@ export const ModalAddDocPgr = () => {
         <SModalHeader
           tag={'version'}
           onClose={props.onCloseUnsaved}
-          title={'Documento PGR'}
+          title={`Documento PGR - ${props?.data?.workspaceName}`}
         />
         <Wizard schemas={[pgrSchema, versionSchema]}>
           <FirstModalStep {...props} />

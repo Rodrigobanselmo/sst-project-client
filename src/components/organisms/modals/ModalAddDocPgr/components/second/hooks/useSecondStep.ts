@@ -27,6 +27,8 @@ export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
         name: doc_name,
         companyId: data.companyId,
         riskGroupId: data.id,
+        workspaceId: data.workspaceId,
+        workspaceName: data.workspaceName,
       });
       onClose();
     }

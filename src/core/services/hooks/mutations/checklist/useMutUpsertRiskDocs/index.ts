@@ -15,10 +15,12 @@ import { IErrorResp } from '../../../../errors/types';
 
 export interface IUpsertRiskDocs {
   id?: string;
-  name?: string;
-  riskGroupId?: string;
-  version?: string;
+  name: string;
+  riskGroupId: string;
+  workspaceId: string;
+  workspaceName: string;
   description?: string;
+  version?: string;
   status?: StatusEnum;
   companyId?: string;
 }

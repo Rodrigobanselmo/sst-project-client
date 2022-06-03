@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -18,6 +18,9 @@ export const initialPgrDocState = {
   source: '',
   visitDate: '',
   companyId: '',
+  workspaceId: '',
+  workspaceName: '',
+  workspaceClosed: false,
 };
 
 const modalName = ModalEnum.RISK_GROUP_DOC_ADD;
@@ -32,6 +35,18 @@ export const useHandleModal = () => {
   const [data, setData] = useState({
     ...initialPgrDocState,
   });
+
+  const onClose = useCallback(
+    (data?: any) => {
+      onCloseModal(modalName, data);
+      setData(initialPgrDocState);
+    },
+    [onCloseModal],
+  );
+
+  useEffect(() => {
+    if (data && data?.workspaceClosed && !data?.workspaceId) return onClose();
+  }, [data, onClose]);
 
   useEffect(() => {
     const initialData =
@@ -50,12 +65,7 @@ export const useHandleModal = () => {
         return newData;
       });
     }
-  }, [getModalData]);
-
-  const onClose = (data?: any) => {
-    onCloseModal(modalName, data);
-    setData(initialPgrDocState);
-  };
+  }, [getModalData, onClose]);
 
   const onCloseUnsaved = () => {
     if (preventUnwantedChanges(data, initialDataRef.current, onClose)) return;

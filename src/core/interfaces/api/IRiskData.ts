@@ -50,4 +50,6 @@ export interface IPrgDocData {
   updated_at: Date;
   companyId: string;
   status: StatusEnum;
+  workspaceId: string;
+  workspaceName: string;
 }

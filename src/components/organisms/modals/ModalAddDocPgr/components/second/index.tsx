@@ -38,8 +38,12 @@ export const SecondModalStep = (props: IUseAddCompany) => {
 
     if (!docs) '0.0.0';
 
-    return docs[0] ? docs[0].version : '0.0.0';
-  }, [data.companyId, data.id]);
+    const docsWorkspace = docs.filter(
+      (doc) => data.workspaceId === doc.workspaceId,
+    );
+
+    return docsWorkspace[0] ? docsWorkspace[0].version : '0.0.0';
+  }, [data.companyId, data.id, data.workspaceId]);
 
   const options = useMemo(() => {
     const version = actualVersion;

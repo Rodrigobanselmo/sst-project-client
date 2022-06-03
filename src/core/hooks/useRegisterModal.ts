@@ -28,8 +28,9 @@ export const useRegisterModal = () => {
 
   const getModalData = useCallback(
     <T>(name: string) => {
+      const copyCurrent = [...currentModal];
       return (
-        (currentModal.reverse().find((modal) => modal.name === name)
+        (copyCurrent.reverse().find((modal) => modal.name === name)
           ?.data as T) ?? ({} as T)
       );
     },

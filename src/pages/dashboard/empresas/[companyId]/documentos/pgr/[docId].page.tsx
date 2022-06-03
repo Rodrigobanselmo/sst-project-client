@@ -2,6 +2,7 @@ import { SActionButton } from 'components/atoms/SActionButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SPageTitle from 'components/atoms/SPageTitle';
 import { ModalAddDocPgr } from 'components/organisms/modals/ModalAddDocPgr';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { DocPgrTable } from 'components/organisms/tables/DocPgrTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -9,13 +10,16 @@ import { useRouter } from 'next/router';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
+import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useModal } from 'core/hooks/useModal';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 import { DocumentPgrForm } from '../../../../../../components/organisms/forms/DocumentPgrForm';
 
 const Companies: NextPage = () => {
   const { query, push } = useRouter();
+  const { onOpenModal } = useModal();
 
   const handleGoToRiskData = () => {
     push(
@@ -42,6 +46,16 @@ const Companies: NextPage = () => {
       <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
       <DocPgrTable riskGroupId={query.docId as string} />
       <ModalAddDocPgr />
+      <ModalSelectWorkspace
+        title="Selecione o estabelecimento para o documento PGR"
+        onSelect={(work, passData) =>
+          onOpenModal(ModalEnum.RISK_GROUP_DOC_ADD, {
+            workspaceId: work.id,
+            workspaceName: work.name,
+            ...(passData || {}),
+          })
+        }
+      />
     </SContainer>
   );
 };

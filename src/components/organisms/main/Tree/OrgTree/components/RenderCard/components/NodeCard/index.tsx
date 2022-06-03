@@ -1,4 +1,5 @@
-import React, { FC, MouseEvent } from 'react';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { FC, MouseEvent, useEffect, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -24,7 +25,7 @@ import { useHierarchyTreeActions } from '../../../../../../../../../core/hooks/u
 import { STagButton } from '../../../../../../../../atoms/STagButton';
 import SText from '../../../../../../../../atoms/SText';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
-import { ITreeSelectedItem } from '../../../../interfaces';
+import { ITreeMapObject, ITreeSelectedItem } from '../../../../interfaces';
 import { GhoSelect } from '../../../Selects/GhoSelect';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { TypeSelect } from '../../../Selects/TypeSelect';
@@ -46,6 +47,39 @@ const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({ label }) => {
       >
         {label}
       </SText>
+    </STooltip>
+  );
+};
+
+const SelectGho: FC<{
+  isSelectedGho: boolean;
+  handleAddGhoHierarchy: any;
+  node: ITreeMapObject;
+}> = ({ isSelectedGho, handleAddGhoHierarchy, node }) => {
+  const [open, setOpen] = useState(true);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setOpen(false);
+    }, 5000);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, []);
+
+  const onSelect = (e: MouseEvent<HTMLDivElement>) => {
+    handleAddGhoHierarchy(e);
+  };
+
+  return (
+    <STooltip
+      PopperProps={{ open }}
+      title={`Click aqui para incluir o ${node.label.slice(0, 8)}${
+        node.label.length > 9 ? '...' : ''
+      } ao GSE`}
+    >
+      <STSelectBox selected={isSelectedGho ? 1 : 0} onClick={onSelect} />
     </STooltip>
   );
 };
@@ -109,9 +143,10 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
             ![TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(
               node.type,
             ) && (
-              <STSelectBox
-                selected={isSelectedGho ? 1 : 0}
-                onClick={handleAddGhoHierarchy}
+              <SelectGho
+                isSelectedGho={isSelectedGho}
+                handleAddGhoHierarchy={handleAddGhoHierarchy}
+                node={node}
               />
             )}
           <NodeLabel label={node.label} type={node.type} />

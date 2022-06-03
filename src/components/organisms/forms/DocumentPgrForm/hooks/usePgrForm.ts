@@ -90,7 +90,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
       status: data.status,
     };
 
-    onOpenModal(ModalEnum.RISK_GROUP_DOC_ADD, initialState);
+    onOpenModal(ModalEnum.WORKSPACE_SELECT, initialState);
   };
 
   return {
