@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { RoutesEnum } from 'core/enums/routes.enums';
-import { withSSRGuest } from 'core/utils/auth/withSSRGuest';
+import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 import { UserForm } from './components/UserForm';
 import { STContainer, STSectionBox } from './index.styles';
@@ -50,8 +50,11 @@ const UserPage: NextPage = () => {
 
 export default UserPage;
 
-export const getServerSideProps = withSSRGuest(async () => {
-  return {
-    props: {},
-  };
-});
+export const getServerSideProps = withSSRAuth(
+  async () => {
+    return {
+      props: {},
+    };
+  },
+  { skipCompanyCheck: true },
+);

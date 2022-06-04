@@ -41,11 +41,12 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
       <STable
         mb={20}
         loading={isLoading}
-        columns="minmax(200px, 1fr) minmax(200px, 2fr) 100px 120px 100px 100px"
+        columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px 100px"
       >
         <STableHeader>
           <STableHRow>Identificação</STableHRow>
           <STableHRow>Nome</STableHRow>
+          <STableHRow>Estabelecimento</STableHRow>
           <STableHRow justifyContent="center">Versão</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
@@ -58,6 +59,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
               <STableRow key={row.id}>
                 <TextIconRow text={row.name || '--'} height={'100%'} />
                 <TextIconRow text={row.description || '--'} height={'100%'} />
+                <TextIconRow text={row.workspaceName || '--'} height={'100%'} />
                 <TextIconRow
                   text={row.version}
                   height={'100%'}

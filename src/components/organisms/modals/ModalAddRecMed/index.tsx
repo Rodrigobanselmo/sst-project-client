@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
+import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
@@ -70,31 +71,41 @@ export const ModalAddRecMed = () => {
             name="recName"
             size="small"
           />
-          <InputForm
-            multiline
-            fullWidth
-            defaultValue={recMedData.medName}
-            minRows={2}
-            maxRows={4}
-            label="Medida de controle"
-            control={control}
-            sx={{ minWidth: ['100%', 600] }}
-            placeholder={'descrição da medida de controle...'}
-            name="medName"
-            size="small"
-          />
-          <RadioForm
-            type="radio"
-            control={control}
-            defaultValue={String(recMedData.medType)}
-            options={[
-              { content: 'Medidas administrativas', value: MedTypeEnum.ADM },
-              { content: 'Medidas de engenharia', value: MedTypeEnum.ENG },
-            ]}
-            name="medType"
-            mt={-5}
-            columns={2}
-          />
+          <Box position="relative">
+            <InputForm
+              multiline
+              fullWidth
+              defaultValue={recMedData.medName}
+              minRows={3}
+              maxRows={3}
+              label="Medida de controle"
+              control={control}
+              sx={{
+                minWidth: ['100%', 600],
+                '& .MuiOutlinedInput-root': { pb: 30 },
+              }}
+              placeholder={'descrição da medida de controle...'}
+              name="medName"
+              size="small"
+            />
+            <RadioForm
+              type="radio"
+              control={control}
+              defaultValue={String(recMedData.medType)}
+              options={[
+                { content: 'Medidas administrativas', value: MedTypeEnum.ADM },
+                { content: 'Medidas de engenharia', value: MedTypeEnum.ENG },
+              ]}
+              name="medType"
+              pr={8}
+              pl={11}
+              columns={2}
+              zIndex={2}
+              position="absolute"
+              top={115}
+              width="100%"
+            />
+          </Box>
         </SFlex>
         <EditRecMedSelects
           recMedData={recMedData}

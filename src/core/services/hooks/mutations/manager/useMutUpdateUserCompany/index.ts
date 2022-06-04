@@ -9,6 +9,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IUser } from 'core/interfaces/api/IUser';
+import { IMutationOptions } from 'core/interfaces/IMutationOptions';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
@@ -29,7 +30,9 @@ export async function updateUserCompany(data: IUpdateUser) {
   return response.data;
 }
 
-export function useMutUpdateUserCompany() {
+export function useMutUpdateUserCompany({
+  successMessage = 'Usuário editado com sucesso',
+}: IMutationOptions = {}) {
   const { enqueueSnackbar } = useSnackbar();
   const { companyId } = useGetCompanyId();
 
@@ -53,7 +56,7 @@ export function useMutUpdateUserCompany() {
             () => user,
           );
         }
-        enqueueSnackbar('Usuário editado com sucesso', {
+        enqueueSnackbar(successMessage, {
           variant: 'success',
         });
       },

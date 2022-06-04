@@ -26,7 +26,11 @@ const TextIconRow: FC<TextIconRowProps> = ({
         {icon && (
           <Icon component={icon} sx={{ color: 'gray.600', mr: 4, ml: 2 }} />
         )}
-        {text && <SText lineNumber={lineNumber}>{text}</SText>}
+        {text && (
+          <SText fontSize={15} lineNumber={lineNumber}>
+            {text}
+          </SText>
+        )}
         {children}
       </>
     );

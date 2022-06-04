@@ -25,7 +25,7 @@ export const STTextField = styled(TextField)<{
         opacity: 0.4;
         font-size: 0.9rem;
       }
-    `}
+    `};
 
   &&& .MuiOutlinedInput-root {
     background-color: ${(props) => props.theme.palette.background.paper};
@@ -105,7 +105,7 @@ export const STTextField = styled(TextField)<{
             opacity: 1;
           }
         }
-      `}
+      `};
 
       ${!props.multiline &&
       css`
@@ -120,7 +120,7 @@ export const STTextField = styled(TextField)<{
           border-bottom-right-radius: ${props.theme.spacing(4)};
           pointer-events: none;
         }
-      `}
+      `};
     `};
 
   ${(props) =>
@@ -151,7 +151,7 @@ export const STTextField = styled(TextField)<{
         background-color: ${props.theme.palette.db[900]};
         max-height: 2.2rem;
       }
-    `}
+    `};
 
   ${(props) =>
     props.sub_variant == 'search' &&
@@ -183,8 +183,8 @@ export const STTextField = styled(TextField)<{
           opacity: 1;
         }
       }
-    `}
-  
+    `};
+
   ${(props) =>
     props.unstyled &&
     css`
@@ -199,5 +199,5 @@ export const STTextField = styled(TextField)<{
         }
         border: none !important;
       }
-    `}
+    `};
 `;

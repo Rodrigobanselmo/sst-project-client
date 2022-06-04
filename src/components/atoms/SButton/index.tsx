@@ -9,16 +9,16 @@ export const SButton: FC<SButtonProps> = ({
   loading,
   variant = 'contained',
   shadow,
-  sx,
+  xsmall,
   ...props
 }) => {
   return (
     <STButton
       variant={variant}
+      _small={xsmall ? 1 : 0}
       _variant={variant}
       _shadow={shadow ? 1 : 0}
       loading={loading}
-      sx={{ minWidth: '100px', textTransform: 'none', ...sx }}
       {...props}
     >
       {children}

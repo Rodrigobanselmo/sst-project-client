@@ -5,6 +5,7 @@ import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { Box, Link, Typography } from '@mui/material';
 import NextLink from 'next/link';
+import { useRouter } from 'next/router';
 import * as Yup from 'yup';
 
 import { RoutesEnum } from 'core/enums/routes.enums';
@@ -21,6 +22,7 @@ export const LoginForm: FC = () => {
   });
 
   const { mutate, isLoading } = useMutationSign();
+  const router = useRouter();
 
   const password = watch('password');
   const passwordConfirmation = watch('passwordConfirmation');
@@ -32,8 +34,11 @@ export const LoginForm: FC = () => {
     successPass && passwordConfirmation === password;
 
   const onSubmit: SubmitHandler<ILoginSchema> = async (data) => {
-    mutate(data);
+    const token = router.query?.token as string | undefined;
+    mutate({ ...data, token });
   };
+
+  const initEmail = router.query?.email as string | undefined;
 
   return (
     <Box
@@ -47,6 +52,7 @@ export const LoginForm: FC = () => {
       <InputForm
         sx={{ mb: [8, 8] }}
         label="E-mail"
+        defaultValue={initEmail || ''}
         placeholder="email@gmail.com"
         control={control}
         type="email"

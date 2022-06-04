@@ -6,12 +6,14 @@ import { updateUser } from 'store/reducers/user/userSlice';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IUser } from 'core/interfaces/api/IUser';
+import { IMutationOptions } from 'core/interfaces/IMutationOptions';
 import { api } from 'core/services/apiClient';
 
 import { IErrorResp } from '../../../../errors/types';
 
 export interface IUpdateUser {
   name?: string;
+  token?: string;
   oldPassword?: string;
   password?: string;
 }
@@ -23,14 +25,16 @@ export async function updateUserApi(data: IUpdateUser) {
   return response.data;
 }
 
-export function useMutUpdateUser() {
+export function useMutUpdateUser({
+  successMessage = 'Usuário editado com sucesso',
+}: IMutationOptions = {}) {
   const { enqueueSnackbar } = useSnackbar();
   const dispatch = useAppDispatch();
 
   return useMutation(async (data: IUpdateUser) => updateUserApi(data), {
     onSuccess: async (user) => {
       dispatch(updateUser(user));
-      enqueueSnackbar('Usuário editado com sucesso', {
+      enqueueSnackbar(successMessage, {
         variant: 'success',
       });
     },

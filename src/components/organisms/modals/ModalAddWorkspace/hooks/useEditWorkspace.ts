@@ -13,7 +13,7 @@ import { IWorkspace } from 'core/interfaces/api/ICompany';
 import {
   IUpdateCompany,
   useMutUpdateCompany,
-} from 'core/services/hooks/mutations/company/useMutUpdateCompany';
+} from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
 import { useMutationCEP } from 'core/services/hooks/mutations/useMutationCep';
 import { workspaceSchema } from 'core/utils/schemas/workspace.schema';
 

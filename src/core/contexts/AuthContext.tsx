@@ -27,13 +27,14 @@ import { api } from '../services/apiClient';
 export type SignInCredentials = {
   email: string;
   password: string;
-  inviteToken?: string;
+  token?: string;
 };
 
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   signUp(credentials: SignInCredentials): Promise<void>;
   signOut: () => void;
+  refreshUser: () => void;
   user: Partial<IUser> | null;
   isAuthenticated: boolean;
 };
@@ -70,31 +71,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     dispatch(createUser(null));
   }, [dispatch]);
 
+  const getMe = useCallback(async () => {
+    try {
+      const response = await api.get(ApiRoutesEnum.ME);
+
+      dispatch(
+        createUser({
+          ...response.data,
+        }),
+      );
+
+      if (
+        !response.data.name &&
+        !router.asPath.includes(RoutesEnum.ONBOARD_USER)
+      ) {
+        router.replace(RoutesEnum.ONBOARD_USER);
+      }
+    } catch (error) {
+      signOutFunc();
+    }
+  }, [dispatch, router, signOutFunc]);
+
   useEffect(() => {
     const { 'nextauth.token': token } = parseCookies();
 
-    if (token) {
-      api
-        .get(ApiRoutesEnum.ME)
-        .then((response) => {
-          dispatch(
-            createUser({
-              ...response.data,
-            }),
-          );
-
-          if (
-            !response.data.name &&
-            !router.asPath.includes(RoutesEnum.ONBOARD_USER)
-          ) {
-            router.replace(RoutesEnum.ONBOARD_USER);
-          }
-        })
-        .catch(() => {
-          signOutFunc();
-        });
-    }
-  }, [dispatch, store, signOutFunc, router]);
+    if (token) getMe();
+  }, [dispatch, store, signOutFunc, router, getMe]);
 
   useEffect(() => {
     authChannel = new BroadcastChannel('auth');
@@ -165,19 +167,50 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signToken(response.data, 'signIn');
   }
 
-  async function signUp({ email, password, inviteToken }: SignInCredentials) {
+  async function signUp({ email, password, token }: SignInCredentials) {
     const response = await api.post<ISession>(ApiRoutesEnum.USERS, {
       email,
       password,
-      inviteToken,
+      token,
     });
 
     signToken(response.data, 'signUp');
   }
 
+  async function refreshUser() {
+    const { 'nextauth.refreshToken': refresh_token } = parseCookies();
+
+    const refresh = await api.post('/refresh', { refresh_token });
+
+    const { token } = refresh.data;
+
+    setCookie(null, 'nextauth.token', token, {
+      maxAge: 60 * 60 * 25 * 30, // 30 days
+      path: '/',
+    });
+
+    setCookie(null, 'nextauth.refreshToken', refresh.data.refresh_token, {
+      maxAge: 60 * 60 * 25 * 30, // 30 days
+      path: '/',
+    });
+
+    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
+
+    await getMe();
+  }
+
   return (
     <AuthContext.Provider
-      value={{ signIn, signOut: signOutFunc, user, isAuthenticated, signUp }}
+      value={{
+        signIn,
+        signOut: signOutFunc,
+        refreshUser,
+        user,
+        isAuthenticated,
+        signUp,
+      }}
     >
       {children}
     </AuthContext.Provider>

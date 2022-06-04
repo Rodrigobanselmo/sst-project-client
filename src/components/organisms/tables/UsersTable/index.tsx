@@ -25,12 +25,14 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
+import { useMutInviteDelete } from 'core/services/hooks/mutations/manager/useMutInviteDelete';
 import { useQueryInvites } from 'core/services/hooks/queries/useQueryInvites';
 import { useQueryUsers } from 'core/services/hooks/queries/useQueryUsers';
 
 export const UsersTable: FC<BoxProps> = () => {
   const { data: users, isLoading } = useQueryUsers();
   const { data: invites, isLoading: isLoadingInvites } = useQueryInvites();
+  const deleteInviteMut = useMutInviteDelete();
   const { onOpenModal } = useModal();
 
   const data = [...invites, ...users];
@@ -48,8 +50,7 @@ export const UsersTable: FC<BoxProps> = () => {
   };
 
   const handleDeleteInvite = (inviteId: string) => {
-    console.log(inviteId); // TODO edit checklist status
-    //push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
+    deleteInviteMut.mutate(inviteId);
   };
 
   const handleGoToHierarchy = (companyId: string) => {
@@ -102,6 +103,7 @@ export const UsersTable: FC<BoxProps> = () => {
                   <IconButtonRow
                     onClick={() => handleDeleteInvite(row.id)}
                     icon={<SDeleteIcon />}
+                    loading={deleteInviteMut.isLoading}
                   />
                 )}
               </STableRow>

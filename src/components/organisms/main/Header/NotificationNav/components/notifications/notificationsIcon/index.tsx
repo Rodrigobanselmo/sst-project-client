@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 
+import { Badge } from '@mui/material';
 import Icon from '@mui/material/Icon';
 import IconButton from '@mui/material/IconButton';
 import { RiNotificationLine } from '@react-icons/all-files/ri/RiNotificationLine';
@@ -15,10 +16,12 @@ export function NotificationsIcon(): JSX.Element {
   return (
     <>
       <IconButton ref={anchorEl} onClick={toggle}>
-        <Icon
-          component={RiNotificationLine}
-          sx={{ fontSize: ['1rem', '1.125rem', '1.2rem'] }}
-        />
+        <Badge badgeContent={0} color="info">
+          <Icon
+            component={RiNotificationLine}
+            sx={{ fontSize: ['1rem', '1.125rem', '1.2rem'] }}
+          />
+        </Badge>
       </IconButton>
       <NotificationsPopper
         isOpen={isOpen}

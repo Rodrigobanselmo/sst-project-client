@@ -11,8 +11,8 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { useMutInviteUser } from 'core/services/hooks/mutations/company/useMutInviteUser';
-import { useMutUpdateUserCompany } from 'core/services/hooks/mutations/company/useMutUpdateUserCompany';
+import { useMutInviteUser } from 'core/services/hooks/mutations/manager/useMutInviteUser';
+import { useMutUpdateUserCompany } from 'core/services/hooks/mutations/manager/useMutUpdateUserCompany';
 import { userManageSchema } from 'core/utils/schemas/user-manage.schema';
 
 export const initialUserState = {

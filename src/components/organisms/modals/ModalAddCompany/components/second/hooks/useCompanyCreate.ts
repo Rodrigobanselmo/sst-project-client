@@ -1,6 +1,6 @@
 import { useFormContext } from 'react-hook-form';
 
-import { useMutCreateCompany } from 'core/services/hooks/mutations/company/useMutCreateCompany';
+import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/useMutCreateCompany';
 
 import { IUseAddCompany } from '../../../hooks/useAddCompany';
 
