@@ -76,14 +76,4 @@ export const RenderButton = styled.span<{
         display: none;
       }
     `};
-
-  ${(props) =>
-    props.workspace &&
-    props.expanded &&
-    css`
-      :before,
-      :after {
-        display: none;
-      }
-    `};
 `;
