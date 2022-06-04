@@ -1,5 +1,6 @@
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { MdDashboard } from '@react-icons/all-files/md/MdDashboard';
+import { RoleEnum } from 'project/enum/roles.enums';
 
 import SCompany from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
@@ -16,13 +17,13 @@ const dashboard = {
   shouldMatchExactHref: true,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const team = {
   text: 'Gerenciar usuários',
   Icon: STeamIcon,
   description: 'Download dos dados obtidos em campo utilizando o App SimpleSST',
   id: 'Tu09jfdGCC',
   href: RoutesEnum.TEAM,
+  roles: [RoleEnum.USER],
 };
 
 const checklist = {
@@ -31,6 +32,7 @@ const checklist = {
   description: 'Criação e edição de checklists para captação de dados de campo',
   id: 'ZjP5CN0qar',
   href: RoutesEnum.CHECKLIST,
+  roles: [RoleEnum.CHECKLIST],
 };
 
 const importExportData = {
@@ -39,6 +41,7 @@ const importExportData = {
   description: 'Criação e edição das tabelas presentes no banco de dados',
   id: 'ZjP5Cs0eap',
   href: RoutesEnum.DATABASE,
+  roles: [RoleEnum.MASTER],
 };
 
 const allCompaniesData = {
@@ -47,6 +50,7 @@ const allCompaniesData = {
   description: 'Visualizar suas empresas cadastradas',
   id: 'lfrXaeDx',
   href: RoutesEnum.COMPANIES,
+  roles: [RoleEnum.CONTRACTS],
 };
 
 export const generalArray = [

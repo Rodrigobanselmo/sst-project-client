@@ -14,8 +14,11 @@ const Database: NextPage = () => {
 
 export default Database;
 
-export const getServerSideProps = withSSRAuth(async () => {
-  return {
-    props: {},
-  };
-});
+export const getServerSideProps = withSSRAuth(
+  async () => {
+    return {
+      props: {},
+    };
+  },
+  { skipCompanyCheck: true },
+);

@@ -10,6 +10,7 @@ export enum QueryEnum {
   EMPLOYEES = 'employees',
   USERS = 'users',
   INVITES = 'invites',
+  INVITES_USER = 'invites-user',
   COMPANIES = 'companies',
   COMPANY = 'company',
   EPIS = 'epis',

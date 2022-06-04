@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { Stack } from '@mui/material';
 
+import { useAccess } from 'core/hooks/useAccess';
+
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { Drawer_Links } from '../constants';
 import { LogoNavbar } from '../Logo';
@@ -11,6 +13,7 @@ import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
   const { isTablet, open, close } = useSidebarDrawer();
+  const { isValidRoles } = useAccess();
 
   return (
     <BoxContainerStyled
@@ -25,9 +28,13 @@ export function SideBarNav(): JSX.Element {
       <BoxSectionStyled pt={10}>
         <Stack px={0} spacing={8}>
           {Drawer_Links.map((category) => {
+            if (!isValidRoles(category.data?.roles)) return null;
+
             return (
               <NavSection key={category.data.id} title={category.data.text}>
                 {category.items.map((item) => {
+                  if (!isValidRoles(item?.roles)) return null;
+
                   return (
                     <NavLink
                       key={item.id}

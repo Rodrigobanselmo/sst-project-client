@@ -1,8 +1,7 @@
-import Icon from '@mui/material/Icon';
-import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
-import { RiNotificationLine } from '@react-icons/all-files/ri/RiNotificationLine';
-import { RiUserAddLine } from '@react-icons/all-files/ri/RiUserAddLine';
+
+import { InvitesIcon } from './components/invites/InvitesIcon';
+import { NotificationsIcon } from './components/notifications/notificationsIcon';
 
 export function NotificationNav(): JSX.Element {
   return (
@@ -18,18 +17,8 @@ export function NotificationNav(): JSX.Element {
         borderColor: 'gray.500',
       }}
     >
-      <IconButton>
-        <Icon
-          component={RiNotificationLine}
-          sx={{ fontSize: ['1rem', '1.125rem', '1.2rem'] }}
-        />
-      </IconButton>
-      <IconButton>
-        <Icon
-          component={RiUserAddLine}
-          sx={{ fontSize: ['1rem', '1.125rem', '1.2rem'] }}
-        />
-      </IconButton>
+      <NotificationsIcon />
+      <InvitesIcon />
     </Stack>
   );
 }

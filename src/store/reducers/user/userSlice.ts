@@ -28,5 +28,8 @@ export const exampleName = name;
 export const { createUser, updateUser } = userSlice.actions;
 
 export const selectUser = (state: AppState) => state[name].user;
+export const selectUserRoles = (state: AppState) => state[name].user?.roles;
+export const selectUserPermissions = (state: AppState) =>
+  state[name].user?.permissions;
 
 export default userSlice.reducer;

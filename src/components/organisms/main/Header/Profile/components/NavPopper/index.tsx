@@ -47,14 +47,14 @@ export const NavPopper: FC<INavProfileProps> = ({
       {navItems.map(({ label, icon: Icon, action, href }) => (
         <StackStyled
           key={label}
-          px={6}
-          py={3}
+          px={5}
+          py={2}
           direction="row"
-          spacing={5}
+          spacing={3}
           onClick={() => handleNavAction(action, href)}
         >
-          <Icon sx={{ color: 'primary.dark' }} />
-          <SText>{label}</SText>
+          <Icon sx={{ color: 'gray.600', fontSize: '17px' }} />
+          <SText fontSize={14}>{label}</SText>
         </StackStyled>
       ))}
     </SPopperArrow>

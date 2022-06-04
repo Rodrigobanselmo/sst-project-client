@@ -1,7 +1,7 @@
 export enum RoutesEnum {
-  ONBOARD_NO_TEAM = '/onboard/empresa',
-  ONBOARD_USER = '/onboard/usuario',
-  ONBOARD = '/onboard',
+  ONBOARD_NO_TEAM = '/acesso/empresa',
+  ONBOARD_USER = '/acesso/usuario',
+  ONBOARD = '/acesso',
   LOGIN = '/',
   DASHBOARD = '/dashboard',
   TEAM = '/dashboard/equipe',
