@@ -3,14 +3,22 @@ import React, { FC } from 'react';
 
 import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
+import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
 import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useModal } from 'core/hooks/useModal';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import {
   IUpsertRiskData,
   useMutUpsertRiskData,
 } from 'core/services/hooks/mutations/checklist/useMutUpsertRiskData';
+import { queryClient } from 'core/services/queryClient';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 
 import { AdmColumn } from './components/columns/AdmColumn';
@@ -30,6 +38,9 @@ export const SideTable: FC<SideTableProps> = ({
 }) => {
   const risk = useAppSelector(selectRisk);
   const upsertRiskData = useMutUpsertRiskData();
+  const { companyId } = useGetCompanyId();
+  const { onOpenModal } = useModal();
+  const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
 
   const handleSelect = async ({
@@ -65,6 +76,47 @@ export const SideTable: FC<SideTableProps> = ({
     });
   };
 
+  const handleHelp = async (data: Partial<IUpsertRiskData>) => {
+    if (!risk?.id) return;
+
+    const company = queryClient.getQueryData<ICompany>([
+      QueryEnum.COMPANY,
+      companyId,
+    ]);
+
+    if (!company) return;
+
+    const workspaceEmployeesCount =
+      company.workspace?.reduce(
+        (acc, workspace) =>
+          gho.workspaceIds.includes(workspace.id)
+            ? acc + (workspace?.employeeCount ?? 0)
+            : acc,
+        0,
+      ) || 0;
+
+    const handleSelectSync = (value: number) => {
+      handleSelect({ probability: value, ...data });
+      enqueueSnackbar(`A probabilidade sugerida pelo sistema é ${value}`, {
+        variant: 'info',
+        autoHideDuration: 3000,
+        style: { transform: 'translateY(70px)' },
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'right',
+        },
+      });
+    };
+
+    onOpenModal(ModalEnum.PROBABILITY_ADD, {
+      riskType: risk.type,
+      intensityLt: risk.nr15lt,
+      employeeCountGho: gho.employeeCount,
+      employeeCountTotal: workspaceEmployeesCount,
+      onCreate: handleSelectSync,
+    } as typeof initialProbState);
+  };
+
   const handleRemove = async ({
     recs,
     adms,
@@ -74,7 +126,6 @@ export const SideTable: FC<SideTableProps> = ({
     ...values
   }: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
-
     const submitData = {
       ...values,
       id: riskData?.id,
@@ -142,7 +193,11 @@ export const SideTable: FC<SideTableProps> = ({
         data={riskData}
         risk={risk}
       />
-      <ProbabilityColumn handleSelect={handleSelect} data={riskData} />
+      <ProbabilityColumn
+        handleHelp={handleHelp}
+        handleSelect={handleSelect}
+        data={riskData}
+      />
       <STag
         action={String(actualMatrixLevel?.level) as unknown as ITagActionColors}
         text={actualMatrixLevel?.label || '--'}

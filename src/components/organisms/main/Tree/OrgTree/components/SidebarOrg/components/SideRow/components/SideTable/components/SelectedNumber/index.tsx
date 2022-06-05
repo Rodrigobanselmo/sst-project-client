@@ -1,6 +1,7 @@
 import React, { FC } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
+import STooltip from 'components/atoms/STooltip';
 
 import { STSFlex, STText } from './styles';
 import { SelectedNumberProps } from './types';
@@ -9,6 +10,7 @@ export const SelectedNumber: FC<SelectedNumberProps> = ({
   handleSelect,
   selectedNumber,
   disabledGtEqual = 6,
+  handleHelp,
 }) => {
   return (
     <SFlex maxHeight={24} center>
@@ -30,6 +32,17 @@ export const SelectedNumber: FC<SelectedNumberProps> = ({
           </STSFlex>
         );
       })}
+      {handleHelp && (
+        <STooltip title="Precisando de ajuda?">
+          <STSFlex
+            onClick={handleHelp}
+            sx={{ backgroundColor: 'grey.600' }}
+            center
+          >
+            <STText sx={{ color: 'white' }}>?</STText>
+          </STSFlex>
+        </STooltip>
+      )}
     </SFlex>
   );
 };

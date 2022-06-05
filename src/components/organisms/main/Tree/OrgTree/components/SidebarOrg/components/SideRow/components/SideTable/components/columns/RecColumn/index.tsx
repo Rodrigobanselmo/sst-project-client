@@ -24,6 +24,14 @@ export const RecColumn: FC<RecColumnProps> = ({
         multiple={false}
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
+        onCreate={(rec) => {
+          if (rec && rec.id)
+            handleSelect({
+              recs: [rec.id],
+            });
+
+          document.getElementById('menu-close')?.click();
+        }}
         handleSelect={(options) => {
           const op = options as IRecMed;
           if (op.id)

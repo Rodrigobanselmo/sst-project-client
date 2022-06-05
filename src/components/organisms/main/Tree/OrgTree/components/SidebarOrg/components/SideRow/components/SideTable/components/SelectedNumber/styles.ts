@@ -3,7 +3,7 @@ import { styled } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 
-export const STSFlex = styled(SFlex)<{ selected: number; disabled: number }>`
+export const STSFlex = styled(SFlex)<{ selected?: number; disabled?: number }>`
   background-color: ${(props) => props.theme.palette.background.darkPaper};
   width: ${(props) => props.theme.spacing(8)};
   height: ${(props) => props.theme.spacing(12)};
@@ -30,7 +30,7 @@ export const STSFlex = styled(SFlex)<{ selected: number; disabled: number }>`
     `}
 `;
 
-export const STText = styled(SText)<{ selected: number }>`
+export const STText = styled(SText)<{ selected?: number }>`
   font-size: 0.8rem;
   line-height: 0px;
   color: ${(props) => props.theme.palette.text.secondary};

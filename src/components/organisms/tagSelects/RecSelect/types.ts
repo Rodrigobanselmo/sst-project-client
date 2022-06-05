@@ -15,4 +15,5 @@ export interface IRecMedSelectProps
   onlyFromActualRisks?: boolean;
   handleSelect?: (selectedIds: string[] | IRecMed) => void;
   onEnter?: (value: string) => void;
+  onCreate?: (value: IRecMed | null) => void;
 }

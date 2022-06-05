@@ -24,6 +24,14 @@ export const SourceColumn: FC<SourceColumnProps> = ({
         multiple={false}
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
+        onCreate={(generateSource) => {
+          if (generateSource && generateSource.id)
+            handleSelect({
+              generateSources: [generateSource.id],
+            });
+
+          document.getElementById('menu-close')?.click();
+        }}
         handleSelect={(options) => {
           const generateSource = options as IGenerateSource;
           if (generateSource.id)

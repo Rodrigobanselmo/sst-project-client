@@ -16,6 +16,7 @@ export const RadioForm = ({
   inputProps = {},
   type,
   columns,
+  reset,
   ...props
 }: InputFormBoxProps) => {
   return (
@@ -39,6 +40,7 @@ export const RadioForm = ({
               </Typography>
             )}
             <SRadioCheckbox
+              reset={reset}
               type={type}
               columns={columns}
               options={options}

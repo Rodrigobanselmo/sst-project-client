@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -10,7 +11,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutCreateRecMed } from 'core/services/hooks/mutations/checklist/useMutCreateRecMed';
 import { useMutUpdateRecMed } from 'core/services/hooks/mutations/checklist/useMutUpdateRecMed';
 import { recMedSchema } from 'core/utils/schemas/recMed.schema';
@@ -27,6 +28,7 @@ export const initialAddRecMedState = {
   passDataBack: false,
   edit: false,
   medType: null as MedTypeEnum | null,
+  onCreate: (value: IRecMed | null) => {},
 };
 
 export const useAddRecMed = () => {
@@ -107,7 +109,8 @@ export const useAddRecMed = () => {
     };
 
     if (recMedData.id == '') {
-      await createRecMedMut.mutateAsync(submitData);
+      const result = await createRecMedMut.mutateAsync(submitData);
+      recMedData.onCreate(result);
     } else {
       await updateRecMedMut.mutateAsync({
         ...submitData,

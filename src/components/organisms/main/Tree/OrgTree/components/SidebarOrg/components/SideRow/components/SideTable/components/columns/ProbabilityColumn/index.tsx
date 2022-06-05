@@ -8,6 +8,7 @@ import { EpiColumnProps as ProbabilityColumnProps } from './types';
 export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
   handleSelect,
   data,
+  handleHelp,
 }) => {
   const dataSelect = {} as Partial<IUpsertRiskData>;
 
@@ -20,12 +21,15 @@ export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
     dataSelect.probabilityAfter = undefined;
 
   return (
-    <SelectedNumber
-      handleSelect={(number) =>
-        handleSelect({ probability: number, ...dataSelect })
-      }
-      selectedNumber={data?.probability}
-      disabledGtEqual={6}
-    />
+    <>
+      <SelectedNumber
+        handleSelect={(number) =>
+          handleSelect({ probability: number, ...dataSelect })
+        }
+        selectedNumber={data?.probability}
+        disabledGtEqual={6}
+        handleHelp={() => handleHelp && handleHelp(dataSelect)}
+      />
+    </>
   );
 };

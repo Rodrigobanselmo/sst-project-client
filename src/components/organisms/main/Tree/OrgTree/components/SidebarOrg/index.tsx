@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 
 import { Slide } from '@mui/material';
+import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
 import { useRouter } from 'next/router';
 import {
   selectGhoId,
@@ -10,6 +11,7 @@ import {
 import {
   selectRisk,
   selectRiskAddExpand,
+  setRiskAddToggleExpand,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { useSidebarDrawer } from 'core/contexts/SidebarContext';
@@ -84,57 +86,61 @@ export const SidebarOrg = () => {
         data: gho,
       };
 
+      if (selectExpanded) dispatch(setRiskAddToggleExpand());
       dispatch(setGhoState(data));
     },
-    [dispatch, selectedGhoId],
+    [dispatch, selectExpanded, selectedGhoId],
   );
 
   return (
-    <Slide
-      direction="left"
-      in={isGhoOpen || isRiskOpen}
-      mountOnEnter
-      unmountOnExit
-    >
-      <STBoxContainer
-        expanded={selectExpanded ? 1 : 0}
-        risk_init={isRiskOpen ? 1 : 0}
-        open={isOpen ? 1 : 0}
+    <>
+      <Slide
+        direction="left"
+        in={isGhoOpen || isRiskOpen}
+        mountOnEnter
+        unmountOnExit
       >
-        <SideTop handleSelectGHO={handleSelectGHO} riskInit={isRiskOpen} />
-        <div style={{ overflow: 'auto', minWidth: '320px' }}>
-          <table style={{ width: '100%' }}>
-            <SideHeader
-              handleSelectGHO={handleSelectGHO}
-              handleEditGHO={handleEditGHO}
-              handleAddGHO={handleAddGHO}
-              isAddLoading={addMutation.isLoading}
-              riskInit={isRiskOpen}
-              inputRef={inputRef}
-            />
-            <STBoxStack
-              expanded={selectExpanded ? 1 : 0}
-              risk_init={isRiskOpen ? 1 : 0}
-            >
-              {data.map((gho) => (
-                <SideRow
-                  key={gho.id}
-                  gho={gho}
-                  handleEditGHO={handleEditGHO}
-                  handleSelectGHO={handleSelectGHO}
-                  handleDeleteGHO={handleDeleteGHO}
-                  selectedGhoId={selectedGhoId}
-                  isDeleteLoading={deleteMutation.isLoading}
-                  isRiskOpen={isRiskOpen}
-                  riskData={riskData.find(
-                    (data) => data.homogeneousGroupId == gho.id,
-                  )}
-                />
-              ))}
-            </STBoxStack>
-          </table>
-        </div>
-      </STBoxContainer>
-    </Slide>
+        <STBoxContainer
+          expanded={selectExpanded ? 1 : 0}
+          risk_init={isRiskOpen ? 1 : 0}
+          open={isOpen ? 1 : 0}
+        >
+          <SideTop handleSelectGHO={handleSelectGHO} riskInit={isRiskOpen} />
+          <div style={{ overflow: 'auto', minWidth: '320px' }}>
+            <table style={{ width: '100%' }}>
+              <SideHeader
+                handleSelectGHO={handleSelectGHO}
+                handleEditGHO={handleEditGHO}
+                handleAddGHO={handleAddGHO}
+                isAddLoading={addMutation.isLoading}
+                riskInit={isRiskOpen}
+                inputRef={inputRef}
+              />
+              <STBoxStack
+                expanded={selectExpanded ? 1 : 0}
+                risk_init={isRiskOpen ? 1 : 0}
+              >
+                {data.map((gho) => (
+                  <SideRow
+                    key={gho.id}
+                    gho={gho}
+                    handleEditGHO={handleEditGHO}
+                    handleSelectGHO={handleSelectGHO}
+                    handleDeleteGHO={handleDeleteGHO}
+                    selectedGhoId={selectedGhoId}
+                    isDeleteLoading={deleteMutation.isLoading}
+                    isRiskOpen={isRiskOpen}
+                    riskData={riskData.find(
+                      (data) => data.homogeneousGroupId == gho.id,
+                    )}
+                  />
+                ))}
+              </STBoxStack>
+            </table>
+          </div>
+        </STBoxContainer>
+      </Slide>
+      <ModalAddProbability />
+    </>
   );
 };

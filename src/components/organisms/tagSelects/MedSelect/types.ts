@@ -17,4 +17,5 @@ export interface IRecMedSelectProps
   type?: MedTypeEnum;
   onEnter?: (value: string) => void;
   onlyFromActualRisks?: boolean;
+  onCreate?: (value: IRecMed | null) => void;
 }

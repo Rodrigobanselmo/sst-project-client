@@ -14,6 +14,7 @@ export type InputFormBoxProps = BoxProps & {
   label?: string;
   options: SRadioCheckboxProps['options'];
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  reset?: () => void;
   inputProps?: Partial<InputFormProps>;
   type: SRadioCheckboxProps['type'];
   columns: SRadioCheckboxProps['columns'];

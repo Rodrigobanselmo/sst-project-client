@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
@@ -11,7 +13,10 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import {
+  IGenerateSource,
+  IRiskFactors,
+} from 'core/interfaces/api/IRiskFactors';
 import { useMutCreateGenerateSource } from 'core/services/hooks/mutations/checklist/useMutCreateGenerateSource';
 import { useMutUpdateGenerateSource } from 'core/services/hooks/mutations/checklist/useMutUpdateGenerateSource';
 import { generateSourceSchema } from 'core/utils/schemas/generateSource.schema';
@@ -27,6 +32,7 @@ export const initialAddGenerateSourceState = {
   medType: null as MedTypeEnum | null,
   passDataBack: false,
   edit: false,
+  onCreate: (value: IGenerateSource | null) => {},
 };
 
 export const useAddGenerateSource = () => {
@@ -51,6 +57,7 @@ export const useAddGenerateSource = () => {
     const initialData = getModalData<
       Partial<typeof initialAddGenerateSourceState>
     >(ModalEnum.GENERATE_SOURCE_ADD);
+    console.log('initialData', initialData);
 
     if (initialData) {
       setGenerateSourceData((oldData) => {
@@ -113,9 +120,10 @@ export const useAddGenerateSource = () => {
     };
 
     if (generateSourceData.id == '') {
-      await createGenerateSourceMut.mutateAsync(submitData);
+      const result = await createGenerateSourceMut.mutateAsync(submitData);
+      generateSourceData.onCreate(result);
     } else {
-      await updateGenerateSourceMut.mutateAsync({
+      await await updateGenerateSourceMut.mutateAsync({
         ...submitData,
         id: generateSourceData.id,
       });
@@ -149,5 +157,6 @@ export const useAddGenerateSource = () => {
     control,
     handleSubmit,
     onRemove: () => preventDelete(onRemove),
+    reset,
   };
 };

@@ -11,6 +11,9 @@ export interface IGho {
   created_at: Date;
   status: StatusEnum;
   name: string;
+  description: string;
   companyId: string;
   hierarchies?: IHierarchyGho[];
+  employeeCount: number;
+  workspaceIds: string[];
 }

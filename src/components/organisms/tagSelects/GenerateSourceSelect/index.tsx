@@ -26,6 +26,7 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
   multiple = true,
   risk,
   onlyFromActualRisks,
+  onCreate = () => {},
   ...props
 }) => {
   const { data } = useQueryRisk();
@@ -59,6 +60,7 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
   const handleAddGenerateSource = () => {
     const passModalData = {
       riskIds: riskIds,
+      onCreate,
     } as Partial<typeof initialAddGenerateSourceState>;
 
     if (risk) passModalData.risk = risk;

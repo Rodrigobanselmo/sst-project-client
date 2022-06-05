@@ -27,6 +27,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
   multiple = true,
   risk,
   onlyFromActualRisks,
+  onCreate = () => {},
   ...props
 }) => {
   const { data } = useQueryRisk();
@@ -61,6 +62,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
   const handleAddRecMed = () => {
     const passModalData = {
       riskIds: riskIds,
+      onCreate,
     } as Partial<typeof initialAddRecMedState>;
 
     if (risk) passModalData.risk = risk;

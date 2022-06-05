@@ -64,4 +64,18 @@ export interface IRiskFactors {
   propagation: string[];
   created_at: string;
   status: StatusEnum;
+  exame?: string;
+  symptoms?: string;
+  method?: string;
+  unit?: string;
+  cas?: string;
+  breather?: string;
+  nr15lt?: string;
+  twa?: string;
+  stel?: string;
+  ipvs?: string;
+  pv?: string;
+  pe?: string;
+  carnogenicityACGIH?: string;
+  carnogenicityLinach?: string;
 }

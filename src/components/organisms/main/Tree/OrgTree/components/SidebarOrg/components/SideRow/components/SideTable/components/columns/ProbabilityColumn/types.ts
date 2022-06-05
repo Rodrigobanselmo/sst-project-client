@@ -5,6 +5,7 @@ import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/useMutU
 export interface EpiColumnProps {
   handleSelect: (values: Partial<IUpsertRiskData>) => void;
   handleRemove?: (values: Partial<IUpsertRiskData>) => void;
+  handleHelp?: (dataSelect: Partial<IUpsertRiskData>) => void;
   data?: IRiskData;
   risk?: IRiskFactors | null;
 }

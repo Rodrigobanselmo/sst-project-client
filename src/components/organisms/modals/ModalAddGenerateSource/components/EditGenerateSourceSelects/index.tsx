@@ -36,14 +36,17 @@ export const EditGenerateSourceSelects: FC<IEditGenerateSourceSelects> = ({
 
   const handleActiveRisk = useCallback(
     (filterFilter: string) => {
-      if (activeFilters.includes(filterFilter))
-        return setActiveFilters(
-          activeFilters.filter((risk) => risk !== filterFilter),
-        );
+      //!? multiple select risk
+      // if (activeFilters.includes(filterFilter))
+      //   return setActiveFilters(
+      //     activeFilters.filter((risk) => risk !== filterFilter),
+      //   );
 
-      return setActiveFilters([...activeFilters, filterFilter]);
+      // return setActiveFilters([...activeFilters, filterFilter]);
+      //!?
+      return setActiveFilters([filterFilter]);
     },
-    [activeFilters, setActiveFilters],
+    [setActiveFilters],
   );
 
   const options = useMemo(() => {

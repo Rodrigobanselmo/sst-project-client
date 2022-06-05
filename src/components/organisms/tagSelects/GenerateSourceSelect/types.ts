@@ -19,4 +19,5 @@ export interface IGenerateSourceSelectProps
   onlyFromActualRisks?: boolean;
   handleSelect?: (selectedIds: string[] | IGenerateSource) => void;
   onEnter?: (value: string) => void;
+  onCreate?: (value: IGenerateSource | null) => void;
 }

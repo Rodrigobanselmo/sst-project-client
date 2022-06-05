@@ -41,6 +41,7 @@ export interface IWorkspace {
   updated_at: Date;
   companyId: string;
   address?: IAddress;
+  employeeCount?: number;
   company?: ICompany;
 }
 

@@ -27,12 +27,14 @@ interface IOption extends Record<string, any> {
 
 export interface IInputCheckboxProps
   extends InputHTMLAttributes<HTMLInputElement> {
+  reset?: () => void;
   option: string | IOption;
   inputProps?: (
     option: string | IOption | any,
   ) => InputHTMLAttributes<HTMLInputElement>;
   type?: 'radio' | 'checkbox';
   name?: string;
+  inputValue?: any;
   gridItemsProps?: GridProps;
   itemProps?: TypographyProps;
   valueField: string;
@@ -43,12 +45,13 @@ export interface IInputCheckboxProps
 }
 
 export type SRadioCheckboxProps = GridProps & {
-  options: Array<string | IOption>;
+  options: Array<string | IOption | any>;
   inputProps?: (
     option: string | IOption | any,
   ) => InputHTMLAttributes<HTMLInputElement>;
   type?: 'radio' | 'checkbox';
   name?: string;
+  reset?: () => void;
   itemProps?: TypographyProps;
   gridItemsProps?: GridProps;
   optionsFieldName?: { valueField?: string; contentField?: string };

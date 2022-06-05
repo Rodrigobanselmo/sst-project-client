@@ -26,6 +26,14 @@ export const EngColumn: FC<EngColumnProps> = ({
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
         type={MedTypeEnum.ENG}
+        onCreate={(engs) => {
+          if (engs && engs.id)
+            handleSelect({
+              engs: [engs.id],
+            });
+
+          document.getElementById('menu-close')?.click();
+        }}
         handleSelect={(options) => {
           const op = options as IRecMed;
           if (op.id)

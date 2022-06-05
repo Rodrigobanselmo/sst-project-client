@@ -49,7 +49,7 @@ export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
       </SText>
       {riskInit && (
         <SFlex center sx={{ ml: 'auto' }}>
-          {selectedRisk?.severity && (
+          {typeof selectedRisk?.severity === 'number' && (
             <>
               <SText fontSize={15} color="text.light" mr={2}>
                 Severidade

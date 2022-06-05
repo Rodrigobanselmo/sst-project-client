@@ -20,6 +20,8 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
   gridItemsProps,
   disabled,
   defaultValue,
+  inputValue,
+  reset,
   inputProps = () => {
     return {};
   },
@@ -40,7 +42,15 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
   const mergedRef = inputRef !== undefined ? mergeRefs(ref, inputRef) : ref;
 
   const handleCheckbox = () => {
-    ref.current?.click();
+    if (ref.current) {
+      const lastValue = inputValue.current;
+      if (lastValue == ref.current.value && ref.current.checked && reset) {
+        ref.current.checked = false;
+        reset();
+      } else ref.current?.click();
+
+      inputValue.current = ref.current.value;
+    }
   };
 
   useEffect(() => {
@@ -70,13 +80,25 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
           '&:hover': { borderColor: 'primary.main' },
           textAlign: 'center',
           fontSize: '0.875rem',
+          whiteSpace: 'pre-wrap',
+          height: '100%',
+          px: '0.5rem',
           ...sx,
         }}
         onClick={handleCheckbox}
         onKeyPress={(event: any) => event.key === 'Enter' && handleCheckbox()}
         {...props}
       >
-        {content}
+        <span
+          style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            display: 'flex',
+          }}
+        >
+          {content}
+        </span>
       </Typography>
     </Grid>
   );
@@ -95,10 +117,13 @@ const SRadioCheckbox: FC<SRadioCheckboxProps> = ({
   error,
   helperText,
   defaultValue,
+  reset,
   ...props
 }) => {
   if (type === 'radio' && !name)
     throw new Error('type radio requires the name prop');
+
+  const inputValue = useRef('');
 
   const valueField =
     (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
@@ -121,8 +146,10 @@ const SRadioCheckbox: FC<SRadioCheckboxProps> = ({
 
         return (
           <InputRadioCheckbox
+            inputValue={inputValue}
             inputProps={inputProps}
             key={key}
+            reset={reset}
             valueField={valueField}
             contentField={contentField}
             option={option}

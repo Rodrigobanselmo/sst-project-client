@@ -144,6 +144,11 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           pb: renderFilter ? 4 : 0,
         }}
       >
+        <span
+          id="menu-close"
+          style={{ display: 'none' }}
+          onClick={(e) => onClose(e)}
+        />
         <STSInput
           inputProps={{ id: 'input-menu-search', tabIndex: -1 }}
           onChange={(e) => handleSearchChange(e.target.value)}
