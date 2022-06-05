@@ -27,7 +27,7 @@ export const EngColumn: FC<EngColumnProps> = ({
         risk={risk ? risk : undefined}
         type={MedTypeEnum.ENG}
         onCreate={(engs) => {
-          if (engs && engs.id)
+          if (engs && engs.id && engs.medType === MedTypeEnum.ENG)
             handleSelect({
               engs: [engs.id],
             });

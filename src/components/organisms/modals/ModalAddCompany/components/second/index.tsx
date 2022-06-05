@@ -63,7 +63,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             label="Nome fantasia"
             control={control}
             sx={{ minWidth: ['100%', 600] }}
-            placeholder={'nome do GSE...'}
+            placeholder={'nome fantasia da empresa...'}
             name="fantasy"
             size="small"
           />

@@ -26,10 +26,10 @@ export const AdmColumn: FC<AdmColumnProps> = ({
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
         type={MedTypeEnum.ADM}
-        onCreate={(recMed) => {
-          if (recMed && recMed.id)
+        onCreate={(adm) => {
+          if (adm && adm.id && adm.medType === MedTypeEnum.ADM)
             handleSelect({
-              adms: [recMed.id],
+              adms: [adm.id],
             });
 
           document.getElementById('menu-close')?.click();

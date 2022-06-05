@@ -13,23 +13,18 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddCompany } from 'components/organisms/modals/ModalAddCompany';
 import { ModalUploadFile } from 'components/organisms/modals/ModalUploadFile';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import SDownloadIcon from 'assets/icons/SDownloadIcon';
 import EditIcon from 'assets/icons/SEditIcon';
-import SUploadIcon from 'assets/icons/SUploadIcon';
 
-import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
 import { useMutUploadFile } from 'core/services/hooks/mutations/useMutUploadFile';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { sortData } from 'core/utils/sorts/data.sort';
@@ -37,7 +32,7 @@ import { sortData } from 'core/utils/sorts/data.sort';
 export const CompaniesTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryCompanies();
   const { onOpenModal } = useModal();
-  const downloadMutation = useMutDownloadFile();
+  // const downloadMutation = useMutDownloadFile(); //?download company
   const uploadMutation = useMutUploadFile();
 
   const { push } = useRouter();
@@ -72,8 +67,8 @@ export const CompaniesTable: FC<BoxProps> = () => {
           <STableHRow>CNPJ</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
-          <STableHRow justifyContent="center">Baixar</STableHRow>
-          <STableHRow justifyContent="center">Enviar</STableHRow>
+          {/* <STableHRow justifyContent="center">Baixar</STableHRow> //?download company */}
+          {/* <STableHRow justifyContent="center">Enviar</STableHRow>  //?download company */}
         </STableHeader>
         <STableBody<typeof data[0]>
           rowsData={results}
@@ -97,7 +92,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
                   ]}
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />
-                <STagButton
+                {/* <STagButton  //?download company
                   text="Baixar"
                   loading={
                     downloadMutation.isLoading &&
@@ -124,7 +119,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
                       ApiRoutesEnum.UPLOAD_EMPLOYEES,
                     )
                   }
-                />
+                />  //?download company */}
               </STableRow>
             );
           }}
