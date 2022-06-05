@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 
 import { Slide } from '@mui/material';
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
+import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { useRouter } from 'next/router';
 import {
   selectGhoId,
@@ -141,6 +142,7 @@ export const SidebarOrg = () => {
         </STBoxContainer>
       </Slide>
       <ModalAddProbability />
+      <ModalExcelHierarchies />
     </>
   );
 };

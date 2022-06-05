@@ -19,4 +19,5 @@ export enum ModalEnum {
   GLOBAL = 'global',
   UPLOAD = 'upload',
   TEST = 'test',
+  HIERARCHIES_EXCEL_ADD = 'employees-excel-add',
 }

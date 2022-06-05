@@ -9,6 +9,8 @@ export enum ApiRoutesEnum {
   DATABASE_TABLE = '/files/database-tables',
   DOWNLOAD_EMPLOYEES = '/files/company/employees/download',
   UPLOAD_EMPLOYEES = '/files/company/employees/upload',
+  DOWNLOAD_HIERARCHIES = '/files/company/hierarchies/download',
+  UPLOAD_HIERARCHY = '/files/company/hierarchies/upload',
   DOWNLOAD_UNIQUE_EMPLOYEES = '/files/company/download/unique',
   UPLOAD_UNIQUE_EMPLOYEES = '/files/company/upload/unique',
   ME = '/users/me',

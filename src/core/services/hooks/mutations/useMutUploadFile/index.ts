@@ -37,7 +37,7 @@ export async function uploadFile(file: File, path: string) {
     responseType: 'blob',
   });
 
-  downloadFile(response);
+  if (response.data instanceof Blob) downloadFile(response);
 }
 
 export function useMutUploadFile() {
