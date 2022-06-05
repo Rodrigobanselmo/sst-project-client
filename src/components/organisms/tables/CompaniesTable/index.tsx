@@ -60,7 +60,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
       />
       <STable
         loading={isLoading}
-        columns="minmax(200px, 2fr) minmax(200px, 1fr) 70px 90px 100px 100px"
+        columns="minmax(200px, 2fr) minmax(200px, 1fr) 70px 90px"
       >
         <STableHeader>
           <STableHRow>Empresa</STableHRow>
