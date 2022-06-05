@@ -5,8 +5,6 @@ import { BoxProps } from '@mui/material';
 import { ISTagButtonProps } from 'components/atoms/STagButton/types';
 import Fuse from 'fuse.js';
 
-import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
-
 import { IMenuSearchOption } from '../SMenuSearch/types';
 
 export type IAnchorEvent = (EventTarget & HTMLDivElement) | null;

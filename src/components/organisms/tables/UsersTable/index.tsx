@@ -41,7 +41,6 @@ export const UsersTable: FC<BoxProps> = () => {
   const { handleSearchChange, results } = useTableSearch({
     data,
     keys: ['name'],
-    // sort: (a, b) => sortData(a, b, 'name'),
   });
 
   const handleEditUser = (companyId: string, employeeId: number) => {

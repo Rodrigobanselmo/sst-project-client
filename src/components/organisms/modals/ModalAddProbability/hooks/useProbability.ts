@@ -2,7 +2,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { useSnackbar } from 'notistack';
 import { RiskEnum } from 'project/enum/risk.enums';
 
 import { ModalEnum } from 'core/enums/modal.enums';
