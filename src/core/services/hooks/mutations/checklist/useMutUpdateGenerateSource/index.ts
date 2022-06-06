@@ -51,7 +51,7 @@ export function useMutUpdateGenerateSource() {
       onSuccess: async (newGenerateSource) => {
         if (newGenerateSource)
           queryClient.setQueryData(
-            [QueryEnum.RISK, newGenerateSource.companyId],
+            [QueryEnum.RISK, user?.companyId],
             (oldData: IRiskFactors[] | undefined) =>
               oldData
                 ? oldData.map((risk) =>

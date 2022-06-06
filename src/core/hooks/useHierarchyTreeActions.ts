@@ -137,7 +137,7 @@ export const useHierarchyTreeActions = () => {
 
           treeMap[firstNodeId].childrenIds.push(workspace.id);
         });
-        Object.values(hierarchyMap).forEach((values) => {
+        Object.values(hierarchyMap).forEach((values, index) => {
           values.workspaceIds.map((workspaceId) => {
             treeMap[`${values.id}//${workspaceId}`] = {
               id: `${values.id}//${workspaceId}`,
@@ -149,7 +149,7 @@ export const useHierarchyTreeActions = () => {
                     : '',
                 )
                 .filter((id) => id),
-              expand: true,
+              expand: index != 0 ? false : true,
               parentId: values.parentId
                 ? `${values.parentId}//${workspaceId}`
                 : workspaceId,

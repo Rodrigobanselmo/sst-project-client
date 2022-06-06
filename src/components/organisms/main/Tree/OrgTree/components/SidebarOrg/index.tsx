@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import {
   selectGhoId,
   selectGhoOpen,
+  setGhoOpen,
   setGhoState,
 } from 'store/reducers/hierarchy/ghoSlice';
 import {
@@ -78,7 +79,12 @@ export const SidebarOrg = () => {
 
   const handleSelectGHO = useCallback(
     (gho: IGho | null, hierarchies: string[]) => {
-      if (!gho) return dispatch(setGhoState({ hierarchies: [], data: null }));
+      if (!gho) {
+        if (!selectExpanded) dispatch(setRiskAddToggleExpand());
+        return dispatch(setGhoState({ hierarchies: [], data: null }));
+      }
+      // push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
+      // dispatch(setGhoOpen(true));
 
       const isSelected = selectedGhoId === gho.id;
 
@@ -95,12 +101,7 @@ export const SidebarOrg = () => {
 
   return (
     <>
-      <Slide
-        direction="left"
-        in={isGhoOpen || isRiskOpen}
-        mountOnEnter
-        unmountOnExit
-      >
+      {(isGhoOpen || isRiskOpen) && (
         <STBoxContainer
           expanded={selectExpanded ? 1 : 0}
           risk_init={isRiskOpen ? 1 : 0}
@@ -140,9 +141,16 @@ export const SidebarOrg = () => {
             </table>
           </div>
         </STBoxContainer>
-      </Slide>
+      )}
       <ModalAddProbability />
       <ModalExcelHierarchies />
     </>
   );
 };
+
+//  <Slide
+//     direction="left"
+//     in={isGhoOpen || isRiskOpen}
+//     mountOnEnter
+//     unmountOnExit
+//   ></Slide>

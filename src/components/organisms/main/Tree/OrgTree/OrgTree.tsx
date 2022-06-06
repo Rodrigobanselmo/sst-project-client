@@ -41,7 +41,7 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
           width: '100%',
         }}
       >
-        {!selectExpanded && (
+        {(!selectExpanded || !isRiskOpen) && (
           <>
             <LoadingFeedback />
             <BottomButton />

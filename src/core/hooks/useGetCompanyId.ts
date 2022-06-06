@@ -2,12 +2,15 @@ import { useRouter } from 'next/router';
 
 import { useAuth } from 'core/contexts/AuthContext';
 
-export const useGetCompanyId = () => {
+export const useGetCompanyId = (fromUser = false) => {
   const { user } = useAuth();
   const router = useRouter();
 
   const companyId =
-    (user && ((router.query.companyId as string) || user?.companyId)) ||
+    (user &&
+      (fromUser
+        ? user?.companyId
+        : (router.query.companyId as string) || user?.companyId)) ||
     undefined;
 
   const workspaceId = router.query.workspaceId as string;

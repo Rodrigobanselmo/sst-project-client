@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, MouseEvent, useEffect, useState } from 'react';
+import React, { FC, MouseEvent, useEffect, useRef, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -56,16 +56,34 @@ const SelectGho: FC<{
   handleAddGhoHierarchy: any;
   node: ITreeMapObject;
 }> = ({ isSelectedGho, handleAddGhoHierarchy, node }) => {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLElement>(null);
+
+  function checkVisible() {
+    if (ref.current) {
+      const rect = ref.current.getBoundingClientRect();
+      const viewHeight = Math.max(
+        document.documentElement.clientHeight,
+        window.innerHeight,
+      );
+      return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
+    }
+  }
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setOpen(false);
-    }, 5000);
+    const isVisible = checkVisible();
 
-    return () => {
-      window.clearTimeout(timeout);
-    };
+    if (isVisible) {
+      setOpen(true);
+
+      const timeout = window.setTimeout(() => {
+        setOpen(false);
+      }, 5000);
+
+      return () => {
+        window.clearTimeout(timeout);
+      };
+    }
   }, []);
 
   const onSelect = (e: MouseEvent<HTMLDivElement>) => {
@@ -79,7 +97,11 @@ const SelectGho: FC<{
         node.label.length > 9 ? '...' : ''
       } ao GSE`}
     >
-      <STSelectBox selected={isSelectedGho ? 1 : 0} onClick={onSelect} />
+      <STSelectBox
+        ref={ref}
+        selected={isSelectedGho ? 1 : 0}
+        onClick={onSelect}
+      />
     </STooltip>
   );
 };

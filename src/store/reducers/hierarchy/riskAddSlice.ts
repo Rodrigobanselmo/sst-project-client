@@ -13,7 +13,7 @@ export interface IRiskAddState {
 
 const initialState: IRiskAddState = {
   init: false,
-  expanded: false,
+  expanded: true,
   risk: null,
 };
 

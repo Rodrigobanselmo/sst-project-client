@@ -4,11 +4,11 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
@@ -22,7 +22,7 @@ interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
 export async function createRecMed(data: ICreateRecMed, companyId?: string) {
   if (!companyId) return null;
 
-  const response = await api.post<IRecMed>(ApiRoutesEnum.REC_MED, {
+  const response = await api.post<IRecMed>(`${ApiRoutesEnum.REC_MED}`, {
     ...data,
     companyId,
   });
@@ -31,12 +31,12 @@ export async function createRecMed(data: ICreateRecMed, companyId?: string) {
 }
 
 export function useMutCreateRecMed() {
-  const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
+  const { getCompanyId } = useGetCompanyId(true);
 
   return useMutation(
     async (data: ICreateRecMed) =>
-      createRecMed(data, data.companyId || user?.companyId),
+      createRecMed(data, getCompanyId(data.companyId)),
     {
       onSuccess: async (newRecMed) => {
         if (newRecMed)

@@ -4,11 +4,11 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRecMedCreate, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 interface IUpdateRisk
@@ -33,12 +33,11 @@ export async function updateRisk(data: IUpdateRisk, companyId?: string) {
 }
 
 export function useMutUpdateRisk() {
-  const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
+  const { getCompanyId } = useGetCompanyId(true);
 
   return useMutation(
-    async (data: IUpdateRisk) =>
-      updateRisk(data, data.companyId || user?.companyId),
+    async (data: IUpdateRisk) => updateRisk(data, getCompanyId(data.companyId)),
     {
       onSuccess: async (resp) => {
         if (resp)
