@@ -8,10 +8,7 @@ import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { useRouter } from 'next/router';
-import {
-  setGhoMultiEditIds,
-  setGhoMultiRemoveIds,
-} from 'store/reducers/hierarchy/ghoMultiSlice';
+import { setGhoMultiEditIds } from 'store/reducers/hierarchy/ghoMultiSlice';
 import {
   selectGhoId,
   selectGhoOpen,

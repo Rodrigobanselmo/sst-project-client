@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
 
-import { SideGhoItem } from '../SideRowGho';
+import { SideRowGho } from '../SideRowGho';
 import { SideRowTable } from '../SideRowTable/Single';
 import { SideRowProps } from './types';
 
@@ -56,7 +56,7 @@ export const SideRow = React.memo<SideRowProps>(
         }}
         gap={5}
       >
-        <SideGhoItem
+        <SideRowGho
           data={gho}
           isSelected={isSelected}
           handleEditGHO={handleEditGHO}
