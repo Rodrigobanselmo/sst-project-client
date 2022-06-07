@@ -5,6 +5,7 @@ import { IGho } from 'core/interfaces/api/IGho';
 
 export interface SideTopProps {
   riskInit?: boolean;
+  onChangeView?: () => void;
   handleSelectGHO: (
     gho: IGho | null,
     hierarchies: string[],

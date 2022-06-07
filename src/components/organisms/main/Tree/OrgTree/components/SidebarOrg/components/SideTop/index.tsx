@@ -30,7 +30,11 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { SideTopProps } from './types';
 
-export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
+export const SideTop: FC<SideTopProps> = ({
+  riskInit,
+  handleSelectGHO,
+  onChangeView,
+}) => {
   const dispatch = useAppDispatch();
   const { asPath, push } = useRouter();
   const { onOpenModal } = useModal();
@@ -70,6 +74,7 @@ export const SideTop: FC<SideTopProps> = ({ riskInit, handleSelectGHO }) => {
               />
             </>
           )}
+          <STagButton text="Trocar View" large onClick={onChangeView} />
           <STooltip title="Adicionar GSE e Cargos por planilha excel">
             <STagButton
               large

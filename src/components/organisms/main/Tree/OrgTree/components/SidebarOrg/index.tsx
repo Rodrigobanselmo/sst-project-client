@@ -158,7 +158,18 @@ export const SidebarOrg = () => {
           risk_init={isRiskOpen ? 1 : 0}
           open={isOpen ? 1 : 0}
         >
-          <SideTop handleSelectGHO={handleSelectGHO} riskInit={isRiskOpen} />
+          <SideTop
+            //! make it better for
+            onChangeView={() =>
+              setViewType(
+                viewType === ViewTypeEnum.SELECT
+                  ? ViewTypeEnum.LIST
+                  : ViewTypeEnum.SELECT,
+              )
+            }
+            handleSelectGHO={handleSelectGHO}
+            riskInit={isRiskOpen}
+          />
           <div style={{ overflow: 'auto', minWidth: '320px' }}>
             <table style={{ width: '100%' }}>
               <SideHeader
