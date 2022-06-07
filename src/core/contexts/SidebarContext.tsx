@@ -5,6 +5,7 @@ import {
   SetStateAction,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 
@@ -51,6 +52,12 @@ export function SidebarDrawerProvider({
     }
   }, [disclosure, router.asPath, urlRouter, isTablet]);
 
+  const isOpen = useMemo(() => {
+    const isAlwaysClose = router.asPath.includes('hierarquia');
+
+    return (disclosure.isOpen || alwaysOpen || isSearching) && !isAlwaysClose;
+  }, [alwaysOpen, disclosure.isOpen, isSearching, router.asPath]);
+
   return (
     <SidebarDrawerContext.Provider
       value={{
@@ -58,7 +65,7 @@ export function SidebarDrawerProvider({
         isMobile: !!isMobile,
         isTablet: !!isTablet,
         alwaysOpen,
-        isOpen: disclosure.isOpen || alwaysOpen || isSearching,
+        isOpen,
         setAlwaysOpen,
         setIsSearching,
       }}

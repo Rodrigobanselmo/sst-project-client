@@ -7,12 +7,16 @@ import { AppState } from '../..';
 
 export interface IGhoState {
   open: boolean;
+  searchSelect: string;
+  search: string;
   data: IGho | null;
   hierarchies: string[];
 }
 
 const initialState: IGhoState = {
   hierarchies: [],
+  search: '',
+  searchSelect: '',
   open: false,
   data: null,
 };
@@ -25,6 +29,12 @@ export const ghoSlice = createSlice({
   reducers: {
     setGhoState: (state, action: PayloadAction<Partial<IGhoState>>) => {
       return { ...state, ...action.payload };
+    },
+    setGhoSearch: (state, action: PayloadAction<string>) => {
+      state.search = action.payload;
+    },
+    setGhoSearchSelect: (state, action: PayloadAction<string>) => {
+      state.searchSelect = action.payload;
     },
     setGhoOpen: (state, action: PayloadAction<boolean | undefined>) => {
       if (action.payload === undefined) state.open = !state.open;
@@ -55,8 +65,13 @@ export const {
   setGhoAddHierarchy,
   setGhoRemoveHierarchy,
   setGhoOpen,
+  setGhoSearch,
+  setGhoSearchSelect,
 } = ghoSlice.actions;
 
+export const selectGhoSearch = (state: AppState) => state.gho.search;
+export const selectGhoSearchSelect = (state: AppState) =>
+  state.gho.searchSelect;
 export const selectGhoOpen = (state: AppState) => state.gho.open;
 export const selectGho = (state: AppState) => state.gho;
 export const selectGhoData = (state: AppState) => state.gho.data;

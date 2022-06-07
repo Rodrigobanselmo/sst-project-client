@@ -29,7 +29,6 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
 
   const { query } = useRouter();
   const isRiskOpen = query.riskGroupId;
-
   useZoom(orgContainerRef);
 
   return (

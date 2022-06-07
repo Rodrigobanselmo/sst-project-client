@@ -156,30 +156,30 @@ export const STTextField = styled(TextField)<{
   ${(props) =>
     props.sub_variant == 'search' &&
     css`
-      border-color: ${props.theme.palette.grey[400]};
-      border-width: 1px;
-      box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.1);
+      border-color: ${props.theme.palette.grey[200]};
+      border-width: 2px;
+      /* box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0.1); */
       border-radius: 8px;
       &&& .MuiOutlinedInput-notchedOutline {
-        border-color: ${props.theme.palette.grey[400]};
-        border-width: 1px;
+        border-color: ${props.theme.palette.grey[200]};
+        border-width: 2px;
       }
 
       &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
         border-width: 2px;
-        border-color: ${props.theme.palette.grey[400]};
+        border-color: ${props.theme.palette.grey[300]};
       }
 
       &:hover {
         &&& .MuiOutlinedInput-notchedOutline {
-          border-color: ${props.theme.palette.grey[400]};
-          border-width: 1px;
+          border-color: ${props.theme.palette.grey[300]};
+          border-width: 2px;
         }
         &&&
           .MuiOutlinedInput-root.Mui-focused
           .MuiOutlinedInput-notchedOutline {
           border-width: 2px;
-          border-color: ${props.theme.palette.grey[400]};
+          border-color: ${props.theme.palette.grey[300]};
           opacity: 1;
         }
       }

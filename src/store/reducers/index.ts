@@ -1,5 +1,6 @@
 // import { Reducer } from '@reduxjs/toolkit';
 
+import ghoMultiReducer from './hierarchy/ghoMultiSlice';
 import ghoReducer from './hierarchy/ghoSlice';
 import hierarchyReducer from './hierarchy/hierarchySlice';
 import riskAddReducer from './hierarchy/riskAddSlice';
@@ -20,4 +21,5 @@ export const rootReducer = {
   gho: ghoReducer,
   modal: modalReducer,
   hierarchy: hierarchyReducer,
+  ghoMulti: ghoMultiReducer,
 };

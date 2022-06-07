@@ -30,7 +30,6 @@ export const STSBoxButton = styled(Box)<{
     css`
       background-color: ${props.theme.palette.background.disabled};
       opacity: 0.7;
-      cursor: not-allowed;
 
       &:hover {
         background-color: ${props.theme.palette.background.disabled};
@@ -41,7 +40,7 @@ export const STSBoxButton = styled(Box)<{
       }
     `}
 
-  ${(props) => props.large && css``}
+  ${(props) => props.large && css``};
 
   ${(props) =>
     props.active &&
@@ -55,7 +54,7 @@ export const STSBoxButton = styled(Box)<{
       &:active {
         background-color: ${props.theme.palette.primary.light};
       }
-    `}
+    `};
 
   ${(props) =>
     props.bg &&
@@ -76,12 +75,11 @@ export const STSBoxButton = styled(Box)<{
           props.bg.split('.')[0]
         ][props.bg.split('.')[1]]};
       }
-    `}
+    `};
 
-  
   ${(props) =>
     props.error &&
     css`
       border: 2px solid ${props.theme.palette.error.main};
-    `}
+    `};
 `;

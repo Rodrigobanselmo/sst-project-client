@@ -6,6 +6,7 @@ import { BoxProps, IconProps } from '@mui/material';
 export interface ISTagButtonProps extends BoxProps {
   text?: string;
   bg?: string;
+  tooltipTitle?: string;
   large?: boolean;
   icon?: ElementType<any>;
   iconProps?: IconProps;

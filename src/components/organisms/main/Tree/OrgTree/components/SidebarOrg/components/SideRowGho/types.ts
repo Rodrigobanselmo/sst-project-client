@@ -2,14 +2,15 @@ import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
 
-export interface SideInputProps {
-  isAddLoading?: boolean;
-  small?: boolean;
-  onSearch?: (value: string) => void;
-  handleAddGHO?: () => Promise<void>;
+export interface SideItemsProps {
+  isSelected?: boolean;
+  hide?: boolean;
+  data: IGho;
+  isDeleteLoading?: boolean;
   handleEditGHO: (data: IGho) => void;
+  handleDeleteGHO: (id: string) => void;
   handleSelectGHO: (
-    gho: IGho | null,
+    data: IGho | null,
     hierarchies: string[],
   ) =>
     | {

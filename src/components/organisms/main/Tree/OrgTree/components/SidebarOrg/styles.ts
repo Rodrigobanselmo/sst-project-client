@@ -26,13 +26,13 @@ export const STBoxContainer = styled(Box)<{
       width: ${props.open
         ? `calc(100vw - ${props.theme.mixins.openSideBarWidth} - 55px)`
         : `calc(100vw - ${props.theme.mixins.closedSideBarWidth} - 55px)`};
-    `}
+    `};
 
   ${(props) =>
     props.expanded &&
     css`
       min-height: calc(100vh - 130px);
-    `}
+    `};
 
   &::-webkit-scrollbar {
     border-radius: 24px;
@@ -64,13 +64,13 @@ export const STBoxStack = styled(Box)<{
     props.risk_init &&
     css`
       max-height: 400px;
-    `}
+    `};
 
   ${(props) =>
     props.expanded &&
     css`
       min-height: calc(100vh - 220px);
-    `}
+    `};
 `;
 
 export const STGridExtend = styled(Box)`
@@ -82,4 +82,11 @@ export const STGridExtend = styled(Box)`
   padding: ${(props) => props.theme.spacing(2, 4)};
   gap: ${(props) => props.theme.spacing(5)};
   width: 100%;
+`;
+
+export const StyledGridMultiGho = styled(Box)`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  padding-bottom: ${(props) => props.theme.spacing(25)};
+  gap: ${(props) => props.theme.spacing(3, 5)};
 `;

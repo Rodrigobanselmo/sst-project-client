@@ -29,6 +29,7 @@ export const SEndButton: FC<
             height: '1.4rem',
             width: '1.4rem',
             mr: -2,
+            mt: -1,
           }}
           {...props}
         >

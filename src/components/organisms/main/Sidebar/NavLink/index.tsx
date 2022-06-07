@@ -18,7 +18,7 @@ export function NavLink({
 }: INavLinkProps): JSX.Element {
   const { isOpen } = useSidebarDrawer();
   return (
-    <Box>
+    <Box maxWidth={isOpen ? '100%' : '70px'}>
       <STooltip
         withWrapper
         title={description}

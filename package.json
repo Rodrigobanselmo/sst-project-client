@@ -17,6 +17,7 @@
     "@mui/icons-material": "^5.6.1",
     "@mui/lab": "^5.0.0-alpha.58",
     "@mui/material": "^5.2.0",
+    "@mui/styles": "^5.8.0",
     "@react-icons/all-files": "^4.1.0",
     "@reduxjs/toolkit": "^1.6.2",
     "axios": "^0.24.0",

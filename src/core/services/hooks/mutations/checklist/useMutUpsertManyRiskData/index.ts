@@ -11,13 +11,13 @@ import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
 
-export interface IUpsertRiskData {
+export interface IUpsertManyRiskData {
   id?: string;
   companyId?: string;
   riskFactorGroupDataId: string;
   riskId: string;
-  hierarchyId?: string;
-  homogeneousGroupId?: string;
+  hierarchyIds?: string;
+  homogeneousGroupIds?: string;
   probability?: number;
   probabilityAfter?: number;
   adms?: string[];
@@ -27,74 +27,84 @@ export interface IUpsertRiskData {
   epis?: number[];
 }
 
-export async function upsertRiskData(
-  data: IUpsertRiskData,
+export async function upsertManyRiskData(
+  data: IUpsertManyRiskData,
   companyId?: string,
 ) {
   if (!companyId) return null;
 
-  const response = await api.post<IRiskData>(`${ApiRoutesEnum.RISK_DATA}`, {
-    companyId,
-    ...data,
-  });
+  const response = await api.post<IRiskData[]>(
+    `${ApiRoutesEnum.RISK_DATA}/many`,
+    {
+      companyId,
+      ...data,
+    },
+  );
 
-  if (typeof response.data === 'string') {
+  if (
+    Array.isArray(response.data) &&
+    response.data.length > 0 &&
+    typeof response.data[0] === 'string'
+  ) {
     return [
       {
         riskId: data.riskId,
         riskFactorGroupDataId: data.riskFactorGroupDataId,
-        deletedId: response.data,
+        deletedIds: response.data,
       },
-    ] as unknown as IRiskData;
+    ] as unknown as IRiskData[];
   }
 
   return response.data;
 }
 
-export function useMutUpsertRiskData() {
+export function useMutUpsertManyRiskData() {
   const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: IUpsertRiskData) => upsertRiskData(data, getCompanyId(data)),
+    async (data: IUpsertManyRiskData) =>
+      upsertManyRiskData(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp)
+        if (resp && resp.length > 0) {
           queryClient.setQueryData(
             [
               QueryEnum.RISK_DATA,
               getCompanyId(resp),
-              resp.riskFactorGroupDataId,
-              resp.riskId,
+              resp[0].riskFactorGroupDataId,
+              resp[0].riskId,
             ],
             (oldData: IRiskData[] | undefined) => {
               if (oldData) {
                 const newData = [...oldData];
 
-                if ('deletedId' in resp) {
-                  return newData.filter(
+                if ('deletedIds' in resp[0]) {
+                  return newData.filter((item) =>
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (item) => item.id !== (resp as any).deletedId,
+                    (resp[0] as any).deletedIds.includes(item.id),
                   );
                 }
 
-                const updateIndexData = oldData.findIndex(
-                  (old) => old.id == resp.id,
-                );
+                resp.forEach((riskData) => {
+                  const updateIndexData = oldData.findIndex(
+                    (old) => old.id == riskData.id,
+                  );
 
-                if (updateIndexData != -1) {
-                  newData[updateIndexData] = resp;
-                } else {
-                  newData.push(resp);
-                }
+                  if (updateIndexData != -1) {
+                    newData[updateIndexData] = riskData;
+                  } else {
+                    newData.push(riskData);
+                  }
+                });
 
                 return newData;
               }
               return [];
             },
           );
-
-        return resp;
+          return resp;
+        }
       },
       onError: (error: IErrorResp) => {
         if (error.response?.data)
