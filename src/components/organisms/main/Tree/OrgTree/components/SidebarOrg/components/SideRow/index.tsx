@@ -3,8 +3,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
+import { selectGhoSearchSelect } from 'store/reducers/hierarchy/ghoSlice';
 
-import { SideGhoItem } from '../SideRowGho';
+import { useAppSelector } from 'core/hooks/useAppSelector';
+import { stringNormalize } from 'core/utils/strings/stringNormalize';
+
+import { SideRowGho } from '../SideRowGho';
 import { SideRowTable } from '../SideRowTable/Single';
 import { SideRowProps } from './types';
 
@@ -34,6 +38,7 @@ export const SideRow = React.memo<SideRowProps>(
     const isSelected = selectedGhoId === gho.id;
     const ref = useRef<HTMLDivElement>(null);
     const [hide, setHide] = useState(true);
+    const searchSelected = useAppSelector(selectGhoSearchSelect);
 
     useEffect(() => {
       if (ref.current) {
@@ -46,6 +51,12 @@ export const SideRow = React.memo<SideRowProps>(
       }
     }, []);
 
+    if (
+      searchSelected &&
+      !stringNormalize(gho.name).includes(stringNormalize(searchSelected))
+    )
+      return null;
+
     return (
       <SFlex
         key={gho.id}
@@ -56,7 +67,7 @@ export const SideRow = React.memo<SideRowProps>(
         }}
         gap={5}
       >
-        <SideGhoItem
+        <SideRowGho
           data={gho}
           isSelected={isSelected}
           handleEditGHO={handleEditGHO}
