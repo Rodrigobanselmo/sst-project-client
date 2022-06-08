@@ -48,6 +48,8 @@ export async function upsertRiskData(
     ] as unknown as IRiskData;
   }
 
+  console.log(response.data);
+
   return response.data;
 }
 
@@ -59,6 +61,7 @@ export function useMutUpsertRiskData() {
     async (data: IUpsertRiskData) => upsertRiskData(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
+        console.log(resp);
         if (resp)
           queryClient.setQueryData(
             [

@@ -1,17 +1,29 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useStore } from 'react-redux';
 
 import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
 import LibraryAddCheckOutlinedIcon from '@mui/icons-material/LibraryAddCheckOutlined';
+import clone from 'clone';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { useRouter } from 'next/router';
-import { setGhoMultiEditIds } from 'store/reducers/hierarchy/ghoMultiSlice';
 import {
+  setGhoMultiAddIds,
+  setGhoMultiRemoveIds,
+} from 'store/reducers/hierarchy/ghoMultiSlice';
+import {
+  selectGhoFilter,
   selectGhoId,
   selectGhoOpen,
+  setGhoFilterValues,
   setGhoSearch,
   setGhoSearchSelect,
   setGhoState,
@@ -23,15 +35,20 @@ import {
 } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IGho } from 'core/interfaces/api/IGho';
+import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/useMutDeleteGho';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
+import { queryClient } from 'core/services/queryClient';
+import { sortFilter } from 'core/utils/sorts/filter.sort';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { SideHeader } from './components/SideHeader';
@@ -47,15 +64,17 @@ export const SidebarOrg = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const inputSelectedRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
-  const { data } = useQueryGHO();
+  const { data: ghoQuery } = useQueryGHO();
   const { onOpenModal } = useModal();
   const dispatch = useAppDispatch();
   const selectedGhoId = useAppSelector(selectGhoId);
   const isGhoOpen = useAppSelector(selectGhoOpen);
   const selectExpanded = useAppSelector(selectRiskAddExpand);
+  const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const addMutation = useMutCreateGho();
   const deleteMutation = useMutDeleteGho();
   const store = useStore();
+  const { companyId } = useGetCompanyId();
 
   const [viewType, setViewType] = useState(ViewTypeEnum.SELECT);
 
@@ -71,6 +90,10 @@ export const SidebarOrg = () => {
     query.riskGroupId as string,
     risk?.id as string,
   );
+
+  useEffect(() => {
+    dispatch(setGhoSearch(''));
+  }, [dispatch, viewType]);
 
   const handleAddGHO = async () => {
     onOpenModal(ModalEnum.GHO_ADD);
@@ -96,7 +119,7 @@ export const SidebarOrg = () => {
 
   const handleSelectAll = useCallback(() => {
     const search = store.getState().gho.search as string;
-    const allToSelect = data
+    const allToSelect = ghoQuery
       .filter((gho) =>
         stringNormalize(gho.name).includes(stringNormalize(search)),
       )
@@ -105,13 +128,13 @@ export const SidebarOrg = () => {
     if (inputRef.current) inputRef.current.value = '';
     dispatch(setGhoSearch(''));
 
-    dispatch(setGhoMultiEditIds(allToSelect));
-  }, [data, dispatch, store]);
+    dispatch(setGhoMultiAddIds(allToSelect));
+  }, [ghoQuery, dispatch, store]);
 
   const handleUnselectAll = useCallback(() => {
     const search = store.getState().gho.searchSelect as string;
     const selectedIds = store.getState().ghoMulti.selectedIds as string;
-    const allToSelect = data
+    const allToSelect = ghoQuery
       .filter(
         (gho) =>
           selectedIds.includes(gho.id) &&
@@ -122,8 +145,8 @@ export const SidebarOrg = () => {
     if (inputSelectedRef.current) inputSelectedRef.current.value = '';
     dispatch(setGhoSearchSelect(''));
 
-    dispatch(setGhoMultiEditIds(allToSelect));
-  }, [data, dispatch, store]);
+    dispatch(setGhoMultiRemoveIds(allToSelect));
+  }, [ghoQuery, dispatch, store]);
 
   const handleSelectGHO = useCallback(
     (gho: IGho | null, hierarchies: string[]) => {
@@ -147,6 +170,68 @@ export const SidebarOrg = () => {
     [dispatch, selectExpanded, selectedGhoId],
   );
 
+  const handleChangeView = () => {
+    setViewType(
+      viewType === ViewTypeEnum.SELECT
+        ? ViewTypeEnum.LIST
+        : ViewTypeEnum.SELECT,
+    );
+
+    dispatch(
+      setGhoFilterValues({
+        key: '',
+        values: [],
+      }),
+    );
+  };
+
+  const ghoOrderedData = useMemo(() => {
+    console.log(selectedGhoFilter.key, selectedGhoFilter.value);
+    if (!ghoQuery) return [];
+    if (!selectedGhoFilter.value || !selectedGhoFilter.key) return ghoQuery;
+    const riskData = queryClient.getQueryData([
+      QueryEnum.RISK_DATA,
+      companyId,
+      query.riskGroupId,
+      risk?.id,
+    ]) as IRiskData[];
+
+    if (!riskData) return ghoQuery;
+    if (riskData.length === 0) return ghoQuery;
+
+    const ghoData = ghoQuery.map((gho) => {
+      const riskDataFilters = riskData.map((rd) => {
+        const copyItem = clone(rd) as Partial<IRiskData>;
+        Object.entries(copyItem).map(([key, value]) => {
+          if (Array.isArray(value)) (copyItem as any)[key] = value.length;
+        });
+        delete copyItem.id;
+
+        return copyItem;
+      });
+
+      const foundRiskData = riskDataFilters.find(
+        (risk) => risk.homogeneousGroupId === gho.id,
+      );
+
+      return {
+        ...foundRiskData,
+        ...gho,
+      };
+    });
+
+    return ghoData.sort((a, b) =>
+      sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key),
+    );
+  }, [
+    companyId,
+    ghoQuery,
+    query.riskGroupId,
+    risk?.id,
+    selectedGhoFilter.key,
+    selectedGhoFilter.value,
+  ]);
+
   return (
     <>
       {(isGhoOpen || isRiskOpen) && (
@@ -157,13 +242,7 @@ export const SidebarOrg = () => {
         >
           <SideTop
             //! make it better for
-            onChangeView={() =>
-              setViewType(
-                viewType === ViewTypeEnum.SELECT
-                  ? ViewTypeEnum.LIST
-                  : ViewTypeEnum.SELECT,
-              )
-            }
+            onChangeView={handleChangeView}
             handleSelectGHO={handleSelectGHO}
             riskInit={isRiskOpen}
           />
@@ -183,7 +262,7 @@ export const SidebarOrg = () => {
                 risk_init={isRiskOpen ? 1 : 0}
               >
                 {viewType === ViewTypeEnum.LIST &&
-                  data.map((gho) => (
+                  ghoOrderedData.map((gho) => (
                     <SideRow
                       key={gho.id}
                       gho={gho}
@@ -219,7 +298,7 @@ export const SidebarOrg = () => {
                       />
                     </SFlex>
                     <StyledGridMultiGho>
-                      {data.map((gho) => (
+                      {ghoQuery.map((gho) => (
                         <SideSelectedGho key={gho.id} data={gho} />
                       ))}
                     </StyledGridMultiGho>
@@ -241,7 +320,7 @@ export const SidebarOrg = () => {
                       />
                     </SFlex>
                     <StyledGridMultiGho>
-                      {data.map((gho) => (
+                      {ghoQuery.map((gho) => (
                         <SideUnselectedGho key={gho.id} data={gho} />
                       ))}
                     </StyledGridMultiGho>

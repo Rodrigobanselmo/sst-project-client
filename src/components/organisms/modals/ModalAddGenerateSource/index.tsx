@@ -78,7 +78,7 @@ export const ModalAddGenerateSource = () => {
             size="small"
           />
 
-          {!generateSourceData.edit && (
+          {false && !generateSourceData.edit && (
             <>
               <InputForm
                 multiline

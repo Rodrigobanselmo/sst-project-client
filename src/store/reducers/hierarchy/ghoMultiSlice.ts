@@ -1,6 +1,8 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
+
 import { AppState } from '../..';
 
 export interface IGhoMultiState {
@@ -33,20 +35,19 @@ export const ghoMultiSlice = createSlice({
           (reduxId) => reduxId !== id,
         );
     },
-    setGhoMultiEditIds: (state, action: PayloadAction<string | string[]>) => {
+    setGhoMultiAddIds: (state, action: PayloadAction<string | string[]>) => {
       const hierarchies = Array.isArray(action.payload)
         ? action.payload
         : [action.payload];
 
       hierarchies.map((hierarchy) => {
-        if (!state.selectedIds.find((h) => h === hierarchy))
-          state.selectedIds = [...state.selectedIds, hierarchy];
-        else
-          state.selectedIds = state.selectedIds.filter((h) => h !== hierarchy);
+        state.selectedIds = removeDuplicate([...state.selectedIds, hierarchy]);
       });
     },
-    setGhoMultiRemoveIds: (state, action: PayloadAction<string>) => {
-      state.selectedIds = state.selectedIds.filter((h) => h !== action.payload);
+    setGhoMultiRemoveIds: (state, action: PayloadAction<string[]>) => {
+      state.selectedIds = state.selectedIds.filter(
+        (h) => !action.payload.includes(h),
+      );
     },
   },
 });
@@ -55,7 +56,7 @@ export const SaveName = name;
 
 export const {
   setGhoMultiState,
-  setGhoMultiEditIds,
+  setGhoMultiAddIds,
   setGhoMultiRemoveIds,
   setGhoMultiEditId,
 } = ghoMultiSlice.actions;

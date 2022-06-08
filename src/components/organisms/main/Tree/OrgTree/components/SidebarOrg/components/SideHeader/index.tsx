@@ -5,12 +5,20 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
+import {
+  selectGhoFilter,
+  setGhoFilterValues,
+  setGhoSearch,
+} from 'store/reducers/hierarchy/ghoSlice';
+
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { headerRows } from '../../utils/header.constants';
 import { ViewTypeEnum } from '../../utils/view-type.enum';
 import { SideInput } from '../SIdeInput';
 import { SideRowTableMulti } from '../SideRowTable/Multiple';
-import { STGridHeader } from './styles';
+import { STGridHeader, StyledSArrowUpFilterIcon } from './styles';
 import { SideHeaderProps } from './types';
 
 export const SideHeader: FC<SideHeaderProps> = ({
@@ -22,12 +30,26 @@ export const SideHeader: FC<SideHeaderProps> = ({
   riskInit,
   viewType,
 }) => {
+  const dispatch = useAppDispatch();
+  const selectedGhoFilter = useAppSelector(selectGhoFilter);
+
+  const handleSetFilters = (row: typeof headerRows[0]) => () => {
+    if (row.filterKey && row.filterValues)
+      dispatch(
+        setGhoFilterValues({
+          key: row.filterKey,
+          values: row.filterValues,
+        }),
+      );
+  };
+
   return (
     <SFlex align="center" gap={4} mb={5}>
       {viewType === ViewTypeEnum.LIST && (
         <SideInput
           ref={inputRef}
           handleSelectGHO={handleSelectGHO}
+          onSearch={(value) => dispatch(setGhoSearch(value))}
           handleEditGHO={handleEditGHO}
           handleAddGHO={handleAddGHO}
           isAddLoading={isAddLoading}
@@ -45,14 +67,33 @@ export const SideHeader: FC<SideHeaderProps> = ({
                 : {}
             }
           >
-            {headerRows.map((row) => (
-              <STooltip key={row.label} title={row.tooltip}>
-                <SFlex center sx={{ position: 'relative' }}>
-                  <SText noBreak={1}>{row.label}</SText>
-                  {/* <StyledSInfoIcon /> */}
-                </SFlex>
-              </STooltip>
-            ))}
+            {headerRows.map((row) => {
+              const isFilterSelected = selectedGhoFilter.key === row.filterKey;
+              const isSortable =
+                row.filterKey && viewType === ViewTypeEnum.LIST;
+              return (
+                <STooltip key={row.label} title={row.tooltip}>
+                  <SFlex
+                    onClick={isSortable ? handleSetFilters(row) : undefined}
+                    center
+                    sx={{
+                      position: 'relative',
+                      userSelect: 'none',
+                      cursor: isSortable ? 'pointer' : 'default',
+                    }}
+                  >
+                    <SText noBreak={1}>{row.label}</SText>
+                    {isSortable && (
+                      <StyledSArrowUpFilterIcon
+                        filter={
+                          isFilterSelected ? selectedGhoFilter.value || '' : ''
+                        }
+                      />
+                    )}
+                  </SFlex>
+                </STooltip>
+              );
+            })}
           </STGridHeader>
         )}
         {viewType === ViewTypeEnum.SELECT && <SideRowTableMulti />}

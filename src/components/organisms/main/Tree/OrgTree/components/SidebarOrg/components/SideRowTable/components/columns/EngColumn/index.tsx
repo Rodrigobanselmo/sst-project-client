@@ -20,6 +20,7 @@ export const EngColumn: FC<EngColumnProps> = ({
       <MedSelect
         disabled={!risk?.id}
         text={'adicionar'}
+        onlyInput="eng"
         onlyFromActualRisks
         tooltipTitle=""
         multiple={false}

@@ -15,7 +15,7 @@ export const matrixRiskMap = {
     level: 2,
   },
   [3]: {
-    label: 'Médio',
+    label: 'Moderado',
     short: 'M',
     level: 3,
   },

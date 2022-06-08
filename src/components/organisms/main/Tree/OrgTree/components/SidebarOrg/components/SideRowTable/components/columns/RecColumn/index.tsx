@@ -18,6 +18,7 @@ export const RecColumn: FC<RecColumnProps> = ({
     <Box>
       <RecSelect
         disabled={!risk?.id}
+        onlyInput="rec"
         text={'adicionar'}
         onlyFromActualRisks
         tooltipTitle=""

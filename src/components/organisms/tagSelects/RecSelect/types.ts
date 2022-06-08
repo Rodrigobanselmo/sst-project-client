@@ -16,4 +16,5 @@ export interface IRecMedSelectProps
   handleSelect?: (selectedIds: string[] | IRecMed) => void;
   onEnter?: (value: string) => void;
   onCreate?: (value: IRecMed | null) => void;
+  onlyInput?: 'adm' | 'eng' | 'rec' | '';
 }

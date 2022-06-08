@@ -54,7 +54,7 @@ export const STSTableRow = styled(Box)<{ clickable: number }>`
       &:hover {
         background-color: ${props.theme.palette.background.box};
       }
-    `}
+    `};
 `;
 
 export const STSTableHRow = styled(Box)`

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
-import { selectGhoSearchSelect } from 'store/reducers/hierarchy/ghoSlice';
+import { selectGhoSearch } from 'store/reducers/hierarchy/ghoSlice';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
@@ -38,7 +38,7 @@ export const SideRow = React.memo<SideRowProps>(
     const isSelected = selectedGhoId === gho.id;
     const ref = useRef<HTMLDivElement>(null);
     const [hide, setHide] = useState(true);
-    const searchSelected = useAppSelector(selectGhoSearchSelect);
+    const searchSelected = useAppSelector(selectGhoSearch);
 
     useEffect(() => {
       if (ref.current) {
@@ -51,11 +51,9 @@ export const SideRow = React.memo<SideRowProps>(
       }
     }, []);
 
-    if (
+    const isToFilter =
       searchSelected &&
-      !stringNormalize(gho.name).includes(stringNormalize(searchSelected))
-    )
-      return null;
+      !stringNormalize(gho.name).includes(stringNormalize(searchSelected));
 
     return (
       <SFlex
@@ -63,7 +61,7 @@ export const SideRow = React.memo<SideRowProps>(
         ref={ref}
         sx={{
           gridTemplateColumns: '285px 1fr',
-          display: 'grid',
+          display: isToFilter ? 'none' : 'grid',
         }}
         gap={5}
       >

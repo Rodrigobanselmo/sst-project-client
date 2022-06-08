@@ -30,6 +30,7 @@ export function useQueryRiskGroupData(): IReactQuery<IRiskGroupData[]> {
         : <Promise<IRiskGroupData[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
+      refetchOnWindowFocus: true,
     },
   );
 

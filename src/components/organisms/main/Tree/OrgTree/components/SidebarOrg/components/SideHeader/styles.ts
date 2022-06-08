@@ -1,7 +1,8 @@
+import { css } from '@emotion/react';
 import { Box, styled } from '@mui/material';
 import { SInput } from 'components/atoms/SInput';
 
-import SInfoIcon from 'assets/icons/SDeleteIcon';
+import SArrowUpFilterIcon from 'assets/icons/SArrowUpFilterIcon';
 
 import { STGridExtend } from '../../styles';
 
@@ -33,7 +34,21 @@ export const STGridHeader = styled(STGridExtend)`
   }
 `;
 
-export const StyledSInfoIcon = styled(SInfoIcon)`
-  font-size: 12px;
-  color: ${(props) => props.theme.palette.text.disabled};
+export const StyledSArrowUpFilterIcon = styled(SArrowUpFilterIcon)<{
+  filter?: string;
+}>`
+  color: ${(props) => props.theme.palette.text.light};
+  margin-left: ${(props) => props.theme.spacing(-2)};
+
+  ${(props) =>
+    props.filter == 'desc' &&
+    css`
+      transform: rotate(180deg);
+    `}
+
+  ${(props) =>
+    props.filter == 'none' &&
+    css`
+      transform: rotate(90deg);
+    `}
 `;

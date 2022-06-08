@@ -18,4 +18,5 @@ export interface IRecMedSelectProps
   onEnter?: (value: string) => void;
   onlyFromActualRisks?: boolean;
   onCreate?: (value: IRecMed | null) => void;
+  onlyInput?: 'adm' | 'eng' | 'rec' | '';
 }

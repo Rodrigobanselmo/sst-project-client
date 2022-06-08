@@ -4,6 +4,7 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialAddRecMedState } from 'components/organisms/modals/ModalAddRecMed/hooks/useAddRecMed';
+import { MedTypeEnum } from 'project/enum/medType.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
@@ -28,6 +29,7 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   type,
   multiple = true,
   onlyFromActualRisks,
+  onlyInput,
   onCreate = () => {},
   ...props
 }) => {
@@ -42,6 +44,13 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
     const passModalData = {
       riskIds: riskIds,
       onCreate,
+      onlyInput,
+      medType:
+        onlyInput == 'adm'
+          ? MedTypeEnum.ADM
+          : onlyInput == 'eng'
+          ? MedTypeEnum.ENG
+          : '',
     } as Partial<typeof initialAddRecMedState>;
 
     if (risk) passModalData.risk = risk;
@@ -70,6 +79,13 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
           recName: option?.recName || '',
           status: option?.status,
           id: option?.id,
+          onlyInput,
+          medType:
+            onlyInput == 'adm'
+              ? MedTypeEnum.ADM
+              : onlyInput == 'eng'
+              ? MedTypeEnum.ENG
+              : '',
         },
       );
   };

@@ -8,7 +8,7 @@ interface IDuplicateOptions {
 }
 
 export function removeDuplicate(array: any[], options?: IDuplicateOptions) {
-  if (options?.simpleCompare)
+  if (options?.simpleCompare || typeof array[0] === 'string')
     return array.filter(
       (item, index, self) => index === self.findIndex((t) => t == item),
     );

@@ -168,7 +168,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!risk?.id) return;
 
     const { recs, adms, engs, epis, generateSources } = riskData;
@@ -189,7 +189,11 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
       },
     );
 
-    upsertManyMut.mutate(submitData as unknown as IUpsertManyRiskData);
+    await upsertManyMut.mutateAsync(
+      submitData as unknown as IUpsertManyRiskData,
+    );
+
+    setRiskData({ id: '' } as IRiskData);
   };
 
   const actualMatrixLevel = getMatrizRisk(

@@ -21,7 +21,7 @@ export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
     dataSelect.probabilityAfter = undefined;
 
   const setProbability = (prob: number) => {
-    if (data?.probability && prob === data?.probability) return 0;
+    if (data?.probability && prob && prob === data?.probability) return 0;
 
     return prob;
   };

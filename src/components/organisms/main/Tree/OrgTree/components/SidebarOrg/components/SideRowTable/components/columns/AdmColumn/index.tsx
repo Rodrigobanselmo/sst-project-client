@@ -26,6 +26,7 @@ export const AdmColumn: FC<AdmColumnProps> = ({
         riskIds={[risk?.id || '']}
         risk={risk ? risk : undefined}
         type={MedTypeEnum.ADM}
+        onlyInput="adm"
         onCreate={(adm) => {
           if (adm && adm.id && adm.medType === MedTypeEnum.ADM)
             handleSelect(

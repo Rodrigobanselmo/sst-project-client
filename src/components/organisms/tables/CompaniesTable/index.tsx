@@ -74,9 +74,15 @@ export const CompaniesTable: FC<BoxProps> = () => {
           rowsData={results}
           renderRow={(row) => {
             return (
-              <STableRow key={row.id}>
-                <TextIconRow text={row.name} />
-                <TextIconRow text={row.cnpj} />
+              <STableRow clickable key={row.id}>
+                <TextIconRow
+                  onClick={() => handleGoToCompany(row.id)}
+                  text={row.name}
+                />
+                <TextIconRow
+                  onClick={() => handleGoToCompany(row.id)}
+                  text={row.cnpj}
+                />
                 <IconButtonRow
                   onClick={() => handleGoToCompany(row.id)}
                   icon={<EditIcon />}

@@ -58,54 +58,64 @@ export const ModalAddRecMed = () => {
           secondIconClick={onRemove}
         />
         <SFlex gap={8} direction="column" mt={8}>
-          <InputForm
-            autoFocus
-            defaultValue={recMedData.recName}
-            multiline
-            minRows={2}
-            maxRows={4}
-            label="Recomendação"
-            control={control}
-            sx={{ minWidth: ['100%', 600] }}
-            placeholder={'descrição da recomendação...'}
-            name="recName"
-            size="small"
-          />
-          <Box position="relative">
+          {recMedData.onlyInput == 'rec' && (
             <InputForm
+              autoFocus
+              defaultValue={recMedData.recName}
               multiline
-              fullWidth
-              defaultValue={recMedData.medName}
-              minRows={3}
-              maxRows={3}
-              label="Medida de controle"
+              minRows={2}
+              maxRows={4}
+              label="Recomendação"
               control={control}
-              sx={{
-                minWidth: ['100%', 600],
-                '& .MuiOutlinedInput-root': { pb: 30 },
-              }}
-              placeholder={'descrição da medida de controle...'}
-              name="medName"
+              sx={{ minWidth: ['100%', 600] }}
+              placeholder={'descrição da recomendação...'}
+              name="recName"
               size="small"
             />
-            <RadioForm
-              type="radio"
-              control={control}
-              defaultValue={String(recMedData.medType)}
-              options={[
-                { content: 'Medidas administrativas', value: MedTypeEnum.ADM },
-                { content: 'Medidas de engenharia', value: MedTypeEnum.ENG },
-              ]}
-              name="medType"
-              pr={8}
-              pl={11}
-              columns={2}
-              zIndex={2}
-              position="absolute"
-              top={115}
-              width="100%"
-            />
-          </Box>
+          )}
+          {!(recMedData.onlyInput == 'rec') && (
+            <Box position="relative">
+              <InputForm
+                multiline
+                fullWidth
+                defaultValue={recMedData.medName}
+                minRows={3}
+                maxRows={3}
+                label={'Medida de controle'}
+                control={control}
+                sx={{
+                  minWidth: ['100%', 600],
+                  '& .MuiOutlinedInput-root': { pb: 30 },
+                }}
+                placeholder={'descrição da medida de controle...'}
+                name="medName"
+                size="small"
+              />
+              <RadioForm
+                type="radio"
+                control={control}
+                defaultValue={String(recMedData.medType)}
+                options={[
+                  {
+                    content: 'Medidas administrativas',
+                    value: MedTypeEnum.ADM,
+                  },
+                  {
+                    content: 'Medidas de engenharia',
+                    value: MedTypeEnum.ENG,
+                  },
+                ]}
+                name="medType"
+                pr={8}
+                pl={11}
+                columns={2}
+                zIndex={2}
+                position="absolute"
+                top={115}
+                width="100%"
+              />
+            </Box>
+          )}
         </SFlex>
         <EditRecMedSelects
           recMedData={recMedData}

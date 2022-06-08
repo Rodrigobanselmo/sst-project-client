@@ -27,8 +27,9 @@ export const initialAddRecMedState = {
   hasSubmit: false,
   passDataBack: false,
   edit: false,
-  medType: null as MedTypeEnum | null,
+  medType: null as MedTypeEnum | null | '',
   onCreate: (value: IRecMed | null) => {},
+  onlyInput: '' as 'rec' | 'eng' | 'adm' | '',
 };
 
 export const useAddRecMed = () => {
