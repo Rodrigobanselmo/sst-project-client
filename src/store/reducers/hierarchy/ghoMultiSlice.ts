@@ -27,16 +27,6 @@ export const ghoMultiSlice = createSlice({
     ) => {
       return { ...state, ...action.payload };
     },
-    setGhoMultiEditDisabledId: (state, action: PayloadAction<string>) => {
-      const id = action.payload;
-
-      if (!state.selectedDisabledIds.find((reduxId) => reduxId === id))
-        state.selectedDisabledIds = [...state.selectedDisabledIds, id];
-      else
-        state.selectedDisabledIds = state.selectedDisabledIds.filter(
-          (reduxId) => reduxId !== id,
-        );
-    },
     setGhoMultiEditId: (state, action: PayloadAction<string>) => {
       const id = action.payload;
 
@@ -64,6 +54,36 @@ export const ghoMultiSlice = createSlice({
         (h) => !action.payload.includes(h),
       );
     },
+    setGhoMultiEditDisabledId: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+
+      if (!state.selectedDisabledIds.find((reduxId) => reduxId === id))
+        state.selectedDisabledIds = [...state.selectedDisabledIds, id];
+      else
+        state.selectedDisabledIds = state.selectedDisabledIds.filter(
+          (reduxId) => reduxId !== id,
+        );
+    },
+    setGhoMultiDisabledAddIds: (
+      state,
+      action: PayloadAction<string | string[]>,
+    ) => {
+      const hierarchies = Array.isArray(action.payload)
+        ? action.payload
+        : [action.payload];
+
+      hierarchies.map((hierarchy) => {
+        state.selectedDisabledIds = removeDuplicate([
+          ...state.selectedDisabledIds,
+          hierarchy,
+        ]);
+      });
+    },
+    setGhoMultiDisabledRemoveIds: (state, action: PayloadAction<string[]>) => {
+      state.selectedDisabledIds = state.selectedDisabledIds.filter(
+        (h) => !action.payload.includes(h),
+      );
+    },
   },
 });
 
@@ -75,6 +95,8 @@ export const {
   setGhoMultiRemoveIds,
   setGhoMultiEditId,
   setGhoMultiEditDisabledId,
+  setGhoMultiDisabledAddIds,
+  setGhoMultiDisabledRemoveIds,
 } = ghoMultiSlice.actions;
 
 export const selectGhoMultiIds = (state: AppState) =>

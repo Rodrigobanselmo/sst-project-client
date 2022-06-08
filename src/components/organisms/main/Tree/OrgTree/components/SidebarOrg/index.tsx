@@ -9,6 +9,7 @@ import { useStore } from 'react-redux';
 
 import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
 import LibraryAddCheckOutlinedIcon from '@mui/icons-material/LibraryAddCheckOutlined';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import clone from 'clone';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
@@ -17,6 +18,8 @@ import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHie
 import { useRouter } from 'next/router';
 import {
   setGhoMultiAddIds,
+  setGhoMultiDisabledAddIds,
+  setGhoMultiDisabledRemoveIds,
   setGhoMultiRemoveIds,
 } from 'store/reducers/hierarchy/ghoMultiSlice';
 import {
@@ -146,6 +149,35 @@ export const SidebarOrg = () => {
     dispatch(setGhoSearchSelect(''));
 
     dispatch(setGhoMultiRemoveIds(allToSelect));
+  }, [ghoQuery, dispatch, store]);
+
+  const handleInvertDisabled = useCallback(() => {
+    const search = store.getState().gho.searchSelect as string;
+    const selectedIds = store.getState().ghoMulti.selectedIds as string[];
+    const selectedDisabledIds = store.getState().ghoMulti
+      .selectedDisabledIds as string[];
+
+    const allSelected = ghoQuery
+      .filter(
+        (gho) =>
+          selectedIds.includes(gho.id) &&
+          stringNormalize(gho.name).includes(stringNormalize(search)),
+      )
+      .map((gho) => gho.id);
+
+    const allDisabledSelect = ghoQuery
+      .filter(
+        (gho) =>
+          selectedDisabledIds.includes(gho.id) &&
+          stringNormalize(gho.name).includes(stringNormalize(search)),
+      )
+      .map((gho) => gho.id);
+
+    if (inputSelectedRef.current) inputSelectedRef.current.value = '';
+    dispatch(setGhoSearchSelect(''));
+
+    dispatch(setGhoMultiDisabledAddIds(allSelected));
+    dispatch(setGhoMultiDisabledRemoveIds(allDisabledSelect));
   }, [ghoQuery, dispatch, store]);
 
   const handleSelectGHO = useCallback(
@@ -288,14 +320,24 @@ export const SidebarOrg = () => {
                         handleSelectGHO={handleSelectGHO}
                         handleEditGHO={handleEditGHO}
                       />
-                      <STagButton
-                        icon={IndeterminateCheckBoxOutlinedIcon}
-                        tooltipTitle="Remover todos os GHOs abaixo"
-                        sx={{ ml: 'auto', mr: 5 }}
-                        large
-                        text="Remover todos"
-                        onClick={handleUnselectAll}
-                      />
+                      <SFlex sx={{ ml: 'auto', mr: 5 }}>
+                        <STagButton
+                          icon={SwapHorizIcon}
+                          text="Inverter desabiitados"
+                          large
+                          mr={5}
+                          tooltipTitle="Todos os items desabilitados seram ativadoes e vice-versa"
+                          onClick={handleInvertDisabled}
+                        />
+                        <STagButton
+                          icon={IndeterminateCheckBoxOutlinedIcon}
+                          tooltipTitle="Remover todos os GHOs abaixo"
+                          mr={5}
+                          large
+                          text="Remover todos"
+                          onClick={handleUnselectAll}
+                        />
+                      </SFlex>
                     </SFlex>
                     <StyledGridMultiGho>
                       {ghoQuery.map((gho) => (
