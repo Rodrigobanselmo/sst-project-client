@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useEffect, useState } from 'react';
+import { useStore } from 'react-redux';
 
 import { SButton } from 'components/atoms/SButton';
 import { STag } from 'components/atoms/STag';
@@ -9,7 +10,10 @@ import { STagButton } from 'components/atoms/STagButton';
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
-import { selectGhoMultiIds } from 'store/reducers/hierarchy/ghoMultiSlice';
+import {
+  selectGhoMultiDisabledIds,
+  selectGhoMultiIds,
+} from 'store/reducers/hierarchy/ghoMultiSlice';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -43,7 +47,8 @@ import { SideTableMultipleProps } from './types';
 export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
   const risk = useAppSelector(selectRisk);
   const upsertRiskData = useMutUpsertRiskData();
-  const ghos = useAppSelector(selectGhoMultiIds);
+
+  const store = useStore();
   const { companyId } = useGetCompanyId();
   const { onOpenModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
@@ -142,10 +147,17 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
     ...values
   }: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
+
+    const selectedGhos = store.getState().ghoMulti.selectedIds as string[];
+    const selectedDisabledGhos = store.getState().ghoMulti
+      .selectedDisabledIds as string[];
+
     const submitData = {
       ...values,
       id: riskData?.id,
-      homogeneousGroupIds: ghos,
+      homogeneousGroupIds: selectedGhos.filter(
+        (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
+      ),
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
     } as IUpsertRiskData;
@@ -170,12 +182,17 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
 
   const handleSave = async () => {
     if (!risk?.id) return;
+    const selectedGhos = store.getState().ghoMulti.selectedIds as string[];
+    const selectedDisabledGhos = store.getState().ghoMulti
+      .selectedDisabledIds as string[];
 
     const { recs, adms, engs, epis, generateSources } = riskData;
 
     const submitData = {
       ...riskData,
-      homogeneousGroupIds: ghos,
+      homogeneousGroupIds: selectedGhos.filter(
+        (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
+      ),
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId,
     };

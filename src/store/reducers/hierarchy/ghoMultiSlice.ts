@@ -7,10 +7,12 @@ import { AppState } from '../..';
 
 export interface IGhoMultiState {
   selectedIds: string[];
+  selectedDisabledIds: string[];
 }
 
 const initialState: IGhoMultiState = {
   selectedIds: [],
+  selectedDisabledIds: [],
 };
 
 const name = 'ghoMulti';
@@ -24,6 +26,16 @@ export const ghoMultiSlice = createSlice({
       action: PayloadAction<Partial<IGhoMultiState>>,
     ) => {
       return { ...state, ...action.payload };
+    },
+    setGhoMultiEditDisabledId: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+
+      if (!state.selectedDisabledIds.find((reduxId) => reduxId === id))
+        state.selectedDisabledIds = [...state.selectedDisabledIds, id];
+      else
+        state.selectedDisabledIds = state.selectedDisabledIds.filter(
+          (reduxId) => reduxId !== id,
+        );
     },
     setGhoMultiEditId: (state, action: PayloadAction<string>) => {
       const id = action.payload;
@@ -48,6 +60,9 @@ export const ghoMultiSlice = createSlice({
       state.selectedIds = state.selectedIds.filter(
         (h) => !action.payload.includes(h),
       );
+      state.selectedDisabledIds = state.selectedIds.filter(
+        (h) => !action.payload.includes(h),
+      );
     },
   },
 });
@@ -59,12 +74,19 @@ export const {
   setGhoMultiAddIds,
   setGhoMultiRemoveIds,
   setGhoMultiEditId,
+  setGhoMultiEditDisabledId,
 } = ghoMultiSlice.actions;
 
 export const selectGhoMultiIds = (state: AppState) =>
   state.ghoMulti.selectedIds;
 
+export const selectGhoMultiDisabledIds = (state: AppState) =>
+  state.ghoMulti.selectedDisabledIds;
+
 export const selectGhoMultiId = (ghoId: string) => (state: AppState) =>
   state.ghoMulti.selectedIds.findIndex((id) => id === ghoId) >= 0;
+
+export const selectGhoMultiDisabledId = (ghoId: string) => (state: AppState) =>
+  state.ghoMulti.selectedDisabledIds.findIndex((id) => id === ghoId) >= 0;
 
 export default ghoMultiSlice.reducer;

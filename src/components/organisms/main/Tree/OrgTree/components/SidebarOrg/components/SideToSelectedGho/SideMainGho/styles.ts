@@ -1,6 +1,7 @@
+import { css } from '@emotion/react';
 import { Box, styled } from '@mui/material';
 
-export const STBoxItem = styled(Box)`
+export const STBoxItem = styled(Box)<{ disabled: number }>`
   border: 2px solid ${(props) => props.theme.palette.divider};
   background-color: ${(props) => props.theme.palette.background.box};
   display: flex;
@@ -11,4 +12,10 @@ export const STBoxItem = styled(Box)`
   width: 100%;
   min-height: 46px;
   cursor: pointer;
+
+  ${(props) =>
+    props.disabled &&
+    css`
+      opacity: 0.7;
+    `};
 `;

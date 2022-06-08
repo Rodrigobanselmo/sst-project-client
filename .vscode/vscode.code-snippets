@@ -21,7 +21,7 @@
       "  props.$1 &&",
       "    css`",
       "      $2",
-      "  `}"
+      "  `};"
     ],
     "description": "css in styled components"
   },

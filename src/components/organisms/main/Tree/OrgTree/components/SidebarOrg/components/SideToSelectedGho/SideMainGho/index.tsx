@@ -11,24 +11,54 @@ export const SideMainGho: FC<SideItemsProps> = ({
   data,
   handleSelect,
   isSelected,
+  handleEndSelect,
+  isEndSelect,
 }) => {
+  const handleClickBox = () => {
+    const id = !isEndSelect ? data.id : data.id + '-end';
+    document.getElementById(id)?.click();
+  };
+
   return (
-    <STBoxItem onClick={() => document.getElementById(data.id)?.click()}>
-      <Checkbox
-        id={data.id}
-        checked={isSelected}
-        onClick={handleSelect}
-        onChange={() => console.log()}
-        size="small"
-        sx={{
-          'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-            color: 'grey.400',
-          },
-        }}
-      />
+    <STBoxItem disabled={isEndSelect ? 1 : 0} onClick={handleClickBox}>
+      {!isEndSelect && (
+        <Checkbox
+          id={data.id}
+          checked={isSelected}
+          onClick={handleSelect}
+          onChange={() => console.log()}
+          size="small"
+          sx={{
+            'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
+              color: 'grey.400',
+            },
+          }}
+        />
+      )}
       <STooltip withWrapper minLength={15} enterDelay={1000} title={data.name}>
-        <SText lineNumber={2}>{data.name}</SText>
+        <SText sx={{ width: '100%' }} lineNumber={2}>
+          {data.name}
+        </SText>
       </STooltip>
+      {handleEndSelect && (
+        <STooltip
+          withWrapper
+          title={'Desabilitar a inclusão de dados ao salvar'}
+        >
+          <Checkbox
+            id={data.id + '-end'}
+            checked={isEndSelect}
+            onClick={handleEndSelect}
+            color="default"
+            size="small"
+            sx={{
+              'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
+                color: 'grey.400',
+              },
+            }}
+          />
+        </STooltip>
+      )}
     </STBoxItem>
   );
 };
