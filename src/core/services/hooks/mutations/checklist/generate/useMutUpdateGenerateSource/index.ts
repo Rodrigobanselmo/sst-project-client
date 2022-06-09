@@ -12,8 +12,8 @@ import {
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../contexts/AuthContext';
-import { IErrorResp } from '../../../../errors/types';
+import { useAuth } from '../../../../../../contexts/AuthContext';
+import { IErrorResp } from '../../../../../errors/types';
 
 interface ICreateGenerateSource extends Pick<IGenerateSource, 'riskId'> {
   id: string;
@@ -46,7 +46,7 @@ export function useMutUpdateGenerateSource() {
 
   return useMutation(
     async (data: ICreateGenerateSource) =>
-      updateGenerateSource(data, data.companyId || user?.companyId),
+      updateGenerateSource(data, user?.companyId),
     {
       onSuccess: async (newGenerateSource) => {
         if (newGenerateSource)

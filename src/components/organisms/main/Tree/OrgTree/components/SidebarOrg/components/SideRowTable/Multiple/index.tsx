@@ -163,7 +163,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
               (riskData as any)?.[key]?.filter(
                 (data: any) => !(value as any).includes(data.id),
               ) ?? []
-            ).map((d: any) => (key = 'epis' ? d : d.id)),
+            ).map((d: any) => (key === 'epis' ? d : d.id)),
           ];
       },
     );

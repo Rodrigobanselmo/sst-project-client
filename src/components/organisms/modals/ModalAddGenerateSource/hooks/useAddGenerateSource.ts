@@ -17,8 +17,9 @@ import {
   IGenerateSource,
   IRiskFactors,
 } from 'core/interfaces/api/IRiskFactors';
-import { useMutCreateGenerateSource } from 'core/services/hooks/mutations/checklist/useMutCreateGenerateSource';
-import { useMutUpdateGenerateSource } from 'core/services/hooks/mutations/checklist/useMutUpdateGenerateSource';
+import { useMutCreateGenerateSource } from 'core/services/hooks/mutations/checklist/generate/useMutCreateGenerateSource';
+import { useMutDeleteGenerateSource } from 'core/services/hooks/mutations/checklist/generate/useMutDeleteGenerateSource';
+import { useMutUpdateGenerateSource } from 'core/services/hooks/mutations/checklist/generate/useMutUpdateGenerateSource';
 import { generateSourceSchema } from 'core/utils/schemas/generateSource.schema';
 
 export const initialAddGenerateSourceState = {
@@ -46,6 +47,7 @@ export const useAddGenerateSource = () => {
 
   const createGenerateSourceMut = useMutCreateGenerateSource();
   const updateGenerateSourceMut = useMutUpdateGenerateSource();
+  const deleteGenerateSourceMut = useMutDeleteGenerateSource();
 
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
@@ -79,13 +81,17 @@ export const useAddGenerateSource = () => {
     reset();
   };
 
-  const onRemove = () => {
+  const onRemove = async () => {
     if (generateSourceData.passDataBack)
       onCloseModal(ModalEnum.GENERATE_SOURCE_ADD, {
         remove: true,
         isAddGenerateSource: true,
         localId: generateSourceData.localId,
       });
+    else {
+      await deleteGenerateSourceMut.mutateAsync(generateSourceData.id);
+      onClose();
+    }
 
     setGenerateSourceData(initialAddGenerateSourceState);
     reset();
@@ -151,7 +157,9 @@ export const useAddGenerateSource = () => {
     onSubmit,
     onClose,
     loading:
-      createGenerateSourceMut.isLoading || updateGenerateSourceMut.isLoading,
+      createGenerateSourceMut.isLoading ||
+      updateGenerateSourceMut.isLoading ||
+      deleteGenerateSourceMut.isLoading,
     generateSourceData,
     setGenerateSourceData,
     control,

@@ -12,8 +12,9 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
-import { useMutCreateRecMed } from 'core/services/hooks/mutations/checklist/useMutCreateRecMed';
-import { useMutUpdateRecMed } from 'core/services/hooks/mutations/checklist/useMutUpdateRecMed';
+import { useMutCreateRecMed } from 'core/services/hooks/mutations/checklist/recMed/useMutCreateRecMed';
+import { useMutDeleteRecMed } from 'core/services/hooks/mutations/checklist/recMed/useMutDeleteRecMed';
+import { useMutUpdateRecMed } from 'core/services/hooks/mutations/checklist/recMed/useMutUpdateRecMed';
 import { recMedSchema } from 'core/utils/schemas/recMed.schema';
 
 export const initialAddRecMedState = {
@@ -43,6 +44,7 @@ export const useAddRecMed = () => {
 
   const createRecMedMut = useMutCreateRecMed();
   const updateRecMedMut = useMutUpdateRecMed();
+  const deleteMedMut = useMutDeleteRecMed();
 
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
@@ -75,13 +77,17 @@ export const useAddRecMed = () => {
     reset();
   };
 
-  const onRemove = () => {
+  const onRemove = async () => {
     if (recMedData.passDataBack)
       onCloseModal(ModalEnum.REC_MED_ADD, {
         remove: true,
         isAddRecMed: true,
         localId: recMedData.localId,
       });
+    else {
+      await deleteMedMut.mutateAsync(recMedData.id);
+      onClose();
+    }
 
     setRecMedData(initialAddRecMedState);
     reset();
@@ -140,7 +146,10 @@ export const useAddRecMed = () => {
     onCloseUnsaved,
     onSubmit,
     onClose,
-    loading: createRecMedMut.isLoading || updateRecMedMut.isLoading,
+    loading:
+      createRecMedMut.isLoading ||
+      updateRecMedMut.isLoading ||
+      deleteMedMut.isLoading,
     recMedData,
     setRecMedData,
     control,
