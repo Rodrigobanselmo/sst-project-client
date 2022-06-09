@@ -58,8 +58,10 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
   };
 
   const options = useMemo(() => {
+    const isNa = (ca: string) => ['1', '2', '0'].includes(ca);
+
     return data.map((epi) => ({
-      name: epi.ca + ' ' + epi.equipment,
+      name: (!isNa(epi.ca) ? epi.ca + ' ' : '') + epi.equipment,
       value: epi.id,
       ...epi,
     }));

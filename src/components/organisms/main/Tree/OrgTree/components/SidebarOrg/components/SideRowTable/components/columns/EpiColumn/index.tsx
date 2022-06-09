@@ -37,8 +37,8 @@ export const EpiColumn: FC<EpiColumnProps> = ({
         data.epis?.map((epi) => (
           <SelectedTableItem
             key={epi.ca}
-            name={epi.ca}
-            tooltip={epi.equipment}
+            name={epi.equipment}
+            tooltip={['1', '2', '0'].includes(epi.ca) ? '' : 'CA ' + epi.ca}
             handleRemove={() =>
               handleRemove({
                 epis: [epi.id],

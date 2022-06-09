@@ -148,19 +148,12 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
   }: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
 
-    const selectedGhos = store.getState().ghoMulti.selectedIds as string[];
-    const selectedDisabledGhos = store.getState().ghoMulti
-      .selectedDisabledIds as string[];
-
     const submitData = {
       ...values,
       id: riskData?.id,
-      homogeneousGroupIds: selectedGhos.filter(
-        (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
-      ),
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
-    } as IUpsertRiskData;
+    } as IRiskData;
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
       ([key, value]) => {
@@ -170,14 +163,14 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
               (riskData as any)?.[key]?.filter(
                 (data: any) => !(value as any).includes(data.id),
               ) ?? []
-            ).map((d: any) => d.id),
+            ).map((d: any) => (key = 'epis' ? d : d.id)),
           ];
       },
     );
 
-    await upsertRiskData.mutateAsync({
-      ...submitData,
-    });
+    console.log(submitData);
+
+    setRiskData((old) => ({ ...old, ...submitData }));
   };
 
   const handleSave = async () => {

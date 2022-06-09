@@ -178,6 +178,7 @@ export const ProbabilityForm = (props: IUseProbability) => {
             control={control}
             placeholder={'nome do estabelecimento de trabalho...'}
             name="minDurationJT"
+            autoComplete="off"
             size="small"
           />
           <InputForm
@@ -186,6 +187,7 @@ export const ProbabilityForm = (props: IUseProbability) => {
             label="Duração da exposição ocupacional (minutos)"
             labelPosition="center"
             control={control}
+            autoComplete="off"
             placeholder={'nome do estabelecimento de trabalho...'}
             name="minDurationEO"
             size="small"
