@@ -42,6 +42,7 @@ export const SideTop: FC<SideTopProps> = ({
   const selectedRisk = useAppSelector(selectRisk);
 
   const handleSelectRisk = (options: IRiskFactors) => {
+    console.log(options);
     if (options.id) dispatch(setRiskAddState({ risk: options }));
   };
 

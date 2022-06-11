@@ -1,12 +1,10 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { ElementType } from 'react';
+import { ElementType, ReactNode } from 'react';
 
 import { BoxProps, IconProps } from '@mui/material';
 
 export interface ISTagButtonProps extends BoxProps {
   text?: string;
   bg?: string;
-  tooltipTitle?: string;
   large?: boolean;
   icon?: ElementType<any>;
   iconProps?: IconProps;
@@ -14,4 +12,5 @@ export interface ISTagButtonProps extends BoxProps {
   disabled?: boolean;
   error?: boolean;
   active?: boolean;
+  tooltipTitle?: ReactNode;
 }

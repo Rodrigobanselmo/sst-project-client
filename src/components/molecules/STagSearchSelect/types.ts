@@ -13,7 +13,7 @@ export interface ISTagSearchSelectProps
   extends BoxProps,
     Partial<ISTagButtonProps> {
   text: string;
-  tooltipTitle?: string;
+  tooltipTitle?: ReactNode;
   bg?: string;
   placeholder?: string;
   large?: boolean;
