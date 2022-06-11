@@ -6,6 +6,14 @@ const palette = {
     dark: '#d9560b',
     extraDark: '#93421a',
   },
+  secondary: {
+    light: '#4071d6',
+    main: '#2153b7',
+    dark: '#123e96',
+  },
+  sidebar: {
+    background: '#1A202C',
+  },
   mainBlur: {
     90: 'rgba(242, 115, 41, 0.9)',
     80: 'rgba(242, 115, 41, 0.8)',
@@ -47,10 +55,6 @@ const palette = {
     add: '#3cbe7d',
     delete: '#F44336',
     info: '#2153b7',
-  },
-  secondary: {
-    main: '#2153b7',
-    dark: '#1A202C',
   },
   success: {
     dark: '#28a767',

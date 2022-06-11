@@ -10,11 +10,13 @@ import { ModalAddEmployees } from 'components/organisms/modals/ModalAddEmployees
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
+import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
+import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import { SEditIcon } from 'assets/icons/SEditIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
@@ -63,6 +65,10 @@ const CompanyPage: NextPage = () => {
     }
   }, [company.id, company.riskGroupCount, onOpenModal, push]);
 
+  const handleAddRisk = useCallback(() => {
+    onOpenModal(ModalEnum.DOC_PGR_SELECT);
+  }, [onOpenModal]);
+
   const actionsStepMemo = useMemo(() => {
     return [
       {
@@ -76,9 +82,14 @@ const CompanyPage: NextPage = () => {
         text: 'Cadastrar Empregados',
       },
       {
-        icon: SRiskFactorIcon,
+        icon: SDocumentIcon,
         onClick: handleAddPgrDocument,
         text: 'Documento PGR',
+      },
+      {
+        icon: SRiskFactorIcon,
+        onClick: handleAddRisk,
+        text: 'Vincular Fatores de Risco',
       },
       {
         icon: SEditIcon,
@@ -86,7 +97,12 @@ const CompanyPage: NextPage = () => {
         text: 'Editar Dados da Empresa',
       },
     ];
-  }, [handleAddEmployees, handleAddWorkspace, handleAddPgrDocument]);
+  }, [
+    handleAddWorkspace,
+    handleAddEmployees,
+    handleAddPgrDocument,
+    handleAddRisk,
+  ]);
 
   const nextStepMemo = useMemo(() => {
     if (company.workspace && company.workspace.length == 0)
@@ -124,7 +140,7 @@ const CompanyPage: NextPage = () => {
         </>
       )}
       <SText mt={20}>Ações</SText>
-      <SFlex mt={5} gap={10}>
+      <SFlex mt={5} gap={10} flexWrap="wrap">
         {actionsStepMemo.map((props) => (
           <SActionButton key={props.text} {...props} />
         ))}
@@ -133,6 +149,17 @@ const CompanyPage: NextPage = () => {
       <ModalAddWorkspace />
       <ModalAddEmployees />
       <ModalAddRiskGroup />
+      <ModalSelectDocPgr
+        title="Selecione para qual documento PGR deseja adicionar os fatores de risco"
+        onSelect={(docPgr) =>
+          push(
+            RoutesEnum.RISK_DATA.replace(/:companyId/g, company.id).replace(
+              /:riskGroupId/g,
+              docPgr.id,
+            ),
+          )
+        }
+      />
     </SContainer>
   );
 };
