@@ -23,7 +23,6 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
   ...props
 }) => {
   const orgContainerRef = useRef<HTMLDivElement>(null);
-  // const isRiskOpen = useAppSelector(selectRiskAddInit);
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const isGhoOpen = useAppSelector(selectGhoOpen);
 

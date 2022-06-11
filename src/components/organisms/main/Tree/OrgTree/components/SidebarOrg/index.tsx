@@ -5,35 +5,23 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useStore } from 'react-redux';
 
-import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
-import LibraryAddCheckOutlinedIcon from '@mui/icons-material/LibraryAddCheckOutlined';
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import clone from 'clone';
-import SFlex from 'components/atoms/SFlex';
-import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { useRouter } from 'next/router';
-import {
-  setGhoMultiAddIds,
-  setGhoMultiDisabledAddIds,
-  setGhoMultiDisabledRemoveIds,
-  setGhoMultiRemoveIds,
-} from 'store/reducers/hierarchy/ghoMultiSlice';
 import {
   selectGhoFilter,
   selectGhoId,
   selectGhoOpen,
   setGhoFilterValues,
   setGhoSearch,
-  setGhoSearchSelect,
   setGhoState,
 } from 'store/reducers/hierarchy/ghoSlice';
 import {
   selectRisk,
   selectRiskAddExpand,
+  setRiskAddState,
   setRiskAddToggleExpand,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
@@ -52,20 +40,16 @@ import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
-import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { SideHeader } from './components/SideHeader';
-import { SideInput } from './components/SIdeInput';
 import { SideRow } from './components/SideRow';
+import { SideSelectViewContent } from './components/SideSelectViewContent';
 import { SideTop } from './components/SideTop';
-import { SideSelectedGho } from './components/SideToSelectedGho/SideSelectedGho';
-import { SideUnselectedGho } from './components/SideToSelectedGho/SideUnselectedGho';
-import { STBoxContainer, STBoxStack, StyledGridMultiGho } from './styles';
+import { STBoxContainer, STBoxStack } from './styles';
 import { ViewTypeEnum } from './utils/view-type.enum';
 
 export const SidebarOrg = () => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const inputSelectedRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data: ghoQuery } = useQueryGHO();
   const { onOpenModal } = useModal();
@@ -76,7 +60,7 @@ export const SidebarOrg = () => {
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const addMutation = useMutCreateGho();
   const deleteMutation = useMutDeleteGho();
-  const store = useStore();
+
   const { companyId } = useGetCompanyId();
 
   const [viewType, setViewType] = useState(ViewTypeEnum.SELECT);
@@ -120,66 +104,6 @@ export const SidebarOrg = () => {
     [deleteMutation, dispatch, preventDelete],
   );
 
-  const handleSelectAll = useCallback(() => {
-    const search = store.getState().gho.search as string;
-    const allToSelect = ghoQuery
-      .filter((gho) =>
-        stringNormalize(gho.name).includes(stringNormalize(search)),
-      )
-      .map((gho) => gho.id);
-
-    if (inputRef.current) inputRef.current.value = '';
-    dispatch(setGhoSearch(''));
-
-    dispatch(setGhoMultiAddIds(allToSelect));
-  }, [ghoQuery, dispatch, store]);
-
-  const handleUnselectAll = useCallback(() => {
-    const search = store.getState().gho.searchSelect as string;
-    const selectedIds = store.getState().ghoMulti.selectedIds as string;
-    const allToSelect = ghoQuery
-      .filter(
-        (gho) =>
-          selectedIds.includes(gho.id) &&
-          stringNormalize(gho.name).includes(stringNormalize(search)),
-      )
-      .map((gho) => gho.id);
-
-    if (inputSelectedRef.current) inputSelectedRef.current.value = '';
-    dispatch(setGhoSearchSelect(''));
-
-    dispatch(setGhoMultiRemoveIds(allToSelect));
-  }, [ghoQuery, dispatch, store]);
-
-  const handleInvertDisabled = useCallback(() => {
-    const search = store.getState().gho.searchSelect as string;
-    const selectedIds = store.getState().ghoMulti.selectedIds as string[];
-    const selectedDisabledIds = store.getState().ghoMulti
-      .selectedDisabledIds as string[];
-
-    const allSelected = ghoQuery
-      .filter(
-        (gho) =>
-          selectedIds.includes(gho.id) &&
-          stringNormalize(gho.name).includes(stringNormalize(search)),
-      )
-      .map((gho) => gho.id);
-
-    const allDisabledSelect = ghoQuery
-      .filter(
-        (gho) =>
-          selectedDisabledIds.includes(gho.id) &&
-          stringNormalize(gho.name).includes(stringNormalize(search)),
-      )
-      .map((gho) => gho.id);
-
-    if (inputSelectedRef.current) inputSelectedRef.current.value = '';
-    dispatch(setGhoSearchSelect(''));
-
-    dispatch(setGhoMultiDisabledAddIds(allSelected));
-    dispatch(setGhoMultiDisabledRemoveIds(allDisabledSelect));
-  }, [ghoQuery, dispatch, store]);
-
   const handleSelectGHO = useCallback(
     (gho: IGho | null, hierarchies: string[]) => {
       if (!gho) {
@@ -209,6 +133,7 @@ export const SidebarOrg = () => {
         : ViewTypeEnum.SELECT,
     );
 
+    dispatch(setRiskAddState({ isEdited: false }));
     dispatch(
       setGhoFilterValues({
         key: '',
@@ -273,8 +198,8 @@ export const SidebarOrg = () => {
           open={isOpen ? 1 : 0}
         >
           <SideTop
-            //! make it better for
             onChangeView={handleChangeView}
+            viewType={viewType}
             handleSelectGHO={handleSelectGHO}
             riskInit={isRiskOpen}
           />
@@ -310,63 +235,13 @@ export const SidebarOrg = () => {
                     />
                   ))}
                 {viewType === ViewTypeEnum.SELECT && (
-                  <>
-                    <SFlex align="center">
-                      <SideInput
-                        ref={inputSelectedRef}
-                        onSearch={(value) =>
-                          dispatch(setGhoSearchSelect(value))
-                        }
-                        handleSelectGHO={handleSelectGHO}
-                        handleEditGHO={handleEditGHO}
-                      />
-                      <SFlex sx={{ ml: 'auto', mr: 5 }}>
-                        <STagButton
-                          icon={SwapHorizIcon}
-                          text="Inverter desabiitados"
-                          large
-                          mr={5}
-                          tooltipTitle="Todos os items desabilitados seram ativadoes e vice-versa"
-                          onClick={handleInvertDisabled}
-                        />
-                        <STagButton
-                          icon={IndeterminateCheckBoxOutlinedIcon}
-                          tooltipTitle="Remover todos os GHOs abaixo"
-                          mr={5}
-                          large
-                          text="Remover todos"
-                          onClick={handleUnselectAll}
-                        />
-                      </SFlex>
-                    </SFlex>
-                    <StyledGridMultiGho>
-                      {ghoQuery.map((gho) => (
-                        <SideSelectedGho key={gho.id} data={gho} />
-                      ))}
-                    </StyledGridMultiGho>
-                    <SFlex align="center">
-                      <SideInput
-                        ref={inputRef}
-                        onSearch={(value) => dispatch(setGhoSearch(value))}
-                        handleSelectGHO={handleSelectGHO}
-                        handleEditGHO={handleEditGHO}
-                        handleAddGHO={handleAddGHO}
-                      />
-                      <STagButton
-                        icon={LibraryAddCheckOutlinedIcon}
-                        tooltipTitle="Selecione todos os GHOs abaixo"
-                        sx={{ ml: 'auto', mr: 5 }}
-                        large
-                        text="Selecione todos"
-                        onClick={handleSelectAll}
-                      />
-                    </SFlex>
-                    <StyledGridMultiGho>
-                      {ghoQuery.map((gho) => (
-                        <SideUnselectedGho key={gho.id} data={gho} />
-                      ))}
-                    </StyledGridMultiGho>
-                  </>
+                  <SideSelectViewContent
+                    handleSelectGHO={handleSelectGHO}
+                    handleEditGHO={handleEditGHO}
+                    handleAddGHO={handleAddGHO}
+                    inputRef={inputRef}
+                    ghoQuery={ghoQuery}
+                  />
                 )}
               </STBoxStack>
             </table>

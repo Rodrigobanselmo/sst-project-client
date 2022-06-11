@@ -26,8 +26,7 @@ export const useGlobalModal = () => {
   );
 
   useEffect(() => {
-    if (actionModal && callbackRef.current) {
-      callbackRef.current();
+    if (actionModal && callbackRef.current && callbackRef.current?.()) {
       dispatch(setModalAction(false));
       callbackRef.current = () => null;
     }

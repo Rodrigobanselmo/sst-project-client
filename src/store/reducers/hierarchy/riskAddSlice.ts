@@ -9,12 +9,18 @@ export interface IRiskAddState {
   init: boolean;
   expanded: boolean;
   risk: IRiskFactors | null;
+  risks: IRiskFactors[];
+  isSaving: boolean;
+  isEdited: boolean;
 }
 
 const initialState: IRiskAddState = {
   init: false,
   expanded: true,
   risk: null,
+  risks: [],
+  isSaving: false,
+  isEdited: false,
 };
 
 const name = 'riskAdd';
@@ -47,6 +53,11 @@ export const { setRiskAddState, setRiskAddInit, setRiskAddToggleExpand } =
 
 export const selectRiskAddInit = (state: AppState) => state.riskAdd.init;
 export const selectRisk = (state: AppState) => state.riskAdd.risk;
+export const selectRisks = (state: AppState) => state.riskAdd.risks;
 export const selectRiskAddExpand = (state: AppState) => state.riskAdd.expanded;
+export const selectRiskDataSave = (state: AppState) => ({
+  isSaving: state.riskAdd.isSaving,
+  isEdited: state.riskAdd.isEdited,
+});
 
 export default riskAddSlice.reducer;

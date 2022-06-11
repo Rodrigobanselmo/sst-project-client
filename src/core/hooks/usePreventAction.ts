@@ -16,7 +16,7 @@ export const usePreventAction = () => {
       const data = {
         title: 'Descartar mudanças?',
         text: 'Você tem certeza que deseja descartar as mudanças realizadas?',
-        confirmText: 'Descartar',
+        confirmText: 'Ok',
         tag: 'warning',
         confirmCancel: 'Cancel',
       } as IModalDataSlice;
@@ -41,5 +41,16 @@ export const usePreventAction = () => {
     onOpenGlobalModal(data, callback);
   };
 
-  return { preventUnwantedChanges, preventDelete };
+  const preventWarn = (message?: string, callback?: () => void) => {
+    const data = {
+      title: 'Você tem certeza?',
+      text: message || 'Você tem certeza que deseja proceguir?',
+      confirmText: 'OK',
+      tag: 'warning',
+    } as IModalDataSlice;
+
+    onOpenGlobalModal(data, callback);
+  };
+
+  return { preventWarn, preventUnwantedChanges, preventDelete };
 };

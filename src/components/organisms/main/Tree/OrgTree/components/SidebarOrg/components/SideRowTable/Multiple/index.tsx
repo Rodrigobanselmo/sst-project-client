@@ -14,15 +14,21 @@ import {
   selectGhoMultiDisabledIds,
   selectGhoMultiIds,
 } from 'store/reducers/hierarchy/ghoMultiSlice';
-import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
+import {
+  selectRisk,
+  selectRisks,
+  setRiskAddState,
+} from 'store/reducers/hierarchy/riskAddSlice';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
+import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import {
   IUpsertManyRiskData,
   useMutUpsertManyRiskData,
@@ -42,11 +48,16 @@ import { ProbabilityColumn } from '../components/columns/ProbabilityColumn';
 import { RecColumn } from '../components/columns/RecColumn';
 import { SourceColumn } from '../components/columns/SourceColumn';
 import { STGridItem } from '../styles';
+import { IRiskDataRow } from '../types';
 import { SideTableMultipleProps } from './types';
 
+const initialState: IRiskDataRow = { id: '' };
+
 export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
-  const risk = useAppSelector(selectRisk);
-  const upsertRiskData = useMutUpsertRiskData();
+  // const selectedRiskStore = useAppSelector(selectRisk);
+  const selectedRisks = useAppSelector(selectRisks);
+  const dispatch = useAppDispatch();
+  const selectedRiskStore: IRiskFactors | null = selectedRisks[0];
 
   const store = useStore();
   const { companyId } = useGetCompanyId();
@@ -54,13 +65,13 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
   const upsertManyMut = useMutUpsertManyRiskData();
-  const [riskData, setRiskData] = useState<IRiskData>({ id: '' } as IRiskData);
+  const [riskData, setRiskData] = useState<IRiskDataRow>(initialState);
 
   const isSelected = false;
 
   useEffect(() => {
-    setRiskData({ id: '' } as IRiskData);
-  }, [risk]);
+    setRiskData(initialState);
+  }, [selectedRisks]);
 
   const handleSelect = async (
     {
@@ -73,14 +84,10 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
     }: Partial<IUpsertRiskData>,
     data?: any,
   ) => {
-    if (!risk?.id) return;
+    if (selectedRisks?.length === 0) return;
+    dispatch(setRiskAddState({ isEdited: true }));
 
-    const submitData = {
-      ...values,
-      id: riskData?.id,
-      riskId: risk.id,
-      riskFactorGroupDataId: query.riskGroupId as string,
-    } as IRiskData;
+    const submitData = { ...values } as IRiskDataRow;
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
       ([key, value]) => {
@@ -96,7 +103,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
   };
 
   const handleHelp = async (data: Partial<IUpsertRiskData>) => {
-    if (!risk?.id) return;
+    if (!selectedRiskStore?.id) return;
 
     const company = queryClient.getQueryData<ICompany>([
       QueryEnum.COMPANY,
@@ -130,8 +137,8 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
     };
 
     onOpenModal(ModalEnum.PROBABILITY_ADD, {
-      riskType: risk.type,
-      intensityLt: risk.nr15lt,
+      riskType: selectedRiskStore.type,
+      intensityLt: selectedRiskStore.nr15lt,
       employeeCountGho: ghoCount,
       employeeCountTotal: workspaceEmployeesCount,
       onCreate: handleSelectSync,
@@ -146,14 +153,9 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
     generateSources,
     ...values
   }: Partial<IUpsertRiskData>) => {
-    if (!risk?.id) return;
+    if (!selectedRiskStore?.id) return;
 
-    const submitData = {
-      ...values,
-      id: riskData?.id,
-      riskId: risk.id,
-      riskFactorGroupDataId: query.riskGroupId as string,
-    } as IRiskData;
+    const submitData = { ...values } as IRiskDataRow;
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
       ([key, value]) => {
@@ -168,13 +170,13 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
       },
     );
 
-    console.log(submitData);
-
     setRiskData((old) => ({ ...old, ...submitData }));
   };
 
   const handleSave = async () => {
-    if (!risk?.id) return;
+    if (selectedRisks.length === 0) return;
+    dispatch(setRiskAddState({ isSaving: true }));
+
     const selectedGhos = store.getState().ghoMulti.selectedIds as string[];
     const selectedDisabledGhos = store.getState().ghoMulti
       .selectedDisabledIds as string[];
@@ -186,7 +188,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
       homogeneousGroupIds: selectedGhos.filter(
         (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
       ),
-      riskId: risk.id,
+      riskIds: selectedRisks.map((risk) => risk.id),
       riskFactorGroupDataId: query.riskGroupId,
     };
 
@@ -199,89 +201,96 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
       },
     );
 
-    await upsertManyMut.mutateAsync(
-      submitData as unknown as IUpsertManyRiskData,
-    );
-
-    setRiskData({ id: '' } as IRiskData);
+    try {
+      await upsertManyMut.mutateAsync(
+        submitData as unknown as IUpsertManyRiskData,
+      );
+      setRiskData({ id: '' } as IRiskData);
+      dispatch(setRiskAddState({ isSaving: false, isEdited: false }));
+    } catch (error) {
+      dispatch(setRiskAddState({ isSaving: false }));
+    }
   };
 
   const actualMatrixLevel = getMatrizRisk(
     riskData?.probability,
-    risk?.severity,
+    selectedRiskStore?.severity,
   );
   const actualMatrixLevelAfter = getMatrizRisk(
     riskData?.probabilityAfter,
-    risk?.severity,
+    selectedRiskStore?.severity,
   );
 
   return (
-    <STGridItem
-      sx={{
-        gridTemplateColumns:
-          'minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) 120px 120px minmax(100px, 1fr) 120px 120px 120px', //! fix this
-      }}
-      mt={10}
-      selected={isSelected ? 1 : 0}
-      onClick={() =>
-        risk?.id ? null : document.getElementById('risk-select-id')?.click()
-      }
-    >
-      <SourceColumn
-        handleSelect={handleSelect}
-        handleRemove={handleRemove}
-        data={riskData}
-        risk={risk}
-      />
-      <EpiColumn
-        handleSelect={handleSelect}
-        handleRemove={handleRemove}
-        data={riskData}
-        risk={risk}
-      />
-      <EngColumn
-        handleSelect={handleSelect}
-        handleRemove={handleRemove}
-        data={riskData}
-        risk={risk}
-      />
-      <AdmColumn
-        handleSelect={handleSelect}
-        handleRemove={handleRemove}
-        data={riskData}
-        risk={risk}
-      />
-      <ProbabilityColumn
-        handleHelp={handleHelp}
-        handleSelect={handleSelect}
-        data={riskData}
-      />
-      <STag
-        action={String(actualMatrixLevel?.level) as unknown as ITagActionColors}
-        text={actualMatrixLevel?.label || '--'}
-        maxHeight={24}
-      />
-      <RecColumn
-        handleSelect={handleSelect}
-        handleRemove={handleRemove}
-        data={riskData}
-        risk={risk}
-      />
-      <ProbabilityAfterColumn handleSelect={handleSelect} data={riskData} />
-      <STag
-        action={
-          String(actualMatrixLevelAfter?.level) as unknown as ITagActionColors
+    <>
+      <STGridItem
+        mt={10}
+        selected={isSelected ? 1 : 0}
+        onClick={() =>
+          selectedRiskStore?.id
+            ? null
+            : document.getElementById('risk-select-id')?.click()
         }
-        maxHeight={24}
-        text={actualMatrixLevelAfter?.label || '--'}
-      />
+      >
+        <SourceColumn
+          handleSelect={handleSelect}
+          handleRemove={handleRemove}
+          data={riskData}
+          risk={selectedRiskStore}
+        />
+        <EpiColumn
+          handleSelect={handleSelect}
+          handleRemove={handleRemove}
+          data={riskData}
+          risk={selectedRiskStore}
+        />
+        <EngColumn
+          handleSelect={handleSelect}
+          handleRemove={handleRemove}
+          data={riskData}
+          risk={selectedRiskStore}
+        />
+        <AdmColumn
+          handleSelect={handleSelect}
+          handleRemove={handleRemove}
+          data={riskData}
+          risk={selectedRiskStore}
+        />
+        <ProbabilityColumn
+          handleHelp={handleHelp}
+          handleSelect={handleSelect}
+          data={riskData}
+        />
+        <STag
+          action={
+            String(actualMatrixLevel?.level) as unknown as ITagActionColors
+          }
+          text={actualMatrixLevel?.label || '--'}
+          maxHeight={24}
+        />
+        <RecColumn
+          handleSelect={handleSelect}
+          handleRemove={handleRemove}
+          data={riskData}
+          risk={selectedRiskStore}
+        />
+        <ProbabilityAfterColumn handleSelect={handleSelect} data={riskData} />
+        <STag
+          action={
+            String(actualMatrixLevelAfter?.level) as unknown as ITagActionColors
+          }
+          maxHeight={24}
+          text={actualMatrixLevelAfter?.label || '--'}
+        />
+      </STGridItem>
       <SButton
+        id="save-button-gho-select"
         loading={upsertManyMut.isLoading}
-        style={{ height: '25px', maxWidth: '20px' }}
+        style={{ height: '25px', maxWidth: '20px', display: 'none' }}
         onClick={handleSave}
       >
         Salvar
       </SButton>
-    </STGridItem>
+    </>
   );
 };

@@ -15,7 +15,8 @@ export interface IUpsertRiskData {
   id?: string;
   companyId?: string;
   riskFactorGroupDataId: string;
-  riskId: string;
+  riskId?: string;
+  riskIds?: string[];
   hierarchyId?: string;
   homogeneousGroupId?: string;
   probability?: number;

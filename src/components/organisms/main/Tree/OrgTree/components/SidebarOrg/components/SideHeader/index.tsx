@@ -57,16 +57,7 @@ export const SideHeader: FC<SideHeaderProps> = ({
       )}
       <Box width="100%">
         {riskInit && (
-          <STGridHeader
-            style={
-              viewType === ViewTypeEnum.SELECT
-                ? {
-                    gridTemplateColumns:
-                      'minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) 120px 120px minmax(100px, 1fr) 120px 120px 120px',
-                  }
-                : {}
-            }
-          >
+          <STGridHeader>
             {headerRows.map((row) => {
               const isFilterSelected = selectedGhoFilter.key === row.filterKey;
               const isSortable =

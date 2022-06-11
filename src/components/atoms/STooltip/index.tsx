@@ -12,7 +12,8 @@ const STooltip: FC<STooltipProps> = ({
   ...props
 }) => {
   if (!title) return <>{children}</>;
-  if (title.length < minLength) return <>{children}</>;
+  if (typeof title == 'string' && title.length < minLength)
+    return <>{children}</>;
 
   if (withWrapper)
     return (
