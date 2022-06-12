@@ -73,7 +73,7 @@ export const SideHeader: FC<SideHeaderProps> = ({
                       cursor: isSortable ? 'pointer' : 'default',
                     }}
                   >
-                    <SText noBreak={1}>{row.label}</SText>
+                    <SText noBreak>{row.label}</SText>
                     {isSortable && (
                       <StyledSArrowUpFilterIcon
                         filter={

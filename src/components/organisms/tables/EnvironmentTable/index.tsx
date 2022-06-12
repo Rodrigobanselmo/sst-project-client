@@ -1,6 +1,5 @@
 import { FC } from 'react';
 
-import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { BoxProps } from '@mui/material';
 import {
   STable,
@@ -14,7 +13,6 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddEnvironment } from 'components/organisms/modals/ModalAddEnvironment';
-import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';

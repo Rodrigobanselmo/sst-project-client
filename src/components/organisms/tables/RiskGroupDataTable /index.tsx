@@ -13,17 +13,14 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
-import { StatusEnum } from 'project/enum/status.enum';
 
-import SDownloadIcon from 'assets/icons/SDownloadIcon';
+import { StatusEnum } from 'project/enum/status.enum';
 import EditIcon from 'assets/icons/SEditIcon';
 
-import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -33,6 +30,7 @@ import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { sortData } from 'core/utils/sorts/data.sort';
+
 
 export const RiskGroupDataTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryRiskGroupData();
