@@ -26,14 +26,12 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
 import { useQueryEnvironments } from 'core/services/hooks/queries/useQueryEnvironments';
 import { sortData } from 'core/utils/sorts/data.sort';
 
 export const EnvironmentTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryEnvironments();
   const { onOpenModal } = useModal();
-  const downloadMutation = useMutDownloadFile();
   const { push } = useRouter();
   const { companyId, workspaceId } = useGetCompanyId();
 
@@ -48,11 +46,6 @@ export const EnvironmentTable: FC<BoxProps> = () => {
   };
 
   const handleEditRiskGroup = (data: IRiskGroupData) => {
-    // onOpenModal(ModalEnum.RISK_GROUP_ADD, {
-    //   id: data.id,
-    //   name: data.name,
-    //   status: data.status,
-    // } as typeof initialRiskGroupState);
     push(
       RoutesEnum.COMPANY_PGR_DOCUMENT.replace(
         /:companyId/g,
@@ -60,15 +53,6 @@ export const EnvironmentTable: FC<BoxProps> = () => {
       ).replace(/:docId/g, data.id),
     );
   };
-
-  // const handleGoToRiskData = (row: IRiskGroupData) => {
-  //   push(
-  //     RoutesEnum.RISK_DATA.replace(/:companyId/g, row.companyId).replace(
-  //       /:riskGroupId/g,
-  //       row.id,
-  //     ),
-  //   );
-  // };
 
   const getParentName = (id?: string) => {
     if (!id) return '--';
