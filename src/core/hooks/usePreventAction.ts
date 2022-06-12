@@ -27,7 +27,11 @@ export const usePreventAction = () => {
     return false;
   };
 
-  const preventDelete = (callback: () => void, message?: string) => {
+  const preventDelete = (
+    callback: () => void,
+    message?: string,
+    options?: { inputConfirm?: boolean },
+  ) => {
     const data = {
       title: 'Você tem certeza?',
       text:
@@ -36,6 +40,7 @@ export const usePreventAction = () => {
       confirmText: 'Deletar',
       tag: 'delete',
       confirmCancel: 'Cancel',
+      inputConfirm: !!options?.inputConfirm,
     } as IModalDataSlice;
 
     onOpenGlobalModal(data, callback);

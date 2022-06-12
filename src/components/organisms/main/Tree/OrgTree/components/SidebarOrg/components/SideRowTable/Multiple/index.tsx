@@ -30,6 +30,10 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import {
+  IDeleteManyRiskData,
+  useMutDeleteManyRiskData,
+} from 'core/services/hooks/mutations/checklist/useMutDeleteManyRiskData';
+import {
   IUpsertManyRiskData,
   useMutUpsertManyRiskData,
 } from 'core/services/hooks/mutations/checklist/useMutUpsertManyRiskData';
@@ -65,6 +69,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
   const upsertManyMut = useMutUpsertManyRiskData();
+  const deleteManyMut = useMutDeleteManyRiskData();
   const [riskData, setRiskData] = useState<IRiskDataRow>(initialState);
 
   const isSelected = false;
@@ -212,6 +217,34 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
     }
   };
 
+  const handleDelete = async () => {
+    if (selectedRisks.length === 0) return;
+    dispatch(setRiskAddState({ isSaving: true }));
+
+    const selectedGhos = store.getState().ghoMulti.selectedIds as string[];
+    const selectedDisabledGhos = store.getState().ghoMulti
+      .selectedDisabledIds as string[];
+
+    const submitData = {
+      homogeneousGroupIds: selectedGhos.filter(
+        (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
+      ),
+      riskIds: selectedRisks.map((risk) => risk.id),
+      riskFactorGroupDataId: query.riskGroupId,
+    };
+
+    try {
+      await deleteManyMut.mutateAsync(
+        submitData as unknown as IDeleteManyRiskData,
+      );
+      setRiskData({ id: '' } as IRiskData);
+      dispatch(setRiskAddState({ isSaving: false, isEdited: false }));
+    } catch (error) {
+      console.log(error);
+      dispatch(setRiskAddState({ isSaving: false }));
+    }
+  };
+
   const actualMatrixLevel = getMatrizRisk(
     riskData?.probability,
     selectedRiskStore?.severity,
@@ -284,12 +317,20 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
         />
       </STGridItem>
       <SButton
+        id="delete-button-gho-select"
+        loading={deleteManyMut.isLoading}
+        style={{ height: '25px', maxWidth: '20px', display: 'none' }}
+        onClick={handleDelete}
+      >
+        Deletar
+      </SButton>
+      <SButton
         id="save-button-gho-select"
         loading={upsertManyMut.isLoading}
         style={{ height: '25px', maxWidth: '20px', display: 'none' }}
         onClick={handleSave}
       >
-        Salvar
+        Adicionar
       </SButton>
     </>
   );

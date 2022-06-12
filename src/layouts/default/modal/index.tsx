@@ -1,4 +1,7 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
+
+import { Typography } from '@mui/material';
+import { SInput } from 'components/atoms/SInput';
 
 import SText from '../../../components/atoms/SText';
 import SModal, {
@@ -22,10 +25,12 @@ const DefaultModal: FC = () => {
   const modalData = useAppSelector(selectModalData);
   const globalModal = useAppSelector(selectModalGlobal);
   const { onCloseGlobalModal } = useGlobalModal();
+  const [inputConfirmText, setInputConfirmText] = useState('');
 
   const onConfirm = () => {
     dispatch(setModalAction(true));
     onCloseGlobalModal();
+    setInputConfirmText('');
   };
 
   const buttons = [
@@ -33,6 +38,9 @@ const DefaultModal: FC = () => {
       text: modalData.confirmText,
       onClick: onConfirm,
       variant: 'contained',
+      disabled: modalData.inputConfirm
+        ? !(inputConfirmText == 'deletar')
+        : false,
     } as IModalButton,
   ];
 
@@ -50,6 +58,20 @@ const DefaultModal: FC = () => {
         <SText color="text.light" maxWidth="450px">
           {modalData.text}
         </SText>
+
+        {modalData.inputConfirm && (
+          <>
+            <Typography fontSize={14} color={'grey.500'} mb={5} mt={10}>
+              Escreva <b>deletar</b> para continuar
+            </Typography>
+            <SInput
+              value={inputConfirmText}
+              onChange={(e) => setInputConfirmText(e.target.value)}
+              fullWidth
+              placeholder="deletar"
+            />
+          </>
+        )}
         <SModalButtons
           onClose={onCloseGlobalModal}
           buttons={buttons.reverse()}

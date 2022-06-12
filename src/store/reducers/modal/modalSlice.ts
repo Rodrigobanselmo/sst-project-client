@@ -10,6 +10,7 @@ export interface IModalDataSlice {
   text: string;
   confirmText: string;
   tag?: ITagAction;
+  inputConfirm?: boolean;
   confirmCancel: string;
 }
 
