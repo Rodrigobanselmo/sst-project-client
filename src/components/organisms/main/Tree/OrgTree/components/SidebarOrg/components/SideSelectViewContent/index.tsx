@@ -26,6 +26,7 @@ import { SideInput } from '../SIdeInput';
 import { SideSelectedGho } from '../SideToSelectedGho/SideSelectedGho';
 import { SideUnselectedGho } from '../SideToSelectedGho/SideUnselectedGho';
 import { SaveButton } from './SaveButton';
+import { TotalTag } from './TotalTag';
 import { SideSelectViewContentProps } from './types';
 
 export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
@@ -56,18 +57,30 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
   const handleUnselectAll = useCallback(() => {
     const search = store.getState().gho.searchSelect as string;
     const selectedIds = store.getState().ghoMulti.selectedIds as string;
-    const allToSelect = ghoQuery
+    const selectedDisabledIds = store.getState().ghoMulti
+      .selectedDisabledIds as string[];
+
+    const allDisabledSelect = ghoQuery
+      .filter(
+        (gho) =>
+          selectedDisabledIds.includes(gho.id) &&
+          stringNormalize(gho.name).includes(stringNormalize(search)),
+      )
+      .map((gho) => gho.id);
+
+    const allActiveSelect = ghoQuery
       .filter(
         (gho) =>
           selectedIds.includes(gho.id) &&
-          stringNormalize(gho.name).includes(stringNormalize(search)),
+          stringNormalize(gho.name).includes(stringNormalize(search)) &&
+          !allDisabledSelect.includes(gho.id),
       )
       .map((gho) => gho.id);
 
     if (inputSelectedRef.current) inputSelectedRef.current.value = '';
     dispatch(setGhoSearchSelect(''));
 
-    dispatch(setGhoMultiRemoveIds(allToSelect));
+    dispatch(setGhoMultiRemoveIds(allActiveSelect));
   }, [ghoQuery, dispatch, store]);
 
   const handleInvertDisabled = useCallback(() => {
@@ -109,6 +122,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           handleEditGHO={handleEditGHO}
         />
         <SFlex align="center" sx={{ ml: 'auto', mr: 5 }}>
+          <TotalTag />
           <STagButton
             icon={SwapHorizIcon}
             text="Inverter desabiitados"
@@ -119,10 +133,10 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           />
           <STagButton
             icon={IndeterminateCheckBoxOutlinedIcon}
-            tooltipTitle="Remover todos os GHOs abaixo"
+            tooltipTitle="Remover todos os GHOs ativos"
             mr={5}
             large
-            text="Remover todos"
+            text="Remover ativos"
             onClick={handleUnselectAll}
           />
           <SaveButton />

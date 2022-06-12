@@ -17,7 +17,7 @@ export const SaveButton: FC = () => {
   const onDelete = () => {
     preventDelete(
       () => document.getElementById('delete-button-gho-select')?.click(),
-      "Ao clicar no botão 'Deletar', você estará excluindo todos os dados de risco aos grupos homogênios selecionados. Deseja continuar?",
+      "Ao clicar no botão 'Deletar', você excluirá todos os dados referentes aos risco selecionados para os grupos homogênios ativos. Deseja continuar?",
       { inputConfirm: true },
     );
   };
@@ -30,7 +30,7 @@ export const SaveButton: FC = () => {
         sx={{ backgroundColor: 'grey.400' }}
         loading={saveState.isSaving}
       >
-        Remover dados
+        Limpar dados
       </SButton>
       <SButton
         onClick={save}
