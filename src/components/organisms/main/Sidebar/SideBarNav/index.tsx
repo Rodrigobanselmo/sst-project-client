@@ -2,6 +2,7 @@
 import { Stack } from '@mui/material';
 
 import { useAccess } from 'core/hooks/useAccess';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { Drawer_Links } from '../constants';
@@ -14,6 +15,7 @@ import { BoxContainerStyled, BoxSectionStyled } from './styles';
 export function SideBarNav(): JSX.Element {
   const { isTablet, open, close } = useSidebarDrawer();
   const { isValidRoles } = useAccess();
+  const { companyId } = useGetCompanyId();
 
   return (
     <BoxContainerStyled
@@ -38,7 +40,7 @@ export function SideBarNav(): JSX.Element {
                   return (
                     <NavLink
                       key={item.id}
-                      href={item.href}
+                      href={item.href.replace(':companyId', companyId || '')}
                       icon={item.Icon}
                       text={item.text}
                       description={item.description}

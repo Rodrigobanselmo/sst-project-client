@@ -24,6 +24,7 @@ import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
+import STeamIcon from 'assets/icons/STeamIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
@@ -100,6 +101,12 @@ const CompanyPage: NextPage = () => {
     if (workspaceLength == 1) goToEnv(company.workspace[0].id);
   }, [company.id, company?.workspace, onOpenModal, push]);
 
+  const handleAddTeam = useCallback(() => {
+    push({
+      pathname: RoutesEnum.TEAM.replace(':companyId', company.id),
+    });
+  }, [company.id, push]);
+
   const actionsStepMemo = useMemo(() => {
     return [
       {
@@ -125,7 +132,12 @@ const CompanyPage: NextPage = () => {
       {
         icon: SEnvironmentIcon,
         onClick: handleAddEnvironments,
-        text: 'Cadastar Ambientes de trabalho',
+        text: 'Cadastrar Ambientes de trabalho',
+      },
+      {
+        icon: STeamIcon,
+        onClick: handleAddTeam,
+        text: 'Cadastrar Usuários',
       },
       {
         icon: SEditIcon,
@@ -139,6 +151,7 @@ const CompanyPage: NextPage = () => {
     handleAddPgrDocument,
     handleAddRisk,
     handleAddEnvironments,
+    handleAddTeam,
   ]);
 
   const nextStepMemo = useMemo(() => {

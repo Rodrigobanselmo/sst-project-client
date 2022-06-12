@@ -4,7 +4,7 @@ export enum RoutesEnum {
   ONBOARD = '/acesso',
   LOGIN = '/',
   DASHBOARD = '/dashboard',
-  TEAM = '/dashboard/equipe',
+  TEAM = '/dashboard/equipe/:companyId',
   PROFILE = '/dashboard/perfil',
   PUBLIC = '/publico',
   CHECKLIST = '/dashboard/checklist',
