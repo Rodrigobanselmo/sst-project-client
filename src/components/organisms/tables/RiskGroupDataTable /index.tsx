@@ -17,8 +17,8 @@ import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
-
 import { StatusEnum } from 'project/enum/status.enum';
+
 import EditIcon from 'assets/icons/SEditIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -30,7 +30,6 @@ import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { sortData } from 'core/utils/sorts/data.sort';
-
 
 export const RiskGroupDataTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryRiskGroupData();
