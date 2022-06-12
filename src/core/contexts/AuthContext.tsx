@@ -57,6 +57,30 @@ export function signOut(ctx?: any) {
   Router.push(RoutesEnum.LOGIN);
 }
 
+export async function refreshToken() {
+  const { 'nextauth.refreshToken': refresh_token } = parseCookies();
+
+  const refresh = await api.post('/refresh', { refresh_token });
+
+  const { token } = refresh.data;
+
+  setCookie(null, 'nextauth.token', token, {
+    maxAge: 60 * 60 * 25 * 30, // 30 days
+    path: '/',
+  });
+
+  setCookie(null, 'nextauth.refreshToken', refresh.data.refresh_token, {
+    maxAge: 60 * 60 * 25 * 30, // 30 days
+    path: '/',
+  });
+
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
+
+  return { token, refresh };
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -178,25 +202,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function refreshUser() {
-    const { 'nextauth.refreshToken': refresh_token } = parseCookies();
-
-    const refresh = await api.post('/refresh', { refresh_token });
-
-    const { token } = refresh.data;
-
-    setCookie(null, 'nextauth.token', token, {
-      maxAge: 60 * 60 * 25 * 30, // 30 days
-      path: '/',
-    });
-
-    setCookie(null, 'nextauth.refreshToken', refresh.data.refresh_token, {
-      maxAge: 60 * 60 * 25 * 30, // 30 days
-      path: '/',
-    });
-
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
+    refreshToken();
 
     await getMe();
   }

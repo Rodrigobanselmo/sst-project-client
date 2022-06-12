@@ -5,7 +5,8 @@ export enum ModalEnum {
   USER_ADD = 'user-add',
   CHECKLIST_ADD = 'checklist-add',
   RISK_GROUP_ADD = 'risk-group-add',
-  DOC_PGR_SELECT = 'workspace-select',
+  ENVIRONMENT_ADD = 'environment-add',
+  DOC_PGR_SELECT = 'doc-pgr-select',
   WORKSPACE_SELECT = 'workspace-select',
   RISK_GROUP_DOC_ADD = 'risk-group-doc-add',
   COMPANY_ADD = 'company-add',
@@ -19,6 +20,7 @@ export enum ModalEnum {
   GENERATE_SOURCE_ADD = 'generate-source-add',
   GLOBAL = 'global',
   UPLOAD = 'upload',
+  UPLOAD_PHOTO = 'upload-photo',
   TEST = 'test',
   HIERARCHIES_EXCEL_ADD = 'employees-excel-add',
 }

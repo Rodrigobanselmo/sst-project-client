@@ -1,7 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
 import { Box } from '@mui/material';
+import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { STableRow } from 'components/atoms/STable';
 import SText from 'components/atoms/SText';
@@ -11,7 +11,6 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -19,43 +18,48 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
-interface IModalSelectWorkspace {
-  onSelect: (workspace: IWorkspace, passData: any) => void;
-  title?: string;
-  onCloseWithoutSelect?: () => void;
-}
-
-export const initialRiskGroupState = {
-  name: '',
-  status: StatusEnum.PROGRESS,
-  error: '',
-  id: '',
-  goTo: '',
+export const initialWorkspaceSelectState = {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onSelect: (work: IWorkspace) => {},
+  title: 'Selecione o estabelecimento',
+  onCloseWithoutSelect: () => {},
 };
 
-export const ModalSelectWorkspace: FC<IModalSelectWorkspace> = ({
-  onSelect,
-  title = 'Selecione o estabelecimento',
-  onCloseWithoutSelect,
-}) => {
+export const ModalSelectWorkspace: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
+  const { onCloseModal, onOpenModal } = useModal();
   const { data: company } = useQueryCompany();
-  const initData = useRef<any>({});
+  const [selectData, setSelectData] = useState(initialWorkspaceSelectState);
 
   useEffect(() => {
-    const initialData = getModalData(ModalEnum.WORKSPACE_SELECT);
-    if (initialData) initData.current = initialData;
+    const initialData = getModalData(
+      ModalEnum.WORKSPACE_SELECT,
+    ) as typeof initialWorkspaceSelectState;
+
+    if (initialData) {
+      setSelectData((oldData) => {
+        const newData = {
+          ...oldData,
+          ...initialData,
+        };
+
+        return newData;
+      });
+    }
   }, [getModalData]);
 
   const onCloseNoSelect = () => {
-    onCloseWithoutSelect?.();
+    selectData.onCloseWithoutSelect?.();
     onCloseModal(ModalEnum.WORKSPACE_SELECT);
   };
 
   const handleSelect = (work: IWorkspace) => () => {
     onCloseModal(ModalEnum.WORKSPACE_SELECT);
-    onSelect(work, initData.current);
+    selectData.onSelect(work);
+  };
+
+  const handleAddMissingData = () => {
+    onOpenModal(ModalEnum.WORKSPACE_ADD);
   };
 
   const buttons = [{}] as IModalButton[];
@@ -70,10 +74,10 @@ export const ModalSelectWorkspace: FC<IModalSelectWorkspace> = ({
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <Box mt={8}>
-          {company.workspace ? (
+          {company.workspace && company.workspace.length > 0 ? (
             <SFlex direction="column" gap={5}>
               <SText mt={-4} mr={40}>
-                {title}
+                {selectData.title}
               </SText>
               {company.workspace.map((work) => (
                 <STableRow clickable onClick={handleSelect(work)} key={work.id}>
@@ -82,10 +86,19 @@ export const ModalSelectWorkspace: FC<IModalSelectWorkspace> = ({
               ))}
             </SFlex>
           ) : (
-            <SText mt={-4} maxWidth="400px">
-              Nenhum estabelecimento cadastrado, por favor cadastre antes de
-              gerar um novo documento
-            </SText>
+            <>
+              <SText mt={-4} maxWidth="400px">
+                Nenhum estabelecimento cadastrado, por favor cadastre antes de
+                gerar um novo documento
+              </SText>
+              <SButton
+                onClick={handleAddMissingData}
+                color="secondary"
+                sx={{ mt: 5 }}
+              >
+                Cadastrar Estabelecimento
+              </SButton>
+            </>
           )}
         </Box>
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

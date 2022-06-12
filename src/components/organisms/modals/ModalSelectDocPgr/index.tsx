@@ -66,7 +66,7 @@ export const ModalSelectDocPgr: FC<IModalSelectDocPgr> = ({
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <Box mt={8}>
-          {riskGroupData.length !== 1 ? (
+          {riskGroupData.length !== 0 ? (
             <SFlex direction="column" gap={5}>
               <SText mt={-4} mr={40}>
                 {title}

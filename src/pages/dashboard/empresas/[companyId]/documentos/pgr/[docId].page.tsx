@@ -46,16 +46,7 @@ const Companies: NextPage = () => {
       <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
       <DocPgrTable riskGroupId={query.docId as string} />
       <ModalAddDocPgr />
-      <ModalSelectWorkspace
-        title="Selecione o estabelecimento para o documento PGR"
-        onSelect={(work, passData) =>
-          onOpenModal(ModalEnum.RISK_GROUP_DOC_ADD, {
-            workspaceId: work.id,
-            workspaceName: work.name,
-            ...(passData || {}),
-          })
-        }
-      />
+      <ModalSelectWorkspace />
     </SContainer>
   );
 };

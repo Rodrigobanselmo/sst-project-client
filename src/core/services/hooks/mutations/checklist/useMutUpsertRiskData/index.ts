@@ -40,16 +40,12 @@ export async function upsertRiskData(
   });
 
   if (typeof response.data === 'string') {
-    return [
-      {
-        riskId: data.riskId,
-        riskFactorGroupDataId: data.riskFactorGroupDataId,
-        deletedId: response.data,
-      },
-    ] as unknown as IRiskData;
+    return {
+      riskId: data.riskId,
+      riskFactorGroupDataId: data.riskFactorGroupDataId,
+      deletedId: response.data,
+    } as unknown as IRiskData;
   }
-
-  console.log(response.data);
 
   return response.data;
 }
@@ -77,7 +73,6 @@ export function useMutUpsertRiskData() {
 
                 if ('deletedId' in resp) {
                   return newData.filter(
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
                     (item) => item.id !== (resp as any).deletedId,
                   );
                 }

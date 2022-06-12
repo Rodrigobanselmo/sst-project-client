@@ -3693,6 +3693,13 @@ react-hook-form@^7.20.2:
   resolved "https://registry.yarnpkg.com/react-hook-form/-/react-hook-form-7.20.2.tgz#6fe76b680dd54ceb95c9c1a3c6338162081ba2e2"
   integrity sha512-J5zkZW0Mf3KuMlk7Tl1tWYXoSjYhfKyEu//NfWTn2xzvv2vnDT5/EE/vHgtNb7kVeYpx6/mHIBd9aOfNnWcOsg==
 
+react-image-crop@^10.0.2:
+  version "10.0.2"
+  resolved "https://registry.yarnpkg.com/react-image-crop/-/react-image-crop-10.0.2.tgz#e14c3e0f99c06ef260d50991df59b67ee8e34d33"
+  integrity sha512-aOsnQRaEQBDyVoYCRmoviKIcp0iaPMo5Hy81j6IKP75qn36cU0xmssXzptDyF+eSxxadLrpmArXNUCR/kGyp6A==
+  dependencies:
+    clsx "^1.1.1"
+
 react-indiana-drag-scroll@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/react-indiana-drag-scroll/-/react-indiana-drag-scroll-2.1.0.tgz#37654eae8caced01cdecc8bce55f0382871a021d"

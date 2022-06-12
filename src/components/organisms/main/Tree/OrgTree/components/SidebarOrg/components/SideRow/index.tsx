@@ -15,7 +15,7 @@ import { SideRowProps } from './types';
 function onVisible(callback: any) {
   return new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      if (entry.intersectionRatio > 0) {
+      if (entry.isIntersecting) {
         callback(false);
       } else {
         callback(true);

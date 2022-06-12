@@ -11,13 +11,14 @@ const STableTitle: FC<STableTitleProps> = ({
   icon,
   mb = 12,
   mt = 0,
+  iconSx = {},
   ...props
 }) => (
   <SFlex mb={mb} mt={mt} align="center">
     {icon && (
       <Icon
         component={icon}
-        sx={{ fontSize: '22px', mr: 4, color: 'text.main' }}
+        sx={{ fontSize: '22px', mr: 4, color: 'text.main', ...iconSx }}
       />
     )}
     <SText variant={'h4'} {...props}>

@@ -40,7 +40,11 @@ const TextIconRow: FC<TextIconRowProps> = ({
     <STooltip title={tooltipTitle}>
       <SFlex
         onClick={onClick}
-        sx={{ cursor: onClick ? 'pointer' : 'default', ...sx }}
+        sx={{
+          cursor: onClick ? 'pointer' : 'default',
+          height: '100%',
+          ...sx,
+        }}
         align="center"
         {...props}
       >

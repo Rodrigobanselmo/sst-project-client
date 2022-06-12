@@ -22,7 +22,6 @@ const STableSearch: FC<STableSearchProps> = ({ onAddClick, ...props }) => (
       <SButton
         onClick={onAddClick}
         color="success"
-        shadow
         sx={{
           height: 38,
           minWidth: 38,

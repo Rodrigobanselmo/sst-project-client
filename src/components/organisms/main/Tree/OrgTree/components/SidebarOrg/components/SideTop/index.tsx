@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
+import { useStore } from 'react-redux';
 
 import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -50,6 +51,7 @@ export const SideTop: FC<SideTopProps> = ({
   const selectedRiskStore = useAppSelector(selectRisk);
   const saveState = useAppSelector(selectRiskDataSave);
   const { preventWarn } = usePreventAction();
+  const store = useStore();
 
   const isViewTypeSelect = viewType == ViewTypeEnum.SELECT;
 
@@ -76,7 +78,16 @@ export const SideTop: FC<SideTopProps> = ({
         setRiskAddState({ risks: selectedRisks, risk: selectedRisks[0] }),
       );
     } else {
-      if (options.id) dispatch(setRiskAddState({ risk: options }));
+      if (options.id) {
+        const risks = (store.getState().riskAdd.risks || []) as IRiskFactors[];
+        const risk = risks.find((risk) => risk.id === options.id);
+        dispatch(
+          setRiskAddState({
+            risk: options,
+            risks: risk ? risks : [options],
+          }),
+        );
+      }
     }
   };
 

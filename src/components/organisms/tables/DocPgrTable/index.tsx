@@ -57,17 +57,12 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
           renderRow={(row) => {
             return (
               <STableRow key={row.id}>
-                <TextIconRow text={row.name || '--'} height={'100%'} />
-                <TextIconRow text={row.description || '--'} height={'100%'} />
-                <TextIconRow text={row.workspaceName || '--'} height={'100%'} />
-                <TextIconRow
-                  text={row.version}
-                  height={'100%'}
-                  justifyContent="center"
-                />
+                <TextIconRow text={row.name || '--'} />
+                <TextIconRow text={row.description || '--'} />
+                <TextIconRow text={row.workspaceName || '--'} />
+                <TextIconRow text={row.version} justifyContent="center" />
                 <TextIconRow
                   text={dayjs(row.created_at).format('DD/MM/YYYY')}
-                  height={'100%'}
                   justifyContent="center"
                 />
                 <StatusSelect

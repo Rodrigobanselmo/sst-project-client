@@ -3,9 +3,11 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { initialPgrDocState } from 'components/organisms/modals/ModalAddDocPgr/hooks/useHandleActions';
+import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import {
   IUpsertRiskGroupData,
@@ -90,7 +92,17 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
       status: data.status,
     };
 
-    onOpenModal(ModalEnum.WORKSPACE_SELECT, initialState);
+    const initialWorkspaceState = {
+      title: 'Selecione o estabelecimento para o documento PGR',
+      onSelect: (work: IWorkspace) =>
+        onOpenModal(ModalEnum.RISK_GROUP_DOC_ADD, {
+          workspaceId: work.id,
+          workspaceName: work.name,
+          ...initialState,
+        }),
+    } as typeof initialWorkspaceSelectState;
+
+    onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
   };
 
   return {

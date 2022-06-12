@@ -15,7 +15,7 @@ const SText: FC<STextProps> = ({
     color={color}
     textAlign={textAlign}
     line_number={lineNumber}
-    no_break={noBreak}
+    no_break={noBreak ? 1 : 0}
     {...props}
   />
 );

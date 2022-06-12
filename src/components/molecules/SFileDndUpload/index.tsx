@@ -10,12 +10,14 @@ interface ISFileDndUpload {
   accept?: string | string[];
   maxFiles?: number;
   onChange: (files: File[]) => void;
+  text?: string;
 }
 
 export const SFileDndUpload: FC<ISFileDndUpload> = ({
   accept,
   maxFiles,
   onChange,
+  text = 'Arraste ou click aqui \n para selecionar um arquivo',
 }) => {
   const [files, setFiles] = useState<File[]>([]);
   const { enqueueSnackbar } = useSnackbar();
@@ -64,7 +66,7 @@ export const SFileDndUpload: FC<ISFileDndUpload> = ({
         <p>Solte seu arquivo aqui ...</p>
       )}{' '}
       {files.length === 0 && !isDragActive && (
-        <p>Arraste seu aqui, ou click para selecionar um arquivo</p>
+        <p style={{ whiteSpace: 'pre-wrap', textAlign: 'center' }}>{text}</p>
       )}
       {files.length > 0 &&
         files.map((file) => <p key={file.name}>{file.name}</p>)}

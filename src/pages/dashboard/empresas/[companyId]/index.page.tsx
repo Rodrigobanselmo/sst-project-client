@@ -11,18 +11,24 @@ import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import {
+  initialWorkspaceSelectState,
+  ModalSelectWorkspace,
+} from 'components/organisms/modals/ModalSelectWorkspace';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
-import { SEditIcon } from 'assets/icons/SEditIcon';
+import SEditIcon from 'assets/icons/SEditIcon';
+import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
+import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
@@ -69,6 +75,31 @@ const CompanyPage: NextPage = () => {
     onOpenModal(ModalEnum.DOC_PGR_SELECT);
   }, [onOpenModal]);
 
+  const handleAddEnvironments = useCallback(() => {
+    const workspaceLength = company?.workspace?.length || 0;
+    const goToEnv = (workId: string) => {
+      push({
+        pathname: RoutesEnum.ENVIRONMENTS.replace(
+          ':companyId',
+          company.id,
+        ).replace(':workspaceId', workId),
+      });
+    };
+
+    if (workspaceLength != 1) {
+      const initialWorkspaceState = {
+        title:
+          'Selecione para qual Estabelecimento deseja adicionar os ambientes de trabalho',
+        onSelect: (workspace: IWorkspace) => goToEnv(workspace.id),
+      } as typeof initialWorkspaceSelectState;
+
+      onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
+    }
+
+    if (!company?.workspace) return;
+    if (workspaceLength == 1) goToEnv(company.workspace[0].id);
+  }, [company.id, company?.workspace, onOpenModal, push]);
+
   const actionsStepMemo = useMemo(() => {
     return [
       {
@@ -92,6 +123,11 @@ const CompanyPage: NextPage = () => {
         text: 'Vincular Fatores de Risco',
       },
       {
+        icon: SEnvironmentIcon,
+        onClick: handleAddEnvironments,
+        text: 'Cadastar Ambientes de trabalho',
+      },
+      {
         icon: SEditIcon,
         // onClick: handleAddWorkspace,
         text: 'Editar Dados da Empresa',
@@ -102,6 +138,7 @@ const CompanyPage: NextPage = () => {
     handleAddEmployees,
     handleAddPgrDocument,
     handleAddRisk,
+    handleAddEnvironments,
   ]);
 
   const nextStepMemo = useMemo(() => {
@@ -149,6 +186,7 @@ const CompanyPage: NextPage = () => {
       <ModalAddWorkspace />
       <ModalAddEmployees />
       <ModalAddRiskGroup />
+      <ModalSelectWorkspace />
       <ModalSelectDocPgr
         title="Selecione para qual documento PGR deseja adicionar os fatores de risco"
         onSelect={(docPgr) =>

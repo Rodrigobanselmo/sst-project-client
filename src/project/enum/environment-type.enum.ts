@@ -1,0 +1,5 @@
+export enum EnvironmentType {
+  SUPPORT = 'SUPPORT',
+  OPERATION = 'OPERATION',
+  ADMINISTRATIVE = 'ADMINISTRATIVE',
+}
