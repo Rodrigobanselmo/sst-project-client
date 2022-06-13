@@ -89,6 +89,7 @@ export const SideTop: FC<SideTopProps> = ({
         );
       }
     }
+    dispatch(setRiskAddState({ isEdited: false }));
   };
 
   const handleCloseRisk = () => {

@@ -43,6 +43,7 @@ import {
 } from 'core/services/hooks/mutations/checklist/useMutUpsertRiskData';
 import { queryClient } from 'core/services/queryClient';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { AdmColumn } from '../components/columns/AdmColumn';
 import { EngColumn } from '../components/columns/EngColumn';
@@ -97,10 +98,10 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
       ([key, value]) => {
         if (value?.length)
-          (submitData as any)[key] = [
+          (submitData as any)[key] = removeDuplicate([
             data,
             ...((riskData as any)?.[key] ?? []),
-          ];
+          ]);
       },
     );
 

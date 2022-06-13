@@ -1,5 +1,6 @@
 import React, { FC } from 'react';
 
+import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefaultOutlined';
 import { Checkbox } from '@mui/material';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
@@ -51,9 +52,10 @@ export const SideMainGho: FC<SideItemsProps> = ({
             onClick={handleEndSelect}
             color="default"
             size="small"
+            checkedIcon={<DisabledByDefaultOutlinedIcon />}
             sx={{
-              'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                color: 'grey.400',
+              svg: {
+                color: isEndSelect ? 'grey.400' : 'grey.400',
               },
             }}
           />
