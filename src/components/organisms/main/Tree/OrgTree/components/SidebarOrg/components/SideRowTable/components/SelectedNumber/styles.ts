@@ -19,7 +19,7 @@ export const STSFlex = styled(SFlex)<{ selected?: number; disabled?: number }>`
     props.selected &&
     css`
       background-color: ${props.theme.palette.success.main};
-    `}
+    `};
 
   ${(props) =>
     props.disabled &&
@@ -27,7 +27,7 @@ export const STSFlex = styled(SFlex)<{ selected?: number; disabled?: number }>`
       cursor: not-allowed;
       background-color: ${props.theme.palette.background.disabled};
       opacity: 0.8;
-    `}
+    `};
 `;
 
 export const STText = styled(SText)<{ selected?: number }>`

@@ -11,7 +11,7 @@ export const STTypography = styled(Typography)<{
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    `}
+    `};
 
   ${(props) =>
     props.line_number &&
@@ -23,5 +23,5 @@ export const STTypography = styled(Typography)<{
       display: -webkit-box;
       -webkit-line-clamp: ${props.line_number};
       -webkit-box-orient: vertical;
-    `}
+    `};
 `;

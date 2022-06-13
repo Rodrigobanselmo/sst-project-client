@@ -8,7 +8,6 @@ const SText: FC<STextProps> = ({
   lineNumber,
   noBreak,
   color = 'text.main',
-
   ...props
 }) => (
   <STTypography
