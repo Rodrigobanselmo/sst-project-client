@@ -27,7 +27,7 @@ export const useUserForm = () => {
 
     Object.keys(data).forEach((key) => {
       const keyValue = key as unknown as keyof typeof user;
-      if (user && user[keyValue]) setValue(key, keyValue);
+      if (!!user && user[keyValue]) setValue(key, keyValue);
     });
     setUneditable(true);
     return true;
