@@ -72,9 +72,11 @@ export const SideRowTable: FC<SideTableProps> = ({
       },
     );
 
-    await upsertRiskData.mutateAsync({
-      ...submitData,
-    });
+    await upsertRiskData
+      .mutateAsync({
+        ...submitData,
+      })
+      .catch(() => {});
   };
 
   const handleHelp = async (data: Partial<IUpsertRiskData>) => {
@@ -148,9 +150,11 @@ export const SideRowTable: FC<SideTableProps> = ({
       },
     );
 
-    await upsertRiskData.mutateAsync({
-      ...submitData,
-    });
+    await upsertRiskData
+      .mutateAsync({
+        ...submitData,
+      })
+      .catch(() => {});
   };
 
   const actualMatrixLevel = getMatrizRisk(

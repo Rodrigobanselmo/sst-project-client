@@ -97,7 +97,7 @@ export const SidebarOrg = () => {
   const handleDeleteGHO = useCallback(
     (id: string) => {
       preventDelete(async () => {
-        await deleteMutation.mutateAsync(id);
+        await deleteMutation.mutateAsync(id).catch(() => {});
         dispatch(setGhoState({ hierarchies: [], data: null }));
       });
     },

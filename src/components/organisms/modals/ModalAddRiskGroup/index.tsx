@@ -57,11 +57,13 @@ export const ModalAddRiskGroup = () => {
       });
     }
 
-    const doc = await mutation.mutateAsync({
-      id: riskGroupData.id,
-      name: riskGroupData.name,
-      status: riskGroupData.status,
-    });
+    const doc = await mutation
+      .mutateAsync({
+        id: riskGroupData.id,
+        name: riskGroupData.name,
+        status: riskGroupData.status,
+      })
+      .catch(() => {});
 
     if (riskGroupData.goTo && doc)
       push(riskGroupData.goTo.replace(':docId', doc.id));

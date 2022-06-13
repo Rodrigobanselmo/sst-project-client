@@ -37,9 +37,9 @@ export const useCompanyCreate = ({
       };
 
       if (companyData.id == '') {
-        await createCompany.mutateAsync(submitData);
+        await createCompany.mutateAsync(submitData).catch(() => {});
       } else {
-        await updateCompany.mutateAsync(submitData);
+        await updateCompany.mutateAsync(submitData).catch(() => {});
       }
 
       onClose();

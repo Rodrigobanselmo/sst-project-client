@@ -89,7 +89,9 @@ export const useAddGenerateSource = () => {
         localId: generateSourceData.localId,
       });
     else {
-      await deleteGenerateSourceMut.mutateAsync(generateSourceData.id);
+      await deleteGenerateSourceMut
+        .mutateAsync(generateSourceData.id)
+        .catch(() => {});
       onClose();
     }
 
@@ -126,13 +128,18 @@ export const useAddGenerateSource = () => {
     };
 
     if (generateSourceData.id == '') {
-      const result = await createGenerateSourceMut.mutateAsync(submitData);
-      generateSourceData.onCreate(result);
+      const result = await createGenerateSourceMut
+        .mutateAsync(submitData)
+        .catch(() => {});
+
+      if (result) generateSourceData.onCreate(result);
     } else {
-      await await updateGenerateSourceMut.mutateAsync({
-        ...submitData,
-        id: generateSourceData.id,
-      });
+      await updateGenerateSourceMut
+        .mutateAsync({
+          ...submitData,
+          id: generateSourceData.id,
+        })
+        .catch(() => {});
     }
 
     onClose();

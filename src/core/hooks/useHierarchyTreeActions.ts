@@ -260,7 +260,10 @@ export const useHierarchyTreeActions = () => {
             return data;
           });
 
-        saveApi(() => upsertManyMutation.mutateAsync(data), nodes);
+        saveApi(
+          () => upsertManyMutation.mutateAsync(data).catch(() => {}),
+          nodes,
+        );
       }
     },
     [
@@ -292,7 +295,8 @@ export const useHierarchyTreeActions = () => {
       );
 
       dispatch(setRemoveNode(idsToRemove));
-      if (!noSave) saveApi(() => deleteMutation.mutateAsync(idApi), nodes);
+      if (!noSave)
+        saveApi(() => deleteMutation.mutateAsync(idApi).catch(() => {}), nodes);
     },
     [deleteMutation, dispatch, saveApi, store],
   );

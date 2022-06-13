@@ -33,7 +33,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
       id: docId,
       ...data,
     };
-    await updateMutation.mutateAsync(submitData);
+    await updateMutation.mutateAsync(submitData).catch(() => {});
   };
 
   const onSave = async () => {
@@ -48,15 +48,17 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
         revisionBy,
         source,
       }: ISubmit = getValues();
-      await updateMutation.mutateAsync({
-        id: docId,
-        name,
-        approvedBy,
-        elaboratedBy,
-        visitDate,
-        source,
-        revisionBy,
-      });
+      await updateMutation
+        .mutateAsync({
+          id: docId,
+          name,
+          approvedBy,
+          elaboratedBy,
+          visitDate,
+          source,
+          revisionBy,
+        })
+        .catch(() => {});
 
       setUneditable(true);
       return true;

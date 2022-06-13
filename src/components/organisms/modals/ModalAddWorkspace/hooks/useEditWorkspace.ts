@@ -89,11 +89,11 @@ export const useEditWorkspace = () => {
   const onChangeCep = async (value: string) => {
     if (value.replace(/\D/g, '').length === 8) {
       try {
-        const data = await cepMutation.mutateAsync(value);
-
-        Object.entries(data).forEach(([key, value]) => {
-          setValue(key, value);
-        });
+        const data = await cepMutation.mutateAsync(value).catch(() => {});
+        if (data)
+          Object.entries(data).forEach(([key, value]) => {
+            setValue(key, value);
+          });
 
         setCompanyData((oldData) => {
           const newData = {
@@ -145,7 +145,7 @@ export const useEditWorkspace = () => {
       workspace: [workspace],
     };
 
-    await updateMutation.mutateAsync(submitData);
+    await updateMutation.mutateAsync(submitData).catch(() => {});
 
     onClose();
   };

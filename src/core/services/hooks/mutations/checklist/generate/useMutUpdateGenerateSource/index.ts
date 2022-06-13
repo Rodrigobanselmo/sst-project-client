@@ -77,7 +77,14 @@ export function useMutUpdateGenerateSource() {
         return newGenerateSource;
       },
       onError: (error: IErrorResp) => {
-        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        if (error.response.status == 404)
+          enqueueSnackbar(
+            'Você não tem permissão para editar essa fonte geradora',
+            { variant: 'error' },
+          );
+        else {
+          enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        }
       },
     },
   );

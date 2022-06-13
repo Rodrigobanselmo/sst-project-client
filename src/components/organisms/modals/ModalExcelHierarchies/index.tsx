@@ -46,10 +46,12 @@ export const ModalExcelHierarchies = () => {
       <ModalUploadFile
         loading={uploadMutation.isLoading}
         onConfirm={async (files: File[], path: string) => {
-          await uploadMutation.mutateAsync({
-            file: files[0],
-            path: path,
-          });
+          await uploadMutation
+            .mutateAsync({
+              file: files[0],
+              path: path,
+            })
+            .catch(() => {});
           queryClient.refetchQueries([QueryEnum.HIERARCHY, companyId]);
           queryClient.refetchQueries([QueryEnum.GHO, companyId]);
           onClose();

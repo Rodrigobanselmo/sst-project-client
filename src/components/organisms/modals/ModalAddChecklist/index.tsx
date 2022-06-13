@@ -49,10 +49,12 @@ export const ModalAddChecklist = () => {
       });
     }
 
-    await mutation.mutateAsync({
-      name: checklistData.name,
-      status: checklistData.status,
-    });
+    await mutation
+      .mutateAsync({
+        name: checklistData.name,
+        status: checklistData.status,
+      })
+      .catch(() => {});
     onClose();
   };
 

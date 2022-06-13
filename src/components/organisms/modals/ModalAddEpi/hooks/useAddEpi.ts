@@ -72,7 +72,7 @@ export const useAddEpi = () => {
     };
 
     if (epiData.id == 0) {
-      await createGhoMut.mutateAsync(submitData);
+      await createGhoMut.mutateAsync(submitData).catch(() => {});
     } else {
       // await updateGhoMut.mutateAsync({
       //   ...submitData,

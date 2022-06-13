@@ -193,7 +193,7 @@ export const useAddRisk = () => {
     if (risk.id == '') {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...riskData } = risk;
-      const create = await createRiskMut.mutateAsync(riskData);
+      const create = await createRiskMut.mutateAsync(riskData).catch(() => {});
       recMed.map(async (rm) => {
         if (rm.generateSourceLocalId != undefined) {
           const gsLocal = generateSource.find(
@@ -219,7 +219,7 @@ export const useAddRisk = () => {
         }
       });
     } else {
-      await updateRiskMut.mutateAsync(risk);
+      await updateRiskMut.mutateAsync(risk).catch(() => {});
     }
 
     onClose();

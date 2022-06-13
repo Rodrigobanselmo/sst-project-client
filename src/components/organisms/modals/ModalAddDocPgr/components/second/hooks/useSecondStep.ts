@@ -21,15 +21,17 @@ export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
 
     if (isValid) {
       const { version, doc_description, doc_name } = getValues();
-      await createDoc.mutateAsync({
-        version,
-        description: doc_description,
-        name: doc_name,
-        companyId: data.companyId,
-        riskGroupId: data.id,
-        workspaceId: data.workspaceId,
-        workspaceName: data.workspaceName,
-      });
+      await createDoc
+        .mutateAsync({
+          version,
+          description: doc_description,
+          name: doc_name,
+          companyId: data.companyId,
+          riskGroupId: data.id,
+          workspaceId: data.workspaceId,
+          workspaceName: data.workspaceName,
+        })
+        .catch(() => {});
       onClose();
     }
   };

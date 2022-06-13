@@ -26,6 +26,7 @@ export function useMutDeleteGenerateSource() {
 
   return useMutation(async (id: string) => deleteGenerateSource(id), {
     onSuccess: async (newGenerateSource) => {
+      console.log(newGenerateSource);
       if (newGenerateSource)
         queryClient.setQueryData(
           [QueryEnum.RISK, newGenerateSource.companyId],
@@ -52,7 +53,14 @@ export function useMutDeleteGenerateSource() {
       return newGenerateSource;
     },
     onError: (error: IErrorResp) => {
-      enqueueSnackbar(error.response.data.message, { variant: 'error' });
+      if (error.response.status == 400)
+        enqueueSnackbar(
+          'Você não tem permissão para deletar essa fonte geradora',
+          { variant: 'error' },
+        );
+      else {
+        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+      }
     },
   });
 }

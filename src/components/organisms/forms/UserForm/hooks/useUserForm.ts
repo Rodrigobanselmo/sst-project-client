@@ -19,9 +19,11 @@ export const useUserForm = () => {
   const updateMutation = useMutUpdateUser();
 
   const onSave: SubmitHandler<ISubmit> = async (data) => {
-    const user = await updateMutation.mutateAsync({
-      ...data,
-    });
+    const user = await updateMutation
+      .mutateAsync({
+        ...data,
+      })
+      .catch(() => {});
 
     Object.keys(data).forEach((key) => {
       const keyValue = key as unknown as keyof typeof user;

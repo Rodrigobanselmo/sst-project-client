@@ -83,12 +83,14 @@ export const useAddUser = () => {
     };
 
     if (userData.id == '') {
-      await inviteUserMut.mutateAsync(submitData);
+      await inviteUserMut.mutateAsync(submitData).catch(() => {});
     } else {
-      await updateUserMut.mutateAsync({
-        ...submitData,
-        id: userData.id,
-      });
+      await updateUserMut
+        .mutateAsync({
+          ...submitData,
+          id: userData.id,
+        })
+        .catch(() => {});
     }
 
     onClose();

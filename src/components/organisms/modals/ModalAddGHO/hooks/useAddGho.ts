@@ -80,12 +80,14 @@ export const useAddGho = () => {
     };
 
     if (ghoData.id == '') {
-      await createGhoMut.mutateAsync(submitData);
+      await createGhoMut.mutateAsync(submitData).catch(() => {});
     } else {
-      await updateGhoMut.mutateAsync({
-        ...submitData,
-        id: ghoData.id,
-      });
+      await updateGhoMut
+        .mutateAsync({
+          ...submitData,
+          id: ghoData.id,
+        })
+        .catch(() => {});
     }
 
     onClose();

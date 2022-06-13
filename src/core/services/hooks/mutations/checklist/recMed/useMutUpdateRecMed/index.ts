@@ -71,7 +71,13 @@ export function useMutUpdateRecMed() {
         return newRecMed;
       },
       onError: (error: IErrorResp) => {
-        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        if (error.response.status == 400)
+          enqueueSnackbar('Você não tem permissão para editar esse dado', {
+            variant: 'error',
+          });
+        else {
+          enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        }
       },
     },
   );

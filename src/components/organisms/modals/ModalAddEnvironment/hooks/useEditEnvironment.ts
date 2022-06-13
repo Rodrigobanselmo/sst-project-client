@@ -100,7 +100,7 @@ export const useEditEnvironment = () => {
       photos: environmentData.photos,
     };
 
-    await upsertMutation.mutateAsync(submitData);
+    await upsertMutation.mutateAsync(submitData).catch(() => {});
 
     onClose();
   };

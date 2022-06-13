@@ -54,7 +54,7 @@ export const useChecklistTreeActions = () => {
       },
     };
 
-    await saveMutation.mutateAsync(checklist);
+    await saveMutation.mutateAsync(checklist).catch(() => {});
 
     // saved
     dispatch(setDocSaved({ docName: SaveEnum.CHECKLIST }));

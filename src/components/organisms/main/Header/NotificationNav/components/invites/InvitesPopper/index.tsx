@@ -29,7 +29,7 @@ export const InvitesPopper: FC<IInvitesPopperProps> = ({
   const router = useRouter();
 
   const handleAcceptInvite = async (id: string) => {
-    await acceptInviteMut.mutateAsync({ token: id });
+    await acceptInviteMut.mutateAsync({ token: id }).catch(() => {});
     refreshUser();
     router.push('/');
     queryClient.refetchQueries([QueryEnum.INVITES_USER]);
