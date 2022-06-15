@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
-import { EnvironmentType } from 'project/enum/environment-type.enum';
+import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -14,7 +14,7 @@ import {
   IUpsertEnvironment,
   useMutUpsertEnvironment,
 } from 'core/services/hooks/mutations/manager/useMutUpsertEnvironment';
-import { photoSchema } from 'core/utils/schemas/photo.schema';
+import { environmentSchema } from 'core/utils/schemas/environment.schema';
 
 import { initialPhotoState } from '../../ModalUploadPhoto';
 
@@ -25,7 +25,7 @@ export const initialEnvironmentState = {
   companyId: '',
   workspaceId: '',
   parentId: '',
-  type: '' as EnvironmentType, //? missing
+  type: '' as EnvironmentTypeEnum, //? missing
   parentEnvironmentId: '', //? missing
   photos: [] as IAddEnvironmentPhoto[],
 };
@@ -43,7 +43,7 @@ export const useEditEnvironment = () => {
   const initialDataRef = useRef(initialEnvironmentState);
 
   const { handleSubmit, control, reset, getValues } = useForm({
-    resolver: yupResolver(photoSchema),
+    resolver: yupResolver(environmentSchema),
   });
 
   const upsertMutation = useMutUpsertEnvironment();
@@ -98,6 +98,7 @@ export const useEditEnvironment = () => {
       companyId: environmentData.companyId,
       workspaceId: environmentData.workspaceId,
       photos: environmentData.photos,
+      type: environmentData.type,
     };
 
     await upsertMutation.mutateAsync(submitData).catch(() => {});

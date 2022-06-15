@@ -199,6 +199,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         sx={{ maxHeight: 350, overflow: 'auto' }}
       >
         <SMenuSearchItems
+          listRef={listWrapperRef}
           options={results}
           optionsFieldName={optionsFieldName}
           handleMenuSelect={handleMenuSelect}

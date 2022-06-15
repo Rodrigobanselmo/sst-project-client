@@ -148,7 +148,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
           labelPosition="center"
           control={control}
           sx={{ minWidth: ['100%', 600], mb: 5 }}
-          placeholder={'nome do ambiente de trabalho...'}
+          placeholder={'descrição breve da imagem...'}
           name="name"
           size="small"
         />

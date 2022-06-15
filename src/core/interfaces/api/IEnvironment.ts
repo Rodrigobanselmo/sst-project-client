@@ -1,4 +1,4 @@
-import { EnvironmentType } from 'project/enum/environment-type.enum';
+import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 export type IEnvironment = {
   id: string;
@@ -8,7 +8,7 @@ export type IEnvironment = {
   deleted_at?: Date;
   updated_at: Date;
   workspaceId: string;
-  type: EnvironmentType;
+  type: EnvironmentTypeEnum;
   parentEnvironmentId?: string;
   companyId: string;
   photos: IEnvironmentPhoto[];

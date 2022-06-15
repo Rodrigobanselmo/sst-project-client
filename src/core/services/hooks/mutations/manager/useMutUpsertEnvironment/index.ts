@@ -1,6 +1,7 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
+import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -20,6 +21,7 @@ export interface IAddEnvironmentPhoto {
 
 export interface IUpsertEnvironment {
   id?: string;
+  type?: EnvironmentTypeEnum;
   name?: string;
   description?: string;
   companyId?: string;
@@ -35,10 +37,14 @@ export async function updateEnvironment(
   const formData = new FormData();
   data.photos?.forEach((photo) => {
     if (photo.file) formData.append('files[]', photo.file);
+    if (photo.name) formData.append('photos[]', photo.name);
   });
 
-  if (data.description) formData.append('description', data.description);
-  if (data.name) formData.append('name', data.name);
+  delete data.photos;
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (value) formData.append(key, value);
+  });
 
   const { token } = await refreshToken();
 
@@ -66,9 +72,10 @@ export function useMutUpsertEnvironment() {
       updateEnvironment(data, getCompanyId(data), wId || workspaceId),
     {
       onSuccess: async (resp) => {
+        console.log(resp);
         if (resp) {
           queryClient.setQueryData(
-            [QueryEnum.ENVIRONMENT, resp.id, resp.workspaceId],
+            [QueryEnum.ENVIRONMENTS, resp.companyId, resp.workspaceId],
             (oldData: IEnvironment[] | undefined) => {
               if (oldData) {
                 const newData = [...oldData];
@@ -76,20 +83,18 @@ export function useMutUpsertEnvironment() {
                 const updateIndexData = oldData.findIndex(
                   (old) => old.id == resp.id,
                 );
-
                 if (updateIndexData != -1) {
                   newData[updateIndexData] = resp;
                 } else {
-                  newData.push(resp);
+                  newData.unshift(resp);
                 }
+                console.log('newData', newData);
 
                 return newData;
               }
               return [];
             },
           );
-
-          queryClient.refetchQueries([QueryEnum.COMPANY, resp.id]);
         }
 
         enqueueSnackbar('Ação realizado com sucesso', {

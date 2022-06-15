@@ -21,7 +21,11 @@ export const SideMainGho: FC<SideItemsProps> = ({
   };
 
   return (
-    <STBoxItem disabled={isEndSelect ? 1 : 0} onClick={handleClickBox}>
+    <STBoxItem
+      overflow="hidden"
+      disabled={isEndSelect ? 1 : 0}
+      onClick={handleClickBox}
+    >
       {!isEndSelect && (
         <Checkbox
           id={data.id}

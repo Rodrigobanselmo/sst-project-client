@@ -54,7 +54,8 @@ export const ModalUploadFile: FC<SModalUploadFile> = ({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
 
-    onConfirm && onConfirm(filesRef.current, getModalData(ModalEnum.UPLOAD));
+    onConfirm &&
+      (await onConfirm(filesRef.current, getModalData(ModalEnum.UPLOAD)));
 
     setTimeout(() => {
       onClose();

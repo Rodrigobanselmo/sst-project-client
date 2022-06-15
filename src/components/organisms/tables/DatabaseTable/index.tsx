@@ -85,8 +85,8 @@ export const DatabaseTable: FC<BoxProps> = () => {
       </STable>
       <ModalUploadFile
         loading={uploadMutation.isLoading}
-        onConfirm={(files: File[], path: string) =>
-          uploadMutation.mutate({
+        onConfirm={async (files: File[], path: string) =>
+          await uploadMutation.mutateAsync({
             file: files[0],
             path: path,
           })

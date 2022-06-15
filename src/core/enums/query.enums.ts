@@ -13,7 +13,6 @@ export enum QueryEnum {
   INVITES = 'invites',
   INVITES_USER = 'invites-user',
   COMPANIES = 'companies',
-  ENVIRONMENT = 'environment',
   COMPANY = 'company',
   EPIS = 'epis',
   CHECKLIST_DATA = 'checklist-data',

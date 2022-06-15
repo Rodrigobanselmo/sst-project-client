@@ -63,7 +63,7 @@ export function useMutUpsertRiskGroupData() {
                 if (updateIndexData != -1) {
                   newData[updateIndexData] = resp;
                 } else {
-                  newData.push(resp);
+                  newData.unshift(resp);
                 }
 
                 return newData;

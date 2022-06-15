@@ -7,6 +7,8 @@ import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
+import { RadioForm } from 'components/molecules/form/radio';
+import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
@@ -26,6 +28,7 @@ export const ModalEnvironmentContent = ({
   control,
   environmentData,
   handleAddPhoto,
+  setEnvironmentData,
   handlePhotoRemove,
 }: IUseEditEnvironment) => {
   return (
@@ -58,6 +61,38 @@ export const ModalEnvironmentContent = ({
         placeholder={'descrição...'}
         name="description"
         size="small"
+      />
+      <RadioForm
+        type="radio"
+        control={control}
+        onChange={(e) =>
+          setEnvironmentData((old) => ({
+            ...old,
+            type: (e as any).target.value,
+          }))
+        }
+        defaultValue={String(environmentData.type)}
+        options={[
+          {
+            content: 'Adiministrativo',
+            value: EnvironmentTypeEnum.ADMINISTRATIVE,
+            tooltip:
+              'Nos ambientes administrativos são executadas atividades diversas pouco relacionadas com riscos físicos, químicos e biológicos.',
+          },
+          {
+            content: 'Operacional',
+            value: EnvironmentTypeEnum.OPERATION,
+            tooltip: 'Ambientes Operacionais',
+          },
+          {
+            content: 'Apoio',
+            value: EnvironmentTypeEnum.SUPPORT,
+            tooltip: 'Ambientes de Apoio',
+          },
+        ]}
+        name="type"
+        columns={3}
+        width="101%"
       />
       <SText color="text.label" fontSize={14}>
         Fotos

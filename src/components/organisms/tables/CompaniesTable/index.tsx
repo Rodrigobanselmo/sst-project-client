@@ -134,11 +134,13 @@ export const CompaniesTable: FC<BoxProps> = () => {
       <ModalAddCompany />
       <ModalUploadFile
         loading={uploadMutation.isLoading}
-        onConfirm={(files: File[], path: string) =>
-          uploadMutation.mutate({
-            file: files[0],
-            path: path,
-          })
+        onConfirm={async (files: File[], path: string) =>
+          await uploadMutation
+            .mutateAsync({
+              file: files[0],
+              path: path,
+            })
+            .catch(() => {})
         }
         maxFiles={1}
         accept={

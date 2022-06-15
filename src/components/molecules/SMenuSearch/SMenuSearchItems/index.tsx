@@ -21,6 +21,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
   optionsFieldName,
   localSelected,
   endAdornment,
+  listRef,
 }) => {
   const valueField =
     (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
@@ -64,7 +65,17 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
             onClick={(e) => {
               if (!multiple) handleMenuSelect(option, e);
               if (multiple) {
-                const elementCheck = document.getElementById(value);
+                const elementCheck = document.getElementById(
+                  value,
+                ) as HTMLInputElement;
+
+                if (
+                  listRef &&
+                  listRef.current &&
+                  elementCheck &&
+                  !elementCheck?.checked
+                )
+                  listRef.current.prepend(e.currentTarget);
                 if (elementCheck) elementCheck.click();
               }
             }}
@@ -78,8 +89,15 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
                   className="checkbox-menu-item"
                   sx={{ ml: -2 }}
                   onChange={(e) => {
-                    if (e.target.checked)
+                    if (e.target.checked) {
+                      const element = document.getElementById(
+                        'menu-item-id-' + index,
+                      ) as HTMLElement;
+                      if (listRef && listRef.current && element)
+                        listRef.current.prepend(element);
+
                       localSelected.current = [...localSelected.current, value];
+                    }
                     if (!e.target.checked)
                       localSelected.current = [
                         ...localSelected.current.filter((id) => id !== value),

@@ -1,4 +1,4 @@
-export enum EnvironmentType {
+export enum EnvironmentTypeEnum {
   SUPPORT = 'SUPPORT',
   OPERATION = 'OPERATION',
   ADMINISTRATIVE = 'ADMINISTRATIVE',

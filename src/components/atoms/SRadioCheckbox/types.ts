@@ -16,6 +16,7 @@ export interface IStyledGrid {
 interface IOption extends Record<string, any> {
   content?: string | React.ReactNode;
   value?: string;
+  tooltip?: string;
   gridSize?: {
     xs?: number;
     sm?: number;

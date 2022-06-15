@@ -7,6 +7,7 @@ import Typography, { TypographyProps } from '@mui/material/Typography';
 import { mergeRefs } from 'core/utils/helpers/mergeRefs';
 
 import SText from '../SText';
+import STooltip from '../STooltip';
 import { StyledGrid } from './styles';
 import { IInputCheckboxProps, SRadioCheckboxProps } from './types';
 
@@ -37,6 +38,11 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
       ? (option.gridSize as any)
       : { xs: 1 };
 
+  const tooltip =
+    !(typeof option === 'string') && option?.tooltip
+      ? (option.tooltip as any)
+      : '';
+
   const { ref: inputRef, ...rest } = inputProps(option) as any;
 
   const mergedRef = inputRef !== undefined ? mergeRefs(ref, inputRef) : ref;
@@ -61,46 +67,48 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
   }, []);
 
   return (
-    <Grid {...gridSize} {...gridItemsProps} item>
-      <input
-        name={type === 'checkbox' ? value : name}
-        ref={mergedRef}
-        type={type}
-        disabled={disabled}
-        value={value}
-        {...rest}
-      />
-      <Typography
-        borderRadius={'8px'}
-        tabIndex={0}
-        px={1}
-        py={2}
-        component="span"
-        sx={{
-          '&:hover': { borderColor: 'primary.main' },
-          textAlign: 'center',
-          fontSize: '0.875rem',
-          whiteSpace: 'pre-wrap',
-          height: '100%',
-          px: '0.5rem',
-          ...sx,
-        }}
-        onClick={handleCheckbox}
-        onKeyPress={(event: any) => event.key === 'Enter' && handleCheckbox()}
-        {...props}
-      >
-        <span
-          style={{
-            alignItems: 'center',
-            justifyContent: 'center',
+    <STooltip title={tooltip}>
+      <Grid {...gridSize} {...gridItemsProps} item>
+        <input
+          name={type === 'checkbox' ? value : name}
+          ref={mergedRef}
+          type={type}
+          disabled={disabled}
+          value={value}
+          {...rest}
+        />
+        <Typography
+          borderRadius={'8px'}
+          tabIndex={0}
+          px={1}
+          py={2}
+          component="span"
+          sx={{
+            '&:hover': { borderColor: 'primary.main' },
+            textAlign: 'center',
+            fontSize: '0.875rem',
+            whiteSpace: 'pre-wrap',
             height: '100%',
-            display: 'flex',
+            px: '0.5rem',
+            ...sx,
           }}
+          onClick={handleCheckbox}
+          onKeyPress={(event: any) => event.key === 'Enter' && handleCheckbox()}
+          {...props}
         >
-          {content}
-        </span>
-      </Typography>
-    </Grid>
+          <span
+            style={{
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              display: 'flex',
+            }}
+          >
+            {content}
+          </span>
+        </Typography>
+      </Grid>
+    </STooltip>
   );
 };
 

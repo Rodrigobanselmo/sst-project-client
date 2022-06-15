@@ -11,7 +11,7 @@ export const STSFileUploaderContainer = styled('div')<{
   background-color: ${(props) => props.theme.palette.grey[50]};
   border-radius: 0.5rem;
   padding: 1rem 1rem;
-  min-height: 12rem;
+  min-height: 10rem;
   gap: 0;
   flex-direction: column;
   cursor: pointer;
