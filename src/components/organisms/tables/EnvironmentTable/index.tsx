@@ -22,19 +22,16 @@ import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
 
 import { environmentMap } from 'core/constants/maps/environment.map';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { RoutesEnum } from 'core/enums/routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IEnvironment } from 'core/interfaces/api/IEnvironment';
-import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useQueryEnvironments } from 'core/services/hooks/queries/useQueryEnvironments';
 import { sortData } from 'core/utils/sorts/data.sort';
 
 export const EnvironmentTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryEnvironments();
   const { onOpenModal } = useModal();
-  const { push } = useRouter();
   const { companyId, workspaceId } = useGetCompanyId();
 
   const { handleSearchChange, results } = useTableSearch({

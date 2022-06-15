@@ -153,7 +153,6 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           inputProps={{ id: 'input-menu-search', tabIndex: -1 }}
           onChange={(e) => handleSearchChange(e.target.value)}
           placeholder={placeholder}
-          variant="standard"
           sx={{ width: '100%', minWidth: width }}
           unstyled
           autoFocus
@@ -199,7 +198,6 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         sx={{ maxHeight: 350, overflow: 'auto' }}
       >
         <SMenuSearchItems
-          listRef={listWrapperRef}
           options={results}
           optionsFieldName={optionsFieldName}
           handleMenuSelect={handleMenuSelect}

@@ -98,10 +98,10 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
       ([key, value]) => {
         if (value?.length)
-          (submitData as any)[key] = removeDuplicate([
-            data,
-            ...((riskData as any)?.[key] ?? []),
-          ]);
+          (submitData as any)[key] = removeDuplicate(
+            [data, ...((riskData as any)?.[key] ?? [])],
+            { removeById: 'id' },
+          );
       },
     );
 
@@ -167,11 +167,9 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
       ([key, value]) => {
         if (value?.length)
           (submitData as any)[key] = [
-            ...(
-              (riskData as any)?.[key]?.filter(
-                (data: any) => !(value as any).includes(data.id),
-              ) ?? []
-            ).map((d: any) => (key === 'epis' ? d : d.id)),
+            ...((riskData as any)?.[key]?.filter(
+              (data: any) => !(value as any).includes(data.id),
+            ) ?? []),
           ];
       },
     );

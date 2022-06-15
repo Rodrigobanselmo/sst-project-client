@@ -10,7 +10,6 @@ import { useRouter } from 'next/router';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
-import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';

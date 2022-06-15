@@ -27,11 +27,13 @@ export const STMenu = styled(Menu)<ISTMenuProps>`
 
 export const STSInput = styled(SInput)`
   * {
-    padding: 0.4rem;
+    padding: 0.4rem !important;
     padding-left: 0.5rem;
     padding-right: 2rem;
     font-size: 13px;
   }
+
+  //MuiOutlinedInput-input
 
   & ::placeholder {
     opacity: 0.6;
