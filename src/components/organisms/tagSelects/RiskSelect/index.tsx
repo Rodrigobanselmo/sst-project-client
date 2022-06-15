@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useMemo, useState, MouseEvent } from 'react';
 
+import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined';
 import { Box, Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
@@ -70,9 +71,17 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
     const filterData = data.filter((risk) => !risk.representAll);
 
     if (activeFilters.length > 0)
-      return filterData.filter((risk) => activeFilters.includes(risk.type));
+      return filterData
+        .filter((risk) => activeFilters.includes(risk.type))
+        .map(({ cas, ...filter }) => ({
+          cas: onlyNumbers(cas || ''),
+          ...filter,
+        }));
 
-    return filterData;
+    return filterData.map(({ cas, ...filter }) => ({
+      cas: onlyNumbers(cas || ''),
+      ...filter,
+    }));
   }, [data, activeFilters]);
 
   return (
@@ -82,7 +91,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
       multiple={multiple}
       additionalButton={handleAddRisk}
       text={text || (riskLength === '0' ? '' : riskLength)}
-      keys={['name', 'type']}
+      keys={['name', 'cas']}
       large={large}
       handleSelectMenu={handleSelectRisk}
       selected={selectedRiskIds || []}

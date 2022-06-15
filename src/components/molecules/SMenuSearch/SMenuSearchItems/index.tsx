@@ -28,6 +28,8 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
   const contentField =
     (optionsFieldName && optionsFieldName?.contentField) ?? 'name';
 
+  console.log(options);
+
   return (
     <>
       {options.map((option, index, arr) => {
