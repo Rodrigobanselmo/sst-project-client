@@ -22,6 +22,7 @@ export const ModalAddEnvironment = () => {
     environmentData,
     loading,
     modalName,
+    isEdit,
   } = props;
 
   const buttons = [
@@ -47,7 +48,7 @@ export const ModalAddEnvironment = () => {
         onSubmit={handleSubmit(onSubmit)}
       >
         <SModalHeader
-          tag={environmentData.id ? 'edit' : 'add'}
+          tag={isEdit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
           title={'Ambiente de trabalho'}
         />

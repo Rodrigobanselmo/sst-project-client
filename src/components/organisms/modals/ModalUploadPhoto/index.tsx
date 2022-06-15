@@ -36,6 +36,7 @@ export interface IUploadPhotoConfirm {
   file: File;
   name?: string;
   src?: string;
+  id?: string;
 }
 
 export const initialPhotoState = {
@@ -46,7 +47,7 @@ export const initialPhotoState = {
   name: '',
   showInputName: false,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onConfirm: (arg: IUploadPhotoConfirm) => {},
+  onConfirm: async (arg: IUploadPhotoConfirm) => {},
 };
 
 const modalName = ModalEnum.UPLOAD_PHOTO;
@@ -55,6 +56,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const { onCloseModal } = useModal();
 
   const { handleSubmit, control, reset } = useForm({
@@ -92,13 +94,15 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
             type: 'image/png',
           });
           const reader = new FileReader();
-          reader.addEventListener('load', () => {
+          reader.addEventListener('load', async () => {
+            setIsLoading(true);
             if (reader.result)
-              photoData.onConfirm({
+              await photoData.onConfirm({
                 file: file,
                 name: data.name,
                 src: reader.result.toString() || '',
               });
+            setIsLoading(false);
             onClose();
           });
           reader.readAsDataURL(file);
@@ -190,7 +194,11 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
             </SButton>
           )}
         </DndProvider>
-        <SModalButtons onClose={onClose} buttons={buttons} />
+        <SModalButtons
+          loading={isLoading}
+          onClose={onClose}
+          buttons={buttons}
+        />
       </SModalPaper>
     </SModal>
   );

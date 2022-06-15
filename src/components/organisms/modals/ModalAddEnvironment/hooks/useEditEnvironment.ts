@@ -9,12 +9,15 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { useMutAddEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutAddEnvironmentPhoto';
+import { useMutDeleteEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironmentPhoto';
 import {
   IAddEnvironmentPhoto,
   IUpsertEnvironment,
   useMutUpsertEnvironment,
 } from 'core/services/hooks/mutations/manager/useMutUpsertEnvironment';
 import { environmentSchema } from 'core/utils/schemas/environment.schema';
+import { sortData } from 'core/utils/sorts/data.sort';
 
 import { initialPhotoState } from '../../ModalUploadPhoto';
 
@@ -47,12 +50,16 @@ export const useEditEnvironment = () => {
   });
 
   const upsertMutation = useMutUpsertEnvironment();
+  const addPhotoMutation = useMutAddEnvironmentPhoto();
+  const deletePhotoMutation = useMutDeleteEnvironmentPhoto();
 
   const { preventUnwantedChanges } = usePreventAction();
 
   const [environmentData, setEnvironmentData] = useState({
     ...initialEnvironmentState,
   });
+
+  const isEdit = !!environmentData.id;
 
   useEffect(() => {
     const initialData =
@@ -99,7 +106,10 @@ export const useEditEnvironment = () => {
       workspaceId: environmentData.workspaceId,
       photos: environmentData.photos,
       type: environmentData.type,
+      id: environmentData.id || undefined,
     };
+
+    if (isEdit) delete submitData.photos;
 
     await upsertMutation.mutateAsync(submitData).catch(() => {});
 
@@ -108,18 +118,51 @@ export const useEditEnvironment = () => {
 
   const handleAddPhoto = () => {
     onOpenModal(ModalEnum.UPLOAD_PHOTO, {
-      onConfirm: (photo) =>
-        setEnvironmentData((oldData) => ({
-          ...oldData,
-          photos: [
-            ...oldData.photos,
-            { src: photo.src || '', file: photo.file, name: photo.name },
-          ],
-        })),
+      onConfirm: async (photo) => {
+        const addLocalPhoto = (src?: string) => {
+          setEnvironmentData((oldData) => ({
+            ...oldData,
+            photos: [
+              ...oldData.photos,
+              {
+                photoUrl: src || photo.src || '',
+                file: photo.file,
+                name: photo.name,
+              },
+            ],
+          }));
+        };
+
+        if (isEdit) {
+          const environment = await addPhotoMutation
+            .mutateAsync({
+              file: photo.file,
+              name: photo.name || '',
+              companyEnvironmentId: environmentData.id,
+            })
+            .catch(() => {});
+
+          if (environment)
+            addLocalPhoto(
+              environment.photos.sort((a, b) => sortData(b, a, 'created_at'))[0]
+                .photoUrl,
+            );
+        } else {
+          addLocalPhoto();
+        }
+      },
     } as Partial<typeof initialPhotoState>);
   };
 
-  const handlePhotoRemove = (index: number) => {
+  const handlePhotoRemove = async (index: number) => {
+    const photosCopy = [...environmentData.photos];
+    const deletedPhoto = photosCopy.splice(index, 1);
+
+    if (isEdit && deletedPhoto[0]?.id)
+      await deletePhotoMutation
+        .mutateAsync({ id: deletedPhoto[0].id })
+        .catch(() => {});
+
     setEnvironmentData((oldData) => {
       const photosCopy = [...oldData.photos];
       photosCopy.splice(index, 1);
@@ -138,12 +181,14 @@ export const useEditEnvironment = () => {
     environmentData,
     onSubmit,
     loading: upsertMutation.isLoading,
+    loadingDelete: deletePhotoMutation.isLoading,
     control,
     handleSubmit,
     setEnvironmentData,
     modalName,
     handleAddPhoto,
     handlePhotoRemove,
+    isEdit,
   };
 };
 

@@ -13,6 +13,8 @@ import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 import SAddIcon from 'assets/icons/SAddIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
+import { environmentMap } from 'core/constants/maps/environment.map';
+
 import { IUseEditEnvironment } from '../../hooks/useEditEnvironment';
 
 const StyledImage = styled('img')`
@@ -30,6 +32,7 @@ export const ModalEnvironmentContent = ({
   handleAddPhoto,
   setEnvironmentData,
   handlePhotoRemove,
+  loadingDelete,
 }: IUseEditEnvironment) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -74,20 +77,20 @@ export const ModalEnvironmentContent = ({
         defaultValue={String(environmentData.type)}
         options={[
           {
-            content: 'Adiministrativo',
+            content: environmentMap[EnvironmentTypeEnum.ADMINISTRATIVE].value,
             value: EnvironmentTypeEnum.ADMINISTRATIVE,
             tooltip:
-              'Nos ambientes administrativos são executadas atividades diversas pouco relacionadas com riscos físicos, químicos e biológicos.',
+              environmentMap[EnvironmentTypeEnum.ADMINISTRATIVE].description,
           },
           {
-            content: 'Operacional',
+            content: environmentMap[EnvironmentTypeEnum.OPERATION].value,
             value: EnvironmentTypeEnum.OPERATION,
-            tooltip: 'Ambientes Operacionais',
+            tooltip: environmentMap[EnvironmentTypeEnum.OPERATION].description,
           },
           {
-            content: 'Apoio',
+            content: environmentMap[EnvironmentTypeEnum.SUPPORT].value,
             value: EnvironmentTypeEnum.SUPPORT,
-            tooltip: 'Ambientes de Apoio',
+            tooltip: environmentMap[EnvironmentTypeEnum.SUPPORT].description,
           },
         ]}
         name="type"
@@ -120,12 +123,14 @@ export const ModalEnvironmentContent = ({
               gap: 5,
             }}
           >
-            <StyledImage alt={photo.name} src={photo.src} />
+            <StyledImage alt={photo.name} src={photo.photoUrl} />
             <div>
               <SText noBreak>{photo.name}</SText>
               <SIconButton
                 sx={{ maxWidth: 10, maxHeight: 10 }}
                 onClick={() => handlePhotoRemove(index)}
+                loading={loadingDelete}
+                circularProps={{ size: 10 }}
               >
                 <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
               </SIconButton>

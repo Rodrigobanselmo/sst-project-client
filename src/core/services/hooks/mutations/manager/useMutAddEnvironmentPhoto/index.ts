@@ -1,7 +1,6 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -14,47 +13,32 @@ import { queryClient } from 'core/services/queryClient';
 import { IErrorResp } from '../../../../errors/types';
 
 export interface IAddEnvironmentPhoto {
-  file?: File;
-  name?: string;
-  id?: string;
-  photoUrl: string;
-}
-
-export interface IUpsertEnvironment {
-  id?: string;
-  type?: EnvironmentTypeEnum;
-  name?: string;
-  description?: string;
-  companyId?: string;
+  file: File;
+  name: string;
+  companyEnvironmentId: string;
   workspaceId?: string;
-  photos?: IAddEnvironmentPhoto[];
 }
 
-export async function updateEnvironment(
-  data: IUpsertEnvironment,
+export async function addEnvironmentPhoto(
+  data: IAddEnvironmentPhoto,
   companyId: string,
   workspaceId: string,
 ) {
   const formData = new FormData();
-  data.photos?.forEach((photo) => {
-    if (photo.file) formData.append('files[]', photo.file);
-    if (photo.name) formData.append('photos[]', photo.name);
-  });
 
-  delete data.photos;
-
-  Object.entries(data).forEach(([key, value]) => {
-    if (value) formData.append(key, value);
-  });
+  formData.append('file', data.file);
+  formData.append('name', data.name);
+  formData.append('companyEnvironmentId', data.companyEnvironmentId);
 
   const { token } = await refreshToken();
 
-  const path = ApiRoutesEnum.ENVIRONMENTS.replace(
-    ':companyId',
-    companyId,
-  ).replace(':workspaceId', workspaceId);
+  const path =
+    ApiRoutesEnum.ENVIRONMENTS.replace(':companyId', companyId).replace(
+      ':workspaceId',
+      workspaceId,
+    ) + '/photo';
 
-  const response = await api.post(path, formData, {
+  const response = await api.post<IEnvironment>(path, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
       Authorization: `Bearer ${token}`,
@@ -64,13 +48,13 @@ export async function updateEnvironment(
   return response.data;
 }
 
-export function useMutUpsertEnvironment() {
+export function useMutAddEnvironmentPhoto() {
   const { enqueueSnackbar } = useSnackbar();
   const { getCompanyId, workspaceId } = useGetCompanyId();
 
   return useMutation(
-    async ({ workspaceId: wId, ...data }: IUpsertEnvironment) =>
-      updateEnvironment(data, getCompanyId(data), wId || workspaceId),
+    async ({ workspaceId: workId, ...data }: IAddEnvironmentPhoto) =>
+      addEnvironmentPhoto(data, getCompanyId(data), workId || workspaceId),
     {
       onSuccess: async (resp) => {
         console.log(resp);
