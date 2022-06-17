@@ -20,12 +20,14 @@ import {
   setRiskAddToggleExpand,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
+import SArrowBack from 'assets/icons/SArrowBack';
 import SCloseIcon from 'assets/icons/SCloseIcon';
 import SExpandIcon from 'assets/icons/SExpandIcon';
 import SUploadIcon from 'assets/icons/SUploadIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -44,7 +46,7 @@ export const SideTop: FC<SideTopProps> = ({
   viewType,
 }) => {
   const dispatch = useAppDispatch();
-  const { asPath, push } = useRouter();
+  const { asPath, push, query } = useRouter();
   const { onOpenModal } = useModal();
   const { companyId, user } = useGetCompanyId();
   const selectedRisks = useAppSelector(selectRisks);
@@ -54,6 +56,7 @@ export const SideTop: FC<SideTopProps> = ({
   const store = useStore();
 
   const isViewTypeSelect = viewType == ViewTypeEnum.SELECT;
+  const documentId = query.riskGroupId as string | undefined;
 
   const selectedRisk: IRiskFactors | null = isViewTypeSelect
     ? selectedRisks[0]
@@ -98,6 +101,18 @@ export const SideTop: FC<SideTopProps> = ({
     handleSelectGHO(null, []);
   };
 
+  const handleGoBackDocument = () => {
+    if (companyId && documentId)
+      push({
+        pathname: RoutesEnum.COMPANY_PGR_DOCUMENT.replace(
+          ':companyId',
+          companyId,
+        ).replace(':docId', documentId),
+      });
+    dispatch(setGhoOpen(false));
+    handleSelectGHO(null, []);
+  };
+
   const severity = selectedRisks.length > 1 ? '-' : selectedRisk?.severity;
   const textRisk = isViewTypeSelect
     ? selectedRisks
@@ -108,6 +123,13 @@ export const SideTop: FC<SideTopProps> = ({
 
   return (
     <SFlex align="center" gap="1" mb={2}>
+      {companyId && documentId && (
+        <STooltip withWrapper title="Voltar para documento PGR">
+          <SIconButton onClick={handleGoBackDocument} size="small">
+            <Icon component={SArrowBack} sx={{ fontSize: '1.2rem' }} />
+          </SIconButton>
+        </STooltip>
+      )}
       <SIconButton onClick={handleCloseRisk} size="small">
         <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
       </SIconButton>

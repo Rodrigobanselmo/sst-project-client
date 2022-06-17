@@ -36,7 +36,7 @@ export const SideRowGho: FC<SideItemsProps> = ({
       }}
     >
       <STooltip minLength={15} enterDelay={1000} title={data.name}>
-        <Box sx={{ display: 'flex', width: '75%' }}>
+        <Box sx={{ display: 'flex', maxWidth: '75%', overflow: 'hidden' }}>
           <SText lineNumber={2}>{data.name}</SText>
         </Box>
       </STooltip>
