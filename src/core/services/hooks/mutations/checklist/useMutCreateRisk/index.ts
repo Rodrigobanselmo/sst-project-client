@@ -4,6 +4,7 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import {
   IGenerateSourceCreate,
   IRecMedCreate,
@@ -12,7 +13,6 @@ import {
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 interface ICreateRisk
@@ -35,7 +35,7 @@ export async function createRisk(data: ICreateRisk, companyId?: string) {
 }
 
 export function useMutCreateRisk() {
-  const { user } = useAuth();
+  const { companyId, user } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
@@ -43,12 +43,20 @@ export function useMutCreateRisk() {
       createRisk(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
-        if (resp)
+        if (resp) {
           queryClient.setQueryData(
             [QueryEnum.RISK, resp.companyId],
             (oldData: IRiskFactors[] | undefined) =>
               oldData ? [...oldData, resp] : [resp],
           );
+
+          if (resp.companyId != companyId)
+            queryClient.setQueryData(
+              [QueryEnum.RISK, companyId],
+              (oldData: IRiskFactors[] | undefined) =>
+                oldData ? [...oldData, resp] : [resp],
+            );
+        }
 
         enqueueSnackbar('Fator de risco criado com sucesso', {
           variant: 'success',

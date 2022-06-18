@@ -13,7 +13,7 @@ import { BottomButton } from './components/BottomButton';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
-import { SidebarOrg } from './components/SidebarOrg';
+import { SidebarOrg } from './components/RiskTool';
 import { IOrgTreeProps } from './interfaces';
 import { OrgTree, OrgTreeContainer, STGhoBox } from './OrgTree.styles';
 

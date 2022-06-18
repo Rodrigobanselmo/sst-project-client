@@ -34,29 +34,39 @@ export async function updateRisk(data: IUpdateRisk, companyId?: string) {
 
 export function useMutUpdateRisk() {
   const { enqueueSnackbar } = useSnackbar();
-  const { getCompanyId } = useGetCompanyId(true);
+  const { companyId, user } = useGetCompanyId();
 
   return useMutation(
-    async (data: IUpdateRisk) => updateRisk(data, getCompanyId(data.companyId)),
+    async (data: IUpdateRisk) =>
+      updateRisk(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
-        if (resp)
-          queryClient.setQueryData(
-            [QueryEnum.RISK, resp.companyId],
-            (oldData: IRiskFactors[] | undefined) =>
-              oldData
-                ? oldData.map((risk) =>
-                    risk.id == resp.id
-                      ? {
-                          ...risk,
-                          ...resp,
-                          recMed: [...resp.recMed],
-                          generateSource: [...resp.generateSource],
-                        }
-                      : risk,
-                  )
-                : [],
-          );
+        if (resp) {
+          const replace = (company: string) => {
+            queryClient.setQueryData(
+              [QueryEnum.RISK, company],
+              (oldData: IRiskFactors[] | undefined) =>
+                oldData
+                  ? oldData.map((risk) =>
+                      risk.id == resp.id
+                        ? {
+                            ...risk,
+                            ...resp,
+                            recMed: [...resp.recMed],
+                            generateSource: [...resp.generateSource],
+                          }
+                        : risk,
+                    )
+                  : [],
+            );
+          };
+
+          const id =
+            resp.companyId == user?.companyId ? companyId : resp.companyId;
+
+          replace(resp.companyId);
+          if (resp.companyId != id) replace(companyId || '');
+        }
 
         enqueueSnackbar('Fator de risco editado com sucesso', {
           variant: 'success',

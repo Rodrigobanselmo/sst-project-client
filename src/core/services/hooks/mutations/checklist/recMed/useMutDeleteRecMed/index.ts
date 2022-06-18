@@ -4,6 +4,7 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import {
   IGenerateSource,
   IRiskFactors,
@@ -23,28 +24,34 @@ export async function deleteRecMed(id: string) {
 
 export function useMutDeleteRecMed() {
   const { enqueueSnackbar } = useSnackbar();
+  const { companyId } = useGetCompanyId();
 
   return useMutation(async (id: string) => deleteRecMed(id), {
     onSuccess: async (newRecMed) => {
-      if (newRecMed)
-        queryClient.setQueryData(
-          [QueryEnum.RISK, newRecMed.companyId],
-          (oldData: IRiskFactors[] | undefined) =>
-            oldData
-              ? oldData.map((risk) =>
-                  risk.id === newRecMed.riskId
-                    ? {
-                        ...risk,
-                        recMed: [
-                          ...risk.recMed.filter(
-                            (rec) => rec.id !== newRecMed.id,
-                          ),
-                        ],
-                      }
-                    : risk,
-                )
-              : [],
-        );
+      if (newRecMed) {
+        const replace = (company: string) => {
+          queryClient.setQueryData(
+            [QueryEnum.RISK, company],
+            (oldData: IRiskFactors[] | undefined) =>
+              oldData
+                ? oldData.map((risk) =>
+                    risk.id === newRecMed.riskId
+                      ? {
+                          ...risk,
+                          recMed: [
+                            ...risk.recMed.filter(
+                              (rec) => rec.id !== newRecMed.id,
+                            ),
+                          ],
+                        }
+                      : risk,
+                  )
+                : [],
+          );
+        };
+        replace(newRecMed.companyId);
+        if (newRecMed.companyId != companyId) replace(companyId || '');
+      }
 
       enqueueSnackbar('Fonte geradora deletada com sucesso', {
         variant: 'success',

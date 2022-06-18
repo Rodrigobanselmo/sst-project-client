@@ -4,6 +4,7 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import {
   IGenerateSource,
   IRiskFactors,
@@ -22,30 +23,35 @@ export async function deleteGenerateSource(id: string) {
 }
 
 export function useMutDeleteGenerateSource() {
+  const { companyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(async (id: string) => deleteGenerateSource(id), {
     onSuccess: async (newGenerateSource) => {
-      console.log(newGenerateSource);
-      if (newGenerateSource)
-        queryClient.setQueryData(
-          [QueryEnum.RISK, newGenerateSource.companyId],
-          (oldData: IRiskFactors[] | undefined) =>
-            oldData
-              ? oldData.map((risk) =>
-                  risk.id === newGenerateSource.riskId
-                    ? {
-                        ...risk,
-                        generateSource: [
-                          ...risk.generateSource.filter(
-                            (gs) => gs.id !== newGenerateSource.id,
-                          ),
-                        ],
-                      }
-                    : risk,
-                )
-              : [],
-        );
+      if (newGenerateSource) {
+        const replace = (company: string) => {
+          queryClient.setQueryData(
+            [QueryEnum.RISK, company],
+            (oldData: IRiskFactors[] | undefined) =>
+              oldData
+                ? oldData.map((risk) =>
+                    risk.id === newGenerateSource.riskId
+                      ? {
+                          ...risk,
+                          generateSource: [
+                            ...risk.generateSource.filter(
+                              (gs) => gs.id !== newGenerateSource.id,
+                            ),
+                          ],
+                        }
+                      : risk,
+                  )
+                : [],
+          );
+        };
+        replace(newGenerateSource.companyId);
+        if (newGenerateSource.companyId != companyId) replace(companyId || '');
+      }
 
       enqueueSnackbar('Fonte geradora deletada com sucesso', {
         variant: 'success',

@@ -74,6 +74,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 
   const options = useMemo(() => {
     if (!data) return [];
+    console.log('options', data);
 
     const filterData = data.filter((risk) => !risk.representAll);
 

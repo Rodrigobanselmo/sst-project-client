@@ -4,11 +4,11 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../../errors/types';
 
 interface ICreateRecMed extends Pick<IRecMed, 'riskId'> {
@@ -32,7 +32,7 @@ export async function updateRecMed(data: ICreateRecMed, companyId?: string) {
 }
 
 export function useMutUpdateRecMed() {
-  const { user } = useAuth();
+  const { companyId, user } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
@@ -40,27 +40,32 @@ export function useMutUpdateRecMed() {
       updateRecMed(data, data.companyId || user?.companyId),
     {
       onSuccess: async (newRecMed) => {
-        if (newRecMed)
-          queryClient.setQueryData(
-            [QueryEnum.RISK, newRecMed.companyId],
-            (oldData: IRiskFactors[] | undefined) =>
-              oldData
-                ? oldData.map((risk) =>
-                    risk.id === newRecMed.riskId
-                      ? {
-                          ...risk,
-                          recMed: [
-                            ...risk.recMed.map((rm) =>
-                              rm.id === newRecMed.id
-                                ? { ...rm, ...newRecMed }
-                                : rm,
-                            ),
-                          ],
-                        }
-                      : risk,
-                  )
-                : [],
-          );
+        if (newRecMed) {
+          const replace = (company: string) => {
+            queryClient.setQueryData(
+              [QueryEnum.RISK, company],
+              (oldData: IRiskFactors[] | undefined) =>
+                oldData
+                  ? oldData.map((risk) =>
+                      risk.id === newRecMed.riskId
+                        ? {
+                            ...risk,
+                            recMed: [
+                              ...risk.recMed.map((rm) =>
+                                rm.id === newRecMed.id
+                                  ? { ...rm, ...newRecMed }
+                                  : rm,
+                              ),
+                            ],
+                          }
+                        : risk,
+                    )
+                  : [],
+            );
+          };
+          replace(newRecMed.companyId);
+          if (newRecMed.companyId != companyId) replace(companyId || '');
+        }
 
         enqueueSnackbar(
           'Recomendação e/ou Medida de controle criado com sucesso',

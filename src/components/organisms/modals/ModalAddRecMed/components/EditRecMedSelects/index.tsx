@@ -10,8 +10,8 @@ import { riskFilter } from 'components/organisms/tagSelects/RiskSelect/constants
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import { useAuth } from 'core/contexts/AuthContext';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { queryClient } from 'core/services/queryClient';
 
@@ -26,7 +26,7 @@ export const EditRecMedSelects: FC<IEditRecMedSelects> = ({
   setRecMedData,
   recMedData,
 }) => {
-  const { user } = useAuth();
+  const { companyId } = useGetCompanyId();
 
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const handleSelectRisk = (option: IRiskFactors) => {
@@ -47,10 +47,8 @@ export const EditRecMedSelects: FC<IEditRecMedSelects> = ({
 
   const options = useMemo(() => {
     const risks =
-      queryClient.getQueryData<IRiskFactors[]>([
-        QueryEnum.RISK,
-        user?.companyId,
-      ]) || [];
+      queryClient.getQueryData<IRiskFactors[]>([QueryEnum.RISK, companyId]) ||
+      [];
 
     if (activeFilters.length > 0 && risks)
       return risks.filter((risk) => activeFilters.includes(risk.type));
@@ -61,7 +59,7 @@ export const EditRecMedSelects: FC<IEditRecMedSelects> = ({
       ...risk,
       hideWithoutSearch: !recMedData.riskIds.includes(risk.id),
     }));
-  }, [activeFilters, recMedData.riskIds, user?.companyId]);
+  }, [activeFilters, recMedData.riskIds, companyId]);
 
   return (
     <SFlex gap={8} mt={10} align="flex-start">

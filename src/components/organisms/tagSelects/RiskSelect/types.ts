@@ -11,6 +11,7 @@ export interface ITypeSelectProps extends BoxProps {
   handleSelect?: (selectedIds: (string | number)[] | IRiskFactors) => void;
   text?: string;
   active?: boolean;
+  disabled?: boolean;
   bg?: string;
   tooltipTitle?: ReactNode;
 }

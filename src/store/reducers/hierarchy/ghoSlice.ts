@@ -12,7 +12,9 @@ export interface IGhoState {
     key: string;
     value: string;
   };
+  selected: IGho | null;
   search: string;
+  searchRisk: string;
   data: IGho | null;
   hierarchies: string[];
 }
@@ -21,6 +23,8 @@ const initialState: IGhoState = {
   hierarchies: [],
   search: '',
   searchSelect: '',
+  searchRisk: '',
+  selected: null,
   filter: {
     key: '',
     value: '',
@@ -67,6 +71,12 @@ export const ghoSlice = createSlice({
     setGhoSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
     },
+    setGhoSearchRisk: (state, action: PayloadAction<string>) => {
+      state.searchRisk = action.payload;
+    },
+    setGhoSelectedId: (state, action: PayloadAction<IGho>) => {
+      state.selected = action.payload;
+    },
     setGhoSearchSelect: (state, action: PayloadAction<string>) => {
       state.searchSelect = action.payload;
     },
@@ -101,11 +111,15 @@ export const {
   setGhoOpen,
   setGhoSearch,
   setGhoSearchSelect,
+  setGhoSelectedId,
   setGhoFilterState,
   setGhoFilterValues,
+  setGhoSearchRisk,
 } = ghoSlice.actions;
 
 export const selectGhoSearch = (state: AppState) => state.gho.search;
+export const selectGhoIsSelected = (id?: string) => (state: AppState) =>
+  id ? state.gho.selected?.id == id : state.gho.selected?.id;
 export const selectGhoFilter = (state: AppState) => state.gho.filter;
 export const selectGhoSearchSelect = (state: AppState) =>
   state.gho.searchSelect;

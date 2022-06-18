@@ -4,6 +4,7 @@ import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import {
   IGenerateSource,
   IRiskFactors,
@@ -11,7 +12,6 @@ import {
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../../errors/types';
 
 interface ICreateGenerateSource extends Pick<IGenerateSource, 'riskId'> {
@@ -40,7 +40,7 @@ export async function createGenerateSource(
 }
 
 export function useMutCreateGenerateSource() {
-  const { user } = useAuth();
+  const { companyId, user } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
@@ -48,29 +48,34 @@ export function useMutCreateGenerateSource() {
       createGenerateSource(data, user?.companyId),
     {
       onSuccess: async (newGenerateSource) => {
-        if (newGenerateSource)
-          queryClient.setQueryData(
-            [QueryEnum.RISK, newGenerateSource.companyId],
-            (oldData: IRiskFactors[] | undefined) =>
-              oldData
-                ? oldData.map((risk) =>
-                    risk.id === newGenerateSource.riskId
-                      ? {
-                          ...risk,
-                          generateSource: [
-                            ...risk.generateSource,
-                            newGenerateSource,
-                          ],
-                          recMed: [
-                            ...risk.recMed,
-                            ...(newGenerateSource?.recMeds || []),
-                          ],
-                        }
-                      : risk,
-                  )
-                : [],
-          );
-
+        if (newGenerateSource) {
+          const replace = (company: string) => {
+            queryClient.setQueryData(
+              [QueryEnum.RISK, company],
+              (oldData: IRiskFactors[] | undefined) =>
+                oldData
+                  ? oldData.map((risk) =>
+                      risk.id === newGenerateSource.riskId
+                        ? {
+                            ...risk,
+                            generateSource: [
+                              ...risk.generateSource,
+                              newGenerateSource,
+                            ],
+                            recMed: [
+                              ...risk.recMed,
+                              ...(newGenerateSource?.recMeds || []),
+                            ],
+                          }
+                        : risk,
+                    )
+                  : [],
+            );
+          };
+          replace(newGenerateSource.companyId);
+          if (newGenerateSource.companyId != companyId)
+            replace(companyId || '');
+        }
         enqueueSnackbar('Fonte geradora criado com sucesso', {
           variant: 'success',
         });
