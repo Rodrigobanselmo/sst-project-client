@@ -39,6 +39,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
             name="name"
             size="small"
             smallPlaceholder
+            firstLetterCapitalize
           />
           <Box
             mt={5}
@@ -56,6 +57,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               name="source"
               size="small"
               smallPlaceholder
+              firstLetterCapitalize
             />
             <InputForm
               defaultValue={data?.visitDate}
@@ -84,6 +86,9 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               name="elaboratedBy"
               size="small"
               smallPlaceholder
+              inputProps={{
+                textTransform: 'capitalize',
+              }}
             />
             <InputForm
               defaultValue={data?.revisionBy}
@@ -93,6 +98,9 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               name="revisionBy"
               size="small"
               smallPlaceholder
+              inputProps={{
+                textTransform: 'capitalize',
+              }}
             />
             <InputForm
               defaultValue={data?.approvedBy}
@@ -102,6 +110,9 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               name="approvedBy"
               size="small"
               smallPlaceholder
+              inputProps={{
+                textTransform: 'capitalize',
+              }}
             />
           </Box>
         </SFlex>

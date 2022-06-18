@@ -42,6 +42,7 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
       onOpenModal(ModalEnum.REC_MED_ADD, {
         passDataBack: true,
         edit: true,
+        onlyInput: '',
         localId: option?.localId,
         ...option,
       });
@@ -55,16 +56,20 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
         passDataBack: true,
         edit: true,
         localId: option?.localId,
+        showRecMed: true,
         ...option,
       });
   };
 
   const handleAddRecMed = () => {
-    onOpenModal(ModalEnum.REC_MED_ADD, { passDataBack: true });
+    onOpenModal(ModalEnum.REC_MED_ADD, { passDataBack: true, onlyInput: '' });
   };
 
   const handleAddGenerateSource = () => {
-    onOpenModal(ModalEnum.GENERATE_SOURCE_ADD, { passDataBack: true });
+    onOpenModal(ModalEnum.GENERATE_SOURCE_ADD, {
+      passDataBack: true,
+      showRecMed: true,
+    });
   };
 
   const optionsRec = useMemo(() => {

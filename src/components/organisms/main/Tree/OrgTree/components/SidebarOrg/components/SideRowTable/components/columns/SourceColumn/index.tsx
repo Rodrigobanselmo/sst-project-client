@@ -3,6 +3,7 @@ import React, { FC } from 'react';
 import { Box } from '@mui/material';
 import { GenerateSourceSelect } from 'components/organisms/tagSelects/GenerateSourceSelect';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
 
 import { SelectedTableItem } from '../../SelectedTableItem';
@@ -33,7 +34,7 @@ export const SourceColumn: FC<SourceColumnProps> = ({
               generateSource,
             );
 
-          document.getElementById('menu-close')?.click();
+          document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
         }}
         handleSelect={(options) => {
           const generateSource = options as IGenerateSource;

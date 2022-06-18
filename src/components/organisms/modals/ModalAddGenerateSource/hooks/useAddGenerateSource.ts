@@ -33,6 +33,7 @@ export const initialAddGenerateSourceState = {
   medType: null as MedTypeEnum | null,
   passDataBack: false,
   edit: false,
+  showRecMed: false,
   onCreate: (value: IGenerateSource | null) => {},
 };
 
@@ -173,5 +174,6 @@ export const useAddGenerateSource = () => {
     handleSubmit,
     onRemove: () => preventDelete(onRemove),
     reset,
+    showRecMed: generateSourceData.showRecMed,
   };
 };

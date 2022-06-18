@@ -8,6 +8,7 @@ import { initialAddGenerateSourceState } from 'components/organisms/modals/Modal
 import EditIcon from 'assets/icons/SEditIcon';
 import SGenerateSource from 'assets/icons/SGenerateSource';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
@@ -58,9 +59,16 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
   };
 
   const handleAddGenerateSource = () => {
+    const inputSelect = document.getElementById(
+      IdsEnum.INPUT_MENU_SEARCH,
+    ) as HTMLInputElement;
+
+    const name = inputSelect?.value || '';
+
     const passModalData = {
       riskIds: riskIds,
       onCreate,
+      name,
     } as Partial<typeof initialAddGenerateSourceState>;
 
     if (risk) passModalData.risk = risk;

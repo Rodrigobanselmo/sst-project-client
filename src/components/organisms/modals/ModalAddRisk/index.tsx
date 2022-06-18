@@ -66,6 +66,7 @@ export const ModalAddRisk = () => {
             placeholder={'descrição do fator de risco...'}
             name="name"
             size="small"
+            firstLetterCapitalize
           />
           <RadioForm
             type="radio"

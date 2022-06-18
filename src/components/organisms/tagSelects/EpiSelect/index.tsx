@@ -9,6 +9,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import EditIcon from 'assets/icons/SEditIcon';
 import { SEpiIcon } from 'assets/icons/SEpiIcon';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IEpi } from 'core/interfaces/api/IEpi';
@@ -50,7 +51,15 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
   };
 
   const handleAddEpi = () => {
-    onOpenModal<Partial<typeof initialAddEpiState>>(ModalEnum.EPI_ADD);
+    const inputSelect = document.getElementById(
+      IdsEnum.INPUT_MENU_SEARCH,
+    ) as HTMLInputElement;
+
+    const name = inputSelect?.value || '';
+
+    onOpenModal<Partial<typeof initialAddEpiState>>(ModalEnum.EPI_ADD, {
+      ca: name,
+    });
   };
 
   const onCloseMenu = () => {

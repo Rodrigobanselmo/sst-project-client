@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import { MedSelect } from 'components/organisms/tagSelects/MedSelect';
 import { MedTypeEnum } from 'project/enum/medType.enum';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 
 import { SelectedTableItem } from '../../SelectedTableItem';
@@ -36,7 +37,7 @@ export const EngColumn: FC<EngColumnProps> = ({
               engs,
             );
 
-          document.getElementById('menu-close')?.click();
+          document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
         }}
         handleSelect={(options) => {
           const op = options as IRecMed;

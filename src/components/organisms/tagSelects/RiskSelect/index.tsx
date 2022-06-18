@@ -10,6 +10,7 @@ import { initialAddRiskState } from 'components/organisms/modals/ModalAddRisk/ho
 
 import EditIcon from 'assets/icons/SEditIcon';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
@@ -36,7 +37,13 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
   };
 
   const handleAddRisk = () => {
-    onOpenModal(ModalEnum.RISK_ADD);
+    const inputSelect = document.getElementById(
+      IdsEnum.INPUT_MENU_SEARCH,
+    ) as HTMLInputElement;
+
+    const name = inputSelect?.value || '';
+
+    onOpenModal(ModalEnum.RISK_ADD, { name });
   };
 
   const handleEditRisk = (

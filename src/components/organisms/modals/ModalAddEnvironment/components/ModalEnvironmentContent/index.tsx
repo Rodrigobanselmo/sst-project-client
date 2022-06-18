@@ -51,6 +51,7 @@ export const ModalEnvironmentContent = ({
         placeholder={'nome do ambiente de trabalho...'}
         name="name"
         size="small"
+        firstLetterCapitalize
       />
       <InputForm
         defaultValue={environmentData.description}
@@ -64,6 +65,7 @@ export const ModalEnvironmentContent = ({
         placeholder={'descrição...'}
         name="description"
         size="small"
+        firstLetterCapitalize
       />
       <RadioForm
         type="radio"

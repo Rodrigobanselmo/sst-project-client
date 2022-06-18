@@ -58,7 +58,7 @@ export const ModalAddRecMed = () => {
           secondIconClick={onRemove}
         />
         <SFlex gap={8} direction="column" mt={8}>
-          {recMedData.onlyInput == 'rec' && (
+          {['rec', ''].includes(recMedData.onlyInput) && (
             <InputForm
               autoFocus
               defaultValue={recMedData.recName}
@@ -71,6 +71,7 @@ export const ModalAddRecMed = () => {
               placeholder={'descrição da recomendação...'}
               name="recName"
               size="small"
+              firstLetterCapitalize
             />
           )}
           {!(recMedData.onlyInput == 'rec') && (
@@ -90,6 +91,7 @@ export const ModalAddRecMed = () => {
                 placeholder={'descrição da medida de controle...'}
                 name="medName"
                 size="small"
+                firstLetterCapitalize
               />
               <RadioForm
                 type="radio"

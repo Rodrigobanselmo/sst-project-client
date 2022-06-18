@@ -32,6 +32,7 @@ export const ModalAddGenerateSource = () => {
     handleSubmit,
     onRemove,
     reset,
+    showRecMed,
   } = useAddGenerateSource();
 
   const buttons = [
@@ -76,9 +77,10 @@ export const ModalAddGenerateSource = () => {
             placeholder={'descrição da fonte geradora...'}
             name="name"
             size="small"
+            firstLetterCapitalize
           />
 
-          {false && !generateSourceData.edit && (
+          {showRecMed && !generateSourceData.edit && (
             <>
               <InputForm
                 multiline
@@ -89,6 +91,7 @@ export const ModalAddGenerateSource = () => {
                 placeholder={'descrição da recomendação...'}
                 name="recName"
                 size="small"
+                firstLetterCapitalize
               />
               <Box position="relative">
                 <InputForm
@@ -100,6 +103,7 @@ export const ModalAddGenerateSource = () => {
                   placeholder={'descrição da medida de controle...'}
                   name="medName"
                   size="small"
+                  firstLetterCapitalize
                   sx={{
                     minWidth: ['100%', 600],
                     '& .MuiOutlinedInput-root': { pb: 30 },

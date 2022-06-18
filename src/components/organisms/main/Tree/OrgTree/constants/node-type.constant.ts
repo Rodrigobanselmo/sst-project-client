@@ -66,10 +66,10 @@ export const nodeTypesConstant = {
   [TreeTypeEnum.SUB_SECTOR]: {
     value: TreeTypeEnum.SUB_SECTOR,
     color: 'group',
-    title: 'Novo setor desenvolvido',
-    name: 'Setor desenvolvido',
+    title: 'Novo Sub-setor',
+    name: 'Sub-setor',
     childOptions: [TreeTypeEnum.OFFICE],
-    placeholder: 'Nome do setor desenvolvido...',
+    placeholder: 'Nome do sub-setor...',
   },
   [TreeTypeEnum.OFFICE]: {
     value: TreeTypeEnum.OFFICE,

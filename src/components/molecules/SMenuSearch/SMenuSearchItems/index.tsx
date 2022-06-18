@@ -5,6 +5,8 @@ import { Box, Checkbox } from '@mui/material';
 import Icon from '@mui/material/Icon';
 import STooltip from 'components/atoms/STooltip';
 
+import { IdsEnum } from 'core/enums/ids.enums';
+
 import SText from '../../../atoms/SText';
 import { STMenuItem } from '../styles';
 import { SMenuItemsSearchProps } from './types';
@@ -42,11 +44,13 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
         return (
           <STMenuItem
             key={value}
-            id={'menu-item-id-' + index}
+            id={IdsEnum.MENU_ITEM_ID.replace(':id', String(index))}
             className="checkbox-menu-item"
             onKeyDown={(e) => {
               if (e.key === 'ArrowUp' && index === 0) {
-                const input = document.getElementById('input-menu-search');
+                const input = document.getElementById(
+                  IdsEnum.INPUT_MENU_SEARCH,
+                );
                 if (input) {
                   input.focus();
                   e.stopPropagation();
@@ -56,7 +60,9 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
                 if (index === arr.length - 2)
                   setScroll && setScroll((scroll) => scroll + 1);
                 if (index === arr.length - 1) {
-                  const input = document.getElementById('input-menu-search');
+                  const input = document.getElementById(
+                    IdsEnum.INPUT_MENU_SEARCH,
+                  );
                   if (input) {
                     input.focus();
                     e.stopPropagation();
@@ -71,6 +77,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
                   value,
                 ) as HTMLInputElement;
 
+                console.log(listRef);
                 if (
                   listRef &&
                   listRef.current &&
@@ -93,8 +100,9 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
                   onChange={(e) => {
                     if (e.target.checked) {
                       const element = document.getElementById(
-                        'menu-item-id-' + index,
+                        IdsEnum.MENU_ITEM_ID.replace(':id', String(index)),
                       ) as HTMLElement;
+
                       if (listRef && listRef.current && element)
                         listRef.current.prepend(element);
 

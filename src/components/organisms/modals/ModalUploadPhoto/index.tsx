@@ -148,7 +148,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
         <InputForm
           autoFocus
           defaultValue={photoData.name}
-          label="Nome"
+          label="Legenda"
           labelPosition="center"
           control={control}
           sx={{ minWidth: ['100%', 600], mb: 5 }}

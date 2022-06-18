@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC } from 'react';
+import React, { ChangeEvent, FC } from 'react';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
@@ -28,8 +28,20 @@ export const SInput: FC<SInputProps> = ({
   secondary,
   smallPlaceholder,
   backgroundColor,
+  onChange,
+  firstLetterCapitalize,
   ...props
 }) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    if (firstLetterCapitalize && e.target.value.length === 1) {
+      e.target.value = e.target.value.toUpperCase();
+    }
+
+    onChange && onChange(e);
+  };
+
   return (
     <div>
       {label && labelPosition === 'top' && (
@@ -42,6 +54,7 @@ export const SInput: FC<SInputProps> = ({
         </Typography>
       )}
       <STTextField
+        onChange={handleChange}
         backgroundColor={backgroundColor}
         smallPlaceholder={smallPlaceholder ? 1 : 0}
         color={error ? 'error' : success ? 'success' : 'primary'}

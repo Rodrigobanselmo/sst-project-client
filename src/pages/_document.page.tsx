@@ -5,7 +5,11 @@ export default class MyDocument extends Document {
     return (
       <Html>
         <Head>
-          <link rel="shortcut icon" href="/vercel.svg" type="image/svg" />
+          <link
+            rel="shortcut icon"
+            href="/icons/brand/logo-simple.svg"
+            type="image/svg"
+          />
           <meta
             httpEquiv="Content-Security-Policy"
             content="upgrade-insecure-requests"

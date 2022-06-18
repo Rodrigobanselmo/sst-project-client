@@ -3,6 +3,7 @@ import React, { FC } from 'react';
 import { Box } from '@mui/material';
 import { RecSelect } from 'components/organisms/tagSelects/RecSelect';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 
 import { SelectedTableItem } from '../../SelectedTableItem';
@@ -34,7 +35,7 @@ export const RecColumn: FC<RecColumnProps> = ({
               rec,
             );
 
-          document.getElementById('menu-close')?.click();
+          document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
         }}
         handleSelect={(options) => {
           const op = options as IRecMed;

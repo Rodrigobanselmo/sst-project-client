@@ -10,6 +10,7 @@ import EditIcon from 'assets/icons/SEditIcon';
 import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
 import SRecommendationIcon from 'assets/icons/SRecommendationIcon';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
@@ -41,10 +42,17 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   };
 
   const handleAddRecMed = () => {
+    const inputSelect = document.getElementById(
+      IdsEnum.INPUT_MENU_SEARCH,
+    ) as HTMLInputElement;
+
+    const medName = inputSelect?.value || '';
+
     const passModalData = {
       riskIds: riskIds,
       onCreate,
       onlyInput,
+      medName,
       medType:
         onlyInput == 'adm'
           ? MedTypeEnum.ADM

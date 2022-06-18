@@ -8,6 +8,8 @@ import diacritics from 'diacritics';
 import Fuse from 'fuse.js';
 import { useDebouncedCallback } from 'use-debounce';
 
+import { IdsEnum } from 'core/enums/ids.enums';
+
 import { SMenuSearchItems } from './SMenuSearchItems';
 import { STMenu, STSInput } from './styles';
 import { IMenuSearchOption, SMenuSearchProps } from './types';
@@ -145,22 +147,25 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         }}
       >
         <span
-          id="menu-close"
+          id={IdsEnum.MENU_CLOSE}
           style={{ display: 'none' }}
           onClick={(e) => onClose(e)}
         />
         <STSInput
-          inputProps={{ id: 'input-menu-search', tabIndex: -1 }}
+          inputProps={{ id: IdsEnum.INPUT_MENU_SEARCH, tabIndex: -1 }}
           onChange={(e) => handleSearchChange(e.target.value)}
           placeholder={placeholder}
           sx={{ width: '100%', minWidth: width }}
+          firstLetterCapitalize
           unstyled
           autoFocus
           onKeyDown={(e) => {
             const target = e.target as unknown as { value: string };
             if (e.key === 'Enter') if (onEnter) onEnter(target.value);
             if (e.key === 'ArrowDown') {
-              const listItem = document.getElementById('menu-item-id-0');
+              const listItem = document.getElementById(
+                IdsEnum.MENU_ITEM_ID.replace(':id', '0'),
+              );
               if (listItem) {
                 listItem.focus();
                 if (listWrapperRef.current?.style)
@@ -207,6 +212,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           localSelected={localSelected}
           multiple={multiple}
           defaultChecked
+          listRef={listWrapperRef}
           setScroll={setScroll}
         />
         {additionalButton && (
