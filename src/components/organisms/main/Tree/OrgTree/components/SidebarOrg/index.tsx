@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 
+import styled from '@emotion/styled';
 import clone from 'clone';
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
@@ -46,7 +47,34 @@ import { SideRow } from './components/SideRow';
 import { SideSelectViewContent } from './components/SideSelectViewContent';
 import { SideTop } from './components/SideTop';
 import { STBoxContainer, STBoxStack } from './styles';
-import { ViewTypeEnum } from './utils/view-type.enum';
+import { IViewsRiskOption, ViewTypeEnum } from './utils/view-type.constant';
+
+const STTableContainer = styled.div`
+  overflow-x: auto;
+  width: 100%;
+  min-width: 320px;
+
+  &::-webkit-scrollbar {
+    border-radius: 24px;
+    width: 5px;
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-radius: 24px;
+    width: 5px;
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 24px;
+    background: ${({ theme }) => theme.palette.grey[300]};
+
+    &:hover {
+      background: ${({ theme }) => theme.palette.grey[500]};
+    }
+  }
+`;
 
 export const SidebarOrg = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -63,7 +91,7 @@ export const SidebarOrg = () => {
 
   const { companyId } = useGetCompanyId();
 
-  const [viewType, setViewType] = useState(ViewTypeEnum.SELECT);
+  const [viewType, setViewType] = useState(ViewTypeEnum.SIMPLE_BY_RISK);
 
   const isOpen = false;
 
@@ -110,8 +138,6 @@ export const SidebarOrg = () => {
         if (!selectExpanded) dispatch(setRiskAddToggleExpand());
         return dispatch(setGhoState({ hierarchies: [], data: null }));
       }
-      // push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
-      // dispatch(setGhoOpen(true));
 
       const isSelected = selectedGhoId === gho.id;
 
@@ -126,12 +152,8 @@ export const SidebarOrg = () => {
     [dispatch, selectExpanded, selectedGhoId],
   );
 
-  const handleChangeView = () => {
-    setViewType(
-      viewType === ViewTypeEnum.SELECT
-        ? ViewTypeEnum.LIST
-        : ViewTypeEnum.SELECT,
-    );
+  const handleChangeView = (option: IViewsRiskOption) => {
+    setViewType(option.value);
 
     dispatch(setRiskAddState({ isEdited: false }));
     dispatch(
@@ -203,49 +225,49 @@ export const SidebarOrg = () => {
             handleSelectGHO={handleSelectGHO}
             riskInit={isRiskOpen}
           />
-          <div style={{ overflow: 'auto', minWidth: '320px' }}>
-            <table style={{ width: '100%' }}>
-              <SideHeader
-                handleSelectGHO={handleSelectGHO}
-                handleEditGHO={handleEditGHO}
-                handleAddGHO={handleAddGHO}
-                isAddLoading={addMutation.isLoading}
-                riskInit={isRiskOpen}
-                inputRef={inputRef}
-                viewType={viewType}
-              />
-              <STBoxStack
-                expanded={selectExpanded ? 1 : 0}
-                risk_init={isRiskOpen ? 1 : 0}
-              >
-                {viewType === ViewTypeEnum.LIST &&
-                  ghoOrderedData.map((gho) => (
-                    <SideRow
-                      key={gho.id}
-                      gho={gho}
-                      handleEditGHO={handleEditGHO}
-                      handleSelectGHO={handleSelectGHO}
-                      handleDeleteGHO={handleDeleteGHO}
-                      selectedGhoId={selectedGhoId}
-                      isDeleteLoading={deleteMutation.isLoading}
-                      isRiskOpen={isRiskOpen}
-                      riskData={riskData.find(
-                        (data) => data.homogeneousGroupId == gho.id,
-                      )}
-                    />
-                  ))}
-                {viewType === ViewTypeEnum.SELECT && (
-                  <SideSelectViewContent
-                    handleSelectGHO={handleSelectGHO}
+          <STTableContainer>
+            {/* <table style={{ width: '100%' }}> */}
+            <SideHeader
+              handleSelectGHO={handleSelectGHO}
+              handleEditGHO={handleEditGHO}
+              handleAddGHO={handleAddGHO}
+              isAddLoading={addMutation.isLoading}
+              riskInit={isRiskOpen}
+              inputRef={inputRef}
+              viewType={viewType}
+            />
+            <STBoxStack
+              expanded={selectExpanded ? 1 : 0}
+              risk_init={isRiskOpen ? 1 : 0}
+            >
+              {viewType === ViewTypeEnum.SIMPLE_BY_RISK &&
+                ghoOrderedData.map((gho) => (
+                  <SideRow
+                    key={gho.id}
+                    gho={gho}
                     handleEditGHO={handleEditGHO}
-                    handleAddGHO={handleAddGHO}
-                    inputRef={inputRef}
-                    ghoQuery={ghoQuery}
+                    handleSelectGHO={handleSelectGHO}
+                    handleDeleteGHO={handleDeleteGHO}
+                    selectedGhoId={selectedGhoId}
+                    isDeleteLoading={deleteMutation.isLoading}
+                    isRiskOpen={isRiskOpen}
+                    riskData={riskData.find(
+                      (data) => data.homogeneousGroupId == gho.id,
+                    )}
                   />
-                )}
-              </STBoxStack>
-            </table>
-          </div>
+                ))}
+              {viewType === ViewTypeEnum.MULTIPLE && (
+                <SideSelectViewContent
+                  handleSelectGHO={handleSelectGHO}
+                  handleEditGHO={handleEditGHO}
+                  handleAddGHO={handleAddGHO}
+                  inputRef={inputRef}
+                  ghoQuery={ghoQuery}
+                />
+              )}
+            </STBoxStack>
+            {/* </table> */}
+          </STTableContainer>
         </STBoxContainer>
       )}
       <ModalAddProbability />

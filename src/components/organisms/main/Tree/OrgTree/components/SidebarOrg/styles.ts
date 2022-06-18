@@ -56,21 +56,41 @@ export const STBoxStack = styled(Box)<{
   flex-direction: column;
   gap: ${(props) => props.theme.spacing(4)};
   padding-bottom: ${(props) => props.theme.spacing(10)};
-  max-height: calc(100vh - 300px);
+  max-height: calc(100vh - 240px);
   min-height: ${(props) => props.theme.spacing(100)};
   overflow: auto;
+  min-width: fit-content;
 
   ${(props) =>
     props.risk_init &&
     css`
-      max-height: 400px;
+      /* max-height: 400px; */
     `};
 
   ${(props) =>
     props.expanded &&
     css`
-      min-height: calc(100vh - 220px);
+      /* min-height: calc(100vh - 220px); */
     `};
+
+  &::-webkit-scrollbar {
+    border-radius: 24px;
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-radius: 24px;
+    width: 5px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: 24px;
+    background: ${({ theme }) => theme.palette.grey[300]};
+
+    &:hover {
+      background: ${({ theme }) => theme.palette.grey[500]};
+    }
+  }
 `;
 
 export const STGridExtend = styled(Box)`

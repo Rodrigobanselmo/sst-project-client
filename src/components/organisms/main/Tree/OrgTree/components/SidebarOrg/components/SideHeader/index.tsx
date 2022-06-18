@@ -15,7 +15,7 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { headerRows } from '../../utils/header.constants';
-import { ViewTypeEnum } from '../../utils/view-type.enum';
+import { ViewTypeEnum } from '../../utils/view-type.constant';
 import { SideInput } from '../SIdeInput';
 import { SideRowTableMulti } from '../SideRowTable/Multiple';
 import { STGridHeader, StyledSArrowUpFilterIcon } from './styles';
@@ -45,7 +45,7 @@ export const SideHeader: FC<SideHeaderProps> = ({
 
   return (
     <SFlex align="center" gap={4} mb={5}>
-      {viewType === ViewTypeEnum.LIST && (
+      {viewType === ViewTypeEnum.SIMPLE_BY_RISK && (
         <SideInput
           ref={inputRef}
           handleSelectGHO={handleSelectGHO}
@@ -61,7 +61,7 @@ export const SideHeader: FC<SideHeaderProps> = ({
             {headerRows.map((row) => {
               const isFilterSelected = selectedGhoFilter.key === row.filterKey;
               const isSortable =
-                row.filterKey && viewType === ViewTypeEnum.LIST;
+                row.filterKey && viewType === ViewTypeEnum.SIMPLE_BY_RISK;
               return (
                 <STooltip key={row.label} title={row.tooltip}>
                   <SFlex
@@ -87,7 +87,7 @@ export const SideHeader: FC<SideHeaderProps> = ({
             })}
           </STGridHeader>
         )}
-        {viewType === ViewTypeEnum.SELECT && <SideRowTableMulti />}
+        {viewType === ViewTypeEnum.MULTIPLE && <SideRowTableMulti />}
       </Box>
     </SFlex>
   );

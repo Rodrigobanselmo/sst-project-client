@@ -3,7 +3,7 @@ import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
 
-import { ViewTypeEnum } from '../../utils/view-type.enum';
+import { ViewTypeEnum } from '../../utils/view-type.constant';
 
 export interface SideHeaderProps {
   isAddLoading?: boolean;

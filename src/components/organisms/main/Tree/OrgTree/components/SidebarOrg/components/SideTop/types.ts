@@ -3,12 +3,12 @@ import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
 
-import { ViewTypeEnum } from '../../utils/view-type.enum';
+import { IViewsRiskOption, ViewTypeEnum } from '../../utils/view-type.constant';
 
 export interface SideTopProps {
   riskInit?: boolean;
   viewType: ViewTypeEnum;
-  onChangeView?: () => void;
+  onChangeView?: (option: IViewsRiskOption) => void;
   handleSelectGHO: (
     gho: IGho | null,
     hierarchies: string[],

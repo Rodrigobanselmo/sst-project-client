@@ -1,0 +1,5 @@
+export enum ViewsRiskEnum {
+  SIMPLE_BY_RISK = 'SIMPLE_BY_RISK',
+  SIMPLE_BY_GROUP = 'SIMPLE_BY_GROUP',
+  MULTIPLE = 'MULTIPLE',
+}

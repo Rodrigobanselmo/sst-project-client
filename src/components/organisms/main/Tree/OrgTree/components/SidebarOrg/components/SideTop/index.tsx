@@ -10,6 +10,7 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { RiskSelect } from 'components/organisms/tagSelects/RiskSelect';
+import { ViewsRiskSelect } from 'components/organisms/tagSelects/ViewsRiskSelect';
 import { useRouter } from 'next/router';
 import { setGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
 import {
@@ -36,7 +37,7 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { queryClient } from 'core/services/queryClient';
 
-import { ViewTypeEnum } from '../../utils/view-type.enum';
+import { IViewsRiskOption, ViewTypeEnum } from '../../utils/view-type.constant';
 import { SideTopProps } from './types';
 
 export const SideTop: FC<SideTopProps> = ({
@@ -55,7 +56,7 @@ export const SideTop: FC<SideTopProps> = ({
   const { preventWarn } = usePreventAction();
   const store = useStore();
 
-  const isViewTypeSelect = viewType == ViewTypeEnum.SELECT;
+  const isViewTypeSelect = viewType == ViewTypeEnum.MULTIPLE;
   const documentId = query.riskGroupId as string | undefined;
 
   const selectedRisk: IRiskFactors | null = isViewTypeSelect
@@ -147,8 +148,12 @@ export const SideTop: FC<SideTopProps> = ({
             text={severity ? String(severity) : '0'}
             action={String(severity) as any}
           />
+          <ViewsRiskSelect
+            handleSelectMenu={(option: IViewsRiskOption) =>
+              onChangeView && onChangeView(option)
+            }
+          />
 
-          <STagButton text="Trocar View" large onClick={onChangeView} />
           <STooltip title="Adicionar GSE e Cargos por planilha excel">
             <STagButton
               large
