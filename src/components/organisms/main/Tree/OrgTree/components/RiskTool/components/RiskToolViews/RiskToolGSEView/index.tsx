@@ -98,7 +98,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
         active={!!selectedGho}
         text={'Adicionar fator de risco'}
         onClick={handleAddRisk}
-        sx={{ mt: 5, mb: 50, maxWidth: 287 }}
+        sx={{ mt: 5, mb: 0, maxWidth: 287 }}
       />
     </>
   );

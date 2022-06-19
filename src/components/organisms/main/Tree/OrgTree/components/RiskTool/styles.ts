@@ -56,7 +56,7 @@ export const STBoxStack = styled(Box)<{
   flex-direction: column;
   gap: ${(props) => props.theme.spacing(4)};
   padding-bottom: ${(props) => props.theme.spacing(10)};
-  max-height: calc(100vh - 240px);
+  max-height: calc(100vh - 325px);
   min-height: ${(props) => props.theme.spacing(100)};
   overflow: auto;
   min-width: fit-content;
@@ -64,13 +64,14 @@ export const STBoxStack = styled(Box)<{
   ${(props) =>
     props.risk_init &&
     css`
-      /* max-height: 400px; */
+      max-height: 310px;
     `};
 
   ${(props) =>
     props.expanded &&
     css`
-      /* min-height: calc(100vh - 220px); */
+      max-height: calc(100vh - 325px);
+      min-height: calc(100vh - 325px);
     `};
 
   &::-webkit-scrollbar {
