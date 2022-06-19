@@ -8,6 +8,7 @@ import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -169,7 +170,7 @@ export const SideRowTable: FC<SideTableProps> = ({
   return (
     <STGridItem
       onClick={() =>
-        risk?.id ? null : document.getElementById('risk-select-id')?.click()
+        risk?.id ? null : document.getElementById(IdsEnum.RISK_SELECT)?.click()
       }
       key={gho.id}
       selected={isSelected ? 1 : 0}

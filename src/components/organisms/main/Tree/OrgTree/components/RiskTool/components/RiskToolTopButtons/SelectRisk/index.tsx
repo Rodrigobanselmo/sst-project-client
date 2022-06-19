@@ -125,9 +125,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
         )
       }
       bg={
-        isViewTypeGroup && selectedGho
-          ? 'tag.add'
-          : selectedRisk?.type
+        selectedRisk?.type
           ? `risk.${selectedRisk.type.toLocaleLowerCase()}`
           : undefined
       }

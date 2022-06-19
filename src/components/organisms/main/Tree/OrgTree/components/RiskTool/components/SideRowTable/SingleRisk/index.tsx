@@ -7,6 +7,7 @@ import { initialProbState } from 'components/organisms/modals/ModalAddProbabilit
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -168,7 +169,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
   return (
     <STGridItem
       onClick={() =>
-        risk?.id ? null : document.getElementById('risk-select-id')?.click()
+        risk?.id ? null : document.getElementById(IdsEnum.RISK_SELECT)?.click()
       }
       key={risk.id}
     >

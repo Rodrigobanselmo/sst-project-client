@@ -20,6 +20,7 @@ import {
   setRiskAddState,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
@@ -259,7 +260,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
         onClick={() =>
           selectedRiskStore?.id
             ? null
-            : document.getElementById('risk-select-id')?.click()
+            : document.getElementById(IdsEnum.RISK_SELECT)?.click()
         }
       >
         <SourceColumn
