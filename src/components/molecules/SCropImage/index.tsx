@@ -7,6 +7,8 @@ import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 
+import defaultTheme from 'configs/theme';
+
 import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 import SRotate90Icon from 'assets/icons/SRotate90Icon';
 import { SRotateLeftIcon } from 'assets/icons/SRotateLeftIcon';
@@ -54,9 +56,22 @@ export default function SCropImage({
   }, [files]);
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
-    if (aspect) {
+    let aspectRatio = aspect;
+    if (aspectRatio) {
       const { width, height } = e.currentTarget;
-      setCrop(centerAspectCrop(width, height, aspect));
+      if (width >= height) {
+        setAspect(16 / 9);
+        aspectRatio = 16 / 9;
+      }
+      if (height > width) {
+        setAspect(9 / 16);
+        aspectRatio = 9 / 16;
+      }
+
+      // const isHeightBiggerThan600 = height > 600;
+      // const newWidth = isHeightBiggerThan600?: width;
+
+      setCrop(centerAspectCrop(width, height, aspectRatio));
     }
   }
 
@@ -65,8 +80,15 @@ export default function SCropImage({
       setAspect(undefined);
     } else if (imgRef.current) {
       const { width, height } = imgRef.current;
-      setAspect(16 / 9);
-      setCrop(centerAspectCrop(width, height, 16 / 9));
+      console.log(height, width);
+      if (width >= height) {
+        setAspect(16 / 9);
+        setCrop(centerAspectCrop(width, height, 16 / 9));
+      }
+      if (height > width) {
+        setAspect(9 / 16);
+        setCrop(centerAspectCrop(width, height, 9 / 16));
+      }
     }
   }
 
@@ -149,20 +171,32 @@ export default function SCropImage({
         )}
       </div>
       {Boolean(imgSrc) && (
-        <ReactCrop
-          crop={crop}
-          onChange={(_, percentCrop) => setCrop(percentCrop)}
-          onComplete={(c) => setCompletedCrop(c)}
-          aspect={aspect}
+        <div
+          style={{
+            maxHeight: 520,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: defaultTheme.palette.grey[200],
+            marginBottom: '10px',
+          }}
         >
-          <img
-            ref={imgRef}
-            alt="Crop me"
-            src={imgSrc}
-            style={{ transform: `scale(${scale}) rotate(${rotate}deg)` }}
-            onLoad={onImageLoad}
-          />
-        </ReactCrop>
+          <ReactCrop
+            crop={crop}
+            onChange={(_, percentCrop) => setCrop(percentCrop)}
+            onComplete={(c) => setCompletedCrop(c)}
+            aspect={aspect}
+            style={{ maxHeight: 520 }}
+          >
+            <img
+              ref={imgRef}
+              alt="Crop me"
+              src={imgSrc}
+              onLoad={onImageLoad}
+              style={{ transform: `scale(${scale}) rotate(${rotate}deg)` }}
+            />
+          </ReactCrop>
+        </div>
       )}
     </div>
   );

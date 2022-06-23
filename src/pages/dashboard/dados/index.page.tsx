@@ -10,11 +10,13 @@ const Database: NextPage = () => {
 
   const onGeneratePGRDocumentTest = () => {
     return createDoc.mutateAsync({
-      version: Math.random().toString(),
+      version: '4.1',
       name: 'doc_name',
-      riskGroupId: '7868bea7-3623-4d48-98c4-0c2c297a79fc',
-      workspaceId: '48707b4d-e011-44e2-a4fa-bded0d9efe41',
+      description: 'doc_description',
+      riskGroupId: 'daf542d6-0884-452b-9174-7f1ce269b234',
+      workspaceId: '44607aea-6320-4950-a3d3-e76d7deb5d74',
       workspaceName: 'Matriz',
+      companyId: '1a9feb0b-0daa-4559-9abd-505e50a861a2',
     });
   };
 
