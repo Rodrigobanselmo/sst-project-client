@@ -16,7 +16,7 @@ export const RenderButton = styled.span<{
   margin-left: -11px;
   margin-top: 11px;
   background-color: #fff;
-  border: 1px solid #ccc;
+  border: 4px solid #ccc;
   border-radius: 50%;
   box-shadow: 0 0 2px rgba(0, 0, 0, 0.15);
   cursor: pointer;
@@ -39,7 +39,7 @@ export const RenderButton = styled.span<{
     left: 4px;
     right: 4px;
     height: 0;
-    border-top: 1px solid #ccc;
+    /* border-top: 1px solid #ccc; */
   }
 
   :after {
@@ -47,15 +47,16 @@ export const RenderButton = styled.span<{
     left: 50%;
     bottom: 4px;
     width: 0;
-    border-left: 1px solid #ccc;
+    /* border-left: 1px solid #ccc; */
   }
 
   ${(props) =>
     props.expanded &&
     css`
-      &:after {
+      /* &:after {
         border: none;
-      }
+      } */
+      border: 4px solid ${props.theme.palette.info.main};
     `};
 
   ${(props) =>

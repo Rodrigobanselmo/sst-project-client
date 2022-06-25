@@ -40,7 +40,7 @@ export const BottomButton: FC = () => {
         position: 'absolute',
       }}
     >
-      <STooltip placement="top" title="Vincular Fatores de Risco">
+      {/* <STooltip placement="top" title="Vincular Fatores de Risco">
         <SFlexButton
           onClick={() => {
             handleRiskData();
@@ -56,7 +56,7 @@ export const BottomButton: FC = () => {
           <Icon sx={{ color: 'gray.500' }} component={SRiskFactorIcon} />
           <SText>Fatores de Risco</SText>
         </SFlexButton>
-      </STooltip>
+      </STooltip> */}
       <STooltip placement="top-start" title="Grupo homogênio de exposição">
         <SFlexButton
           active={isGhoOpen ? 1 : 0}

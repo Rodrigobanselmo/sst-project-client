@@ -13,7 +13,7 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
   height: 100%;
   width: 100%;
   padding: 30px;
-  padding-right: 1600px;
+  padding-right: 600px;
 
   &::-webkit-scrollbar {
     width: 10px;
@@ -35,7 +35,7 @@ export const OrgTreeContainer = styled.div<IHorizontal>`
 export const OrgTree = styled.div<IHorizontal>`
   display: table;
   text-align: center;
-  padding-bottom: 1600px;
+  /* padding-bottom: 1600px; */ //*
 
   &:before,
   &:after {

@@ -10,6 +10,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useZoom } from '../../../../../core/hooks/useZoom';
 import { TreeNode } from './components';
 import { BottomButton } from './components/BottomButton';
+import { GhoTool } from './components/GhoTool';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
@@ -66,7 +67,8 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
         gho={isGhoOpen ? 1 : 0}
         risk_init={isRiskOpen ? 1 : 0}
       >
-        <SidebarOrg />
+        {isRiskOpen && <SidebarOrg />}
+        {!isRiskOpen && <GhoTool />}
       </STGhoBox>
     </Box>
   );

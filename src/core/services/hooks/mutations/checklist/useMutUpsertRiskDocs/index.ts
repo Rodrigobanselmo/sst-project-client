@@ -3,6 +3,7 @@ import { useMutation } from 'react-query';
 import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -30,6 +31,7 @@ export async function upsertRiskDocs(
   companyId?: string,
 ) {
   if (!companyId) return null;
+  const { token } = await refreshToken();
 
   const response = await api.post<IPrgDocData>(
     `${ApiRoutesEnum.DOCUMENTS_PGR}`,
@@ -39,6 +41,9 @@ export async function upsertRiskDocs(
     },
     {
       responseType: 'blob',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
     },
   );
 
