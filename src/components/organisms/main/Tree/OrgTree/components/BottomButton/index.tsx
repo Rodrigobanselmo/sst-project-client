@@ -5,7 +5,11 @@ import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { useRouter } from 'next/router';
-import { selectGhoOpen, setGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
+import {
+  selectGhoOpen,
+  setGhoOpen,
+  setGhoState,
+} from 'store/reducers/hierarchy/ghoSlice';
 
 import SGhoIcon from 'assets/icons/SGhoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
@@ -19,18 +23,18 @@ import { SFlexButton } from './styles';
 export const BottomButton: FC = () => {
   const dispatch = useAppDispatch();
   const isGhoOpen = useAppSelector(selectGhoOpen);
-  const { query, asPath, push } = useRouter();
+  // const { query, asPath, push } = useRouter();
 
-  const isRiskOpen = query.riskGroupId;
+  // const isRiskOpen = query.riskGroupId;
 
-  const handleCloseRisk = () => {
-    push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
-  };
+  // const handleCloseRisk = () => {
+  //   push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
+  // };
 
-  const handleRiskData = () => {
-    if (!isRiskOpen) push(RoutesEnum.PGR);
-    else handleCloseRisk();
-  };
+  // const handleRiskData = () => {
+  //   if (!isRiskOpen) push(RoutesEnum.PGR);
+  //   else handleCloseRisk();
+  // };
 
   return (
     <SFlex
@@ -61,7 +65,8 @@ export const BottomButton: FC = () => {
         <SFlexButton
           active={isGhoOpen ? 1 : 0}
           onClick={() => {
-            handleCloseRisk();
+            // handleCloseRisk();
+            dispatch(setGhoState({ hierarchies: [], data: null }));
             dispatch(setGhoOpen());
           }}
           gap={3}

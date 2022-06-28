@@ -19,13 +19,13 @@ export const SideRowGho: FC<SideItemsProps> = ({
   isSelected,
   isDeleteLoading,
   handleDeleteGHO,
-  handleSelectGHO,
+  // handleSelectGHO,
   handleEditGHO,
   hide,
 }) => {
-  const hierarchies = data.hierarchies
-    ? data.hierarchies.map((value) => value.id + '//' + value.workspaceId)
-    : [];
+  // const hierarchies = data.hierarchies
+  //   ? data.hierarchies.map((value) => value.id + '//' + value.workspaceId)
+  //   : [];
 
   return (
     <STBoxItem
@@ -43,10 +43,10 @@ export const SideRowGho: FC<SideItemsProps> = ({
       <SFlex>
         {!hide && (
           <>
-            <STooltip withWrapper title={'Deletar'}>
+            <STooltip withWrapper title={'Limpar dados'}>
               <SIconButton
                 loading={isDeleteLoading}
-                onClick={() => handleDeleteGHO(data.id)}
+                onClick={() => handleDeleteGHO(data.id, data)}
                 size="small"
               >
                 <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
@@ -57,7 +57,7 @@ export const SideRowGho: FC<SideItemsProps> = ({
                 <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
               </SIconButton>
             </STooltip>
-            <STooltip withWrapper title={'Adicionar setores e cargos ao grupo'}>
+            {/* <STooltip withWrapper title={'Adicionar setores e cargos ao grupo'}>
               <SIconButton
                 onClick={() =>
                   handleSelectGHO(isSelected ? null : data, hierarchies)
@@ -72,7 +72,7 @@ export const SideRowGho: FC<SideItemsProps> = ({
                   }}
                 />
               </SIconButton>
-            </STooltip>
+            </STooltip> */}
           </>
         )}
       </SFlex>

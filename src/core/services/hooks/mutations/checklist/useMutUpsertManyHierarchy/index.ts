@@ -1,17 +1,16 @@
 import { useMutation } from 'react-query';
 
-import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 interface IUpsertHierarchy {
@@ -35,7 +34,7 @@ export async function upsertManyHierarchy(
   };
 
   const response = await api.post<IHierarchy[]>(
-    ApiRoutesEnum.HIERARCHY + '/upsert-many',
+    ApiRoutesEnum.HIERARCHY + '/upsert-many' + `/${companyId}`,
     sendData,
   );
 
@@ -43,20 +42,15 @@ export async function upsertManyHierarchy(
 }
 
 export function useMutUpsertManyHierarchy() {
-  const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
-  const router = useRouter();
-
-  const company =
-    (user && ((router.query.companyId as string) || user?.companyId)) ||
-    undefined;
+  const { companyId } = useGetCompanyId();
 
   return useMutation(
     async (data: IUpsertHierarchy[]) => {
       const upsertData = data.map((hierarchy) => {
         const queryHierarchy = queryClient.getQueryData<
           Record<string, IHierarchy>
-        >([QueryEnum.HIERARCHY, company]);
+        >([QueryEnum.HIERARCHY, companyId]);
 
         const oldHierarchy = (queryHierarchy &&
           hierarchy.id &&
@@ -79,11 +73,11 @@ export function useMutUpsertManyHierarchy() {
         };
       });
 
-      return upsertManyHierarchy(upsertData, company);
+      return upsertManyHierarchy(upsertData, companyId);
     },
     {
       onSuccess: async (resp) => {
-        if (!company) {
+        if (!companyId) {
           enqueueSnackbar('ID da empresa não encontrado', {
             variant: 'error',
           });
@@ -91,7 +85,7 @@ export function useMutUpsertManyHierarchy() {
           return;
         }
 
-        if (resp) queryClient.refetchQueries([QueryEnum.HIERARCHY, company]);
+        if (resp) queryClient.refetchQueries([QueryEnum.HIERARCHY, companyId]);
 
         enqueueSnackbar('Editado com sucesso', {
           variant: 'success',

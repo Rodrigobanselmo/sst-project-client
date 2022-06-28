@@ -10,8 +10,7 @@ import {
   IGhoState,
   selectGhoHierarchy,
   selectGhoId,
-  selectGhoOpen,
-  setGhoAddHierarchy,
+  setGhoState,
 } from 'store/reducers/hierarchy/ghoSlice';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
@@ -26,13 +25,27 @@ import { STagButton } from '../../../../../../../../atoms/STagButton';
 import SText from '../../../../../../../../atoms/SText';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { ITreeMapObject, ITreeSelectedItem } from '../../../../interfaces';
-import { GhoSelect } from '../../../Selects/GhoSelect';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
 import { TypeSelect } from '../../../Selects/TypeSelect';
+import { GhoSelectCard } from './Select/ghoSelect';
 import { STSelectBox } from './styles';
 import { INodeCardProps } from './types';
 
-const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({ label }) => {
+export function onVisible(callback: any) {
+  return new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        callback(false);
+      } else {
+        callback(true);
+      }
+    });
+  });
+}
+
+const NodeLabel: FC<{ label: string; type: TreeTypeEnum; hide: boolean }> = ({
+  label,
+}) => {
   return (
     <STooltip minLength={25} withWrapper enterDelay={600} title={label}>
       <SText
@@ -53,38 +66,40 @@ const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({ label }) => {
 
 const SelectGho: FC<{
   isSelectedGho: boolean;
+  isLoading: boolean;
+  hide: boolean;
   handleAddGhoHierarchy: any;
   node: ITreeMapObject;
 }> = ({ isSelectedGho, handleAddGhoHierarchy, node }) => {
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
 
-  function checkVisible() {
-    if (ref.current) {
-      const rect = ref.current.getBoundingClientRect();
-      const viewHeight = Math.max(
-        document.documentElement.clientHeight,
-        window.innerHeight,
-      );
-      return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
-    }
-  }
+  // function checkVisible() {
+  //   if (ref.current) {
+  //     const rect = ref.current.getBoundingClientRect();
+  //     const viewHeight = Math.max(
+  //       document.documentElement.clientHeight,
+  //       window.innerHeight,
+  //     );
+  //     return !(rect.bottom < 0 || rect.top - viewHeight >= 0);
+  //   }
+  // }
 
-  useEffect(() => {
-    const isVisible = checkVisible();
+  // useEffect(() => {
+  //   const isVisible = checkVisible();
 
-    if (isVisible) {
-      setOpen(true);
+  //   if (isVisible) {
+  //     setOpen(true);
 
-      const timeout = window.setTimeout(() => {
-        setOpen(false);
-      }, 5000);
+  //     const timeout = window.setTimeout(() => {
+  //       setOpen(false);
+  //     }, 5000);
 
-      return () => {
-        window.clearTimeout(timeout);
-      };
-    }
-  }, []);
+  //     return () => {
+  //       window.clearTimeout(timeout);
+  //     };
+  //   }
+  // }, []);
 
   const onSelect = (e: MouseEvent<HTMLDivElement>) => {
     handleAddGhoHierarchy(e);
@@ -92,7 +107,6 @@ const SelectGho: FC<{
 
   return (
     <STooltip
-      PopperProps={{ open }}
       title={`Click aqui para incluir o ${node.label.slice(0, 8)}${
         node.label.length > 9 ? '...' : ''
       } ao GSE`}
@@ -104,20 +118,36 @@ const SelectGho: FC<{
       />
     </STooltip>
   );
+
+  // return (
+  //   <STooltip
+  //     PopperProps={{ open }}
+  //     title={`Click aqui para incluir o ${node.label.slice(0, 8)}${
+  //       node.label.length > 9 ? '...' : ''
+  //     } ao GSE`}
+  //   >
+  //     <STSelectBox
+  //       ref={ref}
+  //       selected={isSelectedGho ? 1 : 0}
+  //       onClick={onSelect}
+  //     />
+  //   </STooltip>
+  // );
 };
 
 export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
   const { onOpenModal } = useModal();
   const updateMutation = useMutUpdateGho();
-  const { editNodes, createEmptyCard, getPathById, isChild } =
+  const { editNodes, createEmptyCard, getPathById, isChild, getChildren } =
     useHierarchyTreeActions();
   const isSelectedGho = useAppSelector(
     selectGhoHierarchy(getPathById(node.id) as string[]),
   );
   const GhoId = useAppSelector(selectGhoId);
-  const isGhoOpen = useAppSelector(selectGhoOpen);
   const store = useStore();
   const dispatch = useAppDispatch();
+  const ref = useRef<HTMLDivElement>(null);
+  const [hide, setHide] = useState(true);
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -126,42 +156,91 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
   };
 
+  const onUpdateGho = (newHierarchyIds: string[]) => {
+    dispatch(setGhoState({ hierarchies: newHierarchyIds }));
+
+    const newGhoState = store.getState().gho as IGhoState;
+
+    if (GhoId)
+      updateMutation.mutate({
+        id: GhoId,
+        hierarchies: newGhoState.hierarchies.map((hierarchy) => ({
+          id: hierarchy.split('//')[0],
+          workspaceId: hierarchy.split('//')[1],
+        })),
+      });
+  };
+
   const handleAddGhoHierarchy = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
+    if (updateMutation.isLoading) return;
+
     const ghoState = store.getState().gho as IGhoState;
-    const isParentSelected = getPathById(node.id)
-      .slice(0, -1)
-      .some((hierarchy) => ghoState.hierarchies.includes(hierarchy as string));
+    let newHierarchyIds = [...ghoState.hierarchies];
+
+    // eslint-disable-next-line prettier/prettier
+    const isToRemove = ghoState.hierarchies.some((hierarchyId) => hierarchyId === node.id);
+    // eslint-disable-next-line prettier/prettier
+    if (isToRemove) newHierarchyIds = newHierarchyIds.filter((hierarchyId) => hierarchyId !== node.id);
+    if (!isToRemove) newHierarchyIds.push(node.id as string);
+
+    let selectedParent: string | number = '';
+    const nodePath = getPathById(node.id).slice(0, -1);
+    const isParentSelected = nodePath.some((hierarchy) => {
+      const isSelected = ghoState.hierarchies.includes(hierarchy as string);
+      if (isSelected) selectedParent = hierarchy;
+      return isSelected;
+    });
+
+    newHierarchyIds = newHierarchyIds.filter(
+      (hierarchyId) => node.id == hierarchyId || !isChild(node.id, hierarchyId),
+    );
+
     if (!isParentSelected && node.id && node.parentId !== firstNodeId) {
-      const newHierarchyIds = [node.id as string];
+      onUpdateGho(newHierarchyIds);
+    }
 
-      ghoState.hierarchies.map((hierarchy) => {
-        if (node.id !== hierarchy && isChild(node.id, hierarchy))
-          newHierarchyIds.push(hierarchy);
+    if (isParentSelected && node.id && node.parentId !== firstNodeId) {
+      const children = Object.values(getChildren(selectedParent));
+
+      children.forEach((child) => {
+        if (
+          child.id !== node.id &&
+          !nodePath.includes(child.id) &&
+          !children.find((fChild) => fChild.id === child.parentId)
+        )
+          newHierarchyIds.push(child.id as string);
       });
-      dispatch(setGhoAddHierarchy(newHierarchyIds));
 
-      const newGhoState = store.getState().gho as IGhoState;
+      //remove parents
+      newHierarchyIds = newHierarchyIds.filter(
+        (hierarchyId) => ![node.id, ...nodePath].includes(String(hierarchyId)),
+      );
 
-      if (GhoId)
-        updateMutation.mutate({
-          id: GhoId,
-          hierarchies: newGhoState.hierarchies.map((hierarchy) => ({
-            id: hierarchy.split('//')[0],
-            workspaceId: hierarchy.split('//')[1],
-          })),
-        });
+      onUpdateGho(newHierarchyIds);
     }
   };
 
+  useEffect(() => {
+    if (ref.current) {
+      const x = onVisible((e: boolean) => setHide(e));
+      x.observe(ref.current);
+
+      return () => {
+        x.disconnect();
+      };
+    }
+  }, []);
+
   return (
-    <>
+    <div style={{ display: 'inline-block' }} ref={ref}>
       <Box
         sx={{ display: 'flex', justifyContent: 'space-between' }}
         onClick={GhoId ? handleAddGhoHierarchy : () => null}
       >
         <SFlex center>
-          {GhoId &&
+          {!hide &&
+            GhoId &&
             ![TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(
               node.type,
             ) && (
@@ -169,35 +248,51 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
                 isSelectedGho={isSelectedGho}
                 handleAddGhoHierarchy={handleAddGhoHierarchy}
                 node={node}
+                hide={hide}
+                isLoading={!!updateMutation.isLoading}
               />
             )}
-          <NodeLabel label={node.label} type={node.type} />
+          <NodeLabel hide={hide} label={node.label} type={node.type} />
         </SFlex>
         <SFlex>
-          {![TreeTypeEnum.COMPANY, TreeTypeEnum.SUB_OFFICE].includes(
-            node.type,
-          ) && (
-            <STagButton
-              sx={{ pr: 1, pl: 2 }}
-              onClick={handleAddCard}
-              icon={AddIcon}
-            />
-          )}
+          {!GhoId &&
+            ![TreeTypeEnum.COMPANY, TreeTypeEnum.SUB_OFFICE].includes(
+              node.type,
+            ) && (
+              <STagButton
+                sx={{ pr: 1, pl: 2 }}
+                onClick={handleAddCard}
+                icon={AddIcon}
+              />
+            )}
         </SFlex>
       </Box>
-      <Stack onClick={handleAddGhoHierarchy} spacing={2} mt={3} direction="row">
-        <TypeSelect
-          node={node as ITreeSelectedItem}
-          parentId={node?.parentId || 'no-node'}
-          handleSelect={(option) =>
-            editNodes([{ id: node.id, type: option.value as TreeTypeEnum }])
-          }
-        />
-        {node.ghos && node.ghos.length > 0 && (
-          <GhoSelect node={node} showAll={!!isGhoOpen} />
-        )}
-        <OptionsHelpSelect disabled={!!GhoId} menuRef={menuRef} node={node} />
-      </Stack>
-    </>
+      {!hide && (
+        <>
+          <Stack
+            onClick={handleAddGhoHierarchy}
+            spacing={2}
+            mt={3}
+            direction="row"
+          >
+            <TypeSelect
+              node={node as ITreeSelectedItem}
+              parentId={node?.parentId || 'no-node'}
+              handleSelect={(option) =>
+                editNodes([{ id: node.id, type: option.value as TreeTypeEnum }])
+              }
+            />
+            {node.ghos && node.ghos.length > 0 && <GhoSelectCard node={node} />}
+            {!GhoId && (
+              <OptionsHelpSelect
+                disabled={!!GhoId}
+                menuRef={menuRef}
+                node={node}
+              />
+            )}
+          </Stack>
+        </>
+      )}
+    </div>
   );
 };

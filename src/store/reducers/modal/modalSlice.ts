@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-param-reassign */
+import { ReactNode } from 'react';
+
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { AppState } from '../..';
@@ -7,7 +9,7 @@ import { ITagAction } from '../../../components/atoms/STagAction/types';
 
 export interface IModalDataSlice {
   title: string;
-  text: string;
+  text: ReactNode;
   confirmText: string;
   tag?: ITagAction;
   inputConfirm?: boolean;

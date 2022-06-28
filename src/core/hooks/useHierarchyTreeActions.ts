@@ -81,6 +81,31 @@ export const useHierarchyTreeActions = () => {
     [store],
   );
 
+  const getChildren = useCallback(
+    (id: number | string) => {
+      const children: ITreeMap = {} as ITreeMap;
+      const nodes = store.getState().hierarchy.nodes as ITreeMap;
+
+      const loop = (id: number | string) => {
+        const node = nodes[id];
+
+        node.childrenIds.forEach((childId) => {
+          const nodeChild = nodes[childId];
+
+          if (nodeChild) {
+            children[childId] = nodeChild;
+            loop(childId);
+          }
+        });
+      };
+
+      loop(id);
+
+      return children;
+    },
+    [store],
+  );
+
   const saveApi = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async (cb?: () => Promise<any>, nodes?: ITreeMap) => {
@@ -473,6 +498,7 @@ export const useHierarchyTreeActions = () => {
     saveMutation,
     reorderNodes,
     transformToTreeMap,
+    getChildren,
   };
 };
 

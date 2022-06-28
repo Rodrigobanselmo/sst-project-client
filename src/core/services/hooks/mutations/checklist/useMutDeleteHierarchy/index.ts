@@ -1,15 +1,14 @@
 import { useMutation } from 'react-query';
 
-import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 export async function createHierarchy(id: string, companyId?: string) {
@@ -23,17 +22,13 @@ export async function createHierarchy(id: string, companyId?: string) {
 }
 
 export function useMutDeleteHierarchy() {
-  const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
-  const router = useRouter();
 
-  const company =
-    (user && ((router.query.companyId as string) || user?.companyId)) ||
-    undefined;
+  const { companyId } = useGetCompanyId();
 
-  return useMutation(async (id: string) => createHierarchy(id, company), {
+  return useMutation(async (id: string) => createHierarchy(id, companyId), {
     onSuccess: async (resp) => {
-      if (!company) {
+      if (!companyId) {
         enqueueSnackbar('ID da empresa não encontrado', {
           variant: 'error',
         });

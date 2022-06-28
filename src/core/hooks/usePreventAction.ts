@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ReactNode } from 'react';
+
 import deepEqual from 'deep-equal';
 import { IModalDataSlice } from 'store/reducers/modal/modalSlice';
 
@@ -29,8 +31,8 @@ export const usePreventAction = () => {
 
   const preventDelete = (
     callback: () => void,
-    message?: string,
-    options?: { inputConfirm?: boolean },
+    message?: ReactNode,
+    options: Partial<IModalDataSlice> = {} as IModalDataSlice,
   ) => {
     const data = {
       title: 'Você tem certeza?',
@@ -40,7 +42,7 @@ export const usePreventAction = () => {
       confirmText: 'Deletar',
       tag: 'delete',
       confirmCancel: 'Cancel',
-      inputConfirm: !!options?.inputConfirm,
+      ...options,
     } as IModalDataSlice;
 
     onOpenGlobalModal(data, callback);

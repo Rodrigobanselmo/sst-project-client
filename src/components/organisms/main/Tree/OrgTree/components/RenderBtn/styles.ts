@@ -3,6 +3,7 @@ import styled from '@emotion/styled';
 
 export const RenderButton = styled.span<{
   horizontal: number;
+  selected_gho?: number;
   expanded: number;
   seed: number;
 }>`
@@ -49,6 +50,15 @@ export const RenderButton = styled.span<{
     width: 0;
     /* border-left: 1px solid #ccc; */
   }
+
+  ${(props) =>
+    props.selected_gho &&
+    css`
+      /* &:after {
+        border: none;
+      } */
+      border: 4px solid ${props.theme.palette.primary.main};
+    `};
 
   ${(props) =>
     props.expanded &&

@@ -190,6 +190,27 @@ export const selectHierarchyTreeData =
   (id: string | number) => (state: AppState) =>
     state[name].nodes[id];
 
+export const selectAllParentTreeData =
+  (id: string | number) => (state: AppState) => {
+    const node = state[name].nodes[id];
+    const nodes = {} as ITreeMap;
+
+    const loop = (id: number | string | null) => {
+      if (!id) return;
+
+      const parentNode = state[name].nodes[id];
+      if (parentNode) {
+        nodes[id] = parentNode;
+        if (parentNode.parentId) {
+          loop(parentNode.parentId);
+        }
+      }
+    };
+
+    loop(node.parentId);
+    return nodes;
+  };
+
 export const selectHierarchyTreeDragItem = (state: AppState) =>
   state[name].dragItem;
 export const selectHierarchyTreeSelectItem = (state: AppState) =>

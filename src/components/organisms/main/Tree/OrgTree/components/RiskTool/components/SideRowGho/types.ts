@@ -8,7 +8,7 @@ export interface SideItemsProps {
   data: IGho;
   isDeleteLoading?: boolean;
   handleEditGHO: (data: IGho) => void;
-  handleDeleteGHO: (id: string) => void;
+  handleDeleteGHO: (id: string, data?: IGho) => void;
   handleSelectGHO: (
     data: IGho | null,
     hierarchies: string[],

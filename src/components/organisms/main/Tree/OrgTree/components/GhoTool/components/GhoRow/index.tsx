@@ -11,7 +11,7 @@ import { stringNormalize } from 'core/utils/strings/stringNormalize';
 import { Row } from './Row';
 import { GhoRowProps } from './types';
 
-function onVisible(callback: any) {
+export function onVisible(callback: any) {
   return new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -52,13 +52,15 @@ export const GhoRow = React.memo<GhoRowProps>(
       searchSelected &&
       !stringNormalize(gho.name).includes(stringNormalize(searchSelected));
 
+    const displayNone = isToFilter || (selectedGhoId && !isSelected);
+
     return (
       <SFlex
         key={gho.id}
         ref={ref}
         sx={{
           gridTemplateColumns: '285px 1fr',
-          display: isToFilter ? 'none' : 'grid',
+          display: displayNone ? 'none' : 'grid',
         }}
         gap={5}
       >

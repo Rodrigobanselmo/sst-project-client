@@ -45,14 +45,21 @@ export const STSelectBox = styled(Box)<{ selected?: number }>`
   margin-right: ${(props) => props.theme.spacing(2)};
   background-color: ${(props) => props.theme.palette.background.lightGray};
   border-radius: 50%;
-  border: 1px solid ${(props) => props.theme.palette.background.divider};
+  border: 3px solid ${(props) => props.theme.palette.grey[300]};
   cursor: pointer;
+  transition: all 0.35s ease;
 
-  animation: ${AttentionAnimation} 1s linear 5;
+  /* animation: ${AttentionAnimation} 1s linear 5; */
+
+  :hover {
+    filter: brightness(0.9);
+    transform: scale(1.1);
+  }
 
   ${(props) =>
     props.selected &&
     css`
-      background-color: ${props.theme.palette.info.main};
-    `}
+      background-color: ${props.theme.palette.primary.main};
+      border: 2px solid ${props.theme.palette.grey[300]};
+    `};
 `;

@@ -18,6 +18,7 @@ import {
   setGhoState,
 } from 'store/reducers/hierarchy/ghoSlice';
 import {
+  selectRisk,
   selectRiskAddExpand,
   setRiskAddState,
   setRiskAddToggleExpand,
@@ -29,6 +30,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IGho } from 'core/interfaces/api/IGho';
+import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/useMutDeleteGho';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
@@ -52,6 +54,8 @@ export const SidebarOrg = () => {
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const addMutation = useMutCreateGho();
   const deleteMutation = useMutDeleteGho();
+  const cleanMutation = useMutDeleteManyRiskData();
+  const risk = useAppSelector(selectRisk);
 
   const [viewType, setViewType] = useState(ViewTypeEnum.SIMPLE_BY_GROUP);
 
@@ -78,13 +82,35 @@ export const SidebarOrg = () => {
   };
 
   const handleDeleteGHO = useCallback(
-    (id: string) => {
-      preventDelete(async () => {
-        await deleteMutation.mutateAsync(id).catch(() => {});
-        dispatch(setGhoState({ hierarchies: [], data: null }));
-      });
+    (id: string, data?: IGho) => {
+      if (query.riskGroupId && risk)
+        preventDelete(
+          async () => {
+            //   await deleteMutation.mutateAsync(id).catch(() => {});
+            //   dispatch(setGhoState({ hierarchies: [], data: null }));
+            cleanMutation.mutate({
+              riskFactorGroupDataId: query.riskGroupId as string,
+              homogeneousGroupIds: [id],
+              riskIds: [risk.id],
+            });
+          },
+          <span>
+            <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{data?.name}</p>
+            Você tem certeza que deseja remover todos os dados relativo ao fator
+            de risco/perigo:{' '}
+            <span
+              style={{
+                fontSize: '0.95rem',
+                textDecoration: 'underline',
+                fontWeight: 500,
+              }}
+            >
+              {risk.name}
+            </span>
+          </span>,
+        );
     },
-    [deleteMutation, dispatch, preventDelete],
+    [cleanMutation, preventDelete, query.riskGroupId, risk],
   );
 
   const handleSelectGHO = useCallback(
