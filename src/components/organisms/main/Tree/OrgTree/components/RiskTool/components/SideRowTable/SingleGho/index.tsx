@@ -8,6 +8,7 @@ import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -45,6 +46,8 @@ export const SideRowTable: FC<SideTableProps> = ({
   const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
 
+  const isHierarchy = 'childrenIds' in gho;
+
   const handleSelect = async ({
     recs,
     adms,
@@ -54,13 +57,15 @@ export const SideRowTable: FC<SideTableProps> = ({
     ...values
   }: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
-
+    const homoId = String(gho.id).split('//');
     const submitData = {
       ...values,
       id: riskData?.id,
-      homogeneousGroupId: gho.id,
+      homogeneousGroupId: homoId[0],
+      workspaceId: homoId.length == 2 ? homoId[1] : undefined,
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
+      ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
     } as IUpsertRiskData;
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
@@ -82,6 +87,7 @@ export const SideRowTable: FC<SideTableProps> = ({
 
   const handleHelp = async (data: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
+    if (!('workspaceIds' in gho)) return; //! nao esta funcionando para hierarchy, so ghs
 
     const company = queryClient.getQueryData<ICompany>([
       QueryEnum.COMPANY,
@@ -162,6 +168,7 @@ export const SideRowTable: FC<SideTableProps> = ({
     riskData?.probability,
     risk?.severity,
   );
+
   const actualMatrixLevelAfter = getMatrizRisk(
     riskData?.probabilityAfter,
     risk?.severity,

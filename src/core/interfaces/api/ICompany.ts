@@ -12,6 +12,7 @@ export interface ICompany {
   created_at: Date;
   updated_at: Date;
   licenseId?: number;
+  logoUrl?: string;
   parentCompanyId?: string;
   license?: ILicense;
   workspace?: IWorkspace[];
@@ -25,6 +26,8 @@ export interface ICompany {
   cadastral_situation_date: string;
   legal_nature_code: string;
   cadastral_situation_description: string;
+  responsibleName: string;
+  operationTime: string;
   primary_activity: ActivityDto[];
   secondary_activity: ActivityDto[];
   employeeCount: number;

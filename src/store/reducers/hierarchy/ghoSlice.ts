@@ -1,5 +1,6 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { IHierarchyTreeMapObject } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/components/RiskToolViews/RiskToolRiskView/types';
 
 import { IGho } from 'core/interfaces/api/IGho';
 
@@ -12,7 +13,7 @@ export interface IGhoState {
     key: string;
     value: string;
   };
-  selected: IGho | null;
+  selected: IGho | IHierarchyTreeMapObject | null;
   search: string;
   searchRisk: string;
   data: IGho | null;
@@ -74,7 +75,10 @@ export const ghoSlice = createSlice({
     setGhoSearchRisk: (state, action: PayloadAction<string>) => {
       state.searchRisk = action.payload;
     },
-    setGhoSelectedId: (state, action: PayloadAction<IGho>) => {
+    setGhoSelectedId: (
+      state,
+      action: PayloadAction<IGho | IHierarchyTreeMapObject | null>,
+    ) => {
       state.selected = action.payload;
     },
     setGhoSearchSelect: (state, action: PayloadAction<string>) => {

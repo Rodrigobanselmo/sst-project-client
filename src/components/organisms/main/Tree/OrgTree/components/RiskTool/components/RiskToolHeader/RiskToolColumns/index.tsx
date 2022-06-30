@@ -13,7 +13,7 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { headerRows } from '../../../utils/header.constants';
-import { ViewTypeEnum } from '../../../utils/view-type.constant';
+import { ViewTypeEnum } from '../../../utils/view-risk-type.constant';
 import { STGridHeader, StyledSArrowUpFilterIcon } from '../styles';
 import { SideHeaderProps as RiskToolProps } from '../types';
 

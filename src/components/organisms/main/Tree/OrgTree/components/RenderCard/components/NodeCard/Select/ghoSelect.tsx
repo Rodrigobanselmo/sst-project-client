@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, MouseEvent, useEffect, useRef, useState } from 'react';
+import React, { FC } from 'react';
 
 import { BoxProps } from '@mui/material';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';

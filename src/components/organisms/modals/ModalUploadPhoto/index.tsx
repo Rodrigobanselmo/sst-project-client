@@ -16,6 +16,7 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -45,6 +46,7 @@ export const initialPhotoState = {
   accept: 'image/*',
   files: [] as File[],
   name: '',
+  freeAspect: false,
   showInputName: false,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onConfirm: async (arg: IUploadPhotoConfirm) => {},
@@ -86,7 +88,13 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
     reset();
   };
 
+  const CropImage = () => {
+    document.getElementById(IdsEnum.CROP_IMAGE_BUTTON)?.click();
+  };
+
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
+    if (!completedCrop) return CropImage();
+
     if (canvasRef.current)
       canvasRef.current.toBlob((blob) => {
         if (blob) {
@@ -124,11 +132,11 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
   const buttons = [
     {},
     {
-      text: 'Selecionar',
+      text: completedCrop ? 'Selecionar' : 'Cortar Imagem',
       variant: 'contained',
       type: 'submit',
+      color: completedCrop ? 'primary' : 'success',
       onClick: () => {},
-      disabled: !completedCrop,
     },
   ] as IModalButton[];
 
@@ -168,6 +176,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
             !completedCrop && (
               <>
                 <SCropImage
+                  freeAspect={photoData.freeAspect}
                   canvasRef={canvasRef}
                   onSelect={setCompletedCrop}
                   files={photoData.files}

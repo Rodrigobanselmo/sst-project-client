@@ -2,13 +2,15 @@ import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
 
+import { IHierarchyTreeMapObject } from '../RiskToolViews/RiskToolRiskView/types';
+
 export interface SideItemsProps {
   isSelected?: boolean;
   hide?: boolean;
-  data: IGho;
+  data: IGho | IHierarchyTreeMapObject;
   isDeleteLoading?: boolean;
-  handleEditGHO: (data: IGho) => void;
-  handleDeleteGHO: (id: string, data?: IGho) => void;
+  handleEditGHO: (data: IGho | IHierarchyTreeMapObject) => void;
+  handleDeleteGHO: (id: string, data?: IGho | IHierarchyTreeMapObject) => void;
   handleSelectGHO: (
     data: IGho | null,
     hierarchies: string[],

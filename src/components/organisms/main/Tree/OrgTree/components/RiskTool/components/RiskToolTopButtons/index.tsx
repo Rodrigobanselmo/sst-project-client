@@ -8,6 +8,7 @@ import { STag } from 'components/atoms/STag';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
+import { ViewsDataSelect } from 'components/organisms/tagSelects/ViewsDataSelect';
 import { ViewsRiskSelect } from 'components/organisms/tagSelects/ViewsRiskSelect';
 import { useRouter } from 'next/router';
 import { setGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
@@ -30,7 +31,11 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
-import { IViewsRiskOption, ViewTypeEnum } from '../../utils/view-type.constant';
+import { IViewsDataOption } from '../../utils/view-data-type.constant';
+import {
+  IViewsRiskOption,
+  ViewTypeEnum,
+} from '../../utils/view-risk-type.constant';
 import { RiskToolTopButtonsSelectRisk } from './SelectRisk';
 import { SideTopProps } from './types';
 
@@ -39,6 +44,7 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
   handleSelectGHO,
   onChangeView,
   viewType,
+  onChangeViewData,
 }) => {
   const dispatch = useAppDispatch();
   const { asPath, push, query } = useRouter();
@@ -103,6 +109,11 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
           <ViewsRiskSelect
             handleSelectMenu={(option: IViewsRiskOption) =>
               onChangeView && onChangeView(option)
+            }
+          />
+          <ViewsDataSelect
+            handleSelectMenu={(option: IViewsDataOption) =>
+              onChangeViewData && onChangeViewData(option)
             }
           />
 

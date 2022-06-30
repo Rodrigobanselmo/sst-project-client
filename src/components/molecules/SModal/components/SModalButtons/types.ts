@@ -1,9 +1,13 @@
+import { ReactNode } from 'react';
+
 import { BoxProps } from '@mui/material';
 
 import { SButtonProps } from '../../../../atoms/SButton/types';
 
 export interface IModalButton extends Omit<SButtonProps, 'variant'> {
-  text?: string;
+  text?: ReactNode;
+  arrowNext?: boolean;
+  arrowBack?: boolean;
   variant?: 'contained' | 'outlined' | 'text';
 }
 

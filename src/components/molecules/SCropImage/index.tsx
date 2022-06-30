@@ -16,6 +16,8 @@ import { SRotateRightIcon } from 'assets/icons/SRotateRightIcon';
 import SZooInIcon from 'assets/icons/SZooInIcon';
 import SZooOutIcon from 'assets/icons/SZooOutIcon';
 
+import { IdsEnum } from 'core/enums/ids.enums';
+
 import { canvasPreview } from './utils/canvasPreview';
 import { centerAspectCrop } from './utils/centerAspectCrop';
 
@@ -60,12 +62,16 @@ export default function SCropImage({
     if (aspectRatio) {
       const { width, height } = e.currentTarget;
       if (width >= height) {
-        setAspect(16 / 9);
+        if (!freeAspect) setAspect(16 / 9);
         aspectRatio = 16 / 9;
       }
       if (height > width) {
-        setAspect(9 / 16);
+        if (!freeAspect) setAspect(9 / 16);
         aspectRatio = 9 / 16;
+      }
+
+      if (freeAspect) {
+        setAspect(undefined);
       }
 
       // const isHeightBiggerThan600 = height > 600;
@@ -155,14 +161,15 @@ export default function SCropImage({
           <STagButton
             large
             text="Cortar Imagem"
-            icon={SDeleteIcon}
+            // icon={SDeleteIcon} //!
             sx={{ '*': { color: 'white !important' }, ml: 'auto' }}
             iconProps={{ sx: { fontSize: 15 } }}
             bg="success.main"
             onClick={handleCropImage}
+            id={IdsEnum.CROP_IMAGE_BUTTON}
           />
         </SFlex>
-        {freeAspect && (
+        {false && (
           <div>
             <button onClick={handleToggleAspectClick}>
               Toggle aspect {aspect ? 'off' : 'on'}

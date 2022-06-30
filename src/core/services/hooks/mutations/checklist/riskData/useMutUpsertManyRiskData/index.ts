@@ -3,6 +3,7 @@ import { useMutation } from 'react-query';
 import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
@@ -17,9 +18,11 @@ export interface IUpsertManyRiskData {
   riskFactorGroupDataId: string;
   riskId?: string;
   hierarchyIds?: string;
+  workspaceId?: string;
   riskIds: string[];
   homogeneousGroupIds?: string[];
   probability?: number;
+  type?: HomoTypeEnum;
   probabilityAfter?: number;
   adms?: string[];
   recs?: string[];

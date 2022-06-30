@@ -4,5 +4,5 @@ import { OverridableComponent } from '@mui/material/OverridableComponent';
 
 export interface IIconMuiProps
   extends OverridableComponent<SvgIconTypeMap<{}, 'svg'>> {
-  muiName: string;
+  muiName?: string;
 }

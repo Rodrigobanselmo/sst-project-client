@@ -1,5 +1,7 @@
 import { Box, styled } from '@mui/material';
 
 export const STBox = styled(Box)`
-  width: 50%;
+  gap: 1rem 3rem;
+  display: grid;
+  grid-template-columns: 3fr 1fr;
 `;

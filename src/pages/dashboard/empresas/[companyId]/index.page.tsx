@@ -6,6 +6,7 @@ import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SText from 'components/atoms/SText';
+import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
 import { ModalAddEmployees } from 'components/organisms/modals/ModalAddEmployees';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
@@ -15,6 +16,7 @@ import {
   initialWorkspaceSelectState,
   ModalSelectWorkspace,
 } from 'components/organisms/modals/ModalSelectWorkspace';
+import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -39,6 +41,10 @@ const CompanyPage: NextPage = () => {
   const { data: company } = useQueryCompany();
   const { onOpenModal } = useModal();
   const { push } = useRouter();
+
+  const handleEditCompany = useCallback(() => {
+    onOpenModal(ModalEnum.COMPANY_EDIT, company);
+  }, [company, onOpenModal]);
 
   const handleAddWorkspace = useCallback(() => {
     const data: Partial<typeof initialWorkspaceState> = {
@@ -141,7 +147,7 @@ const CompanyPage: NextPage = () => {
       },
       {
         icon: SEditIcon,
-        // onClick: handleAddWorkspace,
+        onClick: handleEditCompany,
         text: 'Editar Dados da Empresa',
       },
     ];
@@ -152,6 +158,7 @@ const CompanyPage: NextPage = () => {
     handleAddRisk,
     handleAddEnvironments,
     handleAddTeam,
+    handleEditCompany,
   ]);
 
   const nextStepMemo = useMemo(() => {
@@ -200,6 +207,8 @@ const CompanyPage: NextPage = () => {
       <ModalAddEmployees />
       <ModalAddRiskGroup />
       <ModalSelectWorkspace />
+      <ModalEditCompany />
+      <ModalUploadPhoto />
       <ModalSelectDocPgr
         title="Selecione para qual documento PGR deseja adicionar os fatores de risco"
         onSelect={(docPgr) =>

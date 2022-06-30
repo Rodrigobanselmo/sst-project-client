@@ -1,5 +1,6 @@
 import { SContainer } from 'components/atoms/SContainer';
 import { UserForm } from 'components/organisms/forms/UserForm';
+import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
@@ -8,6 +9,7 @@ const Database: NextPage = () => {
   return (
     <SContainer>
       <UserForm />
+      <ModalSingleInput />
     </SContainer>
   );
 };

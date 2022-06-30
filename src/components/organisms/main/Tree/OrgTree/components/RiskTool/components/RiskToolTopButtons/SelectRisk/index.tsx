@@ -12,6 +12,8 @@ import {
   setRiskAddState,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
+import { IdsEnum } from 'core/enums/ids.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -21,7 +23,7 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpsertManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertManyRiskData';
 import { queryClient } from 'core/services/queryClient';
 
-import { ViewTypeEnum } from '../../../utils/view-type.constant';
+import { ViewTypeEnum } from '../../../utils/view-risk-type.constant';
 import { SideTopProps } from '../types';
 
 export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
@@ -38,6 +40,8 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
   const upsertRiskData = useMutUpsertManyRiskData();
   const { query } = useRouter();
 
+  const isHierarchy = selectedGho && 'childrenIds' in selectedGho;
+
   const isViewTypeSelect = viewType == ViewTypeEnum.MULTIPLE;
   const isViewTypeGroup = viewType == ViewTypeEnum.SIMPLE_BY_GROUP;
 
@@ -52,13 +56,18 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
       if (isViewTypeGroup) {
         const gho = selectedGho;
 
-        if (gho?.id)
+        if (gho?.id) {
+          const homoId = String(gho.id).split('//');
+
           upsertRiskData.mutate({
             keepEmpty: true,
-            homogeneousGroupIds: [gho.id],
+            homogeneousGroupIds: [homoId[0]],
             riskIds: options,
             riskFactorGroupDataId: query.riskGroupId as string,
+            workspaceId: homoId.length == 2 ? homoId[1] : undefined,
+            ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
           });
+        }
 
         return;
       }
@@ -109,7 +118,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
             )
           : null
       }
-      id="risk-select-id"
+      id={IdsEnum.RISK_SELECT}
       sx={{ minWidth: 230, mr: 5 }}
       large
       disabled={isViewTypeGroup && !selectedGho}

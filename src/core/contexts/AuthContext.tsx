@@ -78,7 +78,7 @@ export async function refreshToken() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
 
-  return { token, refresh };
+  return { token, refresh, api };
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {

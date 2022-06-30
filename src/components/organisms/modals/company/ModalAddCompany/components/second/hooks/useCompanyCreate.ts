@@ -17,7 +17,7 @@ export const useCompanyCreate = ({
   const fields = ['cnpj', 'name', 'description', 'fantasy', 'type'];
 
   const onCloseUnsaved = async () => {
-    rest.onCloseUnsaved;
+    rest.onCloseUnsaved();
     reset();
   };
 

@@ -6,12 +6,11 @@ import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 
-import SCloseIcon from 'assets/icons/SCloseIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
-import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
-import { STBoxItem } from './styles';
+import { nodeTypesConstant } from '../../../../constants/node-type.constant';
+import { STBoxItem, STBoxItemContainer } from './styles';
 import { SideItemsProps } from './types';
 
 export const SideRowGho: FC<SideItemsProps> = ({
@@ -19,63 +18,64 @@ export const SideRowGho: FC<SideItemsProps> = ({
   isSelected,
   isDeleteLoading,
   handleDeleteGHO,
-  // handleSelectGHO,
   handleEditGHO,
   hide,
 }) => {
-  // const hierarchies = data.hierarchies
-  //   ? data.hierarchies.map((value) => value.id + '//' + value.workspaceId)
-  //   : [];
+  const isHierarchy = 'childrenIds' in data;
 
   return (
-    <STBoxItem
+    <STBoxItemContainer
       sx={{
         border: isSelected ? ' 2px solid' : ' 1px solid',
         borderColor: isSelected ? 'info.main' : 'background.divider',
         minHeight: '46px',
       }}
     >
-      <STooltip minLength={15} enterDelay={1000} title={data.name}>
-        <Box sx={{ display: 'flex', maxWidth: '75%', overflow: 'hidden' }}>
-          <SText lineNumber={2}>{data.name}</SText>
-        </Box>
-      </STooltip>
-      <SFlex>
-        {!hide && (
-          <>
-            <STooltip withWrapper title={'Limpar dados'}>
-              <SIconButton
-                loading={isDeleteLoading}
-                onClick={() => handleDeleteGHO(data.id, data)}
-                size="small"
-              >
-                <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
-              </SIconButton>
-            </STooltip>
-            <STooltip withWrapper title={'Editar'}>
-              <SIconButton onClick={() => handleEditGHO(data)} size="small">
-                <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
-              </SIconButton>
-            </STooltip>
-            {/* <STooltip withWrapper title={'Adicionar setores e cargos ao grupo'}>
-              <SIconButton
-                onClick={() =>
-                  handleSelectGHO(isSelected ? null : data, hierarchies)
-                }
-                size="small"
-              >
-                <Icon
-                  component={isSelected ? SCloseIcon : SHierarchyIcon}
-                  sx={{
-                    fontSize: '1.2rem',
-                    color: isSelected ? 'info.main' : '',
-                  }}
-                />
-              </SIconButton>
-            </STooltip> */}
-          </>
-        )}
-      </SFlex>
-    </STBoxItem>
+      <STBoxItem
+        sx={{
+          border: isSelected ? ' 2px solid' : ' 3px solid',
+          borderColor: isSelected ? 'info.main' : 'background.divider',
+          minHeight: '46px',
+        }}
+      >
+        <STooltip minLength={15} enterDelay={1000} title={data.name}>
+          <Box width="75%" overflow="hidden">
+            <Box sx={{ display: 'flex', maxWidth: '75%', overflow: 'hidden' }}>
+              <SText lineNumber={2}>{data.name}</SText>
+            </Box>
+            {isHierarchy && (
+              <SText fontWeight="500" color="text.light" fontSize={12}>
+                {nodeTypesConstant[data.type].name}
+              </SText>
+            )}
+          </Box>
+        </STooltip>
+        <SFlex>
+          {!hide && (
+            <>
+              <STooltip withWrapper title={'Limpar dados'}>
+                <SIconButton
+                  loading={isDeleteLoading}
+                  onClick={() => handleDeleteGHO(String(data.id), data)}
+                  size="small"
+                >
+                  <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
+                </SIconButton>
+              </STooltip>
+              <STooltip withWrapper title={'Editar'}>
+                <SIconButton onClick={() => handleEditGHO(data)} size="small">
+                  <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
+                </SIconButton>
+              </STooltip>
+            </>
+          )}
+        </SFlex>
+      </STBoxItem>
+      {isHierarchy && (
+        <SText color="text.light" fontSize={12}>
+          {data.parentsName}
+        </SText>
+      )}
+    </STBoxItemContainer>
   );
 };

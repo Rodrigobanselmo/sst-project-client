@@ -10,6 +10,7 @@ export enum ModalEnum {
   WORKSPACE_SELECT = 'workspace-select',
   RISK_GROUP_DOC_ADD = 'risk-group-doc-add',
   COMPANY_ADD = 'company-add',
+  COMPANY_EDIT = 'company-edit',
   WORKSPACE_ADD = 'workspace-add',
   EMPLOYEES_ADD = 'employees-add',
   RISK_DATA_ADD = 'risk-data-add',
@@ -21,6 +22,7 @@ export enum ModalEnum {
   GLOBAL = 'global',
   UPLOAD = 'upload',
   UPLOAD_PHOTO = 'upload-photo',
+  SINGLE_INPUT = 'single-input',
   TEST = 'test',
   HIERARCHIES_EXCEL_ADD = 'employees-excel-add',
 }

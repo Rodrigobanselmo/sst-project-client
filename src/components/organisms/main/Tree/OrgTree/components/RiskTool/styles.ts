@@ -1,6 +1,8 @@
 import { css } from '@emotion/react';
 import { Box, styled } from '@mui/material';
 
+import { ViewTypeEnum } from './utils/view-risk-type.constant';
+
 export const STBoxContainer = styled(Box)<{
   risk_init?: number;
   expanded?: number;
@@ -51,6 +53,7 @@ export const STBoxContainer = styled(Box)<{
 export const STBoxStack = styled(Box)<{
   risk_init?: number;
   expanded?: number;
+  viewType?: ViewTypeEnum;
 }>`
   display: flex;
   flex-direction: column;
@@ -72,6 +75,17 @@ export const STBoxStack = styled(Box)<{
     css`
       max-height: calc(100vh - 325px);
       min-height: calc(100vh - 325px);
+      ${props.viewType === ViewTypeEnum.SIMPLE_BY_RISK &&
+      css`
+        max-height: calc(100vh - 240px);
+        min-height: calc(100vh - 240px);
+      `};
+
+      ${props.viewType === ViewTypeEnum.MULTIPLE &&
+      css`
+        max-height: calc(100vh - 280px);
+        min-height: calc(100vh - 280px);
+      `};
     `};
 
   &::-webkit-scrollbar {

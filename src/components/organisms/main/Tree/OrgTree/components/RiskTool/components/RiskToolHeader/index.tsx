@@ -7,7 +7,7 @@ import { setGhoSearch } from 'store/reducers/hierarchy/ghoSlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 
-import { ViewTypeEnum } from '../../utils/view-type.constant';
+import { ViewTypeEnum } from '../../utils/view-risk-type.constant';
 import { SideInput } from '../SIdeInput';
 import { SideRowTableMulti } from '../SideRowTable/Multiple';
 import { RiskToolColumns } from './RiskToolColumns';
@@ -23,6 +23,7 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
   riskInit,
   viewType,
   ghoQuery,
+  viewDataType,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -50,6 +51,7 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
             handleSelectGHO={handleSelectGHO}
             handleEditGHO={handleEditGHO}
             handleAddGHO={handleAddGHO}
+            viewDataType={viewDataType}
             inputRef={inputRef}
             ghoQuery={ghoQuery}
             viewType={viewType}

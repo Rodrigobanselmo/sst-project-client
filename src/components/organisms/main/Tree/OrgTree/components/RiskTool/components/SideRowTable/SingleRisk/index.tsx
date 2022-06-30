@@ -7,6 +7,7 @@ import { initialProbState } from 'components/organisms/modals/ModalAddProbabilit
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -53,12 +54,17 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
   }: Partial<IUpsertRiskData>) => {
     if (!risk?.id || !gho?.id) return;
 
+    const isHierarchy = 'childrenIds' in gho;
+
+    const homoId = String(gho.id).split('//');
     const submitData = {
       ...values,
       id: riskData?.id,
-      homogeneousGroupId: gho.id,
+      homogeneousGroupId: homoId[0],
+      workspaceId: homoId.length == 2 ? homoId[1] : undefined,
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
+      ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
     } as IUpsertRiskData;
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
@@ -80,6 +86,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
 
   const handleHelp = async (data: Partial<IUpsertRiskData>) => {
     if (!risk?.id || !gho?.id) return;
+    if (!('workspaceIds' in gho)) return; //! nao esta funcionando para hierarchy, so ghs
 
     const company = queryClient.getQueryData<ICompany>([
       QueryEnum.COMPANY,

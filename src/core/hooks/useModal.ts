@@ -32,7 +32,7 @@ export const useModal = () => {
     const indexToRemove = reversePrev.findIndex((item) => item.name === name);
     if (indexToRemove !== -1) {
       reversePrev.splice(indexToRemove, 1);
-      return [...reversePrev.reverse()];
+      return [...reversePrev.reverse().filter((item) => item.name !== name)];
     }
 
     return array;
@@ -97,11 +97,17 @@ export const useModal = () => {
         .pileModal as ICurrentModal[];
       const currentModal = store.getState().modal
         .currentModal as ICurrentModal[];
-
+      console.log(1, registerStackModal, currentModal);
       if (!currentModal.find((modal) => modal.name == name)) {
         setPileModal([...registerStackModal, { name, data }]);
         setCurrentModal([...currentModal, { name, data }]);
       }
+
+      const registerStackModal2 = store.getState().modal
+        .pileModal as ICurrentModal[];
+      const currentModal2 = store.getState().modal
+        .currentModal as ICurrentModal[];
+      console.log(2, registerStackModal2, currentModal2);
     },
     [setCurrentModal, setPileModal, store],
   );

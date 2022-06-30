@@ -15,6 +15,7 @@ import {
   setGhoFilterValues,
   setGhoSearch,
   setGhoSearchSelect,
+  setGhoSelectedId,
   setGhoState,
 } from 'store/reducers/hierarchy/ghoSlice';
 import {
@@ -39,9 +40,17 @@ import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
 import { RiskToolRiskView } from './components/RiskToolViews/RiskToolRiskView';
+import { IHierarchyTreeMapObject } from './components/RiskToolViews/RiskToolRiskView/types';
 import { SideSelectViewContent } from './components/SideSelectViewContent';
 import { STBoxContainer, STBoxStack, STTableContainer } from './styles';
-import { IViewsRiskOption, ViewTypeEnum } from './utils/view-type.constant';
+import {
+  IViewsDataOption,
+  ViewsDataEnum,
+} from './utils/view-data-type.constant';
+import {
+  IViewsRiskOption,
+  ViewTypeEnum,
+} from './utils/view-risk-type.constant';
 
 export const SidebarOrg = () => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -58,6 +67,7 @@ export const SidebarOrg = () => {
   const risk = useAppSelector(selectRisk);
 
   const [viewType, setViewType] = useState(ViewTypeEnum.SIMPLE_BY_GROUP);
+  const [viewDataType, setViewDataType] = useState(ViewsDataEnum.GSE);
 
   const isOpen = false;
 
@@ -73,11 +83,11 @@ export const SidebarOrg = () => {
     onOpenModal(ModalEnum.GHO_ADD);
   };
 
-  const handleEditGHO = (data: IGho) => {
+  const handleEditGHO = (data: IGho | IHierarchyTreeMapObject) => {
     onOpenModal(ModalEnum.GHO_ADD, {
       id: data.id,
       name: data.name,
-      status: data.status,
+      // status: data.status,
     });
   };
 
@@ -86,8 +96,36 @@ export const SidebarOrg = () => {
       if (query.riskGroupId && risk)
         preventDelete(
           async () => {
-            //   await deleteMutation.mutateAsync(id).catch(() => {});
-            //   dispatch(setGhoState({ hierarchies: [], data: null }));
+            cleanMutation.mutate({
+              riskFactorGroupDataId: query.riskGroupId as string,
+              homogeneousGroupIds: [id],
+              riskIds: [risk.id],
+            });
+          },
+          <span>
+            <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{data?.name}</p>
+            Você tem certeza que deseja remover todos os dados relativo ao fator
+            de risco/perigo:{' '}
+            <span
+              style={{
+                fontSize: '0.95rem',
+                textDecoration: 'underline',
+                fontWeight: 500,
+              }}
+            >
+              {risk.name}
+            </span>
+          </span>,
+        );
+    },
+    [cleanMutation, preventDelete, query.riskGroupId, risk],
+  );
+
+  const handleDelete = useCallback(
+    (id: string, data?: IGho | IHierarchyTreeMapObject) => {
+      if (query.riskGroupId && risk)
+        preventDelete(
+          async () => {
             cleanMutation.mutate({
               riskFactorGroupDataId: query.riskGroupId as string,
               homogeneousGroupIds: [id],
@@ -146,6 +184,20 @@ export const SidebarOrg = () => {
     );
   };
 
+  const handleChangeViewData = (option: IViewsDataOption) => {
+    setViewDataType(option.value);
+
+    dispatch(setGhoSelectedId(null));
+    dispatch(setRiskAddState({ isEdited: false }));
+    dispatch(setGhoState({ search: '', searchSelect: '', searchRisk: '' }));
+    dispatch(
+      setGhoFilterValues({
+        key: '',
+        values: [],
+      }),
+    );
+  };
+
   return (
     <>
       {(isGhoOpen || isRiskOpen) && (
@@ -156,7 +208,9 @@ export const SidebarOrg = () => {
         >
           <RiskToolTopButtons
             onChangeView={handleChangeView}
+            onChangeViewData={handleChangeViewData}
             viewType={viewType}
+            viewDataType={viewDataType}
             handleSelectGHO={handleSelectGHO}
             riskInit={isRiskOpen}
           />
@@ -168,26 +222,30 @@ export const SidebarOrg = () => {
               isAddLoading={addMutation.isLoading}
               riskInit={isRiskOpen}
               inputRef={inputRef}
+              viewDataType={viewDataType}
               viewType={viewType}
               ghoQuery={ghoQuery}
             />
             <STBoxStack
               expanded={selectExpanded ? 1 : 0}
               risk_init={isRiskOpen ? 1 : 0}
+              viewType={viewType}
             >
               {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && <RiskToolGSEView />}
               {viewType === ViewTypeEnum.SIMPLE_BY_RISK && (
                 <RiskToolRiskView
                   handleEditGHO={handleEditGHO}
                   handleSelectGHO={handleSelectGHO}
-                  handleDeleteGHO={handleDeleteGHO}
+                  handleDeleteGHO={handleDelete}
                   selectedGhoId={selectedGhoId}
                   isDeleteLoading={deleteMutation.isLoading}
                   isRiskOpen={isRiskOpen}
+                  viewDataType={viewDataType}
                 />
               )}
               {viewType === ViewTypeEnum.MULTIPLE && (
                 <SideSelectViewContent
+                  viewDataType={viewDataType}
                   handleSelectGHO={handleSelectGHO}
                   handleEditGHO={handleEditGHO}
                   handleAddGHO={handleAddGHO}

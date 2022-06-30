@@ -16,6 +16,7 @@ export interface ITreeMapObject {
   childrenIds: Array<string | number>;
   id: string | number;
   label: string;
+  name?: string;
   type: TreeTypeEnum;
   expand: boolean;
   ghos: IGho[];

@@ -13,8 +13,9 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { ModalAddCompany } from 'components/organisms/modals/ModalAddCompany';
+import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
 import { ModalUploadFile } from 'components/organisms/modals/ModalUploadFile';
+import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -55,7 +56,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
     <>
       <STableTitle icon={BusinessTwoToneIcon}>Empresas</STableTitle>
       <STableSearch
-        onAddClick={() => onOpenModal(ModalEnum.COMPANY_ADD)}
+        onAddClick={() => onOpenModal(ModalEnum.COMPANY_EDIT)}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable
@@ -131,7 +132,8 @@ export const CompaniesTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
-      <ModalAddCompany />
+      <ModalEditCompany />
+      <ModalUploadPhoto />
       <ModalUploadFile
         loading={uploadMutation.isLoading}
         onConfirm={async (files: File[], path: string) =>

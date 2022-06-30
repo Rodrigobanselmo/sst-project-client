@@ -28,15 +28,15 @@ export const STSBoxButton = styled(Box)<{
   ${(props) =>
     props.disabled &&
     css`
-      background-color: ${props.theme.palette.background.disabled};
+      background-color: ${props.theme.palette.grey[400]};
       opacity: 0.7;
 
       &:hover {
-        background-color: ${props.theme.palette.background.disabled};
+        background-color: ${props.theme.palette.grey[400]};
       }
 
       &:active {
-        background-color: ${props.theme.palette.background.disabled};
+        background-color: ${props.theme.palette.grey[400]};
       }
     `}
 

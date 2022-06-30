@@ -13,6 +13,10 @@ export type IUserCompany = {
 export type IUser = {
   id: number;
   name: string;
+  cpf: string;
+  crea: string;
+  formation: string[];
+  certifications: string[];
   email: string;
   permissions: string[];
   roles: string[];

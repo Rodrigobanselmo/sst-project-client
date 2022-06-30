@@ -22,6 +22,7 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { StyledGridMultiGho } from '../../styles';
+import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 import { SideInput } from '../SIdeInput';
 import { SideSelectedGho } from '../SideToSelectedGho/SideSelectedGho';
 import { SideUnselectedGho } from '../SideToSelectedGho/SideUnselectedGho';
@@ -35,6 +36,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
   handleEditGHO,
   ghoQuery,
   inputRef,
+  viewDataType,
 }) => {
   const dispatch = useAppDispatch();
   const inputSelectedRef = useRef<HTMLInputElement>(null);
@@ -143,9 +145,12 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
         </SFlex>
       </SFlex>
       <StyledGridMultiGho>
-        {ghoQuery.map((gho) => (
-          <SideSelectedGho key={gho.id} data={gho} />
-        ))}
+        {ghoQuery.map((gho) => {
+          if (viewDataType == ViewsDataEnum.GSE && gho.type) {
+            return null;
+          }
+          return <SideSelectedGho key={gho.id} data={gho} />;
+        })}
       </StyledGridMultiGho>
       <SFlex align="center">
         <SideInput
@@ -165,9 +170,12 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
         />
       </SFlex>
       <StyledGridMultiGho>
-        {ghoQuery.map((gho) => (
-          <SideUnselectedGho key={gho.id} data={gho} />
-        ))}
+        {ghoQuery.map((gho) => {
+          if (viewDataType == ViewsDataEnum.GSE && gho.type) {
+            return null;
+          }
+          return <SideUnselectedGho key={gho.id} data={gho} />;
+        })}
       </StyledGridMultiGho>
     </>
   );

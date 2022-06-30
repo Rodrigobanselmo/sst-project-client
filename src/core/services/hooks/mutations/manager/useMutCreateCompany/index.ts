@@ -50,12 +50,9 @@ export function useMutCreateCompany() {
     async (data: ICreateCompany) => createCompany(data, user?.companyId),
     {
       onSuccess: async (companyResp) => {
-        if (companyResp)
-          queryClient.setQueryData(
-            [QueryEnum.COMPANIES, user?.companyId],
-            (oldData: ICompany[] | undefined) =>
-              oldData ? [companyResp, ...oldData] : [companyResp],
-          );
+        if (companyResp) {
+          queryClient.invalidateQueries([QueryEnum.COMPANIES, user?.companyId]);
+        }
 
         enqueueSnackbar('Empresa criada com sucesso', {
           variant: 'success',

@@ -3,6 +3,7 @@ import { useMutation } from 'react-query';
 import { useSnackbar } from 'notistack';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
@@ -24,7 +25,9 @@ export interface IUpsertRiskData {
   adms?: string[];
   recs?: string[];
   engs?: string[];
+  type?: HomoTypeEnum;
   generateSources?: string[];
+  workspaceId?: string;
   epis?: number[];
   keepEmpty?: boolean;
 }

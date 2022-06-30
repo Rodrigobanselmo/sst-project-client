@@ -13,6 +13,10 @@ import { IErrorResp } from '../../../../errors/types';
 
 export interface IUpdateUser {
   name?: string;
+  cpf?: string;
+  crea?: string;
+  formation?: string[];
+  certifications?: string[];
   token?: string;
   oldPassword?: string;
   password?: string;

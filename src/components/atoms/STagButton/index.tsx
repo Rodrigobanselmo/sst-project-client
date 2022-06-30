@@ -2,7 +2,7 @@
 /* eslint-disable react/display-name */
 import React from 'react';
 
-import { CircularProgress, Icon } from '@mui/material';
+import { Box, CircularProgress, Icon } from '@mui/material';
 
 import SText from '../SText';
 import STooltip from '../STooltip';
@@ -24,6 +24,8 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
       active,
       bg,
       tooltipTitle,
+      subText,
+      topText,
       ...props
     },
     ref,
@@ -41,9 +43,11 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
           active={active ? 1 : 0}
           disabled={disabled ? 1 : 0}
           sx={{
-            minHeight: large ? 30 : 22,
-            maxHeight: large ? 30 : 22,
-            height: large ? 30 : 22,
+            minHeight:
+              (large ? 30 : 22) + (subText ? 10 : 0) + (topText ? 12 : 0),
+            maxHeight:
+              (large ? 30 : 22) + (subText ? 10 : 0) + (topText ? 12 : 0),
+            height: (large ? 30 : 22) + (subText ? 10 : 0) + (topText ? 12 : 0),
             pl: 3,
             pr: text ? 5 : 2,
             ...sx,
@@ -72,18 +76,51 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
             />
           )}
           {text && (
-            <SText
-              fontSize="13px"
-              color="text.primary"
-              sx={{
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                color: active ? 'common.white' : 'common.black',
-              }}
-            >
-              {text}
-            </SText>
+            <Box>
+              {topText && (
+                <SText
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    color: active ? 'common.white' : 'common.black',
+                    mb: '-1px',
+                  }}
+                  fontSize="10px"
+                  color="text.light"
+                  width="100%"
+                >
+                  {topText}
+                </SText>
+              )}
+              <SText
+                fontSize="13px"
+                color="text.primary"
+                sx={{
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  color: active ? 'common.white' : 'common.black',
+                }}
+              >
+                {text}
+              </SText>
+              {subText && (
+                <SText
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    color: active ? 'common.white' : 'common.black',
+                  }}
+                  fontSize="10px"
+                  color="text.light"
+                  width="100%"
+                >
+                  {subText}
+                </SText>
+              )}
+            </Box>
           )}
         </STSBoxButton>
       </STooltip>

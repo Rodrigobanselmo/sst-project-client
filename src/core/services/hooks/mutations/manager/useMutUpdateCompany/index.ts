@@ -37,7 +37,7 @@ export interface IUpdateCompany
 
 export async function updateCompany(data: IUpdateCompany, companyId?: string) {
   if (!companyId) return null;
-
+  console.log(companyId);
   const response = await api.patch<ICompany>(ApiRoutesEnum.COMPANIES, {
     ...data,
     companyId,
@@ -47,26 +47,15 @@ export async function updateCompany(data: IUpdateCompany, companyId?: string) {
 
 export function useMutUpdateCompany() {
   const { enqueueSnackbar } = useSnackbar();
-  const { getCompanyId } = useGetCompanyId();
+  const { getCompanyId, user } = useGetCompanyId();
 
   return useMutation(
     async (data: IUpdateCompany) => updateCompany(data, getCompanyId(data)),
     {
       onSuccess: async (companyResp) => {
         if (companyResp) {
-          queryClient.setQueryData(
-            [QueryEnum.COMPANIES, companyResp.id],
-            (oldData: ICompany[] | undefined) =>
-              oldData
-                ? oldData.map((data) =>
-                    companyResp.id === data.id
-                      ? { ...data, ...companyResp }
-                      : data,
-                  )
-                : [companyResp],
-          );
-
-          queryClient.refetchQueries([QueryEnum.COMPANY, companyResp.id]);
+          queryClient.invalidateQueries([QueryEnum.COMPANIES, user?.companyId]);
+          queryClient.invalidateQueries([QueryEnum.COMPANY, companyResp.id]);
         }
 
         enqueueSnackbar('Empresa editada com sucesso', {

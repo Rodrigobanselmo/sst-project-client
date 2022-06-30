@@ -3,13 +3,15 @@ import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
 
-import { ViewTypeEnum } from '../../utils/view-type.constant';
+import { ViewsDataEnum } from '../../utils/view-data-type.constant';
+import { ViewTypeEnum } from '../../utils/view-risk-type.constant';
 
 export interface SideHeaderProps {
   isAddLoading?: boolean;
   riskInit?: boolean;
   ghoQuery: IGho[];
   inputRef: any;
+  viewDataType: ViewsDataEnum;
   viewType: ViewTypeEnum;
   handleAddGHO: () => Promise<void>;
   handleEditGHO: (data: IGho) => void;

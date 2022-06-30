@@ -31,11 +31,12 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
   const { query } = useRouter();
 
   const gho = useAppSelector((state) => state.gho.selected);
+  const homoId = String(gho?.id || '').split('//')[0];
 
   //! performance optimization here
   const { data: riskDataQuery } = useQueryRiskDataByGho(
     query.riskGroupId as string,
-    gho?.id as string,
+    homoId,
   );
 
   const handleAddRisk = () => {

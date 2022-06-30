@@ -8,6 +8,7 @@ export const workspaceSchema = yup.object().shape({
   neighborhood: yup.string().trim().required('Dado obrigatório'),
   city: yup.string().trim().required('Dado obrigatório'),
   state: yup.string().trim().required('Dado obrigatório'),
+  complement: yup.string(),
   number: yup.string().trim().required('Dado obrigatório'),
 });
 
