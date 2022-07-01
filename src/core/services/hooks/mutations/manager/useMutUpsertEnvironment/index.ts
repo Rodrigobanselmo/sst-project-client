@@ -23,11 +23,16 @@ export interface IAddEnvironmentPhoto {
 export interface IUpsertEnvironment {
   id?: string;
   type?: EnvironmentTypeEnum;
+  hierarchiesIds?: string[];
   name?: string;
   description?: string;
   companyId?: string;
   workspaceId?: string;
   photos?: IAddEnvironmentPhoto[];
+  noiseValue?: string;
+  temperature?: string;
+  luminosity?: string;
+  moisturePercentage?: string;
 }
 
 export async function updateEnvironment(

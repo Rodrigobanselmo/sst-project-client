@@ -61,10 +61,14 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
       ...values,
       id: riskData?.id,
       homogeneousGroupId: homoId[0],
-      workspaceId: homoId.length == 2 ? homoId[1] : undefined,
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
-      ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
+      ...(isHierarchy
+        ? {
+            type: HomoTypeEnum.HIERARCHY,
+            workspaceId: homoId[1],
+          }
+        : {}),
     } as IUpsertRiskData;
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(

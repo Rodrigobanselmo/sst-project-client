@@ -20,6 +20,7 @@ import {
   setRiskAddState,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -46,6 +47,7 @@ import { queryClient } from 'core/services/queryClient';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
+import { ViewsDataEnum } from '../../../utils/view-data-type.constant';
 import { AdmColumn } from '../components/columns/AdmColumn';
 import { EngColumn } from '../components/columns/EngColumn';
 import { EpiColumn } from '../components/columns/EpiColumn';
@@ -59,7 +61,9 @@ import { SideTableMultipleProps } from './types';
 
 const initialState: IRiskDataRow = { id: '' };
 
-export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
+export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
+  viewDataType,
+}) => {
   // const selectedRiskStore = useAppSelector(selectRisk);
   const selectedRisks = useAppSelector(selectRisks);
   const dispatch = useAppDispatch();
@@ -74,6 +78,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
   const deleteManyMut = useMutDeleteManyRiskData();
   const [riskData, setRiskData] = useState<IRiskDataRow>(initialState);
 
+  const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
   const isSelected = false;
 
   useEffect(() => {
@@ -188,13 +193,21 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
 
     const { recs, adms, engs, epis, generateSources } = riskData;
 
+    const ghosIds = selectedGhos.filter(
+      (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
+    );
+
     const submitData = {
       ...riskData,
-      homogeneousGroupIds: selectedGhos.filter(
-        (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
-      ),
+      homogeneousGroupIds: ghosIds.map((gho) => gho.split('//')[0]),
       riskIds: selectedRisks.map((risk) => risk.id),
       riskFactorGroupDataId: query.riskGroupId,
+      ...(isHierarchy
+        ? {
+            type: HomoTypeEnum.HIERARCHY,
+            workspaceIds: ghosIds.map((gho) => gho.split('//')[1]),
+          }
+        : {}),
     };
 
     Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
@@ -226,11 +239,12 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = () => {
       .selectedDisabledIds as string[];
 
     const submitData = {
-      homogeneousGroupIds: selectedGhos.filter(
-        (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
-      ),
+      homogeneousGroupIds: selectedGhos
+        .filter((selectedGho) => !selectedDisabledGhos.includes(selectedGho))
+        .map((gho) => gho.split('//')[0]),
       riskIds: selectedRisks.map((risk) => risk.id),
       riskFactorGroupDataId: query.riskGroupId as string,
+      ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
     };
 
     try {

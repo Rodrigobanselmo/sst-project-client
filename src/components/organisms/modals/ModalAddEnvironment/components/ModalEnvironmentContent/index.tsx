@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Icon, styled } from '@mui/material';
+import { Box, Icon, styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
+import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
@@ -14,6 +15,7 @@ import SAddIcon from 'assets/icons/SAddIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { environmentMap } from 'core/constants/maps/environment.map';
+import { floatMask } from 'core/utils/masks/float.mask';
 
 import { IUseEditEnvironment } from '../../hooks/useEditEnvironment';
 
@@ -33,6 +35,7 @@ export const ModalEnvironmentContent = ({
   setEnvironmentData,
   handlePhotoRemove,
   loadingDelete,
+  onAddHierarchy,
 }: IUseEditEnvironment) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -42,12 +45,10 @@ export const ModalEnvironmentContent = ({
       <InputForm
         autoFocus
         defaultValue={environmentData.name}
-        minRows={2}
-        maxRows={4}
         label="Nome"
         labelPosition="center"
         control={control}
-        sx={{ minWidth: ['100%', 600] }}
+        sx={{ width: ['100%'] }}
         placeholder={'nome do ambiente de trabalho...'}
         name="name"
         size="small"
@@ -61,7 +62,7 @@ export const ModalEnvironmentContent = ({
         label="Descrição"
         labelPosition="center"
         control={control}
-        sx={{ minWidth: ['100%', 600] }}
+        sx={{ width: ['100%'] }}
         placeholder={'descrição...'}
         name="description"
         size="small"
@@ -98,6 +99,100 @@ export const ModalEnvironmentContent = ({
         name="type"
         columns={3}
         width="101%"
+      />
+      <SText color="text.label" fontSize={14}>
+        Parâmetros ambientais
+      </SText>
+      <SFlex gap={8} flexWrap="wrap">
+        <Box flex={5}>
+          <InputForm
+            defaultValue={environmentData.temperature}
+            label="Temperatura"
+            sx={{ minWidth: [200] }}
+            control={control}
+            placeholder={'temperatura'}
+            name="temperature"
+            labelPosition="center"
+            size="small"
+            endAdornment="ºC"
+            mask={floatMask.apply({ decimal: 2, negative: true })}
+          />
+        </Box>
+        <Box flex={5}>
+          <InputForm
+            defaultValue={environmentData.noiseValue}
+            label="Ruído"
+            sx={{ minWidth: [200] }}
+            control={control}
+            placeholder={'ruído'}
+            name="noiseValue"
+            labelPosition="center"
+            size="small"
+            endAdornment="db (A)"
+            mask={floatMask.apply({ decimal: 2 })}
+          />
+        </Box>
+        <Box flex={5}>
+          <InputForm
+            defaultValue={environmentData.moisturePercentage}
+            label="Humidade"
+            sx={{ minWidth: [200] }}
+            labelPosition="center"
+            control={control}
+            placeholder={'humidade do ar'}
+            name="moisturePercentage"
+            size="small"
+            endAdornment="%"
+            mask={floatMask.apply({ decimal: 2 })}
+          />
+        </Box>
+        <Box flex={5}>
+          <InputForm
+            defaultValue={environmentData.luminosity}
+            label="Iluminância"
+            sx={{ minWidth: [200] }}
+            labelPosition="center"
+            control={control}
+            placeholder={'iluminância'}
+            name="luminosity"
+            size="small"
+            endAdornment="LUX"
+            mask={floatMask.apply()}
+          />
+        </Box>
+      </SFlex>
+      <SText color="text.label" fontSize={14}>
+        Vincular cargos ao ambiente
+      </SText>
+      {!!environmentData.hierarchies.length && (
+        <SFlex gap={8} mt={0} flexWrap="wrap">
+          {environmentData.hierarchies.map((hierarchy) => {
+            const fromTree = 'label' in hierarchy;
+            const name = fromTree ? hierarchy.label : hierarchy.name;
+            return (
+              <SText
+                component="span"
+                key={hierarchy.id}
+                sx={{
+                  fontSize: 12,
+                  p: 4,
+                  border: '1px solid',
+                  borderColor: 'grey.300',
+                  borderRadius: 1,
+                }}
+              >
+                {name}
+              </SText>
+            );
+          })}
+        </SFlex>
+      )}
+      <STagButton
+        large
+        icon={SAddIcon}
+        text="Adicionar cargos, setores ..."
+        iconProps={{ sx: { fontSize: 17 } }}
+        onClick={() => onAddHierarchy()}
       />
       <SText color="text.label" fontSize={14}>
         Fotos

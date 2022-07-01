@@ -46,6 +46,7 @@ export const ModalAddEnvironment = () => {
         center
         component="form"
         onSubmit={handleSubmit(onSubmit)}
+        sx={{ width: 1000, maxWidth: '95vw' }}
       >
         <SModalHeader
           tag={isEdit ? 'edit' : 'add'}

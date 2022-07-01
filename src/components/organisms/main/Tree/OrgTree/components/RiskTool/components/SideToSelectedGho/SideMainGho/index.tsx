@@ -4,8 +4,9 @@ import DisabledByDefaultOutlinedIcon from '@mui/icons-material/DisabledByDefault
 import { Checkbox } from '@mui/material';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
+import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/constants/node-type.constant';
 
-import { STBoxItem } from './styles';
+import { STBoxContainer, STBoxItem } from './styles';
 import { SideItemsProps } from './types';
 
 export const SideMainGho: FC<SideItemsProps> = ({
@@ -20,51 +21,73 @@ export const SideMainGho: FC<SideItemsProps> = ({
     document.getElementById(id)?.click();
   };
 
+  const isHierarchy = 'childrenIds' in data;
+
   return (
-    <STBoxItem
-      overflow="hidden"
-      disabled={isEndSelect ? 1 : 0}
-      onClick={handleClickBox}
+    <STooltip
+      withWrapper
+      minLength={15}
+      title={(isHierarchy ? data.parentsName + ' > ' : '') + data.name}
     >
-      {!isEndSelect && (
-        <Checkbox
-          id={data.id}
-          checked={isSelected}
-          onClick={handleSelect}
-          onChange={() => console.log()}
-          size="small"
-          sx={{
-            'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-              color: 'grey.400',
-            },
-          }}
-        />
-      )}
-      <STooltip withWrapper minLength={15} enterDelay={1000} title={data.name}>
-        <SText sx={{ width: '100%' }} lineNumber={2}>
-          {data.name}
-        </SText>
-      </STooltip>
-      {handleEndSelect && (
-        <STooltip
-          withWrapper
-          title={'Desabilitar a inclusão de dados ao salvar'}
-        >
-          <Checkbox
-            id={data.id + '-end'}
-            checked={isEndSelect}
-            onClick={handleEndSelect}
-            color="default"
-            size="small"
-            checkedIcon={<DisabledByDefaultOutlinedIcon />}
+      <STBoxContainer
+        overflow="hidden"
+        disabled={isEndSelect ? 1 : 0}
+        onClick={handleClickBox}
+      >
+        {isHierarchy && (
+          <SText
             sx={{
-              svg: {
-                color: isEndSelect ? 'grey.400' : 'grey.400',
-              },
+              backgroundColor: isEndSelect ? 'grey.400' : 'gray.200',
+              borderRadius: '4px',
+              pl: 4,
             }}
-          />
-        </STooltip>
-      )}
-    </STBoxItem>
+            fontSize={12}
+          >
+            {nodeTypesConstant[data.type].name}
+          </SText>
+        )}
+
+        <STBoxItem overflow="hidden" disabled={isEndSelect ? 1 : 0}>
+          {!isEndSelect && (
+            <Checkbox
+              id={data.id}
+              checked={isSelected}
+              onClick={handleSelect}
+              onChange={() => console.log()}
+              size="small"
+              sx={{
+                'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
+                  color: 'grey.400',
+                },
+              }}
+            />
+          )}
+
+          <SText sx={{ width: '100%' }} lineNumber={2}>
+            {data.name}
+          </SText>
+          {handleEndSelect && (
+            <STooltip
+              withWrapper
+              title={'Desabilitar a inclusão de dados ao salvar'}
+            >
+              <Checkbox
+                id={data.id + '-end'}
+                checked={isEndSelect}
+                onClick={handleEndSelect}
+                color="default"
+                size="small"
+                checkedIcon={<DisabledByDefaultOutlinedIcon />}
+                sx={{
+                  svg: {
+                    color: isEndSelect ? 'grey.400' : 'grey.400',
+                  },
+                }}
+              />
+            </STooltip>
+          )}
+        </STBoxItem>
+      </STBoxContainer>
+    </STooltip>
   );
 };

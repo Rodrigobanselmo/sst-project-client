@@ -14,12 +14,15 @@ import {
   ITreeCopyItem,
 } from '../../../components/organisms/main/Tree/OrgTree/interfaces';
 
+// ! HAS THIS AND TREE REDUCER
 interface IHierarchySlice {
   nodes: ITreeMap;
   dragItem: ITreeMapObject | null;
   copyItem: ITreeCopyItem | null;
   selectItem: ITreeSelectedItem | null;
   workspaceId: string | null;
+  modalSelectIds: string[];
+  search: string;
 }
 
 const initialState: IHierarchySlice = {
@@ -34,6 +37,8 @@ const initialState: IHierarchySlice = {
       ghos: [],
     },
   },
+  modalSelectIds: [],
+  search: '',
   dragItem: null,
   copyItem: null,
   selectItem: null,
@@ -120,6 +125,20 @@ export const hierarchySlice = createSlice({
     setSelectItem: (state, action: PayloadAction<ITreeSelectedItem | null>) => {
       state.selectItem = action.payload;
     },
+    setAddModalId: (state, action: PayloadAction<string>) => {
+      state.modalSelectIds.push(action.payload);
+    },
+    setRemoveModalId: (state, action: PayloadAction<string>) => {
+      state.modalSelectIds = state.modalSelectIds.filter(
+        (id) => id != action.payload,
+      );
+    },
+    setModalIds: (state, action: PayloadAction<string[]>) => {
+      state.modalSelectIds = action.payload;
+    },
+    setHierarchySearch: (state, action: PayloadAction<string>) => {
+      state.search = action.payload;
+    },
     setEditSelectItem: (
       state,
       action: PayloadAction<Partial<ITreeSelectedItem> | null>,
@@ -181,6 +200,10 @@ export const {
   setSelectCopy,
   setReorder,
   setWorkplaceId,
+  setRemoveModalId,
+  setAddModalId,
+  setHierarchySearch,
+  setModalIds,
 } = hierarchySlice.actions;
 
 export const selectAllHierarchyTreeNodes = (state: AppState) =>
@@ -218,5 +241,10 @@ export const selectHierarchyTreeSelectItem = (state: AppState) =>
 export const selectHierarchyTreeCopyItem = (state: AppState) =>
   state[name].copyItem;
 export const selectWorkplaceId = (state: AppState) => state[name].workspaceId;
+
+export const selectModalIdIsSelected = (id: string) => (state: AppState) =>
+  state[name].modalSelectIds.includes(id);
+
+export const selectHierarchySearch = (state: AppState) => state[name].search;
 
 export default hierarchySlice.reducer;

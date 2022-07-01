@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 
 import { BoxProps } from '@mui/material';
 import {
@@ -13,26 +13,41 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddEnvironment } from 'components/organisms/modals/ModalAddEnvironment';
-import dayjs from 'dayjs';
-import { useRouter } from 'next/router';
-import { StatusEnum } from 'project/enum/status.enum';
+import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
+import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
+import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 
+import dayjs from 'dayjs';
 import EditIcon from 'assets/icons/SEditIcon';
 import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
 
 import { environmentMap } from 'core/constants/maps/environment.map';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IEnvironment } from 'core/interfaces/api/IEnvironment';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEnvironments } from 'core/services/hooks/queries/useQueryEnvironments';
+import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { sortData } from 'core/utils/sorts/data.sort';
+
+import { StatusEnum } from 'project/enum/status.enum';
 
 export const EnvironmentTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryEnvironments();
   const { onOpenModal } = useModal();
   const { companyId, workspaceId } = useGetCompanyId();
+
+  const { data: company } = useQueryCompany();
+  const { data: hierarchies } = useQueryHierarchies();
+  const { setTree, transformToTreeMap } = useHierarchyTreeActions();
+
+  useEffect(() => {
+    if (hierarchies && company)
+      setTree(transformToTreeMap(hierarchies, company));
+  }, [setTree, company, transformToTreeMap, hierarchies]);
 
   const { handleSearchChange, results } = useTableSearch({
     data,
@@ -114,6 +129,9 @@ export const EnvironmentTable: FC<BoxProps> = () => {
         />
       </STable>
       <ModalAddEnvironment />
+      <ModalAddWorkspace />
+      <ModalExcelHierarchies />
+      <ModalSelectHierarchy />
     </>
   );
 };

@@ -161,6 +161,16 @@ const CompanyPage: NextPage = () => {
     handleEditCompany,
   ]);
 
+  const characterizationStepMemo = useMemo(() => {
+    return [
+      {
+        icon: SEnvironmentIcon,
+        onClick: handleAddEnvironments,
+        text: 'Cadastrar Ambientes de trabalho',
+      },
+    ];
+  }, [handleAddEnvironments]);
+
   const nextStepMemo = useMemo(() => {
     if (company.workspace && company.workspace.length == 0)
       return {
@@ -199,6 +209,12 @@ const CompanyPage: NextPage = () => {
       <SText mt={20}>Ações</SText>
       <SFlex mt={5} gap={10} flexWrap="wrap">
         {actionsStepMemo.map((props) => (
+          <SActionButton key={props.text} {...props} />
+        ))}
+      </SFlex>
+      <SText mt={20}>Caracterização</SText>
+      <SFlex mt={5} gap={10} flexWrap="wrap">
+        {characterizationStepMemo.map((props) => (
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>

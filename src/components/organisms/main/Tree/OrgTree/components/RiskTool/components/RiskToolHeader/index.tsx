@@ -45,7 +45,9 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
       )}
       <Box width="100%">
         {showColumnsHeader && <RiskToolColumns viewType={viewType} />}
-        {viewType === ViewTypeEnum.MULTIPLE && <SideRowTableMulti />}
+        {viewType === ViewTypeEnum.MULTIPLE && (
+          <SideRowTableMulti viewDataType={viewDataType} />
+        )}
         {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
           <RiskToolGhoHorizontal
             handleSelectGHO={handleSelectGHO}

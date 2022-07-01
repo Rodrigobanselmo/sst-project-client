@@ -1,0 +1,133 @@
+import React, { FC, useEffect, useMemo, useState } from 'react';
+
+import { Box } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
+import { STagButton } from 'components/atoms/STagButton';
+import SText from 'components/atoms/SText';
+import { useListHierarchy } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useListHierarchy';
+import {
+  selectHierarchySearch,
+  setAddModalId,
+  setHierarchySearch,
+  setModalIds,
+  setRemoveModalId,
+} from 'store/reducers/hierarchy/hierarchySlice';
+
+import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { useAppSelector } from 'core/hooks/useAppSelector';
+import { ICompany } from 'core/interfaces/api/ICompany';
+import { stringNormalize } from 'core/utils/strings/stringNormalize';
+
+import { ModalInputHierarchy } from './ModalInputHierarchy';
+import { ModalItemHierarchy } from './ModalItemHierarchy';
+import { STGridBox } from './styles';
+
+import { initialHierarchySelectState } from '..';
+
+export const ModalSelectHierarchyData: FC<{
+  company: ICompany;
+  selectedData: typeof initialHierarchySelectState;
+}> = ({ company, selectedData }) => {
+  const dispatch = useAppDispatch();
+  const search = useAppSelector(selectHierarchySearch);
+  const [workspaceSelected, setWorkspaceSelected] = useState(
+    company?.workspace?.[0],
+  );
+  const [filter, setFilter] = useState<HierarchyEnum>(HierarchyEnum.OFFICE);
+  const [allTypes, setAllTypes] = useState<Record<HierarchyEnum, boolean>>(
+    {} as Record<HierarchyEnum, boolean>,
+  );
+
+  useEffect(() => {
+    dispatch(setModalIds(selectedData.hierarchiesIds));
+  }, [workspaceSelected?.name, dispatch, selectedData.hierarchiesIds]);
+
+  const { hierarchyListData } = useListHierarchy();
+
+  const hierarchyList = useMemo(() => {
+    const typesSelected: Record<HierarchyEnum, boolean> = {} as Record<
+      HierarchyEnum,
+      boolean
+    >;
+
+    const list = hierarchyListData().filter((hierarchy) => {
+      (typesSelected as any)[hierarchy.type] = true;
+      // eslint-disable-next-line prettier/prettier
+      const isWorkspace = hierarchy.parentsName.split(' > ')[0] === workspaceSelected?.name;
+      // eslint-disable-next-line prettier/prettier
+      const isToFilter = search && !stringNormalize(hierarchy.name).includes(stringNormalize(search));
+
+      return (hierarchy as any).type === filter && !isToFilter && isWorkspace;
+    });
+
+    setAllTypes(typesSelected);
+    return list;
+  }, [filter, hierarchyListData, search, workspaceSelected?.name]);
+
+  const onSelectAll = () => {
+    dispatch(setModalIds(hierarchyList.map((hierarchy) => hierarchy.id)));
+  };
+
+  if (workspaceSelected === undefined) return null;
+
+  return (
+    <Box mt={8} maxHeight={'calc(95vh - 130px)'} overflow="auto">
+      <SFlex direction="column" gap={5}>
+        <SFlex gap={4} align="center">
+          <SText mr={4}>Estabelecimento:</SText>
+          {company?.workspace?.map((workspace) => (
+            <STagButton
+              bg="info.main"
+              active={workspaceSelected.id === workspace.id}
+              key={workspace.id}
+              tooltipTitle={`filtar por ${workspace.name}`}
+              text={workspace.name}
+              large
+              onClick={() => setWorkspaceSelected(workspace)}
+            />
+          ))}
+          <STagButton
+            ml="auto"
+            mr={10}
+            text={'remover todos'}
+            large
+            onClick={() => dispatch(setModalIds([]))}
+          />
+        </SFlex>
+        <STGridBox mb={10}>
+          {hierarchyList.map((hierarchy) => {
+            return (
+              <ModalItemHierarchy
+                onClick={() => dispatch(setRemoveModalId(hierarchy.id))}
+                active
+                key={hierarchy.id}
+                data={hierarchy}
+              />
+            );
+          })}
+        </STGridBox>
+        <ModalInputHierarchy
+          listFilter={allTypes}
+          onSearch={(value) => dispatch(setHierarchySearch(value))}
+          placeholder={hierarchyConstant[filter].placeholder}
+          setFilter={(value) => setFilter(value)}
+          filter={filter}
+          onSelectAll={onSelectAll}
+        />
+        <STGridBox>
+          {hierarchyList.map((hierarchy) => {
+            return (
+              <ModalItemHierarchy
+                onClick={() => dispatch(setAddModalId(hierarchy.id))}
+                key={hierarchy.id}
+                data={hierarchy}
+              />
+            );
+          })}
+        </STGridBox>
+      </SFlex>
+    </Box>
+  );
+};

@@ -3,12 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutAddEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutAddEnvironmentPhoto';
 import { useMutDeleteEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironmentPhoto';
 import {
@@ -19,30 +21,40 @@ import {
 import { environmentSchema } from 'core/utils/schemas/environment.schema';
 import { sortData } from 'core/utils/sorts/data.sort';
 
+import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 
 export const initialEnvironmentState = {
   id: '',
   name: '',
   description: '',
+  noiseValue: '',
+  temperature: '',
+  luminosity: '',
+  moisturePercentage: '',
   companyId: '',
   workspaceId: '',
   parentId: '',
   type: '' as EnvironmentTypeEnum, //? missing
   parentEnvironmentId: '', //? missing
   photos: [] as IAddEnvironmentPhoto[],
+  hierarchies: [] as (IHierarchy | ITreeMapObject)[],
 };
 
 interface ISubmit {
   name: string;
   description: string;
+  noiseValue: string;
+  temperature: string;
+  luminosity: string;
+  moisturePercentage: string;
 }
 
 const modalName = ModalEnum.ENVIRONMENT_ADD;
 
 export const useEditEnvironment = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal, onOpenModal } = useModal();
+  const { onCloseModal, onOpenModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialEnvironmentState);
 
   const { handleSubmit, control, reset, getValues } = useForm({
@@ -102,11 +114,18 @@ export const useEditEnvironment = () => {
     const submitData: IUpsertEnvironment = {
       name: data.name,
       description: data.description,
+      noiseValue: data.noiseValue,
+      temperature: data.temperature,
+      luminosity: data.luminosity,
+      moisturePercentage: data.moisturePercentage,
       companyId: environmentData.companyId,
       workspaceId: environmentData.workspaceId,
       photos: environmentData.photos,
       type: environmentData.type,
       id: environmentData.id || undefined,
+      hierarchiesIds: environmentData.hierarchies.map((hierarchy) =>
+        String(hierarchy.id),
+      ),
     };
 
     if (isEdit) delete submitData.photos;
@@ -174,6 +193,22 @@ export const useEditEnvironment = () => {
     });
   };
 
+  const onAddHierarchy = () => {
+    const handleSelect = (hierarchies: ITreeMapObject[]) => {
+      setEnvironmentData((oldData) => ({
+        ...oldData,
+        hierarchies: hierarchies,
+      }));
+    };
+
+    onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
+      onSelect: handleSelect,
+      hierarchiesIds: environmentData.hierarchies.map((hierarchy) =>
+        String(hierarchy.id),
+      ),
+    } as typeof initialHierarchySelectState);
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -189,6 +224,7 @@ export const useEditEnvironment = () => {
     handleAddPhoto,
     handlePhotoRemove,
     isEdit,
+    onAddHierarchy,
   };
 };
 

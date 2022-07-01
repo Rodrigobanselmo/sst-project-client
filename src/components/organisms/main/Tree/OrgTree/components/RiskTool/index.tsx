@@ -66,8 +66,8 @@ export const SidebarOrg = () => {
   const cleanMutation = useMutDeleteManyRiskData();
   const risk = useAppSelector(selectRisk);
 
-  const [viewType, setViewType] = useState(ViewTypeEnum.SIMPLE_BY_GROUP);
-  const [viewDataType, setViewDataType] = useState(ViewsDataEnum.GSE);
+  const [viewType, setViewType] = useState(ViewTypeEnum.MULTIPLE);
+  const [viewDataType, setViewDataType] = useState(ViewsDataEnum.HIERARCHY);
 
   const isOpen = false;
 

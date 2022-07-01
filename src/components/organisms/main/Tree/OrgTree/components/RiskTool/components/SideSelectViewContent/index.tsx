@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useCallback, useRef } from 'react';
+import React, { FC, useCallback, useRef, useMemo } from 'react';
 import { useStore } from 'react-redux';
 
 import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
@@ -19,10 +19,13 @@ import {
 } from 'store/reducers/hierarchy/ghoSlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { IGho } from 'core/interfaces/api/IGho';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
+import { useListHierarchy } from '../../hooks/useListHierarchy';
 import { StyledGridMultiGho } from '../../styles';
 import { ViewsDataEnum } from '../../utils/view-data-type.constant';
+import { IHierarchyTreeMapObject } from '../RiskToolViews/RiskToolRiskView/types';
 import { SideInput } from '../SIdeInput';
 import { SideSelectedGho } from '../SideToSelectedGho/SideSelectedGho';
 import { SideUnselectedGho } from '../SideToSelectedGho/SideUnselectedGho';
@@ -40,11 +43,19 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
 }) => {
   const dispatch = useAppDispatch();
   const inputSelectedRef = useRef<HTMLInputElement>(null);
+  const { hierarchyListData } = useListHierarchy();
   const store = useStore();
+
+  const dataList = useMemo<(IHierarchyTreeMapObject | IGho)[]>(() => {
+    if (viewDataType === ViewsDataEnum.HIERARCHY) {
+      return hierarchyListData();
+    }
+    return ghoQuery.filter((gho) => !gho.type);
+  }, [ghoQuery, hierarchyListData, viewDataType]);
 
   const handleSelectAll = useCallback(() => {
     const search = store.getState().gho.search as string;
-    const allToSelect = ghoQuery
+    const allToSelect = dataList
       .filter((gho) =>
         stringNormalize(gho.name).includes(stringNormalize(search)),
       )
@@ -54,7 +65,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
     dispatch(setGhoSearch(''));
 
     dispatch(setGhoMultiAddIds(allToSelect));
-  }, [store, ghoQuery, inputRef, dispatch]);
+  }, [store, dataList, inputRef, dispatch]);
 
   const handleUnselectAll = useCallback(() => {
     const search = store.getState().gho.searchSelect as string;
@@ -62,7 +73,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
     const selectedDisabledIds = store.getState().ghoMulti
       .selectedDisabledIds as string[];
 
-    const allDisabledSelect = ghoQuery
+    const allDisabledSelect = dataList
       .filter(
         (gho) =>
           selectedDisabledIds.includes(gho.id) &&
@@ -70,7 +81,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
       )
       .map((gho) => gho.id);
 
-    const allActiveSelect = ghoQuery
+    const allActiveSelect = dataList
       .filter(
         (gho) =>
           selectedIds.includes(gho.id) &&
@@ -83,7 +94,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
     dispatch(setGhoSearchSelect(''));
 
     dispatch(setGhoMultiRemoveIds(allActiveSelect));
-  }, [ghoQuery, dispatch, store]);
+  }, [dataList, dispatch, store]);
 
   const handleInvertDisabled = useCallback(() => {
     const search = store.getState().gho.searchSelect as string;
@@ -91,7 +102,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
     const selectedDisabledIds = store.getState().ghoMulti
       .selectedDisabledIds as string[];
 
-    const allSelected = ghoQuery
+    const allSelected = dataList
       .filter(
         (gho) =>
           selectedIds.includes(gho.id) &&
@@ -99,9 +110,9 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
       )
       .map((gho) => gho.id);
 
-    const allDisabledSelect = ghoQuery
+    const allDisabledSelect = dataList
       .filter(
-        (gho) =>
+        (gho: IHierarchyTreeMapObject | IGho) =>
           selectedDisabledIds.includes(gho.id) &&
           stringNormalize(gho.name).includes(stringNormalize(search)),
       )
@@ -112,7 +123,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
 
     dispatch(setGhoMultiDisabledAddIds(allSelected));
     dispatch(setGhoMultiDisabledRemoveIds(allDisabledSelect));
-  }, [ghoQuery, dispatch, store]);
+  }, [dataList, dispatch, store]);
 
   return (
     <>
@@ -145,7 +156,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
         </SFlex>
       </SFlex>
       <StyledGridMultiGho>
-        {ghoQuery.map((gho) => {
+        {dataList.map((gho) => {
           if (viewDataType == ViewsDataEnum.GSE && gho.type) {
             return null;
           }
@@ -170,7 +181,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
         />
       </SFlex>
       <StyledGridMultiGho>
-        {ghoQuery.map((gho) => {
+        {dataList.map((gho) => {
           if (viewDataType == ViewsDataEnum.GSE && gho.type) {
             return null;
           }

@@ -47,9 +47,9 @@ export const RiskToolGhoItem: FC<
   return (
     <STagButton
       topText={isHierarchy ? nodeTypesConstant[gho.type].name : undefined}
-      subText={isHierarchy ? gho.parentsName : undefined}
       large
       text={gho.name}
+      tooltipTitle={(isHierarchy ? gho.parentsName + ' > ' : '') + gho.name}
       {...selected}
       {...props}
     />
