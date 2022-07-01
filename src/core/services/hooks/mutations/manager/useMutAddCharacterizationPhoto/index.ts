@@ -1,71 +1,44 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IEnvironment } from 'core/interfaces/api/IEnvironment';
+import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
 
-export interface IAddEnvironmentPhoto {
-  file?: File;
-  name?: string;
-  id?: string;
-  photoUrl: string;
-}
-
-export interface IUpsertEnvironment {
-  id?: string;
-  type?: EnvironmentTypeEnum;
-  hierarchyIds?: string[];
-  name?: string;
-  description?: string;
-  companyId?: string;
+export interface IAddCharacterizationPhoto {
+  file: File;
+  name: string;
+  companyCharacterizationId: string;
   workspaceId?: string;
-  photos?: IAddEnvironmentPhoto[];
-  noiseValue?: string;
-  temperature?: string;
-  luminosity?: string;
-  moisturePercentage?: string;
 }
 
-export async function updateEnvironment(
-  data: IUpsertEnvironment,
+export async function addCharacterizationPhoto(
+  data: IAddCharacterizationPhoto,
   companyId: string,
   workspaceId: string,
 ) {
   const formData = new FormData();
-  data.photos?.forEach((photo) => {
-    if (photo.file) formData.append('files[]', photo.file);
-    if (photo.name) formData.append('photos[]', photo.name);
-  });
 
-  delete data.photos;
-
-  Object.entries(data).forEach(([key, value]) => {
-    if (Array.isArray(value)) {
-      return value.forEach((item) => {
-        formData.append(`${key}[]`, item);
-      });
-    }
-
-    if (value) formData.append(key, value);
-  });
+  formData.append('file', data.file);
+  formData.append('name', data.name);
+  formData.append('companyCharacterizationId', data.companyCharacterizationId);
 
   const { token } = await refreshToken();
 
-  const path = ApiRoutesEnum.ENVIRONMENTS.replace(
-    ':companyId',
-    companyId,
-  ).replace(':workspaceId', workspaceId);
+  const path =
+    ApiRoutesEnum.CHARACTERIZATIONS.replace(':companyId', companyId).replace(
+      ':workspaceId',
+      workspaceId,
+    ) + '/photo';
 
-  const response = await api.post(path, formData, {
+  const response = await api.post<ICharacterization>(path, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
       Authorization: `Bearer ${token}`,
@@ -75,20 +48,20 @@ export async function updateEnvironment(
   return response.data;
 }
 
-export function useMutUpsertEnvironment() {
+export function useMutAddCharacterizationPhoto() {
   const { enqueueSnackbar } = useSnackbar();
   const { getCompanyId, workspaceId } = useGetCompanyId();
 
   return useMutation(
-    async ({ workspaceId: wId, ...data }: IUpsertEnvironment) =>
-      updateEnvironment(data, getCompanyId(data), wId || workspaceId),
+    async ({ workspaceId: workId, ...data }: IAddCharacterizationPhoto) =>
+      addCharacterizationPhoto(data, getCompanyId(data), workId || workspaceId),
     {
       onSuccess: async (resp) => {
         console.log(resp);
         if (resp) {
           queryClient.setQueryData(
-            [QueryEnum.ENVIRONMENTS, resp.companyId, resp.workspaceId],
-            (oldData: IEnvironment[] | undefined) => {
+            [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
+            (oldData: ICharacterization[] | undefined) => {
               if (oldData) {
                 const newData = [...oldData];
 

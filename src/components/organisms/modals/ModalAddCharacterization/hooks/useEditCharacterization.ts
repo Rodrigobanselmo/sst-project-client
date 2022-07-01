@@ -4,27 +4,27 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
-import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
+import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { useMutAddEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutAddEnvironmentPhoto';
-import { useMutDeleteEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironmentPhoto';
+import { useMutAddCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutAddCharacterizationPhoto';
+import { useMutDeleteCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterizationPhoto';
 import {
-  IAddEnvironmentPhoto,
-  IUpsertEnvironment,
-  useMutUpsertEnvironment,
-} from 'core/services/hooks/mutations/manager/useMutUpsertEnvironment';
-import { environmentSchema } from 'core/utils/schemas/environment.schema';
+  IAddCharacterizationPhoto,
+  IUpsertCharacterization,
+  useMutUpsertCharacterization,
+} from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
+import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
 import { sortData } from 'core/utils/sorts/data.sort';
 
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 
-export const initialEnvironmentState = {
+export const initialCharacterizationState = {
   id: '',
   name: '',
   description: '',
@@ -35,9 +35,9 @@ export const initialEnvironmentState = {
   companyId: '',
   workspaceId: '',
   parentId: '',
-  type: '' as EnvironmentTypeEnum, //? missing
-  parentEnvironmentId: '', //? missing
-  photos: [] as IAddEnvironmentPhoto[],
+  type: '' as CharacterizationTypeEnum, //? missing
+  parentCharacterizationId: '', //? missing
+  photos: [] as IAddCharacterizationPhoto[],
   hierarchies: [] as (IHierarchy | ITreeMapObject)[],
 };
 
@@ -50,35 +50,35 @@ interface ISubmit {
   moisturePercentage: string;
 }
 
-const modalName = ModalEnum.ENVIRONMENT_ADD;
+const modalName = ModalEnum.CHARACTERIZATION_ADD;
 
-export const useEditEnvironment = () => {
+export const useEditCharacterization = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onOpenModal, onStackOpenModal } = useModal();
-  const initialDataRef = useRef(initialEnvironmentState);
+  const initialDataRef = useRef(initialCharacterizationState);
 
   const { handleSubmit, control, reset, getValues } = useForm({
-    resolver: yupResolver(environmentSchema),
+    resolver: yupResolver(characterizationSchema),
   });
 
-  const upsertMutation = useMutUpsertEnvironment();
-  const addPhotoMutation = useMutAddEnvironmentPhoto();
-  const deletePhotoMutation = useMutDeleteEnvironmentPhoto();
+  const upsertMutation = useMutUpsertCharacterization();
+  const addPhotoMutation = useMutAddCharacterizationPhoto();
+  const deletePhotoMutation = useMutDeleteCharacterizationPhoto();
 
   const { preventUnwantedChanges } = usePreventAction();
 
-  const [environmentData, setEnvironmentData] = useState({
-    ...initialEnvironmentState,
+  const [characterizationData, setCharacterizationData] = useState({
+    ...initialCharacterizationState,
   });
 
-  const isEdit = !!environmentData.id;
+  const isEdit = !!characterizationData.id;
 
   useEffect(() => {
     const initialData =
-      getModalData<Partial<typeof initialEnvironmentState>>(modalName);
+      getModalData<Partial<typeof initialCharacterizationState>>(modalName);
 
     if (initialData) {
-      setEnvironmentData((oldData) => {
+      setCharacterizationData((oldData) => {
         const newData = {
           ...oldData,
           ...initialData,
@@ -93,7 +93,7 @@ export const useEditEnvironment = () => {
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
-    setEnvironmentData(initialEnvironmentState);
+    setCharacterizationData(initialCharacterizationState);
     reset();
   };
 
@@ -101,7 +101,7 @@ export const useEditEnvironment = () => {
     const values = getValues();
     if (
       preventUnwantedChanges(
-        { ...environmentData, ...values },
+        { ...characterizationData, ...values },
         initialDataRef.current,
         onClose,
       )
@@ -111,19 +111,15 @@ export const useEditEnvironment = () => {
   };
 
   const onSubmit: SubmitHandler<ISubmit> = async (data) => {
-    const submitData: IUpsertEnvironment = {
+    const submitData: IUpsertCharacterization = {
       name: data.name,
       description: data.description,
-      noiseValue: data.noiseValue,
-      temperature: data.temperature,
-      luminosity: data.luminosity,
-      moisturePercentage: data.moisturePercentage,
-      companyId: environmentData.companyId,
-      workspaceId: environmentData.workspaceId,
-      photos: environmentData.photos,
-      type: environmentData.type,
-      id: environmentData.id || undefined,
-      hierarchyIds: environmentData.hierarchies.map(
+      companyId: characterizationData.companyId,
+      workspaceId: characterizationData.workspaceId,
+      photos: characterizationData.photos,
+      type: characterizationData.type,
+      id: characterizationData.id || undefined,
+      hierarchyIds: characterizationData.hierarchies.map(
         (hierarchy) => String(hierarchy.id).split('//')[0],
       ),
     };
@@ -139,7 +135,7 @@ export const useEditEnvironment = () => {
     onOpenModal(ModalEnum.UPLOAD_PHOTO, {
       onConfirm: async (photo) => {
         const addLocalPhoto = (src?: string) => {
-          setEnvironmentData((oldData) => ({
+          setCharacterizationData((oldData) => ({
             ...oldData,
             photos: [
               ...oldData.photos,
@@ -153,18 +149,19 @@ export const useEditEnvironment = () => {
         };
 
         if (isEdit) {
-          const environment = await addPhotoMutation
+          const characterization = await addPhotoMutation
             .mutateAsync({
               file: photo.file,
               name: photo.name || '',
-              companyEnvironmentId: environmentData.id,
+              companyCharacterizationId: characterizationData.id,
             })
             .catch(() => {});
 
-          if (environment)
+          if (characterization)
             addLocalPhoto(
-              environment.photos.sort((a, b) => sortData(b, a, 'created_at'))[0]
-                .photoUrl,
+              characterization.photos.sort((a, b) =>
+                sortData(b, a, 'created_at'),
+              )[0].photoUrl,
             );
         } else {
           addLocalPhoto();
@@ -174,7 +171,7 @@ export const useEditEnvironment = () => {
   };
 
   const handlePhotoRemove = async (index: number) => {
-    const photosCopy = [...environmentData.photos];
+    const photosCopy = [...characterizationData.photos];
     const deletedPhoto = photosCopy.splice(index, 1);
 
     if (isEdit && deletedPhoto[0]?.id)
@@ -182,7 +179,7 @@ export const useEditEnvironment = () => {
         .mutateAsync({ id: deletedPhoto[0].id })
         .catch(() => {});
 
-    setEnvironmentData((oldData) => {
+    setCharacterizationData((oldData) => {
       const photosCopy = [...oldData.photos];
       photosCopy.splice(index, 1);
 
@@ -195,7 +192,7 @@ export const useEditEnvironment = () => {
 
   const onAddHierarchy = () => {
     const handleSelect = (hierarchies: ITreeMapObject[]) => {
-      setEnvironmentData((oldData) => ({
+      setCharacterizationData((oldData) => ({
         ...oldData,
         hierarchies: hierarchies,
       }));
@@ -203,8 +200,8 @@ export const useEditEnvironment = () => {
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       onSelect: handleSelect,
-      workspaceId: environmentData.workspaceId,
-      hierarchiesIds: environmentData.hierarchies.map((hierarchy) =>
+      workspaceId: characterizationData.workspaceId,
+      hierarchiesIds: characterizationData.hierarchies.map((hierarchy) =>
         String(hierarchy.id),
       ),
     } as typeof initialHierarchySelectState);
@@ -214,13 +211,13 @@ export const useEditEnvironment = () => {
     registerModal,
     onCloseUnsaved,
     onClose,
-    environmentData,
+    characterizationData,
     onSubmit,
     loading: upsertMutation.isLoading,
     loadingDelete: deletePhotoMutation.isLoading,
     control,
     handleSubmit,
-    setEnvironmentData,
+    setCharacterizationData,
     modalName,
     handleAddPhoto,
     handlePhotoRemove,
@@ -229,4 +226,6 @@ export const useEditEnvironment = () => {
   };
 };
 
-export type IUseEditEnvironment = ReturnType<typeof useEditEnvironment>;
+export type IUseEditCharacterization = ReturnType<
+  typeof useEditCharacterization
+>;

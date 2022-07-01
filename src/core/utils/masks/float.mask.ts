@@ -20,7 +20,11 @@ const masked = {
 } as IMask.AnyMaskedOptions;
 
 const mask = (value: string, props?: IFloatProps) => {
-  const isNegative = props?.negative && value.substring(0, 1) == '-';
+  const firstLetter = value.substring(0, 1);
+  const secondLetter = value.substring(1, 2);
+  const isNegative = props?.negative && firstLetter == '-';
+
+  if (firstLetter == '0' && secondLetter != ',') return value.slice(0, 1);
 
   const newValue = value.replace(/[^0-9,]/g, '');
 

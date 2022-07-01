@@ -14,10 +14,8 @@ import {
 } from 'components/organisms/main/Tree/OrgTree/interfaces';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 
@@ -30,6 +28,8 @@ export const initialHierarchySelectState = {
   onSelect: (hierarchies: ITreeMapObject[]) => {},
   onCloseWithoutSelect: () => {},
   hierarchiesIds: [] as string[],
+  workspaceId: '' as string,
+  lockWorkspace: true,
 };
 
 const modalName = ModalEnum.HIERARCHY_SELECT;

@@ -1,6 +1,7 @@
 import { FC, useEffect } from 'react';
 
 import { BoxProps } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -12,30 +13,30 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { ModalAddEnvironment } from 'components/organisms/modals/ModalAddEnvironment';
+import SText from 'components/atoms/SText';
+import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import dayjs from 'dayjs';
-import { StatusEnum } from 'project/enum/status.enum';
 
+import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
 import EditIcon from 'assets/icons/SEditIcon';
-import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
 
-import { environmentMap } from 'core/constants/maps/environment.map';
+import { characterizationMap } from 'core/constants/maps/characterization.map';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
-import { IEnvironment } from 'core/interfaces/api/IEnvironment';
+import { ICharacterization } from 'core/interfaces/api/ICharacterization';
+import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { useQueryEnvironments } from 'core/services/hooks/queries/useQueryEnvironments';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { sortData } from 'core/utils/sorts/data.sort';
 
-export const EnvironmentTable: FC<BoxProps> = () => {
-  const { data, isLoading } = useQueryEnvironments();
+export const CharacterizationTable: FC<BoxProps> = () => {
+  const { data, isLoading } = useQueryCharacterizations();
   const { onOpenModal } = useModal();
   const { companyId, workspaceId } = useGetCompanyId();
 
@@ -54,31 +55,30 @@ export const EnvironmentTable: FC<BoxProps> = () => {
     sort: (a, b) => sortData(a, b, 'created_at'),
   });
 
-  const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
-  };
-
-  const handleEdit = (data: IEnvironment) => {
-    onOpenModal(ModalEnum.ENVIRONMENT_ADD, { ...data });
-  };
-
-  const getParentName = (id?: string) => {
-    if (!id) return '--';
-
-    const parent = data.find((item) => item.id === id);
-    if (!parent) return '--';
-
-    return parent.name || '--';
+  const handleEdit = (data: ICharacterization) => {
+    onOpenModal(ModalEnum.CHARACTERIZATION_ADD, { ...data });
   };
 
   return (
     <>
-      <STableTitle icon={SEnvironmentIcon} iconSx={{ fontSize: 30 }}>
-        Ambientes de Trabalho
+      {/* <SFlex mb={12} align="center"> */}
+      <STableTitle
+        // mb={0}
+        icon={SCharacterizationIcon}
+        iconSx={{ fontSize: 30 }}
+      >
+        Mão de Obra
       </STableTitle>
+      {/* <SText ml={5} mb={-5} fontSize={12}>
+          Atividades / Posto de Trabalho / Equipamentos
+        </SText>
+      </SFlex> */}
       <STableSearch
         onAddClick={() =>
-          onOpenModal(ModalEnum.ENVIRONMENT_ADD, { companyId, workspaceId })
+          onOpenModal(ModalEnum.CHARACTERIZATION_ADD, {
+            companyId,
+            workspaceId,
+          })
         }
         onChange={(e) => handleSearchChange(e.target.value)}
       />
@@ -89,7 +89,6 @@ export const EnvironmentTable: FC<BoxProps> = () => {
         <STableHeader>
           <STableHRow>Nome</STableHRow>
           <STableHRow>Descrição</STableHRow>
-          {/* <STableHRow>Pertencente ao Ambiente</STableHRow> */}
           <STableHRow justifyContent="center">Tipo</STableHRow>
           <STableHRow justifyContent="center">N.º Fotos</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
@@ -102,10 +101,9 @@ export const EnvironmentTable: FC<BoxProps> = () => {
               <STableRow key={row.id}>
                 <TextIconRow text={row.name || '--'} />
                 <TextIconRow text={row.description || '--'} />
-                {/* <TextIconRow text={getParentName(row.parentEnvironmentId)} /> */}
                 <TextIconRow
                   justifyContent="center"
-                  text={environmentMap[row.type]?.name || '--'}
+                  text={characterizationMap[row.type]?.name || '--'}
                 />
                 <TextIconRow
                   justifyContent="center"
@@ -127,7 +125,7 @@ export const EnvironmentTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
-      <ModalAddEnvironment />
+      <ModalAddCharacterization />
       <ModalAddWorkspace />
       <ModalExcelHierarchies />
       <ModalSelectHierarchy />

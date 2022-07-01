@@ -49,6 +49,7 @@ export const STSBoxButton = styled(Box)<{
     props.active &&
     css`
       background-color: ${props.theme.palette.primary.main};
+      border-color: ${props.theme.palette.primary.main};
 
       &:hover {
         background-color: ${props.theme.palette.primary.dark};

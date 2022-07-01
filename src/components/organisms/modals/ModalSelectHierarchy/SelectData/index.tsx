@@ -17,7 +17,7 @@ import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
-import { ICompany } from 'core/interfaces/api/ICompany';
+import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { ModalInputHierarchy } from './ModalInputHierarchy';
@@ -33,7 +33,9 @@ export const ModalSelectHierarchyData: FC<{
   const dispatch = useAppDispatch();
   const search = useAppSelector(selectHierarchySearch);
   const [workspaceSelected, setWorkspaceSelected] = useState(
-    company?.workspace?.[0],
+    company?.workspace?.find(
+      (workspace) => workspace.id === selectedData.workspaceId,
+    ),
   );
   const [filter, setFilter] = useState<HierarchyEnum>(HierarchyEnum.OFFICE);
   const [allTypes, setAllTypes] = useState<Record<HierarchyEnum, boolean>>(
@@ -70,22 +72,28 @@ export const ModalSelectHierarchyData: FC<{
     dispatch(setModalIds(hierarchyList.map((hierarchy) => hierarchy.id)));
   };
 
+  const onSelectWorkspace = (workspace: IWorkspace) => {
+    if (selectedData.lockWorkspace) return;
+    setWorkspaceSelected(workspace);
+  };
+
   if (workspaceSelected === undefined) return null;
 
   return (
-    <Box mt={8} maxHeight={'calc(95vh - 130px)'} overflow="auto">
+    <Box mt={8} maxHeight={'calc(95vh - 150px)'} overflow="auto">
       <SFlex direction="column" gap={5}>
         <SFlex gap={4} align="center">
           <SText mr={4}>Estabelecimento:</SText>
           {company?.workspace?.map((workspace) => (
             <STagButton
-              bg="info.main"
+              bg={'info.main'}
               active={workspaceSelected.id === workspace.id}
               key={workspace.id}
               tooltipTitle={`filtar por ${workspace.name}`}
               text={workspace.name}
               large
-              onClick={() => setWorkspaceSelected(workspace)}
+              onClick={() => onSelectWorkspace(workspace)}
+              disabled={selectedData.lockWorkspace}
             />
           ))}
           <STagButton

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box, Icon, styled } from '@mui/material';
+import { Icon, styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -9,15 +9,14 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
-import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
+import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
-import { environmentMap } from 'core/constants/maps/environment.map';
-import { floatMask } from 'core/utils/masks/float.mask';
+import { characterizationMap } from 'core/constants/maps/characterization.map';
 
-import { IUseEditEnvironment } from '../../hooks/useEditEnvironment';
+import { IUseEditCharacterization } from '../../hooks/useEditCharacterization';
 
 const StyledImage = styled('img')`
   width: 100px;
@@ -28,15 +27,15 @@ const StyledImage = styled('img')`
   object-fit: contain;
 `;
 
-export const ModalEnvironmentContent = ({
+export const ModalCharacterizationContent = ({
   control,
-  environmentData,
+  characterizationData,
   handleAddPhoto,
-  setEnvironmentData,
+  setCharacterizationData,
   handlePhotoRemove,
   loadingDelete,
   onAddHierarchy,
-}: IUseEditEnvironment) => {
+}: IUseEditCharacterization) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
       <SText color="text.label" fontSize={14}>
@@ -44,7 +43,7 @@ export const ModalEnvironmentContent = ({
       </SText>
       <InputForm
         autoFocus
-        defaultValue={environmentData.name}
+        defaultValue={characterizationData.name}
         label="Nome"
         labelPosition="center"
         control={control}
@@ -55,7 +54,7 @@ export const ModalEnvironmentContent = ({
         firstLetterCapitalize
       />
       <InputForm
-        defaultValue={environmentData.description}
+        defaultValue={characterizationData.description}
         multiline
         minRows={2}
         maxRows={4}
@@ -72,28 +71,38 @@ export const ModalEnvironmentContent = ({
         type="radio"
         control={control}
         onChange={(e) =>
-          setEnvironmentData((old) => ({
+          setCharacterizationData((old) => ({
             ...old,
             type: (e as any).target.value,
           }))
         }
-        defaultValue={String(environmentData.type)}
+        defaultValue={String(characterizationData.type)}
         options={[
           {
-            content: environmentMap[EnvironmentTypeEnum.ADMINISTRATIVE].name,
-            value: EnvironmentTypeEnum.ADMINISTRATIVE,
+            content:
+              characterizationMap[CharacterizationTypeEnum.WORKSTATION].name,
+            value:
+              characterizationMap[CharacterizationTypeEnum.WORKSTATION].value,
             tooltip:
-              environmentMap[EnvironmentTypeEnum.ADMINISTRATIVE].description,
+              characterizationMap[CharacterizationTypeEnum.WORKSTATION]
+                .description,
           },
           {
-            content: environmentMap[EnvironmentTypeEnum.OPERATION].name,
-            value: EnvironmentTypeEnum.OPERATION,
-            tooltip: environmentMap[EnvironmentTypeEnum.OPERATION].description,
+            content:
+              characterizationMap[CharacterizationTypeEnum.ACTIVITIES].name,
+            value: CharacterizationTypeEnum.ACTIVITIES,
+            tooltip:
+              characterizationMap[CharacterizationTypeEnum.ACTIVITIES]
+                .description,
           },
+
           {
-            content: environmentMap[EnvironmentTypeEnum.SUPPORT].name,
-            value: EnvironmentTypeEnum.SUPPORT,
-            tooltip: environmentMap[EnvironmentTypeEnum.SUPPORT].description,
+            content:
+              characterizationMap[CharacterizationTypeEnum.EQUIPMENT].name,
+            value: CharacterizationTypeEnum.EQUIPMENT,
+            tooltip:
+              characterizationMap[CharacterizationTypeEnum.EQUIPMENT]
+                .description,
           },
         ]}
         name="type"
@@ -101,72 +110,11 @@ export const ModalEnvironmentContent = ({
         width="101%"
       />
       <SText color="text.label" fontSize={14}>
-        Parâmetros ambientais
-      </SText>
-      <SFlex gap={8} flexWrap="wrap">
-        <Box flex={5}>
-          <InputForm
-            defaultValue={environmentData.temperature}
-            label="Temperatura"
-            sx={{ minWidth: [200] }}
-            control={control}
-            placeholder={'temperatura'}
-            name="temperature"
-            labelPosition="center"
-            size="small"
-            endAdornment="ºC"
-            mask={floatMask.apply({ decimal: 2, negative: true })}
-          />
-        </Box>
-        <Box flex={5}>
-          <InputForm
-            defaultValue={environmentData.noiseValue}
-            label="Ruído"
-            sx={{ minWidth: [200] }}
-            control={control}
-            placeholder={'ruído'}
-            name="noiseValue"
-            labelPosition="center"
-            size="small"
-            endAdornment="db (A)"
-            mask={floatMask.apply({ decimal: 2 })}
-          />
-        </Box>
-        <Box flex={5}>
-          <InputForm
-            defaultValue={environmentData.moisturePercentage}
-            label="Humidade"
-            sx={{ minWidth: [200] }}
-            labelPosition="center"
-            control={control}
-            placeholder={'humidade do ar'}
-            name="moisturePercentage"
-            size="small"
-            endAdornment="%"
-            mask={floatMask.apply({ decimal: 2 })}
-          />
-        </Box>
-        <Box flex={5}>
-          <InputForm
-            defaultValue={environmentData.luminosity}
-            label="Iluminância"
-            sx={{ minWidth: [200] }}
-            labelPosition="center"
-            control={control}
-            placeholder={'iluminância'}
-            name="luminosity"
-            size="small"
-            endAdornment="LUX"
-            mask={floatMask.apply()}
-          />
-        </Box>
-      </SFlex>
-      <SText color="text.label" fontSize={14}>
         Vincular cargos ao ambiente
       </SText>
-      {!!environmentData.hierarchies.length && (
+      {!!characterizationData.hierarchies.length && (
         <SFlex gap={8} mt={0} flexWrap="wrap">
-          {environmentData.hierarchies.map((hierarchy) => {
+          {characterizationData.hierarchies.map((hierarchy) => {
             const fromTree = 'label' in hierarchy;
             const name = fromTree ? hierarchy.label : hierarchy.name;
             return (
@@ -211,7 +159,7 @@ export const ModalEnvironmentContent = ({
         Adicionar foto
       </SButton>{' '}
       <SFlex sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        {environmentData.photos.map((photo, index) => (
+        {characterizationData.photos.map((photo, index) => (
           <SFlex
             key={photo.name + '-' + index}
             sx={{

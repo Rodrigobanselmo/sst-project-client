@@ -3,6 +3,7 @@ import { useEffect, useMemo } from 'react';
 import { SContainer } from 'components/atoms/SContainer';
 import { SPageMenu } from 'components/molecules/SPageMenu';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
+import { CharacterizationTable } from 'components/organisms/tables/CharacterizationTable';
 import { EnvironmentTable } from 'components/organisms/tables/EnvironmentTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -71,6 +72,12 @@ const Companies: NextPage = () => {
       {pageData.value === CharacterizationEnum.ENVIRONMENT && (
         <EnvironmentTable />
       )}
+      {[
+        CharacterizationEnum.LABOR,
+        CharacterizationEnum.ACTIVITIES,
+        CharacterizationEnum.EQUIPMENT,
+        CharacterizationEnum.WORKSTATION,
+      ].includes(pageData.value) && <CharacterizationTable />}
       <ModalUploadPhoto />
     </SContainer>
   );

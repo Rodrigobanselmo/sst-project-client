@@ -1,42 +1,38 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
+import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IEnvironment } from 'core/interfaces/api/IEnvironment';
+import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
 
-export interface IAddEnvironmentPhoto {
+export interface IAddCharacterizationPhoto {
   file?: File;
   name?: string;
   id?: string;
   photoUrl: string;
 }
 
-export interface IUpsertEnvironment {
+export interface IUpsertCharacterization {
   id?: string;
-  type?: EnvironmentTypeEnum;
+  type?: CharacterizationTypeEnum;
   hierarchyIds?: string[];
   name?: string;
   description?: string;
   companyId?: string;
   workspaceId?: string;
-  photos?: IAddEnvironmentPhoto[];
-  noiseValue?: string;
-  temperature?: string;
-  luminosity?: string;
-  moisturePercentage?: string;
+  photos?: IAddCharacterizationPhoto[];
 }
 
-export async function updateEnvironment(
-  data: IUpsertEnvironment,
+export async function updateCharacterization(
+  data: IUpsertCharacterization,
   companyId: string,
   workspaceId: string,
 ) {
@@ -60,7 +56,7 @@ export async function updateEnvironment(
 
   const { token } = await refreshToken();
 
-  const path = ApiRoutesEnum.ENVIRONMENTS.replace(
+  const path = ApiRoutesEnum.CHARACTERIZATIONS.replace(
     ':companyId',
     companyId,
   ).replace(':workspaceId', workspaceId);
@@ -75,20 +71,19 @@ export async function updateEnvironment(
   return response.data;
 }
 
-export function useMutUpsertEnvironment() {
+export function useMutUpsertCharacterization() {
   const { enqueueSnackbar } = useSnackbar();
   const { getCompanyId, workspaceId } = useGetCompanyId();
 
   return useMutation(
-    async ({ workspaceId: wId, ...data }: IUpsertEnvironment) =>
-      updateEnvironment(data, getCompanyId(data), wId || workspaceId),
+    async ({ workspaceId: wId, ...data }: IUpsertCharacterization) =>
+      updateCharacterization(data, getCompanyId(data), wId || workspaceId),
     {
       onSuccess: async (resp) => {
-        console.log(resp);
         if (resp) {
           queryClient.setQueryData(
-            [QueryEnum.ENVIRONMENTS, resp.companyId, resp.workspaceId],
-            (oldData: IEnvironment[] | undefined) => {
+            [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
+            (oldData: ICharacterization[] | undefined) => {
               if (oldData) {
                 const newData = [...oldData];
 
@@ -100,7 +95,6 @@ export function useMutUpsertEnvironment() {
                 } else {
                   newData.unshift(resp);
                 }
-                console.log('newData', newData);
 
                 return newData;
               }

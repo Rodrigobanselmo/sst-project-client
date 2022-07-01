@@ -6,6 +6,7 @@ export enum ModalEnum {
   CHECKLIST_ADD = 'checklist-add',
   RISK_GROUP_ADD = 'risk-group-add',
   ENVIRONMENT_ADD = 'environment-add',
+  CHARACTERIZATION_ADD = 'characterization-add',
   DOC_PGR_SELECT = 'doc-pgr-select',
   WORKSPACE_SELECT = 'workspace-select',
   RISK_GROUP_DOC_ADD = 'risk-group-doc-add',

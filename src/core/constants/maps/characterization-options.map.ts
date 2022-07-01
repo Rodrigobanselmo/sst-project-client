@@ -20,6 +20,11 @@ export const characterizationOptionsConstant: ICharacterizationOptions = {
     title: 'Atividade',
     label: 'Atividade',
   },
+  [CharacterizationEnum.LABOR]: {
+    value: CharacterizationEnum.LABOR,
+    title: 'Mão de obra',
+    label: 'Mão de obra',
+  },
   [CharacterizationEnum.EQUIPMENT]: {
     value: CharacterizationEnum.EQUIPMENT,
     title: 'Equipamentos',
@@ -34,7 +39,5 @@ export const characterizationOptionsConstant: ICharacterizationOptions = {
 
 export const characterizationOptionsList = [
   characterizationOptionsConstant[CharacterizationEnum.ENVIRONMENT],
-  characterizationOptionsConstant[CharacterizationEnum.WORKSTATION],
-  characterizationOptionsConstant[CharacterizationEnum.ACTIVITIES],
-  characterizationOptionsConstant[CharacterizationEnum.EQUIPMENT],
+  characterizationOptionsConstant[CharacterizationEnum.LABOR],
 ];

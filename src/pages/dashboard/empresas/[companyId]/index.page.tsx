@@ -2,6 +2,7 @@ import { useCallback, useMemo } from 'react';
 
 import BadgeIcon from '@mui/icons-material/Badge';
 import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
+import { Icon } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
@@ -21,10 +22,12 @@ import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
+import SCharacterization from 'assets/icons/SCharacterizationIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
+import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
@@ -107,6 +110,30 @@ const CompanyPage: NextPage = () => {
     if (workspaceLength == 1) goToEnv(company.workspace[0].id);
   }, [company.id, company?.workspace, onOpenModal, push]);
 
+  const handleAddCharacterization = useCallback(() => {
+    const workspaceLength = company?.workspace?.length || 0;
+    const goToEnv = (workId: string) => {
+      push({
+        pathname: RoutesEnum.CHARACTERIZATIONS.replace(
+          ':companyId',
+          company.id,
+        ).replace(':workspaceId', workId),
+      });
+    };
+
+    if (workspaceLength != 1) {
+      const initialWorkspaceState = {
+        title: 'Selecione para qual Estabelecimento deseja adicionar',
+        onSelect: (workspace: IWorkspace) => goToEnv(workspace.id),
+      } as typeof initialWorkspaceSelectState;
+
+      onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
+    }
+
+    if (!company?.workspace) return;
+    if (workspaceLength == 1) goToEnv(company.workspace[0].id);
+  }, [company.id, company?.workspace, onOpenModal, push]);
+
   const handleAddTeam = useCallback(() => {
     push({
       pathname: RoutesEnum.TEAM.replace(':companyId', company.id),
@@ -136,11 +163,6 @@ const CompanyPage: NextPage = () => {
         text: 'Vincular Fatores de Risco',
       },
       {
-        icon: SEnvironmentIcon,
-        onClick: handleAddEnvironments,
-        text: 'Cadastrar Ambientes de trabalho',
-      },
-      {
         icon: STeamIcon,
         onClick: handleAddTeam,
         text: 'Cadastrar Usuários',
@@ -156,7 +178,6 @@ const CompanyPage: NextPage = () => {
     handleAddEmployees,
     handleAddPgrDocument,
     handleAddRisk,
-    handleAddEnvironments,
     handleAddTeam,
     handleEditCompany,
   ]);
@@ -166,10 +187,19 @@ const CompanyPage: NextPage = () => {
       {
         icon: SEnvironmentIcon,
         onClick: handleAddEnvironments,
-        text: 'Cadastrar Ambientes de trabalho',
+        text: 'Ambientes de trabalho (foto)',
+        tooltipText:
+          'Cadastro de ambientes de trabalho e os riscos atrelado a eles (adicionar fotografia do ambiente)',
+      },
+      {
+        icon: SCharacterization,
+        onClick: handleAddCharacterization,
+        text: 'Mão de obra (foto)',
+        tooltipText:
+          'Cadastro das atividades, posto de trabalho e equipamentos da mão de obra e os riscos atrelado (adicionar fotografia)',
       },
     ];
-  }, [handleAddEnvironments]);
+  }, [handleAddEnvironments, handleAddCharacterization]);
 
   const nextStepMemo = useMemo(() => {
     if (company.workspace && company.workspace.length == 0)
@@ -212,7 +242,13 @@ const CompanyPage: NextPage = () => {
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
-      <SText mt={20}>Caracterização</SText>
+      <SFlex align="center" mt={20}>
+        <SText mr={3}>Caracterização Básica</SText>
+        <Icon
+          sx={{ color: 'grey.600', fontSize: '18px' }}
+          component={SPhotoIcon}
+        />
+      </SFlex>
       <SFlex mt={5} gap={10} flexWrap="wrap">
         {characterizationStepMemo.map((props) => (
           <SActionButton key={props.text} {...props} />
