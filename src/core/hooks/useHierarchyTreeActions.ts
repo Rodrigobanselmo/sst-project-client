@@ -223,7 +223,11 @@ export const useHierarchyTreeActions = () => {
     async (
       nodesMap: ITreeMapEdit[],
       noSave?: boolean,
-      options?: { isAdd: boolean },
+      options?: {
+        isAdd?: boolean;
+        employeesIds: number[];
+        callBack?: () => void;
+      },
     ) => {
       const isDiffWorkspace =
         nodesMap.length == 3 &&
@@ -286,7 +290,18 @@ export const useHierarchyTreeActions = () => {
           });
 
         saveApi(
-          () => upsertManyMutation.mutateAsync(data).catch(() => {}),
+          () =>
+            upsertManyMutation
+              .mutateAsync(
+                data.map((hierarchy) => ({
+                  ...hierarchy,
+                  employeesIds: options?.employeesIds,
+                })),
+              )
+              .then(() => {
+                options?.callBack?.();
+              })
+              .catch(() => {}),
           nodes,
         );
       }

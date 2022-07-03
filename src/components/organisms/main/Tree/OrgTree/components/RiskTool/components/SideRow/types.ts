@@ -4,7 +4,7 @@ import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 
-import { ITreeMapObject } from '../../../../interfaces';
+import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 import { IHierarchyTreeMapObject } from '../RiskToolViews/RiskToolRiskView/types';
 
 export interface SideRowProps {
@@ -13,6 +13,7 @@ export interface SideRowProps {
   isDeleteLoading: boolean;
   selectedGhoId: string | null;
   riskData?: IRiskData;
+  viewDataType: ViewsDataEnum;
   handleEditGHO: (data: any) => void;
   handleSelectGHO: (
     gho: any | null,

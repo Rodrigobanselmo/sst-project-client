@@ -13,7 +13,7 @@ export const viewsRiskOptionsConstant: IViewsRiskOptions = {
   },
   [ViewsRiskEnum.SIMPLE_BY_GROUP]: {
     value: ViewsRiskEnum.SIMPLE_BY_GROUP,
-    name: 'Visalização por GSE',
+    name: 'Visalização básica',
   },
   [ViewsRiskEnum.MULTIPLE]: {
     value: ViewsRiskEnum.MULTIPLE,

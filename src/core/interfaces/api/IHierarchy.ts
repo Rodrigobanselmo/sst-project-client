@@ -14,6 +14,7 @@ export interface IHierarchy {
   parentId: string | null;
   workspaces?: IWorkspace[];
   workspaceIds: string[];
+  parent?: IHierarchy;
 }
 
 export type IHierarchyMap = Record<

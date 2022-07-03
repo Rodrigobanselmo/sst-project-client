@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import { Box } from '@mui/material';
@@ -26,9 +26,12 @@ import { ModalSelectHierarchyData } from './SelectData';
 export const initialHierarchySelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSelect: (hierarchies: ITreeMapObject[]) => {},
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onSingleSelect: (hierarchy: ITreeMapObject) => {},
   onCloseWithoutSelect: () => {},
   hierarchiesIds: [] as string[],
   workspaceId: '' as string,
+  singleSelect: false,
   lockWorkspace: true,
 };
 
@@ -54,17 +57,21 @@ export const ModalSelectHierarchy: FC = () => {
           ...initialData,
         };
 
+        if (company.workspace && company.workspace[0] && !newData.workspaceId) {
+          newData.workspaceId = company.workspace[0].id;
+        }
+
         return newData;
       });
     }
-  }, [getModalData]);
+  }, [getModalData, company]);
 
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();
     onCloseModal(modalName);
   };
 
-  const handleSelect = () => {
+  const handleSelect = useCallback(() => {
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const modalSelectIds = store.getState().hierarchy
       .modalSelectIds as string[];
@@ -72,21 +79,35 @@ export const ModalSelectHierarchy: FC = () => {
 
     onCloseModal(modalName);
     selectData.onSelect(hierarchies);
-  };
+  }, [onCloseModal, selectData, store]);
+
+  const handleSingleSelect = useCallback(
+    (id: string) => {
+      const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
+      onCloseModal(modalName);
+      selectData.onSingleSelect(nodesMap[id]);
+    },
+    [onCloseModal, selectData, store],
+  );
 
   const hasWorkspace =
     company && company.workspace && company.workspace.length > 0;
 
   const hasHierarchy = data && Object.keys(data).length > 0;
 
-  const buttons = [{}] as IModalButton[];
-
-  if (hasWorkspace && hasHierarchy)
-    buttons.push({
-      text: 'Selecionar Ativos',
-      variant: 'contained',
-      onClick: () => handleSelect(),
-    });
+  const buttons = useMemo(() => {
+    if (hasWorkspace && hasHierarchy)
+      return [
+        {},
+        {
+          text: 'Selecionar Ativos',
+          variant: 'contained',
+          onClick: () => handleSelect(),
+        },
+      ] as IModalButton[];
+    return [{}] as IModalButton[];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company, data, handleSelect]);
 
   return (
     <SModal
@@ -102,6 +123,7 @@ export const ModalSelectHierarchy: FC = () => {
             <ModalSelectHierarchyData
               selectedData={selectData}
               company={company}
+              handleSingleSelect={handleSingleSelect}
             />
           )}
           {(!hasWorkspace || !hasHierarchy) &&

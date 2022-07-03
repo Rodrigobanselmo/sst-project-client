@@ -1,6 +1,9 @@
 import React, { FC, useRef } from 'react';
 
 import { Box } from '@mui/material';
+import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
+import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { useRouter } from 'next/router';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
 import { selectRiskAddExpand } from 'store/reducers/hierarchy/riskAddSlice';
@@ -61,6 +64,9 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
           </>
         )}
         <ModalEditCard />
+        <ModalAddEmployee />
+        <ModalSelectWorkspace />
+        <ModalSelectHierarchy />
       </Box>
       <STGhoBox
         expanded={selectExpanded ? 1 : 0}

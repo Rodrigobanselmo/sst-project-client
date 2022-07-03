@@ -7,6 +7,7 @@ import { setGhoSearch } from 'store/reducers/hierarchy/ghoSlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 
+import { viewsDataOptionsConstant } from '../../utils/view-data-type.constant';
 import { ViewTypeEnum } from '../../utils/view-risk-type.constant';
 import { SideInput } from '../SIdeInput';
 import { SideRowTableMulti } from '../SideRowTable/Multiple';
@@ -41,6 +42,7 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
           handleEditGHO={handleEditGHO}
           handleAddGHO={handleAddGHO}
           isAddLoading={isAddLoading}
+          placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
         />
       )}
       <Box width="100%">

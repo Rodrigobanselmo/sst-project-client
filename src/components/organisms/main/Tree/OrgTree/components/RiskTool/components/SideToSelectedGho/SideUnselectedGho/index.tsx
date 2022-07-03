@@ -13,7 +13,10 @@ import { stringNormalize } from 'core/utils/strings/stringNormalize';
 import { SideMainGho } from '../SideMainGho';
 import { SideItemsProps } from './types';
 
-export const SideUnselectedGho: FC<SideItemsProps> = ({ data }) => {
+export const SideUnselectedGho: FC<SideItemsProps> = ({
+  viewDataType,
+  data,
+}) => {
   const dispatch = useAppDispatch();
   const isSelected = useAppSelector(selectGhoMultiId(data.id));
   const search = useAppSelector(selectGhoSearch);
@@ -32,6 +35,7 @@ export const SideUnselectedGho: FC<SideItemsProps> = ({ data }) => {
       isSelected={isSelected}
       data={data}
       handleSelect={handleSelect}
+      viewDataType={viewDataType}
     />
   );
 };

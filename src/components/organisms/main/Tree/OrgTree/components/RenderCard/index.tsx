@@ -27,7 +27,6 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   const handleClickCard = () => {
     const ghoState = store.getState().gho as IGhoState;
     if (ghoState.open) return null;
-
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
     setSelectedItem(node);
   };
@@ -56,7 +55,11 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
         onClick={handleClickCard}
         onContextMenu={onContextMenu}
       >
-        <NodeCard menuRef={menuRef} node={node} />
+        <NodeCard
+          handleClickCard={handleClickCard}
+          menuRef={menuRef}
+          node={node}
+        />
         {prop.collapsable && !!node.childrenIds.length && (
           <RenderBtn prop={prop} node={node} />
         )}

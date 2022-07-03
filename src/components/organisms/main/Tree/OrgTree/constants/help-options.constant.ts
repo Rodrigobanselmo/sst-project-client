@@ -5,6 +5,7 @@ import CloseFullscreenOutlinedIcon from '@mui/icons-material/CloseFullscreenOutl
 import OpenInFullOutlinedIcon from '@mui/icons-material/OpenInFullOutlined';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
+import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { HelpOptionsEnum } from '../enums/help-options.enums';
 
@@ -20,6 +21,11 @@ export const helpOptionsConstant = {
     value: HelpOptionsEnum.OPEN_ALL,
     name: 'Abrir tudo',
     icon: OpenInFullOutlinedIcon,
+  },
+  [HelpOptionsEnum.EDIT]: {
+    value: HelpOptionsEnum.EDIT,
+    name: 'Editar',
+    icon: SEditIcon,
   },
   [HelpOptionsEnum.CLOSE_ALL]: {
     value: HelpOptionsEnum.CLOSE_ALL,

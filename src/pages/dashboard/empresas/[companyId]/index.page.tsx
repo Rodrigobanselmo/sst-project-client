@@ -8,7 +8,7 @@ import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SText from 'components/atoms/SText';
 import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
-import { ModalAddEmployees } from 'components/organisms/modals/ModalAddEmployees';
+import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
@@ -66,7 +66,7 @@ const CompanyPage: NextPage = () => {
   }, [company, onOpenModal]);
 
   const handleAddEmployees = useCallback(() => {
-    onOpenModal(ModalEnum.EMPLOYEES_ADD);
+    onOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
   }, [onOpenModal]);
 
   const handleAddPgrDocument = useCallback(() => {
@@ -158,11 +158,6 @@ const CompanyPage: NextPage = () => {
         text: 'Documento PGR',
       },
       {
-        icon: SRiskFactorIcon,
-        onClick: handleAddRisk,
-        text: 'Vincular Fatores de Risco',
-      },
-      {
         icon: STeamIcon,
         onClick: handleAddTeam,
         text: 'Cadastrar Usuários',
@@ -177,10 +172,19 @@ const CompanyPage: NextPage = () => {
     handleAddWorkspace,
     handleAddEmployees,
     handleAddPgrDocument,
-    handleAddRisk,
     handleAddTeam,
     handleEditCompany,
   ]);
+
+  const shortActionsStepMemo = useMemo(() => {
+    return [
+      {
+        icon: SRiskFactorIcon,
+        onClick: handleAddRisk,
+        text: 'Vincular Fatores de Risco',
+      },
+    ];
+  }, [handleAddRisk]);
 
   const characterizationStepMemo = useMemo(() => {
     return [
@@ -242,6 +246,7 @@ const CompanyPage: NextPage = () => {
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
+
       <SFlex align="center" mt={20}>
         <SText mr={3}>Caracterização Básica</SText>
         <Icon
@@ -254,9 +259,16 @@ const CompanyPage: NextPage = () => {
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
+
+      <SText mt={20}>Atalhos</SText>
+      <SFlex mt={5} gap={10} flexWrap="wrap">
+        {shortActionsStepMemo.map((props) => (
+          <SActionButton key={props.text} {...props} />
+        ))}
+      </SFlex>
       <WorkspaceTable hideModal />
       <ModalAddWorkspace />
-      <ModalAddEmployees />
+      <ModalAddExcelEmployees />
       <ModalAddRiskGroup />
       <ModalSelectWorkspace />
       <ModalEditCompany />

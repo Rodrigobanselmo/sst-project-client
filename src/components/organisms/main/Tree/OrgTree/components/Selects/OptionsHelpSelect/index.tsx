@@ -18,14 +18,19 @@ export const OptionsHelpSelect: FC<IOptionsHelpSelectProps> = ({
   large,
   node,
   menuRef,
+  onEdit,
   ...props
 }) => {
   const { onExpandAll, removeNodes } = useHierarchyTreeActions();
   const { preventDelete } = usePreventNode();
 
-  const handleAction = ({ value }: IMenuOptionResponse) => {
+  const handleAction = ({ value }: IMenuOptionResponse, e: any) => {
     if (HelpOptionsEnum.OPEN_ALL === value) {
       return onExpandAll(true, node.id);
+    }
+
+    if (HelpOptionsEnum.EDIT === value) {
+      return onEdit?.(e);
     }
 
     if (HelpOptionsEnum.CLOSE_ALL === value) {

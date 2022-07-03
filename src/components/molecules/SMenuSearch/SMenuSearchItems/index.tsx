@@ -24,13 +24,12 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
   localSelected,
   endAdornment,
   listRef,
+  handleMultiSelectMenu,
 }) => {
   const valueField =
     (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
   const contentField =
     (optionsFieldName && optionsFieldName?.contentField) ?? 'name';
-
-  console.log(options);
 
   return (
     <>
@@ -77,7 +76,6 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
                   value,
                 ) as HTMLInputElement;
 
-                console.log(listRef);
                 if (
                   listRef &&
                   listRef.current &&
@@ -112,6 +110,8 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
                       localSelected.current = [
                         ...localSelected.current.filter((id) => id !== value),
                       ];
+
+                    handleMultiSelectMenu?.(option, localSelected.current, e);
                   }}
                 />
               </Box>

@@ -9,4 +9,5 @@ export interface IOptionsHelpSelectProps extends BoxProps {
   large?: boolean;
   menuRef: RefObject<HTMLDivElement>;
   disabled?: boolean;
+  onEdit?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }

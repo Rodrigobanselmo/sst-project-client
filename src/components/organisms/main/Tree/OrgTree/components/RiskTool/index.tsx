@@ -10,6 +10,10 @@ import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbabi
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { useRouter } from 'next/router';
 import {
+  setGhoMultiAddIds,
+  setGhoMultiState,
+} from 'store/reducers/hierarchy/ghoMultiSlice';
+import {
   selectGhoId,
   selectGhoOpen,
   setGhoFilterValues,
@@ -66,8 +70,8 @@ export const SidebarOrg = () => {
   const cleanMutation = useMutDeleteManyRiskData();
   const risk = useAppSelector(selectRisk);
 
-  const [viewType, setViewType] = useState(ViewTypeEnum.MULTIPLE);
-  const [viewDataType, setViewDataType] = useState(ViewsDataEnum.HIERARCHY);
+  const [viewType, setViewType] = useState(ViewTypeEnum.SIMPLE_BY_GROUP);
+  const [viewDataType, setViewDataType] = useState(ViewsDataEnum.ENVIRONMENT);
 
   const isOpen = false;
 
@@ -185,7 +189,12 @@ export const SidebarOrg = () => {
   };
 
   const handleChangeViewData = (option: IViewsDataOption) => {
+    if (option.value === ViewsDataEnum.EMPLOYEE) {
+      alert('Em breve!');
+    }
+
     setViewDataType(option.value);
+    dispatch(setGhoMultiState({ selectedDisabledIds: [], selectedIds: [] }));
 
     dispatch(setGhoSelectedId(null));
     dispatch(setRiskAddState({ isEdited: false }));

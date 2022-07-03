@@ -20,7 +20,7 @@ const SIconButton: FC<SIconButtonProps> = ({
       bg
         ? {
             backgroundColor: bg,
-            boxShadow: 'rgb(0 0 0 / 9%) 0px 3px 12px',
+            boxShadow: 'rgb(0 0 0 / 5%) 0px 3px 12px',
             '&:hover': {
               backgroundColor: bg,
               filter: 'brightness(0.9)',

@@ -13,6 +13,11 @@ import { MenuItemProps } from '@mui/material';
 import { IMenuSearchOption } from '../types';
 
 export interface SMenuItemsSearchProps extends Omit<MenuItemProps, 'selected'> {
+  handleMultiSelectMenu?: (
+    option: any,
+    list: (string | number)[],
+    e: any,
+  ) => void;
   options: IMenuSearchOption[];
   localSelected: MutableRefObject<(string | number)[]>;
   handleMenuSelect: (

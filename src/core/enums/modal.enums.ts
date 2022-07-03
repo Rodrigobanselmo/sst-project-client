@@ -14,6 +14,7 @@ export enum ModalEnum {
   COMPANY_EDIT = 'company-edit',
   WORKSPACE_ADD = 'workspace-add',
   EMPLOYEES_ADD = 'employees-add',
+  EMPLOYEES_EXCEL_ADD = 'employees-excel-add',
   HIERARCHY_ADD = 'hierarchy-add',
   RISK_DATA_ADD = 'risk-data-add',
   RISK_ADD = 'risk-add',

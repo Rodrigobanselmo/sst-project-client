@@ -21,7 +21,7 @@ import EditIcon from 'assets/icons/SEditIcon';
 
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useTableSearch } from 'core/hooks/useTableSearch';
-import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
+import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployeesdel';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { sortData } from 'core/utils/sorts/data.sort';
 

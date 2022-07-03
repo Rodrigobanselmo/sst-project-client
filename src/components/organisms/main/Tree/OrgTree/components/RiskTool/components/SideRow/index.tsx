@@ -34,6 +34,7 @@ export const SideRow = React.memo<SideRowProps>(
     isRiskOpen,
     isDeleteLoading,
     riskData,
+    viewDataType,
   }) => {
     const isSelected = selectedGhoId === gho.id;
     const ref = useRef<HTMLDivElement>(null);
@@ -67,6 +68,7 @@ export const SideRow = React.memo<SideRowProps>(
       >
         <SideRowGho
           data={gho}
+          viewDataType={viewDataType}
           isSelected={isSelected}
           handleEditGHO={handleEditGHO}
           handleSelectGHO={handleSelectGHO}

@@ -6,6 +6,10 @@ import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/constants/node-type.constant';
 
+import { characterizationMap } from 'core/constants/maps/characterization.map';
+import { environmentMap } from 'core/constants/maps/environment.map';
+
+import { ViewsDataEnum } from '../../../utils/view-data-type.constant';
 import { STBoxContainer, STBoxItem } from './styles';
 import { SideItemsProps } from './types';
 
@@ -15,6 +19,7 @@ export const SideMainGho: FC<SideItemsProps> = ({
   isSelected,
   handleEndSelect,
   isEndSelect,
+  viewDataType,
 }) => {
   const handleClickBox = () => {
     const id = !isEndSelect ? data.id : data.id + '-end';
@@ -23,18 +28,52 @@ export const SideMainGho: FC<SideItemsProps> = ({
 
   const isHierarchy = 'childrenIds' in data;
 
+  const getTopText = () => {
+    if (viewDataType == ViewsDataEnum.GSE) return;
+    if (isHierarchy) return nodeTypesConstant[data.type].name;
+
+    if (data.description) {
+      const splitValues = data.description.split('(//)');
+      if (splitValues[1]) {
+        if (viewDataType == ViewsDataEnum.ENVIRONMENT)
+          return (environmentMap as any)[splitValues[1]].name;
+        console.log(viewDataType);
+        if (viewDataType == ViewsDataEnum.CHARACTERIZATION)
+          return (characterizationMap as any)[splitValues[1]].name;
+      }
+    }
+
+    return;
+  };
+
+  const getName = () => {
+    if (isHierarchy) return data.name;
+
+    if (data.description) {
+      const splitValues = data.description.split('(//)');
+      if (splitValues[1]) {
+        return splitValues[0];
+      }
+    }
+
+    return data.name;
+  };
+
+  const topText = getTopText();
+  const name = getName();
+
   return (
     <STooltip
       withWrapper
       minLength={15}
-      title={(isHierarchy ? data.parentsName + ' > ' : '') + data.name}
+      title={(isHierarchy ? data.parentsName + ' > ' : '') + name}
     >
       <STBoxContainer
         overflow="hidden"
         disabled={isEndSelect ? 1 : 0}
         onClick={handleClickBox}
       >
-        {isHierarchy && (
+        {topText && (
           <SText
             sx={{
               backgroundColor: isEndSelect ? 'grey.400' : 'gray.200',
@@ -43,7 +82,7 @@ export const SideMainGho: FC<SideItemsProps> = ({
             }}
             fontSize={12}
           >
-            {nodeTypesConstant[data.type].name}
+            {topText}
           </SText>
         )}
 
@@ -64,7 +103,7 @@ export const SideMainGho: FC<SideItemsProps> = ({
           )}
 
           <SText sx={{ width: '100%' }} lineNumber={2}>
-            {data.name}
+            {name}
           </SText>
           {handleEndSelect && (
             <STooltip

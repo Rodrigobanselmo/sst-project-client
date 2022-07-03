@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 
 import GridViewIcon from '@mui/icons-material/GridView';
 import { STagSelect } from 'components/molecules/STagSelect';
@@ -8,7 +8,20 @@ import { ViewsRiskEnum } from 'core/enums/views-risk.enum';
 
 import { IViewsRiskSelectProps } from './types';
 
-export const ViewsRiskSelect: FC<IViewsRiskSelectProps> = ({ ...props }) => {
+export const ViewsRiskSelect: FC<IViewsRiskSelectProps> = ({
+  handleSelectMenu,
+  ...props
+}) => {
+  const [selectedText, setSelectedText] = useState('Trocar View');
+
+  const onSelect = (
+    option: any,
+    e: React.MouseEvent<HTMLLIElement, MouseEvent>,
+  ) => {
+    setSelectedText(option.name);
+    handleSelectMenu?.(option, e);
+  };
+
   return (
     <STagSelect
       options={[
@@ -18,8 +31,9 @@ export const ViewsRiskSelect: FC<IViewsRiskSelectProps> = ({ ...props }) => {
       ].map((key) => ({
         ...viewsRiskOptionsConstant[key],
       }))}
-      text={'Trocar View'}
+      text={selectedText}
       large
+      handleSelectMenu={onSelect}
       icon={GridViewIcon}
       iconProps={{
         sx: {

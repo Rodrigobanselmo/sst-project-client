@@ -29,7 +29,8 @@ import { initialHierarchySelectState } from '..';
 export const ModalSelectHierarchyData: FC<{
   company: ICompany;
   selectedData: typeof initialHierarchySelectState;
-}> = ({ company, selectedData }) => {
+  handleSingleSelect: (id: string) => void;
+}> = ({ company, selectedData, handleSingleSelect }) => {
   const dispatch = useAppDispatch();
   const search = useAppSelector(selectHierarchySearch);
   const [workspaceSelected, setWorkspaceSelected] = useState(
@@ -128,7 +129,11 @@ export const ModalSelectHierarchyData: FC<{
           {hierarchyList.map((hierarchy) => {
             return (
               <ModalItemHierarchy
-                onClick={() => dispatch(setAddModalId(hierarchy.id))}
+                onClick={() =>
+                  selectedData.singleSelect
+                    ? handleSingleSelect(hierarchy.id)
+                    : dispatch(setAddModalId(hierarchy.id))
+                }
                 key={hierarchy.id}
                 data={hierarchy}
               />

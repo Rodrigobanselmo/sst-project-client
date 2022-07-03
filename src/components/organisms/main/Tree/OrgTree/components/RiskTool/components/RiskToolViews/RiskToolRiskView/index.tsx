@@ -6,11 +6,8 @@ import { RiskToolRiskHierarchyView } from './Hierarchy';
 import { RiskToolRiskViewProps } from './types';
 
 export const RiskToolRiskView: FC<RiskToolRiskViewProps> = (props) => {
-  if (props.viewDataType === ViewsDataEnum.GSE)
-    return <RiskToolRiskGhoView {...props} />;
-
   if (props.viewDataType === ViewsDataEnum.HIERARCHY)
     return <RiskToolRiskHierarchyView {...props} />;
 
-  return <RiskToolRiskHierarchyView {...props} />;
+  return <RiskToolRiskGhoView {...props} />;
 };

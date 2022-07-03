@@ -6,15 +6,7 @@ export const STBoxItemContainer = styled(Box)`
   border-radius: ${(props) => props.theme.shape.borderRadius}px;
   padding: ${(props) => props.theme.spacing(2, 4)};
   width: 100%;
-`;
-
-export const STBoxItem = styled(Box)`
-  border: 2px solid ${(props) => props.theme.palette.divider};
-  background-color: ${(props) => props.theme.palette.background.box};
+  align-items: center;
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  border-radius: ${(props) => props.theme.shape.borderRadius}px;
-  padding: ${(props) => props.theme.spacing(2, 4)};
-  width: 100%;
 `;

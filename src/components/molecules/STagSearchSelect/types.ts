@@ -16,11 +16,17 @@ export interface ISTagSearchSelectProps
   tooltipTitle?: ReactNode;
   bg?: string;
   placeholder?: string;
+  isLoading?: boolean;
   large?: boolean;
   asyncLoad?: boolean;
   selected?: (string | number)[];
   keys?: Fuse.FuseOptionKey[];
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
+  handleMultiSelectMenu?: (
+    option: any,
+    list: (string | number)[],
+    e: MouseEvent<HTMLLIElement>,
+  ) => void;
   options: IMenuSearchOption[];
   startAdornment?: (option: any) => ReactNode;
   onClose?: () => void;

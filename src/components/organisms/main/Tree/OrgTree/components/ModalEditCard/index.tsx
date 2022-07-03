@@ -1,16 +1,22 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import CircleIcon from '@mui/icons-material/Circle';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
+import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
 import { selectHierarchyTreeSelectItem } from 'store/reducers/hierarchy/hierarchySlice';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
+import { QueryEnum } from 'core/enums/query.enums';
 import { useControlClick } from 'core/hooks/useControlClick';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
+import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
+import { queryClient } from 'core/services/queryClient';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
 import { useAppSelector } from '../../../../../../../core/hooks/useAppSelector';
@@ -35,6 +41,16 @@ import { useModalCard } from './hooks/useModalCard';
 
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectHierarchyTreeSelectItem);
+  const [employees, setEmployees] = useState<IEmployee[]>([]);
+  const {
+    data: selectedEmployees,
+    isLoading,
+    refetch,
+  } = useQueryEmployees(
+    0,
+    { hierarchyId: String(selectedNode?.id).split('//')[0] || '' },
+    1000,
+  );
 
   const { registerModal, isOpen } = useRegisterModal();
   const { onCloseModal } = useModal();
@@ -56,7 +72,13 @@ export const ModalEditCard = () => {
     if (selectedNode) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { action, ...newNode } = selectedNode;
-      editNodes([newNode], false, { isAdd: true });
+      setEmployees([]);
+      queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+      editNodes([newNode], false, {
+        isAdd: true,
+        employeesIds: employees.map((e) => e.id),
+        callBack: refetch,
+      });
       if (!switchRef.current?.checked)
         onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
       if (switchRef.current?.checked && newNode.parentId) {
@@ -68,6 +90,7 @@ export const ModalEditCard = () => {
 
   const onCloseUnsaved = () => {
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
+    setEmployees([]);
 
     const close = () => {
       onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
@@ -89,6 +112,7 @@ export const ModalEditCard = () => {
     if (selectedNode?.id) {
       return preventDelete(() => {
         onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
+        setEmployees([]);
         removeNodes(selectedNode.id);
         setEditNodeSelectedItem(null);
       });
@@ -98,6 +122,10 @@ export const ModalEditCard = () => {
   const type = selectedNode?.type || TreeTypeEnum.COMPANY;
 
   if (!selectedNode) return null;
+  const allEmployees = removeDuplicate([...employees, ...selectedEmployees], {
+    removeById: 'id',
+  });
+
   return (
     <SModal
       {...registerModal(ModalEnum.HIERARCHY_TREE_CARD)}
@@ -163,6 +191,14 @@ export const ModalEditCard = () => {
                   type: option.value as TreeTypeEnum,
                 })
               }
+            />
+            <EmployeeSelect
+              large
+              text={'empregados'}
+              actualHierarchy={selectedNode}
+              handleSelect={(_, list) => setEmployees(list)}
+              selectedEmployees={allEmployees}
+              loading={isLoading}
             />
           </SFlex>
         </Box>

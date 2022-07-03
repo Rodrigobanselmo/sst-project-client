@@ -135,7 +135,11 @@ const SelectGho: FC<{
   // );
 };
 
-export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
+export const NodeCard: FC<INodeCardProps> = ({
+  handleClickCard,
+  node,
+  menuRef,
+}) => {
   const { onOpenModal } = useModal();
   const updateMutation = useMutUpdateGho();
   const { editNodes, createEmptyCard, getPathById, isChild, getChildren } =
@@ -288,6 +292,7 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
                 disabled={!!GhoId}
                 menuRef={menuRef}
                 node={node}
+                onEdit={handleClickCard}
               />
             )}
           </Stack>

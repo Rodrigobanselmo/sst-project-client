@@ -8,6 +8,7 @@ import {
 } from 'store/reducers/hierarchy/ghoSlice';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -17,6 +18,7 @@ import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
 
+import { ViewsDataEnum } from '../../../../utils/view-data-type.constant';
 import { SideRow } from '../../../SideRow';
 import { RiskToolRiskViewProps } from './types';
 
@@ -25,6 +27,7 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
   handleEditGHO,
   handleSelectGHO,
   isDeleteLoading,
+  viewDataType,
 }) => {
   const { data: ghoQuery } = useQueryGHO();
   const selectedGhoId = useAppSelector(selectGhoId);
@@ -45,7 +48,26 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
 
   const ghoOrderedData = useMemo(() => {
     if (!ghoQuery) return [];
-    if (!selectedGhoFilter.value || !selectedGhoFilter.key) return ghoQuery;
+    const ghoFilteredList = ghoQuery.filter((gho) => {
+      if (viewDataType === ViewsDataEnum.GSE) return !gho.type;
+
+      if (viewDataType === ViewsDataEnum.ENVIRONMENT) {
+        return gho.type === HomoTypeEnum.ENVIRONMENT;
+      }
+
+      if (viewDataType === ViewsDataEnum.CHARACTERIZATION)
+        return (
+          gho?.type &&
+          [
+            HomoTypeEnum.WORKSTATION,
+            HomoTypeEnum.EQUIPMENT,
+            HomoTypeEnum.ACTIVITIES,
+          ].includes(gho.type)
+        );
+    });
+
+    if (!selectedGhoFilter.value || !selectedGhoFilter.key)
+      return ghoFilteredList;
     const riskData = queryClient.getQueryData([
       QueryEnum.RISK_DATA,
       companyId,
@@ -53,10 +75,10 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
       risk?.id,
     ]) as IRiskData[];
 
-    if (!riskData) return ghoQuery;
-    if (riskData.length === 0) return ghoQuery;
+    if (!riskData) return ghoFilteredList;
+    if (riskData.length === 0) return ghoFilteredList;
 
-    const ghoData = ghoQuery.map((gho) => {
+    const ghoData = ghoFilteredList.map((gho) => {
       const riskDataFilters = riskData.map((rd) => {
         const copyItem = clone(rd) as Partial<IRiskData>;
         Object.entries(copyItem).map(([key, value]) => {
@@ -87,15 +109,16 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
     risk?.id,
     selectedGhoFilter.key,
     selectedGhoFilter.value,
+    viewDataType,
   ]);
 
   return (
     <>
       {ghoOrderedData.map((gho) => {
-        if (gho.type) return;
         return (
           <SideRow
             key={gho.id}
+            viewDataType={viewDataType}
             gho={gho}
             handleEditGHO={handleEditGHO}
             handleSelectGHO={handleSelectGHO}

@@ -14,8 +14,8 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { queryClient } from 'core/services/queryClient';
 
-import { ModalExportEmployees } from '../ModalAddEmployees/components/ModalExportEmployees';
-import { useEditEmployees } from '../ModalAddEmployees/hooks/useEditEmployees';
+import { ModalExportEmployees } from '../ModalAddExcelEmployees/components/ModalExportEmployees';
+import { useEditEmployees } from '../ModalAddExcelEmployees/hooks/useEditEmployees';
 import { ModalUploadFile } from '../ModalUploadFile';
 
 export const ModalAddHierarchies = () => {

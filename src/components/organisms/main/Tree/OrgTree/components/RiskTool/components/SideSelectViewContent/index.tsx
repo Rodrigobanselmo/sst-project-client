@@ -18,13 +18,17 @@ import {
   setGhoSearchSelect,
 } from 'store/reducers/hierarchy/ghoSlice';
 
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IGho } from 'core/interfaces/api/IGho';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { useListHierarchy } from '../../hooks/useListHierarchy';
 import { StyledGridMultiGho } from '../../styles';
-import { ViewsDataEnum } from '../../utils/view-data-type.constant';
+import {
+  ViewsDataEnum,
+  viewsDataOptionsConstant,
+} from '../../utils/view-data-type.constant';
 import { IHierarchyTreeMapObject } from '../RiskToolViews/RiskToolRiskView/types';
 import { SideInput } from '../SIdeInput';
 import { SideSelectedGho } from '../SideToSelectedGho/SideSelectedGho';
@@ -50,6 +54,22 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
     if (viewDataType === ViewsDataEnum.HIERARCHY) {
       return hierarchyListData();
     }
+
+    if (viewDataType == ViewsDataEnum.ENVIRONMENT) {
+      return ghoQuery.filter((gho) => gho.type === HomoTypeEnum.ENVIRONMENT);
+    }
+
+    if (viewDataType === ViewsDataEnum.CHARACTERIZATION)
+      return ghoQuery.filter(
+        (gho) =>
+          gho?.type &&
+          [
+            HomoTypeEnum.WORKSTATION,
+            HomoTypeEnum.EQUIPMENT,
+            HomoTypeEnum.ACTIVITIES,
+          ].includes(gho.type),
+      );
+
     return ghoQuery.filter((gho) => !gho.type);
   }, [ghoQuery, hierarchyListData, viewDataType]);
 
@@ -133,6 +153,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           onSearch={(value) => dispatch(setGhoSearchSelect(value))}
           handleSelectGHO={handleSelectGHO}
           handleEditGHO={handleEditGHO}
+          placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
         />
         <SFlex align="center" sx={{ ml: 'auto', mr: 5 }}>
           <TotalTag />
@@ -160,7 +181,13 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           if (viewDataType == ViewsDataEnum.GSE && gho.type) {
             return null;
           }
-          return <SideSelectedGho key={gho.id} data={gho} />;
+          return (
+            <SideSelectedGho
+              viewDataType={viewDataType}
+              key={gho.id}
+              data={gho}
+            />
+          );
         })}
       </StyledGridMultiGho>
       <SFlex align="center">
@@ -185,7 +212,13 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           if (viewDataType == ViewsDataEnum.GSE && gho.type) {
             return null;
           }
-          return <SideUnselectedGho key={gho.id} data={gho} />;
+          return (
+            <SideUnselectedGho
+              viewDataType={viewDataType}
+              key={gho.id}
+              data={gho}
+            />
+          );
         })}
       </StyledGridMultiGho>
     </>

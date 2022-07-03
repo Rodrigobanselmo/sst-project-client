@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useState } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Checkbox } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { STableRow } from 'components/atoms/STable';
@@ -20,8 +20,10 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 export const initialWorkspaceSelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onSelect: (work: IWorkspace) => {},
+  onSelect: (work: IWorkspace | IWorkspace[]) => {},
   title: 'Selecione o estabelecimento',
+  multiple: false,
+  selected: [] as IWorkspace[],
   onCloseWithoutSelect: () => {},
 };
 
@@ -53,9 +55,21 @@ export const ModalSelectWorkspace: FC = () => {
     onCloseModal(ModalEnum.WORKSPACE_SELECT);
   };
 
-  const handleSelect = (work: IWorkspace) => () => {
+  const handleSelect = (work?: IWorkspace) => () => {
+    if (selectData.multiple && work) {
+      setSelectData((oldData) => {
+        const filtered = oldData.selected.filter((w) => w.id != work.id);
+
+        if (filtered.length !== oldData.selected.length)
+          return { ...oldData, selected: filtered };
+
+        return { ...oldData, selected: [work, ...oldData.selected] };
+      });
+      return;
+    }
+
     onCloseModal(ModalEnum.WORKSPACE_SELECT);
-    selectData.onSelect(work);
+    selectData.onSelect(work || selectData.selected);
   };
 
   const handleAddMissingData = () => {
@@ -63,6 +77,15 @@ export const ModalSelectWorkspace: FC = () => {
   };
 
   const buttons = [{}] as IModalButton[];
+
+  if (selectData.multiple) {
+    buttons.push({
+      onClick: () => {
+        onCloseModal(ModalEnum.WORKSPACE_SELECT);
+        selectData.onSelect(selectData.selected);
+      },
+    });
+  }
 
   return (
     <SModal
@@ -81,7 +104,20 @@ export const ModalSelectWorkspace: FC = () => {
               </SText>
               {company.workspace.map((work) => (
                 <STableRow clickable onClick={handleSelect(work)} key={work.id}>
-                  {work.name}
+                  <SFlex align="center">
+                    <Checkbox
+                      checked={
+                        !!selectData.selected.find((w) => w.id === work.id)
+                      }
+                      size="small"
+                      sx={{
+                        'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
+                          color: 'grey.400',
+                        },
+                      }}
+                    />
+                    {work.name}
+                  </SFlex>
                 </STableRow>
               ))}
             </SFlex>

@@ -1,9 +1,10 @@
 import { FC, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
-import { Box, Icon } from '@mui/material';
+import { Box, CircularProgress, Icon, LinearProgress } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
+import { STagButton } from 'components/atoms/STagButton';
 import diacritics from 'diacritics';
 import Fuse from 'fuse.js';
 import { useDebouncedCallback } from 'use-debounce';
@@ -34,6 +35,8 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   onEnter,
   onSearch,
   asyncLoad,
+  isLoading,
+  handleMultiSelectMenu,
   ...props
 }) => {
   const [search, setSearch] = useState<string>('');
@@ -151,6 +154,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           style={{ display: 'none' }}
           onClick={(e) => onClose(e)}
         />
+
         <STSInput
           inputProps={{ id: IdsEnum.INPUT_MENU_SEARCH, tabIndex: -1 }}
           onChange={(e) => handleSearchChange(e.target.value)}
@@ -184,7 +188,8 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         />
         {renderFilter && renderFilter()}
       </Box>
-      {!results.length && (
+      {isLoading && <LinearProgress />}
+      {!results.length && !isLoading && (
         <SFlex center sx={{ fontSize: '0.85rem', color: 'text.light', py: 8 }}>
           nenhum resultado encontrado
         </SFlex>
@@ -213,6 +218,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           multiple={multiple}
           defaultChecked
           listRef={listWrapperRef}
+          handleMultiSelectMenu={handleMultiSelectMenu}
           setScroll={setScroll}
         />
         {additionalButton && (
@@ -221,11 +227,15 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
             onClick={additionalButton}
             sx={{
               position: 'absolute',
-              top: renderFilter ? '18px' : results.length === 0 ? '5px' : '5px',
+              top: renderFilter
+                ? '18px'
+                : results.length === 0
+                ? '10px'
+                : '10px',
               bottom: renderFilter ? 10 : '',
               right: results.length === 0 ? '10px' : '10px',
-              height: '35px',
-              width: '35px',
+              height: '30px',
+              width: '30px',
             }}
           >
             <Icon
@@ -238,6 +248,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           </SIconButton>
         )}
       </Box>
+      {multiple && <STagButton large text={'CONFIRMAR'} onClick={onClose} />}
     </STMenu>
   );
 };

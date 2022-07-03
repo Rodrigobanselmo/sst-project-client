@@ -31,6 +31,8 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   onSearch,
   asyncLoad,
   onClose,
+  isLoading,
+  handleMultiSelectMenu,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -77,6 +79,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         )}
       </div>
       <SMenuSearch
+        isLoading={isLoading}
         asyncLoad={asyncLoad}
         close={handleClose}
         isOpen={Boolean(anchorEl)}
@@ -95,6 +98,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         renderFilter={renderFilter}
         onEnter={onEnter}
         onSearch={onSearch}
+        handleMultiSelectMenu={handleMultiSelectMenu}
       />
     </>
   );

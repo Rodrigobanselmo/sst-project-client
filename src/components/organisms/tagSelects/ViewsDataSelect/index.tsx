@@ -1,4 +1,4 @@
-import React, { FC } from 'react';
+import React, { FC, useState } from 'react';
 
 import GridViewIcon from '@mui/icons-material/GridView';
 import { STagSelect } from 'components/molecules/STagSelect';
@@ -9,21 +9,36 @@ import {
 
 import { IViewsRiskSelectProps } from './types';
 
-export const ViewsDataSelect: FC<IViewsRiskSelectProps> = ({ ...props }) => {
+export const ViewsDataSelect: FC<IViewsRiskSelectProps> = ({
+  handleSelectMenu,
+  ...props
+}) => {
+  const [selectedText, setSelectedText] = useState('Trocar Seleção');
+
+  const onSelect = (
+    option: any,
+    e: React.MouseEvent<HTMLLIElement, MouseEvent>,
+  ) => {
+    if (option.value !== ViewsDataEnum.EMPLOYEE) {
+      setSelectedText(option.name);
+    }
+    handleSelectMenu?.(option, e);
+  };
   return (
     <STagSelect
       options={[
         ViewsDataEnum.HIERARCHY,
         ViewsDataEnum.ENVIRONMENT,
-        ViewsDataEnum.WORKSTATION,
+        ViewsDataEnum.CHARACTERIZATION,
         ViewsDataEnum.EMPLOYEE,
         ViewsDataEnum.GSE,
       ].map((key) => ({
         ...viewsDataOptionsConstant[key],
       }))}
-      text={'Trocar Seleção'}
+      text={selectedText}
       large
       icon={GridViewIcon}
+      handleSelectMenu={onSelect}
       iconProps={{
         sx: {
           fontSize: '14px',

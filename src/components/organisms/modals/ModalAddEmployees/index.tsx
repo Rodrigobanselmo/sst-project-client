@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
 import SModal, {
@@ -10,53 +8,57 @@ import SModal, {
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { QueryEnum } from 'core/enums/query.enums';
-import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { queryClient } from 'core/services/queryClient';
 
-import { ModalUploadFile } from '../ModalUploadFile';
-import { ModalExportEmployees } from './components/ModalExportEmployees';
+import { ModalEmployeeStep } from './components/ModalEmployeeStep';
 import { useEditEmployees } from './hooks/useEditEmployees';
 
-export const ModalAddEmployees = () => {
+export const ModalAddEmployee = () => {
   const props = useEditEmployees();
-  const { companyId } = useGetCompanyId();
-  const { registerModal, onClose, uploadMutation } = props;
+  const {
+    onSubmit,
+    registerModal,
+    handleSubmit,
+    onCloseUnsaved,
+    employeeData,
+    loading,
+  } = props;
 
-  const buttons = [{}] as IModalButton[];
+  const buttons = [
+    {},
+    {
+      text: employeeData.id ? 'Editar' : 'Criar',
+      variant: 'contained',
+      type: 'submit',
+      onClick: () => {},
+    },
+  ] as IModalButton[];
 
   return (
-    <>
-      <SModal
-        {...registerModal(ModalEnum.EMPLOYEES_ADD)}
-        keepMounted={false}
-        onClose={onClose}
+    <SModal
+      {...registerModal(ModalEnum.EMPLOYEES_ADD)}
+      keepMounted={false}
+      onClose={onCloseUnsaved}
+    >
+      <SModalPaper
+        p={8}
+        center
+        component="form"
+        onSubmit={handleSubmit(onSubmit)}
       >
-        <SModalPaper p={8} center>
-          <SModalHeader tag={'add'} onClose={onClose} title={'Empregados'} />
+        <SModalHeader
+          tag={employeeData.id ? 'edit' : 'add'}
+          onClose={onCloseUnsaved}
+          title={'Estabelecimento (área de trabalho)'}
+        />
 
-          <ModalExportEmployees {...props} />
+        <ModalEmployeeStep {...props} />
 
-          <SModalButtons onClose={onClose} buttons={buttons} />
-        </SModalPaper>
-      </SModal>
-      <ModalUploadFile
-        loading={uploadMutation.isLoading}
-        onConfirm={async (files: File[], path: string) => {
-          await uploadMutation
-            .mutateAsync({
-              file: files[0],
-              path: path,
-            })
-            .catch(() => {});
-          queryClient.refetchQueries([QueryEnum.COMPANY, companyId]);
-          onClose();
-        }}
-        maxFiles={1}
-        accept={
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
-      />
-    </>
+        <SModalButtons
+          loading={loading}
+          onClose={onCloseUnsaved}
+          buttons={buttons}
+        />
+      </SModalPaper>
+    </SModal>
   );
 };

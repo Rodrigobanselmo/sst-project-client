@@ -15,6 +15,7 @@ export interface IMenuSearchOption extends Record<string, any> {
 
 export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   isOpen: boolean;
+  isLoading?: boolean;
   width?: (string | number)[] | string | number;
   keys?: Fuse.FuseOptionKey[];
   close: () => void;
@@ -34,5 +35,10 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   multiple?: boolean;
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
   renderFilter?: () => React.ReactNode;
+  handleMultiSelectMenu?: (
+    option: any,
+    list: (string | number)[],
+    e: MouseEvent<HTMLLIElement>,
+  ) => void;
   asyncLoad?: boolean;
 }

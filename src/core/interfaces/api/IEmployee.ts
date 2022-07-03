@@ -1,6 +1,7 @@
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { IWorkspace } from './ICompany';
+import { IHierarchy } from './IHierarchy';
 
 export interface IEmployee {
   id: number;
@@ -12,4 +13,5 @@ export interface IEmployee {
   companyId: string;
   workspaces: IWorkspace[];
   hierarchyId: string;
+  hierarchy: IHierarchy;
 }

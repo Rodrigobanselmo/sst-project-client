@@ -26,6 +26,7 @@ export const RiskToolRiskHierarchyView: FC<RiskToolRiskViewProps> = ({
   handleEditGHO,
   handleSelectGHO,
   isDeleteLoading,
+  viewDataType,
 }) => {
   const selectedGhoId = useAppSelector(selectGhoId);
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
@@ -103,6 +104,7 @@ export const RiskToolRiskHierarchyView: FC<RiskToolRiskViewProps> = ({
         return (
           <SideRow
             key={gho.id}
+            viewDataType={viewDataType}
             gho={gho}
             handleEditGHO={handleEditGHO}
             handleSelectGHO={handleSelectGHO}
