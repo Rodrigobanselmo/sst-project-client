@@ -42,7 +42,7 @@ export const RiskToolGhoItem: FC<
   const selected = {} as any;
 
   if (isSelected) {
-    selected.sx = { '*': { color: 'white !important' } };
+    selected.sx = { '*': { color: 'white !important' }, minHeight: '100%' };
     selected.bg = 'success.main';
   }
 
@@ -84,6 +84,7 @@ export const RiskToolGhoItem: FC<
       large
       text={name}
       tooltipTitle={(isHierarchy ? gho.parentsName + ' > ' : '') + name}
+      sx={{ minHeight: '100%' }}
       {...selected}
       {...props}
     />

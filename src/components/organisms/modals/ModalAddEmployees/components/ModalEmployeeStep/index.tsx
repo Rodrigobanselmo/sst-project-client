@@ -73,12 +73,14 @@ export const ModalEmployeeStep = ({
             onClick={onAddHierarchy}
           />
         </SFlex>
-        <SSwitch
-          inputRef={switchRef}
-          label="Criar mais"
-          sx={{ mr: 4 }}
-          color="text.light"
-        />
+        {!employeeData.id && (
+          <SSwitch
+            inputRef={switchRef}
+            label="Criar mais"
+            sx={{ mr: 4 }}
+            color="text.light"
+          />
+        )}
       </SFlex>
     </SFlex>
   );

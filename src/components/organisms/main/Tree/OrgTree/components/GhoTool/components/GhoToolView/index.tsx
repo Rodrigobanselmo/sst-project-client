@@ -23,8 +23,9 @@ export const GhoToolView: FC<RiskToolRiskViewProps> = ({
 
   const ghoOrderedData = useMemo(() => {
     if (!ghoQuery) return [];
-    if (!selectedGhoFilter.value || !selectedGhoFilter.key) return ghoQuery;
-    return ghoQuery;
+    const ghoFilter = ghoQuery.filter((gho) => !gho.type);
+    if (!selectedGhoFilter.value || !selectedGhoFilter.key) return ghoFilter;
+    return ghoFilter;
   }, [ghoQuery, selectedGhoFilter.key, selectedGhoFilter.value]);
 
   return (

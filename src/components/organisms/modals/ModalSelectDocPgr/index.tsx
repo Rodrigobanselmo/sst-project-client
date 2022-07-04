@@ -17,7 +17,11 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+
+import { EmptyDocPgrData } from '../empty/EmptyDocPgrData';
+import { EmptyHierarchyData } from '../empty/EmptyHierarchyData';
 
 interface IModalSelectDocPgr {
   onSelect: (workspace: IRiskGroupData, passData: any) => void;
@@ -31,8 +35,9 @@ export const ModalSelectDocPgr: FC<IModalSelectDocPgr> = ({
   onCloseWithoutSelect,
 }) => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal, onOpenModal } = useModal();
+  const { onCloseModal } = useModal();
   const { data: riskGroupData } = useQueryRiskGroupData();
+  const { data: company } = useQueryCompany();
   const initData = useRef<any>({});
 
   useEffect(() => {
@@ -50,10 +55,6 @@ export const ModalSelectDocPgr: FC<IModalSelectDocPgr> = ({
     onSelect(docPgr, initData.current);
   };
 
-  const handleAddMissingData = () => {
-    onOpenModal(ModalEnum.RISK_GROUP_ADD);
-  };
-
   const buttons = [{}] as IModalButton[];
 
   return (
@@ -66,31 +67,27 @@ export const ModalSelectDocPgr: FC<IModalSelectDocPgr> = ({
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <Box mt={8}>
-          {riskGroupData.length !== 0 ? (
-            <SFlex direction="column" gap={5}>
-              <SText mt={-4} mr={40}>
-                {title}
-              </SText>
-              {riskGroupData.map((work) => (
-                <STableRow clickable onClick={handleSelect(work)} key={work.id}>
-                  {work.name}
-                </STableRow>
-              ))}
-            </SFlex>
+          {company.hierarchyCount ? (
+            riskGroupData.length !== 0 ? (
+              <SFlex direction="column" gap={5}>
+                <SText mt={-4} mr={40}>
+                  {title}
+                </SText>
+                {riskGroupData.map((work) => (
+                  <STableRow
+                    clickable
+                    onClick={handleSelect(work)}
+                    key={work.id}
+                  >
+                    {work.name}
+                  </STableRow>
+                ))}
+              </SFlex>
+            ) : (
+              <EmptyDocPgrData />
+            )
           ) : (
-            <>
-              <SText mt={-4} maxWidth="400px">
-                Nenhum documento PGR cadastrado, por favor cadastre um antes
-                para poder vincular riscos.
-              </SText>
-              <SButton
-                onClick={handleAddMissingData}
-                color="secondary"
-                sx={{ mt: 5 }}
-              >
-                Cadastrar Documento PGR
-              </SButton>
-            </>
+            <EmptyHierarchyData />
           )}
         </Box>
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

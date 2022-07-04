@@ -16,6 +16,7 @@ import { ModalAddEnvironment } from 'components/organisms/modals/ModalAddEnviron
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
+import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -129,6 +130,7 @@ export const EnvironmentTable: FC<BoxProps> = () => {
       </STable>
       <ModalAddEnvironment />
       <ModalAddWorkspace />
+      <ModalSingleInput />
       <ModalExcelHierarchies />
       <ModalSelectHierarchy />
     </>

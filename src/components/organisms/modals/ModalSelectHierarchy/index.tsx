@@ -12,8 +12,11 @@ import {
   ITreeMap,
   ITreeMapObject,
 } from 'components/organisms/main/Tree/OrgTree/interfaces';
+import { setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
 
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
@@ -33,6 +36,7 @@ export const initialHierarchySelectState = {
   workspaceId: '' as string,
   singleSelect: false,
   lockWorkspace: true,
+  selectionHierarchy: Object.values(HierarchyEnum),
 };
 
 const modalName = ModalEnum.HIERARCHY_SELECT;
@@ -44,6 +48,7 @@ export const ModalSelectHierarchy: FC = () => {
   const [selectData, setSelectData] = useState(initialHierarchySelectState);
   const { data } = useQueryHierarchies();
   const store = useStore();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     const initialData = getModalData(
@@ -69,6 +74,7 @@ export const ModalSelectHierarchy: FC = () => {
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();
     onCloseModal(modalName);
+    dispatch(setHierarchySearch(''));
   };
 
   const handleSelect = useCallback(() => {
@@ -78,16 +84,18 @@ export const ModalSelectHierarchy: FC = () => {
     const hierarchies = modalSelectIds.map((id) => nodesMap[id]);
 
     onCloseModal(modalName);
+    dispatch(setHierarchySearch(''));
     selectData.onSelect(hierarchies);
-  }, [onCloseModal, selectData, store]);
+  }, [dispatch, onCloseModal, selectData, store]);
 
   const handleSingleSelect = useCallback(
     (id: string) => {
       const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
       onCloseModal(modalName);
+      dispatch(setHierarchySearch(''));
       selectData.onSingleSelect(nodesMap[id]);
     },
-    [onCloseModal, selectData, store],
+    [dispatch, onCloseModal, selectData, store],
   );
 
   const hasWorkspace =

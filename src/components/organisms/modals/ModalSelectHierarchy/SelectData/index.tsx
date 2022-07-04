@@ -124,6 +124,7 @@ export const ModalSelectHierarchyData: FC<{
           setFilter={(value) => setFilter(value)}
           filter={filter}
           onSelectAll={onSelectAll}
+          selectedData={selectedData}
         />
         <STGridBox>
           {hierarchyList.map((hierarchy) => {

@@ -24,6 +24,7 @@ export interface IUpsertEnvironment {
   id?: string;
   type?: EnvironmentTypeEnum;
   hierarchyIds?: string[];
+  considerations?: string[];
   name?: string;
   description?: string;
   companyId?: string;
@@ -55,7 +56,7 @@ export async function updateEnvironment(
       });
     }
 
-    if (value) formData.append(key, value);
+    if (value || value === '') formData.append(key, value);
   });
 
   const { token } = await refreshToken();

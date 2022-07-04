@@ -34,6 +34,7 @@ export const initialEnvironmentState = {
   moisturePercentage: '',
   companyId: '',
   workspaceId: '',
+  considerations: [] as string[],
   parentId: '',
   type: '' as EnvironmentTypeEnum, //? missing
   parentEnvironmentId: '', //? missing
@@ -122,6 +123,7 @@ export const useEditEnvironment = () => {
       workspaceId: environmentData.workspaceId,
       photos: environmentData.photos,
       type: environmentData.type,
+      considerations: environmentData.considerations,
       id: environmentData.id || undefined,
       hierarchyIds: environmentData.hierarchies.map(
         (hierarchy) => String(hierarchy.id).split('//')[0],
@@ -210,6 +212,24 @@ export const useEditEnvironment = () => {
     } as typeof initialHierarchySelectState);
   };
 
+  const onAddArray = (value: string) => {
+    setEnvironmentData({
+      ...environmentData,
+      considerations: [...environmentData.considerations, value],
+    });
+  };
+
+  const onDeleteArray = (value: string) => {
+    setEnvironmentData({
+      ...environmentData,
+      considerations: [
+        ...environmentData.considerations.filter(
+          (item: string) => item !== value,
+        ),
+      ],
+    });
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -226,6 +246,8 @@ export const useEditEnvironment = () => {
     handlePhotoRemove,
     isEdit,
     onAddHierarchy,
+    onAddArray,
+    onDeleteArray,
   };
 };
 

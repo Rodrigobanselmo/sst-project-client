@@ -17,11 +17,17 @@ import { photoSchema } from 'core/utils/schemas/photo.schema';
 
 import { SModalUploadPhoto } from './types';
 
+export enum TypeInputModal {
+  TEXT = 'text',
+  TEXT_AREA = 'text-area',
+}
+
 export const initialInputModalState = {
   title: '',
   placeholder: '',
   label: '',
   name: '',
+  type: TypeInputModal.TEXT,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onConfirm: async (value: string) => {},
 };
@@ -75,6 +81,15 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
 
   // console.log('photoData', canvasRef.current.toDataURL());
 
+  const inputProps = () => {
+    if (data.type == TypeInputModal.TEXT) return {};
+    if (data.type == TypeInputModal.TEXT_AREA)
+      return {
+        multiline: true,
+        maxRows: 5,
+        minRows: 3,
+      };
+  };
   return (
     <SModal {...registerModal(modalName)} keepMounted={false} onClose={onClose}>
       <SModalPaper
@@ -96,6 +111,7 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
           placeholder={data.placeholder || 'descrição...'}
           name="name"
           size="small"
+          {...inputProps()}
         />
         <SModalButtons onClose={onClose} buttons={buttons} />
       </SModalPaper>

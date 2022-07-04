@@ -41,7 +41,7 @@ export const STSBoxButton = styled(Box)<{
       &:active {
         background-color: ${props.theme.palette.grey[400]};
       }
-    `}
+    `};
 
   ${(props) => props.large && css``};
 
@@ -64,6 +64,9 @@ export const STSBoxButton = styled(Box)<{
     props.bg &&
     css`
       background-color: ${(props.theme.palette as any)[props.bg.split('.')[0]][
+        props.bg.split('.')[1]
+      ]};
+      border-color: ${(props.theme.palette as any)[props.bg.split('.')[0]][
         props.bg.split('.')[1]
       ]};
 

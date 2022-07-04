@@ -9,6 +9,8 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
+import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
+import { TypeInputModal } from 'components/organisms/modals/ModalSingleInput';
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
@@ -36,6 +38,8 @@ export const ModalEnvironmentContent = ({
   handlePhotoRemove,
   loadingDelete,
   onAddHierarchy,
+  onAddArray,
+  onDeleteArray,
 }: IUseEditEnvironment) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -209,7 +213,7 @@ export const ModalEnvironmentContent = ({
       >
         <SAddIcon />
         Adicionar foto
-      </SButton>{' '}
+      </SButton>
       <SFlex sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         {environmentData.photos.map((photo, index) => (
           <SFlex
@@ -235,6 +239,15 @@ export const ModalEnvironmentContent = ({
           </SFlex>
         ))}
       </SFlex>
+      <SDisplaySimpleArray
+        values={environmentData.considerations || []}
+        onAdd={(value) => onAddArray(value)}
+        onDelete={(value) => onDeleteArray(value)}
+        label={'Considerações'}
+        buttonLabel={'Adicionar Consideração'}
+        placeholder="descreva sua consideração..."
+        modalLabel={'Adicionar Consideração'}
+      />
     </SFlex>
   );
 };

@@ -32,6 +32,7 @@ export interface ICompany {
   secondary_activity: ActivityDto[];
   employeeCount: number;
   riskGroupCount: number;
+  hierarchyCount: number;
 }
 
 export interface IWorkspace {

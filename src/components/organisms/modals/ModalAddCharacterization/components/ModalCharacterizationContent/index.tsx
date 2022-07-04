@@ -9,6 +9,7 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
+import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
@@ -35,6 +36,8 @@ export const ModalCharacterizationContent = ({
   handlePhotoRemove,
   loadingDelete,
   onAddHierarchy,
+  onAddArray,
+  onDeleteArray,
 }: IUseEditCharacterization) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -183,6 +186,15 @@ export const ModalCharacterizationContent = ({
           </SFlex>
         ))}
       </SFlex>
+      <SDisplaySimpleArray
+        values={characterizationData.considerations || []}
+        onAdd={(value) => onAddArray(value)}
+        onDelete={(value) => onDeleteArray(value)}
+        label={'Considerações'}
+        buttonLabel={'Adicionar Consideração'}
+        placeholder="descreva sua consideração..."
+        modalLabel={'Adicionar Consideração'}
+      />
     </SFlex>
   );
 };

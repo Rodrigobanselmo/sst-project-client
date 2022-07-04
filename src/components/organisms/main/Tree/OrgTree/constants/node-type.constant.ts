@@ -29,9 +29,9 @@ export const nodeTypesConstant = {
     name: 'Estabelecimento',
     placeholder: 'Nome da estabelecimento...',
     childOptions: [
+      TreeTypeEnum.SECTOR,
       TreeTypeEnum.DIRECTORY,
       TreeTypeEnum.MANAGEMENT,
-      TreeTypeEnum.SECTOR,
       TreeTypeEnum.OFFICE,
     ],
   },
@@ -42,8 +42,8 @@ export const nodeTypesConstant = {
     color: 'check',
     placeholder: 'Nome da diretória...',
     childOptions: [
-      TreeTypeEnum.MANAGEMENT,
       TreeTypeEnum.SECTOR,
+      TreeTypeEnum.MANAGEMENT,
       TreeTypeEnum.OFFICE,
     ],
   },
@@ -61,7 +61,7 @@ export const nodeTypesConstant = {
     title: 'Novo setor',
     name: 'Setor',
     placeholder: 'Nome do setor...',
-    childOptions: [TreeTypeEnum.SUB_SECTOR, TreeTypeEnum.OFFICE],
+    childOptions: [TreeTypeEnum.OFFICE, TreeTypeEnum.SUB_SECTOR],
   },
   [TreeTypeEnum.SUB_SECTOR]: {
     value: TreeTypeEnum.SUB_SECTOR,

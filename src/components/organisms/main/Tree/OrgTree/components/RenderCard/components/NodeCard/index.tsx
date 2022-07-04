@@ -263,11 +263,59 @@ export const NodeCard: FC<INodeCardProps> = ({
             ![TreeTypeEnum.COMPANY, TreeTypeEnum.SUB_OFFICE].includes(
               node.type,
             ) && (
-              <STagButton
-                sx={{ pr: 1, pl: 2 }}
-                onClick={handleAddCard}
-                icon={AddIcon}
-              />
+              <>
+                <STagButton
+                  sx={{ pr: 1, pl: 2 }}
+                  onClick={handleAddCard}
+                  icon={AddIcon}
+                />
+                {node.type === TreeTypeEnum.WORKSPACE &&
+                  !node.childrenIds?.length && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        right: 'calc(-50% + 10px)',
+                        top: 45,
+                      }}
+                    >
+                      <SText
+                        sx={{
+                          backgroundColor: 'background.paper',
+                          px: 8,
+                          borderRadius: 1,
+                          py: 3,
+                          boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.4)',
+                        }}
+                        fontSize={13}
+                      >
+                        Click aqui para incluir um setor
+                      </SText>
+                      <Box
+                        sx={{
+                          top: -13,
+                          right: 'calc(50% - 15px)',
+                          height: 13,
+                          width: 30,
+                          position: 'absolute',
+                          overflowY: 'hidden',
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.5)',
+                            backgroundColor: 'background.paper',
+                            width: 14,
+                            height: 14,
+                            right: 'calc(50% - 7px)',
+                            position: 'absolute',
+                            transform: 'rotate(45deg)',
+                            top: 7,
+                          }}
+                        />
+                      </Box>
+                    </Box>
+                  )}
+              </>
             )}
         </SFlex>
       </Box>

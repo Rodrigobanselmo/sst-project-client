@@ -28,6 +28,7 @@ export interface IUpsertCharacterization {
   description?: string;
   companyId?: string;
   workspaceId?: string;
+  considerations?: string[];
   photos?: IAddCharacterizationPhoto[];
 }
 
@@ -51,7 +52,7 @@ export async function updateCharacterization(
       });
     }
 
-    if (value) formData.append(key, value);
+    if (value || value === '') formData.append(key, value);
   });
 
   const { token } = await refreshToken();

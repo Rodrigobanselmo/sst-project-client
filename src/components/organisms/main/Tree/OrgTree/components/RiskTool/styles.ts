@@ -73,8 +73,8 @@ export const STBoxStack = styled(Box)<{
   ${(props) =>
     props.expanded &&
     css`
-      max-height: calc(100vh - 325px);
-      min-height: calc(100vh - 325px);
+      max-height: calc(100vh - 360px);
+      min-height: calc(100vh - 360px);
       ${props.viewType === ViewTypeEnum.SIMPLE_BY_RISK &&
       css`
         max-height: calc(100vh - 240px);

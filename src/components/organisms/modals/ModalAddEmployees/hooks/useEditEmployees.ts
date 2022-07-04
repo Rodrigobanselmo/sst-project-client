@@ -7,6 +7,7 @@ import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interface
 import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -176,6 +177,7 @@ export const useEditEmployees = () => {
   const onAddHierarchy = () => {
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       singleSelect: true,
+      selectionHierarchy: [HierarchyEnum.SUB_OFFICE, HierarchyEnum.OFFICE],
       onSingleSelect: (hierarchy: ITreeMapObject) =>
         setEmployeeData({ ...employeeData, hierarchy: hierarchy }),
     } as typeof initialHierarchySelectState);

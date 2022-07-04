@@ -18,6 +18,7 @@ import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCh
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
+import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import dayjs from 'dayjs';
 
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
@@ -127,6 +128,7 @@ export const CharacterizationTable: FC<BoxProps> = () => {
       </STable>
       <ModalAddCharacterization />
       <ModalAddWorkspace />
+      <ModalSingleInput />
       <ModalExcelHierarchies />
       <ModalSelectHierarchy />
     </>

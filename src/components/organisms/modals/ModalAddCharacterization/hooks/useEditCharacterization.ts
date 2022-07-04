@@ -39,6 +39,7 @@ export const initialCharacterizationState = {
   parentCharacterizationId: '', //? missing
   photos: [] as IAddCharacterizationPhoto[],
   hierarchies: [] as (IHierarchy | ITreeMapObject)[],
+  considerations: [] as string[],
 };
 
 interface ISubmit {
@@ -207,6 +208,24 @@ export const useEditCharacterization = () => {
     } as typeof initialHierarchySelectState);
   };
 
+  const onAddArray = (value: string) => {
+    setCharacterizationData({
+      ...characterizationData,
+      considerations: [...characterizationData.considerations, value],
+    });
+  };
+
+  const onDeleteArray = (value: string) => {
+    setCharacterizationData({
+      ...characterizationData,
+      considerations: [
+        ...characterizationData.considerations.filter(
+          (item: string) => item !== value,
+        ),
+      ],
+    });
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -223,6 +242,8 @@ export const useEditCharacterization = () => {
     handlePhotoRemove,
     isEdit,
     onAddHierarchy,
+    onAddArray,
+    onDeleteArray,
   };
 };
 

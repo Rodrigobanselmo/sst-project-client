@@ -62,13 +62,14 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     option?: IEmployee,
   ) => {
     e.stopPropagation();
-
+    console.log(option);
     if (option?.id)
       onOpenModal<Partial<typeof initialEmployeeState>>(
         ModalEnum.EMPLOYEES_ADD,
         {
           ...option,
           name: option.name.split(' - ')[0], //! missing hierarchy para passar na edição
+          hierarchy: { id: option.hierarchyId, name: 'Editar cargo' } as any,
         },
       );
   };

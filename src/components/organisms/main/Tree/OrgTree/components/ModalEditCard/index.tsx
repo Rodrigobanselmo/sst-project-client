@@ -42,13 +42,22 @@ import { useModalCard } from './hooks/useModalCard';
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectHierarchyTreeSelectItem);
   const [employees, setEmployees] = useState<IEmployee[]>([]);
+
+  const isOffice = [TreeTypeEnum.OFFICE, TreeTypeEnum.SUB_OFFICE].includes(
+    selectedNode?.type || ('' as any),
+  );
+
   const {
     data: selectedEmployees,
     isLoading,
     refetch,
   } = useQueryEmployees(
     0,
-    { hierarchyId: String(selectedNode?.id).split('//')[0] || '' },
+    {
+      hierarchyId: isOffice
+        ? String(selectedNode?.id).split('//')[0] || ''
+        : '',
+    },
     1000,
   );
 
@@ -192,14 +201,16 @@ export const ModalEditCard = () => {
                 })
               }
             />
-            <EmployeeSelect
-              large
-              text={'empregados'}
-              actualHierarchy={selectedNode}
-              handleSelect={(_, list) => setEmployees(list)}
-              selectedEmployees={allEmployees}
-              loading={isLoading}
-            />
+            {isOffice && (
+              <EmployeeSelect
+                large
+                text={'empregados'}
+                actualHierarchy={selectedNode}
+                handleSelect={(_, list) => setEmployees(list)}
+                selectedEmployees={allEmployees}
+                loading={isLoading}
+              />
+            )}
           </SFlex>
         </Box>
         <Box

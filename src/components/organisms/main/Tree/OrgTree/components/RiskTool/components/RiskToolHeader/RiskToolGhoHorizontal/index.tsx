@@ -76,6 +76,21 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
     return ghoQuery;
   }, [viewDataType, ghoQuery, hierarchyListData]);
 
+  const getName = () => {
+    if (viewDataType == ViewsDataEnum.HIERARCHY) return selected?.name;
+
+    if (selected && 'description' in selected) {
+      const splitValues = selected.description.split('(//)');
+      if (splitValues[1]) {
+        return splitValues[0];
+      }
+    }
+
+    return selected?.name;
+  };
+
+  const name = getName();
+
   return (
     <>
       <SFlex mt={5}>
@@ -92,16 +107,16 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
             <SText fontSize={13} mr={2} color="text.light">
               selecionado
             </SText>
-            <STooltip title={selected?.name || '--'} withWrapper>
+            <STooltip title={name || '--'} withWrapper>
               <SText
-                lineNumber={2}
+                lineNumber={1}
                 component="span"
                 fontSize={14}
                 fontWeight={500}
                 mr={2}
                 color="text.light"
               >
-                {selected?.name || '--'}
+                {name || '--'}
               </SText>
             </STooltip>
           </SText>
@@ -109,7 +124,7 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
         <StyledFlexMultiGho ref={refScroll}>
           {arrayChunks<IGho | IHierarchyTreeMapObject>(
             data,
-            Math.ceil(data.length / 2),
+            Math.ceil(data.length / 1),
           ).map((ghoChunk, index) => (
             <SFlex key={index}>
               {ghoChunk.map((gho) => (

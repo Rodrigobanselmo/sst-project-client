@@ -2,7 +2,7 @@
 /* eslint-disable react/display-name */
 import React from 'react';
 
-import { CircularProgress, Icon } from '@mui/material';
+import { Box, CircularProgress, Icon } from '@mui/material';
 
 import SFlex from '../SFlex';
 import SText from '../SText';
@@ -70,7 +70,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
               {topText}
             </SText>
           )}
-          <SFlex center>
+          <SFlex width="90%" center flex={1}>
             {icon && !loading && (
               <Icon
                 sx={{
@@ -91,21 +91,22 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
               />
             )}
             {text && (
-              <SText
-                fontSize="13px"
-                color="text.primary"
-                maxWidth="100%"
-                sx={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  color: active ? 'common.white' : 'common.black',
-                  textAlign: 'center',
-                  mb: -1,
-                }}
-              >
-                {text}
-              </SText>
+              <SFlex align="center" justify="center">
+                <SText
+                  fontSize="13px"
+                  color="text.primary"
+                  sx={{
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    color: active ? 'common.white' : 'common.black',
+                    textAlign: 'center',
+                    mb: -1,
+                  }}
+                >
+                  {text}
+                </SText>
+              </SFlex>
             )}
           </SFlex>
           {subText && (

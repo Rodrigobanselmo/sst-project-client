@@ -18,8 +18,10 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useMutUpsertRiskGroupData } from 'core/services/hooks/mutations/checklist/useMutUpsertRiskGroupData';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { StatusSelect } from '../../tagSelects/StatusSelect';
+import { EmptyHierarchyData } from '../empty/EmptyHierarchyData';
 
 export const initialRiskGroupState = {
   name: '',
@@ -35,6 +37,7 @@ export const ModalAddRiskGroup = () => {
   const mutation = useMutUpsertRiskGroupData();
   const { push } = useRouter();
   const initialDataRef = useRef(initialRiskGroupState);
+  const { data: company } = useQueryCompany();
 
   const { preventUnwantedChanges } = usePreventAction();
   const { enqueueSnackbar } = useSnackbar();
@@ -117,36 +120,43 @@ export const ModalAddRiskGroup = () => {
           onClose={onCloseUnsaved}
           title={riskGroupData.id ? 'PGR' : 'Novo documento PGR'}
         />
-        <Box mt={8}>
-          <SInput
-            autoFocus
-            value={riskGroupData.name}
-            onChange={(e) =>
-              setRiskGroupData((data) => ({
-                ...data,
-                error: '',
-                name: e.target.value,
-              }))
-            }
-            error={!!riskGroupData.error}
-            helperText={riskGroupData.error}
-            sx={{ width: ['100%', 600] }}
-            placeholder={'Nome do documento PGR...'}
-          />
-        </Box>
-        <SFlex gap={8} mt={10} align="center">
-          <StatusSelect
-            selected={riskGroupData.status}
-            statusOptions={[
-              StatusEnum.PROGRESS,
-              StatusEnum.ACTIVE,
-              StatusEnum.INACTIVE,
-            ]}
-            handleSelectMenu={(option) =>
-              setRiskGroupData({ ...riskGroupData, status: option.value })
-            }
-          />
-        </SFlex>
+        {company.hierarchyCount ? (
+          <>
+            <Box mt={8}>
+              <SInput
+                autoFocus
+                value={riskGroupData.name}
+                onChange={(e) =>
+                  setRiskGroupData((data) => ({
+                    ...data,
+                    error: '',
+                    name: e.target.value,
+                  }))
+                }
+                error={!!riskGroupData.error}
+                helperText={riskGroupData.error}
+                sx={{ width: ['100%', 600] }}
+                placeholder={'Nome do documento PGR...'}
+              />
+            </Box>
+            <SFlex gap={8} mt={10} align="center">
+              <StatusSelect
+                selected={riskGroupData.status}
+                statusOptions={[
+                  StatusEnum.PROGRESS,
+                  StatusEnum.ACTIVE,
+                  StatusEnum.INACTIVE,
+                ]}
+                handleSelectMenu={(option) =>
+                  setRiskGroupData({ ...riskGroupData, status: option.value })
+                }
+              />
+            </SFlex>
+          </>
+        ) : (
+          <EmptyHierarchyData />
+        )}
+
         <SModalButtons
           loading={mutation.isLoading}
           onClose={onCloseUnsaved}

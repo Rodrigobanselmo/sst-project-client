@@ -19,7 +19,7 @@ export const viewsDataOptionsConstant: IViewsDataOptions = {
   [ViewsDataEnum.HIERARCHY]: {
     value: ViewsDataEnum.HIERARCHY,
     name: 'por cargos, setores...',
-    placeholder: 'pesquisar por cargos, setores...',
+    placeholder: 'pesquisar por cargos, seto...',
   },
   [ViewsDataEnum.ENVIRONMENT]: {
     value: ViewsDataEnum.ENVIRONMENT,
