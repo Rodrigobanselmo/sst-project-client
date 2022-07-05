@@ -1,4 +1,5 @@
 import { MedTypeEnum } from 'project/enum/medType.enum';
+import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -11,6 +12,7 @@ export interface IRecMed {
   system: true;
   status: StatusEnum;
   medType?: MedTypeEnum;
+  recType?: RecTypeEnum;
   created_at: string;
 }
 

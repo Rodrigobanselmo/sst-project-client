@@ -10,7 +10,6 @@ import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
-import { TypeInputModal } from 'components/organisms/modals/ModalSingleInput';
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';

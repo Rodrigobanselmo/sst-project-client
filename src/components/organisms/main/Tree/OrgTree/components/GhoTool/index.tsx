@@ -53,6 +53,7 @@ export const GhoTool = () => {
       id: data.id,
       name: data.name,
       status: data.status,
+      description: data.description,
     });
   };
 

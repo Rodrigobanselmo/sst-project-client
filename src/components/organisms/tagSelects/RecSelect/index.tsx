@@ -55,6 +55,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
           risk,
           medName: option?.medName || '',
           recName: option?.recName || '',
+          recType: option?.recType || '',
           status: option?.status,
           id: option?.id,
           onlyInput,

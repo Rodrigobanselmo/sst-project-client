@@ -113,7 +113,7 @@ export const ModalCharacterizationContent = ({
         width="101%"
       />
       <SText color="text.label" fontSize={14}>
-        Vincular cargos ao ambiente
+        Vincular cargos
       </SText>
       {!!characterizationData.hierarchies.length && (
         <SFlex gap={8} mt={0} flexWrap="wrap">

@@ -27,7 +27,7 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
   ...props
 }) => {
   const [search, setSearch] = useState('');
-  const { data } = useQueryEpis(0, { ca: search }, 5);
+  const { data, isLoading } = useQueryEpis(0, { ca: search }, 5);
   const { onOpenModal } = useModal();
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -93,6 +93,7 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
       large={large}
       handleSelectMenu={handleSelectEpi}
       selected={selected || []}
+      loading={isLoading}
       endAdornment={(options: IEpi | undefined) => {
         return (
           <STooltip enterDelay={1200} withWrapper title={'editar'}>

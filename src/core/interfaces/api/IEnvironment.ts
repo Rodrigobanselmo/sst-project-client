@@ -1,5 +1,7 @@
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
+import { IHierarchy } from './IHierarchy';
+
 export type IEnvironment = {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ export type IEnvironment = {
   temperature: string;
   moisturePercentage: string;
   luminosity: string;
+  hierarchies?: IHierarchy[];
 };
 
 export type IEnvironmentPhoto = {

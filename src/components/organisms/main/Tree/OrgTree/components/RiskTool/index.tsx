@@ -91,6 +91,7 @@ export const SidebarOrg = () => {
     onOpenModal(ModalEnum.GHO_ADD, {
       id: data.id,
       name: data.name,
+      description: 'description' in data ? data?.description : '',
       // status: data.status,
     });
   };

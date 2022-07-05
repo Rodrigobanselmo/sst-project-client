@@ -12,6 +12,7 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { MedTypeEnum } from 'project/enum/medType.enum';
+import { RecTypeEnum } from 'project/enum/recType.enum';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
@@ -59,20 +60,56 @@ export const ModalAddRecMed = () => {
         />
         <SFlex gap={8} direction="column" mt={8}>
           {['rec', ''].includes(recMedData.onlyInput) && (
-            <InputForm
-              autoFocus
-              defaultValue={recMedData.recName}
-              multiline
-              minRows={2}
-              maxRows={4}
-              label="Recomendação"
-              control={control}
-              sx={{ minWidth: ['100%', 600] }}
-              placeholder={'descrição da recomendação...'}
-              name="recName"
-              size="small"
-              firstLetterCapitalize
-            />
+            <Box position="relative">
+              <InputForm
+                multiline
+                fullWidth
+                defaultValue={recMedData.recName}
+                placeholder={'descrição da recomendação...'}
+                name="recName"
+                label="Recomendação"
+                minRows={3}
+                maxRows={3}
+                control={control}
+                sx={{
+                  minWidth: ['100%', 600],
+                  '& .MuiOutlinedInput-root': { pb: 30 },
+                }}
+                size="small"
+                firstLetterCapitalize
+              />
+              <RadioForm
+                type="radio"
+                control={control}
+                defaultValue={String(recMedData.recType)}
+                options={[
+                  {
+                    content: 'Administrativa',
+                    value: RecTypeEnum.ADM,
+                    tooltip:
+                      'Procedimentos de Trabalho e Controles Administrativos',
+                  },
+                  {
+                    content: 'Engenharia',
+                    value: RecTypeEnum.ENG,
+                    tooltip: 'Medidas de Controle de Engenharia/Coletivas',
+                  },
+                  {
+                    content: 'EPI',
+                    value: RecTypeEnum.EPI,
+                    tooltip: 'Equipamentos de Proteção Individual',
+                  },
+                ]}
+                name="recType"
+                pr={8}
+                pl={11}
+                columns={3}
+                zIndex={2}
+                position="absolute"
+                top={115}
+                width="100%"
+              />
+            </Box>
           )}
           {!(recMedData.onlyInput == 'rec') && (
             <Box position="relative">

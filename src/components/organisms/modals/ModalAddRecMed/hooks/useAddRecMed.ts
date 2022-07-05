@@ -5,6 +5,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { MedTypeEnum } from 'project/enum/medType.enum';
+import { RecTypeEnum } from 'project/enum/recType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -29,6 +30,7 @@ export const initialAddRecMedState = {
   passDataBack: false,
   edit: false,
   medType: null as MedTypeEnum | null | '',
+  recType: null as RecTypeEnum | null | '',
   onCreate: (value: IRecMed | null) => {},
   onlyInput: '' as 'rec' | 'eng' | 'adm' | '',
 };
@@ -97,6 +99,7 @@ export const useAddRecMed = () => {
     recName: string;
     medName: string;
     medType: string;
+    recType: string;
   }> = async (data) => {
     if (recMedData.passDataBack)
       return onClose({
