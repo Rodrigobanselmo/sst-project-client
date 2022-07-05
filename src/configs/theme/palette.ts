@@ -108,7 +108,7 @@ const palette = {
     medium: '#424c61',
     light: '#808080',
     lightest: '#c4c4c4',
-    label: '#9e9e9e',
+    label: '#808080',
   },
 };
 

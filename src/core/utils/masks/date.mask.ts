@@ -27,3 +27,22 @@ export const masked = {
 } as IMask.AnyMaskedOptions;
 
 export const dateMask = masker(masked);
+
+export const monthMasked = {
+  mask: 'MM/YYYY',
+  blocks: {
+    MM: {
+      mask: IMask.MaskedRange,
+      from: 1,
+      to: 12,
+      maxLength: 2,
+    },
+    YYYY: {
+      mask: IMask.MaskedRange,
+      to: new Date().getFullYear() + 2,
+      from: 1900,
+    },
+  },
+} as IMask.AnyMaskedOptions;
+
+export const dateMonthMask = masker(monthMasked);

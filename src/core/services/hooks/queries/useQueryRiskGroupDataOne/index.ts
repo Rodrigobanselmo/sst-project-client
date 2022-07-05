@@ -27,6 +27,12 @@ export const queryGroupRiskDataOne = async (
     visitDate: response.data.visitDate
       ? dayjs(response.data.visitDate).format('DD/MM/YYYY')
       : '',
+    validityStart: response.data.validityStart
+      ? dayjs(response.data.validityStart).format('MM/YYYY')
+      : '',
+    validityEnd: response.data.validityEnd
+      ? dayjs(response.data.validityEnd).format('MM/YYYY')
+      : '',
   };
 
   return data;

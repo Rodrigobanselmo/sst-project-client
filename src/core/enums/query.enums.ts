@@ -11,6 +11,7 @@ export enum QueryEnum {
   HIERARCHY = 'hierarchy',
   EMPLOYEES = 'employees',
   USERS = 'users',
+  PROFESSIONAL = 'professional',
   INVITES = 'invites',
   INVITES_USER = 'invites-user',
   COMPANIES = 'companies',

@@ -43,7 +43,7 @@ export interface IUploadPhotoConfirm {
 export const initialPhotoState = {
   title: '',
   subtitle: '',
-  accept: 'image/*',
+  accept: 'image/*' as string | string[],
   files: [] as File[],
   name: '',
   freeAspect: false,

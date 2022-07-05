@@ -20,6 +20,7 @@ import { SModalUploadPhoto } from './types';
 export enum TypeInputModal {
   TEXT = 'text',
   TEXT_AREA = 'text-area',
+  PROFESSIONAL = 'professional',
 }
 
 export const initialInputModalState = {

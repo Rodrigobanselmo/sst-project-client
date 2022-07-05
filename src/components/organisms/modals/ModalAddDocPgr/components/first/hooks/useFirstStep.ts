@@ -23,6 +23,7 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
     'visitDate',
     'revisionBy',
     'source',
+    'coordinatorBy',
   ];
 
   const onCloseUnsaved = async () => {
@@ -34,8 +35,15 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { name, approvedBy, elaboratedBy, visitDate, revisionBy, source } =
-        getValues();
+      const {
+        name,
+        approvedBy,
+        elaboratedBy,
+        visitDate,
+        revisionBy,
+        source,
+        coordinatorBy,
+      } = getValues();
 
       const submitData: IUpsertRiskGroupData = {
         name,
@@ -45,6 +53,7 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
         revisionBy,
         source,
         id: data.id,
+        coordinatorBy,
       };
 
       if (data.id) {

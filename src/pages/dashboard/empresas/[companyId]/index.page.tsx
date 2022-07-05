@@ -27,6 +27,7 @@ import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
+import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
@@ -84,6 +85,10 @@ const CompanyPage: NextPage = () => {
   const handleAddRisk = useCallback(() => {
     onOpenModal(ModalEnum.DOC_PGR_SELECT);
   }, [onOpenModal]);
+
+  const handleGoHierarchy = useCallback(() => {
+    push(RoutesEnum.HIERARCHY.replace(':companyId', company.id || ''));
+  }, [push, company]);
 
   const handleAddEnvironments = useCallback(() => {
     const workspaceLength = company?.workspace?.length || 0;
@@ -183,8 +188,13 @@ const CompanyPage: NextPage = () => {
         onClick: handleAddRisk,
         text: 'Vincular Fatores de Risco',
       },
+      {
+        icon: SHierarchyIcon,
+        onClick: handleGoHierarchy,
+        text: 'Organograma',
+      },
     ];
-  }, [handleAddRisk]);
+  }, [handleAddRisk, handleGoHierarchy]);
 
   const characterizationStepMemo = useMemo(() => {
     return [

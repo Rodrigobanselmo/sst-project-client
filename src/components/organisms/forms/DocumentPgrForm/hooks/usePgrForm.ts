@@ -88,10 +88,17 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
       revisionBy: data.revisionBy || '',
       visitDate: data.visitDate || '',
       source: data.source || '',
-      id: data.id,
-      name: data.name,
+      complementaryDocs: data.complementaryDocs || [],
+      complementarySystems: data.complementarySystems || [],
+      coordinatorBy: data.coordinatorBy || '',
+      id: data.id || '',
+      name: data.name || '',
       companyId: data.companyId,
       status: data.status,
+      professionals: data.professionals || [],
+      users: data.users || [],
+      validityEnd: data.validityEnd || '',
+      validityStart: data.validityStart || '',
     };
 
     const initialWorkspaceState = {

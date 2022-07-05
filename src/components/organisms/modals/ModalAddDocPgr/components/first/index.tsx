@@ -51,7 +51,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
           >
             <InputForm
               defaultValue={data?.source}
-              label="Forte"
+              label="Forte (opcional)"
               control={control}
               placeholder={'local onde os dados foram obtidos...'}
               name="source"
@@ -61,7 +61,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
             />
             <InputForm
               defaultValue={data?.visitDate}
-              label="Data da visita"
+              label="Data da visita (opcional)"
               control={control}
               placeholder={'__/__/____'}
               name="visitDate"
@@ -80,7 +80,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
           >
             <InputForm
               defaultValue={data?.elaboratedBy}
-              label="Elabora por"
+              label="Elabora por*"
               control={control}
               placeholder={'nome do elaborador do documento...'}
               name="elaboratedBy"
@@ -92,7 +92,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
             />
             <InputForm
               defaultValue={data?.revisionBy}
-              label="Revisado por"
+              label="Revisado por (opcional)"
               control={control}
               placeholder={' nome do resonsável pela revisão do documento...'}
               name="revisionBy"
@@ -104,9 +104,21 @@ export const FirstModalStep = (props: IUseAddCompany) => {
             />
             <InputForm
               defaultValue={data?.approvedBy}
-              label="Aprovado por"
+              label="Aprovado por (opcional)"
               control={control}
               placeholder={'nome de quem aprovou o documento...'}
+              name="approvedBy"
+              size="small"
+              smallPlaceholder
+              inputProps={{
+                textTransform: 'capitalize',
+              }}
+            />
+            <InputForm
+              defaultValue={data?.coordinatorBy}
+              label="Coordenador do programa (opcional)"
+              control={control}
+              placeholder={'pessoa responsavél por operacionalizar o PRG...'}
               name="approvedBy"
               size="small"
               smallPlaceholder

@@ -83,6 +83,11 @@ export const ModalEnvironmentContent = ({
         defaultValue={String(environmentData.type)}
         options={[
           {
+            content: environmentMap[EnvironmentTypeEnum.GENERAL].name,
+            value: EnvironmentTypeEnum.GENERAL,
+            tooltip: environmentMap[EnvironmentTypeEnum.GENERAL].description,
+          },
+          {
             content: environmentMap[EnvironmentTypeEnum.ADMINISTRATIVE].name,
             value: EnvironmentTypeEnum.ADMINISTRATIVE,
             tooltip:

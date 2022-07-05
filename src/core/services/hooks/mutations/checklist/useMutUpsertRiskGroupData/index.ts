@@ -22,6 +22,13 @@ export interface IUpsertRiskGroupData {
   source?: string;
   visitDate?: string;
   companyId?: string;
+  coordinatorBy?: string;
+  validityEnd?: string;
+  validityStart?: string;
+  complementaryDocs?: string[];
+  complementarySystems?: string[];
+  usersIds?: number[];
+  professionalsIds?: string[];
 }
 
 export async function upsertRiskGroupData(

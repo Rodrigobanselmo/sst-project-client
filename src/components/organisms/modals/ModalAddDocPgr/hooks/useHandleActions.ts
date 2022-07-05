@@ -7,6 +7,8 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { IProfessional } from 'core/interfaces/api/IProfessional';
+import { IUser } from 'core/interfaces/api/IUser';
 
 export const initialPgrDocState = {
   id: '',
@@ -15,12 +17,19 @@ export const initialPgrDocState = {
   elaboratedBy: '',
   revisionBy: '',
   approvedBy: '',
+  coordinatorBy: '',
   source: '',
   visitDate: '',
   companyId: '',
   workspaceId: '',
   workspaceName: '',
+  complementaryDocs: [] as string[],
+  complementarySystems: [] as string[],
+  professionals: [] as IProfessional[],
+  users: [] as IUser[],
   workspaceClosed: false,
+  validityEnd: '',
+  validityStart: '',
 };
 
 const modalName = ModalEnum.RISK_GROUP_DOC_ADD;
@@ -59,6 +68,14 @@ export const useHandleModal = () => {
           ...oldData,
           ...initialData,
         };
+
+        if (newData.complementaryDocs.length == 0) {
+          newData.complementaryDocs = [
+            'NR 15 – Atividades e Operações Insalubres e seus Anexos;',
+            'ACGIH – Limites de Exposição para Substâncias Químicas e Agentes Físicos;',
+            'Levantamento de Riscos por Função (PRHO).',
+          ];
+        }
 
         initialDataRef.current = newData;
 

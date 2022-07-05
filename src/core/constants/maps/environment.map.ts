@@ -25,4 +25,10 @@ export const environmentMap: IEnvironmentMap = {
     name: 'Apoio',
     description: 'Ambientes de Apoio',
   },
+  [EnvironmentTypeEnum.GENERAL]: {
+    value: EnvironmentTypeEnum.GENERAL,
+    name: 'Visão Geral',
+    description:
+      'Visão geral da empresa, setores, etc. (Exemplo: fachada ou planta baixa da empresa)',
+  },
 };

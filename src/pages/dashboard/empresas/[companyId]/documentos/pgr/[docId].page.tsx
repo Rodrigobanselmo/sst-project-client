@@ -2,7 +2,9 @@ import { SActionButton } from 'components/atoms/SActionButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SPageTitle from 'components/atoms/SPageTitle';
 import { ModalAddDocPgr } from 'components/organisms/modals/ModalAddDocPgr';
+import { ModalSelectProfessional } from 'components/organisms/modals/ModalSelectProfessional';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
+import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { DocPgrTable } from 'components/organisms/tables/DocPgrTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -45,6 +47,8 @@ const Companies: NextPage = () => {
       <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
       <DocPgrTable riskGroupId={query.docId as string} />
       <ModalAddDocPgr />
+      <ModalSelectProfessional />
+      <ModalSingleInput />
       <ModalSelectWorkspace />
     </SContainer>
   );

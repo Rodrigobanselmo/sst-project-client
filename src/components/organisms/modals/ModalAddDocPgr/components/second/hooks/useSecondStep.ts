@@ -30,6 +30,7 @@ export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
           riskGroupId: data.id,
           workspaceId: data.workspaceId,
           workspaceName: data.workspaceName,
+          id: data.id,
         })
         .catch(() => {});
       onClose();

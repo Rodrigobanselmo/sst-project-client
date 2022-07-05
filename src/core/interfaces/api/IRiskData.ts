@@ -4,7 +4,9 @@ import { IEpi } from 'core/interfaces/api/IEpi';
 
 import { IGho } from './IGho';
 import { IHierarchy } from './IHierarchy';
+import { IProfessional } from './IProfessional';
 import { IGenerateSource, IRecMed } from './IRiskFactors';
+import { IUser } from './IUser';
 
 export interface IRiskData {
   id: string;
@@ -35,6 +37,13 @@ export interface IRiskGroupData {
   approvedBy?: string;
   source?: string;
   visitDate?: string;
+  complementarySystems: string[];
+  complementaryDocs: string[];
+  coordinatorBy: string;
+  validityEnd?: string;
+  validityStart?: string;
+  professionals?: IProfessional[];
+  users?: IUser[];
 
   data?: IRiskData[];
 }
