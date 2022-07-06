@@ -105,7 +105,7 @@ export const ModalEnvironmentContent = ({
           },
         ]}
         name="type"
-        columns={3}
+        columns={4}
         width="101%"
       />
       <SText color="text.label" fontSize={14}>

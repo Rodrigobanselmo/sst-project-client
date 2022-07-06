@@ -15,8 +15,11 @@ export async function canvasPreview(
     throw new Error('No 2d context');
   }
 
-  const scaleX = image.naturalWidth / image.width;
-  const scaleY = image.naturalHeight / image.height;
+  const imageWidth = image.naturalWidth;
+  const imageHeight = image.naturalHeight;
+
+  const scaleX = imageWidth / image.width;
+  const scaleY = imageHeight / image.height;
   // devicePixelRatio slightly increases sharpness on retina devices
   // at the expense of slightly slower render times and needing to
   // size the image back down if you want to download/upload and be
@@ -34,8 +37,8 @@ export async function canvasPreview(
   const cropY = crop.y * scaleY;
 
   const rotateRads = rotate * TO_RADIANS;
-  const centerX = image.naturalWidth / 2;
-  const centerY = image.naturalHeight / 2;
+  const centerX = imageWidth / 2;
+  const centerY = imageHeight / 2;
 
   ctx.save();
 
@@ -53,12 +56,12 @@ export async function canvasPreview(
     image,
     0,
     0,
-    image.naturalWidth,
-    image.naturalHeight,
+    imageWidth,
+    imageHeight,
     0,
     0,
-    image.naturalWidth,
-    image.naturalHeight,
+    imageWidth,
+    imageHeight,
   );
 
   ctx.restore();

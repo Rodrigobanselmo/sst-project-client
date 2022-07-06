@@ -190,8 +190,13 @@ export default function SCropImage({
         >
           <ReactCrop
             crop={crop}
-            onChange={(_, percentCrop) => setCrop(percentCrop)}
-            onComplete={(c) => setCompletedCrop(c)}
+            onChange={(_, percentCrop) => {
+              setCrop(percentCrop);
+            }}
+            onComplete={(c) => {
+              console.log(c);
+              setCompletedCrop(c);
+            }}
             aspect={aspect}
             style={{ maxHeight: 520 }}
           >

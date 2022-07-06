@@ -92,32 +92,153 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
     document.getElementById(IdsEnum.CROP_IMAGE_BUTTON)?.click();
   };
 
+  async function createBlob(base64: any) {
+    const res = await fetch(base64);
+    const myBlob = await res.blob();
+    return myBlob;
+  }
+
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
     if (!completedCrop) return CropImage();
 
     if (canvasRef.current)
       canvasRef.current.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], `${data.name || 'imagem'}.png`, {
-            type: 'image/png',
+          const file = new File([blob], `${data.name || 'imagem'}.jpeg`, {
+            type: 'image/jpeg',
           });
           const reader = new FileReader();
-          reader.addEventListener('load', async () => {
-            setIsLoading(true);
-            if (reader.result)
-              await photoData.onConfirm({
-                file: file,
-                name: data.name,
-                src: reader.result.toString() || '',
-              });
-            setIsLoading(false);
-            onClose();
+          reader.addEventListener('load', async (event) => {
+            const imgElement = document.createElement('img');
+            if (event.target?.result)
+              imgElement.src = event.target.result.toString();
+
+            imgElement.onload = async function (e: any) {
+              const canvas = document.createElement('canvas');
+
+              const width = e.target.width > 1200 ? 1200 : e.target.width / 2;
+              const height =
+                e.target.height > 1200 ? 1200 : e.target.height / 2;
+              const MAX_WIDTH = width > 2000 ? 2000 : width;
+              const MAX_HEIGHT = height > 2000 ? 2000 : height;
+
+              if (e && e.target && e.target?.width) {
+                const isVertical = e.target.width < e.target.height;
+
+                canvas.width = e.target.width;
+                canvas.height = e.target.height;
+
+                if (!isVertical && e.target.width > MAX_WIDTH) {
+                  const scaleSize = MAX_WIDTH / e.target.width;
+                  canvas.width = MAX_WIDTH;
+                  canvas.height = e.target.height * scaleSize;
+                }
+
+                if (isVertical && e.target.height > MAX_HEIGHT) {
+                  const scaleSizeHeight = MAX_HEIGHT / e.target.height;
+                  canvas.height = MAX_HEIGHT;
+                  canvas.width = e.target.width * scaleSizeHeight;
+                }
+
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                  ctx.drawImage(e.target, 0, 0, canvas.width, canvas.height);
+
+                  const big = file.size > 5000000;
+                  const med = file.size > 2000000;
+
+                  const dataUrl = canvas.toDataURL(
+                    'image/jpeg',
+                    big ? 0.5 : med ? 0.7 : 0.9,
+                  );
+
+                  const fileFromUrl = new File(
+                    [await createBlob(dataUrl)],
+                    `${data.name || 'imagem'}.jpeg`,
+                    {
+                      type: 'image/jpeg',
+                    },
+                  );
+                  setIsLoading(true);
+                  await photoData.onConfirm({
+                    file: fileFromUrl,
+                    name: data.name,
+                    src: dataUrl,
+                  });
+                  setIsLoading(false);
+                  onClose();
+                }
+              }
+            };
           });
           reader.readAsDataURL(file);
         } else {
           onClose();
         }
-      }, 'image/png');
+      }, 'image/jpeg');
+
+    if (canvasRef.current) {
+      return;
+      // const MAX_WIDTH = 500;
+
+      // const currentWidth = canvasRef.current.width;
+      // const currentHeight = canvasRef.current.height;
+
+      // let imageWidth = canvasRef.current.width;
+      // let imageHeight = canvasRef.current.height;
+
+      // const scaleSizeWidth = MAX_WIDTH / canvasRef.current.width;
+
+      // if (imageWidth > 800) {
+      //   imageWidth = 800;
+      //   imageHeight = currentHeight * (800 / currentWidth);
+      // }
+
+      // if (imageHeight > 800) {
+      //   imageHeight = 800;
+      //   imageWidth = currentWidth * (800 / currentHeight);
+      // }
+
+      // const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.5);
+      // const file = new File(
+      //   [await createBlob(dataUrl)],
+      //   `${data.name || 'imagem'}.jpeg`,
+      //   {
+      //     type: 'image/jpeg',
+      //   },
+      // );
+
+      // await photoData.onConfirm({
+      //   file: file,
+      //   name: data.name,
+      //   src: dataUrl,
+      // });
+
+      // return;
+
+      // canvasRef.current.toBlob((blob) => {
+      //   if (blob) {
+      //     const file = new File([blob], `${data.name || 'imagem'}.png`, {
+      //       type: 'image/png',
+      //     });
+      //     const reader = new FileReader();
+      //     reader.addEventListener('load', async () => {
+      //       setIsLoading(true);
+      //       if (reader.result)
+      //         await photoData.onConfirm({
+      //           file: file,
+      //           name: data.name,
+      //           src: reader.result.toString() || '',
+      //         });
+      //       setIsLoading(false);
+      //       onClose();
+      //     });
+      //     reader.readAsDataURL(file);
+      //   } else {
+      //     onClose();
+      //   }
+      // }, 'image/png');
+    }
   };
 
   const onSetFiles = async (files: File[]) => {

@@ -1,13 +1,13 @@
 import { useFormContext } from 'react-hook-form';
 
-import { useMutUpsertRiskDocs } from 'core/services/hooks/mutations/checklist/useMutUpsertRiskDocs';
+import { useMutUpsertRiskDocsPgr } from 'core/services/hooks/mutations/checklist/useMutUpsertRiskDocsPgr';
 
 import { IUseAddCompany } from '../../../hooks/useHandleActions';
 
 export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
   const { trigger, getValues, control, reset } = useFormContext();
 
-  const createDoc = useMutUpsertRiskDocs();
+  const createDoc = useMutUpsertRiskDocsPgr();
 
   const fields = ['version', 'doc_description', 'doc_name'];
 
