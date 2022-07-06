@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
+import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { useRouter } from 'next/router';
 import {
@@ -268,6 +269,7 @@ export const SidebarOrg = () => {
         </STBoxContainer>
       )}
       <ModalAddProbability />
+      <ModalAddQuantity />
       <ModalExcelHierarchies />
     </>
   );

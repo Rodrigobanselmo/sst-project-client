@@ -29,6 +29,11 @@ export const matrixRiskMap = {
     short: 'MA',
     level: 5,
   },
+  [6]: {
+    label: 'Interromper Atividades',
+    short: 'IA',
+    level: 6,
+  },
 };
 
 export const matrixRisk = [

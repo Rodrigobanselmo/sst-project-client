@@ -305,6 +305,11 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
           handleHelp={handleHelp}
           handleSelect={handleSelect}
           data={riskData}
+          risk={
+            selectedRiskStore && selectedRisks.length === 1
+              ? selectedRiskStore
+              : null
+          }
         />
         <STag
           action={

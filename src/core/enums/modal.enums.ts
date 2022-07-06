@@ -1,6 +1,7 @@
 export enum ModalEnum {
   TREE_CARD = 'tree-card',
   PROBABILITY_ADD = 'probability-add',
+  QUANTITY_ADD = 'quantity-add',
   HIERARCHY_TREE_CARD = 'hierarchy-tree-card',
   USER_ADD = 'user-add',
   CHECKLIST_ADD = 'checklist-add',

@@ -74,7 +74,11 @@ export const RiskToolRiskHierarchyView: FC<RiskToolRiskViewProps> = ({
       });
 
       const foundRiskData = riskDataFilters.find((risk) =>
-        gho.ghos.some((group) => risk.homogeneousGroupId == group.id),
+        gho.ghos.some(
+          (group) =>
+            (risk.homogeneousGroupId || '').split('//')[0] ==
+            group.id.split('//')[0],
+        ),
       );
 
       return {

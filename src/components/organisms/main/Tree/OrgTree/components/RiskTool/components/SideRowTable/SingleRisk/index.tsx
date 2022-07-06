@@ -60,7 +60,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
     const submitData = {
       ...values,
       id: riskData?.id,
-      homogeneousGroupId: homoId[0],
+      homogeneousGroupId: homoId[0].split('//')[0],
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
       ...(isHierarchy
@@ -143,7 +143,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
     const submitData = {
       ...values,
       id: riskData?.id,
-      homogeneousGroupId: gho.id,
+      homogeneousGroupId: gho.id.split('//')[0],
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
     } as IUpsertRiskData;
@@ -214,6 +214,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
             handleHelp={handleHelp}
             handleSelect={handleSelect}
             data={riskData}
+            risk={risk}
           />
           <STag
             action={

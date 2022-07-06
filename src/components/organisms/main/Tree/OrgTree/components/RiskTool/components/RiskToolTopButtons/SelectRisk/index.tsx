@@ -119,7 +119,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
           : null
       }
       id={IdsEnum.RISK_SELECT}
-      sx={{ minWidth: 230, mr: 5 }}
+      sx={{ minWidth: 230, mr: 5, overflow: 'hidden' }}
       large
       disabled={isViewTypeGroup && !selectedGho}
       active={!!selectedRisk?.type || !!(isViewTypeGroup && selectedGho)}

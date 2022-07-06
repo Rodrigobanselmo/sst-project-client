@@ -61,7 +61,7 @@ export const SideRowTable: FC<SideTableProps> = ({
     const submitData = {
       ...values,
       id: riskData?.id,
-      homogeneousGroupId: homoId[0],
+      homogeneousGroupId: homoId[0].split('//')[0],
       workspaceId: homoId.length == 2 ? homoId[1] : undefined,
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
@@ -139,7 +139,7 @@ export const SideRowTable: FC<SideTableProps> = ({
     const submitData = {
       ...values,
       id: riskData?.id,
-      homogeneousGroupId: gho.id,
+      homogeneousGroupId: gho.id.split('//')[0],
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
     } as IUpsertRiskData;
@@ -212,6 +212,7 @@ export const SideRowTable: FC<SideTableProps> = ({
             handleHelp={handleHelp}
             handleSelect={handleSelect}
             data={riskData}
+            risk={risk}
           />
           <STag
             action={
