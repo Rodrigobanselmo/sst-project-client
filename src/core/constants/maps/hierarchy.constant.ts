@@ -63,7 +63,7 @@ export const hierarchyConstant = {
     title: 'Novo cargo desenvolvido',
     color: 'group',
     name: 'Cargo desenvolvido',
-    placeholder: 'Descrição do cargo desenvolvido...',
+    placeholder: 'Nome do cargo desenvolvido...',
     childOptions: [] as HierarchyEnum[],
   },
 } as INodeTypes;

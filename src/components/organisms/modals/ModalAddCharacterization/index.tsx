@@ -51,7 +51,7 @@ export const ModalAddCharacterization = () => {
         <SModalHeader
           tag={isEdit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Ambiente de trabalho'}
+          title={'Mão de Obra (Caracterização)'}
         />
 
         <ModalCharacterizationContent {...props} />

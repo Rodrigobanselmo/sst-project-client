@@ -22,6 +22,7 @@ import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { ModalInputHierarchy } from './ModalInputHierarchy';
 import { ModalItemHierarchy } from './ModalItemHierarchy';
+import { ModalListGHO } from './ModalListGHO';
 import { STGridBox } from './styles';
 
 import { initialHierarchySelectState } from '..';
@@ -38,7 +39,9 @@ export const ModalSelectHierarchyData: FC<{
       (workspace) => workspace.id === selectedData.workspaceId,
     ),
   );
-  const [filter, setFilter] = useState<HierarchyEnum>(HierarchyEnum.OFFICE);
+  const [filter, setFilter] = useState<HierarchyEnum | 'GHO'>(
+    HierarchyEnum.OFFICE,
+  );
   const [allTypes, setAllTypes] = useState<Record<HierarchyEnum, boolean>>(
     {} as Record<HierarchyEnum, boolean>,
   );
@@ -62,12 +65,17 @@ export const ModalSelectHierarchyData: FC<{
       // eslint-disable-next-line prettier/prettier
       const isToFilter = search && !stringNormalize(hierarchy.name).includes(stringNormalize(search));
 
+      if (filter === 'GHO') return !isToFilter && isWorkspace;
       return (hierarchy as any).type === filter && !isToFilter && isWorkspace;
     });
 
     setAllTypes(typesSelected);
     return list;
   }, [filter, hierarchyListData, search, workspaceSelected?.name]);
+
+  const hierarchyListSelected = useMemo(() => {
+    return hierarchyListData();
+  }, [hierarchyListData]);
 
   const onSelectAll = () => {
     dispatch(setModalIds(hierarchyList.map((hierarchy) => hierarchy.id)));
@@ -106,7 +114,7 @@ export const ModalSelectHierarchyData: FC<{
           />
         </SFlex>
         <STGridBox mb={10}>
-          {hierarchyList.map((hierarchy) => {
+          {hierarchyListSelected.map((hierarchy) => {
             return (
               <ModalItemHierarchy
                 onClick={() => dispatch(setRemoveModalId(hierarchy.id))}
@@ -120,26 +128,32 @@ export const ModalSelectHierarchyData: FC<{
         <ModalInputHierarchy
           listFilter={allTypes}
           onSearch={(value) => dispatch(setHierarchySearch(value))}
-          placeholder={hierarchyConstant[filter].placeholder}
+          placeholder={
+            filter === 'GHO'
+              ? 'Nome do GSE...'
+              : hierarchyConstant[filter].placeholder
+          }
           setFilter={(value) => setFilter(value)}
           filter={filter}
           onSelectAll={onSelectAll}
           selectedData={selectedData}
         />
         <STGridBox>
-          {hierarchyList.map((hierarchy) => {
-            return (
-              <ModalItemHierarchy
-                onClick={() =>
-                  selectedData.singleSelect
-                    ? handleSingleSelect(hierarchy.id)
-                    : dispatch(setAddModalId(hierarchy.id))
-                }
-                key={hierarchy.id}
-                data={hierarchy}
-              />
-            );
-          })}
+          {filter !== 'GHO' &&
+            hierarchyList.map((hierarchy) => {
+              return (
+                <ModalItemHierarchy
+                  onClick={() =>
+                    selectedData.singleSelect
+                      ? handleSingleSelect(hierarchy.id)
+                      : dispatch(setAddModalId(hierarchy.id))
+                  }
+                  key={hierarchy.id}
+                  data={hierarchy}
+                />
+              );
+            })}{' '}
+          {filter === 'GHO' && <ModalListGHO />}
         </STGridBox>
       </SFlex>
     </Box>

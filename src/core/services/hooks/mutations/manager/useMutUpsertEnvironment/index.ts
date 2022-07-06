@@ -101,7 +101,6 @@ export function useMutUpsertEnvironment() {
                 } else {
                   newData.unshift(resp);
                 }
-                console.log('newData', newData);
 
                 return newData;
               }

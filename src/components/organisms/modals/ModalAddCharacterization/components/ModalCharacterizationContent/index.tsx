@@ -118,7 +118,7 @@ export const ModalCharacterizationContent = ({
       {!!characterizationData.hierarchies.length && (
         <SFlex gap={8} mt={0} flexWrap="wrap">
           {characterizationData.hierarchies.map((hierarchy) => {
-            const fromTree = 'label' in hierarchy;
+            const fromTree = hierarchy && 'label' in hierarchy;
             const name = fromTree ? hierarchy.label : hierarchy.name;
             return (
               <SText

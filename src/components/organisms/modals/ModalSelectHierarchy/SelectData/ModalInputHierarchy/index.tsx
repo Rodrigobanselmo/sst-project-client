@@ -2,17 +2,12 @@
 import React from 'react';
 
 import SFlex from 'components/atoms/SFlex';
-import { SEndButton } from 'components/atoms/SIconButton/SEndButton';
 import { STagButton } from 'components/atoms/STagButton';
-import STooltip from 'components/atoms/STooltip';
-import { selectGhoData } from 'store/reducers/hierarchy/ghoSlice';
 import { setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { hierarchyList } from 'core/constants/maps/hierarchy.constant';
-import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
-import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { initialHierarchySelectState } from '../..';
 import { STSInput } from './styles';
@@ -78,6 +73,18 @@ export const ModalInputHierarchy = React.forwardRef<
                 }}
               />
             ))}
+          {selectedData.selectByGHO && (
+            <STagButton
+              active={filter === 'GHO'}
+              tooltipTitle={'filtar por GSE'}
+              text={'GSE'}
+              large
+              onClick={() => {
+                dispatch(setHierarchySearch(''));
+                setFilter('GHO');
+              }}
+            />
+          )}
         </SFlex>
         <STagButton
           ml="auto"

@@ -175,7 +175,7 @@ export const ModalEnvironmentContent = ({
       {!!environmentData.hierarchies.length && (
         <SFlex gap={8} mt={0} flexWrap="wrap">
           {environmentData.hierarchies.map((hierarchy) => {
-            const fromTree = 'label' in hierarchy;
+            const fromTree = hierarchy && 'label' in hierarchy;
             const name = fromTree ? hierarchy.label : hierarchy.name;
             return (
               <SText

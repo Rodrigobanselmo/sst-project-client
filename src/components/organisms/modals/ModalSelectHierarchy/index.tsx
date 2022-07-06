@@ -12,7 +12,10 @@ import {
   ITreeMap,
   ITreeMapObject,
 } from 'components/organisms/main/Tree/OrgTree/interfaces';
-import { setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
+import {
+  setHierarchySearch,
+  setModalIds,
+} from 'store/reducers/hierarchy/hierarchySlice';
 
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -36,6 +39,7 @@ export const initialHierarchySelectState = {
   workspaceId: '' as string,
   singleSelect: false,
   lockWorkspace: true,
+  selectByGHO: false,
   selectionHierarchy: Object.values(HierarchyEnum),
 };
 
@@ -46,9 +50,10 @@ export const ModalSelectHierarchy: FC = () => {
   const { onCloseModal } = useModal();
   const { data: company } = useQueryCompany();
   const [selectData, setSelectData] = useState(initialHierarchySelectState);
-  const { data } = useQueryHierarchies();
   const store = useStore();
   const dispatch = useAppDispatch();
+
+  const { data } = useQueryHierarchies();
 
   useEffect(() => {
     const initialData = getModalData(
@@ -62,6 +67,9 @@ export const ModalSelectHierarchy: FC = () => {
           ...initialData,
         };
 
+        if (newData.hierarchiesIds.length > 0)
+          dispatch(setModalIds(newData.hierarchiesIds));
+
         if (company.workspace && company.workspace[0] && !newData.workspaceId) {
           newData.workspaceId = company.workspace[0].id;
         }
@@ -69,7 +77,7 @@ export const ModalSelectHierarchy: FC = () => {
         return newData;
       });
     }
-  }, [getModalData, company]);
+  }, [getModalData, company, dispatch]);
 
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();
@@ -81,7 +89,9 @@ export const ModalSelectHierarchy: FC = () => {
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const modalSelectIds = store.getState().hierarchy
       .modalSelectIds as string[];
-    const hierarchies = modalSelectIds.map((id) => nodesMap[id]);
+    const hierarchies = modalSelectIds
+      .map((id) => nodesMap[id])
+      .filter((i) => i);
 
     onCloseModal(modalName);
     dispatch(setHierarchySearch(''));

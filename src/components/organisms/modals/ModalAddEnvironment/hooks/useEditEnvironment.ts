@@ -205,9 +205,12 @@ export const useEditEnvironment = () => {
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       onSelect: handleSelect,
+      selectByGHO: true,
       workspaceId: environmentData.workspaceId,
       hierarchiesIds: environmentData.hierarchies.map((hierarchy) =>
-        String(hierarchy.id),
+        String(hierarchy.id).split('//').length == 1
+          ? String(hierarchy.id) + '//' + environmentData.workspaceId
+          : String(hierarchy.id),
       ),
     } as typeof initialHierarchySelectState);
   };

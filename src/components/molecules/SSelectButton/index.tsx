@@ -13,6 +13,7 @@ export const SSelectButton: FC<SSelectButtonProps> = ({
   label,
   active,
   tooltipText,
+  hideCheckbox,
   ...props
 }) => {
   return (
@@ -30,15 +31,17 @@ export const SSelectButton: FC<SSelectButtonProps> = ({
         </SText>
 
         <STBoxItem>
-          <Checkbox
-            checked={active}
-            size="small"
-            sx={{
-              'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                color: 'grey.400',
-              },
-            }}
-          />
+          {!hideCheckbox && (
+            <Checkbox
+              checked={active}
+              size="small"
+              sx={{
+                'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
+                  color: 'grey.400',
+                },
+              }}
+            />
+          )}
           <SText sx={{ width: '100%' }} lineNumber={2}>
             {text}
           </SText>

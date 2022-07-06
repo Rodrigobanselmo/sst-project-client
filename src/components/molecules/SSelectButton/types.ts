@@ -6,4 +6,5 @@ export interface SSelectButtonProps extends BoxProps {
   text: string;
   active?: boolean;
   disabled?: boolean;
+  hideCheckbox?: boolean;
 }
