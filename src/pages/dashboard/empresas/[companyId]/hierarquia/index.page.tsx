@@ -4,8 +4,11 @@ import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
 import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
+import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
+import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
 import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
+import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { NextPage } from 'next';
 import { STFlexContainer } from 'pages/dashboard/checklist/index.styles';
 
@@ -38,6 +41,9 @@ const Hierarchy: NextPage = () => {
       <ModalAddGenerateSource />
       <ModalAddRecMed />
       <ModalAddEpi />
+      <ModalAddProbability />
+      <ModalAddQuantity />
+      <ModalExcelHierarchies />
     </STFlexContainer>
   );
 };

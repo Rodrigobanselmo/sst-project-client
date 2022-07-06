@@ -268,9 +268,6 @@ export const SidebarOrg = () => {
           </STTableContainer>
         </STBoxContainer>
       )}
-      <ModalAddProbability />
-      <ModalAddQuantity />
-      <ModalExcelHierarchies />
     </>
   );
 };

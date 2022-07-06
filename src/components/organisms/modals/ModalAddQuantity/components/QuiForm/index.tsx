@@ -9,7 +9,6 @@ import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
 
 export const QuiForm = (props: IUseModalQuantity) => {
   const { control, data } = props;
-
   return (
     <SFlex width={['100%', 600, 800, 1000]} direction="column" mt={8}>
       <SText mb={4} color="text.label" fontSize={14}>
