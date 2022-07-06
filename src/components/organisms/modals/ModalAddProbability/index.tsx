@@ -27,7 +27,7 @@ export const ModalAddProbability = () => {
   const buttons = [
     {},
     {
-      text: probabilityData.id ? 'Editar' : 'Criar',
+      text: probabilityData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => {},

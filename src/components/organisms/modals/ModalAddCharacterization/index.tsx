@@ -28,7 +28,7 @@ export const ModalAddCharacterization = () => {
   const buttons = [
     {},
     {
-      text: characterizationData.id ? 'Editar' : 'Criar',
+      text: characterizationData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => {},

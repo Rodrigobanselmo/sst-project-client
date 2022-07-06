@@ -37,7 +37,7 @@ export const ModalAddRecMed = () => {
   const buttons = [
     {},
     {
-      text: recMedData.edit ? 'Editar' : 'Criar',
+      text: recMedData.edit ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => setRecMedData({ ...recMedData, hasSubmit: true }),

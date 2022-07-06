@@ -30,7 +30,7 @@ export const ModalAddEpi = () => {
   const buttons = [
     {},
     {
-      text: epiData.id ? 'Editar' : 'Criar',
+      text: epiData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => setEpiData({ ...epiData }),

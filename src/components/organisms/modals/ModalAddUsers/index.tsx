@@ -33,7 +33,7 @@ export const ModalAddUsers = () => {
   const buttons = [
     {},
     {
-      text: isEdit ? 'Editar' : 'Criar',
+      text: isEdit ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => setUserData({ ...userData }),

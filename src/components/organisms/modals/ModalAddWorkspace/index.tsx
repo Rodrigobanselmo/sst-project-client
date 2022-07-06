@@ -28,7 +28,7 @@ export const ModalAddWorkspace = () => {
   const buttons = [
     {},
     {
-      text: companyData.id ? 'Editar' : 'Criar',
+      text: companyData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => {},

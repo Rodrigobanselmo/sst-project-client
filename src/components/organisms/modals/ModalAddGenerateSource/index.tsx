@@ -38,7 +38,7 @@ export const ModalAddGenerateSource = () => {
   const buttons = [
     {},
     {
-      text: generateSourceData.edit ? 'Editar' : 'Criar',
+      text: generateSourceData.edit ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () =>

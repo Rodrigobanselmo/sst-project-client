@@ -26,7 +26,7 @@ export const ModalAddEmployee = () => {
   const buttons = [
     {},
     {
-      text: employeeData.id ? 'Editar' : 'Criar',
+      text: employeeData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => {},

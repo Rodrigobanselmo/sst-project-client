@@ -33,7 +33,7 @@ export const ModalAddGho = () => {
   const buttons = [
     {},
     {
-      text: ghoData.id ? 'Editar' : 'Criar',
+      text: ghoData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => setGhoData({ ...ghoData }),

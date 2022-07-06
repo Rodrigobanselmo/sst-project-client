@@ -28,7 +28,7 @@ export const ModalAddEnvironment = () => {
   const buttons = [
     {},
     {
-      text: environmentData.id ? 'Editar' : 'Criar',
+      text: environmentData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => {},

@@ -23,7 +23,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
   const buttons = [
     { onClick: () => previousStep(), text: 'Voltar' },
     {
-      text: companyData.id ? 'Editar' : 'Criar',
+      text: companyData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       onClick: () => onSubmit(),
     },

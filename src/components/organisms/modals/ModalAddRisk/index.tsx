@@ -34,7 +34,7 @@ export const ModalAddRisk = () => {
   const buttons = [
     {},
     {
-      text: riskData?.id ? 'Editar' : 'Criar',
+      text: riskData?.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => setRiskData({ ...riskData, hasSubmit: true }),
