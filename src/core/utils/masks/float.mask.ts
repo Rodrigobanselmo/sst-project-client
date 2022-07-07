@@ -12,7 +12,7 @@ interface IFloatProps {
 
 const masked = {
   mask: Number,
-  thousandsSeparator: '.',
+  thousandsSeparator: ' ',
   radix: ',',
   mapToRadix: [','],
   signed: false,

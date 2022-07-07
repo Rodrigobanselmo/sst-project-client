@@ -107,6 +107,7 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
             action={String(severity) as any}
           />
           <ViewsRiskSelect
+            viewType={viewType}
             handleSelectMenu={(option: IViewsRiskOption) =>
               onChangeView && onChangeView(option)
             }

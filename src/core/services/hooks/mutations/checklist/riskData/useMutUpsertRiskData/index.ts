@@ -30,6 +30,7 @@ export interface IUpsertRiskData {
   workspaceId?: string;
   epis?: number[];
   keepEmpty?: boolean;
+  json?: any;
 }
 
 export async function upsertRiskData(

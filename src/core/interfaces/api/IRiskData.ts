@@ -1,5 +1,6 @@
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { QuantityTypeEnum } from 'core/constants/maps/quantity-risks';
 import { IEpi } from 'core/interfaces/api/IEpi';
 
 import { IGho } from './IGho';
@@ -8,6 +9,22 @@ import { IProfessional } from './IProfessional';
 import { IGenerateSource, IRecMed } from './IRiskFactors';
 import { IUser } from './IUser';
 
+export interface IRiskDataJsonQui {
+  stel?: string;
+  twa?: string;
+  nr15lt?: string;
+  stelValue?: string;
+  twaValue?: string;
+  nr15ltValue?: string;
+  type: QuantityTypeEnum;
+}
+
+export interface IRiskDataJsonNoise {
+  ltcatq3?: string;
+  ltcatq5?: string;
+  nr15q3?: string;
+  type: QuantityTypeEnum;
+}
 export interface IRiskData {
   id: string;
   probability?: number;
@@ -24,6 +41,7 @@ export interface IRiskData {
   recs?: IRecMed[];
   engs?: IRecMed[];
   epis?: IEpi[];
+  json?: IRiskDataJsonQui | IRiskDataJsonNoise;
 }
 
 export interface IRiskGroupData {

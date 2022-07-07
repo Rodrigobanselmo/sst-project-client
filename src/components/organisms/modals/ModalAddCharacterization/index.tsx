@@ -9,6 +9,8 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
+
 import { ModalCharacterizationContent } from './components/ModalCharacterizationContent';
 import { useEditCharacterization } from './hooks/useEditCharacterization';
 
@@ -23,6 +25,7 @@ export const ModalAddCharacterization = () => {
     loading,
     modalName,
     isEdit,
+    onRemove,
   } = props;
 
   const buttons = [
@@ -52,6 +55,8 @@ export const ModalAddCharacterization = () => {
           tag={isEdit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
           title={'Mão de Obra (Caracterização)'}
+          secondIcon={characterizationData?.id ? SDeleteIcon : undefined}
+          secondIconClick={onRemove}
         />
 
         <ModalCharacterizationContent {...props} />

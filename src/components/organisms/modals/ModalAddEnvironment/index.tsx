@@ -9,6 +9,8 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
+
 import { ModalEnvironmentContent } from './components/ModalEnvironmentContent';
 import { useEditEnvironment } from './hooks/useEditEnvironment';
 
@@ -23,6 +25,7 @@ export const ModalAddEnvironment = () => {
     loading,
     modalName,
     isEdit,
+    onRemove,
   } = props;
 
   const buttons = [
@@ -52,6 +55,8 @@ export const ModalAddEnvironment = () => {
           tag={isEdit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
           title={'Ambiente de trabalho'}
+          secondIcon={environmentData?.id ? SDeleteIcon : undefined}
+          secondIconClick={onRemove}
         />
 
         <ModalEnvironmentContent {...props} />

@@ -2,7 +2,7 @@
 /* eslint-disable react/display-name */
 import React from 'react';
 
-import { Box, CircularProgress, Icon } from '@mui/material';
+import { CircularProgress, Icon } from '@mui/material';
 
 import SFlex from '../SFlex';
 import SText from '../SText';

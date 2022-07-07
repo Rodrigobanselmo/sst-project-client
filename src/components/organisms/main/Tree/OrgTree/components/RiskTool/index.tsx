@@ -6,14 +6,8 @@ import React, {
   useState,
 } from 'react';
 
-import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
-import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
-import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { useRouter } from 'next/router';
-import {
-  setGhoMultiAddIds,
-  setGhoMultiState,
-} from 'store/reducers/hierarchy/ghoMultiSlice';
+import { setGhoMultiState } from 'store/reducers/hierarchy/ghoMultiSlice';
 import {
   selectGhoId,
   selectGhoOpen,
@@ -83,6 +77,17 @@ export const SidebarOrg = () => {
     dispatch(setGhoSearch(''));
     dispatch(setGhoSearchSelect(''));
   }, [dispatch, viewType]);
+
+  useEffect(() => {
+    dispatch(setRiskAddState({ isEdited: false }));
+    dispatch(setGhoState({ search: '', searchSelect: '', searchRisk: '' }));
+    dispatch(
+      setGhoFilterValues({
+        key: '',
+        values: [],
+      }),
+    );
+  }, [dispatch]);
 
   const handleAddGHO = async () => {
     onOpenModal(ModalEnum.GHO_ADD);

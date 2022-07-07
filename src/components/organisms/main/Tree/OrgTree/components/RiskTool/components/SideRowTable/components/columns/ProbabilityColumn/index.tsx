@@ -38,8 +38,11 @@ export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
 
   const onAddQuantity = () => {
     onOpenModal(ModalEnum.QUANTITY_ADD, {
+      ...(data?.json ? data?.json : {}),
       risk,
       type: hasQuality,
+      onCreate: (value) =>
+        handleSelect({ json: value, probabilityAfter: undefined }),
     } as typeof initialQuantityState);
   };
 

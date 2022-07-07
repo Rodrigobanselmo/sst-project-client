@@ -10,9 +10,12 @@ import { IViewsRiskSelectProps } from './types';
 
 export const ViewsRiskSelect: FC<IViewsRiskSelectProps> = ({
   handleSelectMenu,
+  viewType,
   ...props
 }) => {
-  const [selectedText, setSelectedText] = useState('Trocar View');
+  const [selectedText, setSelectedText] = useState(
+    viewsRiskOptionsConstant[viewType]?.name || '',
+  );
 
   const onSelect = (
     option: any,

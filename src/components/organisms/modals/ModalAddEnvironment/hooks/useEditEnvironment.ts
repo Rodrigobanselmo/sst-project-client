@@ -12,6 +12,7 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutAddEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutAddEnvironmentPhoto';
+import { useMutDeleteEnvironment } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironment';
 import { useMutDeleteEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironmentPhoto';
 import {
   IAddEnvironmentPhoto,
@@ -63,10 +64,11 @@ export const useEditEnvironment = () => {
   });
 
   const upsertMutation = useMutUpsertEnvironment();
+  const deleteMutation = useMutDeleteEnvironment();
   const addPhotoMutation = useMutAddEnvironmentPhoto();
   const deletePhotoMutation = useMutDeleteEnvironmentPhoto();
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const [environmentData, setEnvironmentData] = useState({
     ...initialEnvironmentState,
@@ -195,6 +197,17 @@ export const useEditEnvironment = () => {
     });
   };
 
+  const onRemove = async () => {
+    await deleteMutation
+      .mutateAsync(environmentData.id)
+      .then(() => {
+        setEnvironmentData(initialEnvironmentState);
+        reset();
+        onClose();
+      })
+      .catch(() => {});
+  };
+
   const onAddHierarchy = () => {
     const handleSelect = (hierarchies: ITreeMapObject[]) => {
       setEnvironmentData((oldData) => ({
@@ -239,7 +252,7 @@ export const useEditEnvironment = () => {
     onClose,
     environmentData,
     onSubmit,
-    loading: upsertMutation.isLoading,
+    loading: upsertMutation.isLoading || deleteMutation.isLoading,
     loadingDelete: deletePhotoMutation.isLoading,
     control,
     handleSubmit,
@@ -251,6 +264,7 @@ export const useEditEnvironment = () => {
     onAddHierarchy,
     onAddArray,
     onDeleteArray,
+    onRemove: () => preventDelete(onRemove),
   };
 };
 

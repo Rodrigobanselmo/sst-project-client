@@ -12,6 +12,7 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutAddCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutAddCharacterizationPhoto';
+import { useMutDeleteCharacterization } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterization';
 import { useMutDeleteCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterizationPhoto';
 import {
   IAddCharacterizationPhoto,
@@ -62,11 +63,12 @@ export const useEditCharacterization = () => {
     resolver: yupResolver(characterizationSchema),
   });
 
+  const deleteMutation = useMutDeleteCharacterization();
   const upsertMutation = useMutUpsertCharacterization();
   const addPhotoMutation = useMutAddCharacterizationPhoto();
   const deletePhotoMutation = useMutDeleteCharacterizationPhoto();
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const [characterizationData, setCharacterizationData] = useState({
     ...initialCharacterizationState,
@@ -229,6 +231,17 @@ export const useEditCharacterization = () => {
     });
   };
 
+  const onRemove = async () => {
+    await deleteMutation
+      .mutateAsync(characterizationData.id)
+      .then(() => {
+        setCharacterizationData(initialCharacterizationState);
+        reset();
+        onClose();
+      })
+      .catch(() => {});
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -247,6 +260,7 @@ export const useEditCharacterization = () => {
     onAddHierarchy,
     onAddArray,
     onDeleteArray,
+    onRemove: () => preventDelete(onRemove),
   };
 };
 

@@ -5,6 +5,8 @@ import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 
+import { floatMask } from 'core/utils/masks/float.mask';
+
 import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
 
 export const QuiForm = (props: IUseModalQuantity) => {
@@ -22,7 +24,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
         }}
       >
         <InputForm
-          defaultValue={data.stelValue}
+          defaultValue={data.stelValue.replace('.', ',')}
           labelPosition="center"
           label="Resultado"
           control={control}
@@ -30,9 +32,10 @@ export const QuiForm = (props: IUseModalQuantity) => {
           name="stelValue"
           size="small"
           endAdornment={data.risk.unit}
+          mask={floatMask.apply({ negative: false })}
         />
         <InputForm
-          defaultValue={data.risk.stel}
+          defaultValue={(data.risk.stel || '').replace('.', ',')}
           label="LEO"
           labelPosition="center"
           control={control}
@@ -40,6 +43,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
           name="stel"
           size="small"
           endAdornment={data.risk.unit}
+          mask={floatMask.apply({ negative: false })}
         />
       </SFlex>
 
@@ -54,7 +58,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
         }}
       >
         <InputForm
-          defaultValue={data.twaValue}
+          defaultValue={data.twaValue.replace('.', ',')}
           labelPosition="center"
           label="Resultado"
           control={control}
@@ -62,9 +66,10 @@ export const QuiForm = (props: IUseModalQuantity) => {
           name="twaValue"
           size="small"
           endAdornment={data.risk.unit}
+          mask={floatMask.apply({ negative: false })}
         />
         <InputForm
-          defaultValue={data.risk.twa}
+          defaultValue={(data.risk.twa || '').replace('.', ',')}
           label="LEO"
           labelPosition="center"
           control={control}
@@ -72,6 +77,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
           name="twa"
           size="small"
           endAdornment={data.risk.unit}
+          mask={floatMask.apply({ negative: false })}
         />
       </SFlex>
 
@@ -86,7 +92,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
         }}
       >
         <InputForm
-          defaultValue={data.nr15ltValue}
+          defaultValue={data.nr15ltValue.replace('.', ',')}
           labelPosition="center"
           label="Resultado"
           control={control}
@@ -94,9 +100,10 @@ export const QuiForm = (props: IUseModalQuantity) => {
           name="nr15ltValue"
           size="small"
           endAdornment={data.risk.unit}
+          mask={floatMask.apply({ negative: false })}
         />
         <InputForm
-          defaultValue={data.risk.nr15lt}
+          defaultValue={(data.risk.nr15lt || '').replace('.', ',')}
           label="LEO"
           labelPosition="center"
           control={control}
@@ -104,6 +111,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
           name="nr15lt"
           size="small"
           endAdornment={data.risk.unit}
+          mask={floatMask.apply({ negative: false })}
         />
       </SFlex>
     </SFlex>

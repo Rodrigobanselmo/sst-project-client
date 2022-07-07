@@ -29,23 +29,25 @@ export const initialQuantityState = {
   ltcatq5: '',
   nr15q3: '',
 
-  type: QuantityTypeEnum,
+  type: '',
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onCreate: (value: number) => {},
+  onCreate: (value: any) => {},
 };
 
 interface ISubmit {
-  stel?: number;
-  twa?: number;
-  nr15lt?: number;
-  stelValue?: number;
-  twaValue?: number;
-  nr15ltValue?: number;
+  stel?: string;
+  twa?: string;
+  nr15lt?: string;
+  stelValue?: string;
+  twaValue?: string;
+  nr15ltValue?: string;
 
-  ltcatq3?: number;
-  ltcatq5?: number;
-  nr15q3?: number;
+  ltcatq3?: string;
+  ltcatq5?: string;
+  nr15q3?: string;
+
+  type: QuantityTypeEnum;
 }
 
 const modalName = ModalEnum.QUANTITY_ADD;
@@ -104,8 +106,24 @@ export const useModalAddQuantity = () => {
   };
 
   const onSubmit: SubmitHandler<ISubmit> = async (dataFrom) => {
+    let submit = {} as any;
+
+    if (data.type == QuantityTypeEnum.QUI)
+      submit = {
+        // eslint-disable-next-line prettier/prettier
+        stelValue: (dataFrom.stelValue || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        twaValue: (dataFrom.twaValue || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        nr15ltValue: (dataFrom.nr15ltValue || '').replaceAll('.', '').replace(',', '.'),
+        stel: (dataFrom.stel || '').replaceAll('.', '').replace(',', '.'),
+        twa: (dataFrom.twa || '').replaceAll('.', '').replace(',', '.'),
+        nr15lt: (dataFrom.nr15lt || '').replaceAll('.', '').replace(',', '.'),
+        type: QuantityTypeEnum.QUI,
+      };
+
     // console.log(data);
-    data.onCreate && data.onCreate(3);
+    data.onCreate && data.onCreate(submit);
 
     onClose();
   };
