@@ -14,6 +14,9 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
+import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
+import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
@@ -144,6 +147,8 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
         />
       </STable>
       <ModalAddRiskGroup />
+      <ModalSelectCompany />
+      <ModalSelectDocPgr />
     </>
   );
 };

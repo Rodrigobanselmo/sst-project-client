@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Checkbox } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { STableRow } from 'components/atoms/STable';
+import STableLoading from 'components/atoms/STable/components/STableLoading';
 import SText from 'components/atoms/SText';
 import SModal, {
   SModalButtons,
@@ -23,39 +24,75 @@ import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskG
 import { EmptyDocPgrData } from '../empty/EmptyDocPgrData';
 import { EmptyHierarchyData } from '../empty/EmptyHierarchyData';
 
-interface IModalSelectDocPgr {
-  onSelect: (workspace: IRiskGroupData, passData: any) => void;
-  title?: string;
-  onCloseWithoutSelect?: () => void;
-}
+export const initialDocPgrSelectState = {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  onSelect: (company: IRiskGroupData | IRiskGroupData[]) => {},
+  companyId: undefined as unknown as string,
+  title: 'Selecione a empresa',
+  multiple: false,
+  removeIds: [] as string[],
+  selected: [] as IRiskGroupData[],
+  onCloseWithoutSelect: () => {},
+};
 
-export const ModalSelectDocPgr: FC<IModalSelectDocPgr> = ({
-  onSelect,
-  title = 'Selecione um documento PGR para continuar',
-  onCloseWithoutSelect,
-}) => {
+export const ModalSelectDocPgr: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
-  const { data: riskGroupData } = useQueryRiskGroupData();
+  const [selectData, setSelectData] = useState(initialDocPgrSelectState);
+  const { data: riskGroupData, isLoading } = useQueryRiskGroupData(
+    selectData.companyId,
+  );
   const { data: company } = useQueryCompany();
-  const initData = useRef<any>({});
 
   useEffect(() => {
-    const initialData = getModalData(ModalEnum.DOC_PGR_SELECT);
-    if (initialData) initData.current = initialData;
+    const initialData = getModalData(
+      ModalEnum.DOC_PGR_SELECT,
+    ) as typeof initialDocPgrSelectState;
+
+    if (initialData) {
+      setSelectData((oldData) => {
+        const newData = {
+          ...oldData,
+          ...initialData,
+        };
+
+        return newData;
+      });
+    }
   }, [getModalData]);
 
   const onCloseNoSelect = () => {
-    onCloseWithoutSelect?.();
+    selectData.onCloseWithoutSelect?.();
     onCloseModal(ModalEnum.DOC_PGR_SELECT);
   };
 
   const handleSelect = (docPgr: IRiskGroupData) => () => {
+    if (selectData.multiple && docPgr) {
+      setSelectData((oldData) => {
+        const filtered = oldData.selected.filter((w) => w.id != docPgr.id);
+
+        if (filtered.length !== oldData.selected.length)
+          return { ...oldData, selected: filtered };
+
+        return { ...oldData, selected: [docPgr, ...oldData.selected] };
+      });
+      return;
+    }
+
     onCloseModal(ModalEnum.DOC_PGR_SELECT);
-    onSelect(docPgr, initData.current);
+    selectData.onSelect(docPgr || selectData.selected);
   };
 
   const buttons = [{}] as IModalButton[];
+
+  if (selectData.multiple) {
+    buttons.push({
+      onClick: () => {
+        onCloseModal(ModalEnum.COMPANY_SELECT);
+        selectData.onSelect(selectData.selected);
+      },
+    });
+  }
 
   return (
     <SModal
@@ -63,31 +100,59 @@ export const ModalSelectDocPgr: FC<IModalSelectDocPgr> = ({
       keepMounted={false}
       onClose={onCloseNoSelect}
     >
-      <SModalPaper p={8}>
+      <SModalPaper center p={8}>
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <Box mt={8}>
-          {company.hierarchyCount ? (
-            riskGroupData.length !== 0 ? (
-              <SFlex direction="column" gap={5}>
-                <SText mt={-4} mr={40}>
-                  {title}
-                </SText>
-                {riskGroupData.map((work) => (
-                  <STableRow
-                    clickable
-                    onClick={handleSelect(work)}
-                    key={work.id}
-                  >
-                    {work.name}
-                  </STableRow>
-                ))}
-              </SFlex>
-            ) : (
-              <EmptyDocPgrData />
-            )
+          {!isLoading ? (
+            <>
+              {company.hierarchyCount ? (
+                riskGroupData.length !== 0 ? (
+                  <SFlex direction="column" gap={5}>
+                    <SText mt={-4} mr={40}>
+                      {selectData.title}
+                    </SText>
+                    {riskGroupData.map((work) => {
+                      if (selectData.removeIds.includes(work.id)) return null;
+
+                      return (
+                        <STableRow
+                          clickable
+                          onClick={handleSelect(work)}
+                          key={work.id}
+                        >
+                          <SFlex align="center">
+                            {selectData.multiple && (
+                              <Checkbox
+                                checked={
+                                  !!selectData.selected.find(
+                                    (c) => c.id === company.id,
+                                  )
+                                }
+                                size="small"
+                                sx={{
+                                  'svg[data-testid="CheckBoxOutlineBlankIcon"]':
+                                    {
+                                      color: 'grey.400',
+                                    },
+                                }}
+                              />
+                            )}
+                            {work.name}
+                          </SFlex>
+                        </STableRow>
+                      );
+                    })}
+                  </SFlex>
+                ) : (
+                  <EmptyDocPgrData />
+                )
+              ) : (
+                <EmptyHierarchyData />
+              )}
+            </>
           ) : (
-            <EmptyHierarchyData />
+            <STableLoading rowGap={'10px'} />
           )}
         </Box>
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

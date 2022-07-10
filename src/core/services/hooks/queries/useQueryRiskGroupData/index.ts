@@ -19,14 +19,18 @@ export const queryGroupRiskData = async (
   return response.data;
 };
 
-export function useQueryRiskGroupData(): IReactQuery<IRiskGroupData[]> {
+export function useQueryRiskGroupData(
+  priorCompanyId?: string,
+): IReactQuery<IRiskGroupData[]> {
   const { companyId } = useGetCompanyId();
 
+  const companySelectId = priorCompanyId || companyId;
+
   const { data, ...query } = useQuery(
-    [QueryEnum.RISK_GROUP_DATA, companyId],
+    [QueryEnum.RISK_GROUP_DATA, companySelectId],
     () =>
-      companyId
-        ? queryGroupRiskData(companyId)
+      companySelectId
+        ? queryGroupRiskData(companySelectId)
         : <Promise<IRiskGroupData[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

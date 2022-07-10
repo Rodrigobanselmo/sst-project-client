@@ -48,12 +48,18 @@ export const usePreventAction = () => {
     onOpenGlobalModal(data, callback);
   };
 
-  const preventWarn = (message?: string, callback?: () => void) => {
+  const preventWarn = (
+    message?: ReactNode,
+    callback?: () => void,
+    options: Partial<IModalDataSlice> = {} as IModalDataSlice,
+  ) => {
     const data = {
       title: 'Você tem certeza?',
       text: message || 'Você tem certeza que deseja proceguir?',
       confirmText: 'OK',
+      confirmCancel: 'Cancel',
       tag: 'warning',
+      ...options,
     } as IModalDataSlice;
 
     onOpenGlobalModal(data, callback);

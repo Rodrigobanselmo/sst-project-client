@@ -1,9 +1,9 @@
 import React, { FC, useEffect, useState } from 'react';
 
 import { Box, Checkbox } from '@mui/material';
-import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { STableRow } from 'components/atoms/STable';
+import STableLoading from 'components/atoms/STable/components/STableLoading';
 import SText from 'components/atoms/SText';
 import SModal, {
   SModalButtons,
@@ -15,28 +15,29 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IWorkspace } from 'core/interfaces/api/ICompany';
+import { ICompany } from 'core/interfaces/api/ICompany';
+import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
-export const initialWorkspaceSelectState = {
+export const initialCompanySelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onSelect: (work: IWorkspace | IWorkspace[]) => {},
-  title: 'Selecione o estabelecimento',
+  onSelect: (company: ICompany | ICompany[]) => {},
+  title: 'Selecione a empresa',
   multiple: false,
-  selected: [] as IWorkspace[],
+  selected: [] as ICompany[],
   onCloseWithoutSelect: () => {},
 };
 
-export const ModalSelectWorkspace: FC = () => {
+export const ModalSelectCompany: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onOpenModal } = useModal();
-  const { data: company } = useQueryCompany();
-  const [selectData, setSelectData] = useState(initialWorkspaceSelectState);
+  const { data: companies, isLoading } = useQueryCompanies();
+  const [selectData, setSelectData] = useState(initialCompanySelectState);
 
   useEffect(() => {
     const initialData = getModalData(
-      ModalEnum.WORKSPACE_SELECT,
-    ) as typeof initialWorkspaceSelectState;
+      ModalEnum.COMPANY_SELECT,
+    ) as typeof initialCompanySelectState;
 
     if (initialData) {
       setSelectData((oldData) => {
@@ -52,28 +53,28 @@ export const ModalSelectWorkspace: FC = () => {
 
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();
-    onCloseModal(ModalEnum.WORKSPACE_SELECT);
+    onCloseModal(ModalEnum.COMPANY_SELECT);
   };
 
-  const handleSelect = (work?: IWorkspace) => () => {
-    if (selectData.multiple && work) {
+  const handleSelect = (company?: ICompany) => () => {
+    if (selectData.multiple && company) {
       setSelectData((oldData) => {
-        const filtered = oldData.selected.filter((w) => w.id != work.id);
+        const filtered = oldData.selected.filter((w) => w.id != company.id);
 
         if (filtered.length !== oldData.selected.length)
           return { ...oldData, selected: filtered };
 
-        return { ...oldData, selected: [work, ...oldData.selected] };
+        return { ...oldData, selected: [company, ...oldData.selected] };
       });
       return;
     }
 
-    onCloseModal(ModalEnum.WORKSPACE_SELECT);
-    selectData.onSelect(work || selectData.selected);
+    onCloseModal(ModalEnum.COMPANY_SELECT);
+    selectData.onSelect(company || selectData.selected);
   };
 
   const handleAddMissingData = () => {
-    onOpenModal(ModalEnum.WORKSPACE_ADD);
+    onOpenModal(ModalEnum.COMPANY_ADD);
   };
 
   const buttons = [{}] as IModalButton[];
@@ -81,7 +82,7 @@ export const ModalSelectWorkspace: FC = () => {
   if (selectData.multiple) {
     buttons.push({
       onClick: () => {
-        onCloseModal(ModalEnum.WORKSPACE_SELECT);
+        onCloseModal(ModalEnum.COMPANY_SELECT);
         selectData.onSelect(selectData.selected);
       },
     });
@@ -89,52 +90,46 @@ export const ModalSelectWorkspace: FC = () => {
 
   return (
     <SModal
-      {...registerModal(ModalEnum.WORKSPACE_SELECT)}
+      {...registerModal(ModalEnum.COMPANY_SELECT)}
       keepMounted={false}
       onClose={onCloseNoSelect}
     >
       <SModalPaper center p={8}>
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
-        <Box mt={8}>
-          {company.workspace && company.workspace.length > 0 ? (
+        <Box width={['100%', 600, 800]} mt={8}>
+          {!isLoading ? (
             <SFlex direction="column" gap={5}>
               <SText mt={-4} mr={40}>
                 {selectData.title}
               </SText>
-              {company.workspace.map((work) => (
-                <STableRow clickable onClick={handleSelect(work)} key={work.id}>
+              {companies.map((company) => (
+                <STableRow
+                  clickable
+                  onClick={handleSelect(company)}
+                  key={company.id}
+                >
                   <SFlex align="center">
-                    <Checkbox
-                      checked={
-                        !!selectData.selected.find((w) => w.id === work.id)
-                      }
-                      size="small"
-                      sx={{
-                        'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                          color: 'grey.400',
-                        },
-                      }}
-                    />
-                    {work.name}
+                    {selectData.multiple && (
+                      <Checkbox
+                        checked={
+                          !!selectData.selected.find((c) => c.id === company.id)
+                        }
+                        size="small"
+                        sx={{
+                          'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
+                            color: 'grey.400',
+                          },
+                        }}
+                      />
+                    )}
+                    {company.name}
                   </SFlex>
                 </STableRow>
               ))}
             </SFlex>
           ) : (
-            <>
-              <SText mt={-4} maxWidth="400px">
-                Nenhum estabelecimento cadastrado, por favor cadastre antes de
-                gerar um novo documento
-              </SText>
-              <SButton
-                onClick={handleAddMissingData}
-                color="secondary"
-                sx={{ mt: 5 }}
-              >
-                Cadastrar Estabelecimento
-              </SButton>
-            </>
+            <STableLoading rowGap={'10px'} />
           )}
         </Box>
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

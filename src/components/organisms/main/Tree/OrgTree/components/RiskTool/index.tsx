@@ -65,8 +65,8 @@ export const SidebarOrg = () => {
   const cleanMutation = useMutDeleteManyRiskData();
   const risk = useAppSelector(selectRisk);
 
-  const [viewType, setViewType] = useState(ViewTypeEnum.SIMPLE_BY_GROUP);
-  const [viewDataType, setViewDataType] = useState(ViewsDataEnum.HIERARCHY);
+  const viewType = useAppSelector((state) => state.riskAdd.viewType);
+  const viewDataType = useAppSelector((state) => state.riskAdd.viewData);
 
   const isOpen = false;
 
@@ -183,9 +183,7 @@ export const SidebarOrg = () => {
   );
 
   const handleChangeView = (option: IViewsRiskOption) => {
-    setViewType(option.value);
-
-    dispatch(setRiskAddState({ isEdited: false }));
+    dispatch(setRiskAddState({ viewType: option.value, isEdited: false }));
     dispatch(setGhoState({ search: '', searchSelect: '', searchRisk: '' }));
     dispatch(
       setGhoFilterValues({
@@ -200,11 +198,10 @@ export const SidebarOrg = () => {
       alert('Em breve!');
     }
 
-    setViewDataType(option.value);
     dispatch(setGhoMultiState({ selectedDisabledIds: [], selectedIds: [] }));
 
     dispatch(setGhoSelectedId(null));
-    dispatch(setRiskAddState({ isEdited: false }));
+    dispatch(setRiskAddState({ viewData: option.value, isEdited: false }));
     dispatch(setGhoState({ search: '', searchSelect: '', searchRisk: '' }));
     dispatch(
       setGhoFilterValues({

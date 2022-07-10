@@ -11,9 +11,12 @@ import { IViewsRiskSelectProps } from './types';
 
 export const ViewsDataSelect: FC<IViewsRiskSelectProps> = ({
   handleSelectMenu,
+  viewDataType,
   ...props
 }) => {
-  const [selectedText, setSelectedText] = useState('Trocar Seleção');
+  const [selectedText, setSelectedText] = useState(
+    viewsDataOptionsConstant[viewDataType]?.name || '',
+  );
 
   const onSelect = (
     option: any,

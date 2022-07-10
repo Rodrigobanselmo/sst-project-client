@@ -70,7 +70,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
               {topText}
             </SText>
           )}
-          <SFlex width="90%" center flex={1}>
+          <SFlex center width="100%">
             {icon && !loading && (
               <Icon
                 sx={{
@@ -91,22 +91,17 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
               />
             )}
             {text && (
-              <SFlex align="center" justify="center">
-                <SText
-                  fontSize="13px"
-                  color="text.primary"
-                  sx={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    color: active ? 'common.white' : 'common.black',
-                    textAlign: 'center',
-                    mb: -1,
-                  }}
-                >
-                  {text}
-                </SText>
-              </SFlex>
+              <SText
+                fontSize="13px"
+                color="text.primary"
+                noBreak
+                sx={{
+                  color: active ? 'common.white' : 'common.black',
+                  mb: -1,
+                }}
+              >
+                {text}
+              </SText>
             )}
           </SFlex>
           {subText && (

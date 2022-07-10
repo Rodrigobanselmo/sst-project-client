@@ -23,6 +23,7 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IGho } from 'core/interfaces/api/IGho';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
+import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { useListHierarchy } from '../../hooks/useListHierarchy';
 import { StyledGridMultiGho } from '../../styles';
 import {
@@ -197,6 +198,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           handleSelectGHO={handleSelectGHO}
           handleEditGHO={handleEditGHO}
           handleAddGHO={handleAddGHO}
+          placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
         />
         <STagButton
           icon={LibraryAddCheckOutlinedIcon}
@@ -212,6 +214,13 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           if (viewDataType == ViewsDataEnum.GSE && gho.type) {
             return null;
           }
+
+          if (
+            gho.type === TreeTypeEnum.WORKSPACE ||
+            gho.type === TreeTypeEnum.COMPANY
+          )
+            return null;
+
           return (
             <SideUnselectedGho
               viewDataType={viewDataType}

@@ -1,5 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
+import { ViewTypeEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-risk-type.constant';
 
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
@@ -10,6 +12,8 @@ export interface IRiskAddState {
   expanded: boolean;
   risk: IRiskFactors | null;
   risks: IRiskFactors[];
+  viewType: ViewTypeEnum;
+  viewData: ViewsDataEnum;
   isSaving: boolean;
   isEdited: boolean;
 }
@@ -17,6 +21,8 @@ export interface IRiskAddState {
 const initialState: IRiskAddState = {
   init: false,
   expanded: true,
+  viewType: ViewTypeEnum.SIMPLE_BY_GROUP,
+  viewData: ViewsDataEnum.HIERARCHY,
   risk: null,
   risks: [],
   isSaving: false,

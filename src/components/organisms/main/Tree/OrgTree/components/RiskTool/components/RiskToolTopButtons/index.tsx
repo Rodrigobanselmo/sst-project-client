@@ -44,6 +44,7 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
   handleSelectGHO,
   onChangeView,
   viewType,
+  viewDataType,
   onChangeViewData,
 }) => {
   const dispatch = useAppDispatch();
@@ -113,6 +114,7 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
             }
           />
           <ViewsDataSelect
+            viewDataType={viewDataType}
             handleSelectMenu={(option: IViewsDataOption) =>
               onChangeViewData && onChangeViewData(option)
             }

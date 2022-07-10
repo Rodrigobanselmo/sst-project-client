@@ -1,8 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
+/* eslint-disable quotes */
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
+import { STagButton } from 'components/atoms/STagButton';
+import SText from 'components/atoms/SText';
 import SModal, {
   SModalButtons,
   SModalHeader,
@@ -13,15 +16,22 @@ import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import SDownloadIcon from 'assets/icons/SDownloadIcon';
+
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { ICompany } from 'core/interfaces/api/ICompany';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutUpsertRiskGroupData } from 'core/services/hooks/mutations/checklist/useMutUpsertRiskGroupData';
+import { useMutCopyCompany } from 'core/services/hooks/mutations/manager/useMutCopyCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { StatusSelect } from '../../tagSelects/StatusSelect';
 import { EmptyHierarchyData } from '../empty/EmptyHierarchyData';
+import { initialCompanySelectState } from '../ModalSelectCompany';
+import { initialDocPgrSelectState } from '../ModalSelectDocPgr';
 
 export const initialRiskGroupState = {
   name: '',
@@ -33,21 +43,22 @@ export const initialRiskGroupState = {
 
 export const ModalAddRiskGroup = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
+  const { onCloseModal, onOpenModal } = useModal();
   const mutation = useMutUpsertRiskGroupData();
   const { push } = useRouter();
   const initialDataRef = useRef(initialRiskGroupState);
   const { data: company } = useQueryCompany();
+  const copyMutation = useMutCopyCompany();
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventUnwantedChanges, preventWarn } = usePreventAction();
   const { enqueueSnackbar } = useSnackbar();
 
   const [riskGroupData, setRiskGroupData] = useState(initialRiskGroupState);
 
-  const onClose = () => {
+  const onClose = useCallback(() => {
     onCloseModal(ModalEnum.RISK_GROUP_ADD);
     setRiskGroupData(initialRiskGroupState);
-  };
+  }, [onCloseModal]);
 
   const onSave = async () => {
     if (!riskGroupData.name) {
@@ -98,6 +109,54 @@ export const ModalAddRiskGroup = () => {
       });
     }
   }, [getModalData]);
+
+  const handleCopyCompany = useCallback(() => {
+    onOpenModal(ModalEnum.COMPANY_SELECT, {
+      onSelect: (company: ICompany) =>
+        onOpenModal(ModalEnum.DOC_PGR_SELECT, {
+          companyId: company.id,
+          removeIds: [riskGroupData.id],
+          title: 'Selecione de qual documento PGR deseja copiar',
+          onSelect: (docPgr: IRiskGroupData) =>
+            preventWarn(
+              <SText textAlign={'justify'}>
+                Você tem certeza que deseja importar da empresa{' '}
+                <b> {company.name}</b> todos os dados de:
+                <ul>
+                  <li>Caracterização Básica</li>
+                  <li>Grupos homogênios</li>
+                  <li>Fatores de riscos/perigos</li>
+                </ul>
+                <br />
+                <b>OBS:</b> Serão importados somente os dados que estiverem
+                vincúlados a <b>cargos, setores, etc</b> que possuirem
+                exatamente o mesmo nome e hierarquia.
+              </SText>,
+              () =>
+                copyMutation
+                  .mutateAsync({
+                    copyFromCompanyId: company.id,
+                    docId: docPgr.id,
+                  })
+                  .then((doc) => {
+                    if (riskGroupData.goTo && doc)
+                      push(riskGroupData.goTo.replace(':docId', doc.id));
+                    onClose();
+                  })
+                  .catch(() => {}),
+              { confirmText: 'Importar' },
+            ),
+        } as Partial<typeof initialDocPgrSelectState>),
+    } as Partial<typeof initialCompanySelectState>);
+  }, [
+    copyMutation,
+    onClose,
+    onOpenModal,
+    preventWarn,
+    push,
+    riskGroupData.goTo,
+    riskGroupData.id,
+  ]);
 
   const buttons = [
     {},
@@ -151,6 +210,12 @@ export const ModalAddRiskGroup = () => {
                   setRiskGroupData({ ...riskGroupData, status: option.value })
                 }
               />
+              <STagButton
+                icon={SDownloadIcon}
+                text="Importar de outra empresa"
+                large
+                onClick={handleCopyCompany}
+              />
             </SFlex>
           </>
         ) : (
@@ -158,7 +223,7 @@ export const ModalAddRiskGroup = () => {
         )}
 
         <SModalButtons
-          loading={mutation.isLoading}
+          loading={mutation.isLoading || copyMutation.isLoading}
           onClose={onCloseUnsaved}
           buttons={buttons}
         />

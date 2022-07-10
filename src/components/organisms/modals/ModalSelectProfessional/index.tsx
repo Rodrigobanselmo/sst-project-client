@@ -92,7 +92,7 @@ export const ModalSelectProfessional: FC = () => {
       keepMounted={false}
       onClose={onCloseNoSelect}
     >
-      <SModalPaper p={8}>
+      <SModalPaper center p={8}>
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <Box mt={8}>

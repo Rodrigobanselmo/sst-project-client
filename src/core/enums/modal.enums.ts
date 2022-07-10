@@ -10,6 +10,7 @@ export enum ModalEnum {
   CHARACTERIZATION_ADD = 'characterization-add',
   DOC_PGR_SELECT = 'doc-pgr-select',
   WORKSPACE_SELECT = 'workspace-select',
+  COMPANY_SELECT = 'company-select',
   PROFESSIONAL_SELECT = 'professional-select',
   USER_SELECT = 'user-select',
   RISK_GROUP_DOC_ADD = 'risk-group-doc-add',

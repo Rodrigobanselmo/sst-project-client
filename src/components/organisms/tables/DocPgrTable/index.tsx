@@ -13,6 +13,9 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
+import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
+import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -98,6 +101,8 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
         />
       </STable>
       <ModalAddRiskGroup />
+      <ModalSelectCompany />
+      <ModalSelectDocPgr />
     </>
   );
 };

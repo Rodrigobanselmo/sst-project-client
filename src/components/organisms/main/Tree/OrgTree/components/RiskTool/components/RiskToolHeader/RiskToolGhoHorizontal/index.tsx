@@ -4,6 +4,7 @@ import React, { FC, useCallback, useMemo, useRef } from 'react';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
+import { TreeTypeEnum } from 'components/organisms/main/Tree/OrgTree/enums/tree-type.enums';
 import {
   setGhoSearch,
   setGhoSearchRisk,
@@ -127,14 +128,22 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
             Math.ceil(data.length / 1),
           ).map((ghoChunk, index) => (
             <SFlex key={index}>
-              {ghoChunk.map((gho) => (
-                <RiskToolGhoItem
-                  onClick={() => handleSelect(gho)}
-                  gho={gho}
-                  key={gho.id}
-                  viewDataType={viewDataType}
-                />
-              ))}
+              {ghoChunk.map((gho) => {
+                if (
+                  gho.type === TreeTypeEnum.COMPANY ||
+                  gho.type === TreeTypeEnum.WORKSPACE
+                )
+                  return null;
+
+                return (
+                  <RiskToolGhoItem
+                    onClick={() => handleSelect(gho)}
+                    gho={gho}
+                    key={gho.id}
+                    viewDataType={viewDataType}
+                  />
+                );
+              })}
             </SFlex>
           ))}
         </StyledFlexMultiGho>

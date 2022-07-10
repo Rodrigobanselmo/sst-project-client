@@ -12,7 +12,11 @@ import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExce
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
-import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
+import {
+  initialDocPgrSelectState,
+  ModalSelectDocPgr,
+} from 'components/organisms/modals/ModalSelectDocPgr';
 import {
   initialWorkspaceSelectState,
   ModalSelectWorkspace,
@@ -36,6 +40,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
@@ -83,8 +88,18 @@ const CompanyPage: NextPage = () => {
   }, [company.id, company.riskGroupCount, onOpenModal, push]);
 
   const handleAddRisk = useCallback(() => {
-    onOpenModal(ModalEnum.DOC_PGR_SELECT);
-  }, [onOpenModal]);
+    onOpenModal(ModalEnum.DOC_PGR_SELECT, {
+      title:
+        'Selecione para qual documento PGR deseja adicionar os fatores de risco',
+      onSelect: (docPgr: IRiskGroupData) =>
+        push(
+          RoutesEnum.RISK_DATA.replace(/:companyId/g, company.id).replace(
+            /:riskGroupId/g,
+            docPgr.id,
+          ),
+        ),
+    } as Partial<typeof initialDocPgrSelectState>);
+  }, [company.id, onOpenModal, push]);
 
   const handleGoHierarchy = useCallback(() => {
     push(RoutesEnum.HIERARCHY.replace(':companyId', company.id || ''));
@@ -281,19 +296,10 @@ const CompanyPage: NextPage = () => {
       <ModalAddExcelEmployees />
       <ModalAddRiskGroup />
       <ModalSelectWorkspace />
+      <ModalSelectDocPgr />
       <ModalEditCompany />
       <ModalUploadPhoto />
-      <ModalSelectDocPgr
-        title="Selecione para qual documento PGR deseja adicionar os fatores de risco"
-        onSelect={(docPgr) =>
-          push(
-            RoutesEnum.RISK_DATA.replace(/:companyId/g, company.id).replace(
-              /:riskGroupId/g,
-              docPgr.id,
-            ),
-          )
-        }
-      />
+      <ModalSelectCompany />
     </SContainer>
   );
 };
