@@ -41,15 +41,20 @@ export function useMutUpdateUserCompany({
     {
       onSuccess: async (user) => {
         if (user) {
-          queryClient.setQueryData(
+          const actualData = queryClient.getQueryData(
+            // eslint-disable-next-line prettier/prettier
             [QueryEnum.USERS, companyId],
-            (oldData: IUser[] | undefined) =>
-              oldData
-                ? oldData.map((data) =>
-                    user.id === data.id ? { ...data, ...user } : data,
-                  )
-                : [user],
           );
+          if (actualData)
+            queryClient.setQueryData(
+              [QueryEnum.USERS, companyId],
+              (oldData: IUser[] | undefined) =>
+                oldData
+                  ? oldData.map((data) =>
+                      user.id === data.id ? { ...data, ...user } : data,
+                    )
+                  : [user],
+            );
 
           queryClient.setQueryData(
             [QueryEnum.USERS, companyId, user.id],

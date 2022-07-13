@@ -44,18 +44,29 @@ export function useMutCreateRisk() {
     {
       onSuccess: async (resp) => {
         if (resp) {
-          queryClient.setQueryData(
-            [QueryEnum.RISK, resp.companyId],
-            (oldData: IRiskFactors[] | undefined) =>
-              oldData ? [...oldData, resp] : [resp],
+          const actualData = queryClient.getQueryData(
+            // eslint-disable-next-line prettier/prettier
+              [QueryEnum.RISK, resp.companyId],
           );
-
-          if (resp.companyId != companyId)
+          if (actualData)
             queryClient.setQueryData(
-              [QueryEnum.RISK, companyId],
+              [QueryEnum.RISK, resp.companyId],
               (oldData: IRiskFactors[] | undefined) =>
                 oldData ? [...oldData, resp] : [resp],
             );
+
+          if (resp.companyId != companyId) {
+            const actualData = queryClient.getQueryData(
+              // eslint-disable-next-line prettier/prettier
+              [QueryEnum.RISK, companyId],
+            );
+            if (actualData)
+              queryClient.setQueryData(
+                [QueryEnum.RISK, companyId],
+                (oldData: IRiskFactors[] | undefined) =>
+                  oldData ? [...oldData, resp] : [resp],
+              );
+          }
         }
 
         enqueueSnackbar('Fator de risco criado com sucesso', {

@@ -66,38 +66,41 @@ export function useMutUpsertRiskData() {
       onSuccess: async (resp) => {
         if (resp) {
           const replace = (lastId: string) => {
-            queryClient.setQueryData(
-              [
-                QueryEnum.RISK_DATA,
-                getCompanyId(resp),
-                resp.riskFactorGroupDataId,
-                lastId,
-              ],
-              (oldData: IRiskData[] | undefined) => {
-                if (oldData) {
-                  const newData = [...oldData];
+            // eslint-disable-next-line prettier/prettier
+            const actualData = queryClient.getQueryData( [ QueryEnum.RISK_DATA, getCompanyId(resp), resp.riskFactorGroupDataId, lastId, ]);
+            if (actualData)
+              queryClient.setQueryData(
+                [
+                  QueryEnum.RISK_DATA,
+                  getCompanyId(resp),
+                  resp.riskFactorGroupDataId,
+                  lastId,
+                ],
+                (oldData: IRiskData[] | undefined) => {
+                  if (oldData) {
+                    const newData = [...oldData];
 
-                  if ('deletedId' in resp) {
-                    return newData.filter(
-                      (item) => item.id !== (resp as any).deletedId,
+                    if ('deletedId' in resp) {
+                      return newData.filter(
+                        (item) => item.id !== (resp as any).deletedId,
+                      );
+                    }
+
+                    const updateIndexData = oldData.findIndex(
+                      (old) => old.id == resp.id,
                     );
+
+                    if (updateIndexData != -1) {
+                      newData[updateIndexData] = resp;
+                    } else {
+                      newData.push(resp);
+                    }
+
+                    return newData;
                   }
-
-                  const updateIndexData = oldData.findIndex(
-                    (old) => old.id == resp.id,
-                  );
-
-                  if (updateIndexData != -1) {
-                    newData[updateIndexData] = resp;
-                  } else {
-                    newData.push(resp);
-                  }
-
-                  return newData;
-                }
-                return [];
-              },
-            );
+                  return [];
+                },
+              );
           };
 
           replace(resp.riskId);

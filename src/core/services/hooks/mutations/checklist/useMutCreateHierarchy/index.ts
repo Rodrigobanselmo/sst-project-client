@@ -45,12 +45,18 @@ export function useMutCreateHierarchy() {
       createHierarchy(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
-        if (resp)
-          queryClient.setQueryData(
-            [QueryEnum.HIERARCHY, resp.companyId],
-            (oldData: IHierarchy[] | undefined) =>
-              oldData ? [...oldData, resp] : [resp],
+        if (resp) {
+          const actualData = queryClient.getQueryData(
+            // eslint-disable-next-line prettier/prettier
+            [QueryEnum.HIERARCHY, resp.companyId]
           );
+          if (actualData)
+            queryClient.setQueryData(
+              [QueryEnum.HIERARCHY, resp.companyId],
+              (oldData: IHierarchy[] | undefined) =>
+                oldData ? [...oldData, resp] : [resp],
+            );
+        }
 
         enqueueSnackbar('Hierarquia criado com sucesso', {
           variant: 'success',

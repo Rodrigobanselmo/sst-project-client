@@ -56,12 +56,16 @@ export function useMutAddChecklist() {
       onSuccess: async (resp) => {
         enqueueSnackbar('Novo checklist criado', { variant: 'success' });
 
-        if (resp)
-          queryClient.setQueryData(
-            [QueryEnum.CHECKLIST, resp.companyId],
-            (oldData: IChecklist[] | undefined) =>
-              oldData ? [resp, ...oldData] : [resp],
-          );
+        if (resp) {
+          // eslint-disable-next-line prettier/prettier
+          const actualData = queryClient.getQueryData([QueryEnum.CHECKLIST, resp.companyId]);
+          if (actualData)
+            queryClient.setQueryData(
+              [QueryEnum.CHECKLIST, resp.companyId],
+              (oldData: IChecklist[] | undefined) =>
+                oldData ? [resp, ...oldData] : [resp],
+            );
+        }
 
         return resp;
       },

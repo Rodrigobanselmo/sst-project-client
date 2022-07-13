@@ -26,12 +26,18 @@ export function useMutInviteDelete() {
 
   return useMutation(async (id: string) => deleteInvite(id, companyId), {
     onSuccess: async (resp) => {
-      if (resp)
-        queryClient.setQueryData(
+      if (resp) {
+        const actualData = queryClient.getQueryData(
+          // eslint-disable-next-line prettier/prettier
           [QueryEnum.INVITES, companyId],
-          (oldData: IInvites[] | undefined) =>
-            oldData ? [...oldData].filter((data) => data.id !== resp) : [],
         );
+        if (actualData)
+          queryClient.setQueryData(
+            [QueryEnum.INVITES, companyId],
+            (oldData: IInvites[] | undefined) =>
+              oldData ? [...oldData].filter((data) => data.id !== resp) : [],
+          );
+      }
 
       enqueueSnackbar('Convite deletado com sucesso', {
         variant: 'success',

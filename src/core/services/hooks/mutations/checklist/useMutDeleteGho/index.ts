@@ -36,11 +36,16 @@ export function useMutDeleteGho() {
       }
 
       if (resp) {
-        queryClient.setQueryData(
+        const actualData = queryClient.getQueryData(
+          // eslint-disable-next-line prettier/prettier
           [QueryEnum.GHO, companyId],
-          (oldData: IGho[] | undefined) =>
-            oldData ? oldData.filter((data) => data.id !== resp.id) : [],
         );
+        if (actualData)
+          queryClient.setQueryData(
+            [QueryEnum.GHO, companyId],
+            (oldData: IGho[] | undefined) =>
+              oldData ? oldData.filter((data) => data.id !== resp.id) : [],
+          );
       }
 
       enqueueSnackbar('Grupo homogênio de exposição deletado com sucesso', {

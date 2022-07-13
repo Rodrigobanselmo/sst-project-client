@@ -37,13 +37,16 @@ export function useMutCreateGho() {
     async (data: ICreateGho) => createGho(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp)
-          queryClient.setQueryData(
-            [QueryEnum.GHO, resp.companyId],
-            (oldData: IGho[] | undefined) =>
-              oldData ? [...oldData, resp] : [resp],
-          );
-
+        if (resp) {
+          // eslint-disable-next-line prettier/prettier
+          const actualData = queryClient.getQueryData([QueryEnum.GHO, resp.companyId]);
+          if (actualData)
+            queryClient.setQueryData(
+              [QueryEnum.GHO, resp.companyId],
+              (oldData: IGho[] | undefined) =>
+                oldData ? [...oldData, resp] : [resp],
+            );
+        }
         enqueueSnackbar('Grupo homogênio de exposição criado com sucesso', {
           variant: 'success',
         });

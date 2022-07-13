@@ -37,11 +37,16 @@ export function useMutDeleteHierarchy() {
       }
 
       if (resp) {
-        queryClient.setQueryData(
+        const actualData = queryClient.getQueryData(
+          // eslint-disable-next-line prettier/prettier
           [QueryEnum.HIERARCHY, resp.companyId],
-          (oldData: IHierarchy[] | undefined) =>
-            oldData ? oldData.filter((data) => data.id !== resp.id) : [],
         );
+        if (actualData)
+          queryClient.setQueryData(
+            [QueryEnum.HIERARCHY, resp.companyId],
+            (oldData: IHierarchy[] | undefined) =>
+              oldData ? oldData.filter((data) => data.id !== resp.id) : [],
+          );
       }
 
       enqueueSnackbar('Hierarquia deletado com sucesso', {

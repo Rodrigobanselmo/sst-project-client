@@ -43,23 +43,28 @@ export function useMutUpdateChecklist() {
       updateNewChecklist(data, data.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
-        if (resp)
-          queryClient.setQueryData(
+        if (resp) {
+          const actualData = queryClient.getQueryData(
+            // eslint-disable-next-line prettier/prettier
             [QueryEnum.CHECKLIST, resp.companyId],
-            (oldData: IChecklist[] | undefined) =>
-              oldData
-                ? oldData.map((checklist) =>
-                    checklist.id == resp.id
-                      ? {
-                          ...checklist,
-                          ...resp,
-                          data: { ...checklist.data, ...resp.data },
-                        }
-                      : checklist,
-                  )
-                : [],
           );
-
+          if (actualData)
+            queryClient.setQueryData(
+              [QueryEnum.CHECKLIST, resp.companyId],
+              (oldData: IChecklist[] | undefined) =>
+                oldData
+                  ? oldData.map((checklist) =>
+                      checklist.id == resp.id
+                        ? {
+                            ...checklist,
+                            ...resp,
+                            data: { ...checklist.data, ...resp.data },
+                          }
+                        : checklist,
+                    )
+                  : [],
+            );
+        }
         return resp;
       },
       onError: (error: IErrorResp) => {

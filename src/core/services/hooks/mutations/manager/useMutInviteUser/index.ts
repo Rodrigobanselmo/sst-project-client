@@ -38,12 +38,18 @@ export function useMutInviteUser() {
 
   return useMutation(async (data: IInviteUser) => inviteUser(data, companyId), {
     onSuccess: async (companyResp) => {
-      if (companyResp)
-        queryClient.setQueryData(
+      if (companyResp) {
+        const actualData = queryClient.getQueryData(
+          // eslint-disable-next-line prettier/prettier
           [QueryEnum.INVITES, companyId],
-          (oldData: IInvites[] | undefined) =>
-            oldData ? [companyResp, ...oldData] : [companyResp],
         );
+        if (actualData)
+          queryClient.setQueryData(
+            [QueryEnum.INVITES, companyId],
+            (oldData: IInvites[] | undefined) =>
+              oldData ? [companyResp, ...oldData] : [companyResp],
+          );
+      }
 
       enqueueSnackbar('Convite enviado com sucesso', {
         variant: 'success',

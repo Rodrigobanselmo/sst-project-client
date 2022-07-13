@@ -50,27 +50,30 @@ export function useMutCreateGenerateSource() {
       onSuccess: async (newGenerateSource) => {
         if (newGenerateSource) {
           const replace = (company: string) => {
-            queryClient.setQueryData(
-              [QueryEnum.RISK, company],
-              (oldData: IRiskFactors[] | undefined) =>
-                oldData
-                  ? oldData.map((risk) =>
-                      risk.id === newGenerateSource.riskId
-                        ? {
-                            ...risk,
-                            generateSource: [
-                              ...risk.generateSource,
-                              newGenerateSource,
-                            ],
-                            recMed: [
-                              ...risk.recMed,
-                              ...(newGenerateSource?.recMeds || []),
-                            ],
-                          }
-                        : risk,
-                    )
-                  : [],
-            );
+            // eslint-disable-next-line prettier/prettier
+            const actualData = queryClient.getQueryData([QueryEnum.RISK, company]);
+            if (actualData)
+              queryClient.setQueryData(
+                [QueryEnum.RISK, company],
+                (oldData: IRiskFactors[] | undefined) =>
+                  oldData
+                    ? oldData.map((risk) =>
+                        risk.id === newGenerateSource.riskId
+                          ? {
+                              ...risk,
+                              generateSource: [
+                                ...risk.generateSource,
+                                newGenerateSource,
+                              ],
+                              recMed: [
+                                ...risk.recMed,
+                                ...(newGenerateSource?.recMeds || []),
+                              ],
+                            }
+                          : risk,
+                      )
+                    : [],
+              );
           };
           replace(newGenerateSource.companyId);
           if (newGenerateSource.companyId != companyId)

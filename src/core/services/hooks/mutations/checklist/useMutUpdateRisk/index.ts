@@ -43,22 +43,27 @@ export function useMutUpdateRisk() {
       onSuccess: async (resp) => {
         if (resp) {
           const replace = (company: string) => {
-            queryClient.setQueryData(
+            const actualData = queryClient.getQueryData(
+              // eslint-disable-next-line prettier/prettier
               [QueryEnum.RISK, company],
-              (oldData: IRiskFactors[] | undefined) =>
-                oldData
-                  ? oldData.map((risk) =>
-                      risk.id == resp.id
-                        ? {
-                            ...risk,
-                            ...resp,
-                            recMed: [...resp.recMed],
-                            generateSource: [...resp.generateSource],
-                          }
-                        : risk,
-                    )
-                  : [],
             );
+            if (actualData)
+              queryClient.setQueryData(
+                [QueryEnum.RISK, company],
+                (oldData: IRiskFactors[] | undefined) =>
+                  oldData
+                    ? oldData.map((risk) =>
+                        risk.id == resp.id
+                          ? {
+                              ...risk,
+                              ...resp,
+                              recMed: [...resp.recMed],
+                              generateSource: [...resp.generateSource],
+                            }
+                          : risk,
+                      )
+                    : [],
+              );
           };
 
           const id =

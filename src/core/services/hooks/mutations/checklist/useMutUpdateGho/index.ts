@@ -36,21 +36,27 @@ export function useMutUpdateGho() {
     async (data: IUpdateGho) => updateGho(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp)
-          queryClient.setQueryData(
+        if (resp) {
+          const actualData = queryClient.getQueryData(
+            // eslint-disable-next-line prettier/prettier
             [QueryEnum.GHO, resp.companyId],
-            (oldData: IGho[] | undefined) =>
-              oldData
-                ? oldData.map((gho) =>
-                    gho.id == resp.id
-                      ? {
-                          ...gho,
-                          ...resp,
-                        }
-                      : gho,
-                  )
-                : [],
           );
+          if (actualData)
+            queryClient.setQueryData(
+              [QueryEnum.GHO, resp.companyId],
+              (oldData: IGho[] | undefined) =>
+                oldData
+                  ? oldData.map((gho) =>
+                      gho.id == resp.id
+                        ? {
+                            ...gho,
+                            ...resp,
+                          }
+                        : gho,
+                    )
+                  : [],
+            );
+        }
 
         enqueueSnackbar('Grupo homogênio de exposição editado com sucesso', {
           variant: 'success',

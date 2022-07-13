@@ -41,20 +41,23 @@ export function useMutCreateRecMed() {
       onSuccess: async (newRecMed) => {
         if (newRecMed) {
           const replace = (company: string) => {
-            queryClient.setQueryData(
-              [QueryEnum.RISK, company],
-              (oldData: IRiskFactors[] | undefined) =>
-                oldData
-                  ? oldData.map((risk) =>
-                      risk.id === newRecMed.riskId
-                        ? {
-                            ...risk,
-                            recMed: [...risk.recMed, newRecMed],
-                          }
-                        : risk,
-                    )
-                  : [],
-            );
+            // eslint-disable-next-line prettier/prettier
+            const actualData = queryClient.getQueryData([QueryEnum.RISK, company]);
+            if (actualData)
+              queryClient.setQueryData(
+                [QueryEnum.RISK, company],
+                (oldData: IRiskFactors[] | undefined) =>
+                  oldData
+                    ? oldData.map((risk) =>
+                        risk.id === newRecMed.riskId
+                          ? {
+                              ...risk,
+                              recMed: [...risk.recMed, newRecMed],
+                            }
+                          : risk,
+                      )
+                    : [],
+              );
           };
 
           replace(newRecMed.companyId);

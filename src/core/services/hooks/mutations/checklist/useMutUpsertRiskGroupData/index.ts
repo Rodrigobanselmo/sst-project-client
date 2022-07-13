@@ -57,27 +57,33 @@ export function useMutUpsertRiskGroupData() {
       upsertRiskGroupData({ ...data }, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp)
-          queryClient.setQueryData(
+        if (resp) {
+          const actualData = queryClient.getQueryData(
+            // eslint-disable-next-line prettier/prettier
             [QueryEnum.RISK_GROUP_DATA, getCompanyId(resp)],
-            (oldData: IRiskGroupData[] | undefined) => {
-              if (oldData) {
-                const newData = [...oldData];
-                const updateIndexData = oldData.findIndex(
-                  (old) => old.id === resp.id,
-                );
-
-                if (updateIndexData != -1) {
-                  newData[updateIndexData] = resp;
-                } else {
-                  newData.unshift(resp);
-                }
-
-                return newData;
-              }
-              return [];
-            },
           );
+          if (actualData)
+            queryClient.setQueryData(
+              [QueryEnum.RISK_GROUP_DATA, getCompanyId(resp)],
+              (oldData: IRiskGroupData[] | undefined) => {
+                if (oldData) {
+                  const newData = [...oldData];
+                  const updateIndexData = oldData.findIndex(
+                    (old) => old.id === resp.id,
+                  );
+
+                  if (updateIndexData != -1) {
+                    newData[updateIndexData] = resp;
+                  } else {
+                    newData.unshift(resp);
+                  }
+
+                  return newData;
+                }
+                return [];
+              },
+            );
+        }
 
         queryClient.refetchQueries([
           QueryEnum.RISK_GROUP_DATA,
