@@ -10,6 +10,7 @@ import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedSt
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 
 import { companyOptionsConstant } from 'core/constants/maps/company.constant';
+import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
 import { IUseAddCompany } from '../../hooks/useAddCompany';
 import { useCompanyCreate } from './hooks/useCompanyCreate';
@@ -53,6 +54,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             sx={{ minWidth: ['100%', 600] }}
             placeholder={'cnpj do empresa...'}
             name="cnpj"
+            mask={cnpjMask.apply}
             size="small"
           />
 

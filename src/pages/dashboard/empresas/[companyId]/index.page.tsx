@@ -36,8 +36,10 @@ import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
+import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { useModal } from 'core/hooks/useModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
@@ -47,9 +49,11 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { SActionButton } from '../../../../components/atoms/SActionButton';
 
 const CompanyPage: NextPage = () => {
-  const { data: company } = useQueryCompany();
+  const { data: company, isLoading } = useQueryCompany();
   const { onOpenModal } = useModal();
   const { push } = useRouter();
+
+  useFetchFeedback(isLoading && !company?.id);
 
   const handleEditCompany = useCallback(() => {
     onOpenModal(ModalEnum.COMPANY_EDIT, company);
@@ -109,10 +113,10 @@ const CompanyPage: NextPage = () => {
     const workspaceLength = company?.workspace?.length || 0;
     const goToEnv = (workId: string) => {
       push({
-        pathname: RoutesEnum.ENVIRONMENTS.replace(
+        pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
           ':companyId',
           company.id,
-        ).replace(':workspaceId', workId),
+        ).replace(':workspaceId', workId)}/${CharacterizationEnum.ENVIRONMENT}`,
       });
     };
 
@@ -134,10 +138,10 @@ const CompanyPage: NextPage = () => {
     const workspaceLength = company?.workspace?.length || 0;
     const goToEnv = (workId: string) => {
       push({
-        pathname: RoutesEnum.CHARACTERIZATIONS.replace(
+        pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
           ':companyId',
           company.id,
-        ).replace(':workspaceId', workId),
+        ).replace(':workspaceId', workId)}/${CharacterizationEnum.LABOR}`,
       });
     };
 

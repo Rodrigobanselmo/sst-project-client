@@ -22,7 +22,13 @@ export function useMutationCEP() {
       return resp;
     },
     onError: (error: IErrorResp) => {
-      enqueueSnackbar(error.response.data.message, { variant: 'error' });
+      if (error.response.status === 400) {
+        enqueueSnackbar('CEP não encontrado', {
+          variant: 'error',
+        });
+      } else {
+        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+      }
     },
   });
 }

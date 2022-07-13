@@ -43,6 +43,8 @@ export function useMutCreateEmployee() {
     {
       onSuccess: async (resp) => {
         if (resp) queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+        if (resp)
+          queryClient.invalidateQueries([QueryEnum.COMPANY, resp?.companyId]);
 
         enqueueSnackbar('Empregado criado com sucesso', {
           variant: 'success',

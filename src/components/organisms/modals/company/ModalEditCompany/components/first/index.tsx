@@ -10,6 +10,8 @@ import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedSt
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 
 import { companyOptionsConstant } from 'core/constants/maps/company.constant';
+import { cnpjMask } from 'core/utils/masks/cnpj.mask';
+import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanyFirstEdit';
@@ -68,6 +70,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 name="cnpj"
                 size="small"
                 labelPosition="center"
+                mask={cnpjMask.apply}
                 disabled
               />
             </Box>
@@ -116,6 +119,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 sx={{ minWidth: 300 }}
                 placeholder={'telephome da empresa...'}
                 name="phone"
+                mask={phoneMask.apply}
                 size="small"
                 labelPosition="center"
               />

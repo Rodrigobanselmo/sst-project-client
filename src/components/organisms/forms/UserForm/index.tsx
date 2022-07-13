@@ -6,6 +6,7 @@ import { InputForm } from 'components/molecules/form/input';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
+import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { useUserForm } from './hooks/useUserForm';
 import { STBox } from './styles';
@@ -48,6 +49,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           control={control}
           placeholder={'000.000.000-00'}
           name="cpf"
+          mask={cpfMask.apply}
           size="small"
         />
         {userData.hasCREA && (

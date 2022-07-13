@@ -1,4 +1,4 @@
-import { Icon } from '@mui/material';
+import { CircularProgress, Icon } from '@mui/material';
 import SText from 'components/atoms/SText';
 
 import STooltip from '../STooltip';
@@ -12,6 +12,8 @@ export const SActionButton = ({
   primary,
   success,
   tooltipText,
+  loading,
+  disabled,
   ...props
 }: ISActionButtonProps) => {
   return (
@@ -21,10 +23,21 @@ export const SActionButton = ({
         success={success ? 1 : 0}
         primary={primary ? 1 : 0}
         width={'fit-content'}
+        disabled={disabled || loading ? 1 : 0}
         {...props}
       >
-        <Icon component={icon} />
-        <SText fontSize={14}>{text}</SText>
+        {!loading && (
+          <>
+            <Icon component={icon} />
+            <SText fontSize={14}>{text}</SText>
+          </>
+        )}
+        {loading && (
+          <>
+            <CircularProgress color="primary" size={18} />
+            <SText fontSize={14}>Carregando...</SText>
+          </>
+        )}
       </STBox>
     </STooltip>
   );

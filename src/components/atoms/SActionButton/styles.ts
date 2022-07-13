@@ -5,6 +5,7 @@ interface IProps {
   active?: 0 | 1;
   success?: 0 | 1;
   primary?: 0 | 1;
+  disabled?: 0 | 1;
 }
 
 export const STBox = styled(Box)<IProps>`
@@ -59,6 +60,18 @@ export const STBox = styled(Box)<IProps>`
     props.success &&
     css`
       background-color: ${props.theme.palette.success.main};
+      svg {
+        color: ${props.theme.palette.common.white};
+      }
+      p {
+        color: ${props.theme.palette.common.white};
+      }
+    `};
+
+  ${(props) =>
+    props.disabled &&
+    css`
+      background-color: ${props.theme.palette.grey[500]} !important;
       svg {
         color: ${props.theme.palette.common.white};
       }

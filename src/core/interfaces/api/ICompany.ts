@@ -1,6 +1,8 @@
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { GetCNPJResponse } from 'core/services/hooks/mutations/useMutationCnpj/types';
+
 export interface ICompany {
   id: string;
   cnpj: string;
@@ -46,7 +48,10 @@ export interface IWorkspace {
   companyId: string;
   address?: IAddress;
   employeeCount?: number;
+  isOwner?: boolean;
   company?: ICompany;
+  cnpj?: string;
+  companyJson?: GetCNPJResponse;
 }
 
 export interface IAddress {

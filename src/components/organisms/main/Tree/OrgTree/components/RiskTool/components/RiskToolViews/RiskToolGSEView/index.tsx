@@ -42,7 +42,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
   const handleAddRisk = () => {
     if (!selectedGho)
       enqueueSnackbar(
-        'Selecione um grupo homogênio acima antes de adicionar um risco',
+        'Selecione um Cargo / GSE / Ambiente acima antes de adicionar um risco',
         {
           variant: 'warning',
           autoHideDuration: 5000,

@@ -70,7 +70,7 @@ export const SidebarOrg = () => {
   useEffect(() => {
     dispatch(setGhoSearch(''));
     dispatch(setGhoSearchSelect(''));
-  }, [dispatch, viewType]);
+  }, [dispatch, viewType, viewDataType]);
 
   useEffect(() => {
     dispatch(setRiskAddState({ isEdited: false }));

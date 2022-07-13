@@ -7,5 +7,7 @@ export interface ISActionButtonProps extends BoxProps {
   active?: boolean;
   primary?: boolean;
   success?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
   icon: React.ElementType<any>;
 }

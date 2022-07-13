@@ -11,6 +11,7 @@ import {
 
 import { characterizationMap } from 'core/constants/maps/characterization.map';
 import { environmentMap } from 'core/constants/maps/environment.map';
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { IGho } from 'core/interfaces/api/IGho';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
@@ -32,20 +33,6 @@ export const RiskToolGhoItem: FC<
     return null;
   }
 
-  if (
-    searchSelected &&
-    !stringNormalize(gho.name).includes(stringNormalize(searchSelected)) &&
-    !isSelected
-  )
-    return null;
-
-  const selected = {} as any;
-
-  if (isSelected) {
-    selected.sx = { '*': { color: 'white !important' }, minHeight: '100%' };
-    selected.bg = 'success.main';
-  }
-
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return;
     if (isHierarchy) return nodeTypesConstant[gho.type].name;
@@ -62,6 +49,26 @@ export const RiskToolGhoItem: FC<
 
     return;
   };
+
+  const topText = getTopText();
+
+  const searchName = Object.values(HomoTypeEnum).includes((gho as any).type)
+    ? (gho as any).description.split('(//)')[0] + topText
+    : gho.name;
+
+  if (
+    searchSelected &&
+    !stringNormalize(searchName).includes(stringNormalize(searchSelected)) &&
+    !isSelected
+  )
+    return null;
+
+  const selected = {} as any;
+
+  if (isSelected) {
+    selected.sx = { '*': { color: 'white !important' }, minHeight: '100%' };
+    selected.bg = 'success.main';
+  }
 
   const getName = () => {
     if (isHierarchy) return gho.name;
@@ -80,7 +87,7 @@ export const RiskToolGhoItem: FC<
 
   return (
     <STagButton
-      topText={getTopText()}
+      topText={topText}
       large
       text={name}
       tooltipTitle={(isHierarchy ? gho.parentsName + ' > ' : '') + name}

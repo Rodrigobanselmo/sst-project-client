@@ -7,6 +7,8 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
+import { cnpjMask } from 'core/utils/masks/cnpj.mask';
+
 import { IUseAddCompany } from '../../hooks/useAddCompany';
 import { useCheckCompany } from './hooks/useCheckCompany';
 
@@ -38,6 +40,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
             placeholder={'cnpj do empresa...'}
             name="cnpj"
             size="small"
+            mask={cnpjMask.apply}
           />
         </SFlex>
       </AnimatedStep>

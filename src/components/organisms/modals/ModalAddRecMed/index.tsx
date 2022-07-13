@@ -44,6 +44,9 @@ export const ModalAddRecMed = () => {
     },
   ] as IModalButton[];
 
+  const hasRec = ['rec', ''].includes(recMedData.onlyInput);
+  const hasMed = !(recMedData.onlyInput == 'rec');
+
   return (
     <SModal
       {...registerModal(ModalEnum.REC_MED_ADD)}
@@ -59,9 +62,10 @@ export const ModalAddRecMed = () => {
           secondIconClick={onRemove}
         />
         <SFlex gap={8} direction="column" mt={8}>
-          {['rec', ''].includes(recMedData.onlyInput) && (
+          {hasRec && (
             <Box position="relative">
               <InputForm
+                autoFocus
                 multiline
                 fullWidth
                 defaultValue={recMedData.recName}
@@ -111,10 +115,11 @@ export const ModalAddRecMed = () => {
               />
             </Box>
           )}
-          {!(recMedData.onlyInput == 'rec') && (
+          {hasMed && (
             <Box position="relative">
               <InputForm
                 multiline
+                autoFocus={!hasRec}
                 fullWidth
                 defaultValue={recMedData.medName}
                 minRows={3}

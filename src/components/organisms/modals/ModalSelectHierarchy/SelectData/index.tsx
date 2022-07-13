@@ -18,6 +18,7 @@ import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
+import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { ModalInputHierarchy } from './ModalInputHierarchy';
@@ -32,6 +33,8 @@ export const ModalSelectHierarchyData: FC<{
   selectedData: typeof initialHierarchySelectState;
   handleSingleSelect: (id: string) => void;
 }> = ({ company, selectedData, handleSingleSelect }) => {
+  const { data: ghoQuery } = useQueryGHO();
+
   const dispatch = useAppDispatch();
   const search = useAppSelector(selectHierarchySearch);
   const [workspaceSelected, setWorkspaceSelected] = useState(
@@ -39,12 +42,20 @@ export const ModalSelectHierarchyData: FC<{
       (workspace) => workspace.id === selectedData.workspaceId,
     ),
   );
+
+  const showGho = selectedData.selectByGHO && ghoQuery.length;
+
   const [filter, setFilter] = useState<HierarchyEnum | 'GHO'>(
-    HierarchyEnum.OFFICE,
+    showGho ? 'GHO' : HierarchyEnum.OFFICE,
   );
   const [allTypes, setAllTypes] = useState<Record<HierarchyEnum, boolean>>(
     {} as Record<HierarchyEnum, boolean>,
   );
+
+  useEffect(() => {
+    if (showGho) setFilter('GHO');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ghoQuery]);
 
   useEffect(() => {
     dispatch(setModalIds(selectedData.hierarchiesIds));
@@ -153,7 +164,7 @@ export const ModalSelectHierarchyData: FC<{
                 />
               );
             })}{' '}
-          {filter === 'GHO' && <ModalListGHO />}
+          {filter === 'GHO' && <ModalListGHO ghoQuery={ghoQuery} />}
         </STGridBox>
       </SFlex>
     </Box>

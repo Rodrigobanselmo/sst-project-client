@@ -1,7 +1,8 @@
+// characterization params name
 export enum CharacterizationEnum {
-  ENVIRONMENT = 'ENVIRONMENT',
-  LABOR = 'LABOR',
-  WORKSTATION = 'WORKSTATION',
-  EQUIPMENT = 'EQUIPMENT',
-  ACTIVITIES = 'ACTIVITIES',
+  ENVIRONMENT = 'ambiente',
+  LABOR = 'mão-de-obra',
+  WORKSTATION = 'posto-de-trabaho',
+  EQUIPMENT = 'equipamentos',
+  ACTIVITIES = 'atividades',
 }

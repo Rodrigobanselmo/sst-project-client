@@ -1,16 +1,25 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
+import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
+
+import { cepMask } from 'core/utils/masks/cep.mask';
+import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
 import { IUseEditWorkspace } from '../../hooks/useEditWorkspace';
 
 export const ModalWorkspaceStep = ({
   companyData,
   control,
+  setCompanyData,
   onChangeCep,
+  onChangeCnpj,
+  loadingCnpj,
+  loadingCep,
 }: IUseEditWorkspace) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -57,6 +66,8 @@ export const ModalWorkspaceStep = ({
           onChange={({ target: { value } }) => onChangeCep(value)}
           placeholder={'descrição...'}
           name="cep"
+          mask={cepMask.apply}
+          loading={loadingCep}
           size="small"
         />
         <InputForm
@@ -126,6 +137,34 @@ export const ModalWorkspaceStep = ({
           size="small"
         />
       </SFlex>
+      <Box ml={6}>
+        <SSwitch
+          onChange={() => {
+            setCompanyData({
+              ...companyData,
+              isFromOtherCnpj: !companyData.isFromOtherCnpj,
+            } as any);
+          }}
+          checked={companyData.isFromOtherCnpj}
+          label="Estabelecimento realiza atividades em outro CNPJ"
+          sx={{ mr: 4 }}
+          color="text.light"
+        />
+      </Box>
+      {companyData.isFromOtherCnpj && (
+        <InputForm
+          defaultValue={companyData.cnpj}
+          label="CNPJ"
+          control={control}
+          sx={{ minWidth: ['100%', 600] }}
+          placeholder={'cnpj do empresa...'}
+          name="cnpj"
+          size="small"
+          mask={cnpjMask.apply}
+          onChange={({ target: { value } }) => onChangeCnpj(value)}
+          loading={loadingCnpj}
+        />
+      )}
     </SFlex>
   );
 };

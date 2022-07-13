@@ -6,13 +6,15 @@ import { setModalIds } from 'store/reducers/hierarchy/hierarchySlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { IGho } from 'core/interfaces/api/IGho';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
-interface IItem extends BoxProps {}
+interface IItem extends BoxProps {
+  ghoQuery: IGho[];
+}
 
-export const ModalListGHO: FC<IItem> = () => {
-  const { data: ghoQuery } = useQueryGHO();
+export const ModalListGHO: FC<IItem> = ({ ghoQuery }) => {
   const selected = useAppSelector((state) => state.hierarchy.modalSelectIds);
   const dispatch = useAppDispatch();
 
@@ -38,7 +40,7 @@ export const ModalListGHO: FC<IItem> = () => {
                 ),
               )
             }
-            active={(gho.hierarchies || []).some((h) =>
+            active={(gho.hierarchies || []).every((h) =>
               selected.includes(h.id + '//' + h.workspaceId),
             )}
             key={gho.id}

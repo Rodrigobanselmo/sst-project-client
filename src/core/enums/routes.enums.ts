@@ -1,3 +1,8 @@
+import {
+  CharacterizationEnum,
+  mapCharacterization,
+} from './characterization.enums';
+
 export enum RoutesEnum {
   ONBOARD_NO_TEAM = '/acesso/empresa',
   ONBOARD_USER = '/acesso/usuario',
@@ -15,9 +20,7 @@ export enum RoutesEnum {
   COMPANY_PGR = '/dashboard/empresas/:companyId/documentos/pgr',
   COMPANY_PGR_DOCUMENT = '/dashboard/empresas/:companyId/documentos/pgr/:docId',
   PGR = '/dashboard/documentos/pgr',
-  ENVIRONMENTS = '/dashboard/empresas/:companyId/:workspaceId/ambientes',
-  LABOR = '/dashboard/empresas/:companyId/:workspaceId/mão-de-obra',
-  CHARACTERIZATIONS = '/dashboard/empresas/:companyId/:workspaceId/posto-de-trabalho',
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',
   MODAL = '/dashboard/test/modal',
+  CHARACTERIZATIONS = '/dashboard/empresas/:companyId/:workspaceId',
 }

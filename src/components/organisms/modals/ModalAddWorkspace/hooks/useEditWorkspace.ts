@@ -15,6 +15,8 @@ import {
   useMutUpdateCompany,
 } from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
 import { useMutationCEP } from 'core/services/hooks/mutations/useMutationCep';
+import { useMutationCNPJ } from 'core/services/hooks/mutations/useMutationCnpj';
+import { GetCNPJResponse } from 'core/services/hooks/mutations/useMutationCnpj/types';
 import { workspaceSchema } from 'core/utils/schemas/workspace.schema';
 
 export const initialWorkspaceState = {
@@ -29,6 +31,9 @@ export const initialWorkspaceState = {
   cep: '',
   complement: '',
   state: '',
+  isFromOtherCnpj: false,
+  cnpj: '',
+  companyJson: {} as GetCNPJResponse,
 };
 
 interface ISubmit {
@@ -47,6 +52,7 @@ export const useEditWorkspace = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialWorkspaceState);
+  const cnpjMutation = useMutationCNPJ();
 
   const { handleSubmit, control, reset, getValues, setValue } = useForm({
     resolver: yupResolver(workspaceSchema),
@@ -109,6 +115,25 @@ export const useEditWorkspace = () => {
     }
   };
 
+  const onChangeCnpj = async (value: string) => {
+    if (value.replace(/\D/g, '').length === 14) {
+      try {
+        const data = await cnpjMutation.mutateAsync(value);
+        setCompanyData((oldData) => {
+          const newData = {
+            ...oldData,
+            companyJson: data || {},
+          };
+
+          return newData;
+        });
+      } catch (error) {
+        console.log(error);
+        //
+      }
+    }
+  };
+
   const onCloseUnsaved = () => {
     const values = getValues();
     if (
@@ -127,6 +152,9 @@ export const useEditWorkspace = () => {
       name: data.name,
       description: data.description,
       status: companyData.status,
+      companyJson: companyData.companyJson,
+      isOwner: !companyData.isFromOtherCnpj,
+      cnpj: companyData.cnpj,
       address: {
         neighborhood: data.neighborhood,
         number: data.number,
@@ -156,12 +184,14 @@ export const useEditWorkspace = () => {
     onClose,
     companyData,
     onSubmit,
-    loading: updateMutation.isLoading,
+    loading: updateMutation.isLoading || cnpjMutation.isLoading,
     loadingCep: cepMutation.isLoading,
+    loadingCnpj: cnpjMutation.isLoading,
     control,
     handleSubmit,
     setCompanyData,
     onChangeCep,
+    onChangeCnpj,
   };
 };
 
