@@ -49,15 +49,21 @@ export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
   return (
     <SFlex gap={0} direction="column">
       <SelectedNumber
-        handleSelect={(number) =>
-          handleSelect({ probability: setProbability(number), ...dataSelect })
-        }
+        handleSelect={(number) => {
+          handleSelect({ probability: setProbability(number), ...dataSelect });
+        }}
         selectedNumber={data?.probability}
         disabledGtEqual={6}
         handleHelp={() => handleHelp && handleHelp(dataSelect)}
       />
       {hasQuality && (
-        <STagButton onClick={onAddQuantity} text="Medição" mt={4} />
+        <STagButton
+          active={data?.isQuantity}
+          onClick={onAddQuantity}
+          text={data?.isQuantity ? 'Quantitativo' : 'Medição'}
+          mt={4}
+          bg={data?.isQuantity ? 'gray.500' : undefined}
+        />
       )}
     </SFlex>
   );

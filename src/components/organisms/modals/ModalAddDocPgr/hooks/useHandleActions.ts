@@ -69,7 +69,7 @@ export const useHandleModal = () => {
           ...initialData,
         };
 
-        if (newData.complementaryDocs.length == 0) {
+        if (!newData.validityStart) {
           newData.complementaryDocs = [
             'NR 15 – Atividades e Operações Insalubres e seus Anexos;',
             'ACGIH – Limites de Exposição para Substâncias Químicas e Agentes Físicos;',

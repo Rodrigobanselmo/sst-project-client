@@ -73,6 +73,7 @@ export interface IRiskFactors {
   cas?: string;
   breather?: string;
   nr15lt?: string;
+  vmp?: string;
   twa?: string;
   stel?: string;
   ipvs?: string;

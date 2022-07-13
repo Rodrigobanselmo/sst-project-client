@@ -1,10 +1,4 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { useRouter } from 'next/router';
 import { setGhoMultiState } from 'store/reducers/hierarchy/ghoMultiSlice';
@@ -195,7 +189,7 @@ export const SidebarOrg = () => {
 
   const handleChangeViewData = (option: IViewsDataOption) => {
     if (option.value === ViewsDataEnum.EMPLOYEE) {
-      alert('Em breve!');
+      return alert('Em breve!');
     }
 
     dispatch(setGhoMultiState({ selectedDisabledIds: [], selectedIds: [] }));

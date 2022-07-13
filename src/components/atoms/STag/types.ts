@@ -17,6 +17,7 @@ export type ITagActionColors =
   | '3'
   | '4'
   | '5'
+  | '6'
   | 'none';
 
 export interface ISTagProps extends BoxProps {

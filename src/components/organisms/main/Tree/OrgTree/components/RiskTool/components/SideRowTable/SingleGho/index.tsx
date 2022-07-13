@@ -57,6 +57,16 @@ export const SideRowTable: FC<SideTableProps> = ({
     ...values
   }: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
+
+    if (riskData?.isQuantity && values.probability)
+      return enqueueSnackbar(
+        'Você não pode mudar a probabilidade quando utilizado o método quantitativo.',
+        {
+          variant: 'warning',
+          autoHideDuration: 3000,
+        },
+      );
+
     const homoId = String(gho.id).split('//');
     const submitData = {
       ...values,
@@ -136,6 +146,7 @@ export const SideRowTable: FC<SideTableProps> = ({
     ...values
   }: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
+
     const submitData = {
       ...values,
       id: riskData?.id,

@@ -97,6 +97,15 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
     data?: any,
   ) => {
     if (selectedRisks?.length === 0) return;
+    if (data?.isQuantity && values.probability)
+      return enqueueSnackbar(
+        'Você não pode mudar a probabilidade quando utilizado o método quantitativo.',
+        {
+          variant: 'warning',
+          autoHideDuration: 300,
+        },
+      );
+
     dispatch(setRiskAddState({ isEdited: true }));
 
     const submitData = { ...values } as IRiskDataRow;

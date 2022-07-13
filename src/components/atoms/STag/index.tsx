@@ -25,6 +25,8 @@ export const STag: FC<ISTagProps> = ({
         return 'scale.mediumHigh';
       case '5':
         return 'scale.high';
+      case '6':
+        return 'common.black';
       case 'add':
         return 'tag.add';
       case 'edit':

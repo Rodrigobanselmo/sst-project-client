@@ -30,16 +30,16 @@ export const matrixRiskMap = {
     level: 5,
   },
   [6]: {
-    label: 'Interromper Atividades',
+    label: 'Interromper',
     short: 'IA',
     level: 6,
   },
 };
 
 export const matrixRisk = [
-  [2, 3, 4, 5, 5],
-  [2, 3, 3, 4, 5],
-  [2, 2, 3, 3, 4],
-  [1, 2, 2, 3, 3],
-  [1, 1, 2, 2, 2],
+  [2, 3, 4, 5, 5, 6],
+  [2, 3, 3, 4, 5, 6],
+  [2, 2, 3, 3, 4, 6],
+  [1, 2, 2, 3, 3, 6],
+  [1, 1, 2, 2, 2, 6],
 ];

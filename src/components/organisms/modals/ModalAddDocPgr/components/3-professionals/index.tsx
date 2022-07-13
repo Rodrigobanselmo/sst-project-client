@@ -60,9 +60,10 @@ export const ProfessionalModalStep = (props: IUseAddCompany) => {
             />
             <InputForm
               defaultValue={
-                data?.validityEnd || data.complementarySystems.length > 0
+                data?.validityEnd ||
+                (data.complementarySystems.length > 0
                   ? dayjs().add(3, 'years').format('MM/YYYY')
-                  : dayjs().add(2, 'years').format('MM/YYYY')
+                  : dayjs().add(2, 'years').format('MM/YYYY'))
               }
               label="Expiração do PGR"
               control={control}

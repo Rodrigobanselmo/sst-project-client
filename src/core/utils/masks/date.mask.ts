@@ -20,7 +20,7 @@ export const masked = {
     },
     YYYY: {
       mask: IMask.MaskedRange,
-      to: new Date().getFullYear() + 2,
+      to: new Date().getFullYear() + 10,
       from: 1900,
     },
   },
@@ -39,7 +39,7 @@ export const monthMasked = {
     },
     YYYY: {
       mask: IMask.MaskedRange,
-      to: new Date().getFullYear() + 2,
+      to: new Date().getFullYear() + 10,
       from: 1900,
     },
   },

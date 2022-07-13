@@ -15,18 +15,19 @@ export const isQuantity = (risk?: IRiskFactors | null) => {
   if (
     riskNameNormalized === stringNormalize('Vibrações Localizadas (Mão-Braço)')
   )
-    return {};
+    return QuantityTypeEnum.VL;
 
   if (riskNameNormalized === stringNormalize('Ruído contínuo ou Intermitente'))
-    return {};
+    return QuantityTypeEnum.NOISE;
 
   if (riskNameNormalized === stringNormalize('Temperaturas anormais (calor)'))
-    return {};
+    return QuantityTypeEnum.HEAT;
 
   if (riskNameNormalized === stringNormalize('Vibrações de Corpo Inteiro'))
-    return {};
+    return QuantityTypeEnum.VFB;
 
-  if (riskNameNormalized === stringNormalize('Radiações Ionizantes')) return {};
+  if (riskNameNormalized.includes(stringNormalize('Radiações Ionizantes')))
+    return QuantityTypeEnum.RADIATION;
 
   return null;
 };

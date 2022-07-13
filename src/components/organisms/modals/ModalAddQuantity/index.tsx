@@ -9,7 +9,13 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
+import { QuantityTypeEnum } from 'core/constants/maps/quantity-risks';
+
+import { HeatForm } from './components/HeatForm';
+import { NoiseForm } from './components/NoiseForm';
 import { QuiForm } from './components/QuiForm';
+import { RadiationForm } from './components/RadiationForm';
+import { VibrationForm } from './components/VibrationForm';
 import { useModalAddQuantity } from './hooks/useModalAddQuantity';
 
 export const ModalAddQuantity = () => {
@@ -21,6 +27,7 @@ export const ModalAddQuantity = () => {
     onCloseUnsaved,
     loading,
     modalName,
+    data,
   } = props;
 
   const buttons = [
@@ -54,7 +61,14 @@ export const ModalAddQuantity = () => {
           title={'Adicionar medição'}
         />
 
-        <QuiForm {...props} />
+        {data.type === QuantityTypeEnum.QUI && <QuiForm {...props} />}
+        {data.type === QuantityTypeEnum.NOISE && <NoiseForm {...props} />}
+        {data.type === QuantityTypeEnum.HEAT && <HeatForm {...props} />}
+        {data.type === QuantityTypeEnum.RADIATION && (
+          <RadiationForm {...props} />
+        )}
+        {data.type === QuantityTypeEnum.VFB && <VibrationForm {...props} />}
+        {data.type === QuantityTypeEnum.VL && <VibrationForm vl {...props} />}
 
         <SModalButtons
           loading={loading}

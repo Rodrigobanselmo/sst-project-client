@@ -41,6 +41,7 @@ export interface IRiskData {
   recs?: IRecMed[];
   engs?: IRecMed[];
   epis?: IEpi[];
+  isQuantity?: boolean;
   json?: IRiskDataJsonQui | IRiskDataJsonNoise;
 }
 

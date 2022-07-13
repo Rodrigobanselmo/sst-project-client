@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { RiskEnum } from 'project/enum/risk.enums';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 
 import { QuantityTypeEnum } from 'core/constants/maps/quantity-risks';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -13,21 +13,44 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
 import { useMutationCEP } from 'core/services/hooks/mutations/useMutationCep';
 
+import { heatSchema } from './../../../../../core/utils/schemas/heat.schema';
+
 export const initialQuantityState = {
   id: '',
   risk: {
     stel: '',
     twa: '',
     nr15lt: '',
+    vmp: '',
   } as IRiskFactors,
+
+  shortDuration: false,
+  longDuration: false,
 
   stelValue: '',
   twaValue: '',
+  vmpValue: '',
   nr15ltValue: '',
 
   ltcatq3: '',
   ltcatq5: '',
-  nr15q3: '',
+  nr15q5: '',
+
+  aren: '',
+  vdvr: '',
+
+  doseFB: '',
+  doseEye: '',
+  doseSkin: '',
+  doseHand: '',
+  doseFBPublic: '',
+  doseEyePublic: '',
+  doseSkinPublic: '',
+
+  ibtug: '',
+  mw: '',
+  isAcclimatized: false,
+  clothesType: '' as number | '',
 
   type: '',
 
@@ -37,15 +60,33 @@ export const initialQuantityState = {
 
 interface ISubmit {
   stel?: string;
+  vmp?: string;
   twa?: string;
   nr15lt?: string;
   stelValue?: string;
   twaValue?: string;
+  vmpValue?: string;
   nr15ltValue?: string;
+  unit?: string;
 
   ltcatq3?: string;
   ltcatq5?: string;
-  nr15q3?: string;
+  nr15q5?: string;
+
+  aren?: string;
+  vdvr?: string;
+
+  doseFB?: string;
+  doseEye?: string;
+  doseSkin?: string;
+  doseHand?: string;
+  doseFBPublic?: string;
+  doseEyePublic?: string;
+  doseSkinPublic?: string;
+
+  ibtug?: string;
+  mw?: string;
+  clothesType?: number;
 
   type: QuantityTypeEnum;
 }
@@ -57,8 +98,6 @@ export const useModalAddQuantity = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialQuantityState);
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm();
-
   const updateMutation = useMutUpdateCompany();
   const cepMutation = useMutationCEP();
 
@@ -66,6 +105,10 @@ export const useModalAddQuantity = () => {
 
   const [data, setData] = useState({
     ...initialQuantityState,
+  });
+
+  const { handleSubmit, control, reset, getValues, setValue } = useForm({
+    resolver: yupResolver(heatSchema),
   });
 
   useEffect(() => {
@@ -78,13 +121,17 @@ export const useModalAddQuantity = () => {
           ...oldData,
           ...initialData,
         };
+        newData.longDuration = !!newData.twaValue || !!newData.nr15ltValue;
+        newData.shortDuration = !!newData.stelValue || !!newData.vmpValue;
 
+        if (typeof newData.clothesType === 'number')
+          setValue('clothesType', newData.clothesType);
         initialDataRef.current = newData;
 
         return newData;
       });
     }
-  }, [getModalData]);
+  }, [getModalData, setValue]);
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
@@ -116,13 +163,65 @@ export const useModalAddQuantity = () => {
         twaValue: (dataFrom.twaValue || '').replaceAll('.', '').replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
         nr15ltValue: (dataFrom.nr15ltValue || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        vmpValue: (dataFrom.vmpValue || '').replaceAll('.', '').replace(',', '.'),
         stel: (dataFrom.stel || '').replaceAll('.', '').replace(',', '.'),
         twa: (dataFrom.twa || '').replaceAll('.', '').replace(',', '.'),
         nr15lt: (dataFrom.nr15lt || '').replaceAll('.', '').replace(',', '.'),
+        vmp: (dataFrom.vmp || '').replaceAll('.', '').replace(',', '.'),
         type: QuantityTypeEnum.QUI,
+        unit: dataFrom?.unit || undefined,
       };
 
-    // console.log(data);
+    if (data.type == QuantityTypeEnum.NOISE)
+      submit = {
+        ltcatq5: (dataFrom.ltcatq5 || '').replaceAll('.', '').replace(',', '.'),
+        ltcatq3: (dataFrom.ltcatq3 || '').replaceAll('.', '').replace(',', '.'),
+        nr15q5: (dataFrom.nr15lt || '').replaceAll('.', '').replace(',', '.'),
+        type: QuantityTypeEnum.NOISE,
+      };
+
+    if (data.type == QuantityTypeEnum.HEAT) {
+      submit = {
+        ibtug: (dataFrom.ibtug || '').replaceAll('.', '').replace(',', '.'),
+        mw: (dataFrom.mw || '').replaceAll('.', '').replace(',', '.'),
+        isAcclimatized: data.isAcclimatized,
+        clothesType: dataFrom.clothesType,
+        type: QuantityTypeEnum.HEAT,
+      };
+    }
+
+    if (data.type == QuantityTypeEnum.VFB)
+      submit = {
+        aren: (dataFrom.aren || '').replaceAll('.', '').replace(',', '.'),
+        vdvr: (dataFrom.vdvr || '').replaceAll('.', '').replace(',', '.'),
+        type: QuantityTypeEnum.VFB,
+      };
+
+    if (data.type == QuantityTypeEnum.VL)
+      submit = {
+        aren: (dataFrom.aren || '').replaceAll('.', '').replace(',', '.'),
+        type: QuantityTypeEnum.VL,
+      };
+
+    if (data.type == QuantityTypeEnum.RADIATION)
+      submit = {
+        doseFB: (dataFrom.doseFB || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        doseFBPublic: (dataFrom.doseFBPublic || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        doseEye: (dataFrom.doseEye || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        doseEyePublic: (dataFrom.doseEyePublic || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        doseSkin: (dataFrom.doseSkin || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        doseSkinPublic: (dataFrom.doseSkinPublic || '').replaceAll('.', '').replace(',', '.'),
+        // eslint-disable-next-line prettier/prettier
+        doseHand: (dataFrom.doseHand || '').replaceAll('.', '').replace(',', '.'),
+        type: QuantityTypeEnum.RADIATION,
+      };
+
     data.onCreate && data.onCreate(submit);
 
     onClose();

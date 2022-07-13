@@ -8,6 +8,7 @@ interface IFloatProps {
   min?: number;
   decimal?: number;
   negative?: boolean;
+  ltAccept?: boolean;
 }
 
 const masked = {
@@ -20,15 +21,31 @@ const masked = {
 } as IMask.AnyMaskedOptions;
 
 const mask = (value: string, props?: IFloatProps) => {
+  let signal = '';
+  if (props?.ltAccept) {
+    const firstLetter = value.substring(0, 1);
+    if (firstLetter === '<') {
+      value = value.slice(1, value.length);
+      signal = '<';
+    }
+  }
+
   const firstLetter = value.substring(0, 1);
   const secondLetter = value.substring(1, 2);
   const isNegative = props?.negative && firstLetter == '-';
 
-  if (firstLetter == '0' && secondLetter != ',') return value.slice(0, 1);
+  if (firstLetter == '0' && secondLetter != ',')
+    return signal + (isNegative ? '-' : '') + value.slice(0, 1);
 
-  const newValue = value.replace(/[^0-9,]/g, '');
+  let newValue = '';
 
-  if (newValue.length === 0 && !isNegative) return '';
+  if (props?.decimal === 0) {
+    newValue = value.replace(/[^0-9]/g, '');
+  } else {
+    newValue = value.replace(/[^0-9,]/g, '');
+  }
+
+  if (newValue.length === 0 && !isNegative) return signal + '';
 
   const addThousandSeparator = (value: string): string => {
     let separatedValue = value;
@@ -54,12 +71,15 @@ const mask = (value: string, props?: IFloatProps) => {
   };
 
   const splitValues = newValue.split(',');
+
   const decimals =
     props?.decimal || (splitValues[1] ? splitValues[1]?.length : 0);
 
-  if (value.substring(0, 1) == ',') return '0,';
+  if (value.substring(0, 1) == ',')
+    return signal + (isNegative ? '-' : '') + '0,';
 
   return (
+    signal +
     (isNegative ? '-' : '') +
     addThousandSeparator(splitValues[0]) +
     (splitValues[1] != undefined ? ',' + splitValues[1].slice(0, decimals) : '')
