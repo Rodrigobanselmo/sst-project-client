@@ -14,6 +14,8 @@ export enum ApiRoutesEnum {
   UPLOAD_HIERARCHY = '/files/company/hierarchies/upload',
   DOWNLOAD_UNIQUE_EMPLOYEES = '/files/company/download/unique',
   UPLOAD_UNIQUE_EMPLOYEES = '/files/company/upload/unique',
+  DOWNLOAD_CNAE = '/files/cnae',
+  UPLOAD_CNAE = '/files/cnae',
   ME = '/users/me',
   USERS = '/users',
   PROFESSIONALS = '/professionals',

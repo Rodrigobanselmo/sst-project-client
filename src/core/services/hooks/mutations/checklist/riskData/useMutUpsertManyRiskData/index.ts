@@ -59,6 +59,8 @@ export function useMutUpsertManyRiskData() {
     {
       onSuccess: async (resp) => {
         if (resp && resp[0] && resp[0].length > 0) {
+          queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
+          queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
           queryClient.invalidateQueries([
             QueryEnum.RISK_DATA,
             getCompanyId(resp),

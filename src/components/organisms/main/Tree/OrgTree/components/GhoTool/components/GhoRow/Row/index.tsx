@@ -5,6 +5,7 @@ import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
+import { SPopperHelper } from 'components/molecules/SPopperArrow/SPopperHelper';
 
 import SCloseIcon from 'assets/icons/SCloseIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
@@ -22,6 +23,8 @@ export const Row: FC<RowItemsProps> = ({
   handleSelectGHO,
   handleEditGHO,
   hide,
+  isFirst,
+  anchorEl,
 }) => {
   const hierarchies = data.hierarchies
     ? data.hierarchies.map((value) => value.id + '//' + value.workspaceId)
@@ -46,7 +49,7 @@ export const Row: FC<RowItemsProps> = ({
             <STooltip withWrapper title={'Deletar'}>
               <SIconButton
                 loading={isDeleteLoading}
-                onClick={() => handleDeleteGHO(data.id)}
+                onClick={() => handleDeleteGHO(data.id, data)}
                 size="small"
               >
                 <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
@@ -57,7 +60,7 @@ export const Row: FC<RowItemsProps> = ({
                 <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
               </SIconButton>
             </STooltip>
-            <STooltip withWrapper title={'Adicionar setores e cargos ao grupo'}>
+            <STooltip withWrapper title={'Adicionar cargos ao GSE'}>
               <SIconButton
                 onClick={() =>
                   handleSelectGHO(isSelected ? null : data, hierarchies)
@@ -75,6 +78,7 @@ export const Row: FC<RowItemsProps> = ({
             </STooltip>
           </>
         )}
+        <div style={{ backgroundColor: 'red', width: 0 }} ref={anchorEl}></div>
       </SFlex>
     </STBoxItem>
   );

@@ -29,6 +29,9 @@ export const RiskToolGhoItem: FC<
   const searchSelected = useAppSelector(selectGhoSearch);
   const isHierarchy = 'childrenIds' in gho;
 
+  if (!gho) return null;
+  if (!gho.name) return null;
+
   if (viewDataType == ViewsDataEnum.GSE && gho.type) {
     return null;
   }
@@ -41,9 +44,11 @@ export const RiskToolGhoItem: FC<
       const splitValues = gho.description.split('(//)');
       if (splitValues[1]) {
         if (viewDataType == ViewsDataEnum.ENVIRONMENT)
-          return (environmentMap as any)[splitValues[1]].name;
+          if ((environmentMap as any)[splitValues[1]])
+            return (environmentMap as any)[splitValues[1]]?.name;
         if (viewDataType == ViewsDataEnum.CHARACTERIZATION)
-          return (characterizationMap as any)[splitValues[1]].name;
+          if ((characterizationMap as any)[splitValues[1]])
+            return (characterizationMap as any)[splitValues[1]]?.name;
       }
     }
 
@@ -51,6 +56,8 @@ export const RiskToolGhoItem: FC<
   };
 
   const topText = getTopText();
+
+  if (topText === undefined) return null;
 
   const searchName = Object.values(HomoTypeEnum).includes((gho as any).type)
     ? (gho as any).description.split('(//)')[0] + topText

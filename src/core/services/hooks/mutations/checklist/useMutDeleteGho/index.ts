@@ -46,6 +46,8 @@ export function useMutDeleteGho() {
             (oldData: IGho[] | undefined) =>
               oldData ? oldData.filter((data) => data.id !== resp.id) : [],
           );
+        queryClient.invalidateQueries([QueryEnum.RISK_DATA, companyId]);
+        queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
       }
 
       enqueueSnackbar('Grupo homogênio de exposição deletado com sucesso', {

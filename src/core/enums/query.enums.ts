@@ -3,6 +3,8 @@ export enum QueryEnum {
   RISK_DATA = 'risk-data',
   RISK_GROUP_DATA = 'risk-group-data',
   RISK_GROUP_DOCS = 'risk-group-docs',
+  ENVIRONMENT = 'environment',
+  CHARACTERIZATION = 'characterization',
   ENVIRONMENTS = 'environments',
   CHARACTERIZATIONS = 'characterizations',
   GHO = 'gho',

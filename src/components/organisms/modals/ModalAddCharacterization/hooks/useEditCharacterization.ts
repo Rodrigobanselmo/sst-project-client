@@ -1,16 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
+import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
+import { setGhoSelectedId } from 'store/reducers/hierarchy/ghoSlice';
+import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutAddCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutAddCharacterizationPhoto';
 import { useMutDeleteCharacterization } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterization';
 import { useMutDeleteCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterizationPhoto';
@@ -19,11 +26,17 @@ import {
   IUpsertCharacterization,
   useMutUpsertCharacterization,
 } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
+import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
+import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { queryClient } from 'core/services/queryClient';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
 import { sortData } from 'core/utils/sorts/data.sort';
 
+import { initialDocPgrSelectState } from '../../ModalSelectDocPgr';
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
 import { initialPhotoState } from '../../ModalUploadPhoto';
+import { ViewsDataEnum } from './../../../main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 
 export const initialCharacterizationState = {
   id: '',
@@ -58,6 +71,11 @@ export const useEditCharacterization = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onOpenModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialCharacterizationState);
+  const saveRef = useRef(false);
+  const { query, push, asPath } = useRouter();
+  const { data: ghoQuery, isLoading: ghoLoading } = useQueryGHO();
+  const dispatch = useAppDispatch();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { handleSubmit, control, reset, getValues } = useForm({
     resolver: yupResolver(characterizationSchema),
@@ -68,13 +86,18 @@ export const useEditCharacterization = () => {
   const addPhotoMutation = useMutAddCharacterizationPhoto();
   const deletePhotoMutation = useMutDeleteCharacterizationPhoto();
 
+  const isRiskOpen = query.riskGroupId;
+
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const [characterizationData, setCharacterizationData] = useState({
     ...initialCharacterizationState,
   });
 
-  const isEdit = !!characterizationData.id;
+  const { data: characterizationQuery, isLoading: characterizationLoading } =
+    useQueryCharacterization(characterizationData.id);
+
+  const isEdit = !!characterizationData.id || !!characterizationQuery.id;
 
   useEffect(() => {
     const initialData =
@@ -91,8 +114,26 @@ export const useEditCharacterization = () => {
 
         return newData;
       });
+
+      if (asPath.includes('riskGroupId'))
+        push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
     }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getModalData]);
+
+  const hierarchies = useMemo(() => {
+    if (characterizationQuery.hierarchies) {
+      return removeDuplicate(
+        [
+          ...characterizationQuery.hierarchies,
+          ...characterizationData.hierarchies,
+        ],
+        { removeById: 'id' },
+      );
+    }
+    return [...characterizationData.hierarchies];
+  }, [characterizationData.hierarchies, characterizationQuery.hierarchies]);
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
@@ -101,10 +142,10 @@ export const useEditCharacterization = () => {
   };
 
   const onCloseUnsaved = () => {
-    const values = getValues();
+    const { name, description } = getValues();
     if (
       preventUnwantedChanges(
-        { ...characterizationData, ...values },
+        { ...characterizationData, name, description },
         initialDataRef.current,
         onClose,
       )
@@ -122,16 +163,33 @@ export const useEditCharacterization = () => {
       photos: characterizationData.photos,
       type: characterizationData.type,
       id: characterizationData.id || undefined,
-      hierarchyIds: characterizationData.hierarchies.map(
+      hierarchyIds: hierarchies.map(
         (hierarchy) => String(hierarchy.id).split('//')[0],
       ),
     };
 
     if (isEdit) delete submitData.photos;
 
-    await upsertMutation.mutateAsync(submitData).catch(() => {});
-
-    onClose();
+    await upsertMutation
+      .mutateAsync(submitData)
+      .then((characterization) => {
+        if (!characterizationData.id)
+          queryClient.invalidateQueries([QueryEnum.GHO]);
+        if (!saveRef.current) {
+          onClose();
+        } else {
+          initialDataRef.current = {
+            ...characterizationData,
+            ...data,
+            id: characterization.id,
+          };
+          setCharacterizationData({
+            ...characterizationData,
+            id: characterization.id,
+          });
+        }
+      })
+      .catch(() => {});
   };
 
   const handleAddPhoto = () => {
@@ -195,17 +253,37 @@ export const useEditCharacterization = () => {
 
   const onAddHierarchy = () => {
     const handleSelect = (hierarchies: ITreeMapObject[]) => {
-      setCharacterizationData((oldData) => ({
-        ...oldData,
-        hierarchies: hierarchies,
-      }));
+      const values = getValues();
+
+      if (isEdit) {
+        const submitData: IUpsertCharacterization = {
+          ...values,
+          companyId: characterizationData.companyId,
+          workspaceId: characterizationData.workspaceId,
+          id: characterizationData.id,
+          photos: characterizationData.photos,
+          type: characterizationData.type,
+          considerations: characterizationData.considerations,
+          hierarchyIds: hierarchies.map(
+            (hierarchy) => String(hierarchy.id).split('//')[0],
+          ),
+        };
+        if (isEdit) delete submitData.photos;
+
+        upsertMutation.mutateAsync(submitData).catch(() => {});
+      } else {
+        setCharacterizationData((oldData) => ({
+          ...oldData,
+          hierarchies: hierarchies,
+        }));
+      }
     };
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       onSelect: handleSelect,
       selectByGHO: true,
       workspaceId: characterizationData.workspaceId,
-      hierarchiesIds: characterizationData.hierarchies.map((hierarchy) =>
+      hierarchiesIds: hierarchies.map((hierarchy) =>
         String(hierarchy.id).split('//').length == 1
           ? String(hierarchy.id) + '//' + characterizationData.workspaceId
           : String(hierarchy.id),
@@ -242,6 +320,36 @@ export const useEditCharacterization = () => {
       .catch(() => {});
   };
 
+  const onAddRisk = () => {
+    if (!isEdit)
+      return enqueueSnackbar('Salve antes de vincular riscos', {
+        variant: 'warning',
+      });
+
+    onOpenModal(ModalEnum.DOC_PGR_SELECT, {
+      title:
+        'Selecione para qual documento PGR deseja adicionar os fatores de risco',
+      onSelect: (docPgr: IRiskGroupData) => {
+        push(asPath + '/?riskGroupId=' + docPgr.id, undefined, {
+          shallow: true,
+        });
+        dispatch(
+          setRiskAddState({
+            viewData: ViewsDataEnum.CHARACTERIZATION,
+            isEdited: false,
+          }),
+        );
+        const foundGho = ghoQuery.find(
+          (g) => g.id === characterizationQuery?.id,
+        );
+        if (foundGho)
+          setTimeout(() => {
+            dispatch(setGhoSelectedId(foundGho));
+          }, 500);
+      },
+    } as Partial<typeof initialDocPgrSelectState>);
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -261,6 +369,12 @@ export const useEditCharacterization = () => {
     onAddArray,
     onDeleteArray,
     onRemove: () => preventDelete(onRemove),
+    hierarchies,
+    characterizationQuery,
+    onAddRisk,
+    isRiskOpen,
+    characterizationLoading: characterizationLoading || ghoLoading,
+    saveRef,
   };
 };
 

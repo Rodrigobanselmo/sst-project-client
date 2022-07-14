@@ -72,14 +72,14 @@ export const ThirdModalCompanyStep = (props: IUseAddCompany) => {
               />
             </Box>
           </SFlex>
-          <InputForm
-            defaultValue={companyData.riskDegree}
+          {/* <InputForm
+            defaultValue={cnae.riskDegree}
             label="Grau de risco"
             control={control}
             placeholder={'grau de risco referente à atividade...'}
             name="riskDegree"
             size="small"
-          />
+          /> */}
         </SFlex>
       </AnimatedStep>
       <SModalButtons

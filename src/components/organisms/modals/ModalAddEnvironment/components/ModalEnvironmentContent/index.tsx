@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box, Icon, styled } from '@mui/material';
+import { Box, CircularProgress, Icon, styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -39,6 +39,10 @@ export const ModalEnvironmentContent = ({
   onAddHierarchy,
   onAddArray,
   onDeleteArray,
+  onAddRisk,
+  environmentQuery,
+  hierarchies,
+  environmentLoading,
 }: IUseEditEnvironment) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -172,9 +176,9 @@ export const ModalEnvironmentContent = ({
       <SText color="text.label" fontSize={14}>
         Vincular cargos ao ambiente
       </SText>
-      {!!environmentData.hierarchies.length && (
+      {!environmentLoading && !!hierarchies.length && (
         <SFlex gap={8} mt={0} flexWrap="wrap">
-          {environmentData.hierarchies.map((hierarchy) => {
+          {hierarchies.map((hierarchy) => {
             const fromTree = hierarchy && 'label' in hierarchy;
             const name = fromTree ? hierarchy.label : hierarchy.name;
             return (
@@ -195,12 +199,51 @@ export const ModalEnvironmentContent = ({
           })}
         </SFlex>
       )}
+      {environmentLoading && <CircularProgress color="primary" size={18} />}
       <STagButton
         large
         icon={SAddIcon}
-        text="Adicionar cargos, setores ..."
+        text="Adicionarcargos, setores ..."
         iconProps={{ sx: { fontSize: 17 } }}
         onClick={() => onAddHierarchy()}
+        disabled={environmentLoading}
+      />
+      <SText color="text.label" fontSize={14}>
+        Vincular Fatores de Risco / Perigos ao ambiente
+      </SText>
+      {!environmentLoading &&
+        !!environmentQuery.riskData &&
+        !!environmentQuery.riskData.length && (
+          <SFlex gap={8} mt={0} flexWrap="wrap">
+            {environmentQuery.riskData.map((riskData) => {
+              if (!riskData.riskFactor) return null;
+
+              return (
+                <SText
+                  component="span"
+                  key={riskData.id}
+                  sx={{
+                    fontSize: 12,
+                    p: 4,
+                    border: '1px solid',
+                    borderColor: 'grey.300',
+                    borderRadius: 1,
+                  }}
+                >
+                  {riskData.riskFactor.name}
+                </SText>
+              );
+            })}
+          </SFlex>
+        )}
+      {environmentLoading && <CircularProgress color="primary" size={18} />}
+      <STagButton
+        large
+        icon={SAddIcon}
+        text="Adicionar Fatores de risco e/ou Perigos ..."
+        iconProps={{ sx: { fontSize: 17 } }}
+        onClick={() => onAddRisk()}
+        disabled={environmentLoading}
       />
       <SText color="text.label" fontSize={14}>
         Fotos

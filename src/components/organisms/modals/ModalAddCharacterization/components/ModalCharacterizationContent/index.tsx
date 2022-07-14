@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Icon, styled } from '@mui/material';
+import { CircularProgress, Icon, styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -38,6 +38,10 @@ export const ModalCharacterizationContent = ({
   onAddHierarchy,
   onAddArray,
   onDeleteArray,
+  hierarchies,
+  characterizationQuery,
+  onAddRisk,
+  characterizationLoading,
 }: IUseEditCharacterization) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -115,9 +119,9 @@ export const ModalCharacterizationContent = ({
       <SText color="text.label" fontSize={14}>
         Vincular cargos
       </SText>
-      {!!characterizationData.hierarchies.length && (
+      {!characterizationLoading && !!hierarchies.length && (
         <SFlex gap={8} mt={0} flexWrap="wrap">
-          {characterizationData.hierarchies.map((hierarchy) => {
+          {hierarchies.map((hierarchy) => {
             const fromTree = hierarchy && 'label' in hierarchy;
             const name = fromTree ? hierarchy.label : hierarchy.name;
             return (
@@ -138,12 +142,55 @@ export const ModalCharacterizationContent = ({
           })}
         </SFlex>
       )}
+      {characterizationLoading && (
+        <CircularProgress color="primary" size={18} />
+      )}
       <STagButton
         large
         icon={SAddIcon}
         text="Adicionar cargos, setores ..."
         iconProps={{ sx: { fontSize: 17 } }}
         onClick={() => onAddHierarchy()}
+        disabled={characterizationLoading}
+      />
+      <SText color="text.label" fontSize={14}>
+        Vincular Fatores de Risco / Perigos ao ambiente
+      </SText>
+      {!characterizationLoading &&
+        !!characterizationQuery.riskData &&
+        !!characterizationQuery.riskData.length && (
+          <SFlex gap={8} mt={0} flexWrap="wrap">
+            {characterizationQuery.riskData.map((riskData) => {
+              if (!riskData.riskFactor) return null;
+
+              return (
+                <SText
+                  component="span"
+                  key={riskData.id}
+                  sx={{
+                    fontSize: 12,
+                    p: 4,
+                    border: '1px solid',
+                    borderColor: 'grey.300',
+                    borderRadius: 1,
+                  }}
+                >
+                  {riskData.riskFactor.name}
+                </SText>
+              );
+            })}
+          </SFlex>
+        )}
+      {characterizationLoading && (
+        <CircularProgress color="primary" size={18} />
+      )}
+      <STagButton
+        large
+        icon={SAddIcon}
+        text="Adicionar Fatores de risco e/ou Perigos ..."
+        iconProps={{ sx: { fontSize: 17 } }}
+        onClick={() => onAddRisk()}
+        disabled={characterizationLoading}
       />
       <SText color="text.label" fontSize={14}>
         Fotos

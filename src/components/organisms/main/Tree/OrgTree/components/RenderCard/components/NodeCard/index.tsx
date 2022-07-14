@@ -269,7 +269,7 @@ export const NodeCard: FC<INodeCardProps> = ({
                   onClick={handleAddCard}
                   icon={AddIcon}
                 />
-                {node.type === TreeTypeEnum.WORKSPACE &&
+                {node.type === TreeTypeEnum.WORKSPACE && //! create component for this
                   !node.childrenIds?.length && (
                     <Box
                       sx={{

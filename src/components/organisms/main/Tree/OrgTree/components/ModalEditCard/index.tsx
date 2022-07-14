@@ -119,12 +119,22 @@ export const ModalEditCard = () => {
 
   const onRemoveNode = () => {
     if (selectedNode?.id) {
-      return preventDelete(() => {
-        onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
-        setEmployees([]);
-        removeNodes(selectedNode.id);
-        setEditNodeSelectedItem(null);
-      });
+      return preventDelete(
+        () => {
+          onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
+          setEmployees([]);
+          removeNodes(selectedNode.id);
+          setEditNodeSelectedItem(null);
+        },
+        <span>
+          <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+            Deletar {selectedNode?.name}
+          </p>
+          Você tem certeza que deseja remover permanentemente? Remover esse
+          item, você também removerá todos os items decendentes dele. <br />
+        </span>,
+        { inputConfirm: true },
+      );
     }
   };
 

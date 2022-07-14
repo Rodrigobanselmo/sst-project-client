@@ -300,8 +300,7 @@ export const useHierarchyTreeActions = () => {
               )
               .then(() => {
                 options?.callBack?.();
-              })
-              .catch(() => {}),
+              }),
           nodes,
         );
       }
@@ -335,8 +334,7 @@ export const useHierarchyTreeActions = () => {
       );
 
       dispatch(setRemoveNode(idsToRemove));
-      if (!noSave)
-        saveApi(() => deleteMutation.mutateAsync(idApi).catch(() => {}), nodes);
+      if (!noSave) saveApi(() => deleteMutation.mutateAsync(idApi), nodes);
     },
     [deleteMutation, dispatch, saveApi, store],
   );

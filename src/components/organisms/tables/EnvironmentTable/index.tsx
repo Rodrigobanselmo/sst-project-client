@@ -13,8 +13,16 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddEnvironment } from 'components/organisms/modals/ModalAddEnvironment';
+import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
+import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
+import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
+import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
+import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
+import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
+import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
+import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import dayjs from 'dayjs';
@@ -128,7 +136,17 @@ export const EnvironmentTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
-      <ModalAddEnvironment />
+      <>
+        <ModalAddEnvironment />
+        <ModalSelectDocPgr />
+        <ModalAddRisk />
+        <ModalAddGho />
+        <ModalAddGenerateSource />
+        <ModalAddRecMed />
+        <ModalAddEpi />
+        <ModalAddProbability />
+        <ModalAddQuantity />
+      </>
       <ModalAddWorkspace />
       <ModalSingleInput />
       <ModalExcelHierarchies />

@@ -58,11 +58,25 @@ export const GhoTool = () => {
   };
 
   const handleDeleteGHO = useCallback(
-    (id: string) => {
-      preventDelete(async () => {
-        await deleteMutation.mutateAsync(id).catch(() => {});
-        dispatch(setGhoState({ hierarchies: [], data: null }));
-      });
+    (id: string, data?: IGho) => {
+      preventDelete(
+        async () => {
+          await deleteMutation.mutateAsync(id).catch(() => {});
+          dispatch(setGhoState({ hierarchies: [], data: null }));
+        },
+        <span>
+          <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>
+            Deletar {data?.name}
+          </p>
+          Você tem certeza que deseja remover permanentemente o grupo similar de
+          esposição <b>{data?.name}</b>.
+          <br />
+          <br />
+          Todos os dados de <b>Fatores de Risco / Perigos</b> vinculados a ele
+          seram perdidos
+        </span>,
+        { inputConfirm: true },
+      );
     },
     [deleteMutation, dispatch, preventDelete],
   );

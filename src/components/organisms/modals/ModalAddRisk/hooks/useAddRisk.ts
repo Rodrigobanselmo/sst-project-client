@@ -31,6 +31,8 @@ export const initialAddRiskState = {
   hasSubmit: false,
   id: '',
   companyId: '',
+  risk: '',
+  symptoms: '',
 };
 
 export const useAddRisk = () => {
@@ -172,6 +174,8 @@ export const useAddRisk = () => {
     name,
     type,
     severity,
+    risk: riskHealth,
+    symptoms,
   }) => {
     const { id, companyId, recMed, generateSource, status } = riskData;
     const typeValue = type as RiskEnum;
@@ -185,6 +189,8 @@ export const useAddRisk = () => {
       name,
       type: typeValue,
       severity,
+      risk: riskHealth,
+      symptoms,
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;

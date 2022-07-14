@@ -122,7 +122,7 @@ export const useModal = () => {
   );
 
   const getStackModal = useCallback(() => {
-    return store.getState().modal.pileModal as string[];
+    return store.getState().modal.pileModal as ICurrentModal[];
   }, [store]);
 
   return {

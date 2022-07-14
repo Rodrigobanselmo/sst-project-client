@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useWizard } from 'react-use-wizard';
 
 import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { SelectForm } from 'components/molecules/form/select';
 import { SModalButtons } from 'components/molecules/SModal';
@@ -66,6 +67,18 @@ export const SecondModalStep = (props: IUseAddCompany) => {
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
           <SelectForm
+            renderMenuItemChildren={(item, index) => (
+              <>
+                {item}{' '}
+                {index === 0 && (
+                  <SText fontSize={13} ml={3}>
+                    {' '}
+                    *entra no controle de versões do documento (não pode ser
+                    deletado)
+                  </SText>
+                )}
+              </>
+            )}
             label="Versão*"
             control={control}
             sx={{ minWidth: ['100%', 600] }}

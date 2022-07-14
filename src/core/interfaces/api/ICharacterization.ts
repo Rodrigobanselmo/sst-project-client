@@ -1,6 +1,7 @@
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import { IHierarchy } from './IHierarchy';
+import { IRiskData } from './IRiskData';
 
 export type ICharacterization = {
   id: string;
@@ -14,6 +15,7 @@ export type ICharacterization = {
   companyId: string;
   photos: ICharacterizationPhoto[];
   hierarchies?: IHierarchy[];
+  riskData?: IRiskData[];
 };
 
 export type ICharacterizationPhoto = {

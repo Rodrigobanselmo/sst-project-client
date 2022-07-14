@@ -45,7 +45,7 @@ import {
   ViewTypeEnum,
 } from './utils/view-risk-type.constant';
 
-export const SidebarOrg = () => {
+export const RiskToolSlider = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data: ghoQuery } = useQueryGHO();

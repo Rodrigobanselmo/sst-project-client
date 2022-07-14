@@ -68,7 +68,9 @@ export function useMutUpsertRiskData() {
           const replace = (lastId: string) => {
             // eslint-disable-next-line prettier/prettier
             const actualData = queryClient.getQueryData( [ QueryEnum.RISK_DATA, getCompanyId(resp), resp.riskFactorGroupDataId, lastId, ]);
-            if (actualData)
+            if (actualData) {
+              queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
+              queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
               queryClient.setQueryData(
                 [
                   QueryEnum.RISK_DATA,
@@ -101,6 +103,7 @@ export function useMutUpsertRiskData() {
                   return [];
                 },
               );
+            }
           };
 
           replace(resp.riskId);

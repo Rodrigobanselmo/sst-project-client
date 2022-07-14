@@ -16,7 +16,7 @@ export const useCompanyEdit = ({
 
   const createCompany = useMutCreateCompany();
 
-  const fields = ['riskDegree', 'cnae_code', 'cnae_name'];
+  const fields = ['cnae_code', 'cnae_name'];
 
   const onCloseUnsaved = async () => {
     rest.onCloseUnsaved();
@@ -27,7 +27,7 @@ export const useCompanyEdit = ({
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { cnae_name, cnae_code, riskDegree } = getValues();
+      const { cnae_name, cnae_code } = getValues();
 
       const submitData = {
         ...companyData,
@@ -37,8 +37,7 @@ export const useCompanyEdit = ({
             code: cnae_code,
           },
         ] as ActivityDto[],
-
-        riskDegree,
+        // riskDegree,
       };
 
       if (companyData.id == '') {

@@ -77,4 +77,5 @@ export interface ILicense {
 export interface ActivityDto {
   name: string;
   code: string;
+  riskDegree: string;
 }

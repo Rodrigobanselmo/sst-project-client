@@ -17,7 +17,7 @@ import { GhoTool } from './components/GhoTool';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
-import { SidebarOrg } from './components/RiskTool';
+import { RiskToolSlider } from './components/RiskTool';
 import { IOrgTreeProps } from './interfaces';
 import { OrgTree, OrgTreeContainer, STGhoBox } from './OrgTree.styles';
 
@@ -73,7 +73,7 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
         gho={isGhoOpen ? 1 : 0}
         risk_init={isRiskOpen ? 1 : 0}
       >
-        {isRiskOpen && <SidebarOrg />}
+        {isRiskOpen && <RiskToolSlider />}
         {!isRiskOpen && <GhoTool />}
       </STGhoBox>
     </Box>

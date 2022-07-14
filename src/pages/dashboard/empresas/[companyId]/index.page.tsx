@@ -25,12 +25,15 @@ import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
+import { setGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import SCharacterization from 'assets/icons/SCharacterizationIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
+import { SGhoIcon } from 'assets/icons/SGhoIcon';
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
@@ -39,6 +42,7 @@ import STeamIcon from 'assets/icons/STeamIcon';
 import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { useModal } from 'core/hooks/useModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
@@ -52,6 +56,8 @@ const CompanyPage: NextPage = () => {
   const { data: company, isLoading } = useQueryCompany();
   const { onOpenModal } = useModal();
   const { push } = useRouter();
+  const dispatch = useAppDispatch();
+  const { enqueueSnackbar } = useSnackbar();
 
   useFetchFeedback(isLoading && !company?.id);
 
@@ -106,8 +112,37 @@ const CompanyPage: NextPage = () => {
   }, [company.id, onOpenModal, push]);
 
   const handleGoHierarchy = useCallback(() => {
+    if (company.workspace && company.workspace.length === 0)
+      return enqueueSnackbar('Cadastre um estabelecimento antes de continuar', {
+        variant: 'warning',
+      });
+
     push(RoutesEnum.HIERARCHY.replace(':companyId', company.id || ''));
-  }, [push, company]);
+    dispatch(setGhoState({ hierarchies: [], data: null }));
+    dispatch(setGhoOpen(false));
+  }, [company.workspace, company.id, enqueueSnackbar, push, dispatch]);
+
+  const handleGoGho = useCallback(() => {
+    if (company.workspace && company.workspace.length === 0)
+      return enqueueSnackbar('Cadastre um estabelecimento antes de continuar', {
+        variant: 'warning',
+      });
+    if (company.hierarchyCount)
+      return enqueueSnackbar('Cadastre um cargo antes de continuar', {
+        variant: 'warning',
+      });
+
+    push(RoutesEnum.HIERARCHY.replace(':companyId', company.id || ''));
+    dispatch(setGhoState({ hierarchies: [], data: null }));
+    dispatch(setGhoOpen(true));
+  }, [
+    company.workspace,
+    company.hierarchyCount,
+    company.id,
+    enqueueSnackbar,
+    push,
+    dispatch,
+  ]);
 
   const handleAddEnvironments = useCallback(() => {
     const workspaceLength = company?.workspace?.length || 0;
@@ -211,6 +246,11 @@ const CompanyPage: NextPage = () => {
         icon: SHierarchyIcon,
         onClick: handleGoHierarchy,
         text: 'Organograma',
+      },
+      {
+        icon: SGhoIcon,
+        onClick: handleGoGho,
+        text: 'Grupos Similar de Exposição',
       },
     ];
   }, [handleAddRisk, handleGoHierarchy]);

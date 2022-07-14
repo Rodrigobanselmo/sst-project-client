@@ -5,6 +5,7 @@ import { IGho } from 'core/interfaces/api/IGho';
 
 export interface GhoRowProps {
   gho: IGho;
+  isFirst?: boolean;
   isDeleteLoading: boolean;
   selectedGhoId: string | null;
   handleEditGHO: (data: IGho) => void;
@@ -17,5 +18,5 @@ export interface GhoRowProps {
         type: string;
       }
     | undefined;
-  handleDeleteGHO: (id: string) => void;
+  handleDeleteGHO: (id: string, data?: IGho) => void;
 }

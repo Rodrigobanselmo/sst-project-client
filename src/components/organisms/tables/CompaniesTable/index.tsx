@@ -40,7 +40,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
   const { handleSearchChange, results } = useTableSearch({
     data,
     keys: ['name', 'cnpj', 'fantasy'],
-    sort: (a, b) => sortData(a, b, 'created_at'),
+    sort: (a, b) => sortData(b, a, 'created_at'),
   });
 
   const handleEditStatus = (status: StatusEnum) => {

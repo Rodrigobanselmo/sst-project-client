@@ -1,16 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
+import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
+import { setGhoSelectedId } from 'store/reducers/hierarchy/ghoSlice';
+import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutAddEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutAddEnvironmentPhoto';
 import { useMutDeleteEnvironment } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironment';
 import { useMutDeleteEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironmentPhoto';
@@ -19,9 +27,14 @@ import {
   IUpsertEnvironment,
   useMutUpsertEnvironment,
 } from 'core/services/hooks/mutations/manager/useMutUpsertEnvironment';
+import { useQueryEnvironment } from 'core/services/hooks/queries/useQueryEnvironment';
+import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { queryClient } from 'core/services/queryClient';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { environmentSchema } from 'core/utils/schemas/environment.schema';
 import { sortData } from 'core/utils/sorts/data.sort';
 
+import { initialDocPgrSelectState } from '../../ModalSelectDocPgr';
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 
@@ -58,6 +71,11 @@ export const useEditEnvironment = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onOpenModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialEnvironmentState);
+  const saveRef = useRef(false);
+  const { query, push, asPath } = useRouter();
+  const { data: ghoQuery, isLoading: ghoLoading } = useQueryGHO();
+  const dispatch = useAppDispatch();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { handleSubmit, control, reset, getValues } = useForm({
     resolver: yupResolver(environmentSchema),
@@ -68,13 +86,18 @@ export const useEditEnvironment = () => {
   const addPhotoMutation = useMutAddEnvironmentPhoto();
   const deletePhotoMutation = useMutDeleteEnvironmentPhoto();
 
+  const isRiskOpen = query.riskGroupId;
+
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const [environmentData, setEnvironmentData] = useState({
     ...initialEnvironmentState,
   });
 
-  const isEdit = !!environmentData.id;
+  const { data: environmentQuery, isLoading: environmentLoading } =
+    useQueryEnvironment(environmentData.id);
+
+  const isEdit = !!environmentData.id || !!environmentQuery.id;
 
   useEffect(() => {
     const initialData =
@@ -91,8 +114,23 @@ export const useEditEnvironment = () => {
 
         return newData;
       });
+
+      if (asPath.includes('riskGroupId'))
+        push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
     }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getModalData]);
+
+  const hierarchies = useMemo(() => {
+    if (environmentQuery.hierarchies) {
+      return removeDuplicate(
+        [...environmentQuery.hierarchies, ...environmentData.hierarchies],
+        { removeById: 'id' },
+      );
+    }
+    return [...environmentData.hierarchies];
+  }, [environmentData.hierarchies, environmentQuery.hierarchies]);
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
@@ -121,22 +159,36 @@ export const useEditEnvironment = () => {
       temperature: data.temperature,
       luminosity: data.luminosity,
       moisturePercentage: data.moisturePercentage,
-      companyId: environmentData.companyId,
-      workspaceId: environmentData.workspaceId,
       photos: environmentData.photos,
       type: environmentData.type,
       considerations: environmentData.considerations,
+      companyId: environmentData.companyId,
+      workspaceId: environmentData.workspaceId,
       id: environmentData.id || undefined,
-      hierarchyIds: environmentData.hierarchies.map(
+      hierarchyIds: hierarchies.map(
         (hierarchy) => String(hierarchy.id).split('//')[0],
       ),
     };
 
     if (isEdit) delete submitData.photos;
+    if (!isEdit) queryClient.invalidateQueries([QueryEnum.GHO]);
 
-    await upsertMutation.mutateAsync(submitData).catch(() => {});
-
-    onClose();
+    await upsertMutation
+      .mutateAsync(submitData)
+      .then((environment) => {
+        if (!environmentData.id) queryClient.invalidateQueries([QueryEnum.GHO]);
+        if (!saveRef.current) {
+          onClose();
+        } else {
+          initialDataRef.current = {
+            ...environmentData,
+            ...data,
+            id: environment.id,
+          };
+          setEnvironmentData({ ...environmentData, id: environment.id });
+        }
+      })
+      .catch(() => {});
   };
 
   const handleAddPhoto = () => {
@@ -210,17 +262,37 @@ export const useEditEnvironment = () => {
 
   const onAddHierarchy = () => {
     const handleSelect = (hierarchies: ITreeMapObject[]) => {
-      setEnvironmentData((oldData) => ({
-        ...oldData,
-        hierarchies: hierarchies,
-      }));
+      const values = getValues();
+
+      if (isEdit) {
+        const submitData: IUpsertEnvironment = {
+          ...values,
+          companyId: environmentData.companyId,
+          workspaceId: environmentData.workspaceId,
+          id: environmentData.id,
+          photos: environmentData.photos,
+          type: environmentData.type,
+          considerations: environmentData.considerations,
+          hierarchyIds: hierarchies.map(
+            (hierarchy) => String(hierarchy.id).split('//')[0],
+          ),
+        };
+        if (isEdit) delete submitData.photos;
+
+        upsertMutation.mutateAsync(submitData).catch(() => {});
+      } else {
+        setEnvironmentData((oldData) => ({
+          ...oldData,
+          hierarchies: hierarchies,
+        }));
+      }
     };
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       onSelect: handleSelect,
       selectByGHO: true,
       workspaceId: environmentData.workspaceId,
-      hierarchiesIds: environmentData.hierarchies.map((hierarchy) =>
+      hierarchiesIds: hierarchies.map((hierarchy) =>
         String(hierarchy.id).split('//').length == 1
           ? String(hierarchy.id) + '//' + environmentData.workspaceId
           : String(hierarchy.id),
@@ -246,6 +318,34 @@ export const useEditEnvironment = () => {
     });
   };
 
+  const onAddRisk = () => {
+    if (!isEdit)
+      return enqueueSnackbar('Salve antes de vincular riscos ao ambiente', {
+        variant: 'warning',
+      });
+
+    onOpenModal(ModalEnum.DOC_PGR_SELECT, {
+      title:
+        'Selecione para qual documento PGR deseja adicionar os fatores de risco',
+      onSelect: (docPgr: IRiskGroupData) => {
+        push(asPath + '/?riskGroupId=' + docPgr.id, undefined, {
+          shallow: true,
+        });
+        dispatch(
+          setRiskAddState({
+            viewData: ViewsDataEnum.ENVIRONMENT,
+            isEdited: false,
+          }),
+        );
+        const foundGho = ghoQuery.find((g) => g.id === environmentQuery?.id);
+        if (foundGho)
+          setTimeout(() => {
+            dispatch(setGhoSelectedId(foundGho));
+          }, 500);
+      },
+    } as Partial<typeof initialDocPgrSelectState>);
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -265,6 +365,12 @@ export const useEditEnvironment = () => {
     onAddArray,
     onDeleteArray,
     onRemove: () => preventDelete(onRemove),
+    isRiskOpen,
+    onAddRisk,
+    environmentQuery,
+    hierarchies,
+    environmentLoading: environmentLoading && ghoLoading,
+    saveRef,
   };
 };
 

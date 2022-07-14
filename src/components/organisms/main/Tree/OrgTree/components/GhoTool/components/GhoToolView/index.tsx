@@ -30,7 +30,7 @@ export const GhoToolView: FC<RiskToolRiskViewProps> = ({
 
   return (
     <>
-      {ghoOrderedData.map((gho) => (
+      {ghoOrderedData.map((gho, index) => (
         <GhoRow
           key={gho.id}
           gho={gho}
@@ -39,6 +39,7 @@ export const GhoToolView: FC<RiskToolRiskViewProps> = ({
           handleDeleteGHO={handleDeleteGHO}
           selectedGhoId={selectedGhoId}
           isDeleteLoading={isDeleteLoading}
+          isFirst={index === 0}
         />
       ))}
     </>

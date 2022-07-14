@@ -45,6 +45,8 @@ export function useMutDeleteManyRiskData() {
       deleteManyRiskData(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
+        queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
+        queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
         queryClient.invalidateQueries([
           QueryEnum.RISK_DATA,
           getCompanyId(resp?.companyId),

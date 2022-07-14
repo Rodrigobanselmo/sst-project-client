@@ -8,6 +8,7 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { RiskToolSlider } from 'components/organisms/main/Tree/OrgTree/components/RiskTool';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
@@ -26,15 +27,23 @@ export const ModalAddCharacterization = () => {
     modalName,
     isEdit,
     onRemove,
+    isRiskOpen,
+    saveRef,
   } = props;
 
   const buttons = [
     {},
     {
-      text: characterizationData.id ? 'Salvar' : 'Criar',
+      text: 'Salvar',
+      variant: 'outlined',
+      type: 'submit',
+      onClick: () => (saveRef.current = true),
+    },
+    {
+      text: characterizationData.id ? 'Salvar e Sair' : 'Criar',
       variant: 'contained',
       type: 'submit',
-      onClick: () => {},
+      onClick: () => (saveRef.current = false),
     },
   ] as IModalButton[];
 
@@ -44,29 +53,34 @@ export const ModalAddCharacterization = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <SModalPaper
-        p={8}
-        center
-        component="form"
-        onSubmit={handleSubmit(onSubmit)}
-        sx={{ width: 1000, maxWidth: '95vw' }}
-      >
-        <SModalHeader
-          tag={isEdit ? 'edit' : 'add'}
-          onClose={onCloseUnsaved}
-          title={'Mão de Obra (Caracterização)'}
-          secondIcon={characterizationData?.id ? SDeleteIcon : undefined}
-          secondIconClick={onRemove}
-        />
+      <>
+        {!isRiskOpen && (
+          <SModalPaper
+            p={8}
+            center
+            component="form"
+            onSubmit={handleSubmit(onSubmit)}
+            sx={{ width: 1000, maxWidth: '95vw' }}
+          >
+            <SModalHeader
+              tag={isEdit ? 'edit' : 'add'}
+              onClose={onCloseUnsaved}
+              title={'Mão de Obra (Caracterização)'}
+              secondIcon={characterizationData?.id ? SDeleteIcon : undefined}
+              secondIconClick={onRemove}
+            />
 
-        <ModalCharacterizationContent {...props} />
+            <ModalCharacterizationContent {...props} />
 
-        <SModalButtons
-          loading={loading}
-          onClose={onCloseUnsaved}
-          buttons={buttons}
-        />
-      </SModalPaper>
+            <SModalButtons
+              loading={loading}
+              onClose={onCloseUnsaved}
+              buttons={buttons}
+            />
+          </SModalPaper>
+        )}
+        {isRiskOpen && <RiskToolSlider />}
+      </>
     </SModal>
   );
 };

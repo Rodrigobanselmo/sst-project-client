@@ -86,7 +86,13 @@ export function useMutUpsertCharacterization() {
             // eslint-disable-next-line prettier/prettier
             [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
           );
-          if (actualData)
+          if (actualData) {
+            queryClient.invalidateQueries([
+              QueryEnum.CHARACTERIZATION,
+              resp.companyId,
+              resp.workspaceId,
+              resp.id,
+            ]);
             queryClient.setQueryData(
               [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
               (oldData: ICharacterization[] | undefined) => {
@@ -107,6 +113,7 @@ export function useMutUpsertCharacterization() {
                 return [];
               },
             );
+          }
         }
 
         enqueueSnackbar('Ação realizado com sucesso', {

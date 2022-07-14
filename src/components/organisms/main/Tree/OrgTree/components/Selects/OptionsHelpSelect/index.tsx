@@ -38,7 +38,10 @@ export const OptionsHelpSelect: FC<IOptionsHelpSelectProps> = ({
     }
 
     if (HelpOptionsEnum.DELETE === value) {
-      if (node.parentId) return preventDelete(() => removeNodes(node.id));
+      if (node.parentId)
+        return preventDelete(() => removeNodes(node.id), '', {
+          inputConfirm: true,
+        });
     }
   };
 

@@ -1,3 +1,5 @@
+import { ReactNode } from 'react';
+
 import { QuestionOptionsEnum } from 'components/organisms/main/Tree/ChecklistTree/enums/question-options.enums';
 import { IModalDataSlice } from 'store/reducers/modal/modalSlice';
 
@@ -52,13 +54,20 @@ export const usePreventNode = () => {
     return false;
   };
 
-  const preventDelete = (callback: () => void) => {
+  const preventDelete = (
+    callback: () => void,
+    message?: ReactNode,
+    options: Partial<IModalDataSlice> = {} as IModalDataSlice,
+  ) => {
     const data = {
       title: 'Você tem certeza?',
-      text: 'Ao remover esse item, você também removerá todos os items decendentes dele.',
+      text:
+        message ||
+        'Ao remover esse item, você também removerá todos os items decendentes dele.',
       confirmText: 'Deletar',
       tag: 'delete',
       confirmCancel: 'Cancel',
+      ...options,
     } as IModalDataSlice;
 
     onOpenGlobalModal(data, callback);

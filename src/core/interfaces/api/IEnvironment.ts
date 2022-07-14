@@ -1,6 +1,7 @@
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import { IHierarchy } from './IHierarchy';
+import { IRiskData } from './IRiskData';
 
 export type IEnvironment = {
   id: string;
@@ -19,6 +20,7 @@ export type IEnvironment = {
   moisturePercentage: string;
   luminosity: string;
   hierarchies?: IHierarchy[];
+  riskData?: IRiskData[];
 };
 
 export type IEnvironmentPhoto = {

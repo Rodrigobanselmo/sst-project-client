@@ -6,25 +6,9 @@ import { IEpi } from 'core/interfaces/api/IEpi';
 import { IGho } from './IGho';
 import { IHierarchy } from './IHierarchy';
 import { IProfessional } from './IProfessional';
-import { IGenerateSource, IRecMed } from './IRiskFactors';
+import { IGenerateSource, IRecMed, IRiskFactors } from './IRiskFactors';
 import { IUser } from './IUser';
 
-export interface IRiskDataJsonQui {
-  stel?: string;
-  twa?: string;
-  nr15lt?: string;
-  stelValue?: string;
-  twaValue?: string;
-  nr15ltValue?: string;
-  type: QuantityTypeEnum;
-}
-
-export interface IRiskDataJsonNoise {
-  ltcatq3?: string;
-  ltcatq5?: string;
-  nr15q3?: string;
-  type: QuantityTypeEnum;
-}
 export interface IRiskData {
   id: string;
   probability?: number;
@@ -43,6 +27,23 @@ export interface IRiskData {
   epis?: IEpi[];
   isQuantity?: boolean;
   json?: IRiskDataJsonQui | IRiskDataJsonNoise;
+  riskFactor?: IRiskFactors;
+}
+export interface IRiskDataJsonQui {
+  stel?: string;
+  twa?: string;
+  nr15lt?: string;
+  stelValue?: string;
+  twaValue?: string;
+  nr15ltValue?: string;
+  type: QuantityTypeEnum;
+}
+
+export interface IRiskDataJsonNoise {
+  ltcatq3?: string;
+  ltcatq5?: string;
+  nr15q3?: string;
+  type: QuantityTypeEnum;
 }
 
 export interface IRiskGroupData {

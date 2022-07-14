@@ -16,5 +16,5 @@ export interface RiskToolRiskViewProps {
         type: string;
       }
     | undefined;
-  handleDeleteGHO: (id: string) => void;
+  handleDeleteGHO: (id: string, data?: IGho) => void;
 }

@@ -66,7 +66,7 @@ export async function updateEnvironment(
     companyId,
   ).replace(':workspaceId', workspaceId);
 
-  const response = await api.post(path, formData, {
+  const response = await api.post<IEnvironment>(path, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
       Authorization: `Bearer ${token}`,
@@ -85,13 +85,18 @@ export function useMutUpsertEnvironment() {
       updateEnvironment(data, getCompanyId(data), wId || workspaceId),
     {
       onSuccess: async (resp) => {
-        console.log(resp);
         if (resp) {
           const actualData = queryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier
             [QueryEnum.ENVIRONMENTS, resp.companyId, resp.workspaceId],
           );
-          if (actualData)
+          if (actualData) {
+            queryClient.invalidateQueries([
+              QueryEnum.ENVIRONMENT,
+              resp.companyId,
+              resp.workspaceId,
+              resp.id,
+            ]);
             queryClient.setQueryData(
               [QueryEnum.ENVIRONMENTS, resp.companyId, resp.workspaceId],
               (oldData: IEnvironment[] | undefined) => {
@@ -112,6 +117,7 @@ export function useMutUpsertEnvironment() {
                 return [];
               },
             );
+          }
         }
 
         enqueueSnackbar('Ação realizado com sucesso', {

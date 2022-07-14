@@ -76,7 +76,7 @@ export const BottomButton: FC = () => {
           center
         >
           <Icon component={SGhoIcon} />
-          <SText>G.S.E</SText>
+          <SText>GSE</SText>
         </SFlexButton>
       </STooltip>
     </SFlex>

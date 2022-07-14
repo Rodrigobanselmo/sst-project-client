@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Divider } from '@mui/material';
+import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import SModal, {
@@ -47,7 +48,12 @@ export const ModalAddRisk = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <SModalPaper p={8} component="form" onSubmit={handleSubmit(onSubmit)}>
+      <SModalPaper
+        center
+        p={8}
+        component="form"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <SModalHeader
           tag={riskData?.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
@@ -85,7 +91,42 @@ export const ModalAddRisk = () => {
             options={enumToArray(SeverityEnum, 'value')}
             name="severity"
             mt={5}
+            mb={15}
             columns={5}
+          />
+          <InputForm
+            defaultValue={riskData.risk}
+            multiline
+            minRows={2}
+            maxRows={5}
+            label={
+              <>
+                Risco{' '}
+                <span style={{ fontSize: 11 }}>
+                  (Órgãos Alvo ou Maior Parte do Corpo Prejudicada - Resumo de
+                  Sintomas)
+                </span>
+              </>
+            }
+            control={control}
+            sx={{ width: ['100%', 600], mb: 8 }}
+            placeholder={'descrião do risco...'}
+            name="risk"
+            size="small"
+            firstLetterCapitalize
+          />
+          <InputForm
+            defaultValue={riskData.symptoms}
+            multiline
+            minRows={2}
+            maxRows={5}
+            label="Sintomas, Danos ou Qualquer consequência negativa"
+            control={control}
+            sx={{ width: ['100%', 600] }}
+            placeholder={'descrião dos sintomas...'}
+            name="symptoms"
+            size="small"
+            firstLetterCapitalize
           />
         </Box>
         <EditRiskSelects riskData={riskData} setRiskData={setRiskData} />
