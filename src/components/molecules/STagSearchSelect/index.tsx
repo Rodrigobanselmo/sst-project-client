@@ -33,6 +33,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   onClose,
   isLoading,
   handleMultiSelectMenu,
+  preventOpen,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -44,7 +45,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
 
   const handleSelectTag = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
-    setAnchorEl(e.currentTarget);
+    if (!preventOpen) setAnchorEl(e.currentTarget);
     onClick && onClick(e);
   };
 

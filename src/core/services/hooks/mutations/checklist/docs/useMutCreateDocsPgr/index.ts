@@ -12,7 +12,7 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';
 
-import { IErrorResp } from '../../../../errors/types';
+import { IErrorResp } from '../../../../../errors/types';
 
 export interface IUpsertRiskDocs {
   id?: string;
@@ -35,7 +35,7 @@ export async function upsertRiskDocs(
   const { token } = await refreshToken();
 
   const response = await api.post<IPrgDocData>(
-    `${ApiRoutesEnum.DOCUMENTS_PGR}/doc`,
+    `${ApiRoutesEnum.DOCUMENTS_PGR}`,
     {
       companyId,
       ...data,

@@ -5,6 +5,7 @@ import CircleIcon from '@mui/icons-material/Circle';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
 import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
+import { useSnackbar } from 'notistack';
 import { selectHierarchyTreeSelectItem } from 'store/reducers/hierarchy/hierarchySlice';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
@@ -67,6 +68,7 @@ export const ModalEditCard = () => {
   const { editNodes, removeNodes, createEmptyCard } = useHierarchyTreeActions();
 
   const { preventDelete } = usePreventNode();
+  const { enqueueSnackbar } = useSnackbar();
   const { preventUnwantedChanges } = usePreventAction();
 
   const store = useStore();
@@ -136,6 +138,19 @@ export const ModalEditCard = () => {
         { inputConfirm: true },
       );
     }
+  };
+
+  const preventAddEmployee = () => {
+    if (selectedNode?.action === 'add')
+      return {
+        preventOpen: true,
+        onClick: () =>
+          enqueueSnackbar('É preciso salvar antes de adicionar um empregado', {
+            variant: 'warning',
+          }),
+      };
+
+    return {};
   };
 
   const type = selectedNode?.type || TreeTypeEnum.COMPANY;
@@ -219,6 +234,7 @@ export const ModalEditCard = () => {
                 handleSelect={(_, list) => setEmployees(list)}
                 selectedEmployees={allEmployees}
                 loading={isLoading}
+                {...preventAddEmployee()}
               />
             )}
           </SFlex>

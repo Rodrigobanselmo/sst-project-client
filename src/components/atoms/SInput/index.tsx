@@ -28,6 +28,7 @@ export const SInput: FC<SInputProps> = ({
   secondary,
   smallPlaceholder,
   backgroundColor,
+  noEffect,
   onChange,
   firstLetterCapitalize,
   ...props
@@ -60,6 +61,7 @@ export const SInput: FC<SInputProps> = ({
         color={error ? 'error' : success ? 'success' : 'primary'}
         success={success && !error ? 1 : 0}
         secondary={secondary ? 1 : 0}
+        effect={noEffect ? 1 : 0}
         size={size}
         sub_variant={subVariant}
         errors={error ? 1 : 0}

@@ -19,6 +19,7 @@ export enum ModalEnum {
   WORKSPACE_ADD = 'workspace-add',
   EMPLOYEES_ADD = 'employees-add',
   EMPLOYEES_EXCEL_ADD = 'employees-excel-add',
+  PGR_DOC_VIEW = 'pgr-doc-view',
   HIERARCHY_ADD = 'hierarchy-add',
   RISK_DATA_ADD = 'risk-data-add',
   RISK_ADD = 'risk-add',

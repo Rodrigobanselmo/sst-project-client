@@ -1,11 +1,14 @@
+import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { useMutUpsertRiskDocsPgr } from 'core/services/hooks/mutations/checklist/useMutUpsertRiskDocsPgr';
+import { useMutUpsertRiskDocsPgr } from 'core/services/hooks/mutations/checklist/docs/useMutCreateDocsPgr';
 
 import { IUseAddCompany } from '../../../hooks/useHandleActions';
 
 export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, getValues, control, reset, setError, clearErrors } =
+    useFormContext();
+  const [isMajorVersion, setIsMajorVersion] = useState(false);
 
   const createDoc = useMutUpsertRiskDocsPgr();
 
@@ -21,6 +24,12 @@ export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
 
     if (isValid) {
       const { version, doc_description, doc_name } = getValues();
+      if (isMajorVersion && !doc_name)
+        return setError('doc_name', {
+          type: 'manual',
+          message: 'Nome do documento obrigatório',
+        });
+
       await createDoc
         .mutateAsync({
           version,
@@ -42,5 +51,8 @@ export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
     loading: createDoc.isLoading,
     control,
     onCloseUnsaved,
+    setIsMajorVersion,
+    isMajorVersion,
+    clearErrors,
   };
 };

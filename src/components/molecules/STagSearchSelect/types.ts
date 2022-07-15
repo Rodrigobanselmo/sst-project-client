@@ -21,6 +21,7 @@ export interface ISTagSearchSelectProps
   asyncLoad?: boolean;
   selected?: (string | number)[];
   keys?: Fuse.FuseOptionKey[];
+  preventOpen?: boolean;
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
   handleMultiSelectMenu?: (
     option: any,

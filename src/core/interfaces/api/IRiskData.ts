@@ -81,4 +81,15 @@ export interface IPrgDocData {
   status: StatusEnum;
   workspaceId: string;
   workspaceName: string;
+  attachments?: IPgrDocAttachment[];
+}
+
+export interface IPgrDocAttachment {
+  id: string;
+  name: string;
+  url: string;
+  created_at: Date;
+  deleted_at: Date;
+  updated_at: Date;
+  riskFactorDocumentId: string;
 }

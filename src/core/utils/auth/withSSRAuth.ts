@@ -26,14 +26,13 @@ export function withSSRAuth<T>(
     const cookies = parseCookies(ctx);
     const token = cookies['nextauth.token'];
     const refreshToken = cookies['nextauth.refreshToken'];
-
+    console.log(ctx.resolvedUrl.replace(/[/]/g, '|'));
     if (!cookies['nextauth.token']) {
       return {
         redirect: {
-          destination: `${RoutesEnum.LOGIN}?redirect=${ctx.resolvedUrl.replace(
-            /[/]/g,
-            '|',
-          )}`,
+          destination: `${RoutesEnum.LOGIN}?redirect=${ctx.resolvedUrl
+            .replace(/[/]/g, '|')
+            .replace(/[&]/g, '$')}`,
           permanent: false,
         },
       };
@@ -49,9 +48,9 @@ export function withSSRAuth<T>(
     if (!user.companyId && !options?.skipCompanyCheck)
       return {
         redirect: {
-          destination: `${
-            RoutesEnum.ONBOARD_NO_TEAM
-          }?redirect=${ctx.resolvedUrl.replace(/[/]/g, '|')}`,
+          destination: `${RoutesEnum.ONBOARD_NO_TEAM}?redirect=${ctx.resolvedUrl
+            .replace(/[/]/g, '|')
+            .replace(/[&]/g, '$')}`,
           permanent: false,
         },
       };
@@ -75,9 +74,9 @@ export function withSSRAuth<T>(
 
         return {
           redirect: {
-            destination: `${
-              RoutesEnum.LOGIN
-            }?redirect=${ctx.resolvedUrl.replace(/[/]/g, '|')}`,
+            destination: `${RoutesEnum.LOGIN}?redirect=${ctx.resolvedUrl
+              .replace(/[/]/g, '|')
+              .replace(/[&]/g, '$')}`,
             permanent: false,
           },
         };
@@ -85,9 +84,9 @@ export function withSSRAuth<T>(
       if (!userHasValidPermissions) {
         return {
           redirect: {
-            destination: `${
-              RoutesEnum.DASHBOARD
-            }?redirect=${ctx.resolvedUrl.replace(/[/]/g, '|')}`,
+            destination: `${RoutesEnum.DASHBOARD}?redirect=${ctx.resolvedUrl
+              .replace(/[/]/g, '|')
+              .replace(/[&]/g, '$')}`,
             permanent: false,
           },
         };
@@ -103,10 +102,9 @@ export function withSSRAuth<T>(
       }
       return {
         redirect: {
-          destination: `${RoutesEnum.LOGIN}?redirect=${ctx.resolvedUrl.replace(
-            /[/]/g,
-            '|',
-          )}`,
+          destination: `${RoutesEnum.LOGIN}?redirect=${ctx.resolvedUrl
+            .replace(/[/]/g, '|')
+            .replace(/[&]/g, '$')}`,
           permanent: false,
         },
       };

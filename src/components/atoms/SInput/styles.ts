@@ -5,6 +5,7 @@ import TextField from '@mui/material/TextField';
 export const STTextField = styled(TextField)<{
   success: number;
   errors: number;
+  effect: number;
   secondary: number;
   size: string;
   backgroundColor?: string;
@@ -198,6 +199,44 @@ export const STTextField = styled(TextField)<{
           display: none;
         }
         border: none !important;
+      }
+    `};
+
+  ${(props) =>
+    props.effect &&
+    css`
+      border-color: ${props.theme.palette.grey[300]};
+      border-width: 2px;
+      border-radius: 8px;
+      * {
+        color: ${props.theme.palette.grey[600]} !important;
+      }
+
+      &&& .MuiOutlinedInput-notchedOutline {
+        border-color: ${props.theme.palette.grey[300]};
+        border-width: 2px;
+      }
+
+      &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+        border-width: 2px;
+        border-color: ${props.theme.palette.grey[300]};
+      }
+
+      &:hover {
+        &&& .MuiOutlinedInput-notchedOutline {
+          border-color: ${props.theme.palette.grey[300]};
+          border-width: 2px;
+        }
+        &&&
+          .MuiOutlinedInput-root.Mui-focused
+          .MuiOutlinedInput-notchedOutline {
+          border-width: 2px;
+          border-color: ${props.theme.palette.grey[300]};
+          opacity: 1;
+        }
+      }
+      * {
+        cursor: default !important;
       }
     `};
 `;

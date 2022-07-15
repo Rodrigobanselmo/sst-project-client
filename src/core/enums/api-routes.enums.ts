@@ -25,7 +25,7 @@ export enum ApiRoutesEnum {
   RISK = '/risk',
   RISK_DATA = '/risk-data',
   RISK_GROUP_DATA = '/risk-group-data',
-  RISK_GROUP_DOCS = '/risk-group-data/documents',
+  RISK_GROUP_DOCS = '/risk-group-data/documents/:riskGroupId/pgr/:companyId',
   ENVIRONMENTS = '/company/:companyId/workspace/:workspaceId/environments',
   ENVIRONMENTS_PHOTO = '/company/:companyId/workspace/:workspaceId/environments/photo',
   CHARACTERIZATIONS = '/company/:companyId/workspace/:workspaceId/characterizations',
@@ -33,4 +33,5 @@ export enum ApiRoutesEnum {
   REC_MED = '/rec-med',
   GENERATE_SOURCE = '/generate-source',
   DOCUMENTS_PGR = '/documents/pgr',
+  DOCUMENTS_PGR_ATTACHMENTS = '/documents/pgr/:docId/attachment',
 }

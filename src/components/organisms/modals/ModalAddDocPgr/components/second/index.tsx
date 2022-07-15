@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useWizard } from 'react-use-wizard';
 
 import SFlex from 'components/atoms/SFlex';
@@ -17,7 +17,15 @@ import { IUseAddCompany } from '../../hooks/useHandleActions';
 import { useSecondStep } from './hooks/useSecondStep';
 
 export const SecondModalStep = (props: IUseAddCompany) => {
-  const { control, onSubmit, loading, onCloseUnsaved } = useSecondStep(props);
+  const {
+    control,
+    onSubmit,
+    loading,
+    onCloseUnsaved,
+    setIsMajorVersion,
+    isMajorVersion,
+    clearErrors,
+  } = useSecondStep(props);
   const { previousStep } = useWizard();
   const { data } = props;
 
@@ -59,6 +67,7 @@ export const SecondModalStep = (props: IUseAddCompany) => {
       ].join('.');
     });
 
+    // return newVersion.map((v) => ({ content: v, value: v }));
     return newVersion;
   }, [actualVersion]);
 
@@ -68,7 +77,7 @@ export const SecondModalStep = (props: IUseAddCompany) => {
         <SFlex gap={8} direction="column" mt={8}>
           <SelectForm
             renderMenuItemChildren={(item, index) => (
-              <>
+              <SFlex align="center">
                 {item}{' '}
                 {index === 0 && (
                   <SText fontSize={13} ml={3}>
@@ -77,8 +86,18 @@ export const SecondModalStep = (props: IUseAddCompany) => {
                     deletado)
                   </SText>
                 )}
-              </>
+              </SFlex>
             )}
+            onChange={(e) => {
+              if (e.target.value) {
+                if ((e.target.value as any).includes('.0.0'))
+                  setIsMajorVersion(true);
+                else {
+                  clearErrors();
+                  setIsMajorVersion(false);
+                }
+              }
+            }}
             label="Versão*"
             control={control}
             sx={{ minWidth: ['100%', 600] }}
@@ -88,7 +107,7 @@ export const SecondModalStep = (props: IUseAddCompany) => {
             options={options}
           />
           <InputForm
-            label="Nome (opcional)"
+            label={`Nome ${isMajorVersion ? '*' : '(opcional)'}`}
             control={control}
             placeholder={'nome para identificação do documento...'}
             name="doc_name"
@@ -96,7 +115,7 @@ export const SecondModalStep = (props: IUseAddCompany) => {
             smallPlaceholder
           />
           <InputForm
-            label="Descrição (opcional)"
+            label={`Descrição ${isMajorVersion ? '' : '(opcional)'}`}
             minRows={2}
             maxRows={4}
             control={control}

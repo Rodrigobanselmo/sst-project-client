@@ -16,4 +16,5 @@ export type SInputProps = TextFieldProps & {
   subVariant?: 'search' | 'standard';
   backgroundColor?: string;
   firstLetterCapitalize?: boolean;
+  noEffect?: boolean;
 };

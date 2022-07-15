@@ -16,6 +16,8 @@ import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
+import { ModalViewPgrDoc } from 'components/organisms/modals/ModalViewPgrDoc';
+import { initialViewPgrDocState } from 'components/organisms/modals/ModalViewPgrDoc/hooks/useModalViewPgrDoc';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -23,7 +25,10 @@ import { StatusEnum } from 'project/enum/status.enum';
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { ModalEnum } from 'core/enums/modal.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useModal } from 'core/hooks/useModal';
+import { IPrgDocData } from 'core/interfaces/api/IRiskData';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
 import { useQueryPrgDocs } from 'core/services/hooks/queries/useQueryPrgDocs';
 
@@ -31,11 +36,20 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
   riskGroupId,
 }) => {
   const { data, isLoading } = useQueryPrgDocs(riskGroupId);
+  const { onOpenModal } = useModal();
   const downloadMutation = useMutDownloadFile();
   const { companyId } = useGetCompanyId();
 
   const handleEditStatus = (status: StatusEnum) => {
     console.log(status); // TODO edit checklist status
+  };
+
+  const handleOpenDocModal = (doc: IPrgDocData) => {
+    onOpenModal(ModalEnum.PGR_DOC_VIEW, {
+      id: doc.id,
+      companyId,
+      riskGroupId,
+    } as typeof initialViewPgrDocState);
   };
 
   return (
@@ -44,7 +58,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
       <STable
         mb={20}
         loading={isLoading}
-        columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px 100px"
+        columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px"
       >
         <STableHeader>
           <STableHRow>Identificação</STableHRow>
@@ -52,7 +66,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
           <STableHRow>Estabelecimento</STableHRow>
           <STableHRow justifyContent="center">Versão</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
-          <STableHRow justifyContent="center">Status</STableHRow>
+          {/* <STableHRow justifyContent="center">Status</STableHRow> */}
           <STableHRow justifyContent="center">Download</STableHRow>
         </STableHeader>
         <STableBody<typeof data[0]>
@@ -68,7 +82,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
                   text={dayjs(row.created_at).format('DD/MM/YYYY')}
                   justifyContent="center"
                 />
-                <StatusSelect
+                {/* <StatusSelect
                   large
                   sx={{ maxWidth: '120px' }}
                   selected={row.status}
@@ -79,8 +93,14 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
                   ]}
                   disabled
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
-                />
+                /> */}
                 <STagButton
+                  text="Baixar"
+                  onClick={() => handleOpenDocModal(row)}
+                  large
+                  icon={SDownloadIcon}
+                />
+                {/* <STagButton
                   text="Baixar"
                   loading={
                     downloadMutation.isLoading &&
@@ -94,7 +114,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
                   }
                   large
                   icon={SDownloadIcon}
-                />
+                /> */}
               </STableRow>
             );
           }}
@@ -103,6 +123,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
       <ModalAddRiskGroup />
       <ModalSelectCompany />
       <ModalSelectDocPgr />
+      <ModalViewPgrDoc />
     </>
   );
 };
