@@ -14,6 +14,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import {
@@ -45,6 +46,7 @@ export const SideRowTable: FC<SideTableProps> = ({
   const { onOpenModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
+  const { getPathById } = useHierarchyTreeActions();
 
   const isHierarchy = 'childrenIds' in gho;
 
@@ -97,7 +99,12 @@ export const SideRowTable: FC<SideTableProps> = ({
 
   const handleHelp = async (data: Partial<IUpsertRiskData>) => {
     if (!risk?.id) return;
-    if (!('workspaceIds' in gho)) return; //! nao esta funcionando para hierarchy, so ghs
+
+    const isHierarchy = !('workspaceIds' in gho);
+    let workspaceIds = [] as string[];
+
+    if (isHierarchy) workspaceIds = [String(getPathById(gho.id)[1])];
+    else workspaceIds = gho.workspaceIds;
 
     const company = queryClient.getQueryData<ICompany>([
       QueryEnum.COMPANY,
@@ -109,7 +116,7 @@ export const SideRowTable: FC<SideTableProps> = ({
     const workspaceEmployeesCount =
       company.workspace?.reduce(
         (acc, workspace) =>
-          gho.workspaceIds.includes(workspace.id)
+          workspaceIds.includes(workspace.id)
             ? acc + (workspace?.employeeCount ?? 0)
             : acc,
         0,
@@ -130,8 +137,8 @@ export const SideRowTable: FC<SideTableProps> = ({
 
     onOpenModal(ModalEnum.PROBABILITY_ADD, {
       riskType: risk.type,
-      intensityLt: risk.nr15lt,
-      employeeCountGho: gho.employeeCount,
+      employeeCountGho: isHierarchy ? 0 : gho.employeeCount,
+      hierarchyId: isHierarchy ? gho.id : '',
       employeeCountTotal: workspaceEmployeesCount,
       onCreate: handleSelectSync,
     } as typeof initialProbState);

@@ -10,6 +10,8 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
 import { useMutationCEP } from 'core/services/hooks/mutations/useMutationCep';
+import { useQueryHierarchy } from 'core/services/hooks/queries/useQueryHierarchy';
+import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
 export const initialProbState = {
   id: '',
@@ -21,9 +23,6 @@ export const initialProbState = {
   employeeCountGho: 0,
   employeeCountTotal: 0,
 
-  intensity: '',
-  intensityResult: '',
-  intensityLt: '',
   minDurationJT: '',
   minDurationEO: '',
   chancesOfHappening: '',
@@ -31,14 +30,13 @@ export const initialProbState = {
   history: '',
   medsImplemented: '',
 
+  hierarchyId: '',
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onCreate: (value: number) => {},
 };
 
 interface ISubmit {
-  intensity?: number;
-  intensityResult?: number;
-  intensityLt?: number;
   minDurationJT?: number;
   minDurationEO?: number;
   chancesOfHappening?: number;
@@ -64,6 +62,23 @@ export const useProbability = () => {
   const [probabilityData, setProbabilityData] = useState({
     ...initialProbState,
   });
+
+  const { data: hierarchy, isLoading: hierarchyLoading } = useQueryHierarchy(
+    probabilityData.hierarchyId,
+  );
+
+  useEffect(() => {
+    if (hierarchy?.employeesCount) {
+      setProbabilityData((oldData) => {
+        return {
+          ...oldData,
+          employeeCountGho: hierarchy.employeesCount || 0,
+        };
+      });
+
+      setValue('employeeCountGho', hierarchy.employeesCount);
+    }
+  }, [hierarchy, setValue]);
 
   useEffect(() => {
     const initialData =
@@ -91,20 +106,60 @@ export const useProbability = () => {
 
   const onCloseUnsaved = () => {
     const values = getValues();
-    if (
-      preventUnwantedChanges(
-        { ...probabilityData, ...values },
-        initialDataRef.current,
-        onClose,
-      )
-    )
-      return;
+
+    const beforeObject = cleanObjectValues({
+      ...probabilityData,
+      ...cleanObjectValues(values),
+    });
+    const afterObject = cleanObjectValues(initialDataRef.current);
+
+    console.log(beforeObject);
+    console.log(afterObject);
+
+    if (preventUnwantedChanges(afterObject, beforeObject, onClose)) return;
     onClose();
   };
 
-  const onSubmit: SubmitHandler<ISubmit> = async (data) => {
-    // console.log(data);
-    probabilityData.onCreate && probabilityData.onCreate(3);
+  const percentageCheck = (value: number, limit: number) => {
+    if (!value || !limit) return 0;
+
+    const stage = value / limit;
+    if (stage < 0.1) return 1;
+    if (stage < 0.25) return 2;
+    if (stage < 0.5) return 3;
+    if (stage < 1) return 4;
+    return 5;
+  };
+
+  const onSubmit: SubmitHandler<ISubmit> = async ({
+    frequency,
+    history,
+    chancesOfHappening,
+    medsImplemented,
+    minDurationEO,
+    minDurationJT,
+  }) => {
+    // eslint-disable-next-line prettier/prettier
+    const probabilities = [frequency, history, chancesOfHappening, medsImplemented];
+
+    if (probabilityData.employeeCountGho && probabilityData.employeeCountTotal)
+      // eslint-disable-next-line prettier/prettier
+      probabilities.push(percentageCheck(probabilityData.employeeCountGho, probabilityData.employeeCountTotal),
+      );
+
+    if (minDurationEO && minDurationJT)
+      probabilities.push(percentageCheck(minDurationEO, minDurationJT));
+
+    const finalProbabilities = probabilities.filter((value) => value);
+
+    if (finalProbabilities.length) {
+      const result =
+        (finalProbabilities as number[]).reduce((acc, curr) => acc + curr, 0) /
+        finalProbabilities.length;
+
+      if (result)
+        probabilityData.onCreate && probabilityData.onCreate(Math.ceil(result));
+    }
 
     onClose();
   };
@@ -122,6 +177,7 @@ export const useProbability = () => {
     setProbabilityData,
     modalName,
     setValue,
+    hierarchyLoading,
   };
 };
 

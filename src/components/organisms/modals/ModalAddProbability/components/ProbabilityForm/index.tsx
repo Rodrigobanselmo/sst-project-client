@@ -55,66 +55,6 @@ export const ProbabilityForm = (props: IUseProbability) => {
 
   return (
     <SFlex gap={19} direction="column" mt={8}>
-      {probabilityQuestionsMap[
-        ProbabilityQuestionEnum.INTENSITY_RESULT
-      ].acceptRiskTypesForSelect.includes(props.probabilityData.riskType) && (
-        <div>
-          <SText color="text.light" fontSize={14}>
-            {
-              probabilityQuestionsMap[ProbabilityQuestionEnum.INTENSITY_RESULT]
-                .title
-            }
-          </SText>
-          <SText mb={4} color="text.label" fontSize={12}>
-            {
-              probabilityQuestionsMap[ProbabilityQuestionEnum.INTENSITY_RESULT]
-                .text
-            }
-          </SText>
-          <SFlex
-            sx={{
-              display: 'grid',
-              gap: '1rem',
-              gridTemplateColumns: '1fr 1fr',
-              '*': { fontSize: '14px !important' },
-              mt: 5,
-            }}
-          >
-            <InputForm
-              sx={{ legend: { width: '30px' } }}
-              defaultValue={probabilityData.intensityLt}
-              label="LEO"
-              labelPosition="center"
-              control={control}
-              placeholder={'valor do limite...'}
-              name="intensityLt"
-              size="small"
-            />
-            <InputForm
-              sx={{ legend: { width: '65px' } }}
-              defaultValue={probabilityData.intensityResult}
-              label="Resultado"
-              labelPosition="center"
-              control={control}
-              placeholder={'valor do resultado obtido...'}
-              name="intensityResult"
-              size="small"
-            />
-          </SFlex>
-        </div>
-      )}
-      {probabilityQuestionsMap[
-        ProbabilityQuestionEnum.INTENSITY
-      ].acceptRiskTypesForSelect.includes(props.probabilityData.riskType) && (
-        <RadioInput
-          {...props}
-          name={'intensity'}
-          defaultValue={String(probabilityData.intensity)}
-          data={
-            probabilityQuestionsMap[ProbabilityQuestionEnum.INTENSITY] as any
-          }
-        />
-      )}
       <div>
         <SText color="text.light" fontSize={14}>
           {probabilityQuestionsMap[ProbabilityQuestionEnum.EMPLOYEES].title}

@@ -133,15 +133,10 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
 
     if (!company) return;
 
-    const ghoCount = 0;
     const workspaceEmployeesCount =
       company.workspace?.reduce((acc, workspace) => {
         const count = workspace?.employeeCount ? workspace?.employeeCount : 0;
         return acc + count;
-        // ghos.map((gho) => {
-        //   if (gho.workspaceIds.includes(workspace.id))
-        //     acc + (workspace?.employeeCount ?? 0);
-        // });
       }, 0) || 0;
 
     const handleSelectSync = (value: number) => {
@@ -159,8 +154,6 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
 
     onOpenModal(ModalEnum.PROBABILITY_ADD, {
       riskType: selectedRiskStore.type,
-      intensityLt: selectedRiskStore.nr15lt,
-      employeeCountGho: ghoCount,
       employeeCountTotal: workspaceEmployeesCount,
       onCreate: handleSelectSync,
     } as typeof initialProbState);

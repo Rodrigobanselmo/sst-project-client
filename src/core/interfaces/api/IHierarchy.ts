@@ -15,6 +15,7 @@ export interface IHierarchy {
   workspaces?: IWorkspace[];
   workspaceIds: string[];
   parent?: IHierarchy;
+  employeesCount?: number; //only on find by id
 }
 
 export type IHierarchyMap = Record<

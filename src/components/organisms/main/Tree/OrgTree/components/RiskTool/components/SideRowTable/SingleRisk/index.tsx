@@ -13,6 +13,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import {
@@ -43,6 +44,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
   const { onOpenModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
+  const { getPathById } = useHierarchyTreeActions();
 
   const handleSelect = async ({
     recs,
@@ -98,7 +100,12 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
 
   const handleHelp = async (data: Partial<IUpsertRiskData>) => {
     if (!risk?.id || !gho?.id) return;
-    if (!('workspaceIds' in gho)) return; //! nao esta funcionando para hierarchy, so ghs
+    let workspaceIds = [] as string[];
+
+    const isHierarchy = !('workspaceIds' in gho);
+
+    if (isHierarchy) workspaceIds = [String(getPathById(gho.id)[1])];
+    else workspaceIds = gho.workspaceIds;
 
     const company = queryClient.getQueryData<ICompany>([
       QueryEnum.COMPANY,
@@ -110,7 +117,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
     const workspaceEmployeesCount =
       company.workspace?.reduce(
         (acc, workspace) =>
-          gho.workspaceIds.includes(workspace.id)
+          workspaceIds.includes(workspace.id)
             ? acc + (workspace?.employeeCount ?? 0)
             : acc,
         0,
@@ -121,18 +128,13 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
       enqueueSnackbar(`A probabilidade sugerida pelo sistema é ${value}`, {
         variant: 'info',
         autoHideDuration: 3000,
-        style: { transform: 'translateY(70px)' },
-        anchorOrigin: {
-          vertical: 'top',
-          horizontal: 'right',
-        },
       });
     };
 
     onOpenModal(ModalEnum.PROBABILITY_ADD, {
+      employeeCountGho: isHierarchy ? 0 : gho.employeeCount,
+      hierarchyId: isHierarchy ? gho.id.split('//')[0] : '',
       riskType: risk.type,
-      intensityLt: risk.nr15lt,
-      employeeCountGho: gho.employeeCount,
       employeeCountTotal: workspaceEmployeesCount,
       onCreate: handleSelectSync,
     } as typeof initialProbState);
