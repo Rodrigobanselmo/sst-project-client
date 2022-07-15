@@ -116,7 +116,7 @@ export const ModalAddRiskGroup = () => {
         onOpenModal(ModalEnum.DOC_PGR_SELECT, {
           companyId: company.id,
           removeIds: [riskGroupData.id],
-          title: 'Selecione de qual documento PGR deseja copiar',
+          title: 'Selecione de qual sistema de gestão que deseja copiar',
           onSelect: (docPgr: IRiskGroupData) =>
             preventWarn(
               <SText textAlign={'justify'}>
@@ -177,7 +177,8 @@ export const ModalAddRiskGroup = () => {
         <SModalHeader
           tag={riskGroupData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={riskGroupData.id ? 'PGR' : 'Novo documento PGR'}
+          title={riskGroupData.id ? 'Gestão SST' : 'Novo Sistema de Gestão SST'}
+          subtitle={`Todos os documentos, riscos, exames e etc ficam vinculados a um Sistema de \n Gestão SST.`}
         />
         {company.hierarchyCount ? (
           <>
@@ -194,8 +195,8 @@ export const ModalAddRiskGroup = () => {
                 }
                 error={!!riskGroupData.error}
                 helperText={riskGroupData.error}
-                sx={{ width: ['100%', 600] }}
-                placeholder={'Nome do documento PGR...'}
+                sx={{ width: ['100%'] }}
+                placeholder={'Nome do sistema de gestão...'}
               />
             </Box>
             <SFlex gap={8} mt={10} align="center">

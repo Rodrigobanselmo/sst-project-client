@@ -2,6 +2,7 @@ import { FC } from 'react';
 
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { BoxProps } from '@mui/material';
+import SPageSubtitle from 'components/atoms/SPageSubtitle';
 import {
   STable,
   STableBody,
@@ -16,7 +17,6 @@ import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
-import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
@@ -76,7 +76,13 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
 
   return (
     <>
-      <STableTitle icon={LibraryAddCheckIcon}>Documentos PRG</STableTitle>
+      <STableTitle
+        mb={15}
+        subtitle="Todos os documentos, riscos, exames e etc ficam vinculados a um Sistema de Gestão SST."
+        icon={LibraryAddCheckIcon}
+      >
+        Gestão SST
+      </STableTitle>
       <STableSearch
         onAddClick={() => onOpenModal(ModalEnum.RISK_GROUP_ADD)}
         onChange={(e) => handleSearchChange(e.target.value)}

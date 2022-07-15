@@ -22,10 +22,10 @@ export const EmptyDocPgrData: FC<EmptyProps> = ({ text }) => {
     <Box>
       <SText mt={-4} maxWidth="400px">
         {text ||
-          'Nenhum documento PGR cadastrado, por favor cadastre um antes para continuar.'}
+          'Nenhum Sistema de Gestão SST cadastrado, por favor cadastre um antes para continuar.'}
       </SText>
       <SButton onClick={handleAddMissingData} color="secondary" sx={{ mt: 5 }}>
-        Cadastrar Documento PGR
+        Cadastrar Gestão SST
       </SButton>
     </Box>
   );

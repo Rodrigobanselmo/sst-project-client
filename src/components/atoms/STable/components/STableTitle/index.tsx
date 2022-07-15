@@ -1,30 +1,11 @@
 import React, { FC } from 'react';
 
-import { Icon } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
-import SText from 'components/atoms/SText';
+import SPageTitle from 'components/atoms/SPageTitle';
 
 import { STableTitleProps } from './types';
 
-const STableTitle: FC<STableTitleProps> = ({
-  children,
-  icon,
-  mb = 12,
-  mt = 0,
-  iconSx = {},
-  ...props
-}) => (
-  <SFlex mb={mb} mt={mt} align="center">
-    {icon && (
-      <Icon
-        component={icon}
-        sx={{ fontSize: '22px', mr: 4, color: 'text.main', ...iconSx }}
-      />
-    )}
-    <SText variant={'h4'} {...props}>
-      {children}
-    </SText>
-  </SFlex>
+const STableTitle: FC<STableTitleProps> = ({ ...props }) => (
+  <SPageTitle {...props} />
 );
 
 export default STableTitle;

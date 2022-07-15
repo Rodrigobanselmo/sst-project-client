@@ -10,7 +10,7 @@ import { STContainer, STSectionBox } from './index.styles';
 
 const Home: NextPage = () => {
   return (
-    <STContainer sx={{ p: [10], gap: 10 }}>
+    <STContainer sx={{ p: [10], px: [10, 20, 30, 40], gap: 10 }}>
       <STSectionBox component="section">
         <SLogo />
         <Typography

@@ -100,7 +100,7 @@ const CompanyPage: NextPage = () => {
   const handleAddRisk = useCallback(() => {
     onOpenModal(ModalEnum.DOC_PGR_SELECT, {
       title:
-        'Selecione para qual documento PGR deseja adicionar os fatores de risco',
+        'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
       onSelect: (docPgr: IRiskGroupData) =>
         push(
           RoutesEnum.RISK_DATA.replace(/:companyId/g, company.id).replace(

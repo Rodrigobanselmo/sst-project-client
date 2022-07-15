@@ -63,8 +63,14 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
       {subtitle && (
         <Box>
           <SModalHeaderTitle title={title} tag={tag} />
-          <SText lineHeight="18px" fontSize="14px" color="text.light">
-            {title}
+          <SText
+            sx={{ whiteSpace: 'pre-line' }}
+            mt={5}
+            lineHeight="18px"
+            fontSize="14px"
+            color="text.light"
+          >
+            {subtitle}
           </SText>
         </Box>
       )}

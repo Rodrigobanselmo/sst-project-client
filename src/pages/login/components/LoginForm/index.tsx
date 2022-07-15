@@ -1,9 +1,11 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { Box, Link, Typography } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import NextLink from 'next/link';
 import * as Yup from 'yup';
 
@@ -22,6 +24,7 @@ export const LoginForm: FC = () => {
   });
 
   const { mutate, isLoading } = useMutationLogin();
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
 
   const password = watch('password');
   const email = watch('email');
@@ -32,6 +35,10 @@ export const LoginForm: FC = () => {
   const onSubmit: SubmitHandler<ILoginSchema> = async (data) => {
     mutate(data);
   };
+
+  function onRecaptchaChange(value: string | null) {
+    setIsCaptchaVerified(!!value);
+  }
 
   return (
     <Box
@@ -69,7 +76,12 @@ export const LoginForm: FC = () => {
       >
         Esqueceu sua senha ?
       </STForgotButton>
-      <SButton loading={isLoading} type="submit" sx={{ width: '100%', mt: 12 }}>
+      <SButton
+        disabled={!isCaptchaVerified}
+        loading={isLoading}
+        type="submit"
+        sx={{ width: '100%', mt: 12 }}
+      >
         ENTRAR
       </SButton>
       <Typography color="text.light" variant="caption" align="center" mt={4}>
@@ -80,6 +92,12 @@ export const LoginForm: FC = () => {
           </Link>
         </NextLink>
       </Typography>
+      <SFlex mt={10} center>
+        <ReCAPTCHA
+          sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
+          onChange={onRecaptchaChange}
+        />
+      </SFlex>
     </Box>
   );
 };

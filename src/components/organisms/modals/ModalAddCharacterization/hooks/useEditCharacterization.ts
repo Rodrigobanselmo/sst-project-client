@@ -328,7 +328,7 @@ export const useEditCharacterization = () => {
 
     onOpenModal(ModalEnum.DOC_PGR_SELECT, {
       title:
-        'Selecione para qual documento PGR deseja adicionar os fatores de risco',
+        'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
       onSelect: (docPgr: IRiskGroupData) => {
         push(asPath + '/?riskGroupId=' + docPgr.id, undefined, {
           shallow: true,

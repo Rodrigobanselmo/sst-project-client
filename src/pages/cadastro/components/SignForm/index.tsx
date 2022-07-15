@@ -1,9 +1,11 @@
-import { FC } from 'react';
+import { useState, FC } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { Box, Link, Typography } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 import * as Yup from 'yup';
@@ -21,6 +23,7 @@ export const LoginForm: FC = () => {
     resolver: yupResolver(Yup.object().shape({ ...signSchema })),
   });
 
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
   const { mutate, isLoading } = useMutationSign();
   const router = useRouter();
 
@@ -40,6 +43,9 @@ export const LoginForm: FC = () => {
 
   const initEmail = router.query?.email as string | undefined;
 
+  function onRecaptchaChange(value: string | null) {
+    setIsCaptchaVerified(!!value);
+  }
   return (
     <Box
       component="form"
@@ -78,7 +84,12 @@ export const LoginForm: FC = () => {
         name="passwordConfirmation"
         success={successConfirmationPass}
       />
-      <SButton loading={isLoading} type="submit" sx={{ width: '100%', mt: 12 }}>
+      <SButton
+        disabled={!isCaptchaVerified}
+        loading={isLoading}
+        type="submit"
+        sx={{ width: '100%', mt: 12 }}
+      >
         CRIAR
       </SButton>
       <Typography color="text.light" variant="caption" align="center" mt={4}>
@@ -89,6 +100,12 @@ export const LoginForm: FC = () => {
           </Link>
         </NextLink>
       </Typography>
+      <SFlex mt={10} center>
+        <ReCAPTCHA
+          sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
+          onChange={onRecaptchaChange}
+        />
+      </SFlex>
     </Box>
   );
 };

@@ -102,7 +102,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
     };
 
     const initialWorkspaceState = {
-      title: 'Selecione o estabelecimento para o documento PGR',
+      title: 'Selecione o estabelecimento para o Sistema de Gestão SST',
       onSelect: (work: IWorkspace) =>
         onOpenModal(ModalEnum.RISK_GROUP_DOC_ADD, {
           workspaceId: work.id,
