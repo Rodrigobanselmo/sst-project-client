@@ -2,10 +2,10 @@ import { useCallback, useMemo } from 'react';
 
 import BadgeIcon from '@mui/icons-material/Badge';
 import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
-import { Icon } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
+import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import SText from 'components/atoms/SText';
 import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
@@ -17,10 +17,7 @@ import {
   initialDocPgrSelectState,
   ModalSelectDocPgr,
 } from 'components/organisms/modals/ModalSelectDocPgr';
-import {
-  initialWorkspaceSelectState,
-  ModalSelectWorkspace,
-} from 'components/organisms/modals/ModalSelectWorkspace';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
@@ -28,24 +25,21 @@ import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { setGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
-import SCharacterization from 'assets/icons/SCharacterizationIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
-import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
 import { SGhoIcon } from 'assets/icons/SGhoIcon';
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
+import SManagerSystemIcon from 'assets/icons/SManagerSystemIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
-import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { useModal } from 'core/hooks/useModal';
-import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
@@ -61,6 +55,7 @@ const CompanyPage: NextPage = () => {
 
   useFetchFeedback(isLoading && !company?.id);
 
+  // COMPANY
   const handleEditCompany = useCallback(() => {
     onOpenModal(ModalEnum.COMPANY_EDIT, company);
   }, [company, onOpenModal]);
@@ -85,18 +80,31 @@ const CompanyPage: NextPage = () => {
     onOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
   }, [onOpenModal]);
 
-  const handleAddPgrDocument = useCallback(() => {
+  const handleAddManagerSystem = useCallback(() => {
     if (company.riskGroupCount) {
       push({
-        pathname: RoutesEnum.COMPANY_PGR.replace(':companyId', company.id),
+        pathname: RoutesEnum.MANAGER_SYSTEM.replace(':companyId', company.id),
       });
     } else {
-      onOpenModal(ModalEnum.RISK_GROUP_ADD, {
-        goTo: RoutesEnum.COMPANY_PGR_DOCUMENT.replace(':companyId', company.id),
-      });
+      onOpenModal(ModalEnum.RISK_GROUP_ADD, {});
     }
   }, [company.id, company.riskGroupCount, onOpenModal, push]);
 
+  // MODULES
+  const handleDocPGR = useCallback(() => {
+    onOpenModal(ModalEnum.DOC_PGR_SELECT, {
+      title: 'Selecione o Sistema de Gestão SST do PGR',
+      onSelect: (docPgr: IRiskGroupData) =>
+        push(
+          RoutesEnum.PGR_DOCUMENT.replace(/:companyId/g, company.id).replace(
+            /:riskGroupId/g,
+            docPgr.id,
+          ),
+        ),
+    } as Partial<typeof initialDocPgrSelectState>);
+  }, [company.id, onOpenModal, push]);
+
+  // SHORT_CUTS
   const handleAddRisk = useCallback(() => {
     onOpenModal(ModalEnum.DOC_PGR_SELECT, {
       title:
@@ -127,7 +135,7 @@ const CompanyPage: NextPage = () => {
       return enqueueSnackbar('Cadastre um estabelecimento antes de continuar', {
         variant: 'warning',
       });
-    if (company.hierarchyCount)
+    if (!company.hierarchyCount)
       return enqueueSnackbar('Cadastre um cargo antes de continuar', {
         variant: 'warning',
       });
@@ -144,55 +152,6 @@ const CompanyPage: NextPage = () => {
     dispatch,
   ]);
 
-  const handleAddEnvironments = useCallback(() => {
-    const workspaceLength = company?.workspace?.length || 0;
-    const goToEnv = (workId: string) => {
-      push({
-        pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
-          ':companyId',
-          company.id,
-        ).replace(':workspaceId', workId)}/${CharacterizationEnum.ENVIRONMENT}`,
-      });
-    };
-
-    if (workspaceLength != 1) {
-      const initialWorkspaceState = {
-        title:
-          'Selecione para qual Estabelecimento deseja adicionar os ambientes de trabalho',
-        onSelect: (workspace: IWorkspace) => goToEnv(workspace.id),
-      } as typeof initialWorkspaceSelectState;
-
-      onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
-    }
-
-    if (!company?.workspace) return;
-    if (workspaceLength == 1) goToEnv(company.workspace[0].id);
-  }, [company.id, company?.workspace, onOpenModal, push]);
-
-  const handleAddCharacterization = useCallback(() => {
-    const workspaceLength = company?.workspace?.length || 0;
-    const goToEnv = (workId: string) => {
-      push({
-        pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
-          ':companyId',
-          company.id,
-        ).replace(':workspaceId', workId)}/${CharacterizationEnum.LABOR}`,
-      });
-    };
-
-    if (workspaceLength != 1) {
-      const initialWorkspaceState = {
-        title: 'Selecione para qual Estabelecimento deseja adicionar',
-        onSelect: (workspace: IWorkspace) => goToEnv(workspace.id),
-      } as typeof initialWorkspaceSelectState;
-
-      onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
-    }
-
-    if (!company?.workspace) return;
-    if (workspaceLength == 1) goToEnv(company.workspace[0].id);
-  }, [company.id, company?.workspace, onOpenModal, push]);
-
   const handleAddTeam = useCallback(() => {
     push({
       pathname: RoutesEnum.TEAM.replace(':companyId', company.id),
@@ -205,21 +164,22 @@ const CompanyPage: NextPage = () => {
         icon: SCompanyIcon,
         onClick: handleAddWorkspace,
         text: 'Cadastrar Estabelecimentos',
+        tooltipText:
+          'Estabelecimento é o local onde a empresa realiza suas atividades, podendo estar ser um local próprio ou de terceiros',
       },
       {
         icon: BadgeIcon,
         onClick: handleAddEmployees,
         text: 'Cadastrar Empregados',
-      },
-      {
-        icon: SDocumentIcon,
-        onClick: handleAddPgrDocument,
-        text: 'Documento PGR',
+        tooltipText:
+          'Cadastre os empregados e seus respectivos cargos e setores através da importação de planilha excel ou pelo sistema diretamente ao organograma da empresa',
       },
       {
         icon: STeamIcon,
         onClick: handleAddTeam,
         text: 'Cadastrar Usuários',
+        tooltipText:
+          'Cadastro dos usuários da empresa que ficaram responsaveis por fazer a gestão através do sistema',
       },
       {
         icon: SEditIcon,
@@ -230,18 +190,12 @@ const CompanyPage: NextPage = () => {
   }, [
     handleAddWorkspace,
     handleAddEmployees,
-    handleAddPgrDocument,
     handleAddTeam,
     handleEditCompany,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
     return [
-      {
-        icon: SRiskFactorIcon,
-        onClick: handleAddRisk,
-        text: 'Vincular Fatores de Risco',
-      },
       {
         icon: SHierarchyIcon,
         onClick: handleGoHierarchy,
@@ -252,27 +206,25 @@ const CompanyPage: NextPage = () => {
         onClick: handleGoGho,
         text: 'Grupos Similar de Exposição',
       },
+      {
+        icon: SRiskFactorIcon,
+        onClick: handleAddRisk,
+        text: 'Vincular Fatores de Risco',
+      },
     ];
-  }, [handleAddRisk, handleGoHierarchy]);
+  }, [handleAddRisk, handleGoGho, handleGoHierarchy]);
 
-  const characterizationStepMemo = useMemo(() => {
+  const modulesStepMemo = useMemo(() => {
     return [
       {
-        icon: SEnvironmentIcon,
-        onClick: handleAddEnvironments,
-        text: 'Ambientes de trabalho (foto)',
+        icon: SDocumentIcon,
+        onClick: handleDocPGR,
+        text: 'PGR (Documento)',
         tooltipText:
-          'Cadastro de ambientes de trabalho e os riscos atrelado a eles (adicionar fotografia do ambiente)',
-      },
-      {
-        icon: SCharacterization,
-        onClick: handleAddCharacterization,
-        text: 'Mão de obra (foto)',
-        tooltipText:
-          'Cadastro das atividades, posto de trabalho e equipamentos da mão de obra e os riscos atrelado (adicionar fotografia)',
+          'Alimentação de dados para geração de um documento PGR completo',
       },
     ];
-  }, [handleAddEnvironments, handleAddCharacterization]);
+  }, [handleDocPGR]);
 
   const nextStepMemo = useMemo(() => {
     if (company.workspace && company.workspace.length == 0)
@@ -288,15 +240,41 @@ const CompanyPage: NextPage = () => {
         success: true,
       };
 
-    if (company.employeeCount)
+    if (!company.riskGroupCount)
       return {
-        ...actionsStepMemo[2],
+        icon: SManagerSystemIcon,
+        onClick: handleAddManagerSystem,
+        text: 'Sistema de Gestão',
+        tooltipText:
+          'É onde todos os dados para a Gestão SST ficam vinculados e é possível importa-lo em outras empresas. Recomenda-se ter somente um sistema de gestão por empresa',
         sx: { backgroundColor: 'primary.main' },
         primary: true,
       };
 
+    if (!company.homogenousGroupCount)
+      return {
+        ...shortActionsStepMemo[1],
+        sx: { backgroundColor: 'info.main' },
+        success: true,
+      };
+
+    return {
+      ...modulesStepMemo[0],
+      sx: { backgroundColor: 'primary.main' },
+      success: true,
+    };
+
     return null;
-  }, [actionsStepMemo, company.employeeCount, company.workspace]);
+  }, [
+    actionsStepMemo,
+    company.employeeCount,
+    company.homogenousGroupCount,
+    company.riskGroupCount,
+    company.workspace,
+    handleAddManagerSystem,
+    modulesStepMemo,
+    shortActionsStepMemo,
+  ]);
 
   return (
     <SContainer>
@@ -309,22 +287,16 @@ const CompanyPage: NextPage = () => {
           </SFlex>
         </>
       )}
-      <SText mt={20}>Ações</SText>
+      <SText mt={20}>Dados da empresa</SText>
       <SFlex mt={5} gap={10} flexWrap="wrap">
         {actionsStepMemo.map((props) => (
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
 
-      <SFlex align="center" mt={20}>
-        <SText mr={3}>Caracterização Básica</SText>
-        <Icon
-          sx={{ color: 'grey.600', fontSize: '18px' }}
-          component={SPhotoIcon}
-        />
-      </SFlex>
+      <SPageTitleSection title="Modulos" icon={SPhotoIcon} />
       <SFlex mt={5} gap={10} flexWrap="wrap">
-        {characterizationStepMemo.map((props) => (
+        {modulesStepMemo.map((props) => (
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>

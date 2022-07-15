@@ -4,6 +4,7 @@ import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
+//! deletar pagina, isso agora é sistema de gestao sst e esta em outra pagina
 const RiskGroup: NextPage = () => {
   return (
     <SContainer>

@@ -16,7 +16,7 @@ import { queryClient } from 'core/services/queryClient';
 import { IErrorResp } from '../../../../errors/types';
 
 export interface IUpdateUser {
-  readonly id: string;
+  readonly userId: number;
   readonly companyId?: string;
   readonly permissions?: PermissionEnum[];
   readonly roles?: RoleEnum[];

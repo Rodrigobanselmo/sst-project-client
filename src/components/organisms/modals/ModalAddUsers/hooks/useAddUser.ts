@@ -23,7 +23,8 @@ export const initialUserState = {
     roles: '',
   },
   email: '',
-  id: '',
+  name: '',
+  id: 0,
 };
 
 export const useAddUser = () => {
@@ -82,13 +83,13 @@ export const useAddUser = () => {
       ...data,
     };
 
-    if (userData.id == '') {
+    if (userData.id == 0) {
       await inviteUserMut.mutateAsync(submitData).catch(() => {});
     } else {
       await updateUserMut
         .mutateAsync({
           ...submitData,
-          id: userData.id,
+          userId: userData.id,
         })
         .catch(() => {});
     }
@@ -119,5 +120,6 @@ export const useAddUser = () => {
     setUserData,
     control,
     handleSubmit,
+    isEdit: !!userData.id,
   };
 };

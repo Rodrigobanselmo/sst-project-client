@@ -35,6 +35,7 @@ export interface ICompany {
   employeeCount: number;
   riskGroupCount: number;
   hierarchyCount: number;
+  homogenousGroupCount: number;
 }
 
 export interface IWorkspace {

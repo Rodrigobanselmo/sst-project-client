@@ -30,6 +30,7 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { StatusSelect } from '../../tagSelects/StatusSelect';
 import { EmptyHierarchyData } from '../empty/EmptyHierarchyData';
+import { EmptyWorkspaceData } from '../empty/EmptyWorkspaceData';
 import { initialCompanySelectState } from '../ModalSelectCompany';
 import { initialDocPgrSelectState } from '../ModalSelectDocPgr';
 
@@ -178,7 +179,11 @@ export const ModalAddRiskGroup = () => {
           tag={riskGroupData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
           title={riskGroupData.id ? 'Gestão SST' : 'Novo Sistema de Gestão SST'}
-          subtitle={`Todos os documentos, riscos, exames e etc ficam vinculados a um Sistema de \n Gestão SST.`}
+          subtitle={
+            company.hierarchyCount
+              ? `Todos os documentos, riscos e etc ficam vinculados a um Sistema de \n Gestão SST.`
+              : ''
+          }
         />
         {company.hierarchyCount ? (
           <>
@@ -219,8 +224,10 @@ export const ModalAddRiskGroup = () => {
               />
             </SFlex>
           </>
-        ) : (
+        ) : company.workspace && !!company.workspace.length ? (
           <EmptyHierarchyData />
+        ) : (
+          <EmptyWorkspaceData />
         )}
 
         <SModalButtons

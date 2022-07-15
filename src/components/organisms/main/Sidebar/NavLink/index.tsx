@@ -14,11 +14,12 @@ export function NavLink({
   text,
   description,
   shouldMatchExactHref,
+  isAlwaysClose,
   ...rest
 }: INavLinkProps): JSX.Element {
   const { isOpen } = useSidebarDrawer();
   return (
-    <Box maxWidth={isOpen ? '100%' : '70px'}>
+    <Box maxWidth={!isAlwaysClose ? '100%' : '70px'}>
       <STooltip
         withWrapper
         title={description}

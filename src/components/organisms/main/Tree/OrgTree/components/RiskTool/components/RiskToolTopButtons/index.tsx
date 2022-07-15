@@ -70,7 +70,7 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
   const handleGoBackDocument = () => {
     if (companyId && documentId)
       push({
-        pathname: RoutesEnum.COMPANY_PGR_DOCUMENT.replace(
+        pathname: RoutesEnum.PGR_DOCUMENT.replace(
           ':companyId',
           companyId,
         ).replace(':docId', documentId),

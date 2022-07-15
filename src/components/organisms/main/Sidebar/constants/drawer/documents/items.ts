@@ -7,7 +7,7 @@ const pgr = {
   Icon: ArticleIcon,
   description: 'Criação e edição de documentos PGR',
   id: 'DU78shnus78sbnuhj',
-  href: RoutesEnum.PGR,
+  href: RoutesEnum.PGR_DOCUMENT,
 };
 
 export const items = [pgr];

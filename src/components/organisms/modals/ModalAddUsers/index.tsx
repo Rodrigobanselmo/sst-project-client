@@ -26,9 +26,8 @@ export const ModalAddUsers = () => {
     setUserData,
     control,
     handleSubmit,
+    isEdit,
   } = useAddUser();
-
-  const isEdit = !!userData.id;
 
   const buttons = [
     {},
@@ -60,6 +59,7 @@ export const ModalAddUsers = () => {
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
             autoFocus
+            disabled={isEdit}
             defaultValue={userData.email}
             label="Email"
             control={control}
@@ -68,6 +68,19 @@ export const ModalAddUsers = () => {
             name="email"
             size="small"
           />
+          {userData.name && (
+            <InputForm
+              autoFocus
+              disabled={isEdit}
+              defaultValue={userData.name}
+              label="Nome"
+              control={control}
+              sx={{ minWidth: ['100%', 600] }}
+              placeholder={'nome do usuário...'}
+              name="name"
+              size="small"
+            />
+          )}
         </SFlex>
         <SelectRoles mt={10} userData={userData} setUserData={setUserData} />
         {isEdit && (

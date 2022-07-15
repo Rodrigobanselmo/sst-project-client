@@ -13,7 +13,7 @@ import { SearchBox } from '../SearchBox';
 import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
-  const { isTablet, open, close } = useSidebarDrawer();
+  const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
   const { isValidRoles } = useAccess();
   const { companyId } = useGetCompanyId();
 
@@ -39,6 +39,7 @@ export function SideBarNav(): JSX.Element {
 
                   return (
                     <NavLink
+                      isAlwaysClose={isAlwaysClose}
                       key={item.id}
                       href={item.href.replace(':companyId', companyId || '')}
                       icon={item.Icon}

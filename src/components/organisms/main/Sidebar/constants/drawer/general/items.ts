@@ -20,7 +20,7 @@ const dashboard = {
 const team = {
   text: 'Gerenciar usuários',
   Icon: STeamIcon,
-  description: 'Download dos dados obtidos em campo utilizando o App SimpleSST',
+  description: 'Gerenciar usuários e suas permirssões de acesso',
   id: 'Tu09jfdGCC',
   href: RoutesEnum.TEAM,
   roles: [RoleEnum.USER],

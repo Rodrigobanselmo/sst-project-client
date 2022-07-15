@@ -7,12 +7,11 @@ import { RoleEnum } from 'project/enum/roles.enums';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { ICompany } from 'core/interfaces/api/ICompany';
 import { IInvites } from 'core/interfaces/api/IInvites';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
-import { useAuth } from '../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../errors/types';
 
 interface IInviteUser {
@@ -47,7 +46,11 @@ export function useMutInviteUser() {
           queryClient.setQueryData(
             [QueryEnum.INVITES, companyId],
             (oldData: IInvites[] | undefined) =>
-              oldData ? [companyResp, ...oldData] : [companyResp],
+              oldData
+                ? removeDuplicate([companyResp, ...oldData], {
+                    removeById: 'email',
+                  })
+                : [companyResp],
           );
       }
 

@@ -18,6 +18,7 @@ interface SidebarDrawerContextData {
   isMobile: boolean;
   isTablet: boolean;
   alwaysOpen: boolean;
+  isAlwaysClose: boolean;
   setAlwaysOpen: Dispatch<SetStateAction<boolean>>;
   setIsSearching: Dispatch<SetStateAction<boolean>>;
   isOpen: boolean;
@@ -52,11 +53,14 @@ export function SidebarDrawerProvider({
     }
   }, [disclosure, router.asPath, urlRouter, isTablet]);
 
-  const isOpen = useMemo(() => {
-    const isAlwaysClose = router.asPath.includes('hierarquia');
+  const isAlwaysClose = useMemo(() => {
+    if (isTablet || isMobile) return false;
+    return router.asPath.includes('hierarquia');
+  }, [isMobile, isTablet, router.asPath]);
 
+  const isOpen = useMemo(() => {
     return (disclosure.isOpen || alwaysOpen || isSearching) && !isAlwaysClose;
-  }, [alwaysOpen, disclosure.isOpen, isSearching, router.asPath]);
+  }, [alwaysOpen, disclosure.isOpen, isAlwaysClose, isSearching]);
 
   return (
     <SidebarDrawerContext.Provider
@@ -68,6 +72,7 @@ export function SidebarDrawerProvider({
         isOpen,
         setAlwaysOpen,
         setIsSearching,
+        isAlwaysClose,
       }}
     >
       {children}

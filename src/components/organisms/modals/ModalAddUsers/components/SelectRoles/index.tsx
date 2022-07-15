@@ -53,8 +53,6 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
     ) as Array<keyof typeof rolesConstantMap>;
   }, [user?.roles]);
 
-  console.log(AllRoles);
-
   const handleSelectAll = () => {
     const isAllSelected = userData.roles.length == AllRoles.length;
     const roles = isAllSelected ? [] : AllRoles;

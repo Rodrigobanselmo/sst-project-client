@@ -3,5 +3,6 @@ export enum StatusEnum {
   PROGRESS = 'PROGRESS',
   INACTIVE = 'INACTIVE',
   PENDING = 'PENDING',
+  EXPIRED = 'EXPIRED',
   CANCELED = 'CANCELED',
 }

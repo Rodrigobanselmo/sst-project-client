@@ -23,6 +23,11 @@ export const statusOptionsConstant = {
     name: 'Inativo',
     color: 'error.main',
   },
+  [StatusEnum.EXPIRED]: {
+    value: StatusEnum.EXPIRED,
+    name: 'Expirado',
+    color: 'error.main',
+  },
   [StatusEnum.PENDING]: {
     value: StatusEnum.PENDING,
     name: 'Pendente',

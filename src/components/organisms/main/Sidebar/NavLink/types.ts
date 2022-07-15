@@ -8,4 +8,5 @@ export interface INavLinkProps extends LinkProps {
   text: string;
   description: string;
   shouldMatchExactHref?: boolean;
+  isAlwaysClose?: boolean;
 }

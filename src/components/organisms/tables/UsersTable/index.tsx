@@ -13,8 +13,11 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddUsers } from 'components/organisms/modals/ModalAddUsers';
+import { initialUserState } from 'components/organisms/modals/ModalAddUsers/hooks/useAddUser';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
-import { useRouter } from 'next/router';
+import dayjs from 'dayjs';
+import { PermissionEnum } from 'project/enum/permission.enum';
+import { RoleEnum } from 'project/enum/roles.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
@@ -22,38 +25,46 @@ import EditIcon from 'assets/icons/SEditIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
+import { IUser } from 'core/interfaces/api/IUser';
 import { useMutInviteDelete } from 'core/services/hooks/mutations/manager/useMutInviteDelete';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryInvites } from 'core/services/hooks/queries/useQueryInvites';
 import { useQueryUsers } from 'core/services/hooks/queries/useQueryUsers';
 
 export const UsersTable: FC<BoxProps> = () => {
   const { data: users, isLoading } = useQueryUsers();
   const { data: invites, isLoading: isLoadingInvites } = useQueryInvites();
+  const { data: company } = useQueryCompany();
+
   const deleteInviteMut = useMutInviteDelete();
   const { onOpenModal } = useModal();
 
   const data = [...invites, ...users];
 
-  const { push } = useRouter();
   const { handleSearchChange, results } = useTableSearch({
     data,
     keys: ['name'],
   });
 
-  const handleEditUser = (companyId: string, employeeId: number) => {
-    console.log(employeeId); // TODO edit checklist status
-    //push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
+  const handleEditUser = (user: IUser) => {
+    const userCompany = user?.companies?.find(
+      (userCompany) => userCompany.companyId === company.id,
+    );
+
+    onOpenModal(ModalEnum.USER_ADD, {
+      id: user.id,
+      roles: (userCompany?.roles || []) as RoleEnum[],
+      permissions: (userCompany?.permissions || []) as PermissionEnum[],
+      status: userCompany?.status || StatusEnum.ACTIVE,
+      email: user.email,
+      name: user.name,
+    } as typeof initialUserState);
   };
 
   const handleDeleteInvite = (inviteId: string) => {
     deleteInviteMut.mutate(inviteId);
-  };
-
-  const handleGoToHierarchy = (companyId: string) => {
-    push(RoutesEnum.HIERARCHY.replace(/:companyId/g, companyId));
   };
 
   return (
@@ -83,19 +94,24 @@ export const UsersTable: FC<BoxProps> = () => {
                 <TextIconRow text={'name' in row ? row.name : '--'} />
                 <TextIconRow text={row.email} />
                 <StatusSelect
+                  expiresDate={
+                    'expires_date' in row ? row.expires_date : undefined
+                  }
                   large
                   disabled
                   sx={{ maxWidth: '120px' }}
                   selected={
                     'companies' in row
                       ? row.companies[0].status
-                      : StatusEnum.PENDING
+                      : dayjs(row.expires_date).isValid()
+                      ? StatusEnum.PENDING
+                      : StatusEnum.EXPIRED
                   }
                   statusOptions={[]}
                 />
                 {'companies' in row ? (
                   <IconButtonRow
-                    onClick={() => handleEditUser(row.companyId, row.id)}
+                    onClick={() => handleEditUser(row)}
                     icon={<EditIcon />}
                   />
                 ) : (

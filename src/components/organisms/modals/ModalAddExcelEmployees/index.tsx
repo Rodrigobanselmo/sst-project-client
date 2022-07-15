@@ -12,14 +12,17 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { queryClient } from 'core/services/queryClient';
 
+import { EmptyWorkspaceData } from '../empty/EmptyWorkspaceData';
 import { ModalUploadFile } from '../ModalUploadFile';
 import { ModalExportEmployees } from './components/ModalExportEmployees';
 import { useEditEmployees } from './hooks/useEditEmployees';
 
 export const ModalAddExcelEmployees = () => {
   const props = useEditEmployees();
+  const { data: company } = useQueryCompany();
   const { companyId } = useGetCompanyId();
   const { registerModal, onClose, uploadMutation } = props;
 
@@ -35,7 +38,11 @@ export const ModalAddExcelEmployees = () => {
         <SModalPaper p={8} center>
           <SModalHeader tag={'add'} onClose={onClose} title={'Empregados'} />
 
-          <ModalExportEmployees {...props} />
+          {company.workspace && !!company.workspace.length ? (
+            <ModalExportEmployees {...props} />
+          ) : (
+            <EmptyWorkspaceData />
+          )}
 
           <SModalButtons onClose={onClose} buttons={buttons} />
         </SModalPaper>

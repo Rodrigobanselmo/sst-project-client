@@ -2,7 +2,6 @@ import { FC } from 'react';
 
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { BoxProps } from '@mui/material';
-import SPageSubtitle from 'components/atoms/SPageSubtitle';
 import {
   STable,
   STableBody,
@@ -58,7 +57,7 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
     //   status: data.status,
     // } as typeof initialRiskGroupState);
     push(
-      RoutesEnum.COMPANY_PGR_DOCUMENT.replace(
+      RoutesEnum.PGR_DOCUMENT.replace(
         /:companyId/g,
         data.companyId,
       ).replace(/:docId/g, data.id),
