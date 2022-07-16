@@ -13,7 +13,11 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
   const node = useAppSelector(
     selectHierarchyTreeData(id),
   ) as unknown as ITreeMapObject | null;
+
   if (!node) return null;
+  if (node.hide) return null;
+
+  const expanded = node.expand || node.searchExpand;
 
   const cls = ['org-tree-node'];
 
@@ -21,7 +25,7 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
 
   if (node.childrenIds.length == 0) {
     cls.push('is-leaf');
-  } else if (collapsable && !node.expand) {
+  } else if (collapsable && !expanded) {
     cls.push('collapsed');
   }
 
@@ -34,10 +38,10 @@ export const RenderNode = ({ prop, first, id }: IRender) => {
       className={cls.join(' ')}
     >
       <RenderCard node={node} prop={prop} />
-      {(!collapsable || node.expand) && (
+      {(!collapsable || expanded) && (
         <RenderChildren nodeId={node.id} list={node.childrenIds} prop={prop} />
       )}
-      {node.childrenIds.includes('mock_id') && !node.expand && (
+      {node.childrenIds.includes('mock_id') && !expanded && (
         <RenderChildren
           nodeId={node.id}
           list={node.childrenIds.filter((child) => child === 'mock_id')}

@@ -203,7 +203,9 @@ export const useEditCharacterization = () => {
   };
 
   const handleAddPhoto = () => {
+    const values = getValues();
     onOpenModal(ModalEnum.UPLOAD_PHOTO, {
+      name: values?.name || '',
       onConfirm: async (photo) => {
         const addLocalPhoto = (src?: string) => {
           setCharacterizationData((oldData) => ({

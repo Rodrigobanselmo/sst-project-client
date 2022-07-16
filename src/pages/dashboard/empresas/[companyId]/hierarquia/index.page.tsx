@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useStore } from 'react-redux';
 
 import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
@@ -22,12 +23,27 @@ const Hierarchy: NextPage = () => {
   const { data } = useQueryHierarchies();
   const { data: gho } = useQueryGHO();
   const { data: company } = useQueryCompany();
+  const store = useStore();
 
-  const { setTree, transformToTreeMap } = useHierarchyTreeActions();
+  const { setTree, transformToTreeMap, searchFilterNodes } =
+    useHierarchyTreeActions();
 
   useEffect(() => {
-    if (data && company && gho) setTree(transformToTreeMap(data, company));
-  }, [setTree, data, company, gho, transformToTreeMap]);
+    const search = store.getState().hierarchy.search as string;
+
+    if (data && company && gho) {
+      setTree(transformToTreeMap(data, company));
+      if (search) searchFilterNodes(search);
+    }
+  }, [
+    setTree,
+    data,
+    company,
+    gho,
+    transformToTreeMap,
+    store,
+    searchFilterNodes,
+  ]);
 
   if (!data || !company) {
     return null;

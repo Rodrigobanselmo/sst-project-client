@@ -1,4 +1,4 @@
-import React, { FC, useRef } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 
 import { Box } from '@mui/material';
 import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
@@ -6,14 +6,17 @@ import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHie
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { useRouter } from 'next/router';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
+import { setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
 import { selectRiskAddExpand } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
 import { useZoom } from '../../../../../core/hooks/useZoom';
 import { TreeNode } from './components';
 import { BottomButton } from './components/BottomButton';
 import { GhoTool } from './components/GhoTool';
+import { HierarchyFilter } from './components/GhoTool/components/HierarchyFilter';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
@@ -29,13 +32,26 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
   const orgContainerRef = useRef<HTMLDivElement>(null);
   const selectExpanded = useAppSelector(selectRiskAddExpand);
   const isGhoOpen = useAppSelector(selectGhoOpen);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(setHierarchySearch(''));
+  }, [dispatch]);
 
   const { query } = useRouter();
   const isRiskOpen = query.riskGroupId;
   useZoom(orgContainerRef);
 
   return (
-    <Box sx={{ display: 'flex', height: '100%', width: '100%' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        width: '100%',
+      }}
+    >
+      <HierarchyFilter />
       <Box
         sx={{
           position: 'relative',

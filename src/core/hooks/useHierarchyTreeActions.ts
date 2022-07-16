@@ -21,6 +21,7 @@ import { useMutDeleteHierarchy } from 'core/services/hooks/mutations/checklist/u
 import { useMutUpdateChecklist } from 'core/services/hooks/mutations/checklist/useMutUpdateChecklist';
 import { useMutUpsertManyHierarchy } from 'core/services/hooks/mutations/checklist/useMutUpsertManyHierarchy';
 import { queryClient } from 'core/services/queryClient';
+import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import {
   ITreeCopyItem,
@@ -492,9 +493,54 @@ export const useHierarchyTreeActions = () => {
     }
   };
 
+  const searchFilterNodes = (search = '') => {
+    const nodes = clone(store.getState().hierarchy.nodes) as ITreeMap;
+    // const search = store.getState().hierarchy.search as string;
+
+    if (typeof search != 'string') return;
+
+    const normalizedSearch = stringNormalize(search);
+    const matchesIds: string[] = [];
+    Object.entries(nodes).forEach(([nodeId, node]) => {
+      if ([TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(node.type))
+        return;
+
+      if (!nodes[nodeId]) return;
+      if (!search) {
+        nodes[nodeId].hide = false;
+        nodes[nodeId].searchExpand = false;
+        return;
+      }
+
+      const isHide = !node.label.toLowerCase().includes(normalizedSearch);
+      if (node.searchExpand) nodes[nodeId].searchExpand = false;
+      if (isHide) nodes[nodeId].hide = true;
+      if (!isHide) {
+        matchesIds.push(nodeId);
+        nodes[nodeId].hide = false;
+      }
+    });
+
+    matchesIds.forEach((nodeId) => {
+      nodes[nodeId].search = search;
+      nodes[nodeId].searchExpand = matchesIds.length < 10;
+      getPathById(nodeId).forEach((parentId) => {
+        nodes[parentId].searchExpand = true;
+        nodes[parentId].hide = false;
+      });
+
+      Object.entries(getChildren(nodeId)).forEach(([childId, child]) => {
+        nodes[childId].hide = false;
+      });
+    });
+
+    return setTree(nodes);
+  };
+
   return {
     setTree,
     isChild,
+    searchFilterNodes,
     removeNodes,
     editNodes,
     setDraggingItem,

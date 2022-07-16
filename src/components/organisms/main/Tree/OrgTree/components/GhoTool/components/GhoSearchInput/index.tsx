@@ -15,13 +15,23 @@ import { GhoInputProps } from './types';
 
 // eslint-disable-next-line react/display-name
 export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
-  ({ handleAddGHO, isAddLoading, onSearch, small, ...props }, ref) => {
+  (
+    {
+      handleAddGHO,
+      isAddLoading,
+      onSearch,
+      small,
+      debounceTime = 300,
+      ...props
+    },
+    ref,
+  ) => {
     const selectedGho = useAppSelector(selectGhoData);
     const anchorEl = useRef<HTMLDivElement>(null);
     const { data: ghoQuery } = useQueryGHO();
     const handleSearch = useDebouncedCallback((value: string) => {
       onSearch?.(value);
-    }, 300);
+    }, debounceTime);
 
     return (
       <>

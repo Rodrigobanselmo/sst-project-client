@@ -25,6 +25,7 @@ import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/useMutD
 
 import { GhoToolHeader } from './components/GhoToolHeader';
 import { GhoToolTopButtons } from './components/GhoToolTopButtons';
+import { GhoToolTreeFilter } from './components/GhoToolTreeFilter';
 import { GhoToolView } from './components/GhoToolView';
 import { STBoxContainer, STBoxStack, STTableContainer } from './styles';
 
@@ -123,6 +124,7 @@ export const GhoTool = () => {
                 isDeleteLoading={deleteMutation.isLoading}
               />
             </STBoxStack>
+            <GhoToolTreeFilter />
           </STTableContainer>
         </STBoxContainer>
       )}
