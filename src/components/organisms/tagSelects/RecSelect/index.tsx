@@ -33,7 +33,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
   ...props
 }) => {
   const { data } = useQueryRisk();
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
 
   const handleSelectRecMed = (options: string[]) => {
     if (handleSelect) handleSelect(options);
@@ -47,7 +47,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
     const risk = data.find((r) => r.id === option?.riskId);
 
     if (risk)
-      onOpenModal<Partial<typeof initialAddRecMedState>>(
+      onStackOpenModal<Partial<typeof initialAddRecMedState>>(
         ModalEnum.REC_MED_ADD,
         {
           riskIds: riskIds,
@@ -79,7 +79,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
 
     if (risk) passModalData.risk = risk;
 
-    onOpenModal<Partial<typeof initialAddRecMedState>>(
+    onStackOpenModal<Partial<typeof initialAddRecMedState>>(
       ModalEnum.REC_MED_ADD,
       passModalData,
     );

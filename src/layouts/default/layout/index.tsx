@@ -1,8 +1,10 @@
 import React, { FC, useEffect } from 'react';
+import { useStore } from 'react-redux';
 
 import { Global } from '@emotion/react';
 import { useRouter } from 'next/router';
 
+import { useModal } from 'core/hooks/useModal';
 import { useRedirectDetect } from 'core/hooks/useRedirectDetect';
 
 import { useAppDispatch } from '../../../core/hooks/useAppDispatch';
@@ -15,15 +17,23 @@ const DefaultLayout: FC = ({ children }) => {
   useRedirectDetect();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { onCloseModal } = useModal();
+  const store = useStore();
 
   useEffect(() => {
     const handleStart = () => {
-      dispatch(setIsRouteLoading(true));
-      console.log('start');
+      if (store.getState().modal.currentModal.length > 0) {
+        onCloseModal();
+        router.events.emit('routeChangeError');
+        throw 'routeChange aborted.';
+      } else {
+        dispatch(setIsRouteLoading(true));
+      }
+      // console.log('start');
     };
     const handleStop = () => {
       dispatch(setIsRouteLoading(false));
-      console.log('stop');
+      // console.log('stop');
     };
 
     router.events.on('routeChangeStart', handleStart);
@@ -35,7 +45,7 @@ const DefaultLayout: FC = ({ children }) => {
       router.events.off('routeChangeComplete', handleStop);
       router.events.off('routeChangeError', handleStop);
     };
-  }, [router, dispatch]);
+  }, [router, dispatch, store, onCloseModal]);
 
   return (
     <main>

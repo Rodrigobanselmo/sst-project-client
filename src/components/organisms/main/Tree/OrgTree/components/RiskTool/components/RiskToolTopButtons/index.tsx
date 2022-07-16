@@ -80,10 +80,13 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
   };
 
   const severity = selectedRisks.length > 1 ? '-' : selectedRisk?.severity;
+  const isOnHierarchyPage =
+    companyId &&
+    asPath.includes(RoutesEnum.HIERARCHY.replace(':companyId', companyId));
 
   return (
     <SFlex align="center" gap="1" mb={2}>
-      {companyId && documentId && (
+      {companyId && documentId && isOnHierarchyPage && (
         <STooltip withWrapper title="Voltar para documento PGR">
           <SIconButton onClick={handleGoBackDocument} size="small">
             <Icon component={SArrowBack} sx={{ fontSize: '1.2rem' }} />

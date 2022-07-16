@@ -14,6 +14,7 @@ import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { useLeavePrevent } from 'core/hooks/useLeavePrevent';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -75,7 +76,7 @@ interface ISubmit {
 const modalName = ModalEnum.ENVIRONMENT_ADD;
 
 export const useEditEnvironment = () => {
-  const { registerModal, getModalData } = useRegisterModal();
+  const { registerModal, getModalData, isOpen } = useRegisterModal();
   const { onCloseModal, onOpenModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialEnvironmentState);
   const saveRef = useRef(false);
@@ -98,6 +99,7 @@ export const useEditEnvironment = () => {
   const isRiskOpen = query.riskGroupId;
 
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
+  useLeavePrevent();
 
   const [environmentData, setEnvironmentData] = useState({
     ...initialEnvironmentState,
@@ -124,12 +126,12 @@ export const useEditEnvironment = () => {
         return newData;
       });
 
-      if (asPath.includes('riskGroupId'))
+      if (asPath.includes('riskGroupId') && !isOpen(modalName))
         push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getModalData]);
+  }, [getModalData, isOpen]);
 
   const hierarchies = useMemo(() => {
     if (environmentQuery.hierarchies) {

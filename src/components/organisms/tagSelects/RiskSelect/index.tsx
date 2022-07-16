@@ -30,7 +30,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 }) => {
   const { data } = useQueryRisk();
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
 
   const handleSelectRisk = (options: string[]) => {
     if (handleSelect) handleSelect(options);
@@ -43,7 +43,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 
     const name = inputSelect?.value || '';
 
-    onOpenModal(ModalEnum.RISK_ADD, { name });
+    onStackOpenModal(ModalEnum.RISK_ADD, { name });
   };
 
   const handleEditRisk = (
@@ -52,9 +52,9 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
   ) => {
     e.stopPropagation();
     if (option)
-      onOpenModal<Partial<typeof initialAddRiskState>>(ModalEnum.RISK_ADD, {
+      onStackOpenModal(ModalEnum.RISK_ADD, {
         ...option,
-      });
+      } as Partial<typeof initialAddRiskState>);
   };
 
   const riskLength = String(selectedRiskIds ? selectedRiskIds.length : 0);

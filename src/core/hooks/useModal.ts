@@ -92,7 +92,7 @@ export const useModal = () => {
   );
 
   const onStackOpenModal = useCallback(
-    (name: string, data?: any) => {
+    <T>(name: string, data?: T) => {
       const registerStackModal = store.getState().modal
         .pileModal as ICurrentModal[];
       const currentModal = store.getState().modal

@@ -31,7 +31,7 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
   ...props
 }) => {
   const { data } = useQueryRisk();
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
 
   const handleSelectGenerateSource = (options: string[]) => {
     if (handleSelect) handleSelect(options);
@@ -45,7 +45,7 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
     const risk = data.find((r) => r.id === option?.riskId);
 
     if (risk)
-      onOpenModal<Partial<typeof initialAddGenerateSourceState>>(
+      onStackOpenModal<Partial<typeof initialAddGenerateSourceState>>(
         ModalEnum.GENERATE_SOURCE_ADD,
         {
           riskIds: riskIds,
@@ -73,7 +73,7 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
 
     if (risk) passModalData.risk = risk;
 
-    onOpenModal<Partial<typeof initialAddGenerateSourceState>>(
+    onStackOpenModal<Partial<typeof initialAddGenerateSourceState>>(
       ModalEnum.GENERATE_SOURCE_ADD,
       passModalData,
     );

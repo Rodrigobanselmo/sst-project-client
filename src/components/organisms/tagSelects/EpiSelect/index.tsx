@@ -28,7 +28,7 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
 }) => {
   const [search, setSearch] = useState('');
   const { data, isLoading } = useQueryEpis(0, { ca: search }, 5);
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
     setSearch(value);
@@ -42,7 +42,7 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
     e.stopPropagation();
 
     if (option?.id)
-      onOpenModal<Partial<typeof initialAddEpiState>>(ModalEnum.EPI_ADD, {
+      onStackOpenModal<Partial<typeof initialAddEpiState>>(ModalEnum.EPI_ADD, {
         ca: option?.ca || '',
         description: option?.description || '',
         status: option?.status,
@@ -57,7 +57,7 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
 
     const name = inputSelect?.value || '';
 
-    onOpenModal<Partial<typeof initialAddEpiState>>(ModalEnum.EPI_ADD, {
+    onStackOpenModal<Partial<typeof initialAddEpiState>>(ModalEnum.EPI_ADD, {
       ca: name,
     });
   };

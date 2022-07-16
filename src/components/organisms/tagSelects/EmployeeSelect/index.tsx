@@ -43,7 +43,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     12,
   );
 
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
     setSearch(value);
@@ -64,7 +64,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     e.stopPropagation();
     console.log(option);
     if (option?.id)
-      onOpenModal<Partial<typeof initialEmployeeState>>(
+      onStackOpenModal<Partial<typeof initialEmployeeState>>(
         ModalEnum.EMPLOYEES_ADD,
         {
           ...option,
@@ -83,11 +83,14 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     const name = value.split(' - ')[0].replace(/\D/g, '');
     const cpf = value.replace(/\d/g, '');
 
-    onOpenModal<Partial<typeof initialEmployeeState>>(ModalEnum.EMPLOYEES_ADD, {
-      name,
-      cpf,
-      hierarchy: actualHierarchy,
-    });
+    onStackOpenModal<Partial<typeof initialEmployeeState>>(
+      ModalEnum.EMPLOYEES_ADD,
+      {
+        name,
+        cpf,
+        hierarchy: actualHierarchy,
+      },
+    );
   };
 
   const onCloseMenu = () => {
