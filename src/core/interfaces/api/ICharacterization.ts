@@ -12,6 +12,7 @@ export type ICharacterization = {
   updated_at: Date;
   workspaceId: string;
   type: CharacterizationTypeEnum;
+  order: number;
   companyId: string;
   photos: ICharacterizationPhoto[];
   hierarchies?: IHierarchy[];

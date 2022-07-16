@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 
 import { BoxProps } from '@mui/material';
 import {
@@ -12,6 +12,7 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import { STagSelect } from 'components/molecules/STagSelect';
 import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
@@ -29,6 +30,7 @@ import dayjs from 'dayjs';
 
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
 import EditIcon from 'assets/icons/SEditIcon';
+import SOrderIcon from 'assets/icons/SOrderIcon';
 
 import { characterizationMap } from 'core/constants/maps/characterization.map';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -37,10 +39,12 @@ import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
+import { useMutUpsertCharacterization } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
 import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortNumber } from 'core/utils/sorts/number.sort';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 export const CharacterizationTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryCharacterizations();
@@ -50,20 +54,36 @@ export const CharacterizationTable: FC<BoxProps> = () => {
   const { data: company } = useQueryCompany();
   const { data: hierarchies } = useQueryHierarchies();
   const { setTree, transformToTreeMap } = useHierarchyTreeActions();
+  const upsertMutation = useMutUpsertCharacterization();
 
   useEffect(() => {
     if (hierarchies && company)
       setTree(transformToTreeMap(hierarchies, company));
   }, [setTree, company, transformToTreeMap, hierarchies]);
 
+  const dataResult = useMemo(() => {
+    if (!data) return [];
+
+    return data
+      .sort((a, b) =>
+        sortNumber(a.order ? a : 10000, b.order ? b : 10000, 'order'),
+      )
+      .sort((a, b) => sortString(a, b, 'type'));
+  }, [data]);
+
   const { handleSearchChange, results } = useTableSearch({
-    data,
+    data: dataResult,
     keys: ['name'],
-    sort: (a, b) => sortData(a, b, 'created_at'),
   });
 
   const handleEdit = (data: ICharacterization) => {
     onOpenModal(ModalEnum.CHARACTERIZATION_ADD, { ...data });
+  };
+
+  const handleEditPosition = async (row: ICharacterization, order: number) => {
+    await upsertMutation
+      .mutateAsync({ ...row, order, companyId, workspaceId })
+      .catch(() => {});
   };
 
   return (
@@ -91,7 +111,7 @@ export const CharacterizationTable: FC<BoxProps> = () => {
       />
       <STable
         loading={isLoading}
-        columns="minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 90px"
+        columns="minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 110px 90px"
       >
         <STableHeader>
           <STableHRow>Nome</STableHRow>
@@ -99,6 +119,7 @@ export const CharacterizationTable: FC<BoxProps> = () => {
           <STableHRow justifyContent="center">Tipo</STableHRow>
           <STableHRow justifyContent="center">N.º Fotos</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
+          <STableHRow justifyContent="center">Posição</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<typeof data[0]>
@@ -119,6 +140,26 @@ export const CharacterizationTable: FC<BoxProps> = () => {
                 <TextIconRow
                   text={dayjs(row.created_at).format('DD/MM/YYYY')}
                   justifyContent="center"
+                />{' '}
+                <STagSelect
+                  options={results.map((_, index) => ({
+                    name: `posição ${index + 1}`,
+                    value: index + 1,
+                  }))}
+                  loading={
+                    upsertMutation.isLoading &&
+                    upsertMutation.variables &&
+                    upsertMutation.variables.id === row.id
+                  }
+                  tooltipTitle={
+                    'escolha a posição que o ambiente deve aparecer no documento'
+                  }
+                  text={`Posição ${!row?.order ? '-' : row?.order}`}
+                  maxWidth={120}
+                  handleSelectMenu={(option) =>
+                    handleEditPosition(row, option.value)
+                  }
+                  icon={SOrderIcon}
                 />
                 <IconButtonRow
                   onClick={(e) => {
