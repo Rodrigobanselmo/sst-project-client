@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from 'react';
+import React, { FC, useEffect, useRef } from 'react';
 import { useStore } from 'react-redux';
 
 import { Global } from '@emotion/react';
@@ -19,18 +19,28 @@ const DefaultLayout: FC = ({ children }) => {
   const dispatch = useAppDispatch();
   const { onCloseModal } = useModal();
   const store = useStore();
+  const lastPath = useRef('');
+  const currentPath = useRef('');
 
   useEffect(() => {
-    const handleStart = () => {
-      if (store.getState().modal.currentModal.length > 0) {
+    const handleStart = (nextPath: string) => {
+      if (!lastPath.current) currentPath.current === nextPath;
+
+      if (
+        store.getState().modal.currentModal.length > 0 &&
+        (nextPath === lastPath.current || !lastPath.current)
+      ) {
         onCloseModal();
         router.events.emit('routeChangeError');
         throw 'routeChange aborted.';
       } else {
         dispatch(setIsRouteLoading(true));
+        lastPath.current = currentPath.current;
+        currentPath.current = nextPath;
       }
       // console.log('start');
     };
+
     const handleStop = () => {
       dispatch(setIsRouteLoading(false));
       // console.log('stop');

@@ -14,7 +14,6 @@ import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
-import { useLeavePrevent } from 'core/hooks/useLeavePrevent';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -99,7 +98,6 @@ export const useEditEnvironment = () => {
   const isRiskOpen = query.riskGroupId;
 
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
-  useLeavePrevent();
 
   const [environmentData, setEnvironmentData] = useState({
     ...initialEnvironmentState,

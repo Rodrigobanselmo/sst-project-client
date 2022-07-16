@@ -90,9 +90,12 @@ export const EnvironmentTable: FC<BoxProps> = () => {
     keys: ['name'],
   });
 
-  const handleEditPosition = async (row: IEnvironment, order: number) => {
+  const handleEditPosition = async (
+    { id, name, type }: IEnvironment,
+    order: number,
+  ) => {
     await upsertMutation
-      .mutateAsync({ ...row, order, companyId, workspaceId })
+      .mutateAsync({ id, name, type, order, companyId, workspaceId })
       .catch(() => {});
   };
 

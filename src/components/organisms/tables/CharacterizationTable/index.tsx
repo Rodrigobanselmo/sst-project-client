@@ -80,9 +80,12 @@ export const CharacterizationTable: FC<BoxProps> = () => {
     onOpenModal(ModalEnum.CHARACTERIZATION_ADD, { ...data });
   };
 
-  const handleEditPosition = async (row: ICharacterization, order: number) => {
+  const handleEditPosition = async (
+    { id, name, type }: ICharacterization,
+    order: number,
+  ) => {
     await upsertMutation
-      .mutateAsync({ ...row, order, companyId, workspaceId })
+      .mutateAsync({ id, name, type, order, companyId, workspaceId })
       .catch(() => {});
   };
 
