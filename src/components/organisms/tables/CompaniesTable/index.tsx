@@ -30,7 +30,7 @@ import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { useMutUploadFile } from 'core/services/hooks/mutations/useMutUploadFile';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 
-export const CompaniesTable: FC<BoxProps & { rowsPerPage: number }> = ({
+export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
   rowsPerPage = 8,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();

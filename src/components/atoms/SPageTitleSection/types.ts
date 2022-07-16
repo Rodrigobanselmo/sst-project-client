@@ -5,7 +5,7 @@ import { Theme } from '@mui/material';
 import { SxProps } from '@mui/system';
 import { STextProps } from 'components/atoms/SText/types';
 
-export interface SPageTitleSectionProps extends STextProps {
+export interface SPageTitleSectionProps extends Omit<STextProps, 'title'> {
   icon?: ElementType<any>;
   iconSx?: SxProps<Theme>;
   subtitle?: ReactNode;

@@ -9,15 +9,12 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
-import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-
 import { ModalContentDoc } from './components/ModalContent';
 import { useModalViewPgrDoc } from './hooks/useModalViewPgrDoc';
 
 export const ModalViewPgrDoc = () => {
   const props = useModalViewPgrDoc();
-  const { companyId } = useGetCompanyId();
-  const { registerModal, onClose, uploadMutation, modalName } = props;
+  const { registerModal, onClose, modalName } = props;
 
   const buttons = [{}] as IModalButton[];
 

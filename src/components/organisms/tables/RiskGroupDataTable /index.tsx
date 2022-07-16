@@ -57,10 +57,10 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
     //   status: data.status,
     // } as typeof initialRiskGroupState);
     push(
-      RoutesEnum.PGR_DOCUMENT.replace(
-        /:companyId/g,
-        data.companyId,
-      ).replace(/:docId/g, data.id),
+      RoutesEnum.PGR_DOCUMENT.replace(/:companyId/g, data.companyId).replace(
+        /:docId/g,
+        data.id,
+      ),
     );
   };
 
