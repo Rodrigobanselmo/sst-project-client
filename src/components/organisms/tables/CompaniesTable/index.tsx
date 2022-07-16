@@ -11,6 +11,7 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
@@ -25,23 +26,25 @@ import EditIcon from 'assets/icons/SEditIcon';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
-import { useTableSearch } from 'core/hooks/useTableSearch';
+import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { useMutUploadFile } from 'core/services/hooks/mutations/useMutUploadFile';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
-import { sortData } from 'core/utils/sorts/data.sort';
 
-export const CompaniesTable: FC<BoxProps> = () => {
-  const { data, isLoading } = useQueryCompanies();
+export const CompaniesTable: FC<BoxProps & { rowsPerPage: number }> = ({
+  rowsPerPage = 8,
+}) => {
+  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+
+  const { companies, count, isLoading } = useQueryCompanies(
+    page,
+    { search },
+    rowsPerPage,
+  );
   const { onOpenModal } = useModal();
   // const downloadMutation = useMutDownloadFile(); //?download company
   const uploadMutation = useMutUploadFile();
 
   const { push } = useRouter();
-  const { handleSearchChange, results } = useTableSearch({
-    data,
-    keys: ['name', 'cnpj', 'fantasy'],
-    sort: (a, b) => sortData(b, a, 'created_at'),
-  });
 
   const handleEditStatus = (status: StatusEnum) => {
     console.log(status); // TODO edit checklist status
@@ -61,6 +64,7 @@ export const CompaniesTable: FC<BoxProps> = () => {
       />
       <STable
         loading={isLoading}
+        rowsNumber={rowsPerPage}
         columns="minmax(200px, 2fr) minmax(200px, 1fr) 70px 90px"
       >
         <STableHeader>
@@ -71,8 +75,10 @@ export const CompaniesTable: FC<BoxProps> = () => {
           {/* <STableHRow justifyContent="center">Baixar</STableHRow> //?download company */}
           {/* <STableHRow justifyContent="center">Enviar</STableHRow>  //?download company */}
         </STableHeader>
-        <STableBody<typeof data[0]>
-          rowsData={results}
+        <STableBody<typeof companies[0]>
+          hideLoadMore
+          rowsInitialNumber={rowsPerPage}
+          rowsData={companies}
           renderRow={(row) => {
             return (
               <STableRow clickable key={row.id}>
@@ -132,6 +138,13 @@ export const CompaniesTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
+      <STablePagination
+        mt={2}
+        registersPerPage={rowsPerPage}
+        totalCountOfRegisters={isLoading ? undefined : count}
+        currentPage={page}
+        onPageChange={setPage}
+      />
       <ModalEditCompany />
       <ModalUploadPhoto />
       <ModalUploadFile

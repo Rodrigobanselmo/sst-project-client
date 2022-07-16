@@ -20,6 +20,7 @@ export const STable: FC<STableProps> = ({
   columns,
   loading,
   children,
+  rowsNumber,
   ...props
 }) => (
   <Box position="relative">
@@ -30,7 +31,7 @@ export const STable: FC<STableProps> = ({
       pb={5}
       {...props}
     />
-    {loading && <STableLoading rowGap={rowGap} />}
+    {loading && <STableLoading rowGap={rowGap} rowsNumber={rowsNumber} />}
   </Box>
 );
 
@@ -49,6 +50,7 @@ export function STableBody<T>({
   rowsData,
   rowsInitialNumber = 8,
   numberRowsToLoadMore = 8,
+  hideLoadMore,
   ...props
 }: STableBodyProps<T>) {
   const [numberRows, setNumberRows] = useState(rowsInitialNumber);
@@ -67,11 +69,13 @@ export function STableBody<T>({
         {rows.map((row, index) => renderRow(row, index))}
       </STSTableBody>
       {rows.length === 0 && <STableEmpty />}
-      <STableLoadMore
-        actualRows={rows.length}
-        totalRows={rowsData.length}
-        onClick={handelMoreRows}
-      />
+      {!hideLoadMore && (
+        <STableLoadMore
+          actualRows={rows.length}
+          totalRows={rowsData.length}
+          onClick={handelMoreRows}
+        />
+      )}
     </>
   );
 }

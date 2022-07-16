@@ -4,6 +4,8 @@ import { Box, Checkbox } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STableRow } from 'components/atoms/STable';
 import STableLoading from 'components/atoms/STable/components/STableLoading';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
+import STableSearch from 'components/atoms/STable/components/STableSearch';
 import SText from 'components/atoms/SText';
 import SModal, {
   SModalButtons,
@@ -15,6 +17,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
@@ -29,9 +32,11 @@ export const initialCompanySelectState = {
 };
 
 export const ModalSelectCompany: FC = () => {
+  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+
+  const { companies, count, isLoading } = useQueryCompanies(page, { search });
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onOpenModal } = useModal();
-  const { data: companies, isLoading } = useQueryCompanies();
   const [selectData, setSelectData] = useState(initialCompanySelectState);
 
   useEffect(() => {
@@ -98,11 +103,10 @@ export const ModalSelectCompany: FC = () => {
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <Box width={['100%', 600, 800]} mt={8}>
+          <STableSearch onChange={(e) => handleSearchChange(e.target.value)} />
           {!isLoading ? (
             <SFlex direction="column" gap={5}>
-              <SText mt={-4} mr={40}>
-                {selectData.title}
-              </SText>
+              <SText mr={40}>{selectData.title}</SText>
               {companies.map((company) => (
                 <STableRow
                   clickable
@@ -127,9 +131,16 @@ export const ModalSelectCompany: FC = () => {
                   </SFlex>
                 </STableRow>
               ))}
+              <STablePagination
+                mt={2}
+                registersPerPage={8}
+                totalCountOfRegisters={count}
+                currentPage={page}
+                onPageChange={setPage}
+              />
             </SFlex>
           ) : (
-            <STableLoading rowGap={'10px'} />
+            <STableLoading rowsNumber={8} rowGap={'10px'} />
           )}
         </Box>
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

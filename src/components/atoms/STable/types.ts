@@ -5,6 +5,7 @@ import { BoxProps } from '@mui/material';
 export interface STableProps extends BoxProps {
   columns: string;
   rowGap?: string;
+  rowsNumber?: number;
   loading?: boolean;
 }
 
@@ -13,4 +14,5 @@ export interface STableBodyProps<T> extends BoxProps {
   rowsData: T[];
   rowsInitialNumber?: number;
   numberRowsToLoadMore?: number;
+  hideLoadMore?: boolean;
 }

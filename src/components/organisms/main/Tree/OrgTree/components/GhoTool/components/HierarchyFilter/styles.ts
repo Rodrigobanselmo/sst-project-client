@@ -14,7 +14,26 @@ export const STGridItem = styled(STGridExtend)`
 
 export const STSInput = styled(SInput)`
   width: ${(props) => props.theme.spacing(143)};
-  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 5px rgb(0 0 0 / 15%);
+
+  &&& .MuiOutlinedInput-notchedOutline {
+    border-color: ${(props) => props.theme.palette.background.border};
+    border-width: 1px;
+  }
+
+  &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: ${(props) => props.theme.palette.gray[500]};
+  }
+  &:hover {
+    &&& .MuiOutlinedInput-notchedOutline {
+      border-color: ${(props) => props.theme.palette.background.default};
+      border-width: 2px;
+    }
+    &&& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+      border-color: ${(props) => props.theme.palette.gray[500]};
+      opacity: 1;
+    }
+  }
 `;
 
 export const STBoxInput = styled(Box)`

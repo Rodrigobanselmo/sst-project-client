@@ -6,7 +6,10 @@ import SFlex from 'components/atoms/SFlex';
 import { STable, STableHeader, STableHRow } from '../..';
 import { STableLoadingProps } from './types';
 
-const STableLoading: FC<STableLoadingProps> = ({ ...props }) => (
+const STableLoading: FC<STableLoadingProps> = ({
+  rowsNumber = 5,
+  ...props
+}) => (
   <STable loading={false} columns="1fr 1fr 1fr 1fr 1fr" {...props}>
     <STableHeader>
       {[0, 1, 2, 3, 4].map((item) => {
@@ -23,10 +26,10 @@ const STableLoading: FC<STableLoadingProps> = ({ ...props }) => (
       })}
     </STableHeader>
     <SFlex gap={5} direction="column">
-      {[0, 1, 2, 3, 4].map((item) => {
+      {Array.from({ length: rowsNumber }).map((item, index) => {
         return (
           <Skeleton
-            key={item}
+            key={index}
             variant="rectangular"
             width={'100%'}
             height={50}
