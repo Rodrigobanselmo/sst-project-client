@@ -15,6 +15,7 @@ export type IEnvironment = {
   parentEnvironmentId?: string;
   companyId: string;
   photos: IEnvironmentPhoto[];
+  order?: number;
   noiseValue: string;
   temperature: string;
   moisturePercentage: string;

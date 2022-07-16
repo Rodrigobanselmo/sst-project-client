@@ -22,11 +22,16 @@ import { useMutAddCharacterizationPhoto } from 'core/services/hooks/mutations/ma
 import { useMutDeleteCharacterization } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterization';
 import { useMutDeleteCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterizationPhoto';
 import {
+  IUpdateCharacterizationPhoto,
+  useMutUpdateCharacterizationPhoto,
+} from 'core/services/hooks/mutations/manager/useMutUpdateCharacterizationPhoto';
+import {
   IAddCharacterizationPhoto,
   IUpsertCharacterization,
   useMutUpsertCharacterization,
 } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
 import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
+import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { queryClient } from 'core/services/queryClient';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
@@ -35,6 +40,7 @@ import { sortData } from 'core/utils/sorts/data.sort';
 
 import { initialDocPgrSelectState } from '../../ModalSelectDocPgr';
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
+import { initialInputModalState } from '../../ModalSingleInput';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 import { ViewsDataEnum } from './../../../main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 
@@ -42,6 +48,7 @@ export const initialCharacterizationState = {
   id: '',
   name: '',
   description: '',
+  order: 0,
   noiseValue: '',
   temperature: '',
   luminosity: '',
@@ -75,6 +82,7 @@ export const useEditCharacterization = () => {
   const { query, push, asPath } = useRouter();
   const { data: ghoQuery, isLoading: ghoLoading } = useQueryGHO();
   const dispatch = useAppDispatch();
+  const { data: characterizationsQuery } = useQueryCharacterizations();
   const { enqueueSnackbar } = useSnackbar();
 
   const { handleSubmit, control, reset, getValues } = useForm({
@@ -85,6 +93,7 @@ export const useEditCharacterization = () => {
   const upsertMutation = useMutUpsertCharacterization();
   const addPhotoMutation = useMutAddCharacterizationPhoto();
   const deletePhotoMutation = useMutDeleteCharacterizationPhoto();
+  const updatePhotoMutation = useMutUpdateCharacterizationPhoto();
 
   const isRiskOpen = query.riskGroupId;
 
@@ -160,6 +169,7 @@ export const useEditCharacterization = () => {
       description: data.description,
       companyId: characterizationData.companyId,
       workspaceId: characterizationData.workspaceId,
+      order: characterizationData.order,
       photos: characterizationData.photos,
       type: characterizationData.type,
       id: characterizationData.id || undefined,
@@ -249,6 +259,44 @@ export const useEditCharacterization = () => {
         photos: photosCopy,
       };
     });
+  };
+
+  const handlePhotoUpdate = async (
+    index: number,
+    data: Partial<IUpdateCharacterizationPhoto>,
+  ) => {
+    const photosCopy = [...characterizationData.photos];
+    const updatePhoto = photosCopy.splice(index, 1);
+
+    if (isEdit && updatePhoto[0]?.id)
+      await updatePhotoMutation
+        .mutateAsync({ ...data, id: updatePhoto[0].id })
+        .catch(() => {});
+
+    setCharacterizationData((oldData) => {
+      const photosCopy = oldData.photos.map((photo, indexPhoto) => {
+        if (index === indexPhoto) return { ...photo, ...data };
+        return photo;
+      });
+
+      return {
+        ...oldData,
+        photos: photosCopy,
+      };
+    });
+  };
+
+  const handlePhotoName = async (index: number) => {
+    const photosCopy = [...characterizationData.photos];
+    const updatePhoto = photosCopy.splice(index, 1);
+
+    onStackOpenModal(ModalEnum.SINGLE_INPUT, {
+      onConfirm: (name) => handlePhotoUpdate(index, { name: name }),
+      placeholder: 'nome da foto',
+      title: 'Editar Photo',
+      label: 'Nome',
+      name: updatePhoto[0].name,
+    } as typeof initialInputModalState);
   };
 
   const onAddHierarchy = () => {
@@ -375,6 +423,11 @@ export const useEditCharacterization = () => {
     isRiskOpen,
     characterizationLoading: characterizationLoading || ghoLoading,
     saveRef,
+    handlePhotoUpdate,
+    handlePhotoName,
+    characterizationsQuery: characterizationsQuery.filter(
+      (e) => e.type === characterizationData.type,
+    ),
   };
 };
 

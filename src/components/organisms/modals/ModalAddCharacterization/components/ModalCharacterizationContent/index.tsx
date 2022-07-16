@@ -10,10 +10,13 @@ import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
+import { STagSelect } from 'components/molecules/STagSelect';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
+import SEditIcon from 'assets/icons/SEditIcon';
+import SOrderIcon from 'assets/icons/SOrderIcon';
 
 import { characterizationMap } from 'core/constants/maps/characterization.map';
 
@@ -42,6 +45,8 @@ export const ModalCharacterizationContent = ({
   characterizationQuery,
   onAddRisk,
   characterizationLoading,
+  characterizationsQuery,
+  handlePhotoName,
 }: IUseEditCharacterization) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -116,6 +121,30 @@ export const ModalCharacterizationContent = ({
         columns={3}
         width="101%"
       />
+      <SFlex justify="end">
+        <STagSelect
+          options={characterizationsQuery.map((_, index) => ({
+            name: `posição ${index + 1}`,
+            value: index + 1,
+          }))}
+          tooltipTitle={
+            'escolha a posição que o ambiente deve aparecer no documento'
+          }
+          text={`Posição ${
+            !characterizationData?.order ? '' : characterizationData?.order
+          }`}
+          large
+          maxWidth={120}
+          mb={10}
+          handleSelectMenu={(option) =>
+            setCharacterizationData((old) => ({
+              ...old,
+              order: option.value,
+            }))
+          }
+          icon={SOrderIcon}
+        />
+      </SFlex>
       <SText color="text.label" fontSize={14}>
         Vincular cargos
       </SText>
@@ -222,12 +251,22 @@ export const ModalCharacterizationContent = ({
             <div>
               <SText noBreak>{photo.name}</SText>
               <SIconButton
-                sx={{ maxWidth: 10, maxHeight: 10 }}
+                sx={{ maxWidth: 10, maxHeight: 10, mr: 2 }}
                 onClick={() => handlePhotoRemove(index)}
                 loading={loadingDelete}
                 circularProps={{ size: 10 }}
+                tooltip="Remover"
               >
                 <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
+              </SIconButton>
+              <SIconButton
+                sx={{ maxWidth: 10, maxHeight: 10, mr: 2 }}
+                onClick={() => handlePhotoName(index)}
+                loading={loadingDelete}
+                circularProps={{ size: 10 }}
+                tooltip="Editar"
+              >
+                <Icon component={SEditIcon} sx={{ fontSize: 14 }} />
               </SIconButton>
             </div>
           </SFlex>

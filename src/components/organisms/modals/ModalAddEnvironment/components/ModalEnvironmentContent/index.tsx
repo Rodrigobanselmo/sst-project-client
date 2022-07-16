@@ -10,10 +10,13 @@ import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
+import { STagSelect } from 'components/molecules/STagSelect';
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
+import { SEditIcon } from 'assets/icons/SEditIcon';
+import SOrderIcon from 'assets/icons/SOrderIcon';
 
 import { environmentMap } from 'core/constants/maps/environment.map';
 import { floatMask } from 'core/utils/masks/float.mask';
@@ -35,6 +38,7 @@ export const ModalEnvironmentContent = ({
   handleAddPhoto,
   setEnvironmentData,
   handlePhotoRemove,
+  handlePhotoName,
   loadingDelete,
   onAddHierarchy,
   onAddArray,
@@ -43,6 +47,7 @@ export const ModalEnvironmentContent = ({
   environmentQuery,
   hierarchies,
   environmentLoading,
+  environmentsQuery,
 }: IUseEditEnvironment) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -112,6 +117,30 @@ export const ModalEnvironmentContent = ({
         columns={4}
         width="101%"
       />
+      <SFlex justify="end">
+        <STagSelect
+          options={environmentsQuery.map((_, index) => ({
+            name: `posição ${index + 1}`,
+            value: index + 1,
+          }))}
+          tooltipTitle={
+            'escolha a posição que o ambiente deve aparecer no documento'
+          }
+          text={`Posição ${
+            !environmentData?.order ? '' : environmentData?.order
+          }`}
+          large
+          maxWidth={120}
+          mb={10}
+          handleSelectMenu={(option) =>
+            setEnvironmentData((old) => ({
+              ...old,
+              order: option.value,
+            }))
+          }
+          icon={SOrderIcon}
+        />
+      </SFlex>
       <SText color="text.label" fontSize={14}>
         Parâmetros ambientais
       </SText>
@@ -173,6 +202,7 @@ export const ModalEnvironmentContent = ({
           />
         </Box>
       </SFlex>
+
       <SText color="text.label" fontSize={14}>
         Vincular cargos ao ambiente
       </SText>
@@ -275,12 +305,22 @@ export const ModalEnvironmentContent = ({
             <div>
               <SText noBreak>{photo.name}</SText>
               <SIconButton
-                sx={{ maxWidth: 10, maxHeight: 10 }}
+                sx={{ maxWidth: 10, maxHeight: 10, mr: 2 }}
                 onClick={() => handlePhotoRemove(index)}
                 loading={loadingDelete}
                 circularProps={{ size: 10 }}
+                tooltip="Remover"
               >
                 <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
+              </SIconButton>
+              <SIconButton
+                sx={{ maxWidth: 10, maxHeight: 10, mr: 2 }}
+                onClick={() => handlePhotoName(index)}
+                loading={loadingDelete}
+                circularProps={{ size: 10 }}
+                tooltip="Editar"
+              >
+                <Icon component={SEditIcon} sx={{ fontSize: 14 }} />
               </SIconButton>
             </div>
           </SFlex>

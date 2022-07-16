@@ -23,11 +23,16 @@ import { useMutAddEnvironmentPhoto } from 'core/services/hooks/mutations/manager
 import { useMutDeleteEnvironment } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironment';
 import { useMutDeleteEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironmentPhoto';
 import {
+  IUpdateEnvironmentPhoto,
+  useMutUpdateEnvironmentPhoto,
+} from 'core/services/hooks/mutations/manager/useMutUpdateEnvironmentPhoto';
+import {
   IAddEnvironmentPhoto,
   IUpsertEnvironment,
   useMutUpsertEnvironment,
 } from 'core/services/hooks/mutations/manager/useMutUpsertEnvironment';
 import { useQueryEnvironment } from 'core/services/hooks/queries/useQueryEnvironment';
+import { useQueryEnvironments } from 'core/services/hooks/queries/useQueryEnvironments';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { queryClient } from 'core/services/queryClient';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
@@ -36,12 +41,14 @@ import { sortData } from 'core/utils/sorts/data.sort';
 
 import { initialDocPgrSelectState } from '../../ModalSelectDocPgr';
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
+import { initialInputModalState } from '../../ModalSingleInput';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 
 export const initialEnvironmentState = {
   id: '',
   name: '',
   description: '',
+  order: 0,
   noiseValue: '',
   temperature: '',
   luminosity: '',
@@ -76,6 +83,7 @@ export const useEditEnvironment = () => {
   const { data: ghoQuery, isLoading: ghoLoading } = useQueryGHO();
   const dispatch = useAppDispatch();
   const { enqueueSnackbar } = useSnackbar();
+  const { data: environmentsQuery } = useQueryEnvironments();
 
   const { handleSubmit, control, reset, getValues } = useForm({
     resolver: yupResolver(environmentSchema),
@@ -85,6 +93,7 @@ export const useEditEnvironment = () => {
   const deleteMutation = useMutDeleteEnvironment();
   const addPhotoMutation = useMutAddEnvironmentPhoto();
   const deletePhotoMutation = useMutDeleteEnvironmentPhoto();
+  const updatePhotoMutation = useMutUpdateEnvironmentPhoto();
 
   const isRiskOpen = query.riskGroupId;
 
@@ -160,6 +169,7 @@ export const useEditEnvironment = () => {
       luminosity: data.luminosity,
       moisturePercentage: data.moisturePercentage,
       photos: environmentData.photos,
+      order: environmentData.order,
       type: environmentData.type,
       considerations: environmentData.considerations,
       companyId: environmentData.companyId,
@@ -247,6 +257,44 @@ export const useEditEnvironment = () => {
         photos: photosCopy,
       };
     });
+  };
+
+  const handlePhotoUpdate = async (
+    index: number,
+    data: Partial<IUpdateEnvironmentPhoto>,
+  ) => {
+    const photosCopy = [...environmentData.photos];
+    const updatePhoto = photosCopy.splice(index, 1);
+
+    if (isEdit && updatePhoto[0]?.id)
+      await updatePhotoMutation
+        .mutateAsync({ ...data, id: updatePhoto[0].id })
+        .catch(() => {});
+
+    setEnvironmentData((oldData) => {
+      const photosCopy = oldData.photos.map((photo, indexPhoto) => {
+        if (index === indexPhoto) return { ...photo, ...data };
+        return photo;
+      });
+
+      return {
+        ...oldData,
+        photos: photosCopy,
+      };
+    });
+  };
+
+  const handlePhotoName = async (index: number) => {
+    const photosCopy = [...environmentData.photos];
+    const updatePhoto = photosCopy.splice(index, 1);
+
+    onStackOpenModal(ModalEnum.SINGLE_INPUT, {
+      onConfirm: (name) => handlePhotoUpdate(index, { name: name }),
+      placeholder: 'nome da foto',
+      title: 'Editar Photo',
+      label: 'Nome',
+      name: updatePhoto[0].name,
+    } as typeof initialInputModalState);
   };
 
   const onRemove = async () => {
@@ -371,6 +419,11 @@ export const useEditEnvironment = () => {
     hierarchies,
     environmentLoading: environmentLoading && ghoLoading,
     saveRef,
+    handlePhotoUpdate,
+    handlePhotoName,
+    environmentsQuery: environmentsQuery.filter(
+      (e) => e.type === environmentData.type,
+    ),
   };
 };
 

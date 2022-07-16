@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { Tooltip } from '@mui/material';
+import { Box, Tooltip } from '@mui/material';
 
 import { STooltipProps } from './types';
 
@@ -9,6 +9,7 @@ const STooltip: FC<STooltipProps> = ({
   children,
   withWrapper,
   minLength = 0,
+  boxProps = {},
   ...props
 }) => {
   if (!title) return <>{children}</>;
@@ -18,7 +19,7 @@ const STooltip: FC<STooltipProps> = ({
   if (withWrapper)
     return (
       <Tooltip title={title} {...props}>
-        <div>{children}</div>
+        <Box {...boxProps}>{children}</Box>
       </Tooltip>
     );
   return (

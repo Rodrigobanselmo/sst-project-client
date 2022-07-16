@@ -29,6 +29,7 @@ export interface IUpsertEnvironment {
   description?: string;
   companyId?: string;
   workspaceId?: string;
+  order?: number;
   photos?: IAddEnvironmentPhoto[];
   noiseValue?: string;
   temperature?: string;

@@ -3,6 +3,7 @@ import React, { FC } from 'react';
 import CircularProgress from '@mui/material/CircularProgress';
 import IconButton from '@mui/material/IconButton';
 
+import STooltip from '../STooltip';
 import { SIconButtonProps } from './types';
 
 const SIconButton: FC<SIconButtonProps> = ({
@@ -12,36 +13,46 @@ const SIconButton: FC<SIconButtonProps> = ({
   disabled,
   size,
   bg,
+  tooltip,
   sx,
   ...props
 }) => (
-  <IconButton
-    sx={
-      bg
-        ? {
-            backgroundColor: bg,
-            boxShadow: 'rgb(0 0 0 / 5%) 0px 3px 12px',
-            '&:hover': {
-              backgroundColor: bg,
-              filter: 'brightness(0.9)',
-            },
-            '&:active': {
-              backgroundColor: bg,
-            },
-            ...sx,
-          }
-        : { ...sx }
-    }
-    disabled={loading || disabled}
-    size={size}
-    {...props}
+  <STooltip
+    withWrapper
+    boxProps={{ sx: { display: 'inline' } }}
+    title={tooltip}
   >
-    {loading ? (
-      <CircularProgress size={size === 'small' ? 20 : 22} {...circularProps} />
-    ) : (
-      children
-    )}
-  </IconButton>
+    <IconButton
+      sx={
+        bg
+          ? {
+              backgroundColor: bg,
+              boxShadow: 'rgb(0 0 0 / 5%) 0px 3px 12px',
+              '&:hover': {
+                backgroundColor: bg,
+                filter: 'brightness(0.9)',
+              },
+              '&:active': {
+                backgroundColor: bg,
+              },
+              ...sx,
+            }
+          : { ...sx }
+      }
+      disabled={loading || disabled}
+      size={size}
+      {...props}
+    >
+      {loading ? (
+        <CircularProgress
+          size={size === 'small' ? 20 : 22}
+          {...circularProps}
+        />
+      ) : (
+        children
+      )}
+    </IconButton>
+  </STooltip>
 );
 
 export default SIconButton;
