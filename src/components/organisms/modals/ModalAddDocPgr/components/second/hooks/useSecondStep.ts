@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
-import { useMutUpsertRiskDocsPgr } from 'core/services/hooks/mutations/checklist/docs/useMutCreateDocsPgr';
+// import { useMutUpsertRiskDocsPgr } from 'core/services/hooks/mutations/checklist/docs/useMutCreateDocsPgr';
+import { useMutAddQueueDocsPgr } from 'core/services/hooks/mutations/checklist/docs/useMutAddQueueDocsPgr';
 
 import { IUseAddCompany } from '../../../hooks/useHandleActions';
 
@@ -10,7 +11,8 @@ export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
     useFormContext();
   const [isMajorVersion, setIsMajorVersion] = useState(false);
 
-  const createDoc = useMutUpsertRiskDocsPgr();
+  // const createDoc = useMutUpsertRiskDocsPgr();
+  const createDoc = useMutAddQueueDocsPgr();
 
   const fields = ['version', 'doc_description', 'doc_name'];
 
@@ -39,7 +41,6 @@ export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
           riskGroupId: data.id,
           workspaceId: data.workspaceId,
           workspaceName: data.workspaceName,
-          id: data.id,
         })
         .catch(() => {});
       onClose();

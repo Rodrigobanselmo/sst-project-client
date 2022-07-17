@@ -17,27 +17,28 @@ const DefaultLayout: FC = ({ children }) => {
   useRedirectDetect();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { onCloseModal } = useModal();
-  const store = useStore();
-  const lastPath = useRef('');
-  const currentPath = useRef('');
+  // const { onCloseModal } = useModal();
+  // const store = useStore();
+  // const lastPath = useRef('');
+  // const currentPath = useRef('');
 
   useEffect(() => {
     const handleStart = (nextPath: string) => {
-      if (!lastPath.current) currentPath.current === nextPath;
+      // if (!lastPath.current) currentPath.current === nextPath;
 
-      if (
-        store.getState().modal.currentModal.length > 0 &&
-        (nextPath === lastPath.current || !lastPath.current)
-      ) {
-        onCloseModal();
-        router.events.emit('routeChangeError');
-        throw 'routeChange aborted.';
-      } else {
-        dispatch(setIsRouteLoading(true));
-        lastPath.current = currentPath.current;
-        currentPath.current = nextPath;
-      }
+      // if (store.getState().modal.currentModal.length) {
+      //   onCloseModal();
+      //   router.events.emit('routeChangeError');
+      //   router.push({ pathname: currentPath.current }, undefined, {
+      //     shallow: true,
+      //   });
+
+      //   throw 'routeChange aborted.';
+      // } else {
+      //   lastPath.current = currentPath.current;
+      //   currentPath.current = nextPath;
+      // }
+      dispatch(setIsRouteLoading(true));
       // console.log('start');
     };
 
@@ -55,7 +56,7 @@ const DefaultLayout: FC = ({ children }) => {
       router.events.off('routeChangeComplete', handleStop);
       router.events.off('routeChangeError', handleStop);
     };
-  }, [router, dispatch, store, onCloseModal]);
+  }, [router, dispatch]);
 
   return (
     <main>

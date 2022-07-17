@@ -17,6 +17,7 @@ import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompa
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalViewPgrDoc } from 'components/organisms/modals/ModalViewPgrDoc';
 import { initialViewPgrDocState } from 'components/organisms/modals/ModalViewPgrDoc/hooks/useModalViewPgrDoc';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -55,7 +56,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
       <STable
         mb={20}
         loading={isLoading}
-        columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px"
+        columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px 100px"
       >
         <STableHeader>
           <STableHRow>Identificação</STableHRow>
@@ -63,12 +64,17 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
           <STableHRow>Estabelecimento</STableHRow>
           <STableHRow justifyContent="center">Versão</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
-          {/* <STableHRow justifyContent="center">Status</STableHRow> */}
+          <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Download</STableHRow>
         </STableHeader>
         <STableBody<typeof data[0]>
           rowsData={data}
           renderRow={(row) => {
+            const processing = row.status == StatusEnum.PROCESSING;
+            const isError =
+              processing &&
+              dayjs(row.created_at).add(1, 'day').isBefore(dayjs());
+
             return (
               <STableRow key={row.id}>
                 <TextIconRow text={row.name || '--'} />
@@ -79,22 +85,20 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
                   text={dayjs(row.created_at).format('DD/MM/YYYY')}
                   justifyContent="center"
                 />
-                {/* <StatusSelect
+                <StatusSelect
                   large
                   sx={{ maxWidth: '120px' }}
-                  selected={row.status}
-                  statusOptions={[
-                    StatusEnum.PROGRESS,
-                    StatusEnum.ACTIVE,
-                    StatusEnum.INACTIVE,
-                  ]}
+                  selected={isError ? StatusEnum.ERROR : row.status}
+                  loading={isError ? false : processing}
+                  statusOptions={[]}
                   disabled
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
-                /> */}
+                />
                 <STagButton
                   text="Baixar"
                   onClick={() => handleOpenDocModal(row)}
                   large
+                  disabled={processing}
                   icon={SDownloadIcon}
                 />
                 {/* <STagButton

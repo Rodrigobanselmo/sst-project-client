@@ -84,11 +84,13 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
               />
             )}
             {loading && (
-              <CircularProgress
-                size={large ? 13 : 11}
-                sx={{ mr: large ? 3 : 2, ...iconSx }}
-                color="secondary"
-              />
+              <SFlex center>
+                <CircularProgress
+                  size={large ? 13 : 11}
+                  sx={{ mr: large ? 3 : 2, ...iconSx }}
+                  color="secondary"
+                />
+              </SFlex>
             )}
             {text && (
               <SText

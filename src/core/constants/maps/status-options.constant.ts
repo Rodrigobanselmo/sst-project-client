@@ -13,6 +13,11 @@ export const statusOptionsConstant = {
     name: 'Ativo',
     color: 'success.main',
   },
+  [StatusEnum.DONE]: {
+    value: StatusEnum.DONE,
+    name: 'Finalizado',
+    color: 'success.main',
+  },
   [StatusEnum.CANCELED]: {
     value: StatusEnum.CANCELED,
     name: 'Cancelado',
@@ -21,6 +26,11 @@ export const statusOptionsConstant = {
   [StatusEnum.INACTIVE]: {
     value: StatusEnum.INACTIVE,
     name: 'Inativo',
+    color: 'error.main',
+  },
+  [StatusEnum.ERROR]: {
+    value: StatusEnum.ERROR,
+    name: 'Erro',
     color: 'error.main',
   },
   [StatusEnum.EXPIRED]: {
@@ -37,5 +47,10 @@ export const statusOptionsConstant = {
     value: StatusEnum.PROGRESS,
     name: 'Progresso',
     color: 'info.main',
+  },
+  [StatusEnum.PROCESSING]: {
+    value: StatusEnum.PROCESSING,
+    name: 'Processando',
+    color: 'warning.main',
   },
 } as IStatusOptions;
