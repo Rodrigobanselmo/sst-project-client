@@ -65,7 +65,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
     const data = riskDataQuery
       .sort(
         (a, b) =>
-          sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key), //! performance optimization here nor sort
+          sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key), //! performance optimization here or sort
       )
       .map((riskData) => {
         return [riskData, risk.find((r) => r.id === riskData.riskId)] as [
@@ -75,7 +75,10 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
       })
       .filter(([, r]) => r);
 
-    if (!selectedGhoFilter.value && !selectedGhoFilter.key)
+    if (
+      (!selectedGhoFilter.value && !selectedGhoFilter.key) ||
+      selectedGhoFilter?.value == 'none'
+    )
       return data
         .sort(([, a], [, b]) => sortString(a, b, 'name'))
         .sort(([, a], [, b]) =>

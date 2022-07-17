@@ -14,6 +14,7 @@ import { useModal } from 'core/hooks/useModal';
 import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IGenerateSourceSelectProps } from './types';
@@ -112,7 +113,8 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
         })
         .filter((generateSource) =>
           onlyFromActualRisks ? !generateSource.hideWithoutSearch : true,
-        );
+        )
+        .sort((a, b) => sortString(a, b, 'name'));
 
     return [];
   }, [data, onlyFromActualRisks, riskIds]);

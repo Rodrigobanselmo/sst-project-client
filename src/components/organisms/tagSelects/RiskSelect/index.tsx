@@ -14,6 +14,7 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 import { useQueryRisk } from '../../../../core/services/hooks/queries/useQueryRisk';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
@@ -74,13 +75,13 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
 
   const options = useMemo(() => {
     if (!data) return [];
-    console.log('options', data);
 
     const filterData = data.filter((risk) => !risk.representAll);
 
     if (activeFilters.length > 0)
       return filterData
         .filter((risk) => activeFilters.includes(risk.type))
+        .sort((a, b) => sortString(a, b, 'name'))
         .map(({ cas, ...filter }) => ({
           cas: onlyNumbers(cas || ''),
           ...filter,

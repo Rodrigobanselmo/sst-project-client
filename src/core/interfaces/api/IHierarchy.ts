@@ -11,6 +11,8 @@ export interface IHierarchy {
   type: HierarchyEnum;
   name: string;
   companyId: string;
+  description: string;
+  realDescription: string;
   parentId: string | null;
   workspaces?: IWorkspace[];
   workspaceIds: string[];

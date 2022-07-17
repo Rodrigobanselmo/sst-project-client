@@ -11,7 +11,7 @@ type ValidateUserPermissionsParams = {
   roles?: string[];
 };
 
-const isMaster = (user: User) => {
+export const isMaster = (user: User) => {
   if (user.roles)
     return user.roles.some((_permission) => {
       return _permission.split('-')[0] === RoleEnum.MASTER;

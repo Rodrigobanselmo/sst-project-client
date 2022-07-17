@@ -2,14 +2,17 @@ import React from 'react';
 import { useWizard } from 'react-use-wizard';
 
 import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
+import { RoleEnum } from 'project/enum/roles.enums';
 
 import { companyOptionsConstant } from 'core/constants/maps/company.constant';
+import { useAccess } from 'core/hooks/useAccess';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
 import { IUseAddCompany } from '../../hooks/useAddCompany';
@@ -19,8 +22,8 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
   const { control, onSubmit, loading, onCloseUnsaved } =
     useCompanyCreate(props);
   const { previousStep } = useWizard();
-  const { companyData } = props;
-
+  const { companyData, setCompanyData } = props;
+  const { isValidRoles } = useAccess();
   const buttons = [
     { onClick: () => previousStep(), text: 'Voltar' },
     {
@@ -57,7 +60,6 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             mask={cnpjMask.apply}
             size="small"
           />
-
           <InputForm
             defaultValue={companyData.fantasy}
             minRows={2}
@@ -98,6 +100,34 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             name="type"
             columns={2}
           />
+          {isValidRoles([RoleEnum.MASTER]) && (
+            <SSwitch
+              onChange={(e) => {
+                setCompanyData({
+                  ...companyData,
+                  isConsulting: e.target.checked,
+                } as any);
+              }}
+              checked={!!companyData.isConsulting}
+              label="Empresa de consultoria"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          )}
+          {isValidRoles([RoleEnum.MASTER]) && (
+            <SSwitch
+              onChange={(e) => {
+                setCompanyData({
+                  ...companyData,
+                  isLicensedActive: e.target.checked,
+                } as any);
+              }}
+              checked={!!companyData.isLicensedActive}
+              label="Empresa ativa"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          )}
         </SFlex>
       </AnimatedStep>
       <SModalButtons

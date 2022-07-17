@@ -2,14 +2,18 @@ import React from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
+import { RoleEnum } from 'project/enum/roles.enums';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import { companyOptionsConstant } from 'core/constants/maps/company.constant';
+import { useAccess } from 'core/hooks/useAccess';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
 
@@ -19,7 +23,8 @@ import { useCompanyEdit } from './hooks/useCompanyFirstEdit';
 export const FirstModalCompanyStep = (props: IUseAddCompany) => {
   const { control, onSubmit, loading, onCloseUnsaved, lastStep } =
     useCompanyEdit(props);
-  const { companyData } = props;
+  const { isValidRoles } = useAccess();
+  const { companyData, setCompanyData } = props;
 
   const buttons = [
     {},
@@ -149,6 +154,41 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
             name="type"
             columns={2}
           />
+        </SFlex>
+        <SFlex ml={5} mt={10} direction="column">
+          {isValidRoles([RoleEnum.MASTER]) && (
+            <SSwitch
+              onChange={(e) => {
+                setCompanyData({
+                  ...companyData,
+                  license: {
+                    ...companyData.license,
+                    status: e.target.checked
+                      ? StatusEnum.ACTIVE
+                      : StatusEnum.INACTIVE,
+                  },
+                });
+              }}
+              checked={!!(companyData.license.status === StatusEnum.ACTIVE)}
+              label="Ativar licensa de uso da plataforma"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          )}
+          {isValidRoles([RoleEnum.MASTER]) && (
+            <SSwitch
+              onChange={(e) => {
+                setCompanyData({
+                  ...companyData,
+                  isConsulting: e.target.checked,
+                });
+              }}
+              checked={!!companyData.isConsulting}
+              label="Empresa de consultoria"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          )}
         </SFlex>
       </AnimatedStep>
       <SModalButtons

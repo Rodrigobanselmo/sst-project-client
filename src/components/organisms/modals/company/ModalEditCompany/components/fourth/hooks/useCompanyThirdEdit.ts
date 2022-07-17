@@ -26,8 +26,7 @@ export const useCompanyEdit = ({
   const fields = ['description', 'operationTime'];
 
   const onCloseUnsaved = async () => {
-    rest.onCloseUnsaved();
-    reset();
+    rest.onCloseUnsaved(() => reset());
   };
 
   const onSubmit = async () => {

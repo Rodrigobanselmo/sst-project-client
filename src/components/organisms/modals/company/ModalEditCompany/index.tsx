@@ -22,7 +22,7 @@ export const ModalEditCompany = () => {
     <SModal
       {...props.registerModal(ModalEnum.COMPANY_EDIT)}
       keepMounted={false}
-      onClose={props.onCloseUnsaved}
+      onClose={() => props.onCloseUnsaved()}
     >
       <SModalPaper p={8} center>
         <SModalHeader

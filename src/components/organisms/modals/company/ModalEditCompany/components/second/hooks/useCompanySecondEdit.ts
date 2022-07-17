@@ -29,8 +29,7 @@ export const useCompanyEdit = ({
   ];
 
   const onCloseUnsaved = async () => {
-    rest.onCloseUnsaved();
-    reset();
+    rest.onCloseUnsaved(() => reset());
   };
 
   const onChangeCep = async (value: string) => {

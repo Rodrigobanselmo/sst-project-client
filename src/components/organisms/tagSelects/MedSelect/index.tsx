@@ -16,6 +16,7 @@ import { useModal } from 'core/hooks/useModal';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IRecMedSelectProps } from './types';
@@ -132,7 +133,8 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
             recMed.medName &&
             (type ? recMed.medType == type : true) &&
             (onlyFromActualRisks ? !recMed.hideWithoutSearch : true),
-        );
+        )
+        .sort((a, b) => sortString(a, b, 'medName'));
 
     return [];
   }, [data, onlyFromActualRisks, riskIds, type]);

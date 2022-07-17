@@ -16,6 +16,8 @@ export interface ITreeMapObject {
   childrenIds: Array<string | number>;
   id: string | number;
   label: string;
+  description?: string;
+  realDescription?: string;
   hide?: boolean;
   searchExpand?: boolean;
   search?: string;

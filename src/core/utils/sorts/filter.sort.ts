@@ -12,10 +12,20 @@ export const sortFilter = function (
   const arrayB = field ? b[field] : b;
 
   if (Array.isArray(arrayA) && Array.isArray(arrayB)) {
-    if (order === 'asc')
-      return sortNumber(arrayA.length || 0, arrayB.length || 0);
     if (order === 'desc')
-      return sortNumber(arrayB.length || 0, arrayA.length || 0);
+      //* is inverted asc with desc
+      return sortString(
+        (arrayA[0] ? arrayA[0]?.name || '' : 'zzz') || 'zzz',
+        (arrayB[0] ? arrayB[0]?.name || '' : 'zzz') || 'zzz',
+      );
+    // return sortNumber(arrayA.length || 0, arrayB.length || 0);
+    if (order === 'asc')
+      //* is inverted asc with desc
+      return sortString(
+        (arrayB[0] ? arrayB[0]?.name || '' : '000') || '000',
+        (arrayA[0] ? arrayA[0]?.name || '' : '000') || '000',
+      );
+    // return sortNumber(arrayB.length || 0, arrayA.length || 0);
   }
 
   if (order === 'asc') {

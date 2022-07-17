@@ -179,6 +179,8 @@ export const useHierarchyTreeActions = () => {
               parentId: values.parentId
                 ? `${values.parentId}//${workspaceId}`
                 : workspaceId,
+              realDescription: values?.realDescription ?? undefined,
+              description: values.description,
               type: TreeTypeEnum[values.type] as unknown as TreeTypeEnum,
               ghos: ghos.filter(
                 (gho) =>
@@ -280,6 +282,8 @@ export const useHierarchyTreeActions = () => {
               id: id,
               type: (node.type as unknown as HierarchyEnum) || undefined,
               name: node.label ? node.label : undefined,
+              description: node?.description ?? undefined,
+              realDescription: node?.realDescription ?? undefined,
               parentId: [workspaceId(node), 'seed'].includes(parentId)
                 ? null
                 : parentId,

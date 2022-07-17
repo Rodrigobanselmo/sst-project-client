@@ -1,6 +1,9 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
+import { useRouter } from 'next/router';
+
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { ActivityDto } from 'core/interfaces/api/ICompany';
 import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/useMutCreateCompany';
 
@@ -19,8 +22,7 @@ export const useCompanyEdit = ({
   const fields = ['cnae_code', 'cnae_name'];
 
   const onCloseUnsaved = async () => {
-    rest.onCloseUnsaved();
-    reset();
+    rest.onCloseUnsaved(() => reset());
   };
 
   const onSubmit = async () => {

@@ -11,7 +11,6 @@ import { selectHierarchyTreeSelectItem } from 'store/reducers/hierarchy/hierarch
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { QueryEnum } from 'core/enums/query.enums';
-import { useControlClick } from 'core/hooks/useControlClick';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
@@ -62,7 +61,7 @@ export const ModalEditCard = () => {
     1000,
   );
 
-  const { registerModal, isOpen } = useRegisterModal();
+  const { registerModal } = useRegisterModal();
   const { onCloseModal } = useModal();
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
   const { editNodes, removeNodes, createEmptyCard } = useHierarchyTreeActions();
@@ -75,9 +74,9 @@ export const ModalEditCard = () => {
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const switchRef = useRef<HTMLInputElement>(null);
 
-  useControlClick('s', () => {
-    if (isOpen(ModalEnum.HIERARCHY_TREE_CARD)) onSave();
-  });
+  // useControlClick('s', () => {
+  //   if (isOpen(ModalEnum.HIERARCHY_TREE_CARD)) onSave();
+  // });
 
   const onSave = () => {
     if (selectedNode) {
@@ -166,7 +165,7 @@ export const ModalEditCard = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <SModalPaper p={8}>
+      <SModalPaper center p={8}>
         <SModalHeader
           onClose={onCloseUnsaved}
           secondIcon={type === TreeTypeEnum.COMPANY ? undefined : SDeleteIcon}
@@ -206,15 +205,48 @@ export const ModalEditCard = () => {
         />
         <Box mt={8}>
           <SInput
+            size="small"
+            labelPosition="center"
+            label={'Nome'}
             inputRef={inputRef}
             autoFocus
             value={selectedNode?.label}
             onChange={(e) => setEditNodeSelectedItem({ label: e.target.value })}
-            unstyled
-            variant="standard"
             sx={{ width: ['100%', 600], mb: 10 }}
             placeholder={nodeTypesConstant[type]?.placeholder}
           />
+          {nodeTypesConstant[type]?.placeholderDesc && (
+            <SInput
+              value={selectedNode?.description || ''}
+              label={'Descrição'}
+              onChange={(e) =>
+                setEditNodeSelectedItem({ description: e.target.value })
+              }
+              labelPosition="center"
+              size="small"
+              multiline
+              minRows={2}
+              maxRows={6}
+              sx={{ width: ['100%', 600], mb: 10 }}
+              placeholder={nodeTypesConstant[type]?.placeholderDesc || ''}
+            />
+          )}
+          {nodeTypesConstant[type]?.placeholderRealDesc && (
+            <SInput
+              value={selectedNode?.realDescription || ''}
+              onChange={(e) =>
+                setEditNodeSelectedItem({ realDescription: e.target.value })
+              }
+              multiline
+              labelPosition="center"
+              label={'Descrição real (Entrevista)'}
+              size="small"
+              minRows={2}
+              maxRows={6}
+              sx={{ width: ['100%', 600], mb: 10 }}
+              placeholder={nodeTypesConstant[type]?.placeholderRealDesc || ''}
+            />
+          )}
           <SFlex gap={8} mt={10} align="center">
             <TypeSelect
               large

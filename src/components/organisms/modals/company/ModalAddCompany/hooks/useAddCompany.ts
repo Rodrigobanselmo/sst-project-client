@@ -23,6 +23,8 @@ export const initialCompanyState = {
   secondary_activity: [] as ActivityDto[],
   phone: '',
   legal_nature: '',
+  isConsulting: false,
+  isLicensedActive: true,
   cadastral_situation: '',
   activity_start_date: '',
   cadastral_situation_date: '',

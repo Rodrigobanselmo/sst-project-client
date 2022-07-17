@@ -10,6 +10,8 @@ interface INodeTypes
       color: string;
       childOptions: TreeTypeEnum[];
       placeholder: string;
+      placeholderDesc: string;
+      placeholderRealDesc: string;
     }
   > {}
 
@@ -20,14 +22,14 @@ export const nodeTypesConstant = {
     name: 'Empresa',
     color: 'option',
     childOptions: [TreeTypeEnum.WORKSPACE],
-    placeholder: 'Nome do empresa...',
+    placeholder: 'nome do empresa...',
   },
   [TreeTypeEnum.WORKSPACE]: {
     value: TreeTypeEnum.WORKSPACE,
     color: 'option',
     title: 'Estabelecimento',
     name: 'Estabelecimento',
-    placeholder: 'Nome da estabelecimento...',
+    placeholder: 'nome da estabelecimento...',
     childOptions: [
       TreeTypeEnum.SECTOR,
       TreeTypeEnum.DIRECTORY,
@@ -40,7 +42,9 @@ export const nodeTypesConstant = {
     title: 'Nova diretória',
     name: 'Diretória',
     color: 'check',
-    placeholder: 'Nome da diretória...',
+    placeholderDesc: 'descrição da diretória...',
+    placeholderRealDesc: 'descrição real (entrevista) da diretória...',
+    placeholder: 'nome da diretória...',
     childOptions: [
       TreeTypeEnum.SECTOR,
       TreeTypeEnum.MANAGEMENT,
@@ -52,7 +56,9 @@ export const nodeTypesConstant = {
     title: 'Nova gerência',
     name: 'Gerência',
     color: 'option',
-    placeholder: 'Nome da gerência...',
+    placeholderDesc: 'descrição da gerência...',
+    placeholderRealDesc: 'descrição real (entrevista) da gerência...',
+    placeholder: 'nome da gerência...',
     childOptions: [TreeTypeEnum.SECTOR, TreeTypeEnum.OFFICE],
   },
   [TreeTypeEnum.SECTOR]: {
@@ -60,7 +66,9 @@ export const nodeTypesConstant = {
     color: 'question',
     title: 'Novo setor',
     name: 'Setor',
-    placeholder: 'Nome do setor...',
+    placeholderDesc: 'descrição do setor...',
+    placeholderRealDesc: 'descrição real (entrevista) do setor...',
+    placeholder: 'nome do setor...',
     childOptions: [TreeTypeEnum.OFFICE, TreeTypeEnum.SUB_SECTOR],
   },
   [TreeTypeEnum.SUB_SECTOR]: {
@@ -69,7 +77,9 @@ export const nodeTypesConstant = {
     title: 'Novo Sub-setor',
     name: 'Sub-setor',
     childOptions: [TreeTypeEnum.OFFICE],
-    placeholder: 'Nome do sub-setor...',
+    placeholderDesc: 'descrição do sub-setor...',
+    placeholderRealDesc: 'descrição real (entrevista) do sub-setor...',
+    placeholder: 'nome do sub-setor...',
   },
   [TreeTypeEnum.OFFICE]: {
     value: TreeTypeEnum.OFFICE,
@@ -77,14 +87,18 @@ export const nodeTypesConstant = {
     color: 'category',
     name: 'Cargo',
     childOptions: [TreeTypeEnum.SUB_OFFICE],
-    placeholder: 'Nome do cargo...',
+    placeholderDesc: 'descrição do cargo...',
+    placeholderRealDesc: 'descrição real (entrevista) do cargo...',
+    placeholder: 'nome do cargo...',
   },
   [TreeTypeEnum.SUB_OFFICE]: {
     value: TreeTypeEnum.SUB_OFFICE,
     title: 'Novo cargo desenvolvido',
     color: 'group',
     name: 'Cargo desenvolvido',
-    placeholder: 'Descrição do cargo desenvolvido...',
+    placeholderDesc: 'descrição do cargo desenvolvido...',
+    placeholderRealDesc: 'descrição real (entrevista) do cargo desenvolvido...',
+    placeholder: 'nome do cargo desenvolvido...',
     childOptions: [] as TreeTypeEnum[],
   },
 } as INodeTypes;

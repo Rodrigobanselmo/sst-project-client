@@ -14,6 +14,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IEpi } from 'core/interfaces/api/IEpi';
 import { useQueryEpis } from 'core/services/hooks/queries/useQueryEpis';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IEpiSelectProps } from './types';
@@ -69,11 +70,13 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
   const options = useMemo(() => {
     const isNa = (ca: string) => ['1', '2', '0'].includes(ca);
 
-    return data.map((epi) => ({
-      name: (!isNa(epi.ca) ? epi.ca + ' ' : '') + epi.equipment,
-      value: epi.id,
-      ...epi,
-    }));
+    return data
+      .map((epi) => ({
+        name: (!isNa(epi.ca) ? epi.ca + ' ' : '') + epi.equipment,
+        value: epi.id,
+        ...epi,
+      }))
+      .sort((a, b) => sortString(a, b, 'name'));
   }, [data]);
 
   const epiLength = String(selected ? selected.length : 0);

@@ -80,7 +80,7 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
   const getName = () => {
     if (viewDataType == ViewsDataEnum.HIERARCHY) return selected?.name;
 
-    if (selected && 'description' in selected) {
+    if (selected && 'description' in selected && selected.description) {
       const splitValues = selected.description.split('(//)');
       if (splitValues[1]) {
         return splitValues[0];

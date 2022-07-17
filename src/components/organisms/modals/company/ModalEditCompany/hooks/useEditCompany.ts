@@ -16,6 +16,10 @@ export const initialCompanyState = {
   name: '',
   responsibleName: '',
   cnpj: '',
+  isConsulting: false,
+  license: {
+    status: StatusEnum.ACTIVE as StatusEnum,
+  },
   fantasy: '',
   logoUrl: '',
   email: '',
@@ -79,10 +83,11 @@ export const useEditCompany = () => {
     setCompanyData(initialCompanyState);
   };
 
-  const onCloseUnsaved = () => {
+  const onCloseUnsaved = (action?: () => void) => {
     if (preventUnwantedChanges(companyData, initialDataRef.current, onClose))
       return;
     onClose();
+    action?.();
   };
 
   return {
