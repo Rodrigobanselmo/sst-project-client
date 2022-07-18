@@ -45,6 +45,7 @@ export function useMutCopyCompany() {
         queryClient.invalidateQueries([QueryEnum.GHO, companyId]);
         queryClient.invalidateQueries([QueryEnum.RISK_DATA, companyId]);
         queryClient.invalidateQueries([QueryEnum.RISK_GROUP_DATA, companyId]);
+        queryClient.invalidateQueries([QueryEnum.COMPANY, companyId]);
 
         enqueueSnackbar('Empresa copiada com sucesso', {
           variant: 'success',

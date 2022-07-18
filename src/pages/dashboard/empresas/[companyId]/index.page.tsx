@@ -233,7 +233,7 @@ const CompanyPage: NextPage = () => {
         active: true,
       };
 
-    if (!company.employeeCount)
+    if (!company.employeeCount && !company.hierarchyCount)
       return {
         ...actionsStepMemo[1],
         sx: { backgroundColor: 'success.main' },
