@@ -14,7 +14,7 @@ import { userUpdateSchema } from 'core/utils/schemas/user-update.schema';
 interface ISubmit extends Partial<IUpdateUser> {}
 
 export const useUserForm = (onlyEdit?: boolean) => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, googleSignLink } = useAuth();
   const { handleSubmit, control, setFocus, setValue } = useForm({
     resolver: yupResolver(userUpdateSchema),
   });
@@ -94,6 +94,20 @@ export const useUserForm = (onlyEdit?: boolean) => {
     });
   };
 
+  const linkGoogle = async () => {
+    const result = await googleSignLink();
+    if (result) {
+      console.log(result.user);
+      await updateMutation
+        .mutateAsync({ googleExternalId: result.user.uid })
+        .then(() => {
+          refreshUser();
+          return true;
+        })
+        .catch(() => {});
+    }
+  };
+
   return {
     loading: updateMutation.isLoading,
     control,
@@ -107,6 +121,7 @@ export const useUserForm = (onlyEdit?: boolean) => {
     setUserData,
     onAddArray,
     onDeleteArray,
+    linkGoogle,
   };
 };
 

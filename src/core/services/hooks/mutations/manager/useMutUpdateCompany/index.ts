@@ -37,7 +37,7 @@ export interface IUpdateCompany
 
 export async function updateCompany(data: IUpdateCompany, companyId?: string) {
   if (!companyId) return null;
-  console.log(companyId);
+
   const response = await api.patch<ICompany>(ApiRoutesEnum.COMPANIES, {
     ...data,
     companyId,

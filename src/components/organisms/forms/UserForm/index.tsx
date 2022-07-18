@@ -1,6 +1,7 @@
 import { BoxProps } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
+import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
@@ -24,6 +25,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
     setUserData,
     onAddArray,
     onDeleteArray,
+    linkGoogle,
   } = useUserForm(props.onlyEdit);
 
   useFetchFeedback(!user);
@@ -52,6 +54,9 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           mask={cpfMask.apply}
           size="small"
         />
+
+        <GoogleButton onClick={linkGoogle} text="Vincular conta Google" />
+
         {userData.hasCREA && (
           <InputForm
             defaultValue={userData?.crea}
@@ -112,7 +117,6 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           </SButton>
         </SFlex>
       </SFlex>
-
       <SFlex gap={8} direction="column" mt={15}>
         <SSwitch
           onChange={() => {

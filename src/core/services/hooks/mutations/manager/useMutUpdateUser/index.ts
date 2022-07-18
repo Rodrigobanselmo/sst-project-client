@@ -15,6 +15,7 @@ export interface IUpdateUser {
   name?: string;
   cpf?: string;
   crea?: string;
+  googleExternalId?: string;
   formation?: string[];
   certifications?: string[];
   token?: string;

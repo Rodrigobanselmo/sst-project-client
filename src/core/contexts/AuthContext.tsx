@@ -9,16 +9,28 @@ import {
 } from 'react';
 import { useStore } from 'react-redux';
 
+import {
+  GoogleAuthProvider,
+  signInWithPopup,
+  UserCredential,
+} from 'firebase/auth';
 import { route } from 'next/dist/server/router';
 import Router, { useRouter } from 'next/router';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
-import { selectRedirectRoute } from 'store/reducers/routeLoad/routeLoadSlice';
+import { useSnackbar } from 'notistack';
+import {
+  selectRedirectRoute,
+  setIsFetchingData,
+} from 'store/reducers/routeLoad/routeLoadSlice';
 import { createUser, selectUser } from 'store/reducers/user/userSlice';
+
+import { firebaseAuth, firebaseProvider } from 'configs/firebase';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { ISession } from 'core/interfaces/api/ISession';
+import { useMutUpdateUser } from 'core/services/hooks/mutations/manager/useMutUpdateUser';
 
 import { RoutesEnum } from '../enums/routes.enums';
 import { IUser } from '../interfaces/api/IUser';
@@ -28,11 +40,14 @@ export type SignInCredentials = {
   email: string;
   password: string;
   token?: string;
+  google_token_id?: string;
 };
 
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   signUp(credentials: SignInCredentials): Promise<void>;
+  googleSignIn: () => Promise<void | UserCredential>;
+  googleSignLink: () => Promise<void | UserCredential>;
   signOut: () => void;
   refreshUser: () => void;
   user: Partial<IUser> | null;
@@ -87,7 +102,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const user = useAppSelector(selectUser);
   const store = useStore();
   const redirect = useAppSelector(selectRedirectRoute);
-
+  const { enqueueSnackbar } = useSnackbar();
   const isAuthenticated = !!user;
 
   const signOutFunc = useCallback(() => {
@@ -182,11 +197,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authChannel.postMessage('signIn');
   };
 
-  async function signIn({ email, password }: SignInCredentials) {
-    const response = await api.post<ISession>(ApiRoutesEnum.SESSION, {
-      email,
-      password,
-    });
+  async function signIn({
+    email,
+    password,
+    google_token_id,
+  }: SignInCredentials) {
+    const path = google_token_id
+      ? ApiRoutesEnum.SESSION_GOOGLE
+      : ApiRoutesEnum.SESSION;
+
+    const payload = google_token_id
+      ? { token: google_token_id }
+      : {
+          email,
+          password,
+        };
+
+    const response = await api.post<ISession>(path, payload);
 
     signToken(response.data, 'signIn');
   }
@@ -199,6 +226,51 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
 
     signToken(response.data, 'signUp');
+  }
+
+  async function googleSignIn() {
+    const result = await signInWithPopup(firebaseAuth, firebaseProvider).catch(
+      (error) => {
+        // Handle Errors here.
+        // const errorCode = error.code;
+        // const errorMessage = error.message;
+        // The email of the user's account used.
+        // const email = error.customData.email;
+        // The AuthCredential type that was used.
+        // const credential = GoogleAuthProvider.credentialFromError(error);
+      },
+    );
+    if (result) {
+      // This gives you a Google Access Token. You can use it to access the Google API.
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential) {
+        const token = credential.idToken;
+
+        try {
+          dispatch(setIsFetchingData(true));
+          await signIn({ email: '', password: '', google_token_id: token });
+          dispatch(setIsFetchingData(false));
+        } catch (error) {
+          if ((error as any)?.response)
+            enqueueSnackbar((error as any)?.response.data.message, {
+              variant: 'error',
+            });
+          dispatch(setIsFetchingData(false));
+        }
+      }
+    }
+
+    return result;
+  }
+
+  async function googleSignLink() {
+    const result = await signInWithPopup(firebaseAuth, firebaseProvider).catch(
+      (error) => {
+        // const errorMessage = error.message;
+      },
+    );
+
+    return result;
   }
 
   async function refreshUser() {
@@ -216,6 +288,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         user,
         isAuthenticated,
         signUp,
+        googleSignLink,
+        googleSignIn,
       }}
     >
       {children}

@@ -21,6 +21,7 @@ export enum ApiRoutesEnum {
   PROFESSIONALS = '/professionals',
   INVITES = '/invites',
   SESSION = '/session',
+  SESSION_GOOGLE = '/session/google',
   CHECKLIST = '/checklist',
   RISK = '/risk',
   RISK_DATA = '/risk-data',

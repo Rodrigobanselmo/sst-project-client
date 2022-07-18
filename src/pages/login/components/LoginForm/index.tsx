@@ -6,8 +6,11 @@ import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { Box, Link, Typography } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import NextLink from 'next/link';
 import * as Yup from 'yup';
+
+import { useAuth } from 'core/contexts/AuthContext';
 
 import { SButton } from '../../../../components/atoms/SButton';
 import { InputForm } from '../../../../components/molecules/form/input';
@@ -39,6 +42,11 @@ export const LoginForm: FC = () => {
   function onRecaptchaChange(value: string | null) {
     setIsCaptchaVerified(!!value);
   }
+  const { googleSignIn } = useAuth();
+
+  const handleGoogleSignIn = () => {
+    googleSignIn();
+  };
 
   return (
     <Box
@@ -76,6 +84,12 @@ export const LoginForm: FC = () => {
       >
         Esqueceu sua senha ?
       </STForgotButton>
+      <SFlex mt={10} center>
+        <ReCAPTCHA
+          sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
+          onChange={onRecaptchaChange}
+        />
+      </SFlex>
       <SButton
         disabled={!isCaptchaVerified}
         loading={isLoading}
@@ -92,11 +106,9 @@ export const LoginForm: FC = () => {
           </Link>
         </NextLink>
       </Typography>
-      <SFlex mt={10} center>
-        <ReCAPTCHA
-          sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
-          onChange={onRecaptchaChange}
-        />
+
+      <SFlex gap={5} mt={10} center width="100%">
+        <GoogleButton onClick={handleGoogleSignIn} text="Entrar com Google" />
       </SFlex>
     </Box>
   );
