@@ -2,7 +2,11 @@ import React, { FC } from 'react';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SGoogleIcon: FC<IIconMuiProps> = ({ fontSize = '1.5rem' }) => {
+export const SGoogleIcon: FC<
+  IIconMuiProps & {
+    fontSize?: string;
+  }
+> = ({ fontSize = '1.5rem' }) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"

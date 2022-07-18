@@ -74,10 +74,13 @@ export default function SCropImage({
         setAspect(undefined);
       }
 
-      // const isHeightBiggerThan600 = height > 600;
-      // const newWidth = isHeightBiggerThan600?: width;
-
-      setCrop(centerAspectCrop(width, height, aspectRatio));
+      setCrop(
+        centerAspectCrop(
+          width,
+          height,
+          freeAspect ? width / height : aspectRatio,
+        ),
+      );
     }
   }
 
