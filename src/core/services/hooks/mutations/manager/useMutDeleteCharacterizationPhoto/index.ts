@@ -43,7 +43,6 @@ export function useMutDeleteCharacterizationPhoto() {
       deleteCharacterizationPhoto(id, companyId || '', workId || workspaceId),
     {
       onSuccess: async (resp) => {
-        console.log(resp);
         if (resp) {
           const actualData = queryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier
@@ -64,7 +63,6 @@ export function useMutDeleteCharacterizationPhoto() {
                   } else {
                     newData.unshift(resp);
                   }
-                  console.log('newData', newData);
 
                   return newData;
                 }

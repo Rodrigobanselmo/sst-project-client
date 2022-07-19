@@ -57,7 +57,6 @@ export function useMutAddCharacterizationPhoto() {
       addCharacterizationPhoto(data, getCompanyId(data), workId || workspaceId),
     {
       onSuccess: async (resp) => {
-        console.log(resp);
         if (resp) {
           const actualData = queryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier
@@ -78,7 +77,6 @@ export function useMutAddCharacterizationPhoto() {
                   } else {
                     newData.unshift(resp);
                   }
-                  console.log('newData', newData);
 
                   return newData;
                 }

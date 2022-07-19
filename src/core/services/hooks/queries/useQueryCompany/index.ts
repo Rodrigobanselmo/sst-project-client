@@ -13,7 +13,6 @@ export const queryCompany = async (company: string) => {
   const response = await api.get<ICompany>(
     `${ApiRoutesEnum.COMPANIES}/${company}`,
   );
-  console.log(response.data);
   return response.data;
 };
 

@@ -51,6 +51,7 @@ export const useCompanyEdit = ({
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
       name: 'Logo da empresa',
       freeAspect: true,
+      imageExtension: 'png',
       accept: ['image/*', '.heic'],
       onConfirm: async (photo) => {
         const addLocalPhoto = (src: string) => {

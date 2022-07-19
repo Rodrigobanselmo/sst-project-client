@@ -60,7 +60,6 @@ export const useAddGenerateSource = () => {
     const initialData = getModalData<
       Partial<typeof initialAddGenerateSourceState>
     >(ModalEnum.GENERATE_SOURCE_ADD);
-    console.log('initialData', initialData);
 
     if (initialData) {
       setGenerateSourceData((oldData) => {

@@ -69,7 +69,6 @@ export const useStep = ({ data, setData }: IUseAddCompany) => {
   };
 
   const onAddArray = (value: IUser, type: 'professionals' | 'users') => {
-    console.log(data);
     setData({
       ...data,
       [type]: removeDuplicate([...(data as any)[type], value], {

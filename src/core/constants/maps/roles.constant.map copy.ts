@@ -8,7 +8,6 @@ export interface IRolesOption {
 const map = new Map<RoleEnum, IRolesOption>();
 
 const newRoleMap = () => {
-  console.log('newRoleMap');
   map.set(RoleEnum.MASTER, {
     value: RoleEnum.MASTER,
     label: 'Master',

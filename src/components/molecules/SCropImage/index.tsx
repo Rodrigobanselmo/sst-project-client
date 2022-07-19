@@ -89,7 +89,6 @@ export default function SCropImage({
       setAspect(undefined);
     } else if (imgRef.current) {
       const { width, height } = imgRef.current;
-      console.log(height, width);
       if (width >= height) {
         setAspect(16 / 9);
         setCrop(centerAspectCrop(width, height, 16 / 9));
@@ -197,7 +196,6 @@ export default function SCropImage({
               setCrop(percentCrop);
             }}
             onComplete={(c) => {
-              console.log(c);
               setCompletedCrop(c);
             }}
             aspect={aspect}

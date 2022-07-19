@@ -63,7 +63,6 @@ export function useMutDeleteEnvironmentPhoto() {
                   } else {
                     newData.unshift(resp);
                   }
-                  console.log('newData', newData);
 
                   return newData;
                 }

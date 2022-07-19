@@ -62,7 +62,6 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     option?: IEmployee,
   ) => {
     e.stopPropagation();
-    console.log(option);
     if (option?.id)
       onStackOpenModal<Partial<typeof initialEmployeeState>>(
         ModalEnum.EMPLOYEES_ADD,
@@ -118,12 +117,6 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
       );
 
     listSelected.current = removeDuplicate(newList, { removeById: 'id' });
-    console.log(
-      listSelected.current,
-      isChecked,
-      employee.hierarchyId != actualHierarchy?.id,
-    );
-
     handleMultiSelect?.(employee);
   };
 

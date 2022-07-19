@@ -66,7 +66,6 @@ export const useCompanyEdit = ({
       const { neighborhood, number, city, street, cep, complement, state } =
         getValues();
 
-      console.log(neighborhood, number, city, street, cep, complement, state);
       const submitData = {
         ...companyData,
         address: {

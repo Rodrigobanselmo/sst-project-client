@@ -45,6 +45,7 @@ export const initialPhotoState = {
   subtitle: '',
   accept: 'image/*' as string | string[],
   files: [] as File[],
+  imageExtension: 'jpeg' as 'jpeg' | 'png' | 'jpg' | 'gif',
   name: '',
   freeAspect: false,
   showInputName: false,
@@ -104,9 +105,13 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
     if (canvasRef.current)
       canvasRef.current.toBlob((blob) => {
         if (blob) {
-          const file = new File([blob], `${data.name || 'imagem'}.jpeg`, {
-            type: 'image/jpeg',
-          });
+          const file = new File(
+            [blob],
+            `${data.name || 'imagem'}.${photoData.imageExtension}`,
+            {
+              type: `image/${photoData.imageExtension}`,
+            },
+          );
           const reader = new FileReader();
           reader.addEventListener('load', async (event) => {
             const imgElement = document.createElement('img');
@@ -148,15 +153,15 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
                   const med = file.size > 2000000;
 
                   const dataUrl = canvas.toDataURL(
-                    'image/jpeg',
+                    `image/${photoData.imageExtension}`,
                     big ? 0.5 : med ? 0.7 : 0.9,
                   );
 
                   const fileFromUrl = new File(
                     [await createBlob(dataUrl)],
-                    `${data.name || 'imagem'}.jpeg`,
+                    `${data.name || 'imagem'}.${photoData.imageExtension}`,
                     {
-                      type: 'image/jpeg',
+                      type: `image/${photoData.imageExtension}`,
                     },
                   );
                   setIsLoading(true);
@@ -175,7 +180,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
         } else {
           onClose();
         }
-      }, 'image/jpeg');
+      }, `image/${photoData.imageExtension}`);
 
     if (canvasRef.current) {
       return;

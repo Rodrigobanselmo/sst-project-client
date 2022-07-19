@@ -97,7 +97,6 @@ export const useUserForm = (onlyEdit?: boolean) => {
   const linkGoogle = async () => {
     const result = await googleSignLink();
     if (result) {
-      console.log(result.user);
       await updateMutation
         .mutateAsync({ googleExternalId: result.user.uid })
         .then(() => {

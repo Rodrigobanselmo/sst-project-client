@@ -26,7 +26,6 @@ export function withSSRAuth<T>(
     const cookies = parseCookies(ctx);
     const token = cookies['nextauth.token'];
     const refreshToken = cookies['nextauth.refreshToken'];
-    console.log(ctx.resolvedUrl.replace(/[/]/g, '|'));
     if (!cookies['nextauth.token']) {
       return {
         redirect: {

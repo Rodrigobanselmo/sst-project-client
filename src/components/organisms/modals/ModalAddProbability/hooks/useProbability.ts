@@ -113,9 +113,6 @@ export const useProbability = () => {
     });
     const afterObject = cleanObjectValues(initialDataRef.current);
 
-    console.log(beforeObject);
-    console.log(afterObject);
-
     if (preventUnwantedChanges(afterObject, beforeObject, onClose)) return;
     onClose();
   };
@@ -154,8 +151,10 @@ export const useProbability = () => {
 
     if (finalProbabilities.length) {
       const result =
-        (finalProbabilities as number[]).reduce((acc, curr) => acc + curr, 0) /
-        finalProbabilities.length;
+        (finalProbabilities as number[]).reduce(
+          (acc, curr) => Number(acc) + Number(curr),
+          0,
+        ) / finalProbabilities.length;
 
       if (result)
         probabilityData.onCreate && probabilityData.onCreate(Math.ceil(result));

@@ -20,7 +20,6 @@ export const queryCharacterization = async (
       workspaceId,
     )}/${id}`,
   );
-  console.log(response.data);
   return response.data;
 };
 

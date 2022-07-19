@@ -10,7 +10,6 @@ import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
 
 export const NoiseForm = (props: IUseModalQuantity) => {
   const { control, data } = props;
-  console.log(data);
   return (
     <SFlex width={['100%', 600]} direction="column" gap={10} mt={8}>
       <InputForm
