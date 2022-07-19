@@ -6,6 +6,7 @@ import { IGho } from 'core/interfaces/api/IGho';
 import { TreeTypeEnum } from '../enums/tree-type.enums';
 export interface IOrgTreeProps {
   horizontal?: boolean;
+  showGHO?: boolean;
   collapsable?: boolean;
 }
 
@@ -24,6 +25,10 @@ export interface ITreeMapObject {
   name?: string;
   type: TreeTypeEnum;
   expand: boolean;
+  showRef?: boolean;
+  stopDrag?: boolean;
+  copyCompanyId?: string;
+  idRef?: string;
   ghos: IGho[];
   style?: CSSProperties;
   className?: string;

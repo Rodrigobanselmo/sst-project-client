@@ -30,6 +30,7 @@ export const initialPgrDocState = {
   workspaceClosed: false,
   validityEnd: '',
   validityStart: '',
+  isQ5: false,
 };
 
 const modalName = ModalEnum.RISK_GROUP_DOC_ADD;

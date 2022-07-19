@@ -13,6 +13,7 @@ export interface IHierarchy {
   companyId: string;
   description: string;
   realDescription: string;
+  refName: string;
   parentId: string | null;
   workspaces?: IWorkspace[];
   workspaceIds: string[];

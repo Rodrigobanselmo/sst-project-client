@@ -29,18 +29,21 @@ export const queryHierarchies = async (companyId: string) => {
   const response = await api.get<IHierarchy[]>(
     `${ApiRoutesEnum.HIERARCHY}/${companyId}`,
   );
-
+  console.log(1111, companyId, response);
   return setMapHierarchies(response.data);
 };
 
-export function useQueryHierarchies(): IReactQuery<IHierarchyMap> {
+export function useQueryHierarchies(
+  companyID?: string,
+): IReactQuery<IHierarchyMap> {
   const { companyId } = useGetCompanyId();
+  const company = companyID || companyId;
 
   const { data, ...query } = useQuery(
-    [QueryEnum.HIERARCHY, companyId],
+    [QueryEnum.HIERARCHY, company],
     () =>
-      companyId
-        ? queryHierarchies(companyId)
+      company
+        ? queryHierarchies(company)
         : <Promise<IHierarchyMap>>emptyMapReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

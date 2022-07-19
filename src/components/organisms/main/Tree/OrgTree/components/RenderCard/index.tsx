@@ -25,6 +25,8 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   if (node.className) clx.push(node.className);
 
   const handleClickCard = () => {
+    if (node.showRef) return;
+
     const ghoState = store.getState().gho as IGhoState;
     if (ghoState.open) return null;
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);

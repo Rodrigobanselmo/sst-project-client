@@ -64,7 +64,7 @@ export interface IRiskGroupData {
   validityStart?: string;
   professionals?: IProfessional[];
   users?: IUser[];
-
+  isQ5?: boolean;
   data?: IRiskData[];
 }
 

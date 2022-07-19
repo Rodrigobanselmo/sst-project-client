@@ -33,6 +33,7 @@ import { EmptyHierarchyData } from '../empty/EmptyHierarchyData';
 import { EmptyWorkspaceData } from '../empty/EmptyWorkspaceData';
 import { initialCompanySelectState } from '../ModalSelectCompany';
 import { initialDocPgrSelectState } from '../ModalSelectDocPgr';
+import { initialHierarchyTreeState } from '../ModalShowHierarchyTree/hooks/useModalTree';
 
 export const initialRiskGroupState = {
   name: '',
@@ -44,7 +45,8 @@ export const initialRiskGroupState = {
 
 export const ModalAddRiskGroup = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal, onOpenModal } = useModal();
+  const { onOpenModal, onCloseModal, onStackOpenModal, onCloseAllModals } =
+    useModal();
   const mutation = useMutUpsertRiskGroupData();
   const { push } = useRouter();
   const initialDataRef = useRef(initialRiskGroupState);
@@ -57,9 +59,11 @@ export const ModalAddRiskGroup = () => {
   const [riskGroupData, setRiskGroupData] = useState(initialRiskGroupState);
 
   const onClose = useCallback(() => {
+    onCloseAllModals();
     onCloseModal(ModalEnum.RISK_GROUP_ADD);
+    onCloseModal(ModalEnum.HIERARCHY_TREE);
     setRiskGroupData(initialRiskGroupState);
-  }, [onCloseModal]);
+  }, [onCloseAllModals, onCloseModal]);
 
   const onSave = async () => {
     if (!riskGroupData.name) {
@@ -113,46 +117,54 @@ export const ModalAddRiskGroup = () => {
 
   const handleCopyCompany = useCallback(() => {
     onOpenModal(ModalEnum.COMPANY_SELECT, {
-      onSelect: (company: ICompany) =>
-        onOpenModal(ModalEnum.DOC_PGR_SELECT, {
-          companyId: company.id,
+      onSelect: (companySelected: ICompany) =>
+        onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
+          open: true,
+          companyId: companySelected.id,
           removeIds: [riskGroupData.id],
           title: 'Selecione de qual sistema de gestão que deseja copiar',
           onSelect: (docPgr: IRiskGroupData) =>
-            preventWarn(
-              <SText textAlign={'justify'}>
-                Você tem certeza que deseja importar da empresa{' '}
-                <b> {company.name}</b> todos os dados de:
-                <ul>
-                  <li>Caracterização Básica</li>
-                  <li>Grupos homogênios</li>
-                  <li>Fatores de riscos/perigos</li>
-                </ul>
-                <br />
-                <b>OBS:</b> Serão importados somente os dados que estiverem
-                vincúlados a <b>cargos, setores, etc</b> que possuirem
-                exatamente o mesmo nome e hierarquia.
-              </SText>,
-              () =>
-                copyMutation
-                  .mutateAsync({
-                    copyFromCompanyId: company.id,
-                    docId: docPgr.id,
-                  })
-                  .then((doc) => {
-                    if (riskGroupData.goTo && doc)
-                      push(riskGroupData.goTo.replace(':docId', doc.id));
-                    onClose();
-                  })
-                  .catch(() => {}),
-              { confirmText: 'Importar' },
-            ),
+            onOpenModal(ModalEnum.HIERARCHY_TREE, {
+              actualCompanyId: company.id,
+              copyFromCompanyId: companySelected.id,
+              onSelect: () =>
+                preventWarn(
+                  <SText textAlign={'justify'}>
+                    Você tem certeza que deseja importar da empresa{' '}
+                    <b> {companySelected.name}</b> todos os dados de:
+                    <ul>
+                      <li>Caracterização Básica</li>
+                      <li>Grupos homogênios</li>
+                      <li>Fatores de riscos/perigos</li>
+                    </ul>
+                    <br />
+                    <b>OBS:</b> Serão importados somente os dados que estiverem
+                    vincúlados a <b>cargos, setores, etc</b> que possuirem
+                    exatamente o mesmo nome e hierarquia.
+                  </SText>,
+                  () =>
+                    copyMutation
+                      .mutateAsync({
+                        copyFromCompanyId: companySelected.id,
+                        docId: docPgr.id,
+                      })
+                      .then((doc) => {
+                        if (riskGroupData.goTo && doc)
+                          push(riskGroupData.goTo.replace(':docId', doc.id));
+                        onClose();
+                      })
+                      .catch(() => {}),
+                  { confirmText: 'Importar' },
+                ),
+            } as typeof initialHierarchyTreeState),
         } as Partial<typeof initialDocPgrSelectState>),
     } as Partial<typeof initialCompanySelectState>);
   }, [
+    company.id,
     copyMutation,
     onClose,
     onOpenModal,
+    onStackOpenModal,
     preventWarn,
     push,
     riskGroupData.goTo,

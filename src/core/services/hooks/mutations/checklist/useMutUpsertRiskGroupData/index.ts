@@ -26,6 +26,7 @@ export interface IUpsertRiskGroupData {
   validityEnd?: string;
   validityStart?: string;
   complementaryDocs?: string[];
+  isQ5?: boolean;
   complementarySystems?: string[];
   usersIds?: number[];
   professionalsIds?: string[];

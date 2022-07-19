@@ -16,11 +16,12 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { SaveEnum } from 'core/enums/save.enum';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IGho } from 'core/interfaces/api/IGho';
-import { IHierarchyMap } from 'core/interfaces/api/IHierarchy';
+import { IHierarchy, IHierarchyMap } from 'core/interfaces/api/IHierarchy';
 import { useMutDeleteHierarchy } from 'core/services/hooks/mutations/checklist/useMutDeleteHierarchy';
 import { useMutUpdateChecklist } from 'core/services/hooks/mutations/checklist/useMutUpdateChecklist';
 import { useMutUpsertManyHierarchy } from 'core/services/hooks/mutations/checklist/useMutUpsertManyHierarchy';
 import { queryClient } from 'core/services/queryClient';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import {
@@ -131,9 +132,61 @@ export const useHierarchyTreeActions = () => {
   }, []);
 
   const transformToTreeMap = useCallback(
-    (hierarchyMap: IHierarchyMap, company: ICompany): ITreeMap => {
+    (
+      hierarchyMap: IHierarchyMap,
+      company: ICompany,
+      options?: {
+        allExpanded?: boolean;
+        showRef?: boolean;
+        stopDrag?: boolean;
+        companyIdCopy?: string;
+        copyHierarchyMap?: IHierarchyMap;
+      },
+    ): ITreeMap => {
       const treeMap = {} as ITreeMap;
       const nodesTree = store.getState().hierarchy.nodes as ITreeMap;
+
+      // refName
+      const copyFromHierarchy = options?.copyHierarchyMap;
+      const companyIdCopy = options?.companyIdCopy;
+
+      const copyFromHierarchyKeyName = {} as IHierarchyMap;
+      if (copyFromHierarchy) {
+        Object.values(copyFromHierarchy).forEach((value) => {
+          copyFromHierarchyKeyName[value.id] = value;
+          copyFromHierarchyKeyName[
+            stringNormalize(value.name) + '//' + value.type
+          ] = value;
+        });
+      }
+
+      const getHierarchyCopyFrom = (actualHierarchy?: IHierarchy) => {
+        // console.log('actualHierarchy', actualHierarchy);
+
+        if (copyFromHierarchy && actualHierarchy) {
+          let hierarchyFromCopy: IHierarchy | false = false;
+          const copyHierarchy =
+            copyFromHierarchyKeyName[`${actualHierarchy?.refName}`];
+
+          if (copyHierarchy) {
+            hierarchyFromCopy = copyHierarchy;
+          }
+
+          if (hierarchyFromCopy) return hierarchyFromCopy;
+
+          const byNameAndType =
+            copyFromHierarchyKeyName[
+              stringNormalize(actualHierarchy.name) +
+                '//' +
+                actualHierarchy.type
+            ];
+
+          if (byNameAndType) return byNameAndType;
+
+          return {} as Partial<IHierarchy>;
+        }
+      };
+      // refName
 
       const ghos =
         queryClient.getQueryData<IGho[]>([QueryEnum.GHO, company.id]) ||
@@ -146,6 +199,7 @@ export const useHierarchyTreeActions = () => {
         childrenIds: [],
         type: TreeTypeEnum.COMPANY,
         expand: true,
+        showRef: !!options?.showRef,
         ghos: [],
       };
 
@@ -157,6 +211,7 @@ export const useHierarchyTreeActions = () => {
             parentId: firstNodeId,
             childrenIds: [],
             type: TreeTypeEnum.WORKSPACE,
+            showRef: !!options?.showRef,
             expand: true,
             ghos: [],
           };
@@ -165,9 +220,14 @@ export const useHierarchyTreeActions = () => {
         });
         Object.values(hierarchyMap).forEach((values, index) => {
           values.workspaceIds.map((workspaceId) => {
+            const hierarchyCopy = getHierarchyCopyFrom(values);
+
             treeMap[`${values.id}//${workspaceId}`] = {
               id: `${values.id}//${workspaceId}`,
               label: values.name,
+              stopDrag: options?.stopDrag || false,
+              idRef: hierarchyCopy?.id || '',
+              copyCompanyId: companyIdCopy,
               childrenIds: values.children
                 .map((child) =>
                   hierarchyMap[child].workspaceIds.includes(workspaceId)
@@ -175,7 +235,8 @@ export const useHierarchyTreeActions = () => {
                     : '',
                 )
                 .filter((id) => id),
-              expand: index != 0 ? false : true,
+              expand: options?.allExpanded ? true : index != 0 ? false : true,
+              showRef: !!options?.showRef,
               parentId: values.parentId
                 ? `${values.parentId}//${workspaceId}`
                 : workspaceId,
@@ -204,7 +265,9 @@ export const useHierarchyTreeActions = () => {
         Object.values(nodesTree).forEach((node) => {
           if (treeMap[node.id]) {
             if (node.id !== firstNodeId) {
-              treeMap[node.id].expand = node.expand;
+              treeMap[node.id].expand = options?.allExpanded
+                ? true
+                : node.expand;
             }
           }
         });
@@ -228,15 +291,16 @@ export const useHierarchyTreeActions = () => {
       noSave?: boolean,
       options?: {
         isAdd?: boolean;
-        employeesIds: number[];
+        employeesIds?: number[];
+        workspacesIds?: string[];
         callBack?: () => void;
       },
     ) => {
       const isDiffWorkspace =
         nodesMap.length == 3 &&
-        (nodesMap[0].id as string).split('//')[1] &&
-        (nodesMap[0].id as string).split('//')[1] !=
-          (nodesMap[2].id as string).split('//')[1];
+        ((nodesMap[0].id as string) || '').split('//')[1] &&
+        ((nodesMap[0].id as string) || '').split('//')[1] !=
+          ((nodesMap[2].id as string) || '').split('//')[1];
       if (isDiffWorkspace)
         return enqueueSnackbar(
           'Não é possivel editar o estabelecomento dessa forma, utilize a edição pelo card.',
@@ -274,8 +338,8 @@ export const useHierarchyTreeActions = () => {
         const data = nodesMap
           .filter((node) => !node.childrenIds || node.label)
           .map((node) => {
-            const [id] = (node.id as string).split('//');
-            const [parentId] = (node.parentId as string).split('//');
+            const [id] = ((node.id as string) || '').split('//');
+            const [parentId] = ((node.parentId as string) || '').split('//');
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const data: any = {
@@ -290,6 +354,11 @@ export const useHierarchyTreeActions = () => {
             };
 
             if (options?.isAdd) data.workspaceIds = [workspaceId(node)];
+            if (options?.workspacesIds)
+              data.workspaceIds = removeDuplicate([
+                workspaceId(node),
+                ...options.workspacesIds,
+              ]);
 
             return data;
           });
@@ -332,7 +401,7 @@ export const useHierarchyTreeActions = () => {
   const removeNodes = useCallback(
     async (idToRemove: number | string, noSave?: boolean) => {
       const nodes = store.getState().hierarchy.nodes as ITreeMap;
-      const [idApi] = (idToRemove as string).split('//');
+      const [idApi] = ((idToRemove as string) || '').split('//');
 
       const idsToRemove = Object.keys(nodes).filter((key) =>
         key.includes(idApi),
@@ -475,7 +544,7 @@ export const useHierarchyTreeActions = () => {
     exampleNode: Partial<ITreeMapObject> = {},
   ) => {
     const node = store.getState().hierarchy.nodes[parentId] as ITreeMapObject;
-    const workspaceId = (parentId as string).split('//')[1] || '';
+    const workspaceId = ((parentId as string) || '').split('//')[1] || '';
 
     if (node) {
       const newNode = {
@@ -499,7 +568,7 @@ export const useHierarchyTreeActions = () => {
 
   const searchFilterNodes = (search = '') => {
     const nodes = clone(store.getState().hierarchy.nodes) as ITreeMap;
-    // const search = store.getState().hierarchy.search as string;
+    // const search = store.getState().hierarchy.search as string || '';
 
     if (typeof search != 'string') return;
 

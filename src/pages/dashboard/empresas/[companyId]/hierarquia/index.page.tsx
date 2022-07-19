@@ -2,6 +2,8 @@ import { useEffect } from 'react';
 import { useStore } from 'react-redux';
 
 import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
+import { ModalEditCard } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard';
+import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
 import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
@@ -10,6 +12,8 @@ import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
 import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
+import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { NextPage } from 'next';
 import { STFlexContainer } from 'pages/dashboard/checklist/index.styles';
 
@@ -60,6 +64,11 @@ const Hierarchy: NextPage = () => {
       <ModalAddProbability />
       <ModalAddQuantity />
       <ModalExcelHierarchies />
+
+      <ModalEditCard />
+      <ModalAddEmployee />
+      <ModalSelectWorkspace />
+      <ModalSelectHierarchy />
     </STFlexContainer>
   );
 };

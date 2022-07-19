@@ -3,6 +3,7 @@ import React from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
@@ -14,7 +15,7 @@ import { useFirstStep } from './hooks/useFirstStep';
 export const FirstModalStep = (props: IUseAddCompany) => {
   const { onSubmit, control, onCloseUnsaved, loading } = useFirstStep(props);
 
-  const { data } = props;
+  const { data, setData } = props;
   const buttons = [
     {},
     {
@@ -127,6 +128,20 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               }}
             />
           </Box>
+          <SFlex direction="column" mt={5} ml={6}>
+            <SSwitch
+              onChange={() => {
+                setData({
+                  ...data,
+                  isQ5: !data.isQ5,
+                } as any);
+              }}
+              checked={data.isQ5}
+              label="Utilizar dodos quantitativos q5 do Ruído"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          </SFlex>
         </SFlex>
       </AnimatedStep>
       <SModalButtons

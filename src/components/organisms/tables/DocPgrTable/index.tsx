@@ -15,6 +15,7 @@ import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
 import { ModalViewPgrDoc } from 'components/organisms/modals/ModalViewPgrDoc';
 import { initialViewPgrDocState } from 'components/organisms/modals/ModalViewPgrDoc/hooks/useModalViewPgrDoc';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
@@ -122,6 +123,7 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
         />
       </STable>
       <ModalAddRiskGroup />
+      <ModalShowHierarchyTree />
       <ModalSelectCompany />
       <ModalSelectDocPgr />
       <ModalViewPgrDoc />

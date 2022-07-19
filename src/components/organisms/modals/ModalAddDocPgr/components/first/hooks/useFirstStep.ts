@@ -53,6 +53,7 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
         revisionBy,
         source,
         id: data.id,
+        isQ5: data.isQ5,
         coordinatorBy,
       };
 

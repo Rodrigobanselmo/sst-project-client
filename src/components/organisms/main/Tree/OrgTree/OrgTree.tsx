@@ -1,9 +1,6 @@
 import React, { FC, useEffect, useRef } from 'react';
 
 import { Box } from '@mui/material';
-import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
-import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
-import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { useRouter } from 'next/router';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
 import { setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
@@ -18,7 +15,6 @@ import { BottomButton } from './components/BottomButton';
 import { GhoTool } from './components/GhoTool';
 import { HierarchyFilter } from './components/GhoTool/components/HierarchyFilter';
 import { LoadingFeedback } from './components/LoadingFeedback';
-import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
 import { RiskToolSlider } from './components/RiskTool';
 import { IOrgTreeProps } from './interfaces';
@@ -27,6 +23,7 @@ import { OrgTree, OrgTreeContainer, STGhoBox } from './OrgTree.styles';
 export const OrgTreeComponent: FC<IOrgTreeProps> = ({
   collapsable = true,
   horizontal = false,
+  showGHO = true,
   ...props
 }) => {
   const orgContainerRef = useRef<HTMLDivElement>(null);
@@ -49,6 +46,7 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
         flexDirection: 'column',
         height: '100%',
         width: '100%',
+        flex: 1,
       }}
     >
       <HierarchyFilter />
@@ -57,12 +55,13 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
           position: 'relative',
           height: '100%',
           width: '100%',
+          flex: 1,
         }}
       >
         {(!selectExpanded || !isRiskOpen) && (
           <>
             <LoadingFeedback />
-            <BottomButton />
+            {showGHO && <BottomButton />}
             <MouseControl orgContainerRef={orgContainerRef} />
             <OrgTreeContainer
               id="org-tree-container"
@@ -79,19 +78,17 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
             </OrgTreeContainer>
           </>
         )}
-        <ModalEditCard />
-        <ModalAddEmployee />
-        <ModalSelectWorkspace />
-        <ModalSelectHierarchy />
       </Box>
-      <STGhoBox
-        expanded={selectExpanded ? 1 : 0}
-        gho={isGhoOpen ? 1 : 0}
-        risk_init={isRiskOpen ? 1 : 0}
-      >
-        {isRiskOpen && <RiskToolSlider />}
-        {!isRiskOpen && <GhoTool />}
-      </STGhoBox>
+      {showGHO && (
+        <STGhoBox
+          expanded={selectExpanded ? 1 : 0}
+          gho={isGhoOpen ? 1 : 0}
+          risk_init={isRiskOpen ? 1 : 0}
+        >
+          {isRiskOpen && <RiskToolSlider />}
+          {!isRiskOpen && <GhoTool />}
+        </STGhoBox>
+      )}
     </Box>
   );
 };

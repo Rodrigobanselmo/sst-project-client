@@ -35,7 +35,6 @@ export const RiskToolGhoItem: FC<
   if (viewDataType == ViewsDataEnum.GSE && gho.type) {
     return null;
   }
-  console.log(2);
 
   const getTopText = () => {
     if (viewDataType == ViewsDataEnum.GSE) return '';

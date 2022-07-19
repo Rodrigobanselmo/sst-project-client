@@ -29,6 +29,7 @@ export const initialDocPgrSelectState = {
   onSelect: (company: IRiskGroupData | IRiskGroupData[]) => {},
   companyId: undefined as unknown as string,
   title: 'Selecione a empresa',
+  open: false,
   multiple: false,
   removeIds: [] as string[],
   selected: [] as IRiskGroupData[],
@@ -66,14 +67,24 @@ export const ModalSelectDocPgr: FC = () => {
       (modal) => modal.name === ModalEnum.DOC_PGR_SELECT,
     );
 
-    if (isOpen && riskGroupData && riskGroupData.length === 1) {
-      selectData.onSelect(riskGroupData[0]);
+    const initialData = getModalData(
+      ModalEnum.DOC_PGR_SELECT,
+    ) as typeof initialDocPgrSelectState;
+
+    if (
+      isOpen &&
+      riskGroupData &&
+      riskGroupData.length === 1 &&
+      !initialData.open
+    ) {
+      initialData.onSelect(riskGroupData[0]);
       onCloseModal(ModalEnum.DOC_PGR_SELECT);
     }
-  }, [getStackModal, onCloseModal, riskGroupData, selectData]);
+  }, [getModalData, getStackModal, onCloseModal, riskGroupData, selectData]);
 
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();
+    setSelectData(initialDocPgrSelectState);
     onCloseModal(ModalEnum.DOC_PGR_SELECT);
   };
 

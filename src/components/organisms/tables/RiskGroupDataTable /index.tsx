@@ -16,6 +16,7 @@ import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
@@ -152,6 +153,7 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
         />
       </STable>
       <ModalAddRiskGroup />
+      <ModalShowHierarchyTree />
       <ModalSelectCompany />
       <ModalSelectDocPgr />
     </>

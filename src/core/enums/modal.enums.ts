@@ -28,6 +28,7 @@ export enum ModalEnum {
   GHO_ADD = 'gho-add',
   GENERATE_SOURCE_ADD = 'generate-source-add',
   HIERARCHY_SELECT = 'hierarchy-select',
+  HIERARCHY_TREE = 'hierarchy-tree',
   GLOBAL = 'global',
   UPLOAD = 'upload',
   UPLOAD_PHOTO = 'upload-photo',

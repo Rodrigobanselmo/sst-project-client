@@ -16,6 +16,7 @@ export const useDnd = (node: ITreeMapObject) => {
   const store = useStore();
 
   const onAppendMock = (id: number | string) => {
+    if (node.stopDrag) return;
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const dropItem = nodesMap[id] as ITreeMapObject | null;
     const dragItem = store.getState().hierarchy
@@ -54,6 +55,7 @@ export const useDnd = (node: ITreeMapObject) => {
   };
 
   const onRemoveMock = () => {
+    if (node.stopDrag) return;
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const mockItem = nodesMap['mock_id'] as ITreeMapObject | null;
     const dropItem = nodesMap[node.id] as ITreeMapObject | null;
@@ -101,6 +103,7 @@ export const useDnd = (node: ITreeMapObject) => {
   }, [isDragging]);
 
   const onDragEnter = (dropId: string | number) => {
+    if (node.stopDrag) return;
     const dragItem = store.getState().hierarchy
       .dragItem as ITreeMapObject | null;
 
@@ -113,10 +116,12 @@ export const useDnd = (node: ITreeMapObject) => {
   };
 
   const onDragLeave = () => {
+    if (node.stopDrag) return;
     onRemoveMock();
   };
 
   const onDrop = (drag: ITreeMapObject) => {
+    if (node.stopDrag) return;
     if (!isMockAppend.current) return;
 
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
@@ -151,6 +156,7 @@ export const useDnd = (node: ITreeMapObject) => {
   const { onDebounce } = useDebounce(onDragEnter, 500);
 
   const onCanDrop = (dragItem: ITreeMapObject) => {
+    if (node.stopDrag) return false;
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const actualDragItem = nodesMap[dragItem.id];
 

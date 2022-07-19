@@ -6,6 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { Box, Stack } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import STooltip from 'components/atoms/STooltip';
+import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect ';
 import {
   IGhoState,
   selectGhoHierarchy,
@@ -13,10 +14,13 @@ import {
   setGhoState,
 } from 'store/reducers/hierarchy/ghoSlice';
 
+import SCopyIcon from 'assets/icons/SCopyIcon';
+
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
+import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/useMutUpdateGho';
 
 import { ModalEnum } from '../../../../../../../../../core/enums/modal.enums';
@@ -155,12 +159,14 @@ export const NodeCard: FC<INodeCardProps> = ({
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
+    if (node.showRef) return;
 
     createEmptyCard(node.id);
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
   };
 
   const onUpdateGho = (newHierarchyIds: string[]) => {
+    if (node.showRef) return;
     dispatch(setGhoState({ hierarchies: newHierarchyIds }));
 
     const newGhoState = store.getState().gho as IGhoState;
@@ -178,6 +184,7 @@ export const NodeCard: FC<INodeCardProps> = ({
   const handleAddGhoHierarchy = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
     if (updateMutation.isLoading) return;
+    if (node.showRef) return;
 
     const ghoState = store.getState().gho as IGhoState;
     let newHierarchyIds = [...ghoState.hierarchies];
@@ -236,6 +243,23 @@ export const NodeCard: FC<INodeCardProps> = ({
     }
   }, []);
 
+  const showRefSelect = node.showRef;
+  const isHierarchy = ![TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(
+    node.type,
+  );
+  const showGhoSelect = !node.showRef && node.ghos && node.ghos.length > 0;
+  const showOptionsSelect = !node.showRef && !GhoId;
+  const showPopperHelp =
+    !node.showRef &&
+    node.type === TreeTypeEnum.WORKSPACE &&
+    !node.childrenIds?.length; //! create component for this
+  const showGhoSelectButton = !hide && GhoId && isHierarchy;
+
+  const showAddButton =
+    !node.showRef &&
+    !GhoId &&
+    ![TreeTypeEnum.COMPANY, TreeTypeEnum.SUB_OFFICE].includes(node.type);
+
   return (
     <div style={{ display: 'inline-block' }} ref={ref}>
       <Box
@@ -243,81 +267,71 @@ export const NodeCard: FC<INodeCardProps> = ({
         onClick={GhoId ? handleAddGhoHierarchy : () => null}
       >
         <SFlex center>
-          {!hide &&
-            GhoId &&
-            ![TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(
-              node.type,
-            ) && (
-              <SelectGho
-                isSelectedGho={isSelectedGho}
-                handleAddGhoHierarchy={handleAddGhoHierarchy}
-                node={node}
-                hide={hide}
-                isLoading={!!updateMutation.isLoading}
-              />
-            )}
+          {showGhoSelectButton && (
+            <SelectGho
+              isSelectedGho={isSelectedGho}
+              handleAddGhoHierarchy={handleAddGhoHierarchy}
+              node={node}
+              hide={hide}
+              isLoading={!!updateMutation.isLoading}
+            />
+          )}
           <NodeLabel hide={hide} label={node.label} type={node.type} />
         </SFlex>
-        <SFlex>
-          {!GhoId &&
-            ![TreeTypeEnum.COMPANY, TreeTypeEnum.SUB_OFFICE].includes(
-              node.type,
-            ) && (
-              <>
-                <STagButton
-                  sx={{ pr: 1, pl: 2 }}
-                  onClick={handleAddCard}
-                  icon={AddIcon}
-                />
-                {node.type === TreeTypeEnum.WORKSPACE && //! create component for this
-                  !node.childrenIds?.length && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        right: 'calc(-50% + 10px)',
-                        top: 45,
-                      }}
-                    >
-                      <SText
-                        sx={{
-                          backgroundColor: 'background.paper',
-                          px: 8,
-                          borderRadius: 1,
-                          py: 3,
-                          boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.4)',
-                        }}
-                        fontSize={13}
-                      >
-                        Click aqui para incluir um setor
-                      </SText>
-                      <Box
-                        sx={{
-                          top: -13,
-                          right: 'calc(50% - 15px)',
-                          height: 13,
-                          width: 30,
-                          position: 'absolute',
-                          overflowY: 'hidden',
-                        }}
-                      >
-                        <Box
-                          sx={{
-                            boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.5)',
-                            backgroundColor: 'background.paper',
-                            width: 14,
-                            height: 14,
-                            right: 'calc(50% - 7px)',
-                            position: 'absolute',
-                            transform: 'rotate(45deg)',
-                            top: 7,
-                          }}
-                        />
-                      </Box>
-                    </Box>
-                  )}
-              </>
+        {showAddButton && (
+          <SFlex>
+            <STagButton
+              sx={{ pr: 1, pl: 2 }}
+              onClick={handleAddCard}
+              icon={AddIcon}
+            />
+            {showPopperHelp && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  right: 'calc(-50% + 10px)',
+                  top: 45,
+                }}
+              >
+                <SText
+                  sx={{
+                    backgroundColor: 'background.paper',
+                    px: 8,
+                    borderRadius: 1,
+                    py: 3,
+                    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.4)',
+                  }}
+                  fontSize={13}
+                >
+                  Click aqui para incluir um setor
+                </SText>
+                <Box
+                  sx={{
+                    top: -13,
+                    right: 'calc(50% - 15px)',
+                    height: 13,
+                    width: 30,
+                    position: 'absolute',
+                    overflowY: 'hidden',
+                  }}
+                >
+                  <Box
+                    sx={{
+                      boxShadow: '0px 0px 8px rgba(0, 0, 0, 0.5)',
+                      backgroundColor: 'background.paper',
+                      width: 14,
+                      height: 14,
+                      right: 'calc(50% - 7px)',
+                      position: 'absolute',
+                      transform: 'rotate(45deg)',
+                      top: 7,
+                    }}
+                  />
+                </Box>
+              </Box>
             )}
-        </SFlex>
+          </SFlex>
+        )}
       </Box>
       {!hide && (
         <>
@@ -327,20 +341,35 @@ export const NodeCard: FC<INodeCardProps> = ({
             mt={3}
             direction="row"
           >
-            <TypeSelect
-              node={node as ITreeSelectedItem}
-              parentId={node?.parentId || 'no-node'}
-              handleSelect={(option) =>
-                editNodes([{ id: node.id, type: option.value as TreeTypeEnum }])
-              }
-            />
-            {node.ghos && node.ghos.length > 0 && <GhoSelectCard node={node} />}
-            {!GhoId && (
+            {!showRefSelect && (
+              <TypeSelect
+                node={node as ITreeSelectedItem}
+                parentId={node?.parentId || 'no-node'}
+                handleSelect={(option) =>
+                  editNodes([
+                    { id: node.id, type: option.value as TreeTypeEnum },
+                  ])
+                }
+              />
+            )}
+            {showGhoSelect && <GhoSelectCard node={node} />}
+            {showOptionsSelect && (
               <OptionsHelpSelect
                 disabled={!!GhoId}
                 menuRef={menuRef}
                 node={node}
                 onEdit={handleClickCard}
+              />
+            )}
+            {showRefSelect && isHierarchy && (
+              <HierarchySelect
+                text="Selecionar cópia"
+                icon={SCopyIcon}
+                handleSelect={(hierarchy: IHierarchy) =>
+                  editNodes([{ id: node.id, idRef: hierarchy.id }], true)
+                }
+                companyId={node.copyCompanyId}
+                selectedId={node.idRef}
               />
             )}
           </Stack>

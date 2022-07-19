@@ -99,6 +99,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
       users: data.users || [],
       validityEnd: data.validityEnd || '',
       validityStart: data.validityStart || '',
+      isQ5: data.isQ5 || false,
     };
 
     const initialWorkspaceState = {

@@ -18,6 +18,7 @@ import {
   ModalSelectDocPgr,
 } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
+import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
@@ -311,6 +312,7 @@ const CompanyPage: NextPage = () => {
       <ModalAddWorkspace />
       <ModalAddExcelEmployees />
       <ModalAddRiskGroup />
+      <ModalShowHierarchyTree />
       <ModalSelectWorkspace />
       <ModalSelectDocPgr />
       <ModalEditCompany />

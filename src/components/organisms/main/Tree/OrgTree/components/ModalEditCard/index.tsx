@@ -5,6 +5,7 @@ import CircleIcon from '@mui/icons-material/Circle';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
 import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
+import { WorkspacesSelect } from 'components/organisms/tagSelects/WorkspacesSelect';
 import { useSnackbar } from 'notistack';
 import { selectHierarchyTreeSelectItem } from 'store/reducers/hierarchy/hierarchySlice';
 
@@ -15,6 +16,7 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
+import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { queryClient } from 'core/services/queryClient';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
@@ -42,6 +44,7 @@ import { useModalCard } from './hooks/useModalCard';
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectHierarchyTreeSelectItem);
   const [employees, setEmployees] = useState<IEmployee[]>([]);
+  const { data: hierarchies } = useQueryHierarchies();
 
   const isOffice = [TreeTypeEnum.OFFICE, TreeTypeEnum.SUB_OFFICE].includes(
     selectedNode?.type || ('' as any),
@@ -73,6 +76,7 @@ export const ModalEditCard = () => {
   const store = useStore();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const switchRef = useRef<HTMLInputElement>(null);
+  const [workspacesIds, setWorkspaces] = useState<string[]>([]);
 
   // useControlClick('s', () => {
   //   if (isOpen(ModalEnum.HIERARCHY_TREE_CARD)) onSave();
@@ -83,11 +87,13 @@ export const ModalEditCard = () => {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { action, ...newNode } = selectedNode;
       setEmployees([]);
+      setWorkspaces([]);
       queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
       editNodes([newNode], false, {
         isAdd: true,
         employeesIds: employees.map((e) => e.id),
         callBack: refetch,
+        workspacesIds: workspacesIds.length > 0 ? workspacesIds : undefined,
       });
       if (!switchRef.current?.checked)
         onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
@@ -101,6 +107,7 @@ export const ModalEditCard = () => {
   const onCloseUnsaved = () => {
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     setEmployees([]);
+    setWorkspaces([]);
 
     const close = () => {
       onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
@@ -123,6 +130,7 @@ export const ModalEditCard = () => {
       return preventDelete(
         () => {
           onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
+          setWorkspaces([]);
           setEmployees([]);
           removeNodes(selectedNode.id);
           setEditNodeSelectedItem(null);
@@ -158,6 +166,12 @@ export const ModalEditCard = () => {
   const allEmployees = removeDuplicate([...employees, ...selectedEmployees], {
     removeById: 'id',
   });
+  const workspace = hierarchies[String(selectedNode.id).split('//')[0]]
+    ? removeDuplicate([
+        ...hierarchies[String(selectedNode.id).split('//')[0]].workspaceIds,
+        ...(workspacesIds || []),
+      ])
+    : [...(workspacesIds || [])];
 
   return (
     <SModal
@@ -269,6 +283,12 @@ export const ModalEditCard = () => {
                 {...preventAddEmployee()}
               />
             )}
+            <WorkspacesSelect
+              handleSelect={(item) =>
+                Array.isArray(item) && setWorkspaces(item)
+              }
+              selected={workspace}
+            />
           </SFlex>
         </Box>
         <Box

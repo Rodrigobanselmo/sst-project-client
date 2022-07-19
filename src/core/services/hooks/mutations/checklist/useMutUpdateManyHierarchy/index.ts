@@ -1,7 +1,6 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { StatusEnum } from 'project/enum/status.enum';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
@@ -15,14 +14,7 @@ import { IErrorResp } from '../../../../errors/types';
 
 interface IUpsertHierarchy {
   id?: string;
-  status?: StatusEnum;
-  type?: HierarchyEnum;
-  name?: string;
-  companyId?: string;
   refName?: string;
-  parentId?: string | null;
-  workspaceIds?: string[];
-  employeesIds?: number[];
 }
 
 export async function upsertManyHierarchy(
@@ -36,14 +28,14 @@ export async function upsertManyHierarchy(
   };
 
   const response = await api.post<IHierarchy[]>(
-    ApiRoutesEnum.HIERARCHY + '/upsert-many' + `/${companyId}`,
+    ApiRoutesEnum.HIERARCHY + '/simple-update-many' + `/${companyId}`,
     sendData,
   );
 
   return response.data;
 }
 
-export function useMutUpsertManyHierarchy() {
+export function useMutUpdateSimpleManyHierarchy() {
   const { enqueueSnackbar } = useSnackbar();
   const { companyId } = useGetCompanyId();
 
@@ -64,14 +56,6 @@ export function useMutUpsertManyHierarchy() {
         return {
           ...oldHierarchy,
           ...hierarchy,
-          name: hierarchy.name || oldHierarchy.name,
-          type: hierarchy.type || oldHierarchy.type,
-          parentId:
-            hierarchy.parentId === null
-              ? null
-              : hierarchy.parentId
-              ? hierarchy.parentId
-              : undefined,
         };
       });
 
