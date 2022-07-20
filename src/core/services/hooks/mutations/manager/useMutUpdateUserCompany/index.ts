@@ -8,7 +8,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IUser } from 'core/interfaces/api/IUser';
+import { IUserCompany } from 'core/interfaces/api/IUser';
 import { IMutationOptions } from 'core/interfaces/IMutationOptions';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
@@ -24,9 +24,12 @@ export interface IUpdateUser {
 }
 
 export async function updateUserCompany(data: IUpdateUser) {
-  const response = await api.patch<IUser>(ApiRoutesEnum.USERS + '/company', {
-    ...data,
-  });
+  const response = await api.patch<IUserCompany>(
+    ApiRoutesEnum.USERS + '/company',
+    {
+      ...data,
+    },
+  );
   return response.data;
 }
 
@@ -40,26 +43,14 @@ export function useMutUpdateUserCompany({
     async (data: IUpdateUser) => updateUserCompany({ companyId, ...data }),
     {
       onSuccess: async (user) => {
+        console.log(user);
         if (user) {
-          const actualData = queryClient.getQueryData(
-            // eslint-disable-next-line prettier/prettier
-            [QueryEnum.USERS, companyId],
-          );
-          if (actualData)
-            queryClient.setQueryData(
-              [QueryEnum.USERS, companyId],
-              (oldData: IUser[] | undefined) =>
-                oldData
-                  ? oldData.map((data) =>
-                      user.id === data.id ? { ...data, ...user } : data,
-                    )
-                  : [user],
-            );
-
-          queryClient.setQueryData(
-            [QueryEnum.USERS, companyId, user.id],
-            () => user,
-          );
+          queryClient.invalidateQueries([QueryEnum.USERS, companyId]);
+          queryClient.invalidateQueries([
+            QueryEnum.USERS,
+            companyId,
+            user.userId,
+          ]);
         }
         enqueueSnackbar(successMessage, {
           variant: 'success',

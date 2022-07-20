@@ -30,7 +30,7 @@ export const StatusSelect: FC<IStatusSelectProps> = ({
       iconProps={{
         sx: {
           color: statusOptionsConstant[selected].color,
-          fontSize: '14px',
+          fontSize: '15px',
         },
       }}
       {...props}

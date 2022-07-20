@@ -23,6 +23,7 @@ export const queryEmployees = async (
   { skip, take }: IPagination,
   query: IQueryEmployee,
 ) => {
+  console.log(skip, take, query);
   if ('hierarchyId' in query && !query.hierarchyId)
     return { data: [], count: 0 };
 
@@ -39,19 +40,18 @@ export const queryEmployees = async (
 };
 
 export function useQueryEmployees(
-  page = 0,
+  page = 1,
   query = {} as IQueryEmployee,
   take = 20,
 ) {
   const { companyId } = useGetCompanyId();
-
   const pagination: IPagination = {
-    skip: page * take,
-    take: take,
+    skip: (page - 1) * (take || 20),
+    take: take || 20,
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EMPLOYEES, page, query],
+    [QueryEnum.EMPLOYEES, page, { ...query, companyId }],
     () => queryEmployees(pagination, { ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

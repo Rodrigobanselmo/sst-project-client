@@ -16,6 +16,7 @@ import { DocPgrTable } from 'components/organisms/tables/DocPgrTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
+import SActionPlanIcon from 'assets/icons/SActionPlanIcon';
 import SCharacterization from 'assets/icons/SCharacterizationIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
@@ -40,6 +41,15 @@ const Companies: NextPage = () => {
   const handleGoToRiskData = () => {
     push(
       RoutesEnum.RISK_DATA.replace(
+        /:companyId/g,
+        query.companyId as string,
+      ).replace(/:riskGroupId/g, query.docId as string),
+    );
+  };
+
+  const handleGoToActionPlan = () => {
+    push(
+      RoutesEnum.ACTION_PLAN.replace(
         /:companyId/g,
         query.companyId as string,
       ).replace(/:riskGroupId/g, query.docId as string),
@@ -119,13 +129,20 @@ const Companies: NextPage = () => {
       <SPageTitle mb={15} icon={SDocumentIcon}>
         Documento PGR
       </SPageTitle>
-      <SPageTitleSection mb={5} mt={15} title="Fatores de Risco e Perigos" />
-      <SActionButton
-        icon={SRiskFactorIcon}
-        onClick={handleGoToRiskData}
-        text={'Vincular fatores de risco'}
-        primary
-      />
+      <SPageTitleSection mb={5} mt={15} title="Ações" />
+      <SFlex gap={10}>
+        <SActionButton
+          icon={SRiskFactorIcon}
+          onClick={handleGoToRiskData}
+          text={'Vincular fatores de risco'}
+          primary
+        />
+        <SActionButton
+          icon={SActionPlanIcon}
+          onClick={handleGoToActionPlan}
+          text={'Plano de ação'}
+        />
+      </SFlex>
       <SPageTitleSection title="Caracterização Básica" icon={SPhotoIcon} />
       <SFlex mb={15} mt={5} gap={10} flexWrap="wrap">
         {characterizationStepMemo.map((props) => (

@@ -1,6 +1,7 @@
 export enum QueryEnum {
   RISK = 'risk',
   RISK_DATA = 'risk-data',
+  RISK_DATA_PLAN = 'risk-data-plan',
   RISK_GROUP_DATA = 'risk-group-data',
   RISK_GROUP_DOC = 'risk-group-doc',
   RISK_GROUP_DOCS = 'risk-group-docs',

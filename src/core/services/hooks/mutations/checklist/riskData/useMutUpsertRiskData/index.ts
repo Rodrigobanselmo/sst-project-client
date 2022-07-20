@@ -8,6 +8,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { api } from 'core/services/apiClient';
+import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -53,18 +54,7 @@ export async function upsertRiskData(
       deletedId: response.data,
     } as unknown as IRiskData;
   }
-  return [response.data].map((riskData) => {
-    return {
-      ...riskData,
-      adms: (riskData.adms || []).sort((a, b) => sortString(a, b, 'name')),
-      generateSources: (riskData.generateSources || []).sort((a, b) =>
-        sortString(a, b, 'name'),
-      ),
-      engs: (riskData.engs || []).sort((a, b) => sortString(a, b, 'name')),
-      epis: (riskData.epis || []).sort((a, b) => sortString(a, b, 'name')),
-      recs: (riskData.recs || []).sort((a, b) => sortString(a, b, 'name')),
-    };
-  })[0];
+  return sortRiskData([response.data])[0];
 }
 
 export function useMutUpsertRiskData() {

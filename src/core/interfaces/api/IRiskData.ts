@@ -3,6 +3,10 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { QuantityTypeEnum } from 'core/constants/maps/quantity-risks';
 import { IEpi } from 'core/interfaces/api/IEpi';
 
+import {
+  RiskRecTextTypeEnum,
+  RiskRecTypeEnum,
+} from './../../../project/enum/RiskRecType.enum';
 import { IGho } from './IGho';
 import { IHierarchy } from './IHierarchy';
 import { IProfessional } from './IProfessional';
@@ -28,6 +32,36 @@ export interface IRiskData {
   isQuantity?: boolean;
   json?: IRiskDataJsonQui | IRiskDataJsonNoise;
   riskFactor?: IRiskFactors;
+  origin?: string;
+  ro?: string;
+  level?: number;
+  intervention?: string;
+  dataRecs?: IRiskDataRec[];
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface IRiskDataRec {
+  id: string;
+  responsibleName: string;
+  endDate: Date;
+  comment: IRiskDataRecComment[];
+  status: StatusEnum;
+  recMedId: string;
+  riskFactorDataId: string;
+  created_at: Date;
+  updated_at: Date;
+  companyId: string;
+}
+
+export interface IRiskDataRecComment {
+  id: string;
+  text: string;
+  type: RiskRecTypeEnum;
+  textType: RiskRecTextTypeEnum;
+  riskFactorDataRecId: string;
+  updated_at: Date;
+  created_at: Date;
 }
 export interface IRiskDataJsonQui {
   stel?: string;
@@ -62,6 +96,7 @@ export interface IRiskGroupData {
   coordinatorBy: string;
   validityEnd?: string;
   validityStart?: string;
+  validityStartDate?: Date | null;
   professionals?: IProfessional[];
   users?: IUser[];
   isQ5?: boolean;

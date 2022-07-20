@@ -11,30 +11,42 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
+import { initialEmployeeState } from 'components/organisms/modals/ModalAddEmployees/hooks/useEditEmployees';
+import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
+import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 
+import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
-import { useTableSearch } from 'core/hooks/useTableSearch';
-import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployeesdel';
+import { useModal } from 'core/hooks/useModal';
+import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { cpfMask } from 'core/utils/masks/cpf.mask';
 
-export const EmployeesTable: FC<BoxProps> = () => {
-  const { data, isLoading } = useQueryEmployees();
+export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
+  rowsPerPage = 8,
+}) => {
+  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+
   const { data: hierarchy, isLoading: loadHierarchy } = useQueryHierarchies();
+  const {
+    data: employees,
+    isLoading: loadEmployees,
+    count,
+  } = useQueryEmployees(page, { search }, rowsPerPage);
 
+  const { onOpenModal } = useModal();
   const { push } = useRouter();
-  const { handleSearchChange, results } = useTableSearch({
-    data,
-    keys: ['name', 'cpf'],
-    sort: (a, b) => sortData(a, b, 'name'),
-  });
 
   const handleEditStatus = (status: StatusEnum) => {
     console.log(status); // TODO edit checklist status
@@ -49,15 +61,42 @@ export const EmployeesTable: FC<BoxProps> = () => {
     push(RoutesEnum.HIERARCHY.replace(/:companyId/g, companyId));
   };
 
+  const onAddEmployee = () => {
+    onOpenModal(ModalEnum.EMPLOYEES_ADD);
+  };
+
+  const onExportClick = () => {
+    onOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
+  };
+
+  const onEditEmployee = (employee: IEmployee) => {
+    onOpenModal(ModalEnum.EMPLOYEES_ADD, {
+      id: employee.id,
+      companyId: employee.companyId,
+      cpf: cpfMask.mask(employee.cpf),
+      name: employee.name.split(' - ')[0],
+      status: employee.status,
+      workspaces: employee.workspaces,
+      hierarchy: {
+        id: employee.hierarchyId,
+        name:
+          hierarchy[employee.hierarchyId] &&
+          hierarchy[employee.hierarchyId].name,
+      } as any,
+    } as typeof initialEmployeeState);
+  };
+
   return (
     <>
       <STableTitle icon={BadgeIcon}>Empregados</STableTitle>
       <STableSearch
-        // onAddClick={() => onOpenModal(ModalEnum.CHECKLIST_ADD)}
+        onAddClick={onAddEmployee}
+        onExportClick={onExportClick}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable
-        loading={isLoading}
+        loading={loadEmployees}
+        rowsNumber={rowsPerPage}
         columns="minmax(200px, 5fr) minmax(150px, 1fr) minmax(100px, 150px) 90px 80px"
       >
         <STableHeader>
@@ -67,8 +106,10 @@ export const EmployeesTable: FC<BoxProps> = () => {
           <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof data[0]>
-          rowsData={results}
+        <STableBody<typeof employees[0]>
+          rowsData={employees}
+          hideLoadMore
+          rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
             return (
               <STableRow key={row.id}>
@@ -79,9 +120,11 @@ export const EmployeesTable: FC<BoxProps> = () => {
                     hierarchy[row.hierarchyId].name
                   }
                   loading={loadHierarchy}
+                  fontSize={13}
+                  mr={3}
                   onClick={() => handleGoToHierarchy(row.companyId)}
                 />
-                <TextIconRow text={row.cpf} />
+                <TextIconRow fontSize={14} text={cpfMask.mask(row.cpf)} />
                 <StatusSelect
                   large
                   sx={{ maxWidth: '120px' }}
@@ -90,14 +133,24 @@ export const EmployeesTable: FC<BoxProps> = () => {
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />
                 <IconButtonRow
-                  onClick={() => handleGoToEmployee(row.companyId, row.id)}
+                  onClick={() => onEditEmployee(row)}
                   icon={<EditIcon />}
                 />
               </STableRow>
             );
           }}
         />
-      </STable>
+      </STable>{' '}
+      <STablePagination
+        mt={2}
+        registersPerPage={rowsPerPage}
+        totalCountOfRegisters={loadEmployees ? undefined : count}
+        currentPage={page}
+        onPageChange={setPage}
+      />
+      <ModalAddEmployee />
+      <ModalAddExcelEmployees />
+      <ModalSelectHierarchy />
     </>
   );
 };

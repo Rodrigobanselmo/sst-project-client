@@ -61,7 +61,6 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
     ]) as IRiskFactors[];
 
     if (!risk) return [];
-
     const data = riskDataQuery
       .sort(
         (a, b) =>

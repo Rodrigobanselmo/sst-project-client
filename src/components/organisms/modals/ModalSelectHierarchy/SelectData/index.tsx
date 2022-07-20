@@ -106,7 +106,9 @@ export const ModalSelectHierarchyData: FC<{
           <SText mr={4}>Estabelecimento:</SText>
           {company?.workspace?.map((workspace) => (
             <STagButton
-              bg={'info.main'}
+              bg={
+                workspaceSelected.id === workspace.id ? 'info.main' : undefined
+              }
               active={workspaceSelected.id === workspace.id}
               key={workspace.id}
               tooltipTitle={`filtar por ${workspace.name}`}

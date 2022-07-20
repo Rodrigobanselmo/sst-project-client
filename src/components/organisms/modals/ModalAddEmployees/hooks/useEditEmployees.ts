@@ -178,6 +178,7 @@ export const useEditEmployees = () => {
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
       singleSelect: true,
       selectionHierarchy: [HierarchyEnum.SUB_OFFICE, HierarchyEnum.OFFICE],
+      lockWorkspace: false,
       onSingleSelect: (hierarchy: ITreeMapObject) =>
         setEmployeeData({ ...employeeData, hierarchy: hierarchy }),
     } as typeof initialHierarchySelectState);

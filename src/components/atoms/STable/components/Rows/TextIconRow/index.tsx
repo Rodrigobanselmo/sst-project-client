@@ -14,7 +14,9 @@ const TextIconRow: FC<TextIconRowProps> = ({
   lineNumber = 2,
   children,
   onClick,
+  fontSize = 15,
   loading,
+  textAlign,
   sx,
   ...props
 }) => {
@@ -27,14 +29,18 @@ const TextIconRow: FC<TextIconRowProps> = ({
           <Icon component={icon} sx={{ color: 'gray.600', mr: 4, ml: 2 }} />
         )}
         {text && (
-          <SText fontSize={15} lineNumber={lineNumber}>
+          <SText
+            textAlign={textAlign}
+            fontSize={fontSize}
+            lineNumber={lineNumber}
+          >
             {text}
           </SText>
         )}
         {children}
       </>
     );
-  }, [children, icon, lineNumber, loading, text]);
+  }, [children, fontSize, icon, lineNumber, loading, text, textAlign]);
 
   return (
     <STooltip title={tooltipTitle}>

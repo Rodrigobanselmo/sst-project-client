@@ -78,8 +78,20 @@ const CompanyPage: NextPage = () => {
   }, [company, onOpenModal]);
 
   const handleAddEmployees = useCallback(() => {
-    onOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
-  }, [onOpenModal]);
+    if (!company.employeeCount && !company.hierarchyCount) {
+      onOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
+    } else {
+      push({
+        pathname: RoutesEnum.EMPLOYEES.replace(':companyId', company.id),
+      });
+    }
+  }, [
+    company.employeeCount,
+    company.hierarchyCount,
+    company.id,
+    onOpenModal,
+    push,
+  ]);
 
   const handleAddManagerSystem = useCallback(() => {
     if (company.riskGroupCount) {

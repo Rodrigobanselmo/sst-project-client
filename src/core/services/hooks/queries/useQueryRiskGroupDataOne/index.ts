@@ -10,8 +10,11 @@ import { api } from 'core/services/apiClient';
 import { QueryEnum } from '../../../../enums/query.enums';
 import { IRiskGroupData } from '../../../../interfaces/api/IRiskData';
 
-interface IResp extends Omit<IRiskGroupData, 'visitDate'> {
+interface IResp
+  extends Omit<IRiskGroupData, 'visitDate' | 'validityStart' | 'validityEnd'> {
   visitDate: Date | null;
+  validityStart: Date | null;
+  validityEnd: Date | null;
 }
 
 export const queryGroupRiskDataOne = async (
@@ -24,6 +27,7 @@ export const queryGroupRiskDataOne = async (
 
   const data: IRiskGroupData = {
     ...response.data,
+    validityStartDate: response.data.validityStart,
     visitDate: response.data.visitDate
       ? dayjs(response.data.visitDate).format('DD/MM/YYYY')
       : '',

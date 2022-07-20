@@ -10,6 +10,21 @@ import { sortString } from 'core/utils/sorts/string.sort';
 import { QueryEnum } from '../../../../enums/query.enums';
 import { IRiskData } from '../../../../interfaces/api/IRiskData';
 
+export const sortRiskData = (data: IRiskData[]) => {
+  return data.map((riskData) => {
+    return {
+      ...riskData,
+      adms: (riskData.adms || []).sort((a, b) => sortString(a, b, 'medName')),
+      generateSources: (riskData.generateSources || []).sort((a, b) =>
+        sortString(a, b, 'name'),
+      ),
+      engs: (riskData.engs || []).sort((a, b) => sortString(a, b, 'medName')),
+      epis: (riskData.epis || []).sort((a, b) => sortString(a, b, 'ca')),
+      recs: (riskData.recs || []).sort((a, b) => sortString(a, b, 'recName')),
+    };
+  });
+};
+
 export const queryRiskData = async (
   companyId: string,
   riskGroupId: string,
@@ -19,18 +34,7 @@ export const queryRiskData = async (
     `${ApiRoutesEnum.RISK_DATA}/${companyId}/${riskGroupId}/${riskId}`,
   );
 
-  return response.data.map((riskData) => {
-    return {
-      ...riskData,
-      adms: (riskData.adms || []).sort((a, b) => sortString(a, b, 'name')),
-      generateSources: (riskData.generateSources || []).sort((a, b) =>
-        sortString(a, b, 'name'),
-      ),
-      engs: (riskData.engs || []).sort((a, b) => sortString(a, b, 'name')),
-      epis: (riskData.epis || []).sort((a, b) => sortString(a, b, 'name')),
-      recs: (riskData.recs || []).sort((a, b) => sortString(a, b, 'name')),
-    };
-  });
+  return sortRiskData(response.data);
 };
 
 export function useQueryRiskData(
