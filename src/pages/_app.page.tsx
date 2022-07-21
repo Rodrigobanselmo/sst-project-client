@@ -1,11 +1,14 @@
+import 'dayjs/locale/pt-br';
+
 import * as dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import type { AppProps } from 'next/app';
 
 import DefaultLayout from '../layouts/default/layout';
 import DefaultProviders from '../layouts/default/providers';
-import 'dayjs/locale/pt-br';
 
 dayjs.locale('pt-br');
+dayjs.extend(customParseFormat);
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

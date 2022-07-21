@@ -101,6 +101,10 @@ export interface IRiskGroupData {
   users?: IUser[];
   isQ5?: boolean;
   data?: IRiskData[];
+  months_period_level_5: number;
+  months_period_level_4: number;
+  months_period_level_3: number;
+  months_period_level_2: number;
 }
 
 export interface IPrgDocData {

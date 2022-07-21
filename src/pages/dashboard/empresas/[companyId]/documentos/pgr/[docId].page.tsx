@@ -48,12 +48,18 @@ const Companies: NextPage = () => {
   };
 
   const handleGoToActionPlan = () => {
-    push(
-      RoutesEnum.ACTION_PLAN.replace(
-        /:companyId/g,
-        query.companyId as string,
-      ).replace(/:riskGroupId/g, query.docId as string),
-    );
+    const goTo = (workId: string) => {
+      push(
+        RoutesEnum.ACTION_PLAN.replace(/:companyId/g, query.companyId as string)
+          .replace(/:workspaceId/g, workId)
+          .replace(/:riskGroupId/g, query.docId as string),
+      );
+    };
+
+    onOpenModal(ModalEnum.WORKSPACE_SELECT, {
+      title: 'Selecione para qual Estabelecimento deseja ver o plano de ação',
+      onSelect: (workspace: IWorkspace) => goTo(workspace.id),
+    } as typeof initialWorkspaceSelectState);
   };
 
   const handleAddEnvironments = useCallback(() => {

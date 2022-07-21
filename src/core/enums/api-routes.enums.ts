@@ -35,5 +35,6 @@ export enum ApiRoutesEnum {
   REC_MED = '/rec-med',
   GENERATE_SOURCE = '/generate-source',
   DOCUMENTS_PGR = '/documents/pgr',
+  DOCUMENTS_PGR_PLAN = '/documents/pgr/action-plan',
   DOCUMENTS_PGR_ATTACHMENTS = '/documents/pgr/:docId/attachment',
 }

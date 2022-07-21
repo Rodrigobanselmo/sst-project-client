@@ -22,6 +22,7 @@ export enum ModalEnum {
   PGR_DOC_VIEW = 'pgr-doc-view',
   HIERARCHY_ADD = 'hierarchy-add',
   RISK_DATA_ADD = 'risk-data-add',
+  RISK_DATA_COMMENTS_ADD = 'risk-data-comment-add',
   RISK_ADD = 'risk-add',
   REC_MED_ADD = 'rec-med-add',
   EPI_ADD = 'epi-add',

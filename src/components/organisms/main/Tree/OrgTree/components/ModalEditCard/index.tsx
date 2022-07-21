@@ -50,6 +50,10 @@ export const ModalEditCard = () => {
     selectedNode?.type || ('' as any),
   );
 
+  const isNotHierarchy = ![
+    TreeTypeEnum.COMPANY,
+    TreeTypeEnum.WORKSPACE,
+  ].includes(selectedNode?.type || ('' as any));
   const {
     data: selectedEmployees,
     isLoading,
@@ -283,12 +287,14 @@ export const ModalEditCard = () => {
                 {...preventAddEmployee()}
               />
             )}
-            <WorkspacesSelect
-              handleSelect={(item) =>
-                Array.isArray(item) && setWorkspaces(item)
-              }
-              selected={workspace}
-            />
+            {isNotHierarchy && (
+              <WorkspacesSelect
+                handleSelect={(item) =>
+                  Array.isArray(item) && setWorkspaces(item)
+                }
+                selected={workspace}
+              />
+            )}
           </SFlex>
         </Box>
         <Box

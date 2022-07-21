@@ -75,7 +75,7 @@ export const SInput: FC<SInputProps> = ({
                 {loading ? (
                   <CircularProgress
                     color="secondary"
-                    size={size == 'small' ? 20 : 25}
+                    size={size == 'small' ? 10 : 10}
                     {...circularProps}
                   />
                 ) : success ? (

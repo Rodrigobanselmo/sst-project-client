@@ -16,7 +16,7 @@ export enum RoutesEnum {
   PGR_DOCUMENT = '/dashboard/empresas/:companyId/documentos/pgr/:riskGroupId',
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',
   MODAL = '/dashboard/test/modal',
-  ACTION_PLAN = '/dashboard/empresas/:companyId/plano-de-acao/:riskGroupId',
+  ACTION_PLAN = '/dashboard/empresas/:companyId/:workspaceId/plano-de-acao/:riskGroupId',
   CHARACTERIZATIONS = '/dashboard/empresas/:companyId/:workspaceId',
   EMPLOYEES = '/dashboard/empresas/:companyId/empregados',
 }

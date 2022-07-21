@@ -9,6 +9,8 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
+import { dateMask, dateMonthMask } from 'core/utils/masks/date.mask';
+
 import { IUseAddCompany } from '../../hooks/useHandleActions';
 import { useFirstStep } from './hooks/useFirstStep';
 
@@ -68,6 +70,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               name="visitDate"
               size="small"
               smallPlaceholder
+              mask={dateMask.apply}
             />
           </Box>
 

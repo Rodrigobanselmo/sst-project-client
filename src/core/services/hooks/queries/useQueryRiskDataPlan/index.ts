@@ -15,13 +15,14 @@ interface IQueryRiskData {}
 
 export const queryRiskDataPlan = async (
   companyId: string,
+  workspaceId: string,
   riskGroupId: string,
   { skip, take }: IPagination,
   query: IQueryRiskData,
 ) => {
   const queries = queryString.stringify(query);
   const response = await api.get<IPaginationResult<IRiskData[]>>(
-    `${ApiRoutesEnum.RISK_DATA}/action-plan/${companyId}/${riskGroupId}?take=${take}&skip=${skip}&${queries}`,
+    `${ApiRoutesEnum.RISK_DATA}/action-plan/${companyId}/${workspaceId}/${riskGroupId}?take=${take}&skip=${skip}&${queries}`,
   );
 
   return response.data;
@@ -29,6 +30,7 @@ export const queryRiskDataPlan = async (
 
 export function useQueryRiskDataPlan(
   riskGroupId: string,
+  workspaceId: string,
   page = 0,
   query = {} as IQueryRiskData,
   take = 20,
@@ -39,9 +41,9 @@ export function useQueryRiskDataPlan(
     take: take || 20,
   };
   const { data, ...rest } = useQuery(
-    [QueryEnum.RISK_DATA_PLAN, companyId, riskGroupId],
+    [QueryEnum.RISK_DATA_PLAN, companyId, workspaceId, riskGroupId],
     () =>
-      queryRiskDataPlan(companyId || '', riskGroupId, pagination, {
+      queryRiskDataPlan(companyId || '', workspaceId, riskGroupId, pagination, {
         ...query,
         companyId,
       }),

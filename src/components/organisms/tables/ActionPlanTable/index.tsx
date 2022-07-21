@@ -1,9 +1,9 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
+import React from 'react';
 
-import BadgeIcon from '@mui/icons-material/Badge';
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import { SInput } from 'components/atoms/SInput';
+import { SInputEdit } from 'components/atoms/SInputEdit';
 import {
   STable,
   STableBody,
@@ -11,93 +11,57 @@ import {
   STableHRow,
   STableRow,
 } from 'components/atoms/STable';
-import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STag } from 'components/atoms/STag';
-import SText from 'components/atoms/SText';
+import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
-import { initialEmployeeState } from 'components/organisms/modals/ModalAddEmployees/hooks/useEditEmployees';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
+import { ModalAddComment } from 'components/organisms/modals/ModalRiskDataComment';
+import { initialCommentState } from 'components/organisms/modals/ModalRiskDataComment/hooks/useEditComments';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
+import { RiskRecTypeEnum } from 'project/enum/RiskRecType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { SActionPlanIcon } from 'assets/icons/SActionPlanIcon';
-import EditIcon from 'assets/icons/SEditIcon';
+import SDownloadIcon from 'assets/icons/SDownloadIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { useMutCreateDocPlanAction } from 'core/services/hooks/mutations/checklist/docs/useMutCreateDocPlanAction';
 import {
   IUpsertRiskDataRec,
   useMutUpsertRiskDataRec,
 } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskDataRec';
-import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
-import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { useQueryRiskDataPlan } from 'core/services/hooks/queries/useQueryRiskDataPlan';
 import { useQueryRiskGroupDataOne } from 'core/services/hooks/queries/useQueryRiskGroupDataOne';
-import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
   rowsPerPage = 15,
 }) => {
   const { push, query } = useRouter();
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
-
+  const [update, setUpdate] = useState(0);
   const riskGroupDataId = query.riskGroupId as string;
+  const workspaceId = query.workspaceId as string;
 
-  const { data: hierarchy, isLoading: loadHierarchy } = useQueryHierarchies();
   const { data: riskGroupData, isLoading: loadRiskGroup } =
     useQueryRiskGroupDataOne(riskGroupDataId);
   const {
     data: employees,
     isLoading: loadEmployees,
     count,
-  } = useQueryRiskDataPlan(riskGroupDataId, page, {}, rowsPerPage);
+  } = useQueryRiskDataPlan(riskGroupDataId, workspaceId, page, {}, rowsPerPage);
 
   const upsertRiskRecMutation = useMutUpsertRiskDataRec(riskGroupDataId);
+  const createActionPlan = useMutCreateDocPlanAction();
+
   const { onOpenModal } = useModal();
-
-  const handleGoToEmployee = (companyId: string, employeeId: number) => {
-    console.log(employeeId); // TODO edit checklist status
-    //push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
-  };
-
-  const handleGoToHierarchy = (companyId: string) => {
-    push(RoutesEnum.HIERARCHY.replace(/:companyId/g, companyId));
-  };
-
-  const onAddEmployee = () => {
-    onOpenModal(ModalEnum.EMPLOYEES_ADD);
-  };
-
-  const onExportClick = () => {
-    onOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
-  };
-
-  const onEditEmployee = (employee: IEmployee) => {
-    onOpenModal(ModalEnum.EMPLOYEES_ADD, {
-      id: employee.id,
-      companyId: employee.companyId,
-      cpf: cpfMask.mask(employee.cpf),
-      name: employee.name.split(' - ')[0],
-      status: employee.status,
-      workspaces: employee.workspaces,
-      hierarchy: {
-        id: employee.hierarchyId,
-        name:
-          hierarchy[employee.hierarchyId] &&
-          hierarchy[employee.hierarchyId].name,
-      } as any,
-    } as typeof initialEmployeeState);
-  };
 
   const onEditRiskDataRec = async (submit: IUpsertRiskDataRec) => {
     await upsertRiskRecMutation
@@ -112,10 +76,20 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
     recMedId: string,
     riskFactorDataId: string,
   ) => {
+    if (status === StatusEnum.CANCELED) {
+      return onOpenModal(ModalEnum.RISK_DATA_COMMENTS_ADD, {
+        recMedId: recMedId,
+        riskGroupDataId: riskGroupDataId,
+        riskDataId: riskFactorDataId,
+        type: RiskRecTypeEnum.CANCELED,
+        status,
+      } as typeof initialCommentState);
+    }
+
     onEditRiskDataRec({ status, recMedId, riskFactorDataId });
   };
 
-  const endRecGrid = '200px 110px 200px 200px';
+  const endRecGrid = '200px 110px 200px 100px';
 
   return (
     <>
@@ -123,21 +97,16 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
       <STable
         loading={loadEmployees}
         rowsNumber={rowsPerPage}
-        columns={`160px 160px 150px 20px 20px 120px 90px ${endRecGrid}`}
+        columns={`minmax(160px, 1fr) minmax(160px, 1fr) minmax(150px, 1fr) 120px 90px ${endRecGrid}`}
       >
         <STableHeader>
           <STableHRow fontSize={14}>Origem</STableHRow>
           <STableHRow fontSize={14} textAlign="center">
             Fatores de Risco Perigos
           </STableHRow>
-          <STableHRow fontSize={14} textAlign="center">
-            Fonte Geradora ou Atividade de Risco
-          </STableHRow>
-          <STableHRow fontSize={14} justifyContent="center">
-            S
-          </STableHRow>
-          <STableHRow fontSize={14} justifyContent="center">
-            P
+          <STableHRow fontSize={14} textAlign="center" justifySelf={'center'}>
+            Fonte Geradora <br />
+            ou Atividade de Risco
           </STableHRow>
           <STableHRow fontSize={14} textAlign="center" justifyContent="center">
             Risco ocupaciona
@@ -163,6 +132,7 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
+            const level = row?.level || 0;
             const recs = row?.recs || [];
             const gs = row?.generateSources?.map((gs) => gs.name).join(', ');
             return (
@@ -170,32 +140,21 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                 <TextIconRow
                   lineNumber={recs.length + 1}
                   text={row.origin}
-                  fontSize={14}
+                  fontSize={13}
                   tooltipTitle={row.origin}
                 />
                 <TextIconRow
                   lineNumber={recs.length + 1}
                   text={row?.riskFactor?.name}
-                  fontSize={14}
+                  fontSize={13}
                   tooltipTitle={row?.riskFactor?.name}
                 />
                 <TextIconRow
-                  fontSize={14}
+                  fontSize={13}
                   justifyContent="center"
                   lineNumber={recs.length + 1}
                   text={gs}
                   tooltipTitle={gs}
-                />
-                <TextIconRow
-                  fontSize={14}
-                  lineNumber={recs.length + 1}
-                  justifyContent="center"
-                  text={String(row?.riskFactor?.severity || '-')}
-                />
-                <TextIconRow
-                  justifyContent="center"
-                  fontSize={14}
-                  text={String(row?.probability || '-')}
                 />
                 <STag
                   action={String(row.level) as any}
@@ -205,10 +164,10 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                 <TextIconRow
                   text={row?.intervention}
                   textAlign="center"
-                  fontSize={12}
+                  fontSize={10}
                   justifyContent="center"
                 />
-                <SFlex gridColumn={'8 / 12'} center direction="column">
+                <SFlex gridColumn={'6 / 10'} center direction="column">
                   {recs.map((rec) => {
                     const dataRec = (row.dataRecs || []).find(
                       (dr) => dr.recMedId === rec.id,
@@ -217,6 +176,34 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                       endDate: null,
                       status: StatusEnum.PENDING,
                     };
+
+                    const months = ((riskGroupData || {}) as any)[
+                      `months_period_level_${level}`
+                    ];
+
+                    const getDue = () => {
+                      if (dataRec.endDate) {
+                        return dayjs(dataRec.endDate);
+                      }
+
+                      if (riskGroupData && months)
+                        return dayjs(riskGroupData?.validityStartDate).add(
+                          months + 1,
+                          'months',
+                        );
+
+                      return false;
+                    };
+
+                    const due = getDue();
+                    const isExpired = due ? due.isBefore(dayjs()) : false;
+                    const dueText = due
+                      ? due.format('D [de] MMMM YYYY')
+                      : 'sem prazo';
+
+                    const dueEdit = due
+                      ? due.format('DD/MM/YYYY')
+                      : 'sem prazo';
 
                     return (
                       <SFlex
@@ -243,7 +230,10 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                         />
                         <StatusSelect
                           large={false}
-                          selected={dataRec.status}
+                          selected={
+                            isExpired ? StatusEnum.EXPIRED : dataRec.status
+                          }
+                          tooltipTitle={'iohuiu'}
                           statusOptions={[
                             StatusEnum.PENDING,
                             StatusEnum.PROGRESS,
@@ -254,28 +244,45 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                             handleEditStatus(option.value, rec.id, row.id)
                           }
                         />
-                        <SFlex center>
-                          <SInput
-                            // autoFocus
-                            // value={selectedNode?.label}
-                            // onChange={(e) =>
-                            // setEditNodeSelectedItem({ label: e.target.value })
-                            // }
+                        <Box px={3}>
+                          <SInputEdit
+                            fullWidth
+                            InputProps={{
+                              sx: {
+                                fontSize: 12,
+                                textTransform: 'uppercase',
+                              },
+                            }}
+                            value={dataRec.responsibleName}
+                            onSave={(value) =>
+                              onEditRiskDataRec({
+                                responsibleName: value,
+                                recMedId: rec.id,
+                                riskFactorDataId: row.id,
+                              })
+                            }
+                            loading={
+                              upsertRiskRecMutation.isLoading &&
+                              upsertRiskRecMutation.variables &&
+                              upsertRiskRecMutation.variables.recMedId ===
+                                rec.id &&
+                              upsertRiskRecMutation.variables
+                                .riskFactorDataId === row.id
+                            }
                             variant="standard"
-                            // placeholder={nodeTypesConstant[type]?.placeholder}
                           />
-                        </SFlex>
-                        {/* <TextIconRow
-                          text={dataRec.responsibleName}
-                          textAlign="center"
-                          fontSize={12}
-                          justifyContent="center"
-                        /> */}
+                        </Box>
                         <TextIconRow
-                          text={
-                            dataRec.endDate
-                              ? dayjs(dataRec.endDate).format('DD/MM/YYYY')
-                              : '--'
+                          text={dueText}
+                          px={2}
+                          onClick={() =>
+                            onOpenModal(ModalEnum.RISK_DATA_COMMENTS_ADD, {
+                              recMedId: rec.id,
+                              riskGroupDataId: riskGroupDataId,
+                              riskDataId: row.id,
+                              type: RiskRecTypeEnum.POSTPONED,
+                              endDate: dueEdit,
+                            } as typeof initialCommentState)
                           }
                           textAlign="center"
                           fontSize={12}
@@ -302,9 +309,25 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
         currentPage={page}
         onPageChange={setPage}
       />
+      <SFlex mt={10}>
+        <STagButton
+          text="Baixar e Atualizar Plano de Ação"
+          large
+          active
+          bg="info.main"
+          icon={SDownloadIcon}
+          onClick={() =>
+            createActionPlan.mutate({
+              workspaceId,
+              riskGroupId: riskGroupData?.id || '',
+            })
+          }
+        />
+      </SFlex>
       <ModalAddEmployee />
       <ModalAddExcelEmployees />
       <ModalSelectHierarchy />
+      <ModalAddComment />
     </>
   );
 };
