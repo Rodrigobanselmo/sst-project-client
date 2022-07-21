@@ -38,7 +38,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
   const { enqueueSnackbar } = useSnackbar();
   const listSelected = useRef<IEmployee[]>([]);
   const { data, isLoading } = useQueryEmployees(
-    0,
+    1,
     { search: search || null },
     12,
   );

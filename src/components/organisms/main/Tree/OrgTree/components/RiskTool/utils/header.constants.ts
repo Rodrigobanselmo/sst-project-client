@@ -30,8 +30,8 @@ export const headerRows = [
     filterValues: ['desc', 'asc', 'none'],
   },
   {
-    label: 'Grau de risco',
-    tooltip: 'Grau de risco de exposição atual',
+    label: 'Risco Ocupacional',
+    tooltip: 'Grau de risco de exposição atual (Risco Ocupacional)',
   },
   {
     label: 'Recomendações',
@@ -47,7 +47,8 @@ export const headerRows = [
       'Grau de exposição estimado após aplicação das recomendações (probabilidade)',
   },
   {
-    label: 'Grau de risco',
-    tooltip: 'Grau de risco de exposição após aplicação das recomendações',
+    label: 'Risco Residual',
+    tooltip:
+      'Grau de risco de exposição após aplicação das recomendações (Risco Residual)',
   },
 ];

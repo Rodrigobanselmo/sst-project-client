@@ -103,7 +103,7 @@ export const UsersTable: FC<BoxProps> = () => {
                   selected={
                     'companies' in row
                       ? row.companies[0].status
-                      : dayjs(row.expires_date).isValid()
+                      : dayjs(row.expires_date).isAfter(dayjs())
                       ? StatusEnum.PENDING
                       : StatusEnum.EXPIRED
                   }

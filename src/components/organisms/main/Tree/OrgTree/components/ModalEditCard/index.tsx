@@ -59,7 +59,7 @@ export const ModalEditCard = () => {
     isLoading,
     refetch,
   } = useQueryEmployees(
-    0,
+    1,
     {
       hierarchyId: isOffice
         ? String(selectedNode?.id).split('//')[0] || ''
