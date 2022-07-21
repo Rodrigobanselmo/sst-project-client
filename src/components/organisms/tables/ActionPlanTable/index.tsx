@@ -108,6 +108,12 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
             Fonte Geradora <br />
             ou Atividade de Risco
           </STableHRow>
+          {/* <STableHRow fontSize={14} justifyContent="center">
+            S
+          </STableHRow>
+          <STableHRow fontSize={14} justifyContent="center">
+            P
+          </STableHRow> */}
           <STableHRow fontSize={14} textAlign="center" justifyContent="center">
             Risco ocupaciona
           </STableHRow>
@@ -156,6 +162,17 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                   text={gs}
                   tooltipTitle={gs}
                 />
+                {/* <TextIconRow
+                  fontSize={14}
+                  lineNumber={recs.length + 1}
+                  justifyContent="center"
+                  text={String(row?.riskFactor?.severity || '-')}
+                /> */}
+                {/* <TextIconRow
+                  justifyContent="center"
+                  fontSize={14}
+                  text={String(row?.probability || '-')}
+                /> */}
                 <STag
                   action={String(row.level) as any}
                   text={row?.ro || '--'}
