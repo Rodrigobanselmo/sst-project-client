@@ -78,6 +78,7 @@ export const ModalSelectDocPgr: FC = () => {
       !initialData.open
     ) {
       initialData.onSelect(riskGroupData[0]);
+      setSelectData(initialDocPgrSelectState);
       onCloseModal(ModalEnum.DOC_PGR_SELECT);
     }
   }, [getModalData, getStackModal, onCloseModal, riskGroupData, selectData]);
@@ -102,6 +103,7 @@ export const ModalSelectDocPgr: FC = () => {
     }
 
     onCloseModal(ModalEnum.DOC_PGR_SELECT);
+    setSelectData(initialDocPgrSelectState);
     selectData.onSelect(docPgr || selectData.selected);
   };
 

@@ -61,7 +61,6 @@ export const ModalAddRiskGroup = () => {
   const onClose = useCallback(() => {
     onCloseAllModals();
     onCloseModal(ModalEnum.RISK_GROUP_ADD);
-    onCloseModal(ModalEnum.HIERARCHY_TREE);
     setRiskGroupData(initialRiskGroupState);
   }, [onCloseAllModals, onCloseModal]);
 
@@ -142,18 +141,17 @@ export const ModalAddRiskGroup = () => {
                     vincúlados a <b>cargos, setores, etc</b> que possuirem
                     exatamente o mesmo nome e hierarquia.
                   </SText>,
-                  () =>
-                    copyMutation
+                  async () => {
+                    onCloseModal(ModalEnum.HIERARCHY_TREE);
+                    await copyMutation
                       .mutateAsync({
                         copyFromCompanyId: companySelected.id,
                         docId: docPgr.id,
                       })
-                      .then((doc) => {
-                        if (riskGroupData.goTo && doc)
-                          push(riskGroupData.goTo.replace(':docId', doc.id));
-                        onClose();
-                      })
-                      .catch(() => {}),
+                      .catch(() => {});
+
+                    onClose();
+                  },
                   { confirmText: 'Importar' },
                 ),
             } as typeof initialHierarchyTreeState),
@@ -163,11 +161,10 @@ export const ModalAddRiskGroup = () => {
     company.id,
     copyMutation,
     onClose,
+    onCloseModal,
     onOpenModal,
     onStackOpenModal,
     preventWarn,
-    push,
-    riskGroupData.goTo,
     riskGroupData.id,
   ]);
 

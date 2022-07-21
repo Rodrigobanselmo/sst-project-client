@@ -19,7 +19,7 @@ export async function copyCompany(
 ) {
   if (!companyId) return null;
 
-  const response = await api.post<IRiskGroupData>(
+  const response = await api.post(
     `${ApiRoutesEnum.COMPANIES}/copy/${copyFromCompanyId}/${docId}/${companyId}`,
   );
   return response.data;
@@ -38,7 +38,7 @@ export function useMutCopyCompany() {
       docId: string;
     }) => copyCompany(copyFromCompanyId, docId, companyId),
     {
-      onSuccess: async (riskGroupData) => {
+      onSuccess: async () => {
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATIONS, companyId]);
         queryClient.invalidateQueries([QueryEnum.ENVIRONMENTS, companyId]);
         queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
@@ -50,7 +50,6 @@ export function useMutCopyCompany() {
         enqueueSnackbar('Empresa copiada com sucesso', {
           variant: 'success',
         });
-        return riskGroupData;
       },
       onError: (error: IErrorResp) => {
         enqueueSnackbar(error.response.data.message, { variant: 'error' });
