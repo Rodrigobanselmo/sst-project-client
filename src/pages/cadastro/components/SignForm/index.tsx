@@ -11,7 +11,7 @@ import { useRouter } from 'next/router';
 import * as Yup from 'yup';
 
 import { RoutesEnum } from 'core/enums/routes.enums';
-import { useMutationSign } from 'core/services/hooks/mutations/useMutationSign';
+import { useMutationSign } from 'core/services/hooks/mutations/auth/useMutationSign';
 import { signSchema } from 'core/utils/schemas/sign.schema';
 
 import { SButton } from '../../../../components/atoms/SButton';

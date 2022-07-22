@@ -10,13 +10,13 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
+import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
+import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
+import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
 import {
   IUpdateCompany,
   useMutUpdateCompany,
 } from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
-import { useMutationCEP } from 'core/services/hooks/mutations/useMutationCep';
-import { useMutationCNPJ } from 'core/services/hooks/mutations/useMutationCnpj';
-import { GetCNPJResponse } from 'core/services/hooks/mutations/useMutationCnpj/types';
 import { workspaceSchema } from 'core/utils/schemas/workspace.schema';
 
 export const initialWorkspaceState = {

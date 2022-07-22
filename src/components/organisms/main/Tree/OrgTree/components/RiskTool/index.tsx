@@ -24,9 +24,9 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IGho } from 'core/interfaces/api/IGho';
+import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
+import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
-import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/useMutCreateGho';
-import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/useMutDeleteGho';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 
 import { RiskToolHeader } from './components/RiskToolHeader';

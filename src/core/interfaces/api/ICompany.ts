@@ -1,7 +1,7 @@
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import { GetCNPJResponse } from 'core/services/hooks/mutations/useMutationCnpj/types';
+import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
 
 export interface ICompany {
   id: string;

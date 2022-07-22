@@ -27,7 +27,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { useMutUploadFile } from 'core/services/hooks/mutations/useMutUploadFile';
+import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 
 export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({

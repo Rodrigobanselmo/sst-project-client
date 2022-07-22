@@ -16,8 +16,8 @@ import {
   IRecMedCreate,
 } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpdateGenerateSource } from 'core/services/hooks/mutations/checklist/generate/useMutUpdateGenerateSource';
-import { useMutCreateRisk } from 'core/services/hooks/mutations/checklist/useMutCreateRisk';
-import { useMutUpdateRisk } from 'core/services/hooks/mutations/checklist/useMutUpdateRisk';
+import { useMutCreateRisk } from 'core/services/hooks/mutations/checklist/risk/useMutCreateRisk';
+import { useMutUpdateRisk } from 'core/services/hooks/mutations/checklist/risk/useMutUpdateRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 

@@ -4,7 +4,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { Box } from '@mui/material';
 
-import { useMutUpdateUser } from 'core/services/hooks/mutations/manager/useMutUpdateUser';
+import { useMutUpdateUser } from 'core/services/hooks/mutations/user/useMutUpdateUser';
 import { userUpdateSchema } from 'core/utils/schemas/user-update.schema';
 
 import { SButton } from '../../../../../components/atoms/SButton';

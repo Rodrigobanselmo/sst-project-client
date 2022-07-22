@@ -24,7 +24,7 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
-import { useMutUpsertRiskGroupData } from 'core/services/hooks/mutations/checklist/useMutUpsertRiskGroupData';
+import { useMutUpsertRiskGroupData } from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
 import { useMutCopyCompany } from 'core/services/hooks/mutations/manager/useMutCopyCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 

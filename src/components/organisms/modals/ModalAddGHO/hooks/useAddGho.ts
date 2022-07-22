@@ -9,9 +9,9 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/useMutCreateGho';
-import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/useMutDeleteGho';
-import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/useMutUpdateGho';
+import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
+import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
+import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateGho';
 import { ghoSchema } from 'core/utils/schemas/gho.schema';
 
 export const initialAddGhoState = {

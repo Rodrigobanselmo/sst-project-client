@@ -11,7 +11,7 @@ import SCheckIcon from 'assets/icons/SCheckIcon';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Attachments: NextPage = () => {

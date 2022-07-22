@@ -21,8 +21,8 @@ import SUploadIcon from 'assets/icons/SUploadIcon';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
-import { useMutUploadFile } from 'core/services/hooks/mutations/useMutUploadFile';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
+import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import { useQueryDatabaseTable } from 'core/services/hooks/queries/useQueryDatabaseTable';
 import { sortString } from 'core/utils/sorts/string.sort';
 

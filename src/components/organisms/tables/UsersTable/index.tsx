@@ -28,7 +28,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IUser } from 'core/interfaces/api/IUser';
-import { useMutInviteDelete } from 'core/services/hooks/mutations/manager/useMutInviteDelete';
+import { useMutInviteDelete } from 'core/services/hooks/mutations/user/useMutInviteDelete';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryInvites } from 'core/services/hooks/queries/useQueryInvites';
 import { useQueryUsers } from 'core/services/hooks/queries/useQueryUsers';

@@ -21,7 +21,7 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/useMutUpdateGho';
+import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateGho';
 
 import { ModalEnum } from '../../../../../../../../../core/enums/modal.enums';
 import { useHierarchyTreeActions } from '../../../../../../../../../core/hooks/useHierarchyTreeActions';

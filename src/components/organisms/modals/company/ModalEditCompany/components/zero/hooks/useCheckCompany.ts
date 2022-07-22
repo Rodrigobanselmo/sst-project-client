@@ -2,8 +2,8 @@ import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
 import { IErrorResp } from 'core/services/errors/types';
-import { useMutationCNPJ } from 'core/services/hooks/mutations/useMutationCnpj';
-import { GetCNPJResponse } from 'core/services/hooks/mutations/useMutationCnpj/types';
+import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
+import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
 

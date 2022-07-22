@@ -8,7 +8,7 @@ import { IUser } from 'core/interfaces/api/IUser';
 import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
-} from 'core/services/hooks/mutations/checklist/useMutUpsertRiskGroupData';
+} from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { IUseAddCompany } from '../../../hooks/useHandleActions';

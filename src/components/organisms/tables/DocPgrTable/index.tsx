@@ -28,7 +28,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { IPrgDocData } from 'core/interfaces/api/IRiskData';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { useQueryPrgDocs } from 'core/services/hooks/queries/useQueryPrgDocs';
 
 export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({

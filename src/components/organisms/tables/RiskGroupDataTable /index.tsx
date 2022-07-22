@@ -30,7 +30,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { sortData } from 'core/utils/sorts/data.sort';
 

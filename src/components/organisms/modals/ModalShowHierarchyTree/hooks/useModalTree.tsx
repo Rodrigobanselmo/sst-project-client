@@ -11,7 +11,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { useMutUpdateSimpleManyHierarchy } from 'core/services/hooks/mutations/checklist/useMutUpdateManyHierarchy';
+import { useMutUpdateSimpleManyHierarchy } from 'core/services/hooks/mutations/checklist/hierarchy/useMutUpdateManyHierarchy';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 

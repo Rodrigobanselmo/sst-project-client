@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/useMutDownloadFile';
-import { useMutUploadFile } from 'core/services/hooks/mutations/useMutUploadFile';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
+import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import { useQueryPrgDoc } from 'core/services/hooks/queries/useQueryPrgDoc';
 
 export const initialViewPgrDocState = {

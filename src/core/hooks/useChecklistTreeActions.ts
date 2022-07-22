@@ -8,7 +8,7 @@ import { setDocSaved, setDocUnsaved } from 'store/reducers/save/saveSlice';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 import { SaveEnum } from 'core/enums/save.enum';
-import { useMutUpdateChecklist } from 'core/services/hooks/mutations/checklist/useMutUpdateChecklist';
+import { useMutUpdateChecklist } from 'core/services/hooks/mutations/checklist/checklist/useMutUpdateChecklist';
 
 import {
   ITreeCopyItem,

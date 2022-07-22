@@ -12,7 +12,7 @@ import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
-} from 'core/services/hooks/mutations/checklist/useMutUpsertRiskGroupData';
+} from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
 import { pgrSchema } from 'core/utils/schemas/pgr.schema';
 
 interface ISubmit

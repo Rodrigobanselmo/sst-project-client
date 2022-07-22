@@ -4,7 +4,7 @@ import { useWizard } from 'react-use-wizard';
 import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
-} from 'core/services/hooks/mutations/checklist/useMutUpsertRiskGroupData';
+} from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
 
 import { IUseAddCompany } from '../../../hooks/useHandleActions';
 

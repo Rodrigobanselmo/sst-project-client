@@ -30,7 +30,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { ISession } from 'core/interfaces/api/ISession';
-import { useMutUpdateUser } from 'core/services/hooks/mutations/manager/useMutUpdateUser';
+import { useMutUpdateUser } from 'core/services/hooks/mutations/user/useMutUpdateUser';
 
 import { RoutesEnum } from '../enums/routes.enums';
 import { IUser } from '../interfaces/api/IUser';

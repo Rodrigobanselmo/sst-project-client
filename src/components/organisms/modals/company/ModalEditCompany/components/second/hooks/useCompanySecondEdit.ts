@@ -1,8 +1,8 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
+import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
-import { useMutationCEP } from 'core/services/hooks/mutations/useMutationCep';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
 

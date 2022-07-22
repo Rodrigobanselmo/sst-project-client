@@ -9,7 +9,7 @@ import { useRouter } from 'next/router';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { QueryEnum } from 'core/enums/query.enums';
-import { useMutUpdateUser } from 'core/services/hooks/mutations/manager/useMutUpdateUser';
+import { useMutUpdateUser } from 'core/services/hooks/mutations/user/useMutUpdateUser';
 import { queryClient } from 'core/services/queryClient';
 
 import { SPopperArrow } from '../../../../../../../molecules/SPopperArrow';

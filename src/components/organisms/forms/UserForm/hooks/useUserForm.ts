@@ -8,7 +8,7 @@ import { IUser } from 'core/interfaces/api/IUser';
 import {
   IUpdateUser,
   useMutUpdateUser,
-} from 'core/services/hooks/mutations/manager/useMutUpdateUser';
+} from 'core/services/hooks/mutations/user/useMutUpdateUser';
 import { userUpdateSchema } from 'core/utils/schemas/user-update.schema';
 
 interface ISubmit extends Partial<IUpdateUser> {}

@@ -14,7 +14,7 @@ import { useAuth } from 'core/contexts/AuthContext';
 
 import { SButton } from '../../../../components/atoms/SButton';
 import { InputForm } from '../../../../components/molecules/form/input';
-import { useMutationLogin } from '../../../../core/services/hooks/mutations/useMutationLogin';
+import { useMutationLogin } from '../../../../core/services/hooks/mutations/auth/useMutationLogin';
 import {
   ILoginSchema,
   loginSchema,
