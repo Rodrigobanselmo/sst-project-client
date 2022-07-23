@@ -17,7 +17,6 @@ const Team: NextPage = () => {
       <ModalAddUsers />
       <ModalSelectAccessGroups />
       <ModalAddAccessGroup />
-      <ModalSelectCompany />
       <ModalEditCompany />
       <ModalUploadPhoto />
     </SContainer>

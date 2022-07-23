@@ -124,7 +124,6 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
       </STable>
       <ModalAddRiskGroup />
       <ModalShowHierarchyTree />
-      <ModalSelectCompany />
       <ModalSelectDocPgr />
       <ModalViewPgrDoc />
     </>

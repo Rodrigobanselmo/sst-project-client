@@ -2,6 +2,7 @@ import React, { FC, useEffect, useRef } from 'react';
 import { useStore } from 'react-redux';
 
 import { Global } from '@emotion/react';
+import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { useRouter } from 'next/router';
 
 import { useModal } from 'core/hooks/useModal';
@@ -63,6 +64,7 @@ const DefaultLayout: FC = ({ children }) => {
       <Global styles={globalStyles} />
       <DashboardLayout>{children}</DashboardLayout>
       <DefaultModal />
+      <ModalSelectCompany />
     </main>
   );
 };

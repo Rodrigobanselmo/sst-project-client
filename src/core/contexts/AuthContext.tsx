@@ -49,7 +49,7 @@ type AuthContextData = {
   googleSignIn: () => Promise<void | UserCredential>;
   googleSignLink: () => Promise<void | UserCredential>;
   signOut: () => void;
-  refreshUser: () => void;
+  refreshUser: (companyId: string) => Promise<void>;
   user: Partial<IUser> | null;
   isAuthenticated: boolean;
 };
@@ -72,10 +72,10 @@ export function signOut(ctx?: any) {
   Router.push(RoutesEnum.LOGIN);
 }
 
-export async function refreshToken() {
+export async function refreshToken(companyId?: string) {
   const { 'nextauth.refreshToken': refresh_token } = parseCookies();
 
-  const refresh = await api.post('/refresh', { refresh_token });
+  const refresh = await api.post('/refresh', { refresh_token, companyId });
 
   const { token } = refresh.data;
 
@@ -273,8 +273,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return result;
   }
 
-  async function refreshUser() {
-    refreshToken();
+  async function refreshUser(companyId?: string) {
+    await refreshToken(companyId);
 
     await getMe();
   }

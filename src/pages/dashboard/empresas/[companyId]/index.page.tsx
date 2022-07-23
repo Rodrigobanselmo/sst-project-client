@@ -329,7 +329,6 @@ const CompanyPage: NextPage = () => {
       <ModalSelectDocPgr />
       <ModalEditCompany />
       <ModalUploadPhoto />
-      <ModalSelectCompany />
     </SContainer>
   );
 };

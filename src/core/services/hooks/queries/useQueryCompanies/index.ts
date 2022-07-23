@@ -13,22 +13,25 @@ import { emptyMapReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-interface IQueryCompanies {
+export interface IQueryCompanies {
   search?: string;
   companyId?: string;
   userId?: number;
 }
 
+export type IQueryCompaniesTypes = '/user' | '';
+
 export const queryCompanies = async (
   { skip, take }: IPagination,
   query: IQueryCompanies,
+  type: string,
 ) => {
   if ('userId' in query && query.userId === 0)
     return <Promise<IPaginationReturn<ICompany>>>emptyMapReturn();
 
   const queries = queryString.stringify(query);
   const response = await api.get<IPaginationReturn<ICompany>>(
-    `${ApiRoutesEnum.COMPANIES}?take=${take}&skip=${skip}&${queries}`,
+    `${ApiRoutesEnum.COMPANIES}${type}?take=${take}&skip=${skip}&${queries}`,
   );
 
   return response.data;
@@ -38,6 +41,7 @@ export function useQueryCompanies(
   page = 1,
   query = {} as IQueryCompanies,
   take = 8,
+  type = '' as IQueryCompaniesTypes,
 ) {
   // const { user } = useAuth();
   const { companyId } = useGetCompanyId();
@@ -50,10 +54,10 @@ export function useQueryCompanies(
   // const company = user && user?.companyId;
 
   const { data, ...rest } = useQuery(
-    [QueryEnum.COMPANIES, companyId, page, query],
+    [QueryEnum.COMPANIES, companyId, page, query, type],
     () =>
       companyId
-        ? queryCompanies(pagination, { ...query, companyId })
+        ? queryCompanies(pagination, { ...query, companyId }, type)
         : <Promise<IPaginationReturn<ICompany>>>emptyMapReturn(),
     {
       staleTime: 1000 * 60 * 60, // 60 minute

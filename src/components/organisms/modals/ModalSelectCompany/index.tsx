@@ -1,11 +1,6 @@
 import React, { FC, useEffect, useState } from 'react';
 
-import { Box, Checkbox } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
-import { STableRow } from 'components/atoms/STable';
-import STableLoading from 'components/atoms/STable/components/STableLoading';
-import STablePagination from 'components/atoms/STable/components/STablePagination';
-import STableSearch from 'components/atoms/STable/components/STableSearch';
+import { Box } from '@mui/material';
 import SText from 'components/atoms/SText';
 import SModal, {
   SModalButtons,
@@ -18,10 +13,11 @@ import { CompaniesTable } from 'components/organisms/tables/CompaniesTable';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
-import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import {
+  IQueryCompanies,
+  IQueryCompaniesTypes,
+} from 'core/services/hooks/queries/useQueryCompanies';
 
 export const initialCompanySelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -29,7 +25,9 @@ export const initialCompanySelectState = {
   title: 'Selecione a empresa',
   multiple: false,
   selected: [] as ICompany[],
+  query: {} as IQueryCompanies,
   onCloseWithoutSelect: () => {},
+  type: '' as IQueryCompaniesTypes,
 };
 
 export const ModalSelectCompany: FC = () => {
@@ -100,13 +98,15 @@ export const ModalSelectCompany: FC = () => {
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <SText>{selectData.title}</SText>
-        <Box width={['100%', 600, 800]} mt={8}>
+        <Box minWidth={['100%', 600, 800]} mt={8}>
           <CompaniesTable
             {...(selectData.multiple
               ? { selectedData: selectData.selected }
               : {})}
+            query={selectData.query}
             onSelectData={handleSelect}
             rowsPerPage={6}
+            type={selectData.type}
           />
         </Box>
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

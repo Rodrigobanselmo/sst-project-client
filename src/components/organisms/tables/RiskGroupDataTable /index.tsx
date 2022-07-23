@@ -154,7 +154,6 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
       </STable>
       <ModalAddRiskGroup />
       <ModalShowHierarchyTree />
-      <ModalSelectCompany />
       <ModalSelectDocPgr />
     </>
   );

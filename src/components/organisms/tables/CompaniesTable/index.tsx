@@ -30,22 +30,29 @@ import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
-import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
+import {
+  IQueryCompanies,
+  IQueryCompaniesTypes,
+  useQueryCompanies,
+} from 'core/services/hooks/queries/useQueryCompanies';
 
 export const CompaniesTable: FC<
   BoxProps & {
     rowsPerPage?: number;
     onSelectData?: (company: ICompany) => void;
     selectedData?: ICompany[];
+    query?: IQueryCompanies;
+    type?: IQueryCompaniesTypes;
   }
-> = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
+> = ({ rowsPerPage = 8, onSelectData, selectedData, query, type }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const isSelect = !!onSelectData;
 
   const { companies, count, isLoading } = useQueryCompanies(
     page,
-    { search },
+    { search, ...query },
     rowsPerPage,
+    type,
   );
   const { onOpenModal } = useModal();
   const uploadMutation = useMutUploadFile();
@@ -118,6 +125,7 @@ export const CompaniesTable: FC<
                   large
                   sx={{ maxWidth: '120px' }}
                   selected={row.status}
+                  disabled={isSelect}
                   statusOptions={[
                     StatusEnum.PENDING,
                     StatusEnum.ACTIVE,
