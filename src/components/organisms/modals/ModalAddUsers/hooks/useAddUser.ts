@@ -7,29 +7,72 @@ import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { rolesConstantMap } from 'core/constants/maps/roles.constant.map';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { IAccessGroup } from 'core/interfaces/api/IAccessGroup';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { useMutInviteUser } from 'core/services/hooks/mutations/user/useMutInviteUser';
 import { useMutUpdateUserCompany } from 'core/services/hooks/mutations/user/useMutUpdateUserCompany';
+import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { userManageSchema } from 'core/utils/schemas/user-manage.schema';
+
+import { initialAccessGroupsSelectState } from '../../ModalSelectAccessGroup';
+import { initialCompanySelectState } from '../../ModalSelectCompany';
+
+export type IPermissionMap = Partial<Record<RoleEnum, string[]>>;
+
+export const convertToPermissionsMap = (
+  roles: RoleEnum[],
+  permissions: string[],
+) => {
+  const permissionsMap: IPermissionMap = {};
+
+  roles.forEach((role) => {
+    permissionsMap[role] = permissions.filter(
+      (permission) =>
+        rolesConstantMap[role] &&
+        rolesConstantMap[role].permissions?.includes(
+          permission.split('-')[0] as PermissionEnum,
+        ),
+    );
+  });
+
+  return permissionsMap;
+};
+
+export const convertFromPermissionsMap = (permissions: IPermissionMap) => {
+  const roles: RoleEnum[] = [];
+  const permissionsList: string[] = [];
+
+  Object.entries(permissions).forEach(([role, values]) => {
+    roles.push(role as RoleEnum);
+    permissionsList.push(...values);
+  });
+
+  return { roles, permissions: permissionsList };
+};
 
 export const initialUserState = {
   status: StatusEnum.ACTIVE,
   roles: [] as RoleEnum[],
-  permissions: [] as PermissionEnum[],
+  permissions: {} as IPermissionMap,
   errors: {
     roles: '',
   },
   email: '',
+  company: null as ICompany | null,
+  companies: [] as ICompany[],
   name: '',
+  group: null as IAccessGroup | null,
   id: 0,
 };
 
 export const useAddUser = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
+  const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialUserState);
 
   const { handleSubmit, control, reset, getValues } = useForm({
@@ -44,6 +87,14 @@ export const useAddUser = () => {
   const [userData, setUserData] = useState({
     ...initialUserState,
   });
+
+  const isConsulting = !!userData?.company?.isConsulting;
+
+  const { companies } = useQueryCompanies(
+    1,
+    { userId: isConsulting ? userData.id : 0 },
+    15,
+  );
 
   useEffect(() => {
     const initialData = getModalData<Partial<typeof initialUserState>>(
@@ -64,6 +115,20 @@ export const useAddUser = () => {
     }
   }, [getModalData]);
 
+  useEffect(() => {
+    if (companies && companies.length > 0)
+      setUserData((oldData) => {
+        const newData = {
+          ...oldData,
+          companies,
+        };
+
+        initialDataRef.current = newData;
+
+        return newData;
+      });
+  }, [companies]);
+
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.USER_ADD, data);
     setUserData(initialUserState);
@@ -80,6 +145,12 @@ export const useAddUser = () => {
     const submitData = {
       status: userData.status,
       roles: userData.roles,
+      permissions: convertFromPermissionsMap(userData.permissions).permissions,
+      companyId: userData.company?.id,
+      ...(userData.group ? { groupId: userData.group.id } : {}),
+      ...(isConsulting
+        ? { companiesIds: userData.companies.map((company) => company.id) }
+        : {}),
       ...data,
     };
 
@@ -110,6 +181,44 @@ export const useAddUser = () => {
     onClose();
   };
 
+  const handleOpenAccessSelect = () => {
+    const onSelectAccessGroup = (group: IAccessGroup) => {
+      setUserData({
+        ...userData,
+        roles: group.roles,
+        permissions: convertToPermissionsMap(group.roles, group.permissions),
+        group,
+      });
+    };
+
+    onStackOpenModal(ModalEnum.ACCESS_GROUP_SELECT, {
+      onSelect: onSelectAccessGroup,
+    } as Partial<typeof initialAccessGroupsSelectState>);
+  };
+
+  const handleOpenCompanySelect = () => {
+    const onSelect = (companies: ICompany[]) => {
+      console.log(companies);
+      setUserData({
+        ...userData,
+        companies,
+      });
+    };
+
+    onStackOpenModal(ModalEnum.COMPANY_SELECT, {
+      multiple: true,
+      onSelect,
+      selected: userData.companies,
+    } as Partial<typeof initialCompanySelectState>);
+  };
+
+  const handleRemoveCompany = (company: ICompany) => {
+    setUserData({
+      ...userData,
+      companies: userData.companies.filter((c) => c.id !== company.id),
+    });
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -121,5 +230,9 @@ export const useAddUser = () => {
     control,
     handleSubmit,
     isEdit: !!userData.id,
+    handleOpenAccessSelect,
+    handleOpenCompanySelect,
+    handleRemoveCompany,
+    isConsulting,
   };
 };

@@ -17,7 +17,7 @@ import { IErrorResp } from '../../../../errors/types';
 interface IInviteUser {
   readonly companyId?: string;
   readonly email: string;
-  readonly permissions?: PermissionEnum[];
+  readonly permissions?: string[];
   readonly roles?: RoleEnum[];
 }
 

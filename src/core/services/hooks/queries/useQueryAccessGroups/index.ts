@@ -4,14 +4,14 @@ import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { IAccessGroup } from 'core/interfaces/api/IAccessGroup';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-interface IQueryEmployee {
+interface IQueryAccessGroup {
   cpf?: string;
   name?: string;
   search?: string | null;
@@ -19,47 +19,47 @@ interface IQueryEmployee {
   hierarchyId?: string;
 }
 
-export const queryEmployees = async (
+export const queryAccessGroups = async (
   { skip, take }: IPagination,
-  query: IQueryEmployee,
+  companyId: string,
+  query: IQueryAccessGroup,
 ) => {
-  console.log(skip, take, query);
-  if ('hierarchyId' in query && !query.hierarchyId)
-    return { data: [], count: 0 };
-
-  if ('search' in query && query.search === null) return { data: [], count: 0 };
-
-  const companyId = query.companyId;
   const queries = queryString.stringify(query);
 
-  const response = await api.get<IPaginationResult<IEmployee[]>>(
-    `${ApiRoutesEnum.EMPLOYEES}/${companyId}?take=${take}&skip=${skip}&${queries}`,
+  if ('search' in query && query.search === null) return { data: [], count: 0 };
+  if (!companyId) return { data: [], count: 0 };
+
+  const response = await api.get<IPaginationResult<IAccessGroup[]>>(
+    `${ApiRoutesEnum.AUTH_GROUP}?take=${take}&skip=${skip}&${queries}`.replace(
+      ':companyId',
+      companyId,
+    ),
   );
 
   return response.data;
 };
 
-export function useQueryEmployees(
+export function useQueryAccessGroups(
   page = 1,
-  query = {} as IQueryEmployee,
+  query = {} as IQueryAccessGroup,
   take = 20,
 ) {
-  const { companyId } = useGetCompanyId();
+  const { user } = useGetCompanyId();
   const pagination: IPagination = {
     skip: (page - 1) * (take || 20),
     take: take || 20,
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EMPLOYEES, page, { ...query, companyId }],
-    () => queryEmployees(pagination, { ...query, companyId }),
+    [QueryEnum.AUTH_GROUP, user?.companyId, page, { ...query }],
+    () => queryAccessGroups(pagination, user?.companyId || '', { ...query }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },
   );
 
   const response = {
-    data: data?.data || ([] as IEmployee[]),
+    data: data?.data || ([] as IAccessGroup[]),
     count: data?.count || 0,
   };
 

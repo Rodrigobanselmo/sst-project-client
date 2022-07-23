@@ -11,10 +11,10 @@ export const STSTable = styled(Box)<{ columns: string; rowGap: string }>`
 `;
 
 export const STSTableBody = styled(Box)`
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   min-width: fit-content;
+  padding: 2px;
 
   &::-webkit-scrollbar {
     border-radius: 24px;

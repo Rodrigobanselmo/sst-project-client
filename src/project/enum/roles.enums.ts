@@ -1,14 +1,16 @@
 export enum RoleEnum {
   MASTER = 'master',
-  ADMIN = 'admin',
-  USER = 'user',
-  MANAGEMENT = 'management',
-  CONTRACTS = 'contracts',
-  DATABASE = 'database',
-  DOCS = 'docs',
-  RISK = 'risk',
-  CHECKLIST = 'checklist',
-}
+  ADMIN = '0',
+  USER = '1',
+  EPI = '3',
+  MANAGEMENT = '4',
+  PGR = '5',
+  ACTION_PLAN = '5.1',
 
-// revisado por nao sugere nome
-// org ja aparecer expandido
+  CONTRACTS = '40',
+  DATABASE = '50',
+  CHECKLIST = '80',
+
+  RISK = '8',
+  DOCS = '8',
+}

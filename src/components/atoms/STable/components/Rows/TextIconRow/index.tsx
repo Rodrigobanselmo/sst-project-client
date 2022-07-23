@@ -18,6 +18,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
   loading,
   textAlign,
   sx,
+  clickable,
   ...props
 }) => {
   const memoizedChildren = useMemo(() => {
@@ -47,7 +48,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
       <SFlex
         onClick={onClick}
         sx={{
-          cursor: onClick ? 'pointer' : 'default',
+          cursor: onClick || clickable ? 'pointer' : 'default',
           height: '100%',
           ...sx,
         }}

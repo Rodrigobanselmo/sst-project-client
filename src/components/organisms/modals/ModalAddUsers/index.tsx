@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
+import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import SIconButton from 'components/atoms/SIconButton';
+import { STagButton } from 'components/atoms/STagButton';
+import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
 import { InputForm } from 'components/molecules/form/input';
 import SModal, {
   SModalButtons,
@@ -10,7 +15,10 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
+
 import { ModalEnum } from 'core/enums/modal.enums';
+import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
 import { EditUserSelects } from './components/EditUserSelects';
 import { SelectRoles } from './components/SelectRoles';
@@ -27,6 +35,10 @@ export const ModalAddUsers = () => {
     control,
     handleSubmit,
     isEdit,
+    handleOpenAccessSelect,
+    handleOpenCompanySelect,
+    handleRemoveCompany,
+    isConsulting,
   } = useAddUser();
 
   const buttons = [
@@ -82,7 +94,63 @@ export const ModalAddUsers = () => {
             />
           )}
         </SFlex>
-        <SelectRoles mt={10} userData={userData} setUserData={setUserData} />
+        <SFlex mt={5} gap={5}>
+          <STagButton
+            maxWidth="200px"
+            text={
+              !!userData?.group && !!userData.group?.name
+                ? userData.group.name
+                : 'Adicionar Grupo de Acesso'
+            }
+            active={!!userData?.group && !!userData?.group?.name}
+            onClick={handleOpenAccessSelect}
+          />{' '}
+          {isConsulting && (
+            <STagButton
+              maxWidth="200px"
+              text={'Adicionar Empresas'}
+              onClick={handleOpenCompanySelect}
+            />
+          )}
+        </SFlex>{' '}
+        {isConsulting && (
+          <SFlex mt={10} gap={5}>
+            {userData.companies.map((company) => {
+              return (
+                <SFlex
+                  border={'1px solid'}
+                  borderColor="grey.300"
+                  px={4}
+                  borderRadius={1}
+                  py={1}
+                  key={company.id}
+                  center
+                  sx={{ backgroundColor: 'grey.100' }}
+                >
+                  <Box>
+                    <SText maxWidth="200px" noBreak fontSize={12}>
+                      {company.name}
+                    </SText>
+                    <SText fontSize={11}>{cnpjMask.mask(company.cnpj)}</SText>
+                  </Box>
+                  <STooltip withWrapper title={'Remover'}>
+                    <SIconButton
+                      onClick={() => handleRemoveCompany(company)}
+                      size="small"
+                    >
+                      <Icon component={SDeleteIcon} sx={{ fontSize: '1rem' }} />
+                    </SIconButton>
+                  </STooltip>
+                </SFlex>
+              );
+            })}
+          </SFlex>
+        )}
+        <SelectRoles
+          mt={10}
+          data={userData}
+          setData={(data) => setUserData({ ...data, group: null })}
+        />
         {isEdit && (
           <EditUserSelects userData={userData} setUserData={setUserData} />
         )}

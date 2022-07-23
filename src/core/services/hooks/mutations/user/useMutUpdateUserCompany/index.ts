@@ -18,7 +18,8 @@ import { IErrorResp } from '../../../../errors/types';
 export interface IUpdateUser {
   readonly userId: number;
   readonly companyId?: string;
-  readonly permissions?: PermissionEnum[];
+  readonly companiesIds?: string[];
+  readonly permissions?: string[];
   readonly roles?: RoleEnum[];
   readonly status?: StatusEnum;
 }
@@ -43,15 +44,13 @@ export function useMutUpdateUserCompany({
     async (data: IUpdateUser) => updateUserCompany({ companyId, ...data }),
     {
       onSuccess: async (user) => {
-        console.log(user);
-        if (user) {
-          queryClient.invalidateQueries([QueryEnum.USERS, companyId]);
-          queryClient.invalidateQueries([
-            QueryEnum.USERS,
-            companyId,
-            user.userId,
-          ]);
-        }
+        queryClient.invalidateQueries([QueryEnum.USERS, companyId]);
+        queryClient.invalidateQueries([
+          QueryEnum.USERS,
+          companyId,
+          user.userId,
+        ]);
+
         enqueueSnackbar(successMessage, {
           variant: 'success',
         });

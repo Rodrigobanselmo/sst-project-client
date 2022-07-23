@@ -5,6 +5,7 @@ export enum RoutesEnum {
   LOGIN = '/',
   DASHBOARD = '/dashboard',
   TEAM = '/dashboard/equipe/:companyId',
+  TEAM_GROUPS = '/dashboard/equipe/:companyId/grupos',
   PROFILE = '/dashboard/perfil',
   PUBLIC = '/publico',
   CHECKLIST = '/dashboard/checklist',

@@ -7,7 +7,7 @@ import { SModalPaperProps } from './types';
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const SModalPaper = React.forwardRef<any, SModalPaperProps>(
   (
-    { center = false, children, semiFullScreen, fullScreen, sx, ...props },
+    { center = true, children, semiFullScreen, fullScreen, sx, ...props },
     ref,
   ) => {
     return (
@@ -36,6 +36,7 @@ export const SModalPaper = React.forwardRef<any, SModalPaperProps>(
                 borderRadius: 0,
               }
             : {}),
+          backgroundColor: 'grey.50',
           ...sx,
         }}
         {...props}

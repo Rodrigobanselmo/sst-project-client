@@ -9,4 +9,5 @@ export type TextIconRowProps = SFlexProps & {
   tooltipTitle?: string;
   text?: string;
   loading?: boolean;
+  clickable?: boolean;
 };

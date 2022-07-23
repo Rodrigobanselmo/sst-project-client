@@ -11,58 +11,148 @@ import {
   FormHelperText,
   FormLabel,
 } from '@mui/material';
+import SCheckBox from 'components/atoms/SCheckBox';
+import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
 import STooltip from 'components/atoms/STooltip';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 
-import { rolesConstantMap } from 'core/constants/maps/roles.constant.map';
+import {
+  CRUD_LIST,
+  IPermissionsOption,
+  permissionsConstantMap,
+} from 'core/constants/maps/permissions.constant.map';
+import {
+  IRolesOption,
+  rolesConstantMap,
+} from 'core/constants/maps/roles.constant.map';
 import { useAuth } from 'core/contexts/AuthContext';
+import { sortNumber } from 'core/utils/sorts/number.sort';
+import { sortString } from 'core/utils/sorts/string.sort';
 
-import { initialUserState } from '../../hooks/useAddUser';
+import { IPermissionMap } from '../../hooks/useAddUser';
 
 interface ISelectRolesSelects extends BoxProps {
-  userData: typeof initialUserState;
-  setUserData: React.Dispatch<any>;
+  data: {
+    roles: RoleEnum[];
+    permissions: IPermissionMap;
+    errors: {
+      roles: string;
+    };
+  };
+  setData: (data: any) => void;
 }
 
 export const SelectRoles: FC<ISelectRolesSelects> = ({
-  setUserData,
-  userData,
+  setData,
+  data,
   ...props
 }) => {
   const { user } = useAuth();
-  const handleSelectRole = (role: RoleEnum) => {
-    let roles = [...userData.roles];
-    if (roles.includes(role)) {
-      roles = roles.filter((r) => r !== role);
+
+  const handleSelectRole = (roleOptions: IRolesOption) => {
+    let roles = [...data.roles];
+    const permissions = { ...data.permissions };
+    if (roles.includes(roleOptions.value)) {
+      roles = roles.filter((r) => r !== roleOptions.value);
+      if (roleOptions.permissions) permissions[roleOptions.value] = [];
     } else {
-      roles.push(role);
+      roles.push(roleOptions.value);
+
+      if (roleOptions.permissions) {
+        if (!permissions[roleOptions.value])
+          permissions[roleOptions.value] = [];
+
+        permissions[roleOptions.value]?.push(
+          ...roleOptions.permissions.map((permissions) => permissions + '-r'),
+        );
+      }
     }
 
-    setUserData({
-      ...userData,
+    setData({
+      ...data,
       roles,
+      permissions,
+      errors: { roles: '' },
+    });
+  };
+
+  const handleSelectPermission = (
+    roleOptions: IRolesOption,
+    permissionOptions: IPermissionsOption,
+    crud: string,
+  ) => {
+    const permissions = { ...data.permissions };
+
+    const actualPermissions = [...(permissions[roleOptions.value] || [])];
+    if (!actualPermissions) return;
+
+    const permissionIndx = actualPermissions.findIndex(
+      (permission) => permission.split('-')[0] == permissionOptions.value,
+    );
+
+    if (
+      permissionIndx != -1 &&
+      actualPermissions[permissionIndx].includes(crud)
+    ) {
+      actualPermissions[permissionIndx] = actualPermissions[
+        permissionIndx
+      ].replace(crud, '');
+      permissions[roleOptions.value] = actualPermissions;
+    } else {
+      actualPermissions[permissionIndx] =
+        actualPermissions[permissionIndx] + crud;
+      permissions[roleOptions.value] = actualPermissions;
+    }
+
+    setData({
+      ...data,
+      permissions,
       errors: { roles: '' },
     });
   };
 
   const AllRoles = useMemo(() => {
-    return Object.keys(rolesConstantMap).filter(
-      (role) =>
-        (user?.roles && user.roles.includes(role)) ||
-        (user?.roles && user.roles.includes(RoleEnum.MASTER)),
-    ) as Array<keyof typeof rolesConstantMap>;
+    return Object.keys(rolesConstantMap)
+      .filter(
+        (role) =>
+          (user?.roles && user.roles.includes(role)) ||
+          (user?.roles && user.roles.includes(RoleEnum.MASTER)),
+      )
+      .sort((a, b) =>
+        sortString(
+          (rolesConstantMap as any)[a],
+          (rolesConstantMap as any)[b],
+          'label',
+        ),
+      )
+      .sort((a, b) =>
+        sortNumber(
+          (rolesConstantMap as any)[a],
+          (rolesConstantMap as any)[b],
+          'order',
+        ),
+      ) as Array<keyof typeof rolesConstantMap>;
   }, [user?.roles]);
 
+  const isMasterPermission = useMemo(() => {
+    return (
+      user?.permissions &&
+      user.permissions.find((p) => p.split('-')[0] === PermissionEnum.MASTER)
+    );
+  }, [user?.permissions]);
+
   const handleSelectAll = () => {
-    const isAllSelected = userData.roles.length == AllRoles.length;
+    const isAllSelected = data.roles.length == AllRoles.length;
     const roles = isAllSelected ? [] : AllRoles;
-    setUserData({ ...userData, roles, errors: { roles: '' } });
+    setData({ ...data, roles, errors: { roles: '' } });
   };
 
   return (
     <Box {...props}>
       <FormControl
-        error={!!userData.errors.roles}
+        error={!!data.errors.roles}
         component="fieldset"
         variant="standard"
       >
@@ -70,6 +160,7 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
           sx={{
             fontSize: 14,
             color: 'text.label',
+            mb: 3,
             '&.MuiFormLabel-root.Mui-focused': {
               color: 'text.label',
             },
@@ -81,51 +172,114 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
         <FormGroup
           sx={{
             display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '0 20px',
+            gridTemplateColumns: '1fr 1fr 1fr',
+            gap: '10px 20px',
             ml: 3,
+            mb: 3,
           }}
         >
-          <FormControlLabel
-            label={'Selecionar todos'}
-            control={
-              <Checkbox
-                checked={userData.roles.length == AllRoles.length}
-                onChange={() => handleSelectAll()}
-                sx={{
-                  'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                    color: 'grey.400',
-                  },
-                }}
-              />
-            }
-          />
-          <div />
+          {/* <SFlex mb={5} gridColumn="1 / 4">
+            <SSwitch
+              label={'Selecionar todos'}
+              checked={data.roles.length == AllRoles.length}
+              onChange={() => handleSelectAll()}
+              sx={{ ml: 4 }}
+              color="text.light"
+            />
+          </SFlex> */}
           {AllRoles.map((key) => {
             const role = rolesConstantMap[key];
+            const checked = data.roles.includes(role.value);
             return (
-              <STooltip
-                key={role.value}
-                title={role.info}
-                placement="bottom-end"
-              >
-                <FormControlLabel
-                  label={role.label}
-                  // sx={{ maxWidth: '400px', alignSelf: 'flex-start' }}
-                  control={
-                    <Checkbox
-                      // sx={{ pt: 1, mb: 'auto' }}
-                      checked={userData.roles.includes(role.value)}
-                      onChange={() => handleSelectRole(role.value)}
-                      sx={{
-                        'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                          color: 'grey.400',
-                        },
-                      }}
-                    />
-                  }
-                />
-              </STooltip>
+              <Box key={role.value} gridColumn={checked ? '1 / 4' : undefined}>
+                <STooltip
+                  withWrapper
+                  key={role.value}
+                  title={role.info}
+                  placement="bottom-start"
+                >
+                  <SSwitch
+                    onChange={() => handleSelectRole(role)}
+                    checked={checked}
+                    label={role.label}
+                    sx={{ ml: 4 }}
+                    color="text.light"
+                  />
+                </STooltip>
+                {checked && (
+                  <Box display="grid" gridTemplateColumns="1fr" gap="10px 20px">
+                    {role?.permissions?.map((pKey) => {
+                      const permission = permissionsConstantMap[pKey];
+                      const hasPermission = (user?.permissions || []).find(
+                        (p) => p.split('-')[0] === pKey,
+                      );
+
+                      return (
+                        <Box ml={14} key={permission.value}>
+                          <STooltip
+                            placement="bottom-start"
+                            title={permission.info}
+                          >
+                            <FormLabel
+                              sx={{
+                                fontSize: 14,
+                                color: 'text.label',
+                                '&.MuiFormLabel-root.Mui-focused': {
+                                  color: 'text.label',
+                                },
+                                width: 'fit-content',
+                                mt: 3,
+                              }}
+                              component="legend"
+                            >
+                              {permission.label}
+                            </FormLabel>
+                          </STooltip>
+                          <Box
+                            display="grid"
+                            gridTemplateColumns="1fr 1fr 1fr 1fr"
+                            gap="10px 20px"
+                          >
+                            {CRUD_LIST?.map(({ type, text }) => {
+                              if (
+                                !permission.crud?.includes(type) ||
+                                (!hasPermission?.includes(type) &&
+                                  type !== 'r' &&
+                                  !isMasterPermission)
+                              )
+                                return null;
+
+                              return (
+                                <SCheckBox
+                                  {...(type === 'r' && {
+                                    disabled: true,
+                                    checked: true,
+                                  })}
+                                  key={type}
+                                  label={text}
+                                  checked={data.permissions[role.value]
+                                    ?.find(
+                                      (permission) =>
+                                        permission.split('-')[0] === pKey,
+                                    )
+                                    ?.includes(type)}
+                                  onChange={() =>
+                                    handleSelectPermission(
+                                      role,
+                                      permission,
+                                      type,
+                                    )
+                                  }
+                                />
+                              );
+                            })}
+                          </Box>
+                        </Box>
+                      );
+                    })}
+                  </Box>
+                )}
+              </Box>
             );
           })}
         </FormGroup>

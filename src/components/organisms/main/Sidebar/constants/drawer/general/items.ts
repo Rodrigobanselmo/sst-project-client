@@ -4,6 +4,7 @@ import { RoleEnum } from 'project/enum/roles.enums';
 
 import SCompany from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
+import SProfileIcon from 'assets/icons/SProfileIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
 import { RoutesEnum } from '../../../../../../../core/enums/routes.enums';
@@ -17,13 +18,33 @@ const dashboard = {
   shouldMatchExactHref: true,
 };
 
+const profile = {
+  text: 'Perfil',
+  Icon: SProfileIcon,
+  description: 'Perfil de usuário',
+  id: 'oRH0CjL234N',
+  href: RoutesEnum.PROFILE,
+  shouldMatchExactHref: true,
+};
+
 const team = {
   text: 'Gerenciar usuários',
   Icon: STeamIcon,
   description: 'Gerenciar usuários e suas permirssões de acesso',
   id: 'Tu09jfdGCC',
   href: RoutesEnum.TEAM,
+  shouldMatchExactHref: true,
   roles: [RoleEnum.USER],
+};
+
+const accessGroups = {
+  text: 'Grupo de Permissões',
+  Icon: STeamIcon,
+  description: 'Criar grupo de permirssões de acesso',
+  id: 'Tu29j3dGCC',
+  href: RoutesEnum.TEAM_GROUPS,
+  roles: [RoleEnum.USER],
+  shouldMatchExactHref: true,
 };
 
 const checklist = {
@@ -55,8 +76,10 @@ const allCompaniesData = {
 
 export const generalArray = [
   dashboard,
+  profile,
   team,
   allCompaniesData,
   checklist,
   importExportData,
+  accessGroups,
 ];

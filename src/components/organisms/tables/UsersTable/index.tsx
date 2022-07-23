@@ -12,8 +12,13 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import { ModalAddAccessGroup } from 'components/organisms/modals/ModalAddAccessGroup';
 import { ModalAddUsers } from 'components/organisms/modals/ModalAddUsers';
-import { initialUserState } from 'components/organisms/modals/ModalAddUsers/hooks/useAddUser';
+import {
+  convertToPermissionsMap,
+  initialUserState,
+} from 'components/organisms/modals/ModalAddUsers/hooks/useAddUser';
+import { ModalSelectAccessGroups } from 'components/organisms/modals/ModalSelectAccessGroup';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { PermissionEnum } from 'project/enum/permission.enum';
@@ -56,10 +61,15 @@ export const UsersTable: FC<BoxProps> = () => {
     onOpenModal(ModalEnum.USER_ADD, {
       id: user.id,
       roles: (userCompany?.roles || []) as RoleEnum[],
-      permissions: (userCompany?.permissions || []) as PermissionEnum[],
+      permissions: convertToPermissionsMap(
+        (userCompany?.roles || []) as RoleEnum[],
+        userCompany?.permissions || [],
+      ),
       status: userCompany?.status || StatusEnum.ACTIVE,
       email: user.email,
       name: user.name,
+      group: userCompany?.group || null,
+      company: company,
     } as typeof initialUserState);
   };
 
@@ -72,7 +82,12 @@ export const UsersTable: FC<BoxProps> = () => {
       <STableTitle icon={STeamIcon}>Usuários</STableTitle>
       <STableSearch
         placeholder="Pesquisar pelo nome..."
-        onAddClick={() => onOpenModal(ModalEnum.USER_ADD)}
+        onAddClick={() =>
+          onOpenModal(ModalEnum.USER_ADD, {
+            company: company,
+            companies: [company],
+          })
+        }
         style={{ minWidth: '300px' }}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
@@ -126,7 +141,6 @@ export const UsersTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
-      <ModalAddUsers />
     </>
   );
 };

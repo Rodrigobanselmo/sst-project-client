@@ -13,6 +13,7 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { CompaniesTable } from 'components/organisms/tables/CompaniesTable';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -32,11 +33,8 @@ export const initialCompanySelectState = {
 };
 
 export const ModalSelectCompany: FC = () => {
-  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
-
-  const { companies, count, isLoading } = useQueryCompanies(page, { search });
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal, onOpenModal } = useModal();
+  const { onCloseModal } = useModal();
   const [selectData, setSelectData] = useState(initialCompanySelectState);
 
   useEffect(() => {
@@ -57,11 +55,12 @@ export const ModalSelectCompany: FC = () => {
   }, [getModalData]);
 
   const onCloseNoSelect = () => {
+    setSelectData(initialCompanySelectState);
     selectData.onCloseWithoutSelect?.();
     onCloseModal(ModalEnum.COMPANY_SELECT);
   };
 
-  const handleSelect = (company?: ICompany) => () => {
+  const handleSelect = (company?: ICompany) => {
     if (selectData.multiple && company) {
       setSelectData((oldData) => {
         const filtered = oldData.selected.filter((w) => w.id != company.id);
@@ -75,11 +74,8 @@ export const ModalSelectCompany: FC = () => {
     }
 
     onCloseModal(ModalEnum.COMPANY_SELECT);
+    setSelectData(initialCompanySelectState);
     selectData.onSelect(company || selectData.selected);
-  };
-
-  const handleAddMissingData = () => {
-    onOpenModal(ModalEnum.COMPANY_ADD);
   };
 
   const buttons = [{}] as IModalButton[];
@@ -87,6 +83,7 @@ export const ModalSelectCompany: FC = () => {
   if (selectData.multiple) {
     buttons.push({
       onClick: () => {
+        setSelectData(initialCompanySelectState);
         onCloseModal(ModalEnum.COMPANY_SELECT);
         selectData.onSelect(selectData.selected);
       },
@@ -102,46 +99,15 @@ export const ModalSelectCompany: FC = () => {
       <SModalPaper center p={8}>
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
+        <SText>{selectData.title}</SText>
         <Box width={['100%', 600, 800]} mt={8}>
-          <STableSearch onChange={(e) => handleSearchChange(e.target.value)} />
-          {!isLoading ? (
-            <SFlex direction="column" gap={5}>
-              <SText mr={40}>{selectData.title}</SText>
-              {companies.map((company) => (
-                <STableRow
-                  clickable
-                  onClick={handleSelect(company)}
-                  key={company.id}
-                >
-                  <SFlex align="center">
-                    {selectData.multiple && (
-                      <Checkbox
-                        checked={
-                          !!selectData.selected.find((c) => c.id === company.id)
-                        }
-                        size="small"
-                        sx={{
-                          'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                            color: 'grey.400',
-                          },
-                        }}
-                      />
-                    )}
-                    {company.name}
-                  </SFlex>
-                </STableRow>
-              ))}
-              <STablePagination
-                mt={2}
-                registersPerPage={8}
-                totalCountOfRegisters={count}
-                currentPage={page}
-                onPageChange={setPage}
-              />
-            </SFlex>
-          ) : (
-            <STableLoading rowsNumber={8} rowGap={'10px'} />
-          )}
+          <CompaniesTable
+            {...(selectData.multiple
+              ? { selectedData: selectData.selected }
+              : {})}
+            onSelectData={handleSelect}
+            rowsPerPage={6}
+          />
         </Box>
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />
       </SModalPaper>

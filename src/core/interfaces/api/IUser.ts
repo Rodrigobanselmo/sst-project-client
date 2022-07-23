@@ -1,10 +1,14 @@
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IAccessGroup } from './IAccessGroup';
+
 export type IUserCompany = {
   roles: string[];
   permissions: string[];
   status: StatusEnum;
   userId: number;
+  groupId: number;
+  group: IAccessGroup | null;
   companyId: string;
   created_at: Date;
   updated_at: Date;

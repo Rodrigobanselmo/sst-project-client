@@ -2,6 +2,8 @@ export const sortString = function (a: any, b: any, field?: string) {
   const arrayA = field ? a[field] : a;
   const arrayB = field ? b[field] : b;
 
+  if (!arrayA || !arrayB) return 0;
+
   if (
     arrayA
       .toLowerCase()

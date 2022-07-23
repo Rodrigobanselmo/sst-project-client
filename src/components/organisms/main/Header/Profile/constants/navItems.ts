@@ -1,9 +1,10 @@
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import PersonIcon from '@mui/icons-material/Person';
+
+import SProfileIcon from 'assets/icons/SProfileIcon';
 
 import { RoutesEnum } from '../../../../../../core/enums/routes.enums';
 
 export const navItems = [
-  { href: RoutesEnum.PROFILE, icon: PersonIcon, label: 'Perfil' },
+  { href: RoutesEnum.PROFILE, icon: SProfileIcon, label: 'Perfil' },
   { icon: ExitToAppIcon, label: 'Sair do App', action: 'signOut' },
 ];

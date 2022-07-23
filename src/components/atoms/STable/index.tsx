@@ -31,7 +31,9 @@ export const STable: FC<STableProps> = ({
       pb={5}
       {...props}
     />
-    {loading && <STableLoading rowGap={rowGap} rowsNumber={rowsNumber} />}
+    {loading && (
+      <STableLoading minWidth={800} rowGap={rowGap} rowsNumber={rowsNumber} />
+    )}
   </Box>
 );
 

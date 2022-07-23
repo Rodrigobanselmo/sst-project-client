@@ -1,27 +1,31 @@
 import { useQuery } from 'react-query';
 
-import { useRouter } from 'next/router';
 import queryString from 'query-string';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationReturn } from 'core/interfaces/IPaginationResponse';
-import { IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
-import { emptyArrayReturn, emptyMapReturn } from 'core/utils/helpers/emptyFunc';
+import { emptyMapReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
 interface IQueryCompanies {
-  search: string;
+  search?: string;
+  companyId?: string;
+  userId?: number;
 }
 
 export const queryCompanies = async (
   { skip, take }: IPagination,
   query: IQueryCompanies,
 ) => {
+  if ('userId' in query && query.userId === 0)
+    return <Promise<IPaginationReturn<ICompany>>>emptyMapReturn();
+
   const queries = queryString.stringify(query);
   const response = await api.get<IPaginationReturn<ICompany>>(
     `${ApiRoutesEnum.COMPANIES}?take=${take}&skip=${skip}&${queries}`,
@@ -35,22 +39,21 @@ export function useQueryCompanies(
   query = {} as IQueryCompanies,
   take = 8,
 ) {
-  const { user } = useAuth();
-  const router = useRouter();
+  // const { user } = useAuth();
+  const { companyId } = useGetCompanyId();
 
   const pagination: IPagination = {
     skip: (page - 1) * (take || 20),
     take: take || 20,
   };
 
-  const company =
-    user && ((router.query.companyId as string) || user?.companyId);
+  // const company = user && user?.companyId;
 
   const { data, ...rest } = useQuery(
-    [QueryEnum.COMPANIES, company, page, query],
+    [QueryEnum.COMPANIES, companyId, page, query],
     () =>
-      company
-        ? queryCompanies(pagination, query)
+      companyId
+        ? queryCompanies(pagination, { ...query, companyId })
         : <Promise<IPaginationReturn<ICompany>>>emptyMapReturn(),
     {
       staleTime: 1000 * 60 * 60, // 60 minute

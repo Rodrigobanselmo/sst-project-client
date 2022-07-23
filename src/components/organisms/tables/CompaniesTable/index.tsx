@@ -2,6 +2,7 @@ import { FC } from 'react';
 
 import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
 import { BoxProps } from '@mui/material';
+import SCheckBox from 'components/atoms/SCheckBox';
 import {
   STable,
   STableBody,
@@ -27,13 +28,19 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 
-export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
-  rowsPerPage = 8,
-}) => {
+export const CompaniesTable: FC<
+  BoxProps & {
+    rowsPerPage?: number;
+    onSelectData?: (company: ICompany) => void;
+    selectedData?: ICompany[];
+  }
+> = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+  const isSelect = !!onSelectData;
 
   const { companies, count, isLoading } = useQueryCompanies(
     page,
@@ -41,8 +48,8 @@ export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
     rowsPerPage,
   );
   const { onOpenModal } = useModal();
-  // const downloadMutation = useMutDownloadFile(); //?download company
   const uploadMutation = useMutUploadFile();
+  // const downloadMutation = useMutDownloadFile(); //?download company
 
   const { push } = useRouter();
 
@@ -51,13 +58,20 @@ export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
   };
 
   const handleGoToCompany = (companyId: string) => {
-    console.log(companyId); // TODO edit checklist status
     push(`${RoutesEnum.COMPANIES}/${companyId}`);
+  };
+
+  const onSelectRow = (company: ICompany) => {
+    if (isSelect) {
+      onSelectData(company);
+    } else handleGoToCompany(company.id);
   };
 
   return (
     <>
-      <STableTitle icon={BusinessTwoToneIcon}>Empresas</STableTitle>
+      {!isSelect && (
+        <STableTitle icon={BusinessTwoToneIcon}>Empresas</STableTitle>
+      )}
       <STableSearch
         onAddClick={() => onOpenModal(ModalEnum.COMPANY_EDIT)}
         onChange={(e) => handleSearchChange(e.target.value)}
@@ -65,9 +79,12 @@ export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
       <STable
         loading={isLoading}
         rowsNumber={rowsPerPage}
-        columns="minmax(200px, 2fr) minmax(200px, 1fr) 70px 90px"
+        columns={`${
+          selectedData ? '15px ' : ''
+        }minmax(200px, 2fr) minmax(200px, 1fr) 70px 90px`}
       >
         <STableHeader>
+          {selectedData && <STableHRow></STableHRow>}
           <STableHRow>Empresa</STableHRow>
           <STableHRow>CNPJ</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
@@ -81,19 +98,22 @@ export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
           rowsData={companies}
           renderRow={(row) => {
             return (
-              <STableRow clickable key={row.id}>
-                <TextIconRow
-                  onClick={() => handleGoToCompany(row.id)}
-                  text={row.name}
-                />
-                <TextIconRow
-                  onClick={() => handleGoToCompany(row.id)}
-                  text={row.cnpj}
-                />
-                <IconButtonRow
-                  onClick={() => handleGoToCompany(row.id)}
-                  icon={<EditIcon />}
-                />
+              <STableRow
+                clickable
+                onClick={() => onSelectRow(row)}
+                key={row.id}
+              >
+                {selectedData && (
+                  <SCheckBox
+                    label=""
+                    checked={
+                      !!selectedData.find((company) => company.id === row.id)
+                    }
+                  />
+                )}
+                <TextIconRow clickable text={row.name} />
+                <TextIconRow clickable text={row.cnpj} />
+                <IconButtonRow icon={<EditIcon />} />
                 <StatusSelect
                   large
                   sx={{ maxWidth: '120px' }}
@@ -103,7 +123,10 @@ export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                     StatusEnum.ACTIVE,
                     StatusEnum.INACTIVE,
                   ]}
-                  handleSelectMenu={(option) => handleEditStatus(option.value)}
+                  handleSelectMenu={(option, e) => {
+                    e.stopPropagation();
+                    handleEditStatus(option.value);
+                  }}
                 />
                 {/* <STagButton  //?download company
                   text="Baixar"
@@ -145,8 +168,6 @@ export const CompaniesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
         currentPage={page}
         onPageChange={setPage}
       />
-      <ModalEditCompany />
-      <ModalUploadPhoto />
       <ModalUploadFile
         loading={uploadMutation.isLoading}
         onConfirm={async (files: File[], path: string) =>
