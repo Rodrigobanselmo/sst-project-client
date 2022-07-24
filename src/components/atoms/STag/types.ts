@@ -12,6 +12,7 @@ export type ITagActionColors =
   | 'warning'
   | 'info'
   | 'upload'
+  | 'main'
   | '1'
   | '2'
   | '3'

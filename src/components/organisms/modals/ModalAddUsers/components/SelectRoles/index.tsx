@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
+import { SHelp } from 'components/atoms/SHelp';
 import { SSwitch } from 'components/atoms/SSwitch';
 import STooltip from 'components/atoms/STooltip';
 import { PermissionEnum } from 'project/enum/permission.enum';
@@ -169,6 +170,7 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
         >
           Permissões
         </FormLabel>
+
         <FormGroup
           sx={{
             display: 'grid',
@@ -192,12 +194,7 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
             const checked = data.roles.includes(role.value);
             return (
               <Box key={role.value} gridColumn={checked ? '1 / 4' : undefined}>
-                <STooltip
-                  withWrapper
-                  key={role.value}
-                  title={role.info}
-                  placement="bottom-start"
-                >
+                <SFlex align="center">
                   <SSwitch
                     onChange={() => handleSelectRole(role)}
                     checked={checked}
@@ -205,7 +202,8 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
                     sx={{ ml: 4 }}
                     color="text.light"
                   />
-                </STooltip>
+                  <SHelp mb={-1} ml={-5} tooltip={role.info} />
+                </SFlex>
                 {checked && (
                   <Box display="grid" gridTemplateColumns="1fr" gap="10px 20px">
                     {role?.permissions?.map((pKey) => {
@@ -216,10 +214,7 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
 
                       return (
                         <Box ml={14} key={permission.value}>
-                          <STooltip
-                            placement="bottom-start"
-                            title={permission.info}
-                          >
+                          <SFlex mt={4} align="center">
                             <FormLabel
                               sx={{
                                 fontSize: 14,
@@ -228,13 +223,13 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
                                   color: 'text.label',
                                 },
                                 width: 'fit-content',
-                                mt: 3,
                               }}
                               component="legend"
                             >
                               {permission.label}
                             </FormLabel>
-                          </STooltip>
+                            <SHelp mb={-2} tooltip={permission.info} />
+                          </SFlex>
                           <Box
                             display="grid"
                             gridTemplateColumns="1fr 1fr 1fr 1fr"

@@ -1,6 +1,6 @@
+import { RiCloseFill, RiMenu3Fill } from 'react-icons/ri';
+
 import { Icon, Typography } from '@mui/material';
-import { RiCloseFill } from '@react-icons/all-files/ri/RiCloseFill';
-import { RiMenu3Fill } from '@react-icons/all-files/ri/RiMenu3Fill';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import SIconButton from '../../../../atoms/SIconButton';

@@ -28,8 +28,13 @@ export interface IUpsertCharacterization {
   description?: string;
   order?: number;
   companyId?: string;
+  noiseValue?: string;
+  temperature?: string;
+  luminosity?: string;
+  moisturePercentage?: string;
   workspaceId?: string;
   considerations?: string[];
+  activities?: string[];
   photos?: IAddCharacterizationPhoto[];
 }
 

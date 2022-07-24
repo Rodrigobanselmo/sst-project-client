@@ -13,6 +13,7 @@ export enum RoutesEnum {
   HIERARCHY = '/dashboard/empresas/:companyId/hierarquia',
   RISK_DATA = '/dashboard/empresas/:companyId/hierarquia?riskGroupId=:riskGroupId',
   DATABASE = '/dashboard/dados',
+  COMPANY_GROUP = '/dashboard/empresas/:companyId/grupos',
   MANAGER_SYSTEM = '/dashboard/empresas/:companyId/gestao-sst',
   PGR_DOCUMENT = '/dashboard/empresas/:companyId/documentos/pgr/:riskGroupId',
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',

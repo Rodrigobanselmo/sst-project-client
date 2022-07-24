@@ -1,9 +1,9 @@
 import { useRef } from 'react';
+import { RiUserAddLine } from 'react-icons/ri';
 
 import { Badge } from '@mui/material';
 import Icon from '@mui/material/Icon';
 import IconButton from '@mui/material/IconButton';
-import { RiUserAddLine } from '@react-icons/all-files/ri/RiUserAddLine';
 
 import { QueryEnum } from 'core/enums/query.enums';
 import { useDisclosure } from 'core/hooks/useDisclosure';

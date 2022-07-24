@@ -22,7 +22,7 @@ export const ModalAddEnvironment = () => {
     registerModal,
     handleSubmit,
     onCloseUnsaved,
-    environmentData,
+    data: environmentData,
     loading,
     modalName,
     isEdit,

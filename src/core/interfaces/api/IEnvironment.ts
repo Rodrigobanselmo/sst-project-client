@@ -20,6 +20,8 @@ export type IEnvironment = {
   temperature: string;
   moisturePercentage: string;
   luminosity: string;
+  activities: string[];
+  considerations: string[];
   hierarchies?: IHierarchy[];
   riskData?: IRiskData[];
 };

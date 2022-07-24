@@ -93,7 +93,7 @@ export const useAddUser = () => {
   const { companies } = useQueryCompanies(
     1,
     { userId: isConsulting ? userData.id : 0 },
-    15,
+    200,
   );
 
   useEffect(() => {
@@ -127,7 +127,7 @@ export const useAddUser = () => {
 
         return newData;
       });
-  }, [companies]);
+  }, [companies, getModalData]);
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.USER_ADD, data);

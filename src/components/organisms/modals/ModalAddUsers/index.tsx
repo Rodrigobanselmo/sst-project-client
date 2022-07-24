@@ -20,6 +20,7 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
+import { CompanyTag } from './components/CompanyTag';
 import { EditUserSelects } from './components/EditUserSelects';
 import { SelectRoles } from './components/SelectRoles';
 import { useAddUser } from './hooks/useAddUser';
@@ -117,31 +118,11 @@ export const ModalAddUsers = () => {
           <SFlex mt={10} gap={5}>
             {userData.companies.map((company) => {
               return (
-                <SFlex
-                  border={'1px solid'}
-                  borderColor="grey.300"
-                  px={4}
-                  borderRadius={1}
-                  py={1}
+                <CompanyTag
                   key={company.id}
-                  center
-                  sx={{ backgroundColor: 'grey.100' }}
-                >
-                  <Box>
-                    <SText maxWidth="200px" noBreak fontSize={12}>
-                      {company.name}
-                    </SText>
-                    <SText fontSize={11}>{cnpjMask.mask(company.cnpj)}</SText>
-                  </Box>
-                  <STooltip withWrapper title={'Remover'}>
-                    <SIconButton
-                      onClick={() => handleRemoveCompany(company)}
-                      size="small"
-                    >
-                      <Icon component={SDeleteIcon} sx={{ fontSize: '1rem' }} />
-                    </SIconButton>
-                  </STooltip>
-                </SFlex>
+                  company={company}
+                  handleRemoveCompany={handleRemoveCompany}
+                />
               );
             })}
           </SFlex>

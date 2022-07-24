@@ -51,6 +51,7 @@ export const SDisplaySimpleArray = ({
         borderColor: 'background.divider',
         p: 5,
         borderRadius: 1,
+        backgroundColor: 'background.paper',
       }}
     >
       {label && (
@@ -72,7 +73,12 @@ export const SDisplaySimpleArray = ({
 
           return (
             <SFlex
-              sx={{ backgroundColor: 'background.paper', borderRadius: '4px' }}
+              sx={{
+                border: '1px solid',
+                borderRadius: '4px',
+                borderColor: 'grey.300',
+                backgroundColor: 'background.box',
+              }}
               my={2}
               key={value}
               align="center"

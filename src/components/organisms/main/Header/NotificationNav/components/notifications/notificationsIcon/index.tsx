@@ -1,9 +1,9 @@
 import { useRef } from 'react';
+import { RiNotificationLine } from 'react-icons/ri';
 
 import { Badge } from '@mui/material';
 import Icon from '@mui/material/Icon';
 import IconButton from '@mui/material/IconButton';
-import { RiNotificationLine } from '@react-icons/all-files/ri/RiNotificationLine';
 
 import { useDisclosure } from 'core/hooks/useDisclosure';
 

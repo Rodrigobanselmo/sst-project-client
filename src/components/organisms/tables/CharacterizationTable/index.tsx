@@ -13,20 +13,8 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagSelect } from 'components/molecules/STagSelect';
-import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
-import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
-import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
-import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
-import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
-import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
-import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
-import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
-import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
-import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
-import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
-import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
-import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import dayjs from 'dayjs';
+import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
 import EditIcon from 'assets/icons/SEditIcon';
@@ -45,8 +33,14 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
+interface ITableProps extends BoxProps {
+  filterType?: CharacterizationTypeEnum;
+}
 
-export const CharacterizationTable: FC<BoxProps> = () => {
+export const CharacterizationTable: FC<ITableProps> = ({
+  filterType,
+  children,
+}) => {
   const { data, isLoading } = useQueryCharacterizations();
   const { onOpenModal } = useModal();
   const { companyId, workspaceId } = useGetCompanyId();
@@ -64,12 +58,38 @@ export const CharacterizationTable: FC<BoxProps> = () => {
   const dataResult = useMemo(() => {
     if (!data) return [];
 
-    return data
-      .sort((a, b) =>
-        sortNumber(a.order ? a : 10000, b.order ? b : 10000, 'order'),
-      )
-      .sort((a, b) => sortString(a, b, 'type'));
-  }, [data]);
+    if (filterType)
+      return data
+        .filter((data) => data.type == filterType)
+        .sort((a, b) =>
+          sortNumber(a.order ? a : 10000, b.order ? b : 10000, 'order'),
+        );
+
+    return [
+      ...data
+        .filter((e) => e.type === CharacterizationTypeEnum.GENERAL)
+        .sort((a, b) =>
+          sortNumber(a.order ? a : 10000, b.order ? b : 10000, 'order'),
+        ),
+      ...data
+        .filter((e) =>
+          [
+            CharacterizationTypeEnum.ADMINISTRATIVE,
+            CharacterizationTypeEnum.OPERATION,
+            CharacterizationTypeEnum.SUPPORT,
+          ].includes(e.type),
+        )
+        .sort((a, b) =>
+          sortNumber(a.order ? a : 10000, b.order ? b : 10000, 'order'),
+        )
+        .sort((a, b) => sortString(a, b, 'type')),
+      ...data
+        .sort((a, b) =>
+          sortNumber(a.order ? a : 10000, b.order ? b : 10000, 'order'),
+        )
+        .sort((a, b) => sortString(a, b, 'type')),
+    ];
+  }, [data, filterType]);
 
   const { handleSearchChange, results } = useTableSearch({
     data: dataResult,
@@ -91,18 +111,9 @@ export const CharacterizationTable: FC<BoxProps> = () => {
 
   return (
     <>
-      {/* <SFlex mb={12} align="center"> */}
-      <STableTitle
-        // mb={0}
-        icon={SCharacterizationIcon}
-        iconSx={{ fontSize: 30 }}
-      >
-        Mão de Obra
+      <STableTitle icon={SCharacterizationIcon} iconSx={{ fontSize: 30 }}>
+        Caracterização Básica
       </STableTitle>
-      {/* <SText ml={5} mb={-5} fontSize={12}>
-          Atividades / Posto de Trabalho / Equipamentos
-        </SText>
-      </SFlex> */}
       <STableSearch
         onAddClick={() =>
           onOpenModal(ModalEnum.CHARACTERIZATION_ADD, {
@@ -112,6 +123,7 @@ export const CharacterizationTable: FC<BoxProps> = () => {
         }
         onChange={(e) => handleSearchChange(e.target.value)}
       />
+      {children}
       <STable
         loading={isLoading}
         columns="minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 110px 90px"
@@ -128,14 +140,16 @@ export const CharacterizationTable: FC<BoxProps> = () => {
         <STableBody<typeof data[0]>
           rowsData={results}
           renderRow={(row) => {
+            const text =
+              (characterizationMap[row.type]?.type
+                ? characterizationMap[row.type]?.type + '\n'
+                : '') + characterizationMap[row.type]?.name || '--';
+
             return (
               <STableRow key={row.id}>
                 <TextIconRow text={row.name || '--'} />
                 <TextIconRow text={row.description || '--'} />
-                <TextIconRow
-                  justifyContent="center"
-                  text={characterizationMap[row.type]?.name || '--'}
-                />
+                <TextIconRow justifyContent="center" text={text} />
                 <TextIconRow
                   justifyContent="center"
                   text={row?.photos?.length ? String(row?.photos?.length) : '0'}
@@ -176,22 +190,6 @@ export const CharacterizationTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
-      <>
-        <ModalAddCharacterization />
-        <ModalSelectDocPgr />
-        <ModalAddRisk />
-        <ModalAddGho />
-        <ModalAddGenerateSource />
-        <ModalAddRecMed />
-        <ModalAddEpi />
-        <ModalAddProbability />
-        <ModalAddQuantity />
-      </>
-
-      <ModalAddWorkspace />
-      <ModalSingleInput />
-      <ModalExcelHierarchies />
-      <ModalSelectHierarchy />
     </>
   );
 };

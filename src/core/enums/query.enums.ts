@@ -6,7 +6,7 @@ export enum QueryEnum {
   CHECKLIST_DATA = 'checklist-data',
   COMPANIES = 'companies',
   COMPANY = 'company',
-  COMPANy_GROUP = 'company-group',
+  COMPANY_GROUP = 'company-group',
   DATABASE_TABLE = 'database-table',
   EMPLOYEES = 'employees',
   ENVIRONMENT = 'environment',

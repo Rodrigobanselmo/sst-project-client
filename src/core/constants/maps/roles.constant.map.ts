@@ -52,14 +52,14 @@ export const rolesConstantMap = {
 
   [RoleEnum.CONTRACTS]: {
     value: RoleEnum.CONTRACTS,
-    label: 'Empresas contratantes',
+    label: 'Contratantes',
     info: 'manejo de empresas cotratantes (criação e edição de contratos com outras empresas, edição de documentos e etc)',
     permissions: [PermissionEnum.MANAGEMENT],
     order: 1000,
   },
   [RoleEnum.DOCS]: {
     value: RoleEnum.DOCS,
-    label: 'Versionamento de documentos',
+    label: 'documentos',
     info: 'gerar novas versões de documentos',
     permissions: [PermissionEnum.MANAGEMENT],
     order: 1000,

@@ -35,6 +35,7 @@ import {
   IQueryCompaniesTypes,
   useQueryCompanies,
 } from 'core/services/hooks/queries/useQueryCompanies';
+import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
 export const CompaniesTable: FC<
   BoxProps & {
@@ -88,11 +89,13 @@ export const CompaniesTable: FC<
         rowsNumber={rowsPerPage}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(200px, 2fr) minmax(200px, 1fr) 70px 90px`}
+        }minmax(200px, 4fr) minmax(200px, 3fr) minmax(150px, 1fr) 130px 70px 90px`}
       >
         <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
           <STableHRow>Empresa</STableHRow>
+          <STableHRow>Fantasia</STableHRow>
+          <STableHRow>Grupo</STableHRow>
           <STableHRow>CNPJ</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
@@ -119,7 +122,9 @@ export const CompaniesTable: FC<
                   />
                 )}
                 <TextIconRow clickable text={row.name} />
-                <TextIconRow clickable text={row.cnpj} />
+                <TextIconRow clickable text={row.fantasy} />
+                <TextIconRow clickable text={row?.group?.name || '-- '} />
+                <TextIconRow clickable text={cnpjMask.mask(row.cnpj)} />
                 <IconButtonRow icon={<EditIcon />} />
                 <StatusSelect
                   large

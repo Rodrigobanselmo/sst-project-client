@@ -2,7 +2,23 @@ import { useEffect, useMemo } from 'react';
 
 import { SContainer } from 'components/atoms/SContainer';
 import { SPageMenu } from 'components/molecules/SPageMenu';
+import { ModalAddAllCharacterization } from 'components/organisms/modals/ModalAddAllCharacterization';
+import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
+import { ModalAddEnvironment } from 'components/organisms/modals/ModalAddEnvironment';
+import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
+import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
+import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
+import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
+import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
+import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
+import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
+import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
+import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
+import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
+import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
+import { AllCharacterizationTable } from 'components/organisms/tables/AllCharacterizationTable';
 import { CharacterizationTable } from 'components/organisms/tables/CharacterizationTable';
 import { EnvironmentTable } from 'components/organisms/tables/EnvironmentTable';
 import { NextPage } from 'next';
@@ -63,21 +79,27 @@ const Companies: NextPage = () => {
 
   return (
     <SContainer>
-      <SPageMenu
-        active={pageData.value}
-        options={characterizationOptionsList}
-        onChange={onChangeRoute}
-        mb={10}
-      />
-      {pageData.value === CharacterizationEnum.ENVIRONMENT && (
-        <EnvironmentTable />
-      )}
-      {[
-        CharacterizationEnum.LABOR,
-        CharacterizationEnum.ACTIVITIES,
-        CharacterizationEnum.EQUIPMENT,
-        CharacterizationEnum.WORKSTATION,
-      ].includes(pageData.value) && <CharacterizationTable />}
+      <CharacterizationTable filterType={pageData.type || undefined}>
+        <SPageMenu
+          active={pageData.value}
+          options={characterizationOptionsList}
+          onChange={onChangeRoute}
+          mb={10}
+        />
+      </CharacterizationTable>
+      <ModalAddCharacterization />
+      <ModalSelectDocPgr />
+      <ModalAddRisk />
+      <ModalAddGho />
+      <ModalAddGenerateSource />
+      <ModalAddRecMed />
+      <ModalAddEpi />
+      <ModalAddProbability />
+      <ModalAddQuantity />
+      <ModalAddWorkspace />
+      <ModalSingleInput />
+      <ModalExcelHierarchies />
+      <ModalSelectHierarchy />
       <ModalUploadPhoto />
     </SContainer>
   );

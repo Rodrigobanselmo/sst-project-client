@@ -61,6 +61,7 @@ export const initialCharacterizationState = {
   photos: [] as IAddCharacterizationPhoto[],
   hierarchies: [] as (IHierarchy | ITreeMapObject)[],
   considerations: [] as string[],
+  activities: [] as string[],
 };
 
 interface ISubmit {
@@ -72,9 +73,9 @@ interface ISubmit {
   moisturePercentage: string;
 }
 
-const modalName = ModalEnum.CHARACTERIZATION_ADD;
+const modalNameInit = ModalEnum.CHARACTERIZATION_ADD;
 
-export const useEditCharacterization = () => {
+export const useEditCharacterization = (modalName = modalNameInit) => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onOpenModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialCharacterizationState);
@@ -167,6 +168,12 @@ export const useEditCharacterization = () => {
     const submitData: IUpsertCharacterization = {
       name: data.name,
       description: data.description,
+      noiseValue: data.noiseValue,
+      moisturePercentage: data.moisturePercentage,
+      temperature: data.temperature,
+      luminosity: data.luminosity,
+      activities: characterizationData.activities,
+      considerations: characterizationData.considerations,
       companyId: characterizationData.companyId,
       workspaceId: characterizationData.workspaceId,
       order: characterizationData.order,
@@ -341,22 +348,30 @@ export const useEditCharacterization = () => {
     } as typeof initialHierarchySelectState);
   };
 
-  const onAddArray = (value: string) => {
-    setCharacterizationData({
-      ...characterizationData,
-      considerations: [...characterizationData.considerations, value],
-    });
+  const onAddArray = (
+    value: string,
+    type = 'considerations' as 'considerations' | 'activities',
+  ) => {
+    if (characterizationData[type])
+      setCharacterizationData({
+        ...characterizationData,
+        [type]: [...characterizationData[type], value],
+      });
   };
 
-  const onDeleteArray = (value: string) => {
-    setCharacterizationData({
-      ...characterizationData,
-      considerations: [
-        ...characterizationData.considerations.filter(
-          (item: string) => item !== value,
-        ),
-      ],
-    });
+  const onDeleteArray = (
+    value: string,
+    type = 'considerations' as 'considerations' | 'activities',
+  ) => {
+    if (characterizationData[type])
+      setCharacterizationData({
+        ...characterizationData,
+        [type]: [
+          ...characterizationData[type].filter(
+            (item: string) => item !== value,
+          ),
+        ],
+      });
   };
 
   const onRemove = async () => {
@@ -404,13 +419,13 @@ export const useEditCharacterization = () => {
     registerModal,
     onCloseUnsaved,
     onClose,
-    characterizationData,
+    data: characterizationData,
     onSubmit,
     loading: upsertMutation.isLoading,
     loadingDelete: deletePhotoMutation.isLoading,
     control,
     handleSubmit,
-    setCharacterizationData,
+    setData: setCharacterizationData,
     modalName,
     handleAddPhoto,
     handlePhotoRemove,
@@ -420,14 +435,14 @@ export const useEditCharacterization = () => {
     onDeleteArray,
     onRemove: () => preventDelete(onRemove),
     hierarchies,
-    characterizationQuery,
+    query: characterizationQuery,
     onAddRisk,
     isRiskOpen,
-    characterizationLoading: characterizationLoading || ghoLoading,
+    dataLoading: characterizationLoading || ghoLoading,
     saveRef,
     handlePhotoUpdate,
     handlePhotoName,
-    characterizationsQuery: characterizationsQuery.filter(
+    filterQuery: characterizationsQuery.filter(
       (e) => e.type === characterizationData.type,
     ),
   };

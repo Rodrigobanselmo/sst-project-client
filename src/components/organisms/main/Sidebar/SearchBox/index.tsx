@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
+import { RiCloseCircleLine, RiSearchLine } from 'react-icons/ri';
 
 import { Icon } from '@mui/material';
-import { RiCloseCircleLine } from '@react-icons/all-files/ri/RiCloseCircleLine';
-import { RiSearchLine } from '@react-icons/all-files/ri/RiSearchLine';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { SInput } from '../../../../atoms/SInput';

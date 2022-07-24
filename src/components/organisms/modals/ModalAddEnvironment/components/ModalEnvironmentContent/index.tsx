@@ -22,6 +22,8 @@ import { environmentMap } from 'core/constants/maps/environment.map';
 import { floatMask } from 'core/utils/masks/float.mask';
 
 import { IUseEditEnvironment } from '../../hooks/useEditEnvironment';
+import { ModalAddHierarchyRisk } from '../ModalAddHierarchyRisk';
+import { ModalParametersContentBasic } from '../ModalParametersBasic';
 
 const StyledImage = styled('img')`
   width: 100px;
@@ -32,23 +34,20 @@ const StyledImage = styled('img')`
   object-fit: contain;
 `;
 
-export const ModalEnvironmentContent = ({
-  control,
-  environmentData,
-  handleAddPhoto,
-  setEnvironmentData,
-  handlePhotoRemove,
-  handlePhotoName,
-  loadingDelete,
-  onAddHierarchy,
-  onAddArray,
-  onDeleteArray,
-  onAddRisk,
-  environmentQuery,
-  hierarchies,
-  environmentLoading,
-  environmentsQuery,
-}: IUseEditEnvironment) => {
+export const ModalEnvironmentContent = (props: IUseEditEnvironment) => {
+  const {
+    control,
+    data: environmentData,
+    handleAddPhoto,
+    setData: setEnvironmentData,
+    handlePhotoRemove,
+    handlePhotoName,
+    loadingDelete,
+    onAddArray,
+    onDeleteArray,
+    filterQuey: environmentsQuery,
+  } = props;
+
   return (
     <SFlex gap={8} direction="column" mt={8}>
       <SText color="text.label" fontSize={14}>
@@ -117,6 +116,15 @@ export const ModalEnvironmentContent = ({
         columns={4}
         width="101%"
       />
+      <SDisplaySimpleArray
+        values={environmentData.activities || []}
+        onAdd={(value) => onAddArray(value, 'activities')}
+        onDelete={(value) => onDeleteArray(value, 'activities')}
+        label={'Processos de Trabalho'}
+        buttonLabel={'Adicionar Processo de Trabalho'}
+        placeholder="descreva o processos..."
+        modalLabel={'Adicionar Processo de Trabalho'}
+      />
       <SFlex justify="end">
         <STagSelect
           options={environmentsQuery.map((_, index) => ({
@@ -141,140 +149,10 @@ export const ModalEnvironmentContent = ({
           icon={SOrderIcon}
         />
       </SFlex>
-      <SText color="text.label" fontSize={14}>
-        Parâmetros ambientais
-      </SText>
-      <SFlex gap={8} flexWrap="wrap">
-        <Box flex={5}>
-          <InputForm
-            defaultValue={environmentData.temperature}
-            label="Temperatura"
-            sx={{ minWidth: [200] }}
-            control={control}
-            placeholder={'temperatura'}
-            name="temperature"
-            labelPosition="center"
-            size="small"
-            endAdornment="ºC"
-            mask={floatMask.apply({ decimal: 2, negative: true })}
-          />
-        </Box>
-        <Box flex={5}>
-          <InputForm
-            defaultValue={environmentData.noiseValue}
-            label="Ruído"
-            sx={{ minWidth: [200] }}
-            control={control}
-            placeholder={'ruído'}
-            name="noiseValue"
-            labelPosition="center"
-            size="small"
-            endAdornment="db (A)"
-            mask={floatMask.apply({ decimal: 2 })}
-          />
-        </Box>
-        <Box flex={5}>
-          <InputForm
-            defaultValue={environmentData.moisturePercentage}
-            label="Humidade"
-            sx={{ minWidth: [200] }}
-            labelPosition="center"
-            control={control}
-            placeholder={'humidade do ar'}
-            name="moisturePercentage"
-            size="small"
-            endAdornment="%"
-            mask={floatMask.apply({ decimal: 2 })}
-          />
-        </Box>
-        <Box flex={5}>
-          <InputForm
-            defaultValue={environmentData.luminosity}
-            label="Iluminância"
-            sx={{ minWidth: [200] }}
-            labelPosition="center"
-            control={control}
-            placeholder={'iluminância'}
-            name="luminosity"
-            size="small"
-            endAdornment="LUX"
-            mask={floatMask.apply()}
-          />
-        </Box>
-      </SFlex>
+      <ModalParametersContentBasic control={control} data={environmentData} />
 
-      <SText color="text.label" fontSize={14}>
-        Vincular cargos ao ambiente
-      </SText>
-      {!environmentLoading && !!hierarchies.length && (
-        <SFlex gap={8} mt={0} flexWrap="wrap">
-          {hierarchies.map((hierarchy) => {
-            const fromTree = hierarchy && 'label' in hierarchy;
-            const name = fromTree ? hierarchy.label : hierarchy.name;
-            return (
-              <SText
-                component="span"
-                key={hierarchy.id}
-                sx={{
-                  fontSize: 12,
-                  p: 4,
-                  border: '1px solid',
-                  borderColor: 'grey.300',
-                  borderRadius: 1,
-                }}
-              >
-                {name}
-              </SText>
-            );
-          })}
-        </SFlex>
-      )}
-      {environmentLoading && <CircularProgress color="primary" size={18} />}
-      <STagButton
-        large
-        icon={SAddIcon}
-        text="Adicionarcargos, setores ..."
-        iconProps={{ sx: { fontSize: 17 } }}
-        onClick={() => onAddHierarchy()}
-        disabled={environmentLoading}
-      />
-      <SText color="text.label" fontSize={14}>
-        Vincular Fatores de Risco / Perigos ao ambiente
-      </SText>
-      {!environmentLoading &&
-        !!environmentQuery.riskData &&
-        !!environmentQuery.riskData.length && (
-          <SFlex gap={8} mt={0} flexWrap="wrap">
-            {environmentQuery.riskData.map((riskData) => {
-              if (!riskData.riskFactor) return null;
+      <ModalAddHierarchyRisk {...props} />
 
-              return (
-                <SText
-                  component="span"
-                  key={riskData.id}
-                  sx={{
-                    fontSize: 12,
-                    p: 4,
-                    border: '1px solid',
-                    borderColor: 'grey.300',
-                    borderRadius: 1,
-                  }}
-                >
-                  {riskData.riskFactor.name}
-                </SText>
-              );
-            })}
-          </SFlex>
-        )}
-      {environmentLoading && <CircularProgress color="primary" size={18} />}
-      <STagButton
-        large
-        icon={SAddIcon}
-        text="Adicionar Fatores de risco e/ou Perigos ..."
-        iconProps={{ sx: { fontSize: 17 } }}
-        onClick={() => onAddRisk()}
-        disabled={environmentLoading}
-      />
       <SText color="text.label" fontSize={14}>
         Fotos
       </SText>

@@ -17,6 +17,7 @@ export interface IQueryCompanies {
   search?: string;
   companyId?: string;
   userId?: number;
+  groupId?: number;
 }
 
 export type IQueryCompaniesTypes = '/user' | '';
@@ -27,6 +28,8 @@ export const queryCompanies = async (
   type: string,
 ) => {
   if ('userId' in query && query.userId === 0)
+    return <Promise<IPaginationReturn<ICompany>>>emptyMapReturn();
+  if ('groupId' in query && query.userId === 0)
     return <Promise<IPaginationReturn<ICompany>>>emptyMapReturn();
 
   const queries = queryString.stringify(query);

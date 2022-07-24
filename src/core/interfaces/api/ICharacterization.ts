@@ -16,6 +16,12 @@ export type ICharacterization = {
   companyId: string;
   photos: ICharacterizationPhoto[];
   hierarchies?: IHierarchy[];
+  noiseValue: string;
+  temperature: string;
+  moisturePercentage: string;
+  luminosity: string;
+  activities: string[];
+  considerations: string[];
   riskData?: IRiskData[];
 };
 

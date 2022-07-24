@@ -3,6 +3,8 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
 
+import { ICompanyGroup } from './ICompanyGroup';
+
 export interface ICompany {
   id: string;
   cnpj: string;
@@ -21,6 +23,7 @@ export interface ICompany {
   address?: IAddress;
   size: string;
   phone: string;
+  group: ICompanyGroup;
   legal_nature: string;
   cadastral_situation: string;
   addressId: string;

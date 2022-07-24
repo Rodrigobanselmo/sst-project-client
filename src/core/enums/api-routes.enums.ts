@@ -1,6 +1,5 @@
 export enum ApiRoutesEnum {
   AUTH_GROUP = '/auth/group/:companyId',
-  COMPANY_GROUP = '/company/:companyId/group',
   CEP = '/company/cep',
   CHARACTERIZATIONS = '/company/:companyId/workspace/:workspaceId/characterizations',
   CHARACTERIZATIONS_PHOTO = '/company/:companyId/workspace/:workspaceId/characterizations/photo',
@@ -8,6 +7,7 @@ export enum ApiRoutesEnum {
   CNPJ = '/company/cnpj',
   COMPANIES = '/company',
   COMPANY = '/company/:companyId',
+  COMPANY_GROUP = '/company/:companyId/group',
   DATABASE_TABLE = '/files/database-tables',
   DOCUMENTS_PGR = '/documents/pgr',
   DOCUMENTS_PGR_ATTACHMENTS = '/documents/pgr/:docId/attachment',

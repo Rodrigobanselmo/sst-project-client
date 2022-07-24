@@ -14,7 +14,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
   lineNumber = 2,
   children,
   onClick,
-  fontSize = 15,
+  fontSize = 13,
   loading,
   textAlign,
   sx,
@@ -33,6 +33,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
           <SText
             textAlign={textAlign}
             fontSize={fontSize}
+            sx={{ whiteSpace: 'pre-line' }}
             lineNumber={lineNumber}
           >
             {text}

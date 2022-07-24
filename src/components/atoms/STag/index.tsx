@@ -29,6 +29,8 @@ export const STag: FC<ISTagProps> = ({
         return 'common.black';
       case 'add':
         return 'tag.add';
+      case 'main':
+        return 'primary.main';
       case 'edit':
         return 'tag.edit';
       case 'delete':

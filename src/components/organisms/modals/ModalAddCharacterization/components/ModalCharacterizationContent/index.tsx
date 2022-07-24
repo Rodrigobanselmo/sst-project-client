@@ -11,6 +11,8 @@ import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { STagSelect } from 'components/molecules/STagSelect';
+import { ModalAddHierarchyRisk } from 'components/organisms/modals/ModalAddEnvironment/components/ModalAddHierarchyRisk';
+import { ModalParametersContentBasic } from 'components/organisms/modals/ModalAddEnvironment/components/ModalParametersBasic';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
@@ -31,23 +33,22 @@ const StyledImage = styled('img')`
   object-fit: contain;
 `;
 
-export const ModalCharacterizationContent = ({
-  control,
-  characterizationData,
-  handleAddPhoto,
-  setCharacterizationData,
-  handlePhotoRemove,
-  loadingDelete,
-  onAddHierarchy,
-  onAddArray,
-  onDeleteArray,
-  hierarchies,
-  characterizationQuery,
-  onAddRisk,
-  characterizationLoading,
-  characterizationsQuery,
-  handlePhotoName,
-}: IUseEditCharacterization) => {
+export const ModalCharacterizationContent = (
+  props: IUseEditCharacterization,
+) => {
+  const {
+    control,
+    data: characterizationData,
+    handleAddPhoto,
+    setData: setCharacterizationData,
+    handlePhotoRemove,
+    loadingDelete,
+    onAddArray,
+    onDeleteArray,
+    filterQuery: characterizationsQuery,
+    handlePhotoName,
+  } = props;
+
   return (
     <SFlex gap={8} direction="column" mt={8}>
       <SText color="text.label" fontSize={14}>
@@ -121,6 +122,15 @@ export const ModalCharacterizationContent = ({
         columns={3}
         width="101%"
       />
+      <SDisplaySimpleArray
+        values={characterizationData.activities || []}
+        onAdd={(value) => onAddArray(value, 'activities')}
+        onDelete={(value) => onDeleteArray(value, 'activities')}
+        label={'Processos de Trabalho'}
+        buttonLabel={'Adicionar Processo de Trabalho'}
+        placeholder="descreva o processos..."
+        modalLabel={'Adicionar Processo de Trabalho'}
+      />
       <SFlex justify="end">
         <STagSelect
           options={characterizationsQuery.map((_, index) => ({
@@ -145,82 +155,11 @@ export const ModalCharacterizationContent = ({
           icon={SOrderIcon}
         />
       </SFlex>
-      <SText color="text.label" fontSize={14}>
-        Vincular cargos
-      </SText>
-      {!characterizationLoading && !!hierarchies.length && (
-        <SFlex gap={8} mt={0} flexWrap="wrap">
-          {hierarchies.map((hierarchy) => {
-            const fromTree = hierarchy && 'label' in hierarchy;
-            const name = fromTree ? hierarchy.label : hierarchy.name;
-            return (
-              <SText
-                component="span"
-                key={hierarchy.id}
-                sx={{
-                  fontSize: 12,
-                  p: 4,
-                  border: '1px solid',
-                  borderColor: 'grey.300',
-                  borderRadius: 1,
-                }}
-              >
-                {name}
-              </SText>
-            );
-          })}
-        </SFlex>
-      )}
-      {characterizationLoading && (
-        <CircularProgress color="primary" size={18} />
-      )}
-      <STagButton
-        large
-        icon={SAddIcon}
-        text="Adicionar cargos, setores ..."
-        iconProps={{ sx: { fontSize: 17 } }}
-        onClick={() => onAddHierarchy()}
-        disabled={characterizationLoading}
+      <ModalParametersContentBasic
+        control={control}
+        data={characterizationData}
       />
-      <SText color="text.label" fontSize={14}>
-        Vincular Fatores de Risco / Perigos ao ambiente
-      </SText>
-      {!characterizationLoading &&
-        !!characterizationQuery.riskData &&
-        !!characterizationQuery.riskData.length && (
-          <SFlex gap={8} mt={0} flexWrap="wrap">
-            {characterizationQuery.riskData.map((riskData) => {
-              if (!riskData.riskFactor) return null;
-
-              return (
-                <SText
-                  component="span"
-                  key={riskData.id}
-                  sx={{
-                    fontSize: 12,
-                    p: 4,
-                    border: '1px solid',
-                    borderColor: 'grey.300',
-                    borderRadius: 1,
-                  }}
-                >
-                  {riskData.riskFactor.name}
-                </SText>
-              );
-            })}
-          </SFlex>
-        )}
-      {characterizationLoading && (
-        <CircularProgress color="primary" size={18} />
-      )}
-      <STagButton
-        large
-        icon={SAddIcon}
-        text="Adicionar Fatores de risco e/ou Perigos ..."
-        iconProps={{ sx: { fontSize: 17 } }}
-        onClick={() => onAddRisk()}
-        disabled={characterizationLoading}
-      />
+      <ModalAddHierarchyRisk {...props} />
       <SText color="text.label" fontSize={14}>
         Fotos
       </SText>

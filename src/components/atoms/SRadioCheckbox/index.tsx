@@ -89,6 +89,7 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
             fontSize: '0.875rem',
             whiteSpace: 'pre-wrap',
             height: '100%',
+            backgroundColor: 'background.paper',
             px: '0.5rem',
             ...sx,
           }}

@@ -25,6 +25,7 @@ export interface IUpsertEnvironment {
   type?: EnvironmentTypeEnum;
   hierarchyIds?: string[];
   considerations?: string[];
+  activities?: string[];
   name?: string;
   description?: string;
   companyId?: string;

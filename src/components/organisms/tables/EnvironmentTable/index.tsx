@@ -1,7 +1,6 @@
 import { FC, useEffect, useMemo } from 'react';
 
 import { BoxProps } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -14,22 +13,8 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagSelect } from 'components/molecules/STagSelect';
-import { ModalAddEnvironment } from 'components/organisms/modals/ModalAddEnvironment';
-import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
-import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
-import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
-import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
-import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
-import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
-import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
-import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
-import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
-import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
-import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
-import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import dayjs from 'dayjs';
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
-import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
@@ -37,7 +22,6 @@ import SOrderIcon from 'assets/icons/SOrderIcon';
 
 import { environmentMap } from 'core/constants/maps/environment.map';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
@@ -47,8 +31,6 @@ import { useMutUpsertEnvironment } from 'core/services/hooks/mutations/manager/u
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEnvironments } from 'core/services/hooks/queries/useQueryEnvironments';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
-import { queryClient } from 'core/services/queryClient';
-import { sortData } from 'core/utils/sorts/data.sort';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -189,21 +171,6 @@ export const EnvironmentTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
-      <>
-        <ModalAddEnvironment />
-        <ModalSelectDocPgr />
-        <ModalAddRisk />
-        <ModalAddGho />
-        <ModalAddGenerateSource />
-        <ModalAddRecMed />
-        <ModalAddEpi />
-        <ModalAddProbability />
-        <ModalAddQuantity />
-      </>
-      <ModalAddWorkspace />
-      <ModalSingleInput />
-      <ModalExcelHierarchies />
-      <ModalSelectHierarchy />
     </>
   );
 };

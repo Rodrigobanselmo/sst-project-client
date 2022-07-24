@@ -56,6 +56,7 @@ export const initialEnvironmentState = {
   companyId: '',
   workspaceId: '',
   considerations: [] as string[],
+  activities: [] as string[],
   parentId: '',
   type: '' as EnvironmentTypeEnum, //? missing
   parentEnvironmentId: '', //? missing
@@ -72,9 +73,9 @@ interface ISubmit {
   moisturePercentage: string;
 }
 
-const modalName = ModalEnum.ENVIRONMENT_ADD;
+const modalNameInit = ModalEnum.ENVIRONMENT_ADD;
 
-export const useEditEnvironment = () => {
+export const useEditEnvironment = (modalName = modalNameInit) => {
   const { registerModal, getModalData, isOpen } = useRegisterModal();
   const { onCloseModal, onOpenModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialEnvironmentState);
@@ -132,13 +133,19 @@ export const useEditEnvironment = () => {
   }, [getModalData, isOpen]);
 
   const hierarchies = useMemo(() => {
+    const data = environmentData.hierarchies.map((hierarch) => ({
+      ...hierarch,
+      id: `${String(hierarch.id).split('//')[0]}`,
+    }));
+
     if (environmentQuery.hierarchies) {
-      return removeDuplicate(
-        [...environmentQuery.hierarchies, ...environmentData.hierarchies],
-        { removeById: 'id' },
-      );
+      return removeDuplicate([...environmentQuery.hierarchies, ...data], {
+        removeById: 'id',
+      });
     }
-    return [...environmentData.hierarchies];
+    return removeDuplicate([...data], {
+      removeById: 'id',
+    });
   }, [environmentData.hierarchies, environmentQuery.hierarchies]);
 
   const onClose = (data?: any) => {
@@ -168,6 +175,7 @@ export const useEditEnvironment = () => {
       temperature: data.temperature,
       luminosity: data.luminosity,
       moisturePercentage: data.moisturePercentage,
+      activities: environmentData.activities,
       photos: environmentData.photos,
       order: environmentData.order,
       type: environmentData.type,
@@ -350,22 +358,28 @@ export const useEditEnvironment = () => {
     } as typeof initialHierarchySelectState);
   };
 
-  const onAddArray = (value: string) => {
-    setEnvironmentData({
-      ...environmentData,
-      considerations: [...environmentData.considerations, value],
-    });
+  const onAddArray = (
+    value: string,
+    type = 'considerations' as 'considerations' | 'activities',
+  ) => {
+    if (environmentData[type])
+      setEnvironmentData({
+        ...environmentData,
+        [type]: [...environmentData[type], value],
+      });
   };
 
-  const onDeleteArray = (value: string) => {
-    setEnvironmentData({
-      ...environmentData,
-      considerations: [
-        ...environmentData.considerations.filter(
-          (item: string) => item !== value,
-        ),
-      ],
-    });
+  const onDeleteArray = (
+    value: string,
+    type = 'considerations' as 'considerations' | 'activities',
+  ) => {
+    if (environmentData[type])
+      setEnvironmentData({
+        ...environmentData,
+        [type]: [
+          ...environmentData[type].filter((item: string) => item !== value),
+        ],
+      });
   };
 
   const onAddRisk = () => {
@@ -400,13 +414,13 @@ export const useEditEnvironment = () => {
     registerModal,
     onCloseUnsaved,
     onClose,
-    environmentData,
+    data: environmentData,
     onSubmit,
     loading: upsertMutation.isLoading || deleteMutation.isLoading,
     loadingDelete: deletePhotoMutation.isLoading,
     control,
     handleSubmit,
-    setEnvironmentData,
+    setData: setEnvironmentData,
     modalName,
     handleAddPhoto,
     handlePhotoRemove,
@@ -417,13 +431,13 @@ export const useEditEnvironment = () => {
     onRemove: () => preventDelete(onRemove),
     isRiskOpen,
     onAddRisk,
-    environmentQuery,
+    query: environmentQuery,
     hierarchies,
-    environmentLoading: environmentLoading && ghoLoading,
+    dataLoading: environmentLoading && ghoLoading,
     saveRef,
     handlePhotoUpdate,
     handlePhotoName,
-    environmentsQuery: environmentsQuery.filter(
+    filterQuey: environmentsQuery.filter(
       (e) => e.type === environmentData.type,
     ),
   };

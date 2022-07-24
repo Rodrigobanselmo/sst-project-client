@@ -15,11 +15,12 @@ export const GoogleButton: FC<SButtonProps & { text: string }> = ({
     <SButton
       sx={{
         backgroundColor: 'white',
-        boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.3)',
+        boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+        maxWidth: 'fit-content',
         minWidth: 'fit-content',
         ':hover': {
           backgroundColor: 'white',
-          boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.3)',
+          boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
           filter: 'brightness(0.97)',
         },
         ...(props?.sx ? props.sx : {}),

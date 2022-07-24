@@ -22,7 +22,7 @@ export const ModalAddCharacterization = () => {
     registerModal,
     handleSubmit,
     onCloseUnsaved,
-    characterizationData,
+    data: characterizationData,
     loading,
     modalName,
     isEdit,

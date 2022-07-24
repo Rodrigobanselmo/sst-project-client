@@ -1,8 +1,10 @@
+import { MdDashboard } from 'react-icons/md';
+
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
-import { MdDashboard } from '@react-icons/all-files/md/MdDashboard';
 import { RoleEnum } from 'project/enum/roles.enums';
 
-import SCompany from 'assets/icons/SCompanyIcon';
+import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
+import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
 import SProfileIcon from 'assets/icons/SProfileIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
@@ -47,6 +49,16 @@ const accessGroups = {
   shouldMatchExactHref: true,
 };
 
+const companyGroups = {
+  text: 'Grupo Empresarial',
+  Icon: SCompanyGroupIcon,
+  description: 'Gerenciamento dos grupos empresariais',
+  id: 'Tu29j3dGCC',
+  href: RoutesEnum.COMPANY_GROUP,
+  roles: [RoleEnum.MANAGEMENT],
+  shouldMatchExactHref: true,
+};
+
 const checklist = {
   text: 'Checklist',
   Icon: LibraryAddCheckIcon,
@@ -67,11 +79,12 @@ const importExportData = {
 
 const allCompaniesData = {
   text: 'Empresas',
-  Icon: SCompany,
+  Icon: SCompanyIcon,
   description: 'Visualizar suas empresas cadastradas',
   id: 'lfrXaeDx',
   href: RoutesEnum.COMPANIES,
   roles: [RoleEnum.CONTRACTS],
+  shouldMatchExactHref: true,
 };
 
 export const generalArray = [
@@ -82,4 +95,5 @@ export const generalArray = [
   checklist,
   importExportData,
   accessGroups,
+  companyGroups,
 ];
