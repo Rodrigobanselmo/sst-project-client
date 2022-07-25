@@ -72,31 +72,33 @@ export const ModalAddCharacterization = () => {
       onClose={onCloseUnsaved}
     >
       <>
-        {!isRiskOpen && (
-          <SModalPaper
-            p={8}
-            center
-            component="form"
-            onSubmit={handleSubmit(onSubmit)}
-            sx={{ width: 1000, maxWidth: '95vw' }}
-          >
-            <SModalHeader
-              tag={isEdit ? 'edit' : 'add'}
-              onClose={onCloseUnsaved}
-              title={'Caracterização Básica'}
-              secondIcon={characterizationData?.id ? SDeleteIcon : undefined}
-              secondIconClick={onRemove}
-            />
+        <SModalPaper
+          p={8}
+          center
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+          sx={{
+            width: 1000,
+            maxWidth: '95vw',
+            display: !isRiskOpen ? 'auto' : 'none',
+          }}
+        >
+          <SModalHeader
+            tag={isEdit ? 'edit' : 'add'}
+            onClose={onCloseUnsaved}
+            title={'Caracterização Básica'}
+            secondIcon={characterizationData?.id ? SDeleteIcon : undefined}
+            secondIconClick={onRemove}
+          />
 
-            <ModalCharacterizationContent {...props} />
+          <ModalCharacterizationContent {...props} />
 
-            <SModalButtons
-              loading={loading}
-              onClose={onCloseUnsaved}
-              buttons={buttons}
-            />
-          </SModalPaper>
-        )}
+          <SModalButtons
+            loading={loading}
+            onClose={onCloseUnsaved}
+            buttons={buttons}
+          />
+        </SModalPaper>
         {isRiskOpen && <RiskToolSlider />}
       </>
     </SModal>

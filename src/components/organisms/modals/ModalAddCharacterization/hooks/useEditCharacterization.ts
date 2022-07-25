@@ -557,7 +557,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       //   ?.click();
     }
 
-    onOpenModal(ModalEnum.DOC_PGR_SELECT, {
+    onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
       title:
         'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
       onSelect: (docPgr: IRiskGroupData) => {
@@ -631,6 +631,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     onChangeProfile,
     notPrincipalProfile,
     photos,
+    setValue,
   };
 };
 

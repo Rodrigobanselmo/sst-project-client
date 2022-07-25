@@ -54,6 +54,7 @@ export const ModalCharacterizationContent = (
     onChangeProfile,
     notPrincipalProfile,
     photos,
+    setValue,
   } = props;
 
   const isEnvironment =
@@ -137,7 +138,10 @@ export const ModalCharacterizationContent = (
           setCharacterizationData((old) => ({
             ...old,
             characterizationType: (e as any).target.value,
+            type: '' as any,
           }));
+
+          setValue('type', '');
         }}
         defaultValue={characterizationData.characterizationType}
         options={[
@@ -156,11 +160,6 @@ export const ModalCharacterizationContent = (
         {...(manyProfiles &&
           notPrincipalProfile && {
             disabled: true,
-            inputPropsFunc: (option) => ({
-              checked:
-                option.value === characterizationData.characterizationType,
-              value: option.value,
-            }),
           })}
       />
 
