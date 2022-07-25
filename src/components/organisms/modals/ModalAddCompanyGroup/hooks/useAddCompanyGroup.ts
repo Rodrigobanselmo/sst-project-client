@@ -68,6 +68,7 @@ export const useAddCompanyGroup = () => {
         return newData;
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getModalData]);
 
   useEffect(() => {
@@ -118,11 +119,26 @@ export const useAddCompanyGroup = () => {
   };
 
   const handleOpenCompanySelect = () => {
-    const onSelect = (companies: ICompany[]) => {
-      setCompanyGroupData({
-        ...companyGroupData,
-        companies,
-      });
+    const onSelect = async (companies: ICompany[]) => {
+      if (companyGroupData.id) {
+        await upsertCompanyGroup
+          .mutateAsync({
+            ...companyGroupData,
+            companiesIds: companies.map((company) => company.id),
+          })
+          .then(() => {
+            setCompanyGroupData({
+              ...companyGroupData,
+              companies,
+            });
+          })
+          .catch(() => {});
+      } else {
+        setCompanyGroupData({
+          ...companyGroupData,
+          companies,
+        });
+      }
     };
 
     onStackOpenModal(ModalEnum.COMPANY_SELECT, {

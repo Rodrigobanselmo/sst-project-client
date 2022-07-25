@@ -151,11 +151,12 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
   };
 
   return (
-    <Box {...props}>
+    <Box minWidth={['100%', 600, 800]} {...props}>
       <FormControl
         error={!!data.errors.roles}
         component="fieldset"
         variant="standard"
+        style={{ width: '100%' }}
       >
         <FormLabel
           sx={{
@@ -175,7 +176,8 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
           sx={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr 1fr',
-            gap: '10px 20px',
+            gap: '20px 20px',
+            width: '100%',
             ml: 3,
             mb: 3,
           }}

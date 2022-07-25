@@ -78,6 +78,7 @@ interface ISubmit {
   temperature: string;
   luminosity: string;
   moisturePercentage: string;
+  type: CharacterizationTypeEnum;
 }
 
 const modalNameInit = ModalEnum.CHARACTERIZATION_ADD;
@@ -132,7 +133,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       ) || ({} as ICharacterization)
     : characterizationDataQuery;
 
-  const isEdit = !!characterizationData.id || !!characterizationQuery?.id;
+  const isEdit = !!characterizationData.id && !!characterizationQuery?.id;
   const principalProfile = characterizationDataQuery;
   const profiles = characterizationDataQuery.profiles;
   const manyProfiles =
@@ -143,6 +144,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   const photos = notPrincipalProfile
     ? characterizationDataQuery.photos
     : characterizationData.photos;
+  const isPrincipalNew = !characterizationData.id && !manyProfiles;
 
   useEffect(() => {
     const initialData =
@@ -191,6 +193,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
         removeById: 'id',
       });
     }
+
     return removeDuplicate([...data], {
       removeById: 'id',
     });
@@ -216,6 +219,8 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   const onSubmit: SubmitHandler<ISubmit> = async (data) => {
+    const clickOnSameProfile = saveRef.current === characterizationData.id;
+    if (clickOnSameProfile) return;
     if (notPrincipalProfile && !data.profileName) {
       setFocus('profileName');
       return setError('profileName', { message: 'Campo obrigatório' });
@@ -231,7 +236,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       name: notPrincipalProfile
         ? `${data.name} (${data.profileName})`
         : data.name,
-      type: characterizationData.type,
+      type: data.type,
       description: data.description,
       noiseValue: data.noiseValue,
       moisturePercentage: data.moisturePercentage,
@@ -256,95 +261,104 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     await upsertMutation
       .mutateAsync(submitData)
       .then((characterization) => {
-        if (!characterizationData.id)
-          queryClient.invalidateQueries([QueryEnum.GHO]);
+        try {
+          if (!characterizationData.id)
+            queryClient.invalidateQueries([QueryEnum.GHO]);
 
-        const isString = typeof saveRef.current === 'string';
+          const isString = typeof saveRef.current === 'string';
 
-        // is add profile
-        if (isString && !saveRef.current) {
-          console.log('is add profile');
-          reset();
-          // eslint-disable-next-line prettier/prettier
-          setValue( 'characterizationType', characterizationData.characterizationType, );
-          setValue('type', principalProfile.type);
-          setValue('name', principalProfile.name);
-          return setCharacterizationData({
-            ...initialCharacterizationState,
-            name: data.name,
-            characterizationType: characterizationData.characterizationType,
-            type: principalProfile.type,
-            profileParentId: principalProfile.id,
-          });
-        }
+          // is add profile
+          if (isString && saveRef.current === 'add-profile') {
+            const profileParentId = isPrincipalNew
+              ? characterization.id
+              : principalProfile.id;
+            const type = isPrincipalNew
+              ? characterization.type
+              : principalProfile.type;
+            const name = isPrincipalNew
+              ? characterization.name
+              : principalProfile.name;
+            const characterizationType =
+              characterizationData.characterizationType;
 
-        // is add risks
-        if (isString && saveRef.current == 'risk') {
-          console.log('is add risk');
-          initialDataRef.current = {
-            ...characterizationData,
-            ...data,
-            id: characterization.id,
-          };
-          setCharacterizationData({
-            ...characterizationData,
-            id: characterization.id,
-          });
-          return onAddRisk();
-        }
+            reset();
 
-        // is change profile
-        if (isString && saveRef.current) {
-          const characterizationQuery =
-            principalProfile?.profiles.find(
-              (profile) => profile.id === saveRef.current,
-            ) || principalProfile;
+            setValue('characterizationType', characterizationType);
+            setValue('type', type);
+            setValue('name', name);
 
-          // eslint-disable-next-line prettier/prettier
-          setValue(  'characterizationType', characterizationData.characterizationType, );
-          // eslint-disable-next-line prettier/prettier
-          setValue( 'moisturePercentage', characterizationQuery.moisturePercentage || '', );
-          setValue('type', principalProfile.type);
-          setValue('name', principalProfile.name);
-          setValue('description', characterizationQuery.description || '');
-          setValue('luminosity', characterizationQuery.luminosity || '');
-          setValue('temperature', characterizationQuery.temperature || '');
-          setValue('noiseValue', characterizationQuery.noiseValue || '');
-          setValue('profileName', characterizationQuery.profileName || '');
+            return setCharacterizationData({
+              ...initialCharacterizationState,
+              name: data.name,
+              workspaceId: characterizationData.workspaceId,
+              companyId: characterizationData.companyId,
+              characterizationType: characterizationData.characterizationType,
+              type: characterizationData.type,
+              profileParentId: profileParentId,
+            });
+          }
 
-          return setCharacterizationData({
-            ...(characterizationQuery as any),
-            characterizationType: characterizationData.characterizationType,
-            type: principalProfile.type,
-            name: principalProfile.name,
-          });
-        }
+          // is add risks
+          if (isString && saveRef.current == 'risk') {
+            initialDataRef.current = {
+              ...characterizationData,
+              ...data,
+              id: characterization.id,
+            };
+            setCharacterizationData({
+              ...characterizationData,
+              id: characterization.id,
+            });
+            return onAddRisk();
+          }
 
-        // is close and save
-        if (!saveRef.current) {
-          onClose();
-          // return setCharacterizationData({
-          //   ...initialCharacterizationState,
-          //   companyId: characterizationData.companyId,
-          //   workspaceId: characterizationData.workspaceId,
-          //   profiles: characterizationData.profiles,
-          //   // ...(notPrincipalProfile && {
-          //   //   profileParentId: characterization.id,
-          //   // }),
-          // });
-        }
+          // is change profile
+          if (isString && saveRef.current) {
+            const characterizationQuery =
+              principalProfile?.profiles.find(
+                (profile) => profile.id === saveRef.current,
+              ) || principalProfile;
 
-        // is only save
-        if (saveRef.current) {
-          initialDataRef.current = {
-            ...characterizationData,
-            ...data,
-            id: characterization.id,
-          };
-          setCharacterizationData({
-            ...characterizationData,
-            id: characterization.id,
-          });
+            // eslint-disable-next-line prettier/prettier
+            setValue(  'characterizationType', characterizationData.characterizationType || '' );
+            // eslint-disable-next-line prettier/prettier
+            setValue( 'moisturePercentage', characterizationQuery.moisturePercentage || '');
+            setValue('type', characterizationData.type);
+            setValue('name', characterizationData.name);
+            setValue('description', characterizationQuery.description || '');
+            setValue('luminosity', characterizationQuery.luminosity || '');
+            setValue('temperature', characterizationQuery.temperature || '');
+            setValue('noiseValue', characterizationQuery.noiseValue || '');
+            setValue('profileName', characterizationQuery.profileName || '');
+
+            return setCharacterizationData({
+              ...(characterizationQuery as any),
+              characterizationType: characterizationData.characterizationType,
+              type: principalProfile.type,
+              name: principalProfile.name,
+            });
+          }
+
+          // is close and save
+          if (!saveRef.current) {
+            onClose();
+          }
+
+          // is only save
+          if (saveRef.current) {
+            initialDataRef.current = {
+              ...characterizationData,
+              ...data,
+              id: characterization.id,
+            };
+
+            setCharacterizationData({
+              ...characterizationData,
+              id: characterization.id,
+            });
+          }
+        } catch (error) {
+          console.log(error);
         }
       })
       .catch(() => {});
@@ -564,7 +578,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   const onAddProfile = () => {
-    saveRef.current = '';
+    saveRef.current = 'add-profile';
     document.getElementById(IdsEnum.ADD_PROFILE_CHARACTERIZATION_ID)?.click();
   };
 

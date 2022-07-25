@@ -15,7 +15,7 @@ import { BoxContainerStyled, BoxSectionStyled } from './styles';
 export function SideBarNav(): JSX.Element {
   const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
   const { isValidRoles } = useAccess();
-  const { companyId } = useGetCompanyId();
+  const { userCompanyId } = useGetCompanyId();
 
   return (
     <BoxContainerStyled
@@ -41,7 +41,10 @@ export function SideBarNav(): JSX.Element {
                     <NavLink
                       isAlwaysClose={isAlwaysClose}
                       key={item.id}
-                      href={item.href.replace(':companyId', companyId || '')}
+                      href={item.href.replace(
+                        ':companyId',
+                        userCompanyId || '',
+                      )}
                       icon={item.Icon}
                       text={item.text}
                       description={item.description}

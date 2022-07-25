@@ -28,5 +28,12 @@ export const useGetCompanyId = (fromUser = false) => {
     return companyId || '';
   };
 
-  return { companyId, getCompanyId, user, router, workspaceId };
+  return {
+    companyId,
+    getCompanyId,
+    userCompanyId: user?.companyId || '',
+    user,
+    router,
+    workspaceId,
+  };
 };

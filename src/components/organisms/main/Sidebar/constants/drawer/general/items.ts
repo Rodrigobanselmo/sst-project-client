@@ -53,7 +53,7 @@ const companyGroups = {
   text: 'Grupo Empresarial',
   Icon: SCompanyGroupIcon,
   description: 'Gerenciamento dos grupos empresariais',
-  id: 'Tu29j3dGCC',
+  id: 'Tu29j3dGe32e32CC',
   href: RoutesEnum.COMPANY_GROUP,
   roles: [RoleEnum.MANAGEMENT],
   shouldMatchExactHref: true,

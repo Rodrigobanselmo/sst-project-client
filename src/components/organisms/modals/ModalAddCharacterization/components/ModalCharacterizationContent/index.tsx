@@ -133,7 +133,7 @@ export const ModalCharacterizationContent = (
         type="radio"
         control={control}
         onChange={(e) => {
-          if (manyProfiles) return;
+          if (notPrincipalProfile) return;
           setCharacterizationData((old) => ({
             ...old,
             characterizationType: (e as any).target.value,

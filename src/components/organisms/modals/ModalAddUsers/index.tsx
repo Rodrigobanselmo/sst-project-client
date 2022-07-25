@@ -115,7 +115,7 @@ export const ModalAddUsers = () => {
           )}
         </SFlex>{' '}
         {isConsulting && (
-          <SFlex mt={10} gap={5}>
+          <SFlex mt={10} mb={20} gap={5}>
             {userData.companies.map((company) => {
               return (
                 <CompanyTag

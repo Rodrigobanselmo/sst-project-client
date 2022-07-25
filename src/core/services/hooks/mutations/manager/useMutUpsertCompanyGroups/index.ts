@@ -45,11 +45,19 @@ export function useMutUpsertCompanyGroup() {
       upsertCompanyGroup({ ...data }, user?.companyId),
     {
       onSuccess: async (resp) => {
-        if (resp)
+        if (resp) {
+          queryClient.invalidateQueries([
+            QueryEnum.COMPANIES,
+            user?.companyId,
+            1,
+            { groupId: resp.id },
+          ]);
+
           queryClient.invalidateQueries([
             QueryEnum.COMPANY_GROUP,
             user?.companyId,
           ]);
+        }
 
         enqueueSnackbar('Grupos empresariais atualizados com sucesso', {
           variant: 'success',
