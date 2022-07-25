@@ -62,31 +62,6 @@ const Companies: NextPage = () => {
     } as typeof initialWorkspaceSelectState);
   };
 
-  const handleAddEnvironments = useCallback(() => {
-    const workspaceLength = company?.workspace?.length || 0;
-    const goToEnv = (workId: string) => {
-      push({
-        pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
-          ':companyId',
-          company.id,
-        ).replace(':workspaceId', workId)}/${CharacterizationEnum.ENVIRONMENT}`,
-      });
-    };
-
-    if (workspaceLength != 1) {
-      const initialWorkspaceState = {
-        title:
-          'Selecione para qual Estabelecimento deseja adicionar os ambientes de trabalho',
-        onSelect: (workspace: IWorkspace) => goToEnv(workspace.id),
-      } as typeof initialWorkspaceSelectState;
-
-      onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
-    }
-
-    if (!company?.workspace) return;
-    if (workspaceLength == 1) goToEnv(company.workspace[0].id);
-  }, [company.id, company?.workspace, onOpenModal, push]);
-
   const handleAddCharacterization = useCallback(() => {
     const workspaceLength = company?.workspace?.length || 0;
     const goToEnv = (workId: string) => {
@@ -94,7 +69,7 @@ const Companies: NextPage = () => {
         pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
           ':companyId',
           company.id,
-        ).replace(':workspaceId', workId)}/${CharacterizationEnum.LABOR}`,
+        ).replace(':workspaceId', workId)}/${CharacterizationEnum.ALL}`,
       });
     };
 
@@ -111,25 +86,6 @@ const Companies: NextPage = () => {
     if (workspaceLength == 1) goToEnv(company.workspace[0].id);
   }, [company.id, company?.workspace, onOpenModal, push]);
 
-  const characterizationStepMemo = useMemo(() => {
-    return [
-      {
-        icon: SEnvironmentIcon,
-        onClick: handleAddEnvironments,
-        text: 'Ambientes de trabalho (foto)',
-        tooltipText:
-          'Cadastro de ambientes de trabalho e os riscos atrelado a eles (adicionar fotografia do ambiente)',
-      },
-      {
-        icon: SCharacterization,
-        onClick: handleAddCharacterization,
-        text: 'Mão de obra (foto)',
-        tooltipText:
-          'Cadastro das atividades, posto de trabalho e equipamentos da mão de obra e os riscos atrelado (adicionar fotografia)',
-      },
-    ];
-  }, [handleAddEnvironments, handleAddCharacterization]);
-
   return (
     <SContainer>
       <SPageTitle mb={15} icon={SDocumentIcon}>
@@ -138,23 +94,30 @@ const Companies: NextPage = () => {
       <SPageTitleSection mb={5} mt={15} title="Ações" />
       <SFlex gap={10}>
         <SActionButton
+          icon={SPhotoIcon}
+          onClick={handleAddCharacterization}
+          text={'Caracterização Básica'}
+          success
+          tooltipText={
+            'Cadastro de ambientes de trabalho, atividades e posto de trabalh (adicionar fotografia)'
+          }
+        />
+        <SActionButton
           icon={SRiskFactorIcon}
           onClick={handleGoToRiskData}
           text={'Vincular fatores de risco'}
           primary
         />
-        <SActionButton
-          icon={SActionPlanIcon}
-          onClick={handleGoToActionPlan}
-          text={'Plano de ação'}
-        />
       </SFlex>
-      <SPageTitleSection title="Caracterização Básica" icon={SPhotoIcon} />
-      <SFlex mb={15} mt={5} gap={10} flexWrap="wrap">
-        {characterizationStepMemo.map((props) => (
-          <SActionButton key={props.text} {...props} />
-        ))}
-      </SFlex>
+      <SPageTitleSection title="Gestão" icon={SPhotoIcon} />
+      <SActionButton
+        mb={15}
+        mt={5}
+        icon={SActionPlanIcon}
+        onClick={handleGoToActionPlan}
+        text={'Plano de ação'}
+        width={'175px'}
+      />
 
       <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
       <DocPgrTable riskGroupId={query.docId as string} />
