@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { css } from '@emotion/react';
 import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
@@ -49,7 +48,7 @@ export const StyledGrid = styled(Grid)<IStyledGrid>`
       props.error &&
       css`
         border: 2px solid ${props.theme.palette.error.main};
-      `}
+      `};
   }
 
   input:disabled + span {

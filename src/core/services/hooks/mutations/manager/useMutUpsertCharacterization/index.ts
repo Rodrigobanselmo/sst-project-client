@@ -108,7 +108,7 @@ export function useMutUpsertCharacterization() {
                   const newData = [...oldData];
 
                   const updateIndexData = oldData.findIndex(
-                    (old) => old.id == resp.profileParentId || resp.id,
+                    (old) => old.id == (resp.profileParentId || resp.id),
                   );
 
                   if (resp.profileParentId) {

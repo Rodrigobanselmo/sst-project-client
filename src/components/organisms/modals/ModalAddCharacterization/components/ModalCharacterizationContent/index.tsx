@@ -153,7 +153,15 @@ export const ModalCharacterizationContent = (
         name="characterizationType"
         columns={2}
         width="101%"
-        {...(manyProfiles && notPrincipalProfile && { disabled: true })}
+        {...(manyProfiles &&
+          notPrincipalProfile && {
+            disabled: true,
+            inputPropsFunc: (option) => ({
+              checked:
+                option.value === characterizationData.characterizationType,
+              value: option.value,
+            }),
+          })}
       />
 
       <SFlex overflow="auto">

@@ -158,6 +158,9 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           profileParentId: '',
         };
 
+        setValue('characterizationType', newData.characterizationType);
+        setValue('type', newData.type);
+
         const isEnvironment = [
           CharacterizationTypeEnum.GENERAL,
           CharacterizationTypeEnum.ADMINISTRATIVE,
@@ -319,10 +322,14 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
                 (profile) => profile.id === saveRef.current,
               ) || principalProfile;
 
-            // eslint-disable-next-line prettier/prettier
-            setValue(  'characterizationType', characterizationData.characterizationType || '' );
-            // eslint-disable-next-line prettier/prettier
-            setValue( 'moisturePercentage', characterizationQuery.moisturePercentage || '');
+            setValue(
+              'characterizationType',
+              characterizationData.characterizationType || '',
+            );
+            setValue(
+              'moisturePercentage',
+              characterizationQuery.moisturePercentage || '',
+            );
             setValue('type', characterizationData.type);
             setValue('name', characterizationData.name);
             setValue('description', characterizationQuery.description || '');

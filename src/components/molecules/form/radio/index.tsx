@@ -14,6 +14,7 @@ export const RadioForm = ({
   onChange,
   options,
   inputProps = {},
+  inputPropsFunc,
   type,
   columns,
   reset,
@@ -49,7 +50,8 @@ export const RadioForm = ({
               helperText={error?.message ?? undefined}
               defaultValue={defaultValue}
               error={!!error}
-              inputProps={() => ({
+              inputProps={(e) => ({
+                ...(inputPropsFunc ? inputPropsFunc(e) : {}),
                 onChange: (e) => {
                   onChange && onChange(e);
                   func(e);
