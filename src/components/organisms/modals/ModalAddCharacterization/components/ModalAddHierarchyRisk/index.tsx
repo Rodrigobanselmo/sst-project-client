@@ -24,7 +24,7 @@ import SOrderIcon from 'assets/icons/SOrderIcon';
 import { environmentMap } from 'core/constants/maps/environment.map';
 import { floatMask } from 'core/utils/masks/float.mask';
 
-import { IUseEditEnvironment } from '../../hooks/useEditEnvironment';
+import { IUseEditEnvironment } from '../../../ModalAddEnvironment/hooks/useEditEnvironment';
 import { ModalParametersContentBasic } from '../ModalParametersBasic';
 
 const StyledImage = styled('img')`
@@ -42,11 +42,9 @@ export const ModalAddHierarchyRisk = ({
   hierarchies,
   query: characterizationQuery,
   dataLoading: characterizationLoading,
-  query: environmentQuery,
-  dataLoading: environmentLoading,
 }: IUseEditEnvironment | IUseEditCharacterization) => {
-  const loading = !!characterizationLoading || !!environmentLoading;
-  const dataQuery = environmentQuery || characterizationQuery;
+  const loading = !!characterizationLoading;
+  const dataQuery = characterizationQuery;
 
   return (
     <>
@@ -94,7 +92,7 @@ export const ModalAddHierarchyRisk = ({
         <STagButton
           large
           icon={SAddIcon}
-          text="Adicionarcargos, setores ..."
+          text="Adicionar cargos, setores ..."
           iconProps={{ sx: { fontSize: 17 } }}
           onClick={() => onAddHierarchy?.()}
           disabled={loading}
@@ -112,7 +110,7 @@ export const ModalAddHierarchyRisk = ({
         sx={{ backgroundColor: 'background.paper' }}
       >
         <SFlex>
-          <STag action="main" text="Riscos" />
+          <STag action="warning" text="Riscos" />
           <SText color="text.label" fontSize={14}>
             Vincular Fatores de Risco / Perigos ao ambiente
           </SText>

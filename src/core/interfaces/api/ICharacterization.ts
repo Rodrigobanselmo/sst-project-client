@@ -23,6 +23,10 @@ export type ICharacterization = {
   activities: string[];
   considerations: string[];
   riskData?: IRiskData[];
+  profiles: ICharacterization[];
+  profileName: string;
+  profileParentId: string;
+  profileParent: ICharacterization;
 };
 
 export type ICharacterizationPhoto = {

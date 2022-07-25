@@ -35,6 +35,8 @@ export interface IUpsertCharacterization {
   workspaceId?: string;
   considerations?: string[];
   activities?: string[];
+  profileParentId?: string;
+  profileName?: string;
   photos?: IAddCharacterizationPhoto[];
 }
 
@@ -97,7 +99,7 @@ export function useMutUpsertCharacterization() {
               QueryEnum.CHARACTERIZATION,
               resp.companyId,
               resp.workspaceId,
-              resp.id,
+              resp.profileParentId || resp.id,
             ]);
             queryClient.setQueryData(
               [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
@@ -106,8 +108,25 @@ export function useMutUpsertCharacterization() {
                   const newData = [...oldData];
 
                   const updateIndexData = oldData.findIndex(
-                    (old) => old.id == resp.id,
+                    (old) => old.id == resp.profileParentId || resp.id,
                   );
+
+                  if (resp.profileParentId) {
+                    if (!newData[updateIndexData]) return newData;
+
+                    const updateIndexDataParent = newData[
+                      updateIndexData
+                    ].profiles.findIndex((old) => old.id == resp.id);
+
+                    if (updateIndexData != -1) {
+                      newData[updateIndexData].profiles[updateIndexDataParent] =
+                        resp;
+                    } else {
+                      newData[updateIndexData].profiles.push(resp);
+                    }
+                    return newData;
+                  }
+
                   if (updateIndexData != -1) {
                     newData[updateIndexData] = resp;
                   } else {

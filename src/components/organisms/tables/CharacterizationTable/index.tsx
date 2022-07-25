@@ -13,6 +13,7 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagSelect } from 'components/molecules/STagSelect';
+import { initialCharacterizationState } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 import dayjs from 'dayjs';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 
@@ -84,6 +85,13 @@ export const CharacterizationTable: FC<ITableProps> = ({
         )
         .sort((a, b) => sortString(a, b, 'type')),
       ...data
+        .filter((e) =>
+          [
+            CharacterizationTypeEnum.WORKSTATION,
+            CharacterizationTypeEnum.ACTIVITIES,
+            CharacterizationTypeEnum.EQUIPMENT,
+          ].includes(e.type),
+        )
         .sort((a, b) =>
           sortNumber(a.order ? a : 10000, b.order ? b : 10000, 'order'),
         )
@@ -97,7 +105,9 @@ export const CharacterizationTable: FC<ITableProps> = ({
   });
 
   const handleEdit = (data: ICharacterization) => {
-    onOpenModal(ModalEnum.CHARACTERIZATION_ADD, { ...data });
+    onOpenModal(ModalEnum.CHARACTERIZATION_ADD, { ...data } as Partial<
+      typeof initialCharacterizationState
+    >);
   };
 
   const handleEditPosition = async (
@@ -119,7 +129,7 @@ export const CharacterizationTable: FC<ITableProps> = ({
           onOpenModal(ModalEnum.CHARACTERIZATION_ADD, {
             companyId,
             workspaceId,
-          })
+          } as Partial<typeof initialCharacterizationState>)
         }
         onChange={(e) => handleSearchChange(e.target.value)}
       />
@@ -149,7 +159,11 @@ export const CharacterizationTable: FC<ITableProps> = ({
               <STableRow key={row.id}>
                 <TextIconRow text={row.name || '--'} />
                 <TextIconRow text={row.description || '--'} />
-                <TextIconRow justifyContent="center" text={text} />
+                <TextIconRow
+                  justifyContent="center"
+                  textAlign={'center'}
+                  text={text}
+                />
                 <TextIconRow
                   justifyContent="center"
                   text={row?.photos?.length ? String(row?.photos?.length) : '0'}

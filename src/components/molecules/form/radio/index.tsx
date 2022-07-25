@@ -17,6 +17,7 @@ export const RadioForm = ({
   type,
   columns,
   reset,
+  disabled,
   ...props
 }: InputFormBoxProps) => {
   return (
@@ -55,6 +56,7 @@ export const RadioForm = ({
                 },
                 ...rest,
               })}
+              disabled={disabled}
               {...inputProps}
             />
           </Box>

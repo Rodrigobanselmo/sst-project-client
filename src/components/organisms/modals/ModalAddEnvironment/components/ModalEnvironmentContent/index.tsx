@@ -21,9 +21,9 @@ import SOrderIcon from 'assets/icons/SOrderIcon';
 import { environmentMap } from 'core/constants/maps/environment.map';
 import { floatMask } from 'core/utils/masks/float.mask';
 
+import { ModalAddHierarchyRisk } from '../../../ModalAddCharacterization/components/ModalAddHierarchyRisk';
+import { ModalParametersContentBasic } from '../../../ModalAddCharacterization/components/ModalParametersBasic';
 import { IUseEditEnvironment } from '../../hooks/useEditEnvironment';
-import { ModalAddHierarchyRisk } from '../ModalAddHierarchyRisk';
-import { ModalParametersContentBasic } from '../ModalParametersBasic';
 
 const StyledImage = styled('img')`
   width: 100px;

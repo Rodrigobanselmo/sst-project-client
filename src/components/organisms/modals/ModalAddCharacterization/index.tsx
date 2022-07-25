@@ -12,6 +12,8 @@ import { RiskToolSlider } from 'components/organisms/main/Tree/OrgTree/component
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
+import { IdsEnum } from 'core/enums/ids.enums';
+
 import { ModalCharacterizationContent } from './components/ModalCharacterizationContent';
 import { useEditCharacterization } from './hooks/useEditCharacterization';
 
@@ -33,6 +35,22 @@ export const ModalAddCharacterization = () => {
 
   const buttons = [
     {},
+    {
+      text: 'Salvar',
+      variant: 'outlined',
+      id: IdsEnum.ADD_RISK_CHARACTERIZATION_ID,
+      type: 'submit',
+      style: { display: 'none' },
+      onClick: () => (saveRef.current = 'risk'),
+    },
+    {
+      text: 'Salvar',
+      variant: 'outlined',
+      id: IdsEnum.ADD_PROFILE_CHARACTERIZATION_ID,
+      type: 'submit',
+      style: { display: 'none' },
+      onClick: () => null,
+    },
     {
       text: 'Salvar',
       variant: 'outlined',
@@ -65,7 +83,7 @@ export const ModalAddCharacterization = () => {
             <SModalHeader
               tag={isEdit ? 'edit' : 'add'}
               onClose={onCloseUnsaved}
-              title={'Mão de Obra (Caracterização)'}
+              title={'Caracterização Básica'}
               secondIcon={characterizationData?.id ? SDeleteIcon : undefined}
               secondIconClick={onRemove}
             />

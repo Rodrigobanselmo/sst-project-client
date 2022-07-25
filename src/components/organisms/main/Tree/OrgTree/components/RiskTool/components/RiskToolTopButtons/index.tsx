@@ -135,13 +135,16 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
 
           <RiskToolTopButtonsSelectRisk viewType={viewType} />
 
-          <SIconButton
+          {/* <SIconButton
             onClick={() => {
               dispatch(setRiskAddToggleExpand());
             }}
             size="small"
           >
             <Icon component={SExpandIcon} sx={{ fontSize: '1.2rem' }} />
+          </SIconButton> */}
+          <SIconButton onClick={handleCloseRisk} size="small">
+            <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
           </SIconButton>
         </SFlex>
       )}

@@ -2,9 +2,7 @@ import { useEffect, useMemo } from 'react';
 
 import { SContainer } from 'components/atoms/SContainer';
 import { SPageMenu } from 'components/molecules/SPageMenu';
-import { ModalAddAllCharacterization } from 'components/organisms/modals/ModalAddAllCharacterization';
 import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
-import { ModalAddEnvironment } from 'components/organisms/modals/ModalAddEnvironment';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
 import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
@@ -18,9 +16,7 @@ import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
-import { AllCharacterizationTable } from 'components/organisms/tables/AllCharacterizationTable';
 import { CharacterizationTable } from 'components/organisms/tables/CharacterizationTable';
-import { EnvironmentTable } from 'components/organisms/tables/EnvironmentTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
