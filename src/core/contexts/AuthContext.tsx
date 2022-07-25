@@ -49,7 +49,7 @@ type AuthContextData = {
   googleSignIn: () => Promise<void | UserCredential>;
   googleSignLink: () => Promise<void | UserCredential>;
   signOut: () => void;
-  refreshUser: (companyId: string) => Promise<void>;
+  refreshUser: (companyId?: string) => Promise<void>;
   user: Partial<IUser> | null;
   isAuthenticated: boolean;
 };
