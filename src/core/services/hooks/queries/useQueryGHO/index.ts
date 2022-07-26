@@ -15,13 +15,17 @@ export const queryGHO = async (companyId: string) => {
   return response.data.sort((a, b) => sortString(a, b, 'name'));
 };
 
-export function useQueryGHO(): IReactQuery<IGho[]> {
+export function useQueryGHO(companyIdProp?: string): IReactQuery<IGho[]> {
   const { companyId } = useGetCompanyId();
+  const companyIdSelected = companyIdProp || companyId;
+  const reload = companyIdProp ? 'reload' : ''; //this reload modal to load hierarchy homogeneousGroups
 
   const { data, ...query } = useQuery(
-    [QueryEnum.GHO, companyId],
+    [QueryEnum.GHO, companyIdSelected, reload],
     () =>
-      companyId ? queryGHO(companyId) : <Promise<IGho[]>>emptyArrayReturn(),
+      companyIdSelected
+        ? queryGHO(companyIdSelected)
+        : <Promise<IGho[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },

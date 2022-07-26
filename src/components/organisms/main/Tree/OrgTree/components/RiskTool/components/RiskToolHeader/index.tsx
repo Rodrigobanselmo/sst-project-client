@@ -19,12 +19,14 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
   handleSelectGHO,
   handleEditGHO,
   handleAddGHO,
+  handleCopyGHO,
   isAddLoading,
   inputRef,
   riskInit,
   viewType,
   ghoQuery,
   viewDataType,
+  loadingCopy,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -53,12 +55,14 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
         {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
           <RiskToolGhoHorizontal
             handleSelectGHO={handleSelectGHO}
+            handleCopyGHO={handleCopyGHO}
             handleEditGHO={handleEditGHO}
             handleAddGHO={handleAddGHO}
             viewDataType={viewDataType}
             inputRef={inputRef}
             ghoQuery={ghoQuery}
             viewType={viewType}
+            loadingCopy={!!loadingCopy}
           />
         )}
       </Box>

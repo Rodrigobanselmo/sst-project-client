@@ -12,6 +12,9 @@ import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
 import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
+import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
+import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { NextPage } from 'next';
@@ -69,6 +72,8 @@ const Hierarchy: NextPage = () => {
       <ModalAddEmployee />
       <ModalSelectWorkspace />
       <ModalSelectHierarchy />
+      <ModalSelectGho />
+      <ModalSelectDocPgr />
     </STFlexContainer>
   );
 };

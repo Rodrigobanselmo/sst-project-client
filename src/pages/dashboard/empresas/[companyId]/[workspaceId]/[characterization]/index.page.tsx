@@ -13,6 +13,7 @@ import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
@@ -97,6 +98,7 @@ const Companies: NextPage = () => {
       <ModalExcelHierarchies />
       <ModalSelectHierarchy />
       <ModalUploadPhoto />
+      <ModalSelectGho />
     </SContainer>
   );
 };

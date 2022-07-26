@@ -55,6 +55,7 @@ export const ModalCharacterizationContent = (
     notPrincipalProfile,
     photos,
     setValue,
+    onRemove,
   } = props;
 
   const isEnvironment =
@@ -163,7 +164,7 @@ export const ModalCharacterizationContent = (
           })}
       />
 
-      <SFlex overflow="auto">
+      <SFlex mb={10} align="center" overflow="auto">
         <STagButton
           tooltipTitle={
             'Permite adicionar para um mesmo ambiente / atividade riscos especificos para cada cargo. (ex: um perfil com risco de ruído e probabilidade 5 e outro com risco de ruído e probabilidade 3)'
@@ -174,7 +175,6 @@ export const ModalCharacterizationContent = (
           minWidth={80}
           onClick={() => onChangeProfile(principalProfile.id)}
           bg={!!manyProfiles && !notPrincipalProfile ? 'gray.500' : undefined}
-          mb={10}
         />
         {profiles?.map((profile) => {
           return (
@@ -207,10 +207,16 @@ export const ModalCharacterizationContent = (
         <STagButton
           tooltipTitle={'Adicionar perfil'}
           large
-          mb={10}
           icon={SAddIcon}
           onClick={() => onAddProfile()}
         />
+        <SIconButton
+          sx={{ ml: 'auto' }}
+          tooltip={'remover perfil'}
+          onClick={() => onRemove()}
+        >
+          <Icon sx={{ fontSize: 20 }} component={SDeleteIcon} />
+        </SIconButton>
       </SFlex>
 
       {manyProfiles && (

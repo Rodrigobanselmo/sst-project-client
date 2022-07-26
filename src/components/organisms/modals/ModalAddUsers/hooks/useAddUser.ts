@@ -198,7 +198,6 @@ export const useAddUser = () => {
 
   const handleOpenCompanySelect = () => {
     const onSelect = (companies: ICompany[]) => {
-      console.log(companies);
       setUserData({
         ...userData,
         companies,

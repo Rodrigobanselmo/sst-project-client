@@ -48,7 +48,7 @@ export const ModalAddEmployee = () => {
         <SModalHeader
           tag={employeeData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Estabelecimento (área de trabalho)'}
+          title={'Empregado'}
         />
 
         <ModalEmployeeStep {...props} />

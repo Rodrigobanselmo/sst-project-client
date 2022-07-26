@@ -46,16 +46,44 @@ export function useMutDeleteCharacterization() {
         }
 
         if (resp) {
-          const actualData = queryClient.getQueryData(
-            // eslint-disable-next-line prettier/prettier
-            [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
-          );
+          const actualData = queryClient.getQueryData([
+            QueryEnum.CHARACTERIZATIONS,
+            resp.companyId,
+            resp.workspaceId,
+          ]);
+
           if (actualData)
             queryClient.setQueryData(
               [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
-              (oldData: ICharacterization[] | undefined) =>
-                oldData ? oldData.filter((data) => data.id !== resp.id) : [],
+              (oldData: ICharacterization[] | undefined) => {
+                if (!oldData) return [];
+
+                if (resp.profileParentId) {
+                  return oldData.map((char) => {
+                    if (char.id !== resp.profileParentId) {
+                      return char;
+                    }
+
+                    char.profiles = char.profiles.filter(
+                      (data) => data.id !== resp.id,
+                    );
+
+                    console.log(char);
+
+                    return char;
+                  });
+                }
+
+                return oldData.filter((data) => data.id !== resp.id);
+              },
             );
+
+          queryClient.invalidateQueries([
+            QueryEnum.CHARACTERIZATION,
+            resp.companyId,
+            resp.workspaceId,
+            resp.profileParentId || resp.id,
+          ]);
         }
 
         enqueueSnackbar('Ambiente de trabalho deletado com sucesso', {

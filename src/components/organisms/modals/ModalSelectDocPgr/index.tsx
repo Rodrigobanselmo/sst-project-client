@@ -75,11 +75,13 @@ export const ModalSelectDocPgr: FC = () => {
       isOpen &&
       riskGroupData &&
       riskGroupData.length === 1 &&
-      !initialData.open
+      !initialData.open &&
+      (!initialData.companyId ||
+        riskGroupData[0].companyId === initialData?.companyId)
     ) {
-      initialData.onSelect(riskGroupData[0]);
-      setSelectData(initialDocPgrSelectState);
       onCloseModal(ModalEnum.DOC_PGR_SELECT);
+      setSelectData(initialDocPgrSelectState);
+      initialData.onSelect(riskGroupData[0]);
     }
   }, [getModalData, getStackModal, onCloseModal, riskGroupData, selectData]);
 

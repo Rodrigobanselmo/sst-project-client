@@ -177,9 +177,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
         return newData;
       });
-
-      if (asPath.includes('riskGroupId'))
-        push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -206,6 +203,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     onCloseModal(modalName, data);
     setCharacterizationData(initialCharacterizationState);
     reset();
+    push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
   };
 
   const onCloseUnsaved = () => {
@@ -341,6 +339,13 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
             return setCharacterizationData({
               ...(characterizationQuery as any),
               characterizationType: characterizationData.characterizationType,
+              activities: characterizationData.activities,
+              considerations: characterizationData.considerations,
+              temperature: characterizationQuery.temperature,
+              luminosity: characterizationQuery.luminosity,
+              noiseValue: characterizationQuery.noiseValue,
+              moisturePercentage: characterizationQuery.moisturePercentage,
+              description: characterizationQuery.description,
               type: principalProfile.type,
               name: principalProfile.name,
             });
@@ -488,7 +493,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           ),
         };
         if (isEdit) delete submitData.photos;
-        console.log(submitData);
         upsertMutation.mutateAsync(submitData).catch(() => {});
       } else {
         setCharacterizationData((oldData) => ({

@@ -19,7 +19,7 @@ const SIconButton: FC<SIconButtonProps> = ({
 }) => (
   <STooltip
     withWrapper
-    boxProps={{ sx: { display: 'inline' } }}
+    boxProps={{ sx: { display: 'inline', ...(tooltip ? { ...sx } : {}) } }}
     title={tooltip}
   >
     <IconButton

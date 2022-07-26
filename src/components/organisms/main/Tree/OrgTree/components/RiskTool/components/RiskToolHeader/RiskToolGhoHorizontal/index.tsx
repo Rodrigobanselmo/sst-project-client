@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC, useCallback, useMemo, useRef } from 'react';
 
+import { Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { TreeTypeEnum } from 'components/organisms/main/Tree/OrgTree/enums/tree-type.enums';
@@ -10,6 +12,8 @@ import {
   setGhoSearchRisk,
   setGhoSelectedId,
 } from 'store/reducers/hierarchy/ghoSlice';
+
+import { SCopyIcon } from 'assets/icons/SCopyIcon';
 
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
@@ -34,10 +38,12 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
   handleAddGHO,
   handleSelectGHO,
   handleEditGHO,
+  handleCopyGHO,
   ghoQuery,
   inputRef,
   viewType,
   viewDataType,
+  loadingCopy,
 }) => {
   const dispatch = useAppDispatch();
   const inputSelectedRef = useRef<HTMLInputElement>(null);
@@ -104,23 +110,34 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
             handleEditGHO={handleEditGHO}
             placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
           />
-          <SText sx={{ px: 5, pt: 2 }}>
-            <SText fontSize={13} mr={2} color="text.light">
-              selecionado
-            </SText>
-            <STooltip title={name || '--'} withWrapper>
-              <SText
-                lineNumber={1}
-                component="span"
-                fontSize={14}
-                fontWeight={500}
-                mr={2}
-                color="text.light"
-              >
-                {name || '--'}
+          <SFlex>
+            <SText sx={{ px: 5, pt: 2 }}>
+              <SText fontSize={13} mr={2} color="text.light">
+                selecionado
               </SText>
-            </STooltip>
-          </SText>
+              <STooltip title={name || '--'} withWrapper>
+                <SText
+                  lineNumber={1}
+                  component="span"
+                  fontSize={14}
+                  fontWeight={500}
+                  mr={2}
+                  color="text.light"
+                >
+                  {name || '--'}
+                </SText>
+              </STooltip>
+            </SText>
+            <SIconButton
+              onClick={() => {
+                selected && handleCopyGHO(selected);
+              }}
+              loading={loadingCopy}
+              size="small"
+            >
+              <Icon component={SCopyIcon} sx={{ fontSize: '1.2rem' }} />
+            </SIconButton>
+          </SFlex>
         </SFlex>
         <StyledFlexMultiGho ref={refScroll}>
           {arrayChunks<IGho | IHierarchyTreeMapObject>(

@@ -9,7 +9,7 @@ import { emptyMapReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export const setMapHierarchies = async (hierarchyData: IHierarchy[]) => {
+export const setMapHierarchies = (hierarchyData: IHierarchy[]) => {
   const hierarchyTree = {} as IHierarchyMap;
 
   hierarchyData.forEach((hierarchy) => {

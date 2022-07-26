@@ -62,7 +62,6 @@ export const useAddAccessGroup = () => {
         };
 
         initialDataRef.current = newData;
-        console.log(newData);
         return newData;
       });
     }

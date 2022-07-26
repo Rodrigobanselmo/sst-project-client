@@ -35,7 +35,6 @@ export const SInputEdit: FC<SInputEditProps> = ({
     onBlur?.(e);
     if (value !== e.target.value) onSave?.(e.target.value);
     setIsFocused(false);
-    console.log(2);
   };
 
   const onCloseActionInput = (e: React.MouseEvent<HTMLButtonElement>) => {

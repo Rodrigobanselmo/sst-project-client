@@ -1,5 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
+import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
+import { initialGhoSelectState } from 'components/organisms/modals/ModalSelectGho';
 import { useRouter } from 'next/router';
 import { setGhoMultiState } from 'store/reducers/hierarchy/ghoMultiSlice';
 import {
@@ -18,15 +21,21 @@ import {
   setRiskAddToggleExpand,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { IGho } from 'core/interfaces/api/IGho';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
+import { useMutCopyCompany } from 'core/services/hooks/mutations/manager/useMutCopyCompany';
+import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 
 import { RiskToolHeader } from './components/RiskToolHeader';
@@ -49,7 +58,7 @@ export const RiskToolSlider = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data: ghoQuery } = useQueryGHO();
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
   const dispatch = useAppDispatch();
   const selectedGhoId = useAppSelector(selectGhoId);
   const isGhoOpen = useAppSelector(selectGhoOpen);
@@ -57,7 +66,9 @@ export const RiskToolSlider = () => {
   const addMutation = useMutCreateGho();
   const deleteMutation = useMutDeleteGho();
   const cleanMutation = useMutDeleteManyRiskData();
+  const copyHomoMutation = useMutCopyHomo();
   const risk = useAppSelector(selectRisk);
+  const { companyId } = useGetCompanyId();
 
   const viewType = useAppSelector((state) => state.riskAdd.viewType);
   const viewDataType = useAppSelector((state) => state.riskAdd.viewData);
@@ -84,11 +95,54 @@ export const RiskToolSlider = () => {
   }, [dispatch]);
 
   const handleAddGHO = async () => {
-    onOpenModal(ModalEnum.GHO_ADD);
+    onStackOpenModal(ModalEnum.GHO_ADD);
+  };
+
+  const handleCopyGHO = async (data: IGho | IHierarchyTreeMapObject) => {
+    const onSelectGhoData = async (gho: IGho, riskGroup: IRiskGroupData) => {
+      const homoId = String(data.id).split('//');
+      const isHierarchy = homoId.length > 1;
+
+      copyHomoMutation.mutate({
+        actualGroupId: homoId[0],
+        riskGroupId: query.riskGroupId as string,
+        companyId: companyId,
+        companyIdFrom: gho.companyId,
+        copyFromHomoGroupId: gho.id,
+        riskGroupIdFrom: riskGroup.id,
+        workspaceId: homoId.length == 2 ? homoId[1] : undefined,
+        ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
+      });
+    };
+
+    const onSelectRiskGroupData = async (
+      riskGroup: IRiskGroupData,
+      company: ICompany,
+    ) => {
+      onStackOpenModal(ModalEnum.HOMOGENEOUS_SELECT, {
+        // title: 'Selecione o Sistema de Gestão SST do GSE',
+        onSelect: (gho) => onSelectGhoData(gho as IGho, riskGroup),
+        companyId: company.id,
+      } as Partial<typeof initialGhoSelectState>);
+    };
+
+    const onSelectCompany = async (company: ICompany) => {
+      onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
+        title: 'Selecione o Sistema de Gestão SST do GSE',
+        onSelect: (riskGroup) =>
+          onSelectRiskGroupData(riskGroup as IRiskGroupData, company),
+        companyId: company.id,
+      } as Partial<typeof initialDocPgrSelectState>);
+    };
+
+    onStackOpenModal(ModalEnum.COMPANY_SELECT, {
+      multiple: false,
+      onSelect: onSelectCompany,
+    } as Partial<typeof initialCompanySelectState>);
   };
 
   const handleEditGHO = (data: IGho | IHierarchyTreeMapObject) => {
-    onOpenModal(ModalEnum.GHO_ADD, {
+    onStackOpenModal(ModalEnum.GHO_ADD, {
       id: data.id,
       name: data.name,
       description: 'description' in data ? data?.description : '',
@@ -223,6 +277,7 @@ export const RiskToolSlider = () => {
           />
           <STTableContainer>
             <RiskToolHeader
+              handleCopyGHO={handleCopyGHO}
               handleSelectGHO={handleSelectGHO}
               handleEditGHO={handleEditGHO}
               handleAddGHO={handleAddGHO}
@@ -232,6 +287,7 @@ export const RiskToolSlider = () => {
               viewDataType={viewDataType}
               viewType={viewType}
               ghoQuery={ghoQuery}
+              loadingCopy={copyHomoMutation.isLoading}
             />
             <STBoxStack
               expanded={selectExpanded ? 1 : 0}

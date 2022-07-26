@@ -70,7 +70,6 @@ export const ModalSelectCompany: FC = () => {
       });
       return;
     }
-
     onCloseModal(ModalEnum.COMPANY_SELECT);
     setSelectData(initialCompanySelectState);
     selectData.onSelect(company || selectData.selected);
