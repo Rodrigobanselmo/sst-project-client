@@ -53,7 +53,7 @@ export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
           handleSelect({ probability: setProbability(number), ...dataSelect });
         }}
         selectedNumber={data?.probability}
-        disabledGtEqual={6}
+        disabledGtEqual={7}
         handleHelp={() => handleHelp && handleHelp(dataSelect)}
       />
       {hasQuality && (

@@ -4,6 +4,7 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialAddEpiState } from 'components/organisms/modals/ModalAddEpi/hooks/useAddEpi';
+import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { useDebouncedCallback } from 'use-debounce';
 
 import EditIcon from 'assets/icons/SEditIcon';
@@ -18,12 +19,15 @@ import { useQueryEpis } from 'core/services/hooks/queries/useQueryEpis';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IEpiSelectProps } from './types';
 
+export const isNaEpi = (ca: string) => ['1', '2', '0'].includes(ca);
+
 export const EpiSelect: FC<IEpiSelectProps> = ({
   large,
   handleSelect,
   text,
   multiple = true,
   selected,
+  onlyEpi = false,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -34,8 +38,17 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
     setSearch(value);
   }, 300);
 
-  const handleSelectEpi = (options: string[]) => {
-    if (handleSelect) handleSelect(options);
+  const handleSelectEpi = (options: IEpi) => {
+    if (onlyEpi || isNaEpi(options?.ca)) {
+      if (handleSelect) handleSelect(options);
+      return;
+    }
+
+    if (options.id)
+      onStackOpenModal(ModalEnum.EPI_EPI_DATA, {
+        onSubmit: handleSelect,
+        ...options,
+      } as Partial<typeof initialEpiDataState>);
   };
 
   const handleEditEpi = (e: MouseEvent<HTMLButtonElement>, option?: IEpi) => {
@@ -67,10 +80,8 @@ export const EpiSelect: FC<IEpiSelectProps> = ({
   };
 
   const options = useMemo(() => {
-    const isNa = (ca: string) => ['1', '2', '0'].includes(ca);
-
     return data.map((epi) => ({
-      name: (!isNa(epi.ca) ? epi.ca + ' ' : '') + epi.equipment,
+      name: (!isNaEpi(epi.ca) ? epi.ca + ' ' : '') + epi.equipment,
       value: epi.id,
       ...epi,
     }));

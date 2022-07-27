@@ -6,6 +6,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { IEpiRiskData } from 'core/interfaces/api/IEpi';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { api } from 'core/services/apiClient';
 import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
@@ -30,7 +31,7 @@ export interface IUpsertRiskData {
   type?: HomoTypeEnum;
   generateSources?: string[];
   workspaceId?: string;
-  epis?: number[];
+  epis?: IEpiRiskData[];
   keepEmpty?: boolean;
   json?: any;
 }

@@ -11,6 +11,7 @@ export interface IEpiSelectProps
   large?: boolean;
   selected?: (string | number)[];
   multiple?: boolean;
-  handleSelect?: (selectedIds: string[] | IEpi) => void;
+  handleSelect?: (selectedIds: IEpi) => void;
   onEnter?: (value: string) => void;
+  onlyEpi?: boolean;
 }

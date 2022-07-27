@@ -145,7 +145,7 @@ export const ModalAddRecMed = () => {
                     value: MedTypeEnum.ADM,
                   },
                   {
-                    content: 'Medidas de engenharia',
+                    content: 'Medidas de engenharia (EPC)',
                     value: MedTypeEnum.ENG,
                   },
                 ]}

@@ -17,12 +17,14 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
+import { IEpi } from 'core/interfaces/api/IEpi';
 import {
   IUpsertRiskData,
   useMutUpsertRiskData,
 } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
 import { queryClient } from 'core/services/queryClient';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { AdmColumn } from '../components/columns/AdmColumn';
 import { EngColumn } from '../components/columns/EngColumn';
@@ -80,7 +82,7 @@ export const SideRowTable: FC<SideTableProps> = ({
       ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
     } as IUpsertRiskData;
 
-    Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
+    Object.entries({ recs, adms, engs, generateSources }).forEach(
       ([key, value]) => {
         if (value?.length)
           (submitData as any)[key] = [
@@ -89,6 +91,15 @@ export const SideRowTable: FC<SideTableProps> = ({
           ];
       },
     );
+
+    if (epis && epis?.length)
+      submitData.epis = removeDuplicate(
+        [
+          ...epis,
+          ...(riskData?.epis?.map((epi) => epi.epiRiskData) || []),
+        ].filter((i) => i),
+        { removeById: 'epiId' },
+      );
 
     await upsertRiskData
       .mutateAsync({
@@ -162,7 +173,7 @@ export const SideRowTable: FC<SideTableProps> = ({
       riskFactorGroupDataId: query.riskGroupId as string,
     } as IUpsertRiskData;
 
-    Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
+    Object.entries({ recs, adms, engs, generateSources }).forEach(
       ([key, value]) => {
         if (value?.length)
           (submitData as any)[key] = [
@@ -174,6 +185,11 @@ export const SideRowTable: FC<SideTableProps> = ({
           ];
       },
     );
+
+    if (epis && epis?.length)
+      submitData.epis = [
+        ...(riskData?.epis?.map((epi) => epi.epiRiskData) || []),
+      ].filter((i) => i && !epis.find((epi) => epi.epiId == i.epiId));
 
     await upsertRiskData
       .mutateAsync({

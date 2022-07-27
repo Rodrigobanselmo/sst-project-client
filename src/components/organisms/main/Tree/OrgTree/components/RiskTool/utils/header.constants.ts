@@ -12,8 +12,8 @@ export const headerRows = [
     filterValues: ['desc', 'asc', 'none'],
   },
   {
-    label: 'Medidas ENG',
-    tooltip: 'Medidas de engenharia',
+    label: 'EPC / ENG',
+    tooltip: 'Medidas de engenharia (EPC)',
     filterKey: 'engs',
     filterValues: ['desc', 'asc', 'none'],
   },

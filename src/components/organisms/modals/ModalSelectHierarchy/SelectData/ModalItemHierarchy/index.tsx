@@ -2,14 +2,14 @@ import React, { FC } from 'react';
 
 import { BoxProps } from '@mui/material';
 import { SSelectButton } from 'components/molecules/SSelectButton';
-import { IHierarchyTreeMapObject } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/components/RiskToolViews/RiskToolRiskView/types';
 import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/constants/node-type.constant';
 import { selectModalIdIsSelected } from 'store/reducers/hierarchy/hierarchySlice';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { IListHierarchyQuery } from 'core/hooks/useListHierarchyQuery';
 
 interface IItem extends BoxProps {
-  data: IHierarchyTreeMapObject;
+  data: IListHierarchyQuery;
   active?: boolean;
 }
 

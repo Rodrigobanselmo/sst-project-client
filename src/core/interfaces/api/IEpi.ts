@@ -13,4 +13,21 @@ export interface IEpi {
   restriction: string;
   isValid: boolean;
   national: boolean;
+  epiRiskData: IEpiRiskData;
+}
+
+export interface IEpiRiskData {
+  epiId: number;
+  riskFactorDataId?: string;
+  lifeTimeInDays?: number;
+  efficientlyCheck?: boolean;
+  epcCheck?: boolean;
+  longPeriodsCheck?: boolean;
+  validationCheck?: boolean;
+  tradeSignCheck?: boolean;
+  sanitationCheck?: boolean;
+  maintenanceCheck?: boolean;
+  unstoppedCheck?: boolean;
+  trainingCheck?: boolean;
+  epi?: IEpi;
 }

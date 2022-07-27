@@ -4,7 +4,6 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
-import { useListHierarchy } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useListHierarchy';
 import {
   selectHierarchySearch,
   setAddModalId,
@@ -17,21 +16,25 @@ import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import {
+  IListHierarchyQuery,
+  useListHierarchyQuery,
+} from 'core/hooks/useListHierarchyQuery';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
+
+import { initialHierarchySelectState } from '..';
 
 import { ModalInputHierarchy } from './ModalInputHierarchy';
 import { ModalItemHierarchy } from './ModalItemHierarchy';
 import { ModalListGHO } from './ModalListGHO';
 import { STGridBox } from './styles';
 
-import { initialHierarchySelectState } from '..';
-
 export const ModalSelectHierarchyData: FC<{
   company: ICompany;
   selectedData: typeof initialHierarchySelectState;
-  handleSingleSelect: (id: string) => void;
+  handleSingleSelect: (hierarchy: IListHierarchyQuery) => void;
 }> = ({ company, selectedData, handleSingleSelect }) => {
   const { data: ghoQuery } = useQueryGHO();
 
@@ -61,7 +64,7 @@ export const ModalSelectHierarchyData: FC<{
     dispatch(setModalIds(selectedData.hierarchiesIds));
   }, [workspaceSelected?.name, dispatch, selectedData.hierarchiesIds]);
 
-  const { hierarchyListData } = useListHierarchy();
+  const { hierarchyListData } = useListHierarchyQuery();
 
   const hierarchyList = useMemo(() => {
     const typesSelected: Record<HierarchyEnum, boolean> = {} as Record<
@@ -72,7 +75,7 @@ export const ModalSelectHierarchyData: FC<{
     const list = hierarchyListData().filter((hierarchy) => {
       (typesSelected as any)[hierarchy.type] = true;
       // eslint-disable-next-line prettier/prettier
-      const isWorkspace = hierarchy.parentsName.split(' > ')[0] === workspaceSelected?.name;
+      const isWorkspace = workspaceSelected && hierarchy.workspaceIds.includes(workspaceSelected?.id);
       // eslint-disable-next-line prettier/prettier
       const isToFilter = search && !stringNormalize(hierarchy.name).includes(stringNormalize(search));
 
@@ -82,7 +85,7 @@ export const ModalSelectHierarchyData: FC<{
 
     setAllTypes(typesSelected);
     return list;
-  }, [filter, hierarchyListData, search, workspaceSelected?.name]);
+  }, [filter, hierarchyListData, search, workspaceSelected]);
 
   const hierarchyListSelected = useMemo(() => {
     return hierarchyListData();
@@ -158,7 +161,7 @@ export const ModalSelectHierarchyData: FC<{
                 <ModalItemHierarchy
                   onClick={() =>
                     selectedData.singleSelect
-                      ? handleSingleSelect(hierarchy.id)
+                      ? handleSingleSelect(hierarchy)
                       : dispatch(setAddModalId(hierarchy.id))
                   }
                   key={hierarchy.id}

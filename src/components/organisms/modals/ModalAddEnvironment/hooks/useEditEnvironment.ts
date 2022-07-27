@@ -17,7 +17,7 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IHierarchy } from 'core/interfaces/api/IHierarchy';
+import { IHierarchy, IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutAddEnvironmentPhoto } from 'core/services/hooks/mutations/manager/useMutAddEnvironmentPhoto';
 import { useMutDeleteEnvironment } from 'core/services/hooks/mutations/manager/useMutDeleteEnvironment';
@@ -319,7 +319,7 @@ export const useEditEnvironment = (modalName = modalNameInit) => {
   };
 
   const onAddHierarchy = () => {
-    const handleSelect = (hierarchies: ITreeMapObject[]) => {
+    const handleSelect = (hierarchies: IHierarchyChildren[]) => {
       const values = getValues();
 
       if (isEdit) {

@@ -9,10 +9,6 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import {
-  ITreeMap,
-  ITreeMapObject,
-} from 'components/organisms/main/Tree/OrgTree/interfaces';
-import {
   setHierarchySearch,
   setModalIds,
 } from 'store/reducers/hierarchy/hierarchySlice';
@@ -20,8 +16,10 @@ import {
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { IListHierarchyQuery } from 'core/hooks/useListHierarchyQuery';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 
@@ -31,9 +29,9 @@ import { ModalSelectHierarchyData } from './SelectData';
 
 export const initialHierarchySelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onSelect: (hierarchies: ITreeMapObject[]) => {},
+  onSelect: (hierarchies: IHierarchyChildren[]) => {},
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onSingleSelect: (hierarchy: ITreeMapObject) => {},
+  onSingleSelect: (hierarchy: IListHierarchyQuery) => {},
   onCloseWithoutSelect: () => {},
   hierarchiesIds: [] as string[],
   workspaceId: '' as string,
@@ -86,26 +84,22 @@ export const ModalSelectHierarchy: FC = () => {
   };
 
   const handleSelect = useCallback(() => {
-    const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const modalSelectIds = store.getState().hierarchy
       .modalSelectIds as string[];
-    const hierarchies = modalSelectIds
-      .map((id) => nodesMap[id])
-      .filter((i) => i);
+    const hierarchies = modalSelectIds.map((id) => data[id]).filter((i) => i);
 
     onCloseModal(modalName);
     dispatch(setHierarchySearch(''));
     selectData.onSelect(hierarchies);
-  }, [dispatch, onCloseModal, selectData, store]);
+  }, [data, dispatch, onCloseModal, selectData, store]);
 
   const handleSingleSelect = useCallback(
-    (id: string) => {
-      const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
+    (hierarchy: IListHierarchyQuery) => {
       onCloseModal(modalName);
       dispatch(setHierarchySearch(''));
-      selectData.onSingleSelect(nodesMap[id]);
+      selectData.onSingleSelect(hierarchy);
     },
-    [dispatch, onCloseModal, selectData, store],
+    [dispatch, onCloseModal, selectData],
   );
 
   const hasWorkspace =

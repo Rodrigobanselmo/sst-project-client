@@ -9,27 +9,31 @@ import { SelectedNumberProps } from './types';
 export const SelectedNumber: FC<SelectedNumberProps> = ({
   handleSelect,
   selectedNumber,
-  disabledGtEqual = 6,
+  disabledGtEqual = 7,
   handleHelp,
 }) => {
   return (
     <SFlex maxHeight={24} center>
-      {[1, 2, 3, 4, 5].map((number) => {
+      {[1, 2, 3, 4, 5, 6].map((number) => {
         return (
-          <STSFlex
-            selected={selectedNumber === number ? 1 : 0}
-            onClick={() => {
-              if (handleSelect && number < disabledGtEqual)
-                handleSelect(number);
-            }}
+          <STooltip
             key={number}
-            disabled={number >= disabledGtEqual ? 1 : 0}
-            center
+            title={number === 6 ? 'Interronper atividades' : ''}
           >
-            <STText selected={selectedNumber === number ? 1 : 0}>
-              {number}
-            </STText>
-          </STSFlex>
+            <STSFlex
+              selected={selectedNumber === number ? 1 : 0}
+              onClick={() => {
+                if (handleSelect && number < disabledGtEqual)
+                  handleSelect(number);
+              }}
+              disabled={number >= disabledGtEqual ? 1 : 0}
+              center
+            >
+              <STText selected={selectedNumber === number ? 1 : 0}>
+                {number === 6 ? '!' : number}
+              </STText>
+            </STSFlex>
+          </STooltip>
         );
       })}
       {handleHelp && (

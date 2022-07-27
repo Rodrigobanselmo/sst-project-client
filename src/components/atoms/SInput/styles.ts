@@ -239,4 +239,58 @@ export const STTextField = styled(TextField)<{
         cursor: default !important;
       }
     `};
+
+  ${(props) =>
+    props.errors &&
+    css`
+      * {
+        color: ${props.theme.palette.error.main} !important;
+      }
+
+      & .MuiFormHelperText-root {
+        color: ${props.theme.palette.error.main};
+      }
+
+      ${props.multiline &&
+      css`
+        &&& .MuiOutlinedInput-notchedOutline {
+          border-color: ${props.theme.palette.error.main};
+          border-width: 2px;
+        }
+
+        &&&
+          .MuiOutlinedInput-root.Mui-focused
+          .MuiOutlinedInput-notchedOutline {
+          border-color: ${props.theme.palette.error.main};
+        }
+
+        &:hover {
+          &&& .MuiOutlinedInput-notchedOutline {
+            border-color: ${props.theme.palette.error.main};
+            border-width: 2px;
+          }
+          &&&
+            .MuiOutlinedInput-root.Mui-focused
+            .MuiOutlinedInput-notchedOutline {
+            border-color: ${props.theme.palette.error.main};
+            opacity: 1;
+          }
+        }
+      `};
+
+      ${!props.multiline &&
+      css`
+        &:after {
+          content: '';
+          border-bottom: 2px solid ${props.theme.palette.error.main};
+          top: ${props.size === 'small' ? 28 : 44}px;
+          position: absolute;
+          width: 100%;
+          height: 10px;
+          border-bottom-left-radius: ${props.theme.spacing(4)};
+          border-bottom-right-radius: ${props.theme.spacing(4)};
+          pointer-events: none;
+        }
+      `};
+    `};
 `;

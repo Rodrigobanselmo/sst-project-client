@@ -9,6 +9,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { IListHierarchyQuery } from 'core/hooks/useListHierarchyQuery';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -179,7 +180,7 @@ export const useEditEmployees = () => {
       singleSelect: true,
       selectionHierarchy: [HierarchyEnum.SUB_OFFICE, HierarchyEnum.OFFICE],
       lockWorkspace: false,
-      onSingleSelect: (hierarchy: ITreeMapObject) =>
+      onSingleSelect: (hierarchy: IListHierarchyQuery) =>
         setEmployeeData({ ...employeeData, hierarchy: hierarchy }),
     } as typeof initialHierarchySelectState);
   };

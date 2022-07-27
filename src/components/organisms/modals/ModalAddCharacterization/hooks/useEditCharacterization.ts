@@ -18,7 +18,7 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
-import { IHierarchy } from 'core/interfaces/api/IHierarchy';
+import { IHierarchy, IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutAddCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutAddCharacterizationPhoto';
 import { useMutDeleteCharacterization } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterization';
@@ -85,7 +85,7 @@ const modalNameInit = ModalEnum.CHARACTERIZATION_ADD;
 
 export const useEditCharacterization = (modalName = modalNameInit) => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal, onOpenModal, onStackOpenModal } = useModal();
+  const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialCharacterizationState);
   const saveRef = useRef<boolean | string>(false);
   const { query, push, asPath } = useRouter();
@@ -476,7 +476,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   const onAddHierarchy = () => {
-    const handleSelect = (hierarchies: ITreeMapObject[]) => {
+    const handleSelect = (hierarchies: IHierarchyChildren[]) => {
       const values = getValues();
 
       if (isEdit) {

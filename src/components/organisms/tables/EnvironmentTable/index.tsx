@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo } from 'react';
+import { FC, useMemo } from 'react';
 
 import { BoxProps } from '@mui/material';
 import {
@@ -23,14 +23,11 @@ import SOrderIcon from 'assets/icons/SOrderIcon';
 import { environmentMap } from 'core/constants/maps/environment.map';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IEnvironment } from 'core/interfaces/api/IEnvironment';
 import { useMutUpsertEnvironment } from 'core/services/hooks/mutations/manager/useMutUpsertEnvironment';
-import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEnvironments } from 'core/services/hooks/queries/useQueryEnvironments';
-import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -39,15 +36,7 @@ export const EnvironmentTable: FC<BoxProps> = () => {
   const { onOpenModal } = useModal();
   const { companyId, workspaceId } = useGetCompanyId();
 
-  const { data: company } = useQueryCompany();
-  const { data: hierarchies } = useQueryHierarchies();
-  const { setTree, transformToTreeMap } = useHierarchyTreeActions();
   const upsertMutation = useMutUpsertEnvironment();
-
-  useEffect(() => {
-    if (hierarchies && company)
-      setTree(transformToTreeMap(hierarchies, company));
-  }, [setTree, company, transformToTreeMap, hierarchies]);
 
   const dataResult = useMemo(() => {
     if (!data) return [];

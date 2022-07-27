@@ -21,6 +21,10 @@ export interface IHierarchy {
   employeesCount?: number; //only on find by id
 }
 
+export type IHierarchyChildren = IHierarchy & {
+  children: (string | number)[];
+};
+
 export type IHierarchyMap = Record<
   string,
   IHierarchy & {

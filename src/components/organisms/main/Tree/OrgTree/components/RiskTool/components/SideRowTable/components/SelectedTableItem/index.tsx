@@ -14,6 +14,7 @@ export const SelectedTableItem: FC<SelectedTableItemProps> = ({
   name,
   tooltip,
   handleRemove,
+  isExpired,
 }) => {
   return (
     <STooltip title={tooltip || name}>
@@ -23,6 +24,7 @@ export const SelectedTableItem: FC<SelectedTableItemProps> = ({
           borderColor: 'gray.300',
           borderStyle: 'dashed',
           borderRadius: 1,
+          ...(isExpired ? { borderColor: 'error.main' } : {}),
         }}
         mt={4}
         align="center"
@@ -33,7 +35,13 @@ export const SelectedTableItem: FC<SelectedTableItemProps> = ({
         >
           <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
         </SIconButton>
-        <SText lineNumber={2} variant="body2">
+        <SText
+          lineNumber={2}
+          variant="body2"
+          sx={{
+            ...(isExpired ? { color: 'error.main' } : {}),
+          }}
+        >
           {name}
         </SText>
       </SFlex>

@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useCallback, useRef, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useRef } from 'react';
 import { useStore } from 'react-redux';
 
-import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/IndeterminateCheckBoxOutlined';
-import LibraryAddCheckOutlinedIcon from '@mui/icons-material/LibraryAddCheckOutlined';
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import {
@@ -17,6 +14,10 @@ import {
   setGhoSearch,
   setGhoSearchSelect,
 } from 'store/reducers/hierarchy/ghoSlice';
+
+import { SUncheckBoxIcon } from 'assets/icons/SCheckboxIcon';
+import SSwapIcon from 'assets/icons/SSwapIcon';
+import { SCheckboxIcon } from 'assets/icons/SUncheckBoxIcon';
 
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
@@ -159,7 +160,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
         <SFlex align="center" sx={{ ml: 'auto', mr: 5 }}>
           <TotalTag />
           <STagButton
-            icon={SwapHorizIcon}
+            icon={SSwapIcon}
             text="Inverter desabiitados"
             large
             mr={5}
@@ -167,7 +168,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
             onClick={handleInvertDisabled}
           />
           <STagButton
-            icon={IndeterminateCheckBoxOutlinedIcon}
+            icon={SUncheckBoxIcon}
             tooltipTitle="Remover todos os GHOs ativos"
             mr={5}
             large
@@ -201,7 +202,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
         />
         <STagButton
-          icon={LibraryAddCheckOutlinedIcon}
+          icon={SCheckboxIcon}
           tooltipTitle="Selecione todos os GHOs abaixo"
           sx={{ ml: 'auto', mr: 5 }}
           large

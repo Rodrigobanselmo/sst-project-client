@@ -1,7 +1,8 @@
 import React, { FC } from 'react';
 
 import { Box } from '@mui/material';
-import { EpiSelect } from 'components/organisms/tagSelects/EpiSelect';
+import { EpiSelect, isNaEpi } from 'components/organisms/tagSelects/EpiSelect';
+import dayjs from 'dayjs';
 
 import { IEpi } from 'core/interfaces/api/IEpi';
 
@@ -22,30 +23,39 @@ export const EpiColumn: FC<EpiColumnProps> = ({
         text={'adicionar'}
         tooltipTitle=""
         multiple={false}
-        handleSelect={(options) => {
-          const op = options as IEpi;
-          if (op.id)
+        handleSelect={(options: IEpi) => {
+          if (options.id)
             handleSelect(
               {
-                epis: [op.id],
+                epis: [{ ...options?.epiRiskData, epiId: options.id }],
               },
-              op,
+              options,
             );
         }}
       />
       {data &&
-        data.epis?.map((epi) => (
-          <SelectedTableItem
-            key={epi.ca}
-            name={`${epi.ca} - ${epi.equipment}`}
-            tooltip={['1', '2', '0'].includes(epi.ca) ? '' : 'CA ' + epi.ca}
-            handleRemove={() =>
-              handleRemove({
-                epis: [epi.id],
-              })
-            }
-          />
-        ))}
+        data.epis?.map((epi) => {
+          const isExpired = dayjs(epi.expiredDate).isBefore(dayjs());
+          return (
+            <SelectedTableItem
+              key={epi.ca}
+              isExpired={isExpired}
+              name={isNaEpi(epi.ca) ? `${epi.equipment}` : `CA: ${epi.ca}`}
+              tooltip={
+                isNaEpi(epi.ca)
+                  ? ''
+                  : `CA ${epi.ca} - validade:(${dayjs(epi.expiredDate).format(
+                      'DD/MM/YYYY',
+                    )}) - ${epi.equipment}`
+              }
+              handleRemove={() =>
+                handleRemove({
+                  epis: [epi.epiRiskData],
+                })
+              }
+            />
+          );
+        })}
     </Box>
   );
 };

@@ -41,7 +41,7 @@ export function useQueryRiskDataPlan(
     take: take || 20,
   };
   const { data, ...rest } = useQuery(
-    [QueryEnum.RISK_DATA_PLAN, companyId, workspaceId, riskGroupId],
+    [QueryEnum.RISK_DATA_PLAN, companyId, workspaceId, riskGroupId, page],
     () =>
       queryRiskDataPlan(companyId || '', workspaceId, riskGroupId, pagination, {
         ...query,

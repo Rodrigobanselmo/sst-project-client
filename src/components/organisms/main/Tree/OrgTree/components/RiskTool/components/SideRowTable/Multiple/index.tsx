@@ -29,6 +29,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
+import { IEpi } from 'core/interfaces/api/IEpi';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import {
@@ -115,7 +116,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
         if (value?.length)
           (submitData as any)[key] = removeDuplicate(
             [data, ...((riskData as any)?.[key] ?? [])],
-            { removeById: 'id' },
+            { removeById: 'epiId' },
           );
       },
     );
@@ -171,7 +172,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
 
     const submitData = { ...values } as IRiskDataRow;
 
-    Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
+    Object.entries({ recs, adms, engs, generateSources }).forEach(
       ([key, value]) => {
         if (value?.length)
           (submitData as any)[key] = [
@@ -181,6 +182,11 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
           ];
       },
     );
+
+    if (epis && epis?.length)
+      submitData.epis = [...(riskData?.epis || [])].filter(
+        (i) => i && !epis.find((epi) => epi.epiId == i.id),
+      );
 
     setRiskData((old) => ({ ...old, ...submitData }));
   };
@@ -212,7 +218,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
         : {}),
     };
 
-    Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
+    Object.entries({ recs, adms, engs, generateSources }).forEach(
       ([key, value]) => {
         if (value?.length)
           (submitData as any)[key] = [
@@ -220,6 +226,16 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
           ];
       },
     );
+
+    Object.entries({ epis }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...((riskData as any)?.[key]?.map((i: IEpi) => ({
+            ...i.epiRiskData,
+            epiId: i.id,
+          })) ?? []),
+        ];
+    });
 
     try {
       await upsertManyMut.mutateAsync(

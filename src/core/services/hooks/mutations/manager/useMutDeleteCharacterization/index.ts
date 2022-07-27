@@ -68,8 +68,6 @@ export function useMutDeleteCharacterization() {
                       (data) => data.id !== resp.id,
                     );
 
-                    console.log(char);
-
                     return char;
                   });
                 }
