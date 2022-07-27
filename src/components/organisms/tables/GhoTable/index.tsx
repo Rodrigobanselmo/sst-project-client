@@ -46,8 +46,8 @@ export const GhoTable: FC<
     onSelectData?: (company: IGho) => void;
     selectedData?: IGho[];
   }
-> = ({ companyId, onSelectData, selectedData }) => {
-  const { data, isLoading } = useQueryGHO(companyId);
+> = ({ onSelectData, selectedData }) => {
+  const { data, isLoading } = useQueryGHO();
   // const { onOpenModal } = useModal();
   // const [filter, setFilter] = useState<HomoTypeEnum | undefined>(undefined);
   const isSelect = !!onSelectData;

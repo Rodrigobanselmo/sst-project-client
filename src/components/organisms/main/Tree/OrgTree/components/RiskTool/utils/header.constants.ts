@@ -18,8 +18,8 @@ export const headerRows = [
     filterValues: ['desc', 'asc', 'none'],
   },
   {
-    label: 'Medidas ADM',
-    tooltip: 'Medidas administrativas',
+    label: 'Outras Medidas',
+    tooltip: 'Medidas administrativas e organizacionais',
     filterKey: 'adms',
     filterValues: ['desc', 'asc', 'none'],
   },

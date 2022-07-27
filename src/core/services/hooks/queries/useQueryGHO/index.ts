@@ -18,10 +18,10 @@ export const queryGHO = async (companyId: string) => {
 export function useQueryGHO(companyIdProp?: string): IReactQuery<IGho[]> {
   const { companyId } = useGetCompanyId();
   const companyIdSelected = companyIdProp || companyId;
-  const reload = companyIdProp ? 'reload' : ''; //this reload modal to load hierarchy homogeneousGroups
+  // const reload = companyIdProp ? 'reload' : ''; //this reload modal to load hierarchy homogeneousGroups
 
   const { data, ...query } = useQuery(
-    [QueryEnum.GHO, companyIdSelected, reload],
+    [QueryEnum.GHO, companyIdSelected],
     () =>
       companyIdSelected
         ? queryGHO(companyIdSelected)

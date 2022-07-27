@@ -36,6 +36,7 @@ import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCh
 import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { queryClient } from 'core/services/queryClient';
+import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
 import { sortData } from 'core/utils/sorts/data.sort';
@@ -207,15 +208,15 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   const onCloseUnsaved = () => {
-    const { name, description } = getValues();
-    if (
-      preventUnwantedChanges(
-        { ...characterizationData, name, description },
-        initialDataRef.current,
-        onClose,
-      )
-    )
-      return;
+    const { name, description, type } = getValues();
+
+    const afterObject = cleanObjectValues({
+      ...characterizationData,
+      ...cleanObjectValues({ name, description, type }),
+    });
+    const beforeObject = cleanObjectValues(initialDataRef.current);
+    console.log(beforeObject, afterObject);
+    if (preventUnwantedChanges(afterObject, beforeObject, onClose)) return;
     onClose();
   };
 
