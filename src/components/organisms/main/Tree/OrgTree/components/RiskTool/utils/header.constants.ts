@@ -13,7 +13,7 @@ export const headerRows = [
   },
   {
     label: 'EPC / ENG',
-    tooltip: 'Medidas de engenharia (EPC)',
+    tooltip: 'Equipamento de Proteção Coletiva / Medidas de engenharia',
     filterKey: 'engs',
     filterValues: ['desc', 'asc', 'none'],
   },

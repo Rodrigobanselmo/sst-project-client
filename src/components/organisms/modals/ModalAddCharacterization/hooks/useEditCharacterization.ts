@@ -478,7 +478,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   const onAddHierarchy = () => {
     const handleSelect = (hierarchies: IHierarchyChildren[]) => {
       const values = getValues();
-
       if (isEdit) {
         const submitData: IUpsertCharacterization = {
           ...values,

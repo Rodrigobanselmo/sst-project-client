@@ -66,30 +66,39 @@ export const ModalSelectHierarchyData: FC<{
 
   const { hierarchyListData } = useListHierarchyQuery();
 
-  const hierarchyList = useMemo(() => {
+  const hierarchyList = useMemo((): IListHierarchyQuery[] => {
     const typesSelected: Record<HierarchyEnum, boolean> = {} as Record<
       HierarchyEnum,
       boolean
     >;
 
-    const list = hierarchyListData().filter((hierarchy) => {
-      (typesSelected as any)[hierarchy.type] = true;
-      // eslint-disable-next-line prettier/prettier
+    const list = hierarchyListData()
+      .filter((hierarchy) => {
+        (typesSelected as any)[hierarchy.type] = true;
+        // eslint-disable-next-line prettier/prettier
       const isWorkspace = workspaceSelected && hierarchy.workspaceIds.includes(workspaceSelected?.id);
-      // eslint-disable-next-line prettier/prettier
+        // eslint-disable-next-line prettier/prettier
       const isToFilter = search && !stringNormalize(hierarchy.name).includes(stringNormalize(search));
 
-      if (filter === 'GHO') return !isToFilter && isWorkspace;
-      return (hierarchy as any).type === filter && !isToFilter && isWorkspace;
-    });
+        if (filter === 'GHO') return !isToFilter && isWorkspace;
+        return (hierarchy as any).type === filter && !isToFilter && isWorkspace;
+      })
+      .map((hierarchy) => ({
+        ...hierarchy,
+        id: hierarchy.id + '//' + workspaceSelected?.id,
+      }));
 
     setAllTypes(typesSelected);
+
     return list;
   }, [filter, hierarchyListData, search, workspaceSelected]);
 
   const hierarchyListSelected = useMemo(() => {
-    return hierarchyListData();
-  }, [hierarchyListData]);
+    return hierarchyListData().map((hierarchy) => ({
+      ...hierarchy,
+      id: hierarchy.id + '//' + workspaceSelected?.id,
+    }));
+  }, [hierarchyListData, workspaceSelected?.id]);
 
   const onSelectAll = () => {
     dispatch(setModalIds(hierarchyList.map((hierarchy) => hierarchy.id)));

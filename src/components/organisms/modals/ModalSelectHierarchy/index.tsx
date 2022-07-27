@@ -86,7 +86,9 @@ export const ModalSelectHierarchy: FC = () => {
   const handleSelect = useCallback(() => {
     const modalSelectIds = store.getState().hierarchy
       .modalSelectIds as string[];
-    const hierarchies = modalSelectIds.map((id) => data[id]).filter((i) => i);
+    const hierarchies = modalSelectIds
+      .map((id) => data[id.split('//')[0]])
+      .filter((i) => i);
 
     onCloseModal(modalName);
     dispatch(setHierarchySearch(''));

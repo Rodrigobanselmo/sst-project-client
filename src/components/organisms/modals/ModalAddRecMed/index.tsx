@@ -141,11 +141,11 @@ export const ModalAddRecMed = () => {
                 defaultValue={String(recMedData.medType)}
                 options={[
                   {
-                    content: 'Medidas administrativas',
+                    content: 'Outras Medidas',
                     value: MedTypeEnum.ADM,
                   },
                   {
-                    content: 'Medidas de engenharia (EPC)',
+                    content: 'EPC / ENG',
                     value: MedTypeEnum.ENG,
                   },
                 ]}
