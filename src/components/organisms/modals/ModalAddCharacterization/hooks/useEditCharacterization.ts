@@ -219,6 +219,43 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     onClose();
   };
 
+  const changeProfile = () => {
+    const characterizationQuery =
+      principalProfile?.profiles.find(
+        (profile) => profile.id === saveRef.current,
+      ) || principalProfile;
+
+    setValue(
+      'characterizationType',
+      characterizationData.characterizationType || '',
+    );
+    setValue(
+      'moisturePercentage',
+      characterizationQuery.moisturePercentage || '',
+    );
+    setValue('type', characterizationData.type);
+    setValue('name', characterizationData.name);
+    setValue('description', characterizationQuery.description || '');
+    setValue('luminosity', characterizationQuery.luminosity || '');
+    setValue('temperature', characterizationQuery.temperature || '');
+    setValue('noiseValue', characterizationQuery.noiseValue || '');
+    setValue('profileName', characterizationQuery.profileName || '');
+
+    return setCharacterizationData({
+      ...(characterizationQuery as any),
+      characterizationType: characterizationData.characterizationType,
+      activities: characterizationData.activities,
+      considerations: characterizationData.considerations,
+      temperature: characterizationQuery.temperature,
+      luminosity: characterizationQuery.luminosity,
+      noiseValue: characterizationQuery.noiseValue,
+      moisturePercentage: characterizationQuery.moisturePercentage,
+      description: characterizationQuery.description,
+      type: principalProfile.type,
+      name: principalProfile.name,
+    });
+  };
+
   const onSubmit: SubmitHandler<ISubmit> = async (data) => {
     const clickOnSameProfile = saveRef.current === characterizationData.id;
     if (clickOnSameProfile) return;
@@ -296,6 +333,8 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
               characterizationType: characterizationData.characterizationType,
               type: characterizationData.type,
               profileParentId: profileParentId,
+              activities: characterizationData.activities,
+              considerations: characterizationData.considerations,
             });
           }
 
@@ -315,40 +354,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
           // is change profile
           if (isString && saveRef.current) {
-            const characterizationQuery =
-              principalProfile?.profiles.find(
-                (profile) => profile.id === saveRef.current,
-              ) || principalProfile;
-
-            setValue(
-              'characterizationType',
-              characterizationData.characterizationType || '',
-            );
-            setValue(
-              'moisturePercentage',
-              characterizationQuery.moisturePercentage || '',
-            );
-            setValue('type', characterizationData.type);
-            setValue('name', characterizationData.name);
-            setValue('description', characterizationQuery.description || '');
-            setValue('luminosity', characterizationQuery.luminosity || '');
-            setValue('temperature', characterizationQuery.temperature || '');
-            setValue('noiseValue', characterizationQuery.noiseValue || '');
-            setValue('profileName', characterizationQuery.profileName || '');
-
-            return setCharacterizationData({
-              ...(characterizationQuery as any),
-              characterizationType: characterizationData.characterizationType,
-              activities: characterizationData.activities,
-              considerations: characterizationData.considerations,
-              temperature: characterizationQuery.temperature,
-              luminosity: characterizationQuery.luminosity,
-              noiseValue: characterizationQuery.noiseValue,
-              moisturePercentage: characterizationQuery.moisturePercentage,
-              description: characterizationQuery.description,
-              type: principalProfile.type,
-              name: principalProfile.name,
-            });
+            return changeProfile();
           }
 
           // is close and save
@@ -540,6 +546,10 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   const onRemove = async () => {
+    if (!characterizationData.id) {
+      return changeProfile();
+    }
+
     await deleteMutation
       .mutateAsync(characterizationData.id)
       .then(() => {
@@ -593,6 +603,11 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   const onChangeProfile = (id: string) => {
+    const profileName = getValues('profileName');
+    if (!characterizationData.id && !profileName) {
+      changeProfile();
+    }
+
     saveRef.current = id;
     document.getElementById(IdsEnum.ADD_PROFILE_CHARACTERIZATION_ID)?.click();
   };

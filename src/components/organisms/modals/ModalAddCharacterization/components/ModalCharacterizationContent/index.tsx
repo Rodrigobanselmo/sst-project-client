@@ -184,7 +184,6 @@ export const ModalCharacterizationContent = (
               large
               onClick={() => onChangeProfile(profile.id)}
               minWidth={80}
-              mb={10}
               active={!!manyProfiles && profile.id == characterizationData.id}
               bg={
                 !!manyProfiles && profile.id == characterizationData.id
@@ -200,7 +199,6 @@ export const ModalCharacterizationContent = (
             text={`${'Novo'} Perfil`}
             large
             minWidth={80}
-            mb={10}
             bg={'gray.500'}
           />
         )}
