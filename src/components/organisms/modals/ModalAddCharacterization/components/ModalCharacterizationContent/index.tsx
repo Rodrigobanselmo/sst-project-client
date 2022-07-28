@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { CircularProgress, Icon, styled } from '@mui/material';
+import { Icon, styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -13,7 +13,9 @@ import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { STagSelect } from 'components/molecules/STagSelect';
 import { ModalAddHierarchyRisk } from 'components/organisms/modals/ModalAddCharacterization/components/ModalAddHierarchyRisk';
 import { ModalParametersContentBasic } from 'components/organisms/modals/ModalAddCharacterization/components/ModalParametersBasic';
+import { ParagraphSelect } from 'components/organisms/tagSelects/ParagraphSelect';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
+import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
@@ -56,6 +58,7 @@ export const ModalCharacterizationContent = (
     photos,
     setValue,
     onRemove,
+    onEditArray,
   } = props;
 
   const isEnvironment =
@@ -231,7 +234,7 @@ export const ModalCharacterizationContent = (
           firstLetterCapitalize
         />
       )}
-      <InputForm
+      {/* <InputForm
         defaultValue={characterizationData.description}
         multiline
         minRows={2}
@@ -244,6 +247,44 @@ export const ModalCharacterizationContent = (
         name="description"
         size="small"
         firstLetterCapitalize
+      /> */}
+
+      <SDisplaySimpleArray
+        values={characterizationData.paragraphs.map((paragraph) => ({
+          type: paragraph.split('{type}=')[1],
+          name: paragraph.split('{type}=')[0],
+        }))}
+        valueField="name"
+        onAdd={(value) => onAddArray(value, 'paragraphs')}
+        onDelete={(value) => onDeleteArray(value, 'paragraphs')}
+        label={'Descrição'}
+        buttonLabel={'Adicionar Parágrafo de Descrição'}
+        placeholder="descreva..."
+        modalLabel="Adicionar Descrição"
+        onRenderStartElement={(value) => (
+          <ParagraphSelect
+            handleSelectMenu={(option) => {
+              onEditArray((value as any).name, option.value, 'paragraphs');
+            }}
+            selected={
+              (typeof value !== 'string' &&
+                'type' in value &&
+                (value as any).type) ||
+              ParagraphEnum.PARAGRAPH
+            }
+            sx={{
+              boxShadow: 'none',
+              borderRightColor: 'grey.300',
+              borderRadius: '4px 5px 5px 4px',
+            }}
+            paragraphOptions={[
+              ParagraphEnum.PARAGRAPH,
+              ParagraphEnum.BULLET_0,
+              ParagraphEnum.BULLET_1,
+              ParagraphEnum.BULLET_2,
+            ]}
+          />
+        )}
       />
 
       {(!!characterizationData.characterizationType ||
@@ -267,13 +308,41 @@ export const ModalCharacterizationContent = (
             {...(manyProfiles && notPrincipalProfile && { disabled: true })}
           />
           <SDisplaySimpleArray
-            values={characterizationData.activities || []}
+            values={characterizationData.activities.map((activity) => ({
+              type: activity.split('{type}=')[1],
+              name: activity.split('{type}=')[0],
+            }))}
+            valueField="name"
             onAdd={(value) => onAddArray(value, 'activities')}
             onDelete={(value) => onDeleteArray(value, 'activities')}
             label={'Atividades ou tarefas realizadas'}
             buttonLabel={'Adicionar Atividade'}
             placeholder="descreva a atividade..."
             modalLabel="Adicionar Atividade"
+            onRenderStartElement={(value) => (
+              <ParagraphSelect
+                handleSelectMenu={(option) => {
+                  onEditArray((value as any).name, option.value, 'activities');
+                }}
+                selected={
+                  (typeof value !== 'string' &&
+                    'type' in value &&
+                    (value as any).type) ||
+                  ParagraphEnum.BULLET_0
+                }
+                sx={{
+                  boxShadow: 'none',
+                  borderRightColor: 'grey.300',
+                  borderRadius: '4px 5px 5px 4px',
+                }}
+                paragraphOptions={[
+                  ParagraphEnum.PARAGRAPH,
+                  ParagraphEnum.BULLET_0,
+                  ParagraphEnum.BULLET_1,
+                  ParagraphEnum.BULLET_2,
+                ]}
+              />
+            )}
             {...(isEnvironment
               ? ({
                   label: 'Processos de Trabalho',
@@ -371,13 +440,47 @@ export const ModalCharacterizationContent = (
             ))}
           </SFlex>
           <SDisplaySimpleArray
-            values={characterizationData.considerations || []}
-            onAdd={(value) => onAddArray(value)}
-            onDelete={(value) => onDeleteArray(value)}
+            values={characterizationData.considerations.map(
+              (consideration) => ({
+                type: consideration.split('{type}=')[1],
+                name: consideration.split('{type}=')[0],
+              }),
+            )}
+            valueField="name"
+            onAdd={(value) => onAddArray(value, 'considerations')}
+            onDelete={(value) => onDeleteArray(value, 'considerations')}
             label={'Considerações'}
             buttonLabel={'Adicionar Consideração'}
             placeholder="descreva sua consideração..."
             modalLabel={'Adicionar Consideração'}
+            onRenderStartElement={(value) => (
+              <ParagraphSelect
+                handleSelectMenu={(option) => {
+                  onEditArray(
+                    (value as any).name,
+                    option.value,
+                    'considerations',
+                  );
+                }}
+                selected={
+                  (typeof value !== 'string' &&
+                    'type' in value &&
+                    (value as any).type) ||
+                  ParagraphEnum.BULLET_0
+                }
+                sx={{
+                  boxShadow: 'none',
+                  borderRightColor: 'grey.300',
+                  borderRadius: '4px 5px 5px 4px',
+                }}
+                paragraphOptions={[
+                  ParagraphEnum.PARAGRAPH,
+                  ParagraphEnum.BULLET_0,
+                  ParagraphEnum.BULLET_1,
+                  ParagraphEnum.BULLET_2,
+                ]}
+              />
+            )}
           />
         </>
       )}

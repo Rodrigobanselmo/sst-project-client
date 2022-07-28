@@ -24,6 +24,7 @@ export interface IUpsertCharacterization {
   id?: string;
   type?: CharacterizationTypeEnum;
   hierarchyIds?: string[];
+  paragraphs?: string[];
   name?: string;
   description?: string;
   order?: number;

@@ -22,6 +22,7 @@ export type ICharacterization = {
   luminosity: string;
   activities: string[];
   considerations: string[];
+  paragraphs: string[];
   riskData?: IRiskData[];
   profiles: ICharacterization[];
   profileName: string;

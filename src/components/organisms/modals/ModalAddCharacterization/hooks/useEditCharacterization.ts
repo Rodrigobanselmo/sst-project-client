@@ -7,6 +7,7 @@ import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interface
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
+import { ParagraphEnum } from 'project/enum/paragraph.enum';
 import { setGhoSelectedId } from 'store/reducers/hierarchy/ghoSlice';
 import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 
@@ -66,6 +67,7 @@ export const initialCharacterizationState = {
   parentCharacterizationId: '', //? missing
   photos: [] as IAddCharacterizationPhoto[],
   hierarchies: [] as (IHierarchy | ITreeMapObject)[],
+  paragraphs: [] as string[],
   considerations: [] as string[],
   activities: [] as string[],
   characterizationType: '' as 'environment' | 'characterization',
@@ -284,6 +286,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       profileName: data.profileName,
       activities: characterizationData.activities,
       considerations: characterizationData.considerations,
+      paragraphs: characterizationData.paragraphs,
       companyId: characterizationData.companyId,
       workspaceId: characterizationData.workspaceId,
       order: characterizationData.order,
@@ -336,6 +339,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
               profileParentId: profileParentId,
               activities: characterizationData.activities,
               considerations: characterizationData.considerations,
+              paragraphs: characterizationData.paragraphs,
             });
           }
 
@@ -522,26 +526,54 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
   const onAddArray = (
     value: string,
-    type = 'considerations' as 'considerations' | 'activities',
-  ) => {
-    if (characterizationData[type])
-      setCharacterizationData({
-        ...characterizationData,
-        [type]: [...characterizationData[type], value],
-      });
-  };
-
-  const onDeleteArray = (
-    value: string,
-    type = 'considerations' as 'considerations' | 'activities',
+    type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
   ) => {
     if (characterizationData[type])
       setCharacterizationData({
         ...characterizationData,
         [type]: [
           ...characterizationData[type].filter(
-            (item: string) => item !== value,
+            (v) => v.split('{type}=')[0] !== value.split('{type}=')[0],
           ),
+          value +
+            '{type}=' +
+            (type === 'paragraphs'
+              ? ParagraphEnum.PARAGRAPH
+              : ParagraphEnum.BULLET_0),
+        ],
+      });
+  };
+
+  const onDeleteArray = (
+    value: string,
+    type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+  ) => {
+    if (characterizationData[type])
+      setCharacterizationData({
+        ...characterizationData,
+        [type]: [
+          ...characterizationData[type].filter(
+            (item: string) =>
+              item.split('{type}=')[0] !== value.split('{type}=')[0],
+          ),
+        ],
+      });
+  };
+
+  const onEditArray = (
+    value: string,
+    paragraphType: ParagraphEnum,
+    type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+  ) => {
+    if (characterizationData[type])
+      setCharacterizationData({
+        ...characterizationData,
+        [type]: [
+          ...characterizationData[type].map((item: string) => {
+            return item.split('{type}=')[0] !== value.split('{type}=')[0]
+              ? item
+              : item.split('{type}=')[0] + '{type}=' + paragraphType;
+          }),
         ],
       });
   };
@@ -630,6 +662,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     isEdit,
     onAddHierarchy,
     onAddArray,
+    onEditArray,
     onDeleteArray,
     onRemove: () => preventDelete(onRemove),
     hierarchies,

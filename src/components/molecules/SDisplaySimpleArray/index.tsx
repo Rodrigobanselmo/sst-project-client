@@ -16,7 +16,6 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IUser } from 'core/interfaces/api/IUser';
-import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 interface ISDisplaySimpleArrayProps {
   values: any[];
@@ -29,9 +28,11 @@ interface ISDisplaySimpleArrayProps {
   placeholder?: string;
   type?: TypeInputModal;
   valueField?: string;
+  paragraphSelect?: boolean;
+  onRenderStartElement?: (value: object | string) => JSX.Element;
 }
 
-export const SDisplaySimpleArray = ({
+export function SDisplaySimpleArray({
   values,
   onAdd,
   label,
@@ -42,7 +43,8 @@ export const SDisplaySimpleArray = ({
   buttonLabel,
   type = TypeInputModal.TEXT,
   valueField,
-}: ISDisplaySimpleArrayProps) => {
+  onRenderStartElement,
+}: ISDisplaySimpleArrayProps) {
   const { onStackOpenModal } = useModal();
   return (
     <Box
@@ -61,7 +63,7 @@ export const SDisplaySimpleArray = ({
       )}
 
       <SFlex direction="column">
-        {removeDuplicate(values, { removeById: valueField }).map((v) => {
+        {values.map((v, index) => {
           let value = '';
           if (typeof v === 'string') {
             value = v;
@@ -75,26 +77,28 @@ export const SDisplaySimpleArray = ({
             <SFlex
               sx={{
                 border: '1px solid',
-                borderRadius: '4px',
+                borderRadius: '4px 4px 4px 4px',
                 borderColor: 'grey.300',
                 backgroundColor: 'background.box',
               }}
               my={2}
-              key={value}
+              key={value + index}
               align="center"
             >
+              {onRenderStartElement && onRenderStartElement(v)}
+              <SText ml={5} fontSize={14} mr={'auto'} color={'grey.600'}>
+                {value}
+              </SText>
               <STooltip withWrapper title="remover">
                 <SIconButton
                   disabled={disabled}
                   onClick={() => onDelete(value)}
                   size="small"
+                  sx={{ mr: 3 }}
                 >
                   <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
                 </SIconButton>
               </STooltip>
-              <SText fontSize={14} color={'grey.600'}>
-                {value}
-              </SText>
             </SFlex>
           );
         })}
@@ -133,4 +137,4 @@ export const SDisplaySimpleArray = ({
       </SFlex>
     </Box>
   );
-};
+}
