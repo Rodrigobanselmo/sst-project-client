@@ -275,6 +275,8 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
     }
   };
 
+  const handleEditEpi = async () => {};
+
   const actualMatrixLevel = getMatrizRisk(
     riskData?.probability,
     selectedRiskStore?.severity,
@@ -302,12 +304,14 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
           risk={selectedRiskStore}
         />
         <EpiColumn
+          handleEdit={handleEditEpi}
           handleSelect={handleSelect}
           handleRemove={handleRemove}
           data={riskData}
           risk={selectedRiskStore}
         />
         <EngColumn
+          // handleEdit={handleEdit}
           handleSelect={handleSelect}
           handleRemove={handleRemove}
           data={riskData}

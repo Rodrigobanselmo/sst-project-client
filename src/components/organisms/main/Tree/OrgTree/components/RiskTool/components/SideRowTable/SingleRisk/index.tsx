@@ -4,6 +4,7 @@ import React, { FC } from 'react';
 import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
+import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
@@ -43,7 +44,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
   const gho = useAppSelector((state) => state.gho.selected);
   const upsertRiskData = useMutUpsertRiskData();
   const { companyId } = useGetCompanyId();
-  const { onOpenModal } = useModal();
+  const { onOpenModal, onStackOpenModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
   const { getPathById } = useHierarchyTreeActions();
@@ -124,7 +125,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
     ]);
 
     if (!company) return;
-
+    console.log(gho);
     const workspaceEmployeesCount =
       company.workspace?.reduce(
         (acc, workspace) =>
@@ -200,6 +201,14 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
       .catch(() => {});
   };
 
+  const handleEditEpi = async (epi: IEpi) => {
+    onStackOpenModal(ModalEnum.EPI_EPI_DATA, {
+      onSubmit: (epis) =>
+        epis?.epiRiskData && handleSelect({ epis: [epis.epiRiskData] }),
+      ...epi,
+    } as Partial<typeof initialEpiDataState>);
+  };
+
   const actualMatrixLevel = getMatrizRisk(
     riskData?.probability,
     risk?.severity,
@@ -226,6 +235,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
           />
           <EpiColumn
             handleSelect={handleSelect}
+            handleEdit={handleEditEpi}
             handleRemove={handleRemove}
             data={riskData}
             risk={risk}

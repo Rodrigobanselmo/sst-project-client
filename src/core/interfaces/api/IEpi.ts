@@ -1,5 +1,7 @@
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IRecMed } from './IRiskFactors';
+
 export interface IEpi {
   id: number;
   ca: string;

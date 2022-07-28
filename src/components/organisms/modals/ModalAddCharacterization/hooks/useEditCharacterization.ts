@@ -161,9 +161,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           profileParentId: '',
         };
 
-        setValue('characterizationType', newData.characterizationType);
-        setValue('type', newData.type);
-
         const isEnvironment = [
           CharacterizationTypeEnum.GENERAL,
           CharacterizationTypeEnum.ADMINISTRATIVE,
@@ -176,8 +173,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
         } else if (newData.type) {
           newData.characterizationType = 'characterization';
         }
-        initialDataRef.current = newData;
 
+        setValue('characterizationType', newData.characterizationType);
+        setValue('type', newData.type);
+
+        initialDataRef.current = newData;
+        console.log('characterizationData', newData);
         return newData;
       });
     }
@@ -247,8 +248,9 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     return setCharacterizationData({
       ...(characterizationQuery as any),
       characterizationType: characterizationData.characterizationType,
-      activities: characterizationData.activities,
-      considerations: characterizationData.considerations,
+      activities: characterizationQuery.activities,
+      considerations: characterizationQuery.considerations,
+      paragraphs: characterizationQuery.paragraphs,
       temperature: characterizationQuery.temperature,
       luminosity: characterizationQuery.luminosity,
       noiseValue: characterizationQuery.noiseValue,
@@ -267,23 +269,33 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       return setError('profileName', { message: 'Campo obrigatório' });
     }
 
+    console.log('type', characterizationData.type, characterizationData);
+    if (!characterizationData.type) {
+      return setError('type', { message: 'Campo obrigatório' });
+    }
+
+    if (!characterizationData.characterizationType) {
+      return setError('characterizationType', { message: 'Campo obrigatório' });
+    }
+
     if (notPrincipalProfile && data.profileName === data.name) {
       setFocus('profileName');
       return setError('profileName', {
         message: 'Nome de perfil precisa ser diferente do nome principal',
       });
     }
+
     const submitData: IUpsertCharacterization = {
       name: notPrincipalProfile
         ? `${data.name} (${data.profileName})`
         : data.name,
-      type: data.type,
       description: data.description,
       noiseValue: data.noiseValue,
       moisturePercentage: data.moisturePercentage,
       temperature: data.temperature,
       luminosity: data.luminosity,
       profileName: data.profileName,
+      type: characterizationData.type,
       activities: characterizationData.activities,
       considerations: characterizationData.considerations,
       paragraphs: characterizationData.paragraphs,

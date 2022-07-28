@@ -49,7 +49,10 @@ export async function upsertRiskData(
   return response.data;
 }
 
-export function useMutUpsertRiskDataRec(riskFactorGroupDataId: string) {
+export function useMutUpsertRiskDataRec(
+  riskFactorGroupDataId: string,
+  page: number,
+) {
   const { getCompanyId, workspaceId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
@@ -66,6 +69,7 @@ export function useMutUpsertRiskDataRec(riskFactorGroupDataId: string) {
             getCompanyId(resp),
             workspaceId,
             riskFactorGroupDataId,
+            page,
           ]);
 
           if (actualData) {
@@ -75,6 +79,7 @@ export function useMutUpsertRiskDataRec(riskFactorGroupDataId: string) {
                 getCompanyId(resp),
                 workspaceId,
                 riskFactorGroupDataId,
+                page,
               ],
               (oldData: IPaginationReturn<IRiskData> | undefined) => {
                 if (oldData) {

@@ -102,7 +102,6 @@ export const RiskToolSlider = () => {
     const onSelectGhoData = async (gho: IGho, riskGroup: IRiskGroupData) => {
       const homoId = String(data.id).split('//');
       const isHierarchy = homoId.length > 1;
-
       copyHomoMutation.mutate({
         actualGroupId: homoId[0],
         riskGroupId: query.riskGroupId as string,
@@ -119,6 +118,7 @@ export const RiskToolSlider = () => {
       riskGroup: IRiskGroupData,
       company: ICompany,
     ) => {
+      console.log(company);
       onStackOpenModal(ModalEnum.HOMOGENEOUS_SELECT, {
         // title: 'Selecione o Sistema de Gestão SST do GSE',
         onSelect: (gho) => onSelectGhoData(gho as IGho, riskGroup),

@@ -7,6 +7,7 @@ import { IRiskDataRow } from '../../../types';
 export interface EpiColumnProps {
   handleSelect: (values: Partial<IUpsertRiskData>, epi: IEpi) => void;
   handleRemove: (values: Partial<IUpsertRiskData>) => void;
+  handleEdit: (epi: IEpi) => void;
   data?: IRiskDataRow;
   risk?: IRiskFactors | null;
   after?: boolean;

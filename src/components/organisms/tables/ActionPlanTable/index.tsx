@@ -58,7 +58,7 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
     count,
   } = useQueryRiskDataPlan(riskGroupDataId, workspaceId, page, {}, rowsPerPage);
 
-  const upsertRiskRecMutation = useMutUpsertRiskDataRec(riskGroupDataId);
+  const upsertRiskRecMutation = useMutUpsertRiskDataRec(riskGroupDataId, page);
   const createActionPlan = useMutCreateDocPlanAction();
 
   const { onOpenModal } = useModal();
@@ -94,6 +94,22 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
   return (
     <>
       <STableTitle icon={SActionPlanIcon}>Plano de Ação</STableTitle>
+      <SFlex mb={10}>
+        <STagButton
+          text="Baixar e Atualizar Plano de Ação"
+          large
+          active
+          bg="info.main"
+          icon={SDownloadIcon}
+          loading={createActionPlan.isLoading}
+          onClick={() =>
+            createActionPlan.mutate({
+              workspaceId,
+              riskGroupId: riskGroupData?.id || '',
+            })
+          }
+        />
+      </SFlex>
       <STable
         loading={loadEmployees}
         rowsNumber={rowsPerPage}
@@ -326,21 +342,6 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
         currentPage={page}
         onPageChange={setPage}
       />
-      <SFlex mt={10}>
-        <STagButton
-          text="Baixar e Atualizar Plano de Ação"
-          large
-          active
-          bg="info.main"
-          icon={SDownloadIcon}
-          onClick={() =>
-            createActionPlan.mutate({
-              workspaceId,
-              riskGroupId: riskGroupData?.id || '',
-            })
-          }
-        />
-      </SFlex>
       <ModalAddEmployee />
       <ModalAddExcelEmployees />
       <ModalSelectHierarchy />

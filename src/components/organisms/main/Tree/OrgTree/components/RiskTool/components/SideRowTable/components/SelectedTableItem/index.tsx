@@ -15,6 +15,7 @@ export const SelectedTableItem: FC<SelectedTableItemProps> = ({
   tooltip,
   handleRemove,
   isExpired,
+  handleEdit,
 }) => {
   return (
     <STooltip title={tooltip || name}>
@@ -25,13 +26,18 @@ export const SelectedTableItem: FC<SelectedTableItemProps> = ({
           borderStyle: 'dashed',
           borderRadius: 1,
           ...(isExpired ? { borderColor: 'error.main' } : {}),
+          ...(handleEdit ? { cursor: 'pointer' } : {}),
         }}
         mt={4}
         align="center"
+        onClick={() => handleEdit?.()}
       >
         <SIconButton
           sx={{ maxWidth: 10, maxHeight: 10 }}
-          onClick={() => handleRemove()}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleRemove();
+          }}
         >
           <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
         </SIconButton>

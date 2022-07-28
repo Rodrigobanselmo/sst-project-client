@@ -198,6 +198,8 @@ export const SideRowTable: FC<SideTableProps> = ({
       .catch(() => {});
   };
 
+  const handleEditEpi = async () => {};
+
   const actualMatrixLevel = getMatrizRisk(
     riskData?.probability,
     risk?.severity,
@@ -225,6 +227,7 @@ export const SideRowTable: FC<SideTableProps> = ({
             risk={risk}
           />
           <EpiColumn
+            handleEdit={handleEditEpi}
             handleSelect={handleSelect}
             handleRemove={handleRemove}
             data={riskData}

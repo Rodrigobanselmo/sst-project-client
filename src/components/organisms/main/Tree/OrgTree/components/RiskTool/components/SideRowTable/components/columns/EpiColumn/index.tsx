@@ -13,6 +13,7 @@ export const EpiColumn: FC<EpiColumnProps> = ({
   handleSelect,
   data,
   handleRemove,
+  handleEdit,
   risk,
 }) => {
   return (
@@ -40,6 +41,7 @@ export const EpiColumn: FC<EpiColumnProps> = ({
             <SelectedTableItem
               key={epi.ca}
               isExpired={isExpired}
+              handleEdit={() => handleEdit(epi)}
               name={isNaEpi(epi.ca) ? `${epi.equipment}` : `CA: ${epi.ca}`}
               tooltip={
                 isNaEpi(epi.ca)

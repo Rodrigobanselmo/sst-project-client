@@ -11,7 +11,10 @@ import {
 } from 'components/organisms/modals/ModalSingleInput';
 
 import AddIcon from 'assets/icons/SAddIcon';
+import { SArrowBackIcon } from 'assets/icons/SArrowBack';
+import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
+import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -20,8 +23,9 @@ import { IUser } from 'core/interfaces/api/IUser';
 interface ISDisplaySimpleArrayProps {
   values: any[];
   label?: string;
-  onAdd: (value: string, data?: IUser) => void;
-  onDelete: (value: string, data?: IUser) => void;
+  onAdd: (value: string, data?: any) => void;
+  onDelete: (value: string, data?: any) => void;
+  onEdit?: (value: string, data?: any) => void;
   disabled?: boolean;
   buttonLabel?: string;
   modalLabel?: string;
@@ -89,16 +93,49 @@ export function SDisplaySimpleArray({
               <SText ml={5} fontSize={14} mr={'auto'} color={'grey.600'}>
                 {value}
               </SText>
-              <STooltip withWrapper title="remover">
+              <SFlex gap={2} flexWrap="wrap" center>
                 <SIconButton
                   disabled={disabled}
                   onClick={() => onDelete(value)}
                   size="small"
-                  sx={{ mr: 3 }}
                 >
-                  <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
+                  <Icon
+                    component={SArrowNextIcon}
+                    sx={{ fontSize: '1rem', transform: 'rotate(-90deg)' }}
+                  />
                 </SIconButton>
-              </STooltip>
+
+                <SIconButton
+                  disabled={disabled}
+                  onClick={() => onDelete(value)}
+                  size="small"
+                >
+                  <Icon
+                    component={SArrowNextIcon}
+                    sx={{ fontSize: '1rem', transform: 'rotate(90deg)' }}
+                  />
+                </SIconButton>
+
+                <STooltip withWrapper title="remover">
+                  <SIconButton
+                    disabled={disabled}
+                    onClick={() => onDelete(value)}
+                    size="small"
+                  >
+                    <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
+                  </SIconButton>
+                </STooltip>
+
+                <STooltip withWrapper title="editar">
+                  <SIconButton
+                    disabled={disabled}
+                    onClick={() => onDelete(value)}
+                    size="small"
+                  >
+                    <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
+                  </SIconButton>
+                </STooltip>
+              </SFlex>
             </SFlex>
           );
         })}
