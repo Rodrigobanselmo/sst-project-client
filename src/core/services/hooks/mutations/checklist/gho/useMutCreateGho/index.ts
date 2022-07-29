@@ -39,13 +39,20 @@ export function useMutCreateGho() {
       onSuccess: async (resp) => {
         if (resp) {
           // eslint-disable-next-line prettier/prettier
-          const actualData = queryClient.getQueryData([QueryEnum.GHO, resp.companyId]);
-          if (actualData)
+          const actualData = queryClient.getQueryData<IGho[]>([QueryEnum.GHO, resp.companyId]);
+          if (actualData) {
+            if (!actualData.length)
+              queryClient.invalidateQueries([
+                QueryEnum.COMPANY,
+                resp.companyId,
+              ]);
+
             queryClient.setQueryData(
               [QueryEnum.GHO, resp.companyId],
               (oldData: IGho[] | undefined) =>
                 oldData ? [...oldData, resp] : [resp],
             );
+          }
         }
         enqueueSnackbar('Grupo homogênio de exposição criado com sucesso', {
           variant: 'success',
