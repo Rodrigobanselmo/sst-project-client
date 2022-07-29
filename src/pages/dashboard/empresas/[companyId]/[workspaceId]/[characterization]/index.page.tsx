@@ -12,6 +12,7 @@ import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalEditEpiData } from 'components/organisms/modals/ModalEditEpiRiskData';
+import { ModalEditEngRiskData } from 'components/organisms/modals/ModalEditMedRiskData';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
@@ -101,6 +102,7 @@ const Companies: NextPage = () => {
       <ModalUploadPhoto />
       <ModalSelectGho />
       <ModalEditEpiData />
+      <ModalEditEngRiskData />
     </SContainer>
   );
 };
