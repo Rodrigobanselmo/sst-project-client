@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
@@ -14,6 +14,7 @@ import {
   setRiskAddToggleExpand,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -44,6 +45,10 @@ export const GhoTool = () => {
     dispatch(setGhoSearch(''));
     dispatch(setGhoSearchSelect(''));
   }, [dispatch]);
+
+  const [filter, setFilter] = useState<HomoTypeEnum | null>(
+    HomoTypeEnum.GSE || null,
+  );
 
   const handleAddGHO = async () => {
     onOpenModal(ModalEnum.GHO_ADD);
@@ -102,6 +107,10 @@ export const GhoTool = () => {
     [dispatch, selectExpanded, selectedGhoId],
   );
 
+  const handleFilter = (filter: HomoTypeEnum | null) => {
+    setFilter(filter);
+  };
+
   return (
     <>
       {isGhoOpen && (
@@ -114,7 +123,9 @@ export const GhoTool = () => {
               handleAddGHO={handleAddGHO}
               isAddLoading={addMutation.isLoading}
               inputRef={inputRef}
+              filter={filter}
             />
+
             <STBoxStack expanded={selectExpanded ? 1 : 0}>
               <GhoToolView
                 handleEditGHO={handleEditGHO}
@@ -122,6 +133,8 @@ export const GhoTool = () => {
                 handleDeleteGHO={handleDeleteGHO}
                 selectedGhoId={selectedGhoId}
                 isDeleteLoading={deleteMutation.isLoading}
+                handleFilter={handleFilter}
+                filter={filter}
               />
             </STBoxStack>
             <GhoToolTreeFilter />

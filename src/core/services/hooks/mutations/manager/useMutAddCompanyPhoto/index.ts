@@ -49,7 +49,15 @@ export function useMutAddCompanyPhoto() {
     {
       onSuccess: async (resp) => {
         if (resp) {
-          queryClient.setQueryData([QueryEnum.COMPANY, resp.id], resp);
+          const company = queryClient.getQueryData<ICompany>([
+            QueryEnum.COMPANY,
+            resp.id,
+          ]);
+
+          queryClient.setQueryData([QueryEnum.COMPANY, resp.id], {
+            ...(company || {}),
+            ...resp,
+          });
         }
 
         enqueueSnackbar('Ação realizado com sucesso', {

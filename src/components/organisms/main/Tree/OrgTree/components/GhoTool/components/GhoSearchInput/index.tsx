@@ -55,7 +55,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
           size="small"
           variant="outlined"
           onChange={(e) => handleSearch(e.target.value)}
-          placeholder={'Pesquisar por GSE...'}
+          placeholder={'pesquisar...'}
           subVariant="search"
           inputRef={ref}
           fullWidth

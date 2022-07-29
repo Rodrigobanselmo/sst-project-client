@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 import { SActionButton } from 'components/atoms/SActionButton';
 import { SContainer } from 'components/atoms/SContainer';
@@ -17,9 +17,7 @@ import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
 import SActionPlanIcon from 'assets/icons/SActionPlanIcon';
-import SCharacterization from 'assets/icons/SCharacterizationIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
-import SEnvironmentIcon from 'assets/icons/SEnvironmentIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 

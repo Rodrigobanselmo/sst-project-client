@@ -4,6 +4,8 @@ import React, { FC } from 'react';
 import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
+import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
+import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
@@ -18,6 +20,7 @@ import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEpi } from 'core/interfaces/api/IEpi';
+import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import {
   IUpsertRiskData,
   useMutUpsertRiskData,
@@ -45,7 +48,7 @@ export const SideRowTable: FC<SideTableProps> = ({
   const risk = useAppSelector(selectRisk);
   const upsertRiskData = useMutUpsertRiskData();
   const { companyId } = useGetCompanyId();
-  const { onOpenModal } = useModal();
+  const { onOpenModal, onStackOpenModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
   const { getPathById } = useHierarchyTreeActions();
@@ -82,15 +85,13 @@ export const SideRowTable: FC<SideTableProps> = ({
       ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
     } as IUpsertRiskData;
 
-    Object.entries({ recs, adms, engs, generateSources }).forEach(
-      ([key, value]) => {
-        if (value?.length)
-          (submitData as any)[key] = [
-            ...value,
-            ...((riskData as any)?.[key]?.map((rec: any) => rec.id) ?? []),
-          ];
-      },
-    );
+    Object.entries({ recs, adms, generateSources }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...value,
+          ...((riskData as any)?.[key]?.map((rec: any) => rec.id) ?? []),
+        ];
+    });
 
     if (epis && epis?.length)
       submitData.epis = removeDuplicate(
@@ -99,6 +100,15 @@ export const SideRowTable: FC<SideTableProps> = ({
           ...(riskData?.epis?.map((epi) => epi.epiRiskData) || []),
         ].filter((i) => i),
         { removeById: 'epiId' },
+      );
+
+    if (engs && engs?.length)
+      submitData.engs = removeDuplicate(
+        [
+          ...engs,
+          ...(riskData?.engs?.map((eng) => eng.engsRiskData) || []),
+        ].filter((i) => i),
+        { removeById: 'recMedId' },
       );
 
     await upsertRiskData
@@ -173,23 +183,26 @@ export const SideRowTable: FC<SideTableProps> = ({
       riskFactorGroupDataId: query.riskGroupId as string,
     } as IUpsertRiskData;
 
-    Object.entries({ recs, adms, engs, generateSources }).forEach(
-      ([key, value]) => {
-        if (value?.length)
-          (submitData as any)[key] = [
-            ...(
-              (riskData as any)?.[key]?.filter(
-                (data: any) => !(value as any).includes(data.id),
-              ) ?? []
-            ).map((d: any) => d.id),
-          ];
-      },
-    );
+    Object.entries({ recs, adms, generateSources }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...(
+            (riskData as any)?.[key]?.filter(
+              (data: any) => !(value as any).includes(data.id),
+            ) ?? []
+          ).map((d: any) => d.id),
+        ];
+    });
 
     if (epis && epis?.length)
       submitData.epis = [
         ...(riskData?.epis?.map((epi) => epi.epiRiskData) || []),
       ].filter((i) => i && !epis.find((epi) => epi.epiId == i.epiId));
+
+    if (engs && engs?.length)
+      submitData.engs = [
+        ...(riskData?.engs?.map((eng) => eng.engsRiskData) || []),
+      ].filter((i) => i && !engs.find((eng) => eng.recMedId == i.recMedId));
 
     await upsertRiskData
       .mutateAsync({
@@ -198,7 +211,21 @@ export const SideRowTable: FC<SideTableProps> = ({
       .catch(() => {});
   };
 
-  const handleEditEpi = async () => {};
+  const handleEditEpi = async (epi: IEpi) => {
+    onStackOpenModal(ModalEnum.EPI_EPI_DATA, {
+      onSubmit: (epis) =>
+        epis?.epiRiskData && handleSelect({ epis: [epis.epiRiskData] }),
+      ...epi,
+    } as Partial<typeof initialEpiDataState>);
+  };
+
+  const handleEditEngs = async (eng: IRecMed) => {
+    onStackOpenModal(ModalEnum.EPC_RISK_DATA, {
+      onSubmit: (engs) =>
+        engs?.engsRiskData && handleSelect({ engs: [engs.engsRiskData] }),
+      ...eng,
+    } as Partial<typeof initialEngsRiskDataState>);
+  };
 
   const actualMatrixLevel = getMatrizRisk(
     riskData?.probability,
@@ -235,6 +262,7 @@ export const SideRowTable: FC<SideTableProps> = ({
           />
           <EngColumn
             handleSelect={handleSelect}
+            handleEdit={handleEditEngs}
             handleRemove={handleRemove}
             data={riskData}
             risk={risk}

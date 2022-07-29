@@ -49,7 +49,7 @@ export const ModalAddRecMed = () => {
 
   return (
     <SModal
-      {...registerModal(ModalEnum.REC_MED_ADD)}
+      {...registerModal(ModalEnum.ENG_MED_ADD)}
       keepMounted={false}
       onClose={onCloseUnsaved}
     >

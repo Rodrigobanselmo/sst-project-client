@@ -4,7 +4,9 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialAddRecMedState } from 'components/organisms/modals/ModalAddRecMed/hooks/useAddRecMed';
+import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
 import { MedTypeEnum } from 'project/enum/medType.enum';
+import { isNaRecMed } from 'project/utils/isNa';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
@@ -32,14 +34,28 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   multiple = true,
   onlyFromActualRisks,
   onlyInput,
+  onlyEpi = false,
   onCreate = () => {},
   ...props
 }) => {
   const { data } = useQueryRisk();
   const { onStackOpenModal } = useModal();
 
-  const handleSelectRecMed = (options: string[]) => {
-    if (handleSelect) handleSelect(options);
+  const handleSelectRecMed = (options: IRecMed) => {
+    if (
+      onlyEpi ||
+      isNaRecMed(options?.medName) ||
+      options.medType === MedTypeEnum.ADM
+    ) {
+      if (handleSelect) handleSelect(options);
+      return;
+    }
+
+    if (options.id)
+      onStackOpenModal(ModalEnum.EPC_RISK_DATA, {
+        onSubmit: handleSelect,
+        ...options,
+      } as Partial<typeof initialEngsRiskDataState>);
   };
 
   const handleAddRecMed = () => {
@@ -65,7 +81,7 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
     if (risk) passModalData.risk = risk;
 
     onStackOpenModal<Partial<typeof initialAddRecMedState>>(
-      ModalEnum.REC_MED_ADD,
+      ModalEnum.ENG_MED_ADD,
       passModalData,
     );
   };
@@ -79,7 +95,7 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
 
     if (risk)
       onStackOpenModal<Partial<typeof initialAddRecMedState>>(
-        ModalEnum.REC_MED_ADD,
+        ModalEnum.ENG_MED_ADD,
         {
           riskIds: riskIds,
           edit: true,

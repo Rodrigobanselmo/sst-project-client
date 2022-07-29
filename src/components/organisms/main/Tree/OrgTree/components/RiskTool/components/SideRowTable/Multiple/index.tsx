@@ -8,6 +8,8 @@ import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
 import { STagButton } from 'components/atoms/STagButton';
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
+import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
+import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import {
@@ -31,7 +33,7 @@ import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEpi } from 'core/interfaces/api/IEpi';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
-import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import {
   IDeleteManyRiskData,
   useMutDeleteManyRiskData,
@@ -72,7 +74,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
 
   const store = useStore();
   const { companyId } = useGetCompanyId();
-  const { onOpenModal } = useModal();
+  const { onOpenModal, onStackOpenModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
   const upsertManyMut = useMutUpsertManyRiskData();
@@ -275,7 +277,21 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
     }
   };
 
-  const handleEditEpi = async () => {};
+  const handleEditEpi = async (epi: IEpi) => {
+    onStackOpenModal(ModalEnum.EPI_EPI_DATA, {
+      onSubmit: (epis) =>
+        epis?.epiRiskData && handleSelect({ epis: [epis.epiRiskData] }),
+      ...epi,
+    } as Partial<typeof initialEpiDataState>);
+  };
+
+  const handleEditEngs = async (eng: IRecMed) => {
+    onStackOpenModal(ModalEnum.EPC_RISK_DATA, {
+      onSubmit: (engs) =>
+        engs?.engsRiskData && handleSelect({ engs: [engs.engsRiskData] }),
+      ...eng,
+    } as Partial<typeof initialEngsRiskDataState>);
+  };
 
   const actualMatrixLevel = getMatrizRisk(
     riskData?.probability,
@@ -311,7 +327,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
           risk={selectedRiskStore}
         />
         <EngColumn
-          // handleEdit={handleEdit}
+          handleEdit={handleEditEngs}
           handleSelect={handleSelect}
           handleRemove={handleRemove}
           data={riskData}

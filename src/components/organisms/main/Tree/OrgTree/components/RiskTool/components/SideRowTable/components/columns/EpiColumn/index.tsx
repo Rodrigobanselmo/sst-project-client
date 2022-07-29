@@ -1,8 +1,9 @@
 import React, { FC } from 'react';
 
 import { Box } from '@mui/material';
-import { EpiSelect, isNaEpi } from 'components/organisms/tagSelects/EpiSelect';
+import { EpiSelect } from 'components/organisms/tagSelects/EpiSelect';
 import dayjs from 'dayjs';
+import { isNaEpi } from 'project/utils/isNa';
 
 import { IEpi } from 'core/interfaces/api/IEpi';
 
@@ -41,7 +42,7 @@ export const EpiColumn: FC<EpiColumnProps> = ({
             <SelectedTableItem
               key={epi.ca}
               isExpired={isExpired}
-              handleEdit={() => handleEdit(epi)}
+              handleEdit={() => !isNaEpi(epi.ca) && handleEdit(epi)}
               name={isNaEpi(epi.ca) ? `${epi.equipment}` : `CA: ${epi.ca}`}
               tooltip={
                 isNaEpi(epi.ca)

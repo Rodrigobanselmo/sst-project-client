@@ -8,7 +8,7 @@ export interface GhoRowProps {
   isFirst?: boolean;
   isDeleteLoading: boolean;
   selectedGhoId: string | null;
-  handleEditGHO: (data: IGho) => void;
+  handleEditGHO?: (data: IGho) => void;
   handleSelectGHO: (
     gho: IGho | null,
     hierarchies: string[],

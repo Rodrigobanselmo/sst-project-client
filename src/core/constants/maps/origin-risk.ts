@@ -45,6 +45,10 @@ export const originRiskMap: Record<string, { name: string; type: string }> = {
     name: 'Atividade',
     type: 'Mão de Obra',
   },
+  [HomoTypeEnum.GSE]: {
+    name: 'GSE',
+    type: 'Grupo Similar de Exposição',
+  },
   [HomoTypeEnum.EQUIPMENT]: {
     name: 'Equipamento',
     type: 'Mão de Obra',

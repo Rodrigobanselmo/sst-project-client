@@ -8,6 +8,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEpiRiskData } from 'core/interfaces/api/IEpi';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
+import { IEngsRiskData } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
@@ -27,11 +28,11 @@ export interface IUpsertRiskData {
   probabilityAfter?: number;
   adms?: string[];
   recs?: string[];
-  engs?: string[];
   type?: HomoTypeEnum;
   generateSources?: string[];
   workspaceId?: string;
   epis?: IEpiRiskData[];
+  engs?: IEngsRiskData[];
   keepEmpty?: boolean;
   json?: any;
 }

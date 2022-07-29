@@ -36,7 +36,7 @@ import { initialDocPgrSelectState } from '../ModalSelectDocPgr';
 import { initialHierarchyTreeState } from '../ModalShowHierarchyTree/hooks/useModalTree';
 
 export const initialRiskGroupState = {
-  name: '',
+  name: 'Gestão Única',
   status: StatusEnum.PROGRESS,
   error: '',
   id: '',

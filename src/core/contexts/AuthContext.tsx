@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable indent */
 import {
   createContext,
   ReactNode,
@@ -62,7 +60,7 @@ export const AuthContext = createContext({} as AuthContextData);
 
 let authChannel: BroadcastChannel;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
 export function signOut(ctx?: any) {
   destroyCookie(null, 'nextauth.token', { path: '/' });
 
@@ -135,7 +133,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const { 'nextauth.token': token } = parseCookies();
 
     if (token) getMe();
-  }, [dispatch, store, signOutFunc, router, getMe]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, store]);
 
   useEffect(() => {
     authChannel = new BroadcastChannel('auth');
@@ -265,7 +264,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function googleSignLink() {
     const result = await signInWithPopup(firebaseAuth, firebaseProvider).catch(
-      (error) => {
+      () => {
         // const errorMessage = error.message;
       },
     );

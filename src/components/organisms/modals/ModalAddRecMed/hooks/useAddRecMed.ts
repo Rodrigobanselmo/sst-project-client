@@ -56,7 +56,7 @@ export const useAddRecMed = () => {
 
   useEffect(() => {
     const initialData = getModalData<Partial<typeof initialAddRecMedState>>(
-      ModalEnum.REC_MED_ADD,
+      ModalEnum.ENG_MED_ADD,
     );
 
     if (initialData) {
@@ -74,14 +74,14 @@ export const useAddRecMed = () => {
   }, [getModalData]);
 
   const onClose = (data?: any) => {
-    onCloseModal(ModalEnum.REC_MED_ADD, data);
+    onCloseModal(ModalEnum.ENG_MED_ADD, data);
     setRecMedData(initialAddRecMedState);
     reset();
   };
 
   const onRemove = async () => {
     if (recMedData.passDataBack)
-      onCloseModal(ModalEnum.REC_MED_ADD, {
+      onCloseModal(ModalEnum.ENG_MED_ADD, {
         remove: true,
         isAddRecMed: true,
         localId: recMedData.localId,

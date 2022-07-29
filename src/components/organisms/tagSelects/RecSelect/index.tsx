@@ -49,7 +49,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
 
     if (risk)
       onStackOpenModal<Partial<typeof initialAddRecMedState>>(
-        ModalEnum.REC_MED_ADD,
+        ModalEnum.ENG_MED_ADD,
         {
           riskIds: riskIds,
           edit: true,
@@ -81,7 +81,7 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
     if (risk) passModalData.risk = risk;
 
     onStackOpenModal<Partial<typeof initialAddRecMedState>>(
-      ModalEnum.REC_MED_ADD,
+      ModalEnum.ENG_MED_ADD,
       passModalData,
     );
   };

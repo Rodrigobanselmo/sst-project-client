@@ -5,6 +5,7 @@ import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
 import { initialProbState } from 'components/organisms/modals/ModalAddProbability/hooks/useProbability';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
+import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
@@ -18,6 +19,7 @@ import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEpi } from 'core/interfaces/api/IEpi';
+import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import {
   IUpsertRiskData,
   useMutUpsertRiskData,
@@ -84,15 +86,13 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
         : {}),
     } as IUpsertRiskData;
 
-    Object.entries({ recs, adms, engs, generateSources }).forEach(
-      ([key, value]) => {
-        if (value?.length)
-          (submitData as any)[key] = [
-            ...value,
-            ...((riskData as any)?.[key]?.map((rec: any) => rec.id) ?? []),
-          ];
-      },
-    );
+    Object.entries({ recs, adms, generateSources }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...value,
+          ...((riskData as any)?.[key]?.map((rec: any) => rec.id) ?? []),
+        ];
+    });
 
     if (epis && epis?.length)
       submitData.epis = removeDuplicate(
@@ -103,9 +103,19 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
         { removeById: 'epiId' },
       );
 
+    if (engs && engs?.length)
+      submitData.engs = removeDuplicate(
+        [
+          ...engs,
+          ...(riskData?.engs?.map((eng) => eng.engsRiskData) || []),
+        ].filter((i) => i),
+        { removeById: 'recMedId' },
+      );
+
     await upsertRiskData
       .mutateAsync({
         ...submitData,
+        keepEmpty: true,
       })
       .catch(() => {});
   };
@@ -125,7 +135,6 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
     ]);
 
     if (!company) return;
-    console.log(gho);
     const workspaceEmployeesCount =
       company.workspace?.reduce(
         (acc, workspace) =>
@@ -168,20 +177,19 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
       homogeneousGroupId: gho.id.split('//')[0],
       riskId: risk.id,
       riskFactorGroupDataId: query.riskGroupId as string,
+      keepEmpty: true,
     } as IUpsertRiskData;
 
-    Object.entries({ recs, adms, engs, generateSources }).forEach(
-      ([key, value]) => {
-        if (value?.length)
-          (submitData as any)[key] = [
-            ...(
-              (riskData as any)?.[key]?.filter(
-                (data: any) => !(value as any).includes(data.id),
-              ) ?? []
-            ).map((d: any) => d.id),
-          ];
-      },
-    );
+    Object.entries({ recs, adms, generateSources }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...(
+            (riskData as any)?.[key]?.filter(
+              (data: any) => !(value as any).includes(data.id),
+            ) ?? []
+          ).map((d: any) => d.id),
+        ];
+    });
 
     if (epis && epis?.length) {
       submitData.epis = [
@@ -190,6 +198,18 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
           .filter(
             (epi) =>
               epi && epis.find((epiDelete) => epiDelete.epiId != epi.epiId),
+          ) || []),
+      ];
+    }
+
+    if (engs && engs?.length) {
+      submitData.engs = [
+        ...(riskData?.engs
+          ?.map((engs) => engs.engsRiskData)
+          .filter(
+            (eng) =>
+              eng &&
+              engs.find((engsDelete) => engsDelete.recMedId != eng.recMedId),
           ) || []),
       ];
     }
@@ -207,6 +227,14 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
         epis?.epiRiskData && handleSelect({ epis: [epis.epiRiskData] }),
       ...epi,
     } as Partial<typeof initialEpiDataState>);
+  };
+
+  const handleEditEngs = async (eng: IRecMed) => {
+    onStackOpenModal(ModalEnum.EPC_RISK_DATA, {
+      onSubmit: (engs) =>
+        engs?.engsRiskData && handleSelect({ engs: [engs.engsRiskData] }),
+      ...eng,
+    } as Partial<typeof initialEngsRiskDataState>);
   };
 
   const actualMatrixLevel = getMatrizRisk(
@@ -242,6 +270,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
           />
           <EngColumn
             handleSelect={handleSelect}
+            handleEdit={handleEditEngs}
             handleRemove={handleRemove}
             data={riskData}
             risk={risk}

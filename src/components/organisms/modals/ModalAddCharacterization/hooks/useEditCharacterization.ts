@@ -590,6 +590,20 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       });
   };
 
+  const onEditArrayContent = (
+    values: { name: string; type: ParagraphEnum }[],
+    type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    defaultValue = ParagraphEnum.BULLET_0,
+  ) => {
+    if (characterizationData[type])
+      setCharacterizationData({
+        ...characterizationData,
+        [type]: values.map(
+          ({ name, type }) => name + '{type}=' + (type || defaultValue),
+        ),
+      });
+  };
+
   const onRemove = async () => {
     if (!characterizationData.id) {
       return changeProfile();
@@ -696,6 +710,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     notPrincipalProfile,
     photos,
     setValue,
+    onEditArrayContent,
   };
 };
 

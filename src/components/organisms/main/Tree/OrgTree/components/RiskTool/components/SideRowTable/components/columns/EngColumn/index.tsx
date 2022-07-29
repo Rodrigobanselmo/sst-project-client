@@ -3,6 +3,7 @@ import React, { FC } from 'react';
 import { Box } from '@mui/material';
 import { MedSelect } from 'components/organisms/tagSelects/MedSelect';
 import { MedTypeEnum } from 'project/enum/medType.enum';
+import { isNaRecMed } from 'project/utils/isNa';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
@@ -13,6 +14,7 @@ import { EngColumnProps } from './types';
 export const EngColumn: FC<EngColumnProps> = ({
   handleSelect,
   handleRemove,
+  handleEdit,
   data,
   risk,
 }) => {
@@ -32,21 +34,20 @@ export const EngColumn: FC<EngColumnProps> = ({
           if (engs && engs.id && engs.medType === MedTypeEnum.ENG)
             handleSelect(
               {
-                engs: [engs.id],
+                engs: [{ ...engs?.engsRiskData, recMedId: engs.id }],
               },
               engs,
             );
 
           document.getElementById(IdsEnum.INPUT_MENU_SEARCH)?.click();
         }}
-        handleSelect={(options) => {
-          const op = options as IRecMed;
-          if (op.id)
+        handleSelect={(options: IRecMed) => {
+          if (options.id)
             handleSelect(
               {
-                engs: [op.id],
+                engs: [{ ...options?.engsRiskData, recMedId: options.id }],
               },
-              op,
+              options,
             );
         }}
       />
@@ -55,9 +56,10 @@ export const EngColumn: FC<EngColumnProps> = ({
           <SelectedTableItem
             key={eng.id}
             name={eng.medName}
+            handleEdit={() => !isNaRecMed(eng.medName) && handleEdit(eng)}
             handleRemove={() =>
               handleRemove({
-                engs: [eng.id],
+                engs: [eng.engsRiskData],
               })
             }
           />

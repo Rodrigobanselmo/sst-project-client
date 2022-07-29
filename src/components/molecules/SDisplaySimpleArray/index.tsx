@@ -20,12 +20,43 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IUser } from 'core/interfaces/api/IUser';
 
+function swapElement(array: any[], indexA: number, indexB: number) {
+  const copy = [...array];
+  if (!copy[indexA] || !copy[indexB]) return array;
+
+  const tmp = copy[indexA];
+  copy[indexA] = copy[indexB];
+  copy[indexB] = tmp;
+
+  return copy;
+}
+
+function editElement(
+  value: string,
+  array: any[],
+  index: number,
+  valueField?: string,
+) {
+  const copy = [...array];
+  if (!copy[index]) return array;
+
+  if (typeof copy[index] === 'string') {
+    copy[index] = value;
+  }
+
+  if (typeof copy[index] === 'object' && valueField) {
+    copy[index][valueField] = value;
+  }
+
+  return copy;
+}
+
 interface ISDisplaySimpleArrayProps {
   values: any[];
   label?: string;
   onAdd: (value: string, data?: any) => void;
   onDelete: (value: string, data?: any) => void;
-  onEdit?: (value: string, data?: any) => void;
+  onEdit?: (value: string, values: any[], data?: any) => void;
   disabled?: boolean;
   buttonLabel?: string;
   modalLabel?: string;
@@ -48,6 +79,7 @@ export function SDisplaySimpleArray({
   type = TypeInputModal.TEXT,
   valueField,
   onRenderStartElement,
+  onEdit,
 }: ISDisplaySimpleArrayProps) {
   const { onStackOpenModal } = useModal();
   return (
@@ -94,29 +126,41 @@ export function SDisplaySimpleArray({
                 {value}
               </SText>
               <SFlex gap={2} flexWrap="wrap" center>
-                <SIconButton
-                  disabled={disabled}
-                  onClick={() => onDelete(value)}
-                  size="small"
-                >
-                  <Icon
-                    component={SArrowNextIcon}
-                    sx={{ fontSize: '1rem', transform: 'rotate(-90deg)' }}
-                  />
-                </SIconButton>
+                {onEdit && (
+                  <STooltip placement="left" withWrapper title="subir posição">
+                    <SIconButton
+                      disabled={disabled}
+                      onClick={() =>
+                        onEdit(value, swapElement(values, index, index - 1), v)
+                      }
+                      size="small"
+                    >
+                      <Icon
+                        component={SArrowNextIcon}
+                        sx={{ fontSize: '1rem', transform: 'rotate(-90deg)' }}
+                      />
+                    </SIconButton>
+                  </STooltip>
+                )}
 
-                <SIconButton
-                  disabled={disabled}
-                  onClick={() => onDelete(value)}
-                  size="small"
-                >
-                  <Icon
-                    component={SArrowNextIcon}
-                    sx={{ fontSize: '1rem', transform: 'rotate(90deg)' }}
-                  />
-                </SIconButton>
+                {onEdit && (
+                  <STooltip placement="left" withWrapper title="descer posição">
+                    <SIconButton
+                      disabled={disabled}
+                      onClick={() =>
+                        onEdit(value, swapElement(values, index, index + 1), v)
+                      }
+                      size="small"
+                    >
+                      <Icon
+                        component={SArrowNextIcon}
+                        sx={{ fontSize: '1rem', transform: 'rotate(90deg)' }}
+                      />
+                    </SIconButton>
+                  </STooltip>
+                )}
 
-                <STooltip withWrapper title="remover">
+                <STooltip withWrapper title="remover" placement="left">
                   <SIconButton
                     disabled={disabled}
                     onClick={() => onDelete(value)}
@@ -126,11 +170,25 @@ export function SDisplaySimpleArray({
                   </SIconButton>
                 </STooltip>
 
-                <STooltip withWrapper title="editar">
+                <STooltip withWrapper title="editar" placement="left">
                   <SIconButton
                     disabled={disabled}
-                    onClick={() => onDelete(value)}
                     size="small"
+                    onClick={() => {
+                      onStackOpenModal(ModalEnum.SINGLE_INPUT, {
+                        onConfirm: (newValue: string) => {
+                          onEdit?.(
+                            newValue,
+                            editElement(newValue, values, index, valueField),
+                            v,
+                          );
+                        },
+                        placeholder,
+                        label: modalLabel,
+                        type,
+                        name: value,
+                      } as typeof initialInputModalState);
+                    }}
                   >
                     <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
                   </SIconButton>

@@ -39,7 +39,7 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
 
   const handleSelectRecMed = (option: IRecMed & IRecMedCreate) => {
     if (option?.medName || option?.recName)
-      onOpenModal(ModalEnum.REC_MED_ADD, {
+      onOpenModal(ModalEnum.ENG_MED_ADD, {
         passDataBack: true,
         edit: true,
         onlyInput: '',
@@ -62,7 +62,7 @@ export const EditRiskSelects: FC<IEditRiskSelects> = ({
   };
 
   const handleAddRecMed = () => {
-    onOpenModal(ModalEnum.REC_MED_ADD, { passDataBack: true, onlyInput: '' });
+    onOpenModal(ModalEnum.ENG_MED_ADD, { passDataBack: true, onlyInput: '' });
   };
 
   const handleAddGenerateSource = () => {

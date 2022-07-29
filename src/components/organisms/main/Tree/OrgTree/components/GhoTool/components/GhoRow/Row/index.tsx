@@ -55,11 +55,13 @@ export const Row: FC<RowItemsProps> = ({
                 <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
               </SIconButton>
             </STooltip>
-            <STooltip withWrapper title={'Editar'}>
-              <SIconButton onClick={() => handleEditGHO(data)} size="small">
-                <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
-              </SIconButton>
-            </STooltip>
+            {handleEditGHO && (
+              <STooltip withWrapper title={'Editar'}>
+                <SIconButton onClick={() => handleEditGHO?.(data)} size="small">
+                  <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
+                </SIconButton>
+              </STooltip>
+            )}
             <STooltip withWrapper title={'Adicionar cargos ao GSE'}>
               <SIconButton
                 onClick={() =>

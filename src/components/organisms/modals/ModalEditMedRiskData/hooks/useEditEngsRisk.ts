@@ -10,53 +10,58 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IRecMed, IRecMedRiskData } from 'core/interfaces/api/IRiskFactors';
+import {
+  IEngsRiskData,
+  IRecMed,
+  IRecMedRiskData,
+} from 'core/interfaces/api/IRiskFactors';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
-export const initialEPCDataState = {
+export const initialEngsRiskDataState = {
   id: '',
   medName: '',
   status: StatusEnum.ACTIVE,
-  recMedToRiskFactorData: {} as Partial<IRecMedRiskData>,
+  engsRiskData: {} as Partial<IEngsRiskData>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  callback: (epc: Partial<IRecMed> | null) => {},
+  callback: (eng: Partial<IRecMed> | null) => {},
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onSubmit: (epc: Partial<IRecMed> | null) => {},
+  onSubmit: (eng: Partial<IRecMed> | null) => {},
 };
 
 interface ISubmit {
   medName: string;
 }
 
-export const useEditEPCs = () => {
+export const useEditEngsRisk = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { enqueueSnackbar } = useSnackbar();
   const { onCloseModal } = useModal();
-  const initialDataRef = useRef(initialEPCDataState);
+  const initialDataRef = useRef(initialEngsRiskDataState);
   const switchRef = useRef<HTMLInputElement>(null);
 
   const { handleSubmit, control, reset, getValues } = useForm();
 
-  // const createMutation = useMutCreateEPC();
-  // const updateMutation = useMutUpdateEPC();
+  // const createMutation = useMutCreateEng();
+  // const updateMutation = useMutUpdateEng();
 
   const { preventUnwantedChanges } = usePreventAction();
 
-  const [epcData, setEPCData] = useState({
-    ...initialEPCDataState,
+  const [engData, setEngData] = useState({
+    ...initialEngsRiskDataState,
   });
 
   useEffect(() => {
-    const initialData = getModalData<Partial<typeof initialEPCDataState>>(
+    const initialData = getModalData<Partial<typeof initialEngsRiskDataState>>(
       ModalEnum.EPC_RISK_DATA,
     );
 
     if (initialData) {
-      setEPCData((oldData) => {
+      setEngData((oldData) => {
         const newData = {
           ...oldData,
           ...initialData,
         };
+        console.log(newData);
 
         initialDataRef.current = newData;
 
@@ -67,7 +72,7 @@ export const useEditEPCs = () => {
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.EPC_RISK_DATA, data);
-    setEPCData(initialEPCDataState);
+    setEngData(initialEngsRiskDataState);
     reset();
   };
 
@@ -75,7 +80,7 @@ export const useEditEPCs = () => {
     const values = getValues();
 
     const beforeObject = cleanObjectValues({
-      ...epcData,
+      ...engData,
       ...cleanObjectValues(values),
     });
     const afterObject = cleanObjectValues(initialDataRef.current);
@@ -86,16 +91,16 @@ export const useEditEPCs = () => {
 
   const onSubmit: SubmitHandler<ISubmit> = async (data) => {
     const submitData: Partial<IRecMed> = {
-      // ...epcData,
+      ...engData,
       ...data,
-      // recMedToRiskFactorData: {
-      //   ...epcData.epcRiskData,
-      //   epcId: epcData.id,
-      // },
+      engsRiskData: {
+        ...engData.engsRiskData,
+        recMedId: engData.id,
+      },
     };
 
-    if (epcData.onSubmit) {
-      epcData.onSubmit(submitData);
+    if (engData.onSubmit) {
+      engData.onSubmit(submitData);
     }
 
     try {
@@ -103,18 +108,18 @@ export const useEditEPCs = () => {
       //   delete submitData.id;
       //   await createMutation
       //     .mutateAsync(submitData)
-      //     .then((epc) => epcData.callback(epc));
+      //     .then((eng) => engData.callback(eng));
       // } else {
       //   await updateMutation
       //     .mutateAsync(submitData)
-      //     .then((epc) => epcData.callback(epc));
+      //     .then((eng) => engData.callback(eng));
       // }
 
       if (!switchRef.current?.checked) {
         onClose();
       } else {
-        setEPCData({
-          ...initialEPCDataState,
+        setEngData({
+          ...initialEngsRiskDataState,
         });
         reset();
       }
@@ -122,37 +127,37 @@ export const useEditEPCs = () => {
   };
 
   const onSelectCheck = (isChecked: boolean, type: keyof IRecMedRiskData) => {
-    setEPCData((oldData) => ({
+    setEngData((oldData) => ({
       ...oldData,
-      recMedToRiskFactorData: {
-        ...oldData.recMedToRiskFactorData,
+      engsRiskData: {
+        ...oldData.engsRiskData,
         [type]: isChecked,
       },
     }));
   };
 
   const onSelectAllChecked = (isChecked: boolean) => {
-    setEPCData((oldData) => ({
+    setEngData((oldData) => ({
       ...oldData,
-      epcRiskData: {
-        ...oldData.recMedToRiskFactorData,
+      engsRiskData: {
+        ...oldData.engsRiskData,
         efficientlyCheck: isChecked,
       },
     }));
   };
 
-  const isEdit = !!epcData.recMedToRiskFactorData?.recMedId;
+  const isEdit = !!engData.engsRiskData?.recMedId;
 
   return {
     registerModal,
     onCloseUnsaved,
     onClose,
-    epcData,
+    engData,
     onSubmit,
     loading: false,
     control,
     handleSubmit,
-    setEPCData,
+    setEngData,
     switchRef,
     isEdit,
     onSelectCheck,
@@ -160,4 +165,4 @@ export const useEditEPCs = () => {
   };
 };
 
-export type IUseEditEPC = ReturnType<typeof useEditEPCs>;
+export type IUseEditEng = ReturnType<typeof useEditEngsRisk>;

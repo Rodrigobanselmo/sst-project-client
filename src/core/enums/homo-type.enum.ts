@@ -4,4 +4,5 @@ export enum HomoTypeEnum {
   WORKSTATION = 'WORKSTATION',
   EQUIPMENT = 'EQUIPMENT',
   ACTIVITIES = 'ACTIVITIES',
+  GSE = 0,
 }

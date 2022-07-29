@@ -13,6 +13,7 @@ import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { STagSelect } from 'components/molecules/STagSelect';
 import { ModalAddHierarchyRisk } from 'components/organisms/modals/ModalAddCharacterization/components/ModalAddHierarchyRisk';
 import { ModalParametersContentBasic } from 'components/organisms/modals/ModalAddCharacterization/components/ModalParametersBasic';
+import { TypeInputModal } from 'components/organisms/modals/ModalSingleInput';
 import { ParagraphSelect } from 'components/organisms/tagSelects/ParagraphSelect';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
@@ -59,6 +60,7 @@ export const ModalCharacterizationContent = (
     setValue,
     onRemove,
     onEditArray,
+    onEditArrayContent,
   } = props;
 
   const isEnvironment =
@@ -259,9 +261,13 @@ export const ModalCharacterizationContent = (
           type: paragraph.split('{type}=')[1],
           name: paragraph.split('{type}=')[0],
         }))}
+        type={TypeInputModal.TEXT_AREA}
         valueField="name"
         onAdd={(value) => onAddArray(value, 'paragraphs')}
         onDelete={(value) => onDeleteArray(value, 'paragraphs')}
+        onEdit={(v, values) =>
+          onEditArrayContent(values, 'paragraphs', ParagraphEnum.PARAGRAPH)
+        }
         label={'Descrição'}
         buttonLabel={'Adicionar Parágrafo de Descrição'}
         placeholder="descreva..."
@@ -323,6 +329,10 @@ export const ModalCharacterizationContent = (
               name: activity.split('{type}=')[0],
             }))}
             valueField="name"
+            type={TypeInputModal.TEXT_AREA}
+            onEdit={(v, values) =>
+              onEditArrayContent(values, 'activities', ParagraphEnum.BULLET_0)
+            }
             onAdd={(value) => onAddArray(value, 'activities')}
             onDelete={(value) => onDeleteArray(value, 'activities')}
             label={'Atividades ou tarefas realizadas'}
@@ -456,7 +466,15 @@ export const ModalCharacterizationContent = (
                 name: consideration.split('{type}=')[0],
               }),
             )}
+            type={TypeInputModal.TEXT_AREA}
             valueField="name"
+            onEdit={(v, values) =>
+              onEditArrayContent(
+                values,
+                'considerations',
+                ParagraphEnum.BULLET_0,
+              )
+            }
             onAdd={(value) => onAddArray(value, 'considerations')}
             onDelete={(value) => onDeleteArray(value, 'considerations')}
             label={'Considerações'}

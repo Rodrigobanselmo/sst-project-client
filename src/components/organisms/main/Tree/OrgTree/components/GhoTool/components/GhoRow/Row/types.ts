@@ -9,7 +9,7 @@ export interface RowItemsProps {
   data: IGho;
   anchorEl?: any;
   isDeleteLoading?: boolean;
-  handleEditGHO: (data: IGho) => void;
+  handleEditGHO?: (data: IGho) => void;
   handleDeleteGHO: (id: string, data?: IGho) => void;
   handleSelectGHO: (
     data: IGho | null,

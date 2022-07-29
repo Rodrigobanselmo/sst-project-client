@@ -9,17 +9,17 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 
 import { ModalEnum } from 'core/enums/modal.enums';
 
-import { ModalEPCStep } from './components/ModalEPCStep/ModalEPCStep';
-import { useEditEPCs } from './hooks/useEditEPCs';
+import { ModalEngRiskStep } from './components/ModalEngRiskStep/ModalEngRiskStep';
+import { useEditEngsRisk } from './hooks/useEditEngsRisk';
 
-export const ModalEditEPCData = () => {
-  const props = useEditEPCs();
+export const ModalEditEngRiskData = () => {
+  const props = useEditEngsRisk();
   const {
     onSubmit,
     registerModal,
     handleSubmit,
     onCloseUnsaved,
-    epcData,
+    engData,
     loading,
     isEdit,
   } = props;
@@ -47,12 +47,12 @@ export const ModalEditEPCData = () => {
         onSubmit={handleSubmit(onSubmit)}
       >
         <SModalHeader
-          tag={epcData.id ? 'edit' : 'add'}
+          tag={engData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Adicionar EPC'}
+          title={'Adicionar EPC / ENG'}
         />
 
-        <ModalEPCStep {...props} />
+        <ModalEngRiskStep {...props} />
 
         <SModalButtons
           loading={loading}

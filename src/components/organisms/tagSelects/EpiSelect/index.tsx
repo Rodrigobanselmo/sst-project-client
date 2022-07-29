@@ -5,6 +5,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialAddEpiState } from 'components/organisms/modals/ModalAddEpi/hooks/useAddEpi';
 import { initialEpiDataState } from 'components/organisms/modals/ModalEditEpiRiskData/hooks/useEditEpis';
+import { isNaEpi } from 'project/utils/isNa';
 import { useDebouncedCallback } from 'use-debounce';
 
 import EditIcon from 'assets/icons/SEditIcon';
@@ -18,8 +19,6 @@ import { useQueryEpis } from 'core/services/hooks/queries/useQueryEpis';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IEpiSelectProps } from './types';
-
-export const isNaEpi = (ca: string) => ['1', '2', '0'].includes(ca);
 
 export const EpiSelect: FC<IEpiSelectProps> = ({
   large,

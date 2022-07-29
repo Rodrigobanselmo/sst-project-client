@@ -1,10 +1,14 @@
 import React, { FC, useEffect, useRef } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Icon, Stack } from '@mui/material';
+import SSlider from 'components/atoms/SSlider';
 import { useRouter } from 'next/router';
 import { selectGhoOpen } from 'store/reducers/hierarchy/ghoSlice';
 import { setHierarchySearch } from 'store/reducers/hierarchy/hierarchySlice';
 import { selectRiskAddExpand } from 'store/reducers/hierarchy/riskAddSlice';
+
+import SZooInIcon from 'assets/icons/SZooInIcon';
+import SZooOutIcon from 'assets/icons/SZooOutIcon';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -37,7 +41,7 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
 
   const { query } = useRouter();
   const isRiskOpen = query.riskGroupId;
-  useZoom(orgContainerRef);
+  const { onChangeZoom, onGetScale } = useZoom(orgContainerRef);
 
   return (
     <Box
@@ -50,6 +54,23 @@ export const OrgTreeComponent: FC<IOrgTreeProps> = ({
       }}
     >
       <HierarchyFilter />
+      <Box sx={{ width: 278, ml: 17 }}>
+        <Stack spacing={5} direction="row" sx={{ mb: 1 }} alignItems="center">
+          <SSlider
+            color="secondary"
+            defaultValue={100}
+            onChange={(e, v) => onChangeZoom(onGetScale(v as number, 100, 0))}
+          />
+          <Icon
+            sx={{
+              fontSize: 20,
+              transform: 'translateX(2px)',
+              color: 'grey.500',
+            }}
+            component={SZooInIcon}
+          />
+        </Stack>
+      </Box>
       <Box
         sx={{
           position: 'relative',

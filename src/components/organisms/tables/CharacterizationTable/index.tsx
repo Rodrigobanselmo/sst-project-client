@@ -146,19 +146,22 @@ export const CharacterizationTable: FC<ITableProps> = ({
                 : '') + characterizationMap[row.type]?.name || '--';
 
             return (
-              <STableRow key={row.id}>
-                <TextIconRow text={row.name || '--'} />
-                <TextIconRow text={row.description || '--'} />
+              <STableRow clickable onClick={() => handleEdit(row)} key={row.id}>
+                <TextIconRow clickable text={row.name || '--'} />
+                <TextIconRow clickable text={row.description || '--'} />
                 <TextIconRow
+                  clickable
                   justifyContent="center"
                   textAlign={'center'}
                   text={text}
                 />
                 <TextIconRow
+                  clickable
                   justifyContent="center"
                   text={row?.photos?.length ? String(row?.photos?.length) : '0'}
                 />
                 <TextIconRow
+                  clickable
                   text={dayjs(row.created_at).format('DD/MM/YYYY')}
                   justifyContent="center"
                 />{' '}

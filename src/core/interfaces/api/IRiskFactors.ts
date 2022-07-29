@@ -14,7 +14,14 @@ export interface IRecMed {
   medType?: MedTypeEnum;
   recType?: RecTypeEnum;
   created_at: string;
-  recMedToRiskFactorData: IRecMedRiskData;
+  engsRiskData: IEngsRiskData;
+}
+
+export interface IEngsRiskData {
+  recMedId: string;
+  riskFactorDataId?: string;
+  efficientlyCheck?: boolean;
+  recMed?: IRecMed;
 }
 
 export interface IRecMedRiskData {

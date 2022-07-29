@@ -15,6 +15,7 @@ export const GhoToolHeader: FC<GhoHeaderProps> = ({
   handleAddGHO,
   isAddLoading,
   inputRef,
+  filter,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -29,7 +30,7 @@ export const GhoToolHeader: FC<GhoHeaderProps> = ({
         handleSelectGHO={handleSelectGHO}
         onSearch={onSearch}
         handleEditGHO={handleEditGHO}
-        handleAddGHO={handleAddGHO}
+        handleAddGHO={!filter ? handleAddGHO : undefined}
         isAddLoading={isAddLoading}
       />
     </SFlex>

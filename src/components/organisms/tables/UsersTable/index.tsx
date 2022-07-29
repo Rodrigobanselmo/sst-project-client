@@ -105,9 +105,15 @@ export const UsersTable: FC<BoxProps> = () => {
           rowsData={results}
           renderRow={(row) => {
             return (
-              <STableRow key={row.id}>
-                <TextIconRow text={'name' in row ? row.name : '--'} />
-                <TextIconRow text={row.email} />
+              <STableRow
+                clickable
+                onClick={() =>
+                  'companies' in row ? handleEditUser(row) : null
+                }
+                key={row.id}
+              >
+                <TextIconRow clickable text={'name' in row ? row.name : '--'} />
+                <TextIconRow clickable text={row.email} />
                 <StatusSelect
                   expiresDate={
                     'expires_date' in row ? row.expires_date : undefined
@@ -126,12 +132,18 @@ export const UsersTable: FC<BoxProps> = () => {
                 />
                 {'companies' in row ? (
                   <IconButtonRow
-                    onClick={() => handleEditUser(row)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditUser(row);
+                    }}
                     icon={<EditIcon />}
                   />
                 ) : (
                   <IconButtonRow
-                    onClick={() => handleDeleteInvite(row.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteInvite(row.id);
+                    }}
                     icon={<SDeleteIcon />}
                     loading={deleteInviteMut.isLoading}
                   />

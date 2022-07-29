@@ -13,10 +13,11 @@ export interface IRecMedSelectProps
   large?: boolean;
   multiple?: boolean;
   risk?: IRiskFactors;
-  handleSelect?: (selectedIds: string[] | IRecMed) => void;
+  handleSelect?: (selected: IRecMed) => void;
   type?: MedTypeEnum;
   onEnter?: (value: string) => void;
   onlyFromActualRisks?: boolean;
   onCreate?: (value: IRecMed | null) => void;
   onlyInput?: 'adm' | 'eng' | 'rec' | '';
+  onlyEpi?: boolean;
 }
