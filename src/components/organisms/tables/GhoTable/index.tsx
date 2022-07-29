@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from 'react';
+import { FC, useMemo } from 'react';
 
 import { BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -129,7 +129,7 @@ export const GhoTable: FC<
                 <TextIconRow
                   clickable
                   justifyContent="center"
-                  text={row.type}
+                  text={row.type || '--'}
                 />
                 <TextIconRow
                   clickable

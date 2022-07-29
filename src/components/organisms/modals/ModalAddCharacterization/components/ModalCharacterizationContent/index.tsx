@@ -142,7 +142,7 @@ export const ModalCharacterizationContent = (
         onChange={(e) => {
           if (
             notPrincipalProfile ||
-            (e as any).target.value ||
+            !(e as any).target.value ||
             (e as any).target.value == characterizationData.characterizationType
           )
             return;
@@ -173,64 +173,76 @@ export const ModalCharacterizationContent = (
             disabled: true,
           })}
       />
-
-      <SFlex mb={10} align="center" overflow="auto">
-        <STagButton
-          tooltipTitle={
-            'Permite adicionar para um mesmo ambiente / atividade riscos especificos para cada cargo. (ex: um perfil com risco de ruído e probabilidade 5 e outro com risco de ruído e probabilidade 3)'
-          }
-          text={'Perfil Principal'}
-          large
-          active={!!manyProfiles && !notPrincipalProfile}
-          minWidth={80}
-          onClick={() => onChangeProfile(principalProfile.id)}
-          bg={!!manyProfiles && !notPrincipalProfile ? 'gray.500' : undefined}
-        />
-        {profiles?.map((profile) => {
-          return (
+      {!!characterizationData.characterizationType && (
+        <>
+          <SFlex mb={10} align="center" overflow="auto">
             <STagButton
-              key={profile.id}
-              text={`${profile.name}`}
+              tooltipTitle={
+                'Permite adicionar para um mesmo ambiente / atividade riscos especificos para cada cargo. (ex: um perfil com risco de ruído e probabilidade 5 e outro com risco de ruído e probabilidade 3)'
+              }
+              text={'Perfil Principal'}
               large
-              onClick={() => onChangeProfile(profile.id)}
+              active={!!manyProfiles && !notPrincipalProfile}
               minWidth={80}
-              active={!!manyProfiles && profile.id == characterizationData.id}
+              onClick={() => onChangeProfile(principalProfile.id)}
               bg={
-                !!manyProfiles && profile.id == characterizationData.id
-                  ? 'gray.500'
-                  : undefined
+                !!manyProfiles && !notPrincipalProfile ? 'gray.500' : undefined
               }
             />
-          );
-        })}
-        {manyProfiles && notPrincipalProfile && !characterizationData.id && (
-          <STagButton
-            active={true}
-            text={`${'Novo'} Perfil`}
-            large
-            minWidth={80}
-            bg={'gray.500'}
-          />
-        )}
-        <STagButton
-          tooltipTitle={'Adicionar perfil'}
-          large
-          icon={SAddIcon}
-          onClick={() => onAddProfile()}
-        />
-        <SIconButton
-          sx={{ ml: 'auto' }}
-          tooltip={'remover perfil'}
-          onClick={() => onRemove()}
-        >
-          <Icon sx={{ fontSize: 20 }} component={SDeleteIcon} />
-        </SIconButton>
-      </SFlex>
-
+            {profiles?.map((profile) => {
+              return (
+                <STagButton
+                  key={profile.id}
+                  text={`${profile.name}`}
+                  large
+                  onClick={() => onChangeProfile(profile.id)}
+                  minWidth={80}
+                  active={
+                    !!manyProfiles && profile.id == characterizationData.id
+                  }
+                  bg={
+                    !!manyProfiles && profile.id == characterizationData.id
+                      ? 'gray.500'
+                      : undefined
+                  }
+                />
+              );
+            })}
+            {manyProfiles &&
+              notPrincipalProfile &&
+              !characterizationData.id && (
+                <STagButton
+                  active={true}
+                  text={`${'Novo'} Perfil`}
+                  large
+                  minWidth={80}
+                  bg={'gray.500'}
+                />
+              )}
+            <STagButton
+              tooltipTitle={'Adicionar perfil'}
+              large
+              icon={SAddIcon}
+              onClick={() => onAddProfile()}
+            />
+            <SIconButton
+              sx={{ ml: 'auto' }}
+              tooltip={'remover perfil'}
+              onClick={() => onRemove()}
+            >
+              <Icon sx={{ fontSize: 20 }} component={SDeleteIcon} />
+            </SIconButton>
+          </SFlex>
+        </>
+      )}
       {manyProfiles && (
         <InputForm
           autoFocus
-          defaultValue={characterizationData.profileName}
+          defaultValue={
+            characterizationData.profileName ||
+            (!notPrincipalProfile && 'Principal') ||
+            ''
+          }
           label="Nome do Perfil"
           labelPosition="center"
           control={control}
@@ -239,6 +251,8 @@ export const ModalCharacterizationContent = (
           name="profileName"
           size="small"
           firstLetterCapitalize
+          startAdornment={characterizationData.name + ' ('}
+          endAdornment={')'}
         />
       )}
       {/* <InputForm

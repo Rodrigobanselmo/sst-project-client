@@ -148,13 +148,13 @@ export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
                 ])
               }
             />
-            <MedSelect
+            {/* <MedSelect
               selectedMed={node?.med ?? []}
               riskIds={selectedNodeRisks}
               handleSelect={(options) =>
                 editNodes([{ id: node.id, med: options as string[] }])
               }
-            />
+            /> */}
             <RecSelect
               selectedRec={node?.rec ?? []}
               riskIds={selectedNodeRisks}

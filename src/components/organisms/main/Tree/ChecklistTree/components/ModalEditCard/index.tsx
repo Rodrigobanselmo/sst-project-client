@@ -251,7 +251,7 @@ export const ModalEditCard = () => {
                     })
                   }
                 />
-                <MedSelect
+                {/* <MedSelect
                   large
                   selectedMed={selectedNode?.med ?? []}
                   riskIds={selectedNodeRisks}
@@ -260,7 +260,7 @@ export const ModalEditCard = () => {
                       med: options as string[],
                     })
                   }
-                />
+                /> */}
                 <RecSelect
                   large
                   selectedRec={selectedNode?.rec ?? []}

@@ -51,7 +51,7 @@ export async function upsertRiskData(
 
 export function useMutUpsertRiskDataRec(
   riskFactorGroupDataId: string,
-  page: number,
+  page = 1,
 ) {
   const { getCompanyId, workspaceId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
