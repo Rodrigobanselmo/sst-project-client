@@ -129,7 +129,7 @@ export const ModalCharacterizationContent = (
         labelPosition="center"
         control={control}
         sx={{ width: ['100%'] }}
-        placeholder={'nome do ambiente de trabalho...'}
+        placeholder={'nome do ambiente / atividade...'}
         name="name"
         size="small"
         firstLetterCapitalize
