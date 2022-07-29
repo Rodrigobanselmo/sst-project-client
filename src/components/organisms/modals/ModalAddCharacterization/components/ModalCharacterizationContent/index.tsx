@@ -251,7 +251,11 @@ export const ModalCharacterizationContent = (
           name="profileName"
           size="small"
           firstLetterCapitalize
-          startAdornment={characterizationData.name + ' ('}
+          startAdornment={
+            characterizationData.name?.slice(0, 30) +
+            (characterizationData.name?.length > 30 ? '...' : '') +
+            ' ('
+          }
           endAdornment={')'}
         />
       )}

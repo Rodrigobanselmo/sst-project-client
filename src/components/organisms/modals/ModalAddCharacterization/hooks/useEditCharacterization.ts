@@ -269,7 +269,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       return setError('profileName', { message: 'Campo obrigatório' });
     }
 
-    console.log('type', characterizationData.type, characterizationData);
     if (!characterizationData.type) {
       return setError('type', { message: 'Campo obrigatório' });
     }
@@ -389,6 +388,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
             setCharacterizationData({
               ...characterizationData,
+              name: data.name,
               id: characterization.id,
             });
           }
