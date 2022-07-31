@@ -17,7 +17,7 @@ export const EditUserSelects: FC<IEditUserSelects> = ({
   userData,
 }) => {
   return (
-    <SFlex gap={8} mt={10} align="flex-start">
+    <SFlex align="flex-start">
       <StatusSelect
         selected={userData.status}
         statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}

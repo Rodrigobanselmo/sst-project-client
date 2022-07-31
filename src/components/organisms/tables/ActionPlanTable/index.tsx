@@ -192,7 +192,7 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                 <STag
                   action={String(row.level) as any}
                   text={row?.ro || '--'}
-                  maxHeight={24}
+                  sx={{ '*': { fontSize: 13 } }}
                 />
                 <TextIconRow
                   text={row?.intervention}
@@ -220,7 +220,7 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                       }
 
                       if (riskGroupData && months)
-                        return dayjs(riskGroupData?.validityStartDate).add(
+                        return dayjs(riskGroupData?.validityStart).add(
                           months + 1,
                           'months',
                         );
@@ -232,10 +232,14 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                     const isExpired = due ? due.isBefore(dayjs()) : false;
                     const dueText = due
                       ? due.format('D [de] MMMM YYYY')
+                      : level === 6
+                      ? 'ação imediata'
                       : 'sem prazo';
 
                     const dueEdit = due
                       ? due.format('DD/MM/YYYY')
+                      : level === 6
+                      ? 'ação imediata'
                       : 'sem prazo';
 
                     return (

@@ -9,11 +9,13 @@ import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
 } from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
+import { dateFormat } from 'core/utils/date/date-format';
+import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { IUseAddCompany } from '../../../hooks/useHandleActions';
 
-export const useStep = ({ data, setData }: IUseAddCompany) => {
+export const useStep = ({ data, setData, initialDataRef }: IUseAddCompany) => {
   const { trigger, getValues, control } = useFormContext();
   const { nextStep, previousStep } = useWizard();
   const { enqueueSnackbar } = useSnackbar();
@@ -51,27 +53,59 @@ export const useStep = ({ data, setData }: IUseAddCompany) => {
       }
 
       const submitData: IUpsertRiskGroupData = {
-        validityStart: `01/${validityStart}`,
-        validityEnd: `01/${validityEnd}`,
+        validityStart: dateFormat(`01/${validityStart}`),
+        validityEnd: dateFormat(`01/${validityEnd}`),
         professionalsIds: data.professionals.map((p) => p.id),
-        usersIds: data.users.map((p) => p.id),
+        users: data.users,
         id: data.id,
       };
 
       if (data.id) {
-        if (!deepEqual({ ...data, ...submitData }, data)) {
-          await updateMutation.mutateAsync(submitData).catch(() => {});
-          setData((data) => ({ ...data, ...submitData }));
+        const before = cleanObjectValues(initialDataRef.current);
+        const after = { ...data, ...submitData };
+
+        if (!deepEqual(after, before)) {
+          await updateMutation
+            .mutateAsync(submitData)
+            .then(() => {
+              setData((data) => {
+                const setDataObj = {
+                  ...data,
+                  validityStart: dateFormat(`01/${validityStart}`),
+                  validityEnd: dateFormat(`01/${validityEnd}`),
+                };
+                initialDataRef.current = setDataObj;
+
+                return setDataObj;
+              });
+              nextStep();
+            })
+            .catch(() => {});
+        } else {
+          nextStep();
         }
-        nextStep();
       }
     }
   };
 
-  const onAddArray = (value: IUser, type: 'professionals' | 'users') => {
+  const onAddArray = (user: IUser, type: 'professionals' | 'users') => {
+    let value: any;
+
+    if (Array.isArray(user)) {
+      value = user.map((u) => ({
+        ...u,
+        userPgrSignature: { userId: u.id, isSigner: true },
+      }));
+    } else {
+      value = {
+        ...user,
+        userPgrSignature: { userId: user.id, isSigner: true },
+      } as IUser;
+    }
+
     setData({
       ...data,
-      [type]: removeDuplicate([...(data as any)[type], value], {
+      [type]: removeDuplicate([...(data as any)[type], ...value], {
         removeById: 'id',
       }),
     });
@@ -86,6 +120,26 @@ export const useStep = ({ data, setData }: IUseAddCompany) => {
     });
   };
 
+  const onAddSigner = (
+    user: IUser,
+    check: boolean,
+    type: 'professionals' | 'users',
+  ) => {
+    const value = {
+      ...user,
+      userPgrSignature: { userId: user.id, isSigner: check },
+    } as IUser;
+
+    const index = data[type]?.findIndex((item) => item.id === value.id);
+    if (index != -1) {
+      data[type][index] = value;
+    }
+
+    setData({
+      ...data,
+    });
+  };
+
   return {
     onSubmit,
     loading: updateMutation.isLoading,
@@ -93,5 +147,6 @@ export const useStep = ({ data, setData }: IUseAddCompany) => {
     onPrevStep,
     onAddArray,
     onDeleteArray,
+    onAddSigner,
   };
 };

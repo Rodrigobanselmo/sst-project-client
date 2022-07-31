@@ -363,6 +363,12 @@ export const NodeCard: FC<INodeCardProps> = ({
             )}
             {showRefSelect && isHierarchy && (
               <HierarchySelect
+                tooltipText={(textField) => (
+                  <p>
+                    <p>Selecione a hierarquia que deseja cópiar</p>
+                    <p>cópiar em: {textField}</p>
+                  </p>
+                )}
                 text="Selecionar cópia"
                 icon={SCopyIcon}
                 handleSelect={(hierarchy: IHierarchy) =>

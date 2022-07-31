@@ -97,7 +97,7 @@ export function useMutDeleteCharacterization() {
               QueryEnum.CHARACTERIZATION,
               resp.companyId,
               resp.workspaceId,
-              resp.profileParentId,
+              // resp.profileParentId,
             ]);
         }
 

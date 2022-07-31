@@ -105,7 +105,7 @@ export const ModalAddUsers = () => {
             }
             active={!!userData?.group && !!userData?.group?.name}
             onClick={handleOpenAccessSelect}
-          />{' '}
+          />
           {isConsulting && (
             <STagButton
               maxWidth="200px"
@@ -113,9 +113,14 @@ export const ModalAddUsers = () => {
               onClick={handleOpenCompanySelect}
             />
           )}
-        </SFlex>{' '}
+          {isEdit && (
+            <SFlex ml={'auto'} justify="end" gap={5}>
+              <EditUserSelects userData={userData} setUserData={setUserData} />
+            </SFlex>
+          )}
+        </SFlex>
         {isConsulting && (
-          <SFlex mt={10} mb={20} gap={5}>
+          <SFlex mt={5} mb={20} gap={5}>
             {userData.companies.map((company) => {
               return (
                 <CompanyTag
@@ -128,13 +133,10 @@ export const ModalAddUsers = () => {
           </SFlex>
         )}
         <SelectRoles
-          mt={10}
+          mt={5}
           data={userData}
           setData={(data) => setUserData({ ...data, group: null })}
         />
-        {isEdit && (
-          <EditUserSelects userData={userData} setUserData={setUserData} />
-        )}
         <SModalButtons
           loading={loading}
           onClose={onCloseUnsaved}

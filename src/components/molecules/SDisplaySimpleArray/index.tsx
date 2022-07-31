@@ -4,21 +4,20 @@ import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
-import { initialUsersSelectState } from 'components/organisms/modals/ModalSelectUsers';
 import {
   initialInputModalState,
   TypeInputModal,
 } from 'components/organisms/modals/ModalSingleInput';
 
 import AddIcon from 'assets/icons/SAddIcon';
-import { SArrowBackIcon } from 'assets/icons/SArrowBack';
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
-import { IUser } from 'core/interfaces/api/IUser';
+
+import { useAddEntities } from './hooks/useAddEntities';
 
 function swapElement(array: any[], indexA: number, indexB: number) {
   const copy = [...array];
@@ -57,6 +56,7 @@ interface ISDisplaySimpleArrayProps {
   onAdd: (value: string, data?: any) => void;
   onDelete: (value: string, data?: any) => void;
   onEdit?: (value: string, values: any[], data?: any) => void;
+  renderText?: (data?: any) => string;
   disabled?: boolean;
   buttonLabel?: string;
   modalLabel?: string;
@@ -64,7 +64,8 @@ interface ISDisplaySimpleArrayProps {
   type?: TypeInputModal;
   valueField?: string;
   paragraphSelect?: boolean;
-  onRenderStartElement?: (value: object | string) => JSX.Element;
+  onRenderStartElement?: (value: any | string) => JSX.Element;
+  onRenderEndElement?: (value: any | string) => JSX.Element;
 }
 
 export function SDisplaySimpleArray({
@@ -79,9 +80,13 @@ export function SDisplaySimpleArray({
   type = TypeInputModal.TEXT,
   valueField,
   onRenderStartElement,
+  onRenderEndElement,
   onEdit,
+  renderText,
 }: ISDisplaySimpleArrayProps) {
   const { onStackOpenModal } = useModal();
+  const { onSelectProfessionalUser } = useAddEntities({ onAdd, values });
+
   return (
     <Box
       sx={{
@@ -123,7 +128,7 @@ export function SDisplaySimpleArray({
             >
               {onRenderStartElement && onRenderStartElement(v)}
               <SText ml={5} fontSize={14} mr={'auto'} color={'grey.600'}>
-                {value}
+                {renderText ? renderText(v) : value}
               </SText>
               <SFlex gap={2} flexWrap="wrap" center>
                 {onEdit && (
@@ -163,36 +168,39 @@ export function SDisplaySimpleArray({
                 <STooltip withWrapper title="remover" placement="left">
                   <SIconButton
                     disabled={disabled}
-                    onClick={() => onDelete(value)}
+                    onClick={() => onDelete(value, v)}
                     size="small"
                   >
                     <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
                   </SIconButton>
                 </STooltip>
 
-                <STooltip withWrapper title="editar" placement="left">
-                  <SIconButton
-                    disabled={disabled}
-                    size="small"
-                    onClick={() => {
-                      onStackOpenModal(ModalEnum.SINGLE_INPUT, {
-                        onConfirm: (newValue: string) => {
-                          onEdit?.(
-                            newValue,
-                            editElement(newValue, values, index, valueField),
-                            v,
-                          );
-                        },
-                        placeholder,
-                        label: modalLabel,
-                        type,
-                        name: value,
-                      } as typeof initialInputModalState);
-                    }}
-                  >
-                    <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
-                  </SIconButton>
-                </STooltip>
+                {onEdit && (
+                  <STooltip withWrapper title="editar" placement="left">
+                    <SIconButton
+                      disabled={disabled}
+                      size="small"
+                      onClick={() => {
+                        onStackOpenModal(ModalEnum.SINGLE_INPUT, {
+                          onConfirm: (newValue: string) => {
+                            onEdit?.(
+                              newValue,
+                              editElement(newValue, values, index, valueField),
+                              v,
+                            );
+                          },
+                          placeholder,
+                          label: modalLabel,
+                          type,
+                          name: value,
+                        } as typeof initialInputModalState);
+                      }}
+                    >
+                      <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
+                    </SIconButton>
+                  </STooltip>
+                )}
+                {onRenderEndElement && onRenderEndElement(v)}
               </SFlex>
             </SFlex>
           );
@@ -205,21 +213,7 @@ export function SDisplaySimpleArray({
           iconProps={{ sx: { fontSize: 17 } }}
           onClick={() => {
             if (type === TypeInputModal.PROFESSIONAL) {
-              return onStackOpenModal(ModalEnum.PROFESSIONAL_SELECT, {
-                title:
-                  'Selecione os profissionais responsavel pela elaboração do documento',
-                onSelect: (user: IUser | IUser) => {
-                  if (Array.isArray(user)) {
-                    user.forEach((user) =>
-                      onAdd(`${user.name} - ${user?.cpf || ''}`, user),
-                    );
-                    return;
-                  }
-
-                  onAdd(`${user.name} - ${user?.cpf || ''}`, user);
-                },
-                multiple: true,
-              } as typeof initialUsersSelectState);
+              return onSelectProfessionalUser();
             }
             onStackOpenModal(ModalEnum.SINGLE_INPUT, {
               onConfirm: onAdd,

@@ -104,8 +104,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const isAuthenticated = !!user;
 
   const signOutFunc = useCallback(() => {
-    signOut();
     dispatch(createUser(null));
+    signOut();
   }, [dispatch]);
 
   const getMe = useCallback(async () => {
@@ -151,14 +151,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [signOutFunc]);
 
   const signToken = (
-    {
-      token,
-      refresh_token,
-      permissions,
-      roles,
-      companyId,
-      user: { id, email },
-    }: ISession,
+    { token, refresh_token, permissions, roles, companyId, user }: ISession,
     type: 'signIn' | 'signUp',
   ) => {
     setCookie(null, 'nextauth.token', token, {
@@ -173,11 +166,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     dispatch(
       createUser({
-        email,
-        id,
         permissions,
         roles,
         companyId,
+        ...user,
       }),
     );
 

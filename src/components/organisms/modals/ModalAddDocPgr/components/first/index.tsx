@@ -8,8 +8,9 @@ import { InputForm } from 'components/molecules/form/input';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
+import dayjs from 'dayjs';
 
-import { dateMask, dateMonthMask } from 'core/utils/masks/date.mask';
+import { dateMask } from 'core/utils/masks/date.mask';
 
 import { IUseAddCompany } from '../../hooks/useHandleActions';
 import { useFirstStep } from './hooks/useFirstStep';
@@ -63,7 +64,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               firstLetterCapitalize
             />
             <InputForm
-              defaultValue={data?.visitDate}
+              defaultValue={dayjs(data?.visitDate).format('DD/MM/YYYY')}
               label="Data da visita (opcional)"
               control={control}
               placeholder={'__/__/____'}

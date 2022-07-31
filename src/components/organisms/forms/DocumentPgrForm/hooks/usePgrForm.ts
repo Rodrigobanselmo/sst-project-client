@@ -86,7 +86,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
       approvedBy: data.approvedBy || '',
       elaboratedBy: data.elaboratedBy || '',
       revisionBy: data.revisionBy || '',
-      visitDate: data.visitDate || '',
+      visitDate: data.visitDate,
       source: data.source || '',
       complementaryDocs: data.complementaryDocs || [],
       complementarySystems: data.complementarySystems || [],
@@ -97,8 +97,8 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
       status: data.status,
       professionals: data.professionals || [],
       users: data.users || [],
-      validityEnd: data.validityEnd || '',
-      validityStart: data.validityStart || '',
+      validityEnd: data.validityEnd,
+      validityStart: data.validityStart,
       isQ5: data.isQ5 || false,
     };
 

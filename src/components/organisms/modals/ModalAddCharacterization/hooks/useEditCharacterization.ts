@@ -186,6 +186,11 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getModalData]);
 
+  useEffect(() => {
+    queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
+    queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
+  }, [query.riskGroupId]);
+
   const hierarchies = useMemo(() => {
     const data = characterizationData.hierarchies.map((hierarch) => ({
       ...hierarch,
@@ -269,12 +274,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       return setError('profileName', { message: 'Campo obrigatório' });
     }
 
-    if (!characterizationData.type) {
-      return setError('type', { message: 'Campo obrigatório' });
-    }
-
     if (!characterizationData.characterizationType) {
       return setError('characterizationType', { message: 'Campo obrigatório' });
+    }
+
+    if (!characterizationData.type) {
+      return setError('type', { message: 'Campo obrigatório' });
     }
 
     if (notPrincipalProfile && data.profileName === data.name) {
@@ -310,6 +315,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     };
 
     if (isEdit) delete submitData.photos;
+    console.log('dewdecsd', characterizationData);
 
     await upsertMutation
       .mutateAsync(submitData)
@@ -396,7 +402,9 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           console.log(error);
         }
       })
-      .catch(() => {});
+      .catch((e) => {
+        console.log(e);
+      });
   };
 
   const handleAddPhoto = () => {

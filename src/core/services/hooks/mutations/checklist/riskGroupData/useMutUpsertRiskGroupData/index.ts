@@ -7,6 +7,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
+import { IUser, IUserToRiskGroup } from 'core/interfaces/api/IUser';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
@@ -20,15 +21,15 @@ export interface IUpsertRiskGroupData {
   revisionBy?: string;
   approvedBy?: string;
   source?: string;
-  visitDate?: string;
+  visitDate?: Date;
   companyId?: string;
   coordinatorBy?: string;
-  validityEnd?: string;
-  validityStart?: string;
+  validityEnd?: Date;
+  validityStart?: Date;
   complementaryDocs?: string[];
   isQ5?: boolean;
   complementarySystems?: string[];
-  usersIds?: number[];
+  users?: (IUser | IUserToRiskGroup)[];
   professionalsIds?: string[];
 }
 
@@ -37,6 +38,16 @@ export async function upsertRiskGroupData(
   companyId?: string,
 ) {
   if (!companyId) return null;
+
+  if (data?.users)
+    data.users = data?.users?.map((user) => {
+      if ('isSigner' in user) return user;
+
+      return {
+        userId: user.id,
+        isSigner: user.userPgrSignature?.isSigner,
+      };
+    }) as any;
 
   const response = await api.post<IRiskGroupData>(
     `${ApiRoutesEnum.RISK_GROUP_DATA}`,

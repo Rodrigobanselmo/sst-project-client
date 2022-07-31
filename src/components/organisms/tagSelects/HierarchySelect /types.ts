@@ -12,5 +12,5 @@ export interface ITypeSelectProps extends Partial<ISTagSearchSelectProps> {
   disabled?: boolean;
   bg?: string;
   companyId?: string;
-  tooltipTitle?: ReactNode;
+  tooltipText?: (value: string) => ReactNode;
 }

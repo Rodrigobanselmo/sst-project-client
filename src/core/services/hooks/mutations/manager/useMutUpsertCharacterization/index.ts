@@ -77,7 +77,7 @@ export async function updateCharacterization(
       Authorization: `Bearer ${token}`,
     },
   });
-
+  console.log(response);
   return response.data;
 }
 
@@ -119,11 +119,16 @@ export function useMutUpsertCharacterization() {
                       updateIndexData
                     ].profiles.findIndex((old) => old.id == resp.id);
 
-                    if (updateIndexData != -1) {
+                    if (updateIndexDataParent != -1) {
                       newData[updateIndexData].profiles[updateIndexDataParent] =
                         resp;
                     } else {
-                      newData[updateIndexData].profiles.push(resp);
+                      console.log(resp);
+                      console.log(newData[updateIndexData].profiles);
+                      newData[updateIndexData].profiles = [
+                        ...newData[updateIndexData].profiles,
+                        resp,
+                      ];
                     }
                     return newData;
                   }
@@ -148,6 +153,7 @@ export function useMutUpsertCharacterization() {
         return resp;
       },
       onError: (error: IErrorResp) => {
+        console.log(error);
         enqueueSnackbar(error.response.data.message, { variant: 'error' });
       },
     },

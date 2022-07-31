@@ -73,7 +73,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
               if (!multiple) handleMenuSelect(option, e);
               if (multiple) {
                 const elementCheck = document.getElementById(
-                  value,
+                  IdsEnum.MENU_ITEM_CHECKBOX_ID.replace(':id', String(value)),
                 ) as HTMLInputElement;
 
                 if (
@@ -90,7 +90,10 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
             {multiple && (
               <Box onClick={(e) => e.stopPropagation()}>
                 <Checkbox
-                  id={value}
+                  id={IdsEnum.MENU_ITEM_CHECKBOX_ID.replace(
+                    ':id',
+                    String(value),
+                  )}
                   color={'secondary'}
                   defaultChecked={!!checked}
                   className="checkbox-menu-item"

@@ -90,13 +90,12 @@ export interface IRiskGroupData {
   revisionBy?: string;
   approvedBy?: string;
   source?: string;
-  visitDate?: string;
+  visitDate?: Date;
   complementarySystems: string[];
   complementaryDocs: string[];
   coordinatorBy: string;
-  validityEnd?: string;
-  validityStart?: string;
-  validityStartDate?: Date | null;
+  validityEnd?: Date | null;
+  validityStart?: Date | null;
   professionals?: IProfessional[];
   users?: IUser[];
   isQ5?: boolean;

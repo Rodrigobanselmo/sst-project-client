@@ -19,7 +19,7 @@ export const initialPgrDocState = {
   approvedBy: '',
   coordinatorBy: '',
   source: '',
-  visitDate: '',
+  visitDate: null as Date | null,
   companyId: '',
   workspaceId: '',
   workspaceName: '',
@@ -28,8 +28,8 @@ export const initialPgrDocState = {
   professionals: [] as IProfessional[],
   users: [] as IUser[],
   workspaceClosed: false,
-  validityEnd: '',
-  validityStart: '',
+  validityEnd: null as Date | null,
+  validityStart: null as Date | null,
   isQ5: false,
 };
 
@@ -97,6 +97,7 @@ export const useHandleModal = () => {
     data,
     setData,
     modalName,
+    initialDataRef,
   };
 };
 

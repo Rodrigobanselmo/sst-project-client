@@ -110,11 +110,19 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     if (isChecked) newList.push(employee);
     if (!isChecked && employee.hierarchyId != actualHierarchyId)
       newList = newList.filter((e) => e.id != employee.id);
-    if (!isChecked && employee.hierarchyId == actualHierarchyId)
-      enqueueSnackbar(
-        'Você não pode remover o empregado, clique em editar ao lado caso queira remove-lo',
+    if (!isChecked && employee.hierarchyId == actualHierarchyId) {
+      const check = document.getElementById(
+        IdsEnum.MENU_ITEM_CHECKBOX_ID.replace(':id', String(employee.id)),
+      ) as HTMLInputElement;
+      setTimeout(() => {
+        if (check) check.click();
+      }, 100);
+
+      return enqueueSnackbar(
+        'Você não pode remover um empregado, clique em editar ao lado caso queira trocar seu cargo',
         { variant: 'error' },
       );
+    }
 
     listSelected.current = removeDuplicate(newList, { removeById: 'id' });
     handleMultiSelect?.(employee);

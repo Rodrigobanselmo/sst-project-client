@@ -115,7 +115,8 @@ export const ModalSelectProfessional: FC = () => {
                         },
                       }}
                     />
-                    {work.name}
+                    {work.name} {work.email ? `- ${work.email}` : ''}{' '}
+                    {work.cpf ? `- ${work.cpf}` : ''}
                   </SFlex>
                 </STableRow>
               ))}

@@ -19,7 +19,7 @@ export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
   risk,
 }) => {
   const dataSelect = {} as Partial<IUpsertRiskData>;
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
 
   if (
     data &&
@@ -37,7 +37,7 @@ export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
   const hasQuality = isQuantity(risk);
 
   const onAddQuantity = () => {
-    onOpenModal(ModalEnum.QUANTITY_ADD, {
+    onStackOpenModal(ModalEnum.QUANTITY_ADD, {
       ...(data?.json ? data?.json : {}),
       risk,
       type: hasQuality,

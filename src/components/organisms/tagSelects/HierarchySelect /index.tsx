@@ -15,6 +15,7 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
   text,
   companyId,
   selectedId,
+  tooltipText,
   ...props
 }) => {
   const { data: copyFromHierarchy } = useQueryHierarchies(companyId || '-');
@@ -79,7 +80,7 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
       keys={['name']}
       large={large}
       handleSelectMenu={handleSelectRisk}
-      tooltipTitle={`Selecione a hierarquia que deseja cópiar  ${textField}`}
+      tooltipTitle={tooltipText ? tooltipText(textField) : ''}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}
       {...props}
     />
