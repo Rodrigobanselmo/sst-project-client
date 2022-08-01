@@ -14,7 +14,7 @@ import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
   const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
-  const { isValidRoles } = useAccess();
+  const { isValidRoles, isToRemoveWithRoles } = useAccess();
   const { userCompanyId } = useGetCompanyId();
 
   return (
@@ -31,11 +31,14 @@ export function SideBarNav(): JSX.Element {
         <Stack px={0} spacing={8}>
           {Drawer_Links.map((category) => {
             if (!isValidRoles(category.data?.roles)) return null;
+            if (isToRemoveWithRoles(category.data?.removeWithRoles))
+              return null;
 
             return (
               <NavSection key={category.data.id} title={category.data.text}>
                 {category.items.map((item) => {
                   if (!isValidRoles(item?.roles)) return null;
+                  if (isToRemoveWithRoles(item?.removeWithRoles)) return null;
 
                   return (
                     <NavLink

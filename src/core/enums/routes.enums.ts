@@ -10,6 +10,7 @@ export enum RoutesEnum {
   PUBLIC = '/publico',
   CHECKLIST = '/dashboard/checklist',
   COMPANIES = '/dashboard/empresas',
+  COMPANY = '/dashboard/empresas/:companyId',
   HIERARCHY = '/dashboard/empresas/:companyId/hierarquia',
   RISK_DATA = '/dashboard/empresas/:companyId/hierarquia?riskGroupId=:riskGroupId',
   DATABASE = '/dashboard/dados',

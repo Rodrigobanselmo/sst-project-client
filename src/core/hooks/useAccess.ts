@@ -21,5 +21,13 @@ export const useAccess = () => {
     return true;
   };
 
-  return { isValidRoles };
+  const isToRemoveWithRoles = (removeWithRoles?: string[]) => {
+    const isToRemoveAccessible = removeWithRoles?.some((role) =>
+      roles?.includes(role),
+    );
+
+    return isToRemoveAccessible;
+  };
+
+  return { isValidRoles, isToRemoveWithRoles };
 };

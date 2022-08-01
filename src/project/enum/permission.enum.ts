@@ -23,4 +23,11 @@ export enum PermissionEnum {
   RISK_DATA = '4.3',
   PGR = '4.4',
   ACTION_PLAN = '4.4.1',
+
+  COMPANY = '2',
+  CREATE_COMPANY = '2.1',
+  CONTRACT = '3',
+  EMPLOYEE = '4',
+  HOMO_GROUP = '5',
+  CREATE_RISK = '10',
 }

@@ -10,7 +10,6 @@ import { useDebouncedCallback } from 'use-debounce';
 import EditIcon from 'assets/icons/SEditIcon';
 import SEmployeeIcon from 'assets/icons/SEmployeeIcon';
 
-import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';

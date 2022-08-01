@@ -9,6 +9,7 @@ export interface IDrawerLinks {
     search: string;
     text: string;
     roles?: RoleEnum[];
+    removeWithRoles?: RoleEnum[];
   };
 
   items: {
@@ -17,6 +18,7 @@ export interface IDrawerLinks {
     description: string;
     id: string;
     roles?: RoleEnum[];
+    removeWithRoles?: RoleEnum[];
     href: RoutesEnum;
     shouldMatchExactHref?: boolean;
   }[];

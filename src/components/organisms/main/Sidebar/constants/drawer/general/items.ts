@@ -87,11 +87,23 @@ const allCompaniesData = {
   shouldMatchExactHref: true,
 };
 
+const companiesData = {
+  text: 'Empresa',
+  Icon: SCompanyIcon,
+  description: 'Visualizar sua empresa',
+  id: 'lfrXadsdeDx',
+  href: RoutesEnum.COMPANY,
+  roles: [RoleEnum.MANAGEMENT],
+  removeWithRoles: [RoleEnum.CONTRACTS],
+  shouldMatchExactHref: true,
+};
+
 export const generalArray = [
   dashboard,
   profile,
   team,
   allCompaniesData,
+  companiesData,
   checklist,
   importExportData,
   accessGroups,
