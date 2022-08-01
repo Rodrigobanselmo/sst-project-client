@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
+import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import {
   selectHierarchySearch,
   setAddModalId,
@@ -14,18 +15,22 @@ import {
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { IdsEnum } from 'core/enums/ids.enums';
+import { ModalEnum } from 'core/enums/modal.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import {
   IListHierarchyQuery,
   useListHierarchyQuery,
 } from 'core/hooks/useListHierarchyQuery';
+import { useModal } from 'core/hooks/useModal';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { initialHierarchySelectState } from '..';
 
+import { initialAutomateSubOfficeState } from '../../ModalAutomateSubOffice/hooks/useHandleActions';
 import { ModalInputHierarchy } from './ModalInputHierarchy';
 import { ModalItemHierarchy } from './ModalItemHierarchy';
 import { ModalListGHO } from './ModalListGHO';
@@ -39,6 +44,8 @@ export const ModalSelectHierarchyData: FC<{
   const { data: ghoQuery } = useQueryGHO();
 
   const dispatch = useAppDispatch();
+  const { onStackOpenModal } = useModal();
+  const { onOpenSelected } = useOpenRiskTool();
   const search = useAppSelector(selectHierarchySearch);
   const [workspaceSelected, setWorkspaceSelected] = useState(
     company?.workspace?.find(
@@ -109,6 +116,27 @@ export const ModalSelectHierarchyData: FC<{
     setWorkspaceSelected(workspace);
   };
 
+  const onEmployeeAdd = () => {
+    return onStackOpenModal(ModalEnum.AUTOMATE_SUB_OFFICE, {
+      callback: (hierarchy) => {
+        setTimeout(() => {
+          setFilter(HierarchyEnum.SUB_OFFICE);
+          setTimeout(() => {
+            if (hierarchy?.id)
+              document
+                .getElementById(
+                  IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
+                    ':id',
+                    hierarchy.id,
+                  ),
+                )
+                ?.click();
+          }, 500);
+        }, 500);
+      },
+    } as typeof initialAutomateSubOfficeState);
+  };
+
   if (workspaceSelected === undefined) return null;
 
   return (
@@ -152,6 +180,7 @@ export const ModalSelectHierarchyData: FC<{
         </STGridBox>
         <ModalInputHierarchy
           listFilter={allTypes}
+          onEmployeeAdd={onEmployeeAdd}
           onSearch={(value) => dispatch(setHierarchySearch(value))}
           placeholder={
             filter === 'GHO'
@@ -174,6 +203,10 @@ export const ModalSelectHierarchyData: FC<{
                       : dispatch(setAddModalId(hierarchy.id))
                   }
                   key={hierarchy.id}
+                  id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
+                    ':id',
+                    hierarchy.id.split('//')[0],
+                  )}
                   data={hierarchy}
                 />
               );

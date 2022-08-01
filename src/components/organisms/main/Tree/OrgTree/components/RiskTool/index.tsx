@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
+import { initialAutomateSubOfficeState } from 'components/organisms/modals/ModalAutomateSubOffice/hooks/useHandleActions';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
 import { initialGhoSelectState } from 'components/organisms/modals/ModalSelectGho';
@@ -34,7 +35,6 @@ import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
-import { useMutCopyCompany } from 'core/services/hooks/mutations/manager/useMutCopyCompany';
 import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 
@@ -44,6 +44,7 @@ import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
 import { RiskToolRiskView } from './components/RiskToolViews/RiskToolRiskView';
 import { IHierarchyTreeMapObject } from './components/RiskToolViews/RiskToolRiskView/types';
 import { SideSelectViewContent } from './components/SideSelectViewContent';
+import { useOpenRiskTool } from './hooks/useOpenRiskTool';
 import { STBoxContainer, STBoxStack, STTableContainer } from './styles';
 import {
   IViewsDataOption,
@@ -77,6 +78,7 @@ export const RiskToolSlider = () => {
 
   const { query } = useRouter();
   const isRiskOpen = useMemo(() => !!query.riskGroupId, [query]);
+  const { onOpenSelected } = useOpenRiskTool();
 
   useEffect(() => {
     dispatch(setGhoSearch(''));
@@ -118,7 +120,6 @@ export const RiskToolSlider = () => {
       riskGroup: IRiskGroupData,
       company: ICompany,
     ) => {
-      console.log(company);
       onStackOpenModal(ModalEnum.HOMOGENEOUS_SELECT, {
         // title: 'Selecione o Sistema de Gestão SST do GSE',
         onSelect: (gho) => onSelectGhoData(gho as IGho, riskGroup),
@@ -241,9 +242,18 @@ export const RiskToolSlider = () => {
     );
   };
 
-  const handleChangeViewData = (option: IViewsDataOption) => {
+  const handleChangeViewData = (
+    option: Omit<IViewsDataOption, 'name' | 'placeholder'>,
+  ) => {
     if (option.value === ViewsDataEnum.EMPLOYEE) {
-      return alert('Em breve!');
+      return onStackOpenModal(ModalEnum.AUTOMATE_SUB_OFFICE, {
+        callback: (hierarchy) => {
+          onOpenSelected({
+            ghoId: hierarchy?.id || '',
+            ghoName: hierarchy?.name || '',
+          });
+        },
+      } as typeof initialAutomateSubOfficeState);
     }
 
     dispatch(setGhoMultiState({ selectedDisabledIds: [], selectedIds: [] }));

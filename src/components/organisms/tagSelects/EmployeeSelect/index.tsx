@@ -10,10 +10,12 @@ import { useDebouncedCallback } from 'use-debounce';
 import EditIcon from 'assets/icons/SEditIcon';
 import SEmployeeIcon from 'assets/icons/SEmployeeIcon';
 
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { useMutDeleteSubOfficeEmployee } from 'core/services/hooks/mutations/manager/useMutDeleteSubOfficeEmployee';
 import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
@@ -31,16 +33,25 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
   handleMultiSelect,
   loading,
   actualHierarchy,
+  preload,
+  filterByHierarchyId,
+  maxPerPage,
   ...props
 }) => {
   const [search, setSearch] = useState('');
   const [reloadOptions, setReloadOptions] = useState(0);
   const { enqueueSnackbar } = useSnackbar();
   const listSelected = useRef<IEmployee[]>([]);
+  const deleteSubOfficeMut = useMutDeleteSubOfficeEmployee();
   const { data, isLoading } = useQueryEmployees(
     1,
-    { search: search || null },
-    12,
+    {
+      search: search || (preload ? '' : null),
+      ...(filterByHierarchyId
+        ? { hierarchyId: filterByHierarchyId || undefined }
+        : {}),
+    },
+    maxPerPage,
   );
 
   const { onStackOpenModal } = useModal();
@@ -110,6 +121,8 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     if (isChecked) newList.push(employee);
     if (!isChecked && employee.hierarchyId != actualHierarchyId)
       newList = newList.filter((e) => e.id != employee.id);
+
+    // only for db saved employees cant remove
     if (!isChecked && employee.hierarchyId == actualHierarchyId) {
       const check = document.getElementById(
         IdsEnum.MENU_ITEM_CHECKBOX_ID.replace(':id', String(employee.id)),
@@ -122,6 +135,18 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
         'Você não pode remover um empregado, clique em editar ao lado caso queira trocar seu cargo',
         { variant: 'error' },
       );
+    }
+
+    if (
+      !isChecked &&
+      employee.hierarchyId ==
+        String(actualHierarchy?.parentId)?.split('//')?.[0]
+    ) {
+      console.log('uh');
+      deleteSubOfficeMut.mutate({
+        employeeId: employee.id,
+        subOfficeId: String(actualHierarchy?.id).split('//')?.[0],
+      });
     }
 
     listSelected.current = removeDuplicate(newList, { removeById: 'id' });
@@ -172,7 +197,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
       large={large}
       handleSelectMenu={handleSelectEmployee}
       selected={selectedIds}
-      isLoading={isLoading || loading}
+      isLoading={isLoading || loading || deleteSubOfficeMut.isLoading}
       handleMultiSelectMenu={handleMultiSelectMenu}
       endAdornment={(options: IEmployee | undefined) => {
         return (

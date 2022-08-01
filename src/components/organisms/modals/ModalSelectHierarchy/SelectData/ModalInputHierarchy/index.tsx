@@ -30,6 +30,7 @@ export const ModalInputHierarchy = React.forwardRef<
       small,
       listFilter,
       selectedData,
+      onEmployeeAdd,
       ...props
     },
     ref,
@@ -82,6 +83,16 @@ export const ModalInputHierarchy = React.forwardRef<
               onClick={() => {
                 dispatch(setHierarchySearch(''));
                 setFilter('GHO');
+              }}
+            />
+          )}
+          {selectedData.addSubOffice && onEmployeeAdd && (
+            <STagButton
+              tooltipTitle={'Criar cargo desenvolvido'}
+              text={'Empregados'}
+              large
+              onClick={() => {
+                onEmployeeAdd?.();
               }}
             />
           )}

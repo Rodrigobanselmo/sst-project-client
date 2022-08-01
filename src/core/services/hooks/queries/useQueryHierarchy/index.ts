@@ -13,6 +13,7 @@ export const queryHierarchy = async (id: string, companyId: string) => {
   const response = await api.get<IHierarchy>(
     `${ApiRoutesEnum.HIERARCHY}/${id}/${companyId}`,
   );
+  console.log(999);
   return response.data;
 };
 

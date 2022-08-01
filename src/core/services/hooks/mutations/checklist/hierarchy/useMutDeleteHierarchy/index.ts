@@ -7,6 +7,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { api } from 'core/services/apiClient';
+import { setMapHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
@@ -37,16 +38,17 @@ export function useMutDeleteHierarchy() {
       }
 
       if (resp) {
-        const actualData = queryClient.getQueryData(
+        const actualData = queryClient.getQueryData<Record<string, IHierarchy>>(
           // eslint-disable-next-line prettier/prettier
           [QueryEnum.HIERARCHY, resp.companyId],
         );
-        if (actualData)
+        if (actualData) {
+          delete actualData[resp.id];
           queryClient.setQueryData(
             [QueryEnum.HIERARCHY, resp.companyId],
-            (oldData: IHierarchy[] | undefined) =>
-              oldData ? oldData.filter((data) => data.id !== resp.id) : [],
+            setMapHierarchies([...Object.values(actualData), resp]),
           );
+        }
       }
 
       enqueueSnackbar('Hierarquia deletado com sucesso', {

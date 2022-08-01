@@ -16,6 +16,7 @@ import {
 import { SCopyIcon } from 'assets/icons/SCopyIcon';
 
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
+import { IdsEnum } from 'core/enums/ids.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useHorizontalScroll } from 'core/hooks/useHorizontalScroll';
@@ -103,6 +104,8 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
       <SFlex mt={5}>
         <SFlex direction="column" justify="space-between" mt={4}>
           <SideInput
+            id={IdsEnum.RISK_TOOL_GHO_INPUT_SEARCH}
+            onFocus={(e) => console.log(123, e.target.value)}
             handleAddGHO={handleAddGHO}
             ref={inputSelectedRef}
             onSearch={(value) => dispatch(setGhoSearch(value))}
@@ -167,6 +170,7 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
       </SFlex>
       <SFlex align="center" gap={4} mb={0} mt={4}>
         <SideInput
+          // id={IdsEnum.RISK_TOOL_GHO_SEARCH}
           ref={inputSelectedRef}
           onSearch={(value) => dispatch(setGhoSearchRisk(value))}
           handleSelectGHO={handleSelectGHO}

@@ -15,7 +15,10 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
-import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
+import {
+  IQueryEmployee,
+  useQueryEmployees,
+} from 'core/services/hooks/queries/useQueryEmployees';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { queryClient } from 'core/services/queryClient';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
@@ -50,23 +53,31 @@ export const ModalEditCard = () => {
     selectedNode?.type || ('' as any),
   );
 
+  const isSubOffice =
+    TreeTypeEnum.SUB_OFFICE == (selectedNode?.type || ('' as any));
+
   const isNotHierarchy = ![
     TreeTypeEnum.COMPANY,
     TreeTypeEnum.WORKSPACE,
   ].includes(selectedNode?.type || ('' as any));
+
+  const query = {} as IQueryEmployee;
+
+  if (isOffice && !isSubOffice)
+    query.hierarchyId = isOffice
+      ? String(selectedNode?.id).split('//')[0] || ''
+      : '';
+
+  if (isSubOffice)
+    query.hierarchySubOfficeId = isOffice
+      ? String(selectedNode?.id).split('//')[0] || ''
+      : '';
+
   const {
     data: selectedEmployees,
     isLoading,
     refetch,
-  } = useQueryEmployees(
-    1,
-    {
-      hierarchyId: isOffice
-        ? String(selectedNode?.id).split('//')[0] || ''
-        : '',
-    },
-    1000,
-  );
+  } = useQueryEmployees(1, query, 1000);
 
   const { registerModal } = useRegisterModal();
   const { onCloseModal } = useModal();

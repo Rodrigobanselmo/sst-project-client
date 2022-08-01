@@ -4,46 +4,49 @@ import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
-import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { api } from 'core/services/apiClient';
 import { setMapHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { queryClient } from 'core/services/queryClient';
 
-import { useAuth } from '../../../../../../contexts/AuthContext';
 import { IErrorResp } from '../../../../../errors/types';
 
-interface ICreateHierarchy {
-  status?: StatusEnum;
-  type: HierarchyEnum;
+interface IAutomateHierarchySubOffice {
+  id?: string;
   name: string;
+  realDescription?: string;
+  status?: StatusEnum;
   companyId?: string;
-  parentId?: string | null;
-  workspaceIds: string[];
+  employeesIds: number[];
+  parentId?: string;
 }
 
-export async function createHierarchy(
-  data: ICreateHierarchy,
+export async function automateHierarchySubOffice(
+  data: IAutomateHierarchySubOffice,
   companyId?: string,
 ) {
   if (!companyId) return null;
 
-  const response = await api.post<IHierarchy>(ApiRoutesEnum.HIERARCHY, {
-    ...data,
-    companyId,
-  });
+  const response = await api.post<IHierarchy>(
+    `${ApiRoutesEnum.HIERARCHY}/sub-office/${companyId}`,
+    {
+      ...data,
+      companyId,
+    },
+  );
 
   return response.data;
 }
 
-export function useMutCreateHierarchy() {
-  const { user } = useAuth();
+export function useMutAutomateHierarchySubOffice() {
+  const { companyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: ICreateHierarchy) =>
-      createHierarchy(data, data.companyId || user?.companyId),
+    async (data: IAutomateHierarchySubOffice) =>
+      automateHierarchySubOffice(data, data.companyId || companyId),
     {
       onSuccess: async (resp) => {
         if (resp) {
@@ -60,12 +63,13 @@ export function useMutCreateHierarchy() {
             );
         }
 
-        enqueueSnackbar('Hierarquia criado com sucesso', {
+        enqueueSnackbar('Cargo desenvolvido criado com sucesso', {
           variant: 'success',
         });
         return resp;
       },
       onError: (error: IErrorResp) => {
+        console.log(error);
         enqueueSnackbar(error.response.data.message, { variant: 'error' });
       },
     },

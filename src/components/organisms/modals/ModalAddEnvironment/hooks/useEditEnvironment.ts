@@ -350,6 +350,7 @@ export const useEditEnvironment = (modalName = modalNameInit) => {
       onSelect: handleSelect,
       selectByGHO: true,
       workspaceId: environmentData.workspaceId,
+      addSubOffice: true,
       hierarchiesIds: hierarchies.map((hierarchy) =>
         String(hierarchy.id).split('//').length == 1
           ? String(hierarchy.id) + '//' + environmentData.workspaceId

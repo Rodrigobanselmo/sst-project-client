@@ -9,6 +9,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { api } from 'core/services/apiClient';
+import { setMapHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
@@ -87,7 +88,23 @@ export function useMutUpsertManyHierarchy() {
           return;
         }
 
-        if (resp) queryClient.refetchQueries([QueryEnum.HIERARCHY, companyId]);
+        // if (resp) queryClient.refetchQueries([QueryEnum.HIERARCHY, companyId]);
+        if (resp) {
+          const actualData = queryClient.getQueryData<
+            Record<string, IHierarchy>
+          >([QueryEnum.HIERARCHY, companyId]);
+          if (actualData) {
+            console.log(resp);
+            resp.forEach((item) => {
+              actualData[item.id] = item;
+            });
+
+            queryClient.setQueryData(
+              [QueryEnum.HIERARCHY, companyId],
+              setMapHierarchies([...Object.values(actualData)]),
+            );
+          }
+        }
 
         enqueueSnackbar('Editado com sucesso', {
           variant: 'success',
@@ -95,7 +112,7 @@ export function useMutUpsertManyHierarchy() {
         return resp;
       },
       onError: (error: IErrorResp) => {
-        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        enqueueSnackbar(error.response.data.message, { variant: 'warning' });
       },
     },
   );

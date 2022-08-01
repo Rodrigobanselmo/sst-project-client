@@ -11,12 +11,13 @@ import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-interface IQueryEmployee {
+export interface IQueryEmployee {
   cpf?: string;
   name?: string;
   search?: string | null;
   companyId?: string;
   hierarchyId?: string;
+  hierarchySubOfficeId?: string;
 }
 
 export const queryEmployees = async (
@@ -24,6 +25,9 @@ export const queryEmployees = async (
   query: IQueryEmployee,
 ) => {
   if ('hierarchyId' in query && !query.hierarchyId)
+    return { data: [], count: 0 };
+
+  if ('hierarchySubOfficeId' in query && !query.hierarchySubOfficeId)
     return { data: [], count: 0 };
 
   if ('search' in query && query.search === null) return { data: [], count: 0 };

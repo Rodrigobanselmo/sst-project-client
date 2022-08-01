@@ -7,7 +7,10 @@ interface IDuplicateOptions {
   removeById?: string;
 }
 
-export function removeDuplicate(array: any[], options?: IDuplicateOptions) {
+export function removeDuplicate<T = any>(
+  array: T[],
+  options?: IDuplicateOptions,
+) {
   if (options?.simpleCompare || typeof array[0] === 'string')
     return array.filter(
       (item, index, self) => index === self.findIndex((t) => t == item),

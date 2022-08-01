@@ -12,6 +12,7 @@ import {
 import { characterizationMap } from 'core/constants/maps/characterization.map';
 import { environmentMap } from 'core/constants/maps/environment.map';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
+import { IdsEnum } from 'core/enums/ids.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { IGho } from 'core/interfaces/api/IGho';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
@@ -97,6 +98,10 @@ export const RiskToolGhoItem: FC<
       topText={topText}
       large
       text={name}
+      id={IdsEnum.RISK_TOOL_GHO_HORIZONTAL.replace(
+        ':id',
+        gho.id.split('//')[0],
+      )}
       tooltipTitle={(isHierarchy ? gho.parentsName + ' > ' : '') + name}
       sx={{ minHeight: '100%' }}
       {...selected}

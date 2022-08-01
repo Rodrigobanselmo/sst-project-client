@@ -3,9 +3,26 @@ import { RiskEnum } from 'project/enum/risk.enums';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 
 export const hierarchyFilter = [
-  { label: 'fis', filter: HierarchyEnum.DIRECTORY, activeColor: 'risk.fis' },
-  { label: 'qui', filter: RiskEnum.QUI, activeColor: 'risk.qui' },
-  { label: 'bio', filter: RiskEnum.BIO, activeColor: 'risk.bio' },
-  { label: 'aci', filter: RiskEnum.ACI, activeColor: 'risk.aci' },
-  { label: 'erg', filter: RiskEnum.ERG, activeColor: 'risk.erg' },
+  {
+    label: 'diretoria',
+    filter: HierarchyEnum.DIRECTORY,
+    activeColor: 'primary.main',
+  },
+  {
+    label: 'gerência',
+    filter: HierarchyEnum.MANAGEMENT,
+    activeColor: 'primary.main',
+  },
+  { label: 'setor', filter: HierarchyEnum.SECTOR, activeColor: 'primary.main' },
+  {
+    label: 'sub setor',
+    filter: HierarchyEnum.SUB_SECTOR,
+    activeColor: 'primary.main',
+  },
+  { label: 'cargo', filter: HierarchyEnum.OFFICE, activeColor: 'primary.main' },
+  {
+    label: 'cargo des.',
+    filter: HierarchyEnum.SUB_OFFICE,
+    activeColor: 'primary.main',
+  },
 ];

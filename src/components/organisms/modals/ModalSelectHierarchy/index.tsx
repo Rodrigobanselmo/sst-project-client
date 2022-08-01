@@ -36,6 +36,7 @@ export const initialHierarchySelectState = {
   hierarchiesIds: [] as string[],
   workspaceId: '' as string,
   singleSelect: false,
+  addSubOffice: false,
   lockWorkspace: true,
   selectByGHO: false,
   selectionHierarchy: Object.values(HierarchyEnum),

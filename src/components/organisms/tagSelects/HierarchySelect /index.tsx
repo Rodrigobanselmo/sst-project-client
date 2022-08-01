@@ -1,12 +1,16 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useCallback, useMemo, useState } from 'react';
+
+import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { useListHierarchyQuery } from 'core/hooks/useListHierarchyQuery';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
+import { hierarchyFilter } from './constants/filters';
 import { ITypeSelectProps } from './types';
 
 export const HierarchySelect: FC<ITypeSelectProps> = ({
@@ -16,27 +20,36 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
   companyId,
   selectedId,
   tooltipText,
+  defaultFilter = HierarchyEnum.OFFICE,
+  filterOptions,
   ...props
 }) => {
-  const { data: copyFromHierarchy } = useQueryHierarchies(companyId || '-');
+  const { hierarchyListData, hierarchyTree } = useListHierarchyQuery(
+    companyId || '-',
+  );
+  const [activeFilters, setActiveFilters] = useState<string[]>([defaultFilter]);
+  const [allFilterTypes, setAllFilterTypes] = useState<
+    Record<HierarchyEnum, boolean>
+  >({} as Record<HierarchyEnum, boolean>);
+
   const handleSelectRisk = (options: IHierarchy) => {
     if (options && typeof options.id === 'string')
-      handleSelect?.(copyFromHierarchy[options.id] || { id: '' });
+      handleSelect?.(hierarchyTree[options.id] || { id: '' });
   };
 
   const getText = useCallback(
     (selectedId?: string, text?: string) => {
       if (!selectedId) return text || '';
 
-      if (copyFromHierarchy[selectedId || '']) {
+      if (hierarchyTree[selectedId || '']) {
         let name = '';
 
         const hierarchyConstValue =
-          hierarchyConstant[copyFromHierarchy[selectedId || '']?.type || ''];
+          hierarchyConstant[hierarchyTree[selectedId || '']?.type || ''];
 
         if (hierarchyConstValue) name = `(${hierarchyConstValue.name}) `;
-        if (copyFromHierarchy[selectedId || ''].name)
-          name = name + copyFromHierarchy[selectedId || ''].name;
+        if (hierarchyTree[selectedId || ''].name)
+          name = name + hierarchyTree[selectedId || ''].name;
 
         return name;
       }
@@ -44,28 +57,45 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
 
       return '';
     },
-    [copyFromHierarchy],
+    [hierarchyTree],
   );
 
-  const options = useMemo(() => {
-    const copyHierarchyArray = Object.values(copyFromHierarchy).map(
-      (copyFromHierarchy) => {
-        return {
-          ...copyFromHierarchy,
-          name: getText(copyFromHierarchy.id),
-        };
-      },
-    );
+  const handleActiveFilter = useCallback((filterFilter: string) => {
+    return setActiveFilters([filterFilter]);
+  }, []);
 
-    if (!copyHierarchyArray) return [];
-    copyHierarchyArray.unshift({
-      ...copyHierarchyArray[0],
+  const options = useMemo(() => {
+    const typesSelected: Record<HierarchyEnum, boolean> = {} as Record<
+      HierarchyEnum,
+      boolean
+    >;
+
+    const list = hierarchyListData()
+      .map((hierarchyTree) => {
+        if (
+          !filterOptions ||
+          (filterOptions && filterOptions.includes(hierarchyTree.type))
+        )
+          (typesSelected as any)[hierarchyTree.type] = true;
+
+        return {
+          ...hierarchyTree,
+          name: getText(hierarchyTree.id),
+        };
+      })
+      .filter((h) => h.type === activeFilters[0]);
+
+    setAllFilterTypes(typesSelected);
+
+    if (!list) return [];
+    list.unshift({
+      ...list[0],
       id: '',
       name: 'Nenhum',
     });
 
-    return copyHierarchyArray;
-  }, [copyFromHierarchy, getText]);
+    return list;
+  }, [hierarchyListData, filterOptions, getText, activeFilters]);
 
   const textField = getText(selectedId, text);
   const isNotSelected = !selectedId;
@@ -75,13 +105,22 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
       options={options}
       icon={SHierarchyIcon}
       text={textField}
-      bg={isNotSelected ? 'primary.main' : 'info.main'}
+      bg={isNotSelected ? undefined : 'info.main'}
       active
       keys={['name']}
       large={large}
       handleSelectMenu={handleSelectRisk}
       tooltipTitle={tooltipText ? tooltipText(textField) : ''}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}
+      renderFilter={() => (
+        <SMenuSimpleFilter
+          options={hierarchyFilter.filter(
+            (filter) => !allFilterTypes || allFilterTypes?.[filter.filter],
+          )}
+          activeFilters={activeFilters}
+          onClickFilter={handleActiveFilter}
+        />
+      )}
       {...props}
     />
   );

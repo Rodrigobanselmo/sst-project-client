@@ -113,7 +113,7 @@ export const GhoToolView: FC<RiskToolRiskViewProps> = ({
         ))}
       </SFlex>
       {ghoOrderedData.map((gho, index) => {
-        if (gho.type !== filter) return null;
+        if (gho.type !== filter && !selectedGhoId) return null;
 
         return (
           <GhoRow

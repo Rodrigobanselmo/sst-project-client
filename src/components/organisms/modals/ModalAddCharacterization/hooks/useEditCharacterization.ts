@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
@@ -118,6 +119,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   const isRiskOpen = query.riskGroupId;
 
   const { preventUnwantedChanges, preventDelete } = usePreventAction();
+  const { onOpenSelected } = useOpenRiskTool();
 
   const [characterizationData, setCharacterizationData] = useState({
     ...initialCharacterizationState,
@@ -536,6 +538,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       onSelect: handleSelect,
       selectByGHO: ghoQuery.some((gho) => !gho.type),
       workspaceId: characterizationData.workspaceId,
+      addSubOffice: true,
       hierarchiesIds: hierarchies.map((hierarchy) =>
         String(hierarchy.id).split('//').length == 1
           ? String(hierarchy.id) + '//' + characterizationData.workspaceId
@@ -644,21 +647,21 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
         push(asPath + '/?riskGroupId=' + docPgr.id, undefined, {
           shallow: true,
         });
-        dispatch(
-          setRiskAddState({
-            viewData:
-              characterizationData.characterizationType == 'environment'
-                ? ViewsDataEnum.ENVIRONMENT
-                : ViewsDataEnum.CHARACTERIZATION,
-            isEdited: false,
-          }),
-        );
+        const viewData =
+          characterizationData.characterizationType == 'environment'
+            ? ViewsDataEnum.ENVIRONMENT
+            : ViewsDataEnum.CHARACTERIZATION;
+
         const foundGho = ghoQuery.find(
           (g) => g.id === characterizationQuery?.id,
         );
         if (foundGho)
           setTimeout(() => {
-            dispatch(setGhoSelectedId(foundGho));
+            onOpenSelected({
+              viewData,
+              ghoId: foundGho.id,
+              ghoName: foundGho.description.split('(//)')[0],
+            });
           }, 500);
       },
     } as Partial<typeof initialDocPgrSelectState>);

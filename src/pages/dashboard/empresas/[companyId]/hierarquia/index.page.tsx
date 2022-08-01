@@ -11,6 +11,7 @@ import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbabi
 import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
 import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
+import { ModalAutomateSubOffice } from 'components/organisms/modals/ModalAutomateSubOffice';
 import { ModalEditEpiData } from 'components/organisms/modals/ModalEditEpiRiskData';
 import { ModalEditEngRiskData } from 'components/organisms/modals/ModalEditMedRiskData';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
@@ -78,6 +79,7 @@ const Hierarchy: NextPage = () => {
       <ModalSelectDocPgr />
       <ModalEditEpiData />
       <ModalEditEngRiskData />
+      <ModalAutomateSubOffice />
     </STFlexContainer>
   );
 };

@@ -1,13 +1,17 @@
+import { ReactNode } from 'react';
+
 import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
+import { ISTagButtonProps } from 'components/atoms/STagButton/types';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import {
   initialInputModalState,
   TypeInputModal,
 } from 'components/organisms/modals/ModalSingleInput';
+import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
 
 import AddIcon from 'assets/icons/SAddIcon';
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
@@ -56,7 +60,7 @@ interface ISDisplaySimpleArrayProps {
   onAdd: (value: string, data?: any) => void;
   onDelete: (value: string, data?: any) => void;
   onEdit?: (value: string, values: any[], data?: any) => void;
-  renderText?: (data?: any) => string;
+  renderText?: (data?: any) => ReactNode;
   disabled?: boolean;
   buttonLabel?: string;
   modalLabel?: string;
@@ -66,6 +70,11 @@ interface ISDisplaySimpleArrayProps {
   paragraphSelect?: boolean;
   onRenderStartElement?: (value: any | string) => JSX.Element;
   onRenderEndElement?: (value: any | string) => JSX.Element;
+  onRenderAddButton?: (
+    onAdd: (value: string, data?: any) => void,
+    values: any[],
+    props: { disabled?: boolean; text?: string },
+  ) => JSX.Element;
 }
 
 export function SDisplaySimpleArray({
@@ -83,6 +92,7 @@ export function SDisplaySimpleArray({
   onRenderEndElement,
   onEdit,
   renderText,
+  onRenderAddButton,
 }: ISDisplaySimpleArrayProps) {
   const { onStackOpenModal } = useModal();
   const { onSelectProfessionalUser } = useAddEntities({ onAdd, values });
@@ -114,6 +124,8 @@ export function SDisplaySimpleArray({
             value = v[valueField];
           }
 
+          const displayText = renderText ? renderText(v) : value;
+
           return (
             <SFlex
               sx={{
@@ -127,9 +139,13 @@ export function SDisplaySimpleArray({
               align="center"
             >
               {onRenderStartElement && onRenderStartElement(v)}
-              <SText ml={5} fontSize={14} mr={'auto'} color={'grey.600'}>
-                {renderText ? renderText(v) : value}
-              </SText>
+              {typeof displayText === 'string' ? (
+                <SText ml={5} fontSize={14} mr={'auto'} color={'grey.600'}>
+                  {displayText}
+                </SText>
+              ) : (
+                displayText
+              )}
               <SFlex gap={2} flexWrap="wrap" center>
                 {onEdit && (
                   <STooltip placement="left" withWrapper title="subir posição">
@@ -205,24 +221,28 @@ export function SDisplaySimpleArray({
             </SFlex>
           );
         })}
-        <STagButton
-          large
-          disabled={disabled}
-          icon={AddIcon}
-          text={buttonLabel || 'Adicionar'}
-          iconProps={{ sx: { fontSize: 17 } }}
-          onClick={() => {
-            if (type === TypeInputModal.PROFESSIONAL) {
-              return onSelectProfessionalUser();
-            }
-            onStackOpenModal(ModalEnum.SINGLE_INPUT, {
-              onConfirm: onAdd,
-              placeholder,
-              label: modalLabel,
-              type,
-            } as typeof initialInputModalState);
-          }}
-        />
+        {!onRenderAddButton && (
+          <STagButton
+            large
+            disabled={disabled}
+            icon={AddIcon}
+            text={buttonLabel || 'Adicionar'}
+            iconProps={{ sx: { fontSize: 17 } }}
+            onClick={() => {
+              if (type === TypeInputModal.PROFESSIONAL) {
+                return onSelectProfessionalUser();
+              }
+              onStackOpenModal(ModalEnum.SINGLE_INPUT, {
+                onConfirm: onAdd,
+                placeholder,
+                label: modalLabel,
+                type,
+              } as typeof initialInputModalState);
+            }}
+          />
+        )}
+        {onRenderAddButton &&
+          onRenderAddButton(onAdd, values, { disabled, text: buttonLabel })}
       </SFlex>
     </Box>
   );

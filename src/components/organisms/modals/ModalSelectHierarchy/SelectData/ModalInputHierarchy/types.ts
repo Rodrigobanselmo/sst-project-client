@@ -10,4 +10,5 @@ export interface SideInputProps extends Omit<Partial<SInputProps>, 'onSearch'> {
   filter: HierarchyEnum | '' | 'GHO';
   listFilter: Record<HierarchyEnum, boolean>;
   onSelectAll?: () => void;
+  onEmployeeAdd?: () => void;
 }

@@ -10,8 +10,8 @@ export interface IListHierarchyQuery extends IHierarchy {
   parentsName: string;
 }
 
-export const useListHierarchyQuery = () => {
-  const { data: hierarchyTree } = useQueryHierarchies();
+export const useListHierarchyQuery = (companyId?: string) => {
+  const { data: hierarchyTree } = useQueryHierarchies(companyId);
   // const hierarchyTree = useAppSelector(selectAllHierarchyTreeNodes);
   const hierarchyListData = useCallback(() => {
     const hierarchyArray: IListHierarchyQuery[] = Object.values(hierarchyTree)
@@ -63,5 +63,5 @@ export const useListHierarchyQuery = () => {
     return hierarchyArray;
   }, [hierarchyTree]);
 
-  return { hierarchyListData };
+  return { hierarchyListData, hierarchyTree };
 };
