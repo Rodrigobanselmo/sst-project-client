@@ -57,4 +57,4 @@ const apply = (
   e.target.value = newValue;
 };
 
-export const kmMask = { ...masker(masked), apply, mask };
+export const numberMask = { ...masker(masked), apply, mask };

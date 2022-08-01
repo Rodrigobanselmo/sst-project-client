@@ -6,7 +6,7 @@ export const addressSchema = yup.object().shape({
   neighborhood: yup.string().trim(),
   city: yup.string().trim(),
   state: yup.string().uppercase().trim(),
-  number: yup.string(),
+  number: yup.number().typeError('Número inválido'),
   complement: yup.string(),
 });
 

@@ -7,6 +7,8 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
+import { intMask } from 'core/utils/masks/int.mask';
+
 import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanySecondEdit';
 
@@ -116,6 +118,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
               control={control}
               name="number"
               size="small"
+              mask={intMask.apply}
             />
           </SFlex>
         </SFlex>
