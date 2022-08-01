@@ -26,7 +26,7 @@ export const useStep = ({ data, setData }: IUseAddCompany) => {
     };
 
     if (data.id) {
-      setData((data) => ({ ...data, ...submitData }));
+      setData((data) => ({ ...data, ...submitData } as any));
       await updateMutation
         .mutateAsync(submitData)
         .then(() => {

@@ -60,7 +60,7 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
       if (data.id) {
         if (!deepEqual({ ...data, ...submitData }, data)) {
           await updateMutation.mutateAsync(submitData).catch(() => {});
-          setData((data) => ({ ...data, ...submitData }));
+          setData((data) => ({ ...data, ...submitData } as any));
         }
         nextStep();
       }

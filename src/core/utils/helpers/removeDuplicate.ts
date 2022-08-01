@@ -18,12 +18,12 @@ export function removeDuplicate<T = any>(
 
   if (options?.removeById)
     return array.filter(
-      (item, index, self) =>
+      (item: any, index, self) =>
         index ===
         self.findIndex(
-          (t) =>
-            t[options.removeById as string] ==
-            item[options.removeById as string],
+          (t: any) =>
+            t[options?.removeById as string] ==
+            item[(options as any)?.removeById as string],
         ),
     );
 
@@ -36,8 +36,8 @@ export function removeDuplicate<T = any>(
 
         if (options?.removeFields)
           options.removeFields.forEach((field) => {
-            delete itemCopy[field];
-            delete tCopy[field];
+            delete (itemCopy as any)[field];
+            delete (tCopy as any)[field];
           });
 
         return deepEqual(t, item);
