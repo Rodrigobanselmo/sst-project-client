@@ -90,12 +90,12 @@ export const STableRow: FC<BoxProps & { clickable?: boolean }> = ({
   <STSTableRow
     clickable={clickable ? 1 : 0}
     px={6}
-    py={4}
+    py={2}
     className={'table_grid ' + className}
     {...props}
   />
 );
 
 export const STableHRow: FC<BoxProps> = ({ ...props }) => (
-  <STSTableHRow {...props} />
+  <STSTableHRow fontSize={13} {...props} />
 );

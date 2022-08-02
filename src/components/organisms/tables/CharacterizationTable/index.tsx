@@ -29,6 +29,7 @@ import { useTableSearch } from 'core/hooks/useTableSearch';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { useMutUpsertCharacterization } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
 import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
+import { dateToString } from 'core/utils/date/date-format';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -162,7 +163,7 @@ export const CharacterizationTable: FC<ITableProps> = ({
                 />
                 <TextIconRow
                   clickable
-                  text={dayjs(row.created_at).format('DD/MM/YYYY')}
+                  text={dateToString(row.created_at)}
                   justifyContent="center"
                 />{' '}
                 <STagSelect

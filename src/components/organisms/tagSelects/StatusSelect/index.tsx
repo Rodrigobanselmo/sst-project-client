@@ -2,11 +2,12 @@ import React, { FC } from 'react';
 
 import CircleTwoToneIcon from '@mui/icons-material/CircleTwoTone';
 import { STagSelect } from 'components/molecules/STagSelect';
-import dayjs from 'dayjs';
 
 import { statusOptionsConstant } from 'core/constants/maps/status-options.constant';
+import { dateToString } from 'core/utils/date/date-format';
 
 import { IStatusSelectProps } from './types';
+
 export const StatusSelect: FC<IStatusSelectProps> = ({
   selected,
   statusOptions,
@@ -21,7 +22,7 @@ export const StatusSelect: FC<IStatusSelectProps> = ({
       }))}
       tooltipTitle={
         expiresDate
-          ? ` expiração: ${dayjs(expiresDate).format('DD/MM/YYYY HH:mm')}`
+          ? ` expiração: ${dateToString(expiresDate, 'DD/MM/YYYY HH:mm')}`
           : statusOptionsConstant[selected].name
       }
       text={statusOptionsConstant[selected].name}

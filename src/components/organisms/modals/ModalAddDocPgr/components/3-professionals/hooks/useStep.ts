@@ -1,10 +1,11 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
+import clone from 'clone';
 import deepEqual from 'deep-equal';
 import { useSnackbar } from 'notistack';
 
-import { IUser } from 'core/interfaces/api/IUser';
+import { IProfessional } from 'core/interfaces/api/IProfessional';
 import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
@@ -55,8 +56,8 @@ export const useStep = ({ data, setData, initialDataRef }: IUseAddCompany) => {
       const submitData: IUpsertRiskGroupData = {
         validityStart: dateFormat(`01/${validityStart}`),
         validityEnd: dateFormat(`01/${validityEnd}`),
-        professionalsIds: data.professionals.map((p) => p.id),
-        users: data.users,
+        professionals: data.professionals,
+        // users: data.users,
         id: data.id,
       };
 
@@ -88,19 +89,31 @@ export const useStep = ({ data, setData, initialDataRef }: IUseAddCompany) => {
     }
   };
 
-  const onAddArray = (user: IUser, type: 'professionals' | 'users') => {
+  const onAddArray = (
+    professional: IProfessional,
+    type: 'professionals' | 'users',
+  ) => {
     let value: any;
 
-    if (Array.isArray(user)) {
-      value = user.map((u) => ({
-        ...u,
-        userPgrSignature: { userId: u.id, isSigner: true },
+    if (Array.isArray(professional)) {
+      value = professional.map((p) => ({
+        ...p,
+        professionalPgrSignature: {
+          professionalId: p.id,
+          isSigner: true,
+          isElaborator: true,
+        },
       }));
     } else {
       value = {
-        ...user,
-        userPgrSignature: { userId: user.id, isSigner: true },
-      } as IUser;
+        ...professional,
+        professionalPgrSignature: {
+          ...(professional?.professionalPgrSignature || {}),
+          professionalId: professional.id,
+          isSigner: true,
+          isElaborator: true,
+        },
+      } as IProfessional;
     }
 
     setData({
@@ -111,32 +124,71 @@ export const useStep = ({ data, setData, initialDataRef }: IUseAddCompany) => {
     });
   };
 
-  const onDeleteArray = (value: IUser, type: 'professionals' | 'users') => {
+  const onDeleteArray = (
+    value: IProfessional,
+    type: 'professionals' | 'users',
+  ) => {
     setData({
       ...data,
       [type]: [
-        ...(data as any)[type].filter((item: IUser) => item.id !== value.id),
+        ...(data as any)[type].filter(
+          (item: IProfessional) => item.id !== value.id,
+        ),
       ],
     });
   };
 
   const onAddSigner = (
-    user: IUser,
+    professional: IProfessional,
     check: boolean,
     type: 'professionals' | 'users',
   ) => {
-    const value = {
-      ...user,
-      userPgrSignature: { userId: user.id, isSigner: check },
-    } as IUser;
+    const dataCopy = clone(data);
 
-    const index = data[type]?.findIndex((item) => item.id === value.id);
+    const value = {
+      ...professional,
+      professionalPgrSignature: {
+        ...(professional?.professionalPgrSignature || {}),
+        professionalId: professional.id,
+        isSigner: check,
+      },
+    } as IProfessional;
+
+    const index = dataCopy[type]?.findIndex((item) => item.id === value.id);
     if (index != -1) {
-      data[type][index] = value;
+      dataCopy[type][index] = value;
+    }
+    console.log(index, dataCopy[type]);
+
+    setData({
+      ...dataCopy,
+    });
+  };
+
+  const onAddElaborator = (
+    professional: IProfessional,
+    check: boolean,
+    type: 'professionals' | 'users',
+  ) => {
+    const dataCopy = clone(data);
+
+    const value = {
+      ...professional,
+      professionalPgrSignature: {
+        ...(professional?.professionalPgrSignature || {}),
+        professionalId: professional.id,
+        isElaborator: check,
+      },
+    } as IProfessional;
+
+    const index = dataCopy[type]?.findIndex((item) => item.id === value.id);
+    console.log(index, dataCopy[type]);
+    if (index != -1) {
+      dataCopy[type][index] = value;
     }
 
     setData({
-      ...data,
+      ...dataCopy,
     });
   };
 
@@ -148,5 +200,6 @@ export const useStep = ({ data, setData, initialDataRef }: IUseAddCompany) => {
     onAddArray,
     onDeleteArray,
     onAddSigner,
+    onAddElaborator,
   };
 };

@@ -6,6 +6,7 @@ import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import { ModalAddDocPgr } from 'components/organisms/modals/ModalAddDocPgr';
+import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional';
 import { ModalSelectProfessional } from 'components/organisms/modals/ModalSelectProfessional';
 import {
   initialWorkspaceSelectState,
@@ -123,6 +124,7 @@ const Companies: NextPage = () => {
       <ModalSelectProfessional />
       <ModalSingleInput />
       <ModalSelectWorkspace />
+      <ModalAddProfessional />
     </SContainer>
   );
 };

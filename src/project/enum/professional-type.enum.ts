@@ -1,0 +1,9 @@
+export enum ProfessionalTypeEnum {
+  DOCTOR = 'DOCTOR',
+  NURSE = 'NURSE',
+  SPEECH_THERAPIST = 'SPEECH_THERAPIST',
+  TECHNICIAN = 'TECHNICIAN',
+  ENGINEER = 'ENGINEER',
+  USER = 'USER',
+  OTHER = 'OTHER',
+}

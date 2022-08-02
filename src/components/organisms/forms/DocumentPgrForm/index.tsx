@@ -2,10 +2,10 @@ import { Box } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
-import dayjs from 'dayjs';
 
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { useQueryRiskGroupDataOne } from 'core/services/hooks/queries/useQueryRiskGroupDataOne';
+import { dateToString } from 'core/utils/date/date-format';
 
 import { usePgrForm } from './hooks/usePgrForm';
 import { STBox } from './styles';
@@ -69,7 +69,7 @@ export const DocumentPgrForm = ({
           smallPlaceholder
         />
         <InputForm
-          defaultValue={dayjs(data?.visitDate).format('DD/MM/YYYY')}
+          defaultValue={dateToString(data?.visitDate)}
           uneditable={uneditable}
           label="Data da visita"
           control={control}

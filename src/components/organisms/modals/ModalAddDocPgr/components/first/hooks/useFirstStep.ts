@@ -7,6 +7,7 @@ import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
 } from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
+import { dateFormat } from 'core/utils/date/date-format';
 
 import { IUseAddCompany } from '../../../hooks/useHandleActions';
 
@@ -49,7 +50,7 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
         name,
         approvedBy,
         elaboratedBy,
-        visitDate,
+        visitDate: dateFormat(visitDate),
         revisionBy,
         source,
         id: data.id,

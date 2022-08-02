@@ -23,6 +23,7 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
   defaultValue,
   inputValue,
   reset,
+  ball,
   inputProps = () => {
     return {};
   },
@@ -68,7 +69,7 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
 
   return (
     <STooltip title={tooltip}>
-      <Grid {...gridSize} {...gridItemsProps} item>
+      <Grid position="relative" {...gridSize} {...gridItemsProps} item>
         <input
           name={type === 'checkbox' ? value : name}
           ref={mergedRef}
@@ -77,6 +78,7 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
           value={value}
           {...rest}
         />
+
         <Typography
           borderRadius={'8px'}
           tabIndex={0}
@@ -97,6 +99,21 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
           onKeyPress={(event: any) => event.key === 'Enter' && handleCheckbox()}
           {...props}
         >
+          {ball && (
+            <Typography
+              component="span"
+              sx={{
+                position: 'absolute',
+                top: 18,
+                left: 20,
+                border: '2px solid',
+                height: '10px',
+                width: '10px',
+                borderRadius: '50%',
+                borderColor: 'grey.300',
+              }}
+            ></Typography>
+          )}
           <span
             style={{
               alignItems: 'center',
@@ -127,6 +144,7 @@ const SRadioCheckbox: FC<SRadioCheckboxProps> = ({
   helperText,
   defaultValue,
   reset,
+  ball,
   ...props
 }) => {
   if (type === 'radio' && !name)
@@ -167,6 +185,7 @@ const SRadioCheckbox: FC<SRadioCheckboxProps> = ({
             gridItemsProps={gridItemsProps}
             disabled={disabled}
             defaultValue={defaultValue}
+            ball={ball}
           />
         );
       })}

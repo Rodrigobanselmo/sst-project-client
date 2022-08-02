@@ -6,6 +6,10 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import {
+  IProfessional,
+  IProfessionalToRiskGroup,
+} from 'core/interfaces/api/IProfessional';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { IUser, IUserToRiskGroup } from 'core/interfaces/api/IUser';
 import { api } from 'core/services/apiClient';
@@ -30,6 +34,7 @@ export interface IUpsertRiskGroupData {
   isQ5?: boolean;
   complementarySystems?: string[];
   users?: (IUser | IUserToRiskGroup)[];
+  professionals?: (IProfessional | IProfessionalToRiskGroup)[];
   professionalsIds?: string[];
 }
 
@@ -46,6 +51,17 @@ export async function upsertRiskGroupData(
       return {
         userId: user.id,
         isSigner: user.userPgrSignature?.isSigner,
+      };
+    }) as any;
+
+  if (data?.professionals)
+    data.professionals = data?.professionals?.map((professional) => {
+      if ('isSigner' in professional) return professional;
+
+      return {
+        professionalId: professional.id,
+        isSigner: professional.professionalPgrSignature?.isSigner,
+        isElaborator: professional.professionalPgrSignature?.isElaborator,
       };
     }) as any;
 

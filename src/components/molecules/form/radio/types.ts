@@ -22,4 +22,5 @@ export type InputFormBoxProps = BoxProps & {
   inputPropsFunc?: (option: any) => React.InputHTMLAttributes<HTMLInputElement>;
   type: SRadioCheckboxProps['type'];
   columns: SRadioCheckboxProps['columns'];
+  ball?: boolean;
 };

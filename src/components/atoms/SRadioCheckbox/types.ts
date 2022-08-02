@@ -43,6 +43,7 @@ export interface IInputCheckboxProps
   backgroundColor?: string;
   color?: string;
   defaultValue?: string;
+  ball?: boolean;
 }
 
 export type SRadioCheckboxProps = GridProps & {
@@ -65,4 +66,5 @@ export type SRadioCheckboxProps = GridProps & {
   size?: number;
   disabled?: boolean;
   defaultValue?: string;
+  ball?: boolean;
 };

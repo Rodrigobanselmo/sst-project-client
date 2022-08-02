@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
+import BorderColorIcon from '@mui/icons-material/BorderColor';
+import DriveFileRenameOutlineIcon from '@mui/icons-material/DriveFileRenameOutline';
 import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -17,7 +19,8 @@ import dayjs from 'dayjs';
 import SStarFullIcon from 'assets/icons/SStarFullIcon';
 import SStarIcon from 'assets/icons/SStarIcon';
 
-import { IUser } from 'core/interfaces/api/IUser';
+import { IProfessional } from 'core/interfaces/api/IProfessional';
+import { dateToString } from 'core/utils/date/date-format';
 import { dateMonthMask } from 'core/utils/masks/date.mask';
 
 import { IUseAddCompany } from '../../hooks/useHandleActions';
@@ -32,6 +35,7 @@ export const ProfessionalModalStep = (props: IUseAddCompany) => {
     loading,
     onAddArray,
     onDeleteArray,
+    onAddElaborator,
   } = useStep(props);
 
   const { data } = props;
@@ -63,7 +67,7 @@ export const ProfessionalModalStep = (props: IUseAddCompany) => {
           >
             <InputForm
               defaultValue={
-                dayjs(data?.validityStart).format('MM/YYYY') ||
+                dateToString(data?.validityStart, 'MM/YYYY') ||
                 dayjs().format('MM/YYYY')
               }
               label="Início da vigência do PGR"
@@ -76,7 +80,7 @@ export const ProfessionalModalStep = (props: IUseAddCompany) => {
             />
             <InputForm
               defaultValue={
-                dayjs(data?.validityEnd).format('MM/YYYY') ||
+                dateToString(data?.validityEnd, 'MM/YYYY') ||
                 (data.complementarySystems.length > 0
                   ? dayjs().add(3, 'years').format('MM/YYYY')
                   : dayjs().add(2, 'years').format('MM/YYYY'))
@@ -91,32 +95,60 @@ export const ProfessionalModalStep = (props: IUseAddCompany) => {
             />
           </Box>
           <SDisplaySimpleArray
-            values={data.users || []}
+            values={data.professionals || []}
             valueField="name"
-            onAdd={(_, user) => user && onAddArray(user, 'users')}
-            onDelete={(_, user) => user && onDeleteArray(user, 'users')}
-            label={'Profissionais responsaveis pela elaboração do PGR'}
+            onAdd={(_, user) => user && onAddArray(user, 'professionals')}
+            onDelete={(_, user) => user && onDeleteArray(user, 'professionals')}
+            label={
+              'Profissionais responsaveis pela elaboração e/ou assinatura do documento'
+            }
             buttonLabel={'Adicionar Profissional'}
             modalLabel={'Adicionar Profissional'}
             type={TypeInputModal.PROFESSIONAL}
             renderText={(user) => `${user.name} - ${user.email}`}
-            onRenderStartElement={(user: IUser) => {
-              const isSigner = user?.userPgrSignature?.isSigner;
+            onRenderStartElement={(professional: IProfessional) => {
+              const isSigner = professional?.professionalPgrSignature?.isSigner;
+              const isElaborator =
+                professional?.professionalPgrSignature?.isElaborator;
               return (
-                <STooltip withWrapper title="Assinar Documento PGR">
-                  <SIconButton
-                    size="small"
-                    onClick={() => {
-                      onAddSigner(user, !isSigner, 'users');
-                    }}
-                  >
-                    <Icon
-                      component={isSigner ? SStarFullIcon : SStarIcon}
-                      sx={{ fontSize: '1.2rem', ...(isSigner ? {} : {}) }}
-                      {...(isSigner ? { color: 'primary' } : {})}
-                    />
-                  </SIconButton>
-                </STooltip>
+                <>
+                  <STooltip withWrapper title="Assinar Documento PGR">
+                    <SIconButton
+                      size="small"
+                      onClick={() => {
+                        onAddSigner(professional, !isSigner, 'professionals');
+                      }}
+                    >
+                      <Icon
+                        component={
+                          isSigner
+                            ? BorderColorIcon
+                            : DriveFileRenameOutlineIcon
+                        }
+                        sx={{ fontSize: '1.2rem', ...(isSigner ? {} : {}) }}
+                        {...(isSigner ? { color: 'primary' } : {})}
+                      />
+                    </SIconButton>
+                  </STooltip>
+                  <STooltip withWrapper title="Elaborador Documento PGR">
+                    <SIconButton
+                      size="small"
+                      onClick={() => {
+                        onAddElaborator(
+                          professional,
+                          !isElaborator,
+                          'professionals',
+                        );
+                      }}
+                    >
+                      <Icon
+                        component={isElaborator ? SStarFullIcon : SStarIcon}
+                        sx={{ fontSize: '1.2rem', ...(isElaborator ? {} : {}) }}
+                        {...(isElaborator ? { color: 'primary' } : {})}
+                      />
+                    </SIconButton>
+                  </STooltip>
+                </>
               );
             }}
           />

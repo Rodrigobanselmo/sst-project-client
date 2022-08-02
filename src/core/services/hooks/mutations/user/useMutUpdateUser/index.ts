@@ -1,6 +1,7 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
+import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum copy';
 import { updateUser } from 'store/reducers/user/userSlice';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -14,7 +15,9 @@ import { IErrorResp } from '../../../../errors/types';
 export interface IUpdateUser {
   name?: string;
   cpf?: string;
+  type?: ProfessionalTypeEnum;
   crea?: string;
+  crm?: string;
   googleExternalId?: string;
   formation?: string[];
   certifications?: string[];

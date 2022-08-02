@@ -10,6 +10,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import dayjs from 'dayjs';
 
+import { dateToString } from 'core/utils/date/date-format';
 import { dateMask } from 'core/utils/masks/date.mask';
 
 import { IUseAddCompany } from '../../hooks/useHandleActions';
@@ -64,7 +65,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               firstLetterCapitalize
             />
             <InputForm
-              defaultValue={dayjs(data?.visitDate).format('DD/MM/YYYY')}
+              defaultValue={dateToString(data?.visitDate)}
               label="Data da visita (opcional)"
               control={control}
               placeholder={'__/__/____'}

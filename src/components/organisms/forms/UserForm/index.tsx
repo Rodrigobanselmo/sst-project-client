@@ -4,8 +4,11 @@ import SFlex from 'components/atoms/SFlex';
 import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
+import { RadioForm } from 'components/molecules/form/radio';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
+import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
+import { professionalsOptionsList } from 'core/constants/maps/professionals.map';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
@@ -54,6 +57,35 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           mask={cpfMask.apply}
           size="small"
         />
+        <RadioForm
+          ball
+          type="radio"
+          disabled={uneditable}
+          label="Profissão*"
+          control={control}
+          defaultValue={String(userData.type)}
+          onChange={(e) => {
+            const type = (e as any).target.value as ProfessionalTypeEnum;
+
+            setUserData((old) => {
+              return {
+                ...old,
+                type,
+                ...(type === ProfessionalTypeEnum.ENGINEER && {
+                  hasCREA: true,
+                }),
+                ...(type === ProfessionalTypeEnum.DOCTOR && { hasCRM: true }),
+              };
+            });
+          }}
+          options={professionalsOptionsList.map((professionalType) => ({
+            content: professionalType.name,
+            value: professionalType.value,
+          }))}
+          name="type"
+          columns={3}
+          mt={5}
+        />
 
         <GoogleButton onClick={linkGoogle} text="Vincular conta Google" />
 
@@ -69,6 +101,18 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           />
         )}
 
+        {userData.hasCRM && (
+          <InputForm
+            defaultValue={userData?.crm}
+            uneditable={uneditable}
+            label="CRM"
+            control={control}
+            placeholder={'número do CRM'}
+            name="crm"
+            size="small"
+          />
+        )}
+
         {userData.hasFormation && (
           <SDisplaySimpleArray
             disabled={uneditable}
@@ -76,7 +120,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
             onAdd={(value) => onAddArray(value, 'formation')}
             onDelete={(value) => onDeleteArray(value, 'formation')}
             label={'Formação'}
-            buttonLabel={'Adicionar Formação'}
+            buttonLabel={'Adicionar Formação Acadêmica'}
             placeholder="ex.: Engenheiro de segurança"
             modalLabel={'Adicionar Formação'}
           />
@@ -129,6 +173,20 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           }}
           checked={userData.hasCREA}
           label="Adicionar CREA"
+          sx={{ mr: 4 }}
+          color="text.light"
+        />
+        <SSwitch
+          onChange={() => {
+            setUserData({
+              ...userData,
+              crm: '',
+              hasCRM: !userData.hasCRM,
+            } as any);
+            onEdit(false);
+          }}
+          checked={userData.hasCRM}
+          label="Adicionar CRM"
           sx={{ mr: 4 }}
           color="text.light"
         />

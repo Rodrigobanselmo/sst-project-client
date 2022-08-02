@@ -96,7 +96,7 @@ const palette = {
     paper: '#FFFFFF',
     darkPaper: '#c4c4c4',
     dark: '#1A202C',
-    divider: '#efefef',
+    divider: '#e2e2e2',
     border: '#e2e2e2',
     lightGray: '#F3F5F8',
     box: '#F7FAFC',

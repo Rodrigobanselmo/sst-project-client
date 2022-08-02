@@ -25,9 +25,14 @@ export const StyledGrid = styled(Grid)<IStyledGrid>`
   }
 
   input + span {
-    border: 2px solid;
+    border: 1px solid;
     border-color: ${(props) => props.theme.palette.background.divider};
     box-sizing: border-box;
+
+    &:hover {
+      outline: 1px solid ${(props) => props.theme.palette.primary.main};
+    }
+
     cursor: pointer;
     display: inline-block;
     width: 100%;
@@ -54,7 +59,7 @@ export const StyledGrid = styled(Grid)<IStyledGrid>`
   input:disabled + span {
     cursor: not-allowed;
     border: none;
-    background-color: ${(props) => props.theme.palette.grey[300]};
+    background-color: ${(props) => props.theme.palette.grey[400]};
     color: ${(props) => props.theme.palette.text.disabled};
   }
   input:checked + span {

@@ -4,7 +4,7 @@ import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
-import SCompanyIcon from 'assets/icons/SCompanyIcon';
+import SCompanyIcon, { IProfessionalIcon } from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
 import SProfileIcon from 'assets/icons/SProfileIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
@@ -98,6 +98,17 @@ const companiesData = {
   shouldMatchExactHref: true,
 };
 
+const professionals = {
+  text: 'Profissionais',
+  Icon: IProfessionalIcon,
+  description:
+    'Visualizar os profissionais (médiocos, engenheiros, etc) de sua empresa',
+  id: 'dqwdwqcewweqqweq',
+  href: RoutesEnum.PROFESSIONALS,
+  roles: [RoleEnum.PROFESSIONALS, RoleEnum.USER],
+  shouldMatchExactHref: true,
+};
+
 export const generalArray = [
   dashboard,
   profile,
@@ -108,4 +119,5 @@ export const generalArray = [
   importExportData,
   accessGroups,
   companyGroups,
+  professionals,
 ];

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { IUser } from 'core/interfaces/api/IUser';
@@ -24,7 +25,7 @@ export const useUserForm = (onlyEdit?: boolean) => {
 
   useEffect(() => {
     if (user) {
-      ['crea', 'name', 'cpf'].forEach((key) => {
+      ['crea', 'crm', 'name', 'cpf'].forEach((key) => {
         const keyValue = key as unknown as keyof typeof user;
         if (!!user && user[keyValue]) setValue(key, user[keyValue]);
       });
@@ -45,6 +46,8 @@ export const useUserForm = (onlyEdit?: boolean) => {
         formation: userData.formation,
         certifications: userData.certifications,
         crea: userData.crea,
+        type: userData.type || ProfessionalTypeEnum.USER,
+        crm: userData.crm,
         ...data,
       })
       .then(() => {
@@ -128,11 +131,14 @@ const createUser = (user: Partial<IUser> | null) => {
   return {
     name: user?.name || '',
     email: user?.email || '',
+    crm: user?.crm || '',
     crea: user?.crea || '',
     cpf: user?.cpf || '',
+    type: user?.type || '',
     formation: user?.formation || [''],
     certifications: user?.certifications || [''],
     hasCREA: !!user?.crea,
+    hasCRM: !!user?.crm,
     hasFormation: true,
     hasCertifications: true,
   };

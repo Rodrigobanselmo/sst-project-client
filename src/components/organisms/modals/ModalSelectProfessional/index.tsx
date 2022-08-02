@@ -10,19 +10,26 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { ProfessionalsTable } from 'components/organisms/tables/ProfessonalsTable/ProfessonalsTable';
 
+import { ProfessionalFilterTypeEnum } from 'core/constants/maps/professionals-filter.map';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IUser } from 'core/interfaces/api/IUser';
-import { useQueryProfessionals } from 'core/services/hooks/queries/useQueryProfessionals';
+import { IProfessional } from 'core/interfaces/api/IProfessional';
+import {
+  IQueryProfessionals,
+  useQueryProfessionals,
+} from 'core/services/hooks/queries/useQueryProfessionals';
 
 export const initialProfessionalSelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onSelect: (user: IUser | IUser[]) => {},
-  title: 'Selecione o usuário',
+  onSelect: (professional: IProfessional | IProfessional[]) => {},
+  title: 'Selecione o Profissional',
   multiple: false,
-  selected: [] as IUser[],
+  query: {} as IQueryProfessionals,
+  selected: [] as IProfessional[],
+  filter: ProfessionalFilterTypeEnum.ALL,
   onCloseWithoutSelect: () => {},
 };
 
@@ -54,25 +61,23 @@ export const ModalSelectProfessional: FC = () => {
     onCloseModal(ModalEnum.PROFESSIONAL_SELECT);
   };
 
-  const handleSelect = (user?: IUser) => () => {
-    if (selectData.multiple && user) {
+  const handleSelect = (professional?: IProfessional) => {
+    if (selectData.multiple && professional) {
       setSelectData((oldData) => {
-        const filtered = oldData.selected.filter((w) => w.id != user.id);
+        const filtered = oldData.selected.filter(
+          (w) => w.id != professional.id,
+        );
 
         if (filtered.length !== oldData.selected.length)
           return { ...oldData, selected: filtered };
 
-        return { ...oldData, selected: [user, ...oldData.selected] };
+        return { ...oldData, selected: [professional, ...oldData.selected] };
       });
       return;
     }
-
     onCloseModal(ModalEnum.PROFESSIONAL_SELECT);
-    selectData.onSelect(user || selectData.selected);
-  };
-
-  const handleAddMissingData = () => {
-    onOpenModal(ModalEnum.WORKSPACE_ADD);
+    setSelectData(initialProfessionalSelectState);
+    selectData.onSelect(professional || selectData.selected);
   };
 
   const buttons = [{}] as IModalButton[];
@@ -92,50 +97,24 @@ export const ModalSelectProfessional: FC = () => {
       keepMounted={false}
       onClose={onCloseNoSelect}
     >
-      <SModalPaper center p={8}>
+      <SModalPaper semiFullScreen center p={8}>
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
+        <SText mt={-4} mr={40}>
+          {selectData.title}
+        </SText>
         <Box mt={8}>
-          {professional && professional.length > 0 ? (
-            <SFlex direction="column" gap={5}>
-              <SText mt={-4} mr={40}>
-                {selectData.title}
-              </SText>
-              {professional.map((work) => (
-                <STableRow clickable onClick={handleSelect(work)} key={work.id}>
-                  <SFlex align="center">
-                    <Checkbox
-                      checked={
-                        !!selectData.selected.find((w) => w.id === work.id)
-                      }
-                      size="small"
-                      sx={{
-                        'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                          color: 'grey.400',
-                        },
-                      }}
-                    />
-                    {work.name} {work.email ? `- ${work.email}` : ''}{' '}
-                    {work.cpf ? `- ${work.cpf}` : ''}
-                  </SFlex>
-                </STableRow>
-              ))}
-            </SFlex>
-          ) : (
-            <>
-              <SText mt={-4} maxWidth="400px">
-                Nenhum usuário cadastrado, por favor cadastre um usuário
-              </SText>
-              {/* <SButton /> //! add user button
-                onClick={handleAddMissingData}
-                color="secondary"
-                sx={{ mt: 5 }}
-              >
-                Cadastrar Estabelecimento
-              </SButton> */}
-            </>
-          )}
+          <ProfessionalsTable
+            {...(selectData.multiple
+              ? { selectedData: selectData.selected }
+              : {})}
+            filterInitial={selectData.filter}
+            query={selectData.query}
+            onSelectData={handleSelect}
+            rowsPerPage={6}
+          />
         </Box>
+
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />
       </SModalPaper>
     </SModal>

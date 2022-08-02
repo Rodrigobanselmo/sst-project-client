@@ -6,7 +6,8 @@ import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
-import dayjs from 'dayjs';
+
+import { dateToString } from 'core/utils/date/date-format';
 
 import { IUseEditEpi } from '../../hooks/useEditEpis';
 
@@ -73,7 +74,7 @@ export const ModalEpiStep = ({
         {epiData.expiredDate && (
           <Box flex={1}>
             <InputForm
-              defaultValue={dayjs(epiData.expiredDate).format('DD/MM/YYYY')}
+              defaultValue={dateToString(epiData.expiredDate)}
               fullWidth
               label="Expira em"
               labelPosition="center"

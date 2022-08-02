@@ -19,6 +19,7 @@ export const RadioForm = ({
   columns,
   reset,
   disabled,
+  ball,
   ...props
 }: InputFormBoxProps) => {
   return (
@@ -35,7 +36,7 @@ export const RadioForm = ({
             {label && (
               <Typography
                 fontSize={14}
-                color={error ? 'error.main' : 'grey.500'}
+                color={error ? 'error.main' : 'grey.600'}
                 mb={3}
               >
                 {label}
@@ -50,6 +51,7 @@ export const RadioForm = ({
               helperText={error?.message ?? undefined}
               defaultValue={defaultValue}
               error={!!error}
+              ball={ball}
               inputProps={(e) => ({
                 ...(inputPropsFunc ? inputPropsFunc(e) : {}),
                 onChange: (e) => {

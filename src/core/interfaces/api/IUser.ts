@@ -1,3 +1,4 @@
+import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { IAccessGroup } from './IAccessGroup';
@@ -26,9 +27,12 @@ export type IUser = {
   name: string;
   cpf: string;
   crea: string;
+  crm: string;
   formation: string[];
   certifications: string[];
+  phone: string;
   email: string;
+  type: ProfessionalTypeEnum;
   password: string;
   created_at: Date;
   updated_at: Date;
@@ -38,4 +42,7 @@ export type IUser = {
   permissions?: string[];
   roles?: string[];
   companyId?: string;
+  councilType: string;
+  councilUF: string;
+  councilId: string;
 };

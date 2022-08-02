@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 export const dateFormat = (str: string) => {
   const splitStr = str.split('/');
   if (splitStr.length === 3) {
@@ -22,4 +24,11 @@ export const dateFormat = (str: string) => {
     }
   }
   return new Date(str);
+};
+
+export const dateToString = (
+  date: Date | null | undefined,
+  format = 'DD/MM/YYYY',
+) => {
+  return date ? dayjs(date).format(format) : '';
 };

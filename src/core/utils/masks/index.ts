@@ -24,7 +24,7 @@ export const masker = (masked: IMask.AnyMasked | any) => {
   };
 
   return {
-    mask,
+    mask: (value: string) => (value ? mask(value) : ''),
     apply,
     unmask,
   };

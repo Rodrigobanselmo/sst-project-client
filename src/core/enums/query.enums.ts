@@ -17,7 +17,7 @@ export enum QueryEnum {
   HIERARCHY = 'hierarchy',
   INVITES = 'invites',
   INVITES_USER = 'invites-user',
-  PROFESSIONAL = 'professional',
+  PROFESSIONALS = 'professionals',
   REC_MED = 'rec-med',
   RISK = 'risk',
   RISK_DATA = 'risk-data',
