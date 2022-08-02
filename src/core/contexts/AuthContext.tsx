@@ -12,7 +12,6 @@ import {
   signInWithPopup,
   UserCredential,
 } from 'firebase/auth';
-import { route } from 'next/dist/server/router';
 import Router, { useRouter } from 'next/router';
 import { destroyCookie, parseCookies, setCookie } from 'nookies';
 import { useSnackbar } from 'notistack';

@@ -46,7 +46,8 @@ export const useUserForm = (onlyEdit?: boolean) => {
         formation: userData.formation,
         certifications: userData.certifications,
         crea: userData.crea,
-        type: userData.type || ProfessionalTypeEnum.USER,
+        type:
+          (userData.type as ProfessionalTypeEnum) || ProfessionalTypeEnum.USER,
         crm: userData.crm,
         ...data,
       })

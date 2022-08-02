@@ -1,7 +1,7 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum copy';
+import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { updateUser } from 'store/reducers/user/userSlice';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AutocompleteProps } from '@mui/material';
 
-import { TextFieldProps } from '../TextField/TextField.types';
+import { SInputProps } from '../SInput/types';
 
 export interface AutocompleteSelectProps<T = any>
   extends Partial<
@@ -16,5 +16,5 @@ export interface AutocompleteSelectProps<T = any>
   label: string;
   name: string;
   options: T[];
-  inputProps?: TextFieldProps;
+  inputProps?: SInputProps;
 }
