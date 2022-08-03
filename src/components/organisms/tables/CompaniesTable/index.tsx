@@ -55,7 +55,7 @@ export const CompaniesTable: FC<
     rowsPerPage,
     type,
   );
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
   const uploadMutation = useMutUploadFile();
   // const downloadMutation = useMutDownloadFile(); //?download company
 
@@ -81,7 +81,7 @@ export const CompaniesTable: FC<
         <STableTitle icon={BusinessTwoToneIcon}>Empresas</STableTitle>
       )}
       <STableSearch
-        onAddClick={() => onOpenModal(ModalEnum.COMPANY_EDIT)}
+        onAddClick={() => onStackOpenModal(ModalEnum.COMPANY_EDIT)}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable
@@ -163,7 +163,7 @@ export const CompaniesTable: FC<
                   large
                   icon={SUploadIcon}
                   onClick={() =>
-                    onOpenModal(
+                    onStackOpenModal(
                       ModalEnum.UPLOAD,
                       ApiRoutesEnum.UPLOAD_EMPLOYEES,
                     )

@@ -18,13 +18,13 @@ export const SelectForm = ({
   return (
     <Controller
       name={name}
+      defaultValue={defaultValue}
       control={control}
       render={({
         field: { onChange: func, ref, value, ...rest },
         fieldState: { error },
       }) => (
         <SSelect
-          defaultValue={defaultValue}
           helperText={error?.message ?? null}
           options={options}
           error={!!error}

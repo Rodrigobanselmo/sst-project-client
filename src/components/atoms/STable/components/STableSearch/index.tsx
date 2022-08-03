@@ -24,6 +24,7 @@ const STableSearch: FC<STableSearchProps> = ({
       variant="outlined"
       placeholder={'Pesquisar...'}
       subVariant="search"
+      autoFocus
       {...props}
     />
     {onAddClick && (

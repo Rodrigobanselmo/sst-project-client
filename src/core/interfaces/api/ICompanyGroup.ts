@@ -8,4 +8,7 @@ export interface ICompanyGroup {
   created_at: Date;
   updated_at: Date;
   companyId: string;
+  numAsos: number;
+  blockResignationExam: boolean;
+  esocialStart: Date;
 }

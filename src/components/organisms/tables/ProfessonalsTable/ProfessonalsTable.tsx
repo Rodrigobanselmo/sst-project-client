@@ -40,6 +40,63 @@ import {
 } from 'core/services/hooks/queries/useQueryProfessionals';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
+export const getCredential = (row: IProfessional) => {
+  if (row?.crm && row?.crea) {
+    return `${row.crm} / ${row.crea}`;
+  }
+
+  if (row?.crm && !row?.crea) {
+    return row.crm;
+  }
+
+  if (row?.crea && !row?.crm) {
+    return row.crea;
+  }
+
+  if (row?.councilId) {
+    return `${row?.councilUF ? row.councilUF + '-' : ''}${row.councilId}`;
+  }
+
+  return '-';
+};
+
+export const getCouncil = (row: IProfessional) => {
+  if (row?.crm && row?.crea) {
+    if (row?.type == ProfessionalTypeEnum.ENGINEER) return 'CREA';
+    return 'CRM';
+  }
+
+  if (row?.crm) {
+    return 'CRM';
+  }
+
+  if (row?.crea) {
+    return 'CREA';
+  }
+
+  if (row?.councilType) {
+    return row.councilType || '-';
+  }
+
+  return '-';
+};
+
+export const getType = (row: IProfessional) => {
+  // if (row.crm && row.crea) {
+  //   return 'CRM / CREA';
+  // }
+
+  // if (row.crm && !row.crea) {
+  //   return `${professionalMap[ProfessionalTypeEnum.DOCTOR]?.name}`;
+  // }
+
+  // if (row.crea && !row.crm) {
+  //   return `${professionalMap[ProfessionalTypeEnum.ENGINEER]?.name}`;
+  // }
+
+  return professionalMap[row.type]?.name || '-';
+};
+
 export const ProfessionalsTable: FC<
   BoxProps & {
     rowsPerPage?: number;
@@ -104,64 +161,8 @@ export const ProfessionalsTable: FC<
       type: professional.type,
       status: professional.status,
       formation: professional.formation,
+      companyId: professional.companyId,
     } as typeof initialProfessionalState);
-  };
-
-  const getCredential = (row: IProfessional) => {
-    if (row?.crm && row?.crea) {
-      return `${row.crm} / ${row.crea}`;
-    }
-
-    if (row?.crm && !row?.crea) {
-      return row.crm;
-    }
-
-    if (row?.crea && !row?.crm) {
-      return row.crea;
-    }
-
-    if (row?.councilId) {
-      return `${row.councilId}${row?.councilUF ? ' - ' + row.councilUF : ''}`;
-    }
-
-    return '-';
-  };
-
-  const getCouncil = (row: IProfessional) => {
-    if (row?.crm && row?.crea) {
-      if (row?.type == ProfessionalTypeEnum.ENGINEER) return 'CREA';
-      return 'CRM';
-    }
-
-    if (row?.crm) {
-      return 'CRM';
-    }
-
-    if (row?.crea) {
-      return 'CREA';
-    }
-
-    if (row?.councilType) {
-      return row.councilType || '-';
-    }
-
-    return '-';
-  };
-
-  const getType = (row: IProfessional) => {
-    if (row.crm && row.crea) {
-      return 'CRM / CREA';
-    }
-
-    if (row.crm && !row.crea) {
-      return `${professionalMap[ProfessionalTypeEnum.DOCTOR]?.name}`;
-    }
-
-    if (row.crea && !row.crm) {
-      return `${professionalMap[ProfessionalTypeEnum.ENGINEER]?.name}`;
-    }
-
-    return professionalMap[row.type]?.name || '-';
   };
 
   const onChangeRoute = (type: string) => {
@@ -259,7 +260,13 @@ export const ProfessionalsTable: FC<
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                   disabled
                 />
-                <IconButtonRow icon={<EditIcon />} />
+                <IconButtonRow
+                  icon={<EditIcon />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditProfessional(row);
+                  }}
+                />
               </STableRow>
             );
           }}

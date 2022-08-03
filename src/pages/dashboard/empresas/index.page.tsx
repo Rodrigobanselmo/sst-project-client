@@ -1,6 +1,4 @@
 import { SContainer } from 'components/atoms/SContainer';
-import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
-import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { CompaniesTable } from 'components/organisms/tables/CompaniesTable';
 import { NextPage } from 'next';
 
@@ -10,8 +8,6 @@ const Companies: NextPage = () => {
   return (
     <SContainer>
       <CompaniesTable />
-      <ModalEditCompany />
-      <ModalUploadPhoto />
     </SContainer>
   );
 };

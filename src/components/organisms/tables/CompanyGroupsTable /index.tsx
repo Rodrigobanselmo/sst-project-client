@@ -15,6 +15,7 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { initialCompanyGroupState } from 'components/organisms/modals/ModalAddCompanyGroup/hooks/useAddCompanyGroup';
+import dayjs from 'dayjs';
 
 import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
 import EditIcon from 'assets/icons/SEditIcon';
@@ -54,10 +55,10 @@ export const CompanyGroupsTable: FC<
   };
 
   const onEditCompanyGroup = (group: ICompanyGroup) => {
+    console.log(group);
     onOpenModal(ModalEnum.COMPANY_GROUP_ADD, {
-      id: group.id,
-      name: group.name,
-      description: group.description,
+      ...group,
+      esocialStart: dayjs(group.esocialStart).toDate(),
       companies: group.companies || [],
     } as Partial<typeof initialCompanyGroupState>);
   };

@@ -8,7 +8,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { STagSelect } from 'components/molecules/STagSelect';
 import { EnvironmentTypeEnum } from 'project/enum/environment-type.enum';
@@ -79,7 +79,7 @@ export const ModalEnvironmentContent = (props: IUseEditEnvironment) => {
         size="small"
         firstLetterCapitalize
       />
-      <RadioForm
+      <RadioFormText
         type="radio"
         control={control}
         onChange={(e) =>

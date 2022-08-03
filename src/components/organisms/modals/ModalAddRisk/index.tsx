@@ -4,7 +4,7 @@ import React from 'react';
 import { Box, Divider } from '@mui/material';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import SModal, {
   SModalButtons,
   SModalHeader,
@@ -74,7 +74,7 @@ export const ModalAddRisk = () => {
             size="small"
             firstLetterCapitalize
           />
-          <RadioForm
+          <RadioFormText
             type="radio"
             control={control}
             defaultValue={riskData.type}
@@ -83,7 +83,7 @@ export const ModalAddRisk = () => {
             mt={3}
             columns={5}
           />
-          <RadioForm
+          <RadioFormText
             type="radio"
             label="Severidade"
             control={control}

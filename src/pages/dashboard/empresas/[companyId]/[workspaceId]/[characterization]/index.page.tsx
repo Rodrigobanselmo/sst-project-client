@@ -100,7 +100,6 @@ const Companies: NextPage = () => {
       <ModalSingleInput />
       <ModalExcelHierarchies />
       <ModalSelectHierarchy />
-      <ModalUploadPhoto />
       <ModalSelectGho />
       <ModalEditEpiData />
       <ModalEditEngRiskData />

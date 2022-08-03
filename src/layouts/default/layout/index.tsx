@@ -1,11 +1,11 @@
 import React, { FC, useEffect, useRef } from 'react';
-import { useStore } from 'react-redux';
 
 import { Global } from '@emotion/react';
+import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
+import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { useRouter } from 'next/router';
 
-import { useModal } from 'core/hooks/useModal';
 import { useRedirectDetect } from 'core/hooks/useRedirectDetect';
 
 import { useAppDispatch } from '../../../core/hooks/useAppDispatch';
@@ -65,6 +65,8 @@ const DefaultLayout: FC = ({ children }) => {
       <DashboardLayout>{children}</DashboardLayout>
       <DefaultModal />
       <ModalSelectCompany />
+      <ModalEditCompany />
+      <ModalUploadPhoto />
     </main>
   );
 };

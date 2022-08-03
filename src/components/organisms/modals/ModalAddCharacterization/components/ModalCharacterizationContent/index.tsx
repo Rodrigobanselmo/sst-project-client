@@ -8,7 +8,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { STagSelect } from 'components/molecules/STagSelect';
 import { ModalAddHierarchyRisk } from 'components/organisms/modals/ModalAddCharacterization/components/ModalAddHierarchyRisk';
@@ -136,7 +136,7 @@ export const ModalCharacterizationContent = (
         {...(manyProfiles &&
           notPrincipalProfile && { value: principalProfile.name })}
       />
-      <RadioForm
+      <RadioFormText
         type="radio"
         control={control}
         onChange={(e) => {
@@ -319,7 +319,7 @@ export const ModalCharacterizationContent = (
       {(!!characterizationData.characterizationType ||
         !!characterizationData.type) && (
         <>
-          <RadioForm
+          <RadioFormText
             type="radio"
             control={control}
             onChange={(e) => {

@@ -4,8 +4,9 @@ import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
-import SCompanyIcon, { IProfessionalIcon } from 'assets/icons/SCompanyIcon';
+import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
+import SProfessionalIcon from 'assets/icons/SProfessionalIcon';
 import SProfileIcon from 'assets/icons/SProfileIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
@@ -100,7 +101,7 @@ const companiesData = {
 
 const professionals = {
   text: 'Profissionais',
-  Icon: IProfessionalIcon,
+  Icon: SProfessionalIcon,
   description:
     'Visualizar os profissionais (médiocos, engenheiros, etc) de sua empresa',
   id: 'dqwdwqcewweqqweq',

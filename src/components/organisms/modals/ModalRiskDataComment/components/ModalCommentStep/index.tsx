@@ -5,7 +5,7 @@ import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import {
   RiskRecTextTypeEnum,
   RiskRecTypeEnum,
@@ -33,7 +33,7 @@ export const ModalCommentStep = ({ commentData, control }: IUseEditComment) => {
       <SText color="text.label" fontSize={14} mb={-3}>
         Selecione uma justificativa abaixo
       </SText>
-      <RadioForm
+      <RadioFormText
         type="radio"
         control={control}
         defaultValue={String(commentData.textType)}

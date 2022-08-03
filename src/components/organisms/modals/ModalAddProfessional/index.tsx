@@ -48,7 +48,7 @@ export const ModalAddProfessional = () => {
         <SModalHeader
           tag={professionalData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Empregado'}
+          title={'Profissional'}
         />
 
         <ModalProfessionalStep {...props} />

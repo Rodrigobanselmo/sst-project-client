@@ -3,19 +3,15 @@ import React, { useMemo } from 'react';
 
 import { getStates } from '@brazilian-utils/brazilian-utils';
 import { Box } from '@mui/material';
-import SAutocompleteSelect from 'components/atoms/SAutocompleteSelect';
 import SFlex from 'components/atoms/SFlex';
-import { SSwitch } from 'components/atoms/SSwitch';
-import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
+import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
-import { SelectForm } from 'components/molecules/form/select';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
-
-import { SHierarchyIcon } from 'assets/icons/SHierarchyIcon';
 
 import { professionalsOptionsList } from 'core/constants/maps/professionals.map';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
@@ -28,6 +24,8 @@ export const ModalProfessionalStep = ({
   control,
   setProfessionalData,
   setValue,
+  companies,
+  isManyCompanies,
 }: IUseEditProfessional) => {
   const ufs = useMemo(() => {
     return getStates().map((state) => state.code);
@@ -47,7 +45,7 @@ export const ModalProfessionalStep = ({
             label="Nome*"
             labelPosition="center"
             control={control}
-            placeholder={'nome completo do empregado...'}
+            placeholder={'nome completo do profissional...'}
             name="name"
             size="small"
           />
@@ -70,7 +68,6 @@ export const ModalProfessionalStep = ({
       <SFlex mt={5} flexWrap="wrap" gap={5}>
         <Box flex={5}>
           <InputForm
-            autoFocus
             defaultValue={professionalData.name}
             sx={{ minWidth: [300, 500] }}
             label="Email"
@@ -96,7 +93,7 @@ export const ModalProfessionalStep = ({
         </Box>
       </SFlex>
 
-      <RadioForm
+      <RadioFormText
         ball
         type="radio"
         label="Profissão*"
@@ -107,8 +104,12 @@ export const ModalProfessionalStep = ({
 
           if (type === ProfessionalTypeEnum.ENGINEER)
             setValue('councilType', 'CREA');
-          if (type === ProfessionalTypeEnum.DOCTOR)
+          else if (type === ProfessionalTypeEnum.NURSE)
+            setValue('councilType', 'COREN');
+          else if (type === ProfessionalTypeEnum.DOCTOR)
             setValue('councilType', 'CRM');
+          else setValue('councilType', '');
+
           setProfessionalData((old) => ({
             ...old,
             type,
@@ -129,7 +130,6 @@ export const ModalProfessionalStep = ({
       <SFlex mt={5} flexWrap="wrap" gap={5}>
         <Box flex={5}>
           <InputForm
-            autoFocus
             defaultValue={professionalData.councilType}
             sx={{ minWidth: [100] }}
             label="Conselho"
@@ -141,23 +141,24 @@ export const ModalProfessionalStep = ({
           />
         </Box>
         <Box flex={1}>
-          <SAutocompleteSelect
+          <AutocompleteForm
             name="councilUF"
+            control={control}
             placeholder={'estado...'}
+            defaultValue={professionalData.councilUF}
             label="UF"
             sx={{ minWidth: [100] }}
             options={ufs}
-            onChange={(e) =>
+            onChange={(e: typeof ufs[0]) =>
               setProfessionalData((old) => ({
                 ...old,
-                councilUF: (e as any).target.value,
+                councilUF: e,
               }))
             }
           />
         </Box>
         <Box flex={1}>
           <InputForm
-            autoFocus
             defaultValue={professionalData.councilId}
             label="Identificação"
             labelPosition="center"
@@ -169,6 +170,21 @@ export const ModalProfessionalStep = ({
           />
         </Box>
       </SFlex>
+      {!professionalData.id && isManyCompanies && (
+        <>
+          <RadioForm
+            sx={{ mt: 8 }}
+            label="Selecione a empresa do profissional*"
+            control={control}
+            defaultValue={String(professionalData.companyId)}
+            name="companyId"
+            options={companies.map((company) => ({
+              label: company.name,
+              value: company.id,
+            }))}
+          />
+        </>
+      )}
       {!!professionalData.id && (
         <StatusSelect
           sx={{ maxWidth: '90px', mt: 10 }}

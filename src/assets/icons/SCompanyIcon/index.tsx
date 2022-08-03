@@ -4,7 +4,7 @@ import BusinessOutlinedIcon from '@mui/icons-material/BusinessOutlined';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const IProfessionalIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SCompanyIcon: FC<IIconMuiProps> = ({ ...props }) => {
   return <BusinessOutlinedIcon {...props} />;
 };
 

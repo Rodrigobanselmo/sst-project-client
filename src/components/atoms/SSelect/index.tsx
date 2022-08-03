@@ -110,7 +110,7 @@ const SSelect: FC<SSelectProps> = ({
       {...formControlProps}
     >
       {label && labelPosition === 'center' && (
-        <InputLabel id={id} {...inputLabelProps}>
+        <InputLabel id={id + '-label'} {...inputLabelProps}>
           {label}
         </InputLabel>
       )}
@@ -160,7 +160,9 @@ const SSelect: FC<SSelectProps> = ({
         }}
         {...(valueProp ? { value: valueProp || defaultEmptyValue } : {})}
         multiple={multiple}
-        labelId={id}
+        labelId={id + '-label'}
+        id={id}
+        label={label}
         defaultValue={defaultValue ? defaultValue : defaultEmptyValue}
         ref={inputRef}
         displayEmpty

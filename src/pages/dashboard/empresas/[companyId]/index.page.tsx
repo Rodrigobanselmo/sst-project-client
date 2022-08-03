@@ -7,25 +7,15 @@ import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import SText from 'components/atoms/SText';
-import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
-import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
+
 import {
   initialDocPgrSelectState,
   ModalSelectDocPgr,
 } from 'components/organisms/modals/ModalSelectDocPgr';
-import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
-import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
-import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
-import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
-import { NextPage } from 'next';
-import { useRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
-import { setGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
-
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
@@ -35,6 +25,9 @@ import SManagerSystemIcon from 'assets/icons/SManagerSystemIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
+import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
+import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
@@ -44,6 +37,11 @@ import { useModal } from 'core/hooks/useModal';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+
+import { NextPage } from 'next';
+import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
+import { setGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { SActionButton } from '../../../../components/atoms/SActionButton';
 
@@ -327,8 +325,6 @@ const CompanyPage: NextPage = () => {
       <ModalShowHierarchyTree />
       <ModalSelectWorkspace />
       <ModalSelectDocPgr />
-      <ModalEditCompany />
-      <ModalUploadPhoto />
     </SContainer>
   );
 };

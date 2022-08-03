@@ -17,6 +17,10 @@ export interface IUpsertCompanyGroup {
   description?: string;
   companiesIds?: string[];
   companyId?: string;
+  blockResignationExam?: boolean;
+  numAsos?: number;
+  esocialStart?: Date;
+  doctorResponsibleId?: number;
 }
 
 export async function upsertCompanyGroup(

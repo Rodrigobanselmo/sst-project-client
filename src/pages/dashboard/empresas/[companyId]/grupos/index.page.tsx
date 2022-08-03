@@ -1,5 +1,6 @@
 import { SContainer } from 'components/atoms/SContainer';
 import { ModalAddCompanyGroup } from 'components/organisms/modals/ModalAddCompanyGroup';
+import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional';
 import { CompanyGroupsTable } from 'components/organisms/tables/CompanyGroupsTable ';
 import { NextPage } from 'next';
 
@@ -10,6 +11,7 @@ const CompanyGroup: NextPage = () => {
     <SContainer>
       <CompanyGroupsTable />
       <ModalAddCompanyGroup />
+      <ModalAddProfessional />
     </SContainer>
   );
 };

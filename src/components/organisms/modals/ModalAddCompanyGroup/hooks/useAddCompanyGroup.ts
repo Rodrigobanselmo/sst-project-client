@@ -9,6 +9,7 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
+import { IProfessional } from 'core/interfaces/api/IProfessional';
 import {
   IUpsertCompanyGroup,
   useMutUpsertCompanyGroup,
@@ -24,6 +25,10 @@ export const initialCompanyGroupState = {
   companyId: '',
   companies: [] as ICompany[],
   id: 0,
+  blockResignationExam: true,
+  numAsos: 2,
+  esocialStart: undefined as Date | undefined,
+  doctorResponsible: undefined as IProfessional | undefined,
 };
 
 export const useAddCompanyGroup = () => {
@@ -31,9 +36,10 @@ export const useAddCompanyGroup = () => {
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialCompanyGroupState);
 
-  const { handleSubmit, control, reset, getValues } = useForm({
-    resolver: yupResolver(accessGroupSchema),
-  });
+  const { handleSubmit, control, setError, reset, getValues, setValue } =
+    useForm({
+      resolver: yupResolver(accessGroupSchema),
+    });
 
   const upsertCompanyGroup = useMutUpsertCompanyGroup();
 
@@ -85,6 +91,11 @@ export const useAddCompanyGroup = () => {
       });
   }, [companies, getModalData]);
 
+  useEffect(() => {
+    if (companyGroupData.esocialStart)
+      setValue('esocialStart', companyGroupData.esocialStart);
+  }, [companyGroupData, setValue]);
+
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.COMPANY_GROUP_ADD, data);
     setCompanyGroupData(initialCompanyGroupState);
@@ -94,9 +105,16 @@ export const useAddCompanyGroup = () => {
   const onSubmit: SubmitHandler<{ description: string; name: string }> = async (
     data,
   ) => {
+    if (!companyGroupData?.doctorResponsible?.id) {
+      setError('doctorResponsible', { message: 'O campo é obrigatório' });
+      return;
+    }
+
     const submitData: IUpsertCompanyGroup = {
       companiesIds: companyGroupData.companies.map((company) => company.id),
       id: companyGroupData.id || undefined,
+      doctorResponsibleId: companyGroupData.doctorResponsible.id,
+      blockResignationExam: companyGroupData.blockResignationExam,
       ...data,
     };
 
@@ -107,10 +125,19 @@ export const useAddCompanyGroup = () => {
 
   const onCloseUnsaved = () => {
     const values = getValues();
+
+    const before = { ...initialDataRef.current } as any;
+    const after = { ...companyGroupData, ...values } as any;
+
+    delete after.doctorResponsible;
+    delete before.doctorResponsible;
+    delete after.numAsos;
+    delete before.numAsos;
+
     if (
       preventUnwantedChanges(
-        { ...companyGroupData, ...values },
-        initialDataRef.current,
+        JSON.stringify(before),
+        JSON.stringify(after),
         onClose,
       )
     )

@@ -10,7 +10,7 @@ import { STagAction } from 'components/atoms/STagAction';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { STagSelect } from 'components/molecules/STagSelect';
 import { IUseEditCharacterization } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';

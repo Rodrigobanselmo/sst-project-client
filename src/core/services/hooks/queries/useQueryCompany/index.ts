@@ -16,13 +16,16 @@ export const queryCompany = async (company: string) => {
   return response.data;
 };
 
-export function useQueryCompany(): IReactQuery<ICompany> {
+export function useQueryCompany(
+  getCompanyId?: string | null,
+): IReactQuery<ICompany> {
   const { companyId } = useGetCompanyId();
+  const companyID = getCompanyId || companyId;
 
   const { data, ...query } = useQuery(
-    [QueryEnum.COMPANY, companyId],
+    [QueryEnum.COMPANY, companyID],
     () =>
-      companyId ? queryCompany(companyId) : <Promise<ICompany>>emptyMapReturn(),
+      companyID ? queryCompany(companyID) : <Promise<ICompany>>emptyMapReturn(),
     {
       staleTime: 1000 * 60 * 60, // 60 minute
     },

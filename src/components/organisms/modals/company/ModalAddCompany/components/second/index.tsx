@@ -4,7 +4,7 @@ import { useWizard } from 'react-use-wizard';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
@@ -83,7 +83,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             name="description"
             size="small"
           />
-          <RadioForm
+          <RadioFormText
             type="radio"
             control={control}
             defaultValue={String(companyData.type)}

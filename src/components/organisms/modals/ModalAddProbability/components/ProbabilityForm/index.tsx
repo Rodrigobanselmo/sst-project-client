@@ -4,7 +4,7 @@ import React from 'react';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 
 import {
   IProbabilityQuestion,
@@ -33,7 +33,7 @@ export const RadioInput = ({
       <SText mb={4} color="text.label" fontSize={12}>
         {data.text}
       </SText>
-      <RadioForm
+      <RadioFormText
         type="radio"
         control={control}
         defaultValue={defaultValue}

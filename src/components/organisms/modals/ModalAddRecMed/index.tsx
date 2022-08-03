@@ -4,7 +4,7 @@ import React from 'react';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import SModal, {
   SModalButtons,
   SModalHeader,
@@ -82,7 +82,7 @@ export const ModalAddRecMed = () => {
                 size="small"
                 firstLetterCapitalize
               />
-              <RadioForm
+              <RadioFormText
                 type="radio"
                 control={control}
                 defaultValue={String(recMedData.recType)}
@@ -135,7 +135,7 @@ export const ModalAddRecMed = () => {
                 size="small"
                 firstLetterCapitalize
               />
-              <RadioForm
+              <RadioFormText
                 type="radio"
                 control={control}
                 defaultValue={String(recMedData.medType)}

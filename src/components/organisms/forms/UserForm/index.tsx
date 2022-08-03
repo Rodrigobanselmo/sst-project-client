@@ -4,7 +4,7 @@ import SFlex from 'components/atoms/SFlex';
 import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
@@ -57,7 +57,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           mask={cpfMask.apply}
           size="small"
         />
-        <RadioForm
+        <RadioFormText
           ball
           type="radio"
           disabled={uneditable}

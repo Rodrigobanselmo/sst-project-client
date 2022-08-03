@@ -4,7 +4,7 @@ import React from 'react';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
+import { RadioFormText } from 'components/molecules/form/radio-text';
 import SModal, {
   SModalButtons,
   SModalHeader,
@@ -109,7 +109,7 @@ export const ModalAddGenerateSource = () => {
                     '& .MuiOutlinedInput-root': { pb: 30 },
                   }}
                 />
-                <RadioForm
+                <RadioFormText
                   type="radio"
                   reset={reset}
                   control={control}

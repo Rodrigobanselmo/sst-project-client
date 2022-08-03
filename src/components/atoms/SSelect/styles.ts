@@ -7,6 +7,7 @@ export const StyledSelect = styled(Select)<{
   errors?: number;
   secondary?: number;
 }>`
+  background-color: ${(props) => props.theme.palette.common.white} !important;
   .menu-item {
     background-color: #dcdcdc !important;
   }
