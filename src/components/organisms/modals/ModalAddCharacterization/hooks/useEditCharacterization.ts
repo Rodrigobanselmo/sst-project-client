@@ -9,8 +9,6 @@ import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
-import { setGhoSelectedId } from 'store/reducers/hierarchy/ghoSlice';
-import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -211,7 +209,8 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     return removeDuplicate([...data], {
       removeById: 'id',
     });
-  }, [characterizationData.hierarchies, characterizationQuery?.hierarchies]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [characterizationData.hierarchies, characterizationQuery.hierarchies]);
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
