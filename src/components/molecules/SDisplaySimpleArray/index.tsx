@@ -4,14 +4,12 @@ import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
-import { ISTagButtonProps } from 'components/atoms/STagButton/types';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import {
   initialInputModalState,
   TypeInputModal,
 } from 'components/organisms/modals/ModalSingleInput';
-import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
 
 import AddIcon from 'assets/icons/SAddIcon';
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
@@ -95,7 +93,8 @@ export function SDisplaySimpleArray({
   onRenderAddButton,
 }: ISDisplaySimpleArrayProps) {
   const { onStackOpenModal } = useModal();
-  const { onSelectProfessionalUser } = useAddEntities({ onAdd, values });
+  const { onSelectProfessionalUser, onEditSelectContacts, onSelectContacts } =
+    useAddEntities({ onAdd, values });
 
   return (
     <Box
@@ -197,6 +196,23 @@ export function SDisplaySimpleArray({
                       disabled={disabled}
                       size="small"
                       onClick={() => {
+                        if (type === TypeInputModal.CONTACT) {
+                          return onEditSelectContacts({
+                            onConfirm: async (newValue) => {
+                              onEdit?.(
+                                newValue.name,
+                                editElement(
+                                  newValue.name,
+                                  values,
+                                  index,
+                                  valueField,
+                                ),
+                                v,
+                              );
+                            },
+                          });
+                        }
+
                         onStackOpenModal(ModalEnum.SINGLE_INPUT, {
                           onConfirm: (newValue: string) => {
                             onEdit?.(
@@ -231,6 +247,10 @@ export function SDisplaySimpleArray({
             onClick={() => {
               if (type === TypeInputModal.PROFESSIONAL) {
                 return onSelectProfessionalUser();
+              }
+
+              if (type === TypeInputModal.CONTACT) {
+                return onSelectContacts();
               }
               onStackOpenModal(ModalEnum.SINGLE_INPUT, {
                 onConfirm: onAdd,

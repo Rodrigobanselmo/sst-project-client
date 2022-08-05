@@ -32,3 +32,7 @@ export const dateToString = (
 ) => {
   return date ? dayjs(date).format(format) : '';
 };
+
+export const dateToDate = (date: Date | null | undefined) => {
+  return date ? dayjs(date).toDate() : undefined;
+};

@@ -5,6 +5,7 @@ import deepEqual from 'deep-equal';
 import { IModalDataSlice } from 'store/reducers/modal/modalSlice';
 
 import { useGlobalModal } from 'core/hooks/useGlobalModal';
+import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 
 export const usePreventAction = () => {
   const { onOpenGlobalModal } = useGlobalModal();
@@ -14,7 +15,7 @@ export const usePreventAction = () => {
     object2: any,
     close: (...args: any[]) => any,
   ) => {
-    if (!deepEqual(object1, object2)) {
+    if (!deepEqual(cleanObjectValues(object1), cleanObjectValues(object2))) {
       const data = {
         title: 'Descartar mudanças?',
         text: 'Você tem certeza que deseja descartar as mudanças realizadas?',

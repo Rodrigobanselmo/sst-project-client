@@ -1,5 +1,4 @@
 import { SContainer } from 'components/atoms/SContainer';
-import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional';
 import { ProfessionalsTable } from 'components/organisms/tables/ProfessonalsTable/ProfessonalsTable';
 import { NextPage } from 'next';
 
@@ -9,7 +8,6 @@ const ProfessionalsPage: NextPage = () => {
   return (
     <SContainer>
       <ProfessionalsTable />
-      <ModalAddProfessional />
     </SContainer>
   );
 };

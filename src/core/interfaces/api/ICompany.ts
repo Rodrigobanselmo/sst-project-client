@@ -4,6 +4,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
 
 import { ICompanyGroup } from './ICompanyGroup';
+import { IContact } from './IContact';
 
 export interface ICompany {
   id: string;
@@ -27,14 +28,15 @@ export interface ICompany {
   legal_nature: string;
   cadastral_situation: string;
   addressId: string;
-  activity_start_date: string;
+  activityStartDate: Date;
   cadastral_situation_date: string;
   legal_nature_code: string;
   cadastral_situation_description: string;
   responsibleName: string;
   operationTime: string;
-  primary_activity: ActivityDto[];
-  secondary_activity: ActivityDto[];
+  primary_activity: ICnae[];
+  secondary_activity: ICnae[];
+  contacts: IContact[];
   employeeCount: number;
   riskGroupCount: number;
   hierarchyCount: number;
@@ -78,7 +80,7 @@ export interface ILicense {
   created_at: Date;
   companies?: ICompany[];
 }
-export interface ActivityDto {
+export interface ICnae {
   name: string;
   code: string;
   riskDegree: string;

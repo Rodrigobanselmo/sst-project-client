@@ -6,6 +6,7 @@ export const StyledSelect = styled(Select)<{
   success?: number;
   errors?: number;
   secondary?: number;
+  legend?: number;
 }>`
   background-color: ${(props) => props.theme.palette.common.white} !important;
   .menu-item {
@@ -62,6 +63,16 @@ export const StyledSelect = styled(Select)<{
       &&&.Mui-focused .MuiOutlinedInput-notchedOutline {
         border-color: ${props.theme.palette.error.main};
         border-width: 2px;
+      }
+    `};
+
+  ${(props) =>
+    !props.legend &&
+    css`
+      fieldset {
+        legend {
+          width: 0px;
+        }
       }
     `};
 `;

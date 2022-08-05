@@ -1,14 +1,14 @@
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 
-import { ActivityDto } from 'core/interfaces/api/ICompany';
+import { ICnae } from 'core/interfaces/api/ICompany';
 
 export interface GetCNPJResponse {
   cnpj: string;
   name: string;
   size: string;
   fantasy: string;
-  primary_activity?: ActivityDto[];
-  secondary_activity?: ActivityDto[];
+  primary_activity?: ICnae[];
+  secondary_activity?: ICnae[];
   phone: string;
   legal_nature: string;
   cadastral_situation: string;

@@ -6,17 +6,14 @@ import SFlex from 'components/atoms/SFlex';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import { ModalAddDocPgr } from 'components/organisms/modals/ModalAddDocPgr';
-import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional';
 import { ModalSelectProfessional } from 'components/organisms/modals/ModalSelectProfessional';
 import {
   initialWorkspaceSelectState,
   ModalSelectWorkspace,
 } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
-import { DocPgrTable } from 'components/organisms/tables/DocPgrTable';
-import { NextPage } from 'next';
-import { useRouter } from 'next/router';
 
+import { DocPgrTable } from 'components/organisms/tables/DocPgrTable';
 import SActionPlanIcon from 'assets/icons/SActionPlanIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
@@ -29,6 +26,9 @@ import { useModal } from 'core/hooks/useModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+
+import { NextPage } from 'next';
+import { useRouter } from 'next/router';
 
 import { DocumentPgrForm } from '../../../../../../components/organisms/forms/DocumentPgrForm';
 
@@ -124,7 +124,6 @@ const Companies: NextPage = () => {
       <ModalSelectProfessional />
       <ModalSingleInput />
       <ModalSelectWorkspace />
-      <ModalAddProfessional />
     </SContainer>
   );
 };

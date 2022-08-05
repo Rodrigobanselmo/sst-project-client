@@ -16,7 +16,7 @@ import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutati
 import {
   IUpdateCompany,
   useMutUpdateCompany,
-} from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
+} from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 import { workspaceSchema } from 'core/utils/schemas/workspace.schema';
 
 export const initialWorkspaceState = {

@@ -1,6 +1,5 @@
 import { FC } from 'react';
 
-import BadgeIcon from '@mui/icons-material/Badge';
 import { BoxProps } from '@mui/material';
 import {
   STable,
@@ -55,7 +54,6 @@ export const CompanyGroupsTable: FC<
   };
 
   const onEditCompanyGroup = (group: ICompanyGroup) => {
-    console.log(group);
     onOpenModal(ModalEnum.COMPANY_GROUP_ADD, {
       ...group,
       esocialStart: dayjs(group.esocialStart).toDate(),

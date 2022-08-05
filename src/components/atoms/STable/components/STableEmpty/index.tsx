@@ -10,8 +10,8 @@ const STableEmpty: FC<STableEmptyProps> = ({ ...props }) => (
   <SFlex
     sx={{
       borderRadius: 2,
-      p: 8,
-      py: 5,
+      p: 5,
+      py: 3,
       opacity: 0.8,
       border: '1px solid',
       borderColor: 'grey.200',
@@ -21,9 +21,9 @@ const STableEmpty: FC<STableEmptyProps> = ({ ...props }) => (
     {...props}
   >
     <TravelExploreOutlinedIcon
-      sx={{ color: 'gray.400', fontSize: '50px', mr: 6 }}
+      sx={{ color: 'gray.400', fontSize: '30px', mr: 6 }}
     />
-    <SText sx={{}}>
+    <SText fontSize={13}>
       Nenhum dado <br /> encontrado
     </SText>
   </SFlex>

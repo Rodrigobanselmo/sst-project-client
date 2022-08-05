@@ -11,7 +11,7 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
-import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
+import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
 import { heatSchema } from './../../../../../core/utils/schemas/heat.schema';
 

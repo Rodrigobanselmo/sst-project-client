@@ -9,7 +9,7 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
-import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/useMutUpdateCompany';
+import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 import { useQueryHierarchy } from 'core/services/hooks/queries/useQueryHierarchy';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 

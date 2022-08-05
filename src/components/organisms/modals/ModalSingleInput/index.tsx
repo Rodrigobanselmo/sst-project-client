@@ -21,6 +21,7 @@ export enum TypeInputModal {
   TEXT = 'text',
   TEXT_AREA = 'text-area',
   PROFESSIONAL = 'professional',
+  CONTACT = 'CONTACT',
   EMPLOYEE = 'EMPLOYEE',
 }
 

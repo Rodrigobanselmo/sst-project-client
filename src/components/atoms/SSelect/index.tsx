@@ -124,6 +124,7 @@ const SSelect: FC<SSelectProps> = ({
         </Typography>
       )}
       <StyledSelect
+        legend={!(label && labelPosition === 'top') ? 1 : 0}
         MenuProps={{
           PaperProps: {
             sx: {

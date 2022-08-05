@@ -12,5 +12,6 @@ export type InputFormProps = Partial<SInputProps> & {
   uneditable?: boolean;
   mask?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
   inputFormat?: string;
+  placeholderText?: string;
   calendarProps?: Partial<ReactDatePickerProps>;
 };

@@ -1,7 +1,9 @@
-import React, { FC, useEffect, useRef } from 'react';
+import React, { FC, useEffect } from 'react';
 
 import { Global } from '@emotion/react';
 import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
+import { ModalAddContact } from 'components/organisms/modals/ModalAddContact/ModalAddContactx';
+import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional/ModalAddProfessional';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { useRouter } from 'next/router';
@@ -66,7 +68,9 @@ const DefaultLayout: FC = ({ children }) => {
       <DefaultModal />
       <ModalSelectCompany />
       <ModalEditCompany />
+      <ModalAddContact />
       <ModalUploadPhoto />
+      <ModalAddProfessional />
     </main>
   );
 };

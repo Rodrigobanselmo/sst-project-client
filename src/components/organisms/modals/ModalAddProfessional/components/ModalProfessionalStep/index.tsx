@@ -33,7 +33,7 @@ export const ModalProfessionalStep = ({
 
   return (
     <SFlex direction="column" mt={8}>
-      <SText color="text.label" fontSize={14}>
+      <SText color="text.label" mb={5} fontSize={14}>
         Dados Pessoais
       </SText>
       <SFlex flexWrap="wrap" gap={5}>
