@@ -1,5 +1,4 @@
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useStore } from 'react-redux';
 
 import { Box } from '@mui/material';
 import SModal, {
@@ -8,22 +7,6 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import {
-  ITreeMap,
-  ITreeMapObject,
-} from 'components/organisms/main/Tree/OrgTree/interfaces';
-import {
-  setHierarchySearch,
-  setModalIds,
-} from 'store/reducers/hierarchy/hierarchySlice';
-
-import { HierarchyEnum } from 'core/enums/hierarchy.enum';
-import { ModalEnum } from 'core/enums/modal.enums';
-import { useAppDispatch } from 'core/hooks/useAppDispatch';
-import { useModal } from 'core/hooks/useModal';
-import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 
 import { EmptyHierarchyData } from '../empty/EmptyHierarchyData';
 import { EmptyWorkspaceData } from '../empty/EmptyWorkspaceData';

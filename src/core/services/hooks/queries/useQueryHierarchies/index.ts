@@ -29,7 +29,6 @@ export const queryHierarchies = async (companyId: string) => {
   const response = await api.get<IHierarchy[]>(
     `${ApiRoutesEnum.HIERARCHY}/${companyId}`,
   );
-  console.log(999);
   return setMapHierarchies(response.data);
 };
 

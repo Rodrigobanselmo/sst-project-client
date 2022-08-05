@@ -4,7 +4,6 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
-import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import {
   selectHierarchySearch,
   setAddModalId,
@@ -26,6 +25,7 @@ import {
 import { useModal } from 'core/hooks/useModal';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { initialHierarchySelectState } from '..';
@@ -45,7 +45,6 @@ export const ModalSelectHierarchyData: FC<{
 
   const dispatch = useAppDispatch();
   const { onStackOpenModal } = useModal();
-  const { onOpenSelected } = useOpenRiskTool();
   const search = useAppSelector(selectHierarchySearch);
   const [workspaceSelected, setWorkspaceSelected] = useState(
     company?.workspace?.find(
@@ -108,6 +107,27 @@ export const ModalSelectHierarchyData: FC<{
   }, [hierarchyListData, workspaceSelected?.id]);
 
   const onSelectAll = () => {
+    if (filter === 'GHO') {
+      const hierarchyListIds = removeDuplicate(
+        ghoQuery
+          .map((gho) =>
+            (gho.hierarchies || []).map(
+              (hierarchy) => hierarchy.id + '//' + workspaceSelected?.id,
+            ),
+          )
+          .reduce((acc, curr) => [...acc, ...curr], [] as string[]),
+        {
+          simpleCompare: true,
+        },
+      );
+
+      const uniqueHierarchyList = hierarchyListIds.filter(
+        (ghoHierarchyId) =>
+          !!hierarchyList.find((hierarchy) => hierarchy.id === ghoHierarchyId),
+      );
+
+      return dispatch(setModalIds(uniqueHierarchyList));
+    }
     dispatch(setModalIds(hierarchyList.map((hierarchy) => hierarchy.id)));
   };
 

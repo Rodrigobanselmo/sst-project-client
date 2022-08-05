@@ -200,9 +200,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     }));
 
     if (characterizationQuery.hierarchies) {
-      return removeDuplicate([...characterizationQuery?.hierarchies, ...data], {
-        removeById: 'id',
-      });
+      return removeDuplicate(
+        [...characterizationQuery?.hierarchies, ...(isEdit ? [] : data)],
+        {
+          removeById: 'id',
+        },
+      );
     }
 
     return removeDuplicate([...data], {
@@ -683,45 +686,45 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   return {
-    registerModal,
-    onCloseUnsaved,
-    onClose,
-    data: characterizationData,
-    onSubmit,
-    loading: upsertMutation.isLoading,
-    loadingDelete: deletePhotoMutation.isLoading,
     control,
-    handleSubmit,
-    setData: setCharacterizationData,
-    modalName,
-    handleAddPhoto,
-    handlePhotoRemove,
-    isEdit,
-    onAddHierarchy,
-    onAddArray,
-    onEditArray,
-    onDeleteArray,
-    onRemove: () => preventDelete(onRemove),
-    hierarchies,
-    query: characterizationQuery,
-    onAddRisk,
-    isRiskOpen,
+    data: characterizationData,
     dataLoading: characterizationLoading || ghoLoading,
-    saveRef,
-    handlePhotoUpdate,
-    handlePhotoName,
     filterQuery: characterizationsQuery.filter(
       (e) => e.type === characterizationData.type,
     ),
-    onAddProfile,
+    handleAddPhoto,
+    handlePhotoName,
+    handlePhotoRemove,
+    handlePhotoUpdate,
+    handleSubmit,
+    hierarchies,
+    isEdit,
+    isRiskOpen,
+    loading: upsertMutation.isLoading,
+    loadingDelete: deletePhotoMutation.isLoading,
     manyProfiles,
-    profiles,
-    principalProfile,
-    onChangeProfile,
+    modalName,
     notPrincipalProfile,
-    photos,
-    setValue,
+    onAddArray,
+    onAddHierarchy,
+    onAddProfile,
+    onAddRisk,
+    onChangeProfile,
+    onClose,
+    onCloseUnsaved,
+    onDeleteArray,
+    onEditArray,
     onEditArrayContent,
+    onRemove: () => preventDelete(onRemove),
+    onSubmit,
+    photos,
+    principalProfile,
+    profiles,
+    query: characterizationQuery,
+    registerModal,
+    saveRef,
+    setData: setCharacterizationData,
+    setValue,
   };
 };
 
