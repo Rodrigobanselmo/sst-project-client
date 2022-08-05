@@ -8,6 +8,7 @@ export enum RoleEnum {
   CONTRACTS = '4.1',
   PGR = '5',
   ACTION_PLAN = '5.1',
+  CLINICS = '6',
   RISK = '8',
   DOCS = '8',
 

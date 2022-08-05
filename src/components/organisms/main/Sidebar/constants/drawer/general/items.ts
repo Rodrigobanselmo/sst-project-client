@@ -3,6 +3,7 @@ import { MdDashboard } from 'react-icons/md';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { RoleEnum } from 'project/enum/roles.enums';
 
+import SClinicIcon from 'assets/icons/SClinicIcon';
 import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
@@ -81,10 +82,20 @@ const importExportData = {
 const allCompaniesData = {
   text: 'Empresas',
   Icon: SCompanyIcon,
-  description: 'Visualizar suas empresas cadastradas',
+  description: 'Visualizar empresas cadastradas',
   id: 'lfrXaeDx',
   href: RoutesEnum.COMPANIES,
   roles: [RoleEnum.CONTRACTS],
+  shouldMatchExactHref: true,
+};
+
+const allClinicsData = {
+  text: 'Clinicas',
+  Icon: SClinicIcon,
+  description: 'Visualizar clínicas cadastradas',
+  id: 'lfrXa78ew3eDx',
+  href: RoutesEnum.CLINICS,
+  roles: [RoleEnum.CLINICS],
   shouldMatchExactHref: true,
 };
 
@@ -121,4 +132,5 @@ export const generalArray = [
   accessGroups,
   companyGroups,
   professionals,
+  allClinicsData,
 ];

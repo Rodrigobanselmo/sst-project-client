@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query';
 
+import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import queryString from 'query-string';
 
 import { useAuth } from 'core/contexts/AuthContext';
@@ -18,6 +19,7 @@ export interface IQueryCompanies {
   companyId?: string;
   userId?: number;
   groupId?: number;
+  type?: CompanyTypesEnum[];
 }
 
 export type IQueryCompaniesTypes = '/user' | '';

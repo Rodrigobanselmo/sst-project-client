@@ -3,6 +3,7 @@ export enum RoutesEnum {
   CHARACTERIZATIONS = '/dashboard/empresas/:companyId/:workspaceId',
   CHECKLIST = '/dashboard/checklist',
   COMPANIES = '/dashboard/empresas',
+  CLINICS = '/dashboard/clinicas',
   COMPANY = '/dashboard/empresas/:companyId',
   COMPANY_GROUP = '/dashboard/empresas/:companyId/grupos',
   DASHBOARD = '/dashboard',
