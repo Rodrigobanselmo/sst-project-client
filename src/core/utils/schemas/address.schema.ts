@@ -10,4 +10,14 @@ export const addressSchema = yup.object().shape({
   complement: yup.string(),
 });
 
+export const addressClinicSchema = yup.object().shape({
+  cep: yup.string().trim().required('Dado obrigatório'),
+  street: yup.string().trim().required('Dado obrigatório'),
+  neighborhood: yup.string().trim(),
+  city: yup.string().trim().required('Dado obrigatório'),
+  state: yup.string().uppercase().trim().required('Dado obrigatório'),
+  number: yup.number().typeError('Número inválido'),
+  complement: yup.string(),
+});
+
 export type IAddressSchema = Record<keyof typeof addressSchema, string>;

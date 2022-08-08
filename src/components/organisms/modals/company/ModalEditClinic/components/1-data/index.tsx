@@ -12,6 +12,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { CnaeInputSelect } from 'components/organisms/inputSelect/CnaeSelect/CnaeSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import dayjs from 'dayjs';
+import dynamic from 'next/dynamic';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -25,8 +26,19 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanyFirstEdit';
 
-export const FirstModalCompanyStep = (props: IUseAddCompany) => {
-  const { control, onSubmit, loading, onCloseUnsaved } = useCompanyEdit(props);
+const DraftEditor = dynamic(
+  async () => {
+    const mod = await import(
+      'components/molecules/form/draft-editor/DraftEditor'
+    );
+    return mod.DraftEditor;
+  },
+  { ssr: false },
+);
+
+export const DataModalCompanyStep = (props: IUseAddCompany) => {
+  const { control, onSubmit, loading, onCloseUnsaved, onChangeCnpj } =
+    useCompanyEdit(props);
   const { isValidRoles } = useAccess();
   const { companyData, setCompanyData, isEdit } = props;
 
@@ -40,14 +52,26 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
     },
   ] as IModalButton[];
 
-  const cnae = companyData.primary_activity[0] || { code: '', name: '' };
-
   return (
     <>
       <AnimatedStep>
         <SText mb={5} color="text.label" fontSize={14}>
-          Identificaçào da empresa
+          Identificação da Clinica
         </SText>
+        <Box flex={1}>
+          <InputForm
+            defaultValue={companyData.cnpj}
+            onChange={({ target: { value } }) => onChangeCnpj(value)}
+            label="CNPJ"
+            control={control}
+            sx={{ maxWidth: 300, mb: 8 }}
+            placeholder={'cnpj da clínica...'}
+            name="cnpj"
+            size="small"
+            labelPosition="center"
+            mask={cnpjMask.apply}
+          />
+        </Box>
         <SFlex gap={8} direction="column">
           <SFlex flexWrap="wrap" gap={5}>
             <Box flex={1}>
@@ -70,28 +94,26 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 label="Unidade"
                 control={control}
                 sx={{ minWidth: 200 }}
-                placeholder={'unidade de identificação da empresa...'}
+                placeholder={'unidade de identificação da clínica...'}
                 name="unit"
                 size="small"
                 labelPosition="center"
               />
             </Box>
-            <Box flex={1}>
-              <DatePickerForm
-                label="Inauguração"
-                control={control}
-                defaultValue={dateToDate(companyData.activityStartDate)}
-                sx={{ minWidth: 200 }}
-                name="activityStartDate"
-                onChange={(date) => {
-                  setCompanyData({
-                    ...companyData,
-                    activityStartDate: date instanceof Date ? date : undefined,
-                  });
-                }}
-              />
-            </Box>
           </SFlex>
+          <InputForm
+            defaultValue={companyData.fantasy}
+            minRows={2}
+            maxRows={4}
+            label="Nome"
+            control={control}
+            sx={{ minWidth: ['100%', 600] }}
+            placeholder={'nome da clínica...'}
+            required
+            name="fantasy"
+            size="small"
+            labelPosition="center"
+          />
           <SFlex flexWrap="wrap" gap={5}>
             <Box flex={5}>
               <InputForm
@@ -102,41 +124,14 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 required
                 sx={{ minWidth: [300, 600] }}
                 control={control}
-                placeholder={'razão Social da empresa...'}
+                placeholder={'razão Social da clínica...'}
                 name="name"
                 labelPosition="center"
                 size="small"
               />
             </Box>
-            <Box flex={1}>
-              <InputForm
-                defaultValue={companyData.cnpj}
-                minRows={2}
-                maxRows={4}
-                label="CNPJ*"
-                control={control}
-                sx={{ minWidth: 200 }}
-                placeholder={'cnpj da empresa...'}
-                name="cnpj"
-                size="small"
-                labelPosition="center"
-                mask={cnpjMask.apply}
-                disabled
-              />
-            </Box>
           </SFlex>
-          <InputForm
-            defaultValue={companyData.fantasy}
-            minRows={2}
-            maxRows={4}
-            label="Nome fantasia"
-            control={control}
-            sx={{ minWidth: ['100%', 600] }}
-            placeholder={'nome fantasia da empresa...'}
-            name="fantasy"
-            size="small"
-            labelPosition="center"
-          />
+
           {!companyData.id && (
             <SFlex flexWrap="wrap" gap={5}>
               <Box flex={5}>
@@ -145,7 +140,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                   label="Email"
                   sx={{ minWidth: [300, 500] }}
                   control={control}
-                  placeholder={'email de contato da empresa...'}
+                  placeholder={'email de contato da clínica...'}
                   name="email"
                   size="small"
                   labelPosition="center"
@@ -157,7 +152,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                   label="Telefone"
                   control={control}
                   sx={{ minWidth: 300 }}
-                  placeholder={'telephome da empresa...'}
+                  placeholder={'telephome da clínica...'}
                   name="phone"
                   mask={phoneMask.apply}
                   size="small"
@@ -166,82 +161,20 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
               </Box>
             </SFlex>
           )}
-          <RadioFormText
-            type="radio"
-            control={control}
-            defaultValue={String(companyData.type)}
-            onChange={(e) =>
-              props.setCompanyData((old) => ({
-                ...old,
-                type: (e as any).target.value,
-              }))
-            }
-            options={[
-              {
-                content: companyOptionsConstant[CompanyTypesEnum.MATRIZ].name,
-                value: CompanyTypesEnum.MATRIZ,
-              },
-              {
-                content: companyOptionsConstant[CompanyTypesEnum.FILIAL].name,
-                value: CompanyTypesEnum.FILIAL,
-              },
-            ]}
-            name="type"
-            columns={2}
-          />
-
-          <SText color="text.label" mb={-3} fontSize={14}>
-            Responsavel legal
-          </SText>
-          <SFlex mt={0} flexWrap="wrap" gap={5}>
-            <Box flex={5}>
-              <InputForm
-                defaultValue={companyData.responsibleName}
-                label="Responsavel legal"
-                control={control}
-                labelPosition="center"
-                placeholder={'Responsavel legal da empresa...'}
-                name="responsibleName"
-                size="small"
-              />
-            </Box>
-            <Box flex={2}>
-              <InputForm
-                defaultValue={companyData.responsibleNit}
-                label="NIT"
-                control={control}
-                labelPosition="center"
-                name="responsibleNit"
-                size="small"
-              />
-            </Box>
-            <Box flex={2}>
-              <InputForm
-                defaultValue={companyData.responsibleCpf}
-                label="CPF"
-                control={control}
-                labelPosition="center"
-                placeholder={'000.000.000-00'}
-                name="responsibleCpf"
-                size="small"
-              />
-            </Box>
-          </SFlex>
-
-          <CnaeInputSelect
-            onChange={(activity) => {
-              setCompanyData({
-                ...companyData,
-                primary_activity: [activity],
-              });
-            }}
-            data={cnae}
-            defaultValue={cnae}
-            name="primary_activity"
-            label="CNAE"
-            control={control}
-          />
         </SFlex>
+        <DraftEditor
+          mt={10}
+          size="xs"
+          label="Observações"
+          placeholder="observação..."
+          defaultValue={companyData.description}
+          onChange={(value) => {
+            setCompanyData({
+              ...companyData,
+              description: value,
+            });
+          }}
+        />
         <SFlex ml={5} mt={10} direction="column">
           {isValidRoles([RoleEnum.MASTER]) && (
             <SSwitch
@@ -257,21 +190,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 });
               }}
               checked={!!(companyData.license.status === StatusEnum.ACTIVE)}
-              label="Ativar licensa de uso da plataforma"
-              sx={{ mr: 4 }}
-              color="text.light"
-            />
-          )}
-          {isValidRoles([RoleEnum.MASTER]) && (
-            <SSwitch
-              onChange={(e) => {
-                setCompanyData({
-                  ...companyData,
-                  isConsulting: e.target.checked,
-                });
-              }}
-              checked={!!companyData.isConsulting}
-              label="Empresa de consultoria"
+              label="Ativar licença de uso da plataforma"
               sx={{ mr: 4 }}
               color="text.light"
             />

@@ -30,7 +30,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { ICompany } from 'core/interfaces/api/ICompany';
+import { IAddress, ICompany } from 'core/interfaces/api/ICompany';
 import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import {
   IQueryCompanies,
@@ -53,13 +53,11 @@ export const ClinicsTable: FC<
 
   const { companies, count, isLoading } = useQueryCompanies(
     page,
-    { search, ...query, type: [CompanyTypesEnum.CLINIC] },
+    { search, ...query, isClinic: true },
     rowsPerPage,
     type,
   );
   const { onStackOpenModal } = useModal();
-  const uploadMutation = useMutUploadFile();
-  // const downloadMutation = useMutDownloadFile(); //?download company
 
   const { push } = useRouter();
 
@@ -67,21 +65,26 @@ export const ClinicsTable: FC<
     console.log(status); // TODO edit checklist status
   };
 
-  const handleGoToCompany = (companyId: string) => {
-    push(`${RoutesEnum.COMPANIES}/${companyId}`);
+  const handleGoToClinic = (companyId: string) => {
+    push(`${RoutesEnum.CLINICS}/${companyId}`);
   };
 
   const onSelectRow = (company: ICompany) => {
     if (isSelect) {
       onSelectData(company);
-    } else handleGoToCompany(company.id);
+    } else handleGoToClinic(company.id);
+  };
+
+  const getAddress = (address?: IAddress) => {
+    if (!address) return '';
+    return `${address.street}, ${address.neighborhood}`;
   };
 
   return (
     <>
-      {!isSelect && <STableTitle icon={SClinicIcon}>Empresas</STableTitle>}
+      {!isSelect && <STableTitle icon={SClinicIcon}>Clínicas</STableTitle>}
       <STableSearch
-        onAddClick={() => onStackOpenModal(ModalEnum.COMPANY_EDIT)}
+        onAddClick={() => onStackOpenModal(ModalEnum.CLINIC_EDIT)}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable
@@ -89,18 +92,17 @@ export const ClinicsTable: FC<
         rowsNumber={rowsPerPage}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(200px, 4fr) minmax(200px, 3fr) minmax(150px, 1fr) 130px 70px 90px`}
+        }minmax(200px, 4fr) minmax(200px, 5fr) minmax(150px, 1fr) 50px 70px 90px`}
       >
         <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
-          <STableHRow>Empresa</STableHRow>
-          <STableHRow>Fantasia</STableHRow>
-          <STableHRow>Grupo</STableHRow>
-          <STableHRow>CNPJ</STableHRow>
+          <STableHRow>Clínica</STableHRow>
+          <STableHRow>Endereço</STableHRow>
+          <STableHRow>Cidade</STableHRow>
+          <STableHRow>UF</STableHRow>
+          <STableHRow>Telefone</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
-          {/* <STableHRow justifyContent="center">Baixar</STableHRow> //?download company */}
-          {/* <STableHRow justifyContent="center">Enviar</STableHRow>  //?download company */}
         </STableHeader>
         <STableBody<typeof companies[0]>
           hideLoadMore
@@ -121,13 +123,12 @@ export const ClinicsTable: FC<
                     }
                   />
                 )}
-                <TextIconRow clickable text={row.name} />
                 <TextIconRow clickable text={row.fantasy} />
-                <TextIconRow clickable text={row?.group?.name || '-- '} />
-                <TextIconRow clickable text={cnpjMask.mask(row.cnpj)} />
+                <TextIconRow clickable text={getAddress(row.address)} />
+                <TextIconRow clickable text={row?.address?.city || '--'} />
+                <TextIconRow clickable text={row?.address?.state} />
                 <IconButtonRow icon={<EditIcon />} />
                 <StatusSelect
-                  large
                   sx={{ maxWidth: '120px' }}
                   selected={row.status}
                   disabled={isSelect}
@@ -141,34 +142,6 @@ export const ClinicsTable: FC<
                     handleEditStatus(option.value);
                   }}
                 />
-                {/* <STagButton  //?download company
-                  text="Baixar"
-                  loading={
-                    downloadMutation.isLoading &&
-                    !!downloadMutation.variables &&
-                    !!downloadMutation.variables.includes(
-                      ApiRoutesEnum.DOWNLOAD_EMPLOYEES,
-                    )
-                  }
-                  onClick={() =>
-                    downloadMutation.mutate(
-                      ApiRoutesEnum.DOWNLOAD_EMPLOYEES + `/${row.id}`,
-                    )
-                  }
-                  large
-                  icon={SDownloadIcon}
-                />
-                <STagButton
-                  text="Enviar"
-                  large
-                  icon={SUploadIcon}
-                  onClick={() =>
-                    onStackOpenModal(
-                      ModalEnum.UPLOAD,
-                      ApiRoutesEnum.UPLOAD_EMPLOYEES,
-                    )
-                  }
-                />  //?download company */}
               </STableRow>
             );
           }}
@@ -180,21 +153,6 @@ export const ClinicsTable: FC<
         totalCountOfRegisters={isLoading ? undefined : count}
         currentPage={page}
         onPageChange={setPage}
-      />
-      <ModalUploadFile
-        loading={uploadMutation.isLoading}
-        onConfirm={async (files: File[], path: string) =>
-          await uploadMutation
-            .mutateAsync({
-              file: files[0],
-              path: path,
-            })
-            .catch(() => {})
-        }
-        maxFiles={1}
-        accept={
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        }
       />
     </>
   );

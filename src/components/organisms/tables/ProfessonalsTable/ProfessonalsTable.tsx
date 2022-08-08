@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useState } from 'react';
 
 import { BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -100,15 +100,24 @@ export const getType = (row: IProfessional) => {
 export const ProfessionalsTable: FC<
   BoxProps & {
     rowsPerPage?: number;
+    isClinic?: boolean;
     onSelectData?: (company: IProfessional) => void;
     selectedData?: IProfessional[];
     query?: IQueryProfessionals;
     filterInitial?: ProfessionalFilterTypeEnum;
   }
-> = ({ rowsPerPage = 8, onSelectData, selectedData, filterInitial }) => {
+> = ({
+  rowsPerPage = 8,
+  onSelectData,
+  selectedData,
+  filterInitial,
+  isClinic,
+}) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { push, query, asPath } = useRouter();
-  const [filter, setFilter] = useState<ProfessionalFilterTypeEnum | null>(null);
+  const [filter, setFilter] = useState<ProfessionalFilterTypeEnum | null>(
+    filterInitial || null,
+  );
 
   const isSelect = !!onSelectData;
 
@@ -128,7 +137,15 @@ export const ProfessionalsTable: FC<
     count,
   } = useQueryProfessionals(
     page,
-    { search, type: pageData().filters },
+    {
+      search,
+      type: pageData().filters,
+      companies: isClinic
+        ? typeof query.companyId === 'string'
+          ? [query.companyId]
+          : undefined
+        : undefined,
+    },
     rowsPerPage,
   );
 
@@ -139,10 +156,10 @@ export const ProfessionalsTable: FC<
   };
 
   const onAddProfessional = () => {
-    onStackOpenModal(
-      ModalEnum.PROFESSIONALS_ADD,
-      {} as typeof initialProfessionalState,
-    );
+    onStackOpenModal(ModalEnum.PROFESSIONALS_ADD, {
+      isClinic,
+      companyId: query?.companyId || undefined,
+    } as typeof initialProfessionalState);
   };
 
   const onEditProfessional = (professional: IProfessional) => {
@@ -162,6 +179,7 @@ export const ProfessionalsTable: FC<
       status: professional.status,
       formation: professional.formation,
       companyId: professional.companyId,
+      isClinic,
     } as typeof initialProfessionalState);
   };
 
@@ -199,12 +217,14 @@ export const ProfessionalsTable: FC<
         onAddClick={onAddProfessional}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
-      <SPageMenu
-        active={pageData().value}
-        options={professionalsFilterOptionsList}
-        onChange={onChangeRoute}
-        mb={10}
-      />
+      {!isClinic && (
+        <SPageMenu
+          active={pageData().value}
+          options={professionalsFilterOptionsList}
+          onChange={onChangeRoute}
+          mb={10}
+        />
+      )}
       <STable
         loading={loadProfessionals}
         rowsNumber={rowsPerPage}

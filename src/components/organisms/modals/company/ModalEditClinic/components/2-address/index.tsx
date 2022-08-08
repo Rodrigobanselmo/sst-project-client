@@ -13,7 +13,7 @@ import { intMask } from 'core/utils/masks/int.mask';
 import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanySecondEdit';
 
-export const SecondModalCompanyStep = (props: IUseAddCompany) => {
+export const AddressModalCompanyStep = (props: IUseAddCompany) => {
   const {
     control,
     onSubmit,

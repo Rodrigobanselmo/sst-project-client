@@ -76,7 +76,7 @@ export const useAddContact = () => {
   const handleDelete = () => {
     if (contactData.id)
       deleteMutation
-        .mutateAsync({ id: contactData.id })
+        .mutateAsync({ id: contactData.id, companyId: contactData.companyId })
         .then(() => {
           onClose();
         })

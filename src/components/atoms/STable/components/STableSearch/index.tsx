@@ -15,6 +15,7 @@ import { STableSearchProps } from './types';
 const STableSearch: FC<STableSearchProps> = ({
   onAddClick,
   onExportClick,
+  children,
   ...props
 }) => (
   <SFlex mb={10} align="center">
@@ -82,6 +83,7 @@ const STableSearch: FC<STableSearchProps> = ({
         </div>
       </STooltip>
     )}
+    {children}
   </SFlex>
 );
 

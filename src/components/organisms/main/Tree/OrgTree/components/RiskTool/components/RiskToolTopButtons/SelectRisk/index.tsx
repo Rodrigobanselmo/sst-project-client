@@ -73,6 +73,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
       }
 
       if (isViewTypeSelect) {
+        //! if other company adds a risk it does not appear for me
         const allRisks = queryClient.getQueryData<IRiskFactors[]>([
           QueryEnum.RISK,
           companyId,

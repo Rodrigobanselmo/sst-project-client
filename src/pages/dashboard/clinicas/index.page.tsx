@@ -1,4 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
+import { ModalEditClinic } from 'components/organisms/modals/company/ModalEditClinic/ModalEditClinic';
 import { ClinicsTable } from 'components/organisms/tables/ClinicsTable/ClinicsTable';
 import { NextPage } from 'next';
 
@@ -8,6 +9,7 @@ const ClinicsPage: NextPage = () => {
   return (
     <SContainer>
       <ClinicsTable />
+      <ModalEditClinic />
     </SContainer>
   );
 };

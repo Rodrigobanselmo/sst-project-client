@@ -55,6 +55,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
   const riskOrderedData = useMemo(() => {
     if (!riskDataQuery) return [];
 
+    //! if other company adds a risk it does not appear for me
     const risk = queryClient.getQueryData([
       QueryEnum.RISK,
       companyId,

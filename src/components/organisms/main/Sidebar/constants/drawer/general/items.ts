@@ -3,10 +3,12 @@ import { MdDashboard } from 'react-icons/md';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { RoleEnum } from 'project/enum/roles.enums';
 
+import SAccessGroupIcon from 'assets/icons/SAccessGroupIcon';
 import SClinicIcon from 'assets/icons/SClinicIcon';
 import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
+import SExamIcon from 'assets/icons/SExamIcon';
 import SProfessionalIcon from 'assets/icons/SProfessionalIcon';
 import SProfileIcon from 'assets/icons/SProfileIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
@@ -43,7 +45,7 @@ const team = {
 
 const accessGroups = {
   text: 'Grupo de Permissões',
-  Icon: STeamIcon,
+  Icon: SAccessGroupIcon,
   description: 'Criar grupo de permirssões de acesso',
   id: 'Tu29j3dGCC',
   href: RoutesEnum.TEAM_GROUPS,
@@ -121,6 +123,16 @@ const professionals = {
   shouldMatchExactHref: true,
 };
 
+const exams = {
+  text: 'Exames',
+  Icon: SExamIcon,
+  description: 'Visualizar os exames médicos cadastrados',
+  id: 'wedewvcewrwerewd',
+  href: RoutesEnum.EXAMS,
+  roles: [RoleEnum.EXAM],
+  shouldMatchExactHref: true,
+};
+
 export const generalArray = [
   dashboard,
   profile,
@@ -133,4 +145,5 @@ export const generalArray = [
   companyGroups,
   professionals,
   allClinicsData,
+  exams,
 ];

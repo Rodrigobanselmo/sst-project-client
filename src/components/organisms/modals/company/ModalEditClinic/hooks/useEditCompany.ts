@@ -12,16 +12,18 @@ import { ICnae } from 'core/interfaces/api/ICompany';
 import { IContact } from 'core/interfaces/api/IContact';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
+import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
 import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/company/useMutCreateCompany';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
 export const initialCompanyState = {
   status: StatusEnum.ACTIVE,
-  type: undefined as unknown as CompanyTypesEnum,
+  type: CompanyTypesEnum.CLINIC,
   name: '',
   responsibleName: '',
   cnpj: '',
   isConsulting: false,
+  isClinic: true,
   license: {
     status: StatusEnum.ACTIVE as StatusEnum,
   },
@@ -51,6 +53,7 @@ export const initialCompanyState = {
   responsibleCpf: '',
   initials: '',
   unit: '',
+  obs: '',
   stateRegistration: '',
   isSavedCreation: false,
   contacts: [] as IContact[],
@@ -73,6 +76,7 @@ export const useEditCompany = () => {
   const updateCompany = useMutUpdateCompany();
   const createCompany = useMutCreateCompany();
   const cepMutation = useMutationCEP();
+  const cnpjMutation = useMutationCNPJ();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -84,7 +88,7 @@ export const useEditCompany = () => {
 
   useEffect(() => {
     const initialData = getModalData<Partial<typeof initialCompanyState>>(
-      ModalEnum.COMPANY_EDIT,
+      ModalEnum.CLINIC_EDIT,
     );
 
     if (initialData) {
@@ -102,7 +106,7 @@ export const useEditCompany = () => {
   }, [getModalData]);
 
   const onClose = (data?: any) => {
-    onCloseModal(ModalEnum.COMPANY_EDIT, data);
+    onCloseModal(ModalEnum.CLINIC_EDIT, data);
     setCompanyData(initialCompanyState);
   };
 
@@ -157,6 +161,7 @@ export const useEditCompany = () => {
     cepMutation,
     isEdit,
     onSubmitData,
+    cnpjMutation,
     loading:
       updateCompany.isLoading ||
       createCompany.isLoading ||

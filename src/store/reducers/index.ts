@@ -8,6 +8,7 @@ import modalReducer from './modal/modalSlice';
 import routeLoadingReducer from './routeLoad/routeLoadSlice';
 import saveReducer from './save/saveSlice';
 import sidebarReducer from './sidebar/sidebarSlice';
+import stepReducer from './step/stepSlice';
 import treeReducer from './tree/treeSlice';
 import userReducer from './user/userSlice';
 
@@ -22,4 +23,5 @@ export const rootReducer = {
   modal: modalReducer,
   hierarchy: hierarchyReducer,
   ghoMulti: ghoMultiReducer,
+  step: stepReducer,
 };

@@ -1,3 +1,4 @@
+import { CompanyStepEnum } from 'project/enum/company-step.enum';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -41,6 +42,22 @@ export interface ICompany {
   riskGroupCount: number;
   hierarchyCount: number;
   homogenousGroupCount: number;
+  professionalCount?: number;
+  examCount?: number;
+  usersCount?: number;
+  step?: CompanyStepEnum;
+  steps?: CompanyStepEnum[];
+  responsibleNit: string;
+  responsibleCpf: string;
+  initials: string;
+  description: string;
+  unit: string;
+  numAsos: number;
+  blockResignationExam: boolean;
+  esocialStart: Date;
+  doctorResponsibleId: number;
+  tecResponsibleId: number;
+  isClinic: boolean;
 }
 
 export interface IWorkspace {

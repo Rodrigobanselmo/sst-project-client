@@ -7,9 +7,20 @@ import { InputForm } from 'components/molecules/form/input';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
+import dynamic from 'next/dynamic';
 
 import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanyThirdEdit';
+
+const DraftEditor = dynamic(
+  async () => {
+    const mod = await import(
+      'components/molecules/form/draft-editor/DraftEditor'
+    );
+    return mod.DraftEditor;
+  },
+  { ssr: false },
+);
 
 const StyledImage = styled('img')`
   height: 150px;
@@ -30,15 +41,9 @@ const StyledImage = styled('img')`
 `;
 
 export const FourthModalCompanyStep = (props: IUseAddCompany) => {
-  const {
-    control,
-    onSubmit,
-    loading,
-    onCloseUnsaved,
-    handleAddPhoto,
-    previousStep,
-  } = useCompanyEdit(props);
-  const { companyData, isEdit } = props;
+  const { onSubmit, loading, onCloseUnsaved, handleAddPhoto, previousStep } =
+    useCompanyEdit(props);
+  const { companyData, isEdit, setCompanyData } = props;
 
   const buttons = [
     {
@@ -60,37 +65,24 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
           <SText color="text.label" fontSize={14} mb={-2}>
-            Logo da empresa
+            Logomarca da clínica
           </SText>
           <StyledImage
             alt={companyData.name}
             src={companyData.logoUrl || '/placeholder-image.png'}
             onClick={handleAddPhoto}
           />
-          <InputForm
-            defaultValue={companyData.operationTime}
-            label="Horário de Trabalho"
-            control={control}
-            labelPosition="center"
-            sx={{ minWidth: ['100%', 600] }}
-            placeholder={'horário de funcionamento da empresa...'}
-            name="operationTime"
-            helperText="Exemplo: De Segunda-Feira a Sexta-Feira: Das 08:00 às 12:00 e das 13:00 às 17:48"
-            size="small"
-          />
-
-          <InputForm
-            multiline
-            defaultValue={companyData.description}
-            minRows={2}
-            maxRows={4}
-            labelPosition="center"
-            label="Observação"
-            control={control}
-            sx={{ minWidth: ['100%', 600] }}
-            placeholder={'observação opcional sobre a empresa...'}
-            name="description"
-            size="small"
+          <DraftEditor
+            size="xs"
+            label="informações adicionais"
+            placeholder="descrição..."
+            defaultValue={companyData.obs}
+            onChange={(value) => {
+              setCompanyData({
+                ...companyData,
+                obs: value,
+              });
+            }}
           />
         </SFlex>
       </AnimatedStep>

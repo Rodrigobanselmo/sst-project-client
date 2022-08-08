@@ -65,6 +65,7 @@ export const useCompanyEdit = ({
 
       const submitData = {
         ...companyData,
+        isSavedCreation: true,
         address: {
           neighborhood: neighborhood,
           number: number,
@@ -76,7 +77,8 @@ export const useCompanyEdit = ({
         },
       };
 
-      onSubmitData(submitData, nextStep);
+      // onSubmitData(submitData, nextStep);
+      onSubmitData(submitData, nextStep, { save: true });
     }
   };
 

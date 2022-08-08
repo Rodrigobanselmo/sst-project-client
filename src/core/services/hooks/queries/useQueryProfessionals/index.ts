@@ -18,6 +18,7 @@ export interface IQueryProfessionals {
   name?: string;
   search?: string | null;
   companyId?: string;
+  companies?: string[];
   type?: ProfessionalTypeEnum[];
 }
 

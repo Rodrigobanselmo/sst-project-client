@@ -20,6 +20,7 @@ export const queryRisk = async (companyId: string): Promise<IRiskFactors[]> => {
 export function useQueryRisk(): IReactQuery<IRiskFactors[]> {
   const { companyId } = useGetCompanyId();
 
+  //! loads risk factors for every company every time
   const { data, ...query } = useQuery(
     [QueryEnum.RISK, companyId],
     () =>

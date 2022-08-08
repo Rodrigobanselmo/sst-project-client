@@ -61,12 +61,12 @@ export function RadioForm<T>({
               {options.map((option) => {
                 const isString = typeof option === 'string';
                 const optionData = option as any;
-                const key = isString ? option : optionData[valueField];
+                const key = isString ? option : optionData?.[valueField];
                 const label = isString
                   ? option
                   : renderLabel
                   ? renderLabel(option)
-                  : optionData[labelField];
+                  : optionData?.[labelField];
 
                 const disabledValue = isString
                   ? false

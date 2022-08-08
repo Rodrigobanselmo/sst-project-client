@@ -12,6 +12,7 @@ import { ICnae } from 'core/interfaces/api/ICompany';
 import { IContact } from 'core/interfaces/api/IContact';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
+import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
 import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/company/useMutCreateCompany';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
@@ -73,6 +74,7 @@ export const useEditCompany = () => {
   const updateCompany = useMutUpdateCompany();
   const createCompany = useMutCreateCompany();
   const cepMutation = useMutationCEP();
+  const cnpjMutation = useMutationCNPJ();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -157,6 +159,7 @@ export const useEditCompany = () => {
     cepMutation,
     isEdit,
     onSubmitData,
+    cnpjMutation,
     loading:
       updateCompany.isLoading ||
       createCompany.isLoading ||

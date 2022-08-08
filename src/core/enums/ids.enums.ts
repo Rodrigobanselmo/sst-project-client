@@ -5,6 +5,7 @@ export enum IdsEnum {
   MENU_ITEM_ID = 'menu-item-:id',
   MENU_ITEM_CHECKBOX_ID = 'menu-item-checkbox-:id',
   RISK_SELECT = 'risk-select-id',
+  EXAMS_SELECT = 'exams-select-id',
   RISK_TOOL_GHO_HORIZONTAL = 'risk-tool-gho-horizontal-:id',
   HIERARCHY_MODAL_SELECT_ITEM = 'hierarchy-modal-select-item-:id',
   RISK_TOOL_GHO_INPUT_SEARCH = 'risk-tool-gho-input-search-id',

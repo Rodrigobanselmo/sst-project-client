@@ -46,7 +46,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
     <>
       <AnimatedStep>
         <SText mb={5} color="text.label" fontSize={14}>
-          Identificaçào da empresa
+          Identificação da empresa
         </SText>
         <SFlex gap={8} direction="column">
           <SFlex flexWrap="wrap" gap={5}>
@@ -257,7 +257,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 });
               }}
               checked={!!(companyData.license.status === StatusEnum.ACTIVE)}
-              label="Ativar licensa de uso da plataforma"
+              label="Ativar licença de uso da plataforma"
               sx={{ mr: 4 }}
               color="text.light"
             />

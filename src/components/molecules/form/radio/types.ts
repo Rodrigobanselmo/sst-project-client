@@ -7,7 +7,7 @@ export type InputFormBoxProps<T> = FormControlProps & {
   name: string;
   disabled?: boolean;
   control: Control<FieldValues, object>;
-  defaultValue?: string;
+  defaultValue?: string | number;
   label?: string;
   renderLabel?: (option: T) => string;
   valueField?: string;

@@ -1,11 +1,10 @@
 import React, { FC } from 'react';
-
-import PeopleIcon from '@mui/icons-material/People';
+import { FaUserLock } from 'react-icons/fa';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
 export const STeamIcon: FC<IIconMuiProps> = ({ ...props }) => {
-  return <PeopleIcon {...props} />;
+  return <FaUserLock {...props} />;
 };
 
-export default PeopleIcon;
+export default FaUserLock;

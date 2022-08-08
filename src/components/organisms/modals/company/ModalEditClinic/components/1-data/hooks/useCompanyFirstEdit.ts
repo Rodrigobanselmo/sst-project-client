@@ -1,16 +1,21 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
+import dayjs from 'dayjs';
+
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
+import { phoneMask } from './../../../../../../../../core/utils/masks/phone.mask';
 
 export const useCompanyEdit = ({
   companyData,
   onSubmitData,
+  cnpjMutation,
+  setCompanyData,
   ...rest
 }: IUseAddCompany) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, getValues, control, reset, setValue } = useFormContext();
   const { nextStep, stepCount, goToStep } = useWizard();
 
   const updateCompany = useMutUpdateCompany();
@@ -29,6 +34,42 @@ export const useCompanyEdit = ({
     'initials',
     'unit',
   ];
+
+  const onChangeCnpj = async (value: string) => {
+    if (value.replace(/\D/g, '').length === 14) {
+      try {
+        const data = await cnpjMutation.mutateAsync(value).catch(() => {});
+        if (data) {
+          Object.entries(data).forEach(([key, value]) => {
+            if (value) {
+              if (key == 'cnpj') return;
+              if (key == 'phone')
+                return setValue('phone', phoneMask.mask(data.phone));
+              if (data.address)
+                Object.entries(data.address).forEach(([key, value]) => {
+                  if (value) setValue(key, value);
+                });
+              setValue(key, value);
+            }
+          });
+
+          setCompanyData((oldData) => {
+            const newData = {
+              ...oldData,
+              ...data,
+              activityStartDate: data.activity_start_date
+                ? dayjs(data.activity_start_date).toDate() || undefined
+                : undefined,
+            };
+
+            return newData;
+          });
+        }
+      } catch (error) {
+        //
+      }
+    }
+  };
 
   const onCloseUnsaved = async () => {
     rest.onCloseUnsaved(() => reset());
@@ -80,5 +121,6 @@ export const useCompanyEdit = ({
     control,
     onCloseUnsaved,
     lastStep,
+    onChangeCnpj,
   };
 };

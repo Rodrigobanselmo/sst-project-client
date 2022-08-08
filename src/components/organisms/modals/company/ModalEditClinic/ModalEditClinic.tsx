@@ -6,37 +6,37 @@ import { Wizard } from 'components/organisms/main/Wizard';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { addressSchema } from 'core/utils/schemas/address.schema';
-import { companySchema } from 'core/utils/schemas/company.schema';
+import { addressClinicSchema } from 'core/utils/schemas/address.schema';
+import { clinicSchema } from 'core/utils/schemas/clinic.schema';
 
-import { ZeroModalCompanyStep } from './components/0-cnpj';
-import { FirstModalCompanyStep } from './components/1-data';
-import { SecondModalCompanyStep } from './components/2-address';
-import { SSTModalCompanyStep } from './components/3-sst';
+import { DataModalCompanyStep } from './components/1-data';
+import { AddressModalCompanyStep } from './components/2-address';
 import { FourthModalCompanyStep } from './components/4-logo';
 import { ContactModalCompanyStep } from './components/5-contacts';
 import { useEditCompany } from './hooks/useEditCompany';
 
-export const ModalEditCompany = () => {
+export const ModalEditClinic = () => {
   const props = useEditCompany();
   const isEdit = props.isEdit;
 
   return (
     <SModal
-      {...props.registerModal(ModalEnum.COMPANY_EDIT)}
+      {...props.registerModal(ModalEnum.CLINIC_EDIT)}
       keepMounted={false}
       onClose={() => props.onCloseUnsaved()}
     >
       <SModalPaper
-        // semiFullScreen={props.companyData.cnpj ? true : false}
-        sx={{ minWidth: props.companyData.cnpj ? ['100%', 950] : [] }}
+        sx={{
+          minWidth: props.companyData.cnpj ? ['100%', 950] : [],
+          overflow: 'auto',
+        }}
         p={8}
         center
       >
         <SModalHeader
           tag={props.companyData.id ? 'edit' : 'add'}
           onClose={props.onCloseUnsaved}
-          title={'Empresa'}
+          title={'Clínica'}
         />
 
         <Wizard
@@ -44,21 +44,18 @@ export const ModalEditCompany = () => {
             isEdit ? (
               <WizardTabs
                 options={[
-                  { label: 'Dados da empresa' },
+                  { label: 'Dados da clínica' },
                   { label: 'Endereço' },
-                  { label: 'SST' },
                   { label: 'Informações Adcionais' },
                   { label: 'Contato' },
                 ]}
               />
             ) : null
           }
-          schemas={[companySchema, addressSchema]}
+          schemas={[clinicSchema, addressClinicSchema]}
         >
-          {!isEdit && <ZeroModalCompanyStep {...props} />}
-          <FirstModalCompanyStep {...props} />
-          <SecondModalCompanyStep {...props} />
-          <SSTModalCompanyStep {...props} />
+          <DataModalCompanyStep {...props} />
+          <AddressModalCompanyStep {...props} />
           <FourthModalCompanyStep {...props} />
           <ContactModalCompanyStep {...props} />
         </Wizard>

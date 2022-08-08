@@ -198,7 +198,7 @@ export function SDisplaySimpleArray({
                       onClick={() => {
                         if (type === TypeInputModal.CONTACT) {
                           return onEditSelectContacts({
-                            onConfirm: async (newValue) => {
+                            onConfirm: async (newValue: any) => {
                               onEdit?.(
                                 newValue.name,
                                 editElement(

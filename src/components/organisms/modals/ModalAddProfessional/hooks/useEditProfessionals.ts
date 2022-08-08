@@ -39,6 +39,7 @@ export const initialProfessionalState = {
   formation: [] as string[],
   type: '' as ProfessionalTypeEnum,
   status: StatusEnum.ACTIVE,
+  isClinic: false,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (professional: IProfessional | null) => {},
 };

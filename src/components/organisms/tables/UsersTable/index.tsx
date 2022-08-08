@@ -12,6 +12,7 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import SText from 'components/atoms/SText';
 import { ModalAddAccessGroup } from 'components/organisms/modals/ModalAddAccessGroup';
 import { ModalAddUsers } from 'components/organisms/modals/ModalAddUsers';
 import {
@@ -79,7 +80,13 @@ export const UsersTable: FC<BoxProps> = () => {
 
   return (
     <>
+      {/* <SText fontSize={14} color="grey.600">
+        {`${company.initials || ''} ${company.name} (${company.fantasy || ''}${
+          company.unit ? ` - ${company.unit}` : ''
+        })`}{' '}
+      </SText> */}
       <STableTitle icon={STeamIcon}>Usuários</STableTitle>
+
       <STableSearch
         placeholder="Pesquisar pelo nome..."
         onAddClick={() =>

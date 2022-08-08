@@ -38,12 +38,20 @@ export const professionalMap = {
   },
 } as IProfessionalsOptions;
 
-export const professionalsOptionsList = [
+export const professionalsHealthOptionsList = [
   professionalMap[ProfessionalTypeEnum.DOCTOR],
   professionalMap[ProfessionalTypeEnum.NURSE],
   professionalMap[ProfessionalTypeEnum.SPEECH_THERAPIST],
+];
+
+export const professionalsSSTOptionsList = [
   professionalMap[ProfessionalTypeEnum.ENGINEER],
   professionalMap[ProfessionalTypeEnum.TECHNICIAN],
+];
+
+export const professionalsOptionsList = [
+  ...professionalsHealthOptionsList,
+  ...professionalsSSTOptionsList,
   // professionalMap[ProfessionalTypeEnum.USER],
   professionalMap[ProfessionalTypeEnum.OTHER],
 ];

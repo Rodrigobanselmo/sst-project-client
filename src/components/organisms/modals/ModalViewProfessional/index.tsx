@@ -22,27 +22,28 @@ import {
   useQueryProfessionals,
 } from 'core/services/hooks/queries/useQueryProfessionals';
 
-export const initialProfessionalSelectState = {
+export const initialProfessionalViewState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSelect: (professional: IProfessional | IProfessional[]) => {},
   title: 'Selecione o Profissional',
   multiple: false,
   query: {} as IQueryProfessionals,
   selected: [] as IProfessional[],
+  isClinic: true,
+  toEdit: false,
   filter: ProfessionalFilterTypeEnum.ALL,
   onCloseWithoutSelect: () => {},
 };
 
-export const ModalSelectProfessional: FC = () => {
+export const ModalViewProfessional: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal, onOpenModal } = useModal();
-  const { data: professional } = useQueryProfessionals();
-  const [selectData, setSelectData] = useState(initialProfessionalSelectState);
+  const { onCloseModal } = useModal();
+  const [selectData, setSelectData] = useState(initialProfessionalViewState);
 
   useEffect(() => {
     const initialData = getModalData(
       ModalEnum.PROFESSIONAL_SELECT,
-    ) as typeof initialProfessionalSelectState;
+    ) as typeof initialProfessionalViewState;
 
     if (initialData) {
       setSelectData((oldData) => {
@@ -76,7 +77,7 @@ export const ModalSelectProfessional: FC = () => {
       return;
     }
     onCloseModal(ModalEnum.PROFESSIONAL_SELECT);
-    setSelectData(initialProfessionalSelectState);
+    setSelectData(initialProfessionalViewState);
     selectData.onSelect(professional || selectData.selected);
   };
 
@@ -97,7 +98,12 @@ export const ModalSelectProfessional: FC = () => {
       keepMounted={false}
       onClose={onCloseNoSelect}
     >
-      <SModalPaper semiFullScreen center p={8}>
+      <SModalPaper
+        sx={{ backgroundColor: 'grey.200' }}
+        semiFullScreen
+        center
+        p={8}
+      >
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <SText mt={-4} mr={40}>
@@ -108,9 +114,10 @@ export const ModalSelectProfessional: FC = () => {
             {...(selectData.multiple
               ? { selectedData: selectData.selected }
               : {})}
+            {...(!selectData.toEdit ? { onSelectData: handleSelect } : {})}
+            isClinic={selectData.isClinic}
             filterInitial={selectData.filter}
             query={selectData.query}
-            onSelectData={handleSelect}
             rowsPerPage={6}
           />
         </Box>

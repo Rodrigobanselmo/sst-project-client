@@ -13,7 +13,10 @@ import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import { professionalsOptionsList } from 'core/constants/maps/professionals.map';
+import {
+  professionalsHealthOptionsList,
+  professionalsOptionsList,
+} from 'core/constants/maps/professionals.map';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
 
@@ -68,7 +71,7 @@ export const ModalProfessionalStep = ({
       <SFlex mt={5} flexWrap="wrap" gap={5}>
         <Box flex={5}>
           <InputForm
-            defaultValue={professionalData.name}
+            defaultValue={professionalData.email}
             sx={{ minWidth: [300, 500] }}
             label="Email"
             labelPosition="center"
@@ -80,7 +83,7 @@ export const ModalProfessionalStep = ({
         </Box>
         <Box flex={1}>
           <InputForm
-            defaultValue={professionalData.cpf}
+            defaultValue={professionalData.phone}
             label="Telefone"
             sx={{ minWidth: 200 }}
             labelPosition="center"
@@ -108,6 +111,8 @@ export const ModalProfessionalStep = ({
             setValue('councilType', 'COREN');
           else if (type === ProfessionalTypeEnum.DOCTOR)
             setValue('councilType', 'CRM');
+          // else if (type === ProfessionalTypeEnum.SPEECH_THERAPIST)
+          //   setValue('councilType', 'CFF');
           else setValue('councilType', '');
 
           setProfessionalData((old) => ({
@@ -115,7 +120,10 @@ export const ModalProfessionalStep = ({
             type,
           }));
         }}
-        options={professionalsOptionsList.map((professionalType) => ({
+        options={(professionalData.isClinic
+          ? professionalsHealthOptionsList
+          : professionalsOptionsList
+        ).map((professionalType) => ({
           content: professionalType.name,
           value: professionalType.value,
         }))}
