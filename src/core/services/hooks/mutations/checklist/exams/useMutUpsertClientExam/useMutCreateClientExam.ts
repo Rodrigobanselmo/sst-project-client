@@ -15,6 +15,7 @@ export interface ICreateClientExam {
   examId: number;
   companyId: string;
   dueInDays?: number;
+  price?: number;
   isScheduled?: boolean;
   observation?: string;
   status?: string;
@@ -33,11 +34,11 @@ export async function createExam(data: ICreateClientExam, companyId?: string) {
 
 export function useMutUpsertClientExam() {
   const { enqueueSnackbar } = useSnackbar();
-  const { user } = useGetCompanyId();
+  const { companyId } = useGetCompanyId();
 
   return useMutation(
     async (data: ICreateClientExam) =>
-      createExam(data, data.companyId || user?.companyId),
+      createExam(data, data.companyId || companyId),
     {
       onSuccess: async (newExam) => {
         if (newExam) {

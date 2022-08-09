@@ -1,5 +1,8 @@
 import React, { FC, memo } from 'react';
 
+import { cpfMask } from 'core/utils/masks/cpf.mask';
+import { intMask } from 'core/utils/masks/int.mask';
+
 import { SInput } from '../SInput';
 import {
   StyledAutocompleteIcon,
@@ -18,7 +21,6 @@ const SAutocompleteSelect: FC<AutocompleteSelectProps> = ({
     options={options}
     popupIcon={<StyledAutocompleteIcon />}
     noOptionsText={!clearOnBlur ? '' : 'Nenhuma opção'}
-    clearOnBlur={clearOnBlur}
     renderInput={(params) => (
       <SInput
         labelPosition="center"
@@ -26,6 +28,7 @@ const SAutocompleteSelect: FC<AutocompleteSelectProps> = ({
         {...inputProps}
         size="small"
         label={label}
+        onChange={(e) => intMask.apply(e.target.value)}
       />
     )}
     {...props}

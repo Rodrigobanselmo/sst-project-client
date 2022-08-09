@@ -13,14 +13,15 @@ import { ClinicExamsTable } from 'components/organisms/tables/ClinicExamsTable/C
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IExam } from 'core/interfaces/api/IExam';
+import { IExamToClinic } from 'core/interfaces/api/IExam';
 
 export const initialClinicExamsViewState = {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onSelect: (ClinicExams: IExam | IExam[]) => {},
+  onSelect: undefined as
+    | ((ClinicExams: IExamToClinic | IExamToClinic[]) => void)
+    | undefined,
   title: '',
   multiple: false,
-  selected: [] as IExam[],
+  selected: [] as IExamToClinic[],
   onCloseWithoutSelect: () => {},
 };
 
@@ -53,7 +54,7 @@ export const ModalViewClinicExams: FC = () => {
     onCloseModal();
   };
 
-  const handleSelect = (ClinicExams?: IExam) => {
+  const handleSelect = (ClinicExams?: IExamToClinic) => {
     if (selectData.multiple && ClinicExams) {
       setSelectData((oldData) => {
         const filtered = oldData.selected.filter((w) => w.id != ClinicExams.id);
@@ -67,7 +68,7 @@ export const ModalViewClinicExams: FC = () => {
     }
     onCloseModal(modalName);
     setSelectData(initialClinicExamsViewState);
-    selectData.onSelect(ClinicExams || selectData.selected);
+    selectData?.onSelect?.(ClinicExams || selectData.selected);
   };
 
   const buttons = [{}] as IModalButton[];
@@ -76,7 +77,7 @@ export const ModalViewClinicExams: FC = () => {
     buttons.push({
       onClick: () => {
         onCloseModal(modalName);
-        selectData.onSelect(selectData.selected);
+        selectData?.onSelect?.(selectData.selected);
       },
     });
   }
@@ -105,8 +106,8 @@ export const ModalViewClinicExams: FC = () => {
             {...(selectData.multiple
               ? { selectedData: selectData.selected }
               : {})}
+            {...(selectData.onSelect ? { onSelectData: handleSelect } : {})}
             rowsPerPage={6}
-            onSelectData={handleSelect}
           />
         </Box>
 

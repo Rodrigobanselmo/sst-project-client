@@ -20,6 +20,8 @@ const mask = (value: string) => {
 const apply = (
   e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement> | string,
 ) => {
+  if (typeof e !== 'string' && !e) return e;
+  if (typeof e !== 'string' && !e.target?.value) return e;
   const unmasked = typeof e === 'string' ? e : e.target.value;
 
   const newValue = mask(unmasked);

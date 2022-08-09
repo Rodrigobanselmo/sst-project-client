@@ -1,4 +1,4 @@
-import { SyntheticEvent } from 'react';
+import { ChangeEvent, SyntheticEvent } from 'react';
 import { Control, FieldValues } from 'react-hook-form';
 
 import { SelectChangeEvent } from '@mui/material';
@@ -13,4 +13,5 @@ export type AutocompleteFormProps<T> = Omit<
   label?: string;
   defaultValue?: T | string;
   onChange?: (value: T) => void;
+  mask?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
 };

@@ -1,15 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
+import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
+import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { ExamInputSelect } from 'components/organisms/inputSelect/ExamSelect/ExamSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { floatMask } from 'core/utils/masks/float.mask';
+import { intMask } from 'core/utils/masks/int.mask';
+
 import { IUseEditClinicExam } from '../../hooks/useEditClinicExams';
+import { ShiftTimeSelect } from '../ShiftTimeSelect/ShiftTimeSelect';
 
 export const ModalClinicExamStep = ({
   clinicExamData,
@@ -47,10 +53,13 @@ export const ModalClinicExamStep = ({
         name="dueInDays"
         control={control}
         freeSolo
+        getOptionLabel={(option) => String(option)}
         inputProps={{
           labelPosition: 'top',
           placeholder: 'em dias...',
+          name: 'dueInDays',
         }}
+        mask={intMask.apply}
         label="Prazo (dias)"
         sx={{ width: [200], mt: 5 }}
         options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
@@ -68,6 +77,28 @@ export const ModalClinicExamStep = ({
           { label: 'Ordem de chegada', value: 0 },
         ]}
       />
+
+      {}
+
+      {!isEdit && (
+        <Box mt={5}>
+          <InputForm
+            label="Preço"
+            control={control}
+            placeholder={'0,00'}
+            startAdornment={'R$'}
+            mask={floatMask.apply({
+              negative: false,
+              decimal: 2,
+            })}
+            name="price"
+            sx={{ width: [200] }}
+            size="small"
+          />
+        </Box>
+      )}
+
+      <ShiftTimeSelect mt={10} />
 
       {!!clinicExamData.id && (
         <StatusSelect

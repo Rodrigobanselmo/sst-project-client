@@ -12,7 +12,9 @@ export function AutocompleteForm<T>({
   label = '',
   onChange,
   options,
+  mask,
   inputProps = {},
+  freeSolo,
   ...restSelect
 }: AutocompleteFormProps<T>) {
   return (
@@ -31,18 +33,31 @@ export function AutocompleteForm<T>({
             ...rest,
             ...inputProps,
           }}
+          freeSolo={freeSolo}
           ListboxProps={{ sx: { fontSize: '14px' } } as any}
           defaultValue={defaultValue}
           options={options}
           onChange={(e, v) => {
             onChange && onChange(v);
-            // func(e);
+            if (freeSolo && v) {
+              setTimeout(() => {
+                func(String(v));
+              }, 100);
+            }
           }}
           fullWidth
           label={label}
-          // value={value || ''}
           {...rest}
           {...restSelect}
+          {...(freeSolo && {
+            inputValue: value || '',
+            onInputChange: (e) => {
+              if (e) {
+                mask?.(e as any);
+                func(e);
+              }
+            },
+          })}
         />
       )}
     />

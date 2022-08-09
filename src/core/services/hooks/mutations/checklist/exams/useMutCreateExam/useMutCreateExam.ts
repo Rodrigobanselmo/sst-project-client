@@ -19,6 +19,7 @@ export interface ICreateExam {
   status?: StatusEnum;
   instruction?: string;
   material?: string;
+  isAttendance?: boolean;
   type?: ExamTypeEnum;
   analyses?: string;
 }

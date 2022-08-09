@@ -24,9 +24,11 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
       error,
       active,
       bg,
+      width,
       tooltipTitle,
       subText,
       topText,
+      showOnHover,
       ...props
     },
     ref,
@@ -50,6 +52,21 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
             height: (large ? 32 : 22) + (subText ? 10 : 0) + (topText ? 12 : 0),
             pl: 3,
             pr: text ? 3 : 2,
+            ...(showOnHover
+              ? {
+                  width: '20px',
+                  transition: 'width 0.2s ease-in-out',
+                  '.icon_main': {
+                    mr: '-2px',
+                  },
+                  '&:hover': {
+                    width,
+                    '.icon_main': {
+                      mr: '0px',
+                    },
+                  },
+                }
+              : { width }),
             ...sx,
           }}
           {...props}
@@ -79,6 +96,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
                   color: active ? 'common.white' : 'common.black',
                   ...iconSx,
                 }}
+                className="icon_main"
                 component={icon}
                 {...restIconProps}
               />
@@ -96,6 +114,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
               <SText
                 fontSize="13px"
                 color="text.primary"
+                className="text_main"
                 noBreak
                 sx={{
                   color: active ? 'common.white' : 'common.black',

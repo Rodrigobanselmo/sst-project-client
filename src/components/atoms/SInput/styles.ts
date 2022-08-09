@@ -6,6 +6,7 @@ export const STTextField = styled(TextField)<{
   success: number;
   errors: number;
   effect: number;
+  ssx: number;
   secondary: number;
   size: string;
   backgroundColor?: string;
@@ -56,6 +57,15 @@ export const STTextField = styled(TextField)<{
   }
 
   ${(props) =>
+    props.ssx &&
+    css`
+      &&& .MuiInputBase-root {
+        max-height: 32px;
+        padding: 1px 4px;
+      }
+    `};
+
+  ${(props) =>
     props.success &&
     css`
       ${!props.multiline &&
@@ -63,7 +73,7 @@ export const STTextField = styled(TextField)<{
         &:after {
           content: '';
           border-bottom: 2px solid ${props.theme.palette.success.main};
-          top: ${props.size === 'small' ? 28 : 44}px;
+          top: ${props.size === 'small' ? 22 : 44}px;
           position: absolute;
           width: 100%;
           height: 10px;

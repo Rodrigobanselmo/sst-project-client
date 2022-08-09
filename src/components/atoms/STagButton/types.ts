@@ -13,6 +13,7 @@ export interface ISTagButtonProps extends BoxProps {
   loading?: boolean;
   disabled?: boolean;
   error?: boolean;
+  showOnHover?: boolean;
   active?: boolean;
   tooltipTitle?: ReactNode;
 }

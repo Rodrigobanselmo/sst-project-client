@@ -14,42 +14,36 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
-import { ExamSelect } from 'components/organisms/tagSelects/ExamSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import { SExamIcon } from 'assets/icons/SExamIcon';
 
-import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { IExam } from 'core/interfaces/api/IExam';
-import { useQueryExams } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
+import { IExamToClinic } from 'core/interfaces/api/IExam';
+import { useQueryClinicExams } from 'core/services/hooks/queries/useQueryClinicExams/useQueryClinicExams';
 import { getMoney } from 'core/utils/helpers/getMoney.utils';
 import { getText } from 'core/utils/helpers/getText';
 
 export const ClinicExamsTable: FC<
   BoxProps & {
     rowsPerPage?: number;
-    onSelectData?: (company: IExam) => void;
-    selectedData?: IExam[];
+    onSelectData?: (clinicExam: IExamToClinic) => void;
+    selectedData?: IExamToClinic[];
   }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
-  const { companyId } = useGetCompanyId();
-
   const {
     data: exams,
     isLoading: loadExams,
     count,
-  } = useQueryExams(page, { search, clinicId: companyId }, rowsPerPage);
+  } = useQueryClinicExams(page, { search }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
 
@@ -61,13 +55,13 @@ export const ClinicExamsTable: FC<
     onStackOpenModal(ModalEnum.EXAMS_CLINIC_ADD, {} as typeof initialExamState);
   };
 
-  const onEditExam = (exam: IExam) => {
+  const onEditExam = (exam: IExamToClinic) => {
     onStackOpenModal(ModalEnum.EXAMS_CLINIC_ADD, {
       ...(exam as any),
     } as typeof initialExamState);
   };
 
-  const onSelectRow = (exam: IExam) => {
+  const onSelectRow = (exam: IExamToClinic) => {
     if (isSelect) {
       onSelectData(exam);
     } else onEditExam(exam);
@@ -79,21 +73,7 @@ export const ClinicExamsTable: FC<
       <STableSearch
         onAddClick={onAddExam}
         onChange={(e) => handleSearchChange(e.target.value)}
-      >
-        {/* <ExamSelect
-          color="success"
-          sx={{ maxWidth: 0, opacity: 0, transform: 'translate(-40px, 10px)' }}
-          id={IdsEnum.EXAMS_SELECT}
-          onlyExam
-          asyncLoad
-          text={'adicionar'}
-          tooltipTitle=""
-          multiple={false}
-          handleSelect={(options: IExam) => {
-            if (options?.id) console.log(options);
-          }}
-        /> */}
-      </STableSearch>
+      />
       <STable
         loading={loadExams}
         rowsNumber={rowsPerPage}
@@ -114,7 +94,7 @@ export const ClinicExamsTable: FC<
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
-            const clinic = row?.examToClinic?.[0];
+            const exam = row?.exam;
 
             return (
               <STableRow
@@ -125,14 +105,14 @@ export const ClinicExamsTable: FC<
                 {selectedData && (
                   <SCheckBox
                     label=""
-                    checked={!!selectedData.find((exam) => exam.id === row.id)}
+                    checked={!!selectedData.find((e) => e.id === exam?.id)}
                   />
                 )}
-                <TextIconRow clickable text={getText(row.name)} />
-                <TextIconRow clickable text={getText(clinic?.dueInDays)} />
+                <TextIconRow clickable text={getText(exam?.name)} />
+                <TextIconRow clickable text={getText(row?.dueInDays)} />
                 <TextIconRow
                   clickable
-                  text={getMoney(clinic?.pricings?.[0]?.price)}
+                  text={getMoney(row?.pricings?.[0]?.price)}
                 />
                 <StatusSelect
                   large={false}

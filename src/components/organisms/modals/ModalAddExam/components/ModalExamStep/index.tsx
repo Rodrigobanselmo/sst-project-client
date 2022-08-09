@@ -3,6 +3,7 @@ import React from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
@@ -120,6 +121,20 @@ export const ModalExamStep = ({
           });
         }}
       />
+      {/* {examData.id && ( */}
+      <SSwitch
+        onChange={() => {
+          setExamData({
+            ...examData,
+            isAttendance: !examData.isAttendance,
+          });
+        }}
+        checked={examData.isAttendance}
+        label="Atendimento (ASO)"
+        sx={{ mr: 4 }}
+        color="text.light"
+      />
+      {/* )} */}
       {!!examData.id && (
         <StatusSelect
           sx={{ maxWidth: '90px', mt: 10 }}

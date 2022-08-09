@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -11,13 +12,18 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { ExamTypeEnum, IExam } from 'core/interfaces/api/IExam';
+import {
+  ExamTypeEnum,
+  IExam,
+  IExamToClinicPricing,
+} from 'core/interfaces/api/IExam';
 import {
   ICreateClientExam,
   useMutUpsertClientExam,
 } from 'core/services/hooks/mutations/checklist/exams/useMutUpsertClientExam/useMutCreateClientExam';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
+import { moneyConverter } from 'core/utils/helpers/money';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { clinicExamsSchema } from './../../../../../core/utils/schemas/clinicExams.schema';
@@ -32,6 +38,8 @@ export const initialExamState = {
   observation: '',
   exam: {} as IExam,
   status: StatusEnum.ACTIVE,
+  pricings: [] as IExamToClinicPricing[],
+  price: '',
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (clinicExam: IExam | null) => {},
 };
@@ -39,13 +47,13 @@ export const initialExamState = {
 interface ISubmit {
   name: string;
   type: string;
+  price: string;
 }
 
 const modalName = ModalEnum.EXAMS_CLINIC_ADD;
 
 export const useEditClinicExams = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { enqueueSnackbar } = useSnackbar();
   const { onCloseModal } = useModal();
   const { user } = useGetCompanyId();
 
@@ -114,24 +122,19 @@ export const useEditClinicExams = () => {
     }
 
     const submitData: ICreateClientExam = {
+      ...data,
       companyId: clinicExamData.companyId,
       examId: clinicExamData.exam.id,
       status: clinicExamData.status,
-      ...data,
+      price: moneyConverter(data.price) || undefined,
+      isScheduled: !!Number(data.type),
     };
     console.log(submitData);
 
     try {
-      // if (!submitData.examId) {
-      await upsertMutation
-        .mutateAsync(submitData)
-        .then((clinicExam) => clinicExamData.callback(clinicExam));
-      // } else {
-      // await updateMutation
+      // await upsertMutation
       //   .mutateAsync(submitData)
       //   .then((clinicExam) => clinicExamData.callback(clinicExam));
-      // }
-
       // onClose();
     } catch (error) {}
   };

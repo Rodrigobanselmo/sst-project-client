@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import { Box, Icon } from '@mui/material';
+import { Box, BoxProps, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
@@ -91,19 +91,22 @@ export function SDisplaySimpleArray({
   onEdit,
   renderText,
   onRenderAddButton,
-}: ISDisplaySimpleArrayProps) {
+  ...props
+}: ISDisplaySimpleArrayProps & Partial<BoxProps>) {
   const { onStackOpenModal } = useModal();
   const { onSelectProfessionalUser, onEditSelectContacts, onSelectContacts } =
     useAddEntities({ onAdd, values });
 
   return (
     <Box
+      {...props}
       sx={{
         border: '2px solid',
         borderColor: 'background.divider',
         p: 5,
         borderRadius: 1,
         backgroundColor: 'background.paper',
+        ...props?.sx,
       }}
     >
       {label && (

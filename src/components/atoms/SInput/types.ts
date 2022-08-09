@@ -17,4 +17,5 @@ export type SInputProps = TextFieldProps & {
   backgroundColor?: string;
   firstLetterCapitalize?: boolean;
   noEffect?: boolean;
+  superSmall?: boolean;
 };

@@ -46,3 +46,23 @@ export const monthMasked = {
 } as IMask.AnyMaskedOptions;
 
 export const dateMonthMask = masker(monthMasked);
+
+export const timeMasked = {
+  mask: 'HH:MM',
+  blocks: {
+    HH: {
+      mask: IMask.MaskedRange,
+      from: 0,
+      to: 23,
+      maxLength: 2,
+    },
+    MM: {
+      mask: IMask.MaskedRange,
+      from: 0,
+      to: 59,
+      maxLength: 2,
+    },
+  },
+} as IMask.AnyMaskedOptions;
+
+export const timeMask = masker(timeMasked);

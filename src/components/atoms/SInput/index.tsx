@@ -31,6 +31,7 @@ export const SInput: FC<SInputProps> = ({
   noEffect,
   onChange,
   firstLetterCapitalize,
+  superSmall,
   ...props
 }) => {
   const handleChange = (
@@ -55,6 +56,7 @@ export const SInput: FC<SInputProps> = ({
         </Typography>
       )}
       <STTextField
+        ssx={superSmall ? 1 : 0}
         onChange={handleChange}
         backgroundColor={backgroundColor}
         smallPlaceholder={smallPlaceholder ? 1 : 0}

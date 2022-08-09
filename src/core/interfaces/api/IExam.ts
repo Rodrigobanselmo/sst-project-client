@@ -36,7 +36,8 @@ export interface IExamToClinic {
   observation: string;
   exam?: IExam;
   pricings?: IExamToClinicPricing[];
-  schedules?: IExamToClinicSchedule[];
+  scheduleRange?: Record<string, string>;
+  status: StatusEnum;
 }
 
 export interface IExamToClinicPricing {
@@ -44,17 +45,6 @@ export interface IExamToClinicPricing {
   examToClinicId: number;
   price: number;
   startDate: Date;
-  observation: string;
-  examToClinic?: IExamToClinic;
-}
-
-export interface IExamToClinicSchedule {
-  id: number;
-  examToClinicId: number;
-  startDate: Date;
-  endDate: Date;
-  startTime: string;
-  endTime: string;
   observation: string;
   examToClinic?: IExamToClinic;
 }

@@ -31,6 +31,7 @@ export const initialExamState = {
   status: StatusEnum.ACTIVE,
   type: ExamTypeEnum.LAB,
   analyses: '',
+  isAttendance: undefined as boolean | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (exam: IExam | null) => {},
 };
@@ -118,6 +119,7 @@ export const useEditExams = () => {
       id: examData.id,
       status: examData.status,
       instruction: examData.instruction,
+      isAttendance: examData.isAttendance,
     };
 
     try {

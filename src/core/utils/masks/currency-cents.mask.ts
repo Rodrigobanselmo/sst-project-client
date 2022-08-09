@@ -4,7 +4,7 @@ import IMask from 'imask';
 import { masker } from './index';
 
 const masked = {
-  mask: 'R$ num{,}cents',
+  mask: 'num{,}cents',
   blocks: {
     num: {
       mask: Number,

@@ -7,7 +7,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SText from 'components/atoms/SText';
 import { ModalEditClinic } from 'components/organisms/modals/company/ModalEditClinic/ModalEditClinic';
-import { ModalAddClinicExam } from 'components/organisms/modals/ModalAddClinicExam/ModalAddExam';
+import { ModalAddClinicExam } from 'components/organisms/modals/ModalAddClinicExam/ModalAddClinicExam';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { ModalViewClinicExams } from 'components/organisms/modals/ModalViewClinicExams';
 import { ModalViewProfessional } from 'components/organisms/modals/ModalViewProfessional';

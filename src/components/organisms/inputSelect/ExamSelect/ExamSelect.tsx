@@ -103,3 +103,19 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
     />
   );
 };
+
+{
+  /* <ExamSelect
+          color="success"
+          sx={{ maxWidth: 0, opacity: 0, transform: 'translate(-40px, 10px)' }}
+          id={IdsEnum.EXAMS_SELECT}
+          onlyExam
+          asyncLoad
+          text={'adicionar'}
+          tooltipTitle=""
+          multiple={false}
+          handleSelect={(options: IExam) => {
+            if (options?.id) console.log(options);
+          }}
+        /> */
+}
