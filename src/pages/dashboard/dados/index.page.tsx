@@ -11,7 +11,7 @@ const Database: NextPage = () => {
   const onGeneratePGRDocumentTest = () => {
     //teste download doc //3556725
     return createDoc.mutateAsync({
-      version: '4.1',
+      version: '0.0.1',
       name: 'AAA',
       description: 'AAA',
       workspaceName: 'Matriz',

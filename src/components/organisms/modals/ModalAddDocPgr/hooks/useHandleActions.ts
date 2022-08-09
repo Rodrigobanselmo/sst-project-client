@@ -31,6 +31,7 @@ export const initialPgrDocState = {
   validityEnd: null as Date | null,
   validityStart: null as Date | null,
   isQ5: false,
+  hasEmergencyPlan: false,
 };
 
 const modalName = ModalEnum.RISK_GROUP_DOC_ADD;

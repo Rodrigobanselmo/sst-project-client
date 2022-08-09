@@ -100,6 +100,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
       validityEnd: data.validityEnd,
       validityStart: data.validityStart,
       isQ5: data.isQ5 || false,
+      hasEmergencyPlan: data.hasEmergencyPlan || false,
     };
 
     const initialWorkspaceState = {

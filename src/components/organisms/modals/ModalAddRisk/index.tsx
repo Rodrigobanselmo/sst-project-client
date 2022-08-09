@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box, Divider } from '@mui/material';
-import SText from 'components/atoms/SText';
+import { Box } from '@mui/material';
+import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioFormText } from 'components/molecules/form/radio-text';
 import SModal, {
@@ -129,7 +129,22 @@ export const ModalAddRisk = () => {
             firstLetterCapitalize
           />
         </Box>
+        <Box sx={{ ml: 7, mt: 5 }}>
+          <SSwitch
+            onChange={() => {
+              setRiskData({
+                ...riskData,
+                isEmergency: !riskData.isEmergency,
+              });
+            }}
+            checked={riskData.isEmergency}
+            label="Vincular ao plano de emergencia"
+            sx={{ mr: 4 }}
+            color="text.light"
+          />
+        </Box>
         <EditRiskSelects riskData={riskData} setRiskData={setRiskData} />
+
         <SModalButtons
           loading={loading}
           onClose={onCloseUnsaved}

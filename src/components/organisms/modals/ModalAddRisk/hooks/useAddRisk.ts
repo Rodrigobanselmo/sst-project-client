@@ -29,6 +29,7 @@ export const initialAddRiskState = {
   recMed: [] as (IRecMedCreate & { generateSourceLocalId?: number })[],
   generateSource: [] as IGenerateSourceCreate[],
   hasSubmit: false,
+  isEmergency: false,
   id: '',
   companyId: '',
   risk: '',
@@ -177,7 +178,8 @@ export const useAddRisk = () => {
     risk: riskHealth,
     symptoms,
   }) => {
-    const { id, companyId, recMed, generateSource, status } = riskData;
+    const { id, companyId, recMed, generateSource, status, isEmergency } =
+      riskData;
     const typeValue = type as RiskEnum;
 
     const risk = {
@@ -191,6 +193,7 @@ export const useAddRisk = () => {
       severity,
       risk: riskHealth,
       symptoms,
+      isEmergency,
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;

@@ -20,6 +20,7 @@ export const CnaeInputSelect: FC<ICnaeSelectProps> = ({
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
+    console.log(value);
     setSearch(value);
   }, 300);
 
@@ -48,6 +49,7 @@ export const CnaeInputSelect: FC<ICnaeSelectProps> = ({
             onChange?.(value);
             setSearch('');
           }}
+          onInputChange={(e, v) => handleSearchChange(v)}
           {...props}
           renderOption={(props, option) => (
             <Box component="li" {...props}>

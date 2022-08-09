@@ -146,6 +146,18 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               sx={{ mr: 4 }}
               color="text.light"
             />
+            <SSwitch
+              onChange={() => {
+                setData({
+                  ...data,
+                  hasEmergencyPlan: !data.hasEmergencyPlan,
+                });
+              }}
+              checked={data.hasEmergencyPlan}
+              label="Possui plano de atendimento de emergência"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
           </SFlex>
         </SFlex>
       </AnimatedStep>

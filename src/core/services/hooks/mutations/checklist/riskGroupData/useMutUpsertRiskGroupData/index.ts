@@ -32,6 +32,7 @@ export interface IUpsertRiskGroupData {
   validityStart?: Date;
   complementaryDocs?: string[];
   isQ5?: boolean;
+  hasEmergencyPlan?: boolean;
   complementarySystems?: string[];
   users?: (IUser | IUserToRiskGroup)[];
   professionals?: (IProfessional | IProfessionalToRiskGroup)[];

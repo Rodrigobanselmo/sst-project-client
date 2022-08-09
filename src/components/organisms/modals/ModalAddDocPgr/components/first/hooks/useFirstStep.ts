@@ -55,6 +55,7 @@ export const useFirstStep = ({ data, setData, ...rest }: IUseAddCompany) => {
         source,
         id: data.id,
         isQ5: data.isQ5,
+        hasEmergencyPlan: data.hasEmergencyPlan,
         coordinatorBy,
       };
 

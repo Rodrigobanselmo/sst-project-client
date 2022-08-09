@@ -99,6 +99,7 @@ export interface IRiskGroupData {
   professionals?: IProfessional[];
   users?: IUser[];
   isQ5?: boolean;
+  hasEmergencyPlan?: boolean;
   data?: IRiskData[];
   months_period_level_5: number;
   months_period_level_4: number;

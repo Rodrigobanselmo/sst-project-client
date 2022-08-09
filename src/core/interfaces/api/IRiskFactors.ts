@@ -94,6 +94,7 @@ export interface IRiskFactors {
   ipvs?: string;
   pv?: string;
   pe?: string;
+  isEmergency?: boolean;
   carnogenicityACGIH?: string;
   carnogenicityLinach?: string;
 }

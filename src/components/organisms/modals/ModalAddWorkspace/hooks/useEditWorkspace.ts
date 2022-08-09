@@ -152,7 +152,7 @@ export const useEditWorkspace = () => {
       name: data.name,
       description: data.description,
       status: companyData.status,
-      companyJson: companyData.companyJson,
+      companyJson: companyData.companyJson || undefined,
       isOwner: !companyData.isFromOtherCnpj,
       cnpj: companyData.cnpj,
       address: {
