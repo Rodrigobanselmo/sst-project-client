@@ -1,9 +1,7 @@
-import { initialContactModalState } from 'components/organisms/modals/ModalAddContactx';
 import { initialUsersSelectState } from 'components/organisms/modals/ModalSelectUsers';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
-import { IContact } from 'core/interfaces/api/IContact';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { IUser } from 'core/interfaces/api/IUser';
 
@@ -36,27 +34,7 @@ export const useAddEntities = ({
       selected: values,
     } as typeof initialUsersSelectState);
 
-  const onSelectContacts = () =>
-    onStackOpenModal(ModalEnum.CONTACT_ADD, {
-      onConfirm: (contact) => {
-        if (Array.isArray(contact)) {
-          return onAdd('', contact);
-        }
-
-        onAdd(String(contact.id), contact);
-      },
-    } as typeof initialContactModalState);
-
-  const onEditSelectContacts = (
-    data: Partial<typeof initialContactModalState>,
-  ) =>
-    onStackOpenModal(ModalEnum.CONTACT_ADD, {
-      ...data,
-    } as typeof initialContactModalState);
-
   return {
     onSelectProfessionalUser,
-    onSelectContacts,
-    onEditSelectContacts,
   };
 };

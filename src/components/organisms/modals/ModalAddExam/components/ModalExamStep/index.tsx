@@ -7,13 +7,11 @@ import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
-import { RadioFormText } from 'components/molecules/form/radio-text';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dynamic from 'next/dynamic';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { examsOptionsList } from 'core/constants/maps/exams.map';
-import { ExamTypeEnum } from 'core/interfaces/api/IExam';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
 

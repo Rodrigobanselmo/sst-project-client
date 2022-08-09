@@ -94,8 +94,7 @@ export function SDisplaySimpleArray({
   ...props
 }: ISDisplaySimpleArrayProps & Partial<BoxProps>) {
   const { onStackOpenModal } = useModal();
-  const { onSelectProfessionalUser, onEditSelectContacts, onSelectContacts } =
-    useAddEntities({ onAdd, values });
+  const { onSelectProfessionalUser } = useAddEntities({ onAdd, values });
 
   return (
     <Box
@@ -199,23 +198,6 @@ export function SDisplaySimpleArray({
                       disabled={disabled}
                       size="small"
                       onClick={() => {
-                        if (type === TypeInputModal.CONTACT) {
-                          return onEditSelectContacts({
-                            onConfirm: async (newValue: any) => {
-                              onEdit?.(
-                                newValue.name,
-                                editElement(
-                                  newValue.name,
-                                  values,
-                                  index,
-                                  valueField,
-                                ),
-                                v,
-                              );
-                            },
-                          });
-                        }
-
                         onStackOpenModal(ModalEnum.SINGLE_INPUT, {
                           onConfirm: (newValue: string) => {
                             onEdit?.(
@@ -252,9 +234,6 @@ export function SDisplaySimpleArray({
                 return onSelectProfessionalUser();
               }
 
-              if (type === TypeInputModal.CONTACT) {
-                return onSelectContacts();
-              }
               onStackOpenModal(ModalEnum.SINGLE_INPUT, {
                 onConfirm: onAdd,
                 placeholder,

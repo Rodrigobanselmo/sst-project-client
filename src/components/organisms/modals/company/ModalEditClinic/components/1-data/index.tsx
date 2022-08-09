@@ -4,22 +4,15 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
-import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioFormText } from 'components/molecules/form/radio-text';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { CnaeInputSelect } from 'components/organisms/inputSelect/CnaeSelect/CnaeSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
-import dayjs from 'dayjs';
 import dynamic from 'next/dynamic';
-import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import { companyOptionsConstant } from 'core/constants/maps/company.constant';
 import { useAccess } from 'core/hooks/useAccess';
-import { dateToDate } from 'core/utils/date/date-format';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
 

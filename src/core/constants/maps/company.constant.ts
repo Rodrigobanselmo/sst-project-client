@@ -15,4 +15,8 @@ export const companyOptionsConstant: ICompanyTypes = {
     value: CompanyTypesEnum.FILIAL,
     name: 'Filial',
   },
+  [CompanyTypesEnum.CLINIC]: {
+    value: CompanyTypesEnum.CLINIC,
+    name: 'Clínica',
+  },
 };

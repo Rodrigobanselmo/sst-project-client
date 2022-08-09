@@ -2,7 +2,7 @@ import React, { FC, useEffect } from 'react';
 
 import { Global } from '@emotion/react';
 import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
-import { ModalAddContact } from 'components/organisms/modals/ModalAddContact/ModalAddContactx';
+import { ModalAddContact } from 'components/organisms/modals/ModalAddContact/ModalAddContact';
 import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional/ModalAddProfessional';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
