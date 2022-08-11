@@ -22,6 +22,7 @@ export interface ICreateExam {
   isAttendance?: boolean;
   type?: ExamTypeEnum;
   analyses?: string;
+  esocial27Code?: string;
 }
 
 export async function createExam(data: ICreateExam, companyId?: string) {

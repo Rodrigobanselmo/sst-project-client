@@ -18,7 +18,10 @@ import {
 } from 'core/services/hooks/mutations/checklist/exams/useMutCreateExam/useMutCreateExam';
 import { useMutUpdateExam } from 'core/services/hooks/mutations/checklist/exams/useMutUpdateExam/useMutUpdateExam';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
+import {
+  cleanObjectNullValues,
+  cleanObjectValues,
+} from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { examSchema } from 'core/utils/schemas/exam.schema';
 
@@ -84,7 +87,7 @@ export const useEditExams = () => {
       setExamData((oldData) => {
         const newData = {
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
         };
 
         initialDataRef.current = newData;
@@ -120,6 +123,7 @@ export const useEditExams = () => {
       id: examData.id,
       status: examData.status,
       instruction: examData.instruction,
+      esocial27Code: examData.esocial27Code,
       isAttendance: examData.isAttendance || undefined,
     };
 
