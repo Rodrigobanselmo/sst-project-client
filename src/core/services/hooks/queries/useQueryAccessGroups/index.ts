@@ -51,7 +51,7 @@ export function useQueryAccessGroups(
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.AUTH_GROUP, user?.companyId, page, { ...query }],
+    [QueryEnum.AUTH_GROUP, user?.companyId, page, { ...pagination, ...query }],
     () => queryAccessGroups(pagination, user?.companyId || '', { ...query }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

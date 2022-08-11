@@ -44,7 +44,7 @@ export function useQueryExams(page = 1, query = {} as IQueryExam, take = 20) {
   const companyId = user?.companyId;
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EXAMS, page, { ...query, companyId }],
+    [QueryEnum.EXAMS, page, { ...pagination, ...query, companyId }],
     () => queryExams(pagination, { ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

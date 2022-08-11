@@ -12,15 +12,12 @@ import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddE
 import { ModalViewClinicExams } from 'components/organisms/modals/ModalViewClinicExams';
 import { ModalViewProfessional } from 'components/organisms/modals/ModalViewProfessional';
 import { NextPage } from 'next';
-import { useRouter } from 'next/router';
 
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
 import SClinicIcon from 'assets/icons/SClinicIcon';
 
 import { useClinicStep } from 'core/hooks/action-steps/useClinicStep';
-import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
-import { useModal } from 'core/hooks/useModal';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
@@ -28,16 +25,13 @@ import { SActionButton } from '../../../../components/atoms/SActionButton';
 
 const CompanyPage: NextPage = () => {
   const { data: company, isLoading } = useQueryCompany();
-  const { onOpenModal } = useModal();
-  const { push } = useRouter();
-  const dispatch = useAppDispatch();
   const { nextStepMemo, nextStep, actionsStepMemo } = useClinicStep();
 
   useFetchFeedback(isLoading && !company?.id);
 
   return (
     <SContainer>
-      <SPageTitle icon={SClinicIcon}>{company.name}</SPageTitle>
+      <SPageTitle icon={SClinicIcon}>{company.fantasy}</SPageTitle>
       {nextStepMemo && (
         <>
           <SText mt={20}>Proximo passo</SText>

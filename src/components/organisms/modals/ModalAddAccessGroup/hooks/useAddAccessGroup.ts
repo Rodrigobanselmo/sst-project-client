@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
-import { PermissionEnum } from 'project/enum/permission.enum';
+import { useSnackbar } from 'notistack';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -29,6 +29,7 @@ export const initialAccessGroupState = {
   },
   description: '',
   name: '',
+  companyId: '',
   id: 0,
 };
 
@@ -36,6 +37,8 @@ export const useAddAccessGroup = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAccessGroupState);
+  const submitType = useRef('');
+  const { enqueueSnackbar } = useSnackbar();
 
   const { handleSubmit, control, reset, getValues } = useForm({
     resolver: yupResolver(accessGroupSchema),
@@ -76,20 +79,35 @@ export const useAddAccessGroup = () => {
   const onSubmit: SubmitHandler<{ description: string; name: string }> = async (
     data,
   ) => {
+    const isCopy = submitType.current == 'copy';
+    if (isCopy && data.name === initialDataRef?.current?.name) {
+      return enqueueSnackbar('A cópia não pode ter o mesmo nome do original', {
+        variant: 'warning',
+      });
+    }
+
     if (accessGroupData.roles.length === 0)
       return setAccessGroupData((oldData) => ({
         ...oldData,
         errors: { roles: 'selecione ao menos uma permissão' },
       }));
 
+    const { permissions } = convertFromPermissionsMap(
+      accessGroupData.permissions,
+    );
+
+    const roles = accessGroupData.roles.filter((role) =>
+      Object.values(RoleEnum).includes(role),
+    );
+
     const submitData: IUpsertAccessGroup = {
-      roles: accessGroupData.roles,
-      permissions: convertFromPermissionsMap(accessGroupData.permissions)
-        .permissions,
+      roles,
+      permissions,
+      companyId: accessGroupData.companyId,
       ...data,
     };
 
-    if (accessGroupData.id != 0) submitData.id = accessGroupData.id;
+    if (accessGroupData.id != 0 && !isCopy) submitData.id = accessGroupData.id;
     await upsertAccessGroup.mutateAsync(submitData).catch(() => {});
 
     onClose();
@@ -118,6 +136,7 @@ export const useAddAccessGroup = () => {
     setAccessGroupData,
     control,
     handleSubmit,
+    submitType,
     isEdit: !!accessGroupData.id,
   };
 };

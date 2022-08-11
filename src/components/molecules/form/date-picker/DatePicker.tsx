@@ -81,6 +81,7 @@ export const DatePickerForm = ({
               <button
                 onClick={decreaseMonth}
                 disabled={prevMonthButtonDisabled}
+                type="button"
               >
                 {'<'}
               </button>
@@ -111,6 +112,7 @@ export const DatePickerForm = ({
               <button
                 onClick={increaseMonth}
                 disabled={nextMonthButtonDisabled}
+                type="button"
               >
                 {'>'}
               </button>

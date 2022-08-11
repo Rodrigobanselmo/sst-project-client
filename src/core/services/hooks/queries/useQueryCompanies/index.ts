@@ -60,7 +60,7 @@ export function useQueryCompanies(
   // const company = user && user?.companyId;
 
   const { data, ...rest } = useQuery(
-    [QueryEnum.COMPANIES, companyId, page, query, type],
+    [QueryEnum.COMPANIES, companyId, page, { ...pagination, ...query }, type],
     () =>
       companyId
         ? queryCompanies(pagination, { ...query, companyId }, type)

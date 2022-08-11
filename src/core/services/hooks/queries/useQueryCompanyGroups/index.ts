@@ -52,7 +52,12 @@ export function useQueryCompanyGroups(
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.COMPANY_GROUP, user?.companyId, page, { ...query }],
+    [
+      QueryEnum.COMPANY_GROUP,
+      user?.companyId,
+      page,
+      { ...pagination, ...query },
+    ],
     () => queryCompanyGroups(pagination, user?.companyId || '', { ...query }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

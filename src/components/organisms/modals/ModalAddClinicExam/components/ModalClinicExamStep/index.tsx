@@ -5,23 +5,40 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
+import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
+import { SelectForm } from 'components/molecules/form/select';
 import { ExamInputSelect } from 'components/organisms/inputSelect/ExamSelect/ExamSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
+import dynamic from 'next/dynamic';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { clinicScheduleOptionsList } from 'core/constants/maps/clinic-schedule-type.map';
+import { dateToDate } from 'core/utils/date/date-format';
+import { getMoney } from 'core/utils/helpers/getMoney.utils';
 import { floatMask } from 'core/utils/masks/float.mask';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditClinicExam } from '../../hooks/useEditClinicExams';
 import { ShiftTimeSelect } from '../ShiftTimeSelect/ShiftTimeSelect';
 
+const DraftEditor = dynamic(
+  async () => {
+    const mod = await import(
+      'components/molecules/form/draft-editor/DraftEditor'
+    );
+    return mod.DraftEditor;
+  },
+  { ssr: false },
+);
+
 export const ModalClinicExamStep = ({
   clinicExamData,
   control,
   setClinicExamData,
   isEdit,
+  setValue,
 }: IUseEditClinicExam) => {
   return (
     <SFlex sx={{ minWidth: [300, 600, 800] }} direction="column" mt={8}>
@@ -45,29 +62,49 @@ export const ModalClinicExamStep = ({
         }}
         defaultValue={clinicExamData.exam}
         name="exam"
-        label="Exame*"
+        label="Nome do Exame*"
         control={control}
       />
 
-      <AutocompleteForm
-        name="dueInDays"
-        control={control}
-        freeSolo
-        getOptionLabel={(option) => String(option)}
-        inputProps={{
-          labelPosition: 'top',
-          placeholder: 'em dias...',
-          name: 'dueInDays',
-        }}
-        mask={intMask.apply}
-        label="Prazo (dias)"
-        sx={{ width: [200], mt: 5 }}
-        options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-      />
+      <SFlex mt={10} flexWrap="wrap" gap={5}>
+        <Box flex={1}>
+          <SelectForm
+            defaultValue={String(clinicExamData.scheduleType || '') || ''}
+            label="Forma de Agendamento*"
+            control={control}
+            placeholder="agendamento..."
+            name="scheduleType"
+            labelPosition="top"
+            optionsFieldName={{ contentField: 'name' }}
+            sx={{ width: [300] }}
+            size="small"
+            options={clinicScheduleOptionsList}
+          />
+        </Box>
+        <Box>
+          <AutocompleteForm
+            name="dueInDays"
+            control={control}
+            freeSolo
+            getOptionLabel={(option) => String(option)}
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'em dias...',
+              name: 'dueInDays',
+            }}
+            setValue={(v) => setValue('dueInDays', v)}
+            defaultValue={clinicExamData.dueInDays || ''}
+            mask={intMask.apply}
+            label="Prazo para resultado (dias)"
+            sx={{ width: [200] }}
+            options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+          />
+        </Box>
+      </SFlex>
 
       <RadioForm
         sx={{ mt: 8 }}
-        label="Selecione o tipo de exame*"
+        label="Selecione o tipo de atendimento*"
         control={control}
         defaultValue={isEdit ? (clinicExamData.isScheduled ? 1 : 0) : undefined}
         name="type"
@@ -78,13 +115,30 @@ export const ModalClinicExamStep = ({
         ]}
       />
 
-      {}
-
-      {!isEdit && (
-        <Box mt={5}>
+      <SFlex mt={8} flexWrap="wrap" gap={5}>
+        {clinicExamData?.exam?.isAttendance && (
+          <Box flex={2} mt={5} mr={20}>
+            <InputForm
+              label="Duração do atendimento (min)"
+              control={control}
+              placeholder={'0'}
+              defaultValue={String(clinicExamData.examMinDuration || '') || ''}
+              endAdornment={'minutos'}
+              mask={floatMask.apply({
+                negative: false,
+                decimal: 0,
+              })}
+              name="examMinDuration"
+              sx={{ width: [250] }}
+              size="small"
+            />
+          </Box>
+        )}
+        <Box flex={10} mt={5}>
           <InputForm
             label="Preço"
             control={control}
+            defaultValue={getMoney(clinicExamData.price) || ''}
             placeholder={'0,00'}
             startAdornment={'R$'}
             mask={floatMask.apply({
@@ -92,13 +146,73 @@ export const ModalClinicExamStep = ({
               decimal: 2,
             })}
             name="price"
-            sx={{ width: [200] }}
+            sx={{ width: [140] }}
             size="small"
           />
         </Box>
+      </SFlex>
+
+      <ShiftTimeSelect
+        defaultSchedule={clinicExamData.scheduleRange}
+        onChange={(schedule) =>
+          setClinicExamData((old) => ({
+            ...old,
+            scheduleRange: schedule,
+          }))
+        }
+        mt={10}
+      />
+
+      {isEdit && (
+        <DraftEditor
+          size="xs"
+          mt={5}
+          label="Orservações"
+          placeholder="descrição..."
+          defaultValue={clinicExamData.observation}
+          onChange={(value) => {
+            setClinicExamData({
+              ...clinicExamData,
+              observation: value,
+            });
+          }}
+        />
       )}
 
-      <ShiftTimeSelect mt={10} />
+      <SFlex mt={10} flexWrap="wrap" gap={5}>
+        <Box flex={1} maxWidth={200}>
+          <DatePickerForm
+            label="Data de início"
+            control={control}
+            defaultValue={dateToDate(clinicExamData.startDate)}
+            name="startDate"
+            onChange={(date) => {
+              setClinicExamData({
+                ...clinicExamData,
+                endDate: undefined,
+                startDate: date instanceof Date ? date : undefined,
+              });
+            }}
+          />
+        </Box>
+        {clinicExamData.endDate && (
+          <Box flex={1} maxWidth={200}>
+            <DatePickerForm
+              label="Data fim"
+              control={control}
+              uneditable
+              defaultValue={dateToDate(clinicExamData.endDate)}
+              name="endDate"
+              onChange={(date) => {
+                setClinicExamData({
+                  ...clinicExamData,
+                  endDate: date instanceof Date ? date : undefined,
+                });
+              }}
+            />
+          </Box>
+        )}
+      </SFlex>
 
       {!!clinicExamData.id && (
         <StatusSelect

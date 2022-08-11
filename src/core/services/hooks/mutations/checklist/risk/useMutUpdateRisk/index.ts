@@ -34,7 +34,7 @@ export async function updateRisk(data: IUpdateRisk, companyId?: string) {
 
 export function useMutUpdateRisk() {
   const { enqueueSnackbar } = useSnackbar();
-  const { companyId, user } = useGetCompanyId();
+  const { companyId, user } = useGetCompanyId(true);
 
   return useMutation(
     async (data: IUpdateRisk) =>

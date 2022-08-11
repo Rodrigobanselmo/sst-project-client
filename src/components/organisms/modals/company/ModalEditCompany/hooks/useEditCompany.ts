@@ -120,7 +120,7 @@ export const useEditCompany = () => {
     nextStep: () => void,
     { save }: { save?: boolean } = {},
   ) => {
-    if (!isEdit && save) {
+    if (!isEdit && save && !companyData.id) {
       await createCompany
         .mutateAsync(submitData)
         .then((company) => {

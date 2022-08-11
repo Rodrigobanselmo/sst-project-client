@@ -25,16 +25,27 @@ const weekDaysPt = [
   'Domingo',
 ];
 
-export const ShiftTimeSelect = ({ ...props }: BoxProps) => {
-  const [schedule, setSchedule] = useState<Record<string, string>>({
-    '2-0': '',
-    '3-0': '',
-    '4-0': '',
-    '5-0': '',
-    '6-0': '',
-    '7-0': '',
-    '1-0': '',
-  });
+interface IShiftTimeSelectProps extends Omit<BoxProps, 'onChange'> {
+  defaultSchedule?: Record<string, string>;
+  onChange: (newSchedule: Record<string, string>) => void;
+}
+
+export const ShiftTimeSelect = ({
+  defaultSchedule,
+  onChange,
+  ...props
+}: IShiftTimeSelectProps) => {
+  const [schedule, setSchedule] = useState<Record<string, string>>(
+    defaultSchedule || {
+      '2-0': '',
+      '3-0': '',
+      '4-0': '',
+      '5-0': '',
+      '6-0': '',
+      '7-0': '',
+      '1-0': '',
+    },
+  );
 
   const onChangeSchedule = (v: string, weekDay: number, key: string) => {
     setSchedule((old) => {
@@ -53,11 +64,14 @@ export const ShiftTimeSelect = ({ ...props }: BoxProps) => {
         });
       }
 
-      return {
+      const newData = {
         ...old,
         [key]: timeMask.mask(v),
         ...(v.length >= 5 ? { [`${weekDay}-${last + 1}`]: '' } : {}),
       };
+      onChange?.(newData);
+
+      return newData;
     });
   };
 
@@ -74,19 +88,23 @@ export const ShiftTimeSelect = ({ ...props }: BoxProps) => {
       }
     });
 
+    onChange?.(newSchedule);
     setSchedule(newSchedule);
   };
 
   return (
     <Box {...props}>
-      <STagButton
-        onClick={onCopyAll}
-        text={'copiar'}
-        icon={SCopyIcon}
-        showOnHover
-        width={'100px'}
-        mb={5}
-      />
+      <SFlex align="center">
+        <STagButton
+          onClick={onCopyAll}
+          text={'copiar'}
+          icon={SCopyIcon}
+          showOnHover
+          width={'100px'}
+          mb={5}
+        />
+        {props.children}
+      </SFlex>
       <SFlex>
         {weekDays.map((weekDay, index) => {
           return (

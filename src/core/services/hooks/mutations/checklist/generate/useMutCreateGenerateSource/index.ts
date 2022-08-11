@@ -40,7 +40,7 @@ export async function createGenerateSource(
 }
 
 export function useMutCreateGenerateSource() {
-  const { companyId, user } = useGetCompanyId();
+  const { companyId, user } = useGetCompanyId(true);
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(

@@ -6,6 +6,10 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { SPageMenu } from 'components/molecules/SPageMenu';
+
+import { dateToString } from 'core/utils/date/date-format';
+import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 
 import { ModalClinicExamStep } from './components/ModalClinicExamStep';
 import { useEditClinicExams } from './hooks/useEditClinicExams';
@@ -20,6 +24,11 @@ export const ModalAddClinicExam = () => {
     clinicExamData,
     loading,
     modalName,
+    allClinicExams,
+    isEdit,
+    initializeModalDate,
+    onClose,
+    onStackOpenModal,
   } = props;
 
   const buttons = [
@@ -50,7 +59,27 @@ export const ModalAddClinicExam = () => {
           onClose={onCloseUnsaved}
           title={'Profissional'}
         />
-
+        {isEdit && (
+          <SPageMenu
+            active={String(clinicExamData.id)}
+            options={allClinicExams.map((clinicExam) => ({
+              label: dateToString(clinicExam.startDate),
+              value: String(clinicExam.id),
+            }))}
+            onChange={(id) => {
+              onClose();
+              setTimeout(() => {
+                onStackOpenModal(
+                  modalName,
+                  allClinicExams.find(
+                    (clinicExam) => clinicExam.id == Number(id),
+                  ),
+                );
+              }, 10);
+            }}
+            mb={10}
+          />
+        )}
         <ModalClinicExamStep {...props} />
 
         <SModalButtons

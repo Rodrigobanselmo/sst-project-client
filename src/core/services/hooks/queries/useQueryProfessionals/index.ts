@@ -50,7 +50,7 @@ export function useQueryProfessionals(
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.PROFESSIONALS, page, { ...query, companyId }],
+    [QueryEnum.PROFESSIONALS, page, { ...pagination, ...query, companyId }],
     () => queryProfessionals(pagination, { ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 60 minute

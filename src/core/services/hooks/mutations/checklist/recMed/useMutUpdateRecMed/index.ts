@@ -32,7 +32,7 @@ export async function updateRecMed(data: ICreateRecMed, companyId?: string) {
 }
 
 export function useMutUpdateRecMed() {
-  const { companyId, user } = useGetCompanyId();
+  const { companyId, user } = useGetCompanyId(true);
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(

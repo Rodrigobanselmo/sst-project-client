@@ -54,7 +54,7 @@ export function useQueryEmployees(
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EMPLOYEES, page, { ...query, companyId }],
+    [QueryEnum.EMPLOYEES, page, { ...pagination, ...query, companyId }],
     () => queryEmployees(pagination, { ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

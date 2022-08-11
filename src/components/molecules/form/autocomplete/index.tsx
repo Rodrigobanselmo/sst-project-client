@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 
 import AutocompleteSelect from 'components/atoms/SAutocompleteSelect';
@@ -13,10 +13,19 @@ export function AutocompleteForm<T>({
   onChange,
   options,
   mask,
+  setValue,
   inputProps = {},
   freeSolo,
+  onGetValue,
   ...restSelect
 }: AutocompleteFormProps<T>) {
+  useEffect(() => {
+    if (freeSolo && defaultValue) {
+      setValue?.(String(defaultValue));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <Controller
       name={name}
@@ -41,7 +50,9 @@ export function AutocompleteForm<T>({
             onChange && onChange(v);
             if (freeSolo && v) {
               setTimeout(() => {
-                func(String(v));
+                if (onGetValue) {
+                  func(onGetValue(v));
+                } else func(String(v));
               }, 100);
             }
           }}

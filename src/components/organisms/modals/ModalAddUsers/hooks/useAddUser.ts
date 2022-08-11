@@ -48,8 +48,10 @@ export const convertFromPermissionsMap = (permissions: IPermissionMap) => {
   const permissionsList: string[] = [];
 
   Object.entries(permissions).forEach(([role, values]) => {
-    roles.push(role as RoleEnum);
-    permissionsList.push(...values);
+    if (Object.values(RoleEnum).includes(role as any)) {
+      roles.push(role as RoleEnum);
+      permissionsList.push(...values);
+    }
   });
 
   return { roles, permissions: permissionsList };
@@ -142,9 +144,13 @@ export const useAddUser = () => {
         errors: { roles: 'selecione ao menos uma role' },
       }));
 
+    const roles = userData.roles.filter((role) =>
+      Object.values(RoleEnum).includes(role),
+    );
+
     const submitData = {
       status: userData.status,
-      roles: userData.roles,
+      roles,
       permissions: convertFromPermissionsMap(userData.permissions).permissions,
       companyId: userData.company?.id,
       ...(userData.group ? { groupId: userData.group.id } : {}),

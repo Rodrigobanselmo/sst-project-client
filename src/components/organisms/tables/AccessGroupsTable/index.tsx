@@ -1,7 +1,7 @@
 import { FC } from 'react';
 
 import BadgeIcon from '@mui/icons-material/Badge';
-import { Box, BoxProps } from '@mui/material';
+import { BoxProps } from '@mui/material';
 import {
   STable,
   STableBody,
@@ -14,10 +14,8 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { ModalAddAccessGroup } from 'components/organisms/modals/ModalAddAccessGroup';
 import { initialAccessGroupState } from 'components/organisms/modals/ModalAddAccessGroup/hooks/useAddAccessGroup';
 import { convertToPermissionsMap } from 'components/organisms/modals/ModalAddUsers/hooks/useAddUser';
-import { RoleEnum } from 'project/enum/roles.enums';
 
 import EditIcon from 'assets/icons/SEditIcon';
 
@@ -62,6 +60,7 @@ export const AccessGroupsTable: FC<
       description: group.description,
       roles: group.roles,
       permissions: convertToPermissionsMap(group.roles, group.permissions),
+      companyId: group.companyId,
     } as Partial<typeof initialAccessGroupState>);
   };
 

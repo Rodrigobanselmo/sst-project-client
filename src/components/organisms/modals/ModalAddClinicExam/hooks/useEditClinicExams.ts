@@ -2,63 +2,64 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
-import { useSnackbar } from 'notistack';
+import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import {
-  ExamTypeEnum,
-  IExam,
-  IExamToClinicPricing,
-} from 'core/interfaces/api/IExam';
+import { ClinicScheduleTypeEnum, IExam } from 'core/interfaces/api/IExam';
 import {
   ICreateClientExam,
   useMutUpsertClientExam,
 } from 'core/services/hooks/mutations/checklist/exams/useMutUpsertClientExam/useMutCreateClientExam';
+import { useQueryClinicExams } from 'core/services/hooks/queries/useQueryClinicExams/useQueryClinicExams';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
+import { dateToDateLessTime } from 'core/utils/date/date-format';
+import {
+  cleanObjectNullValues,
+  cleanObjectValues,
+} from 'core/utils/helpers/cleanObjectValues';
 import { moneyConverter } from 'core/utils/helpers/money';
-import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { clinicExamsSchema } from './../../../../../core/utils/schemas/clinicExams.schema';
 
-export const initialExamState = {
+export const initialClinicExamState = {
   id: 0,
   name: '',
   examId: 0,
   companyId: '',
+  examMinDuration: 0,
+  observation: '',
   dueInDays: 0,
   isScheduled: null,
-  observation: '',
   exam: {} as IExam,
   status: StatusEnum.ACTIVE,
-  pricings: [] as IExamToClinicPricing[],
-  price: '',
+  startDate: dayjs().toDate() as Date | undefined,
+  endDate: undefined as Date | undefined,
+  scheduleType: '' as ClinicScheduleTypeEnum,
+  scheduleRange: undefined as Record<string, string> | undefined,
+  price: undefined as number | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (clinicExam: IExam | null) => {},
 };
 
 interface ISubmit {
-  name: string;
   type: string;
   price: string;
+  examMinDuration: string;
+  scheduleType: ClinicScheduleTypeEnum;
+  dueInDays: number;
 }
 
 const modalName = ModalEnum.EXAMS_CLINIC_ADD;
 
 export const useEditClinicExams = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
-  const { user } = useGetCompanyId();
-
+  const { onCloseModal, onStackOpenModal } = useModal();
   const { data: company } = useQueryCompany();
-  const { data: userCompany } = useQueryCompany(user?.companyId);
 
   const { handleSubmit, setValue, setError, control, reset, getValues } =
     useForm({ resolver: yupResolver(clinicExamsSchema) });
@@ -68,38 +69,48 @@ export const useEditClinicExams = () => {
 
   const { preventUnwantedChanges } = usePreventAction();
 
-  const initialDataRef = useRef(initialExamState);
+  const initialDataRef = useRef(initialClinicExamState);
   const [clinicExamData, setClinicExamData] = useState({
-    ...initialExamState,
+    ...initialClinicExamState,
   });
 
-  const companies = removeDuplicate([userCompany, company], {
-    removeById: 'id',
-  });
+  const { data: allClinicExams } = useQueryClinicExams(
+    1,
+    {
+      examId: clinicExamData.examId,
+      companyId: clinicExamData.companyId,
+      orderBy: 'startDate',
+      orderByDirection: 'asc',
+    },
+    5,
+  );
 
   const isEdit = !!clinicExamData?.id;
 
+  const initializeModalDate = (initialData?: any) => {
+    if (!initialData) return;
+
+    setClinicExamData((oldData) => {
+      const newData = {
+        ...oldData,
+        ...cleanObjectNullValues(initialData),
+      };
+      initialDataRef.current = newData;
+
+      return newData;
+    });
+  };
+
   useEffect(() => {
     const initialData =
-      getModalData<Partial<typeof initialExamState>>(modalName);
+      getModalData<Partial<typeof initialClinicExamState>>(modalName);
 
-    if (initialData) {
-      setClinicExamData((oldData) => {
-        const newData = {
-          ...oldData,
-          ...initialData,
-        };
-
-        initialDataRef.current = newData;
-
-        return newData;
-      });
-    }
+    initializeModalDate(initialData);
   }, [company, getModalData]);
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
-    setClinicExamData(initialExamState);
+    setClinicExamData(initialClinicExamState);
     reset();
   };
 
@@ -116,9 +127,15 @@ export const useEditClinicExams = () => {
     onClose();
   };
 
-  const onSubmit: SubmitHandler<ISubmit> = async (data) => {
+  const onSubmit: SubmitHandler<ISubmit> = async ({ type, ...data }) => {
     if (!clinicExamData?.exam?.id) {
       return setError('exam', { message: 'Exame obrigatório' });
+    }
+
+    const startDate = dateToDateLessTime(clinicExamData.startDate);
+
+    if (!startDate) {
+      return setError('startDate', { message: 'Data de início obrigatório' });
     }
 
     const submitData: ICreateClientExam = {
@@ -126,16 +143,18 @@ export const useEditClinicExams = () => {
       companyId: clinicExamData.companyId,
       examId: clinicExamData.exam.id,
       status: clinicExamData.status,
+      scheduleRange: clinicExamData.scheduleRange,
+      startDate: startDate,
       price: moneyConverter(data.price) || undefined,
-      isScheduled: !!Number(data.type),
+      isScheduled: !!Number(type),
+      observation: clinicExamData.observation,
     };
-    console.log(submitData);
 
     try {
-      // await upsertMutation
-      //   .mutateAsync(submitData)
-      //   .then((clinicExam) => clinicExamData.callback(clinicExam));
-      // onClose();
+      await upsertMutation
+        .mutateAsync(submitData)
+        .then((clinicExam) => clinicExamData.callback(clinicExam));
+      onClose();
     } catch (error) {}
   };
 
@@ -151,9 +170,11 @@ export const useEditClinicExams = () => {
     handleSubmit,
     setClinicExamData,
     setValue,
-    companies,
     modalName,
     isEdit,
+    allClinicExams,
+    initializeModalDate,
+    onStackOpenModal,
   };
 };
 

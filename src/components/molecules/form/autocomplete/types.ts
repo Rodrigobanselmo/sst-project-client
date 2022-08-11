@@ -13,5 +13,7 @@ export type AutocompleteFormProps<T> = Omit<
   label?: string;
   defaultValue?: T | string;
   onChange?: (value: T) => void;
+  onGetValue?: (value: T) => string;
+  setValue?: (value: T | string) => void;
   mask?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
 };

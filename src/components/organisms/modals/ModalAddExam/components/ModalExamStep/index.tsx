@@ -5,6 +5,7 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
+import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
@@ -13,6 +14,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import { examsOptionsList } from 'core/constants/maps/exams.map';
 
+import esocial27 from '../../../../../../json/esocial27.json';
 import { IUseEditExam } from '../../hooks/useEditExams';
 
 const DraftEditor = dynamic(
@@ -29,6 +31,7 @@ export const ModalExamStep = ({
   examData,
   control,
   setExamData,
+  setValue,
 }: IUseEditExam) => {
   return (
     <SFlex sx={{ minWidth: [300, 600, 800] }} direction="column" mt={8}>
@@ -36,16 +39,44 @@ export const ModalExamStep = ({
         Dados Pessoais
       </SText>
 
-      <InputForm
-        autoFocus
-        defaultValue={examData.name}
-        label="Nome*"
-        labelPosition="center"
-        control={control}
-        placeholder={'nome do exame...'}
-        name="name"
-        size="small"
-      />
+      <SFlex mt={5} flexWrap="wrap" gap={5}>
+        <Box flex={5}>
+          <AutocompleteForm
+            name="name"
+            control={control}
+            freeSolo
+            getOptionLabel={(option) => `${option.code} - ${option.name}`}
+            inputProps={{
+              autoFocus: true,
+              labelPosition: 'top',
+              placeholder: 'pesquisar eSocial tabela 27...',
+              name: 'name',
+              value: examData.name,
+            }}
+            onGetValue={(option) => {
+              setValue('esocial27Code', option.code);
+              return option.name;
+            }}
+            setValue={(v: any) =>
+              setValue('name', typeof v === 'string' ? v : v.name)
+            }
+            defaultValue={examData.name || ''}
+            label="Nome do exame*"
+            options={esocial27}
+          />
+        </Box>
+        <Box flex={2}>
+          <InputForm
+            defaultValue={examData.esocial27Code}
+            label="Cod. eSocial"
+            labelPosition="top"
+            control={control}
+            placeholder={'código eSocial...'}
+            name="esocial27Code"
+            size="small"
+          />
+        </Box>
+      </SFlex>
 
       <SFlex mt={5} flexWrap="wrap" gap={5}>
         <Box flex={5}>
@@ -119,20 +150,22 @@ export const ModalExamStep = ({
           });
         }}
       />
-      {/* {examData.id && ( */}
-      <SSwitch
-        onChange={() => {
-          setExamData({
-            ...examData,
-            isAttendance: !examData.isAttendance,
-          });
-        }}
-        checked={examData.isAttendance}
-        label="Atendimento (ASO)"
-        sx={{ mr: 4 }}
-        color="text.light"
-      />
-      {/* )} */}
+      {!examData.id && (
+        <Box ml={7}>
+          <SSwitch
+            onChange={() => {
+              setExamData({
+                ...examData,
+                isAttendance: !examData.isAttendance,
+              });
+            }}
+            checked={examData.isAttendance}
+            label="Atendimento (ASO)"
+            sx={{ mr: 4 }}
+            color="text.light"
+          />
+        </Box>
+      )}
       {!!examData.id && (
         <StatusSelect
           sx={{ maxWidth: '90px', mt: 10 }}

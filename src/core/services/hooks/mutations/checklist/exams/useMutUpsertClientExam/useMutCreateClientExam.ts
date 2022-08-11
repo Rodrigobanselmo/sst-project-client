@@ -5,7 +5,7 @@ import { useSnackbar } from 'notistack';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IExam } from 'core/interfaces/api/IExam';
+import { ClinicScheduleTypeEnum, IExam } from 'core/interfaces/api/IExam';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
@@ -14,11 +14,15 @@ import { IErrorResp } from '../../../../../errors/types';
 export interface ICreateClientExam {
   examId: number;
   companyId: string;
+  startDate: Date;
   dueInDays?: number;
   price?: number;
   isScheduled?: boolean;
   observation?: string;
   status?: string;
+  scheduleRange?: any;
+  examMinDuration?: string;
+  scheduleType?: ClinicScheduleTypeEnum;
 }
 
 export async function createExam(data: ICreateClientExam, companyId?: string) {
@@ -42,7 +46,7 @@ export function useMutUpsertClientExam() {
     {
       onSuccess: async (newExam) => {
         if (newExam) {
-          queryClient.invalidateQueries([QueryEnum.EXAMS]);
+          queryClient.invalidateQueries([QueryEnum.CLINIC_EXAMS]);
         }
 
         enqueueSnackbar('Exames inseridos com sucesso', {

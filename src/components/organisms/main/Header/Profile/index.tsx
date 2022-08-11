@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Text from '@mui/material/Typography';
 
 import { useAuth } from 'core/contexts/AuthContext';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { useDisclosure } from '../../../../../core/hooks/useDisclosure';
 import { NavPopper } from './components/NavPopper';
@@ -18,6 +19,7 @@ export function Profile({
   const { user } = useAuth();
 
   const { isOpen, toggle, close } = useDisclosure();
+  const { data: company } = useQueryCompany(user?.companyId);
 
   const name = user?.name || 'Usuário não identificado';
   const email = user?.email || '';
@@ -43,12 +45,19 @@ export function Profile({
       )}
       <Avatar
         ref={anchorEl}
+        src={company?.logoUrl || undefined}
         alt={name}
         sx={{
           // backgroundColor: stringToColor(name),
           backgroundColor: 'gray.700',
           width: ['32px', '48px'],
           height: ['32px', '48px'],
+          ...(company?.logoUrl && { borderRadius: '0px' }),
+          '& .MuiAvatar-img': {
+            backgroundColor: 'background.default',
+            objectFit: 'contain',
+            p: 1,
+          },
         }}
       >
         {name.split(' ')[0][0]}

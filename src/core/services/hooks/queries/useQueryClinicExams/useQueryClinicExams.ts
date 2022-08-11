@@ -14,6 +14,10 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryExam {
   search?: string | null;
   companyId?: string;
+  examId?: number;
+  endDate?: Date | null;
+  orderBy?: string;
+  orderByDirection?: 'asc' | 'desc';
 }
 
 export const queryExams = async (
@@ -44,7 +48,7 @@ export function useQueryClinicExams(
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.CLINIC_EXAMS, page, { companyId, ...query }],
+    [QueryEnum.CLINIC_EXAMS, page, { companyId, ...pagination, ...query }],
     () => queryExams(pagination, { companyId, ...query }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

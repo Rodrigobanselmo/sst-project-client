@@ -4,6 +4,7 @@ export enum RoutesEnum {
   CHECKLIST = '/dashboard/checklist',
   COMPANIES = '/dashboard/empresas',
   CLINICS = '/dashboard/clinicas',
+  CLINIC = '/dashboard/clinicas/:companyId',
   COMPANY = '/dashboard/empresas/:companyId',
   COMPANY_GROUP = '/dashboard/empresas/:companyId/grupos',
   DASHBOARD = '/dashboard',

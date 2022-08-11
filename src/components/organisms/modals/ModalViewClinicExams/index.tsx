@@ -51,7 +51,7 @@ export const ModalViewClinicExams: FC = () => {
 
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();
-    onCloseModal();
+    onCloseModal(modalName);
   };
 
   const handleSelect = (ClinicExams?: IExamToClinic) => {

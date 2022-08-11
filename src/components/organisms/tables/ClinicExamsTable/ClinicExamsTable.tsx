@@ -14,6 +14,7 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import { initialClinicExamState } from 'components/organisms/modals/ModalAddClinicExam/hooks/useEditClinicExams';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -43,7 +44,7 @@ export const ClinicExamsTable: FC<
     data: exams,
     isLoading: loadExams,
     count,
-  } = useQueryClinicExams(page, { search }, rowsPerPage);
+  } = useQueryClinicExams(page, { search, endDate: null }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
 
@@ -52,13 +53,17 @@ export const ClinicExamsTable: FC<
   };
 
   const onAddExam = () => {
-    onStackOpenModal(ModalEnum.EXAMS_CLINIC_ADD, {} as typeof initialExamState);
+    onStackOpenModal(
+      ModalEnum.EXAMS_CLINIC_ADD,
+      {} as typeof initialClinicExamState,
+    );
   };
 
-  const onEditExam = (exam: IExamToClinic) => {
+  const onEditExam = ({ startDate, ...exam }: IExamToClinic) => {
     onStackOpenModal(ModalEnum.EXAMS_CLINIC_ADD, {
       ...(exam as any),
-    } as typeof initialExamState);
+      ...(new Date(startDate) > new Date() && { startDate }),
+    } as typeof initialClinicExamState);
   };
 
   const onSelectRow = (exam: IExamToClinic) => {
@@ -110,10 +115,7 @@ export const ClinicExamsTable: FC<
                 )}
                 <TextIconRow clickable text={getText(exam?.name)} />
                 <TextIconRow clickable text={getText(row?.dueInDays)} />
-                <TextIconRow
-                  clickable
-                  text={getMoney(row?.pricings?.[0]?.price)}
-                />
+                <TextIconRow clickable text={getMoney(row?.price)} />
                 <StatusSelect
                   large={false}
                   sx={{ maxWidth: '90px' }}

@@ -25,18 +25,33 @@ export const ModalAddAccessGroup = () => {
     setAccessGroupData,
     control,
     handleSubmit,
+    submitType,
     isEdit,
   } = useAddAccessGroup();
 
   const buttons = [
     {},
     {
+      text: 'Criar Cópia',
+      variant: 'outlined',
+      type: 'submit',
+      onClick: () => {
+        submitType.current = 'copy';
+        setAccessGroupData({ ...accessGroupData });
+      },
+    },
+    {
       text: isEdit ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
-      onClick: () => setAccessGroupData({ ...accessGroupData }),
+      onClick: () => {
+        submitType.current = '';
+        setAccessGroupData({ ...accessGroupData });
+      },
     },
   ] as IModalButton[];
+
+  if (!isEdit) buttons.splice(1, 1);
 
   return (
     <SModal

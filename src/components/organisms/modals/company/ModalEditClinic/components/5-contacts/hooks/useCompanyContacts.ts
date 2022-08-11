@@ -50,7 +50,7 @@ export const useCompanyContacts = ({
 
       onClose();
       if (closeAndGoTo)
-        push(RoutesEnum.CLINICS.replace(':companyId', companyData.id));
+        push(RoutesEnum.CLINIC.replace(':companyId', companyData.id));
     }
   };
 

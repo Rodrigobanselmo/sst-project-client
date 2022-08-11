@@ -32,7 +32,7 @@ export async function createRecMed(data: ICreateRecMed, companyId?: string) {
 
 export function useMutCreateRecMed() {
   const { enqueueSnackbar } = useSnackbar();
-  const { companyId, user } = useGetCompanyId();
+  const { companyId, user } = useGetCompanyId(true);
 
   return useMutation(
     async (data: ICreateRecMed) =>

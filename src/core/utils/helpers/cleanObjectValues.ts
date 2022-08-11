@@ -11,3 +11,13 @@ export const cleanObjectValues = (obj: Object) => {
 
   return copy;
 };
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export const cleanObjectNullValues = (obj: Object) => {
+  const copy = clone(obj) as any;
+  Object.keys(copy).forEach((key) => {
+    if (!copy[key]) delete copy[key];
+  });
+
+  return copy;
+};

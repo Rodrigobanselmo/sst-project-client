@@ -34,7 +34,7 @@ export function useQueryEpis(page = 0, query = {} as IQueryEpi, take: number) {
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EPIS, page, query],
+    [QueryEnum.EPIS, page, { ...pagination, ...query }],
     () => queryEpis(pagination, query),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

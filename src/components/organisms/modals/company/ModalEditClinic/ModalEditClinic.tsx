@@ -7,11 +7,13 @@ import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/W
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { addressClinicSchema } from 'core/utils/schemas/address.schema';
+import { bankSchema } from 'core/utils/schemas/bank.schema';
 import { clinicSchema } from 'core/utils/schemas/clinic.schema';
 
 import { DataModalCompanyStep } from './components/1-data';
 import { AddressModalCompanyStep } from './components/2-address';
-import { FourthModalCompanyStep } from './components/4-logo';
+import { FourthModalCompanyStep } from './components/3-logo';
+import { BankModalCompanyStep } from './components/4-bank';
 import { ContactModalCompanyStep } from './components/5-contacts';
 import { useEditCompany } from './hooks/useEditCompany';
 
@@ -47,16 +49,18 @@ export const ModalEditClinic = () => {
                   { label: 'Dados da clínica' },
                   { label: 'Endereço' },
                   { label: 'Informações Adcionais' },
+                  { label: 'Dados Bancários' },
                   { label: 'Contato' },
                 ]}
               />
             ) : null
           }
-          schemas={[clinicSchema, addressClinicSchema]}
+          schemas={[clinicSchema, bankSchema, addressClinicSchema]}
         >
           <DataModalCompanyStep {...props} />
           <AddressModalCompanyStep {...props} />
           <FourthModalCompanyStep {...props} />
+          <BankModalCompanyStep {...props} />
           <ContactModalCompanyStep {...props} />
         </Wizard>
       </SModalPaper>

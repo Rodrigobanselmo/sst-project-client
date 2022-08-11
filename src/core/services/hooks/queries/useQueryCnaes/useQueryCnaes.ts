@@ -37,7 +37,7 @@ export function useQueryCnaes(page = 1, query = {} as IQueryCnae, take = 20) {
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.CNAES, page, { ...query }],
+    [QueryEnum.CNAES, page, { ...pagination, ...query }],
     () => queryCnaes(pagination, { ...query }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

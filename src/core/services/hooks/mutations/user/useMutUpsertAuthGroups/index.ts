@@ -43,7 +43,7 @@ export function useMutUpsertAccessGroup() {
 
   return useMutation(
     async (data: IUpsertAccessGroup) =>
-      upsertAccessGroup({ ...data }, user?.companyId),
+      upsertAccessGroup({ ...data }, data?.companyId || user?.companyId),
     {
       onSuccess: async (resp) => {
         if (resp)

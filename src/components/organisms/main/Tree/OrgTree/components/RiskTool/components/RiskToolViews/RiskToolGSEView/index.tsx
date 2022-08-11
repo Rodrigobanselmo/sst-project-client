@@ -26,7 +26,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
   const selectedGho = useAppSelector((state) => state.gho.selected);
   const { enqueueSnackbar } = useSnackbar();
 
-  const { companyId } = useGetCompanyId();
+  const { companyId: userCompanyId } = useGetCompanyId(true);
 
   const { query } = useRouter();
 
@@ -58,7 +58,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
     //! if other company adds a risk it does not appear for me
     const risk = queryClient.getQueryData([
       QueryEnum.RISK,
-      companyId,
+      userCompanyId,
     ]) as IRiskFactors[];
 
     if (!risk) return [];
@@ -87,7 +87,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
 
     return data;
   }, [
-    companyId,
+    userCompanyId,
     riskDataQuery,
     selectedGhoFilter.key,
     selectedGhoFilter.value,

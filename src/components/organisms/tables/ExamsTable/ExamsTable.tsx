@@ -60,14 +60,7 @@ export const ExamsTable: FC<
 
   const onEditExam = (exam: IExam) => {
     onStackOpenModal(ModalEnum.EXAMS_ADD, {
-      id: exam.id,
-      name: exam.name,
-      type: exam.type,
-      companyId: exam.companyId,
-      instruction: exam.instruction,
-      analyses: exam.analyses,
-      status: exam.status,
-      material: exam.material,
+      ...exam,
     } as typeof initialExamState);
   };
 

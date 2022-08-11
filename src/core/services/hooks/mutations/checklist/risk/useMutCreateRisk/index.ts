@@ -35,7 +35,7 @@ export async function createRisk(data: ICreateRisk, companyId?: string) {
 }
 
 export function useMutCreateRisk() {
-  const { companyId, user } = useGetCompanyId();
+  const { companyId, user } = useGetCompanyId(true);
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(

@@ -34,5 +34,11 @@ export const dateToString = (
 };
 
 export const dateToDate = (date: Date | null | undefined) => {
-  return date ? dayjs(date).toDate() : undefined;
+  return date ? dayjs(date).set('h', 0).toDate() : undefined;
+};
+
+export const dateToDateLessTime = (date: Date | null | undefined) => {
+  return date
+    ? dayjs(date).set('h', 0).set('m', 0).set('s', 0).set('ms', 0).toDate()
+    : undefined;
 };

@@ -32,3 +32,8 @@ declare module '@mui/material/styles/createPalette' {
 declare module '@mui/material/styles/createMixins' {
   interface Mixins extends CustomMixin {}
 }
+
+declare module '*.json' {
+  const value: any;
+  export default value;
+}

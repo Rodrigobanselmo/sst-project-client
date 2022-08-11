@@ -41,7 +41,7 @@ export async function updateGenerateSource(
 }
 
 export function useMutUpdateGenerateSource() {
-  const { companyId, user } = useGetCompanyId();
+  const { companyId, user } = useGetCompanyId(true);
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(

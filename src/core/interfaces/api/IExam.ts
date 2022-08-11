@@ -10,6 +10,14 @@ export enum ExamTypeEnum {
   OTHERS = 'OTHERS',
 }
 
+export enum ClinicScheduleTypeEnum {
+  PHONE = 'PHONE',
+  EMAIL = 'EMAIL',
+  ONLINE = 'ONLINE',
+  ASK = 'ASK',
+  NONE = 'NONE',
+}
+
 export interface IExam {
   id: number;
   name: string;
@@ -34,8 +42,11 @@ export interface IExamToClinic {
   dueInDays: number;
   isScheduled: boolean;
   observation: string;
+  examMinDuration: number;
+  scheduleType: ClinicScheduleTypeEnum;
   exam?: IExam;
-  pricings?: IExamToClinicPricing[];
+  price: number;
+  startDate: Date;
   scheduleRange?: Record<string, string>;
   status: StatusEnum;
 }

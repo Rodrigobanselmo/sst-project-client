@@ -24,7 +24,7 @@ export async function deleteRecMed(id: string) {
 
 export function useMutDeleteRecMed() {
   const { enqueueSnackbar } = useSnackbar();
-  const { companyId } = useGetCompanyId();
+  const { companyId } = useGetCompanyId(true);
 
   return useMutation(async (id: string) => deleteRecMed(id), {
     onSuccess: async (newRecMed) => {

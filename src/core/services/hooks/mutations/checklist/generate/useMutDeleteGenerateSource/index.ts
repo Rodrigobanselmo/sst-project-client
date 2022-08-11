@@ -23,7 +23,7 @@ export async function deleteGenerateSource(id: string) {
 }
 
 export function useMutDeleteGenerateSource() {
-  const { companyId } = useGetCompanyId();
+  const { companyId } = useGetCompanyId(true);
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(async (id: string) => deleteGenerateSource(id), {

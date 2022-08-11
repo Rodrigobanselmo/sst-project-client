@@ -1,5 +1,5 @@
 export const getMoney = (money?: number) => {
-  if (typeof money !== 'number') return '-';
+  if (typeof money !== 'number') return '';
 
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',

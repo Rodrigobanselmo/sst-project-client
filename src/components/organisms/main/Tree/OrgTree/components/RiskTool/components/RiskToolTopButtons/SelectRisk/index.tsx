@@ -30,7 +30,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
   viewType,
 }) => {
   const dispatch = useAppDispatch();
-  const { companyId } = useGetCompanyId();
+  const { companyId: userCompanyId } = useGetCompanyId(true);
   const selectedRisks = useAppSelector(selectRisks);
   const selectedGho = useAppSelector((state) => state.gho.selected);
   const selectedRiskStore = useAppSelector(selectRisk);
@@ -76,7 +76,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
         //! if other company adds a risk it does not appear for me
         const allRisks = queryClient.getQueryData<IRiskFactors[]>([
           QueryEnum.RISK,
-          companyId,
+          userCompanyId,
         ]);
 
         if (!allRisks) return;

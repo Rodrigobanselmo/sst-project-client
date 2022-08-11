@@ -3,7 +3,9 @@ import { useEffect, useRef, useState } from 'react';
 
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
+import { ObjectSchema } from 'yup';
 
+import { CompanyPaymentTypeEnum } from 'core/enums/company-payment-type.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -37,6 +39,10 @@ export const initialCompanyState = {
   secondary_activity: [] as ICnae[],
   phone: '',
   riskDegree: '',
+  isTaxNote: false,
+  paymentDay: undefined as number | undefined,
+  paymentType: '' as CompanyPaymentTypeEnum,
+  observationBank: '',
   operationTime: '',
   legal_nature: '',
   cadastral_situation: '',
@@ -93,9 +99,18 @@ export const useEditCompany = () => {
 
     if (initialData) {
       setCompanyData((oldData) => {
+        const replaceData = {} as any;
+
+        Object.keys(oldData).map((key) => {
+          if (key in initialData) {
+            replaceData[key] =
+              (initialData as any)[key] || (initialCompanyState as any)[key];
+          }
+        });
+
         const newData = {
           ...oldData,
-          ...initialData,
+          ...replaceData,
         };
 
         initialDataRef.current = newData;
@@ -122,7 +137,7 @@ export const useEditCompany = () => {
     nextStep: () => void,
     { save }: { save?: boolean } = {},
   ) => {
-    if (!isEdit && save) {
+    if (!isEdit && save && !companyData.id) {
       await createCompany
         .mutateAsync(submitData)
         .then((company) => {
