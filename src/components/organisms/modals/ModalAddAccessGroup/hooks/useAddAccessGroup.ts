@@ -14,6 +14,7 @@ import {
   IUpsertAccessGroup,
   useMutUpsertAccessGroup,
 } from 'core/services/hooks/mutations/user/useMutUpsertAuthGroups';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import {
   convertFromPermissionsMap,
@@ -101,8 +102,8 @@ export const useAddAccessGroup = () => {
     );
 
     const submitData: IUpsertAccessGroup = {
-      roles,
-      permissions,
+      roles: removeDuplicate(roles, { simpleCompare: true }),
+      permissions: removeDuplicate(permissions, { simpleCompare: true }),
       companyId: accessGroupData.companyId,
       ...data,
     };

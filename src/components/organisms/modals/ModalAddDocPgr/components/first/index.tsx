@@ -125,7 +125,7 @@ export const FirstModalStep = (props: IUseAddCompany) => {
               label="Coordenador do programa (opcional)"
               control={control}
               placeholder={'pessoa responsavél por operacionalizar o PRG...'}
-              name="approvedBy"
+              name="coordinatorBy"
               size="small"
               smallPlaceholder
               inputProps={{

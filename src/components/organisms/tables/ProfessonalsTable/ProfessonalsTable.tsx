@@ -140,11 +140,14 @@ export const ProfessionalsTable: FC<
     {
       search,
       type: pageData().filters,
-      companies: isClinic
-        ? typeof query.companyId === 'string'
-          ? [query.companyId]
-          : undefined
-        : undefined,
+      ...(isClinic
+        ? {
+            companies:
+              typeof query.companyId === 'string'
+                ? [query.companyId]
+                : undefined,
+          }
+        : {}),
     },
     rowsPerPage,
   );

@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { useSnackbar } from 'notistack';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
@@ -17,10 +18,12 @@ import {
   ICreateProfessional,
   useMutCreateProfessional,
 } from 'core/services/hooks/mutations/user/professionals/useMutCreateProfessional';
+import { useMutFindFirstProfessional } from 'core/services/hooks/mutations/user/professionals/useMutGetProfessionals';
 import { useMutUpdateProfessional } from 'core/services/hooks/mutations/user/professionals/useMutUpdateProfessional';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
+import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { professionalSchema } from 'core/utils/schemas/professional.schema';
 
 export const initialProfessionalState = {
@@ -74,6 +77,7 @@ export const useEditProfessionals = () => {
 
   const createMutation = useMutCreateProfessional();
   const updateMutation = useMutUpdateProfessional();
+  const findFirstMutation = useMutFindFirstProfessional();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -176,6 +180,57 @@ export const useEditProfessionals = () => {
     } catch (error) {}
   };
 
+  const onGetProfessional = async ({ cpf }: any) => {
+    const setValues = (data: IProfessional | null) => {
+      if (!data) return;
+
+      setValue('name', data?.name);
+      setValue('phone', data?.phone);
+      setValue('email', data?.email);
+      setValue('councilType', data?.councilType);
+      setValue('councilUF', data?.councilUF);
+      setValue('councilId', data?.councilId);
+      setValue('type', data?.type);
+      setValue('cpf', cpfMask.mask(data?.cpf));
+      if (data?.councilUF)
+        setProfessionalData((oldData) => ({
+          ...oldData,
+          councilUF: data.councilUF,
+        }));
+    };
+
+    if (cpf && cpf.length >= 14) {
+      const data = await findFirstMutation
+        .mutateAsync({ cpf: onlyNumbers(cpf) })
+        .catch(() => null);
+
+      return setValues(data);
+    }
+
+    if (cpf) return;
+
+    const councilType = getValues('councilType');
+    const councilUF = getValues('councilUF') || professionalData.councilUF;
+    const councilId = getValues('councilId');
+    console.log(
+      'councilType',
+      councilType,
+      councilId,
+      professionalData.councilUF,
+    );
+    if (councilType && councilUF && councilId) {
+      const data = await findFirstMutation
+        .mutateAsync({
+          councilId,
+          councilUF,
+          councilType,
+        })
+        .catch(() => null);
+
+      if (data?.id) return setValues(data);
+    }
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -189,6 +244,7 @@ export const useEditProfessionals = () => {
     setValue,
     companies,
     isManyCompanies,
+    onGetProfessional,
   };
 };
 

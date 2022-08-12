@@ -1,11 +1,13 @@
+/* eslint-disable @next/next/no-img-element */
 import { FC } from 'react';
 
-import MarkEmailReadIcon from '@mui/icons-material/MarkEmailReadOutlined';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
+
+import SMailIcon from 'assets/icons/SMailIcon';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -44,7 +46,7 @@ export const InvitesPopper: FC<IInvitesPopperProps> = ({
       color="paper"
       sx={{
         transform: 'translate(6px, 15px)',
-        width: '20rem',
+        width: '26rem',
         px: 0,
         py: 2,
         color: 'text.main',
@@ -60,7 +62,7 @@ export const InvitesPopper: FC<IInvitesPopperProps> = ({
           Você não tem convites pendentes.
         </SText>
       )}
-      {data.map(({ expires_date, companyName, id }) => {
+      {data.map(({ expires_date, logo, companyName, id }) => {
         const isValid = dayjs(expires_date).isValid();
         return (
           <StackStyled
@@ -71,8 +73,15 @@ export const InvitesPopper: FC<IInvitesPopperProps> = ({
             onClick={() => handleAcceptInvite(id)}
           >
             <SFlex align="center">
-              <MarkEmailReadIcon sx={{ fontSize: 14 }} />
-              <SText fontSize={14} flex={1}>
+              {!logo && <SMailIcon sx={{ fontSize: 14 }} />}
+              {logo && (
+                <img
+                  style={{ width: 70, marginRight: 5 }}
+                  alt="logomarca"
+                  src={logo}
+                />
+              )}
+              <SText lineNumber={2} fontSize={14} flex={1}>
                 {companyName}
               </SText>
               <SButton

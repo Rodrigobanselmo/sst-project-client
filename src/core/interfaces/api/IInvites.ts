@@ -5,5 +5,6 @@ export type IInvites = {
   email: string;
   roles: string[];
   permissions: string[];
+  logo?: string;
   companyName?: string;
 };

@@ -19,6 +19,9 @@ export interface IQueryProfessionals {
   search?: string | null;
   companyId?: string;
   companies?: string[];
+  councilUF?: string;
+  councilType?: string;
+  councilId?: string;
   type?: ProfessionalTypeEnum[];
 }
 
@@ -48,6 +51,8 @@ export function useQueryProfessionals(
     skip: (page - 1) * (take || 20),
     take: take || 20,
   };
+
+  console.log(query);
 
   const { data, ...result } = useQuery(
     [QueryEnum.PROFESSIONALS, page, { ...pagination, ...query, companyId }],

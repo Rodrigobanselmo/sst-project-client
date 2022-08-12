@@ -158,7 +158,6 @@ export const useStep = ({ data, setData, initialDataRef }: IUseAddCompany) => {
     if (index != -1) {
       dataCopy[type][index] = value;
     }
-    console.log(index, dataCopy[type]);
 
     setData({
       ...dataCopy,
@@ -182,7 +181,6 @@ export const useStep = ({ data, setData, initialDataRef }: IUseAddCompany) => {
     } as IProfessional;
 
     const index = dataCopy[type]?.findIndex((item) => item.id === value.id);
-    console.log(index, dataCopy[type]);
     if (index != -1) {
       dataCopy[type][index] = value;
     }

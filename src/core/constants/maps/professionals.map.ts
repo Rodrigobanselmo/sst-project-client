@@ -40,8 +40,8 @@ export const professionalMap = {
 
 export const professionalsHealthOptionsList = [
   professionalMap[ProfessionalTypeEnum.DOCTOR],
-  professionalMap[ProfessionalTypeEnum.NURSE],
-  professionalMap[ProfessionalTypeEnum.SPEECH_THERAPIST],
+  // professionalMap[ProfessionalTypeEnum.NURSE],
+  // professionalMap[ProfessionalTypeEnum.SPEECH_THERAPIST],
 ];
 
 export const professionalsSSTOptionsList = [

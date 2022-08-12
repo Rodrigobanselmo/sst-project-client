@@ -94,7 +94,6 @@ export function useMutUpsertManyHierarchy() {
             Record<string, IHierarchy>
           >([QueryEnum.HIERARCHY, companyId]);
           if (actualData) {
-            console.log(resp);
             resp.forEach((item) => {
               actualData[item.id] = item;
             });

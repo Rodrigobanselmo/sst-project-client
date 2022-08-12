@@ -1,7 +1,11 @@
+import { useEffect } from 'react';
+
 import { Typography } from '@mui/material';
 import { NextPage } from 'next';
+import { useRouter } from 'next/router';
 
-import { withSSRGuest } from 'core/utils/auth/withSSRGuest';
+import { useAuth } from 'core/contexts/AuthContext';
+import { RoutesEnum } from 'core/enums/routes.enums';
 
 import { SLogo } from '../../components/atoms/SLogo';
 import { brandNameConstant } from '../../core/constants/brand.constant';
@@ -9,6 +13,15 @@ import { LoginForm } from './components/SignForm';
 import { STContainer, STSectionBox } from './index.styles';
 
 const Home: NextPage = () => {
+  const { user } = useAuth();
+  const { push, query } = useRouter();
+
+  useEffect(() => {
+    if (user) {
+      push(RoutesEnum.DASHBOARD + '?token=' + query.token);
+    }
+  }, [push, query.token, user]);
+
   return (
     <STContainer sx={{ p: [10], gap: 10 }}>
       <STSectionBox component="section">
@@ -38,8 +51,8 @@ const Home: NextPage = () => {
 
 export default Home;
 
-export const getServerSideProps = withSSRGuest(async () => {
-  return {
-    props: {},
-  };
-});
+// export const getServerSideProps = withSSRGuest(async () => {
+//   return {
+//     props: {},
+//   };
+// });

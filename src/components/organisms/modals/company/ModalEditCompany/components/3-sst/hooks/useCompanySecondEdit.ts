@@ -57,7 +57,6 @@ export const useCompanyEdit = ({
       isSavedCreation: !isEdit,
     };
 
-    console.log(submitData);
     onSubmitData(submitData, nextStep, { save: true });
   };
 

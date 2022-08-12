@@ -17,6 +17,7 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { useMutInviteUser } from 'core/services/hooks/mutations/user/useMutInviteUser';
 import { useMutUpdateUserCompany } from 'core/services/hooks/mutations/user/useMutUpdateUserCompany';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { userManageSchema } from 'core/utils/schemas/user-manage.schema';
 
 import { initialAccessGroupsSelectState } from '../../ModalSelectAccessGroup';
@@ -39,7 +40,6 @@ export const convertToPermissionsMap = (
         ),
     );
   });
-
   return permissionsMap;
 };
 
@@ -65,6 +65,7 @@ export const initialUserState = {
     roles: '',
   },
   email: '',
+  sendEmail: true,
   company: null as ICompany | null,
   companies: [] as ICompany[],
   name: '',
@@ -77,9 +78,10 @@ export const useAddUser = () => {
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialUserState);
 
-  const { handleSubmit, control, reset, getValues } = useForm({
-    resolver: yupResolver(userManageSchema),
-  });
+  const { handleSubmit, setError, control, setValue, reset, getValues } =
+    useForm({
+      resolver: yupResolver(userManageSchema),
+    });
 
   const inviteUserMut = useMutInviteUser();
   const updateUserMut = useMutUpdateUserCompany();
@@ -138,11 +140,17 @@ export const useAddUser = () => {
   };
 
   const onSubmit: SubmitHandler<{ email: string }> = async (data) => {
+    if (!data?.email && userData.sendEmail) {
+      return setError('email', { message: 'E-mail é obrigatório' });
+    }
+
     if (userData.roles.length === 0)
       return setUserData((oldData) => ({
         ...oldData,
         errors: { roles: 'selecione ao menos uma role' },
       }));
+
+    const { permissions } = convertFromPermissionsMap(userData.permissions);
 
     const roles = userData.roles.filter((role) =>
       Object.values(RoleEnum).includes(role),
@@ -150,8 +158,8 @@ export const useAddUser = () => {
 
     const submitData = {
       status: userData.status,
-      roles,
-      permissions: convertFromPermissionsMap(userData.permissions).permissions,
+      roles: removeDuplicate(roles, { simpleCompare: true }),
+      permissions: removeDuplicate(permissions, { simpleCompare: true }),
       companyId: userData.company?.id,
       ...(userData.group ? { groupId: userData.group.id } : {}),
       ...(isConsulting
@@ -239,5 +247,6 @@ export const useAddUser = () => {
     handleOpenCompanySelect,
     handleRemoveCompany,
     isConsulting,
+    setValue,
   };
 };

@@ -29,7 +29,7 @@ export const initialProfessionalViewState = {
   multiple: false,
   query: {} as IQueryProfessionals,
   selected: [] as IProfessional[],
-  isClinic: true,
+  isClinic: false,
   toEdit: false,
   filter: ProfessionalFilterTypeEnum.ALL,
   onCloseWithoutSelect: () => {},

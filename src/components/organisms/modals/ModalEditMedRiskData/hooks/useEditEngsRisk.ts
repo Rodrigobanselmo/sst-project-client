@@ -61,7 +61,6 @@ export const useEditEngsRisk = () => {
           ...oldData,
           ...initialData,
         };
-        console.log(newData);
 
         initialDataRef.current = newData;
 

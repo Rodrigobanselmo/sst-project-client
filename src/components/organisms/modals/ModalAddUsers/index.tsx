@@ -4,6 +4,7 @@ import React from 'react';
 import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
+import { SSwitch } from 'components/atoms/SSwitch';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
@@ -40,6 +41,7 @@ export const ModalAddUsers = () => {
     handleOpenCompanySelect,
     handleRemoveCompany,
     isConsulting,
+    setValue,
   } = useAddUser();
 
   const buttons = [
@@ -72,15 +74,20 @@ export const ModalAddUsers = () => {
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
             autoFocus
-            disabled={isEdit}
+            disabled={isEdit || !userData.sendEmail}
             defaultValue={userData.email}
-            label="Email"
+            label={'Email'}
             control={control}
             sx={{ minWidth: ['100%', 600] }}
             placeholder={'email do usuário...'}
             name="email"
             size="small"
+            {...(!userData.sendEmail && {
+              helperText:
+                'Convidar usuário somente através de link compartilhável',
+            })}
           />
+
           {userData.name && (
             <InputForm
               autoFocus
@@ -95,6 +102,7 @@ export const ModalAddUsers = () => {
             />
           )}
         </SFlex>
+
         <SFlex mt={5} gap={5}>
           <STagButton
             maxWidth="200px"
@@ -112,6 +120,23 @@ export const ModalAddUsers = () => {
               text={'Adicionar Empresas'}
               onClick={handleOpenCompanySelect}
             />
+          )}
+          {!isEdit && (
+            <Box mt={-2} ml={'auto'}>
+              <SSwitch
+                onChange={() => {
+                  setValue('email', '');
+                  setUserData({
+                    ...userData,
+                    sendEmail: !userData.sendEmail,
+                  } as any);
+                }}
+                checked={userData.sendEmail}
+                label="Enviar e-mail"
+                sx={{ mr: 4 }}
+                color="text.light"
+              />
+            </Box>
           )}
           {isEdit && (
             <SFlex ml={'auto'} justify="end" gap={5}>

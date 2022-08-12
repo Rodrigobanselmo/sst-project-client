@@ -1,4 +1,5 @@
 import { initialUsersSelectState } from 'components/organisms/modals/ModalSelectUsers';
+import { initialProfessionalViewState } from 'components/organisms/modals/ModalViewProfessional';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -32,7 +33,7 @@ export const useAddEntities = ({
       },
       multiple,
       selected: values,
-    } as typeof initialUsersSelectState);
+    } as typeof initialProfessionalViewState);
 
   return {
     onSelectProfessionalUser,

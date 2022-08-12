@@ -78,7 +78,6 @@ export const useHandleModal = () => {
     value: IEmployee,
     type: 'selectedEmployees' = 'selectedEmployees',
   ) => {
-    console.log(value);
     setData({
       ...data,
       [type]: [

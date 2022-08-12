@@ -1,10 +1,14 @@
-import { BoxProps } from '@mui/material';
+import React, { useMemo } from 'react';
+
+import { getStates } from '@brazilian-utils/brazilian-utils';
+import { Box, BoxProps } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import { SSwitch } from 'components/atoms/SSwitch';
+import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioFormText } from 'components/molecules/form/radio-text';
+import { RadioForm } from 'components/molecules/form/radio';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
@@ -29,9 +33,14 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
     onAddArray,
     onDeleteArray,
     linkGoogle,
+    setValue,
   } = useUserForm(props.onlyEdit);
 
   useFetchFeedback(!user);
+
+  const ufs = useMemo(() => {
+    return getStates().map((state) => state.code);
+  }, []);
 
   if (!user || !userData) return null;
 
@@ -57,39 +66,46 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           mask={cpfMask.apply}
           size="small"
         />
-        <RadioFormText
-          ball
-          type="radio"
+        <GoogleButton onClick={linkGoogle} text="Vincular conta Google" />
+        <RadioForm
           disabled={uneditable}
           label="Profissão*"
           control={control}
           defaultValue={String(userData.type)}
           onChange={(e) => {
             const type = (e as any).target.value as ProfessionalTypeEnum;
+            if (type === ProfessionalTypeEnum.ENGINEER)
+              setValue('councilType', 'CREA');
+            else if (type === ProfessionalTypeEnum.NURSE)
+              setValue('councilType', 'COREN');
+            else if (type === ProfessionalTypeEnum.DOCTOR)
+              setValue('councilType', 'CRM');
+            // else if (type === ProfessionalTypeEnum.SPEECH_THERAPIST)
+            //   setValue('councilType', 'CFF');
+            else setValue('councilType', '');
 
             setUserData((old) => {
               return {
                 ...old,
                 type,
                 ...(type === ProfessionalTypeEnum.ENGINEER && {
-                  hasCREA: true,
+                  hasCouncil: true,
                 }),
-                ...(type === ProfessionalTypeEnum.DOCTOR && { hasCRM: true }),
+                ...(type === ProfessionalTypeEnum.DOCTOR && {
+                  hasCouncil: true,
+                }),
               };
             });
           }}
+          row
           options={professionalsOptionsList.map((professionalType) => ({
-            content: professionalType.name,
+            label: professionalType.name,
             value: professionalType.value,
           }))}
           name="type"
-          columns={3}
-          mt={5}
         />
 
-        <GoogleButton onClick={linkGoogle} text="Vincular conta Google" />
-
-        {userData.hasCREA && (
+        {/* {userData.hasCREA && (
           <InputForm
             defaultValue={userData?.crea}
             uneditable={uneditable}
@@ -99,9 +115,9 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
             name="crea"
             size="small"
           />
-        )}
+        )} */}
 
-        {userData.hasCRM && (
+        {/* {userData.hasCRM && (
           <InputForm
             defaultValue={userData?.crm}
             uneditable={uneditable}
@@ -111,6 +127,66 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
             name="crm"
             size="small"
           />
+        )} */}
+
+        {userData.hasCouncil && (
+          <SFlex mt={5} flexWrap="wrap" gap={5}>
+            <Box flex={5}>
+              <AutocompleteForm
+                name="councilType"
+                control={control}
+                freeSolo
+                disabled={uneditable}
+                getOptionLabel={(option) => String(option)}
+                inputProps={{
+                  labelPosition: 'top',
+                  placeholder: 'Exemplo: CREA, CRM',
+                  name: 'councilType',
+                }}
+                setValue={(v) => setValue('councilType', v)}
+                defaultValue={userData.councilType || ''}
+                sx={{ minWidth: [100] }}
+                label="Conselho"
+                options={['CRM', 'CREA', 'COREM']}
+              />
+            </Box>
+            <Box flex={1}>
+              <AutocompleteForm
+                name="councilUF"
+                inputProps={{
+                  labelPosition: 'top',
+                  placeholder: '__',
+                  name: 'councilUF',
+                }}
+                disabled={uneditable}
+                control={control}
+                placeholder={'estado...'}
+                defaultValue={userData.councilUF}
+                label="UF"
+                sx={{ minWidth: [100] }}
+                options={ufs}
+                onChange={(e: typeof ufs[0]) =>
+                  setUserData((old) => ({
+                    ...old,
+                    councilUF: e,
+                  }))
+                }
+              />
+            </Box>
+            <Box flex={1}>
+              <InputForm
+                defaultValue={userData.councilId}
+                label="Identificação"
+                labelPosition="top"
+                disabled={uneditable}
+                sx={{ minWidth: [300, 400] }}
+                control={control}
+                placeholder={'identificação...'}
+                name="councilId"
+                size="small"
+              />
+            </Box>
+          </SFlex>
         )}
 
         {userData.hasFormation && (
@@ -162,7 +238,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
         </SFlex>
       </SFlex>
       <SFlex gap={8} direction="column" mt={15}>
-        <SSwitch
+        {/* <SSwitch
           onChange={() => {
             setUserData({
               ...userData,
@@ -187,6 +263,22 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           }}
           checked={userData.hasCRM}
           label="Adicionar CRM"
+          sx={{ mr: 4 }}
+          color="text.light"
+        /> */}
+        <SSwitch
+          onChange={() => {
+            setUserData({
+              ...userData,
+              councilType: '',
+              councilUF: '',
+              councilId: '',
+              hasCouncil: !userData.hasCouncil,
+            } as any);
+            onEdit(false);
+          }}
+          checked={userData.hasCouncil}
+          label="Adicionar Conselho"
           sx={{ mr: 4 }}
           color="text.light"
         />

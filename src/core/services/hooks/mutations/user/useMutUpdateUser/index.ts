@@ -24,6 +24,9 @@ export interface IUpdateUser {
   token?: string;
   oldPassword?: string;
   password?: string;
+  councilType?: string;
+  councilUF?: string;
+  councilId?: string;
 }
 
 export async function updateUserApi(data: IUpdateUser) {

@@ -14,13 +14,12 @@ const SAutocompleteSelect: FC<AutocompleteSelectProps> = ({
   label,
   options,
   inputProps,
-  clearOnBlur,
   ...props
 }) => (
   <StyledAutocompleteSelect
     options={options}
     popupIcon={<StyledAutocompleteIcon />}
-    noOptionsText={!clearOnBlur ? '' : 'Nenhuma opção'}
+    noOptionsText={'Nenhuma opção'}
     renderInput={(params) => (
       <SInput
         labelPosition="center"

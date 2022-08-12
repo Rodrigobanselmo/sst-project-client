@@ -77,7 +77,6 @@ export async function updateCharacterization(
       Authorization: `Bearer ${token}`,
     },
   });
-  console.log(response);
   return response.data;
 }
 
@@ -123,8 +122,6 @@ export function useMutUpsertCharacterization() {
                       newData[updateIndexData].profiles[updateIndexDataParent] =
                         resp;
                     } else {
-                      console.log(resp);
-                      console.log(newData[updateIndexData].profiles);
                       newData[updateIndexData].profiles = [
                         ...newData[updateIndexData].profiles,
                         resp,

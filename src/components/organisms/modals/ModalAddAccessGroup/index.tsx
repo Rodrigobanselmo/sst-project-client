@@ -68,7 +68,7 @@ export const ModalAddAccessGroup = () => {
         <SModalHeader
           tag={isEdit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Usuário'}
+          title={'Grupo de Acesso'}
         />
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm

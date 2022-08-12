@@ -94,7 +94,6 @@ export const ModalSelectUsers: FC = () => {
     >
       <SModalPaper center p={8}>
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
-
         <Box mt={8}>
           {users && users.length > 0 ? (
             <SFlex direction="column" gap={5}>

@@ -20,12 +20,14 @@ export const useUserForm = (onlyEdit?: boolean) => {
     resolver: yupResolver(userUpdateSchema),
   });
 
+  console.log(user);
+
   const [userData, setUserData] = useState({ ...createUser(user) });
   const [uneditable, setUneditable] = useState(onlyEdit ? false : true);
 
   useEffect(() => {
     if (user) {
-      ['crea', 'crm', 'name', 'cpf'].forEach((key) => {
+      ['crea', 'crm', 'name', 'cpf', 'type'].forEach((key) => {
         const keyValue = key as unknown as keyof typeof user;
         if (!!user && user[keyValue]) setValue(key, user[keyValue]);
       });
@@ -50,6 +52,7 @@ export const useUserForm = (onlyEdit?: boolean) => {
           (userData.type as ProfessionalTypeEnum) || ProfessionalTypeEnum.USER,
         crm: userData.crm,
         ...data,
+        councilUF: userData.councilUF,
       })
       .then(() => {
         setUneditable(true);
@@ -125,6 +128,7 @@ export const useUserForm = (onlyEdit?: boolean) => {
     onAddArray,
     onDeleteArray,
     linkGoogle,
+    setValue,
   };
 };
 
@@ -136,12 +140,16 @@ const createUser = (user: Partial<IUser> | null) => {
     crea: user?.crea || '',
     cpf: user?.cpf || '',
     type: user?.type || '',
+    councilType: user?.councilType || '',
+    councilUF: user?.councilUF || '',
+    councilId: user?.councilId || '',
     formation: user?.formation || [''],
     certifications: user?.certifications || [''],
     hasCREA: !!user?.crea,
     hasCRM: !!user?.crm,
-    hasFormation: true,
-    hasCertifications: true,
+    hasCouncil: !!user?.councilType,
+    hasFormation: false,
+    hasCertifications: false,
   };
 };
 
