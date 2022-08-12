@@ -13,6 +13,7 @@ export type IProfessional = {
   certifications: string[];
   cpf: string;
   phone: string;
+  userId: number;
   crm: string;
   crea: string;
   councilType: string;

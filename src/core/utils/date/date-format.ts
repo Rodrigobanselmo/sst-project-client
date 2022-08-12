@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
 
-export const dateFormat = (str: string) => {
+export const dateFormat = (str?: string) => {
+  if (!str) return undefined;
+
   const splitStr = str.split('/');
   if (splitStr.length === 3) {
     const day = splitStr[0];

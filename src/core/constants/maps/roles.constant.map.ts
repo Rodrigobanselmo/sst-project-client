@@ -50,13 +50,13 @@ export const rolesConstantMap = {
     order: 3,
   },
 
-  [RoleEnum.CONTRACTS]: {
-    value: RoleEnum.CONTRACTS,
-    label: 'Contratantes',
-    info: 'manejo de empresas cotratantes (criação e edição de contratos com outras empresas, edição de documentos e etc)',
-    permissions: [PermissionEnum.MANAGEMENT],
-    order: 1000,
-  },
+  // [RoleEnum.CONTRACTS]: {
+  //   value: RoleEnum.CONTRACTS,
+  //   label: 'Empresas Contratantes',
+  //   info: 'manejo de empresas cotratantes (criação e edição de contratos com outras empresas, edição de documentos e etc)',
+  //   permissions: [PermissionEnum.MANAGEMENT],
+  //   order: 1000,
+  // },
   [RoleEnum.DOCS]: {
     value: RoleEnum.DOCS,
     label: 'documentos',
@@ -69,6 +69,13 @@ export const rolesConstantMap = {
     label: 'Banco de dados',
     info: 'controle do banco de dados (importação e exportação de dados)',
     // permissions: [PermissionEnum.MANAGEMENT],
+    order: 1000,
+  },
+  [RoleEnum.CLINICS]: {
+    value: RoleEnum.CLINICS,
+    label: 'Clínicas',
+    info: 'acesso aos recursos das clínicas (prestadores)',
+    permissions: [PermissionEnum.EXAM, PermissionEnum.CLINIC],
     order: 1000,
   },
 } as IRolesOptions;

@@ -7,8 +7,10 @@ import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { useSnackbar } from 'notistack';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
+import { v4 } from 'uuid';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -28,13 +30,16 @@ import { professionalSchema } from 'core/utils/schemas/professional.schema';
 
 export const initialProfessionalState = {
   id: 0,
+  token: '',
   name: '',
   cpf: '',
   phone: '',
   email: '',
+  userId: 0,
   councilType: '',
   councilUF: '',
   councilId: '',
+  sendEmail: false,
   crm: '',
   crea: '',
   companyId: '',
@@ -53,12 +58,12 @@ interface ISubmit {
   cpf: string;
   phone: string;
   email: string;
+  type: ProfessionalTypeEnum;
   councilType: string;
   councilUF: string;
   councilId: string;
   crm: string;
   crea: string;
-  type: string;
 }
 
 export const useEditProfessionals = () => {
@@ -101,6 +106,7 @@ export const useEditProfessionals = () => {
       setProfessionalData((oldData) => {
         const newData = {
           ...oldData,
+          token: v4(),
           ...initialData,
         };
 
@@ -145,11 +151,12 @@ export const useEditProfessionals = () => {
       return;
     }
 
-    if (!professionalData.id && isManyCompanies && !data.companyId) {
-      setError('companyId', { message: 'Selecione uma empresa' });
-      enqueueSnackbar('Selecione uma empresa', { variant: 'error' });
-      return;
-    }
+    //? select company
+    // if (!professionalData.id && isManyCompanies && !data.companyId) {
+    //   setError('companyId', { message: 'Selecione uma empresa' });
+    //   enqueueSnackbar('Selecione uma empresa', { variant: 'error' });
+    //   return;
+    // }
 
     const submitData: ICreateProfessional & { id?: number } = {
       ...data,
@@ -157,7 +164,6 @@ export const useEditProfessionals = () => {
       certifications: professionalData.certifications,
       formation: professionalData.formation,
       status: professionalData.status,
-      type: professionalData.type,
       councilUF: professionalData.councilUF,
       ...(data.companyId && {
         companyId: data.companyId,
@@ -183,7 +189,7 @@ export const useEditProfessionals = () => {
   const onGetProfessional = async ({ cpf }: any) => {
     const setValues = (data: IProfessional | null) => {
       if (!data) return;
-
+      console.log(data);
       setValue('name', data?.name);
       setValue('phone', data?.phone);
       setValue('email', data?.email);
@@ -192,11 +198,12 @@ export const useEditProfessionals = () => {
       setValue('councilId', data?.councilId);
       setValue('type', data?.type);
       setValue('cpf', cpfMask.mask(data?.cpf));
-      if (data?.councilUF)
-        setProfessionalData((oldData) => ({
-          ...oldData,
-          councilUF: data.councilUF,
-        }));
+
+      setProfessionalData((oldData) => ({
+        ...oldData,
+        ...(councilUF && { councilUF: data.councilUF }),
+        ...(data.userId && { userId: data.userId }),
+      }));
     };
 
     if (cpf && cpf.length >= 14) {
@@ -210,14 +217,9 @@ export const useEditProfessionals = () => {
     if (cpf) return;
 
     const councilType = getValues('councilType');
-    const councilUF = getValues('councilUF') || professionalData.councilUF;
+    const councilUF = professionalData.councilUF;
     const councilId = getValues('councilId');
-    console.log(
-      'councilType',
-      councilType,
-      councilId,
-      professionalData.councilUF,
-    );
+
     if (councilType && councilUF && councilId) {
       const data = await findFirstMutation
         .mutateAsync({
@@ -229,6 +231,15 @@ export const useEditProfessionals = () => {
 
       if (data?.id) return setValues(data);
     }
+  };
+
+  const getUrl = window.location;
+  const baseUrl = getUrl.protocol + '//' + getUrl.host;
+
+  const link = `${baseUrl}${RoutesEnum.SIGN_UP}/?token=${professionalData.token}`;
+  const handleCopy = () => {
+    navigator.clipboard.writeText(link);
+    enqueueSnackbar('Link copiado com sucesso', { variant: 'success' });
   };
 
   return {
@@ -245,6 +256,8 @@ export const useEditProfessionals = () => {
     companies,
     isManyCompanies,
     onGetProfessional,
+    handleCopy,
+    link,
   };
 };
 

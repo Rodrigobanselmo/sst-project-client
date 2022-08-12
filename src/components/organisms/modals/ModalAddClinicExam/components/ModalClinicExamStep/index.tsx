@@ -67,7 +67,7 @@ export const ModalClinicExamStep = ({
       />
 
       <SFlex mt={10} flexWrap="wrap" gap={5}>
-        <Box flex={1}>
+        <Box>
           <SelectForm
             defaultValue={String(clinicExamData.scheduleType || '') || ''}
             label="Forma de Agendamento*"

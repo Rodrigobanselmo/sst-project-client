@@ -76,6 +76,20 @@ export const permissionsConstantMap = {
     info: 'Somente o gerenciamento do plano de ação da empresa',
     crud: ['r', 'cu'],
   },
+  //!revisar
+  [PermissionEnum.CLINIC]: {
+    value: PermissionEnum.CLINIC,
+    label: 'Clínica',
+    info: 'Somente o gerenciamento das clínicas cadastradas',
+    crud: ['r', 'cu'],
+  },
+  [PermissionEnum.EXAM]: {
+    value: PermissionEnum.EXAM,
+    label: 'Exames',
+    info: 'gerenciamento dos exames cadastrados da empresa',
+    crud: ['r', 'cu'],
+  },
+  //!revisar
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

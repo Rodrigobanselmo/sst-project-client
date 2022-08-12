@@ -5,17 +5,19 @@ import { getStates } from '@brazilian-utils/brazilian-utils';
 import { Box, Icon } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
+import { STag } from 'components/atoms/STag';
+import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
-import { RadioFormText } from 'components/molecules/form/radio-text';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
-import SLinkIcon from 'assets/icons/SLinkIcon';
+import { SLinkIcon } from 'assets/icons/SLinkIcon';
 import SMailIcon from 'assets/icons/SMailIcon';
 
 import {
@@ -32,9 +34,9 @@ export const ModalProfessionalStep = ({
   control,
   setProfessionalData,
   setValue,
-  companies,
-  isManyCompanies,
+  handleCopy,
   onGetProfessional,
+  link,
 }: IUseEditProfessional) => {
   const ufs = useMemo(() => {
     return getStates().map((state) => state.code);
@@ -68,7 +70,7 @@ export const ModalProfessionalStep = ({
             defaultValue={professionalData.cpf}
             label="CPF"
             onChange={(e) => {
-              onGetProfessional({ cpf: e.target.value });
+              onGetProfessional({ cpf: e.target.value || ' ' });
             }}
             sx={{ minWidth: 200 }}
             labelPosition="center"
@@ -179,7 +181,7 @@ export const ModalProfessionalStep = ({
             options={ufs}
             value={professionalData.councilUF}
             onChange={(e: typeof ufs[0]) => {
-              onGetProfessional({});
+              handleDebounceChange();
               setProfessionalData((old) => ({
                 ...old,
                 councilUF: e,
@@ -201,15 +203,56 @@ export const ModalProfessionalStep = ({
           />
         </Box>
       </SFlex>
-
       <SText color="text.label" mt={5} fontSize={14}>
         Acesso ao Sistema
       </SText>
-      <SFlex>
+      {!!professionalData.userId && (
+        <STag
+          action="add"
+          width="200px"
+          sx={{
+            backgroundColor: 'success.dark',
+            color: 'white',
+            fontSize: '14px',
+          }}
+          text="Profissional já cadastrado"
+        />
+      )}
+      {!professionalData.userId && (
+        <>
+          <STagButton
+            tooltipTitle={'copiar'}
+            icon={SLinkIcon}
+            onClick={() => handleCopy()}
+            sx={{ mr: 10, width: 'fit-content' }}
+            bg={'gray.500'}
+            active={true}
+            text={link}
+          />
+          <Box ml={7} mt={5}>
+            <SSwitch
+              onChange={() => {
+                setProfessionalData({
+                  ...professionalData,
+                  sendEmail: !professionalData.sendEmail,
+                });
+              }}
+              checked={professionalData.sendEmail}
+              label="Enviar convite por email"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          </Box>
+        </>
+      )}
+
+      {/* dayjs(row.expires_date).isAfter(dayjs()) ? ( */}
+      {/* <SFlex>
         <SButton
-          sx={{ backgroundColor: 'gray.600' }}
+          // sx={{ backgroundColor: 'gray.600' }}
           color="secondary"
           size="small"
+          variant="outlined"
         >
           <Icon sx={{ color: 'common.white', mr: 5 }} component={SMailIcon} />
           Enviar convite por email
@@ -217,13 +260,15 @@ export const ModalProfessionalStep = ({
         <SButton
           color="secondary"
           size="small"
-          sx={{ backgroundColor: 'gray.600' }}
+          // sx={{ backgroundColor: 'gray.600' }}
+          variant="outlined"
         >
           <Icon sx={{ color: 'common.white', mr: 5 }} component={SLinkIcon} />
           Gerar link de convite
         </SButton>
-      </SFlex>
-      {!professionalData.id && isManyCompanies && (
+      </SFlex> */}
+
+      {/* {!professionalData.id && isManyCompanies && (
         <>
           <RadioForm
             sx={{ mt: 8 }}
@@ -237,7 +282,7 @@ export const ModalProfessionalStep = ({
             }))}
           />
         </>
-      )}
+      )} */}
       {!!professionalData.id && (
         <StatusSelect
           sx={{ maxWidth: '90px', mt: 10 }}

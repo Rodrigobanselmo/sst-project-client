@@ -26,7 +26,7 @@ export const ModalAddProfessional = () => {
   const buttons = [
     {},
     {
-      text: professionalData.id ? 'Salvar' : 'Criar',
+      text: professionalData.id ? 'Salvar' : 'Cadastrar',
       variant: 'contained',
       type: 'submit',
       onClick: () => {},

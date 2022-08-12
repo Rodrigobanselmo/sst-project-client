@@ -13,10 +13,16 @@ import {
   IUpsertRiskGroupData,
   useMutUpsertRiskGroupData,
 } from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
+import { dateFormat } from 'core/utils/date/date-format';
 import { pgrSchema } from 'core/utils/schemas/pgr.schema';
 
 interface ISubmit
-  extends Omit<IUpsertRiskGroupData, 'status' | 'id' | 'companyId'> {}
+  extends Omit<
+    IUpsertRiskGroupData,
+    'status' | 'id' | 'companyId' | 'visitDate'
+  > {
+  visitDate?: string;
+}
 
 export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
   const { onOpenModal } = useModal();
@@ -32,6 +38,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
     const submitData: IUpsertRiskGroupData = {
       id: docId,
       ...data,
+      visitDate: dateFormat(data.visitDate),
     };
     await updateMutation.mutateAsync(submitData).catch(() => {});
   };
@@ -54,7 +61,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
           name,
           approvedBy,
           elaboratedBy,
-          visitDate,
+          visitDate: dateFormat(visitDate),
           source,
           revisionBy,
         })

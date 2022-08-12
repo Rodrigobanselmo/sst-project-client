@@ -17,10 +17,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
-import {
-  IQueryProfessionals,
-  useQueryProfessionals,
-} from 'core/services/hooks/queries/useQueryProfessionals';
+import { IQueryProfessionals } from 'core/services/hooks/queries/useQueryProfessionals';
 
 export const initialProfessionalViewState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -41,7 +41,7 @@ export const initialCompanyState = {
   riskDegree: '',
   isTaxNote: false,
   paymentDay: undefined as number | undefined,
-  paymentType: '' as CompanyPaymentTypeEnum,
+  paymentType: undefined as CompanyPaymentTypeEnum | undefined,
   observationBank: '',
   operationTime: '',
   legal_nature: '',
