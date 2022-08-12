@@ -72,8 +72,8 @@ export const useStep = ({ data, setData, initialDataRef }: IUseAddCompany) => {
               setData((data) => {
                 const setDataObj = {
                   ...data,
-                  validityStart: dateFormat(`01/${validityStart}`),
-                  validityEnd: dateFormat(`01/${validityEnd}`),
+                  validityStart: dateFormat(`01/${validityStart}`) || null,
+                  validityEnd: dateFormat(`01/${validityEnd}`) || null,
                 };
                 initialDataRef.current = setDataObj;
 
