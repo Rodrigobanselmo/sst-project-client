@@ -92,7 +92,7 @@ export const ClinicsTable: FC<
         rowsNumber={rowsPerPage}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(200px, 4fr) minmax(200px, 5fr) minmax(150px, 1fr) 50px 70px 90px`}
+        }minmax(200px, 4fr) minmax(200px, 5fr) minmax(150px, 1fr) 50px 100px 70px 90px`}
       >
         <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
@@ -125,8 +125,12 @@ export const ClinicsTable: FC<
                 )}
                 <TextIconRow clickable text={row.fantasy} />
                 <TextIconRow clickable text={getAddress(row.address)} />
-                <TextIconRow clickable text={row?.address?.city || '--'} />
+                <TextIconRow clickable text={row?.address?.city || '-'} />
                 <TextIconRow clickable text={row?.address?.state} />
+                <TextIconRow
+                  clickable
+                  text={row?.contacts?.[0]?.phone || '-'}
+                />
                 <IconButtonRow icon={<EditIcon />} />
                 <StatusSelect
                   sx={{ maxWidth: '120px' }}
