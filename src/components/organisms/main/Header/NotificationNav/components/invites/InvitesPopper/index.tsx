@@ -13,6 +13,7 @@ import { useAuth } from 'core/contexts/AuthContext';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useMutUpdateUser } from 'core/services/hooks/mutations/user/useMutUpdateUser';
 import { queryClient } from 'core/services/queryClient';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { SPopperArrow } from '../../../../../../../molecules/SPopperArrow';
 import { StackStyled } from './styles';
@@ -62,52 +63,54 @@ export const InvitesPopper: FC<IInvitesPopperProps> = ({
           Você não tem convites pendentes.
         </SText>
       )}
-      {data.map(({ expires_date, logo, companyName, id }) => {
-        const isValid = dayjs(expires_date).isValid();
-        return (
-          <StackStyled
-            key={companyName}
-            px={5}
-            py={4}
-            spacing={3}
-            onClick={() => handleAcceptInvite(id)}
-          >
-            <SFlex align="center">
-              {!logo && <SMailIcon sx={{ fontSize: 14 }} />}
-              {logo && (
-                <img
-                  style={{ width: 70, marginRight: 5 }}
-                  alt="logomarca"
-                  src={logo}
-                />
+      {removeDuplicate(data, { removeById: 'id' }).map(
+        ({ expires_date, logo, companyName, id }) => {
+          const isValid = dayjs(expires_date).isValid();
+          return (
+            <StackStyled
+              key={companyName}
+              px={5}
+              py={4}
+              spacing={3}
+              onClick={() => handleAcceptInvite(id)}
+            >
+              <SFlex align="center">
+                {!logo && <SMailIcon sx={{ fontSize: 14 }} />}
+                {logo && (
+                  <img
+                    style={{ width: 70, marginRight: 5 }}
+                    alt="logomarca"
+                    src={logo}
+                  />
+                )}
+                <SText lineNumber={2} fontSize={14} flex={1}>
+                  {companyName}
+                </SText>
+                <SButton
+                  loading={acceptInviteMut.isLoading}
+                  xsmall
+                  variant="outlined"
+                  color={isValid ? 'primary' : 'error'}
+                >
+                  {isValid ? 'aceitar' : 'expirado'}
+                </SButton>
+              </SFlex>
+              {isValid && (
+                <SText fontSize={13} flex={1}>
+                  Você foi convidado para fazer parte como membro na empresa{' '}
+                  {companyName}
+                </SText>
               )}
-              <SText lineNumber={2} fontSize={14} flex={1}>
-                {companyName}
-              </SText>
-              <SButton
-                loading={acceptInviteMut.isLoading}
-                xsmall
-                variant="outlined"
-                color={isValid ? 'primary' : 'error'}
-              >
-                {isValid ? 'aceitar' : 'expirado'}
-              </SButton>
-            </SFlex>
-            {isValid && (
-              <SText fontSize={13} flex={1}>
-                Você foi convidado para fazer parte como membro na empresa{' '}
-                {companyName}
-              </SText>
-            )}
-            {!isValid && (
-              <SText fontSize={13} flex={1}>
-                O convite expirou. Entre em contato com a empresa caso seja
-                necessário enviar outro convite.
-              </SText>
-            )}
-          </StackStyled>
-        );
-      })}
+              {!isValid && (
+                <SText fontSize={13} flex={1}>
+                  O convite expirou. Entre em contato com a empresa caso seja
+                  necessário enviar outro convite.
+                </SText>
+              )}
+            </StackStyled>
+          );
+        },
+      )}
     </SPopperArrow>
   );
 };

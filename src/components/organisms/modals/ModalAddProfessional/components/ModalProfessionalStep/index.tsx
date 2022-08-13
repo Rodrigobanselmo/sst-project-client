@@ -2,8 +2,7 @@
 import React, { useMemo } from 'react';
 
 import { getStates } from '@brazilian-utils/brazilian-utils';
-import { Box, Icon } from '@mui/material';
-import { SButton } from 'components/atoms/SButton';
+import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { STag } from 'components/atoms/STag';
@@ -18,7 +17,6 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { SLinkIcon } from 'assets/icons/SLinkIcon';
-import SMailIcon from 'assets/icons/SMailIcon';
 
 import {
   professionalsHealthOptionsList,
@@ -37,13 +35,15 @@ export const ModalProfessionalStep = ({
   handleCopy,
   onGetProfessional,
   link,
+  userFound,
+  isEdit,
 }: IUseEditProfessional) => {
   const ufs = useMemo(() => {
     return getStates().map((state) => state.code);
   }, []);
 
-  const handleDebounceChange = useDebouncedCallback(() => {
-    onGetProfessional({});
+  const handleDebounceChange = useDebouncedCallback((x: any = {}) => {
+    onGetProfessional(x);
   }, 800);
 
   return (
@@ -63,6 +63,7 @@ export const ModalProfessionalStep = ({
             placeholder={'nome completo do profissional...'}
             name="name"
             size="small"
+            disabled={!isEdit && !!userFound}
           />
         </Box>
         <Box flex={1}>
@@ -89,6 +90,7 @@ export const ModalProfessionalStep = ({
             defaultValue={professionalData.email}
             sx={{ minWidth: [300, 500] }}
             label="Email"
+            onChange={(e) => handleDebounceChange({ email: e.target.value })}
             labelPosition="center"
             control={control}
             placeholder={'email...'}
@@ -135,7 +137,11 @@ export const ModalProfessionalStep = ({
             type,
           }));
         }}
-        options={(professionalData.isClinic
+        options={(professionalData.isClinic &&
+        (!professionalData.type ||
+          !!professionalsHealthOptionsList.find(
+            (med) => med.value === professionalData.type,
+          ))
           ? professionalsHealthOptionsList
           : professionalsOptionsList
         ).map((professionalType) => ({
@@ -211,9 +217,10 @@ export const ModalProfessionalStep = ({
           action="add"
           width="200px"
           sx={{
-            backgroundColor: 'success.dark',
+            backgroundColor: 'gray.600',
             color: 'white',
             fontSize: '14px',
+            py: 2,
           }}
           text="Profissional já cadastrado"
         />
@@ -246,43 +253,6 @@ export const ModalProfessionalStep = ({
         </>
       )}
 
-      {/* dayjs(row.expires_date).isAfter(dayjs()) ? ( */}
-      {/* <SFlex>
-        <SButton
-          // sx={{ backgroundColor: 'gray.600' }}
-          color="secondary"
-          size="small"
-          variant="outlined"
-        >
-          <Icon sx={{ color: 'common.white', mr: 5 }} component={SMailIcon} />
-          Enviar convite por email
-        </SButton>
-        <SButton
-          color="secondary"
-          size="small"
-          // sx={{ backgroundColor: 'gray.600' }}
-          variant="outlined"
-        >
-          <Icon sx={{ color: 'common.white', mr: 5 }} component={SLinkIcon} />
-          Gerar link de convite
-        </SButton>
-      </SFlex> */}
-
-      {/* {!professionalData.id && isManyCompanies && (
-        <>
-          <RadioForm
-            sx={{ mt: 8 }}
-            label="Selecione a empresa do profissional*"
-            control={control}
-            defaultValue={String(professionalData.companyId)}
-            name="companyId"
-            options={companies.map((company) => ({
-              label: company.name,
-              value: company.id,
-            }))}
-          />
-        </>
-      )} */}
       {!!professionalData.id && (
         <StatusSelect
           sx={{ maxWidth: '90px', mt: 10 }}

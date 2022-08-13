@@ -1,4 +1,4 @@
-import { useState, FC } from 'react';
+import { useState, FC, useEffect } from 'react';
 import ReCAPTCHA from 'react-google-recaptcha';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
@@ -19,7 +19,7 @@ import { InputForm } from '../../../../components/molecules/form/input';
 import { ILoginSchema } from '../../../../core/utils/schemas/login.schema';
 
 export const LoginForm: FC = () => {
-  const { handleSubmit, control, watch } = useForm({
+  const { handleSubmit, control, setValue, watch } = useForm({
     resolver: yupResolver(Yup.object().shape({ ...signSchema })),
   });
 
@@ -43,6 +43,10 @@ export const LoginForm: FC = () => {
 
   const initEmail = router.query?.email as string | undefined;
 
+  useEffect(() => {
+    setValue('email', initEmail);
+  }, [initEmail, router.query, setValue]);
+
   function onRecaptchaChange(value: string | null) {
     setIsCaptchaVerified(!!value);
   }
@@ -59,12 +63,13 @@ export const LoginForm: FC = () => {
         sx={{ mb: [8, 8] }}
         label="E-mail"
         defaultValue={initEmail || ''}
-        placeholder="email@gmail.com"
+        placeholder="exemplo@simplesst.com"
         control={control}
         type="email"
         name="email"
         success={successEmail}
       />
+
       <InputForm
         sx={{ mb: [8, 8] }}
         label="Senha"

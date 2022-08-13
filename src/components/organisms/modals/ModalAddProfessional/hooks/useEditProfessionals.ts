@@ -30,7 +30,7 @@ import { professionalSchema } from 'core/utils/schemas/professional.schema';
 
 export const initialProfessionalState = {
   id: 0,
-  token: '',
+  inviteId: '',
   name: '',
   cpf: '',
   phone: '',
@@ -40,8 +40,6 @@ export const initialProfessionalState = {
   councilUF: '',
   councilId: '',
   sendEmail: false,
-  crm: '',
-  crea: '',
   companyId: '',
   certifications: [] as string[],
   formation: [] as string[],
@@ -62,8 +60,6 @@ interface ISubmit {
   councilType: string;
   councilUF: string;
   councilId: string;
-  crm: string;
-  crea: string;
 }
 
 export const useEditProfessionals = () => {
@@ -106,7 +102,7 @@ export const useEditProfessionals = () => {
       setProfessionalData((oldData) => {
         const newData = {
           ...oldData,
-          token: v4(),
+          inviteId: v4(),
           ...initialData,
         };
 
@@ -164,7 +160,12 @@ export const useEditProfessionals = () => {
       certifications: professionalData.certifications,
       formation: professionalData.formation,
       status: professionalData.status,
+      inviteId: professionalData.inviteId,
       councilUF: professionalData.councilUF,
+      sendEmail: professionalData.sendEmail,
+      ...(!!professionalData.userId && {
+        userId: professionalData.userId,
+      }),
       ...(data.companyId && {
         companyId: data.companyId,
       }),
@@ -186,10 +187,13 @@ export const useEditProfessionals = () => {
     } catch (error) {}
   };
 
-  const onGetProfessional = async ({ cpf }: any) => {
+  const onGetProfessional = async ({ cpf, email }: any) => {
+    const councilType = getValues('councilType');
+    const councilUF = professionalData.councilUF;
+    const councilId = getValues('councilId');
+
     const setValues = (data: IProfessional | null) => {
-      if (!data) return;
-      console.log(data);
+      if (!data?.id) return;
       setValue('name', data?.name);
       setValue('phone', data?.phone);
       setValue('email', data?.email);
@@ -201,7 +205,8 @@ export const useEditProfessionals = () => {
 
       setProfessionalData((oldData) => ({
         ...oldData,
-        ...(councilUF && { councilUF: data.councilUF }),
+        ...(data?.councilUF && { councilUF: data.councilUF }),
+        ...(data?.type && { type: data.type }),
         ...(data.userId && { userId: data.userId }),
       }));
     };
@@ -214,11 +219,17 @@ export const useEditProfessionals = () => {
       return setValues(data);
     }
 
-    if (cpf) return;
+    if (cpf !== undefined) return;
 
-    const councilType = getValues('councilType');
-    const councilUF = professionalData.councilUF;
-    const councilId = getValues('councilId');
+    if (email && email.length >= 3) {
+      const data = await findFirstMutation
+        .mutateAsync({ email })
+        .catch(() => null);
+
+      return setValues(data);
+    }
+
+    if (email !== undefined) return;
 
     if (councilType && councilUF && councilId) {
       const data = await findFirstMutation
@@ -236,7 +247,7 @@ export const useEditProfessionals = () => {
   const getUrl = window.location;
   const baseUrl = getUrl.protocol + '//' + getUrl.host;
 
-  const link = `${baseUrl}${RoutesEnum.SIGN_UP}/?token=${professionalData.token}`;
+  const link = `${baseUrl}${RoutesEnum.SIGN_UP}/?token=${professionalData.inviteId}`;
   const handleCopy = () => {
     navigator.clipboard.writeText(link);
     enqueueSnackbar('Link copiado com sucesso', { variant: 'success' });
@@ -258,6 +269,8 @@ export const useEditProfessionals = () => {
     onGetProfessional,
     handleCopy,
     link,
+    isEdit: professionalData?.id,
+    userFound: professionalData?.userId,
   };
 };
 

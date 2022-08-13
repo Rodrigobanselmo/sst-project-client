@@ -81,7 +81,7 @@ export const ShiftTimeSelect = ({
 
     keys.forEach((key) => {
       if (key.includes('2-')) {
-        [2, 3, 4, 5, 6, 7].forEach((weekDay) => {
+        [2, 3, 4, 5, 6].forEach((weekDay) => {
           newSchedule[weekDay + key.substring(1)] = schedule[key];
         });
         newSchedule['1-0'] = '';

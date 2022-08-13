@@ -167,23 +167,9 @@ export const ProfessionalsTable: FC<
 
   const onEditProfessional = (professional: IProfessional) => {
     onStackOpenModal(ModalEnum.PROFESSIONALS_ADD, {
-      certifications: professional.certifications,
-      cpf: professional.cpf,
-      email: professional.email,
-      id: professional.id,
-      name: professional.name,
-      phone: professional.phone,
-      councilUF: professional.councilUF,
-      councilId: professional.councilId,
-      councilType: professional.councilType,
-      crea: professional.crea,
-      crm: professional.crm,
-      type: professional.type,
-      status: professional.status,
-      formation: professional.formation,
-      companyId: professional.companyId,
+      ...professional,
       isClinic,
-    } as typeof initialProfessionalState);
+    } as unknown as typeof initialProfessionalState);
   };
 
   const onChangeRoute = (type: string) => {

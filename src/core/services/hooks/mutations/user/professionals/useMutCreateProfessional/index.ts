@@ -22,8 +22,9 @@ export interface ICreateProfessional {
   councilType?: string;
   councilUF?: string;
   councilId?: string;
-  crm?: string;
-  crea?: string;
+  inviteId?: string;
+  userId?: number;
+  sendEmail?: boolean;
   companyId?: string;
   certifications?: string[];
   formation?: string[];

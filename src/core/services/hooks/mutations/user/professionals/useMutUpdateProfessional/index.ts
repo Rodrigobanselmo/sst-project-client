@@ -23,8 +23,7 @@ export interface IUpdateProfessional {
   councilType?: string;
   councilUF?: string;
   councilId?: string;
-  crm?: string;
-  crea?: string;
+  sendEmail?: boolean;
   companyId?: string;
   certifications?: string[];
   formation?: string[];

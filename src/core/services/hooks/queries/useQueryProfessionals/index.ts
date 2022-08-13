@@ -20,6 +20,7 @@ export interface IQueryProfessionals {
   companyId?: string;
   companies?: string[];
   councilUF?: string;
+  email?: string;
   councilType?: string;
   councilId?: string;
   type?: ProfessionalTypeEnum[];
