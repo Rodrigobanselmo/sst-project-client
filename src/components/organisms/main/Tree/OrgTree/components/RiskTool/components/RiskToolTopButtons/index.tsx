@@ -46,16 +46,17 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
   viewType,
   viewDataType,
   onChangeViewData,
+  riskGroupId,
 }) => {
   const dispatch = useAppDispatch();
-  const { asPath, push, query } = useRouter();
-  const { onOpenModal } = useModal();
+  const { asPath, push } = useRouter();
+  const { onOpenModal, onCloseModal } = useModal();
   const { companyId } = useGetCompanyId();
   const selectedRisks = useAppSelector(selectRisks);
   const selectedRiskStore = useAppSelector(selectRisk);
 
   const isViewTypeSelect = viewType == ViewTypeEnum.MULTIPLE;
-  const documentId = query.riskGroupId as string | undefined;
+  const documentId = riskGroupId as string | undefined;
 
   const selectedRisk: IRiskFactors | null = isViewTypeSelect
     ? selectedRisks[0]
@@ -65,6 +66,7 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
     push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
     dispatch(setGhoOpen(false));
     handleSelectGHO(null, []);
+    onCloseModal(ModalEnum.RISK_TOOL);
   };
 
   const handleGoBackDocument = () => {
@@ -73,10 +75,11 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
         pathname: RoutesEnum.PGR_DOCUMENT.replace(
           ':companyId',
           companyId,
-        ).replace(':docId', documentId),
+        ).replace(':riskGroupId', documentId),
       });
     dispatch(setGhoOpen(false));
     handleSelectGHO(null, []);
+    onCloseModal(ModalEnum.RISK_TOOL);
   };
 
   const severity = selectedRisks.length > 1 ? '-' : selectedRisk?.severity;
@@ -133,7 +136,10 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
             />
           </STooltip>
 
-          <RiskToolTopButtonsSelectRisk viewType={viewType} />
+          <RiskToolTopButtonsSelectRisk
+            riskGroupId={riskGroupId}
+            viewType={viewType}
+          />
 
           {/* <SIconButton
             onClick={() => {

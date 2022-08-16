@@ -105,7 +105,7 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
         <SFlex direction="column" justify="space-between" mt={4}>
           <SideInput
             id={IdsEnum.RISK_TOOL_GHO_INPUT_SEARCH}
-            onFocus={(e) => console.log(123, e.target.value)}
+            // onFocus={(e) => console.log(123, e.target.value)}
             handleAddGHO={handleAddGHO}
             ref={inputSelectedRef}
             onSearch={(value) => dispatch(setGhoSearch(value))}

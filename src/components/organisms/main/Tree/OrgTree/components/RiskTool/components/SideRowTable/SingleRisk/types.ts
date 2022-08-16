@@ -5,4 +5,5 @@ export interface RiskToolSingleRiskRowProps {
   risk: IRiskFactors;
   riskData?: IRiskData;
   hide?: boolean;
+  riskGroupId?: string;
 }

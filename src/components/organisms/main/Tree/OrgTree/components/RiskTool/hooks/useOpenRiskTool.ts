@@ -6,6 +6,7 @@ import { setRiskAddState } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { ViewsDataEnum } from '../utils/view-data-type.constant';
 import { ViewTypeEnum } from '../utils/view-risk-type.constant';
@@ -15,6 +16,9 @@ export interface IOpenSelected {
   viewType?: ViewTypeEnum;
   ghoId: string;
   ghoName: string;
+  risks?: IRiskFactors[];
+  filterKey?: string;
+  filterValue?: string;
 }
 
 export const useOpenRiskTool = () => {
@@ -25,6 +29,9 @@ export const useOpenRiskTool = () => {
     viewType = ViewTypeEnum.SIMPLE_BY_GROUP,
     ghoId,
     ghoName,
+    risks,
+    filterKey,
+    filterValue,
   }: IOpenSelected) => {
     dispatch(
       setRiskAddState({
@@ -44,6 +51,23 @@ export const useOpenRiskTool = () => {
         isEdited: false,
       }),
     );
+
+    if (risks)
+      dispatch(
+        setRiskAddState({
+          risk: risks[0],
+          risks: risks,
+          isEdited: false,
+        }),
+      );
+
+    if (filterKey && filterValue)
+      dispatch(
+        setGhoFilterValues({
+          key: filterKey,
+          values: [filterValue],
+        }),
+      );
 
     if (ghoId) {
       setTimeout(() => {

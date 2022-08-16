@@ -1,44 +1,21 @@
 /* eslint-disable react/display-name */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 
 import SFlex from 'components/atoms/SFlex';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useObserverHide } from 'core/hooks/useObserverHide';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 import { RiskToolSingleRiskRow } from '../../../SideRowTable/SingleRisk';
 import { RiskToolGSEViewRowRiskBox } from './RiskBox';
 import { SideRowProps } from './types';
 
-function onVisible(callback: any) {
-  return new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        callback(false);
-      } else {
-        callback(true);
-      }
-    });
-  });
-}
-
 export const RiskToolGSEViewRow = React.memo<SideRowProps>(
   ({ risk, riskData }) => {
-    const ref = useRef<HTMLDivElement>(null);
-    const [hide, setHide] = useState(true);
     const searchSelected = useAppSelector((state) => state.gho.searchRisk);
-
-    useEffect(() => {
-      if (ref.current) {
-        const x = onVisible((e: boolean) => setHide(e));
-        x.observe(ref.current);
-
-        return () => {
-          x.disconnect();
-        };
-      }
-    }, []);
+    const { hide, ref } = useObserverHide();
 
     const isToFilter =
       searchSelected &&

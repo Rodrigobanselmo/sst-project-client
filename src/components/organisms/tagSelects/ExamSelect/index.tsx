@@ -4,6 +4,7 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
+import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
 import { useDebouncedCallback } from 'use-debounce';
 
 import EditIcon from 'assets/icons/SEditIcon';
@@ -42,10 +43,10 @@ export const ExamSelect: FC<IExamSelectProps> = ({
     }
 
     if (options.id)
-      onStackOpenModal(ModalEnum.EXAMS_ADD, {
+      onStackOpenModal(ModalEnum.EXAM_RISK_DATA, {
         onSubmit: handleSelect,
         ...options,
-      } as Partial<typeof initialExamState>);
+      } as Partial<typeof initialExamDataState>);
   };
 
   const handleEditExam = (e: MouseEvent<HTMLButtonElement>, option?: IExam) => {

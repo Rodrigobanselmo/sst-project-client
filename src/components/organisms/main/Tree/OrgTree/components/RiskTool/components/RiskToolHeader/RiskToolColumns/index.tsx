@@ -12,7 +12,8 @@ import {
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
-import { headerRows } from '../../../utils/header.constants';
+import { useRowColumns } from '../../../hooks/useRowColumns';
+import { IColumnOption } from '../../../utils/header.constants';
 import { ViewTypeEnum } from '../../../utils/view-risk-type.constant';
 import { STGridHeader, StyledSArrowUpFilterIcon } from '../styles';
 import { SideHeaderProps as RiskToolProps } from '../types';
@@ -20,8 +21,9 @@ import { SideHeaderProps as RiskToolProps } from '../types';
 export const RiskToolColumns: FC<Partial<RiskToolProps>> = ({ viewType }) => {
   const dispatch = useAppDispatch();
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
+  const { columns } = useRowColumns();
 
-  const handleSetFilters = (row: typeof headerRows[0]) => () => {
+  const handleSetFilters = (row: IColumnOption) => () => {
     if (row.filterKey && row.filterValues)
       dispatch(
         setGhoFilterValues({
@@ -32,19 +34,22 @@ export const RiskToolColumns: FC<Partial<RiskToolProps>> = ({ viewType }) => {
   };
 
   return (
-    <STGridHeader>
-      {headerRows.map((row) => {
-        const isFilterSelected = selectedGhoFilter.key === row.filterKey;
+    <STGridHeader
+      sx={{ gridTemplateColumns: columns.map((row) => row.grid).join(' ') }}
+    >
+      {columns.map((column) => {
+        const isFilterSelected = selectedGhoFilter.key === column.filterKey;
         const isSortable =
-          row.filterKey &&
+          column.filterKey &&
           viewType &&
           [ViewTypeEnum.SIMPLE_BY_RISK, ViewTypeEnum.SIMPLE_BY_GROUP].includes(
             viewType,
           );
+
         return (
-          <STooltip key={row.label} title={row.tooltip}>
+          <STooltip key={column.label} title={column.tooltip}>
             <SFlex
-              onClick={isSortable ? handleSetFilters(row) : undefined}
+              onClick={isSortable ? handleSetFilters(column) : undefined}
               center
               sx={{
                 position: 'relative',
@@ -52,7 +57,7 @@ export const RiskToolColumns: FC<Partial<RiskToolProps>> = ({ viewType }) => {
                 cursor: isSortable ? 'pointer' : 'default',
               }}
             >
-              <SText noBreak>{row.label}</SText>
+              <SText noBreak>{column.label}</SText>
               {isSortable && (
                 <StyledSArrowUpFilterIcon
                   filter={isFilterSelected ? selectedGhoFilter.value || '' : ''}

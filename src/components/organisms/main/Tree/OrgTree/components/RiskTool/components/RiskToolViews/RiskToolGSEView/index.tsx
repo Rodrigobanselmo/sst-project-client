@@ -21,21 +21,19 @@ import { sortString } from 'core/utils/sorts/string.sort';
 import { RiskToolGSEViewRow } from './Row';
 import { RiskToolGSEViewProps } from './types';
 
-export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
+export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const selectedGho = useAppSelector((state) => state.gho.selected);
   const { enqueueSnackbar } = useSnackbar();
 
   const { companyId: userCompanyId } = useGetCompanyId(true);
 
-  const { query } = useRouter();
-
   const gho = useAppSelector((state) => state.gho.selected);
   const homoId = String(gho?.id || '').split('//')[0];
 
   //! performance optimization here
   const { data: riskDataQuery } = useQueryRiskDataByGho(
-    query.riskGroupId as string,
+    riskGroupId as string,
     homoId,
   );
 
@@ -62,12 +60,16 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = () => {
     ]) as IRiskFactors[];
 
     if (!risk) return [];
+
+    //! here we are finding the risk and if not found does not apear, error if this risk is from company different than user will fail
     const data = riskDataQuery
       .sort(
         (a, b) =>
           sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key), //! performance optimization here or sort
       )
       .map((riskData) => {
+        //! attention risk not found
+        //! here we are finding the risk and if not found does not apear, error if this risk is from company different than user will fail
         return [riskData, risk.find((r) => r.id === riskData.riskId)] as [
           IRiskData,
           IRiskFactors,

@@ -32,8 +32,14 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEpi } from 'core/interfaces/api/IEpi';
+import { IExam } from 'core/interfaces/api/IExam';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
-import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import {
+  IEngsRiskData,
+  IRecMed,
+  IRecMedCreate,
+  IRiskFactors,
+} from 'core/interfaces/api/IRiskFactors';
 import {
   IDeleteManyRiskData,
   useMutDeleteManyRiskData,
@@ -50,6 +56,8 @@ import { queryClient } from 'core/services/queryClient';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
+import { useColumnAction } from '../../../hooks/useColumnAction';
+import { useRowColumns } from '../../../hooks/useRowColumns';
 import { ViewsDataEnum } from '../../../utils/view-data-type.constant';
 import { AdmColumn } from '../components/columns/AdmColumn';
 import { EngColumn } from '../components/columns/EngColumn';
@@ -58,6 +66,7 @@ import { ProbabilityAfterColumn } from '../components/columns/ProbabilityAfterCo
 import { ProbabilityColumn } from '../components/columns/ProbabilityColumn';
 import { RecColumn } from '../components/columns/RecColumn';
 import { SourceColumn } from '../components/columns/SourceColumn';
+import { RowColumns } from '../components/RowColumns';
 import { STGridItem } from '../styles';
 import { IRiskDataRow } from '../types';
 import { SideTableMultipleProps } from './types';
@@ -66,6 +75,7 @@ const initialState: IRiskDataRow = { id: '' };
 
 export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
   viewDataType,
+  riskGroupId,
 }) => {
   // const selectedRiskStore = useAppSelector(selectRisk);
   const selectedRisks = useAppSelector(selectRisks);
@@ -74,12 +84,18 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
 
   const store = useStore();
   const { companyId } = useGetCompanyId();
-  const { onOpenModal, onStackOpenModal } = useModal();
-  const { enqueueSnackbar } = useSnackbar();
   const { query } = useRouter();
   const upsertManyMut = useMutUpsertManyRiskData();
   const deleteManyMut = useMutDeleteManyRiskData();
   const [riskData, setRiskData] = useState<IRiskDataRow>(initialState);
+  const { columns } = useRowColumns();
+  const {
+    enqueueSnackbar,
+    onHandleEditEpi,
+    onHandleEditEngs,
+    onHandleEditExams,
+    onStackOpenModal,
+  } = useColumnAction();
 
   const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
   const isSelected = false;
@@ -94,31 +110,34 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
       adms,
       engs,
       epis,
+      exams,
       generateSources,
       ...values
     }: Partial<IUpsertRiskData>,
     data?: any,
   ) => {
     if (selectedRisks?.length === 0) return;
-    if (data?.isQuantity && values.probability)
-      return enqueueSnackbar(
+    if (data?.isQuantity && values.probability) {
+      enqueueSnackbar(
         'Você não pode mudar a probabilidade quando utilizado o método quantitativo.',
         {
           variant: 'warning',
           autoHideDuration: 300,
         },
       );
+      return;
+    }
 
     dispatch(setRiskAddState({ isEdited: true }));
 
     const submitData = { ...values } as IRiskDataRow;
 
-    Object.entries({ recs, adms, engs, epis, generateSources }).forEach(
+    Object.entries({ recs, adms, engs, epis, generateSources, exams }).forEach(
       ([key, value]) => {
         if (value?.length)
           (submitData as any)[key] = removeDuplicate(
             [data, ...((riskData as any)?.[key] ?? [])],
-            { removeById: 'epiId' },
+            { removeById: 'id' },
           );
       },
     );
@@ -155,7 +174,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
       });
     };
 
-    onOpenModal(ModalEnum.PROBABILITY_ADD, {
+    onStackOpenModal(ModalEnum.PROBABILITY_ADD, {
       riskType: selectedRiskStore.type,
       employeeCountTotal: workspaceEmployeesCount,
       onCreate: handleSelectSync,
@@ -167,6 +186,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
     adms,
     engs,
     epis,
+    exams,
     generateSources,
     ...values
   }: Partial<IUpsertRiskData>) => {
@@ -174,20 +194,32 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
 
     const submitData = { ...values } as IRiskDataRow;
 
-    Object.entries({ recs, adms, engs, generateSources }).forEach(
-      ([key, value]) => {
-        if (value?.length)
-          (submitData as any)[key] = [
-            ...((riskData as any)?.[key]?.filter(
-              (data: any) => !(value as any).includes(data.id),
-            ) ?? []),
-          ];
-      },
-    );
+    Object.entries({ recs, adms, generateSources }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...((riskData as any)?.[key]?.filter(
+            (data: any) => !(value as any).includes(data.id),
+          ) ?? []),
+        ];
+    });
 
     if (epis && epis?.length)
       submitData.epis = [...(riskData?.epis || [])].filter(
-        (i) => i && !epis.find((epi) => epi.epiId == i.id),
+        (i) =>
+          i && !epis.find((epi) => (epi?.epiId || (epi as any)?.id) == i.id),
+      );
+
+    if (engs && engs?.length)
+      submitData.engs = [...(riskData?.engs || [])].filter(
+        (i) =>
+          i && !engs.find((eng) => (eng?.recMedId || (eng as any)?.id) == i.id),
+      );
+
+    if (exams && exams?.length)
+      submitData.exams = [...(riskData?.exams || [])].filter(
+        (i) =>
+          i &&
+          !exams.find((exam) => (exam?.examId || (exam as any)?.id) == i.id),
       );
 
     setRiskData((old) => ({ ...old, ...submitData }));
@@ -201,7 +233,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
     const selectedDisabledGhos = store.getState().ghoMulti
       .selectedDisabledIds as string[];
 
-    const { recs, adms, engs, epis, generateSources } = riskData;
+    const { recs, adms, engs, epis, exams, generateSources } = riskData;
 
     const ghosIds = selectedGhos.filter(
       (selectedGho) => !selectedDisabledGhos.includes(selectedGho),
@@ -211,7 +243,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
       ...riskData,
       homogeneousGroupIds: ghosIds.map((gho) => gho.split('//')[0]),
       riskIds: selectedRisks.map((risk) => risk.id),
-      riskFactorGroupDataId: query.riskGroupId,
+      riskFactorGroupDataId: riskGroupId,
       ...(isHierarchy
         ? {
             type: HomoTypeEnum.HIERARCHY,
@@ -220,14 +252,12 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
         : {}),
     };
 
-    Object.entries({ recs, adms, engs, generateSources }).forEach(
-      ([key, value]) => {
-        if (value?.length)
-          (submitData as any)[key] = [
-            ...((riskData as any)?.[key]?.map((i: any) => i.id) ?? []),
-          ];
-      },
-    );
+    Object.entries({ recs, adms, generateSources }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...((riskData as any)?.[key]?.map((i: any) => i.id) ?? []),
+        ];
+    });
 
     Object.entries({ epis }).forEach(([key, value]) => {
       if (value?.length)
@@ -235,6 +265,26 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
           ...((riskData as any)?.[key]?.map((i: IEpi) => ({
             ...i.epiRiskData,
             epiId: i.id,
+          })) ?? []),
+        ];
+    });
+
+    Object.entries({ engs }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...((riskData as any)?.[key]?.map((i: IRecMed) => ({
+            ...i.engsRiskData,
+            recMedId: i.id,
+          })) ?? []),
+        ];
+    });
+
+    Object.entries({ exams }).forEach(([key, value]) => {
+      if (value?.length)
+        (submitData as any)[key] = [
+          ...((riskData as any)?.[key]?.map((i: IExam) => ({
+            ...i.examsRiskData,
+            examId: i.id,
           })) ?? []),
         ];
     });
@@ -263,7 +313,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
         .filter((selectedGho) => !selectedDisabledGhos.includes(selectedGho))
         .map((gho) => gho.split('//')[0]),
       riskIds: selectedRisks.map((risk) => risk.id),
-      riskFactorGroupDataId: query.riskGroupId as string,
+      riskFactorGroupDataId: riskGroupId as string,
       ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
     };
 
@@ -278,99 +328,32 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
   };
 
   const handleEditEpi = async (epi: IEpi) => {
-    onStackOpenModal(ModalEnum.EPI_EPI_DATA, {
-      onSubmit: (epis) =>
-        epis?.epiRiskData && handleSelect({ epis: [epis.epiRiskData] }),
-      ...epi,
-    } as Partial<typeof initialEpiDataState>);
+    onHandleEditEpi(epi, (epis) => handleSelect({ epis }));
   };
 
   const handleEditEngs = async (eng: IRecMed) => {
-    onStackOpenModal(ModalEnum.EPC_RISK_DATA, {
-      onSubmit: (engs) =>
-        engs?.engsRiskData && handleSelect({ engs: [engs.engsRiskData] }),
-      ...eng,
-    } as Partial<typeof initialEngsRiskDataState>);
+    onHandleEditEngs(eng, (engs) => handleSelect({ engs }));
   };
 
-  const actualMatrixLevel = getMatrizRisk(
-    riskData?.probability,
-    selectedRiskStore?.severity,
-  );
-  const actualMatrixLevelAfter = getMatrizRisk(
-    riskData?.probabilityAfter,
-    selectedRiskStore?.severity,
-  );
+  const handleEditExams = async (exam: IExam) => {
+    onHandleEditExams(exam, (exams) => handleSelect({ exams }));
+  };
 
   return (
     <>
-      <STGridItem
+      <RowColumns
+        handleSelect={handleSelect}
+        handleHelp={handleHelp}
+        handleRemove={handleRemove}
+        riskData={riskData}
+        selectedRisks={selectedRisks}
+        risk={selectedRiskStore}
+        handleEditEpi={handleEditEpi}
+        handleEditEngs={handleEditEngs}
+        handleEditExams={handleEditExams}
         mt={10}
-        selected={isSelected ? 1 : 0}
-        onClick={() =>
-          selectedRiskStore?.id
-            ? null
-            : document.getElementById(IdsEnum.RISK_SELECT)?.click()
-        }
-      >
-        <SourceColumn
-          handleSelect={handleSelect}
-          handleRemove={handleRemove}
-          data={riskData}
-          risk={selectedRiskStore}
-        />
-        <EpiColumn
-          handleEdit={handleEditEpi}
-          handleSelect={handleSelect}
-          handleRemove={handleRemove}
-          data={riskData}
-          risk={selectedRiskStore}
-        />
-        <EngColumn
-          handleEdit={handleEditEngs}
-          handleSelect={handleSelect}
-          handleRemove={handleRemove}
-          data={riskData}
-          risk={selectedRiskStore}
-        />
-        <AdmColumn
-          handleSelect={handleSelect}
-          handleRemove={handleRemove}
-          data={riskData}
-          risk={selectedRiskStore}
-        />
-        <ProbabilityColumn
-          handleHelp={handleHelp}
-          handleSelect={handleSelect}
-          data={riskData}
-          risk={
-            selectedRiskStore && selectedRisks.length === 1
-              ? selectedRiskStore
-              : null
-          }
-        />
-        <STag
-          action={
-            String(actualMatrixLevel?.level) as unknown as ITagActionColors
-          }
-          text={actualMatrixLevel?.label || '--'}
-          maxHeight={24}
-        />
-        <RecColumn
-          handleSelect={handleSelect}
-          handleRemove={handleRemove}
-          data={riskData}
-          risk={selectedRiskStore}
-        />
-        <ProbabilityAfterColumn handleSelect={handleSelect} data={riskData} />
-        <STag
-          action={
-            String(actualMatrixLevelAfter?.level) as unknown as ITagActionColors
-          }
-          maxHeight={24}
-          text={actualMatrixLevelAfter?.label || '--'}
-        />
-      </STGridItem>
+      />
+
       <SButton
         id="delete-button-gho-select"
         loading={deleteManyMut.isLoading}

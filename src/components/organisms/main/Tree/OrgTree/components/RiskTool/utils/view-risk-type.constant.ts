@@ -14,11 +14,11 @@ interface IViewsRiskOptions extends Record<ViewTypeEnum, IViewsRiskOption> {}
 export const viewsRiskOptionsConstant: IViewsRiskOptions = {
   [ViewTypeEnum.SIMPLE_BY_RISK]: {
     value: ViewTypeEnum.SIMPLE_BY_RISK,
-    name: 'Visalização por risco',
+    name: 'Visualização por risco',
   },
   [ViewTypeEnum.SIMPLE_BY_GROUP]: {
     value: ViewTypeEnum.SIMPLE_BY_GROUP,
-    name: 'Visalização por GSE',
+    name: 'Visualização por GSE',
   },
   [ViewTypeEnum.MULTIPLE]: {
     value: ViewTypeEnum.MULTIPLE,

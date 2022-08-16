@@ -28,6 +28,8 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
   handleSelectGHO,
   isDeleteLoading,
   viewDataType,
+  riskGroupId,
+  isRiskOpen,
 }) => {
   const { data: ghoQuery } = useQueryGHO();
   const selectedGhoId = useAppSelector(selectGhoId);
@@ -35,14 +37,11 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
 
   const { companyId } = useGetCompanyId();
 
-  const { query } = useRouter();
-  const isRiskOpen = useMemo(() => !!query.riskGroupId, [query]);
-
   const risk = useAppSelector(selectRisk);
 
   //! performance optimization here
   const { data: riskData } = useQueryRiskData(
-    query.riskGroupId as string,
+    riskGroupId as string,
     risk?.id as string,
   );
 
@@ -71,7 +70,7 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
     const riskData = queryClient.getQueryData([
       QueryEnum.RISK_DATA,
       companyId,
-      query.riskGroupId,
+      riskGroupId,
       risk?.id,
     ]) as IRiskData[];
 
@@ -105,7 +104,7 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
   }, [
     companyId,
     ghoQuery,
-    query.riskGroupId,
+    riskGroupId,
     risk?.id,
     selectedGhoFilter.key,
     selectedGhoFilter.value,

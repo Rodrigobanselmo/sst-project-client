@@ -17,6 +17,7 @@ export interface SideTopProps {
   viewType: ViewTypeEnum;
   viewDataType: ViewsDataEnum;
   onChangeView?: (option: IViewsRiskOption) => void;
+  riskGroupId: string;
   onChangeViewData?: (option: IViewsDataOption) => void;
   handleSelectGHO: (
     gho: IGho | null,

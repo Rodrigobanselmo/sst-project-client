@@ -9,6 +9,7 @@ import { ViewsDataEnum } from '../../../utils/view-data-type.constant';
 export interface RiskToolRiskViewProps {
   isRiskOpen: boolean;
   isDeleteLoading: boolean;
+  riskGroupId: string;
   viewDataType: ViewsDataEnum;
   selectedGhoId: string | null;
   handleEditGHO: (data: IGho | IHierarchyTreeMapObject) => void;

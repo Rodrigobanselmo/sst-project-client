@@ -28,17 +28,35 @@ export function TabPanel(props: TabPanelProps) {
   );
 }
 
-export const STabs: FC<STabsProps> = ({ options, ...props }) => {
+export const STabs: FC<STabsProps> = ({
+  options,
+  mb = 10,
+  mt = -5,
+  ...props
+}) => {
   return (
-    <Box sx={{ borderBottom: 1, borderColor: 'divider' }} mt={-5} mb={10}>
+    <Box
+      sx={{ borderBottom: 1, borderColor: 'divider' }}
+      mt={mt}
+      mb={mb}
+      {...(!!props.height && {
+        height: props.height,
+      })}
+    >
       <Tabs
         variant="scrollable"
         scrollButtons="auto"
         aria-label="scrollable auto tabs example"
         {...props}
+        {...(!!props.height && {
+          sx: {
+            '& .MuiTabs-scroller': { maxHeight: props.height },
+            ...props.sx,
+          },
+        })}
       >
         {options.map((options) => (
-          <Tab key={options.label} label={options.label} />
+          <Tab key={options.label} {...options} />
         ))}
       </Tabs>
     </Box>

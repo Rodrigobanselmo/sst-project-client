@@ -1,9 +1,11 @@
 import React, { useRef, useState } from 'react';
 import { useStore } from 'react-redux';
+import { Wizard } from 'react-use-wizard';
 
 import CircleIcon from '@mui/icons-material/Circle';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
+import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
 import { WorkspacesSelect } from 'components/organisms/tagSelects/WorkspacesSelect';
 import { useSnackbar } from 'notistack';
@@ -42,6 +44,7 @@ import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { usePreventNode } from '../../hooks/usePreventNode';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
 import { TypeSelect } from '../Selects/TypeSelect';
+import { ModalViewRiskData } from './components/ModalViewRiskData';
 import { useModalCard } from './hooks/useModalCard';
 
 export const ModalEditCard = () => {
@@ -194,7 +197,7 @@ export const ModalEditCard = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <SModalPaper center p={8}>
+      <SModalPaper width={['100%', 600, 800, 1000]} center p={8}>
         <SModalHeader
           onClose={onCloseUnsaved}
           secondIcon={type === TreeTypeEnum.COMPANY ? undefined : SDeleteIcon}
@@ -232,82 +235,101 @@ export const ModalEditCard = () => {
             </Box>
           }
         />
-        <Box mt={8}>
-          <SInput
-            size="small"
-            labelPosition="center"
-            label={'Nome'}
-            inputRef={inputRef}
-            autoFocus
-            value={selectedNode?.label}
-            onChange={(e) => setEditNodeSelectedItem({ label: e.target.value })}
-            sx={{ width: ['100%', 600], mb: 10 }}
-            placeholder={nodeTypesConstant[type]?.placeholder}
-          />
-          {nodeTypesConstant[type]?.placeholderDesc && (
+        <Wizard
+          header={
+            <WizardTabs
+              height={45}
+              options={[
+                { label: 'Dados Principais', sx: { fontSize: 12 } },
+                { label: 'Riscos e Exames', sx: { fontSize: 12 } },
+              ]}
+            />
+          }
+        >
+          <Box mt={8}>
             <SInput
-              value={selectedNode?.description || ''}
-              label={'Descrição'}
-              onChange={(e) =>
-                setEditNodeSelectedItem({ description: e.target.value })
-              }
-              labelPosition="center"
               size="small"
-              multiline
-              minRows={2}
-              maxRows={6}
-              sx={{ width: ['100%', 600], mb: 10 }}
-              placeholder={nodeTypesConstant[type]?.placeholderDesc || ''}
-            />
-          )}
-          {nodeTypesConstant[type]?.placeholderRealDesc && (
-            <SInput
-              value={selectedNode?.realDescription || ''}
-              onChange={(e) =>
-                setEditNodeSelectedItem({ realDescription: e.target.value })
-              }
-              multiline
               labelPosition="center"
-              label={'Descrição real (Entrevista)'}
-              size="small"
-              minRows={2}
-              maxRows={6}
-              sx={{ width: ['100%', 600], mb: 10 }}
-              placeholder={nodeTypesConstant[type]?.placeholderRealDesc || ''}
-            />
-          )}
-          <SFlex gap={8} mt={10} align="center">
-            <TypeSelect
-              large
-              node={selectedNode as ITreeSelectedItem}
-              parentId={selectedNode?.parentId || 'no-node'}
-              handleSelect={(option) =>
-                setEditNodeSelectedItem({
-                  type: option.value as TreeTypeEnum,
-                })
+              label={'Nome'}
+              inputRef={inputRef}
+              autoFocus
+              fullWidth
+              value={selectedNode?.label}
+              onChange={(e) =>
+                setEditNodeSelectedItem({ label: e.target.value })
               }
+              sx={{ mb: 10 }}
+              placeholder={nodeTypesConstant[type]?.placeholder}
             />
-            {isOffice && (
-              <EmployeeSelect
-                large
-                text={'empregados'}
-                actualHierarchy={selectedNode}
-                handleSelect={(_, list) => setEmployees(list)}
-                selectedEmployees={allEmployees}
-                loading={isLoading}
-                {...preventAddEmployee()}
-              />
-            )}
-            {isNotHierarchy && (
-              <WorkspacesSelect
-                handleSelect={(item) =>
-                  Array.isArray(item) && setWorkspaces(item)
+            {nodeTypesConstant[type]?.placeholderDesc && (
+              <SInput
+                value={selectedNode?.description || ''}
+                label={'Descrição'}
+                onChange={(e) =>
+                  setEditNodeSelectedItem({ description: e.target.value })
                 }
-                selected={workspace}
+                labelPosition="center"
+                fullWidth
+                size="small"
+                multiline
+                minRows={2}
+                maxRows={6}
+                sx={{ mb: 10 }}
+                placeholder={nodeTypesConstant[type]?.placeholderDesc || ''}
               />
             )}
-          </SFlex>
-        </Box>
+            {nodeTypesConstant[type]?.placeholderRealDesc && (
+              <SInput
+                value={selectedNode?.realDescription || ''}
+                onChange={(e) =>
+                  setEditNodeSelectedItem({ realDescription: e.target.value })
+                }
+                multiline
+                labelPosition="center"
+                label={'Descrição real (Entrevista)'}
+                fullWidth
+                size="small"
+                minRows={2}
+                maxRows={6}
+                sx={{ mb: 10 }}
+                placeholder={nodeTypesConstant[type]?.placeholderRealDesc || ''}
+              />
+            )}
+          </Box>
+          <ModalViewRiskData selectedNode={selectedNode} />
+        </Wizard>
+        <SFlex gap={8} mt={10} align="center">
+          <TypeSelect
+            large
+            node={selectedNode as ITreeSelectedItem}
+            parentId={selectedNode?.parentId || 'no-node'}
+            handleSelect={(option) =>
+              setEditNodeSelectedItem({
+                type: option.value as TreeTypeEnum,
+              })
+            }
+          />
+          {isOffice && (
+            <EmployeeSelect
+              large
+              text={'empregados'}
+              actualHierarchy={selectedNode}
+              handleSelect={(_, list) => setEmployees(list)}
+              selectedEmployees={allEmployees}
+              loading={isLoading}
+              {...preventAddEmployee()}
+            />
+          )}
+          {isNotHierarchy && (
+            <WorkspacesSelect
+              large
+              handleSelect={(item) =>
+                Array.isArray(item) && setWorkspaces(item)
+              }
+              selected={workspace}
+            />
+          )}
+        </SFlex>
         <Box
           pt={6}
           mt={6}

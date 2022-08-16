@@ -4,7 +4,7 @@ import deepEqual from 'deep-equal';
 interface IDuplicateOptions {
   simpleCompare?: boolean;
   removeFields?: string[];
-  removeById?: string;
+  removeById?: string | string[];
 }
 
 export function removeDuplicate<T = any>(
@@ -16,14 +16,26 @@ export function removeDuplicate<T = any>(
       (item, index, self) => index === self.findIndex((t) => t == item),
     );
 
-  if (options?.removeById)
+  const removeById = options?.removeById;
+
+  if (removeById && Array.isArray(removeById))
+    return array.filter(
+      (item: any, index, self) =>
+        index ===
+        self.findIndex((t: any) =>
+          (removeById as string[])?.some(
+            (removeById) =>
+              t[removeById as string] == item[removeById as string],
+          ),
+        ),
+    );
+
+  if (removeById)
     return array.filter(
       (item: any, index, self) =>
         index ===
         self.findIndex(
-          (t: any) =>
-            t[options?.removeById as string] ==
-            item[(options as any)?.removeById as string],
+          (t: any) => t[removeById as string] == item[removeById as string],
         ),
     );
 

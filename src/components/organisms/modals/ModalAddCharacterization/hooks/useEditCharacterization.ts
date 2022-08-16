@@ -634,7 +634,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
   const onAddRisk = () => {
     if (!isEdit) {
-      return enqueueSnackbar('Salve antes de criar outro perfil', {
+      return enqueueSnackbar('Salve antes de adicionar um risco', {
         variant: 'warning',
       });
       // return document

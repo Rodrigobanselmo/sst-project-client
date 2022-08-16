@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC } from 'react';
 
 import GridViewIcon from '@mui/icons-material/GridView';
 import { STagSelect } from 'components/molecules/STagSelect';
@@ -13,15 +13,12 @@ export const ViewsRiskSelect: FC<IViewsRiskSelectProps> = ({
   viewType,
   ...props
 }) => {
-  const [selectedText, setSelectedText] = useState(
-    viewsRiskOptionsConstant[viewType]?.name || '',
-  );
+  const selectedText = viewsRiskOptionsConstant[viewType]?.name || '';
 
   const onSelect = (
     option: any,
     e: React.MouseEvent<HTMLLIElement, MouseEvent>,
   ) => {
-    setSelectedText(option.name);
     handleSelectMenu?.(option, e);
   };
 

@@ -110,10 +110,10 @@ export const STBoxStack = styled(Box)<{
 
 export const STGridExtend = styled(Box)`
   display: grid;
-  grid-template-columns:
+  /* grid-template-columns:
     minmax(100px, 1fr) minmax(100px, 1fr)
     minmax(100px, 1fr) minmax(100px, 1fr) 120px 120px
-    minmax(100px, 1fr) 120px 120px;
+    minmax(100px, 1fr) 120px 120px; */
   padding: ${(props) => props.theme.spacing(2, 4)};
   gap: ${(props) => props.theme.spacing(5)};
   width: 100%;

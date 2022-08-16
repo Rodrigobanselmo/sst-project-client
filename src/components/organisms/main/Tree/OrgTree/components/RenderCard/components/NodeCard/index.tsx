@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, MouseEvent, useEffect, useRef, useState } from 'react';
+import React, { FC, MouseEvent, useRef } from 'react';
 import { useStore } from 'react-redux';
 
 import AddIcon from '@mui/icons-material/Add';
@@ -20,6 +20,7 @@ import { firstNodeId } from 'core/constants/first-node-id.constant';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
+import { useObserverHide } from 'core/hooks/useObserverHide';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateGho';
 
@@ -34,18 +35,6 @@ import { TypeSelect } from '../../../Selects/TypeSelect';
 import { GhoSelectCard } from './Select/ghoSelect';
 import { STSelectBox } from './styles';
 import { INodeCardProps } from './types';
-
-export function onVisible(callback: any) {
-  return new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        callback(false);
-      } else {
-        callback(true);
-      }
-    });
-  });
-}
 
 const NodeLabel: FC<{ label: string; type: TreeTypeEnum; hide: boolean }> = ({
   label,
@@ -154,8 +143,7 @@ export const NodeCard: FC<INodeCardProps> = ({
   const GhoId = useAppSelector(selectGhoId);
   const store = useStore();
   const dispatch = useAppDispatch();
-  const ref = useRef<HTMLDivElement>(null);
-  const [hide, setHide] = useState(true);
+  const { hide, ref } = useObserverHide();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
     e.stopPropagation();
@@ -231,17 +219,6 @@ export const NodeCard: FC<INodeCardProps> = ({
       onUpdateGho(newHierarchyIds);
     }
   };
-
-  useEffect(() => {
-    if (ref.current) {
-      const x = onVisible((e: boolean) => setHide(e));
-      x.observe(ref.current);
-
-      return () => {
-        x.disconnect();
-      };
-    }
-  }, []);
 
   const showRefSelect = node.showRef;
   const isHierarchy = ![TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(

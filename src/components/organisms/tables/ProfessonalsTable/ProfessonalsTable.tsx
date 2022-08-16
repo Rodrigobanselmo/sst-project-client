@@ -219,7 +219,7 @@ export const ProfessionalsTable: FC<
         rowsNumber={rowsPerPage}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(200px, 5fr) minmax(200px, 4fr) minmax(120px, 2fr) 80px minmax(110px, 150px) minmax(110px, 150px) minmax(110px, 150px) 90px 80px`}
+        }minmax(200px, 5fr) minmax(200px, 4fr) minmax(120px, 2fr) 80px minmax(110px, 150px) minmax(110px, 150px) minmax(110px, 150px) 100px 100px 80px`}
       >
         <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
@@ -230,7 +230,12 @@ export const ProfessionalsTable: FC<
           <STableHRow>Registro</STableHRow>
           <STableHRow>Telefone</STableHRow>
           <STableHRow>Profissional</STableHRow>
-          <STableHRow justifyContent="center">Status</STableHRow>
+          <STableHRow justifyContent="center" ml={-5}>
+            Usuário
+          </STableHRow>
+          <STableHRow justifyContent="center" ml={-5}>
+            Status
+          </STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<typeof professionals[0]>
@@ -261,6 +266,20 @@ export const ProfessionalsTable: FC<
                 <TextIconRow clickable text={getCredential(row) || '-'} />
                 <TextIconRow clickable text={row.phone || '-'} />
                 <TextIconRow clickable text={getType(row) || '-'} />
+                <StatusSelect
+                  large={false}
+                  sx={{ maxWidth: '90px' }}
+                  selected={
+                    'userId' in row
+                      ? row.userId
+                        ? StatusEnum.ACTIVE
+                        : StatusEnum.PENDING
+                      : StatusEnum.ACTIVE
+                  }
+                  statusOptions={[StatusEnum.ACTIVE, StatusEnum.PENDING]}
+                  handleSelectMenu={(option) => handleEditStatus(option.value)}
+                  disabled
+                />
                 <StatusSelect
                   large={false}
                   sx={{ maxWidth: '90px' }}

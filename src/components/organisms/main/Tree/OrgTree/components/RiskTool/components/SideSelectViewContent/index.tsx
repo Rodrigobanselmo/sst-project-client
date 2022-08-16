@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useCallback, useMemo, useRef } from 'react';
+import React, { FC, useCallback, useMemo, useRef, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import SFlex from 'components/atoms/SFlex';
@@ -19,12 +19,17 @@ import { SUncheckBoxIcon } from 'assets/icons/SCheckboxIcon';
 import SSwapIcon from 'assets/icons/SSwapIcon';
 import { SCheckboxIcon } from 'assets/icons/SUncheckBoxIcon';
 
+import { hierarchyList } from 'core/constants/maps/hierarchy.constant';
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IGho } from 'core/interfaces/api/IGho';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
-import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
+import {
+  TreeConvertToHierarchy,
+  TreeTypeEnum,
+} from '../../../../enums/tree-type.enums';
 import { useListHierarchy } from '../../hooks/useListHierarchy';
 import { StyledGridMultiGho } from '../../styles';
 import {
@@ -50,19 +55,30 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
   const dispatch = useAppDispatch();
   const inputSelectedRef = useRef<HTMLInputElement>(null);
   const { hierarchyListData } = useListHierarchy();
+  const [filter, setFilter] = useState<HierarchyEnum>(HierarchyEnum.OFFICE);
   const store = useStore();
 
   const dataList = useMemo<(IHierarchyTreeMapObject | IGho)[]>(() => {
     if (viewDataType === ViewsDataEnum.HIERARCHY) {
-      return hierarchyListData();
+      return hierarchyListData().filter(
+        (gho) =>
+          !(
+            gho.type === TreeTypeEnum.WORKSPACE ||
+            gho.type === TreeTypeEnum.COMPANY
+          ) && TreeConvertToHierarchy[gho.type] === filter,
+      );
     }
 
+    const ghoQueryData = ghoQuery;
+
     if (viewDataType == ViewsDataEnum.ENVIRONMENT) {
-      return ghoQuery.filter((gho) => gho.type === HomoTypeEnum.ENVIRONMENT);
+      return ghoQueryData.filter(
+        (gho) => gho.type === HomoTypeEnum.ENVIRONMENT,
+      );
     }
 
     if (viewDataType === ViewsDataEnum.CHARACTERIZATION)
-      return ghoQuery.filter(
+      return ghoQueryData.filter(
         (gho) =>
           gho?.type &&
           [
@@ -72,8 +88,8 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           ].includes(gho.type),
       );
 
-    return ghoQuery.filter((gho) => !gho.type);
-  }, [ghoQuery, hierarchyListData, viewDataType]);
+    return ghoQueryData.filter((gho) => !gho.type);
+  }, [ghoQuery, hierarchyListData, viewDataType, filter]);
 
   const handleSelectAll = useCallback(() => {
     const search = store.getState().gho.search as string;
@@ -201,6 +217,19 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           handleAddGHO={handleAddGHO}
           placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
         />
+        {viewDataType === ViewsDataEnum.HIERARCHY &&
+          hierarchyList.map((hierarchy) => (
+            <STagButton
+              active={filter === hierarchy.value}
+              key={hierarchy.value}
+              tooltipTitle={`filtar por ${hierarchy.name}`}
+              text={hierarchy.name}
+              large
+              onClick={() => {
+                setFilter(hierarchy.value);
+              }}
+            />
+          ))}
         <STagButton
           icon={SCheckboxIcon}
           tooltipTitle="Selecione todos os GHOs abaixo"
@@ -215,12 +244,6 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
           if (viewDataType == ViewsDataEnum.GSE && gho.type) {
             return null;
           }
-
-          if (
-            gho.type === TreeTypeEnum.WORKSPACE ||
-            gho.type === TreeTypeEnum.COMPANY
-          )
-            return null;
 
           return (
             <SideUnselectedGho

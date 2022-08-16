@@ -33,6 +33,7 @@ export interface IExam {
   analyses: string;
   deleted_at: Date;
   examToClinic: IExamToClinic[];
+  examsRiskData: IExamRiskData;
 }
 
 export interface IExamToClinic {
@@ -51,15 +52,6 @@ export interface IExamToClinic {
   status: StatusEnum;
 }
 
-export interface IExamToClinicPricing {
-  id: number;
-  examToClinicId: number;
-  price: number;
-  startDate: Date;
-  observation: string;
-  examToClinic?: IExamToClinic;
-}
-
 export interface IExamToRisk {
   examId: number;
   riskId: string;
@@ -67,9 +59,19 @@ export interface IExamToRisk {
   risk?: IRiskFactors;
 }
 
-export interface IExamToRiskData {
-  examId: number;
-  riskId: string;
+export interface IExamRiskData {
+  examId?: number;
+  riskFactorDataId?: string;
+  isMale?: boolean;
+  isFemale?: boolean;
+  isPeriodic?: boolean;
+  isChange?: boolean;
+  isAdmission?: boolean;
+  isReturn?: boolean;
+  isDismissal?: boolean;
+  validityInMonths?: number;
+  fromAge?: number;
+  toAge?: number;
   exam?: IExam;
   riskData?: IRiskData;
 }

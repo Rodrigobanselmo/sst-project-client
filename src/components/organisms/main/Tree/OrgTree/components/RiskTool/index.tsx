@@ -55,7 +55,7 @@ import {
   ViewTypeEnum,
 } from './utils/view-risk-type.constant';
 
-export const RiskToolSlider = () => {
+export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data: ghoQuery } = useQueryGHO();
@@ -77,7 +77,12 @@ export const RiskToolSlider = () => {
   const isOpen = false;
 
   const { query } = useRouter();
-  const isRiskOpen = useMemo(() => !!query.riskGroupId, [query]);
+  const riskGroupIdMemo = useMemo(
+    () => (riskGroupId || query.riskGroupId || '') as string,
+
+    [query.riskGroupId, riskGroupId],
+  );
+  const isRiskOpen = useMemo(() => !!riskGroupIdMemo, [riskGroupIdMemo]);
   const { onOpenSelected } = useOpenRiskTool();
 
   useEffect(() => {
@@ -106,7 +111,7 @@ export const RiskToolSlider = () => {
       const isHierarchy = homoId.length > 1;
       copyHomoMutation.mutate({
         actualGroupId: homoId[0],
-        riskGroupId: query.riskGroupId as string,
+        riskGroupId: riskGroupIdMemo as string,
         companyId: companyId,
         companyIdFrom: gho.companyId,
         copyFromHomoGroupId: gho.id,
@@ -153,11 +158,11 @@ export const RiskToolSlider = () => {
 
   const handleDeleteGHO = useCallback(
     (id: string, data?: IGho) => {
-      if (query.riskGroupId && risk)
+      if (riskGroupIdMemo && risk)
         preventDelete(
           async () => {
             cleanMutation.mutate({
-              riskFactorGroupDataId: query.riskGroupId as string,
+              riskFactorGroupDataId: riskGroupIdMemo as string,
               homogeneousGroupIds: [id],
               riskIds: [risk.id],
             });
@@ -178,16 +183,16 @@ export const RiskToolSlider = () => {
           </span>,
         );
     },
-    [cleanMutation, preventDelete, query.riskGroupId, risk],
+    [cleanMutation, preventDelete, riskGroupIdMemo, risk],
   );
 
   const handleDelete = useCallback(
     (id: string, data?: IGho | IHierarchyTreeMapObject) => {
-      if (query.riskGroupId && risk)
+      if (riskGroupIdMemo && risk)
         preventDelete(
           async () => {
             cleanMutation.mutate({
-              riskFactorGroupDataId: query.riskGroupId as string,
+              riskFactorGroupDataId: riskGroupIdMemo as string,
               homogeneousGroupIds: [id],
               riskIds: [risk.id],
             });
@@ -208,7 +213,7 @@ export const RiskToolSlider = () => {
           </span>,
         );
     },
-    [cleanMutation, preventDelete, query.riskGroupId, risk],
+    [cleanMutation, preventDelete, riskGroupIdMemo, risk],
   );
 
   const handleSelectGHO = useCallback(
@@ -284,6 +289,7 @@ export const RiskToolSlider = () => {
             viewDataType={viewDataType}
             handleSelectGHO={handleSelectGHO}
             riskInit={isRiskOpen}
+            riskGroupId={riskGroupIdMemo}
           />
           <STTableContainer>
             <RiskToolHeader
@@ -298,13 +304,16 @@ export const RiskToolSlider = () => {
               viewType={viewType}
               ghoQuery={ghoQuery}
               loadingCopy={copyHomoMutation.isLoading}
+              riskGroupId={riskGroupIdMemo}
             />
             <STBoxStack
               expanded={selectExpanded ? 1 : 0}
               risk_init={isRiskOpen ? 1 : 0}
               viewType={viewType}
             >
-              {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && <RiskToolGSEView />}
+              {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
+                <RiskToolGSEView riskGroupId={riskGroupIdMemo} />
+              )}
               {viewType === ViewTypeEnum.SIMPLE_BY_RISK && (
                 <RiskToolRiskView
                   handleEditGHO={handleEditGHO}
@@ -314,6 +323,7 @@ export const RiskToolSlider = () => {
                   isDeleteLoading={deleteMutation.isLoading}
                   isRiskOpen={isRiskOpen}
                   viewDataType={viewDataType}
+                  riskGroupId={riskGroupIdMemo}
                 />
               )}
               {viewType === ViewTypeEnum.MULTIPLE && (

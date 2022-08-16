@@ -7,12 +7,12 @@ import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEpiRiskData } from 'core/interfaces/api/IEpi';
+import { IExamRiskData } from 'core/interfaces/api/IExam';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IEngsRiskData } from 'core/interfaces/api/IRiskFactors';
 import { api } from 'core/services/apiClient';
 import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
-import { sortString } from 'core/utils/sorts/string.sort';
 
 import { IErrorResp } from '../../../../../errors/types';
 
@@ -33,6 +33,7 @@ export interface IUpsertRiskData {
   workspaceId?: string;
   epis?: IEpiRiskData[];
   engs?: IEngsRiskData[];
+  exams?: IExamRiskData[];
   keepEmpty?: boolean;
   json?: any;
 }

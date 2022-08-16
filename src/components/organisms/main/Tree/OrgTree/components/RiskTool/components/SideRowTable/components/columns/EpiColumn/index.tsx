@@ -53,7 +53,7 @@ export const EpiColumn: FC<EpiColumnProps> = ({
               }
               handleRemove={() =>
                 handleRemove({
-                  epis: [epi.epiRiskData],
+                  epis: [epi.epiRiskData || epi],
                 })
               }
             />

@@ -1,1 +1,3 @@
-export interface RiskToolGSEViewProps {}
+export interface RiskToolGSEViewProps {
+  riskGroupId: string;
+}

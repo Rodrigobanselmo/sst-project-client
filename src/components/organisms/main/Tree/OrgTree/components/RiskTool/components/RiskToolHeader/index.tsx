@@ -5,6 +5,7 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { setGhoSearch } from 'store/reducers/hierarchy/ghoSlice';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 
 import { viewsDataOptionsConstant } from '../../utils/view-data-type.constant';
@@ -27,6 +28,7 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
   ghoQuery,
   viewDataType,
   loadingCopy,
+  riskGroupId,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -38,6 +40,7 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
     <SFlex align="center" gap={4} mb={5}>
       {viewType === ViewTypeEnum.SIMPLE_BY_RISK && (
         <SideInput
+          id={IdsEnum.RISK_TOOL_GHO_INPUT_SEARCH}
           ref={inputRef}
           handleSelectGHO={handleSelectGHO}
           onSearch={(value) => dispatch(setGhoSearch(value))}
@@ -50,7 +53,10 @@ export const RiskToolHeader: FC<RiskToolProps> = ({
       <Box width="100%">
         {showColumnsHeader && <RiskToolColumns viewType={viewType} />}
         {viewType === ViewTypeEnum.MULTIPLE && (
-          <SideRowTableMulti viewDataType={viewDataType} />
+          <SideRowTableMulti
+            riskGroupId={riskGroupId}
+            viewDataType={viewDataType}
+          />
         )}
         {viewType === ViewTypeEnum.SIMPLE_BY_GROUP && (
           <RiskToolGhoHorizontal

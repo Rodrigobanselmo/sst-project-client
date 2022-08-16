@@ -13,6 +13,7 @@ export interface SideHeaderProps {
   loadingCopy?: boolean;
   ghoQuery: IGho[];
   inputRef: any;
+  riskGroupId: string;
   viewDataType: ViewsDataEnum;
   viewType: ViewTypeEnum;
   handleCopyGHO: (data: IGho | IHierarchyTreeMapObject) => void;

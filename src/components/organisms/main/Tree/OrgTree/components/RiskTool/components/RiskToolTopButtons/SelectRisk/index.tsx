@@ -28,6 +28,7 @@ import { SideTopProps } from '../types';
 
 export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
   viewType,
+  riskGroupId,
 }) => {
   const dispatch = useAppDispatch();
   const { companyId: userCompanyId } = useGetCompanyId(true);
@@ -63,7 +64,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
             keepEmpty: true,
             homogeneousGroupIds: [homoId[0]],
             riskIds: options,
-            riskFactorGroupDataId: query.riskGroupId as string,
+            riskFactorGroupDataId: riskGroupId as string,
             workspaceId: homoId.length == 2 ? homoId[1] : undefined,
             ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
           });

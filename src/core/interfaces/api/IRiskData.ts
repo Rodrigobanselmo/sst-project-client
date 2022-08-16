@@ -7,6 +7,7 @@ import {
   RiskRecTextTypeEnum,
   RiskRecTypeEnum,
 } from './../../../project/enum/RiskRecType.enum';
+import { IExam } from './IExam';
 import { IGho } from './IGho';
 import { IHierarchy } from './IHierarchy';
 import { IProfessional } from './IProfessional';
@@ -29,6 +30,7 @@ export interface IRiskData {
   recs?: IRecMed[];
   engs?: IRecMed[];
   epis?: IEpi[];
+  exams?: IExam[];
   isQuantity?: boolean;
   json?: IRiskDataJsonQui | IRiskDataJsonNoise;
   riskFactor?: IRiskFactors;

@@ -10,6 +10,7 @@ export interface RiskToolRiskViewProps {
   isDeleteLoading: boolean;
   viewDataType: ViewsDataEnum;
   selectedGhoId: string | null;
+  riskGroupId: string;
   handleEditGHO: (data: IGho) => void;
   handleSelectGHO: (
     gho: IGho | null,

@@ -6,4 +6,7 @@ export interface STabOption extends TabProps {
 
 export interface STabsProps extends TabsProps {
   options: STabOption[];
+  height?: number;
+  mt?: number;
+  mb?: number;
 }

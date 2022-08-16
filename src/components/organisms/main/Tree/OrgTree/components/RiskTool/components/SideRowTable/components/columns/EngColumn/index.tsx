@@ -59,7 +59,7 @@ export const EngColumn: FC<EngColumnProps> = ({
             handleEdit={() => !isNaRecMed(eng.medName) && handleEdit(eng)}
             handleRemove={() =>
               handleRemove({
-                engs: [eng.engsRiskData],
+                engs: [eng.engsRiskData || eng],
               })
             }
           />

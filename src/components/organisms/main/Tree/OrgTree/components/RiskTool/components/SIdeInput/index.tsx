@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { SEndButton } from 'components/atoms/SIconButton/SEndButton';
 import STooltip from 'components/atoms/STooltip';
@@ -15,10 +15,17 @@ import { SideInputProps } from './types';
 export const SideInput = React.forwardRef<any, SideInputProps>(
   ({ handleAddGHO, isAddLoading, onSearch, small, ...props }, ref) => {
     const selectedGho = useAppSelector(selectGhoData);
+    const searchSelected = useAppSelector((state) => state.gho.search);
 
     const handleSearch = useDebouncedCallback((value: string) => {
       onSearch?.(value);
     }, 300);
+
+    useEffect(() => {
+      if (ref && (ref as any).current) {
+        (ref as any).current.value = searchSelected;
+      }
+    }, [ref, searchSelected]);
 
     return (
       <STSInput
