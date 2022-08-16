@@ -243,6 +243,7 @@ export const useColumnAction = () => {
       onSubmit: (exams) =>
         exams?.examsRiskData && handleSelect([exams.examsRiskData]),
       ...exam,
+      examRiskData: exam.examsRiskData,
     } as Partial<typeof initialExamDataState>);
   };
 

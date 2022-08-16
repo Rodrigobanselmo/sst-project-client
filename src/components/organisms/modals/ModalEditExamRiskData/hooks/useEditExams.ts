@@ -32,8 +32,9 @@ export const initialExamDataState = {
 };
 
 interface ISubmit {
-  name: string;
-  cpf: string;
+  validityInMonths: string;
+  toAge: string;
+  fromAge: string;
 }
 
 export const useEditExams = () => {
@@ -88,13 +89,21 @@ export const useEditExams = () => {
     onClose();
   };
 
-  const onSubmit: SubmitHandler<ISubmit> = async (data) => {
+  const onSubmit: SubmitHandler<ISubmit> = async ({
+    fromAge,
+    toAge,
+    validityInMonths,
+  }) => {
     const submitData: Partial<IExam> = {
       ...examData,
-      ...data,
       examsRiskData: {
         ...examData.examRiskData,
         examId: examData.id,
+        fromAge: fromAge ? parseInt(fromAge, 10) : undefined,
+        toAge: toAge ? parseInt(toAge, 10) : undefined,
+        validityInMonths: validityInMonths
+          ? parseInt(validityInMonths, 10)
+          : undefined,
       },
     };
 
