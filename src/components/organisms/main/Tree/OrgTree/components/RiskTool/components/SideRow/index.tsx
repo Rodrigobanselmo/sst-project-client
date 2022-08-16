@@ -11,6 +11,7 @@ import { useObserverHide } from 'core/hooks/useObserverHide';
 import { IGho } from 'core/interfaces/api/IGho';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
+import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { IHierarchyTreeMapObject } from '../RiskToolViews/RiskToolRiskView/types';
 import { SideRowGho } from '../SideRowGho';
 import { SideRowTable } from '../SideRowTable/SingleGho';
@@ -21,7 +22,11 @@ const getGhoName = (
   hierarchyName = '',
 ) => {
   if (!gho?.type) return gho.name;
-  if (gho.type == HomoTypeEnum.HIERARCHY) return hierarchyName;
+  if (
+    gho.type == HomoTypeEnum.HIERARCHY ||
+    Object.values(TreeTypeEnum).includes((gho as any).type)
+  )
+    return hierarchyName;
 
   if (gho.description) {
     const splitValues = gho.description.split('(//)');
@@ -49,7 +54,7 @@ export const SideRow = React.memo<SideRowProps>(
 
     const isToFilter =
       searchSelected &&
-      !stringNormalize(getGhoName(gho)).includes(
+      !stringNormalize(getGhoName(gho, gho?.name)).includes(
         stringNormalize(searchSelected),
       );
 

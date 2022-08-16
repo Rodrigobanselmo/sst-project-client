@@ -33,7 +33,7 @@ export const sortFilter = function (
       ? sortNumber(arrayA || 0, arrayB || 0)
       : sortString(arrayA || '', arrayB || '');
   }
-  console.log(arrayA, arrayB);
+
   if (order === 'desc') {
     return typeof arrayA === 'number' || typeof arrayB === 'number'
       ? sortNumber(arrayB || 0, arrayA || 0)

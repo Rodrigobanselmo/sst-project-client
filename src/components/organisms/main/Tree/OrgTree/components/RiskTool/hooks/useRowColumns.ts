@@ -11,7 +11,7 @@ export const useRowColumns = () => {
     headerRowColumnsMap[RowColumnsTypeEnum.MED],
     headerRowColumnsMap[RowColumnsTypeEnum.PROB],
     headerRowColumnsMap[RowColumnsTypeEnum.RO],
-    // headerRowColumnsMap[RowColumnsTypeEnum.EXAM],
+    headerRowColumnsMap[RowColumnsTypeEnum.EXAM],
     headerRowColumnsMap[RowColumnsTypeEnum.REC],
     headerRowColumnsMap[RowColumnsTypeEnum.PROB_AFTER],
     headerRowColumnsMap[RowColumnsTypeEnum.RO_AFTER],

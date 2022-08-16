@@ -78,7 +78,7 @@ export const ModalViewRiskData = ({
         viewData = ViewsDataEnum.HIERARCHY;
         ghoName = selectedNode?.label || selectedNode?.name;
         break;
-      case HomoTypeEnum.GSE:
+      case (HomoTypeEnum.GSE, undefined, null):
         viewData = ViewsDataEnum.GSE;
         ghoName = foundGho?.name;
         break;

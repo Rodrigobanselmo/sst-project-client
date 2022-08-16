@@ -161,8 +161,6 @@ export const useHierarchyTreeActions = () => {
       }
 
       const getHierarchyCopyFrom = (actualHierarchy?: IHierarchy) => {
-        // console.log('actualHierarchy', actualHierarchy);
-
         if (copyFromHierarchy && actualHierarchy) {
           let hierarchyFromCopy: IHierarchy | false = false;
           const copyHierarchy =

@@ -88,7 +88,7 @@ export const useOpenRiskTool = () => {
             searchRisk: '',
           }),
         );
-      }, 100);
+      }, 200);
     }
   };
 

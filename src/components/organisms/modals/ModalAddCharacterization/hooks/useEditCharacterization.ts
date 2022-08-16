@@ -174,11 +174,9 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           newData.characterizationType = 'characterization';
         }
 
-        setValue('characterizationType', newData.characterizationType);
         setValue('type', newData.type);
 
         initialDataRef.current = newData;
-        console.log('characterizationData', newData);
         return newData;
       });
     }
@@ -227,7 +225,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       ...cleanObjectValues({ name, description, type }),
     });
     const beforeObject = cleanObjectValues(initialDataRef.current);
-    console.log(beforeObject, afterObject);
     if (preventUnwantedChanges(afterObject, beforeObject, onClose)) return;
     onClose();
   };
@@ -319,7 +316,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     };
 
     if (isEdit) delete submitData.photos;
-    console.log('dewdecsd', characterizationData);
 
     await upsertMutation
       .mutateAsync(submitData)

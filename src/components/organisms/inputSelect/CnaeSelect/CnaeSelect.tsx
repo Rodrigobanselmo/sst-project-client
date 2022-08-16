@@ -20,7 +20,6 @@ export const CnaeInputSelect: FC<ICnaeSelectProps> = ({
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
-    console.log(value);
     setSearch(value);
   }, 300);
 

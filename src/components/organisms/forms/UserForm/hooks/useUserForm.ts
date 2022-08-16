@@ -20,8 +20,6 @@ export const useUserForm = (onlyEdit?: boolean) => {
     resolver: yupResolver(userUpdateSchema),
   });
 
-  console.log(user);
-
   const [userData, setUserData] = useState({ ...createUser(user) });
   const [uneditable, setUneditable] = useState(onlyEdit ? false : true);
 

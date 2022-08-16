@@ -141,7 +141,6 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
       employee.hierarchyId ==
         String(actualHierarchy?.parentId)?.split('//')?.[0]
     ) {
-      console.log('uh');
       deleteSubOfficeMut.mutate({
         employeeId: employee.id,
         subOfficeId: String(actualHierarchy?.id).split('//')?.[0],

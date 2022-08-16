@@ -37,7 +37,6 @@ export const SideMainGho: FC<SideItemsProps> = ({
       if (splitValues[1]) {
         if (viewDataType == ViewsDataEnum.ENVIRONMENT)
           return (environmentMap as any)[splitValues[1]]?.name;
-        console.log(viewDataType);
         if (viewDataType == ViewsDataEnum.CHARACTERIZATION)
           return (characterizationMap as any)[splitValues[1]]?.name;
       }

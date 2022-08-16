@@ -65,8 +65,10 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
         );
     });
 
-    if (!selectedGhoFilter.value || !selectedGhoFilter.key)
+    if (!selectedGhoFilter.value || !selectedGhoFilter.key) {
       return ghoFilteredList;
+    }
+
     const riskData = queryClient.getQueryData([
       QueryEnum.RISK_DATA,
       companyId,
@@ -102,12 +104,11 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
       sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key),
     );
   }, [
-    companyId,
+    selectedGhoFilter,
     ghoQuery,
+    companyId,
     riskGroupId,
     risk?.id,
-    selectedGhoFilter.key,
-    selectedGhoFilter.value,
     viewDataType,
   ]);
 
