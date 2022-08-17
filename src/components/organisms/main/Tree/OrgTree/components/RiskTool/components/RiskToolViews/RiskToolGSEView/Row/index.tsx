@@ -13,7 +13,7 @@ import { RiskToolGSEViewRowRiskBox } from './RiskBox';
 import { SideRowProps } from './types';
 
 export const RiskToolGSEViewRow = React.memo<SideRowProps>(
-  ({ risk, riskData }) => {
+  ({ risk, riskData, riskGroupId }) => {
     const searchSelected = useAppSelector((state) => state.gho.searchRisk);
     const { hide, ref } = useObserverHide();
 
@@ -35,8 +35,14 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
           riskData={riskData}
           data={risk}
           hide={hide}
+          riskGroupId={riskGroupId}
         />
-        <RiskToolSingleRiskRow hide={hide} risk={risk} riskData={riskData} />
+        <RiskToolSingleRiskRow
+          hide={hide}
+          riskGroupId={riskGroupId}
+          risk={risk}
+          riskData={riskData}
+        />
       </SFlex>
     );
   },

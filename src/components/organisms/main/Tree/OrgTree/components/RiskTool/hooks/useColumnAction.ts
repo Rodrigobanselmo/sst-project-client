@@ -49,7 +49,7 @@ export const useColumnAction = () => {
     { keepEmpty } = { keepEmpty: false },
   ) => {
     const submitData = { ...restData } as IUpsertRiskData;
-
+    console.log(submitData);
     Object.entries({ recs, adms, generateSources }).forEach(([key, value]) => {
       if (value?.length)
         (submitData as any)[key] = [

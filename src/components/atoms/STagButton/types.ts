@@ -2,6 +2,8 @@ import { ElementType, ReactNode } from 'react';
 
 import { BoxProps, IconProps } from '@mui/material';
 
+import { STextProps } from '../SText/types';
+
 export interface ISTagButtonProps extends BoxProps {
   text?: string;
   bg?: string;
@@ -16,4 +18,5 @@ export interface ISTagButtonProps extends BoxProps {
   showOnHover?: boolean;
   active?: boolean;
   tooltipTitle?: ReactNode;
+  textProps?: STextProps;
 }

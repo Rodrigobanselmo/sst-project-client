@@ -18,9 +18,9 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
   risk,
   riskData,
   hide,
+  riskGroupId,
 }) => {
   const gho = useAppSelector((state) => state.gho.selected);
-  const { query } = useRouter();
   const {
     onHandleSelectSave,
     enqueueSnackbar,
@@ -31,7 +31,6 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
     onHandleEditExams,
   } = useColumnAction();
 
-  const riskGroupId = riskData?.riskFactorGroupDataId;
   const handleSelect = async (values: Partial<IUpsertRiskData>) => {
     if (!risk?.id || !gho?.id) return;
     if (riskData?.isQuantity && values.probability) {
@@ -53,7 +52,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
       id: riskData?.id,
       homogeneousGroupId: homoId[0].split('//')[0],
       riskId: risk.id,
-      riskFactorGroupDataId: riskData?.riskFactorGroupDataId as string,
+      riskFactorGroupDataId: riskGroupId as string,
       ...(isHierarchy
         ? {
             type: HomoTypeEnum.HIERARCHY,

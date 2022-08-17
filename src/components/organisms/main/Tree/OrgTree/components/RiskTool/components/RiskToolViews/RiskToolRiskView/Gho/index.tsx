@@ -99,7 +99,7 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
         ...gho,
       };
     });
-
+    console.log(ghoData);
     return ghoData.sort((a, b) =>
       sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key),
     );

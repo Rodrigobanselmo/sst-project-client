@@ -10,7 +10,11 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { ClinicScheduleTypeEnum, IExam } from 'core/interfaces/api/IExam';
+import {
+  ClinicScheduleTypeEnum,
+  IExam,
+  IExamToRisk,
+} from 'core/interfaces/api/IExam';
 import {
   ICreateClientExam,
   useMutUpsertClientExam,
@@ -32,9 +36,15 @@ export const initialClinicExamState = {
   examId: 0,
   companyId: '',
   examMinDuration: 0,
+  groupId: '',
   observation: '',
   dueInDays: 0,
   isScheduled: null,
+  isPeriodic: true,
+  isChange: true,
+  isAdmission: true,
+  isReturn: true,
+  isDismissal: true,
   exam: {} as IExam,
   status: StatusEnum.ACTIVE,
   startDate: dayjs().toDate() as Date | undefined,
@@ -143,11 +153,17 @@ export const useEditClinicExams = () => {
       companyId: clinicExamData.companyId,
       examId: clinicExamData.exam.id,
       status: clinicExamData.status,
+      groupId: clinicExamData.groupId || undefined,
       scheduleRange: clinicExamData.scheduleRange,
       startDate: startDate,
       price: moneyConverter(data.price) || undefined,
       isScheduled: !!Number(type),
       observation: clinicExamData.observation,
+      isPeriodic: clinicExamData.isPeriodic,
+      isChange: clinicExamData.isChange,
+      isAdmission: clinicExamData.isAdmission,
+      isReturn: clinicExamData.isReturn,
+      isDismissal: clinicExamData.isDismissal,
     };
 
     try {
@@ -156,6 +172,13 @@ export const useEditClinicExams = () => {
         .then((clinicExam) => clinicExamData.callback(clinicExam));
       onClose();
     } catch (error) {}
+  };
+
+  const onSelectCheck = (isChecked: boolean, type: keyof IExamToRisk) => {
+    setClinicExamData((oldData) => ({
+      ...oldData,
+      [type]: isChecked,
+    }));
   };
 
   return {
@@ -175,6 +198,7 @@ export const useEditClinicExams = () => {
     allClinicExams,
     initializeModalDate,
     onStackOpenModal,
+    onSelectCheck,
   };
 };
 

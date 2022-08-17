@@ -40,10 +40,16 @@ export interface IExamToClinic {
   id: number;
   examId: number;
   companyId: string;
+  groupId: string;
   dueInDays: number;
   isScheduled: boolean;
   observation: string;
   examMinDuration: number;
+  isPeriodic?: boolean;
+  isChange?: boolean;
+  isAdmission?: boolean;
+  isReturn?: boolean;
+  isDismissal?: boolean;
   scheduleType: ClinicScheduleTypeEnum;
   exam?: IExam;
   price: number;
@@ -53,15 +59,31 @@ export interface IExamToClinic {
 }
 
 export interface IExamToRisk {
+  id: number;
   examId: number;
   riskId: string;
   exam?: IExam;
   risk?: IRiskFactors;
+
+  isMale?: boolean;
+  isFemale?: boolean;
+  isPeriodic?: boolean;
+  isChange?: boolean;
+  isAdmission?: boolean;
+  isReturn?: boolean;
+  isDismissal?: boolean;
+  validityInMonths?: number;
+  lowValidityInMonths?: number;
+  fromAge?: number;
+  toAge?: number;
 }
 
 export interface IExamRiskData {
   examId?: number;
   riskFactorDataId?: string;
+  exam?: IExam;
+  riskData?: IRiskData;
+
   isMale?: boolean;
   isFemale?: boolean;
   isPeriodic?: boolean;
@@ -72,6 +94,4 @@ export interface IExamRiskData {
   validityInMonths?: number;
   fromAge?: number;
   toAge?: number;
-  exam?: IExam;
-  riskData?: IRiskData;
 }

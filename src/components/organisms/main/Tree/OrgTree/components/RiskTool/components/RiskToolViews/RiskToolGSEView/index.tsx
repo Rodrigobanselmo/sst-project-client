@@ -98,7 +98,12 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
   return (
     <>
       {riskOrderedData.map(([riskData, risk]) => (
-        <RiskToolGSEViewRow key={riskData.id} risk={risk} riskData={riskData} />
+        <RiskToolGSEViewRow
+          key={riskData.id}
+          risk={risk}
+          riskData={riskData}
+          riskGroupId={riskGroupId}
+        />
       ))}
       <STagButton
         active={!!selectedGho}

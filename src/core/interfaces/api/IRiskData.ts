@@ -32,6 +32,7 @@ export interface IRiskData {
   epis?: IEpi[];
   exams?: IExam[];
   isQuantity?: boolean;
+  standardExams?: boolean;
   json?: IRiskDataJsonQui | IRiskDataJsonNoise;
   riskFactor?: IRiskFactors;
   origin?: string;

@@ -4,12 +4,13 @@ import React from 'react';
 import { Box } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
-import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
+import { ExamSelect } from 'components/organisms/tagSelects/ExamSelect';
+import { RiskSelect } from 'components/organisms/tagSelects/RiskSelect';
 
-import { dateToString } from 'core/utils/date/date-format';
+import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
@@ -19,6 +20,7 @@ export const ModalExamStep = ({
   onSelectCheck,
   control,
   setValue,
+  setExamData,
 }: IUseEditExam) => {
   return (
     <SFlex direction="column" mt={8}>
@@ -28,55 +30,55 @@ export const ModalExamStep = ({
       <SFlex>
         <SCheckBox
           label="Admissional"
-          checked={examData.examRiskData.isAdmission}
+          checked={examData.isAdmission}
           onChange={(e) => {
             onSelectCheck(e.target?.checked, 'isAdmission');
           }}
         />
         <SCheckBox
           label="Periódico"
-          checked={examData.examRiskData.isPeriodic}
+          checked={examData.isPeriodic}
           onChange={(e) => {
             onSelectCheck(e.target?.checked, 'isPeriodic');
           }}
         />
         <SCheckBox
           label="Mudança"
-          checked={examData.examRiskData.isChange}
+          checked={examData.isChange}
           onChange={(e) => {
             onSelectCheck(e.target?.checked, 'isChange');
           }}
         />
         <SCheckBox
           label="Retorno"
-          checked={examData.examRiskData.isReturn}
+          checked={examData.isReturn}
           onChange={(e) => {
             onSelectCheck(e.target?.checked, 'isReturn');
           }}
         />
         <SCheckBox
           label="Demissional"
-          checked={examData.examRiskData.isDismissal}
+          checked={examData.isDismissal}
           onChange={(e) => {
             onSelectCheck(e.target?.checked, 'isDismissal');
           }}
         />
       </SFlex>
 
-      <SText color="text.label" fontSize={14} mb={-2} mt={5}>
+      <SText color="text.label" fontSize={14} mb={-2} mt={10}>
         Sexo
       </SText>
       <SFlex>
         <SCheckBox
           label="Masculino"
-          checked={examData.examRiskData.isMale}
+          checked={examData.isMale}
           onChange={(e) => {
             onSelectCheck(e.target?.checked, 'isMale');
           }}
         />
         <SCheckBox
           label="Feminino"
-          checked={examData.examRiskData.isFemale}
+          checked={examData.isFemale}
           onChange={(e) => {
             onSelectCheck(e.target?.checked, 'isFemale');
           }}
@@ -89,7 +91,7 @@ export const ModalExamStep = ({
       <SFlex minWidth={['100%', 600, 800]} flexWrap="wrap" gap={5}>
         <Box flex={1} maxWidth={150}>
           <InputForm
-            defaultValue={String(examData.examRiskData.fromAge || '')}
+            defaultValue={String(examData.fromAge || '')}
             label="De"
             fullWidth
             labelPosition="center"
@@ -97,11 +99,12 @@ export const ModalExamStep = ({
             endAdornment="anos"
             name="fromAge"
             size="small"
+            mask={intMask.apply}
           />
         </Box>
         <Box flex={1} maxWidth={150}>
           <InputForm
-            defaultValue={String(examData.examRiskData.toAge || '')}
+            defaultValue={String(examData.toAge || '')}
             fullWidth
             label="Até"
             labelPosition="center"
@@ -109,11 +112,12 @@ export const ModalExamStep = ({
             endAdornment="anos"
             name="toAge"
             size="small"
+            mask={intMask.apply}
           />
         </Box>
       </SFlex>
 
-      <Box mt={10}>
+      <SFlex gap={5} mt={10} flexWrap="wrap">
         <AutocompleteForm
           name="validityInMonths"
           control={control}
@@ -125,13 +129,72 @@ export const ModalExamStep = ({
             name: 'validityInMonths',
           }}
           setValue={(v) => setValue('validityInMonths', v)}
-          defaultValue={examData.examRiskData.validityInMonths || ''}
+          defaultValue={examData.validityInMonths || ''}
           mask={intMask.apply}
           label="Validade (meses)"
           sx={{ width: [200] }}
           options={[3, 6, 9, 12, 18, 24]}
         />
-      </Box>
+        <AutocompleteForm
+          name="lowValidityInMonths"
+          control={control}
+          freeSolo
+          getOptionLabel={(option) => String(option)}
+          inputProps={{
+            labelPosition: 'top',
+            placeholder: 'meses...',
+            name: 'lowValidityInMonths',
+          }}
+          setValue={(v) => setValue('lowValidityInMonths', v)}
+          defaultValue={examData.lowValidityInMonths || ''}
+          mask={intMask.apply}
+          label="Validade para comorbidades (meses)"
+          sx={{ width: [300] }}
+          options={[3, 6, 9, 12, 18, 24]}
+        />
+      </SFlex>
+
+      <RiskSelect
+        sx={{ minWidth: '100%', mt: 10, overflow: 'hidden' }}
+        large
+        error={examData.error.risk}
+        active={!!examData.risk?.id}
+        tooltipTitle={examData.risk?.name || ''}
+        bg={
+          examData.risk?.type
+            ? `risk.${examData.risk.type.toLocaleLowerCase()}`
+            : undefined
+        }
+        handleSelect={(option: any) =>
+          setExamData({
+            ...examData,
+            error: { ...examData.error, risk: false },
+            risk: option,
+            riskId: option.id,
+          })
+        }
+        text={examData.risk?.name || 'selecione um risco'}
+        multiple={false}
+      />
+      <ExamSelect
+        asyncLoad
+        sx={{ minWidth: '100%', mt: 5, overflow: 'hidden' }}
+        large
+        text={examData.exam?.name || 'selecione um exame'}
+        active={!!examData.exam?.id}
+        error={examData.error.exam}
+        tooltipTitle={examData.exam?.name || ''}
+        multiple={false}
+        onlyExam
+        handleSelect={(option: any) =>
+          setExamData({
+            ...examData,
+            error: { ...examData.error, exam: false },
+            exam: option,
+            examId: option.id,
+          })
+        }
+      />
     </SFlex>
   );
 };

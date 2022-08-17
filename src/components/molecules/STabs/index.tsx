@@ -36,7 +36,13 @@ export const STabs: FC<STabsProps> = ({
 }) => {
   return (
     <Box
-      sx={{ borderBottom: 1, borderColor: 'divider' }}
+      sx={{
+        borderBottom: 1,
+        borderColor: 'divider',
+        // backgroundColor: 'sidebar.background',
+        // borderTopLeftRadius: 10,
+        // borderTopRightRadius: 10,
+      }}
       mt={mt}
       mb={mb}
       {...(!!props.height && {

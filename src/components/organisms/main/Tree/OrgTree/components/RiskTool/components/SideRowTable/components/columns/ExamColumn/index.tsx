@@ -1,6 +1,8 @@
 import React, { FC } from 'react';
 
 import { Box } from '@mui/material';
+import { red, green } from '@mui/material/colors';
+import { STagButton } from 'components/atoms/STagButton';
 import { ExamSelect } from 'components/organisms/tagSelects/ExamSelect';
 
 import { IExam } from 'core/interfaces/api/IExam';
@@ -15,6 +17,10 @@ export const ExamColumn: FC<EpiColumnProps> = ({
   handleEdit,
   risk,
 }) => {
+  const onAddExamsStandard = () => {
+    handleSelect({ standardExams: !data?.standardExams }, {} as any);
+  };
+
   return (
     <Box>
       <ExamSelect
@@ -33,6 +39,23 @@ export const ExamColumn: FC<EpiColumnProps> = ({
             );
         }}
       />
+      {data && (
+        <STagButton
+          onClick={onAddExamsStandard}
+          textProps={{
+            sx: {
+              color: !data?.standardExams ? 'error.main' : 'success.dark',
+            },
+          }}
+          text={data?.standardExams ? 'Padrão Ativo' : 'Padrão Inativo'}
+          mt={4}
+          sx={{
+            borderColor: !data?.standardExams ? 'error.main' : 'success.dark',
+            color: !data?.standardExams ? 'error.main' : 'success.dark',
+            backgroundColor: !data?.standardExams ? red[50] : green[50],
+          }}
+        />
+      )}
       {data &&
         data.exams?.map((exam) => {
           return (

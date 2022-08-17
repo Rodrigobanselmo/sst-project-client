@@ -29,6 +29,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
       subText,
       topText,
       showOnHover,
+      textProps,
       ...props
     },
     ref,
@@ -120,6 +121,7 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
                   color: active ? 'common.white' : 'common.black',
                   mb: -1,
                 }}
+                {...textProps}
               >
                 {text}
               </SText>

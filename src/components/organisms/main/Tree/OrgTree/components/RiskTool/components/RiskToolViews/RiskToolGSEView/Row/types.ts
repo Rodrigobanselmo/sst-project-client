@@ -8,4 +8,5 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 export interface SideRowProps {
   risk: IRiskFactors;
   riskData?: IRiskData;
+  riskGroupId: string;
 }

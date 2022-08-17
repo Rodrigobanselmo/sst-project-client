@@ -16,7 +16,7 @@ export const cleanObjectValues = (obj: Object) => {
 export const cleanObjectNullValues = (obj: Object) => {
   const copy = clone(obj) as any;
   Object.keys(copy).forEach((key) => {
-    if (!copy[key]) delete copy[key];
+    if (copy[key] == null || copy[key] == undefined) delete copy[key];
   });
 
   return copy;

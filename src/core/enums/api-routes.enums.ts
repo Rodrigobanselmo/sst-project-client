@@ -31,6 +31,7 @@ export enum ApiRoutesEnum {
   PROFESSIONALS = '/professionals',
   REC_MED = '/rec-med',
   EXAM = '/exam',
+  EXAM_RISK = '/exam/risk',
   CLINIC_EXAM = '/clinic-exam',
   RISK = '/risk',
   RISK_DATA = '/risk-data',

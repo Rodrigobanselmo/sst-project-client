@@ -24,6 +24,7 @@ export interface IUpsertRiskData {
   riskIds?: string[];
   hierarchyId?: string;
   homogeneousGroupId?: string;
+  standardExams?: boolean;
   probability?: number;
   probabilityAfter?: number;
   adms?: string[];

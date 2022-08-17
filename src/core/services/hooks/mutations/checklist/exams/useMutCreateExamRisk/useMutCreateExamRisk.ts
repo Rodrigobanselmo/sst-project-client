@@ -5,36 +5,35 @@ import { useSnackbar } from 'notistack';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { ClinicScheduleTypeEnum, IExam } from 'core/interfaces/api/IExam';
+import { IExam, IExamToRisk } from 'core/interfaces/api/IExam';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
 
-export interface ICreateClientExam {
+export interface ICreateExamRisk {
   examId: number;
-  companyId: string;
-  groupId?: string;
-  startDate: Date;
-  dueInDays?: number;
-  price?: number;
-  isScheduled?: boolean;
-  observation?: string;
+  riskId: string;
+  companyId?: string;
+  isMale?: boolean;
+  isFemale?: boolean;
   isPeriodic?: boolean;
   isChange?: boolean;
   isAdmission?: boolean;
   isReturn?: boolean;
   isDismissal?: boolean;
-  status?: string;
-  scheduleRange?: any;
-  examMinDuration?: string;
-  scheduleType?: ClinicScheduleTypeEnum;
+  validityInMonths?: number;
+  lowValidityInMonths?: number;
+  fromAge?: number;
+  toAge?: number;
+  startDate?: Date;
+  endDate?: Date;
 }
 
-export async function createExam(data: ICreateClientExam, companyId?: string) {
+export async function createExam(data: ICreateExamRisk, companyId?: string) {
   if (!companyId) return null;
 
-  const response = await api.post<IExam>(`${ApiRoutesEnum.CLINIC_EXAM}`, {
+  const response = await api.post<IExamToRisk>(`${ApiRoutesEnum.EXAM_RISK}`, {
     ...data,
     companyId,
   });
@@ -42,20 +41,20 @@ export async function createExam(data: ICreateClientExam, companyId?: string) {
   return response.data;
 }
 
-export function useMutUpsertClientExam() {
+export function useMutCreateExamRisk() {
   const { enqueueSnackbar } = useSnackbar();
-  const { companyId } = useGetCompanyId();
+  const { getCompanyId } = useGetCompanyId();
 
   return useMutation(
-    async (data: ICreateClientExam) =>
-      createExam(data, data.companyId || companyId),
+    async (data: ICreateExamRisk) =>
+      createExam(data, getCompanyId(data.companyId)),
     {
       onSuccess: async (newExam) => {
         if (newExam) {
-          queryClient.invalidateQueries([QueryEnum.CLINIC_EXAMS]);
+          queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
         }
 
-        enqueueSnackbar('Exames inseridos com sucesso', {
+        enqueueSnackbar('Exame vinculado ao risco com sucesso', {
           variant: 'success',
         });
         return newExam;

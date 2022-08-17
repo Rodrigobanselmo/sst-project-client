@@ -2,6 +2,7 @@
 import React from 'react';
 
 import { Box } from '@mui/material';
+import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
@@ -39,6 +40,7 @@ export const ModalClinicExamStep = ({
   setClinicExamData,
   isEdit,
   setValue,
+  onSelectCheck,
 }: IUseEditClinicExam) => {
   return (
     <SFlex sx={{ minWidth: [300, 600, 800] }} direction="column" mt={8}>
@@ -81,27 +83,68 @@ export const ModalClinicExamStep = ({
             options={clinicScheduleOptionsList}
           />
         </Box>
-        <Box>
-          <AutocompleteForm
-            name="dueInDays"
-            control={control}
-            freeSolo
-            getOptionLabel={(option) => String(option)}
-            inputProps={{
-              labelPosition: 'top',
-              placeholder: 'em dias...',
-              name: 'dueInDays',
-            }}
-            setValue={(v) => setValue('dueInDays', v)}
-            defaultValue={clinicExamData.dueInDays || ''}
-            mask={intMask.apply}
-            label="Prazo para resultado (dias)"
-            sx={{ width: [200] }}
-            options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-          />
-        </Box>
+        {!clinicExamData?.exam?.isAttendance && (
+          <Box>
+            <AutocompleteForm
+              name="dueInDays"
+              control={control}
+              freeSolo
+              getOptionLabel={(option) => String(option)}
+              inputProps={{
+                labelPosition: 'top',
+                placeholder: 'em dias...',
+                name: 'dueInDays',
+              }}
+              setValue={(v) => setValue('dueInDays', v)}
+              defaultValue={clinicExamData.dueInDays || ''}
+              mask={intMask.apply}
+              label="Prazo para resultado (dias)"
+              sx={{ width: [200] }}
+              options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+            />
+          </Box>
+        )}
       </SFlex>
-
+      <SText color="text.label" fontSize={14} mt={6} mb={-2}>
+        Disponibilizar o exame para:
+      </SText>
+      <SFlex>
+        <SCheckBox
+          label="Admissional"
+          checked={clinicExamData.isAdmission}
+          onChange={(e) => {
+            onSelectCheck(e.target?.checked, 'isAdmission');
+          }}
+        />
+        <SCheckBox
+          label="Periódico"
+          checked={clinicExamData.isPeriodic}
+          onChange={(e) => {
+            onSelectCheck(e.target?.checked, 'isPeriodic');
+          }}
+        />
+        <SCheckBox
+          label="Mudança"
+          checked={clinicExamData.isChange}
+          onChange={(e) => {
+            onSelectCheck(e.target?.checked, 'isChange');
+          }}
+        />
+        <SCheckBox
+          label="Retorno"
+          checked={clinicExamData.isReturn}
+          onChange={(e) => {
+            onSelectCheck(e.target?.checked, 'isReturn');
+          }}
+        />
+        <SCheckBox
+          label="Demissional"
+          checked={clinicExamData.isDismissal}
+          onChange={(e) => {
+            onSelectCheck(e.target?.checked, 'isDismissal');
+          }}
+        />
+      </SFlex>
       <RadioForm
         sx={{ mt: 8 }}
         label="Selecione o tipo de atendimento*"

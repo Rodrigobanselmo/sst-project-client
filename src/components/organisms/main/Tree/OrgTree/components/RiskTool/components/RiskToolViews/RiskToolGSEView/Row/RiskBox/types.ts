@@ -5,4 +5,5 @@ export interface RiskToolGSEViewRowRiskBoxProps {
   hide?: boolean;
   data: IRiskFactors;
   riskData?: IRiskData;
+  riskGroupId: string;
 }
