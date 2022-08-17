@@ -12,6 +12,7 @@ export interface SideRowProps {
   isRiskOpen: boolean;
   isDeleteLoading: boolean;
   selectedGhoId: string | null;
+  riskGroupId: string;
   riskData?: IRiskData;
   viewDataType: ViewsDataEnum;
   handleEditGHO: (data: any) => void;

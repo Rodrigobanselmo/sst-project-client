@@ -20,6 +20,7 @@ export const SideRowTable: FC<SideTableProps> = ({
   riskData,
   isSelected,
   hide,
+  riskGroupId,
 }) => {
   const risk = useAppSelector(selectRisk);
   const {
@@ -32,7 +33,6 @@ export const SideRowTable: FC<SideTableProps> = ({
     onHandleEditExams,
   } = useColumnAction();
 
-  const riskGroupId = riskData?.riskFactorGroupDataId;
   const isHierarchy = 'childrenIds' in gho;
 
   const handleSelect = async (values: Partial<IUpsertRiskData>) => {

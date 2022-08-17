@@ -8,4 +8,5 @@ export interface SideTableProps {
   gho: IGho | IHierarchyTreeMapObject;
   riskData?: IRiskData;
   hide?: boolean;
+  riskGroupId: string;
 }

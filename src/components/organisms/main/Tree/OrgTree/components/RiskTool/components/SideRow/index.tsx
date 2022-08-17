@@ -47,6 +47,7 @@ export const SideRow = React.memo<SideRowProps>(
     isDeleteLoading,
     riskData,
     viewDataType,
+    riskGroupId,
   }) => {
     const isSelected = selectedGhoId === gho.id;
     const { hide, ref } = useObserverHide();
@@ -84,6 +85,7 @@ export const SideRow = React.memo<SideRowProps>(
             hide={hide}
             gho={gho}
             riskData={riskData}
+            riskGroupId={riskGroupId}
           />
         )}
       </SFlex>

@@ -126,6 +126,7 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
             selectedGhoId={selectedGhoId}
             isDeleteLoading={isDeleteLoading}
             isRiskOpen={isRiskOpen}
+            riskGroupId={riskGroupId}
             riskData={riskData.find(
               (data) => data.homogeneousGroupId == gho.id,
             )}

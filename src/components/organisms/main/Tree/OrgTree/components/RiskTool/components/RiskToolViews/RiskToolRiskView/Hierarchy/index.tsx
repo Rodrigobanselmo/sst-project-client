@@ -90,6 +90,7 @@ export const RiskToolRiskHierarchyView: FC<RiskToolRiskViewProps> = ({
             isDeleteLoading={isDeleteLoading}
             isRiskOpen={isRiskOpen}
             riskData={(gho as any).riskData}
+            riskGroupId={riskGroupId}
             // riskData={riskData.find((data) =>
             //   gho.ghos.some((group) => data.homogeneousGroupId == group.id),
             // )}
