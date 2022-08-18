@@ -18,6 +18,7 @@ import { STag } from 'components/atoms/STag';
 import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
+import { ModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
 import { ModalAddComment } from 'components/organisms/modals/ModalRiskDataComment';
 import { initialCommentState } from 'components/organisms/modals/ModalRiskDataComment/hooks/useEditComments';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
@@ -346,7 +347,7 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
         currentPage={page}
         onPageChange={setPage}
       />
-      <ModalAddEmployee />
+      <ModalEditEmployee />
       <ModalAddExcelEmployees />
       <ModalSelectHierarchy />
       <ModalAddComment />

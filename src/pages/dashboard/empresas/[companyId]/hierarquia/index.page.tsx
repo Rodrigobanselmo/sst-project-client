@@ -3,7 +3,6 @@ import { useStore } from 'react-redux';
 
 import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
 import { ModalEditCard } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard';
-import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
 import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
@@ -12,12 +11,12 @@ import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
 import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { ModalAutomateSubOffice } from 'components/organisms/modals/ModalAutomateSubOffice';
+import { ModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
 import { ModalEditEpiData } from 'components/organisms/modals/ModalEditEpiRiskData';
 import { ModalEditExamRiskData } from 'components/organisms/modals/ModalEditExamRiskData/ModalEditExamRiskData';
 import { ModalEditEngRiskData } from 'components/organisms/modals/ModalEditMedRiskData';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { ModalRiskTool } from 'components/organisms/modals/ModalRiskTool';
-import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
@@ -75,7 +74,7 @@ const Hierarchy: NextPage = () => {
 
       <ModalEditCard />
       <ModalRiskTool />
-      <ModalAddEmployee />
+      <ModalEditEmployee />
       <ModalSelectWorkspace />
       <ModalSelectHierarchy />
       <ModalSelectGho />

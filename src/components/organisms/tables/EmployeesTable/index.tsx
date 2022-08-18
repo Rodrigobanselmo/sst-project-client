@@ -17,6 +17,7 @@ import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
 import { initialEmployeeState } from 'components/organisms/modals/ModalAddEmployees/hooks/useEditEmployees';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
+import { ModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
@@ -76,7 +77,6 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
       cpf: cpfMask.mask(employee.cpf),
       name: employee.name.split(' - ')[0],
       status: employee.status,
-      workspaces: employee.workspaces,
       hierarchy: {
         id: employee.hierarchyId,
         name:
@@ -148,7 +148,7 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
         currentPage={page}
         onPageChange={setPage}
       />
-      <ModalAddEmployee />
+      <ModalEditEmployee />
       <ModalAddExcelEmployees />
       <ModalSelectHierarchy />
     </>

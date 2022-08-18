@@ -19,11 +19,15 @@ export function Location(): JSX.Element {
 
   const companyId = query.companyId as string;
 
+  const initials = company?.initials ? `(${company?.initials})` : '';
+  const name = company?.fantasy || company?.name;
+  const companyName = initials + ' ' + name;
+
   const routes = asPath
     .split('?')[0]
     .split('/')
     .filter((route) => route)
-    .map((route) => (route === companyId ? company?.name ?? 'empresa' : route));
+    .map((route) => (route === companyId ? companyName || 'empresa' : route));
 
   const routesToMap = [...routes];
 
@@ -34,7 +38,10 @@ export function Location(): JSX.Element {
   const handleChangeRoute = (index: number) => {
     const route = routes.slice(0, index + 1).join('/');
 
-    return `/${route.replace(company?.name || 'empresa', companyId || '')}`;
+    return `/${route.replace(
+      company?.initials || company?.name || 'empresa',
+      companyId || '',
+    )}`;
   };
 
   return (
