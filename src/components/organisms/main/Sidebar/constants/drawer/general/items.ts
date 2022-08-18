@@ -4,6 +4,7 @@ import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import SAccessGroupIcon from 'assets/icons/SAccessGroupIcon';
+import { SCalendarIcon } from 'assets/icons/SCalendarIcon';
 import SClinicIcon from 'assets/icons/SClinicIcon';
 import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
@@ -133,10 +134,21 @@ const exams = {
   shouldMatchExactHref: true,
 };
 
+const schedule = {
+  text: 'Agenda',
+  Icon: SCalendarIcon,
+  description: 'Visualizar agenda',
+  id: 'dewhiuhewwerjkewnriwe',
+  href: RoutesEnum.SCHEDULE,
+  roles: [RoleEnum.SCHEDULE_EXAM],
+  shouldMatchExactHref: true,
+};
+
 export const generalArray = [
   dashboard,
   profile,
   team,
+  schedule,
   allCompaniesData,
   companiesData,
   checklist,

@@ -5,11 +5,13 @@ const palette = {
     main: '#F27329',
     dark: '#d9560b',
     extraDark: '#93421a',
+    contrastText: '#fff',
   },
   secondary: {
     light: '#4071d6',
     main: '#2153b7',
     dark: '#123e96',
+    contrastText: '#fff',
   },
   sidebar: {
     background: '#1A202C',

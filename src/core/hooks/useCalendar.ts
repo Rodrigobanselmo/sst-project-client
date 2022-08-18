@@ -27,6 +27,13 @@ const monthNamesArr = [
   'Dezembro',
 ];
 
+export interface ICalendarDay {
+  classes: string;
+  dateFormat: string;
+  date: Date;
+  value: number;
+}
+
 const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
   const today = new Date();
   const todayFormatted = `${today.getDate()}-${
@@ -36,7 +43,7 @@ const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
   const [selectedDate, setSelectedDate] = useState(today);
   const [selected, setSelected] = useState(todayFormatted);
 
-  const calendarRows = useMemo(() => {
+  const calendarRowsMap = useMemo(() => {
     const daysInWeek = [1, 2, 3, 4, 5, 6, 0];
 
     const selectedMonthLastDate = new Date(
@@ -62,10 +69,7 @@ const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
     let nextMonthCounter = 1;
     const rows = 6;
     const cols = 7;
-    const calendarRows = {} as Record<
-      number,
-      { classes: string; dateFormat: string; date: Date; value: number }[]
-    >;
+    const calendarRows = {} as Record<number, ICalendarDay[]>;
 
     for (let i = 1; i < rows + 1; i++) {
       for (let j = 1; j < cols + 1; j++) {
@@ -170,6 +174,10 @@ const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
     return calendarRows;
   }, [selectedDate]);
 
+  const calendarRows = useMemo(() => {
+    return Object.values(calendarRowsMap);
+  }, [calendarRowsMap]);
+
   const getPrevMonth = ({ week }: { week: (day: number) => void }) => {
     setSelectedDate(
       (prevValue) =>
@@ -198,24 +206,26 @@ const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
   };
 
   const getPrevWeek = () => {
-    Object.keys(calendarRows).map((key) => {
+    Object.keys(calendarRowsMap).map((key) => {
       if (
-        calendarRows[Number(key)].findIndex((i) => i.dateFormat == selected) !=
-          -1 &&
-        calendarRows[parseInt(key) - 1]
+        calendarRowsMap[Number(key)].findIndex(
+          (i) => i.dateFormat == selected,
+        ) != -1 &&
+        calendarRowsMap[parseInt(key) - 1]
       ) {
-        setSelected(calendarRows[parseInt(key) - 1][0].dateFormat);
+        setSelected(calendarRowsMap[parseInt(key) - 1][0].dateFormat);
       } else if (
-        calendarRows[Number(key)].findIndex((i) => i.dateFormat == selected) !=
-          -1 &&
-        !calendarRows[parseInt(key) - 1]
+        calendarRowsMap[Number(key)].findIndex(
+          (i) => i.dateFormat == selected,
+        ) != -1 &&
+        !calendarRowsMap[parseInt(key) - 1]
       ) {
-        const month = parseInt(calendarRows[3][0].dateFormat.split('-')[1]);
-        const year = parseInt(calendarRows[3][0].dateFormat.split('-')[2]);
+        const month = parseInt(calendarRowsMap[3][0].dateFormat.split('-')[1]);
+        const year = parseInt(calendarRowsMap[3][0].dateFormat.split('-')[2]);
 
         const getDay = () => {
-          if (calendarRows[1][0].classes != '')
-            return calendarRows[1][0].value - 1;
+          if (calendarRowsMap[1][0].classes != '')
+            return calendarRowsMap[1][0].value - 1;
           return false;
         };
 
@@ -240,20 +250,21 @@ const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
   };
 
   const getNextWeek = () => {
-    Object.keys(calendarRows).map((key) => {
+    Object.keys(calendarRowsMap).map((key) => {
       if (
-        calendarRows[Number(key)].findIndex((i) => i.dateFormat == selected) !=
-          -1 &&
+        calendarRowsMap[Number(key)].findIndex(
+          (i) => i.dateFormat == selected,
+        ) != -1 &&
         parseInt(key) == 5 &&
-        calendarRows[6] &&
-        calendarRows[6].findIndex((i) => i.classes == '') == -1
+        calendarRowsMap[6] &&
+        calendarRowsMap[6].findIndex((i) => i.classes == '') == -1
       ) {
-        const month = parseInt(calendarRows[3][0].dateFormat.split('-')[1]);
-        const year = parseInt(calendarRows[3][0].dateFormat.split('-')[2]);
+        const month = parseInt(calendarRowsMap[3][0].dateFormat.split('-')[1]);
+        const year = parseInt(calendarRowsMap[3][0].dateFormat.split('-')[2]);
 
         const getDay = () => {
-          if (calendarRows[5][6].classes != '')
-            return calendarRows[5][6].value + 1;
+          if (calendarRowsMap[5][6].classes != '')
+            return calendarRowsMap[5][6].value + 1;
           return 1;
         };
 
@@ -272,22 +283,24 @@ const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
       }
 
       if (
-        calendarRows[Number(key)].findIndex((i) => i.dateFormat == selected) !=
-          -1 &&
-        calendarRows[parseInt(key) + 1]
+        calendarRowsMap[Number(key)].findIndex(
+          (i) => i.dateFormat == selected,
+        ) != -1 &&
+        calendarRowsMap[parseInt(key) + 1]
       ) {
-        setSelected(calendarRows[parseInt(key) + 1][0].dateFormat);
+        setSelected(calendarRowsMap[parseInt(key) + 1][0].dateFormat);
       } else if (
-        calendarRows[Number(key)].findIndex((i) => i.dateFormat == selected) !=
-          -1 &&
-        !calendarRows[parseInt(key) + 1]
+        calendarRowsMap[Number(key)].findIndex(
+          (i) => i.dateFormat == selected,
+        ) != -1 &&
+        !calendarRowsMap[parseInt(key) + 1]
       ) {
-        const month = parseInt(calendarRows[3][0].dateFormat.split('-')[1]);
-        const year = parseInt(calendarRows[3][0].dateFormat.split('-')[2]);
+        const month = parseInt(calendarRowsMap[3][0].dateFormat.split('-')[1]);
+        const year = parseInt(calendarRowsMap[3][0].dateFormat.split('-')[2]);
 
         const getDay = () => {
-          if (calendarRows[6][6].classes != '')
-            return calendarRows[6][6].value + 1;
+          if (calendarRowsMap[6][6].classes != '')
+            return calendarRowsMap[6][6].value + 1;
           return 1;
         };
 
@@ -307,12 +320,24 @@ const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
     });
   };
 
+  const getToday = () => {
+    setSelected(todayFormatted);
+    getTodayMonth();
+  };
+
+  const onSetSelectedDate = (date: Date) => {
+    setSelectedDate(date);
+    setSelected(
+      `${date.getDate()}-${date.getMonth() + 1}-${date.getFullYear()}`,
+    );
+  };
+
   return {
     daysShort,
     daysArr,
     monthNames,
     todayFormatted,
-    calendarRows,
+    calendarRowsMap,
     selectedDate,
     getPrevMonth,
     getNextMonth,
@@ -320,7 +345,9 @@ const useCalendar = (daysShort = daysShortArr, monthNames = monthNamesArr) => {
     getPrevWeek,
     getNextWeek,
     selected,
-    setSelected,
+    getToday,
+    calendarRows,
+    onSetSelectedDate,
   };
 };
 

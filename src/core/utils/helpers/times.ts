@@ -3,11 +3,12 @@ export const get15Time = (
   startMinute: number,
   endHour: number,
   endMinute: number,
+  time15 = 1,
 ) => {
   return Array.from(Array(24 * 4).keys())
     .map((hour) => {
       const hourTime = Math.floor(hour / 4);
-      const minute = (hour % 4) * 15;
+      const minute = (hour % (4 / time15)) * 15 * time15;
 
       if (startHour > hourTime) return null;
       if (startHour === hourTime && startMinute > minute) return null;

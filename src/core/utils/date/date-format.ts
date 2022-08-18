@@ -44,3 +44,24 @@ export const dateToDateLessTime = (date: Date | null | undefined) => {
     ? dayjs(date).set('h', 0).set('m', 0).set('s', 0).set('ms', 0).toDate()
     : undefined;
 };
+
+export const dateFromNow = (date: Date | null | undefined) => {
+  return dayjs(date).fromNow();
+};
+
+export const dateFromNowInDays = (date: Date | null | undefined) => {
+  const diffInHours = Math.abs(dayjs(date).diff(dayjs(), 'h'));
+  const isNearDate = diffInHours < 24;
+
+  if (isNearDate) {
+    const isToday = dayjs().isSame(date, 'day');
+    if (isToday) return 'hoje';
+
+    const isBefore = dayjs(date).isBefore(dayjs());
+    if (isBefore) return 'ontem';
+    if (!isBefore) return 'amanhã';
+  }
+  const fromDate = dayjs(date).fromNow();
+
+  return fromDate;
+};

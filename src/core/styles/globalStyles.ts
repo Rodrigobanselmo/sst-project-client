@@ -5,12 +5,11 @@ const globalStyles = css`
     box-sizing: border-box;
     font-family: 'Poppins', sans-serif;
   }
-
+  html,
   body {
-    margin: 0;
-    padding: 0;
+    height: 100%;
+    margin: 0px;
   }
-
   .scroll-container {
     height: calc(100vh - 120px);
     overflow: auto;

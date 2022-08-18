@@ -18,7 +18,7 @@ import {
   setRiskAddToggleExpand,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
-import SArrowBack from 'assets/icons/SArrowBack';
+import SArrowBack from 'assets/icons/SArrowBackIcon';
 import SCloseIcon from 'assets/icons/SCloseIcon';
 import SExpandIcon from 'assets/icons/SExpandIcon';
 import SUploadIcon from 'assets/icons/SUploadIcon';
