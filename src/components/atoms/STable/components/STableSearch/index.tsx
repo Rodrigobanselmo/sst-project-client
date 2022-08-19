@@ -12,6 +12,35 @@ import { SUploadIcon } from 'assets/icons/SUploadIcon';
 
 import { STableSearchProps } from './types';
 
+export const STableAddButton: FC<STableSearchProps> = ({ onAddClick }) => {
+  return (
+    <STooltip title="Adicionar">
+      <div>
+        <SButton
+          onClick={onAddClick}
+          color="success"
+          sx={{
+            height: 38,
+            minWidth: 38,
+            maxWidth: 38,
+            borderRadius: 1,
+            m: 0,
+            ml: 2,
+          }}
+        >
+          <Icon
+            component={AddIcon}
+            sx={{
+              fontSize: ['1.4rem'],
+              color: 'common.white',
+            }}
+          />
+        </SButton>
+      </div>
+    </STooltip>
+  );
+};
+
 const STableSearch: FC<STableSearchProps> = ({
   onAddClick,
   onExportClick,
@@ -28,32 +57,7 @@ const STableSearch: FC<STableSearchProps> = ({
       autoFocus
       {...props}
     />
-    {onAddClick && (
-      <STooltip title="Adicionar">
-        <div>
-          <SButton
-            onClick={onAddClick}
-            color="success"
-            sx={{
-              height: 38,
-              minWidth: 38,
-              maxWidth: 38,
-              borderRadius: 1,
-              m: 0,
-              ml: 2,
-            }}
-          >
-            <Icon
-              component={AddIcon}
-              sx={{
-                fontSize: ['1.4rem'],
-                color: 'common.white',
-              }}
-            />
-          </SButton>
-        </div>
-      </STooltip>
-    )}
+    {onAddClick && <STableAddButton onAddClick={onAddClick} />}
     {onExportClick && (
       <STooltip title="Importar e Exportar">
         <div>

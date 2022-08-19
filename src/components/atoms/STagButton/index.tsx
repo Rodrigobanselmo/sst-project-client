@@ -117,11 +117,12 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
                 color="text.primary"
                 className="text_main"
                 noBreak
+                {...textProps}
                 sx={{
                   color: active ? 'common.white' : 'common.black',
                   mb: -1,
+                  ...textProps?.sx,
                 }}
-                {...textProps}
               >
                 {text}
               </SText>

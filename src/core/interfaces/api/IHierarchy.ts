@@ -2,7 +2,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 
-import { IWorkspace } from './ICompany';
+import { ICompany, IWorkspace } from './ICompany';
 
 export interface IHierarchy {
   id: string;
@@ -18,6 +18,7 @@ export interface IHierarchy {
   workspaces?: IWorkspace[];
   workspaceIds: string[];
   parent?: IHierarchy;
+  company: ICompany | null;
   employeesCount?: number; //only on find by id
 }
 

@@ -38,10 +38,7 @@ export function Location(): JSX.Element {
   const handleChangeRoute = (index: number) => {
     const route = routes.slice(0, index + 1).join('/');
 
-    return `/${route.replace(
-      company?.initials || company?.name || 'empresa',
-      companyId || '',
-    )}`;
+    return `/${route.replace(companyName || 'empresa', companyId || '')}`;
   };
 
   return (

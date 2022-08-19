@@ -33,7 +33,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
   ] as IModalButton[];
 
   return (
-    <>
+    <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
         <SText color="text.label" fontSize={14} mb={5}>
           Identificação
@@ -64,6 +64,8 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
             />
           </Box>
         </SFlex>
+
+        {/* CPF */}
         <SFlex flexWrap="wrap" gap={5} mt={5} alignItems="end">
           <Box flex={5}>
             <InputForm
@@ -92,7 +94,9 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
             />
           </Box>
         </SFlex>
-        <SFlex flexWrap="wrap" gap={5} mt={6}>
+
+        {/* Bith */}
+        <SFlex flexWrap="wrap" gap={5} mt={6} mb={8}>
           <Box>
             <DatePickerForm
               label="Data de Nascimento"
@@ -110,7 +114,6 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
           <Box>
             <InputForm
               sx={{ width: 80 }}
-              defaultValue={data.nickname}
               label="Idade"
               labelPosition="center"
               control={control}
@@ -127,7 +130,45 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               labelPosition="center"
               control={control}
               placeholder={'nome social do empregado...'}
-              name="socialName"
+              name="nickname"
+              size="small"
+            />
+          </Box>
+        </SFlex>
+
+        <InputForm
+          sx={{ width: 300 }}
+          label="Matrícula eSocial"
+          control={control}
+          placeholder={'código de matrícula...'}
+          value={data.birthday ? dayjs().diff(data.birthday, 'years') : ''}
+          name="age"
+          size="small"
+        />
+
+        <SText color="text.label" fontSize={14} mb={5} mt={8}>
+          Contato
+        </SText>
+        <SFlex flexWrap="wrap" gap={5} mb={6}>
+          <Box flex={5}>
+            <InputForm
+              defaultValue={data.email}
+              label="Email"
+              labelPosition="center"
+              control={control}
+              placeholder={'email do funcionário...'}
+              name="email"
+              size="small"
+            />
+          </Box>
+          <Box flex={3}>
+            <InputForm
+              defaultValue={data.phone}
+              label="Telefone"
+              labelPosition="center"
+              control={control}
+              placeholder={'telefone do funcionário...'}
+              name="phone"
               size="small"
             />
           </Box>
@@ -138,6 +179,6 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
         onClose={onCloseUnsaved}
         buttons={buttons}
       />
-    </>
+    </SFlex>
   );
 };

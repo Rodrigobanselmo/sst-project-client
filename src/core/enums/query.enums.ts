@@ -9,6 +9,7 @@ export enum QueryEnum {
   COMPANY = 'company',
   COMPANY_GROUP = 'company-group',
   CONTACTS = 'contacts',
+  EMPLOYEE_HISTORY_HIER = 'employee-history-hierarchy',
   DATABASE_TABLE = 'database-table',
   EMPLOYEES = 'employees',
   EXAMS = 'exams',

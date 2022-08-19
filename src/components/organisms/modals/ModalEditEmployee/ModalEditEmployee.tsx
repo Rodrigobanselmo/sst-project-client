@@ -9,6 +9,7 @@ import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/W
 import { employeeSchema } from 'core/utils/schemas/employee.schema';
 
 import { DataModalCompanyStep } from './components/1-data';
+import { HierarchyHistoryStep } from './components/2-hierarchy';
 import { useEditEmployee } from './hooks/useEditEmployee';
 
 export const ModalEditEmployee = () => {
@@ -23,7 +24,12 @@ export const ModalEditEmployee = () => {
     >
       <SModalPaper
         overflow="hidden"
-        sx={{ width: ['100%', 600, 800] }}
+        sx={{
+          width: ['100%', 600, 800],
+          minHeight: ['100%', 550],
+          display: 'flex',
+          flexDirection: 'column',
+        }}
         p={8}
         center
       >
@@ -36,11 +42,10 @@ export const ModalEditEmployee = () => {
           header={
             isEdit ? (
               <WizardTabs
+                height={45}
                 options={[
-                  { label: 'Dados ' },
-                  { label: 'Endereço' },
-                  { label: 'Informações Adcionais' },
-                  { label: 'Dados Bancários' },
+                  { label: 'Dados Pessoais', sx: { fontSize: 12 } },
+                  { label: 'Histórico de lotação', sx: { fontSize: 12 } },
                 ]}
               />
             ) : null
@@ -48,6 +53,7 @@ export const ModalEditEmployee = () => {
           schemas={[employeeSchema]}
         >
           <DataModalCompanyStep {...props} />
+          <HierarchyHistoryStep {...props} />
           {/* <AddressModalCompanyStep {...props} />
           <FourthModalCompanyStep {...props} />
           <BankModalCompanyStep {...props} />
