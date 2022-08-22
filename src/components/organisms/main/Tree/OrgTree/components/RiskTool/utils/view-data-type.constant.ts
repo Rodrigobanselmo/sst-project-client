@@ -33,7 +33,7 @@ export const viewsDataOptionsConstant: IViewsDataOptions = {
   },
   [ViewsDataEnum.EMPLOYEE]: {
     value: ViewsDataEnum.EMPLOYEE,
-    name: 'por empregados',
+    name: 'por funcionário',
     placeholder: 'pesquisar por ...',
   },
   [ViewsDataEnum.GSE]: {

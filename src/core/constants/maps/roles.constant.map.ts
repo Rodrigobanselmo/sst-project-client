@@ -90,7 +90,7 @@ export const rolesConstantMap = {
 // [RoleEnum.MANAGEMENT]: {
 //   value: RoleEnum.MANAGEMENT,
 //   label: 'Sua empresa',
-//   info: 'pode ver e editar os dados de sua empresa (adcionar e editar empregados, estabelecimentos, documentos e etc)',
+//   info: 'pode ver e editar os dados de sua empresa (adcionar e editar funcionários, estabelecimentos, documentos e etc)',
 //   permissions: [PermissionEnum.MANAGEMENT],
 //   order: 1000,
 // },

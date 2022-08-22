@@ -36,7 +36,7 @@ export const ModalAddExcelEmployees = () => {
         onClose={onClose}
       >
         <SModalPaper p={8} center>
-          <SModalHeader tag={'add'} onClose={onClose} title={'Empregados'} />
+          <SModalHeader tag={'add'} onClose={onClose} title={'Funcionários'} />
 
           {company.workspace && !!company.workspace.length ? (
             <ModalExportEmployees {...props} />

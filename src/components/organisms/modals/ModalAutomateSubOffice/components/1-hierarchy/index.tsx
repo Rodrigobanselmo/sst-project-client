@@ -54,7 +54,8 @@ export const HierarchyModalStep = (props: IUseAutomateSubOffice) => {
             large
             tooltipText={() => (
               <p>
-                Selecione o cargo dos empregados que deseja adicionar os riscos
+                Selecione o cargo dos funcionários que deseja adicionar os
+                riscos
               </p>
             )}
             text="Selecionar Cargo"
@@ -78,7 +79,7 @@ export const HierarchyModalStep = (props: IUseAutomateSubOffice) => {
               values={data.selectedEmployees || []}
               onAdd={(_, v) => onAddArray(v)}
               onDelete={(_, v) => onDeleteArray(v)}
-              label={'Empregados'}
+              label={'funcionários'}
               valueField="name"
               renderText={(employee: IEmployee) => (
                 <SFlex px={5} width="100%">
@@ -103,7 +104,7 @@ export const HierarchyModalStep = (props: IUseAutomateSubOffice) => {
                   </SText>
                 </SFlex>
               )}
-              buttonLabel={'Adicionar Empregados'}
+              buttonLabel={'Adicionar funcionários'}
               onRenderAddButton={(onAdd, values, props) => (
                 <EmployeeSelect
                   preload

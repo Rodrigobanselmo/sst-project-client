@@ -3,12 +3,9 @@ import React, { useMemo } from 'react';
 import { Box, LinearProgress } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import STooltip from 'components/atoms/STooltip';
-import { initialRiskToolState } from 'components/organisms/modals/ModalRiskTool/hooks/useModalRiskTool';
 import { RiskOrderEnum } from 'project/enum/risk.enums';
 
 import { originRiskMap } from 'core/constants/maps/origin-risk';
-import { HomoTypeEnum } from 'core/enums/homo-type.enum';
-import { useModal } from 'core/hooks/useModal';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useQueryRiskDataByHierarchy } from 'core/services/hooks/queries/useQueryRiskDataByHierarchy';
@@ -16,13 +13,9 @@ import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskG
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 
-import { ModalEnum } from '../../../../../../../../../core/enums/modal.enums';
 import SFlex from '../../../../../../../../atoms/SFlex';
 import SText from '../../../../../../../../atoms/SText';
 import { ITreeSelectedItem } from '../../../../interfaces';
-import { useOpenRiskTool } from '../../../RiskTool/hooks/useOpenRiskTool';
-import { ViewsDataEnum } from '../../../RiskTool/utils/view-data-type.constant';
-import { ViewTypeEnum } from '../../../RiskTool/utils/view-risk-type.constant';
 import { useModalCardActions } from '../../hooks/useModalCardActions';
 
 interface IModalRiskDataViewProps {
@@ -92,7 +85,7 @@ export const ModalViewRiskData = ({
         }}
         onClick={() => onOpenOfficeRiskTool()}
       >
-        Adicionar riscos ao cargos
+        Adicionar riscos ao cargo
       </SButton>
       <SFlex direction="column" gap={5}>
         {riskDataMemo.map((data) => {

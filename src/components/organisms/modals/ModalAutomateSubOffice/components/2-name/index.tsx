@@ -32,8 +32,8 @@ export const SetSubOfficeNameStep = (props: IUseAutomateSubOffice) => {
         <SFlex gap={8} direction="column" mt={8}>
           <SText fontSize="14px" color="text.light">
             <b>OBS: </b>Para adicionar riscos diretamente a um ou mais
-            empregados o sistema criará um cargo desenvolvido para eles. Você
-            poderá adcionar e/ou remover estes empregados no orgnograma da
+            funcionários o sistema criará um cargo desenvolvido para eles. Você
+            poderá adcionar e/ou remover estes funcionários no orgnograma da
             empresa.
           </SText>
 

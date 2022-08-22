@@ -88,7 +88,7 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
 
   return (
     <>
-      <STableTitle icon={BadgeIcon}>Empregados</STableTitle>
+      <STableTitle icon={BadgeIcon}>Funcionários</STableTitle>
       <STableSearch
         onAddClick={onAddEmployee}
         onExportClick={onExportClick}

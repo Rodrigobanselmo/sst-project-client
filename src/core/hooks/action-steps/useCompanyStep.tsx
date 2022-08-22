@@ -181,9 +181,9 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.EMPLOYEE]: {
         icon: SEmployeeIcon,
         onClick: handleAddEmployees,
-        text: 'Empregados',
+        text: 'Funcionários',
         tooltipText:
-          'Cadastre os empregados e seus respectivos cargos e setores através da importação de planilha excel ou pelo sistema diretamente ao organograma da empresa',
+          'Cadastre os funcionários e seus respectivos cargos e setores através da importação de planilha excel ou pelo sistema diretamente ao organograma da empresa',
       },
       [CompanyActionEnum.USERS]: {
         icon: STeamIcon,
@@ -263,7 +263,7 @@ export const useCompanyStep = () => {
       return [
         {
           ...actionsMapStepMemo[CompanyActionEnum.EMPLOYEE],
-          text: 'Cadastrar Empregados',
+          text: 'Cadastrar Funcionários',
           sx: { backgroundColor: 'success.dark' },
           success: true,
         },

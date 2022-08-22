@@ -33,7 +33,7 @@ export const ModalAddHierarchies = () => {
         onClose={onClose}
       >
         <SModalPaper p={8} center>
-          <SModalHeader tag={'add'} onClose={onClose} title={'Empregados'} />
+          <SModalHeader tag={'add'} onClose={onClose} title={'Funcionários'} />
 
           <ModalExportEmployees {...props} />
 

@@ -187,7 +187,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
       onSearch={(value) => handleSearchChange(value)}
       multiple={multiple}
       additionalButton={handleAddEmployee}
-      tooltipTitle={`${employeeLength} empregados selecionados`}
+      tooltipTitle={`${employeeLength} funcionários selecionados`}
       text={`${text || ''} ${employeeLength === '0' ? '' : employeeLength}`}
       keys={['name', 'cpf']}
       onClose={onCloseMenu}

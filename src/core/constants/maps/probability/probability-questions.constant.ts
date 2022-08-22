@@ -48,7 +48,7 @@ export const probabilityQuestionsMap = {
   },
   [ProbabilityQuestionEnum.EMPLOYEES]: {
     title: 'Número de trabalhadores possivelmente afetados',
-    text: '(Relação direta entre o Número de Empregados do Estabelecimento / Número de Empregados do GSE',
+    text: '(Relação direta entre o Número de Funcionários do Estabelecimento / Número de Funcionários do GSE',
   },
   [ProbabilityQuestionEnum.CHANCE]: {
     data: Object.values<IChanceOfContactOption>(chanceOfContactMap).sort(

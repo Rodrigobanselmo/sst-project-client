@@ -89,7 +89,7 @@ export const ModalInputHierarchy = React.forwardRef<
           {selectedData.addSubOffice && onEmployeeAdd && (
             <STagButton
               tooltipTitle={'Criar cargo desenvolvido'}
-              text={'Empregados'}
+              text={'Funcionários'}
               large
               onClick={() => {
                 onEmployeeAdd?.();

@@ -315,7 +315,7 @@ export const ModalEditCard = () => {
           {isOffice && (
             <EmployeeSelect
               large
-              text={'empregados'}
+              text={'funcionários'}
               actualHierarchy={selectedNode}
               handleSelect={(_, list) => setEmployees(list)}
               selectedEmployees={allEmployees}

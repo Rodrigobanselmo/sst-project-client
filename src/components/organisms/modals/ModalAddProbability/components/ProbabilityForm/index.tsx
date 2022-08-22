@@ -74,20 +74,20 @@ export const ProbabilityForm = (props: IUseProbability) => {
           <InputForm
             sx={{ legend: { width: '250px' } }}
             defaultValue={String(probabilityData.employeeCountTotal)}
-            label="Número de empregados do estabelecimento"
+            label="Número de funcionários do estabelecimento"
             labelPosition="center"
             control={control}
-            placeholder={'quantidade total de empregados...'}
+            placeholder={'quantidade total de funcionários...'}
             name="employeeCountTotal"
             size="small"
           />
           <InputForm
             sx={{ legend: { width: '180px' } }}
             defaultValue={String(probabilityData.employeeCountGho)}
-            label="Número de empregados do GSE"
+            label="Número de funcionários do GSE"
             labelPosition="center"
             control={control}
-            placeholder={'quantidade de empregados do GSE...'}
+            placeholder={'quantidade de funcionários do GSE...'}
             name="employeeCountGho"
             size="small"
           />
