@@ -1,5 +1,5 @@
+import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
 import { SexTypeEnum } from 'project/enum/risk.enums copy';
-import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/roles.enums copy';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { IExam } from './IExam';

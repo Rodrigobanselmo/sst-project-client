@@ -123,7 +123,6 @@ export const useEditExams = () => {
       id: examData.id,
       status: examData.status,
       instruction: examData.instruction,
-      esocial27Code: examData.esocial27Code,
       isAttendance: examData.isAttendance || undefined,
     };
 

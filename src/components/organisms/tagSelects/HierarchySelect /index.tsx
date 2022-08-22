@@ -22,6 +22,7 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
   tooltipText,
   defaultFilter = HierarchyEnum.OFFICE,
   filterOptions,
+  parentId,
   ...props
 }) => {
   const { hierarchyListData, hierarchyTree } = useListHierarchyQuery(
@@ -33,8 +34,12 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
   >({} as Record<HierarchyEnum, boolean>);
 
   const handleSelectRisk = (options: IHierarchy) => {
+    console.log(options);
     if (options && typeof options.id === 'string')
-      handleSelect?.(hierarchyTree[options.id] || { id: '' });
+      handleSelect?.(
+        hierarchyTree[options.id] || { id: '' },
+        (options as any).parents,
+      );
   };
 
   const getText = useCallback(
@@ -83,7 +88,11 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
           name: getText(hierarchyTree.id),
         };
       })
-      .filter((h) => h.type === activeFilters[0]);
+      .filter(
+        (h) =>
+          h.type === activeFilters[0] &&
+          (!parentId || (parentId && h.parents.find((p) => p.id === parentId))),
+      );
 
     setAllFilterTypes(typesSelected);
 
@@ -95,7 +104,7 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
     });
 
     return list;
-  }, [hierarchyListData, filterOptions, getText, activeFilters]);
+  }, [hierarchyListData, filterOptions, getText, activeFilters, parentId]);
 
   const textField = getText(selectedId, text);
   const isNotSelected = !selectedId;

@@ -16,6 +16,7 @@ export const ExamColumn: FC<EpiColumnProps> = ({
   handleRemove,
   handleEdit,
   risk,
+  hideStandard,
 }) => {
   const onAddExamsStandard = () => {
     handleSelect({ standardExams: !data?.standardExams }, {} as any);
@@ -39,20 +40,42 @@ export const ExamColumn: FC<EpiColumnProps> = ({
             );
         }}
       />
-      {data && (
+      {!hideStandard && data && (
         <STagButton
           onClick={onAddExamsStandard}
           textProps={{
             sx: {
-              color: !data?.standardExams ? 'error.main' : 'success.dark',
+              color: !data?.standardExams
+                ? data?.standardExams === undefined
+                  ? undefined
+                  : 'error.main'
+                : 'success.dark',
             },
           }}
-          text={data?.standardExams ? 'Padrão Ativo' : 'Padrão Inativo'}
+          text={
+            data?.standardExams
+              ? 'Padrão Ativo'
+              : data?.standardExams === undefined
+              ? 'Nenhum'
+              : 'Padrão Inativo'
+          }
           mt={4}
           sx={{
-            borderColor: !data?.standardExams ? 'error.main' : 'success.dark',
-            color: !data?.standardExams ? 'error.main' : 'success.dark',
-            backgroundColor: !data?.standardExams ? red[50] : green[50],
+            borderColor: !data?.standardExams
+              ? data?.standardExams === undefined
+                ? undefined
+                : 'error.main'
+              : 'success.dark',
+            color: !data?.standardExams
+              ? data?.standardExams === undefined
+                ? undefined
+                : 'error.main'
+              : 'success.dark',
+            backgroundColor: !data?.standardExams
+              ? data?.standardExams === undefined
+                ? undefined
+                : red[50]
+              : green[50],
           }}
         />
       )}

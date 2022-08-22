@@ -7,6 +7,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 import { initialAddRiskState } from 'components/organisms/modals/ModalAddRisk/hooks/useAddRisk';
+import { RiskEnum } from 'project/enum/risk.enums';
 
 import EditIcon from 'assets/icons/SEditIcon';
 
@@ -76,7 +77,11 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
   const options = useMemo(() => {
     if (!data) return [];
 
-    const filterData = data.filter((risk) => !risk.representAll);
+    const filterData = data.filter(
+      (risk) =>
+        !risk.representAll ||
+        (risk.type === RiskEnum.OUTROS && risk.representAll),
+    );
 
     if (activeFilters.length > 0)
       return filterData
@@ -124,7 +129,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
             mr: 6,
           }}
         >
-          {options?.type}
+          {options?.type === RiskEnum.OUTROS ? 'Outros' : options?.type}
         </Box>
       )}
       endAdornment={(options: IRiskFactors | undefined) => {

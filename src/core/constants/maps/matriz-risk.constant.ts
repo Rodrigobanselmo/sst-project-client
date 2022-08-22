@@ -2,7 +2,7 @@ export const matrixRiskMap = {
   [0]: {
     label: 'Não informado',
     short: 'NA',
-    level: 1,
+    level: 0,
   },
   [1]: {
     label: 'Muito baixo',

@@ -31,6 +31,7 @@ export const RowColumns: FC<RowColumnsProps> = ({
   isSelected,
   hide,
   selectedRisks,
+  isRepresentAll,
   ...props
 }) => {
   const { columns } = useRowColumns();
@@ -58,12 +59,16 @@ export const RowColumns: FC<RowColumnsProps> = ({
     >
       {!hide && (
         <>
-          <SourceColumn
-            handleSelect={handleSelect}
-            handleRemove={handleRemove}
-            data={riskData}
-            risk={risk}
-          />
+          {!isRepresentAll ? (
+            <SourceColumn
+              handleSelect={handleSelect}
+              handleRemove={handleRemove}
+              data={riskData}
+              risk={risk}
+            />
+          ) : (
+            <div />
+          )}
           <EpiColumn
             handleSelect={handleSelect}
             handleEdit={handleEditEpi}
@@ -84,25 +89,37 @@ export const RowColumns: FC<RowColumnsProps> = ({
             data={riskData}
             risk={risk}
           />
-          <ProbabilityColumn
-            handleHelp={handleHelp}
-            handleSelect={handleSelect}
-            data={riskData}
-            risk={risk && (selectedRisks?.length ?? 1) === 1 ? risk : null}
-          />
-          <STag
-            action={
-              String(actualMatrixLevel?.level) as unknown as ITagActionColors
-            }
-            text={actualMatrixLevel?.label || '--'}
-            maxHeight={24}
-          />
+          {!isRepresentAll ? (
+            <>
+              <ProbabilityColumn
+                handleHelp={handleHelp}
+                handleSelect={handleSelect}
+                data={riskData}
+                risk={risk && (selectedRisks?.length ?? 1) === 1 ? risk : null}
+              />
+              <STag
+                action={
+                  String(
+                    actualMatrixLevel?.level,
+                  ) as unknown as ITagActionColors
+                }
+                text={actualMatrixLevel?.label || '--'}
+                maxHeight={24}
+              />
+            </>
+          ) : (
+            <>
+              <div />
+              <div />
+            </>
+          )}
           <ExamColumn
             handleSelect={handleSelect}
             handleEdit={handleEditExams}
             handleRemove={handleRemove}
             data={riskData}
             risk={risk}
+            hideStandard={isRepresentAll}
           />
           <RecColumn
             handleSelect={handleSelect}
@@ -110,16 +127,28 @@ export const RowColumns: FC<RowColumnsProps> = ({
             data={riskData}
             risk={risk}
           />
-          <ProbabilityAfterColumn handleSelect={handleSelect} data={riskData} />
-          <STag
-            action={
-              String(
-                actualMatrixLevelAfter?.level,
-              ) as unknown as ITagActionColors
-            }
-            maxHeight={24}
-            text={actualMatrixLevelAfter?.label || '--'}
-          />
+          {!isRepresentAll ? (
+            <>
+              <ProbabilityAfterColumn
+                handleSelect={handleSelect}
+                data={riskData}
+              />
+              <STag
+                action={
+                  String(
+                    actualMatrixLevelAfter?.level,
+                  ) as unknown as ITagActionColors
+                }
+                maxHeight={24}
+                text={actualMatrixLevelAfter?.label || '--'}
+              />
+            </>
+          ) : (
+            <>
+              <div />
+              <div />
+            </>
+          )}
         </>
       )}
     </STGridItem>

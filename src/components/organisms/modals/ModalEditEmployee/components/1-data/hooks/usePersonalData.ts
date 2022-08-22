@@ -13,7 +13,7 @@ export const usePersonalData = ({
   const { trigger, getValues, control, reset } = useFormContext();
   const { nextStep, stepCount, goToStep } = useWizard();
 
-  const fields = ['cpf', 'name'];
+  const fields = ['cpf', 'name', 'sex'];
 
   const onCloseUnsaved = async () => {
     onClose(() => reset());
@@ -28,12 +28,13 @@ export const usePersonalData = ({
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { name, cpf } = getValues();
+      const { name, cpf, sex } = getValues();
 
       const submitData = {
         ...data,
         name,
         cpf,
+        sex,
       };
 
       onSubmitData(submitData, nextStep);

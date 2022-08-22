@@ -82,11 +82,12 @@ export function STableBody<T>({
   );
 }
 
-export const STableRow: FC<BoxProps & { clickable?: boolean }> = ({
-  className,
-  clickable,
-  ...props
-}) => (
+export const STableRow: FC<
+  BoxProps & {
+    clickable?: boolean;
+    status?: 'inactive' | 'warn' | 'info' | 'success';
+  }
+> = ({ className, clickable, ...props }) => (
   <STSTableRow
     clickable={clickable ? 1 : 0}
     px={6}

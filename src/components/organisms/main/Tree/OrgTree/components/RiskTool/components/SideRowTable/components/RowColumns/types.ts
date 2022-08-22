@@ -19,5 +19,6 @@ export interface RowColumnsProps extends BoxProps {
   handleHelp: (data: Partial<IUpsertRiskData>) => Promise<void>;
   isSelected?: boolean;
   hide?: boolean;
+  isRepresentAll?: boolean;
   selectedRisks?: IRiskFactors[];
 }

@@ -1,9 +1,10 @@
 import React, { FC, useMemo } from 'react';
 
+import { RuleSharp } from '@mui/icons-material';
 import { STagButton } from 'components/atoms/STagButton';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
-import { RiskOrderEnum } from 'project/enum/risk.enums';
+import { RiskEnum, RiskOrderEnum } from 'project/enum/risk.enums';
 import { selectGhoFilter } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IdsEnum } from 'core/enums/ids.enums';
@@ -50,6 +51,10 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
     document.getElementById(IdsEnum.RISK_SELECT)?.click();
   };
 
+  // const representAllRiskData: [IRiskData, IRiskFactors][] = [
+  //   [{ riskId: '78fad211-7395-4a98-bc72-2954ce487006' }],
+  // ];
+
   const riskOrderedData = useMemo(() => {
     if (!riskDataQuery) return [];
 
@@ -61,6 +66,8 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
 
     if (!risk) return [];
 
+    const representAllRiskData: [IRiskData, IRiskFactors][] = [];
+
     //! here we are finding the risk and if not found does not apear, error if this risk is from company different than user will fail
     const data = riskDataQuery
       .sort(
@@ -68,14 +75,40 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
           sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key), //! performance optimization here or sort
       )
       .map((riskData) => {
+        const riskFound = risk.find((r) => r.id === riskData.riskId);
+
+        if (riskFound?.representAll && riskFound.type === RiskEnum.OUTROS) {
+          representAllRiskData[0] = [riskData, riskFound];
+        }
         //! attention risk not found
         //! here we are finding the risk and if not found does not apear, error if this risk is from company different than user will fail
-        return [riskData, risk.find((r) => r.id === riskData.riskId)] as [
-          IRiskData,
-          IRiskFactors,
-        ];
+        return [riskData, riskFound] as [IRiskData, IRiskFactors];
       })
-      .filter(([, r]) => r);
+      .filter(([, r]) => {
+        if (r && !r.representAll) return true;
+        return false;
+      });
+
+    if (representAllRiskData.length === 0) {
+      const riskFound = risk.find(
+        (r) => r.type == RiskEnum.OUTROS && r.representAll,
+      );
+      if (riskFound) {
+        representAllRiskData[0] = [
+          {
+            companyId: '',
+            id: '',
+            created_at: new Date(),
+            riskId: riskFound?.id,
+            updated_at: new Date(),
+            riskFactorGroupDataId: riskGroupId,
+          },
+          riskFound,
+        ];
+      }
+    }
+
+    if (homoId) data.push(...representAllRiskData);
 
     if (
       (!selectedGhoFilter.value && !selectedGhoFilter.key) ||
@@ -89,10 +122,11 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
 
     return data;
   }, [
-    userCompanyId,
     riskDataQuery,
-    selectedGhoFilter.key,
+    userCompanyId,
     selectedGhoFilter.value,
+    selectedGhoFilter.key,
+    riskGroupId,
   ]);
 
   return (

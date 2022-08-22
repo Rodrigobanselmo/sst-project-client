@@ -7,6 +7,7 @@ import { stringNormalize } from '../strings/stringNormalize';
 
 export const isQuantity = (risk?: IRiskFactors | null) => {
   if (!risk) return;
+  if (!risk.name) return;
 
   const riskNameNormalized = stringNormalize(risk.name);
 

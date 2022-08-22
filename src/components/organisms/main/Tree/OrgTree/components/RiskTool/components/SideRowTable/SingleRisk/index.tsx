@@ -19,6 +19,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
   riskData,
   hide,
   riskGroupId,
+  isRepresentAll,
 }) => {
   const gho = useAppSelector((state) => state.gho.selected);
   const {
@@ -112,6 +113,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
       risk={risk}
       handleEditEpi={handleEditEpi}
       handleEditEngs={handleEditEngs}
+      isRepresentAll={isRepresentAll}
     />
   );
 };

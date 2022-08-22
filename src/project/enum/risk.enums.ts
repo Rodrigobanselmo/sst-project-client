@@ -4,6 +4,7 @@ export enum RiskEnum {
   BIO = 'BIO',
   ERG = 'ERG',
   ACI = 'ACI',
+  OUTROS = 'OUTROS',
 }
 
 export enum RiskOrderEnum {
@@ -12,4 +13,5 @@ export enum RiskOrderEnum {
   BIO = 3,
   ERG = 4,
   ACI = 5,
+  OUTROS = 0,
 }

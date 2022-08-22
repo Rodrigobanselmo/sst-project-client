@@ -19,6 +19,7 @@ export const RiskToolGSEViewRowRiskBox: FC<RiskToolGSEViewRowRiskBoxProps> = ({
   hide,
   riskData,
   riskGroupId,
+  isRepresentAll,
 }) => {
   const deleteMutation = useMutDeleteManyRiskData();
   const hasData = riskData && riskData.homogeneousGroupId;
@@ -44,12 +45,12 @@ export const RiskToolGSEViewRowRiskBox: FC<RiskToolGSEViewRowRiskBoxProps> = ({
           color: 'common.white',
         }}
       >
-        {data.type}
+        {!isRepresentAll ? data.type : 'PADRÃO'}
       </Box>
       <STooltip minLength={15} enterDelay={1000} title={data.name}>
         <Box sx={{ ml: 5, width: '100%', mr: 15 }}>
           <SText fontSize={14} lineNumber={2}>
-            {data.name}
+            {!isRepresentAll ? data.name : 'Informações gerais'}
           </SText>
         </Box>
       </STooltip>

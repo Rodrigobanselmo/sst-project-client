@@ -18,6 +18,8 @@ import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 export const initialExamRiskState = {
   id: 0,
   examId: 0 as number,
+  minRiskDegree: 0 as number,
+  minRiskDegreeQuantity: 1 as number,
   riskId: '' as string,
   isMale: true,
   isFemale: true,
@@ -45,6 +47,8 @@ interface ISubmit {
   lowValidityInMonths: string;
   fromAge: string;
   toAge: string;
+  minRiskDegree: string;
+  minRiskDegreeQuantity: string;
 }
 
 export const useEditExams = () => {
@@ -107,6 +111,8 @@ export const useEditExams = () => {
     toAge,
     validityInMonths,
     lowValidityInMonths,
+    minRiskDegree,
+    minRiskDegreeQuantity,
   }) => {
     if (!examData.riskId) {
       setExamData((oldData) => ({
@@ -126,14 +132,18 @@ export const useEditExams = () => {
 
     const submitData: ICreateExamRisk & { id?: number } = {
       ...examData,
-      fromAge: fromAge ? parseInt(fromAge, 10) : undefined,
-      toAge: toAge ? parseInt(toAge, 10) : undefined,
+      fromAge: fromAge ? parseInt(fromAge, 10) : null,
+      toAge: toAge ? parseInt(toAge, 10) : null,
       validityInMonths: validityInMonths
         ? parseInt(validityInMonths, 10)
-        : undefined,
+        : null,
       lowValidityInMonths: lowValidityInMonths
         ? parseInt(lowValidityInMonths, 10)
-        : undefined,
+        : null,
+      minRiskDegree: minRiskDegree ? parseInt(minRiskDegree, 10) : 1,
+      minRiskDegreeQuantity: minRiskDegreeQuantity
+        ? parseInt(minRiskDegreeQuantity, 10)
+        : 1,
     };
 
     try {

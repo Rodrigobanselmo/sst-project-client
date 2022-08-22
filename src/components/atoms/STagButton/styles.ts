@@ -8,6 +8,7 @@ export const STSBoxButton = styled(Box)<{
   active?: number;
   bg?: string;
   disabled?: number;
+  borderActive?: string;
 }>`
   border: 1px solid ${(props) => props.theme.palette.background.divider};
   display: flex;
@@ -88,5 +89,14 @@ export const STSBoxButton = styled(Box)<{
     props.error &&
     css`
       border: 2px solid ${props.theme.palette.error.main};
+    `};
+
+  ${(props) =>
+    props.borderActive == 'info' &&
+    css`
+      .text_main {
+        color: ${props.theme.palette.info.dark};
+      }
+      border: 1px solid ${props.theme.palette.info.dark};
     `};
 `;

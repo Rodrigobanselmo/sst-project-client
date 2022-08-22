@@ -92,6 +92,7 @@ export interface IExamRiskData {
   isReturn?: boolean;
   isDismissal?: boolean;
   validityInMonths?: number;
+  lowValidityInMonths?: number;
   fromAge?: number;
   toAge?: number;
 }

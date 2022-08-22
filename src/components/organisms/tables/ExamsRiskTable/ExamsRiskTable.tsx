@@ -27,6 +27,29 @@ import { IExamToRisk } from 'core/interfaces/api/IExam';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryExamsRisk } from 'core/services/hooks/queries/useQueryExamsRisk/useQueryExamsRisk';
 
+export const getExamPeriodic = (row: Partial<IExamToRisk>) => {
+  const periodic = [];
+
+  if (row.isAdmission) periodic.push('Admissional');
+  if (row.isPeriodic) periodic.push('Periódico');
+  if (row.isChange) periodic.push('Mudança');
+  if (row.isReturn) periodic.push('Retorno');
+  if (row.isDismissal) periodic.push('Demissional');
+
+  return {
+    text: periodic.map((p) => p.substring(0, 1)).join(', '),
+    tooltip: periodic.join(', '),
+  };
+};
+
+export const getExamAge = (exam: Partial<IExamToRisk>) => {
+  if (!exam.toAge && !exam.fromAge) return 'todas';
+  if (!exam.toAge && exam.fromAge)
+    return 'a partir de ' + exam.fromAge + ' anos';
+  if (exam.toAge && !exam.fromAge) return 'até ' + exam.toAge + ' anos';
+  return exam.fromAge + ' a ' + exam.toAge + ' anos';
+};
+
 export const ExamsRiskTable: FC<
   BoxProps & {
     rowsPerPage?: number;
@@ -81,12 +104,15 @@ export const ExamsRiskTable: FC<
         rowsNumber={rowsPerPage}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(250px, 5fr) minmax(150px, 5fr) 150px 90px 80px`}
+        }minmax(250px, 5fr) minmax(150px, 5fr) 120px 55px 135px 150px 90px 80px`}
       >
         <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
           <STableHRow>Risco</STableHRow>
           <STableHRow>Exame</STableHRow>
+          <STableHRow>Periodicidade</STableHRow>
+          <STableHRow>Sexo</STableHRow>
+          <STableHRow>Faixa etária</STableHRow>
           <STableHRow justifyContent="center">
             Validade
             <span style={{ fontSize: 9, margin: '1px 0 0px 5px' }}>
@@ -116,6 +142,18 @@ export const ExamsRiskTable: FC<
                 )}
                 <TextIconRow clickable text={row.risk?.name || '-'} />
                 <TextIconRow clickable text={row.exam?.name || '-'} />
+                <TextIconRow
+                  clickable
+                  tooltipTitle={getExamPeriodic(row).tooltip}
+                  text={getExamPeriodic(row).text || '-'}
+                />
+                <TextIconRow
+                  clickable
+                  text={
+                    (row.isMale ? 'M' : '') + (row.isFemale ? ' F' : '') || '-'
+                  }
+                />
+                <TextIconRow clickable text={getExamAge(row) || '-'} />
                 <TextIconRow
                   clickable
                   justifyContent="center"

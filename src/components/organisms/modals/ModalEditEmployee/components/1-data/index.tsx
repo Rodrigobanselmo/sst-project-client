@@ -69,7 +69,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
         <SFlex flexWrap="wrap" gap={5} mt={5} alignItems="end">
           <Box flex={5}>
             <InputForm
-              defaultValue={data.cpf}
+              defaultValue={cpfMask.mask(data.cpf)}
               label="CPF"
               required
               labelPosition="center"
@@ -85,7 +85,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               control={control}
               defaultValue={data.sex}
               required
-              name="type"
+              name="sex"
               row
               options={[
                 { label: 'Feminino', value: SexTypeEnum.F },

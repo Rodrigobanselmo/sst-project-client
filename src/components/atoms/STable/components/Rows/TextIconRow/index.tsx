@@ -35,6 +35,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
             fontSize={fontSize}
             sx={{ whiteSpace: 'pre-line' }}
             lineNumber={lineNumber}
+            className="table-row-text"
           >
             {text}
           </SText>
@@ -53,6 +54,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
           height: '100%',
           ...sx,
         }}
+        className="table-row-box"
         align="center"
         {...props}
       >

@@ -8,6 +8,7 @@ import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/W
 
 import { employeeSchema } from 'core/utils/schemas/employee.schema';
 
+import { ModalAddEmployeeHistoryHier } from '../ModalAddEmployeeHistoryHier/ModalAddEmployeeHistoryHier';
 import { DataModalCompanyStep } from './components/1-data';
 import { HierarchyHistoryStep } from './components/2-hierarchy';
 import { useEditEmployee } from './hooks/useEditEmployee';
@@ -25,7 +26,8 @@ export const ModalEditEmployee = () => {
       <SModalPaper
         overflow="hidden"
         sx={{
-          width: ['100%', 600, 800],
+          width: ['100%', 600, 1000],
+          maxWidth: 1200,
           minHeight: ['100%', 550],
           display: 'flex',
           flexDirection: 'column',
@@ -61,5 +63,14 @@ export const ModalEditEmployee = () => {
         </Wizard>
       </SModalPaper>
     </SModal>
+  );
+};
+
+export const StackModalEditEmployee = () => {
+  return (
+    <>
+      <ModalEditEmployee />
+      <ModalAddEmployeeHistoryHier />
+    </>
   );
 };

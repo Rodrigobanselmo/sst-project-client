@@ -1,5 +1,6 @@
 import { css } from '@emotion/react';
 import { Box, styled } from '@mui/material';
+import { red } from '@mui/material/colors';
 
 export const STSTable = styled(Box)<{ columns: string; rowGap: string }>`
   overflow-x: auto;
@@ -37,7 +38,10 @@ export const STSTableHeader = styled(Box)`
   width: 100%;
 `;
 
-export const STSTableRow = styled(Box)<{ clickable: number }>`
+export const STSTableRow = styled(Box)<{
+  clickable: number;
+  status?: 'inactive' | 'warn' | 'info' | 'success';
+}>`
   display: grid;
   flex-shrink: 0;
   -webkit-box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
@@ -50,9 +54,49 @@ export const STSTableRow = styled(Box)<{ clickable: number }>`
   ${(props) =>
     props.clickable &&
     css`
+      .table-row-box {
+        cursor: pointer;
+      }
+
       cursor: pointer;
       &:hover {
         background-color: ${props.theme.palette.background.box};
+      }
+    `};
+
+  ${(props) =>
+    props.status == 'inactive' &&
+    css`
+      border: 1px solid ${props.theme.palette.error.dark};
+      .table-row-text {
+        color: ${props.theme.palette.error.dark};
+      }
+    `};
+
+  ${(props) =>
+    props.status == 'success' &&
+    css`
+      border: 1px solid ${props.theme.palette.success.dark};
+      .table-row-text {
+        color: ${props.theme.palette.success.dark};
+      }
+    `};
+
+  ${(props) =>
+    props.status == 'info' &&
+    css`
+      border: 1px solid ${props.theme.palette.info.dark};
+      .table-row-text {
+        color: ${props.theme.palette.info.dark};
+      }
+    `};
+
+  ${(props) =>
+    props.status == 'warn' &&
+    css`
+      border: 1px solid ${props.theme.palette.warning.dark};
+      .table-row-text {
+        color: ${props.theme.palette.warning.dark};
       }
     `};
 `;

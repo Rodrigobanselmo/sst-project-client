@@ -15,4 +15,5 @@ export interface ITypeSelectProps extends BoxProps {
   error?: boolean;
   bg?: string;
   tooltipTitle?: ReactNode;
+  representAll?: boolean;
 }

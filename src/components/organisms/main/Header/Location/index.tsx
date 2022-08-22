@@ -7,10 +7,21 @@ import SText from 'components/atoms/SText';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
 
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { brandNameConstant } from '../../../../../core/constants/brand.constant';
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
+
+export const getCompanyName = (company?: ICompany): string => {
+  if (!company) return '';
+
+  const initials = company?.initials ? `(${company?.initials})` : '';
+  const name = company?.fantasy || company?.name || '';
+  const companyName = (initials ? initials + ' ' : '') + name;
+
+  return companyName;
+};
 
 export function Location(): JSX.Element {
   const { isTablet } = useSidebarDrawer();
@@ -19,9 +30,7 @@ export function Location(): JSX.Element {
 
   const companyId = query.companyId as string;
 
-  const initials = company?.initials ? `(${company?.initials})` : '';
-  const name = company?.fantasy || company?.name;
-  const companyName = initials + ' ' + name;
+  const companyName = getCompanyName(company);
 
   const routes = asPath
     .split('?')[0]

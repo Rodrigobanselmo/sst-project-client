@@ -81,6 +81,7 @@ const palette = {
     qui: '#fa0215',
     erg: '#9c9507',
     aci: '#3d62ba',
+    outros: '#2D3748',
   },
   tree: {
     card: {

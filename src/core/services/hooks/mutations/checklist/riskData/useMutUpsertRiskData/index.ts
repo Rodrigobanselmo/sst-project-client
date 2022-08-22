@@ -69,49 +69,20 @@ export function useMutUpsertRiskData() {
     async (data: IUpsertRiskData) => upsertRiskData(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp) {
-          const replace = (lastId: string) => {
-            // eslint-disable-next-line prettier/prettier
-            const actualData = queryClient.getQueryData( [ QueryEnum.RISK_DATA, getCompanyId(resp), resp.riskFactorGroupDataId, lastId, ]);
-            if (actualData) {
-              queryClient.setQueryData(
-                [
-                  QueryEnum.RISK_DATA,
-                  getCompanyId(resp),
-                  resp.riskFactorGroupDataId,
-                  lastId,
-                ],
-                (oldData: IRiskData[] | undefined) => {
-                  if (oldData) {
-                    const newData = [...oldData];
+        queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
+        queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
+        queryClient.invalidateQueries([
+          QueryEnum.RISK_DATA,
+          getCompanyId(resp?.companyId),
+          resp?.riskFactorGroupDataId,
+        ]);
 
-                    if ('deletedId' in resp) {
-                      return newData.filter(
-                        (item) => item.id !== (resp as any).deletedId,
-                      );
-                    }
-
-                    const updateIndexData = oldData.findIndex(
-                      (old) => old.id == resp.id,
-                    );
-
-                    if (updateIndexData != -1) {
-                      newData[updateIndexData] = resp;
-                    } else {
-                      newData.push(resp);
-                    }
-
-                    return newData;
-                  }
-                  return [];
-                },
-              );
-            }
-          };
-
-          replace(resp.riskId);
-          if (resp.homogeneousGroupId) replace(resp.homogeneousGroupId);
-        }
+        if (resp?.homogeneousGroupId)
+          queryClient.invalidateQueries([
+            QueryEnum.RISK_DATA,
+            getCompanyId(resp?.companyId),
+            resp?.homogeneousGroupId,
+          ]);
 
         return resp;
       },

@@ -1,51 +1,52 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { StatusEnum } from 'project/enum/status.enum';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { IEmployeeHierarchyHistory } from 'core/interfaces/api/IEmployee';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { IErrorResp } from '../../../../errors/types';
+import { IErrorResp } from '../../../../../errors/types';
 
-export interface ICreateEmployee {
-  name: string;
-  cpf: string;
-  hierarchyId: string;
-  status?: StatusEnum;
+export interface IDelete {
+  id?: number;
+  employeeId?: number;
   companyId?: string;
 }
 
-export async function upsertRiskDocs(
-  data: ICreateEmployee,
-  companyId?: string,
-) {
+export async function deleteQuery(data: IDelete, companyId?: string) {
   if (!companyId) return null;
-  const response = await api.post<IEmployee>(ApiRoutesEnum.EMPLOYEES, {
-    ...data,
-    companyId,
-  });
+
+  const response = await api.delete<IEmployeeHierarchyHistory>(
+    ApiRoutesEnum.EMPLOYEE_HISTORY_HIER +
+      '/' +
+      data.employeeId +
+      '/' +
+      data.id +
+      '/' +
+      companyId,
+  );
 
   return response.data;
 }
 
-export function useMutCreateEmployee() {
+export function useMutDeleteEmployeeHisHier() {
   const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: ICreateEmployee) => upsertRiskDocs(data, getCompanyId(data)),
+    async (data: IDelete) => deleteQuery(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp) queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
-        if (resp)
-          queryClient.invalidateQueries([QueryEnum.COMPANY, resp?.companyId]);
+        if (resp) {
+          queryClient.invalidateQueries([QueryEnum.EMPLOYEE_HISTORY_HIER]);
+          queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+        }
 
-        enqueueSnackbar('Empregado criado com sucesso', {
+        enqueueSnackbar('Lotação deletada com sucesso', {
           variant: 'success',
         });
         return resp;

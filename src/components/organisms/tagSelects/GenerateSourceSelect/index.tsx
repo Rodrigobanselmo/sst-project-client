@@ -4,6 +4,7 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialAddGenerateSourceState } from 'components/organisms/modals/ModalAddGenerateSource/hooks/useAddGenerateSource';
+import { RiskEnum } from 'project/enum/risk.enums';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import SGenerateSource from 'assets/icons/SGenerateSource';
@@ -87,7 +88,9 @@ export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
       const riskFound = data.find((r) => r.id == riskId);
       if (riskFound) {
         const riskFoundAll = data.find(
-          (r) => r.type === riskFound.type && r.representAll,
+          (r) =>
+            (r.type === riskFound.type || r.type === RiskEnum.OUTROS) &&
+            r.representAll,
         );
         if (riskFoundAll) allRisksIds.push(String(riskFoundAll.id));
       }

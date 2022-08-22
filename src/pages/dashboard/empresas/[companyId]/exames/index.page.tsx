@@ -16,7 +16,7 @@ const ExamsPage: NextPage = () => {
     <SContainer>
       <Box
         sx={{
-          backgroundColor: 'background.default',
+          backgroundColor: 'grey.200',
           borderRadius: '10px 10px 10px 10px',
           boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
         }}

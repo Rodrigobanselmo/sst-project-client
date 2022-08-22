@@ -33,7 +33,7 @@ export interface ISTagSearchSelectProps
   onClose?: () => void;
   endAdornment?: (option: any) => ReactNode;
   optionsFieldName?: { valueField?: string; contentField?: string };
-  icon?: ElementType<any>;
+  icon?: ElementType<any> | null;
   iconItem?: ElementType<any>;
   multiple?: boolean;
   onEnter?: (value: string) => void;

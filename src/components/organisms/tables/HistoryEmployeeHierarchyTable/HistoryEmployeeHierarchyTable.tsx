@@ -14,17 +14,27 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
-import { initialContactState } from 'components/organisms/modals/ModalAddContact/hooks/useAddContact';
+import { getCompanyName } from 'components/organisms/main/Header/Location';
+import { initialEmployeeHistoryHierState } from 'components/organisms/modals/ModalAddEmployeeHistoryHier/hooks/useAddData';
+import {
+  EmployeeHierarchyMotiveTypeEnum,
+  employeeHierarchyMotiveTypeMap,
+} from 'project/enum/employee-hierarchy-motive.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { IEmployeeHierarchyHistory } from 'core/interfaces/api/IEmployee';
+import {
+  IEmployee,
+  IEmployeeHierarchyHistory,
+} from 'core/interfaces/api/IEmployee';
 import { useQueryHisHierEmployee } from 'core/services/hooks/queries/useQueryHisHierEmployee/useQueryHisHierEmployee';
 import { dateToString } from 'core/utils/date/date-format';
+import { sortData } from 'core/utils/sorts/data.sort';
 
 export const HistoryEmployeeHierarchyTable: FC<
   BoxProps & {
@@ -33,8 +43,16 @@ export const HistoryEmployeeHierarchyTable: FC<
     hideTitle?: boolean;
     companyId?: string;
     employeeId?: number;
+    employee?: IEmployee;
   }
-> = ({ rowsPerPage = 8, onSelectData, hideTitle, companyId, employeeId }) => {
+> = ({
+  rowsPerPage = 8,
+  onSelectData,
+  hideTitle,
+  companyId,
+  employeeId,
+  employee,
+}) => {
   const { search, page, setPage } = useTableSearchAsync();
 
   const {
@@ -53,22 +71,32 @@ export const HistoryEmployeeHierarchyTable: FC<
 
   const { onStackOpenModal } = useModal();
 
-  const onAddContact = () => {
-    onStackOpenModal(modalName, { companyId } as Partial<
-      typeof initialContactState
-    >);
+  const onAdd = () => {
+    onStackOpenModal(modalName, {
+      companyId,
+      employeeId,
+      employee,
+      motive:
+        history?.length === 0 ? EmployeeHierarchyMotiveTypeEnum.ADM : undefined,
+      startDate: new Date(),
+    } as Partial<typeof initialEmployeeHistoryHierState>);
   };
 
   const onSelectRow = (data: IEmployeeHierarchyHistory) => {
     if (isSelect) {
       onSelectData(data);
-    } else onEditContact(data);
+    } else onEdit(data);
   };
 
-  const onEditContact = (data: IEmployeeHierarchyHistory) => {
+  const onEdit = (data: IEmployeeHierarchyHistory) => {
     onStackOpenModal(modalName, {
       ...data,
-    } as Partial<typeof initialContactState>);
+      employeeId,
+      companyId,
+      sector: data?.hierarchy?.parents?.find(
+        (p) => p.type == HierarchyEnum.SECTOR,
+      ),
+    } as Partial<typeof initialEmployeeHistoryHierState>);
   };
 
   return (
@@ -78,7 +106,7 @@ export const HistoryEmployeeHierarchyTable: FC<
           <SFlex mb={12} gap={10} align="center">
             <STableTitle mb={0}>Histórico de Lotação</STableTitle>
             <STagButton
-              onClick={onAddContact}
+              onClick={onAdd}
               maxWidth={120}
               mt={-5}
               mb={-5}
@@ -98,19 +126,20 @@ export const HistoryEmployeeHierarchyTable: FC<
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}
-        columns="minmax(150px, 2fr)  minmax(150px, 2fr)  minmax(150px, 2fr)  minmax(150px, 2fr) 110px minmax(200px, 2fr) 50px"
+        columns="100px  100px  minmax(150px, 2fr)  minmax(150px, 2fr) 200px 50px"
       >
         <STableHeader>
           <STableHRow>Data</STableHRow>
           <STableHRow>Motivo</STableHRow>
           <STableHRow>Cargo</STableHRow>
           <STableHRow>Setor</STableHRow>
-          <STableHRow justifyContent="center">Sigla</STableHRow>
-          <STableHRow justifyContent="center">Empresa</STableHRow>
+          <STableHRow>Empresa</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<typeof history[0]>
-          rowsData={history}
+          rowsData={history
+            .sort((a, b) => sortData(b.created_at, a.created_at))
+            .sort((a, b) => sortData(b.startDate, a.startDate))}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
@@ -119,12 +148,14 @@ export const HistoryEmployeeHierarchyTable: FC<
                 onClick={() => onSelectRow(row)}
                 clickable
                 key={row.id}
+                status={employeeHierarchyMotiveTypeMap[row.motive]?.status}
               >
+                <TextIconRow text={dateToString(row.startDate) || '-'} />
                 <TextIconRow
-                  clickable
-                  text={dateToString(row.startDate) || '-'}
+                  text={
+                    employeeHierarchyMotiveTypeMap[row.motive]?.content || '-'
+                  }
                 />
-                <TextIconRow clickable text={row.motive || '-'} />
                 <TextIconRow clickable text={row?.hierarchy?.name || '-'} />
                 <TextIconRow
                   clickable
@@ -132,16 +163,14 @@ export const HistoryEmployeeHierarchyTable: FC<
                 />
                 <TextIconRow
                   clickable
-                  text={row?.hierarchy?.company?.initials || '-'}
-                />
-                <TextIconRow
-                  clickable
-                  text={row?.hierarchy?.company?.name || '-'}
+                  text={getCompanyName(row?.hierarchy?.company) || '-'}
+                  lineNumber={1}
+                  tooltipTitle={getCompanyName(row?.hierarchy?.company) || '-'}
                 />
                 <IconButtonRow
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEditContact(row);
+                    onEdit(row);
                   }}
                   icon={<EditIcon />}
                 />

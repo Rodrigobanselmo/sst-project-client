@@ -23,10 +23,10 @@ export interface IUpdateExamRisk {
   isAdmission?: boolean;
   isReturn?: boolean;
   isDismissal?: boolean;
-  validityInMonths?: number;
-  lowValidityInMonths?: number;
-  fromAge?: number;
-  toAge?: number;
+  validityInMonths?: number | null;
+  lowValidityInMonths?: number | null;
+  fromAge?: number | null;
+  toAge?: number | null;
   startDate?: Date;
   endDate?: Date;
 }

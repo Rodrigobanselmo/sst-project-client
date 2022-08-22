@@ -4,6 +4,7 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialAddRecMedState } from 'components/organisms/modals/ModalAddRecMed/hooks/useAddRecMed';
+import { RiskEnum } from 'project/enum/risk.enums';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
@@ -93,7 +94,9 @@ export const RecSelect: FC<IRecMedSelectProps> = ({
       const riskFound = data.find((r) => r.id == riskId);
       if (riskFound) {
         const riskFoundAll = data.find(
-          (r) => r.type === riskFound.type && r.representAll,
+          (r) =>
+            (r.type === riskFound.type || r.type === RiskEnum.OUTROS) &&
+            r.representAll,
         );
         if (riskFoundAll) allRisksIds.push(String(riskFoundAll.id));
       }

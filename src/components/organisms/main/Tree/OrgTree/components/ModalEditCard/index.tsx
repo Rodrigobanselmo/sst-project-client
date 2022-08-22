@@ -44,6 +44,7 @@ import { TreeTypeEnum } from '../../enums/tree-type.enums';
 import { usePreventNode } from '../../hooks/usePreventNode';
 import { ITreeMap, ITreeSelectedItem } from '../../interfaces';
 import { TypeSelect } from '../Selects/TypeSelect';
+import { ModalViewExamsData } from './components/ModalViewExamsData/ModalViewExamsData';
 import { ModalViewRiskData } from './components/ModalViewRiskData';
 import { useModalCard } from './hooks/useModalCard';
 
@@ -241,7 +242,8 @@ export const ModalEditCard = () => {
               height={45}
               options={[
                 { label: 'Dados Principais', sx: { fontSize: 12 } },
-                { label: 'Riscos e Exames', sx: { fontSize: 12 } },
+                { label: 'Riscos', sx: { fontSize: 12 } },
+                { label: 'Exames', sx: { fontSize: 12 } },
               ]}
             />
           }
@@ -297,6 +299,7 @@ export const ModalEditCard = () => {
             )}
           </Box>
           <ModalViewRiskData selectedNode={selectedNode} />
+          <ModalViewExamsData selectedNode={selectedNode} />
         </Wizard>
         <SFlex gap={8} mt={10} align="center">
           <TypeSelect

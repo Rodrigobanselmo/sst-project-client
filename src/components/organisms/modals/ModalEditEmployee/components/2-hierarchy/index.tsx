@@ -39,7 +39,10 @@ export const HierarchyHistoryStep = (props: IUseEditEmployee) => {
         {/* <SText color="text.label" fontSize={14} mb={5}>
           Identificação
         </SText> */}
-        <HistoryEmployeeHierarchyTable employeeId={data.id} />
+        <HistoryEmployeeHierarchyTable
+          employee={data as any}
+          employeeId={data.id}
+        />
       </AnimatedStep>
       <SModalButtons
         loading={loading}

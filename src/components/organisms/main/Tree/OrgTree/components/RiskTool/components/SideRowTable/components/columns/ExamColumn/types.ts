@@ -11,5 +11,6 @@ export interface EpiColumnProps {
   data?: IRiskDataRow;
   risk?: IRiskFactors | null;
   after?: boolean;
+  hideStandard?: boolean;
   onlyEpi?: boolean;
 }

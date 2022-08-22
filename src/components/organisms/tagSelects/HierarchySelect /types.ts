@@ -7,7 +7,7 @@ import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 
 export interface ITypeSelectProps extends Partial<ISTagSearchSelectProps> {
   large?: boolean;
-  handleSelect?: (selected: IHierarchy) => void;
+  handleSelect?: (selected: IHierarchy, parents: IHierarchy[]) => void;
   text?: string;
   defaultFilter?: HierarchyEnum;
   filterOptions?: HierarchyEnum[];
@@ -16,4 +16,6 @@ export interface ITypeSelectProps extends Partial<ISTagSearchSelectProps> {
   bg?: string;
   companyId?: string;
   tooltipText?: (value: string) => ReactNode;
+  parentId?: string;
+  borderActive?: string;
 }

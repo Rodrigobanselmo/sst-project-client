@@ -18,7 +18,8 @@ export interface IHierarchy {
   workspaces?: IWorkspace[];
   workspaceIds: string[];
   parent?: IHierarchy;
-  company: ICompany | null;
+  parents?: IHierarchy[];
+  company?: ICompany;
   employeesCount?: number; //only on find by id
 }
 

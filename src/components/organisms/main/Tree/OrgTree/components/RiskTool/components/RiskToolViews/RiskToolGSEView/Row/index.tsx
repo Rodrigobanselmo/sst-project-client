@@ -3,6 +3,7 @@
 import React from 'react';
 
 import SFlex from 'components/atoms/SFlex';
+import { RiskEnum } from 'project/enum/risk.enums';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useObserverHide } from 'core/hooks/useObserverHide';
@@ -14,8 +15,9 @@ import { SideRowProps } from './types';
 
 export const RiskToolGSEViewRow = React.memo<SideRowProps>(
   ({ risk, riskData, riskGroupId }) => {
-    const searchSelected = useAppSelector((state) => state.gho.searchRisk);
+    const searchSelected = useAppSelector((state) => state?.gho.searchRisk);
     const { hide, ref } = useObserverHide();
+    const isRepresentAll = risk.type === RiskEnum.OUTROS && risk.representAll;
 
     const isToFilter =
       searchSelected &&
@@ -36,12 +38,14 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
           data={risk}
           hide={hide}
           riskGroupId={riskGroupId}
+          isRepresentAll={isRepresentAll}
         />
         <RiskToolSingleRiskRow
           hide={hide}
           riskGroupId={riskGroupId}
           risk={risk}
           riskData={riskData}
+          isRepresentAll={isRepresentAll}
         />
       </SFlex>
     );
