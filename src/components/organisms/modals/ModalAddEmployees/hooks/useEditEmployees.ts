@@ -181,7 +181,7 @@ export const useEditEmployees = () => {
       selectionHierarchy: [HierarchyEnum.SUB_OFFICE, HierarchyEnum.OFFICE],
       lockWorkspace: false,
       onSingleSelect: (hierarchy: IListHierarchyQuery) =>
-        setEmployeeData({ ...employeeData, hierarchy: hierarchy }),
+        setEmployeeData({ ...employeeData, hierarchy: hierarchy as any }),
     } as typeof initialHierarchySelectState);
   };
 

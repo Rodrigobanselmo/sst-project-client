@@ -176,7 +176,7 @@ export const ModalAddCompanyGroup = () => {
           <DatePickerForm
             label="Início eSocial"
             control={control}
-            defaultValue={dateToDate(companyGroupData.esocialStart)}
+            defaultValue={dateToDate(companyGroupData?.esocialStart)}
             name="esocialStart"
             sx={{ maxWidth: 240 }}
             onChange={(date) => {

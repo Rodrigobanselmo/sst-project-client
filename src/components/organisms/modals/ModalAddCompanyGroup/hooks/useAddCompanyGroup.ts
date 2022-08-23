@@ -105,15 +105,15 @@ export const useAddCompanyGroup = () => {
   const onSubmit: SubmitHandler<{ description: string; name: string }> = async (
     data,
   ) => {
-    if (!companyGroupData?.doctorResponsible?.id) {
-      setError('doctorResponsible', { message: 'O campo é obrigatório' });
-      return;
-    }
+    // if (!companyGroupData?.doctorResponsible?.id) {
+    //   setError('doctorResponsible', { message: 'O campo é obrigatório' });
+    //   return;
+    // }
 
     const submitData: IUpsertCompanyGroup = {
       companiesIds: companyGroupData.companies.map((company) => company.id),
       id: companyGroupData.id || undefined,
-      doctorResponsibleId: companyGroupData.doctorResponsible.id,
+      doctorResponsibleId: companyGroupData.doctorResponsible?.id,
       blockResignationExam: companyGroupData.blockResignationExam,
       ...data,
     };

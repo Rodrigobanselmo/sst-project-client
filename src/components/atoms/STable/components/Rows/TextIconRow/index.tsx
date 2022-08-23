@@ -46,7 +46,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
   }, [children, fontSize, icon, lineNumber, loading, text, textAlign]);
 
   return (
-    <STooltip title={tooltipTitle}>
+    <STooltip title={tooltipTitle || text} minLength={100}>
       <SFlex
         onClick={onClick}
         sx={{

@@ -1,6 +1,5 @@
 import { FC } from 'react';
 
-import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
 import { BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
@@ -15,12 +14,8 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
-import { ModalUploadFile } from 'components/organisms/modals/ModalUploadFile';
-import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
-import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SClinicIcon from 'assets/icons/SClinicIcon';
@@ -31,19 +26,18 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IAddress, ICompany } from 'core/interfaces/api/ICompany';
-import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import {
   IQueryCompanies,
   IQueryCompaniesTypes,
   useQueryCompanies,
 } from 'core/services/hooks/queries/useQueryCompanies';
-import { cnpjMask } from 'core/utils/masks/cnpj.mask';
+import { cepMask } from 'core/utils/masks/cep.mask';
 
 export const ClinicsTable: FC<
   BoxProps & {
     rowsPerPage?: number;
     onSelectData?: (company: ICompany) => void;
-    selectedData?: ICompany[];
+    selectedData?: string[];
     query?: IQueryCompanies;
     type?: IQueryCompaniesTypes;
   }
@@ -77,7 +71,9 @@ export const ClinicsTable: FC<
 
   const getAddress = (address?: IAddress) => {
     if (!address) return '';
-    return `${address.street}, ${address.neighborhood}`;
+    return `${address.street}, ${address.neighborhood} - ${cepMask.mask(
+      address.cep,
+    )}`;
   };
 
   return (
@@ -119,7 +115,7 @@ export const ClinicsTable: FC<
                   <SCheckBox
                     label=""
                     checked={
-                      !!selectedData.find((company) => company.id === row.id)
+                      !!selectedData.find((companyId) => companyId === row.id)
                     }
                   />
                 )}
@@ -129,9 +125,14 @@ export const ClinicsTable: FC<
                 <TextIconRow clickable text={row?.address?.state} />
                 <TextIconRow
                   clickable
-                  text={row?.contacts?.[0]?.phone || '-'}
+                  text={row?.contacts?.find((c) => c.isPrincipal)?.phone || '-'}
                 />
-                <IconButtonRow icon={<EditIcon />} />
+                <IconButtonRow
+                  icon={<EditIcon />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                />
                 <StatusSelect
                   sx={{ maxWidth: '120px' }}
                   selected={row.status}

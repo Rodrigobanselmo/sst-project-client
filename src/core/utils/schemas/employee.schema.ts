@@ -12,3 +12,8 @@ export const employeeHistoryHierarchySchema = yup.object().shape({
   motive: yup.string().trim().required('motivo obrigatório'),
   startDate: yup.string().trim().required('Data de inicío obrigatório'),
 });
+
+export const employeeHistoryExamSchema = yup.object().shape({
+  // motive: yup.string().trim().required('motivo obrigatório'),
+  startDate: yup.string().trim().required('Data de inicío obrigatório'),
+});

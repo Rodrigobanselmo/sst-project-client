@@ -10,10 +10,10 @@ export const useHierarchyData = ({
   onCloseUnsaved: onClose,
   ...rest
 }: IUseEditEmployee) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, control, reset } = useFormContext();
   const { nextStep, stepCount, goToStep } = useWizard();
 
-  const fields = ['cpf', 'name'];
+  const fields: string[] = [];
 
   const onCloseUnsaved = async () => {
     onClose(() => reset());
@@ -28,12 +28,8 @@ export const useHierarchyData = ({
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { name, cpf } = getValues();
-
       const submitData = {
         ...data,
-        name,
-        cpf,
       };
 
       onSubmitData(submitData, nextStep);

@@ -8,6 +8,7 @@ import SText from 'components/atoms/SText';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
+import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
@@ -33,6 +34,7 @@ const CompanyPage: NextPage = () => {
     nextStep,
     company,
     isLoading,
+    medicineStepMemo,
   } = useCompanyStep();
 
   useFetchFeedback(isLoading && !company?.id);
@@ -78,6 +80,13 @@ const CompanyPage: NextPage = () => {
         ))}
       </SFlex>
 
+      <SPageTitleSection title="Medicina" icon={SPhotoIcon} />
+      <SFlex mt={5} gap={10} flexWrap="wrap">
+        {medicineStepMemo.map((props) => (
+          <SActionButton key={props.text} {...props} />
+        ))}
+      </SFlex>
+
       <SText mt={20}>Atalhos</SText>
       <SFlex mt={5} gap={10} flexWrap="wrap">
         {shortActionsStepMemo.map((props) => (
@@ -91,6 +100,7 @@ const CompanyPage: NextPage = () => {
       <ModalShowHierarchyTree />
       <ModalSelectWorkspace />
       <ModalSelectDocPgr />
+      <ModalSelectClinic />
     </SContainer>
   );
 };

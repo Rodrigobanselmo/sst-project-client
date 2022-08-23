@@ -14,8 +14,8 @@ import { SDatePickerProps } from './types';
 
 registerLocale('pt', pt);
 
-const years = Array.from({ length: 50 }).map(
-  (_, i) => dayjs(new Date()).get('year') + i - 40,
+const years = Array.from({ length: 110 }).map(
+  (_, i) => dayjs(new Date()).get('year') + i - 100,
 );
 
 const months = [

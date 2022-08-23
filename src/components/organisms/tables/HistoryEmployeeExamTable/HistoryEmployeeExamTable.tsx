@@ -15,7 +15,7 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import { getCompanyName } from 'components/organisms/main/Header/Location';
-import { initialEmployeeHistoryHierState } from 'components/organisms/modals/ModalAddEmployeeHistoryHier/hooks/useAddData';
+import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
 import {
   EmployeeHierarchyMotiveTypeEnum,
   employeeHierarchyMotiveTypeMap,
@@ -36,7 +36,7 @@ import { useQueryHisHierEmployee } from 'core/services/hooks/queries/useQueryHis
 import { dateToString } from 'core/utils/date/date-format';
 import { sortData } from 'core/utils/sorts/data.sort';
 
-export const HistoryEmployeeHierarchyTable: FC<
+export const HistoryEmployeeExamTable: FC<
   BoxProps & {
     rowsPerPage?: number;
     onSelectData?: (group: IEmployeeHierarchyHistory) => void;
@@ -67,7 +67,7 @@ export const HistoryEmployeeHierarchyTable: FC<
   );
 
   const isSelect = !!onSelectData;
-  const modalName = ModalEnum.EMPLOYEE_HISTORY_HIER_ADD;
+  const modalName = ModalEnum.EMPLOYEE_HISTORY_EXAM_ADD;
 
   const { onStackOpenModal } = useModal();
 
@@ -76,10 +76,10 @@ export const HistoryEmployeeHierarchyTable: FC<
       companyId,
       employeeId,
       employee,
-      motive:
-        history?.length === 0 ? EmployeeHierarchyMotiveTypeEnum.ADM : undefined,
+      // motive:
+      // history?.length === 0 ? EmployeeHierarchyMotiveTypeEnum.ADM : undefined,
       startDate: new Date(),
-    } as Partial<typeof initialEmployeeHistoryHierState>);
+    } as Partial<typeof initialEmployeeHistoryExamState>);
   };
 
   const onSelectRow = (data: IEmployeeHierarchyHistory) => {
@@ -93,10 +93,7 @@ export const HistoryEmployeeHierarchyTable: FC<
       ...data,
       employeeId,
       companyId,
-      sector: data?.hierarchy?.parents?.find(
-        (p) => p.type == HierarchyEnum.SECTOR,
-      ),
-    } as Partial<typeof initialEmployeeHistoryHierState>);
+    } as Partial<typeof initialEmployeeHistoryExamState>);
   };
 
   return (
@@ -104,14 +101,14 @@ export const HistoryEmployeeHierarchyTable: FC<
       {!hideTitle && (
         <>
           <SFlex mb={12} gap={10} align="center">
-            <STableTitle mb={0}>Histórico de Lotação</STableTitle>
+            <STableTitle mb={0}>Histórico de Exames</STableTitle>
             <STagButton
               onClick={onAdd}
               maxWidth={120}
               mt={-5}
               mb={-5}
               icon={SAddIcon}
-              text={'Novo cargo'}
+              text={'Novo exame'}
               active
               bg={'success.dark'}
               textProps={{ sx: { mb: 0 } }}

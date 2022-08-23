@@ -58,6 +58,10 @@ export interface ICompany {
   doctorResponsibleId: number;
   tecResponsibleId: number;
   isClinic: boolean;
+  clinicsAvailable: {
+    clinicId: string;
+    companyId: string;
+  }[];
 }
 
 export interface IWorkspace {

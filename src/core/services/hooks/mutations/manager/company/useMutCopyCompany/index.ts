@@ -10,7 +10,7 @@ import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
-import { IErrorResp } from '../../../../errors/types';
+import { IErrorResp } from '../../../../../errors/types';
 
 export async function copyCompany(
   copyFromCompanyId: string,

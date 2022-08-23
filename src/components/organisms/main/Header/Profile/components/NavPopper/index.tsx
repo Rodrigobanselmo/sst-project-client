@@ -40,7 +40,7 @@ export const NavPopper: FC<INavProfileProps> = ({
             await refreshUser(company.id);
             router.push(RoutesEnum.DASHBOARD);
           },
-          type: '/user',
+          type: '/by-user',
         } as Partial<typeof initialCompanySelectState>);
         break;
 

@@ -25,7 +25,9 @@ export const DatePickerForm = ({
     <Controller
       name={name}
       control={control}
-      defaultValue={defaultValue}
+      {...(defaultValue && defaultValue != 'Invalid Date'
+        ? { defaultValue }
+        : {})}
       render={({
         field: { onBlur, onChange: func, value, ...rest },
         fieldState: { error },

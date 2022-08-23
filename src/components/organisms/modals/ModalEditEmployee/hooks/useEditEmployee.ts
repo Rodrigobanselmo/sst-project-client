@@ -15,7 +15,7 @@ import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useM
 
 import { IEmployee } from './../../../../../core/interfaces/api/IEmployee';
 
-export const initialEmployeeState = {
+export const initialEditEmployeeState = {
   id: undefined as number | undefined,
   status: StatusEnum.ACTIVE,
   name: undefined as string | undefined,
@@ -42,7 +42,7 @@ const modalName = ModalEnum.EMPLOYEES_ADD;
 export const useEditEmployee = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
-  const initialDataRef = useRef(initialEmployeeState);
+  const initialDataRef = useRef(initialEditEmployeeState);
 
   const updateEmployee = useMutUpdateEmployee();
   const createEmployee = useMutCreateEmployee();
@@ -50,14 +50,14 @@ export const useEditEmployee = () => {
   const { preventUnwantedChanges } = usePreventAction();
 
   const [data, setData] = useState({
-    ...initialEmployeeState,
+    ...initialEditEmployeeState,
   });
 
   const isEdit = !!data.id;
 
   useEffect(() => {
     const initialData =
-      getModalData<Partial<typeof initialEmployeeState>>(modalName);
+      getModalData<Partial<typeof initialEditEmployeeState>>(modalName);
 
     if (initialData) {
       setData((oldData) => {
@@ -66,7 +66,8 @@ export const useEditEmployee = () => {
         Object.keys(oldData).map((key) => {
           if (key in initialData) {
             replaceData[key] =
-              (initialData as any)[key] || (initialEmployeeState as any)[key];
+              (initialData as any)[key] ||
+              (initialEditEmployeeState as any)[key];
           }
         });
 
@@ -84,7 +85,7 @@ export const useEditEmployee = () => {
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
-    setData(initialEmployeeState);
+    setData(initialEditEmployeeState);
   };
 
   const onCloseUnsaved = (action?: () => void) => {

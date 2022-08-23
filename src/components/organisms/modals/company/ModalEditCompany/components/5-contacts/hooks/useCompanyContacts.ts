@@ -7,8 +7,8 @@ import { useRouter } from 'next/router';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
+import { useMutAddCompanyPhoto } from 'core/services/hooks/mutations/manager/company/useMutAddCompanyPhoto';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
-import { useMutAddCompanyPhoto } from 'core/services/hooks/mutations/manager/useMutAddCompanyPhoto';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
 

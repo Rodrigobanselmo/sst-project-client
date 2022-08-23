@@ -24,6 +24,7 @@ import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { ICompanyGroup } from 'core/interfaces/api/ICompanyGroup';
 import { useQueryCompanyGroups } from 'core/services/hooks/queries/useQueryCompanyGroups';
+import { dateToDate } from 'core/utils/date/date-format';
 
 export const CompanyGroupsTable: FC<
   BoxProps & {
@@ -56,7 +57,7 @@ export const CompanyGroupsTable: FC<
   const onEditCompanyGroup = (group: ICompanyGroup) => {
     onOpenModal(ModalEnum.COMPANY_GROUP_ADD, {
       ...group,
-      esocialStart: dayjs(group.esocialStart).toDate(),
+      esocialStart: dateToDate(group.esocialStart),
       companies: group.companies || [],
     } as Partial<typeof initialCompanyGroupState>);
   };

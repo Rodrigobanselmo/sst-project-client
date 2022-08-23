@@ -17,13 +17,14 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryCompanies {
   search?: string;
   companyId?: string;
+  clinicsCompanyId?: string;
   userId?: number;
   groupId?: number;
   isClinic?: boolean;
   type?: CompanyTypesEnum[];
 }
 
-export type IQueryCompaniesTypes = '/user' | '';
+export type IQueryCompaniesTypes = '/by-user' | '';
 
 export const queryCompanies = async (
   { skip, take }: IPagination,

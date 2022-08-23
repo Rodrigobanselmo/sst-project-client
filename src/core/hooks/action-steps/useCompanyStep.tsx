@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
+import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
 import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
@@ -8,6 +9,7 @@ import { CompanyStepEnum } from 'project/enum/company-step.enum';
 import { setGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 import { selectStep, setCompanyStep } from 'store/reducers/step/stepSlice';
 
+import { SClinicIcon } from 'assets/icons/SClinicIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
@@ -25,7 +27,9 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { useModal } from 'core/hooks/useModal';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
+import { useMutSetClinicsCompany } from 'core/services/hooks/mutations/manager/company/useMutSetClinicsCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { useAppSelector } from '../useAppSelector';
@@ -37,6 +41,8 @@ export const useCompanyStep = () => {
   const dispatch = useAppDispatch();
   const stepLocal = useAppSelector(selectStep(company.id));
   const { enqueueSnackbar } = useSnackbar();
+
+  const setClinicsMutation = useMutSetClinicsCompany();
 
   useFetchFeedback(isLoading && !company?.id);
   const step = useMemo(() => {
@@ -114,6 +120,24 @@ export const useCompanyStep = () => {
         ),
     } as Partial<typeof initialDocPgrSelectState>);
   }, [company.id, onOpenModal, push]);
+
+  const handleAddClinic = useCallback(() => {
+    onOpenModal(ModalEnum.CLINIC_SELECT, {
+      title: 'Selecione as Clinicas',
+      selected:
+        company.clinicsAvailable?.map((clinics) => ({
+          id: clinics.clinicId,
+        })) || [],
+      onSelect: (clinics: ICompany[]) =>
+        setClinicsMutation.mutate(
+          clinics.map((clinic) => ({
+            clinicId: clinic.id,
+            companyId: company.id,
+          })),
+        ),
+      multiple: true,
+    } as Partial<typeof initialClinicSelectState>);
+  }, [company.clinicsAvailable, company.id, onOpenModal, setClinicsMutation]);
 
   // SHORT_CUTS
   const handleAddRisk = useCallback(() => {
@@ -226,6 +250,13 @@ export const useCompanyStep = () => {
         tooltipText:
           'Alimentação de dados para geração de um documento PGR completo',
       },
+      [CompanyActionEnum.CLINICS]: {
+        icon: SClinicIcon,
+        onClick: handleAddClinic,
+        text: 'Clínicas Cadastradas',
+        tooltipText:
+          'Cadastro de clínicas que prestarão serviços a esta empresa',
+      },
     };
   }, [
     handleAddWorkspace,
@@ -237,6 +268,7 @@ export const useCompanyStep = () => {
     handleAddRisk,
     handleAddManagerSystem,
     handleDocPGR,
+    handleAddClinic,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
@@ -248,6 +280,10 @@ export const useCompanyStep = () => {
 
   const modulesStepMemo = useMemo(() => {
     return [actionsMapStepMemo[CompanyActionEnum.PGR]];
+  }, [actionsMapStepMemo]);
+
+  const medicineStepMemo = useMemo(() => {
+    return [actionsMapStepMemo[CompanyActionEnum.CLINICS]];
   }, [actionsMapStepMemo]);
 
   const nextStepMemo = useMemo(() => {
@@ -354,5 +390,6 @@ export const useCompanyStep = () => {
     company,
     isLoading,
     nextStep,
+    medicineStepMemo,
   };
 };

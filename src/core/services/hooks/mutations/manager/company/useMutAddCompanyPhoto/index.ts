@@ -9,7 +9,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { queryClient } from 'core/services/queryClient';
 
-import { IErrorResp } from '../../../../errors/types';
+import { IErrorResp } from '../../../../../errors/types';
 
 export interface IAddCompanyPhoto {
   file: File;

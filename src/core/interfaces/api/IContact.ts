@@ -5,6 +5,7 @@ export type IContact = {
   phone: string;
   phone_2: string;
   email: string;
+  isPrincipal: boolean;
   obs: string;
   created_at: Date;
   updated_at: Date;

@@ -25,7 +25,7 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutUpsertRiskGroupData } from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
-import { useMutCopyCompany } from 'core/services/hooks/mutations/manager/useMutCopyCompany';
+import { useMutCopyCompany } from 'core/services/hooks/mutations/manager/company/useMutCopyCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { StatusSelect } from '../../tagSelects/StatusSelect';

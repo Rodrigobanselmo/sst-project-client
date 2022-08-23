@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { InputForm } from 'components/molecules/form/input';
@@ -95,11 +96,18 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
           </Box>
         </SFlex>
 
-        {/* Bith */}
         <SFlex flexWrap="wrap" gap={5} mt={6} mb={8}>
           <Box>
             <DatePickerForm
               label="Data de Nascimento"
+              calendarProps={{
+                excludeDateIntervals: [
+                  {
+                    start: dayjs().add(-12, 'y').toDate(),
+                    end: dayjs().add(100, 'y').toDate(),
+                  },
+                ],
+              }}
               control={control}
               defaultValue={dateToDate(data.birthday)}
               name="birthday"
@@ -135,14 +143,29 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
             />
           </Box>
         </SFlex>
+        <SFlex mr={-6} mt={-3} justify="end">
+          <SSwitch
+            onChange={() => {
+              setData({
+                ...data,
+                isComorbidity: !data.isComorbidity,
+              });
+            }}
+            checked={data.isComorbidity}
+            label="Possui comorbidade"
+            sx={{ mr: 4 }}
+            color="text.light"
+          />
+        </SFlex>
 
         <InputForm
           sx={{ width: 300 }}
+          defaultValue={data.esocialCode}
           label="Matrícula eSocial"
+          labelPosition="top"
           control={control}
           placeholder={'código de matrícula...'}
-          value={data.birthday ? dayjs().diff(data.birthday, 'years') : ''}
-          name="age"
+          name="esocialCode"
           size="small"
         />
 

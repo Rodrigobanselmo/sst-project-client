@@ -5,8 +5,8 @@ import { initialPhotoState } from 'components/organisms/modals/ModalUploadPhoto'
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { useMutAddCompanyPhoto } from 'core/services/hooks/mutations/manager/company/useMutAddCompanyPhoto';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
-import { useMutAddCompanyPhoto } from 'core/services/hooks/mutations/manager/useMutAddCompanyPhoto';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
 

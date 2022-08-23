@@ -18,7 +18,7 @@ import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutati
 import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/company/useMutCreateCompany';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
-export const initialCompanyState = {
+export const initialClinicState = {
   status: StatusEnum.ACTIVE,
   type: CompanyTypesEnum.CLINIC,
   name: '',
@@ -77,7 +77,7 @@ export const initialCompanyState = {
 export const useEditCompany = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
-  const initialDataRef = useRef(initialCompanyState);
+  const initialDataRef = useRef(initialClinicState);
 
   const updateCompany = useMutUpdateCompany();
   const createCompany = useMutCreateCompany();
@@ -87,13 +87,13 @@ export const useEditCompany = () => {
   const { preventUnwantedChanges } = usePreventAction();
 
   const [companyData, setCompanyData] = useState({
-    ...initialCompanyState,
+    ...initialClinicState,
   });
 
   const isEdit = !!companyData.id && companyData.isSavedCreation === false;
 
   useEffect(() => {
-    const initialData = getModalData<Partial<typeof initialCompanyState>>(
+    const initialData = getModalData<Partial<typeof initialClinicState>>(
       ModalEnum.CLINIC_EDIT,
     );
 
@@ -104,7 +104,7 @@ export const useEditCompany = () => {
         Object.keys(oldData).map((key) => {
           if (key in initialData) {
             replaceData[key] =
-              (initialData as any)[key] || (initialCompanyState as any)[key];
+              (initialData as any)[key] || (initialClinicState as any)[key];
           }
         });
 
@@ -122,7 +122,7 @@ export const useEditCompany = () => {
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.CLINIC_EDIT, data);
-    setCompanyData(initialCompanyState);
+    setCompanyData(initialClinicState);
   };
 
   const onCloseUnsaved = (action?: () => void) => {

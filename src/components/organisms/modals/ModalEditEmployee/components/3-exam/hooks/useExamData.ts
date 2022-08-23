@@ -3,25 +3,17 @@ import { useWizard } from 'react-use-wizard';
 
 import { IUseEditEmployee } from '../../../hooks/useEditEmployee';
 
-export const usePersonalData = ({
+export const useExamData = ({
   data,
   onSubmitData,
   setData,
   onCloseUnsaved: onClose,
   ...rest
 }: IUseEditEmployee) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, control, reset } = useFormContext();
   const { nextStep, stepCount, goToStep } = useWizard();
 
-  const fields = [
-    'cpf',
-    'name',
-    'sex',
-    'nickname',
-    'esocialCode',
-    'email',
-    'phone',
-  ];
+  const fields: string[] = [];
 
   const onCloseUnsaved = async () => {
     onClose(() => reset());
@@ -36,18 +28,8 @@ export const usePersonalData = ({
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { name, cpf, sex, nickname, esocialCode, email, phone } =
-        getValues();
-
       const submitData = {
         ...data,
-        name,
-        cpf,
-        sex,
-        nickname,
-        esocialCode,
-        email,
-        phone,
       };
 
       onSubmitData(submitData, nextStep);

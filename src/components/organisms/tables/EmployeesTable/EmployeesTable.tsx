@@ -15,8 +15,8 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
-import { initialEmployeeState } from 'components/organisms/modals/ModalAddEmployees/hooks/useEditEmployees';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
+import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
 import { StackModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
@@ -77,13 +77,22 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
       cpf: cpfMask.mask(employee.cpf),
       name: employee.name.split(' - ')[0],
       status: employee.status,
+      birthday: employee.birthday,
+      isComorbidity: employee.isComorbidity,
+      phone: employee.phone,
+      email: employee.email,
+      sex: employee.sex,
+      socialName: employee.socialName,
+      shiftId: employee.shiftId,
+      esocialCode: employee.esocialCode,
+      nickname: employee.nickname,
       hierarchy: {
         id: employee.hierarchyId,
         name:
           hierarchy[employee.hierarchyId] &&
           hierarchy[employee.hierarchyId].name,
       } as any,
-    } as typeof initialEmployeeState);
+    } as typeof initialEditEmployeeState);
   };
 
   return (
@@ -112,7 +121,11 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
             return (
-              <STableRow key={row.id}>
+              <STableRow
+                onClick={() => onEditEmployee(row)}
+                clickable
+                key={row.id}
+              >
                 <TextIconRow text={row.name} />
                 <TextIconRow
                   text={
@@ -122,7 +135,7 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                   loading={loadHierarchy}
                   fontSize={13}
                   mr={3}
-                  onClick={() => handleGoToHierarchy(row.companyId)}
+                  // onClick={() => handleGoToHierarchy(row.companyId)}
                 />
                 <TextIconRow fontSize={14} text={cpfMask.mask(row.cpf)} />
                 <StatusSelect
@@ -132,10 +145,7 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                   statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />
-                <IconButtonRow
-                  onClick={() => onEditEmployee(row)}
-                  icon={<EditIcon />}
-                />
+                <IconButtonRow icon={<EditIcon />} />
               </STableRow>
             );
           }}

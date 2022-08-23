@@ -3,21 +3,20 @@ import React, { FC, useState } from 'react';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
-import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
-import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
+import { initialClinicState } from 'components/organisms/modals/company/ModalEditClinic/hooks/useEditCompany';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
-import { useQueryExams } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
+import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 
-import { AddButton } from '../components/AddButton';
-import { IExamSelectProps } from './types';
+import { IClinicSelectProps } from './types';
 
-export const ExamInputSelect: FC<IExamSelectProps> = ({
+export const ClinicInputSelect: FC<IClinicSelectProps> = ({
   onChange,
   inputProps,
+  query,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -27,21 +26,27 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
     setSearch(value);
   }, 300);
 
-  const { data: exams, isLoading: loadExams } = useQueryExams(
+  // const { data: exams, isLoading: loadExams } = useQueryExams(
+  //   1,
+  //   { search },
+  //   20,
+  // );
+
+  const { companies, count, isLoading } = useQueryCompanies(
     1,
-    { search },
+    { search, isClinic: true, ...query },
     20,
   );
 
-  const onAddExam = () => {
-    onStackOpenModal(ModalEnum.EXAMS_ADD, {} as typeof initialExamState);
+  const onAddClinic = () => {
+    onStackOpenModal(ModalEnum.CLINIC_EDIT, {} as typeof initialClinicState);
   };
 
   return (
     <AutocompleteForm
       getOptionLabel={(option) => option.name || ''}
-      options={exams}
-      loading={loadExams}
+      options={companies}
+      loading={isLoading}
       inputProps={{
         onChange: (e) => handleSearchChange(e.target.value),
         onBlur: () => setSearch(''),
@@ -58,35 +63,16 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
             text="Adicionar"
             active
             bg="success.main"
-            onClick={onAddExam}
+            onClick={onAddClinic}
           />
           Nenhuma opção
         </SFlex>
       }
       renderOption={(props, option) => (
         <Box component="li" {...props}>
-          {((exams[0] && option.id == exams[0].id) || !exams[0]) && (
-            <AddButton onAddExam={onAddExam} />
-          )}
           {option.name}
         </Box>
       )}
     />
   );
 };
-
-{
-  /* <ExamSelect
-          color="success"
-          sx={{ maxWidth: 0, opacity: 0, transform: 'translate(-40px, 10px)' }}
-          id={IdsEnum.EXAMS_SELECT}
-          onlyExam
-          asyncLoad
-          text={'adicionar'}
-          tooltipTitle=""
-          multiple={false}
-          handleSelect={(options: IExam) => {
-            if (options?.id) console.log(options);
-          }}
-        /> */
-}

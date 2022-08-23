@@ -8,9 +8,11 @@ import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/W
 
 import { employeeSchema } from 'core/utils/schemas/employee.schema';
 
+import { ModalAddEmployeeHistoryExam } from '../ModalAddEmployeeHistoryExam/ModalAddEmployeeHistoryExam';
 import { ModalAddEmployeeHistoryHier } from '../ModalAddEmployeeHistoryHier/ModalAddEmployeeHistoryHier';
 import { DataModalCompanyStep } from './components/1-data';
 import { HierarchyHistoryStep } from './components/2-hierarchy';
+import { ExamHistoryStep } from './components/3-exam';
 import { useEditEmployee } from './hooks/useEditEmployee';
 
 export const ModalEditEmployee = () => {
@@ -48,6 +50,7 @@ export const ModalEditEmployee = () => {
                 options={[
                   { label: 'Dados Pessoais', sx: { fontSize: 12 } },
                   { label: 'Histórico de lotação', sx: { fontSize: 12 } },
+                  { label: 'Histórico de Exames', sx: { fontSize: 12 } },
                 ]}
               />
             ) : null
@@ -56,6 +59,7 @@ export const ModalEditEmployee = () => {
         >
           <DataModalCompanyStep {...props} />
           <HierarchyHistoryStep {...props} />
+          <ExamHistoryStep {...props} />
           {/* <AddressModalCompanyStep {...props} />
           <FourthModalCompanyStep {...props} />
           <BankModalCompanyStep {...props} />
@@ -71,6 +75,7 @@ export const StackModalEditEmployee = () => {
     <>
       <ModalEditEmployee />
       <ModalAddEmployeeHistoryHier />
+      <ModalAddEmployeeHistoryExam />
     </>
   );
 };

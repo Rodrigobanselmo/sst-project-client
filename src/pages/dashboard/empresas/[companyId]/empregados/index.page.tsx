@@ -1,5 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
-import { EmployeesTable } from 'components/organisms/tables/EmployeesTable';
+import { EmployeesTable } from 'components/organisms/tables/EmployeesTable/EmployeesTable';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';

@@ -3,6 +3,9 @@ import React, { FC, useMemo, useState } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
 
+import { SArrowUpFilterIcon } from 'assets/icons/SArrowUpFilterIcon';
+
+import SFlex from '../SFlex';
 import STableEmpty from './components/STableEmpty';
 import STableLoading from './components/STableLoading';
 import STableLoadMore from './components/STableLoadMore';
@@ -100,3 +103,9 @@ export const STableRow: FC<
 export const STableHRow: FC<BoxProps> = ({ ...props }) => (
   <STSTableHRow fontSize={13} {...props} />
 );
+{
+  /* <SFlex>
+    <STSTableHRow fontSize={13} {...props} />
+    <SArrowUpFilterIcon />
+  </SFlex> */
+}
