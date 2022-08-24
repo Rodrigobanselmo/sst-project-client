@@ -48,7 +48,7 @@ export const ModalAddExam = () => {
         <SModalHeader
           tag={examData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Profissional'}
+          title={'Exame'}
         />
 
         <ModalExamStep {...props} />

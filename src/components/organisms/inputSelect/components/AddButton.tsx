@@ -2,14 +2,14 @@ import React from 'react';
 
 import SText from 'components/atoms/SText';
 
-export const AddButton = (props: { onAddExam: () => void }) => {
+export const AddButton = (props: { onAdd: () => void }) => {
   return (
     <SText
       fontSize="14px"
       color={'common.white'}
       onClick={(e) => {
         e.stopPropagation();
-        props?.onAddExam();
+        props?.onAdd();
       }}
       sx={{
         position: 'absolute',

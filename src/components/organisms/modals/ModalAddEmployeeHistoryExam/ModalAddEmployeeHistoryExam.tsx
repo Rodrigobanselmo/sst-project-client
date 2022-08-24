@@ -11,6 +11,8 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
+import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
 import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect ';
 import {
   EmployeeHierarchyMotiveTypeEnum,
@@ -90,6 +92,42 @@ export const ModalAddEmployeeHistoryExam = () => {
               startDate: date instanceof Date ? date : undefined,
             });
           }}
+        />
+
+        <ClinicInputSelect
+          onChange={(clinic) => {
+            setData({
+              ...data,
+              clinic,
+            });
+          }}
+          clearOnBlur={false}
+          clearOnEscape={false}
+          inputProps={{
+            labelPosition: 'top',
+            placeholder: 'selecione a clínica...',
+          }}
+          defaultValue={data.clinic}
+          name="clinic"
+          label="Clínica"
+          control={control}
+          query={{}}
+        />
+        <ProfessionalInputSelect
+          onChange={(prof) => {
+            setData({
+              ...data,
+              doctor: prof,
+            });
+          }}
+          inputProps={{
+            labelPosition: 'top',
+            placeholder: 'selecione o médico...',
+          }}
+          defaultValue={data.doctor}
+          name="doctorResponsible"
+          label="Médico"
+          control={control}
         />
 
         {/* <SelectForm

@@ -5,6 +5,7 @@ import { initialRiskToolState } from 'components/organisms/modals/ModalRiskTool/
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { IGho } from 'core/interfaces/api/IGho';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
@@ -25,13 +26,16 @@ export const useModalCardActions = ({
   const { onOpenSelected } = useOpenRiskTool();
   const { onStackOpenModal } = useModal();
 
-  const onOpenRiskTool = (riskData: IRiskData, riskFactor: IRiskFactors) => {
-    const foundGho = riskData.homogeneousGroup;
+  const onOpenRiskTool = (
+    homogeneousGroup: IGho | undefined,
+    riskFactor: IRiskFactors,
+  ) => {
+    const foundGho = homogeneousGroup;
 
     let viewData = ViewsDataEnum.CHARACTERIZATION;
     let ghoName = foundGho?.name;
 
-    switch (riskData.homogeneousGroup?.type) {
+    switch (foundGho?.type) {
       case HomoTypeEnum.HIERARCHY:
         viewData = ViewsDataEnum.HIERARCHY;
         ghoName = selectedNode?.label || selectedNode?.name;

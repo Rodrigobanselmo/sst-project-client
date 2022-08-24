@@ -1,8 +1,13 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Box, LinearProgress } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
+import { SSwitch } from 'components/atoms/SSwitch';
 import STooltip from 'components/atoms/STooltip';
+import {
+  getExamAge,
+  getExamPeriodic,
+} from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
 import { RiskOrderEnum } from 'project/enum/risk.enums';
 
 import { originRiskMap } from 'core/constants/maps/origin-risk';
@@ -30,6 +35,7 @@ export const ModalViewRiskData = ({
 
   const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
   const hierarchyId = String(selectedNode?.id)?.split('//')[0];
+  const [showRiskExam, setShowRiskExam] = useState(false);
 
   const { onOpenOfficeRiskTool, onOpenRiskTool } = useModalCardActions({
     hierarchyId,
@@ -70,26 +76,36 @@ export const ModalViewRiskData = ({
   return (
     <SFlex direction="column" minHeight={220}>
       {(loadingRiskGroup || loadingRiskData) && <LinearProgress />}
-      <SButton
-        size="small"
-        sx={{
-          width: 'fit-content',
-          backgroundColor: 'white',
-          color: 'black',
-          boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
-          mb: 5,
-          ':hover': {
-            backgroundColor: 'grey.200',
-            boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, 0.2)',
-          },
-        }}
-        onClick={() => onOpenOfficeRiskTool()}
-      >
-        Adicionar riscos ao cargo
-      </SButton>
+      <SFlex justify="space-between">
+        <SButton
+          size="small"
+          sx={{
+            width: 'fit-content',
+            backgroundColor: 'white',
+            color: 'black',
+            boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+            mb: 5,
+            ':hover': {
+              backgroundColor: 'grey.200',
+              boxShadow: '1px 1px 1px 1px rgba(0, 0, 0, 0.2)',
+            },
+          }}
+          onClick={() => onOpenOfficeRiskTool()}
+        >
+          Adicionar riscos ao cargo
+        </SButton>
+        <SSwitch
+          onChange={() => {
+            setShowRiskExam(!showRiskExam);
+          }}
+          label="Mostar exames"
+          checked={showRiskExam}
+          sx={{ mr: 4 }}
+          color="text.light"
+        />
+      </SFlex>
       <SFlex direction="column" gap={5}>
         {riskDataMemo.map((data) => {
-          console.log(data);
           return (
             <SFlex
               gap={0}
@@ -108,7 +124,7 @@ export const ModalViewRiskData = ({
                       display: 'inline-block',
                       width: '40px',
                       borderRadius: '4px',
-                      mr: 1,
+                      mr: 2,
                     }}
                   >
                     <SFlex center>{data.riskFactor?.type || ''}</SFlex>
@@ -117,53 +133,126 @@ export const ModalViewRiskData = ({
                 </SText>
               </SFlex>
 
-              <SText lineHeight="1.4rem" fontSize={11} mt={0}>
-                <b>Origem:</b>{' '}
-                {data?.riskData.map((riskData) => (
-                  <SText
-                    component="span"
-                    key={riskData.id}
-                    sx={{
-                      borderRadius: '4px',
-                      mr: 1,
-                      backgroundColor: 'background.box',
-                      px: 3,
-                      py: '1px',
-                      border: '1px solid',
-                      borderColor: 'grey.400',
-                      '&:hover': {
-                        textDecoration: 'underline',
-                      },
-                    }}
-                    fontSize={11}
-                    onClick={() => onOpenRiskTool(riskData, data.riskFactor)}
-                  >
-                    {riskData.origin ||
-                      `${selectedNode?.label || selectedNode?.name} (${
-                        originRiskMap?.[(selectedNode?.type || '') as any]?.name
-                      })` ||
-                      ''}
+              <>
+                {data?.riskData.map((riskData) => {
+                  return (
+                    <SFlex direction="column" key={riskData.id} gap={0}>
+                      {showRiskExam && (
+                        <Box mt={0} mb={2} component="ul">
+                          {riskData?.exams?.map((exam) => {
+                            const periodic = getExamPeriodic(
+                              exam?.examsRiskData,
+                            );
+                            return (
+                              <Box component="li" key={exam.id}>
+                                <SFlex direction="column" gap={0}>
+                                  <SText fontSize={14}>{exam.name}</SText>
 
-                    {riskData?.exams && riskData?.exams?.length > 0 && (
-                      <STooltip
-                        title={riskData.exams.map((e) => e.name).join(', ')}
-                      >
-                        <Box display="inline">
-                          <SText
-                            component="span"
-                            fontSize={13}
-                            color="info.main"
-                            ml={2}
-                            mb={-2}
-                          >
-                            ✓
-                          </SText>
+                                  <SFlex gap={6} mt={-2}>
+                                    <SText
+                                      color="text.secondary"
+                                      component="span"
+                                      fontSize={10}
+                                    >
+                                      Validade:{' '}
+                                      {exam?.examsRiskData.validityInMonths
+                                        ? exam?.examsRiskData.validityInMonths +
+                                          ' meses'
+                                        : '-'}
+                                    </SText>
+                                    <SText
+                                      color="text.secondary"
+                                      component="span"
+                                      fontSize={10}
+                                    >
+                                      sexo: {exam?.examsRiskData?.isMale && 'M'}
+                                      {exam?.examsRiskData?.isMale &&
+                                        exam?.examsRiskData?.isFemale &&
+                                        ' / '}
+                                      {exam?.examsRiskData?.isFemale && 'F'}
+                                    </SText>
+                                    <STooltip title={periodic.tooltip}>
+                                      <Box my={'-7px'} p={0} display="inline">
+                                        <SText
+                                          color="text.secondary"
+                                          component="span"
+                                          fontSize={10}
+                                        >
+                                          periodicidade: {periodic.text}
+                                        </SText>
+                                      </Box>
+                                    </STooltip>
+                                    <SText
+                                      color="text.secondary"
+                                      component="span"
+                                      fontSize={10}
+                                    >
+                                      Faixa etária:{' '}
+                                      {getExamAge(exam?.examsRiskData)}
+                                    </SText>
+                                  </SFlex>
+                                </SFlex>
+                              </Box>
+                            );
+                          })}
                         </Box>
-                      </STooltip>
-                    )}
-                  </SText>
-                ))}
-              </SText>
+                      )}
+                      <SText lineHeight="1.4rem" fontSize={11} mt={0}>
+                        <b>Origem:</b>{' '}
+                        <SText
+                          component="span"
+                          sx={{
+                            borderRadius: '4px',
+                            mr: 1,
+                            backgroundColor: 'background.box',
+                            px: 3,
+                            py: '1px',
+                            border: '1px solid',
+                            borderColor: 'grey.400',
+                            '&:hover': {
+                              textDecoration: 'underline',
+                            },
+                          }}
+                          fontSize={11}
+                          onClick={() =>
+                            onOpenRiskTool(
+                              riskData.homogeneousGroup,
+                              data.riskFactor,
+                            )
+                          }
+                        >
+                          {riskData.origin ||
+                            `${selectedNode?.label || selectedNode?.name} (${
+                              originRiskMap?.[(selectedNode?.type || '') as any]
+                                ?.name
+                            })` ||
+                            ''}
+
+                          {riskData?.exams && riskData?.exams?.length > 0 && (
+                            <STooltip
+                              title={riskData.exams
+                                .map((e) => e.name)
+                                .join(', ')}
+                            >
+                              <Box display="inline">
+                                <SText
+                                  component="span"
+                                  fontSize={13}
+                                  color="info.main"
+                                  ml={2}
+                                  mb={-2}
+                                >
+                                  ✓
+                                </SText>
+                              </Box>
+                            </STooltip>
+                          )}
+                        </SText>
+                      </SText>
+                    </SFlex>
+                  );
+                })}
+              </>
             </SFlex>
           );
         })}
@@ -171,3 +260,52 @@ export const ModalViewRiskData = ({
     </SFlex>
   );
 };
+
+//?origin as span text in row
+// <SText lineHeight="1.4rem" fontSize={11} mt={0}>
+//   <b>Origem:</b>{' '}
+//   {data?.riskData.map((riskData) => (
+//     <SText
+//       component="span"
+//       key={riskData.id}
+//       sx={{
+//         borderRadius: '4px',
+//         mr: 1,
+//         backgroundColor: 'background.box',
+//         px: 3,
+//         py: '1px',
+//         border: '1px solid',
+//         borderColor: 'grey.400',
+//         '&:hover': {
+//           textDecoration: 'underline',
+//         },
+//       }}
+//       fontSize={11}
+//       onClick={() => onOpenRiskTool(riskData, data.riskFactor)}
+//     >
+//       {riskData.origin ||
+//         `${selectedNode?.label || selectedNode?.name} (${
+//           originRiskMap?.[(selectedNode?.type || '') as any]?.name
+//         })` ||
+//         ''}
+
+//       {riskData?.exams && riskData?.exams?.length > 0 && (
+//         <STooltip
+//           title={riskData.exams.map((e) => e.name).join(', ')}
+//         >
+//           <Box display="inline">
+//             <SText
+//               component="span"
+//               fontSize={13}
+//               color="info.main"
+//               ml={2}
+//               mb={-2}
+//             >
+//               ✓
+//             </SText>
+//           </Box>
+//         </STooltip>
+//       )}
+//     </SText>
+//   ))}
+// </SText>

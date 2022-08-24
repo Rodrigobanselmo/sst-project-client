@@ -140,8 +140,14 @@ export const useEditExams = () => {
       lowValidityInMonths: lowValidityInMonths
         ? parseInt(lowValidityInMonths, 10)
         : null,
-      minRiskDegree: minRiskDegree ? parseInt(minRiskDegree, 10) : 1,
-      minRiskDegreeQuantity: minRiskDegreeQuantity
+      minRiskDegree: examData.exam.isAttendance
+        ? 0
+        : minRiskDegree
+        ? parseInt(minRiskDegree, 10)
+        : 1,
+      minRiskDegreeQuantity: examData.exam.isAttendance
+        ? 0
+        : minRiskDegreeQuantity
         ? parseInt(minRiskDegreeQuantity, 10)
         : 1,
     };

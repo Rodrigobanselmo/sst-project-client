@@ -48,6 +48,7 @@ export const SideRow = React.memo<SideRowProps>(
     riskData,
     viewDataType,
     riskGroupId,
+    isRepresentAll,
   }) => {
     const isSelected = selectedGhoId === gho.id;
     const { hide, ref } = useObserverHide();
@@ -86,6 +87,7 @@ export const SideRow = React.memo<SideRowProps>(
             gho={gho}
             riskData={riskData}
             riskGroupId={riskGroupId}
+            isRepresentAll={isRepresentAll}
           />
         )}
       </SFlex>

@@ -9,11 +9,16 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { IExam } from 'core/interfaces/api/IExam';
+import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { useMutCreateEmployeeHisHier } from 'core/services/hooks/mutations/manager/employee-history/useMutCreateEmployeeHisHier/useMutCreateEmployeeHisHier';
 import { useMutDeleteEmployeeHisHier } from 'core/services/hooks/mutations/manager/employee-history/useMutDeleteEmployeeHisHier/useMutDeleteEmployeeHisHier';
 import { useMutUpdateEmployeeHisHier } from 'core/services/hooks/mutations/manager/employee-history/useMutUpdateEmployeeHisHier/useMutUpdateEmployeeHisHier';
+import { useQueryExamsHierarchy } from 'core/services/hooks/queries/useQueryExamsHierarchy/useQueryExamsHierarchy';
+import { useQueryRiskDataByHierarchy } from 'core/services/hooks/queries/useQueryRiskDataByHierarchy';
+import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
 import { SModalInitContactProps } from '../types';
@@ -24,13 +29,17 @@ export const initialEmployeeHistoryExamState = {
   startDate: undefined as undefined | Date,
   exmId: undefined as undefined | string,
   employeeId: undefined as undefined | number,
+  hierarchyId: undefined as undefined | string,
   employee: undefined as undefined | IEmployee,
   created_at: undefined as undefined | Date,
   updated_at: undefined as undefined | Date,
-  exm: undefined as undefined | IExam,
+  exam: undefined as undefined | IExam,
+  clinic: undefined as undefined | ICompany,
+  doctor: undefined as undefined | IProfessional,
   companyId: undefined as undefined | string,
   errors: {
     exam: false,
+    clinic: false,
   },
 };
 
@@ -54,6 +63,10 @@ export const useAddData = () => {
   const [data, setData] = useState({
     ...initialEmployeeHistoryExamState,
   });
+
+  //! remove riskGroupId from backend, will get all
+  const { data: riskDataHierarchy, isLoading: loadingRiskData } =
+    useQueryExamsHierarchy(1, { hierarchyId: data.hierarchyId });
 
   const { getCompanyId } = useGetCompanyId();
 

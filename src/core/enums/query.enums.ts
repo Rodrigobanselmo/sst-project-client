@@ -13,6 +13,7 @@ export enum QueryEnum {
   DATABASE_TABLE = 'database-table',
   EMPLOYEES = 'employees',
   EXAMS = 'exams',
+  EXAMS_RISK_DATA = 'exams-risk-data',
   EXAMS_RISK = 'exams-risk',
   CLINIC_EXAMS = 'clinic-exams',
   ENVIRONMENT = 'environment',

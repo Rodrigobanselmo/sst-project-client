@@ -11,6 +11,7 @@ export interface SideRowProps {
   gho: IGho | IHierarchyTreeMapObject;
   isRiskOpen: boolean;
   isDeleteLoading: boolean;
+  isRepresentAll?: boolean;
   selectedGhoId: string | null;
   riskGroupId: string;
   riskData?: IRiskData;

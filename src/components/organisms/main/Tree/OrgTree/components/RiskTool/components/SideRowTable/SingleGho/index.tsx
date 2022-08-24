@@ -21,6 +21,7 @@ export const SideRowTable: FC<SideTableProps> = ({
   isSelected,
   hide,
   riskGroupId,
+  isRepresentAll,
 }) => {
   const risk = useAppSelector(selectRisk);
   const {
@@ -112,6 +113,7 @@ export const SideRowTable: FC<SideTableProps> = ({
       handleEditEpi={handleEditEpi}
       handleEditEngs={handleEditEngs}
       handleEditExams={handleEditExams}
+      isRepresentAll={risk?.representAll}
     />
   );
 };

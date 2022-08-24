@@ -6,6 +6,7 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
+import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -29,7 +30,7 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
 
   const { data: exams, isLoading: loadExams } = useQueryExams(
     1,
-    { search },
+    { search, status: StatusEnum.ACTIVE },
     20,
   );
 
@@ -66,7 +67,7 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
       renderOption={(props, option) => (
         <Box component="li" {...props}>
           {((exams[0] && option.id == exams[0].id) || !exams[0]) && (
-            <AddButton onAddExam={onAddExam} />
+            <AddButton onAdd={onAddExam} />
           )}
           {option.name}
         </Box>

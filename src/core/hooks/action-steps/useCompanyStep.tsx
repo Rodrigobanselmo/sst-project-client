@@ -14,6 +14,7 @@ import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import { SEmployeeIcon } from 'assets/icons/SEmployeeIcon';
+import { SExamIcon } from 'assets/icons/SExamIcon';
 import { SGhoIcon } from 'assets/icons/SGhoIcon';
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 import SManagerSystemIcon from 'assets/icons/SManagerSystemIcon';
@@ -139,6 +140,10 @@ export const useCompanyStep = () => {
     } as Partial<typeof initialClinicSelectState>);
   }, [company.clinicsAvailable, company.id, onOpenModal, setClinicsMutation]);
 
+  const handleAddExam = useCallback(() => {
+    onOpenModal(ModalEnum.EXAM_RISK_VIEW);
+  }, [onOpenModal]);
+
   // SHORT_CUTS
   const handleAddRisk = useCallback(() => {
     onOpenModal(ModalEnum.DOC_PGR_SELECT, {
@@ -257,6 +262,12 @@ export const useCompanyStep = () => {
         tooltipText:
           'Cadastro de clínicas que prestarão serviços a esta empresa',
       },
+      [CompanyActionEnum.EXAMS_RISK]: {
+        icon: SExamIcon,
+        onClick: handleAddExam,
+        text: 'Exames',
+        tooltipText: 'Cadastro de exames aos seus respectivos riscos',
+      },
     };
   }, [
     handleAddWorkspace,
@@ -269,6 +280,7 @@ export const useCompanyStep = () => {
     handleAddManagerSystem,
     handleDocPGR,
     handleAddClinic,
+    handleAddExam,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
@@ -283,7 +295,10 @@ export const useCompanyStep = () => {
   }, [actionsMapStepMemo]);
 
   const medicineStepMemo = useMemo(() => {
-    return [actionsMapStepMemo[CompanyActionEnum.CLINICS]];
+    return [
+      actionsMapStepMemo[CompanyActionEnum.CLINICS],
+      actionsMapStepMemo[CompanyActionEnum.EXAMS_RISK],
+    ];
   }, [actionsMapStepMemo]);
 
   const nextStepMemo = useMemo(() => {

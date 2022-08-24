@@ -5,6 +5,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
 import { initialExamDataState } from 'components/organisms/modals/ModalEditExamRiskData/hooks/useEditExams';
+import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
 import EditIcon from 'assets/icons/SEditIcon';
@@ -29,7 +30,11 @@ export const ExamSelect: FC<IExamSelectProps> = ({
   ...props
 }) => {
   const [search, setSearch] = useState('');
-  const { data, isLoading } = useQueryExams(1, { search }, 15);
+  const { data, isLoading } = useQueryExams(
+    1,
+    { search, status: StatusEnum.ACTIVE },
+    15,
+  );
   const { onStackOpenModal } = useModal();
 
   const handleSearchChange = useDebouncedCallback((value: string) => {

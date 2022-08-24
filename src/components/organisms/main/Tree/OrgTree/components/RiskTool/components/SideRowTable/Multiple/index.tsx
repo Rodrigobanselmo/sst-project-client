@@ -76,6 +76,7 @@ const initialState: IRiskDataRow = { id: '' };
 export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
   viewDataType,
   riskGroupId,
+  isRepresentAll,
 }) => {
   // const selectedRiskStore = useAppSelector(selectRisk);
   const selectedRisks = useAppSelector(selectRisks);
@@ -352,6 +353,10 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
         handleEditEngs={handleEditEngs}
         handleEditExams={handleEditExams}
         mt={10}
+        isRepresentAll={
+          selectedRiskStore?.representAll ||
+          !!selectedRisks.find((r) => r?.representAll)
+        }
       />
 
       <SButton

@@ -155,91 +155,102 @@ export const ModalExamStep = ({
           options={[3, 6, 9, 12, 18, 24]}
         />
       </SFlex>
-      <RiskSelect
-        sx={{ minWidth: '100%', mt: 10, overflow: 'hidden' }}
-        large
-        error={examData.error.risk}
-        active={!!examData.risk?.id}
-        tooltipTitle={examData.risk?.name || ''}
-        bg={
-          examData.risk?.type
-            ? `risk.${examData.risk.type.toLocaleLowerCase()}`
-            : undefined
-        }
-        handleSelect={(option: any) =>
-          option.id &&
-          setExamData({
-            ...examData,
-            error: { ...examData.error, risk: false },
-            risk: option,
-            riskId: option.id,
-          })
-        }
-        text={examData.risk?.name || 'selecione um risco'}
-        multiple={false}
-      />
-      <ExamSelect
-        asyncLoad
-        sx={{ minWidth: '100%', mt: 5, overflow: 'hidden' }}
-        large
-        text={examData.exam?.name || 'selecione um exame'}
-        active={!!examData.exam?.id}
-        error={examData.error.exam}
-        tooltipTitle={examData.exam?.name || ''}
-        multiple={false}
-        onlyExam
-        handleSelect={(option: any) =>
-          option?.id &&
-          setExamData({
-            ...examData,
-            error: { ...examData.error, exam: false },
-            exam: option,
-            examId: option.id,
-          })
-        }
-      />
-      <SText color="text.label" fontSize={14} mb={3} mt={5}>
-        Grau de risco mínimo
-      </SText>
-      <SFlex gap={5} mt={2} maxWidth={400} flexWrap="wrap">
-        <Box flex={1} width={200}>
-          <SelectForm
-            defaultValue={String(examData.minRiskDegree || 1)}
-            label="Qualitativo"
-            control={control}
-            placeholder="grau de risco..."
-            name="minRiskDegree"
-            labelPosition="center"
-            size="small"
-            options={Object.values(matrixRiskMap)
-              .filter((m) => m.level > 0 && m.level < 6)
-              .map((value) => ({
-                value: value.level,
-                content: value.label,
-              }))}
+      <SFlex gap={5} mt={10} flexWrap="wrap">
+        <Box flex={1}>
+          <SText color="text.label" fontSize={14} mb={3}>
+            Fator de Risco
+          </SText>
+          <RiskSelect
+            sx={{ minWidth: '100%' }}
+            large
+            error={examData.error.risk}
+            tooltipTitle={examData.risk?.name || ''}
+            borderActive={examData.risk?.id ? 'info' : undefined}
+            handleSelect={(option: any) =>
+              option.id &&
+              setExamData({
+                ...examData,
+                error: { ...examData.error, risk: false },
+                risk: option,
+                riskId: option.id,
+              })
+            }
+            text={examData.risk?.name || 'selecione um risco'}
+            multiple={false}
           />
         </Box>
-        <Box flex={1} maxWidth={200}>
-          {isQuantity(examData.risk) && (
-            <SelectForm
-              fullWidth
-              defaultValue={String(examData.minRiskDegreeQuantity || 1)}
-              label="Quantitativo"
-              control={control}
-              placeholder="grau de risco..."
-              name="minRiskDegreeQuantity"
-              labelPosition="center"
-              size="small"
-              options={Object.values(matrixRiskMap)
-                .filter((m) => m.level > 0 && m.level < 6)
-                .map((value) => ({
-                  value: value.level,
-                  content: value.label,
-                }))}
-            />
-          )}
+        <Box flex={1}>
+          <SText color="text.label" fontSize={14} mb={3}>
+            Exame
+          </SText>
+          <ExamSelect
+            sx={{ minWidth: '100%' }}
+            asyncLoad
+            large
+            text={examData.exam?.name || 'selecione um exame'}
+            error={examData.error.exam}
+            tooltipTitle={examData.exam?.name || ''}
+            multiple={false}
+            onlyExam
+            borderActive={examData.exam?.id ? 'info' : undefined}
+            handleSelect={(option: any) =>
+              option?.id &&
+              setExamData({
+                ...examData,
+                error: { ...examData.error, exam: false },
+                exam: option,
+                examId: option.id,
+              })
+            }
+          />
         </Box>
       </SFlex>
+      {!examData.exam.isAttendance && (
+        <>
+          <SText color="text.label" fontSize={14} mb={3} mt={5}>
+            Grau de risco mínimo
+          </SText>
+          <SFlex gap={5} mt={2} maxWidth={400} flexWrap="wrap">
+            <Box flex={1} width={200}>
+              <SelectForm
+                defaultValue={String(examData.minRiskDegree || 1)}
+                label="Qualitativo"
+                control={control}
+                placeholder="grau de risco..."
+                name="minRiskDegree"
+                labelPosition="center"
+                size="small"
+                options={Object.values(matrixRiskMap)
+                  .filter((m) => m.level > 0 && m.level < 6)
+                  .map((value) => ({
+                    value: value.level,
+                    content: value.label,
+                  }))}
+              />
+            </Box>
+            <Box flex={1} maxWidth={200}>
+              {isQuantity(examData.risk) && (
+                <SelectForm
+                  fullWidth
+                  defaultValue={String(examData.minRiskDegreeQuantity || 1)}
+                  label="Quantitativo"
+                  control={control}
+                  placeholder="grau de risco..."
+                  name="minRiskDegreeQuantity"
+                  labelPosition="center"
+                  size="small"
+                  options={Object.values(matrixRiskMap)
+                    .filter((m) => m.level > 0 && m.level < 6)
+                    .map((value) => ({
+                      value: value.level,
+                      content: value.label,
+                    }))}
+                />
+              )}
+            </Box>
+          </SFlex>
+        </>
+      )}
     </SFlex>
   );
 };

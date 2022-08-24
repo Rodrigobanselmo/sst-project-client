@@ -9,6 +9,7 @@ export enum CompanyActionEnum {
   EDIT = 'EDIT',
   RISK_GROUP = 'RISK_GROUP',
   CLINICS = 'CLINICS',
+  EXAMS_RISK = 'EXAMS_RISK',
 }
 
 export enum ClinicActionEnum {

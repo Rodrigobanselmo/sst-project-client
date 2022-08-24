@@ -70,6 +70,7 @@ export function useMutUpsertRiskData() {
     {
       onSuccess: async (resp) => {
         queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
+        queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
         queryClient.invalidateQueries([
           QueryEnum.RISK_DATA,

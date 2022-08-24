@@ -1,59 +1,63 @@
 import { useQuery } from 'react-query';
 
-import { StatusEnum } from 'project/enum/status.enum';
 import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IExam } from 'core/interfaces/api/IExam';
+import { IExamsByHierarchyRiskData } from 'core/interfaces/api/IExam';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export interface IQueryExam {
-  name?: string;
+export interface IQueryExamHierarchy {
   search?: string | null;
   companyId?: string;
-  clinicId?: string;
-  status?: StatusEnum;
+  hierarchyId?: string;
 }
 
 export const queryExams = async (
   { skip, take }: IPagination,
-  query: IQueryExam,
+  query: IQueryExamHierarchy,
 ) => {
   if ('search' in query && query.search === null) return { data: [], count: 0 };
 
   const companyId = query.companyId;
+  const hierarchyId = query.hierarchyId;
   const queries = queryString.stringify(query);
-  const response = await api.get<IPaginationResult<IExam[]>>(
-    `${ApiRoutesEnum.EXAM}/${companyId}?take=${take}&skip=${skip}&${queries}`,
+
+  const response = await api.get<
+    IPaginationResult<IExamsByHierarchyRiskData[]>
+  >(
+    `${ApiRoutesEnum.EXAM}/hierarchy/${hierarchyId}/${companyId}?take=${take}&skip=${skip}&${queries}`,
   );
 
   return response.data;
 };
 
-export function useQueryExams(page = 1, query = {} as IQueryExam, take = 20) {
-  const { user } = useGetCompanyId();
+export function useQueryExamsHierarchy(
+  page = 1,
+  query = {} as IQueryExamHierarchy,
+) {
+  const { companyId: userCompanyId } = useGetCompanyId();
   const pagination: IPagination = {
-    skip: (page - 1) * (take || 20),
-    take: take || 20,
+    // skip: (page - 1) * (take || 20),
+    // take: take || 20,
   };
 
-  const companyId = user?.companyId;
+  const companyId = userCompanyId;
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EXAMS, page, { ...pagination, ...query, companyId }],
-    () => queryExams(pagination, { ...query, companyId }),
+    [QueryEnum.EXAMS_RISK_DATA, page, { ...pagination, companyId, ...query }],
+    () => queryExams(pagination, { companyId, ...query }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },
   );
 
   const response = {
-    data: data?.data || ([] as IExam[]),
+    data: data?.data || ([] as IExamsByHierarchyRiskData[]),
     count: data?.count || 0,
   };
 

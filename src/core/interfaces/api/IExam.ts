@@ -1,5 +1,6 @@
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IGho } from './IGho';
 import { IRiskData } from './IRiskData';
 import { IRiskFactors } from './IRiskFactors';
 
@@ -33,6 +34,7 @@ export interface IExam {
   analyses: string;
   deleted_at: Date;
   examToClinic: IExamToClinic[];
+  examToRiskData: IExamRiskData[];
   examsRiskData: IExamRiskData;
 }
 
@@ -95,4 +97,17 @@ export interface IExamRiskData {
   lowValidityInMonths?: number;
   fromAge?: number;
   toAge?: number;
+  isStandard?: boolean;
+}
+
+export interface IExamOriginData extends Partial<IExamRiskData> {
+  origin?: string;
+  prioritization?: number;
+  homogeneousGroup?: IGho;
+  risk: IRiskFactors;
+}
+
+export interface IExamsByHierarchyRiskData {
+  origins?: IExamOriginData[];
+  exam?: { id: number; name: string };
 }

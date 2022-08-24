@@ -76,6 +76,7 @@ export const HistoryEmployeeExamTable: FC<
       companyId,
       employeeId,
       employee,
+      hierarchyId: employee?.hierarchyId,
       // motive:
       // history?.length === 0 ? EmployeeHierarchyMotiveTypeEnum.ADM : undefined,
       startDate: new Date(),

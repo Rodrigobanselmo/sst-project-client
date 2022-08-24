@@ -5,13 +5,16 @@ import SIconButton from 'components/atoms/SIconButton';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import SText from 'components/atoms/SText';
+import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
+import { ModalEditExamRisk } from 'components/organisms/modals/ModalEditExamRisk/ModalEditExamRisk';
 import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
+import { ModalViewExam } from 'components/organisms/modals/ModalViewExam/ModalViewExam';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
 
@@ -73,14 +76,14 @@ const CompanyPage: NextPage = () => {
         ))}
       </SFlex>
 
-      <SPageTitleSection title="Modulos" icon={SPhotoIcon} />
+      <SPageTitleSection title="Segurança" icon={SPhotoIcon} />
       <SFlex mt={5} gap={10} flexWrap="wrap">
         {modulesStepMemo.map((props) => (
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
 
-      <SPageTitleSection title="Medicina" icon={SPhotoIcon} />
+      <SPageTitleSection title="Medicina" />
       <SFlex mt={5} gap={10} flexWrap="wrap">
         {medicineStepMemo.map((props) => (
           <SActionButton key={props.text} {...props} />
@@ -101,6 +104,9 @@ const CompanyPage: NextPage = () => {
       <ModalSelectWorkspace />
       <ModalSelectDocPgr />
       <ModalSelectClinic />
+      <ModalAddExam />
+      <ModalViewExam />
+      <ModalEditExamRisk />
     </SContainer>
   );
 };

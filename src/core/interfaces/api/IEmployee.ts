@@ -53,4 +53,5 @@ export interface IEmployeeExamsHistory {
   employeeId: number;
   employee: IEmployee;
   exam: IExam;
+  hierarchyId: string;
 }
