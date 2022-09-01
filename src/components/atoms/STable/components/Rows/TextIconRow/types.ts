@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ElementType } from 'react';
+import { ElementType, ReactNode } from 'react';
 
 import { SFlexProps } from 'components/atoms/SFlex/types';
 
 export type TextIconRowProps = SFlexProps & {
   icon?: ElementType<any>;
   lineNumber?: number;
-  tooltipTitle?: string;
-  text?: string;
+  tooltipTitle?: ReactNode;
+  text?: ReactNode;
   loading?: boolean;
   clickable?: boolean;
 };

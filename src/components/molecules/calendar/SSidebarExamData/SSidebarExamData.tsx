@@ -33,6 +33,9 @@ export const SSidebarExamData = (props: SCalendarProps) => {
         maxPerPage={10}
         handleSelect={(employee) => console.log(employee)}
         text={'Selecionar Funcionario'}
+        addButton={false}
+        queryEmployee={{ all: true }}
+        tooltipTitle="Encontrar funcionário"
         // handleSelect={(_, list) =>
         //   setData((old) => ({ ...old, selectedEmployees: list }))
         // }

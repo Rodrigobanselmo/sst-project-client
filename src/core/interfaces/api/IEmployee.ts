@@ -1,9 +1,15 @@
+import { ExamHistoryConclusionEnum } from 'project/enum/employee-exam-history-conclusion.enum';
+import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
 import { SexTypeEnum } from 'project/enum/risk.enums copy';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { ICompany } from './ICompany';
 import { IExam } from './IExam';
 import { IHierarchy } from './IHierarchy';
+import { IProfessional } from './IProfessional';
+import { IUser } from './IUser';
 
 export interface IEmployee {
   id: number;
@@ -48,10 +54,23 @@ export interface IEmployeeExamsHistory {
   updated_at: Date;
   doneDate: Date;
   validityInMonths: number;
-  time: string;
   examId: number;
   employeeId: number;
-  employee: IEmployee;
-  exam: IExam;
+  doctorId: number;
+  clinicId: string;
+  userDoneId: number;
+  userScheduleId: number;
+  employee?: IEmployee;
+  exam?: IExam;
+  clinic?: ICompany;
+  doctor?: IProfessional;
+  userDone?: IUser;
+  userSchedule?: IUser;
   hierarchyId: string;
+  examType: ExamHistoryTypeEnum;
+  evaluationType: ExamHistoryEvaluationEnum;
+  conclusion: ExamHistoryConclusionEnum;
+  status: StatusEnum;
+  obs?: string;
+  time: string;
 }

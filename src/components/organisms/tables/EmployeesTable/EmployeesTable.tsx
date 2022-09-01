@@ -86,6 +86,7 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
       shiftId: employee.shiftId,
       esocialCode: employee.esocialCode,
       nickname: employee.nickname,
+      hierarchyId: employee.hierarchyId,
       hierarchy: {
         id: employee.hierarchyId,
         name:

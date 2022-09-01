@@ -85,6 +85,7 @@ export const ShiftTimeSelect = ({
           newSchedule[weekDay + key.substring(1)] = schedule[key];
         });
         newSchedule['1-0'] = '';
+        newSchedule['7-0'] = '';
       }
     });
 

@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -29,12 +29,6 @@ export const ClinicInputSelect: FC<IClinicSelectProps> = ({
   const handleSearchChange = useDebouncedCallback((value: string) => {
     setSearch(value);
   }, 300);
-
-  // const { data: exams, isLoading: loadExams } = useQueryExams(
-  //   1,
-  //   { search },
-  //   20,
-  // );
 
   const { companies, isLoading } = useQueryCompanies(
     1,

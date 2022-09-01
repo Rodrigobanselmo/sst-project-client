@@ -18,6 +18,7 @@ export interface IQueryEmployee {
   companyId?: string;
   hierarchyId?: string;
   hierarchySubOfficeId?: string;
+  all?: boolean;
 }
 
 export const queryEmployees = async (

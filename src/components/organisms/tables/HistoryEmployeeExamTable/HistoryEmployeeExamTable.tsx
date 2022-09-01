@@ -3,6 +3,7 @@ import { FC } from 'react';
 import { BoxProps } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import {
+  ITableRowStatus,
   STable,
   STableBody,
   STableHeader,
@@ -11,35 +12,34 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import TextUserRow from 'components/atoms/STable/components/Rows/TextUserRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
-import {
-  EmployeeHierarchyMotiveTypeEnum,
-  employeeHierarchyMotiveTypeMap,
-} from 'project/enum/employee-hierarchy-motive.enum';
+import dayjs from 'dayjs';
+import { employeeExamEvaluationTypeMap } from 'project/enum/employee-exam-history-evaluation.enum';
+import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 
-import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import {
   IEmployee,
-  IEmployeeHierarchyHistory,
+  IEmployeeExamsHistory,
 } from 'core/interfaces/api/IEmployee';
-import { useQueryHisHierEmployee } from 'core/services/hooks/queries/useQueryHisHierEmployee/useQueryHisHierEmployee';
+import { useQueryHisExamEmployee } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { dateToString } from 'core/utils/date/date-format';
 import { sortData } from 'core/utils/sorts/data.sort';
 
 export const HistoryEmployeeExamTable: FC<
   BoxProps & {
     rowsPerPage?: number;
-    onSelectData?: (group: IEmployeeHierarchyHistory) => void;
+    onSelectData?: (group: IEmployeeExamsHistory) => void;
     hideTitle?: boolean;
     companyId?: string;
     employeeId?: number;
@@ -59,7 +59,7 @@ export const HistoryEmployeeExamTable: FC<
     data: history,
     isLoading: loadQuery,
     count,
-  } = useQueryHisHierEmployee(
+  } = useQueryHisExamEmployee(
     page,
     { search, employeeId: employeeId },
     rowsPerPage,
@@ -77,24 +77,27 @@ export const HistoryEmployeeExamTable: FC<
       employeeId,
       employee,
       hierarchyId: employee?.hierarchyId,
-      // motive:
-      // history?.length === 0 ? EmployeeHierarchyMotiveTypeEnum.ADM : undefined,
-      startDate: new Date(),
+      doneDate: new Date(),
     } as Partial<typeof initialEmployeeHistoryExamState>);
   };
 
-  const onSelectRow = (data: IEmployeeHierarchyHistory) => {
+  const onSelectRow = (data: IEmployeeExamsHistory) => {
     if (isSelect) {
       onSelectData(data);
     } else onEdit(data);
   };
 
-  const onEdit = (data: IEmployeeHierarchyHistory) => {
+  const onEdit = (data: IEmployeeExamsHistory) => {
     onStackOpenModal(modalName, {
       ...data,
+      hierarchyId: employee?.hierarchyId,
       employeeId,
       companyId,
     } as Partial<typeof initialEmployeeHistoryExamState>);
+  };
+
+  const getRowColor = (row: IEmployeeExamsHistory): ITableRowStatus => {
+    if (row.exam?.isAttendance) return 'info';
   };
 
   return (
@@ -124,20 +127,24 @@ export const HistoryEmployeeExamTable: FC<
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}
-        columns="100px  100px  minmax(150px, 2fr)  minmax(150px, 2fr) 200px 50px"
+        columns="100px minmax(150px, 2fr) 100px 80px 100px 100px 85px 150px 150px 50px"
       >
         <STableHeader>
           <STableHRow>Data</STableHRow>
-          <STableHRow>Motivo</STableHRow>
-          <STableHRow>Cargo</STableHRow>
-          <STableHRow>Setor</STableHRow>
-          <STableHRow>Empresa</STableHRow>
+          <STableHRow>Exame</STableHRow>
+          <STableHRow>Tipo</STableHRow>
+          <STableHRow>Validade</STableHRow>
+          <STableHRow>Vencimento</STableHRow>
+          <STableHRow>Resultado</STableHRow>
+          <STableHRow>Status</STableHRow>
+          <STableHRow>Agendado por</STableHRow>
+          <STableHRow>Finalizado por</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<typeof history[0]>
           rowsData={history
             .sort((a, b) => sortData(b.created_at, a.created_at))
-            .sort((a, b) => sortData(b.startDate, a.startDate))}
+            .sort((a, b) => sortData(b.doneDate, a.doneDate))}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
@@ -146,25 +153,42 @@ export const HistoryEmployeeExamTable: FC<
                 onClick={() => onSelectRow(row)}
                 clickable
                 key={row.id}
-                status={employeeHierarchyMotiveTypeMap[row.motive]?.status}
+                status={getRowColor(row)}
               >
-                <TextIconRow text={dateToString(row.startDate) || '-'} />
                 <TextIconRow
                   text={
-                    employeeHierarchyMotiveTypeMap[row.motive]?.content || '-'
+                    (dateToString(row.doneDate) || '-') + ` ${row?.time || ''}`
                   }
                 />
-                <TextIconRow clickable text={row?.hierarchy?.name || '-'} />
+                <TextIconRow clickable text={row?.exam?.name || '-'} />
                 <TextIconRow
-                  clickable
-                  text={row?.hierarchy?.parent?.name || '-'}
+                  text={employeeExamTypeMap[row.examType]?.content || '-'}
                 />
                 <TextIconRow
                   clickable
-                  text={getCompanyName(row?.hierarchy?.company) || '-'}
-                  lineNumber={1}
-                  tooltipTitle={getCompanyName(row?.hierarchy?.company) || '-'}
+                  text={String(row?.validityInMonths || '-') + ' meses'}
                 />
+                <TextIconRow
+                  clickable
+                  text={
+                    dayjs(row.doneDate)
+                      .add(row.validityInMonths || 0, 'month')
+                      .format('DD/MM/YYYY') || '-'
+                  }
+                />
+
+                <TextIconRow
+                  text={
+                    employeeExamEvaluationTypeMap[row.evaluationType]
+                      ?.content || '-'
+                  }
+                />
+                <TextIconRow
+                  clickable
+                  text={statusOptionsConstantExam[row?.status].name || '-'}
+                />
+                <TextUserRow clickable user={row?.userSchedule} />
+                <TextUserRow clickable user={row?.userDone} />
                 <IconButtonRow
                   onClick={(e) => {
                     e.stopPropagation();

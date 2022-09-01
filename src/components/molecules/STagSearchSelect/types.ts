@@ -41,4 +41,5 @@ export interface ISTagSearchSelectProps
   renderFilter?: () => React.ReactNode;
   error?: boolean;
   onSearch?: (value: string) => void;
+  renderContent?: (option: IMenuSearchOption) => ReactNode;
 }

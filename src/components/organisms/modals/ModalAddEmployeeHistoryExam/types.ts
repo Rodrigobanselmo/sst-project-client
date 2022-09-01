@@ -1,7 +1,14 @@
 import { BoxProps } from '@mui/material';
-import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
+import { ExamHistoryConclusionEnum } from 'project/enum/employee-exam-history-conclusion.enum';
+import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 
 export interface SModalContactProps extends Omit<BoxProps, 'title'> {}
 export interface SModalInitContactProps {
-  // motive: EmployeeHierarchyMotiveTypeEnum;
+  validityInMonths: number;
+  examType: ExamHistoryTypeEnum;
+  evaluationType: ExamHistoryEvaluationEnum;
+  conclusion: ExamHistoryConclusionEnum;
+  obs?: string;
+  time: string;
 }

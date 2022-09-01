@@ -1,6 +1,6 @@
 import { Control, FieldValues } from 'react-hook-form';
 
-import { SelectChangeEvent } from '@mui/material';
+import { BoxProps, SelectChangeEvent } from '@mui/material';
 import { SSelectProps } from 'components/atoms/SSelect/types';
 
 export type SelectFormProps = Partial<SSelectProps> & {
@@ -8,5 +8,7 @@ export type SelectFormProps = Partial<SSelectProps> & {
   control: Control<FieldValues, object>;
   label?: string;
   defaultValue?: string;
+  unmountOnChangeDefault?: boolean;
   onChange?: (e: SelectChangeEvent<unknown>) => void;
+  boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;
 };

@@ -1,11 +1,15 @@
 import { SContainer } from 'components/atoms/SContainer';
 import { SCalendarWeek } from 'components/molecules/calendar/SCalendarWeek/SCalendarWeek';
 import { SSidebarExamData } from 'components/molecules/calendar/SSidebarExamData/SSidebarExamData';
+import { ModalAddExamSchedule } from 'components/organisms/modals/ModalAddExamSchedule/ModalAddExamSchedule';
 import { NextPage } from 'next';
 
+import { ModalEnum } from 'core/enums/modal.enums';
+import { useModal } from 'core/hooks/useModal';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Schedule: NextPage = () => {
+  const { onStackOpenModal } = useModal();
   return (
     <SContainer
       sx={{
@@ -18,6 +22,12 @@ const Schedule: NextPage = () => {
     >
       <SSidebarExamData />
       <SCalendarWeek />
+      <button
+        onClick={() => onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE)}
+      >
+        open scheduler
+      </button>
+      <ModalAddExamSchedule />
     </SContainer>
   );
 };

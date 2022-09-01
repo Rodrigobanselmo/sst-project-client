@@ -40,7 +40,7 @@ export const ModalViewExamsData = ({
     selectedNode,
   });
 
-  //! improve invalidate fetch when risk data change
+  //! improve invalidate fetch when risk data change (refetch all times you change a risk data on riskTool)
   const { data: exams, isLoading: loadingExams } = useQueryExamsHierarchy(1, {
     hierarchyId,
   });

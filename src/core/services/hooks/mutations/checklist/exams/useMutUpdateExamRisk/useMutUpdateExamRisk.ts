@@ -25,6 +25,7 @@ export interface IUpdateExamRisk {
   isDismissal?: boolean;
   validityInMonths?: number | null;
   lowValidityInMonths?: number | null;
+  considerBetweenDays?: number | null;
   fromAge?: number | null;
   toAge?: number | null;
   startDate?: Date;

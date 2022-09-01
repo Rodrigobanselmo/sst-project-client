@@ -12,25 +12,28 @@ export const StatusSelect: FC<IStatusSelectProps> = ({
   selected,
   statusOptions,
   expiresDate,
+  options = statusOptionsConstant,
   ...props
 }) => {
   return (
     <STagSelect
       options={statusOptions.map((key) => ({
-        ...statusOptionsConstant[key],
-        iconColor: statusOptionsConstant[key].color,
+        ...options[key],
+        iconColor: options[key].color,
       }))}
       tooltipTitle={
-        expiresDate
-          ? ` expiração: ${dateToString(expiresDate, 'DD/MM/YYYY HH:mm')}`
-          : statusOptionsConstant[selected].name
+        selected
+          ? expiresDate
+            ? ` expiração: ${dateToString(expiresDate, 'DD/MM/YYYY HH:mm')}`
+            : options[selected].name
+          : ''
       }
-      text={statusOptionsConstant[selected].name}
+      text={selected ? options[selected].name : ''}
       large
       icon={CircleTwoToneIcon}
       iconProps={{
         sx: {
-          color: statusOptionsConstant[selected].color,
+          color: selected ? options[selected].color : undefined,
           fontSize: '15px',
         },
       }}

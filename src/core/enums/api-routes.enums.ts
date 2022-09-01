@@ -20,6 +20,7 @@ export enum ApiRoutesEnum {
   DOWNLOAD_UNIQUE_EMPLOYEES = '/files/company/download/unique',
   EMPLOYEES = '/employee',
   EMPLOYEE_HISTORY_HIER = '/employee-history/hierarchy',
+  EMPLOYEE_HISTORY_EXAM = '/employee-history/exam',
   EMPLOYEES_DELETE_SUB_OFFICE = '/employee/:employeeId/sub-office/:subOfficeId/:companyId',
   ENVIRONMENTS = '/company/:companyId/workspace/:workspaceId/environments',
   ENVIRONMENTS_PHOTO = '/company/:companyId/workspace/:workspaceId/environments/photo',

@@ -5,7 +5,7 @@ export interface IStatusOption {
   name: string;
   color: string;
 }
-interface IStatusOptions extends Record<StatusEnum, IStatusOption> {}
+export interface IStatusOptions extends Record<StatusEnum, IStatusOption> {}
 
 export const statusOptionsConstant = {
   [StatusEnum.ACTIVE]: {
@@ -51,6 +51,34 @@ export const statusOptionsConstant = {
   [StatusEnum.PROCESSING]: {
     value: StatusEnum.PROCESSING,
     name: 'Processando',
+    color: 'warning.main',
+  },
+} as IStatusOptions;
+
+export const statusOptionsConstantExam = {
+  [StatusEnum.DONE]: {
+    value: StatusEnum.DONE,
+    name: 'Realizado',
+    color: 'success.main',
+  },
+  [StatusEnum.CANCELED]: {
+    value: StatusEnum.CANCELED,
+    name: 'Cancelado',
+    color: 'error.main',
+  },
+  [StatusEnum.ERROR]: {
+    value: StatusEnum.ERROR,
+    name: 'Erro',
+    color: 'error.main',
+  },
+  [StatusEnum.EXPIRED]: {
+    value: StatusEnum.EXPIRED,
+    name: 'Expirado',
+    color: 'error.main',
+  },
+  [StatusEnum.PENDING]: {
+    value: StatusEnum.PENDING,
+    name: 'Agendado',
     color: 'warning.main',
   },
 } as IStatusOptions;

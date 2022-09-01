@@ -85,10 +85,17 @@ export function STableBody<T>({
   );
 }
 
+export type ITableRowStatus =
+  | 'inactive'
+  | 'warn'
+  | 'info'
+  | 'success'
+  | undefined;
+
 export const STableRow: FC<
   BoxProps & {
     clickable?: boolean;
-    status?: 'inactive' | 'warn' | 'info' | 'success';
+    status?: ITableRowStatus;
   }
 > = ({ className, clickable, ...props }) => (
   <STSTableRow

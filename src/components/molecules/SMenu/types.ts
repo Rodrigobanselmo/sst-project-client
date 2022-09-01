@@ -16,7 +16,7 @@ export interface SMenuProps extends Omit<MenuProps, 'open' | 'onClose'> {
     option: IMenuOptionResponse,
     event: MouseEvent<HTMLLIElement>,
   ) => void;
-  icon?: ElementType<any>;
+  icon?: ElementType<any> | null;
   options: {
     value: string | number;
     name: string;

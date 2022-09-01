@@ -57,7 +57,7 @@ export const ModalAddClinicExam = () => {
         <SModalHeader
           tag={clinicExamData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Profissional'}
+          title={'Exame realizado pela Clínica'}
         />
         {isEdit && (
           <SPageMenu

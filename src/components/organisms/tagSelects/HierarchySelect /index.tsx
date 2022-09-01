@@ -34,7 +34,6 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
   >({} as Record<HierarchyEnum, boolean>);
 
   const handleSelectRisk = (options: IHierarchy) => {
-    console.log(options);
     if (options && typeof options.id === 'string')
       handleSelect?.(
         hierarchyTree[options.id] || { id: '' },

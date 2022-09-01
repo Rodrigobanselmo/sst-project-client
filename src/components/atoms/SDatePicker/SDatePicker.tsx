@@ -41,7 +41,7 @@ export function SDatePicker({
   selected,
   mask = dateMask.apply,
   inputProps,
-  onChange,
+  onChange = () => null,
   ...props
 }: SDatePickerProps) {
   return (

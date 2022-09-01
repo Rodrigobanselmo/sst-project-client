@@ -41,4 +41,5 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
     e: MouseEvent<HTMLLIElement>,
   ) => void;
   asyncLoad?: boolean;
+  renderContent?: (option: IMenuSearchOption) => ReactNode;
 }

@@ -19,7 +19,7 @@ export interface ISTagSelectProps extends ISTagButtonProps {
     iconColor?: string;
   }[];
   startAdornment?: (option: any) => ReactNode;
-  icon?: ElementType<any>;
+  icon?: ElementType<any> | null;
   menuRef?: RefObject<HTMLDivElement>;
   tooltipProps?: (option?: any) => Partial<STooltipProps>;
 }

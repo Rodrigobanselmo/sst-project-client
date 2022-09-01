@@ -3,12 +3,27 @@ import React, { ChangeEvent, FC } from 'react';
 
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import { styled } from '@mui/material';
 import CircularProgress from '@mui/material/CircularProgress';
 import InputAdornment from '@mui/material/InputAdornment';
 import Typography from '@mui/material/Typography';
 
+import defaultTheme from 'configs/theme';
+
+import { SHelpIcon } from 'assets/icons/SHelpIcon';
+
+import SFlex from '../SFlex';
+import STooltip from '../STooltip';
 import { STTextField } from './styles';
 import { SInputProps } from './types';
+
+const textDisableInfo = {
+  input: {
+    '-webkit-text-fill-color': `${defaultTheme.palette.info.main} !important`,
+    color: `${defaultTheme.palette.info.main} !important`,
+    opacity: `${0.8} !important`,
+  },
+};
 
 export const SInput: FC<SInputProps> = ({
   InputProps,
@@ -32,6 +47,9 @@ export const SInput: FC<SInputProps> = ({
   onChange,
   firstLetterCapitalize,
   superSmall,
+  helpText,
+  sx,
+  disabled,
   ...props
 }) => {
   const handleChange = (
@@ -47,13 +65,26 @@ export const SInput: FC<SInputProps> = ({
   return (
     <div>
       {label && labelPosition === 'top' && (
-        <Typography
-          fontSize={14}
-          color={error ? 'error.main' : 'grey.600'}
-          mb={5}
-        >
-          {label}
-        </Typography>
+        <SFlex mb={5} align="center" justify="space-between">
+          <Typography fontSize={14} color={error ? 'error.main' : 'grey.600'}>
+            {label}
+          </Typography>
+          {helpText && (
+            <STooltip
+              boxProps={{ sx: { my: -1 } }}
+              withWrapper
+              title={helpText}
+            >
+              <SHelpIcon
+                sx={{
+                  fontSize: 16,
+                  color: error ? 'error.main' : 'grey.600',
+                  cursor: 'pointer',
+                }}
+              />
+            </STooltip>
+          )}
+        </SFlex>
       )}
       <STTextField
         ssx={superSmall ? 1 : 0}
@@ -95,6 +126,8 @@ export const SInput: FC<SInputProps> = ({
         variant={variant as any}
         unstyled={unstyled ? 1 : 0}
         helperText={helperText}
+        disabled={disabled}
+        sx={{ ...(disabled ? textDisableInfo : {}), ...sx }}
         {...props}
       />
     </div>

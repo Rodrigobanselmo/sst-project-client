@@ -15,6 +15,7 @@ export interface IQueryExamHierarchy {
   search?: string | null;
   companyId?: string;
   hierarchyId?: string;
+  employeeId?: number;
 }
 
 export const queryExams = async (
@@ -53,6 +54,7 @@ export function useQueryExamsHierarchy(
     () => queryExams(pagination, { companyId, ...query }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
+      // enabled: page != 0,
     },
   );
 

@@ -9,6 +9,8 @@ import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import ReportIcon from '@mui/icons-material/Report';
 import WarningIcon from '@mui/icons-material/Warning';
 
+import SExamIcon from 'assets/icons/SExamIcon';
+
 import SFlex from '../SFlex';
 import { ISTagProps } from './types';
 
@@ -25,6 +27,8 @@ export const STagAction: FC<ISTagProps> = ({
     switch (action) {
       case 'add':
         return 'tag.add';
+      case 'schedule':
+        return 'info.main';
       case 'version':
         return 'info.main';
       case 'edit':
@@ -77,6 +81,9 @@ export const STagAction: FC<ISTagProps> = ({
       )}
       {action === 'success' && (
         <CheckBoxIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+      )}
+      {action === 'schedule' && (
+        <SExamIcon sx={{ fontSize: '18px', color: 'common.white' }} />
       )}
       {action === 'select' && (
         <CheckBoxIcon sx={{ fontSize: '18px', color: 'common.white' }} />

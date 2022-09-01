@@ -34,6 +34,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   isLoading,
   handleMultiSelectMenu,
   preventOpen,
+  renderContent,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -100,6 +101,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
         onEnter={onEnter}
         onSearch={onSearch}
         handleMultiSelectMenu={handleMultiSelectMenu}
+        renderContent={renderContent}
       />
     </>
   );

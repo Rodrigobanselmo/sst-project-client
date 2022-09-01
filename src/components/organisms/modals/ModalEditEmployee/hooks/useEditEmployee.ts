@@ -20,6 +20,7 @@ export const initialEditEmployeeState = {
   status: StatusEnum.ACTIVE,
   name: undefined as string | undefined,
   cpf: undefined as string | undefined,
+  hierarchyId: undefined as string | undefined,
   companyId: undefined as string | undefined,
   hierarchy: {} as IHierarchy | ITreeMapObject,
   esocialCode: undefined as string | undefined,

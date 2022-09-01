@@ -24,6 +24,7 @@ export interface ICreateExamRisk {
   isDismissal?: boolean;
   validityInMonths?: number | null;
   lowValidityInMonths?: number | null;
+  considerBetweenDays?: number | null;
   minRiskDegreeQuantity?: number | null;
   minRiskDegree?: number | null;
   fromAge?: number | null;

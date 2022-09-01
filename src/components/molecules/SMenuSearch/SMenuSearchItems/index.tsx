@@ -25,6 +25,7 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
   endAdornment,
   listRef,
   handleMultiSelectMenu,
+  renderContent,
 }) => {
   const valueField =
     (optionsFieldName && optionsFieldName?.valueField) ?? 'value';
@@ -133,9 +134,13 @@ const MenuItems: FC<SMenuItemsSearchProps> = ({
               title={content}
             >
               <Box width="100%">
-                <SText fontSize={13} lineNumber={2}>
-                  {content}
-                </SText>
+                {renderContent ? (
+                  renderContent(option)
+                ) : (
+                  <SText fontSize={13} lineNumber={2}>
+                    {content}
+                  </SText>
+                )}
               </Box>
             </STooltip>
             {endAdornment && endAdornment(option)}

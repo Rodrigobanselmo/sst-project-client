@@ -15,6 +15,7 @@ export type SInputProps = TextFieldProps & {
   smallPlaceholder?: boolean;
   subVariant?: 'search' | 'standard';
   backgroundColor?: string;
+  helpText?: string;
   firstLetterCapitalize?: boolean;
   noEffect?: boolean;
   superSmall?: boolean;

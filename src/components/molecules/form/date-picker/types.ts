@@ -2,9 +2,11 @@ import { ChangeEvent, ReactNode } from 'react';
 import { ReactDatePickerProps } from 'react-datepicker';
 import { Control, FieldValues } from 'react-hook-form';
 
+import { BoxProps } from '@mui/material';
+
 import { SInputProps } from '../../../atoms/SInput/types';
 
-export type InputFormProps = Partial<SInputProps> & {
+export type InputDateFormProps = Partial<SInputProps> & {
   name: string;
   control: Control<FieldValues, object>;
   label?: ReactNode;
@@ -14,4 +16,6 @@ export type InputFormProps = Partial<SInputProps> & {
   inputFormat?: string;
   placeholderText?: string;
   calendarProps?: Partial<ReactDatePickerProps>;
+  unmountOnChangeDefault?: boolean;
+  boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;
 };

@@ -4,7 +4,7 @@ import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { sortString } from 'core/utils/sorts/string.sort';
 
-export interface IListHierarchyQuery extends IHierarchy {
+export interface IListHierarchyQuery extends Omit<IHierarchy, 'parents'> {
   name: string;
   id: string;
   parentsName: string;

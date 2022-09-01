@@ -33,6 +33,8 @@ export const initialExamDataState = {
 
 interface ISubmit {
   validityInMonths: string;
+  considerBetweenDays: string;
+  lowValidityInMonths: string;
   toAge: string;
   fromAge: string;
 }
@@ -93,6 +95,8 @@ export const useEditExams = () => {
     fromAge,
     toAge,
     validityInMonths,
+    considerBetweenDays,
+    lowValidityInMonths,
   }) => {
     const submitData: Partial<IExam> = {
       ...examData,
@@ -103,6 +107,12 @@ export const useEditExams = () => {
         toAge: toAge ? parseInt(toAge, 10) : undefined,
         validityInMonths: validityInMonths
           ? parseInt(validityInMonths, 10)
+          : undefined,
+        lowValidityInMonths: lowValidityInMonths
+          ? parseInt(lowValidityInMonths, 10)
+          : undefined,
+        considerBetweenDays: considerBetweenDays
+          ? parseInt(considerBetweenDays, 10)
           : undefined,
       },
     };

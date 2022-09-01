@@ -76,6 +76,7 @@ export interface IExamToRisk {
   isDismissal?: boolean;
   validityInMonths?: number;
   lowValidityInMonths?: number;
+  considerBetweenDays?: number;
   fromAge?: number;
   toAge?: number;
 }
@@ -95,6 +96,7 @@ export interface IExamRiskData {
   isDismissal?: boolean;
   validityInMonths?: number;
   lowValidityInMonths?: number;
+  considerBetweenDays?: number;
   fromAge?: number;
   toAge?: number;
   isStandard?: boolean;
@@ -103,11 +105,14 @@ export interface IExamRiskData {
 export interface IExamOriginData extends Partial<IExamRiskData> {
   origin?: string;
   prioritization?: number;
+  skipEmployee?: boolean;
+  closeToExpired?: boolean;
   homogeneousGroup?: IGho;
+  expiredDate?: Date | null;
   risk: IRiskFactors;
 }
 
 export interface IExamsByHierarchyRiskData {
   origins?: IExamOriginData[];
-  exam?: { id: number; name: string };
+  exam?: { id: number; name: string; isAttendance: boolean };
 }

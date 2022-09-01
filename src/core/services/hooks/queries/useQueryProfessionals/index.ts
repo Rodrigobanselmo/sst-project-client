@@ -53,8 +53,6 @@ export function useQueryProfessionals(
     take: take || 20,
   };
 
-  console.log(query);
-
   const { data, ...result } = useQuery(
     [QueryEnum.PROFESSIONALS, page, { ...pagination, ...query, companyId }],
     () => queryProfessionals(pagination, { ...query, companyId }),

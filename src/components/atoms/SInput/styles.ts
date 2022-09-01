@@ -63,6 +63,14 @@ export const STTextField = styled(TextField)<{
         max-height: 32px;
         padding: 1px 4px;
       }
+
+      &&&.MuiFormControl-root.MuiTextField-root:after {
+        margin-top: -15px;
+      }
+
+      &&& .MuiInputBase-root {
+        margin-bottom: -5px;
+      }
     `};
 
   ${(props) =>
@@ -303,4 +311,10 @@ export const STTextField = styled(TextField)<{
         }
       `};
     `};
+
+  & .MuiInputBase-root.Mui-disabled {
+    -webkit-text-fill-color: red !important;
+    color: red !important;
+    background-color: red;
+  }
 `;

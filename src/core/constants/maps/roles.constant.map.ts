@@ -81,8 +81,15 @@ export const rolesConstantMap = {
   [RoleEnum.EXAM]: {
     value: RoleEnum.EXAM,
     label: 'Exames',
-    info: 'gerenciamento de exames e relação sua relação aos fatores de risco',
+    info: 'gerenciamento de exames e sua relação aos fatores de risco',
     permissions: [PermissionEnum.EXAM],
+    order: 1000,
+  },
+  [RoleEnum.SCHEDULE_EXAM]: {
+    value: RoleEnum.SCHEDULE_EXAM,
+    label: 'Agenda',
+    info: 'agendamento de exames aos funcionários',
+    permissions: [] as any,
     order: 1000,
   },
 } as IRolesOptions;

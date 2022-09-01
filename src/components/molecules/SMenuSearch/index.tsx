@@ -37,6 +37,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
   asyncLoad,
   isLoading,
   handleMultiSelectMenu,
+  renderContent,
   ...props
 }) => {
   const [search, setSearch] = useState<string>('');
@@ -220,6 +221,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
           listRef={listWrapperRef}
           handleMultiSelectMenu={handleMultiSelectMenu}
           setScroll={setScroll}
+          renderContent={renderContent}
         />
         {additionalButton && (
           <SIconButton

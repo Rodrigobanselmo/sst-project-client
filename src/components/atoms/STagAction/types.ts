@@ -10,6 +10,7 @@ export type ITagAction =
   | 'success'
   | 'error'
   | 'warning'
+  | 'schedule'
   | 'info'
   | 'upload'
   | 'version'

@@ -4,12 +4,10 @@ import React from 'react';
 import { Box } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
-import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 
-import { dateToString } from 'core/utils/date/date-format';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
@@ -113,25 +111,66 @@ export const ModalExamStep = ({
         </Box>
       </SFlex>
 
-      <Box mt={10}>
-        <AutocompleteForm
-          name="validityInMonths"
-          control={control}
-          freeSolo
-          getOptionLabel={(option) => String(option)}
-          inputProps={{
-            labelPosition: 'top',
-            placeholder: 'meses...',
-            name: 'validityInMonths',
-          }}
-          setValue={(v) => setValue('validityInMonths', v)}
-          defaultValue={examData.examRiskData.validityInMonths || ''}
-          mask={intMask.apply}
-          label="Validade (meses)"
-          sx={{ width: [200] }}
-          options={[3, 6, 9, 12, 18, 24]}
-        />
-      </Box>
+      <SFlex gap={5} mt={10} align="center" flexWrap="wrap">
+        <Box flex={1}>
+          <AutocompleteForm
+            name="validityInMonths"
+            control={control}
+            filterOptions={(x) => x}
+            freeSolo
+            getOptionLabel={(option) => `${option} meses`}
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'meses...',
+              name: 'validityInMonths',
+            }}
+            setValue={(v) => setValue('validityInMonths', v)}
+            defaultValue={examData.examRiskData.validityInMonths || ''}
+            mask={intMask.apply}
+            label="Validade (meses)"
+            options={[3, 6, 9, 12, 18, 24]}
+          />
+        </Box>
+        <Box flex={2}>
+          <AutocompleteForm
+            name="lowValidityInMonths"
+            filterOptions={(x) => x}
+            control={control}
+            freeSolo
+            getOptionLabel={(option) => `${option} meses`}
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'meses...',
+              name: 'lowValidityInMonths',
+            }}
+            setValue={(v) => setValue('lowValidityInMonths', v)}
+            defaultValue={examData.examRiskData.lowValidityInMonths || ''}
+            mask={intMask.apply}
+            label="Validade para comorbidades (meses)"
+            options={[3, 6, 9, 12, 18, 24]}
+          />
+        </Box>
+      </SFlex>
+      <AutocompleteForm
+        name="considerBetweenDays"
+        filterOptions={(x) => x}
+        control={control}
+        freeSolo
+        getOptionLabel={(option) => `${option} dias`}
+        inputProps={{
+          labelPosition: 'top',
+          placeholder: 'dias...',
+          name: 'considerBetweenDays',
+          helpText:
+            'Exemplo (considerando valor de 60 dias entre ocupacional): caso seja necessaria realizar o exame periódico, o sistema irá verificar se o exame coplementar está com validade superior a 60 dias, se sim, não será solicitado a realização do exame. No caso da validade ser inferior a 60 dias, um novo exame será solicitado',
+        }}
+        setValue={(v) => setValue('considerBetweenDays', v)}
+        defaultValue={examData.examRiskData.considerBetweenDays || ''}
+        mask={intMask.apply}
+        label="Considerar (dias entre ocupacional)"
+        sx={{ width: [300], mt: 10 }}
+        options={[30, 60, 90, 120, 180, 240, 300]}
+      />
     </SFlex>
   );
 };

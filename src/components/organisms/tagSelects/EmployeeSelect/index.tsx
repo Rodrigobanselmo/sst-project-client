@@ -2,7 +2,9 @@ import React, { FC, useRef, MouseEvent, useMemo, useState } from 'react';
 
 import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
+import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
+import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialEmployeeState } from 'components/organisms/modals/ModalAddEmployees/hooks/useEditEmployees';
 import { useSnackbar } from 'notistack';
 import { useDebouncedCallback } from 'use-debounce';
@@ -35,6 +37,8 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
   preload,
   filterByHierarchyId,
   maxPerPage,
+  addButton = true,
+  queryEmployee,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -42,6 +46,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
   const { enqueueSnackbar } = useSnackbar();
   const listSelected = useRef<IEmployee[]>([]);
   const deleteSubOfficeMut = useMutDeleteSubOfficeEmployee();
+
   const { data, isLoading } = useQueryEmployees(
     1,
     {
@@ -49,6 +54,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
       ...(filterByHierarchyId
         ? { hierarchyId: filterByHierarchyId || undefined }
         : {}),
+      ...queryEmployee,
     },
     maxPerPage,
   );
@@ -159,7 +165,6 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
       },
     ).map((employee) => ({
       ...employee,
-      name: employee.name + ' - ' + cpfMask.mask(employee.cpf),
       value: employee.id,
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -186,12 +191,31 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
       onClick={() => (listSelected.current = selectedEmployees)}
       onSearch={(value) => handleSearchChange(value)}
       multiple={multiple}
-      additionalButton={handleAddEmployee}
+      additionalButton={addButton ? handleAddEmployee : undefined}
       tooltipTitle={`${employeeLength} funcionários selecionados`}
       text={`${text || ''} ${employeeLength === '0' ? '' : employeeLength}`}
-      keys={['name', 'cpf']}
+      keys={['name', 'email', 'cpf']}
       onClose={onCloseMenu}
-      placeholder="pesquisar por nome ou CPF"
+      renderContent={(employee) => (
+        <>
+          <SText color="text.label" fontSize={13}>
+            {employee.name}
+          </SText>
+          {
+            <SText color="text.label" fontSize={11}>
+              <b style={{ marginRight: 10 }}>{cpfMask.mask(employee.cpf)}</b>
+              {employee?.email || ''}
+            </SText>
+          }
+          {employee.company && (
+            <SText color="grey.400" fontSize={11}>
+              {getCompanyName(employee.company)}
+              {employee.company.cnpj}
+            </SText>
+          )}
+        </>
+      )}
+      placeholder="pesquisar por nome, email ou CPF"
       large={large}
       handleSelectMenu={handleSelectEmployee}
       selected={selectedIds}

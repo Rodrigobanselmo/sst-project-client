@@ -9,11 +9,15 @@ export const employeeSchema = yup.object().shape({
 export type IEmployeeSchema = Record<keyof typeof employeeSchema, string>;
 
 export const employeeHistoryHierarchySchema = yup.object().shape({
-  motive: yup.string().trim().required('motivo obrigatório'),
-  startDate: yup.string().trim().required('Data de inicío obrigatório'),
+  motive: yup.string().trim().required('Campo obrigatório'),
+  startDate: yup.string().trim().required('Data obrigatório'),
 });
 
 export const employeeHistoryExamSchema = yup.object().shape({
-  // motive: yup.string().trim().required('motivo obrigatório'),
-  startDate: yup.string().trim().required('Data de inicío obrigatório'),
+  // doneDate: yup
+  //   .string()
+  //   .nullable()
+  //   .trim()
+  //   .required('Data de inicío obrigatório'),
+  // examType: yup.string().trim().required('Campo obrigatório'),
 });

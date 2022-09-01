@@ -30,6 +30,7 @@ export const initialExamRiskState = {
   isDismissal: true,
   validityInMonths: undefined as number | undefined,
   lowValidityInMonths: undefined as number | undefined,
+  considerBetweenDays: undefined as number | undefined,
   fromAge: undefined as number | undefined,
   toAge: undefined as number | undefined,
   risk: {} as IRiskFactors,
@@ -45,6 +46,7 @@ export const initialExamRiskState = {
 interface ISubmit {
   validityInMonths: string;
   lowValidityInMonths: string;
+  considerBetweenDays: string;
   fromAge: string;
   toAge: string;
   minRiskDegree: string;
@@ -113,6 +115,7 @@ export const useEditExams = () => {
     lowValidityInMonths,
     minRiskDegree,
     minRiskDegreeQuantity,
+    considerBetweenDays,
   }) => {
     if (!examData.riskId) {
       setExamData((oldData) => ({
@@ -139,6 +142,9 @@ export const useEditExams = () => {
         : null,
       lowValidityInMonths: lowValidityInMonths
         ? parseInt(lowValidityInMonths, 10)
+        : null,
+      considerBetweenDays: considerBetweenDays
+        ? parseInt(considerBetweenDays, 10)
         : null,
       minRiskDegree: examData.exam.isAttendance
         ? 0
