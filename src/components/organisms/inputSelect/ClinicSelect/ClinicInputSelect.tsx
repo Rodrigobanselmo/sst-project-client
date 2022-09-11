@@ -21,6 +21,7 @@ export const ClinicInputSelect: FC<IClinicSelectProps> = ({
   onChange,
   inputProps,
   query,
+  addMore = true,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -54,8 +55,9 @@ export const ClinicInputSelect: FC<IClinicSelectProps> = ({
       getOptionLabel={(option) => option.fantasy || ''}
       options={companies}
       loading={isLoading}
+      onInputChange={(e, v) => handleSearchChange(v)}
+      filterOptions={(e) => e}
       inputProps={{
-        onChange: (e) => handleSearchChange(e.target.value),
         onBlur: () => setSearch(''),
         ...inputProps,
       }}
@@ -66,19 +68,22 @@ export const ClinicInputSelect: FC<IClinicSelectProps> = ({
       {...props}
       noOptionsText={
         <SFlex gap={8}>
-          <STagButton
-            text="Adicionar"
-            active
-            bg="success.main"
-            onClick={onAddClinic}
-          />
+          {addMore && (
+            <STagButton
+              text="Adicionar"
+              active
+              bg="success.main"
+              onClick={onAddClinic}
+            />
+          )}
           Nenhuma opção
         </SFlex>
       }
       renderOption={(props, option) => (
         <Box component="li" {...props}>
-          {((companies[0] && option.id == companies[0].id) ||
-            !companies[0]) && <AddButton onAdd={onAddClinic} />}
+          {addMore &&
+            ((companies[0] && option.id == companies[0].id) ||
+              !companies[0]) && <AddButton onAdd={onAddClinic} />}
           <Box>
             <SText fontSize={13} fontWeight="500">
               {option.fantasy}

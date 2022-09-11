@@ -1,7 +1,7 @@
 import { ChangeEvent } from 'react';
 import { Control, FieldValues } from 'react-hook-form';
 
-import { FormControlProps } from '@mui/material';
+import { BoxProps, FormControlProps } from '@mui/material';
 
 export type InputFormBoxProps<T> = FormControlProps & {
   name: string;
@@ -16,4 +16,6 @@ export type InputFormBoxProps<T> = FormControlProps & {
   options: T[];
   row?: boolean;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;
+  unmountOnChangeDefault?: boolean;
 };

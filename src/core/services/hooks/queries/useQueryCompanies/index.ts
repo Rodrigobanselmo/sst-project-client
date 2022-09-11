@@ -17,11 +17,17 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryCompanies {
   search?: string;
   companyId?: string;
+  clinicExamsIds?: number[];
   clinicsCompanyId?: string;
   userId?: number;
   groupId?: number;
   isClinic?: boolean;
   type?: CompanyTypesEnum[];
+  isPeriodic?: boolean;
+  isChange?: boolean;
+  isAdmission?: boolean;
+  isReturn?: boolean;
+  isDismissal?: boolean;
 }
 
 export type IQueryCompaniesTypes = '/by-user' | '';

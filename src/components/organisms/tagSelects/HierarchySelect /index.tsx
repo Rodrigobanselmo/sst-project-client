@@ -1,5 +1,7 @@
 import React, { FC, useCallback, useMemo, useState } from 'react';
 
+import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
 
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
@@ -84,7 +86,7 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
 
         return {
           ...hierarchyTree,
-          name: getText(hierarchyTree.id),
+          // name: getText(hierarchyTree.id),
         };
       })
       .filter(
@@ -93,7 +95,7 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
           (!parentId || (parentId && h.parents.find((p) => p.id === parentId))),
       );
 
-    setAllFilterTypes(typesSelected);
+    !activeFilters && setAllFilterTypes(typesSelected);
 
     if (!list) return [];
     list.unshift({
@@ -103,7 +105,7 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
     });
 
     return list;
-  }, [hierarchyListData, filterOptions, getText, activeFilters, parentId]);
+  }, [hierarchyListData, filterOptions, activeFilters, parentId]);
 
   const textField = getText(selectedId, text);
   const isNotSelected = !selectedId;
@@ -120,6 +122,40 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
       handleSelectMenu={handleSelectRisk}
       tooltipTitle={tooltipText ? tooltipText(textField) : ''}
       optionsFieldName={{ valueField: 'id', contentField: 'name' }}
+      renderContent={(option) => {
+        if (!option.id)
+          return (
+            <SText my={-2} sx={{ opacity: 0.7 }} fontSize={13}>
+              {option.name}
+            </SText>
+          );
+
+        const name = getText(option.id);
+        return (
+          <STooltip
+            withWrapper
+            placement="bottom-end"
+            title={
+              option.parentsName ? (
+                <>
+                  <SText fontSize={11} color="common.white">
+                    {`${option.parentsName}  > ${option.name}`}
+                  </SText>
+                  <SText fontSize={9} color="common.white">
+                    estabelecimentos: {`${option.workspacesNames.join(' || ')}`}
+                  </SText>
+                </>
+              ) : (
+                ''
+              )
+            }
+          >
+            <SText fontSize={13} my={-2}>
+              {name}
+            </SText>
+          </STooltip>
+        );
+      }}
       renderFilter={() => (
         <SMenuSimpleFilter
           options={hierarchyFilter.filter(

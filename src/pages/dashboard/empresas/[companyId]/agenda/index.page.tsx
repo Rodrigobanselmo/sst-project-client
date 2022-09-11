@@ -1,7 +1,10 @@
 import { SContainer } from 'components/atoms/SContainer';
 import { SCalendarWeek } from 'components/molecules/calendar/SCalendarWeek/SCalendarWeek';
 import { SSidebarExamData } from 'components/molecules/calendar/SSidebarExamData/SSidebarExamData';
-import { ModalAddExamSchedule } from 'components/organisms/modals/ModalAddExamSchedule/ModalAddExamSchedule';
+import {
+  ModalAddExamSchedule,
+  StackModalAddExamSchedule,
+} from 'components/organisms/modals/ModalAddExamSchedule/ModalAddExamSchedule';
 import { NextPage } from 'next';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -27,7 +30,7 @@ const Schedule: NextPage = () => {
       >
         open scheduler
       </button>
-      <ModalAddExamSchedule />
+      <StackModalAddExamSchedule />
     </SContainer>
   );
 };

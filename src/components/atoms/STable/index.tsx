@@ -56,6 +56,7 @@ export function STableBody<T>({
   rowsInitialNumber = 8,
   numberRowsToLoadMore = 8,
   hideLoadMore,
+  contentEmpty,
   ...props
 }: STableBodyProps<T>) {
   const [numberRows, setNumberRows] = useState(rowsInitialNumber);
@@ -73,7 +74,7 @@ export function STableBody<T>({
       <STSTableBody gap={5} {...props}>
         {rows.map((row, index) => renderRow(row, index))}
       </STSTableBody>
-      {rows.length === 0 && <STableEmpty />}
+      {rows.length === 0 && <STableEmpty content={contentEmpty} />}
       {!hideLoadMore && (
         <STableLoadMore
           actualRows={rows.length}

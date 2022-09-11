@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 
 import { SInput } from '../../../atoms/SInput';
@@ -13,8 +13,13 @@ export const InputForm = ({
   variant = 'outlined',
   onChange,
   uneditable,
+  setValue,
   ...restInput
 }: InputFormProps) => {
+  useEffect(() => {
+    defaultValue && setValue?.(name, defaultValue);
+  }, [defaultValue, name, setValue]);
+
   return (
     <Controller
       name={name}

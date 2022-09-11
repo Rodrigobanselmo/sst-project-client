@@ -118,7 +118,7 @@ export const ModalAddContact = () => {
           minRows={3}
           maxRows={5}
           control={control}
-          placeholder={'descreve sua observção...'}
+          placeholder={'descreva sua observação...'}
           name="obs"
           size="small"
         />

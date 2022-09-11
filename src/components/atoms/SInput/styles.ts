@@ -34,7 +34,7 @@ export const STTextField = styled(TextField)<{
   }
 
   &&& .MuiInputBase-root {
-    background-color: ${(props) => props.theme.palette.background.paper};
+    /* background-color: ${(props) => props.theme.palette.background.paper}; */
   }
 
   &&& .MuiOutlinedInput-notchedOutline {
@@ -311,10 +311,10 @@ export const STTextField = styled(TextField)<{
         }
       `};
     `};
-
+  /* 
   & .MuiInputBase-root.Mui-disabled {
     -webkit-text-fill-color: red !important;
     color: red !important;
     background-color: red;
-  }
+  } */
 `;

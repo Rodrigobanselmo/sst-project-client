@@ -1,3 +1,5 @@
+import { IEmployee } from 'core/interfaces/api/IEmployee';
+
 export enum ExamHistoryTypeEnum {
   ADMI = 'ADMI',
   PERI = 'PERI',
@@ -5,6 +7,7 @@ export enum ExamHistoryTypeEnum {
   CHAN = 'CHAN',
   EVAL = 'EVAL',
   DEMI = 'DEMI',
+  OFFI = 'OFFI',
 }
 
 export const employeeExamTypeMap: Record<
@@ -12,31 +15,48 @@ export const employeeExamTypeMap: Record<
   {
     value: ExamHistoryTypeEnum;
     content: string;
+    type:
+      | 'isPeriodic'
+      | 'isChange'
+      | 'isAdmission'
+      | 'isReturn'
+      | 'isDismissal';
   }
 > = {
   [ExamHistoryTypeEnum.ADMI]: {
     value: ExamHistoryTypeEnum.ADMI,
     content: 'Admissional',
+    type: 'isAdmission',
   },
   [ExamHistoryTypeEnum.PERI]: {
     value: ExamHistoryTypeEnum.PERI,
     content: 'Periódico',
+    type: 'isPeriodic',
   },
   [ExamHistoryTypeEnum.RETU]: {
     value: ExamHistoryTypeEnum.RETU,
     content: 'Retorno ao trabalho',
+    type: 'isReturn',
   },
   [ExamHistoryTypeEnum.CHAN]: {
     value: ExamHistoryTypeEnum.CHAN,
     content: 'Mudança de risco ocupacional',
+    type: 'isChange',
   },
   [ExamHistoryTypeEnum.DEMI]: {
     value: ExamHistoryTypeEnum.DEMI,
     content: 'Demissional',
+    type: 'isDismissal',
   },
   [ExamHistoryTypeEnum.EVAL]: {
     value: ExamHistoryTypeEnum.EVAL,
     content: 'Avaliação médica',
+    type: 'isPeriodic',
+  },
+  [ExamHistoryTypeEnum.OFFI]: {
+    value: ExamHistoryTypeEnum.OFFI,
+    content: 'Mudança de Cargo/Função',
+    type: 'isPeriodic',
   },
 };
 
@@ -47,4 +67,20 @@ export const employeeExamTypeList = [
   employeeExamTypeMap[ExamHistoryTypeEnum.CHAN],
   employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
   employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
+  employeeExamTypeMap[ExamHistoryTypeEnum.OFFI],
 ];
+
+export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
+  if (!employee) return [];
+
+  if (!employee.hierarchyId)
+    return [employeeExamTypeMap[ExamHistoryTypeEnum.ADMI]];
+
+  return [
+    employeeExamTypeMap[ExamHistoryTypeEnum.PERI],
+    employeeExamTypeMap[ExamHistoryTypeEnum.RETU],
+    employeeExamTypeMap[ExamHistoryTypeEnum.CHAN],
+    employeeExamTypeMap[ExamHistoryTypeEnum.OFFI],
+    employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
+  ];
+};

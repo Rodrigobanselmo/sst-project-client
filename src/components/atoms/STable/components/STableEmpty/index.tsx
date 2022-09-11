@@ -6,7 +6,14 @@ import SText from 'components/atoms/SText';
 
 import { STableEmptyProps } from './types';
 
-const STableEmpty: FC<STableEmptyProps> = ({ ...props }) => (
+const STableEmpty: FC<STableEmptyProps> = ({
+  content = (
+    <>
+      Nenhum dado <br /> encontrado
+    </>
+  ),
+  ...props
+}) => (
   <SFlex
     sx={{
       borderRadius: 2,
@@ -23,9 +30,7 @@ const STableEmpty: FC<STableEmptyProps> = ({ ...props }) => (
     <TravelExploreOutlinedIcon
       sx={{ color: 'gray.400', fontSize: '30px', mr: 6 }}
     />
-    <SText fontSize={13}>
-      Nenhum dado <br /> encontrado
-    </SText>
+    <SText fontSize={13}>{content}</SText>
   </SFlex>
 );
 

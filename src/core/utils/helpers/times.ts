@@ -4,7 +4,7 @@ export const get15Time = (
   endHour: number,
   endMinute: number,
   time15 = 1,
-) => {
+): string[] => {
   return Array.from(Array(24 * 4).keys())
     .map((hour) => {
       const hourTime = Math.floor(hour / 4);
@@ -20,5 +20,5 @@ export const get15Time = (
         minute < 10 ? '0' + minute : minute
       }`;
     })
-    .filter((hour) => hour !== null);
+    .filter((hour) => hour !== null) as string[];
 };

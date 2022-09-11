@@ -7,6 +7,7 @@ import SText from 'components/atoms/SText';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
+import { UnmountBox } from 'components/molecules/form/unmount-box';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
@@ -20,8 +21,16 @@ import { IUseEditEmployee } from '../../hooks/useEditEmployee';
 import { usePersonalData } from './hooks/usePersonalData';
 
 export const DataModalCompanyStep = (props: IUseEditEmployee) => {
-  const { control, onSubmit, data, loading, onCloseUnsaved, isEdit, setData } =
-    usePersonalData(props);
+  const {
+    control,
+    onSubmit,
+    data,
+    loading,
+    onCloseUnsaved,
+    isEdit,
+    setData,
+    setValue,
+  } = usePersonalData(props);
 
   const buttons = [
     {},
@@ -58,6 +67,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               defaultValue={data.socialName}
               label="Nome social"
               labelPosition="center"
+              setValue={setValue}
               control={control}
               placeholder={'nome social do empregado...'}
               name="socialName"
@@ -86,6 +96,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               control={control}
               defaultValue={data.sex}
               required
+              unmountOnChangeDefault
               name="sex"
               row
               options={[
@@ -108,6 +119,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
                   },
                 ],
               }}
+              unmountOnChangeDefault
               control={control}
               defaultValue={dateToDate(data.birthday)}
               name="birthday"
@@ -129,6 +141,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               value={data.birthday ? dayjs().diff(data.birthday, 'years') : ''}
               name="age"
               size="small"
+              disabled
             />
           </Box>
           <Box flex={3}>
@@ -139,6 +152,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               control={control}
               placeholder={'nome social do empregado...'}
               name="nickname"
+              setValue={setValue}
               size="small"
             />
           </Box>
@@ -161,6 +175,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
         <InputForm
           sx={{ width: 300 }}
           defaultValue={data.esocialCode}
+          setValue={setValue}
           label="Matrícula eSocial"
           labelPosition="top"
           control={control}
@@ -178,6 +193,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               defaultValue={data.email}
               label="Email"
               labelPosition="center"
+              setValue={setValue}
               control={control}
               placeholder={'email do funcionário...'}
               name="email"
@@ -190,6 +206,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               label="Telefone"
               labelPosition="center"
               control={control}
+              setValue={setValue}
               placeholder={'telefone do funcionário...'}
               name="phone"
               size="small"

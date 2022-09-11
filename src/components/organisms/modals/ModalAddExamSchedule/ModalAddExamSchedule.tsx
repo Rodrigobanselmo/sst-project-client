@@ -5,7 +5,13 @@ import SModal, { SModalHeader, SModalPaper } from 'components/molecules/SModal';
 import { Wizard } from 'components/organisms/main/Wizard';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 
+import { examScheduleSchema } from 'core/utils/schemas/examSchedule.schema';
+
+import { ModalEditEmployee } from '../ModalEditEmployee/ModalEditEmployee';
 import { EmployeeStep } from './components/1-employee';
+import { ExamStep } from './components/2-exams';
+import { EvaluationStep } from './components/3-evaluation';
+import { ResumeStep } from './components/4-resume';
 import { useEditExamEmployee } from './hooks/useEditExamEmployee';
 
 export const ModalAddExamSchedule = () => {
@@ -35,18 +41,22 @@ export const ModalAddExamSchedule = () => {
           onClose={props.onCloseUnsaved}
           title={'Agendamento de Exame'}
         />
-        <Wizard schemas={[]}>
+        <Wizard schemas={[examScheduleSchema]}>
           <EmployeeStep {...props} />
+          <ExamStep {...props} />
+          <EvaluationStep {...props} />
+          <ResumeStep {...props} />
         </Wizard>
       </SModalPaper>
     </SModal>
   );
 };
 
-export const StackModalEditEmployee = () => {
+export const StackModalAddExamSchedule = () => {
   return (
     <>
       <ModalAddExamSchedule />
+      <ModalEditEmployee />
     </>
   );
 };

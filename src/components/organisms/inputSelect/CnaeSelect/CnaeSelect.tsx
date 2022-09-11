@@ -36,13 +36,12 @@ export const CnaeInputSelect: FC<ICnaeSelectProps> = ({
           getOptionLabel={(option) => option.name}
           options={cnaes}
           loading={loadCnaes}
+          filterOptions={(e) => e}
           inputProps={{
-            onChange: (e) => handleSearchChange(e.target.value),
             onBlur: () => setSearch(''),
             labelPosition: 'top',
             placeholder: 'Pesquisar por CNAE ou Atividade',
           }}
-          filterOptions={(x) => x}
           control={control}
           onChange={(value) => {
             onChange?.(value);

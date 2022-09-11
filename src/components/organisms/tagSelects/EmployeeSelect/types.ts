@@ -21,7 +21,10 @@ export interface IEmployeeSelectProps
   selectedEmployees?: IEmployee[];
   multiple?: boolean;
   queryEmployee?: IQueryEmployee;
-  handleSelect?: (selectedIds: number[] | IEmployee, list: IEmployee[]) => void;
+  handleSelect?: (
+    selectedIds: number[] | IEmployee | any,
+    list: IEmployee[],
+  ) => void;
   handleMultiSelect?: (selected: IEmployee) => void;
   onEnter?: (value: string) => void;
 }

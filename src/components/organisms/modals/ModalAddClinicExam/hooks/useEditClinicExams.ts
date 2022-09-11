@@ -90,7 +90,7 @@ export const useEditClinicExams = () => {
       examId: clinicExamData.examId,
       companyId: clinicExamData.companyId,
       orderBy: 'startDate',
-      orderByDirection: 'asc',
+      orderByDirection: 'desc',
     },
     5,
   );
@@ -137,9 +137,17 @@ export const useEditClinicExams = () => {
     onClose();
   };
 
-  const onSubmit: SubmitHandler<ISubmit> = async ({ type, ...data }) => {
+  const onSubmit: SubmitHandler<ISubmit> = async ({
+    type,
+    dueInDays,
+    ...data
+  }) => {
     if (!clinicExamData?.exam?.id) {
       return setError('exam', { message: 'Exame obrigatório' });
+    }
+
+    if (!dueInDays && !clinicExamData?.exam?.isAttendance) {
+      return setError('dueInDays', { message: 'campo obrigatório' });
     }
 
     const startDate = dateToDateLessTime(clinicExamData.startDate);
@@ -150,6 +158,7 @@ export const useEditClinicExams = () => {
 
     const submitData: ICreateClientExam = {
       ...data,
+      dueInDays,
       companyId: clinicExamData.companyId,
       examId: clinicExamData.exam.id,
       status: clinicExamData.status,

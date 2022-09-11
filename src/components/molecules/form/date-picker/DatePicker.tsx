@@ -1,5 +1,5 @@
 /* eslint-disable react/display-name */
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Controller } from 'react-hook-form';
 
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
@@ -22,9 +22,14 @@ export const DatePickerForm = ({
   calendarProps = {},
   unmountOnChangeDefault,
   boxProps,
+  setValue,
   ...restInput
 }: InputDateFormProps) => {
   const [isFocused, setIsFocused] = useState(false);
+
+  useEffect(() => {
+    defaultValue !== undefined && setValue?.(name, defaultValue as any);
+  }, [defaultValue, name, setValue]);
 
   return (
     <UnmountBox
@@ -66,7 +71,7 @@ export const DatePickerForm = ({
             }}
             onChangeRaw={(e) => {
               if (typeof e.target.value === 'string') {
-                mask(e);
+                mask && mask(e);
               }
             }}
             {...calendarProps}

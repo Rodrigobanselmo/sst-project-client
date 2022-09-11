@@ -43,8 +43,9 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
       getOptionLabel={(option) => option.name || ''}
       options={exams}
       loading={loadExams}
+      onInputChange={(e, v) => handleSearchChange(v)}
+      filterOptions={(e) => e}
       inputProps={{
-        onChange: (e) => handleSearchChange(e.target.value),
         onBlur: () => setSearch(''),
         ...inputProps,
       }}

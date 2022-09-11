@@ -62,10 +62,12 @@ export const ModalAddClinicExam = () => {
         {isEdit && (
           <SPageMenu
             active={String(clinicExamData.id)}
-            options={allClinicExams.map((clinicExam) => ({
-              label: dateToString(clinicExam.startDate),
-              value: String(clinicExam.id),
-            }))}
+            options={allClinicExams
+              .map((clinicExam) => ({
+                label: dateToString(clinicExam.startDate),
+                value: String(clinicExam.id),
+              }))
+              .reverse()}
             onChange={(id) => {
               onClose();
               setTimeout(() => {

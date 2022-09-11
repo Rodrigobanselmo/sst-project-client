@@ -12,10 +12,13 @@ export type InputDateFormProps = Partial<SInputProps> & {
   label?: ReactNode;
   onChange?: (e: Date | null) => void;
   uneditable?: boolean;
-  mask?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
+  mask?:
+    | ((e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void)
+    | null;
   inputFormat?: string;
   placeholderText?: string;
   calendarProps?: Partial<ReactDatePickerProps>;
   unmountOnChangeDefault?: boolean;
+  setValue?: (name: string, value: string) => void;
   boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;
 };

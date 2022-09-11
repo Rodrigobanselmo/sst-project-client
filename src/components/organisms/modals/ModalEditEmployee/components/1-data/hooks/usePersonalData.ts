@@ -1,6 +1,9 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
+import { ModalEnum } from 'core/enums/modal.enums';
+import { ICompany } from 'core/interfaces/api/ICompany';
+
 import { IUseEditEmployee } from '../../../hooks/useEditEmployee';
 
 export const usePersonalData = ({
@@ -8,9 +11,10 @@ export const usePersonalData = ({
   onSubmitData,
   setData,
   onCloseUnsaved: onClose,
+  onStackOpenModal,
   ...rest
 }: IUseEditEmployee) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, getValues, control, reset, setValue } = useFormContext();
   const { nextStep, stepCount, goToStep } = useWizard();
 
   const fields = [
@@ -21,6 +25,7 @@ export const usePersonalData = ({
     'esocialCode',
     'email',
     'phone',
+    'socialName',
   ];
 
   const onCloseUnsaved = async () => {
@@ -36,8 +41,16 @@ export const usePersonalData = ({
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { name, cpf, sex, nickname, esocialCode, email, phone } =
-        getValues();
+      const {
+        name,
+        cpf,
+        sex,
+        nickname,
+        esocialCode,
+        email,
+        phone,
+        socialName,
+      } = getValues();
 
       const submitData = {
         ...data,
@@ -48,11 +61,27 @@ export const usePersonalData = ({
         esocialCode,
         email,
         phone,
+        socialName,
       };
 
       onSubmitData(submitData, nextStep);
     }
   };
+
+  // const handleOpenCompanySelect = () => {
+  //   const onSelect = (companies: ICompany[]) => {
+  //     setData({
+  //       ...data,
+  //       companies,
+  //     });
+  //   };
+
+  //   onStackOpenModal(ModalEnum.COMPANY_SELECT, {
+  //     multiple: true,
+  //     onSelect,
+  //     selected: data.companies,
+  //   } as Partial<typeof initialCompanySelectState>);
+  // };
 
   return {
     onSubmit,
@@ -61,6 +90,7 @@ export const usePersonalData = ({
     lastStep,
     data,
     setData,
+    setValue,
     ...rest,
   };
 };

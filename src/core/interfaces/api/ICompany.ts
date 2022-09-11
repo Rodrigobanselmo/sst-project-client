@@ -6,6 +6,7 @@ import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutati
 
 import { ICompanyGroup } from './ICompanyGroup';
 import { IContact } from './IContact';
+import { IExamToClinic } from './IExam';
 
 export interface ICompany {
   id: string;
@@ -58,6 +59,7 @@ export interface ICompany {
   doctorResponsibleId: number;
   tecResponsibleId: number;
   isClinic: boolean;
+  clinicExams: IExamToClinic[];
   clinicsAvailable: {
     clinicId: string;
     companyId: string;

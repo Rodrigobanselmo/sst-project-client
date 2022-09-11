@@ -31,8 +31,8 @@ export const initialEmployeeHistoryHierState = {
   employee: undefined as undefined | IEmployee,
   created_at: undefined as undefined | Date,
   updated_at: undefined as undefined | Date,
-  hierarchy: undefined as undefined | IHierarchy,
   companyId: undefined as undefined | string,
+  hierarchy: undefined as undefined | IHierarchy,
   sector: undefined as undefined | IHierarchy,
   errors: {
     sector: false,

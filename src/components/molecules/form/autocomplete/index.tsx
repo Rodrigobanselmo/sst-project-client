@@ -24,11 +24,10 @@ export function AutocompleteForm<T>({
   ...restSelect
 }: AutocompleteFormProps<T>) {
   useEffect(() => {
-    if (freeSolo && defaultValue) {
+    if (freeSolo && defaultValue !== undefined) {
       setValue?.(String(defaultValue || ''));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [freeSolo, defaultValue, setValue]);
 
   return (
     <UnmountBox

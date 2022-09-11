@@ -16,8 +16,13 @@ export const SelectForm = ({
   options,
   unmountOnChangeDefault,
   boxProps,
+  setValue,
   ...restSelect
 }: SelectFormProps) => {
+  useEffect(() => {
+    (defaultValue || unmountOnChangeDefault) && setValue?.(name, defaultValue);
+  }, [defaultValue, unmountOnChangeDefault, name, setValue]);
+
   return (
     <UnmountBox
       unmountOnChangeDefault={unmountOnChangeDefault}

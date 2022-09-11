@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -13,6 +14,7 @@ export interface IListHierarchyQuery extends Omit<IHierarchy, 'parents'> {
 
 export const useListHierarchyQuery = (companyId?: string) => {
   const { data: hierarchyTree } = useQueryHierarchies(companyId);
+  const { data: company } = useQueryCompany(companyId);
   // const hierarchyTree = useAppSelector(selectAllHierarchyTreeNodes);
   const hierarchyListData = useCallback(() => {
     const hierarchyArray: IListHierarchyQuery[] = Object.values(hierarchyTree)
@@ -54,11 +56,18 @@ export const useListHierarchyQuery = (companyId?: string) => {
           name: node.name,
           parentsName: parentsName,
           parents,
+          workspacesNames: node.workspaceIds
+            .map(
+              (id) =>
+                company.workspace?.find((workspace) => workspace.id === id)
+                  ?.name,
+            )
+            .filter((i) => i),
         };
       })
       .sort((a, b) => sortString(a, b, 'name'));
     return hierarchyArray;
-  }, [hierarchyTree]);
+  }, [hierarchyTree, company]);
 
   return { hierarchyListData, hierarchyTree };
 };

@@ -9,9 +9,11 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutCreateEmployee } from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
+import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
 
 import { IEmployee } from './../../../../../core/interfaces/api/IEmployee';
 
@@ -22,6 +24,7 @@ export const initialEditEmployeeState = {
   cpf: undefined as string | undefined,
   hierarchyId: undefined as string | undefined,
   companyId: undefined as string | undefined,
+  company: undefined as ICompany | undefined,
   hierarchy: {} as IHierarchy | ITreeMapObject,
   esocialCode: undefined as string | undefined,
   socialName: undefined as string | undefined,
@@ -42,7 +45,7 @@ const modalName = ModalEnum.EMPLOYEES_ADD;
 
 export const useEditEmployee = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
+  const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialEditEmployeeState);
 
   const updateEmployee = useMutUpdateEmployee();
@@ -55,6 +58,11 @@ export const useEditEmployee = () => {
   });
 
   const isEdit = !!data.id;
+
+  const { data: employee, isLoading: employeeLoading } = useQueryEmployee({
+    id: data.id,
+    companyId: data.companyId,
+  });
 
   useEffect(() => {
     const initialData =
@@ -75,6 +83,7 @@ export const useEditEmployee = () => {
         const newData = {
           ...oldData,
           ...replaceData,
+          ...employee,
         };
 
         initialDataRef.current = newData;
@@ -82,7 +91,7 @@ export const useEditEmployee = () => {
         return newData;
       });
     }
-  }, [getModalData]);
+  }, [getModalData, employee]);
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
@@ -138,8 +147,10 @@ export const useEditEmployee = () => {
     updateEmployee,
     isEdit,
     onSubmitData,
-    loading: updateEmployee.isLoading || createEmployee.isLoading,
+    loading:
+      updateEmployee.isLoading || createEmployee.isLoading || employeeLoading,
     modalName,
+    onStackOpenModal,
   };
 };
 

@@ -78,8 +78,9 @@ export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
       getOptionLabel={(option) => option.name || ''}
       options={professionals}
       loading={loadProfessionals}
+      onInputChange={(e, v) => handleSearchChange(v)}
+      filterOptions={(e) => e}
       inputProps={{
-        onChange: (e) => handleSearchChange(e.target.value),
         onBlur: () => setSearch(''),
         ...inputProps,
       }}

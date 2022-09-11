@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query';
 
+import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -32,6 +33,13 @@ export const queryEmployees = async (
     return { data: [], count: 0 };
 
   if ('search' in query && query.search === null) return { data: [], count: 0 };
+  if (
+    'search' in query &&
+    (query.search?.length || 0) > 0 &&
+    query.search?.replace(/[0-9]/g, '')?.length == 0 &&
+    onlyNumbers(query.search).length != 11
+  )
+    return { data: [], count: 0 };
 
   const companyId = query.companyId;
   const queries = queryString.stringify(query);
@@ -59,6 +67,7 @@ export function useQueryEmployees(
     () => queryEmployees(pagination, { ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
+      enabled: page != 0,
     },
   );
 

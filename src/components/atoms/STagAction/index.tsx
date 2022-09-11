@@ -9,6 +9,7 @@ import HelpCenterIcon from '@mui/icons-material/HelpCenter';
 import ReportIcon from '@mui/icons-material/Report';
 import WarningIcon from '@mui/icons-material/Warning';
 
+import SCalendarIcon from 'assets/icons/SCalendarIcon';
 import SExamIcon from 'assets/icons/SExamIcon';
 
 import SFlex from '../SFlex';
@@ -83,7 +84,7 @@ export const STagAction: FC<ISTagProps> = ({
         <CheckBoxIcon sx={{ fontSize: '18px', color: 'common.white' }} />
       )}
       {action === 'schedule' && (
-        <SExamIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <SCalendarIcon sx={{ fontSize: '18px', color: 'common.white' }} />
       )}
       {action === 'select' && (
         <CheckBoxIcon sx={{ fontSize: '18px', color: 'common.white' }} />

@@ -11,4 +11,5 @@ export type SelectFormProps = Partial<SSelectProps> & {
   unmountOnChangeDefault?: boolean;
   onChange?: (e: SelectChangeEvent<unknown>) => void;
   boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;
+  setValue?: (name: string, value: string) => void;
 };

@@ -15,4 +15,5 @@ export interface STableBodyProps<T> extends BoxProps {
   rowsInitialNumber?: number;
   numberRowsToLoadMore?: number;
   hideLoadMore?: boolean;
+  contentEmpty?: ReactNode;
 }

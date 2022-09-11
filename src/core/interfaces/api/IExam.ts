@@ -43,7 +43,7 @@ export interface IExamToClinic {
   examId: number;
   companyId: string;
   groupId: string;
-  dueInDays: number;
+  dueInDays?: number;
   isScheduled: boolean;
   observation: string;
   examMinDuration: number;
@@ -106,6 +106,7 @@ export interface IExamOriginData extends Partial<IExamRiskData> {
   origin?: string;
   prioritization?: number;
   skipEmployee?: boolean;
+  status?: StatusEnum;
   closeToExpired?: boolean;
   homogeneousGroup?: IGho;
   expiredDate?: Date | null;

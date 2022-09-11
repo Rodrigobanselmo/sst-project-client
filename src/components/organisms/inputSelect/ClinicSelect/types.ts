@@ -11,5 +11,6 @@ export interface IClinicSelectProps
   name: string;
   query?: IQueryCompanies;
   label: string;
+  addMore?: boolean;
   onChange?: (value: ICompany) => void;
 }
