@@ -10,7 +10,6 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { useMutFindExamByHierarchy } from 'core/services/hooks/mutations/checklist/exams/useMutFindExamByHierarchy/useMutUpdateExamRisk';
 import { useMutCreateEmployee } from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';

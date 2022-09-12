@@ -6,7 +6,7 @@ import { SexTypeEnum } from 'project/enum/risk.enums copy';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ICompany } from './ICompany';
-import { IExam } from './IExam';
+import { ClinicScheduleTypeEnum, IExam } from './IExam';
 import { IHierarchy } from './IHierarchy';
 import { IProfessional } from './IProfessional';
 import { IUser } from './IUser';
@@ -67,11 +67,17 @@ export interface IEmployeeExamsHistory {
   doctor?: IProfessional;
   userDone?: IUser;
   userSchedule?: IUser;
-  hierarchyId: string;
   examType: ExamHistoryTypeEnum;
   evaluationType: ExamHistoryEvaluationEnum;
   conclusion: ExamHistoryConclusionEnum;
   status: StatusEnum;
   obs?: string;
   time: string;
+
+  hierarchyId: string;
+  hierarchy?: IHierarchy;
+  clinicObs: string;
+  scheduleType: ClinicScheduleTypeEnum;
+  changeHierarchyDate: Date;
+  changeHierarchyAnyway: boolean;
 }

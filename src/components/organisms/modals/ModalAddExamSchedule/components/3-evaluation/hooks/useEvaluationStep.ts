@@ -40,7 +40,7 @@ export const useEvaluationStep = ({
     let isErrorFound = false;
     clearErrors();
     data.examsData.forEach((data) => {
-      if (!data.isAttendance) return;
+      if (!data.isAttendance || !data.isSelected) return;
       if (!data.clinic?.id) {
         setError(`clinic_${data.id}`, { message: 'Campo obrigatório' });
         isErrorFound = true;

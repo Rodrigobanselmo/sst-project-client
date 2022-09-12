@@ -10,6 +10,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEmployeeHierarchyHistory } from 'core/interfaces/api/IEmployee';
+import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
@@ -29,12 +30,20 @@ export interface ICreateEmployeeExamHistory {
   evaluationType?: ExamHistoryEvaluationEnum;
   conclusion?: ExamHistoryConclusionEnum;
   status?: StatusEnum;
+  hierarchyId?: string;
+  clinicObs?: string;
+  scheduleType?: ClinicScheduleTypeEnum;
+  changeHierarchyDate?: Date;
+  changeHierarchyAnyway?: boolean;
   examsData?: {
     examId: number;
     validityInMonths?: number;
     clinicId?: string;
+    time?: string;
+    clinicObs?: string;
     doneDate?: Date;
     status?: StatusEnum;
+    scheduleType?: ClinicScheduleTypeEnum;
   }[];
 }
 

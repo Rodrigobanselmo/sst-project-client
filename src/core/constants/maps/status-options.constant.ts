@@ -78,6 +78,11 @@ export const statusOptionsConstantExam = {
   },
   [StatusEnum.PENDING]: {
     value: StatusEnum.PENDING,
+    name: 'Pedido de Agenda',
+    color: 'warning.main',
+  },
+  [StatusEnum.PROCESSING]: {
+    value: StatusEnum.PROCESSING,
     name: 'Agendado',
     color: 'warning.main',
   },

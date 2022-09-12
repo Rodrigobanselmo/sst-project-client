@@ -20,6 +20,7 @@ import { initialEmployeeHistoryExamState } from 'components/organisms/modals/Mod
 import dayjs from 'dayjs';
 import { employeeExamEvaluationTypeMap } from 'project/enum/employee-exam-history-evaluation.enum';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import EditIcon from 'assets/icons/SEditIcon';
@@ -97,7 +98,11 @@ export const HistoryEmployeeExamTable: FC<
   };
 
   const getRowColor = (row: IEmployeeExamsHistory): ITableRowStatus => {
-    if (row.exam?.isAttendance) return 'info';
+    if (row.status === StatusEnum.DONE) return 'info';
+    if (row.status === StatusEnum.PROCESSING) return 'warn';
+    if (row.status === StatusEnum.PENDING) return 'warn';
+    if (row.status === StatusEnum.EXPIRED) return 'inactive';
+    if (row.status === StatusEnum.CANCELED) return 'inactive';
   };
 
   return (

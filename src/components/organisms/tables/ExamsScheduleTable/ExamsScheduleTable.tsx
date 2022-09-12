@@ -29,7 +29,7 @@ import { ExamsScheduleClinicColumn } from './columns/ExamsScheduleClinic';
 import { IExamsScheduleTable, IExamsScheduleTableProps } from './types';
 
 export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
-  const { data, hideHeader, setData, hideInstruct } = props;
+  const { data, hideHeader, setData, hideInstruct, disabled } = props;
 
   const handleDebounceChange = useDebouncedCallback((value: any) => {
     setData?.(value);
@@ -68,6 +68,7 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
             return (
               <STableRow key={row.id} status={isValid ? 'info' : undefined}>
                 <SCheckBox
+                  disabled={disabled}
                   onClick={(e) => {
                     e.stopPropagation();
                     setData?.({

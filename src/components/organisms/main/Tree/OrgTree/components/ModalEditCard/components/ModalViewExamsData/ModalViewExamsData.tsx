@@ -41,6 +41,7 @@ export const ModalViewExamsData = ({
   });
 
   //! improve invalidate fetch when risk data change (refetch all times you change a risk data on riskTool)
+  //! can show schedule exam, not only done
   const { data: exams, isLoading: loadingExams } = useQueryExamsHierarchy(1, {
     hierarchyId,
   });

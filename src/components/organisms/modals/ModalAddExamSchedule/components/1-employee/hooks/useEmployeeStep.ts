@@ -81,7 +81,7 @@ export const useEmployeeStep = ({
               (origin) => !origin?.skipEmployee,
             );
 
-            if (db_data.exam)
+            if (db_data.exam && origin)
               actualExams.push({
                 id: db_data.exam.id,
                 name: db_data.exam.name,

@@ -77,10 +77,11 @@ export const ExamsScheduleClinicColumn: FC<
   row,
   lastComplementaryDate,
   hideInstruct,
+  disabled,
 }) => {
   const examType =
     scheduleData.examType && employeeExamTypeMap[scheduleData.examType];
-
+  const isAsk = row.scheduleType == ClinicScheduleTypeEnum.ASK;
   const contact = row.clinic?.contacts?.find((i) => i.isPrincipal);
 
   const startHour = () => {
@@ -101,6 +102,7 @@ export const ExamsScheduleClinicColumn: FC<
         onChange={(clinic) => {
           setData?.({ clinic, id: row.id });
         }}
+        disabled={disabled}
         inputProps={{
           placeholder: 'clínica',
           superSmall: true,
@@ -131,7 +133,9 @@ export const ExamsScheduleClinicColumn: FC<
                 unmountOnChangeDefault
                 name={'doneDate_' + String(row.id)}
                 defaultValue={dateToDate(row?.doneDate)}
-                placeholderText="Data do exame"
+                placeholderText={
+                  !isAsk ? 'Data do exame' : 'Data de preferência'
+                }
                 sx={{
                   input: {
                     fontSize: 13,
@@ -150,6 +154,7 @@ export const ExamsScheduleClinicColumn: FC<
                       afterDate:
                         lastComplementaryDate && lastComplementaryDate.toDate(),
                     }),
+                  disabled,
                   // showTimeSelect: true,
                   // timeClassName: handleColor,
                   // showTimeSelectOnly: true,
@@ -171,47 +176,94 @@ export const ExamsScheduleClinicColumn: FC<
                 }}
               />
             </Box>
-            <Box flex={1} maxWidth="100px">
-              <AutocompleteForm
-                name={'time_' + String(row.id)}
-                filterOptions={(x) => x}
-                control={control}
-                freeSolo
-                unmountOnChangeDefault
-                getOptionLabel={(option) => `${option}`}
-                inputProps={{
-                  labelPosition: 'center',
-                  placeholder: '00:00',
-                  name: 'time_' + String(row.id),
-                  superSmall: true,
-                  sx: {
-                    input: {
-                      fontSize: 13,
+            <SFlex flex={1} maxWidth={isAsk ? '200px' : '100px'}>
+              <Box flex={1}>
+                <AutocompleteForm
+                  name={'time_' + String(row.id)}
+                  filterOptions={(x) => x}
+                  control={control}
+                  freeSolo
+                  unmountOnChangeDefault
+                  getOptionLabel={(option) => `${option}`}
+                  inputProps={{
+                    labelPosition: 'center',
+                    placeholder: isAsk ? 'de 00:00' : '00:00',
+                    name: 'time_' + String(row.id),
+                    superSmall: true,
+                    sx: {
+                      input: {
+                        fontSize: 13,
+                      },
                     },
-                  },
-                }}
-                getOptionDisabled={(time) =>
-                  notAvailableScheduleTime(time, row)
-                }
-                onChange={(time) => {
-                  setData?.({ time: time || undefined, id: row.id });
-                  setValue('time_' + String(row.id), time || '');
-                }}
-                onInputChange={(e, time) => {
-                  handleDebounceChange?.({
-                    time,
-                    clinic: row.clinic as any,
-                    id: row.id,
-                  });
-                }}
-                disabled={!row.doneDate}
-                defaultValue={String(row.time || '')}
-                setValue={(v) => setValue('time_' + String(row.id), v || '')}
-                mask={timeMask.apply}
-                label=""
-                options={get15Time(startHour(), 0, 20, 0)}
-              />
-            </Box>
+                  }}
+                  getOptionDisabled={(time) =>
+                    notAvailableScheduleTime(time, row)
+                  }
+                  onChange={(time) => {
+                    setData?.({ time: time || undefined, id: row.id });
+                    setValue('time_' + String(row.id), time || '');
+                  }}
+                  onInputChange={(e, time) => {
+                    handleDebounceChange?.({
+                      time,
+                      clinic: row.clinic as any,
+                      id: row.id,
+                    });
+                  }}
+                  disabled={!row.doneDate || disabled}
+                  defaultValue={String(row.time || '')}
+                  setValue={(v) => setValue('time_' + String(row.id), v || '')}
+                  mask={timeMask.apply}
+                  label=""
+                  options={get15Time(startHour(), 0, 20, 0)}
+                />
+              </Box>
+              {isAsk && (
+                <Box flex={1}>
+                  <AutocompleteForm
+                    name={'time_2_' + String(row.id)}
+                    filterOptions={(x) => x}
+                    control={control}
+                    freeSolo
+                    unmountOnChangeDefault
+                    getOptionLabel={(option) => `${option}`}
+                    inputProps={{
+                      labelPosition: 'center',
+                      placeholder: 'até 00:00',
+                      name: 'time_2_' + String(row.id),
+                      superSmall: true,
+                      sx: {
+                        input: {
+                          fontSize: 13,
+                        },
+                      },
+                    }}
+                    getOptionDisabled={(time) =>
+                      notAvailableScheduleTime(time, row)
+                    }
+                    onChange={(time) => {
+                      setData?.({ time2: time || undefined, id: row.id });
+                      setValue('time_2_' + String(row.id), time || '');
+                    }}
+                    onInputChange={(e, time2) => {
+                      handleDebounceChange?.({
+                        time2,
+                        clinic: row.clinic as any,
+                        id: row.id,
+                      });
+                    }}
+                    disabled={!row.doneDate || disabled}
+                    defaultValue={String(row.time2 || '')}
+                    setValue={(v) =>
+                      setValue('time_2_' + String(row.id), v || '')
+                    }
+                    mask={timeMask.apply}
+                    label=""
+                    options={get15Time(startHour(), 0, 20, 0)}
+                  />
+                </Box>
+              )}
+            </SFlex>
           </SFlex>
 
           {!hideInstruct &&

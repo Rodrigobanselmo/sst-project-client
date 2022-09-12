@@ -7,9 +7,16 @@ import {
 } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import dayjs from 'dayjs';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import { QueryEnum } from 'core/enums/query.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
+import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
+import {
+  ICreateEmployeeExamHistory,
+  useMutCreateEmployeeHisExam,
+} from 'core/services/hooks/mutations/manager/employee-history-exam/useMutCreateEmployeeHisExam/useMutCreateEmployeeHisExam';
+import { useMutUpdateEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateEmployeeHisExam/useMutUpdateEmployeeHisExam';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
 import { queryClient } from 'core/services/queryClient';
 import { sortData } from 'core/utils/sorts/data.sort';
@@ -20,16 +27,19 @@ export const useResumeStep = ({
   data,
   onSubmitData,
   setData,
-  onCloseUnsaved: onClose,
+  onCloseUnsaved: onCloseUnsavedMain,
   employee,
+  onClose,
   ...rest
 }: IUseEditEmployee) => {
   const { setError, control, reset, setValue, clearErrors } = useFormContext();
   const { nextStep, stepCount, goToStep, previousStep } = useWizard();
   const { fetchClinic } = useFetchQueryClinic();
+  const createMutation = useMutCreateEmployeeHisExam();
+  const updateMutation = useMutUpdateEmployeeHisExam();
 
   const onCloseUnsaved = async () => {
-    onClose(() => reset());
+    onCloseUnsavedMain(() => reset());
   };
 
   const lastStep = async () => {
@@ -37,29 +47,65 @@ export const useResumeStep = ({
   };
 
   const onSubmit = async () => {
-    let isErrorFound = false;
-    clearErrors();
-    data.examsData.forEach((data) => {
-      if (!data.isAttendance) return;
-      if (!data.clinic?.id) {
-        setError(`clinic_${data.id}`, { message: 'Campo obrigatório' });
-        isErrorFound = true;
-      }
+    const submit = {
+      companyId: data.companyId,
+      examType: data.examType,
+      employeeId: data.employeeId,
+      examsData: [] as ICreateEmployeeExamHistory['examsData'],
+      changeHierarchyAnyway: data.changeHierarchyAnyway,
+      changeHierarchyDate: data.changeHierarchyDate,
+      clinicObs: data.clinicObs,
+    } as ICreateEmployeeExamHistory;
 
-      if (!data.doneDate) {
-        setError(`doneDate_${data.id}`, { message: 'Campo obrigatório' });
-        isErrorFound = true;
-      }
+    data.examsData.forEach(
+      ({
+        doneDate,
+        time,
+        time2,
+        id,
+        clinic,
+        validityInMonths,
+        scheduleType,
+        ...examSchedule
+      }) => {
+        if (!doneDate) return;
+        if (!time) return;
+        if (!clinic?.id) return;
+        if (!examSchedule.isSelected) return;
 
-      if (!data.time) {
-        setError(`time_${data.id}`, { message: 'Obrigatório' });
-        isErrorFound = true;
-      }
-    });
+        const status =
+          scheduleType === ClinicScheduleTypeEnum.ASK
+            ? StatusEnum.PENDING
+            : StatusEnum.PROCESSING;
 
-    if (isErrorFound) return;
+        if (examSchedule.isAttendance) {
+          submit.examId = id;
+          submit.clinicId = clinic?.id;
+          submit.doneDate = doneDate;
+          submit.time = time2 ? `${time} - ${time2}` : time;
+          submit.scheduleType = scheduleType;
+          submit.status = status;
+          submit.validityInMonths = validityInMonths || 0;
+          return;
+        }
 
-    nextStep();
+        submit.examsData?.push({
+          examId: id,
+          clinicId: clinic?.id,
+          doneDate,
+          time,
+          scheduleType,
+          status,
+          clinicObs: data.obs,
+          validityInMonths,
+        });
+      },
+    );
+
+    await createMutation
+      .mutateAsync(submit)
+      .then(() => onClose())
+      .catch(() => null);
   };
 
   const setComplementaryExam = async (exam: Partial<IExamsScheduleTable>) => {

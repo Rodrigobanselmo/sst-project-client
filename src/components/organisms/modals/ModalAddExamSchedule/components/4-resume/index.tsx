@@ -73,8 +73,8 @@ export const ResumeStep = (props: IUseEditEmployee) => {
       onClick: () => previousStep(),
     },
     {
-      text: 'Proximo',
-      arrowNext: !isEdit,
+      text: 'Agendar',
+      // arrowNext: !isEdit,
       variant: 'contained',
       onClick: () => onSubmit(),
     },
@@ -165,35 +165,33 @@ export const ResumeStep = (props: IUseEditEmployee) => {
 
                 {/* hierarchy */}
                 <SFlex flexWrap="wrap" mt={5}>
-                  <Box flex={4} sx={{ ...border_box }} maxWidth={300}>
-                    <SelectForm
-                      unmountOnChangeDefault
-                      setValue={setValue}
-                      disabled
-                      defaultValue={String(data.examType || '') || ''}
-                      label="Tipo de Exame"
-                      control={control}
-                      placeholder="selecione..."
-                      name="examType"
-                      inputProps={{
-                        autoFocus: true,
-                        disabled: true,
-                      }}
-                      labelPosition="top"
-                      onChange={(e) => {
-                        if (e.target.value)
-                          setData({
-                            ...data,
-                            examType: (e as any).target.value,
-                          });
-                      }}
-                      size="small"
-                      options={employeeExamScheduleTypeList(employee)}
-                      boxProps={{ flex: 1 }}
-                    />
-                  </Box>
                   {newHierarchy && data.companyId && employee?.id && (
                     <Box flex={4} sx={{ ...border_box }}>
+                      <SelectForm
+                        unmountOnChangeDefault
+                        setValue={setValue}
+                        disabled
+                        defaultValue={String(data.examType || '') || ''}
+                        label="Tipo de Exame"
+                        control={control}
+                        placeholder="selecione..."
+                        name="examType"
+                        inputProps={{
+                          autoFocus: true,
+                          disabled: true,
+                        }}
+                        labelPosition="top"
+                        onChange={(e) => {
+                          if (e.target.value)
+                            setData({
+                              ...data,
+                              examType: (e as any).target.value,
+                            });
+                        }}
+                        size="small"
+                        options={employeeExamScheduleTypeList(employee)}
+                        boxProps={{ flex: 1, maxWidth: 320, mb: 5 }}
+                      />
                       <SFlex direction="column" gap={4} mb={5}>
                         <SText color="text.label" fontSize={14}>
                           Novo Cargo
@@ -242,12 +240,12 @@ export const ResumeStep = (props: IUseEditEmployee) => {
                         color="text.light"
                       />
                       {!data.changeHierarchyWhenDone && (
-                        <Box mt={5}>
+                        <Box mt={10}>
                           <DatePickerForm
-                            label="Data da mudança de cargo / lotação"
+                            label="Data para mudança de cargo"
                             control={control}
                             defaultValue={dateToDate(data.changeHierarchyDate)}
-                            sx={{ minWidth: 200, mb: 5 }}
+                            sx={{ maxWidth: 300, mb: 5 }}
                             placeholderText="__/__/__"
                             name="doneDate"
                             labelPosition="top"
@@ -261,13 +259,8 @@ export const ResumeStep = (props: IUseEditEmployee) => {
                             }}
                           />
 
-                          <SText color="text.label" fontSize={13} mt={3} mb={3}>
-                            Ao fazer a admissão ou mudança de cargo do
-                            funcionário sem o exame clínico realizado, a sua
-                            empresa poderá receber possíveis multas do eSocial
-                          </SText>
                           <SCheckBox
-                            label="Você deja mudar o cargo na data escolhida mesmo com o exame clínico não concluido sabendo das possíveis consequências descritas a cima?"
+                            label="Ao fazer a admissão ou mudança de cargo do funcionário sem o exame clínico realizado, a sua empresa poderá receber possíveis multas do eSocial. Você deja mudar o cargo na data escolhida mesmo com o exame clínico não concluido sabendo das possíveis consequências descritas a cima?"
                             checked={data.changeHierarchyAnyway}
                             onChange={(e) => {
                               setData({
@@ -298,6 +291,7 @@ export const ResumeStep = (props: IUseEditEmployee) => {
               )
               .filter((x) => x.isSelected)}
             control={control}
+            disabled
             setValue={setValue}
             hideHeader
             hideInstruct
