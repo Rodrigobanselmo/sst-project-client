@@ -65,7 +65,6 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
-        132.855.119-90
         <EmployeeSelect
           maxWidth="200px"
           maxPerPage={5}
@@ -376,6 +375,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
           )}
         </Box>
       </AnimatedStep>
+      <p style={{ fontSize: '4px' }}>132.855.119-90</p>
       <SModalButtons
         loading={loading}
         onClose={onCloseUnsaved}

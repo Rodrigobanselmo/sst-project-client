@@ -36,6 +36,7 @@ export interface ICompany {
   cadastral_situation_description: string;
   responsibleName: string;
   operationTime: string;
+  riskDegree?: number;
   primary_activity: ICnae[];
   secondary_activity: ICnae[];
   contacts: IContact[];

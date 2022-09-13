@@ -15,8 +15,8 @@ interface IQueryEmployeeHistHier {
   search?: string;
   hierarchyId?: string;
   companyId?: string;
-  allCompanies?: number;
   employeeId?: number;
+  allCompanies?: boolean;
 }
 
 export const queryHisExamEmployee = async (
@@ -29,13 +29,13 @@ export const queryHisExamEmployee = async (
   if (!query.companyId) return { data: [], count: 0 };
 
   const response = await api.get<IPaginationResult<IEmployeeExamsHistory[]>>(
-    `${ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM}?take=${take}&skip=${skip}&${queries}`,
+    `${ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM}/schedule?take=${take}&skip=${skip}&${queries}`,
   );
 
   return response.data;
 };
 
-export function useQueryHisExamEmployee(
+export function useQueryHisScheduleExam(
   page = 1,
   query = {} as IQueryEmployeeHistHier,
   take = 20,

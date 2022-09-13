@@ -73,12 +73,14 @@ export const ResumeStep = (props: IUseEditEmployee) => {
       onClick: () => previousStep(),
     },
     {
-      text: 'Agendar',
+      text: 'Confirmar',
       // arrowNext: !isEdit,
       variant: 'contained',
       onClick: () => onSubmit(),
     },
   ] as IModalButton[];
+
+  const isDismissal = data.examType == 'DEMI';
 
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
@@ -165,115 +167,123 @@ export const ResumeStep = (props: IUseEditEmployee) => {
 
                 {/* hierarchy */}
                 <SFlex flexWrap="wrap" mt={5}>
-                  {newHierarchy && data.companyId && employee?.id && (
-                    <Box flex={4} sx={{ ...border_box }}>
-                      <SelectForm
-                        unmountOnChangeDefault
-                        setValue={setValue}
-                        disabled
-                        defaultValue={String(data.examType || '') || ''}
-                        label="Tipo de Exame"
-                        control={control}
-                        placeholder="selecione..."
-                        name="examType"
-                        inputProps={{
-                          autoFocus: true,
-                          disabled: true,
-                        }}
-                        labelPosition="top"
-                        onChange={(e) => {
-                          if (e.target.value)
+                  {(newHierarchy || isDismissal) &&
+                    data.companyId &&
+                    employee?.id && (
+                      <Box flex={4} sx={{ ...border_box }}>
+                        <SelectForm
+                          unmountOnChangeDefault
+                          setValue={setValue}
+                          disabled
+                          defaultValue={String(data.examType || '') || ''}
+                          label="Tipo de Exame"
+                          control={control}
+                          placeholder="selecione..."
+                          name="examType"
+                          inputProps={{
+                            autoFocus: true,
+                            disabled: true,
+                          }}
+                          labelPosition="top"
+                          onChange={(e) => {
+                            if (e.target.value)
+                              setData({
+                                ...data,
+                                examType: (e as any).target.value,
+                              });
+                          }}
+                          size="small"
+                          options={employeeExamScheduleTypeList(employee)}
+                          boxProps={{ flex: 1, maxWidth: 320, mb: 5 }}
+                        />
+                        {!isDismissal && (
+                          <SFlex direction="column" gap={4} mb={5}>
+                            <SText color="text.label" fontSize={14}>
+                              Novo Cargo
+                            </SText>
+                            <SText color="text.label" fontSize={14}>
+                              <SText
+                                component="span"
+                                color="text.label"
+                                fontSize={14}
+                                sx={{
+                                  backgroundColor: 'grey.50',
+                                  p: '2px 10px',
+                                  borderRadius: 1,
+                                  mr: 5,
+                                }}
+                              >
+                                {employee?.hierarchy?.name || '-'}
+                              </SText>
+                              {'>'}
+                              <SText
+                                component="span"
+                                color="text.label"
+                                fontSize={14}
+                                sx={{
+                                  backgroundColor: 'grey.50',
+                                  p: '2px 10px',
+                                  ml: 5,
+                                  borderRadius: 1,
+                                }}
+                              >
+                                {data?.hierarchy?.name}
+                              </SText>
+                            </SText>
+                          </SFlex>
+                        )}
+                        <SSwitch
+                          onChange={() => {
                             setData({
                               ...data,
-                              examType: (e as any).target.value,
-                            });
-                        }}
-                        size="small"
-                        options={employeeExamScheduleTypeList(employee)}
-                        boxProps={{ flex: 1, maxWidth: 320, mb: 5 }}
-                      />
-                      <SFlex direction="column" gap={4} mb={5}>
-                        <SText color="text.label" fontSize={14}>
-                          Novo Cargo
-                        </SText>
-                        <SText color="text.label" fontSize={14}>
-                          <SText
-                            component="span"
-                            color="text.label"
-                            fontSize={14}
-                            sx={{
-                              backgroundColor: 'grey.50',
-                              p: '2px 10px',
-                              borderRadius: 1,
-                              mr: 5,
-                            }}
-                          >
-                            {employee?.hierarchy?.name || '-'}
-                          </SText>
-                          {'>'}
-                          <SText
-                            component="span"
-                            color="text.label"
-                            fontSize={14}
-                            sx={{
-                              backgroundColor: 'grey.50',
-                              p: '2px 10px',
-                              ml: 5,
-                              borderRadius: 1,
-                            }}
-                          >
-                            {data?.hierarchy?.name}
-                          </SText>
-                        </SText>
-                      </SFlex>
-                      <SSwitch
-                        onChange={() => {
-                          setData({
-                            ...data,
-                            changeHierarchyWhenDone:
-                              !data.changeHierarchyWhenDone,
-                          } as any);
-                        }}
-                        checked={data.changeHierarchyWhenDone}
-                        label="Mudar Cargo assim que exame admissional for realizado?"
-                        sx={{ mr: 4, ml: 6 }}
-                        color="text.light"
-                      />
-                      {!data.changeHierarchyWhenDone && (
-                        <Box mt={10}>
-                          <DatePickerForm
-                            label="Data para mudança de cargo"
-                            control={control}
-                            defaultValue={dateToDate(data.changeHierarchyDate)}
-                            sx={{ maxWidth: 300, mb: 5 }}
-                            placeholderText="__/__/__"
-                            name="doneDate"
-                            labelPosition="top"
-                            unmountOnChangeDefault
-                            onChange={(date) => {
-                              setData({
-                                ...data,
-                                changeHierarchyDate:
-                                  date instanceof Date ? date : undefined,
-                              });
-                            }}
-                          />
+                              changeHierarchyWhenDone:
+                                !data.changeHierarchyWhenDone,
+                            } as any);
+                          }}
+                          checked={data.changeHierarchyWhenDone}
+                          label="Mudar Cargo assim que exame for realizado?"
+                          sx={{ mr: 4, ml: 6 }}
+                          color="text.light"
+                        />
+                        {!data.changeHierarchyWhenDone && (
+                          <Box mt={10}>
+                            <DatePickerForm
+                              label="Data para mudança de cargo"
+                              control={control}
+                              defaultValue={dateToDate(
+                                data.changeHierarchyDate,
+                              )}
+                              sx={{ maxWidth: 300, mb: 5 }}
+                              placeholderText="__/__/__"
+                              name="doneDate"
+                              labelPosition="top"
+                              unmountOnChangeDefault
+                              onChange={(date) => {
+                                setData({
+                                  ...data,
+                                  changeHierarchyDate:
+                                    date instanceof Date ? date : undefined,
+                                });
+                              }}
+                            />
 
-                          <SCheckBox
-                            label="Ao fazer a admissão ou mudança de cargo do funcionário sem o exame clínico realizado, a sua empresa poderá receber possíveis multas do eSocial. Você deja mudar o cargo na data escolhida mesmo com o exame clínico não concluido sabendo das possíveis consequências descritas a cima?"
-                            checked={data.changeHierarchyAnyway}
-                            onChange={(e) => {
-                              setData({
-                                ...data,
-                                changeHierarchyAnyway:
-                                  !data.changeHierarchyAnyway,
-                              } as any);
-                            }}
-                          />
-                        </Box>
-                      )}
-                    </Box>
-                  )}
+                            {!isDismissal && (
+                              <SCheckBox
+                                label="Ao fazer a admissão ou mudança de cargo do funcionário sem o exame clínico realizado, a sua empresa poderá receber possíveis multas do eSocial. Você deja mudar o cargo na data escolhida mesmo com o exame clínico não concluido sabendo das possíveis consequências descritas a cima?"
+                                checked={data.changeHierarchyAnyway}
+                                onChange={(e) => {
+                                  setData({
+                                    ...data,
+                                    changeHierarchyAnyway:
+                                      !data.changeHierarchyAnyway,
+                                  } as any);
+                                }}
+                              />
+                            )}
+                          </Box>
+                        )}
+                      </Box>
+                    )}
                 </SFlex>
               </>
             )}

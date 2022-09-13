@@ -12,7 +12,7 @@ const TextUserRow: FC<TextUserRowProps> = ({ user, ...props }) => {
     <TextIconRow
       clickable
       tooltipTitle={
-        <div>
+        <div onClick={(e) => e.stopPropagation()}>
           <SText color="common.white" lineNumber={1} fontSize={12}>
             {user.name}
           </SText>
@@ -23,11 +23,11 @@ const TextUserRow: FC<TextUserRowProps> = ({ user, ...props }) => {
       }
       text={
         user?.name ? (
-          <div>
-            <SText lineNumber={1} fontSize={12}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <SText className="table-row-text" lineNumber={1} fontSize={12}>
               {user.name}
             </SText>
-            <SText lineNumber={1} fontSize={12}>
+            <SText className="table-row-text" lineNumber={1} fontSize={12}>
               {user.email}
             </SText>
           </div>

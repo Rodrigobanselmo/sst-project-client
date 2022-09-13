@@ -45,9 +45,9 @@ export const employeeHierarchyMotiveTypeMap: Record<
 
 export const employeeHierarchyMotiveTypeList = [
   employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.ADM],
-  employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.TRANS],
-  employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.ALOC],
-  employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.PROM],
+  // employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.TRANS],
+  // employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.ALOC],
+  // employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.PROM],
   employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.TRANS_PROM],
   employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.DEM],
 ];
