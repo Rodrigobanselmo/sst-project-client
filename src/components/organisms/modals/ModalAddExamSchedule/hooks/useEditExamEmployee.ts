@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
+import { useSnackbar } from 'notistack';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -12,6 +13,7 @@ import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutCreateEmployee } from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
+import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
 
 import { IEmployee } from '../../../../../core/interfaces/api/IEmployee';
@@ -28,6 +30,7 @@ export const initialExamScheduleState = {
   changeHierarchyDate: undefined as undefined | Date,
   sector: undefined as undefined | IHierarchy,
   examsData: [] as IExamsScheduleTable[],
+  isPendingExams: false,
   errors: {
     sector: false,
     hierarchy: false,
@@ -45,6 +48,8 @@ export const useEditExamEmployee = () => {
 
   const updateEmployee = useMutUpdateEmployee();
   const createEmployee = useMutCreateEmployee();
+  const { fetchClinic, getClinic } = useFetchQueryClinic();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -58,6 +63,7 @@ export const useEditExamEmployee = () => {
   });
 
   const isEdit = false;
+  const isPendingExams = data.isPendingExams;
   const notInHierarchy = employee?.id && !employee?.hierarchyId;
   const newHierarchy = [
     ExamHistoryTypeEnum.ADMI,
@@ -130,6 +136,10 @@ export const useEditExamEmployee = () => {
     newHierarchy,
     notInHierarchy,
     hasExamsAskSchedule,
+    isPendingExams,
+    fetchClinic,
+    getClinic,
+    enqueueSnackbar,
   };
 };
 

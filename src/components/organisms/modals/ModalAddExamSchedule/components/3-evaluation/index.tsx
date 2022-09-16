@@ -18,7 +18,7 @@ import {
   employeeExamScheduleTypeList,
   ExamHistoryTypeEnum,
 } from 'project/enum/employee-exam-history-type.enum';
-import { SexTypeEnum } from 'project/enum/risk.enums copy';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
@@ -53,6 +53,7 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
     setComplementaryExam,
     lastComplementaryDate,
     hasExamsAskSchedule,
+    isPendingExams,
   } = useEvaluationStep(props);
 
   const buttons = [
@@ -88,6 +89,7 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
             hideHeader
             scheduleData={data}
             lastComplementaryDate={lastComplementaryDate}
+            isPendingExams={isPendingExams}
           />
           <SText fontSize={14}>
             Último resuldado dos exames complementar:{' '}

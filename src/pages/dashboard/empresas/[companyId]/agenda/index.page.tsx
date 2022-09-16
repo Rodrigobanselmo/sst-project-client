@@ -2,10 +2,8 @@ import { Box } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
 import { SCalendarWeek } from 'components/molecules/calendar/SCalendarWeek/SCalendarWeek';
 import { SSidebarExamData } from 'components/molecules/calendar/SSidebarExamData/SSidebarExamData';
-import {
-  ModalAddExamSchedule,
-  StackModalAddExamSchedule,
-} from 'components/organisms/modals/ModalAddExamSchedule/ModalAddExamSchedule';
+import { StackModalAddExamSchedule } from 'components/organisms/modals/ModalAddExamSchedule/ModalAddExamSchedule';
+import { HistoryScheduleExamTable } from 'components/organisms/tables/HistoryScheduleExamTable/HistoryScheduleExamTable';
 import { ScheduleAskExamTable } from 'components/organisms/tables/ScheduleAskExamTable/ScheduleAskExamTable';
 import { NextPage } from 'next';
 
@@ -15,30 +13,36 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Schedule: NextPage = () => {
   const { onStackOpenModal } = useModal();
+
   return (
-    <SContainer>
-      <ScheduleAskExamTable />
-      <Box
-        sx={{
-          maxHeight: 'calc(100vh - 90px)',
-          display: 'flex',
-          flex: 1,
-          gap: '5px',
-        }}
-        px={[8, 8, 10]}
-      >
-        <SSidebarExamData />
-        <SCalendarWeek />
-        <button
-          onClick={() =>
-            onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE)
-          }
-        >
-          open scheduler
-        </button>
-        <StackModalAddExamSchedule />
-      </Box>
-    </SContainer>
+    <>
+      <SContainer>
+        <ScheduleAskExamTable />
+        <HistoryScheduleExamTable query={{ allCompanies: true }} />
+        {false && (
+          <Box
+            sx={{
+              maxHeight: 'calc(100vh - 90px)',
+              display: 'flex',
+              flex: 1,
+              gap: '5px',
+            }}
+            px={[8, 8, 10]}
+          >
+            <SSidebarExamData />
+            <SCalendarWeek />
+            <button
+              onClick={() =>
+                onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE)
+              }
+            >
+              open scheduler
+            </button>
+          </Box>
+        )}
+      </SContainer>
+      <StackModalAddExamSchedule />
+    </>
   );
 };
 

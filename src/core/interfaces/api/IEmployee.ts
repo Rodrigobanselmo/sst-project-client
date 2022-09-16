@@ -2,7 +2,7 @@ import { ExamHistoryConclusionEnum } from 'project/enum/employee-exam-history-co
 import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
-import { SexTypeEnum } from 'project/enum/risk.enums copy';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ICompany } from './ICompany';
@@ -21,7 +21,6 @@ export interface IEmployee {
   companyId: string;
   hierarchyId: string;
   hierarchy: IHierarchy;
-  company: ICompany;
 
   esocialCode: string;
   socialName: string;
@@ -35,6 +34,9 @@ export interface IEmployee {
   birthday: Date;
   admissionDate: Date;
   subOffices?: IHierarchy[];
+
+  company: ICompany;
+  examsHistory?: IEmployeeExamsHistory[];
 }
 
 export interface IEmployeeHierarchyHistory {

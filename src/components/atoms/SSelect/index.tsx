@@ -9,9 +9,18 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import useId from '@mui/utils/useId';
 
+import defaultTheme from 'configs/theme';
+
 import { StyledSelect } from './styles';
 import { IOption, SSelectProps } from './types';
 
+const textDisableInfo = {
+  div: {
+    '-webkit-text-fill-color': `${defaultTheme.palette.info.main} !important`,
+    color: `${defaultTheme.palette.info.main} !important`,
+    opacity: `${0.8} !important`,
+  },
+};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const SSelect: FC<SSelectProps> = ({
   loading,
@@ -47,6 +56,7 @@ const SSelect: FC<SSelectProps> = ({
   placeholder,
   defaultValue,
   inputProps,
+  superSmall,
   ...props
 }) => {
   const id = useId();
@@ -124,6 +134,7 @@ const SSelect: FC<SSelectProps> = ({
         </Typography>
       )}
       <StyledSelect
+        ssx={superSmall ? 1 : 0}
         legend={!(label && labelPosition === 'top') ? 1 : 0}
         MenuProps={{
           PaperProps: {
@@ -152,6 +163,7 @@ const SSelect: FC<SSelectProps> = ({
         native={false}
         sx={{
           height: size == 'small' ? '2.5rem' : '3rem',
+          ...(disabled && textDisableInfo),
           width,
           '& .MuiSelect-select': {
             color: 'text.primary',

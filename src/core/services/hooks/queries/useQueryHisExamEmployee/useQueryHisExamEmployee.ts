@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query';
 
+import { StatusEnum } from 'project/enum/status.enum';
 import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -11,12 +12,15 @@ import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-interface IQueryEmployeeHistHier {
+export interface IQueryEmployeeHistHier {
   search?: string;
   hierarchyId?: string;
   companyId?: string;
-  allCompanies?: number;
+  allCompanies?: boolean;
   employeeId?: number;
+  status?: StatusEnum[];
+  includeClinic?: boolean;
+  orderByCreation?: boolean;
 }
 
 export const queryHisExamEmployee = async (

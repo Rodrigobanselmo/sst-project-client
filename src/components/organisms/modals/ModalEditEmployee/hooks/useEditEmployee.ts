@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
-import { SexTypeEnum } from 'project/enum/risk.enums copy';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';

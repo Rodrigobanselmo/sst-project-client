@@ -8,6 +8,8 @@ import { IEmployeeExamsHistory } from 'core/interfaces/api/IEmployee';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
+import { queryClient } from 'core/services/queryClient';
+import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
@@ -17,6 +19,7 @@ interface IQueryEmployeeHistHier {
   companyId?: string;
   employeeId?: number;
   allCompanies?: boolean;
+  allExams?: boolean;
 }
 
 export const queryHisExamEmployee = async (
@@ -50,7 +53,13 @@ export function useQueryHisScheduleExam(
   const _companyId = companyID || companyId;
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EMPLOYEE_HISTORY_EXAM, page, _companyId, { ...query }],
+    [
+      QueryEnum.EMPLOYEE_HISTORY_EXAM,
+      page,
+      'schedule',
+      _companyId,
+      { ...query },
+    ],
     () => queryHisExamEmployee(pagination, { ...query, companyId: _companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
@@ -63,4 +72,50 @@ export function useQueryHisScheduleExam(
   };
 
   return { ...result, data: response.data, count: response.count };
+}
+
+export function useFetchQueryHisScheduleExam() {
+  const { companyId } = useGetCompanyId();
+
+  const fetchHisScheduleExam = async ({
+    page = 1,
+    query = {},
+    take = 20,
+    companyID,
+  }: {
+    page?: number;
+    query?: IQueryEmployeeHistHier;
+    take?: number;
+    companyID?: string;
+  }) => {
+    const pagination: IPagination = {
+      skip: (page - 1) * (take || 20),
+      take: take || 20,
+    };
+
+    const _companyId = companyID || companyId;
+
+    const data = await queryClient
+      .fetchQuery(
+        [QueryEnum.EMPLOYEE_HISTORY_EXAM, page, _companyId, { ...query }],
+        () =>
+          queryHisExamEmployee(pagination, {
+            ...query,
+            companyId: _companyId,
+          }),
+        {
+          staleTime: 1000 * 60 * 10, // 10 minute
+        },
+      )
+      .catch((e) => console.log(e));
+
+    const response = {
+      data: data?.data || ([] as IEmployeeExamsHistory[]),
+      count: data?.count || 0,
+    };
+
+    return { data: response.data, count: response.count };
+  };
+
+  return { fetchHisScheduleExam };
 }

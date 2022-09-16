@@ -2,7 +2,7 @@ import React, { FC } from 'react';
 
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import { Icon } from '@mui/material';
+import { Box, Icon } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
@@ -12,20 +12,23 @@ import { SUploadIcon } from 'assets/icons/SUploadIcon';
 
 import { STableSearchProps } from './types';
 
-export const STableAddButton: FC<STableSearchProps> = ({ onAddClick }) => {
+export const STableAddButton: FC<STableSearchProps> = ({
+  onAddClick,
+  addText,
+}) => {
   return (
-    <STooltip title="Adicionar">
-      <div>
+    <STooltip title={addText ? '' : 'Adicionar'}>
+      <Box>
         <SButton
           onClick={onAddClick}
           color="success"
           sx={{
             height: 38,
             minWidth: 38,
-            maxWidth: 38,
             borderRadius: 1,
             m: 0,
             ml: 2,
+            px: 4,
           }}
         >
           <Icon
@@ -35,8 +38,9 @@ export const STableAddButton: FC<STableSearchProps> = ({ onAddClick }) => {
               color: 'common.white',
             }}
           />
+          {addText && <Box mr={3}>{addText}</Box>}
         </SButton>
-      </div>
+      </Box>
     </STooltip>
   );
 };
@@ -45,19 +49,26 @@ const STableSearch: FC<STableSearchProps> = ({
   onAddClick,
   onExportClick,
   children,
+  addText,
+  boxProps,
   ...props
 }) => (
   <SFlex mb={10} align="center">
-    <SInput
-      startAdornment={<SearchIcon sx={{ fontSize: '22px', mt: 0 }} />}
-      size="small"
-      variant="outlined"
-      placeholder={'Pesquisar...'}
-      subVariant="search"
-      autoFocus
-      {...props}
-    />
-    {onAddClick && <STableAddButton onAddClick={onAddClick} />}
+    <Box {...boxProps}>
+      <SInput
+        startAdornment={<SearchIcon sx={{ fontSize: '22px', mt: 0 }} />}
+        size="small"
+        variant="outlined"
+        placeholder={'Pesquisar...'}
+        subVariant="search"
+        autoFocus
+        fullWidth
+        {...props}
+      />
+    </Box>
+    {onAddClick && (
+      <STableAddButton onAddClick={onAddClick} addText={addText} />
+    )}
     {onExportClick && (
       <STooltip title="Importar e Exportar">
         <div>

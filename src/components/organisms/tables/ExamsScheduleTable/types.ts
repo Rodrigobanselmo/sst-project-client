@@ -12,9 +12,12 @@ import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 export interface IExamsScheduleTable {
   doneDate?: Date;
   time?: string;
+  doneDateAsk?: Date;
+  timeAsk?: string;
   time2?: string;
   name: string;
   id: number;
+  scheduleId?: number;
   dueInDays?: number;
   scheduleRange?: Record<string, string>;
   status?: StatusEnum;
@@ -36,6 +39,7 @@ export interface IExamsScheduleTableProps extends BoxProps {
   lastComplementaryDate?: dayjs.Dayjs;
   hideHeader?: boolean;
   hideInstruct?: boolean;
+  isPendingExams?: boolean;
   disabled?: boolean;
   handleDebounceChange?: DebouncedState<(value: any) => void>;
   scheduleData: {

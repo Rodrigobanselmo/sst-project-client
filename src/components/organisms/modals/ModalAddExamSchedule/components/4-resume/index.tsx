@@ -22,7 +22,7 @@ import {
   employeeExamScheduleTypeList,
   ExamHistoryTypeEnum,
 } from 'project/enum/employee-exam-history-type.enum';
-import { SexTypeEnum } from 'project/enum/risk.enums copy';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
@@ -89,40 +89,8 @@ export const ResumeStep = (props: IUseEditEmployee) => {
           <Box sx={{ input: { fontSize: 14 } }}>
             {employee?.id && (
               <>
-                {/* company */}
-                <Box sx={{ ...border_box }} mb={5}>
-                  <SFlex flexWrap="wrap" gap={5}>
-                    <Box flex={1}>
-                      <SInput
-                        value={getCompanyName(employee?.company)}
-                        disabled
-                        label="Nome do Empresa"
-                        superSmall
-                        InputLabelProps={{ shrink: true }}
-                        labelPosition="center"
-                        variant="standard"
-                        sx={{
-                          width: ['100%'],
-                        }}
-                      />
-                    </Box>
-                    <Box flex={1} minWidth="150px" maxWidth="150px">
-                      <SInput
-                        value={cnpjMask.mask(employee?.company?.cnpj) || ''}
-                        disabled
-                        label="CNPJ"
-                        superSmall
-                        InputLabelProps={{ shrink: true }}
-                        labelPosition="center"
-                        variant="standard"
-                        sx={{ width: ['100%'] }}
-                      />
-                    </Box>
-                  </SFlex>
-                </Box>
-
                 {/* employee */}
-                <Box sx={{ ...border_box }}>
+                <Box sx={{ ...border_box }} mb={5}>
                   <SFlex flexWrap="wrap" gap={5}>
                     <Box flex={2}>
                       <SInput
@@ -155,6 +123,38 @@ export const ResumeStep = (props: IUseEditEmployee) => {
                         value={employee?.esocialCode || ''}
                         disabled
                         label="Matrícula (eSocial)"
+                        superSmall
+                        InputLabelProps={{ shrink: true }}
+                        labelPosition="center"
+                        variant="standard"
+                        sx={{ width: ['100%'] }}
+                      />
+                    </Box>
+                  </SFlex>
+                </Box>
+
+                {/* company */}
+                <Box sx={{ ...border_box }}>
+                  <SFlex flexWrap="wrap" gap={5}>
+                    <Box flex={1}>
+                      <SInput
+                        value={getCompanyName(employee?.company)}
+                        disabled
+                        label="Nome do Empresa"
+                        superSmall
+                        InputLabelProps={{ shrink: true }}
+                        labelPosition="center"
+                        variant="standard"
+                        sx={{
+                          width: ['100%'],
+                        }}
+                      />
+                    </Box>
+                    <Box flex={1} minWidth="150px" maxWidth="150px">
+                      <SInput
+                        value={cnpjMask.mask(employee?.company?.cnpj) || ''}
+                        disabled
+                        label="CNPJ"
                         superSmall
                         InputLabelProps={{ shrink: true }}
                         labelPosition="center"

@@ -12,7 +12,7 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import dayjs from 'dayjs';
-import { SexTypeEnum } from 'project/enum/risk.enums copy';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { dateToDate } from 'core/utils/date/date-format';
 import { cpfMask } from 'core/utils/masks/cpf.mask';

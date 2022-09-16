@@ -16,15 +16,16 @@ import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
 
 export const useExamsStep = ({
   data,
-  onSubmitData,
   setData,
   onCloseUnsaved: onClose,
   employee,
+  fetchClinic,
+  getClinic,
   ...rest
 }: IUseEditEmployee) => {
-  const { setError, control, reset, setValue, clearErrors } = useFormContext();
+  const { setError, control, getValues, reset, setValue, clearErrors } =
+    useFormContext();
   const { nextStep, stepCount, goToStep, previousStep } = useWizard();
-  const { fetchClinic, getClinic } = useFetchQueryClinic();
 
   const onCloseUnsaved = async () => {
     onClose(() => reset());
@@ -56,7 +57,8 @@ export const useExamsStep = ({
     });
 
     if (isErrorFound) return;
-
+    const { obs } = getValues();
+    setData((data) => ({ ...data, obs }));
     nextStep();
   };
 

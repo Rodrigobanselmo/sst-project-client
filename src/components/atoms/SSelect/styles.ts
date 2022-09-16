@@ -7,6 +7,7 @@ export const StyledSelect = styled(Select)<{
   errors?: number;
   secondary?: number;
   legend?: number;
+  ssx?: number;
 }>`
   background-color: ${(props) => props.theme.palette.common.white} !important;
   .menu-item {
@@ -40,6 +41,20 @@ export const StyledSelect = styled(Select)<{
       opacity: 1;
     }
   }
+
+  ${(props) =>
+    props.ssx &&
+    css`
+      max-height: 26px;
+      padding: 1px 4px;
+      div {
+        font-size: 14px;
+      }
+
+      legend {
+        width: 0;
+      }
+    `};
 
   ${(props) =>
     props.errors &&

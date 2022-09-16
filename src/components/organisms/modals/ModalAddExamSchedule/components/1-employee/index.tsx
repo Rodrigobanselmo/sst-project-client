@@ -16,7 +16,7 @@ import {
   employeeExamScheduleTypeList,
   ExamHistoryTypeEnum,
 } from 'project/enum/employee-exam-history-type.enum';
-import { SexTypeEnum } from 'project/enum/risk.enums copy';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
@@ -30,7 +30,7 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 import { IUseEditEmployee } from '../../hooks/useEditExamEmployee';
 import { useEmployeeStep } from './hooks/useEmployeeStep';
 
-const getSexLabel = (sex?: SexTypeEnum) => {
+export const getSexLabel = (sex?: SexTypeEnum) => {
   if (sex === SexTypeEnum.F) return 'Feminino';
   if (sex === SexTypeEnum.M) return 'Masculino';
 
@@ -50,12 +50,13 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
     setValue,
     notInHierarchy,
     newHierarchy,
+    isPendingExams,
   } = useEmployeeStep(props);
 
   const buttons = [
     {},
     {
-      text: isEdit ? 'Salvar' : 'Proximo',
+      text: 'Proximo',
       arrowNext: !isEdit,
       variant: 'contained',
       onClick: () => onSubmit(),
@@ -94,40 +95,8 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
         >
           {employee?.id && (
             <>
-              {/* company */}
-              <Box sx={{ ...border_box }} mb={5}>
-                <SFlex flexWrap="wrap" gap={5}>
-                  <Box flex={1}>
-                    <SInput
-                      value={getCompanyName(employee?.company)}
-                      disabled
-                      label="Nome do Empresa"
-                      superSmall
-                      InputLabelProps={{ shrink: true }}
-                      labelPosition="center"
-                      variant="standard"
-                      sx={{
-                        width: ['100%'],
-                      }}
-                    />
-                  </Box>
-                  <Box flex={1} minWidth="150px" maxWidth="150px">
-                    <SInput
-                      value={cnpjMask.mask(employee?.company?.cnpj) || ''}
-                      disabled
-                      label="CNPJ"
-                      superSmall
-                      InputLabelProps={{ shrink: true }}
-                      labelPosition="center"
-                      variant="standard"
-                      sx={{ width: ['100%'] }}
-                    />
-                  </Box>
-                </SFlex>
-              </Box>
-
               {/* employee */}
-              <Box sx={{ ...border_box }}>
+              <Box sx={{ ...border_box }} mb={5}>
                 <SFlex flexWrap="wrap" gap={5} mb={10}>
                   <Box flex={2}>
                     <SInput
@@ -233,6 +202,38 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                 </SFlex>
               </Box>
 
+              {/* company */}
+              <Box sx={{ ...border_box }}>
+                <SFlex flexWrap="wrap" gap={5}>
+                  <Box flex={1}>
+                    <SInput
+                      value={getCompanyName(employee?.company)}
+                      disabled
+                      label="Nome do Empresa"
+                      superSmall
+                      InputLabelProps={{ shrink: true }}
+                      labelPosition="center"
+                      variant="standard"
+                      sx={{
+                        width: ['100%'],
+                      }}
+                    />
+                  </Box>
+                  <Box flex={1} minWidth="150px" maxWidth="150px">
+                    <SInput
+                      value={cnpjMask.mask(employee?.company?.cnpj) || ''}
+                      disabled
+                      label="CNPJ"
+                      superSmall
+                      InputLabelProps={{ shrink: true }}
+                      labelPosition="center"
+                      variant="standard"
+                      sx={{ width: ['100%'] }}
+                    />
+                  </Box>
+                </SFlex>
+              </Box>
+
               {/* hierarchy */}
               <SFlex flexWrap="wrap" mt={5}>
                 <Box flex={notInHierarchy ? 1 : 4} sx={{ ...border_box }}>
@@ -281,6 +282,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                     setValue={setValue}
                     defaultValue={String(data.examType || '') || ''}
                     label="Tipo de Exame"
+                    disabled={isPendingExams}
                     control={control}
                     placeholder="selecione..."
                     name="examType"
@@ -309,6 +311,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                         tooltipText={(textField) => textField}
                         filterOptions={[HierarchyEnum.SECTOR]}
                         defaultFilter={HierarchyEnum.SECTOR}
+                        disabled={isPendingExams}
                         text={
                           data.sector?.name
                             ? data.sector.name
@@ -334,6 +337,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                       />
                       <HierarchySelect
                         tooltipText={(textField) => textField}
+                        disabled={isPendingExams}
                         filterOptions={[HierarchyEnum.OFFICE]}
                         defaultFilter={HierarchyEnum.OFFICE}
                         text="Selecione um Cargo"

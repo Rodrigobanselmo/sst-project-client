@@ -86,4 +86,9 @@ export const statusOptionsConstantExam = {
     name: 'Agendado',
     color: 'warning.main',
   },
+  [StatusEnum.INACTIVE]: {
+    value: StatusEnum.INACTIVE,
+    name: 'Faltou',
+    color: 'error.main',
+  },
 } as IStatusOptions;

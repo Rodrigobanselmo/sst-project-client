@@ -19,7 +19,7 @@ export const StatusSelect: FC<IStatusSelectProps> = ({
     <STagSelect
       options={statusOptions.map((key) => ({
         ...options[key],
-        iconColor: options[key].color,
+        iconColor: options[key]?.color,
       }))}
       tooltipTitle={
         selected

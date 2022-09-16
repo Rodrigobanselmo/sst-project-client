@@ -19,6 +19,7 @@ import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
+import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import dayjs from 'dayjs';
 import { employeeExamEvaluationTypeMap } from 'project/enum/employee-exam-history-evaluation.enum';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
@@ -49,14 +50,7 @@ export const ScheduleAskExamTable: FC<
     employeeId?: number;
     employee?: IEmployee;
   }
-> = ({
-  rowsPerPage = 8,
-  onSelectData,
-  hideTitle,
-  companyId,
-  employeeId,
-  employee,
-}) => {
+> = ({ rowsPerPage = 8, onSelectData, hideTitle, companyId, employeeId }) => {
   const { search, page, handleSearchChange, setPage } = useTableSearchAsync();
 
   const {
@@ -71,7 +65,7 @@ export const ScheduleAskExamTable: FC<
   );
 
   const isSelect = !!onSelectData;
-  const modalName = ModalEnum.EMPLOYEE_HISTORY_EXAM_ADD;
+  const modalName = ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE;
 
   const { onStackOpenModal } = useModal();
 
@@ -83,11 +77,12 @@ export const ScheduleAskExamTable: FC<
 
   const onEdit = (data: IEmployeeExamsHistory) => {
     onStackOpenModal(modalName, {
-      ...data,
-      hierarchyId: employee?.hierarchyId,
-      employeeId,
-      companyId,
-    } as Partial<typeof initialEmployeeHistoryExamState>);
+      isPendingExams: true,
+      examType: data.examType,
+      hierarchyId: data.hierarchyId,
+      companyId: data?.employee?.company?.id,
+      employeeId: data?.employee?.id,
+    } as Partial<typeof initialExamScheduleState>);
   };
 
   const getRowColor = (row: IEmployeeExamsHistory): ITableRowStatus => {

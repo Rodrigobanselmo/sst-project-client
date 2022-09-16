@@ -29,7 +29,8 @@ import { ExamsScheduleClinicColumn } from './columns/ExamsScheduleClinic';
 import { IExamsScheduleTable, IExamsScheduleTableProps } from './types';
 
 export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
-  const { data, hideHeader, setData, hideInstruct, disabled } = props;
+  const { data, hideHeader, setData, hideInstruct, disabled, isPendingExams } =
+    props;
 
   const handleDebounceChange = useDebouncedCallback((value: any) => {
     setData?.(value);
@@ -79,30 +80,40 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
                   label=""
                   checked={row.isSelected}
                 />
-                <TextIconRow
-                  tooltipTitle={<>{row.name}</>}
-                  text={
-                    <>
-                      <SText
-                        {...(isValid && {
-                          color: 'secondary',
-                          lineNumber: 1,
-                        })}
-                        fontSize={12}
-                      >
-                        {row.name || '-'}
-                      </SText>
-                      {isValid && (
+                <Box>
+                  <TextIconRow
+                    tooltipTitle={<>{row.name}</>}
+                    text={
+                      <>
                         <SText
+                          {...(isValid && {
+                            color: 'secondary',
+                            lineNumber: 1,
+                          })}
                           fontSize={12}
-                          {...(isValid && { color: 'secondary' })}
                         >
-                          válido até <b>{dateToString(row?.expiredDate)}</b>
+                          {row.name || '-'}
                         </SText>
-                      )}
-                    </>
-                  }
-                />
+                      </>
+                    }
+                  />
+                  {isValid && (
+                    <SText
+                      fontSize={12}
+                      {...(isValid && { color: 'secondary' })}
+                    >
+                      válido até <b>{dateToString(row?.expiredDate)}</b>
+                    </SText>
+                  )}
+                  {isPendingExams && (
+                    <SText
+                      fontSize={12}
+                      {...(isValid && { color: 'secondary' })}
+                    >
+                      agendado para: <b>{dateToString(row?.doneDate)}</b>
+                    </SText>
+                  )}
+                </Box>
                 {isSelected && (
                   <>
                     <ExamsScheduleClinicColumn

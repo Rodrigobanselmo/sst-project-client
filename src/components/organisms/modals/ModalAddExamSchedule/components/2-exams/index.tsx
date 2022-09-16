@@ -18,7 +18,7 @@ import {
   employeeExamScheduleTypeList,
   ExamHistoryTypeEnum,
 } from 'project/enum/employee-exam-history-type.enum';
-import { SexTypeEnum } from 'project/enum/risk.enums copy';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
@@ -53,6 +53,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
     setValue,
     notInHierarchy,
     newHierarchy,
+    isPendingExams,
     previousStep,
     setComplementaryExam,
   } = useExamsStep(props);
@@ -95,6 +96,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
             setValue={setValue}
             hideHeader
             scheduleData={data}
+            isPendingExams={isPendingExams}
           />
           {hasExamsAskSchedule && (
             <InputForm
@@ -102,17 +104,20 @@ export const ExamStep = (props: IUseEditEmployee) => {
               label={'Observações do Pedido de Agenda'}
               multiline
               minRows={3}
+              disabled={isPendingExams}
               maxRows={5}
               control={control}
               placeholder={
-                'descreva sua observação referente ao pedido de agenda...'
+                isPendingExams
+                  ? 'nenhum observação'
+                  : 'descreva sua observação referente ao pedido de agenda...'
               }
               name="obs"
               size="small"
             />
           )}
           <SText color="text.label" fontSize={16} mt={10}>
-            Exames na válidade
+            {isPendingExams ? 'Exames Agendados' : 'Exames na válidade'}
           </SText>
           <Divider sx={{ mb: 5, mt: 3 }} />
           <ExamsScheduleTable
@@ -124,6 +129,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
             setValue={setValue}
             hideHeader
             scheduleData={data}
+            isPendingExams={isPendingExams}
           />
         </Box>
       </AnimatedStep>

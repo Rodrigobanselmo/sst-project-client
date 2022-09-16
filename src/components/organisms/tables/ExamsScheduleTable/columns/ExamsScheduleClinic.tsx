@@ -12,7 +12,7 @@ import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enu
 
 import { clinicScheduleMap } from 'core/constants/maps/clinic-schedule-type.map';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
-import { dateToDate } from 'core/utils/date/date-format';
+import { dateToDate, dateToString } from 'core/utils/date/date-format';
 import { get15Time } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 
@@ -78,10 +78,12 @@ export const ExamsScheduleClinicColumn: FC<
   lastComplementaryDate,
   hideInstruct,
   disabled,
+  isPendingExams,
 }) => {
   const examType =
     scheduleData.examType && employeeExamTypeMap[scheduleData.examType];
-  const isAsk = row.scheduleType == ClinicScheduleTypeEnum.ASK;
+  const isAsk =
+    row.scheduleType == ClinicScheduleTypeEnum.ASK && !isPendingExams;
   const contact = row.clinic?.contacts?.find((i) => i.isPrincipal);
 
   const startHour = () => {
@@ -130,6 +132,7 @@ export const ExamsScheduleClinicColumn: FC<
               <DatePickerForm
                 label=""
                 control={control}
+                setValue={setValue}
                 unmountOnChangeDefault
                 name={'doneDate_' + String(row.id)}
                 defaultValue={dateToDate(row?.doneDate)}
@@ -147,7 +150,6 @@ export const ExamsScheduleClinicColumn: FC<
                     fontSize: 20,
                   },
                 }}
-                // mask={null}
                 calendarProps={{
                   filterDate: (date) =>
                     notAvailableScheduleDate(date, row, {
@@ -155,14 +157,6 @@ export const ExamsScheduleClinicColumn: FC<
                         lastComplementaryDate && lastComplementaryDate.toDate(),
                     }),
                   disabled,
-                  // showTimeSelect: true,
-                  // timeClassName: handleColor,
-                  // showTimeSelectOnly: true,
-                  // timeCaption: 'Time',
-                  // timeCaption: 'horário',
-                  // timeIntervals: 15,
-                  // dateFormat: "d 'de' MMMM 'de' yyyy 'ás' HH:mm",
-                  // dateFormat: "d 'de' MMMM 'de' yyyy",
                 }}
                 superSmall={true}
                 labelPosition="center"
@@ -266,9 +260,58 @@ export const ExamsScheduleClinicColumn: FC<
             </SFlex>
           </SFlex>
 
+          {isPendingExams && row.doneDateAsk && (
+            <Box
+              sx={{
+                backgroundColor: 'grey.100',
+                p: '5px 10px',
+                borderRadius: 1,
+              }}
+            >
+              <SText fontWeight={600} fontSize={13}>
+                <SText component="span" fontSize={12}>
+                  Data de preferência
+                </SText>
+                : {dateToString(row.doneDateAsk)} <br />
+                <SText component="span" fontSize={12}>
+                  Hórario preferência
+                </SText>
+                : &nbsp;{row.timeAsk}
+              </SText>
+            </Box>
+          )}
+
           {!hideInstruct &&
             row.scheduleType &&
-            clinicScheduleMap[row.scheduleType]?.message?.(contact)}
+            clinicScheduleMap[row.scheduleType]?.message?.(contact, {
+              hideText: isPendingExams,
+            })}
+
+          {isPendingExams && (
+            <SFlex gap={'2px 20px'} mt={-1} mb={2} flexWrap="wrap">
+              {contact &&
+                [
+                  contact?.phone ? ['Telefone', contact.phone] : '',
+                  contact?.phone_2 ? ['Telefone 2', contact.phone_2] : '',
+                  contact?.email ? ['Email', contact.email] : '',
+                ]
+                  .filter((i) => i)
+                  ?.map(([type, text]: any) => {
+                    return (
+                      <SText key={type} fontSize={13}>
+                        <SText
+                          fontWeight="500"
+                          component={'span'}
+                          fontSize={13}
+                        >
+                          {type}:
+                        </SText>{' '}
+                        {text}
+                      </SText>
+                    );
+                  })}
+            </SFlex>
+          )}
         </>
       )}
     </SFlex>

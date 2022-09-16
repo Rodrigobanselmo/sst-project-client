@@ -12,6 +12,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
   text,
   large,
   icon,
+  iconMenu,
   onClick,
   handleSelectMenu,
   menuRef,
@@ -61,7 +62,7 @@ export const STagSelect: FC<ISTagSelectProps> = ({
         isOpen={Boolean(anchorEl)}
         anchorEl={anchorEl}
         handleSelect={handleSelect}
-        icon={icon}
+        icon={iconMenu ?? icon}
         tooltipProps={tooltipProps}
         options={options}
       />

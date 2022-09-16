@@ -18,15 +18,26 @@ import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
 
 export const useEvaluationStep = ({
   data,
-  onSubmitData,
   setData,
   onCloseUnsaved: onClose,
   employee,
+  isPendingExams,
+  enqueueSnackbar,
   ...rest
 }: IUseEditEmployee) => {
-  const { setError, control, reset, setValue, clearErrors } = useFormContext();
+  const { setError, getValues, control, reset, setValue, clearErrors } =
+    useFormContext();
   const { nextStep, stepCount, goToStep, previousStep } = useWizard();
   const { fetchClinic } = useFetchQueryClinic();
+
+  const lastComplementaryDate = data.examsData
+    .map((schedule) => {
+      if (!schedule.isSelected || schedule.isAttendance) return;
+      if (!schedule.doneDate) return;
+      return dayjs(schedule.doneDate).add(schedule.dueInDays || 0, 'd');
+    })
+    .filter((i) => i)
+    .sort((a, b) => sortData(b, a))[0];
 
   const onCloseUnsaved = async () => {
     onClose(() => reset());
@@ -38,8 +49,27 @@ export const useEvaluationStep = ({
 
   const onSubmit = async () => {
     let isErrorFound = false;
+
     clearErrors();
     data.examsData.forEach((data) => {
+      if (
+        !!data.doneDate &&
+        data.isAttendance &&
+        (isPendingExams || data.isSelected)
+      ) {
+        if (lastComplementaryDate?.isAfter(dayjs(data.doneDate))) {
+          isErrorFound = true;
+          enqueueSnackbar(
+            'Necessario mudar data do exame clínico para data posterior ao ultimo resultado dos exames complementares',
+            {
+              variant: 'error',
+              autoHideDuration: 3000,
+            },
+          );
+          return;
+        }
+      }
+
       if (!data.isAttendance || !data.isSelected) return;
       if (!data.clinic?.id) {
         setError(`clinic_${data.id}`, { message: 'Campo obrigatório' });
@@ -59,6 +89,8 @@ export const useEvaluationStep = ({
 
     if (isErrorFound) return;
 
+    const { clinicObs } = getValues();
+    setData((data) => ({ ...data, clinicObs }));
     nextStep();
   };
 
@@ -94,15 +126,6 @@ export const useEvaluationStep = ({
     setData({ ...data, examsData: actualExams });
   };
 
-  const lastComplementaryDate = data.examsData
-    .map((schedule) => {
-      if (!schedule.isSelected || schedule.isAttendance) return;
-      if (!schedule.doneDate) return;
-      return dayjs(schedule.doneDate).add(schedule.dueInDays || 0, 'd');
-    })
-    .filter((i) => i)
-    .sort((a, b) => sortData(a, b))[0];
-
   return {
     onSubmit,
     control,
@@ -115,6 +138,7 @@ export const useEvaluationStep = ({
     previousStep,
     setComplementaryExam,
     lastComplementaryDate,
+    isPendingExams,
     ...rest,
   };
 };

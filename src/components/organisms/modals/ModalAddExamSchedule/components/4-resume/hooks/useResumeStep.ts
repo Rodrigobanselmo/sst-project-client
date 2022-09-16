@@ -17,6 +17,10 @@ import {
   useMutCreateEmployeeHisExam,
 } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutCreateEmployeeHisExam/useMutCreateEmployeeHisExam';
 import { useMutUpdateEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateEmployeeHisExam/useMutUpdateEmployeeHisExam';
+import {
+  IUpdateManyScheduleExamHistory,
+  useMutUpdateManyScheduleHisExam,
+} from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
 import { queryClient } from 'core/services/queryClient';
 import { sortData } from 'core/utils/sorts/data.sort';
@@ -25,18 +29,18 @@ import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
 
 export const useResumeStep = ({
   data,
-  onSubmitData,
   setData,
   onCloseUnsaved: onCloseUnsavedMain,
   employee,
   onClose,
+  isPendingExams,
   ...rest
 }: IUseEditEmployee) => {
-  const { setError, control, reset, setValue, clearErrors } = useFormContext();
-  const { nextStep, stepCount, goToStep, previousStep } = useWizard();
+  const { control, reset, setValue } = useFormContext();
+  const { stepCount, goToStep, previousStep } = useWizard();
   const { fetchClinic } = useFetchQueryClinic();
   const createMutation = useMutCreateEmployeeHisExam();
-  const updateMutation = useMutUpdateEmployeeHisExam();
+  const updateManyMutation = useMutUpdateManyScheduleHisExam();
 
   const onCloseUnsaved = async () => {
     onCloseUnsavedMain(() => reset());
@@ -46,7 +50,7 @@ export const useResumeStep = ({
     goToStep(stepCount - 1);
   };
 
-  const onSubmit = async () => {
+  const submitCreateSchedule = async () => {
     const submit = {
       companyId: data.companyId,
       examType: data.examType,
@@ -106,6 +110,53 @@ export const useResumeStep = ({
       .mutateAsync(submit)
       .then(() => onClose())
       .catch(() => null);
+  };
+
+  const submitUpdateSchedule = async () => {
+    const submit = {
+      data: [],
+      companyId: data.companyId,
+    } as IUpdateManyScheduleExamHistory;
+
+    data.examsData.forEach(
+      ({
+        doneDate,
+        scheduleId,
+        time,
+        id,
+        clinic,
+        scheduleType,
+        ...examSchedule
+      }) => {
+        if (!doneDate) return;
+        if (!employee) return;
+        if (!scheduleId) return;
+        if (!time) return;
+        if (!clinic?.id) return;
+        if (!examSchedule.isSelected) return;
+
+        submit.data?.push({
+          id: scheduleId,
+          employeeId: employee.id,
+          examId: id,
+          clinicId: clinic?.id,
+          doneDate,
+          time,
+          scheduleType,
+          examType: data.examType,
+          status: StatusEnum.PROCESSING,
+        });
+      },
+    );
+    await updateManyMutation
+      .mutateAsync(submit)
+      .then(() => onClose())
+      .catch(() => null);
+  };
+
+  const onSubmit = async () => {
+    if (!isPendingExams) submitCreateSchedule();
+    if (isPendingExams) submitUpdateSchedule();
   };
 
   const setComplementaryExam = async (exam: Partial<IExamsScheduleTable>) => {

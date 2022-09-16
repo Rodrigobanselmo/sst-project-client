@@ -16,6 +16,7 @@ export interface IQueryExamHierarchy {
   companyId?: string;
   hierarchyId?: string;
   employeeId?: number;
+  isPendingExams?: boolean;
 }
 
 export async function findExamHierarchy(query: IQueryExamHierarchy) {

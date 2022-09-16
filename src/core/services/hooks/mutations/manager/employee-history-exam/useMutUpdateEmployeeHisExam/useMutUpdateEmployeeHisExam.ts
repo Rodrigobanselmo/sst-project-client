@@ -10,6 +10,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEmployeeExamsHistory } from 'core/interfaces/api/IEmployee';
+import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
@@ -23,6 +24,7 @@ export interface IUpdateEmployeeExamHistory {
   obs?: string;
   validityInMonths?: number;
   doctorId?: number;
+  scheduleType?: ClinicScheduleTypeEnum;
   clinicId?: string;
   doneDate?: Date;
   examType?: ExamHistoryTypeEnum;

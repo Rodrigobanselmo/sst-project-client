@@ -33,7 +33,10 @@ import {
   IEmployee,
   IEmployeeExamsHistory,
 } from 'core/interfaces/api/IEmployee';
-import { useQueryHisExamEmployee } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
+import {
+  IQueryEmployeeHistHier,
+  useQueryHisExamEmployee,
+} from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { dateToString } from 'core/utils/date/date-format';
 import { sortData } from 'core/utils/sorts/data.sort';
 
@@ -45,6 +48,7 @@ export const HistoryEmployeeExamTable: FC<
     companyId?: string;
     employeeId?: number;
     employee?: IEmployee;
+    query?: IQueryEmployeeHistHier;
   }
 > = ({
   rowsPerPage = 8,
@@ -53,6 +57,7 @@ export const HistoryEmployeeExamTable: FC<
   companyId,
   employeeId,
   employee,
+  query,
 }) => {
   const { search, page, setPage } = useTableSearchAsync();
 
@@ -62,7 +67,7 @@ export const HistoryEmployeeExamTable: FC<
     count,
   } = useQueryHisExamEmployee(
     page,
-    { search, employeeId: employeeId },
+    { search, employeeId: employeeId, ...query },
     rowsPerPage,
     companyId,
   );

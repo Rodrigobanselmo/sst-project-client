@@ -9,7 +9,7 @@ import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 export interface IClinicScheduleOption {
   value: ClinicScheduleTypeEnum;
   name: string;
-  message?: (contact?: IContact) => ReactNode;
+  message?: (contact?: IContact, options?: { hideText?: boolean }) => ReactNode;
 }
 interface IClinicScheduleOptions
   extends Record<ClinicScheduleTypeEnum, IClinicScheduleOption> {}
@@ -43,7 +43,7 @@ export const clinicScheduleMap = {
   [ClinicScheduleTypeEnum.PHONE]: {
     value: ClinicScheduleTypeEnum.PHONE,
     name: 'Telefone',
-    message: (contact) => {
+    message: (contact, options) => {
       return (
         <>
           <SText mt={1} lineHeight={1.1} fontSize={13}>
@@ -56,26 +56,35 @@ export const clinicScheduleMap = {
               Instruções:
             </SText>{' '}
             Clínica com agendamento via <u>Telefone</u>. <br />
-            <SFlex gap={'2px 20px'} flexWrap="wrap">
-              {contact &&
-                getContacts({
-                  scheduleType: ClinicScheduleTypeEnum.PHONE,
-                  contact,
-                })?.map(([type, text]: any) => {
-                  return (
-                    <SText key={type} fontSize={13}>
-                      <SText fontWeight="500" component={'span'} fontSize={13}>
-                        {type}:
-                      </SText>{' '}
-                      {text}
-                    </SText>
-                  );
-                })}
-            </SFlex>
-            <SText fontSize={11} lineHeight={1} component={'span'}>
-              Entre em contato com a clínica para agendar o exame e obter data e
-              hora da realização para emissão da Guia de Encaminhamento!
-            </SText>
+            {!options?.hideText && (
+              <>
+                <SFlex gap={'2px 20px'} flexWrap="wrap">
+                  {contact &&
+                    getContacts({
+                      scheduleType: ClinicScheduleTypeEnum.PHONE,
+                      contact,
+                    })?.map(([type, text]: any) => {
+                      return (
+                        <SText key={type} fontSize={13}>
+                          <SText
+                            fontWeight="500"
+                            component={'span'}
+                            fontSize={13}
+                          >
+                            {type}:
+                          </SText>{' '}
+                          {text}
+                        </SText>
+                      );
+                    })}
+                </SFlex>
+                <SText fontSize={11} lineHeight={1} component={'span'}>
+                  Entre em contato com a clínica para agendar o exame e obter
+                  data e hora da realização para emissão da Guia de
+                  Encaminhamento!
+                </SText>
+              </>
+            )}
           </SText>
         </>
       );
@@ -84,7 +93,7 @@ export const clinicScheduleMap = {
   [ClinicScheduleTypeEnum.EMAIL]: {
     value: ClinicScheduleTypeEnum.EMAIL,
     name: 'Email',
-    message: (contact) => {
+    message: (contact, options) => {
       return (
         <>
           <SText mt={1} fontSize={13} lineHeight={1.1}>
@@ -97,26 +106,35 @@ export const clinicScheduleMap = {
               Instruções:
             </SText>{' '}
             Clínica com agendamento via <u>EMAIL</u>. <br />
-            <SFlex gap={'2px 20px'} mt={-1} mb={2} flexWrap="wrap">
-              {contact &&
-                getContacts({
-                  scheduleType: ClinicScheduleTypeEnum.EMAIL,
-                  contact,
-                })?.map(([type, text]: any) => {
-                  return (
-                    <SText key={type} fontSize={13}>
-                      <SText fontWeight="500" component={'span'} fontSize={13}>
-                        {type}:
-                      </SText>{' '}
-                      {text}
-                    </SText>
-                  );
-                })}
-            </SFlex>
-            <SText lineHeight={1} fontSize={11} component={'span'}>
-              Entre em contato com a clínica para agendar o exame e obter data e
-              hora da realização para emissão da Guia de Encaminhamento!
-            </SText>
+            {!options?.hideText && (
+              <>
+                <SFlex gap={'2px 20px'} mt={-1} mb={2} flexWrap="wrap">
+                  {contact &&
+                    getContacts({
+                      scheduleType: ClinicScheduleTypeEnum.EMAIL,
+                      contact,
+                    })?.map(([type, text]: any) => {
+                      return (
+                        <SText key={type} fontSize={13}>
+                          <SText
+                            fontWeight="500"
+                            component={'span'}
+                            fontSize={13}
+                          >
+                            {type}:
+                          </SText>{' '}
+                          {text}
+                        </SText>
+                      );
+                    })}
+                </SFlex>
+                <SText lineHeight={1} fontSize={11} component={'span'}>
+                  Entre em contato com a clínica para agendar o exame e obter
+                  data e hora da realização para emissão da Guia de
+                  Encaminhamento!
+                </SText>
+              </>
+            )}
           </SText>
         </>
       );
@@ -129,7 +147,7 @@ export const clinicScheduleMap = {
   [ClinicScheduleTypeEnum.ASK]: {
     value: ClinicScheduleTypeEnum.ASK,
     name: 'Pedido de Agenda (Sistema)',
-    message: () => {
+    message: (c, options) => {
       return (
         <>
           <SText mt={1} fontSize={13} lineHeight={1.1}>
@@ -142,10 +160,12 @@ export const clinicScheduleMap = {
               Instruções:
             </SText>{' '}
             Clínica com agendamento via <u>Pedido de Angenda</u>. <br />
-            <SText lineHeight={1} fontSize={11} component={'span'}>
-              Selecione a melhor data para realizar o exame e caso haja alguma
-              informação adcional informe no campo de observações abaixo
-            </SText>
+            {!options?.hideText && (
+              <SText lineHeight={1} fontSize={11} component={'span'}>
+                Selecione a melhor data para realizar o exame e caso haja alguma
+                informação adcional informe no campo de observações abaixo
+              </SText>
+            )}
           </SText>
         </>
       );

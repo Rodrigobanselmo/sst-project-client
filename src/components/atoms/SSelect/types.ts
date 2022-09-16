@@ -31,6 +31,7 @@ export type SSelectProps = SelectProps & {
   dropDownProps?: PaperProps;
   formHelperTextProps?: FormHelperTextProps;
   inputLabelProps?: InputLabelProps;
+  superSmall?: boolean;
   loading?: boolean;
   menuItemProps?: MenuItemProps;
   menuEmptyItemProps?: MenuItemProps;

@@ -14,6 +14,7 @@ export const SModalButtons: FC<SModalHeaderProps> = ({
   modalName,
   onClose: close,
   loading,
+  children,
   ...props
 }) => {
   const { onCloseModal } = useModal();
@@ -32,6 +33,7 @@ export const SModalButtons: FC<SModalHeaderProps> = ({
       gap={5}
       {...props}
     >
+      {children}
       {buttons.map(
         ({ text, variant, arrowBack, arrowNext, ...buttonProps }, index) => {
           const isFirst = index === 0;
