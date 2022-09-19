@@ -117,6 +117,12 @@ export const permissionsConstantMap = {
     info: 'gerenciamento dos exames cadastrados da empresa',
     crud: ['r', 'cu'],
   },
+  [PermissionEnum.RISK_DOC_INFO]: {
+    value: PermissionEnum.RISK_DOC_INFO,
+    label: 'Relevância dos Risco',
+    info: 'Pode alterar para qual documentos o risco irá fazer parte',
+    crud: ['r', 'cu'],
+  },
   [PermissionEnum.EXAM_RISK]: {
     value: PermissionEnum.EXAM_RISK,
     label: 'Exames / Riscos',

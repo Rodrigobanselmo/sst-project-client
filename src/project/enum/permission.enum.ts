@@ -34,6 +34,7 @@ export enum PermissionEnum {
   CLINIC_SCHEDULE = '5', //*new
   HOMO_GROUP = '6', //*new
   EXAM = '7',
+  RISK_DOC_INFO = '8',
   // COMPANY_GROUPS = '4.9',
 
   CREATE_COMPANY = '2.1',

@@ -19,23 +19,22 @@ import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
 import { STagRisk } from 'components/atoms/STagRisk';
 import SText from 'components/atoms/SText';
-import STooltip from 'components/atoms/STooltip';
 import { SCheckRiskDocInfo } from 'components/molecules/SCheckRiskDocInfo';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
-import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
+import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
+import { useRouter } from 'next/router';
 
-import { SExamIcon } from 'assets/icons/SExamIcon';
+import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { useModal } from 'core/hooks/useModal';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist/risk/useMutUpsertRiskDocInfo';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { useQueryRisksCompany } from 'core/services/hooks/queries/useQueryRisksCompany/useQueryRisksCompany';
-
-import { getExamAge, getExamPeriodic } from '../ExamsRiskTable/ExamsRiskTable';
 
 export const RiskCompanyTable: FC<
   BoxProps & {
@@ -45,15 +44,15 @@ export const RiskCompanyTable: FC<
     query?: IQueryExam;
   }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
-  const [showRiskExam, setShowRiskExam] = useState(false);
+  const [showOrigins, setShowRiskExam] = useState(false);
   const { data: riskGroupData, isLoading: loadingRiskGroup } =
     useQueryRiskGroupData();
 
   const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
 
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
-
-  const { onOpenRiskToolSelected } = useOpenRiskTool();
+  const { push } = useRouter();
+  const { onOpenRiskToolSelected, onStackOpenModal } = useOpenRiskTool();
 
   const isSelect = !!onSelectData;
   const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
@@ -62,9 +61,8 @@ export const RiskCompanyTable: FC<
     data: risks,
     isLoading: loadRisks,
     count,
+    companyId,
   } = useQueryRisksCompany(page, { search }, rowsPerPage);
-
-  const { onStackOpenModal } = useModal();
 
   const onChangeRiskDocInfo = (docInfo: Partial<IRiskDocInfo>) => {
     if (!docInfo.riskId) return;
@@ -76,19 +74,26 @@ export const RiskCompanyTable: FC<
   };
 
   const onAddExam = () => {
-    onStackOpenModal(ModalEnum.EXAMS_ADD, {} as typeof initialExamState);
+    onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
+      title:
+        'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
+      onSelect: (docPgr: IRiskGroupData) =>
+        push(
+          RoutesEnum.RISK_DATA.replace(/:companyId/g, companyId).replace(
+            /:riskGroupId/g,
+            docPgr.id,
+          ),
+        ),
+    } as Partial<typeof initialDocPgrSelectState>);
   };
 
-  const onEditExam = (exam: IRiskFactors) => {
-    onStackOpenModal(ModalEnum.EXAMS_ADD, {
-      ...(exam as any),
-    } as typeof initialExamState);
-  };
+  // const onEditExam = (exam: IRiskFactors) => {};
 
   const onSelectRow = (exam: IRiskFactors) => {
     if (isSelect) {
       onSelectData(exam);
-    } else onEditExam(exam);
+    }
+    //  else onEditExam(exam);
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
@@ -100,7 +105,14 @@ export const RiskCompanyTable: FC<
 
   return (
     <>
-      {!isSelect && <STableTitle icon={SExamIcon}>Riscos</STableTitle>}
+      {!isSelect && (
+        <STableTitle
+          subtitle="List de fatores de risco e perigos identificados na empresa"
+          icon={SRiskFactorIcon}
+        >
+          Fatores de risco e perigos
+        </STableTitle>
+      )}
       <STableSearch
         onAddClick={onAddExam}
         onChange={(e) => handleSearchChange(e.target.value)}
@@ -108,10 +120,10 @@ export const RiskCompanyTable: FC<
         <SFlex justify="end" flex={1}>
           <SSwitch
             onChange={() => {
-              setShowRiskExam(!showRiskExam);
+              setShowRiskExam(!showOrigins);
             }}
             label="Mostar origens"
-            checked={showRiskExam}
+            checked={showOrigins}
             sx={{ mr: 4 }}
             color="text.light"
           />
@@ -152,7 +164,7 @@ export const RiskCompanyTable: FC<
                   )}
                   <STagRisk hideRiskName riskFactor={row} />
                   <TextIconRow clickable text={row.name || '-'} />
-                  {showRiskExam && (
+                  {showOrigins && (
                     <Box gridColumn={'1 / 10'} mb={6} mt={-1}>
                       {row?.riskFactorData?.map((riskData) => {
                         return (
@@ -207,7 +219,7 @@ export const RiskCompanyTable: FC<
                       })}
                     </Box>
                   )}
-                  {!showRiskExam && (
+                  {!showOrigins && (
                     <Box gridColumn={'1 / 10'} mb={6} mt={-1}>
                       <SFlex gap={'10px'} flexWrap="wrap">
                         <Box
@@ -228,9 +240,12 @@ export const RiskCompanyTable: FC<
                                 riskId: row.id,
                               })
                             }
-                            riskDocInfo={row?.docInfo?.find(
-                              (i) => !i.hierarchyId,
-                            )}
+                            riskDocInfo={
+                              row?.docInfo?.find(
+                                (i) =>
+                                  !i.hierarchyId && i.companyId === companyId,
+                              ) || row?.docInfo?.find((i) => !i.hierarchyId)
+                            }
                           />
                         </Box>
 

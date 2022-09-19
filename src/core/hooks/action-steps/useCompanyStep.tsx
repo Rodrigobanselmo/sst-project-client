@@ -275,8 +275,9 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.COMPANY_RISKS]: {
         icon: SRiskFactorIcon,
         onClick: handleCompanyRisks,
-        text: 'Riscos',
-        tooltipText: 'Riscos vinculados e sua relevancia para os documentos ',
+        text: 'Riscos Identificados',
+        tooltipText:
+          'Riscos Identificados na empresa e sua relevância para os documentos ',
       },
     };
   }, [

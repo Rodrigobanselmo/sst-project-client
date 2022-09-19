@@ -154,5 +154,5 @@ export const useOpenRiskTool = () => {
     >);
   };
 
-  return { onOpenSelected, onOpenRiskToolSelected };
+  return { onOpenSelected, onOpenRiskToolSelected, onStackOpenModal };
 };

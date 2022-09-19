@@ -51,6 +51,7 @@ export const rolesConstantMap = {
       PermissionEnum.CHARACTERIZATION,
       PermissionEnum.EMPLOYEE,
       PermissionEnum.EMPLOYEE_HISTORY,
+      PermissionEnum.RISK_DOC_INFO,
     ],
     order: 2,
   },
