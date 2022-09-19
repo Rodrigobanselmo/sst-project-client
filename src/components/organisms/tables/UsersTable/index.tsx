@@ -62,9 +62,10 @@ export const UsersTable: FC<BoxProps> = () => {
   });
 
   const handleEditUser = (user: IUser) => {
-    const userCompany = user?.companies?.find(
-      (userCompany) => userCompany.companyId === company.id,
-    );
+    const userCompany =
+      user?.companies?.find(
+        (userCompany) => userCompany.companyId === company.id,
+      ) || user?.companies?.[0];
 
     onOpenModal(ModalEnum.USER_ADD, {
       id: user.id,
@@ -162,7 +163,7 @@ export const UsersTable: FC<BoxProps> = () => {
                   sx={{ maxWidth: '120px' }}
                   selected={
                     'companies' in row
-                      ? row.companies[0].status
+                      ? row.companies[0]?.status
                       : dayjs(row.expires_date).isAfter(dayjs())
                       ? StatusEnum.PENDING
                       : StatusEnum.EXPIRED

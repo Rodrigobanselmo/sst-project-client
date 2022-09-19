@@ -118,7 +118,21 @@ export const ModalAddUsers = () => {
             <STagButton
               maxWidth="200px"
               text={'Adicionar Empresas'}
-              onClick={handleOpenCompanySelect}
+              onClick={() => handleOpenCompanySelect()}
+            />
+          )}
+          {isConsulting && (
+            <STagButton
+              maxWidth="200px"
+              text={'Adicionar Grupo'}
+              onClick={() => handleOpenCompanySelect({ isGroup: true })}
+            />
+          )}
+          {isConsulting && (
+            <STagButton
+              maxWidth="200px"
+              text={'Adicionar Clínica'}
+              onClick={() => handleOpenCompanySelect({ isClinic: true })}
             />
           )}
           {!isEdit && (
@@ -145,7 +159,7 @@ export const ModalAddUsers = () => {
           )}
         </SFlex>
         {isConsulting && (
-          <SFlex mt={5} mb={20} gap={5}>
+          <SFlex mt={5} mb={20} gap={5} flexWrap="wrap">
             {userData.companies.map((company) => {
               return (
                 <CompanyTag

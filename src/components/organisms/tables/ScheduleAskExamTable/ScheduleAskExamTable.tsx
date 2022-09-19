@@ -37,7 +37,7 @@ import {
   IEmployeeExamsHistory,
 } from 'core/interfaces/api/IEmployee';
 import { useQueryHisScheduleExam } from 'core/services/hooks/queries/useQueryHisScheduleExam/useQueryHisScheduleExam';
-import { dateToString } from 'core/utils/date/date-format';
+import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { sortData } from 'core/utils/sorts/data.sort';
 
@@ -50,7 +50,7 @@ export const ScheduleAskExamTable: FC<
     employeeId?: number;
     employee?: IEmployee;
   }
-> = ({ rowsPerPage = 8, onSelectData, hideTitle, companyId, employeeId }) => {
+> = ({ rowsPerPage = 15, onSelectData, hideTitle, companyId, employeeId }) => {
   const { search, page, handleSearchChange, setPage } = useTableSearchAsync();
 
   const {
@@ -85,12 +85,15 @@ export const ScheduleAskExamTable: FC<
     } as Partial<typeof initialExamScheduleState>);
   };
 
-  const getRowColor = (row: IEmployeeExamsHistory): ITableRowStatus => {
-    if (row.status === StatusEnum.DONE) return 'info';
-    if (row.status === StatusEnum.PROCESSING) return 'warn';
-    if (row.status === StatusEnum.PENDING) return 'warn';
-    if (row.status === StatusEnum.EXPIRED) return 'inactive';
-    if (row.status === StatusEnum.CANCELED) return 'inactive';
+  const getRowColor = (
+    row: IEmployeeExamsHistory,
+  ): ITableRowStatus | undefined => {
+    // if (row.status === StatusEnum.DONE) return 'info';
+    // if (row.status === StatusEnum.PROCESSING) return 'warn';
+    // if (row.status === StatusEnum.PENDING) return 'warn';
+    // if (row.status === StatusEnum.EXPIRED) return 'inactive';
+    // if (row.status === StatusEnum.CANCELED) return 'inactive';
+    return undefined;
   };
 
   return (
@@ -145,8 +148,8 @@ export const ScheduleAskExamTable: FC<
                 <TextIconRow
                   text={
                     <>
-                      {dateToString(row.doneDate) || '-'} &nbsp;&nbsp;{' '}
-                      {row?.time || ''}
+                      {dateToString(row.created_at) || '-'} &nbsp;&nbsp;
+                      {dateToTimeString(row.created_at) || ''}
                     </>
                   }
                 />

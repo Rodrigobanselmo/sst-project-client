@@ -22,6 +22,9 @@ export interface IQueryCompanies {
   userId?: number;
   groupId?: number;
   isClinic?: boolean;
+  isGroup?: boolean;
+  findAll?: boolean;
+  isCompany?: boolean;
   type?: CompanyTypesEnum[];
   isPeriodic?: boolean;
   isChange?: boolean;

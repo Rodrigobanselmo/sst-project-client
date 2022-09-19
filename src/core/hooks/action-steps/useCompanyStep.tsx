@@ -122,6 +122,10 @@ export const useCompanyStep = () => {
     } as Partial<typeof initialDocPgrSelectState>);
   }, [company.id, onOpenModal, push]);
 
+  const handleCompanyRisks = useCallback(() => {
+    push(RoutesEnum.COMPANY_RISKS.replace(/:companyId/g, company.id));
+  }, [push, company.id]);
+
   const handleAddClinic = useCallback(() => {
     onOpenModal(ModalEnum.CLINIC_SELECT, {
       title: 'Selecione as Clinicas',
@@ -268,6 +272,12 @@ export const useCompanyStep = () => {
         text: 'Exames',
         tooltipText: 'Cadastro de exames aos seus respectivos riscos',
       },
+      [CompanyActionEnum.COMPANY_RISKS]: {
+        icon: SRiskFactorIcon,
+        onClick: handleCompanyRisks,
+        text: 'Riscos',
+        tooltipText: 'Riscos vinculados e sua relevancia para os documentos ',
+      },
     };
   }, [
     handleAddWorkspace,
@@ -281,6 +291,7 @@ export const useCompanyStep = () => {
     handleDocPGR,
     handleAddClinic,
     handleAddExam,
+    handleCompanyRisks,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
@@ -291,7 +302,10 @@ export const useCompanyStep = () => {
   }, [actionsMapStepMemo]);
 
   const modulesStepMemo = useMemo(() => {
-    return [actionsMapStepMemo[CompanyActionEnum.PGR]];
+    return [
+      actionsMapStepMemo[CompanyActionEnum.PGR],
+      actionsMapStepMemo[CompanyActionEnum.COMPANY_RISKS],
+    ];
   }, [actionsMapStepMemo]);
 
   const medicineStepMemo = useMemo(() => {

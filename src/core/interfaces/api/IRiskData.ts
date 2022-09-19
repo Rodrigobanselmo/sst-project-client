@@ -66,6 +66,7 @@ export interface IRiskDataRecComment {
   updated_at: Date;
   created_at: Date;
 }
+
 export interface IRiskDataJsonQui {
   stel?: string;
   twa?: string;

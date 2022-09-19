@@ -16,6 +16,7 @@ export interface IGho {
   description: string;
   companyId: string;
   hierarchies?: IHierarchyGho[];
+  hierarchy?: IHierarchyGho;
   employeeCount: number;
   workspaceIds: string[];
   type?: HomoTypeEnum;

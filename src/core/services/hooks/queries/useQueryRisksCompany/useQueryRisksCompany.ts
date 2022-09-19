@@ -4,61 +4,56 @@ import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IExamsByHierarchyRiskData } from 'core/interfaces/api/IExam';
+import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export interface IQueryExamHierarchy {
+export interface IQueryRiskCompany {
   search?: string | null;
   companyId?: string;
-  hierarchyId?: string;
-  employeeId?: number;
 }
 
 export const queryExams = async (
   { skip, take }: IPagination,
-  query: IQueryExamHierarchy,
+  query: IQueryRiskCompany,
 ) => {
   if ('search' in query && query.search === null) return { data: [], count: 0 };
 
   const companyId = query.companyId;
   const queries = queryString.stringify(query);
-
-  const response = await api.get<
-    IPaginationResult<IExamsByHierarchyRiskData[]>
-  >(
-    `${ApiRoutesEnum.EXAM}/hierarchy/${companyId}?take=${take}&skip=${skip}&${queries}`,
+  const response = await api.get<IPaginationResult<IRiskFactors[]>>(
+    `${ApiRoutesEnum.RISK}/company/${companyId}?take=${take}&skip=${skip}&${queries}`,
   );
 
   return response.data;
 };
 
-export function useQueryExamsHierarchy(
+export function useQueryRisksCompany(
   page = 1,
-  query = {} as IQueryExamHierarchy,
+  query = {} as IQueryRiskCompany,
+  take = 20,
 ) {
-  const { companyId: userCompanyId } = useGetCompanyId();
+  const { getCompanyId } = useGetCompanyId();
   const pagination: IPagination = {
-    // skip: (page - 1) * (take || 20),
-    // take: take || 20,
+    skip: (page - 1) * (take || 20),
+    take: take || 20,
   };
 
-  const companyId = userCompanyId;
+  const companyId = getCompanyId(query);
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EXAMS_RISK_DATA, page, { ...pagination, companyId, ...query }],
-    () => queryExams(pagination, { companyId, ...query }),
+    [QueryEnum.RISK, 'company', page, { ...pagination, ...query, companyId }],
+    () => queryExams(pagination, { ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
-      // enabled: page != 0,
     },
   );
 
   const response = {
-    data: data?.data || ([] as IExamsByHierarchyRiskData[]),
+    data: data?.data || ([] as IRiskFactors[]),
     count: data?.count || 0,
   };
 

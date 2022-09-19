@@ -11,37 +11,29 @@ import { IRiskData } from '../../../../interfaces/api/IRiskData';
 
 export const queryRiskData = async (
   companyId: string,
-  riskGroupId: string,
   hierarchyId: string,
 ): Promise<IRiskData[]> => {
   const response = await api.get<IRiskData[]>(
-    `${ApiRoutesEnum.RISK_DATA}/${companyId}/${riskGroupId}/hierarchy/${hierarchyId}`,
+    `${ApiRoutesEnum.RISK_DATA}/${companyId}/hierarchy/${hierarchyId}`,
   );
 
   return response.data;
 };
 
 export function useQueryRiskDataByHierarchy(
-  riskGroupId: string,
   hierarchyId: string,
 ): IReactQuery<IRiskData[]> {
   const { companyId } = useGetCompanyId();
 
   const { data, ...query } = useQuery(
-    [
-      QueryEnum.RISK_DATA,
-      companyId,
-      riskGroupId,
-      hierarchyId,
-      QueryEnum.HIERARCHY,
-    ],
+    [QueryEnum.RISK_DATA, companyId, hierarchyId, QueryEnum.HIERARCHY],
     () =>
       companyId
-        ? queryRiskData(companyId, riskGroupId, hierarchyId)
+        ? queryRiskData(companyId, hierarchyId)
         : <Promise<IRiskData[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
-      enabled: !!companyId && !!riskGroupId && !!hierarchyId,
+      enabled: !!companyId && !!hierarchyId,
     },
   );
 

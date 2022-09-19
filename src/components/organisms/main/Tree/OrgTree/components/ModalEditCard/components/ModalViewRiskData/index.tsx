@@ -3,7 +3,9 @@ import React, { useMemo, useState } from 'react';
 import { Box, LinearProgress } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import { SSwitch } from 'components/atoms/SSwitch';
+import { STagRisk } from 'components/atoms/STagRisk';
 import STooltip from 'components/atoms/STooltip';
+import { SCheckRiskDocInfo } from 'components/molecules/SCheckRiskDocInfo';
 import {
   getExamAge,
   getExamPeriodic,
@@ -12,7 +14,8 @@ import { RiskOrderEnum } from 'project/enum/risk.enums';
 
 import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
-import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist/risk/useMutUpsertRiskDocInfo';
 import { useQueryRiskDataByHierarchy } from 'core/services/hooks/queries/useQueryRiskDataByHierarchy';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { sortNumber } from 'core/utils/sorts/number.sort';
@@ -36,14 +39,29 @@ export const ModalViewRiskData = ({
   const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
   const hierarchyId = String(selectedNode?.id)?.split('//')[0];
   const [showRiskExam, setShowRiskExam] = useState(false);
+  const companyId = riskGroupData?.[riskGroupData.length - 1]?.companyId;
 
   const { onOpenOfficeRiskTool, onOpenRiskTool } = useModalCardActions({
     hierarchyId,
     riskGroupId,
     selectedNode,
   });
+
   const { data: riskDataHierarchy, isLoading: loadingRiskData } =
-    useQueryRiskDataByHierarchy(riskGroupId, hierarchyId);
+    useQueryRiskDataByHierarchy(hierarchyId);
+
+  const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
+
+  const onChangeRiskDocInfo = (docInfo: Partial<IRiskDocInfo>) => {
+    if (!docInfo.riskId) return;
+
+    upsertRiskDocInfo.mutateAsync({
+      ...docInfo,
+      hierarchyId,
+      companyId,
+      riskId: docInfo.riskId,
+    });
+  };
 
   const riskDataMemo = useMemo(() => {
     const risks: Record<
@@ -114,24 +132,22 @@ export const ModalViewRiskData = ({
               key={data.riskFactor.id}
             >
               <SFlex>
-                <SText fontSize={14}>
-                  <SText
-                    fontSize={10}
-                    component="span"
-                    sx={{
-                      backgroundColor: `risk.${data.riskFactor?.type.toLowerCase()}`,
-                      color: 'common.white',
-                      display: 'inline-block',
-                      width: '40px',
-                      borderRadius: '4px',
-                      mr: 2,
-                    }}
-                  >
-                    <SFlex center>{data.riskFactor?.type || ''}</SFlex>
-                  </SText>
-                  {data?.riskFactor?.name || ''}
-                </SText>
+                <STagRisk riskFactor={data.riskFactor} />
               </SFlex>
+
+              <SCheckRiskDocInfo
+                onUnmount={upsertRiskDocInfo.isError}
+                onSelectCheck={(docInfo) =>
+                  onChangeRiskDocInfo({
+                    ...docInfo,
+                    riskId: data.riskFactor.id,
+                  })
+                }
+                riskDocInfo={
+                  data?.riskFactor?.docInfo?.find((i) => i.hierarchyId) ||
+                  data?.riskFactor?.docInfo?.[0]
+                }
+              />
 
               <>
                 {data?.riskData.map((riskData) => {

@@ -1,27 +1,25 @@
 import React, { FC, useEffect, useState } from 'react';
 import { Wizard } from 'react-use-wizard';
 
-import { Box, Checkbox } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
-import { STableRow } from 'components/atoms/STable';
-import SText from 'components/atoms/SText';
+import { Box, LinearProgress } from '@mui/material';
+import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SModal, {
   SModalButtons,
   SModalHeader,
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { ExamList } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard/components/ExamList/ExamList';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ExamsRiskTable } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
-import { ExamsTable } from 'components/organisms/tables/ExamsTable/ExamsTable';
-import { ProfessionalsTable } from 'components/organisms/tables/ProfessonalsTable/ProfessonalsTable';
 
-import { ProfessionalFilterTypeEnum } from 'core/constants/maps/professionals-filter.map';
+import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
+
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
-import { IQueryProfessionals } from 'core/services/hooks/queries/useQueryProfessionals';
+import { useQueryExamsHierarchy } from 'core/services/hooks/queries/useQueryExamsHierarchy/useQueryExamsHierarchy';
 
 export const initialProfessionalViewState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -35,6 +33,9 @@ export const ModalViewExam: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const [selectData, setSelectData] = useState(initialProfessionalViewState);
+  const [showRiskExam, setShowRiskExam] = useState(true);
+
+  const { data: exams, isLoading: loadingExams } = useQueryExamsHierarchy(1);
 
   useEffect(() => {
     const initialData = getModalData(
@@ -79,7 +80,7 @@ export const ModalViewExam: FC = () => {
             <WizardTabs
               options={[
                 { label: 'Riscos e Exames' },
-                { label: 'Exames Cadastrados' },
+                { label: 'Exames Vinculados' },
               ]}
             />
           }
@@ -88,7 +89,27 @@ export const ModalViewExam: FC = () => {
             <ExamsRiskTable />
           </Box>
           <Box sx={{ px: 5, pb: 10 }}>
-            <ExamsTable />
+            {loadingExams && <LinearProgress />}
+            <>
+              <STableTitle
+                subtitle={
+                  <>
+                    Aqui você pode observar todos os exames vinculados
+                    diretamente a um cargo, grupo homogênio, atividate, etc
+                  </>
+                }
+                icon={SRiskFactorIcon}
+              >
+                Exames vinculados
+              </STableTitle>
+            </>
+            <ExamList
+              exams={exams}
+              showRiskExam={showRiskExam}
+              // onHandleOrigin={(origin) =>
+              //   onOpenRiskTool(origin.homogeneousGroup, origin.risk)
+              // }
+            />
           </Box>
         </Wizard>
 

@@ -14,6 +14,7 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import SText from 'components/atoms/SText';
 import { initialExamRiskState } from 'components/organisms/modals/ModalEditExamRisk/hooks/useEditExams';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -93,7 +94,23 @@ export const ExamsRiskTable: FC<
   return (
     <>
       {!isSelect && (
-        <STableTitle icon={SRiskFactorIcon}>Riscos e seus Exames</STableTitle>
+        <>
+          <STableTitle
+            subtitle={
+              <>
+                Aqui você pode relacionar exames a riscos especificos
+                <SText fontSize={11}>
+                  (Exemplo: Todos os cargos que possuirem o risco de Ruído e o
+                  exame de Audiometria estiver vinculado, todos os empregados
+                  terão que realizar tal exame)
+                </SText>
+              </>
+            }
+            icon={SRiskFactorIcon}
+          >
+            Riscos e seus Exames
+          </STableTitle>
+        </>
       )}
       <STableSearch
         onAddClick={onAddExam}

@@ -3,6 +3,9 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IHierarchy } from './IHierarchy';
+import { IRiskData } from './IRiskData';
+
 export interface IRecMed {
   id: string;
   recName: string;
@@ -67,6 +70,18 @@ export interface IGenerateSourceCreate {
   localId?: string | number;
 }
 
+export interface IRiskDocInfo {
+  id: number;
+  riskId: string;
+  companyId: string;
+  hierarchyId: string;
+  hierarchy: IHierarchy;
+  isAso: boolean;
+  isPGR: boolean;
+  isPCMSO: boolean;
+  isPPP: boolean;
+  created_at: Date;
+}
 export interface IRiskFactors {
   id: string;
   name: string;
@@ -97,4 +112,6 @@ export interface IRiskFactors {
   isEmergency?: boolean;
   carnogenicityACGIH?: string;
   carnogenicityLinach?: string;
+  docInfo?: IRiskDocInfo[];
+  riskFactorData?: IRiskData[];
 }

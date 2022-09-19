@@ -150,6 +150,8 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
     setData({ ...data, roles, errors: { roles: '' } });
   };
 
+  console.log(data);
+
   return (
     <Box minWidth={['100%', 600, 800]} {...props}>
       <FormControl
@@ -209,7 +211,7 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
                 {checked && (
                   <Box display="grid" gridTemplateColumns="1fr" gap="10px 20px">
                     {role?.permissions?.map((pKey) => {
-                      const permission = permissionsConstantMap[pKey];
+                      const permission = permissionsConstantMap[pKey] || {};
                       const hasPermission = (user?.permissions || []).find(
                         (p) => p.split('-')[0] === pKey,
                       );

@@ -1,17 +1,26 @@
 import { SContainer } from 'components/atoms/SContainer';
 import SPageTitle from 'components/atoms/SPageTitle';
+import { SAuthShow } from 'components/molecules/SAuthShow';
 import { HistoryScheduleExamClinicTable } from 'components/organisms/tables/HistoryScheduleExamClinicTable/HistoryScheduleExamClinicTable';
 import { NextPage } from 'next';
+import { RoleEnum } from 'project/enum/roles.enums';
 
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Home: NextPage = () => {
+  const { data: company } = useQueryCompany();
   return (
     <SContainer>
-      <SPageTitle>Site em desenvolvimento</SPageTitle>
-      <p>Novas atualizações em breve</p>
+      <SAuthShow hideIf={company.isClinic}>
+        <SPageTitle>Site em desenvolvimento</SPageTitle>
+        <p>Novas atualizações em breve</p>
+      </SAuthShow>
 
-      <HistoryScheduleExamClinicTable />
+      <SAuthShow hideIf={!company.isClinic}>
+        <HistoryScheduleExamClinicTable />
+      </SAuthShow>
     </SContainer>
   );
 };

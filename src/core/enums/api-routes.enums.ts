@@ -38,6 +38,7 @@ export enum ApiRoutesEnum {
   RISK = '/risk',
   RISK_DATA = '/risk-data',
   RISK_DATA_REC = '/risk-data-rec',
+  RISK_DOC_INFO = '/risk-doc-info',
   RISK_GROUP_DATA = '/risk-group-data',
   RISK_GROUP_DOCS = '/risk-group-data/documents/:riskGroupId/pgr/:companyId',
   SESSION = '/session',

@@ -28,7 +28,7 @@ const SPageTitle: FC<SPageTitleProps> = ({
       </SText>
     </SFlex>
     {subtitle && typeof subtitle === 'string' && (
-      <SText mt={5}>{subtitle}</SText>
+      <SText mt={2}>{subtitle}</SText>
     )}
 
     {subtitle && !(typeof subtitle === 'string') && subtitle}

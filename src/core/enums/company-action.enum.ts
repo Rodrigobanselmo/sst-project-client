@@ -5,6 +5,7 @@ export enum CompanyActionEnum {
   EMPLOYEE = 'EMPLOYEE',
   PGR = 'PGR',
   RISKS = 'RISKS',
+  COMPANY_RISKS = 'COMPANY_RISKS',
   USERS = 'USERS',
   EDIT = 'EDIT',
   RISK_GROUP = 'RISK_GROUP',

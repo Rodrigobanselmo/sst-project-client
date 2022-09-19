@@ -35,6 +35,13 @@ export const dateToString = (
   return date ? dayjs(date).format(format) : '';
 };
 
+export const dateToTimeString = (
+  date: Date | null | undefined,
+  format = 'HH:mm',
+) => {
+  return date ? dayjs(date).format(format) : '';
+};
+
 export const dateToDate = (date: 'Invalid Date' | Date | null | undefined) => {
   if (!date || !dayjs(date) || date == 'Invalid Date') return undefined;
   return dayjs(date).set('h', 0).toDate();

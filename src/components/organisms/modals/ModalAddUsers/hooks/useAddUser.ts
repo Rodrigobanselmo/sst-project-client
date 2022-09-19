@@ -16,7 +16,10 @@ import { IAccessGroup } from 'core/interfaces/api/IAccessGroup';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useMutInviteUser } from 'core/services/hooks/mutations/user/useMutInviteUser';
 import { useMutUpdateUserCompany } from 'core/services/hooks/mutations/user/useMutUpdateUserCompany';
-import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
+import {
+  IQueryCompanies,
+  useQueryCompanies,
+} from 'core/services/hooks/queries/useQueryCompanies';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { userManageSchema } from 'core/utils/schemas/user-manage.schema';
 
@@ -96,7 +99,7 @@ export const useAddUser = () => {
 
   const { companies } = useQueryCompanies(
     1,
-    { userId: isConsulting ? userData.id : 0 },
+    { userId: isConsulting ? userData.id : 0, findAll: true },
     200,
   );
 
@@ -120,7 +123,7 @@ export const useAddUser = () => {
   }, [getModalData]);
 
   useEffect(() => {
-    if (companies && companies.length > 0)
+    if (companies && companies.length > 0 && userData.companies.length == 0)
       setUserData((oldData) => {
         const newData = {
           ...oldData,
@@ -131,7 +134,7 @@ export const useAddUser = () => {
 
         return newData;
       });
-  }, [companies, getModalData]);
+  }, [companies, getModalData, userData.companies.length]);
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.USER_ADD, data);
@@ -210,7 +213,7 @@ export const useAddUser = () => {
     } as Partial<typeof initialAccessGroupsSelectState>);
   };
 
-  const handleOpenCompanySelect = () => {
+  const handleOpenCompanySelect = (query?: IQueryCompanies) => {
     const onSelect = (companies: ICompany[]) => {
       setUserData({
         ...userData,
@@ -222,6 +225,7 @@ export const useAddUser = () => {
       multiple: true,
       onSelect,
       selected: userData.companies,
+      query,
     } as Partial<typeof initialCompanySelectState>);
   };
 

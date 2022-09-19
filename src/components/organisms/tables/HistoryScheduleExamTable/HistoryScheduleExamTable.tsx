@@ -51,8 +51,17 @@ export const HistoryScheduleExamTable: FC<
     employeeId?: number;
     employee?: IEmployee;
     query?: IQueryEmployeeHistHier;
+    isPending?: boolean;
   }
-> = ({ rowsPerPage = 12, onSelectData, hideTitle, companyId, query }) => {
+> = ({
+  rowsPerPage = 12,
+  onSelectData,
+  hideTitle,
+  companyId,
+  query,
+  isPending,
+  ...props
+}) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
 
   const {
@@ -63,7 +72,7 @@ export const HistoryScheduleExamTable: FC<
     page,
     {
       search,
-      status: [StatusEnum.PROCESSING],
+      status: [isPending ? StatusEnum.PENDING : StatusEnum.PROCESSING],
       orderByCreation: true,
       includeClinic: true,
       allCompanies: true,
@@ -119,17 +128,21 @@ export const HistoryScheduleExamTable: FC<
   };
 
   return (
-    <>
+    <Box {...props}>
       {!hideTitle && (
         <>
-          <STableTitle>Exames Agendados</STableTitle>
-          <STableSearch
-            boxProps={{ sx: { flex: 1, maxWidth: 400 } }}
-            onAddClick={onAdd}
-            addText="Agendar Exame"
-            placeholder="Pesquisar por nome, cpf ou matricula"
-            onChange={(e) => handleSearchChange(e.target.value)}
-          />
+          <STableTitle>
+            {isPending ? 'Pedidos de Agenda' : 'Exames Agendados'}
+          </STableTitle>
+          {!isPending && (
+            <STableSearch
+              boxProps={{ sx: { flex: 1, maxWidth: 400 } }}
+              onAddClick={onAdd}
+              addText="Agendar Exame"
+              placeholder="Pesquisar por nome, cpf ou matricula"
+              onChange={(e) => handleSearchChange(e.target.value)}
+            />
+          )}
         </>
       )}
       <STable
@@ -273,6 +286,6 @@ export const HistoryScheduleExamTable: FC<
         currentPage={page}
         onPageChange={setPage}
       />
-    </>
+    </Box>
   );
 };
