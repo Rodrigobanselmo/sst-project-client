@@ -12,6 +12,7 @@ import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { IGho } from 'core/interfaces/api/IGho';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
 import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
@@ -98,7 +99,7 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
         ...foundRiskData,
         ...gho,
       };
-    });
+    }) as IGho[];
     return ghoData.sort((a, b) =>
       sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key),
     );
