@@ -17,6 +17,8 @@ import { SeverityEnum } from 'project/enum/severity.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { enumToArray } from 'core/utils/helpers/convertEnum';
 
+import { ModalAddGenerateSource } from '../ModalAddGenerateSource';
+import { ModalAddRecMed } from '../ModalAddRecMed';
 import { EditRiskSelects } from './components/EditRiskSelects';
 import { useAddRisk } from './hooks/useAddRisk';
 
@@ -152,5 +154,14 @@ export const ModalAddRisk = () => {
         />
       </SModalPaper>
     </SModal>
+  );
+};
+export const StackModalAddRisk = () => {
+  return (
+    <>
+      <ModalAddRisk />
+      <ModalAddGenerateSource />
+      <ModalAddRecMed />
+    </>
   );
 };

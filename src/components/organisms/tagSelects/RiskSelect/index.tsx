@@ -17,7 +17,7 @@ import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { sortString } from 'core/utils/sorts/string.sort';
 
-import { useQueryRisk } from '../../../../core/services/hooks/queries/useQueryRisk';
+import { useQueryAllRisk } from '../../../../core/services/hooks/queries/useQueryRiskAll';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { riskFilter } from './constants/filters';
 import { ITypeSelectProps } from './types';
@@ -30,7 +30,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
   multiple = true,
   ...props
 }) => {
-  const { data } = useQueryRisk();
+  const { data } = useQueryAllRisk();
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const { onStackOpenModal } = useModal();
 

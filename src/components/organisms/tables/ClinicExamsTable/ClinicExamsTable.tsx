@@ -14,8 +14,11 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import SText from 'components/atoms/SText';
+import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialClinicExamState } from 'components/organisms/modals/ModalAddClinicExam/hooks/useEditClinicExams';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
+import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -24,8 +27,11 @@ import { SExamIcon } from 'assets/icons/SExamIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { IExamToClinic } from 'core/interfaces/api/IExam';
+import { useMutCopyExamClinic } from 'core/services/hooks/mutations/checklist/exams/useMutCopyExamClinic/useMutCopyExamClinic';
 import { useQueryClinicExams } from 'core/services/hooks/queries/useQueryClinicExams/useQueryClinicExams';
 import { getMoney } from 'core/utils/helpers/getMoney.utils';
 import { getText } from 'core/utils/helpers/getText';
@@ -39,17 +45,47 @@ export const ClinicExamsTable: FC<
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
+  const copyExamMutation = useMutCopyExamClinic();
   const isSelect = !!onSelectData;
   const {
     data: exams,
     isLoading: loadExams,
     count,
+    companyId,
   } = useQueryClinicExams(page, { search, endDate: null }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
+  const { preventWarn } = usePreventAction();
 
   const handleEditStatus = (status: StatusEnum) => {
     console.log(status); // TODO edit checklist status
+  };
+
+  const onImportExams = () => {
+    onStackOpenModal(ModalEnum.COMPANY_SELECT, {
+      title: 'Selecione a Empresa que deseja copiar os exames',
+      query: { isClinic: true },
+      onSelect: (companySelected: ICompany) => {
+        preventWarn(
+          <SText textAlign={'justify'}>
+            Você tem certeza que deseja importar toda a relação de Exame da
+            clínica <b>{getCompanyName(companySelected)}</b>
+            <SText fontSize={13} mt={6} textAlign={'justify'}>
+              Exames que já estão presentes na tabela atual serão ignorados na
+              importação (Caso a empresa atual já possua o exame de
+              &quot;Audiometria&quot;, ele não será considerado na importação
+              caso a outra empresa tambem possua o exame)
+            </SText>
+          </SText>,
+          () =>
+            copyExamMutation.mutateAsync({
+              companyId,
+              fromCompanyId: companySelected.id,
+            }),
+          { confirmText: 'Importar', tag: 'add' },
+        );
+      },
+    } as Partial<typeof initialCompanySelectState>);
   };
 
   const onAddExam = () => {
@@ -77,6 +113,7 @@ export const ClinicExamsTable: FC<
       <STableTitle icon={SExamIcon}>Exames Realizados</STableTitle>
       <STableSearch
         onAddClick={onAddExam}
+        onExportClick={onImportExams}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable

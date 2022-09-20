@@ -12,6 +12,7 @@ import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
 import SExamIcon from 'assets/icons/SExamIcon';
 import SProfessionalIcon from 'assets/icons/SProfessionalIcon';
 import SProfileIcon from 'assets/icons/SProfileIcon';
+import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
 import { RoutesEnum } from '../../../../../../../core/enums/routes.enums';
@@ -134,6 +135,16 @@ const exams = {
   shouldMatchExactHref: true,
 };
 
+const risks = {
+  text: 'Fatores de Risco',
+  Icon: SRiskFactorIcon,
+  description: 'Visualizar os riscos cadastrados',
+  id: '23f23ivb328vjfdsdsfd',
+  href: RoutesEnum.RISKS,
+  roles: [RoleEnum.RISK],
+  shouldMatchExactHref: true,
+};
+
 const schedule = {
   text: 'Agenda',
   Icon: SCalendarIcon,
@@ -158,4 +169,5 @@ export const generalArray = [
   professionals,
   allClinicsData,
   exams,
+  risks,
 ];

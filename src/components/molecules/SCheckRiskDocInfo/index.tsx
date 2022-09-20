@@ -46,6 +46,7 @@ export const SCheckRiskDocInfo: FC<ISCheckRiskDocInfo> = ({
         label="PGR"
         defaultChecked={riskDocInfo?.isPGR ?? true}
         onChange={(e) => {
+          e.stopPropagation();
           onChange({ isPGR: e.target?.checked });
         }}
       />
@@ -53,6 +54,7 @@ export const SCheckRiskDocInfo: FC<ISCheckRiskDocInfo> = ({
         label="PPP"
         defaultChecked={riskDocInfo?.isPPP ?? true}
         onChange={(e) => {
+          e.stopPropagation();
           onChange({ isPPP: e.target?.checked });
         }}
       />
@@ -60,6 +62,7 @@ export const SCheckRiskDocInfo: FC<ISCheckRiskDocInfo> = ({
         label="PCMSO"
         defaultChecked={riskDocInfo?.isPCMSO ?? true}
         onChange={(e) => {
+          e.stopPropagation();
           onChange({ isPCMSO: e.target?.checked });
         }}
       />
@@ -67,6 +70,7 @@ export const SCheckRiskDocInfo: FC<ISCheckRiskDocInfo> = ({
         label="ASO"
         defaultChecked={riskDocInfo?.isAso ?? true}
         onChange={(e) => {
+          e.stopPropagation();
           onChange({ isAso: e.target?.checked });
         }}
       />

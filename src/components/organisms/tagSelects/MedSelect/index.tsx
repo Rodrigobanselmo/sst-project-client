@@ -17,7 +17,7 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
-import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk';
+import { useQueryAllRisk } from 'core/services/hooks/queries/useQueryRiskAll';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -39,7 +39,7 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   onCreate = () => {},
   ...props
 }) => {
-  const { data } = useQueryRisk();
+  const { data } = useQueryAllRisk();
   const { onStackOpenModal } = useModal();
 
   const handleSelectRecMed = (options: IRecMed) => {

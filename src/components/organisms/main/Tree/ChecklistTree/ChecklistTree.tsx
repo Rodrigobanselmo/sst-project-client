@@ -3,7 +3,7 @@ import React, { FC, useRef } from 'react';
 import { Box } from '@mui/material';
 
 import { useZoom } from '../../../../../core/hooks/useZoom';
-import { useQueryRisk } from '../../../../../core/services/hooks/queries/useQueryRisk';
+import { useQueryAllRisk } from '../../../../../core/services/hooks/queries/useQueryRiskAll';
 import { OrgTree, OrgTreeContainer } from './ChecklistTree.styles';
 import { TreeNode } from './components';
 import { LoadingFeedback } from './components/LoadingFeedback';
@@ -16,7 +16,7 @@ export const ChecklistTreeComponent: FC<IOrgTreeProps> = ({
   horizontal = false,
   ...props
 }) => {
-  useQueryRisk();
+  useQueryAllRisk();
 
   const orgContainerRef = useRef<HTMLDivElement>(null);
 

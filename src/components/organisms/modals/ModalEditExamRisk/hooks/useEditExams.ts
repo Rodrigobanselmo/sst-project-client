@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -14,6 +16,7 @@ import {
 } from 'core/services/hooks/mutations/checklist/exams/useMutCreateExamRisk/useMutCreateExamRisk';
 import { useMutUpdateExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutUpdateExamRisk/useMutUpdateExamRisk';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
+import { examRiskSchema } from 'core/utils/schemas/exam.schema';
 
 export const initialExamRiskState = {
   id: 0,
@@ -59,7 +62,9 @@ export const useEditExams = () => {
   const initialDataRef = useRef(initialExamRiskState);
   const switchRef = useRef<HTMLInputElement>(null);
 
-  const { handleSubmit, control, setValue, reset, getValues } = useForm();
+  const { handleSubmit, control, setValue, reset, getValues } = useForm({
+    resolver: yupResolver(examRiskSchema),
+  });
 
   const { preventUnwantedChanges } = usePreventAction();
 

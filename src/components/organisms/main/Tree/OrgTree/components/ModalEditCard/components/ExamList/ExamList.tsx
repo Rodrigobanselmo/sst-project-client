@@ -21,6 +21,7 @@ import SText from '../../../../../../../../atoms/SText';
 interface IExamListProps {
   showRiskExam?: boolean;
   hierarchyId?: string;
+  bgCard?: string;
   onHandleOrigin?: (origin: IExamOriginData) => void;
   exams: IExamsByHierarchyRiskData[];
 }
@@ -29,6 +30,7 @@ export const ExamList = ({
   showRiskExam,
   onHandleOrigin,
   exams,
+  bgCard,
 }: IExamListProps) => {
   return (
     <SFlex direction="column" gap={showRiskExam ? 8 : 4}>
@@ -43,7 +45,7 @@ export const ExamList = ({
                 return (
                   <SFlex
                     sx={{
-                      backgroundColor: 'grey.200',
+                      backgroundColor: bgCard || 'grey.200',
                       py: 4,
                       px: 5,
                       mb: 5,

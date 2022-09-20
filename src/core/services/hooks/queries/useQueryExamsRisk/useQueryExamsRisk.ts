@@ -58,5 +58,5 @@ export function useQueryExamsRisk(
     count: data?.count || 0,
   };
 
-  return { ...result, data: response.data, count: response.count };
+  return { ...result, companyId, data: response.data, count: response.count };
 }

@@ -11,13 +11,13 @@ import { IRiskFactors } from '../../../../interfaces/api/IRiskFactors';
 
 export const queryRisk = async (companyId: string): Promise<IRiskFactors[]> => {
   const response = await api.get<IRiskFactors[]>(
-    `${ApiRoutesEnum.RISK}/${companyId}`,
+    `${ApiRoutesEnum.RISK}/all/${companyId}`,
   );
 
   return response.data;
 };
 
-export function useQueryRisk(): IReactQuery<IRiskFactors[]> {
+export function useQueryAllRisk(): IReactQuery<IRiskFactors[]> {
   const { companyId } = useGetCompanyId(true);
 
   //! loads risk factors for every company every time

@@ -5,6 +5,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import SText from 'components/atoms/SText';
+import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
@@ -44,7 +45,7 @@ const CompanyPage: NextPage = () => {
 
   return (
     <SContainer>
-      <SPageTitle icon={SClinicIcon}>{company.name}</SPageTitle>
+      <SPageTitle icon={SClinicIcon}>{getCompanyName(company)}</SPageTitle>
       {nextStepMemo && (
         <>
           <SText mt={20}>Proximo passo</SText>

@@ -104,6 +104,7 @@ export const ModalViewExam: FC = () => {
               </STableTitle>
             </>
             <ExamList
+              bgCard="grey.50"
               exams={exams}
               showRiskExam={showRiskExam}
               // onHandleOrigin={(origin) =>

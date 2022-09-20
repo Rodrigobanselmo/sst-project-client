@@ -41,7 +41,7 @@ export function useQueryHierarchies(
   const { data, ...query } = useQuery(
     [QueryEnum.HIERARCHY, company],
     () =>
-      company
+      company && company != '-'
         ? queryHierarchies(company)
         : <Promise<IHierarchyMap>>emptyMapReturn(),
     {

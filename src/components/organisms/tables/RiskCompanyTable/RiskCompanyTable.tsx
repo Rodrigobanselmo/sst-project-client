@@ -73,7 +73,7 @@ export const RiskCompanyTable: FC<
     });
   };
 
-  const onAddExam = () => {
+  const onAddRisk = () => {
     onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
       title:
         'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
@@ -114,7 +114,7 @@ export const RiskCompanyTable: FC<
         </STableTitle>
       )}
       <STableSearch
-        onAddClick={onAddExam}
+        onAddClick={onAddRisk}
         onChange={(e) => handleSearchChange(e.target.value)}
       >
         <SFlex justify="end" flex={1}>

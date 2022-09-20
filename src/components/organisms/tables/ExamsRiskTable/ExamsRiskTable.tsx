@@ -15,7 +15,10 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
+import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialExamRiskState } from 'components/organisms/modals/ModalEditExamRisk/hooks/useEditExams';
+import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
+import { company } from 'faker/locale/zh_TW';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
@@ -23,8 +26,11 @@ import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { IExamToRisk } from 'core/interfaces/api/IExam';
+import { useMutCopyExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutCopyExamRisk/useMutCopyExamRisk';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryExamsRisk } from 'core/services/hooks/queries/useQueryExamsRisk/useQueryExamsRisk';
 
@@ -67,12 +73,37 @@ export const ExamsRiskTable: FC<
     data: exams,
     isLoading: loadExams,
     count,
+    companyId,
   } = useQueryExamsRisk(page, { search }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
+  const copyExamMutation = useMutCopyExamRisk();
+  const { preventWarn } = usePreventAction();
 
-  const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+  const onImportExams = () => {
+    onStackOpenModal(ModalEnum.COMPANY_SELECT, {
+      title: 'Selecione a Empresa que deseja copiar os exames',
+      onSelect: (companySelected: ICompany) => {
+        preventWarn(
+          <SText textAlign={'justify'}>
+            Você tem certeza que deseja importar toda a relação de Exame e
+            riscos da empresa <b>{getCompanyName(companySelected)}</b>
+            <SText fontSize={13} mt={6} textAlign={'justify'}>
+              Exames que já estão presentes na tabela atual serão ignorados na
+              importação (Caso já possua um exame de &quot;Audiometria&quot;
+              vinculado ao Ruído, ele não será considerado na importação caso a
+              outra empresa possua)
+            </SText>
+          </SText>,
+          () =>
+            copyExamMutation.mutateAsync({
+              companyId,
+              fromCompanyId: companySelected.id,
+            }),
+          { confirmText: 'Importar', tag: 'add' },
+        );
+      },
+    } as Partial<typeof initialCompanySelectState>);
   };
 
   const onAddExam = () => {
@@ -114,10 +145,11 @@ export const ExamsRiskTable: FC<
       )}
       <STableSearch
         onAddClick={onAddExam}
+        onExportClick={onImportExams}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable
-        loading={loadExams}
+        loading={loadExams || copyExamMutation.isLoading}
         rowsNumber={rowsPerPage}
         columns={`${
           selectedData ? '15px ' : ''

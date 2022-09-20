@@ -8,5 +8,6 @@ export type STableSearchProps = SInputProps & {
   onAddClick?: () => void;
   addText?: ReactNode;
   onExportClick?: () => void;
+  // onImportClick?: () => void;
   boxProps?: Partial<BoxProps>;
 };
