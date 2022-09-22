@@ -3,6 +3,7 @@ import { FC } from 'react';
 import SText from 'components/atoms/SText';
 
 import { SPopperArrow } from '../../../../../../../molecules/SPopperArrow';
+import { NotificationTable } from '../notificationTable/notificationTable';
 import { INotificationsPopperProps } from './types';
 
 export const NotificationsPopper: FC<INotificationsPopperProps> = ({
@@ -19,7 +20,7 @@ export const NotificationsPopper: FC<INotificationsPopperProps> = ({
       color="paper"
       sx={{
         transform: 'translate(6px, 15px)',
-        width: '20rem',
+        width: ['90%', 600],
         px: 0,
         py: 2,
         color: 'text.main',
@@ -35,6 +36,7 @@ export const NotificationsPopper: FC<INotificationsPopperProps> = ({
           Você não tem nenhuma notificação.
         </SText>
       )}
+      {!!data.length && <NotificationTable />}
     </SPopperArrow>
   );
 };

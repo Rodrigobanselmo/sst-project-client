@@ -115,7 +115,7 @@ export const rolesConstantMap = {
   [RoleEnum.CLINICS]: {
     value: RoleEnum.CLINICS,
     label: 'Clínicas',
-    info: 'acesso aos recurso das clínicas (prestadores), podendo gerenciar os exames, medicos e dados da clínica',
+    info: 'acesso aos recurso das clínicas (prestadores), podendo gerenciar os exames, médicos e dados da clínica',
     permissions: [
       PermissionEnum.COMPANY,
       PermissionEnum.CLINIC_SCHEDULE,

@@ -40,7 +40,7 @@ export const STSTableHeader = styled(Box)`
 
 export const STSTableRow = styled(Box)<{
   clickable: number;
-  status?: 'inactive' | 'warn' | 'info' | 'success';
+  status?: 'inactive' | 'warn' | 'info' | 'success' | 'fade';
 }>`
   display: grid;
   flex-shrink: 0;
@@ -98,6 +98,13 @@ export const STSTableRow = styled(Box)<{
       .table-row-text {
         color: ${props.theme.palette.warning.dark};
       }
+    `};
+
+  ${(props) =>
+    props.status == 'fade' &&
+    css`
+      background-color: ${props.theme.palette.grey[200]};
+      opacity: 0.8;
     `};
 `;
 

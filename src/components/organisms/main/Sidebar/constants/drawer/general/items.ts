@@ -109,7 +109,7 @@ const companiesData = {
   description: 'Visualizar sua empresa',
   id: 'lfrXadsdeDx',
   href: RoutesEnum.COMPANY,
-  roles: [RoleEnum.MANAGEMENT],
+  roles: [RoleEnum.MANAGEMENT, RoleEnum.COMPANY],
   removeWithRoles: [RoleEnum.CONTRACTS],
   shouldMatchExactHref: true,
 };

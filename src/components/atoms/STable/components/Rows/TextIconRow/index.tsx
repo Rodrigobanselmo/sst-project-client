@@ -15,6 +15,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
   children,
   onClick,
   fontSize = 13,
+  lineHeight,
   loading,
   textAlign,
   sx,
@@ -36,6 +37,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
             sx={{ whiteSpace: 'pre-line' }}
             lineNumber={lineNumber}
             className="table-row-text"
+            lineHeight={lineHeight}
           >
             {text}
           </SText>
@@ -43,7 +45,16 @@ const TextIconRow: FC<TextIconRowProps> = ({
         {children}
       </>
     );
-  }, [children, fontSize, icon, lineNumber, loading, text, textAlign]);
+  }, [
+    children,
+    fontSize,
+    icon,
+    lineNumber,
+    loading,
+    text,
+    textAlign,
+    lineHeight,
+  ]);
 
   return (
     <STooltip title={tooltipTitle ?? text} minLength={100}>

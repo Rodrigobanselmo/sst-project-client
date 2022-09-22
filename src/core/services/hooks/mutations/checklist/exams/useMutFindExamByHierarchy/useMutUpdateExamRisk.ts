@@ -23,7 +23,6 @@ export async function findExamHierarchy(query: IQueryExamHierarchy) {
   if ('search' in query && query.search === null) return { data: [], count: 0 };
 
   const companyId = query.companyId;
-  const hierarchyId = query.hierarchyId;
   const queries = queryString.stringify(query);
 
   const response = await api.get<
@@ -31,7 +30,7 @@ export async function findExamHierarchy(query: IQueryExamHierarchy) {
   >(
     `${
       ApiRoutesEnum.EXAM
-    }/hierarchy/${hierarchyId}/${companyId}?take=${''}&skip=${''}&${queries}`,
+    }/hierarchy/${companyId}?take=${''}&skip=${''}&${queries}`,
   );
 
   return response.data;

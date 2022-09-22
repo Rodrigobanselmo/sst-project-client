@@ -11,10 +11,12 @@ export interface IReactQueryMany<T> extends Omit<UseQueryResult<T>, 'data'> {
 export interface IPaginationResult<T> {
   data: T;
   count: number;
+  countUnread?: number;
 }
 
 export interface IReactQueryPagination<T>
   extends Omit<UseQueryResult<T>, 'data'> {
   data: T;
   count: number;
+  countUnread?: number;
 }

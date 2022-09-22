@@ -15,20 +15,21 @@ import { queryClient } from 'core/services/queryClient';
 import { InvitesPopper } from '../InvitesPopper';
 
 export function InvitesIcon(): JSX.Element {
-  const { data: userInvites } = useQueryUserInvites();
   const { query } = useRouter();
+  const { isOpen, toggle, close } = useDisclosure();
+
+  const { data: userInvites } = useQueryUserInvites();
   const { data: inviteToken } = useQueryTokenInvite(query.token as string);
 
-  const { isOpen, toggle, close } = useDisclosure();
   const anchorEl = useRef<null | HTMLButtonElement>(null);
+
+  const data = [...userInvites];
+  if (inviteToken) data.push(inviteToken);
 
   const handleClick = () => {
     toggle();
     queryClient.refetchQueries([QueryEnum.INVITES_USER]);
   };
-
-  const data = [...userInvites];
-  if (inviteToken) data.push(inviteToken);
 
   useEffect(() => {
     if (data.length > 0 && !isOpen) toggle();
