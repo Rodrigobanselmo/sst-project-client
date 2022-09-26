@@ -20,6 +20,7 @@ import { companyOptionsConstant } from 'core/constants/maps/company.constant';
 import { useAccess } from 'core/hooks/useAccess';
 import { dateToDate } from 'core/utils/date/date-format';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
+import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { IUseAddCompany } from '../../hooks/useEditCompany';
@@ -219,6 +220,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
               <InputForm
                 defaultValue={companyData.responsibleCpf}
                 label="CPF"
+                mask={cpfMask.apply}
                 control={control}
                 labelPosition="center"
                 placeholder={'000.000.000-00'}

@@ -1,7 +1,7 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
-import { IUseAddCompany } from '../../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../../hooks/useEditClinic';
 
 export const useCompanyEdit = ({
   companyData,

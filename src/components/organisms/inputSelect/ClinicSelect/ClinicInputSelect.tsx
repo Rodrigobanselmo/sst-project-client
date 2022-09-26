@@ -5,7 +5,7 @@ import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
-import { initialClinicState } from 'components/organisms/modals/company/ModalEditClinic/hooks/useEditCompany';
+import { initialClinicState } from 'components/organisms/modals/company/ModalEditClinic/hooks/useEditClinic';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { ModalEnum } from 'core/enums/modal.enums';

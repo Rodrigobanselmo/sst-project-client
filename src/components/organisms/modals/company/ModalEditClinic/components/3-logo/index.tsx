@@ -9,7 +9,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import dynamic from 'next/dynamic';
 
-import { IUseAddCompany } from '../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../hooks/useEditClinic';
 import { useCompanyEdit } from './hooks/useCompanyThirdEdit';
 
 const DraftEditor = dynamic(

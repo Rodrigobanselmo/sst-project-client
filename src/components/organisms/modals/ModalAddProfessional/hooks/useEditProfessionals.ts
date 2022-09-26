@@ -15,7 +15,10 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IProfessional } from 'core/interfaces/api/IProfessional';
+import {
+  IProfessional,
+  IProfessionalCouncil,
+} from 'core/interfaces/api/IProfessional';
 import {
   ICreateProfessional,
   useMutCreateProfessional,
@@ -43,6 +46,7 @@ export const initialProfessionalState = {
   companyId: '',
   certifications: [] as string[],
   formation: [] as string[],
+  councils: [] as IProfessionalCouncil[],
   type: '' as ProfessionalTypeEnum,
   status: StatusEnum.ACTIVE,
   isClinic: false,
@@ -137,16 +141,13 @@ export const useEditProfessionals = () => {
       [ProfessionalTypeEnum.DOCTOR, ProfessionalTypeEnum.ENGINEER].includes(
         professionalData.type,
       ) &&
-      (!data.councilType || !data.councilId || !professionalData.councilUF)
+      professionalData.councils.length === 0
     ) {
-      if (!data.councilType)
-        setError('councilType', { message: 'campo obrigatório' });
-      if (!data.councilId) setError('councilId', { message: 'obrigatório' });
-      if (!professionalData.councilUF)
-        setError('councilUF', { message: 'campo obrigatório' });
+      setError('councilType', { message: 'campo obrigatório' });
+      setError('councilId', { message: 'obrigatório' });
+      setError('councilUF', { message: 'campo obrigatório' });
       return;
     }
-
     //? select company
     // if (!professionalData.id && isManyCompanies && !data.companyId) {
     //   setError('companyId', { message: 'Selecione uma empresa' });
@@ -157,11 +158,11 @@ export const useEditProfessionals = () => {
     const submitData: ICreateProfessional & { id?: number } = {
       ...data,
       id: professionalData.id,
+      councils: professionalData.councils,
       certifications: professionalData.certifications,
       formation: professionalData.formation,
       status: professionalData.status,
       inviteId: professionalData.inviteId,
-      councilUF: professionalData.councilUF,
       sendEmail: professionalData.sendEmail,
       ...(!!professionalData.userId && {
         userId: professionalData.userId,
@@ -187,27 +188,27 @@ export const useEditProfessionals = () => {
     } catch (error) {}
   };
 
-  const onGetProfessional = async ({ cpf, email }: any) => {
-    const councilType = getValues('councilType');
-    const councilUF = professionalData.councilUF;
-    const councilId = getValues('councilId');
-
+  const onGetProfessional = async ({
+    cpf,
+    email,
+    councilType,
+    councilUF,
+    councilId,
+  }: any) => {
     const setValues = (data: IProfessional | null) => {
       if (!data?.id) return;
       setValue('name', data?.name);
       setValue('phone', data?.phone);
       setValue('email', data?.email);
-      setValue('councilType', data?.councilType);
-      setValue('councilUF', data?.councilUF);
-      setValue('councilId', data?.councilId);
       setValue('type', data?.type);
       setValue('cpf', cpfMask.mask(data?.cpf));
 
       setProfessionalData((oldData) => ({
         ...oldData,
-        ...(data?.councilUF && { councilUF: data.councilUF }),
         ...(data?.type && { type: data.type }),
         ...(data.userId && { userId: data.userId }),
+        ...(data.councils &&
+          data.councils.length && { councils: data.councils }),
       }));
     };
 
@@ -244,6 +245,29 @@ export const useEditProfessionals = () => {
     }
   };
 
+  const onAddCouncil = (value: Partial<IProfessionalCouncil>) => {
+    onGetProfessional(value);
+
+    setProfessionalData({
+      ...professionalData,
+      councils: [...(professionalData?.councils || []), value as any],
+    });
+  };
+
+  const onDeleteCouncil = (value: Partial<IProfessionalCouncil>) => {
+    setProfessionalData({
+      ...professionalData,
+      councils: (professionalData?.councils || []).filter(
+        (c) =>
+          !(
+            c.councilId === value.councilId &&
+            c.councilType === value.councilType &&
+            c.councilUF === value.councilUF
+          ),
+      ),
+    });
+  };
+
   const getUrl = window.location;
   const baseUrl = getUrl.protocol + '//' + getUrl.host;
 
@@ -251,6 +275,16 @@ export const useEditProfessionals = () => {
   const handleCopy = () => {
     navigator.clipboard.writeText(link);
     enqueueSnackbar('Link copiado com sucesso', { variant: 'success' });
+  };
+
+  const getCouncilValue = () => {
+    if (professionalData.type === ProfessionalTypeEnum.ENGINEER) return 'CREA';
+    else if (professionalData.type === ProfessionalTypeEnum.NURSE)
+      return 'COREN';
+    else if (professionalData.type === ProfessionalTypeEnum.DOCTOR)
+      return 'CRM';
+
+    return '';
   };
 
   return {
@@ -271,6 +305,9 @@ export const useEditProfessionals = () => {
     link,
     isEdit: professionalData?.id,
     userFound: professionalData?.userId,
+    onAddCouncil,
+    onDeleteCouncil,
+    getCouncilValue,
   };
 };
 

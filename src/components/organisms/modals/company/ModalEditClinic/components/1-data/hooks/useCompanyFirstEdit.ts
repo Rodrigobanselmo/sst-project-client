@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
-import { IUseAddCompany } from '../../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../../hooks/useEditClinic';
 import { phoneMask } from './../../../../../../../../core/utils/masks/phone.mask';
 
 export const useCompanyEdit = ({

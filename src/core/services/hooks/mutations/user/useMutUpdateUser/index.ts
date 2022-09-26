@@ -21,12 +21,14 @@ export interface IUpdateUser {
   googleExternalId?: string;
   formation?: string[];
   certifications?: string[];
+  councils?: {
+    councilType?: string;
+    councilUF?: string;
+    councilId?: string;
+  }[];
   token?: string;
   oldPassword?: string;
   password?: string;
-  councilType?: string;
-  councilUF?: string;
-  councilId?: string;
 }
 
 export async function updateUserApi(data: IUpdateUser) {

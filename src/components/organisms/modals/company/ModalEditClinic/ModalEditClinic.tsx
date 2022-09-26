@@ -15,7 +15,7 @@ import { AddressModalCompanyStep } from './components/2-address';
 import { FourthModalCompanyStep } from './components/3-logo';
 import { BankModalCompanyStep } from './components/4-bank';
 import { ContactModalCompanyStep } from './components/5-contacts';
-import { useEditCompany } from './hooks/useEditCompany';
+import { useEditCompany } from './hooks/useEditClinic';
 
 export const ModalEditClinic = () => {
   const props = useEditCompany();

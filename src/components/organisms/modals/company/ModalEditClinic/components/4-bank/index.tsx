@@ -17,7 +17,7 @@ import { dateDayMask } from 'core/utils/masks/date.mask';
 import { floatMask } from 'core/utils/masks/float.mask';
 import { intMask } from 'core/utils/masks/int.mask';
 
-import { IUseAddCompany } from '../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../hooks/useEditClinic';
 import { useBankClinic } from './hooks/useBankClinic';
 
 const DraftEditor = dynamic(

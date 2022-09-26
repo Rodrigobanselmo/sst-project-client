@@ -9,7 +9,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { ContactsTable } from 'components/organisms/tables/ContactsTable';
 
-import { IUseAddCompany } from '../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../hooks/useEditClinic';
 import { useCompanyContacts } from './hooks/useCompanyContacts';
 
 export const ContactModalCompanyStep = (props: IUseAddCompany) => {

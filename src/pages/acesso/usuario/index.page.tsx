@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Typography } from '@mui/material';
 import { SLogo } from 'components/atoms/SLogo';
 import { UserForm } from 'components/organisms/forms/UserForm';
+import { ModalAddCouncil } from 'components/organisms/modals/ModalAddCouncil';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -42,6 +43,7 @@ const UserPage: NextPage = () => {
         <UserForm onlyEdit />
       </STSectionBox>
       <ModalSingleInput />
+      <ModalAddCouncil />
     </STContainer>
   );
 };

@@ -19,15 +19,13 @@ export interface ICreateProfessional {
   cpf?: string;
   phone?: string;
   email?: string;
-  councilType?: string;
-  councilUF?: string;
-  councilId?: string;
   inviteId?: string;
   userId?: number;
   sendEmail?: boolean;
   companyId?: string;
   certifications?: string[];
   formation?: string[];
+  councils?: { councilType?: string; councilUF?: string; councilId?: string }[];
   type: ProfessionalTypeEnum;
   status?: StatusEnum;
 }

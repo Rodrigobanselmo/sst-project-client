@@ -21,5 +21,10 @@ export interface IDrawerLinks {
     removeWithRoles?: RoleEnum[];
     href: RoutesEnum;
     shouldMatchExactHref?: boolean;
+    showIf?: {
+      isClinic?: boolean;
+      isConsulting?: boolean;
+      isCompany?: boolean;
+    };
   }[];
 }

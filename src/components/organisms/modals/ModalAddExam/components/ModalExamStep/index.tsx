@@ -58,9 +58,10 @@ export const ModalExamStep = ({
               return option.name;
             }}
             setValue={(v: any) =>
+              (typeof v === 'string' || v?.name === 'string') &&
               setValue('name', typeof v === 'string' ? v : v.name)
             }
-            defaultValue={examData.name || ''}
+            defaultValue={examData.name}
             label="Nome do exame*"
             options={esocial27}
           />

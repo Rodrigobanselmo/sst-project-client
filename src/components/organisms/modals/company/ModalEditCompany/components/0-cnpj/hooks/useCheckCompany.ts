@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { IErrorResp } from 'core/services/errors/types';
 import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
 import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
+import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { IUseAddCompany } from '../../../hooks/useEditCompany';
 
@@ -35,6 +36,7 @@ export const useCheckCompany = ({
         setCompanyData((state) => ({
           ...state,
           ...data,
+          phone: phoneMask.mask(data.phone),
           activityStartDate: data.activity_start_date
             ? dayjs(data.activity_start_date).toDate() || undefined
             : undefined,

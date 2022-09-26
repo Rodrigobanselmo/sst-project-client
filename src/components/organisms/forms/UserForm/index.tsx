@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { getStates } from '@brazilian-utils/brazilian-utils';
 import { Box, BoxProps } from '@mui/material';
@@ -16,6 +16,7 @@ import { professionalsOptionsList } from 'core/constants/maps/professionals.map'
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
+import { CouncilShow } from './CouncilShow/CouncilShow';
 import { useUserForm } from './hooks/useUserForm';
 import { STBox } from './styles';
 
@@ -34,13 +35,11 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
     onDeleteArray,
     linkGoogle,
     setValue,
+    onAddCouncil,
+    onDeleteCouncil,
   } = useUserForm(props.onlyEdit);
 
   useFetchFeedback(!user);
-
-  const ufs = useMemo(() => {
-    return getStates().map((state) => state.code);
-  }, []);
 
   if (!user || !userData) return null;
 
@@ -105,88 +104,13 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           name="type"
         />
 
-        {/* {userData.hasCREA && (
-          <InputForm
-            defaultValue={userData?.crea}
-            uneditable={uneditable}
-            label="CREA"
-            control={control}
-            placeholder={'número do CREA'}
-            name="crea"
-            size="small"
-          />
-        )} */}
-
-        {/* {userData.hasCRM && (
-          <InputForm
-            defaultValue={userData?.crm}
-            uneditable={uneditable}
-            label="CRM"
-            control={control}
-            placeholder={'número do CRM'}
-            name="crm"
-            size="small"
-          />
-        )} */}
-
         {userData.hasCouncil && (
-          <SFlex mt={5} flexWrap="wrap" gap={5}>
-            <Box flex={5}>
-              <AutocompleteForm
-                name="councilType"
-                control={control}
-                freeSolo
-                disabled={uneditable}
-                getOptionLabel={(option) => String(option)}
-                inputProps={{
-                  labelPosition: 'top',
-                  placeholder: 'Exemplo: CREA, CRM',
-                  name: 'councilType',
-                }}
-                setValue={(v) => setValue('councilType', v)}
-                defaultValue={userData.councilType || ''}
-                sx={{ minWidth: [100] }}
-                label="Conselho"
-                options={['CRM', 'CREA', 'COREM']}
-              />
-            </Box>
-            <Box flex={1}>
-              <AutocompleteForm
-                name="councilUF"
-                inputProps={{
-                  labelPosition: 'top',
-                  placeholder: '__',
-                  name: 'councilUF',
-                }}
-                disabled={uneditable}
-                control={control}
-                placeholder={'estado...'}
-                defaultValue={userData.councilUF}
-                label="UF"
-                sx={{ minWidth: [100] }}
-                options={ufs}
-                onChange={(e: typeof ufs[0]) =>
-                  setUserData((old) => ({
-                    ...old,
-                    councilUF: e,
-                  }))
-                }
-              />
-            </Box>
-            <Box flex={1}>
-              <InputForm
-                defaultValue={userData.councilId}
-                label="Identificação"
-                labelPosition="top"
-                disabled={uneditable}
-                sx={{ minWidth: [300, 400] }}
-                control={control}
-                placeholder={'identificação...'}
-                name="councilId"
-                size="small"
-              />
-            </Box>
-          </SFlex>
+          <CouncilShow
+            data={userData.councils || []}
+            onAdd={(v) => onAddCouncil(v)}
+            onDelete={(v) => onDeleteCouncil(v)}
+            disabled={uneditable}
+          />
         )}
 
         {userData.hasFormation && (

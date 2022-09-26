@@ -89,11 +89,14 @@ export const useEditClinicExams = () => {
     {
       examId: clinicExamData.examId,
       companyId: clinicExamData.companyId,
+      groupId: clinicExamData.groupId,
       orderBy: 'startDate',
       orderByDirection: 'desc',
     },
     5,
   );
+
+  console.log('clinicExamData', clinicExamData);
 
   const isEdit = !!clinicExamData?.id;
 
@@ -142,6 +145,7 @@ export const useEditClinicExams = () => {
     dueInDays,
     ...data
   }) => {
+    console.log(dueInDays);
     if (!clinicExamData?.exam?.id) {
       return setError('exam', { message: 'Exame obrigatório' });
     }

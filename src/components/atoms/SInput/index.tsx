@@ -22,6 +22,9 @@ const textDisableInfo = {
     '-webkit-text-fill-color': `${defaultTheme.palette.info.main} !important`,
     color: `${defaultTheme.palette.info.main} !important`,
     opacity: `${0.8} !important`,
+    '&::placeholder': {
+      '-webkit-text-fill-color': `${defaultTheme.palette.grey[600]} !important`,
+    },
   },
 };
 

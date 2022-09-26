@@ -38,62 +38,20 @@ import {
   IQueryProfessionals,
   useQueryProfessionals,
 } from 'core/services/hooks/queries/useQueryProfessionals';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 export const getCredential = (row: IProfessional) => {
-  if (row?.crm && row?.crea) {
-    return `${row.crm} / ${row.crea}`;
-  }
-
-  if (row?.crm && !row?.crea) {
-    return row.crm;
-  }
-
-  if (row?.crea && !row?.crm) {
-    return row.crea;
-  }
-
-  if (row?.councilId) {
-    return `${row?.councilUF ? row.councilUF + '-' : ''}${row.councilId}`;
-  }
-
-  return '-';
+  return row?.councils
+    ?.map((c) => `${c?.councilUF ? c.councilUF + '-' : ''}${c.councilId}`)
+    .join(' / ');
 };
 
 export const getCouncil = (row: IProfessional) => {
-  if (row?.crm && row?.crea) {
-    if (row?.type == ProfessionalTypeEnum.ENGINEER) return 'CREA';
-    return 'CRM';
-  }
-
-  if (row?.crm) {
-    return 'CRM';
-  }
-
-  if (row?.crea) {
-    return 'CREA';
-  }
-
-  if (row?.councilType) {
-    return row.councilType || '-';
-  }
-
-  return '-';
+  return removeDuplicate(row?.councils?.map((c) => c?.councilType)).join(' / ');
 };
 
 export const getType = (row: IProfessional) => {
-  // if (row.crm && row.crea) {
-  //   return 'CRM / CREA';
-  // }
-
-  // if (row.crm && !row.crea) {
-  //   return `${professionalMap[ProfessionalTypeEnum.DOCTOR]?.name}`;
-  // }
-
-  // if (row.crea && !row.crm) {
-  //   return `${professionalMap[ProfessionalTypeEnum.ENGINEER]?.name}`;
-  // }
-
   return professionalMap[row.type]?.name || '-';
 };
 

@@ -2,6 +2,7 @@ import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { IAccessGroup } from './IAccessGroup';
+import { IProfessionalCouncil } from './IProfessional';
 
 export type IUserCompany = {
   roles: string[];
@@ -45,4 +46,5 @@ export type IUser = {
   councilType: string;
   councilUF: string;
   councilId: string;
+  councils: IProfessionalCouncil[];
 };

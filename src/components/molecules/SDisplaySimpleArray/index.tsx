@@ -233,6 +233,9 @@ export function SDisplaySimpleArray({
               if (type === TypeInputModal.PROFESSIONAL) {
                 return onSelectProfessionalUser();
               }
+              // if (type === TypeInputModal.COUNCIL) {
+              //   return onSelectProfessionalUser();
+              // }
 
               onStackOpenModal(ModalEnum.SINGLE_INPUT, {
                 onConfirm: onAdd,

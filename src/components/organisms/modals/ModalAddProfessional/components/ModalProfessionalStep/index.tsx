@@ -11,6 +11,7 @@ import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
+import { CouncilShow } from 'components/organisms/forms/UserForm/CouncilShow/CouncilShow';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -37,11 +38,10 @@ export const ModalProfessionalStep = ({
   link,
   userFound,
   isEdit,
+  onAddCouncil,
+  onDeleteCouncil,
+  getCouncilValue,
 }: IUseEditProfessional) => {
-  const ufs = useMemo(() => {
-    return getStates().map((state) => state.code);
-  }, []);
-
   const handleDebounceChange = useDebouncedCallback((x: any = {}) => {
     onGetProfessional(x);
   }, 800);
@@ -122,16 +122,6 @@ export const ModalProfessionalStep = ({
         onChange={(e) => {
           const type = (e as any).target.value as ProfessionalTypeEnum;
 
-          if (type === ProfessionalTypeEnum.ENGINEER)
-            setValue('councilType', 'CREA');
-          else if (type === ProfessionalTypeEnum.NURSE)
-            setValue('councilType', 'COREN');
-          else if (type === ProfessionalTypeEnum.DOCTOR)
-            setValue('councilType', 'CRM');
-          // else if (type === ProfessionalTypeEnum.SPEECH_THERAPIST)
-          //   setValue('councilType', 'CFF');
-          else setValue('councilType', '');
-
           setProfessionalData((old) => ({
             ...old,
             type,
@@ -150,7 +140,16 @@ export const ModalProfessionalStep = ({
         }))}
       />
 
-      <SText color="text.label" mt={5} fontSize={14}>
+      <CouncilShow
+        data={professionalData.councils || []}
+        onAdd={(v) => onAddCouncil(v)}
+        onDelete={(v) => onDeleteCouncil(v)}
+        initialValues={{ councilType: getCouncilValue() }}
+        control={control}
+        setValue={setValue}
+      />
+
+      {/* <SText color="text.label" mt={5} fontSize={14}>
         Conselho
       </SText>
       <SFlex mt={3} flexWrap="wrap" gap={5}>
@@ -208,7 +207,8 @@ export const ModalProfessionalStep = ({
             size="small"
           />
         </Box>
-      </SFlex>
+      </SFlex> */}
+
       <SText color="text.label" mt={5} fontSize={14}>
         Acesso ao Sistema
       </SText>

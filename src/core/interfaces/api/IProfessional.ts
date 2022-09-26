@@ -23,6 +23,7 @@ export type IProfessional = {
   status: StatusEnum;
   professionalPgrSignature?: IProfessionalToRiskGroup;
   professionalsPgrSignatures?: IProfessionalToRiskGroup[];
+  councils: IProfessionalCouncil[];
 };
 
 export type IProfessionalToRiskGroup = {
@@ -31,4 +32,15 @@ export type IProfessionalToRiskGroup = {
   isSigner: boolean;
   isElaborator: boolean;
   professional?: IProfessional;
+};
+
+export type IProfessionalCouncil = {
+  id: number;
+  councilType: string;
+  councilUF: string;
+  councilId: string;
+  created_at: Date;
+  updated_at: Date;
+  professionalId: number;
+  professional: IProfessional;
 };

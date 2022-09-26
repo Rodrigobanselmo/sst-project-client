@@ -10,7 +10,7 @@ import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedSt
 import { cepMask } from 'core/utils/masks/cep.mask';
 import { intMask } from 'core/utils/masks/int.mask';
 
-import { IUseAddCompany } from '../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../hooks/useEditClinic';
 import { useCompanyEdit } from './hooks/useCompanySecondEdit';
 
 export const AddressModalCompanyStep = (props: IUseAddCompany) => {

@@ -16,7 +16,7 @@ import { useAccess } from 'core/hooks/useAccess';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
 
-import { IUseAddCompany } from '../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../hooks/useEditClinic';
 import { useCompanyEdit } from './hooks/useCompanyFirstEdit';
 
 const DraftEditor = dynamic(

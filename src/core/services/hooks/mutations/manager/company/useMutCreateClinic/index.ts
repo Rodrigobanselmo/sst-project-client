@@ -30,7 +30,6 @@ interface ICreateCompany
   cadastral_situation_date?: string;
   legal_nature_code?: string;
   cadastral_situation_description?: string;
-  isClinic?: boolean;
 }
 
 export async function createCompany(data: ICreateCompany, companyId?: string) {
@@ -43,28 +42,12 @@ export async function createCompany(data: ICreateCompany, companyId?: string) {
   return response.data;
 }
 
-export async function createClinic(data: ICreateCompany, companyId?: string) {
-  if (!companyId) return null;
-
-  const response = await api.post<ICompany>(
-    ApiRoutesEnum.COMPANIES + '/clinic',
-    {
-      ...data,
-      companyId,
-    },
-  );
-  return response.data;
-}
-
-export function useMutCreateCompany({ isClinic }: { isClinic?: boolean } = {}) {
+export function useMutCreateCompany() {
   const { user } = useAuth();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: ICreateCompany) =>
-      isClinic
-        ? createClinic({ ...data, isClinic: true }, user?.companyId)
-        : createCompany(data, user?.companyId),
+    async (data: ICreateCompany) => createCompany(data, user?.companyId),
     {
       onSuccess: async (companyResp) => {
         if (companyResp) {

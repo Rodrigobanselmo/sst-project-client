@@ -17,6 +17,7 @@ export interface IQueryExam {
   examId?: number;
   endDate?: Date | null;
   orderBy?: string;
+  groupId?: string;
   orderByDirection?: 'asc' | 'desc';
 }
 

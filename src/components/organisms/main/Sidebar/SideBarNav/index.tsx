@@ -3,6 +3,7 @@ import { Stack } from '@mui/material';
 
 import { useAccess } from 'core/hooks/useAccess';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { Drawer_Links } from '../constants';
@@ -16,6 +17,7 @@ export function SideBarNav(): JSX.Element {
   const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
   const { isValidRoles, isToRemoveWithRoles } = useAccess();
   const { userCompanyId } = useGetCompanyId();
+  const { data: company } = useQueryCompany(userCompanyId);
 
   return (
     <BoxContainerStyled
@@ -39,6 +41,17 @@ export function SideBarNav(): JSX.Element {
                 {category.items.map((item) => {
                   if (!isValidRoles(item?.roles)) return null;
                   if (isToRemoveWithRoles(item?.removeWithRoles)) return null;
+                  if (item.showIf) {
+                    let show = false;
+                    // eslint-disable-next-line prettier/prettier
+                    if (!show) show = !!(item.showIf.isClinic && company.isClinic);
+                    // eslint-disable-next-line prettier/prettier
+                    if (!show)  show = !!(item.showIf.isConsulting && company.isConsulting );
+                    // eslint-disable-next-line prettier/prettier
+                    if (!show) show = !!(item.showIf.isCompany && !company.isConsulting && !company.isClinic );
+
+                    if (!show) return null;
+                  }
 
                   return (
                     <NavLink

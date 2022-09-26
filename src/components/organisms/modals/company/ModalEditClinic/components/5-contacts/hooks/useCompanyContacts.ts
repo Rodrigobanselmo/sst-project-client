@@ -10,7 +10,7 @@ import { useModal } from 'core/hooks/useModal';
 import { useMutAddCompanyPhoto } from 'core/services/hooks/mutations/manager/company/useMutAddCompanyPhoto';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
-import { IUseAddCompany } from '../../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../../hooks/useEditClinic';
 
 export const useCompanyContacts = ({
   companyData,

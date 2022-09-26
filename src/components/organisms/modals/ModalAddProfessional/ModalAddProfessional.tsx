@@ -9,6 +9,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 
 import { ModalEnum } from 'core/enums/modal.enums';
 
+import { ModalAddCouncil } from '../ModalAddCouncil';
 import { ModalProfessionalStep } from './components/ModalProfessionalStep';
 import { useEditProfessionals } from './hooks/useEditProfessionals';
 
@@ -34,31 +35,34 @@ export const ModalAddProfessional = () => {
   ] as IModalButton[];
 
   return (
-    <SModal
-      {...registerModal(ModalEnum.PROFESSIONALS_ADD)}
-      keepMounted={false}
-      onClose={onCloseUnsaved}
-    >
-      <SModalPaper
-        p={8}
-        center
-        component="form"
-        onSubmit={handleSubmit(onSubmit)}
+    <>
+      <SModal
+        {...registerModal(ModalEnum.PROFESSIONALS_ADD)}
+        keepMounted={false}
+        onClose={onCloseUnsaved}
       >
-        <SModalHeader
-          tag={professionalData.id ? 'edit' : 'add'}
-          onClose={onCloseUnsaved}
-          title={'Profissional'}
-        />
+        <SModalPaper
+          p={8}
+          center
+          component="form"
+          onSubmit={handleSubmit(onSubmit)}
+        >
+          <SModalHeader
+            tag={professionalData.id ? 'edit' : 'add'}
+            onClose={onCloseUnsaved}
+            title={'Profissional'}
+          />
 
-        <ModalProfessionalStep {...props} />
+          <ModalProfessionalStep {...props} />
 
-        <SModalButtons
-          loading={loading}
-          onClose={onCloseUnsaved}
-          buttons={buttons}
-        />
-      </SModalPaper>
-    </SModal>
+          <SModalButtons
+            loading={loading}
+            onClose={onCloseUnsaved}
+            buttons={buttons}
+          />
+        </SModalPaper>
+      </SModal>
+      <ModalAddCouncil />
+    </>
   );
 };

@@ -18,10 +18,9 @@ export enum PermissionEnum {
   PROFESSIONALS = '1.2',
   COMPANY = '2',
   EMPLOYEE = '2.1',
-  EMPLOYEE_HISTORY = '2.2', //*new
-  COMPANY_SCHEDULE = '2.3', //*new
+  EMPLOYEE_HISTORY = '2.2',
+  COMPANY_SCHEDULE = '2.3',
   EPI = '3',
-  MANAGEMENT = '4',
   RISK = '4.0',
   GS = '4.1',
   REC_MED = '4.2',
@@ -31,13 +30,13 @@ export enum PermissionEnum {
   CHARACTERIZATION = '4.6',
   PCMSO = '4.7',
   EXAM_RISK = '4.8',
-  CLINIC_SCHEDULE = '5', //*new
-  HOMO_GROUP = '6', //*new
+  EXAM_CLINIC = '4.9',
+  CLINIC_SCHEDULE = '5',
+  HOMO_GROUP = '6',
   EXAM = '7',
   RISK_DOC_INFO = '8',
-  // COMPANY_GROUPS = '4.9',
-
-  CREATE_COMPANY = '2.1',
-  // CONTRACT = '3',
-  // CREATE_RISK = '10',
+  COMPANY_GROUPS = '9',
+  DOCUMENTS = '10',
+  CONTRACTS = '11',
+  CLINIC = '12',
 }

@@ -3,7 +3,7 @@ import { useWizard } from 'react-use-wizard';
 
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 
-import { IUseAddCompany } from '../../../hooks/useEditCompany';
+import { IUseAddCompany } from '../../../hooks/useEditClinic';
 
 export const useBankClinic = ({
   companyData,

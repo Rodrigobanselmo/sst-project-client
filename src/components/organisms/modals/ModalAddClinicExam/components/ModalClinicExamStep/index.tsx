@@ -83,27 +83,25 @@ export const ModalClinicExamStep = ({
             options={clinicScheduleOptionsList}
           />
         </Box>
-        {!clinicExamData?.exam?.isAttendance && (
-          <Box>
-            <AutocompleteForm
-              name="dueInDays"
-              control={control}
-              freeSolo
-              getOptionLabel={(option) => String(option)}
-              inputProps={{
-                labelPosition: 'top',
-                placeholder: 'em dias...',
-                name: 'dueInDays',
-              }}
-              setValue={(v) => setValue('dueInDays', v)}
-              defaultValue={clinicExamData.dueInDays || ''}
-              mask={intMask.apply}
-              label="Prazo para resultado (dias)"
-              sx={{ width: [200] }}
-              options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
-            />
-          </Box>
-        )}
+        <Box>
+          <AutocompleteForm
+            name="dueInDays"
+            control={control}
+            freeSolo
+            getOptionLabel={(option) => String(option)}
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'em dias...',
+              name: 'dueInDays',
+            }}
+            setValue={(v) => setValue('dueInDays', v)}
+            defaultValue={clinicExamData.dueInDays}
+            mask={intMask.apply}
+            label="Prazo para resultado (dias)"
+            sx={{ width: [200] }}
+            options={[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+          />
+        </Box>
       </SFlex>
       <SText color="text.label" fontSize={14} mt={6} mb={-2}>
         Disponibilizar o exame para:

@@ -80,7 +80,7 @@ export const useEditCompany = () => {
   const initialDataRef = useRef(initialClinicState);
 
   const updateCompany = useMutUpdateCompany();
-  const createCompany = useMutCreateCompany();
+  const createCompany = useMutCreateCompany({ isClinic: true });
   const cepMutation = useMutationCEP();
   const cnpjMutation = useMutationCNPJ();
 

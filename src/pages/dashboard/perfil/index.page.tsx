@@ -1,5 +1,6 @@
 import { SContainer } from 'components/atoms/SContainer';
 import { UserForm } from 'components/organisms/forms/UserForm';
+import { ModalAddCouncil } from 'components/organisms/modals/ModalAddCouncil';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { NextPage } from 'next';
 
@@ -10,6 +11,7 @@ const Database: NextPage = () => {
     <SContainer>
       <UserForm />
       <ModalSingleInput />
+      <ModalAddCouncil />
     </SContainer>
   );
 };

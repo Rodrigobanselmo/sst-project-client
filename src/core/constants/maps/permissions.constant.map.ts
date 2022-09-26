@@ -29,28 +29,16 @@ export const permissionsConstantMap = {
     info: 'Acesso ao gerenciamento dos grupos de permissões',
     crud: ['c', 'r', 'u', 'd'],
   },
-  [PermissionEnum.EPI]: {
-    value: PermissionEnum.EPI,
-    label: "EPI's",
-    info: "Gerenciamento dos EPI's",
-    crud: ['c', 'r', 'u', 'd'],
-  },
-  [PermissionEnum.MANAGEMENT]: {
-    value: PermissionEnum.MANAGEMENT,
-    label: 'Gerenciamento da empresa',
-    info: 'Acesso para visualização de todos os dados vinculados a empresa',
-    crud: ['c', 'r', 'u', 'd'],
-  },
-  [PermissionEnum.COMPANY]: {
-    value: PermissionEnum.COMPANY,
-    label: 'Dados cadastrais da empresa',
-    info: 'Acesso aos dados de cadastro da empresa (Não possui acesso a gestão de risco)',
-    crud: ['c', 'r', 'u', 'd'],
-  },
   [PermissionEnum.PROFESSIONALS]: {
     value: PermissionEnum.PROFESSIONALS,
     label: 'Gerenciamento dos profissionais',
     info: 'Gerenciamento dos profissionais da empresa (tecnicos, engenheiros, medicos e etc)',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.COMPANY]: {
+    value: PermissionEnum.COMPANY,
+    label: 'Dados da Empresa',
+    info: 'Acesso aos dados de cadastro da empresa (Não possui acesso a gestão de risco)',
     crud: ['c', 'r', 'u', 'd'],
   },
   [PermissionEnum.EMPLOYEE]: {
@@ -63,6 +51,18 @@ export const permissionsConstantMap = {
     value: PermissionEnum.EMPLOYEE_HISTORY,
     label: 'Histórico do funcionários',
     info: 'Gerenciamento do historico do funcionário (exames e lotação)',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.COMPANY_SCHEDULE]: {
+    value: PermissionEnum.COMPANY_SCHEDULE,
+    label: 'Agendamento de Exames',
+    info: 'Agendamento de exames nas clínicas cadastradas',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.EPI]: {
+    value: PermissionEnum.EPI,
+    label: "EPI's",
+    info: "Gerenciamento dos EPI's",
     crud: ['c', 'r', 'u', 'd'],
   },
   [PermissionEnum.RISK]: {
@@ -94,11 +94,6 @@ export const permissionsConstantMap = {
     label: 'Módulo PGR (Visualizar e gerar novos documentos)',
     crud: ['c', 'r', 'u', 'd'],
   },
-  [PermissionEnum.PCMSO]: {
-    value: PermissionEnum.PCMSO,
-    label: 'Módulo PCMSO (Visualizar e gerar novos documentos)',
-    crud: ['c', 'r', 'u', 'd'],
-  },
   [PermissionEnum.ACTION_PLAN]: {
     value: PermissionEnum.ACTION_PLAN,
     label: 'Plano de ação (PGR)',
@@ -111,16 +106,15 @@ export const permissionsConstantMap = {
     info: 'Gerenciamento dos ambientes, posto de trabalho, atividades e etc da empresa',
     crud: ['r', 'cu', 'd'],
   },
+  [PermissionEnum.PCMSO]: {
+    value: PermissionEnum.PCMSO,
+    label: 'Módulo PCMSO (Visualizar e gerar novos documentos)',
+    crud: ['c', 'r', 'u', 'd'],
+  },
   [PermissionEnum.EXAM]: {
     value: PermissionEnum.EXAM,
     label: 'Exames',
     info: 'gerenciamento dos exames cadastrados da empresa',
-    crud: ['r', 'cu'],
-  },
-  [PermissionEnum.RISK_DOC_INFO]: {
-    value: PermissionEnum.RISK_DOC_INFO,
-    label: 'Relevância dos Risco',
-    info: 'Pode alterar para qual documentos o risco irá fazer parte',
     crud: ['r', 'cu'],
   },
   [PermissionEnum.EXAM_RISK]: {
@@ -129,17 +123,59 @@ export const permissionsConstantMap = {
     info: 'gerenciamento dos exames padrões cadastrados nos riscos das empresas',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.EXAM_CLINIC]: {
+    value: PermissionEnum.EXAM_CLINIC,
+    label: 'Exames / Clínicas',
+    info: 'gerenciamento dos exames cadastrados nas clínicas para agendamentos',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.RISK_DOC_INFO]: {
+    value: PermissionEnum.RISK_DOC_INFO,
+    label: 'Relevância dos Risco',
+    info: 'Pode alterar para qual documentos o risco irá fazer parte',
+    crud: ['r', 'cu'],
+  },
   [PermissionEnum.CLINIC_SCHEDULE]: {
     value: PermissionEnum.CLINIC_SCHEDULE,
     label: 'Controle de Agendamento (Clínica)',
     info: 'gerenciamento de exames pela clínica',
     crud: ['c', 'r', 'u', 'd'],
   },
-  [PermissionEnum.COMPANY_SCHEDULE]: {
-    value: PermissionEnum.COMPANY_SCHEDULE,
-    label: 'Agendamento de Exames',
-    info: 'Agendamento de exames nas clínicas cadastradas',
+  [PermissionEnum.HOMO_GROUP]: {
+    value: PermissionEnum.HOMO_GROUP,
+    label: 'GSE',
+    info: 'gerenciamento dos grupos similares de exposição',
+    crud: ['r', 'cu'],
+  },
+  [PermissionEnum.RISK_DOC_INFO]: {
+    value: PermissionEnum.RISK_DOC_INFO,
+    label: 'Relação de riscos nos documentos',
+    info: 'Possivel definir para qual documento o risco identificado na empresa irá',
+    crud: ['r', 'cu'],
+  },
+  [PermissionEnum.COMPANY_GROUPS]: {
+    value: PermissionEnum.COMPANY_GROUPS,
+    label: 'Grupo Empresarial',
+    info: 'Gerenciamento dos grupos empresariais',
     crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.DOCUMENTS]: {
+    value: PermissionEnum.DOCUMENTS,
+    label: 'Documentos',
+    info: 'Controle dos documentos da empresa (upload e vencimentos)',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.CONTRACTS]: {
+    value: PermissionEnum.CONTRACTS,
+    label: 'Criação de Empresas',
+    info: 'Criação de Empresas',
+    crud: ['r', 'cu', 'd'],
+  },
+  [PermissionEnum.CLINIC]: {
+    value: PermissionEnum.CLINIC,
+    label: 'Clinicas',
+    info: 'Criação e edição de dados da clínica',
+    crud: ['r', 'cu', 'd'],
   },
 } as IPermissionsOptions;
 

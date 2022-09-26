@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Controller } from 'react-hook-form';
 
 import AutocompleteSelect from 'components/atoms/SAutocompleteSelect';
@@ -23,9 +23,15 @@ export function AutocompleteForm<T>({
   boxProps,
   ...restSelect
 }: AutocompleteFormProps<T>) {
+  const ref = useRef<any>(null);
   useEffect(() => {
-    if (freeSolo && defaultValue !== undefined) {
-      setValue?.(String(defaultValue || ''));
+    if (
+      defaultValue !== undefined &&
+      defaultValue !== null &&
+      ref.current != defaultValue
+    ) {
+      setValue?.(String(defaultValue));
+      ref.current = defaultValue;
     }
   }, [freeSolo, defaultValue, setValue]);
 

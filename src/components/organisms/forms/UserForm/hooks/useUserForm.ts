@@ -12,6 +12,8 @@ import {
 } from 'core/services/hooks/mutations/user/useMutUpdateUser';
 import { userUpdateSchema } from 'core/utils/schemas/user-update.schema';
 
+import { IProfessionalCouncil } from './../../../../../core/interfaces/api/IProfessional';
+
 interface ISubmit extends Partial<IUpdateUser> {}
 
 export const useUserForm = (onlyEdit?: boolean) => {
@@ -25,7 +27,7 @@ export const useUserForm = (onlyEdit?: boolean) => {
 
   useEffect(() => {
     if (user) {
-      ['crea', 'crm', 'name', 'cpf', 'type'].forEach((key) => {
+      ['name', 'cpf', 'type'].forEach((key) => {
         const keyValue = key as unknown as keyof typeof user;
         if (!!user && user[keyValue]) setValue(key, user[keyValue]);
       });
@@ -45,12 +47,10 @@ export const useUserForm = (onlyEdit?: boolean) => {
       .mutateAsync({
         formation: userData.formation,
         certifications: userData.certifications,
-        crea: userData.crea,
+        councils: userData.councils,
         type:
           (userData.type as ProfessionalTypeEnum) || ProfessionalTypeEnum.USER,
-        crm: userData.crm,
         ...data,
-        councilUF: userData.councilUF,
       })
       .then(() => {
         setUneditable(true);
@@ -84,6 +84,27 @@ export const useUserForm = (onlyEdit?: boolean) => {
     setUserData({
       ...userData,
       [type]: [...(userData as any)[type], value],
+    });
+  };
+
+  const onAddCouncil = (value: Partial<IProfessionalCouncil>) => {
+    setUserData({
+      ...userData,
+      councils: [...(userData?.councils || []), value as any],
+    });
+  };
+
+  const onDeleteCouncil = (value: Partial<IProfessionalCouncil>) => {
+    setUserData({
+      ...userData,
+      councils: (userData?.councils || []).filter(
+        (c) =>
+          !(
+            c.councilId === value.councilId &&
+            c.councilType === value.councilType &&
+            c.councilUF === value.councilUF
+          ),
+      ),
     });
   };
 
@@ -127,6 +148,8 @@ export const useUserForm = (onlyEdit?: boolean) => {
     onDeleteArray,
     linkGoogle,
     setValue,
+    onAddCouncil,
+    onDeleteCouncil,
   };
 };
 
@@ -134,8 +157,6 @@ const createUser = (user: Partial<IUser> | null) => {
   return {
     name: user?.name || '',
     email: user?.email || '',
-    crm: user?.crm || '',
-    crea: user?.crea || '',
     cpf: user?.cpf || '',
     type: user?.type || '',
     councilType: user?.councilType || '',
@@ -143,9 +164,8 @@ const createUser = (user: Partial<IUser> | null) => {
     councilId: user?.councilId || '',
     formation: user?.formation || [''],
     certifications: user?.certifications || [''],
-    hasCREA: !!user?.crea,
-    hasCRM: !!user?.crm,
-    hasCouncil: !!user?.councilType,
+    hasCouncil: user?.councils && user?.councils.length > 0,
+    councils: user?.councils,
     hasFormation: false,
     hasCertifications: false,
   };

@@ -66,7 +66,12 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
           permissions[roleOptions.value] = [];
 
         permissions[roleOptions.value]?.push(
-          ...roleOptions.permissions.map((permissions) => permissions + '-r'),
+          ...roleOptions.permissions.map(
+            (permissions) =>
+              permissions +
+                '-' +
+                permissionsConstantMap?.[permissions]?.crud?.join('') || 'r',
+          ),
         );
       }
     }

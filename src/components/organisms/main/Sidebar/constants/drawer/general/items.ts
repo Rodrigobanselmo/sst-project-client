@@ -61,7 +61,7 @@ const companyGroups = {
   description: 'Gerenciamento dos grupos empresariais',
   id: 'Tu29j3dGe32e32CC',
   href: RoutesEnum.COMPANY_GROUP,
-  roles: [RoleEnum.MANAGEMENT],
+  roles: [RoleEnum.COMPANY],
   shouldMatchExactHref: true,
 };
 
@@ -101,6 +101,23 @@ const allClinicsData = {
   href: RoutesEnum.CLINICS,
   roles: [RoleEnum.CLINICS],
   shouldMatchExactHref: true,
+  showIf: {
+    isConsulting: true,
+    isCompany: true,
+  },
+};
+
+const oneClinicsData = {
+  text: 'Clinica',
+  Icon: SClinicIcon,
+  description: 'Visualizar clínica',
+  id: 'lfrXasdfdsfeww3eDx',
+  href: RoutesEnum.CLINIC,
+  roles: [RoleEnum.CLINICS],
+  shouldMatchExactHref: true,
+  showIf: {
+    isClinic: true,
+  },
 };
 
 const companiesData = {
@@ -109,7 +126,7 @@ const companiesData = {
   description: 'Visualizar sua empresa',
   id: 'lfrXadsdeDx',
   href: RoutesEnum.COMPANY,
-  roles: [RoleEnum.MANAGEMENT, RoleEnum.COMPANY],
+  roles: [RoleEnum.COMPANY],
   removeWithRoles: [RoleEnum.CONTRACTS],
   shouldMatchExactHref: true,
 };
@@ -121,7 +138,7 @@ const professionals = {
     'Visualizar os profissionais (médiocos, engenheiros, etc) de sua empresa',
   id: 'dqwdwqcewweqqweq',
   href: RoutesEnum.PROFESSIONALS,
-  roles: [RoleEnum.PROFESSIONALS, RoleEnum.USER],
+  roles: [RoleEnum.COMPANY, RoleEnum.USER],
   shouldMatchExactHref: true,
 };
 
@@ -168,6 +185,7 @@ export const generalArray = [
   companyGroups,
   professionals,
   allClinicsData,
+  oneClinicsData,
   exams,
   risks,
 ];
