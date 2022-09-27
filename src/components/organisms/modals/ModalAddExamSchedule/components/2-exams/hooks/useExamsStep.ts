@@ -2,7 +2,7 @@ import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
 import {
-  notAvailableScheduleDate,
+  availableScheduleDate,
   notAvailableScheduleTime,
 } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
@@ -116,7 +116,7 @@ export const useExamsStep = ({
             (_data as any)['scheduleType'] = examClinic?.scheduleType;
 
             if (key === 'doneDate') {
-              const isOk = !notAvailableScheduleDate(value as any, {
+              const isOk = availableScheduleDate(value as any, {
                 scheduleRange: examClinic?.scheduleRange,
               });
 

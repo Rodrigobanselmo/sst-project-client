@@ -197,10 +197,8 @@ export const useCompanyStep = () => {
   ]);
 
   const handleAddTeam = useCallback(() => {
-    push({
-      pathname: RoutesEnum.TEAM.replace(':companyId', company.id),
-    });
-  }, [company.id, push]);
+    onOpenModal(ModalEnum.USER_VIEW);
+  }, [onOpenModal]);
 
   const actionsMapStepMemo = useMemo(() => {
     return {

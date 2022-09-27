@@ -15,7 +15,6 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialClinicExamState } from 'components/organisms/modals/ModalAddClinicExam/hooks/useEditClinicExams';
 import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
@@ -33,6 +32,7 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { IExamToClinic } from 'core/interfaces/api/IExam';
 import { useMutCopyExamClinic } from 'core/services/hooks/mutations/checklist/exams/useMutCopyExamClinic/useMutCopyExamClinic';
 import { useQueryClinicExams } from 'core/services/hooks/queries/useQueryClinicExams/useQueryClinicExams';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 import { getMoney } from 'core/utils/helpers/getMoney.utils';
 import { getText } from 'core/utils/helpers/getText';
 

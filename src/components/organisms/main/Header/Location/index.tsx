@@ -9,19 +9,10 @@ import { useRouter } from 'next/router';
 
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { brandNameConstant } from '../../../../../core/constants/brand.constant';
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
-
-export const getCompanyName = (company?: ICompany): string => {
-  if (!company) return '';
-
-  const initials = company?.initials ? `(${company?.initials})` : '';
-  const name = company?.fantasy || company?.name || '';
-  const companyName = (initials ? initials + ' ' : '') + name;
-
-  return companyName;
-};
 
 export function Location(): JSX.Element {
   const { isTablet } = useSidebarDrawer();
@@ -31,7 +22,6 @@ export function Location(): JSX.Element {
   const companyId = query.companyId as string;
 
   const companyName = getCompanyName(company);
-
   const routes = asPath
     .split('?')[0]
     .split('/')
@@ -49,6 +39,8 @@ export function Location(): JSX.Element {
 
     return `/${route.replace(companyName || 'empresa', companyId || '')}`;
   };
+
+  // useLocation()
 
   return (
     <Box>

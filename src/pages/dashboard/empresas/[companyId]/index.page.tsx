@@ -5,7 +5,6 @@ import SIconButton from 'components/atoms/SIconButton';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import SText from 'components/atoms/SText';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
@@ -16,6 +15,10 @@ import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
 import { ModalViewExam } from 'components/organisms/modals/ModalViewExam/ModalViewExam';
+import {
+  ModalViewUsers,
+  StackModalViewUsers,
+} from 'components/organisms/modals/ModalViewUsers/ModalViewExam';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { NextPage } from 'next';
 
@@ -26,6 +29,7 @@ import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import { useCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { SActionButton } from '../../../../components/atoms/SActionButton';
 
@@ -108,6 +112,9 @@ const CompanyPage: NextPage = () => {
       <ModalAddExam />
       <ModalViewExam />
       <ModalEditExamRisk />
+
+      <ModalViewUsers />
+      <StackModalViewUsers />
     </SContainer>
   );
 };

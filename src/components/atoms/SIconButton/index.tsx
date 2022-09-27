@@ -23,22 +23,21 @@ const SIconButton: FC<SIconButtonProps> = ({
     title={tooltip}
   >
     <IconButton
-      sx={
-        bg
-          ? {
-              backgroundColor: bg,
-              boxShadow: 'rgb(0 0 0 / 5%) 0px 3px 12px',
-              '&:hover': {
-                backgroundColor: bg,
-                filter: 'brightness(0.9)',
-              },
-              '&:active': {
-                backgroundColor: bg,
-              },
-              ...sx,
-            }
-          : { ...sx }
-      }
+      sx={{
+        ...(bg && {
+          backgroundColor: bg,
+          boxShadow: 'rgb(0 0 0 / 5%) 0px 3px 12px',
+          '&:hover': {
+            backgroundColor: bg,
+            filter: 'brightness(0.9)',
+          },
+          '&:active': {
+            backgroundColor: bg,
+          },
+        }),
+        ...(disabled && { opacity: 0.4 }),
+        ...sx,
+      }}
       disabled={loading || disabled}
       size={size}
       {...props}

@@ -171,7 +171,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
             </Box>
             <Box minWidth="200px" maxWidth="200px">
               <DatePickerForm
-                label="Data de Nascimento"
+                label="data nascimento"
                 calendarProps={{
                   excludeDateIntervals: [
                     {

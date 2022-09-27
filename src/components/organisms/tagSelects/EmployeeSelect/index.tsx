@@ -4,7 +4,6 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialEmployeeState } from 'components/organisms/modals/ModalAddEmployees/hooks/useEditEmployees';
 import { useSnackbar } from 'notistack';
 import { useDebouncedCallback } from 'use-debounce';
@@ -18,6 +17,7 @@ import { useModal } from 'core/hooks/useModal';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { useMutDeleteSubOfficeEmployee } from 'core/services/hooks/mutations/manager/useMutDeleteSubOfficeEmployee';
 import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 

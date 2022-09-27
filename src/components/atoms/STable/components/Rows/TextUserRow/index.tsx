@@ -24,10 +24,10 @@ const TextUserRow: FC<TextUserRowProps> = ({ user, ...props }) => {
       text={
         user?.name ? (
           <div onClick={(e) => e.stopPropagation()}>
-            <SText className="table-row-text" lineNumber={1} fontSize={12}>
+            <SText className="table-row-text noBreakText" fontSize={12}>
               {user.name}
             </SText>
-            <SText className="table-row-text" lineNumber={1} fontSize={12}>
+            <SText className="table-row-text noBreakText" fontSize={12}>
               {user.email}
             </SText>
           </div>

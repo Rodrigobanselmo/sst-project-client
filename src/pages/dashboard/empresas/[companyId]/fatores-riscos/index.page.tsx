@@ -2,6 +2,7 @@ import { Wizard } from 'react-use-wizard';
 
 import { Box } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
+import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { StackModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
@@ -17,13 +18,7 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 const RiskPage: NextPage = () => {
   return (
     <SContainer>
-      <Box
-        sx={{
-          backgroundColor: 'grey.200',
-          borderRadius: '10px 10px 10px 10px',
-          boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
-        }}
-      >
+      <SWizardBox>
         <Wizard
           header={
             <WizardTabs
@@ -41,7 +36,7 @@ const RiskPage: NextPage = () => {
             <RiskCompanyTable />
           </Box>
         </Wizard>
-      </Box>
+      </SWizardBox>
       <StackModalAddRisk />
     </SContainer>
   );

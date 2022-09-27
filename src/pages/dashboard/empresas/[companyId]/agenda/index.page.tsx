@@ -1,11 +1,19 @@
+import { Wizard } from 'react-use-wizard';
+
 import { Box } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
+import SWizardBox from 'components/atoms/SWizardBox';
 import { SCalendarWeek } from 'components/molecules/calendar/SCalendarWeek/SCalendarWeek';
 import { SSidebarExamData } from 'components/molecules/calendar/SSidebarExamData/SSidebarExamData';
 import { SAuthShow } from 'components/molecules/SAuthShow';
+import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { StackModalAddExamSchedule } from 'components/organisms/modals/ModalAddExamSchedule/ModalAddExamSchedule';
-import { HistoryScheduleExamTable } from 'components/organisms/tables/HistoryScheduleExamTable/HistoryScheduleExamTable';
+import { HistoryScheduleExamCompanyTable } from 'components/organisms/tables/HistoryScheduleExamCompanyTable/HistoryScheduleExamCompanyTable';
+import {
+  HistoryScheduleExamTable,
+  StackHistoryScheduleExamTable,
+} from 'components/organisms/tables/HistoryScheduleExamTable/HistoryScheduleExamTable';
 import { ScheduleAskExamTable } from 'components/organisms/tables/ScheduleAskExamTable/ScheduleAskExamTable';
 import { NextPage } from 'next';
 
@@ -25,35 +33,42 @@ const Schedule: NextPage = () => {
     <>
       <SContainer>
         <SAuthShow hideIf={!hideIfIsConsultant}>
-          <ScheduleAskExamTable />
+          <ScheduleAskExamTable mb={20} />
         </SAuthShow>
         <SAuthShow hideIf={hideIfIsConsultant}>
-          <HistoryScheduleExamTable isPending query={{ allCompanies: true }} />
+          <HistoryScheduleExamTable
+            isHideEmpty
+            isPending
+            query={{ allCompanies: true }}
+            mb={20}
+          />
         </SAuthShow>
-        <HistoryScheduleExamTable mt={10} query={{ allCompanies: true }} />
-        {false && (
-          <Box
-            sx={{
-              maxHeight: 'calc(100vh - 90px)',
-              display: 'flex',
-              flex: 1,
-              gap: '5px',
-            }}
-            px={[8, 8, 10]}
+
+        <SWizardBox>
+          <Wizard
+            header={
+              <WizardTabs
+                options={[
+                  { label: 'Agendamento de Exames' },
+                  { label: 'Todos os Exames' },
+                ]}
+              />
+            }
           >
-            <SSidebarExamData />
-            <SCalendarWeek />
-            <button
-              onClick={() =>
-                onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE)
-              }
-            >
-              open scheduler
-            </button>
-          </Box>
-        )}
+            <Box sx={{ px: 10, pb: 10 }}>
+              <HistoryScheduleExamCompanyTable mt={10} />
+            </Box>
+            <Box sx={{ px: 10, pb: 10 }}>
+              <HistoryScheduleExamTable
+                mt={10}
+                query={{ allCompanies: true }}
+              />
+            </Box>
+          </Wizard>
+        </SWizardBox>
       </SContainer>
       <StackModalAddExamSchedule />
+      <StackHistoryScheduleExamTable />
     </>
   );
 };
@@ -65,3 +80,25 @@ export const getServerSideProps = withSSRAuth(async () => {
     props: {},
   };
 });
+
+// {false && (
+//   <Box
+//     sx={{
+//       maxHeight: 'calc(100vh - 90px)',
+//       display: 'flex',
+//       flex: 1,
+//       gap: '5px',
+//     }}
+//     px={[8, 8, 10]}
+//   >
+//     <SSidebarExamData />
+//     <SCalendarWeek />
+//     <button
+//       onClick={() =>
+//         onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE)
+//       }
+//     >
+//       open scheduler
+//     </button>
+//   </Box>
+// )}

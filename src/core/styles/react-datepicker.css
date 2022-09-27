@@ -744,3 +744,6 @@
 .react-datepicker__portal .react-datepicker-time__header {
   font-size: 1.44rem;
 }
+.react-datepicker__day--outside-month {
+  opacity: 0.2;
+}

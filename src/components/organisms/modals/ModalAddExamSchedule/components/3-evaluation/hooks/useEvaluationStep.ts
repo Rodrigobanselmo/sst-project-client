@@ -2,7 +2,7 @@ import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
 import {
-  notAvailableScheduleDate,
+  availableScheduleDate,
   notAvailableScheduleTime,
 } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
@@ -32,7 +32,8 @@ export const useEvaluationStep = ({
 
   const lastComplementaryDate = data.examsData
     .map((schedule) => {
-      if (!schedule.isSelected || schedule.isAttendance) return;
+      if (!isPendingExams && (!schedule.isSelected || schedule.isAttendance))
+        return;
       if (!schedule.doneDate) return;
       return dayjs(schedule.doneDate).add(schedule.dueInDays || 0, 'd');
     })

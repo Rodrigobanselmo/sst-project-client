@@ -11,6 +11,10 @@ import { ModalAddClinicExam } from 'components/organisms/modals/ModalAddClinicEx
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { ModalViewClinicExams } from 'components/organisms/modals/ModalViewClinicExams';
 import { ModalViewProfessional } from 'components/organisms/modals/ModalViewProfessional';
+import {
+  ModalViewUsers,
+  StackModalViewUsers,
+} from 'components/organisms/modals/ModalViewUsers/ModalViewExam';
 import { NextPage } from 'next';
 
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
@@ -68,6 +72,9 @@ const CompanyPage: NextPage = () => {
       <ModalEditClinic />
       <ModalAddExam />
       <ModalAddClinicExam />
+
+      <ModalViewUsers />
+      <StackModalViewUsers />
     </SContainer>
   );
 };

@@ -116,6 +116,16 @@ export const rolesConstantMap = {
     permissions: [PermissionEnum.COMPANY_SCHEDULE, PermissionEnum.EXAM] as any,
     order: 1000,
   },
+  [RoleEnum.EMPLOYEE]: {
+    value: RoleEnum.EMPLOYEE,
+    label: 'Funcionários',
+    info: 'gerenciamento dos funcionários (lotação e exames)',
+    permissions: [
+      PermissionEnum.EMPLOYEE,
+      PermissionEnum.EMPLOYEE_HISTORY,
+    ] as any,
+    order: 1000,
+  },
   [RoleEnum.CLINICS]: {
     value: RoleEnum.CLINICS,
     label: 'Clínicas',

@@ -1,10 +1,7 @@
 import React, { FC, useMemo } from 'react';
 
-import { Box } from '@mui/material';
 import SText from 'components/atoms/SText';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 
-import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import TextIconRow from '../TextIconRow';

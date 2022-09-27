@@ -32,6 +32,7 @@ import { get15Time } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 import { intMask } from 'core/utils/masks/int.mask';
 
+import { ModalAddProfessional } from '../ModalAddProfessional/ModalAddProfessional';
 import { useAddData } from './hooks/useAddData';
 
 export const ModalAddEmployeeHistoryExam = () => {
@@ -233,6 +234,7 @@ export const ModalAddEmployeeHistoryExam = () => {
               {isAllFields && (
                 <Box flex={2}>
                   <ProfessionalInputSelect
+                    addProfessionalInitProps={{ companyId: data.clinic?.id }}
                     onChange={(prof) => {
                       setData({
                         ...data,
@@ -336,5 +338,13 @@ export const ModalAddEmployeeHistoryExam = () => {
         />
       </SModalPaper>
     </SModal>
+  );
+};
+
+export const StackModalAddEmployeeHistoryExam = () => {
+  return (
+    <>
+      <ModalAddProfessional />
+    </>
   );
 };

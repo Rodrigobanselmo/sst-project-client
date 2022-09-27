@@ -39,6 +39,7 @@ export interface IExamsScheduleTableProps extends BoxProps {
   lastComplementaryDate?: dayjs.Dayjs;
   hideHeader?: boolean;
   hideInstruct?: boolean;
+  company?: ICompany;
   isPendingExams?: boolean;
   disabled?: boolean;
   handleDebounceChange?: DebouncedState<(value: any) => void>;

@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import {
   ITableRowStatus,
@@ -17,7 +17,6 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import dayjs from 'dayjs';
@@ -38,6 +37,7 @@ import {
 } from 'core/interfaces/api/IEmployee';
 import { useQueryHisScheduleExam } from 'core/services/hooks/queries/useQueryHisScheduleExam/useQueryHisScheduleExam';
 import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { sortData } from 'core/utils/sorts/data.sort';
 
@@ -50,7 +50,14 @@ export const ScheduleAskExamTable: FC<
     employeeId?: number;
     employee?: IEmployee;
   }
-> = ({ rowsPerPage = 15, onSelectData, hideTitle, companyId, employeeId }) => {
+> = ({
+  rowsPerPage = 15,
+  onSelectData,
+  hideTitle,
+  companyId,
+  employeeId,
+  ...props
+}) => {
   const { search, page, handleSearchChange, setPage } = useTableSearchAsync();
 
   const {
@@ -97,7 +104,7 @@ export const ScheduleAskExamTable: FC<
   };
 
   return (
-    <>
+    <Box {...props}>
       {!hideTitle && (
         <>
           <SFlex mb={12} gap={10} align="center">
@@ -179,6 +186,6 @@ export const ScheduleAskExamTable: FC<
         currentPage={page}
         onPageChange={setPage}
       />
-    </>
+    </Box>
   );
 };

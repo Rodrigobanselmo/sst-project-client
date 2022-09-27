@@ -7,7 +7,6 @@ import SText from 'components/atoms/SText';
 import { SelectForm } from 'components/molecules/form/select';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
 import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect ';
@@ -23,6 +22,7 @@ import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { border_box } from 'core/styles/cssInJsStyles';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
@@ -379,7 +379,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
           )}
         </Box>
       </AnimatedStep>
-      <p style={{ fontSize: '4px' }}>132.855.119-90</p>
+      {/* <p style={{ fontSize: '4px' }}>132.855.119-90</p> */}
       <SModalButtons
         loading={loading}
         onClose={onCloseUnsaved}

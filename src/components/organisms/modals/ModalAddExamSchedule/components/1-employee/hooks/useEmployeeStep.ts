@@ -63,6 +63,8 @@ export const useEmployeeStep = ({
       })
       .catch(() => null);
 
+    console.log(999, riskDataHierarchy);
+
     if (riskDataHierarchy?.data)
       setData((data) => {
         const actualExams = [...data.examsData];
@@ -149,15 +151,17 @@ export const useEmployeeStep = ({
       take: 100,
     });
 
+    console.log('schedulesExams', schedulesExams);
+
     const hierarchy = schedulesExams.data.find(
       (schedules) => schedules.hierarchy,
     )?.hierarchy;
 
-    const clinicObs = schedulesExams.data.find(
+    const obs = schedulesExams.data.find(
       (schedules) => schedules.clinicObs && !schedules?.exam?.isAttendance,
     )?.clinicObs;
 
-    const obs = schedulesExams.data.find(
+    const clinicObs = schedulesExams.data.find(
       (schedules) => schedules.clinicObs && schedules?.exam?.isAttendance,
     )?.clinicObs;
 

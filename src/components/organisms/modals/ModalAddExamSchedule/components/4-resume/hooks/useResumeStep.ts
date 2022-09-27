@@ -2,7 +2,7 @@ import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
 import {
-  notAvailableScheduleDate,
+  availableScheduleDate,
   notAvailableScheduleTime,
 } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
@@ -34,6 +34,7 @@ export const useResumeStep = ({
   employee,
   onClose,
   isPendingExams,
+  company,
   ...rest
 }: IUseEditEmployee) => {
   const { control, reset, setValue } = useFormContext();
@@ -59,6 +60,7 @@ export const useResumeStep = ({
       changeHierarchyAnyway: data.changeHierarchyAnyway,
       changeHierarchyDate: data.changeHierarchyDate,
       clinicObs: data.clinicObs,
+      hierarchyId: data?.hierarchy?.id,
     } as ICreateEmployeeExamHistory;
 
     data.examsData.forEach(
@@ -78,7 +80,7 @@ export const useResumeStep = ({
         if (!examSchedule.isSelected) return;
 
         const status =
-          scheduleType === ClinicScheduleTypeEnum.ASK
+          scheduleType === ClinicScheduleTypeEnum.ASK && !company?.isConsulting
             ? StatusEnum.PENDING
             : StatusEnum.PROCESSING;
 

@@ -158,7 +158,7 @@ const risks = {
   description: 'Visualizar os riscos cadastrados',
   id: '23f23ivb328vjfdsdsfd',
   href: RoutesEnum.RISKS,
-  roles: [RoleEnum.RISK],
+  roles: [RoleEnum.SECURITY],
   shouldMatchExactHref: true,
 };
 

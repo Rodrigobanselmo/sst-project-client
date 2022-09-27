@@ -191,9 +191,30 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
       </Box>
       {isLoading && <LinearProgress />}
       {!results.length && !isLoading && (
-        <SFlex center sx={{ fontSize: '0.85rem', color: 'text.light', py: 8 }}>
-          nenhum resultado encontrado
-        </SFlex>
+        <>
+          {!additionalButton && (
+            <SFlex
+              center
+              sx={{ fontSize: '0.85rem', color: 'text.light', py: 8 }}
+            >
+              nenhum resultado encontrado
+            </SFlex>
+          )}
+          {additionalButton && (
+            <SFlex
+              sx={{ fontSize: '0.85rem', color: 'text.light', p: 5 }}
+              gap={8}
+            >
+              <STagButton
+                text="Adicionar"
+                active
+                bg="success.main"
+                onClick={(e) => additionalButton(e as any)}
+              />
+              Nenhuma opção
+            </SFlex>
+          )}
+        </>
       )}
 
       <Box
@@ -225,7 +246,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
         />
         {additionalButton && (
           <SIconButton
-            bg="primary.light"
+            bg="success.dark"
             onClick={additionalButton}
             sx={{
               position: 'absolute',

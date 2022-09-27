@@ -14,7 +14,9 @@ import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutCreateEmployee } from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
+import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 
 import { IEmployee } from '../../../../../core/interfaces/api/IEmployee';
 
@@ -25,6 +27,7 @@ export const initialExamScheduleState = {
   hierarchy: undefined as undefined | IHierarchy,
   obs: undefined as undefined | string,
   clinicObs: undefined as undefined | string,
+  hierarchyId: undefined as undefined | string,
   changeHierarchyAnyway: undefined as undefined | boolean,
   changeHierarchyWhenDone: true as undefined | boolean,
   changeHierarchyDate: undefined as undefined | Date,
@@ -50,6 +53,7 @@ export const useEditExamEmployee = () => {
   const createEmployee = useMutCreateEmployee();
   const { fetchClinic, getClinic } = useFetchQueryClinic();
   const { enqueueSnackbar } = useSnackbar();
+  const { data: company } = useQueryCompany();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -62,6 +66,8 @@ export const useEditExamEmployee = () => {
     companyId: data.companyId,
   });
 
+  const { data: hierarchyTree } = useQueryHierarchies(data.companyId);
+
   const isEdit = false;
   const isPendingExams = data.isPendingExams;
   const notInHierarchy = employee?.id && !employee?.hierarchyId;
@@ -73,7 +79,6 @@ export const useEditExamEmployee = () => {
   useEffect(() => {
     const initialData =
       getModalData<Partial<typeof initialExamScheduleState>>(modalName);
-
     if (initialData) {
       setData((oldData) => {
         const replaceData = {} as any;
@@ -89,6 +94,16 @@ export const useEditExamEmployee = () => {
         const newData = {
           ...oldData,
           ...replaceData,
+          ...(replaceData.hierarchyId && {
+            hierarchy: hierarchyTree?.[replaceData.hierarchyId],
+            ...(hierarchyTree?.[replaceData.hierarchyId] &&
+              hierarchyTree[replaceData.hierarchyId].parentId && {
+                sector:
+                  hierarchyTree[
+                    hierarchyTree[replaceData.hierarchyId].parentId as any
+                  ],
+              }),
+          }),
         };
 
         initialDataRef.current = newData;
@@ -96,7 +111,7 @@ export const useEditExamEmployee = () => {
         return newData;
       });
     }
-  }, [getModalData]);
+  }, [getModalData, hierarchyTree]);
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
@@ -140,6 +155,7 @@ export const useEditExamEmployee = () => {
     fetchClinic,
     getClinic,
     enqueueSnackbar,
+    company,
   };
 };
 

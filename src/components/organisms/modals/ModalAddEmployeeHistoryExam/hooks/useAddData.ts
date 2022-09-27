@@ -223,10 +223,10 @@ export const useAddData = () => {
       setError('evaluationType', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }
-    if (!hideClinicExam && isAllFields && !data?.conclusion) {
-      setError('conclusion', { message: 'Campo obrigatório' });
-      isErrorFound = true;
-    }
+    // if (!hideClinicExam && isAllFields && !data?.conclusion) {
+    //   setError('conclusion', { message: 'Campo obrigatório' });
+    //   isErrorFound = true;
+    // }
     if (!hideClinicExam && !data?.examType) {
       setError('examType', { message: 'Campo obrigatório' });
       isErrorFound = true;

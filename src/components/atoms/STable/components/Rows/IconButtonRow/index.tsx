@@ -9,10 +9,15 @@ const IconButtonRow: FC<IIconButtonRowProps> = ({
   icon,
   tooltipTitle,
   sx,
+  disabled,
   ...props
 }) => (
   <STooltip title={tooltipTitle}>
-    <SIconButton sx={{ width: 36, height: 36, mx: 'auto', ...sx }} {...props}>
+    <SIconButton
+      disabled={disabled}
+      sx={{ width: 36, height: 36, mx: 'auto', ...sx }}
+      {...props}
+    >
       {icon}
     </SIconButton>
   </STooltip>

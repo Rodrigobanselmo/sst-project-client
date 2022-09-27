@@ -52,7 +52,7 @@ export const UsersTable: FC<BoxProps> = () => {
   const { enqueueSnackbar } = useSnackbar();
 
   const deleteInviteMut = useMutInviteDelete();
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
 
   const data = [...invites, ...users];
 
@@ -67,7 +67,7 @@ export const UsersTable: FC<BoxProps> = () => {
         (userCompany) => userCompany.companyId === company.id,
       ) || user?.companies?.[0];
 
-    onOpenModal(ModalEnum.USER_ADD, {
+    onStackOpenModal(ModalEnum.USER_ADD, {
       id: user.id,
       roles: (userCompany?.roles || []) as RoleEnum[],
       permissions: convertToPermissionsMap(
@@ -106,7 +106,7 @@ export const UsersTable: FC<BoxProps> = () => {
       <STableSearch
         placeholder="Pesquisar pelo nome..."
         onAddClick={() =>
-          onOpenModal(ModalEnum.USER_ADD, {
+          onStackOpenModal(ModalEnum.USER_ADD, {
             company: company,
             companies: [company],
           })

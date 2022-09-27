@@ -18,7 +18,7 @@ import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IExamsScheduleTable, IExamsScheduleTableProps } from '../types';
 
-export const notAvailableScheduleDate = (
+export const availableScheduleDate = (
   date: Date,
   row: { scheduleRange?: Record<string, string>; isAttendance?: boolean },
   options?: { afterDate?: Date },
@@ -77,13 +77,16 @@ export const ExamsScheduleClinicColumn: FC<
   row,
   lastComplementaryDate,
   hideInstruct,
+  company,
   disabled,
   isPendingExams,
 }) => {
   const examType =
     scheduleData.examType && employeeExamTypeMap[scheduleData.examType];
   const isAsk =
-    row.scheduleType == ClinicScheduleTypeEnum.ASK && !isPendingExams;
+    row.scheduleType == ClinicScheduleTypeEnum.ASK &&
+    !isPendingExams &&
+    !company?.isConsulting;
   const contact = row.clinic?.contacts?.find((i) => i.isPrincipal);
 
   const startHour = () => {
@@ -153,7 +156,7 @@ export const ExamsScheduleClinicColumn: FC<
                 }}
                 calendarProps={{
                   filterDate: (date) =>
-                    notAvailableScheduleDate(date, row, {
+                    availableScheduleDate(date, row, {
                       afterDate:
                         lastComplementaryDate && lastComplementaryDate.toDate(),
                     }),

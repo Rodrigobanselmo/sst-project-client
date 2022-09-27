@@ -15,7 +15,6 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialExamRiskState } from 'components/organisms/modals/ModalEditExamRisk/hooks/useEditExams';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { company } from 'faker/locale/zh_TW';
@@ -33,6 +32,7 @@ import { IExamToRisk } from 'core/interfaces/api/IExam';
 import { useMutCopyExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutCopyExamRisk/useMutCopyExamRisk';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryExamsRisk } from 'core/services/hooks/queries/useQueryExamsRisk/useQueryExamsRisk';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 
 export const getExamPeriodic = (row: Partial<IExamToRisk>) => {
   const periodic = [];

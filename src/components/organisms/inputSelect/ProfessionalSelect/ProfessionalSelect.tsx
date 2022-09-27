@@ -54,6 +54,7 @@ export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
   onChange,
   type = [ProfessionalTypeEnum.DOCTOR],
   inputProps,
+  addProfessionalInitProps,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -67,10 +68,9 @@ export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
     useQueryProfessionals(1, { search, type }, 20);
 
   const onAddProfessional = () => {
-    onStackOpenModal(
-      ModalEnum.PROFESSIONALS_ADD,
-      {} as typeof initialProfessionalState,
-    );
+    onStackOpenModal(ModalEnum.PROFESSIONALS_ADD, {
+      ...addProfessionalInitProps,
+    } as typeof initialProfessionalState);
   };
 
   return (

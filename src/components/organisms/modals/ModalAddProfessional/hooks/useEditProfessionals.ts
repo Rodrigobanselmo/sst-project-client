@@ -90,6 +90,7 @@ export const useEditProfessionals = () => {
   const [professionalData, setProfessionalData] = useState({
     ...initialProfessionalState,
   });
+  console.log(professionalData);
 
   const companies = removeDuplicate([userCompany, company], {
     removeById: 'id',
@@ -169,6 +170,9 @@ export const useEditProfessionals = () => {
       }),
       ...(data.companyId && {
         companyId: data.companyId,
+      }),
+      ...(professionalData.companyId && {
+        companyId: professionalData.companyId,
       }),
     };
 

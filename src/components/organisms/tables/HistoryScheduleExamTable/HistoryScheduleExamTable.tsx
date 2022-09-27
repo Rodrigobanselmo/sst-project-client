@@ -16,9 +16,15 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
+import { SAuthShow } from 'components/molecules/SAuthShow';
+import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
+import {
+  ModalAddEmployeeHistoryExam,
+  StackModalAddEmployeeHistoryExam,
+} from 'components/organisms/modals/ModalAddEmployeeHistoryExam/ModalAddEmployeeHistoryExam';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
@@ -37,6 +43,7 @@ import {
   useQueryHisExamEmployee,
 } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { dateToString } from 'core/utils/date/date-format';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cepMask } from 'core/utils/masks/cep.mask';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
@@ -52,6 +59,7 @@ export const HistoryScheduleExamTable: FC<
     employee?: IEmployee;
     query?: IQueryEmployeeHistHier;
     isPending?: boolean;
+    isHideEmpty?: boolean;
   }
 > = ({
   rowsPerPage = 12,
@@ -60,6 +68,7 @@ export const HistoryScheduleExamTable: FC<
   companyId,
   query,
   isPending,
+  isHideEmpty,
   ...props
 }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
@@ -72,7 +81,9 @@ export const HistoryScheduleExamTable: FC<
     page,
     {
       search,
-      status: [isPending ? StatusEnum.PENDING : StatusEnum.PROCESSING],
+      status: isPending
+        ? [StatusEnum.PENDING]
+        : [StatusEnum.PROCESSING, StatusEnum.DONE, StatusEnum.CANCELED],
       orderByCreation: true,
       includeClinic: true,
       allCompanies: true,
@@ -93,11 +104,10 @@ export const HistoryScheduleExamTable: FC<
   const onSelectRow = (data: IEmployeeExamsHistory) => {
     if (isSelect) {
       onSelectData(data);
-    }
-    // else onEdit(data);
+    } else onEdit(data);
   };
 
-  const onEdit = (data: IEmployeeExamsHistory) => {
+  const onReSchedule = (data: IEmployeeExamsHistory) => {
     onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE, {
       examType: data.examType,
       hierarchyId: data.hierarchyId,
@@ -106,10 +116,17 @@ export const HistoryScheduleExamTable: FC<
     } as Partial<typeof initialExamScheduleState>);
   };
 
+  const onEdit = (data: IEmployeeExamsHistory) => {
+    onStackOpenModal(ModalEnum.EMPLOYEE_HISTORY_EXAM_ADD, {
+      ...data,
+      companyId: data?.employee?.companyId,
+    } as Partial<typeof initialEmployeeHistoryExamState>);
+  };
+
   const getRowColor = (
     row: IEmployeeExamsHistory,
   ): ITableRowStatus | undefined => {
-    // if (row.status === StatusEnum.DONE) return 'info';
+    if (row.status === StatusEnum.DONE) return 'info';
     // if (row.status === StatusEnum.PROCESSING) return 'warn';
     // if (row.status === StatusEnum.PENDING) return 'warn';
     if (row.status === StatusEnum.EXPIRED) return 'inactive';
@@ -126,6 +143,22 @@ export const HistoryScheduleExamTable: FC<
     if (!address) return '';
     return `${address.city} - ${address.state}, ${cepMask.mask(address.cep)}`;
   };
+
+  if (isHideEmpty) {
+    if (!history) return null;
+    if (history.length === 0) return null;
+  }
+
+  const header: (BoxProps & { text: string; column: string })[] = [
+    { text: 'Data Agendada', column: '140px' },
+    { text: 'Exame', column: 'minmax(150px, 1fr)' },
+    { text: 'Funcionário', column: 'minmax(150px, 1fr)' },
+    { text: 'Tipo', column: '100px' },
+    { text: 'Clínica', column: 'minmax(100px, 1fr)' },
+    { text: 'Status', column: '85px' },
+    { text: 'Agendado por', column: '120px' },
+    { text: 'Reagendar', column: '80px', justifyContent: 'center' },
+  ];
 
   return (
     <Box {...props}>
@@ -148,18 +181,14 @@ export const HistoryScheduleExamTable: FC<
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}
-        columns="140px minmax(150px, 2fr) minmax(220px, 2fr) 100px  minmax(150px, 2fr) 85px 180px 80px"
+        columns={header.map(({ column }) => column).join(' ')}
       >
         <STableHeader>
-          <STableHRow>Data Agendada</STableHRow>
-          <STableHRow>Exame</STableHRow>
-          <STableHRow>Funcionário</STableHRow>
-          <STableHRow>Tipo</STableHRow>
-          <STableHRow>Clínica</STableHRow>
-          <STableHRow>Status</STableHRow>
-          <STableHRow>Agendado por</STableHRow>
-          <STableHRow justifyContent="center">Reagemdar</STableHRow>
-          {/* <STableHRow justifyContent="center">Cancelar</STableHRow> */}
+          {header.map(({ column, text, ...props }) => (
+            <STableHRow key={text} {...props}>
+              {text}
+            </STableHRow>
+          ))}
         </STableHeader>
         <STableBody<typeof history[0]>
           rowsData={history
@@ -179,6 +208,7 @@ export const HistoryScheduleExamTable: FC<
                   text={
                     <>
                       {dateToString(row.doneDate) || '-'} &nbsp;&nbsp;
+                      {isPending && <br />}
                       {row?.time || ''}
                     </>
                   }
@@ -263,7 +293,7 @@ export const HistoryScheduleExamTable: FC<
                 <IconButtonRow
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit(row);
+                    onReSchedule(row);
                   }}
                   icon={<SCalendarIcon sx={{ color: 'info.dark' }} />}
                 />
@@ -287,5 +317,16 @@ export const HistoryScheduleExamTable: FC<
         onPageChange={setPage}
       />
     </Box>
+  );
+};
+
+export const StackHistoryScheduleExamTable = () => {
+  return (
+    <>
+      <SAuthShow permissions={[PermissionEnum.EMPLOYEE_HISTORY]}>
+        <ModalAddEmployeeHistoryExam />
+        <StackModalAddEmployeeHistoryExam />
+      </SAuthShow>
+    </>
   );
 };

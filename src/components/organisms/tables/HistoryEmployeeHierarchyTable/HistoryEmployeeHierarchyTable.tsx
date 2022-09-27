@@ -14,7 +14,6 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
-import { getCompanyName } from 'components/organisms/main/Header/Location';
 import { initialEmployeeHistoryHierState } from 'components/organisms/modals/ModalAddEmployeeHistoryHier/hooks/useAddData';
 import {
   EmployeeHierarchyMotiveTypeEnum,
@@ -34,6 +33,7 @@ import {
 } from 'core/interfaces/api/IEmployee';
 import { useQueryHisHierEmployee } from 'core/services/hooks/queries/useQueryHisHierEmployee/useQueryHisHierEmployee';
 import { dateToString } from 'core/utils/date/date-format';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 import { sortData } from 'core/utils/sorts/data.sort';
 
 export const HistoryEmployeeHierarchyTable: FC<

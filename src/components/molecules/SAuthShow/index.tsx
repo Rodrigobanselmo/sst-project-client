@@ -22,7 +22,12 @@ export const SAuthShow: FC<ISAuthShow> = ({
   if (permissions) {
     if (!user?.permissions) return null;
     if (
-      !permissions.some((permission) => user.permissions?.includes(permission))
+      !permissions.some((permission) => {
+        const permissionInit = permission.split('-')[0];
+        return user.permissions?.find(
+          (userPerm) => userPerm.split('-')[0] == permissionInit,
+        );
+      })
     )
       return null;
   }
