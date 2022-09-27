@@ -10,6 +10,7 @@ import { RadioForm } from 'components/molecules/form/radio';
 import { UnmountBox } from 'components/molecules/form/unmount-box';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { CompanyInputSelect } from 'components/organisms/inputSelect/CompanySelect/CompanyInputSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import dayjs from 'dayjs';
 import { SexTypeEnum } from 'project/enum/sex.enums';
@@ -45,6 +46,25 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
+        <Box mb={10}>
+          <CompanyInputSelect
+            onChange={(company) => {
+              company &&
+                setData?.({ ...data, company, companyId: company?.id });
+            }}
+            inputProps={{
+              placeholder: 'Empresa',
+              labelPosition: 'top',
+            }}
+            disableClearable
+            defaultValue={data?.company}
+            withDefaultCompany
+            unmountOnChangeDefault
+            name={'company'}
+            label="Empresa"
+            control={control}
+          />
+        </Box>
         <SText color="text.label" fontSize={14} mb={5}>
           Identificação
         </SText>

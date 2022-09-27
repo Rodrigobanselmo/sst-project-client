@@ -33,15 +33,19 @@ const Schedule: NextPage = () => {
     <>
       <SContainer>
         <SAuthShow hideIf={!hideIfIsConsultant}>
-          <ScheduleAskExamTable mb={20} />
+          <SWizardBox sx={{ px: 10, py: 10 }} mb={20}>
+            <ScheduleAskExamTable />
+          </SWizardBox>
         </SAuthShow>
         <SAuthShow hideIf={hideIfIsConsultant}>
-          <HistoryScheduleExamTable
-            isHideEmpty
-            isPending
-            query={{ allCompanies: true }}
-            mb={20}
-          />
+          <SWizardBox sx={{ px: 10, py: 10 }} mb={20}>
+            <HistoryScheduleExamTable
+              isHideEmpty
+              isPending
+              query={{ allCompanies: true }}
+              mb={20}
+            />
+          </SWizardBox>
         </SAuthShow>
 
         <SWizardBox>

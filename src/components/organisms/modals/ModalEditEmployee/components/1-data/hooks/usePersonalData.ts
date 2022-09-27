@@ -14,7 +14,8 @@ export const usePersonalData = ({
   onStackOpenModal,
   ...rest
 }: IUseEditEmployee) => {
-  const { trigger, getValues, control, reset, setValue } = useFormContext();
+  const { trigger, getValues, setError, control, reset, setValue } =
+    useFormContext();
   const { nextStep, stepCount, goToStep } = useWizard();
 
   const fields = [
@@ -39,6 +40,8 @@ export const usePersonalData = ({
 
   const onSubmit = async () => {
     const isValid = await trigger(fields);
+    if (!data.companyId)
+      return setError('company', { message: 'campo obrigatório' });
 
     if (isValid) {
       const {

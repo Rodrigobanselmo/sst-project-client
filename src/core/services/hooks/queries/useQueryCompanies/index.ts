@@ -10,6 +10,7 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationReturn } from 'core/interfaces/IPaginationResponse';
 import { api } from 'core/services/apiClient';
+import { queryClient } from 'core/services/queryClient';
 import { emptyMapReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
@@ -18,6 +19,7 @@ export interface IQueryCompanies {
   search?: string;
   companyId?: string;
   clinicExamsIds?: number[];
+  companiesIds?: string[];
   clinicsCompanyId?: string;
   userId?: number;
   groupId?: number;
@@ -86,4 +88,43 @@ export function useQueryCompanies(
   };
 
   return { ...rest, companies: response.data, count: response.count };
+}
+
+export function useFetchQueryCompanies() {
+  const { companyId } = useGetCompanyId();
+
+  const fetchCompanies = async (
+    page = 1,
+    query = {} as IQueryCompanies,
+    take = 8,
+    type = '' as IQueryCompaniesTypes,
+  ) => {
+    const pagination: IPagination = {
+      skip: (page - 1) * (take || 20),
+      take: take || 20,
+    };
+
+    const data = await queryClient
+      .fetchQuery(
+        [
+          QueryEnum.COMPANIES,
+          companyId,
+          page,
+          { ...pagination, ...query },
+          type,
+        ],
+        () =>
+          companyId
+            ? queryCompanies(pagination, { ...query, companyId }, type)
+            : <Promise<IPaginationReturn<ICompany>>>emptyMapReturn(),
+        {
+          staleTime: 1000 * 60 * 60, // 60 minute
+        },
+      )
+      .catch((e) => console.log(e));
+
+    return data;
+  };
+
+  return { fetchCompanies, companyId };
 }

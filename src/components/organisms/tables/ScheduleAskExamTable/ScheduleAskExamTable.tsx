@@ -11,6 +11,7 @@ import {
   STableRow,
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
+import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import TextUserRow from 'components/atoms/STable/components/Rows/TextUserRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
@@ -103,23 +104,21 @@ export const ScheduleAskExamTable: FC<
     return undefined;
   };
 
+  const header: (BoxProps & { text: string; column: string })[] = [
+    { text: 'Data Pedido', column: '150px' },
+    { text: 'Uf', column: '40px' },
+    { text: 'Empresa', column: '200px' },
+    { text: 'Funcionário', column: 'minmax(150px, 1fr)' },
+    { text: 'Tipo Exame', column: '110px' },
+    { text: 'Agendado por', column: '200px' },
+  ];
+
   return (
     <Box {...props}>
       {!hideTitle && (
         <>
           <SFlex mb={12} gap={10} align="center">
             <STableTitle mb={0}>Pedidos de Agenda</STableTitle>
-            {/* <STagButton
-              onClick={onAdd}
-              maxWidth={120}
-              mt={-5}
-              mb={-5}
-              icon={SAddIcon}
-              text={'Novo exame'}
-              active
-              bg={'success.dark'}
-              textProps={{ sx: { mb: 0 } }}
-            /> */}
           </SFlex>
           {/* <STableSearch onChange={(e) => handleSearchChange(e.target.value)} /> */}
         </>
@@ -127,16 +126,14 @@ export const ScheduleAskExamTable: FC<
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}
-        columns="150px 40px minmax(200px, 1fr) 120px minmax(220px, 1fr) 110px minmax(220px, 1fr)"
+        columns={header.map(({ column }) => column).join(' ')}
       >
         <STableHeader>
-          <STableHRow>Data Pedido</STableHRow>
-          <STableHRow>Uf</STableHRow>
-          <STableHRow>Empresa</STableHRow>
-          <STableHRow>CPF</STableHRow>
-          <STableHRow>Nome</STableHRow>
-          <STableHRow>Tipo Exame</STableHRow>
-          <STableHRow>Agendado por</STableHRow>
+          {header.map(({ column, text, ...props }) => (
+            <STableHRow key={text} {...props}>
+              {text}
+            </STableHRow>
+          ))}
         </STableHeader>
         <STableBody<typeof history[0]>
           rowsData={history
@@ -168,8 +165,7 @@ export const ScheduleAskExamTable: FC<
                   clickable
                   text={getCompanyName(row.employee?.company)}
                 />
-                <TextIconRow clickable text={cpfMask.mask(row.employee?.cpf)} />
-                <TextIconRow clickable text={row.employee?.name} />
+                <TextEmployeeRow employee={row.employee} />
                 <TextIconRow
                   text={employeeExamTypeMap[row.examType]?.content || '-'}
                 />

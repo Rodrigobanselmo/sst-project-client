@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
 import { SexTypeEnum } from 'project/enum/sex.enums';
@@ -13,6 +13,7 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutCreateEmployee } from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
+import { useFetchQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
 
 import { IEmployee } from './../../../../../core/interfaces/api/IEmployee';
