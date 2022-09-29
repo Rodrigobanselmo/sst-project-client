@@ -54,7 +54,6 @@ export const CouncilShow = ({
     } as typeof initialCouncilModalState);
   };
 
-  console.log(props?.data);
   return (
     <Box>
       {props?.data

@@ -96,8 +96,6 @@ export const useEditClinicExams = () => {
     5,
   );
 
-  console.log('clinicExamData', clinicExamData);
-
   const isEdit = !!clinicExamData?.id;
 
   const initializeModalDate = (initialData?: any) => {
@@ -145,7 +143,6 @@ export const useEditClinicExams = () => {
     dueInDays,
     ...data
   }) => {
-    console.log(dueInDays);
     if (!clinicExamData?.exam?.id) {
       return setError('exam', { message: 'Exame obrigatório' });
     }

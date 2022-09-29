@@ -48,6 +48,7 @@ export enum ApiRoutesEnum {
   UPLOAD_HIERARCHY = '/files/company/hierarchies/upload',
   UPLOAD_UNIQUE_EMPLOYEES = '/files/company/upload/unique',
   USERS = '/users',
+  PDF_GUIDE = '/documents/pdf/guide',
 
   NOTIFICATION = '/notification',
 }

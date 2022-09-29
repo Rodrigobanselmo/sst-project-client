@@ -30,4 +30,5 @@ export enum RoutesEnum {
   TEAM = '/dashboard/equipe/:companyId',
   TEAM_GROUPS = '/dashboard/equipe/:companyId/grupos',
   SIGN_UP = '/cadastro',
+  PDF_GUIDE = '/pdf/:companyId/:employeeId/guia-de-emcaminhamento',
 }

@@ -63,8 +63,6 @@ export const useEmployeeStep = ({
       })
       .catch(() => null);
 
-    console.log(999, riskDataHierarchy);
-
     if (riskDataHierarchy?.data)
       setData((data) => {
         const actualExams = [...data.examsData];
@@ -151,8 +149,6 @@ export const useEmployeeStep = ({
       take: 100,
     });
 
-    console.log('schedulesExams', schedulesExams);
-
     const hierarchy = schedulesExams.data.find(
       (schedules) => schedules.hierarchy,
     )?.hierarchy;
@@ -219,7 +215,7 @@ export const useEmployeeStep = ({
 
     if (schedulesExams?.data) {
       const newData = await getData();
-      console.log(schedulesExams);
+      schedulesExams;
       setData(newData);
     }
 

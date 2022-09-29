@@ -174,7 +174,6 @@ export const useAddData = () => {
       return data;
     });
 
-    console.log(actualExams);
     setData({ ...data, examsHistory: actualExams });
   };
 

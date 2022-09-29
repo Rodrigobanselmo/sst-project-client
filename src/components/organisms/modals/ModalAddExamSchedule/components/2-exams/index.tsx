@@ -46,7 +46,6 @@ export const ExamStep = (props: IUseEditEmployee) => {
       data.isSelected &&
       data.scheduleType === ClinicScheduleTypeEnum.ASK,
   );
-  console.log(data);
 
   const buttons = [
     {},

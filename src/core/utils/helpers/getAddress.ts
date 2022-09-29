@@ -1,4 +1,5 @@
 import { IAddress } from 'core/interfaces/api/ICompany';
+import { IContact } from 'core/interfaces/api/IContact';
 
 import { cepMask } from '../masks/cep.mask';
 
@@ -10,4 +11,11 @@ export const getAddressMain = (address?: IAddress) => {
 export const getAddressCity = (address?: IAddress) => {
   if (!address) return '';
   return `${address.city} - ${address.state}, ${cepMask.mask(address.cep)}`;
+};
+
+export const getContactPhone = (contact?: IContact) => {
+  if (!contact) return '';
+  return `Tel: ${contact.phone}  ${
+    contact.phone_2 ? `/ Tel2: ${contact.phone_2}` : ''
+  }`;
 };

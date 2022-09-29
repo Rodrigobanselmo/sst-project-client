@@ -57,6 +57,7 @@
     "react-image-crop": "^10.0.2",
     "react-indiana-drag-scroll": "^2.1.0",
     "react-no-ssr": "^1.1.0",
+    "react-pdf-html": "^1.1.10",
     "react-query": "^3.34.0",
     "react-redux": "^7.2.6",
     "react-step-wizard": "^5.3.11",

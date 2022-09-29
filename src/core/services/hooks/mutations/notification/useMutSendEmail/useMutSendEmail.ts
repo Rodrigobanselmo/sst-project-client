@@ -17,6 +17,7 @@ export interface ISendEmail {
   files?: File[];
   template: EmailsTemplatesEnum;
   companyId?: string;
+  emails?: string[];
 }
 
 export async function sendEmail(data: ISendEmail) {
@@ -54,6 +55,7 @@ export function useMutSendEmail() {
       sendEmail({ ...data, companyId: getCompanyId(data) }),
     {
       onSuccess: async (resp) => {
+        enqueueSnackbar('Email Enviado com sucesso', { variant: 'success' });
         return resp;
       },
       onError: (error: IErrorResp) => {

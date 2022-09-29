@@ -1,7 +1,6 @@
 import { FC, useMemo, useState } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
-import clone from 'clone';
 import SFlex from 'components/atoms/SFlex';
 import {
   ITableRowStatus,
@@ -18,16 +17,11 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import SText from 'components/atoms/SText';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
-import { EvaluationSelect } from 'components/organisms/tagSelects/EvaluationSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
-import dayjs from 'dayjs';
-import {
-  employeeExamTypeMap,
-  ExamHistoryTypeEnum,
-} from 'project/enum/employee-exam-history-type.enum';
+import { useRouter } from 'next/router';
+import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
@@ -35,8 +29,8 @@ import SDocumentIcon from 'assets/icons/SDocumentIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
-import { useTableSearch } from 'core/hooks/useTableSearch';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import {
   IEmployee,
@@ -46,8 +40,6 @@ import { useMutUpdateManyScheduleHisExam } from 'core/services/hooks/mutations/m
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { useQueryHisScheduleExamCompany } from 'core/services/hooks/queries/useQueryHisScheduleExamCompany/useQueryHisScheduleExamCompany';
 import { dateToString } from 'core/utils/date/date-format';
-import { sortData } from 'core/utils/sorts/data.sort';
-import { sortNumber } from 'core/utils/sorts/number.sort';
 
 export const HistoryScheduleExamCompanyTable: FC<
   BoxProps & {
@@ -61,6 +53,7 @@ export const HistoryScheduleExamCompanyTable: FC<
   }
 > = ({ rowsPerPage = 12, onSelectData, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
+  const { push } = useRouter();
 
   const {
     data: historyExam,
@@ -100,13 +93,13 @@ export const HistoryScheduleExamCompanyTable: FC<
     } as Partial<typeof initialExamScheduleState>);
   };
 
-  const onDownloadGuia = (data: IEmployeeExamsHistory) => {
-    onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE, {
-      examType: data.examType,
-      hierarchyId: data.hierarchyId,
-      companyId: data?.employee?.companyId,
-      employeeId: data?.employee?.id,
-    } as Partial<typeof initialExamScheduleState>);
+  const onDownloadGuide = (companyId: string, employeeId: number) => {
+    const path = RoutesEnum.PDF_GUIDE.replace(
+      ':employeeId',
+      String(employeeId),
+    ).replace(':companyId', companyId);
+
+    window.open(path, '_blank');
   };
 
   const onEdit = (data?: IEmployeeExamsHistory) => {
@@ -239,7 +232,8 @@ export const HistoryScheduleExamCompanyTable: FC<
                       disabled={disabled}
                       onClick={(e) => {
                         e.stopPropagation();
-                        onDownloadGuia(row);
+                        if (employee?.companyId)
+                          onDownloadGuide(employee.companyId, employee.id);
                       }}
                       tooltip="Baixar Guia de emcaminhamento"
                       icon={

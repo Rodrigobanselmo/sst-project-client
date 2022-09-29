@@ -155,8 +155,6 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
     setData({ ...data, roles, errors: { roles: '' } });
   };
 
-  console.log(data);
-
   return (
     <Box minWidth={['100%', 600, 800]} {...props}>
       <FormControl

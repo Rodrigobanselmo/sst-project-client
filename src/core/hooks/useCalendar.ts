@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 
 const daysShortArr = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
 
-const daysArr = [
+export const daysArr = [
   'Domimgo',
   'Segunda-feira',
   'Terça-feira',

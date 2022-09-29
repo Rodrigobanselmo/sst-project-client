@@ -121,6 +121,7 @@ export const DraftEditor = ({
   useEffect(() => {
     if (defaultValue) {
       if (isJson) {
+        if (defaultValue.includes('<p>')) return;
         return setEditorState(
           EditorState.createWithContent(
             convertFromRaw(JSON.parse(defaultValue)),
@@ -184,8 +185,16 @@ export const DraftEditor = ({
         }`}
         onBlur={() => {
           handleClickAway();
+          const contentState = convertToRaw(editorState.getCurrentContent());
+          const isEmpty =
+            contentState?.blocks?.length === 1 &&
+            contentState?.blocks?.[0]?.text === '';
+
+          console.log(isEmpty);
+          if (isEmpty) return onChange?.('');
+
           onChange?.(
-            draftToHtml(convertToRaw(editorState.getCurrentContent())),
+            isJson ? JSON.stringify(contentState) : draftToHtml(contentState),
           );
         }}
         placeholder={placeholder}

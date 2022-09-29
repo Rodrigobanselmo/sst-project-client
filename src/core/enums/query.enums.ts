@@ -35,4 +35,5 @@ export enum QueryEnum {
   RISK_GROUP_DOCS = 'risk-group-docs',
   USERS = 'users',
   NOTIFICATION = 'notification',
+  PDF_GUIDE = 'pdf-guide',
 }

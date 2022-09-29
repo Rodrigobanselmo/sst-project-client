@@ -17,6 +17,7 @@ import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
+import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -127,10 +128,23 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
                         textAlign={'center'}
                         text={
                           <>
-                            Previsão
+                            {row.doneDate ? 'Resultado' : 'Previsão'}
                             <br />
-                            {row.dueInDays}{' '}
-                            {typeof row.dueInDays == 'number' && 'dias'}
+                            {!row.doneDate && (
+                              <>
+                                {row.dueInDays}{' '}
+                                {typeof row.dueInDays == 'number' && 'dias'}
+                              </>
+                            )}
+                            {row.doneDate && (
+                              <>
+                                {dateToString(
+                                  dayjs(row.doneDate)
+                                    .add(row.dueInDays || 0, 'day')
+                                    .toDate(),
+                                )}
+                              </>
+                            )}
                           </>
                         }
                       />

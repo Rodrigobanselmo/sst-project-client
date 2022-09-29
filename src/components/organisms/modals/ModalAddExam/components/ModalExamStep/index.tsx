@@ -3,6 +3,7 @@ import React from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SInput } from 'components/atoms/SInput';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
@@ -13,6 +14,7 @@ import dynamic from 'next/dynamic';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { examsOptionsList } from 'core/constants/maps/exams.map';
+import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import esocial27 from '../../../../../../json/esocial27.json';
 import { IUseEditExam } from '../../hooks/useEditExams';
@@ -138,7 +140,7 @@ export const ModalExamStep = ({
         columns={3}
         mt={5}
       /> */}
-      <DraftEditor
+      {/* <DraftEditor
         size="xs"
         mt={10}
         label="instruções"
@@ -150,6 +152,58 @@ export const ModalExamStep = ({
             instruction: value,
           });
         }}
+      /> */}
+      <SText fontSize="14px" mb={2} mt={5} color="text.label">
+        Instruções
+      </SText>
+      {[...(examData?.instruction?.split('(//)') || [])].map(
+        (instruction, index) => {
+          return (
+            <SInput
+              key={instruction + '-'}
+              defaultValue={instruction}
+              onBlur={(e) => {
+                const inst = examData?.instruction?.split('(//)') || [];
+                inst[index] = e.target.value;
+
+                setExamData({
+                  ...examData,
+                  instruction: removeDuplicate(
+                    inst.filter((i) => i),
+                    { simpleCompare: true },
+                  ).join('(//)'),
+                });
+              }}
+              labelPosition="center"
+              label={''}
+              fullWidth
+              size="small"
+              sx={{ mb: 5 }}
+              placeholder={'instruções...'}
+            />
+          );
+        },
+      )}
+      <SInput
+        onBlur={(e) => {
+          const inst = examData?.instruction?.split('(//)') || [];
+          inst[inst.length] = e.target.value;
+          e.target.value = '';
+
+          setExamData({
+            ...examData,
+            instruction: removeDuplicate(
+              inst.filter((i) => i),
+              { simpleCompare: true },
+            ).join('(//)'),
+          });
+        }}
+        labelPosition="center"
+        label={''}
+        fullWidth
+        size="small"
+        sx={{ mb: 5 }}
+        placeholder={'instruções...'}
       />
       {!examData.id && (
         <Box ml={7}>

@@ -118,7 +118,6 @@ export const useAddData = () => {
           if (newData.time) setValue('time', newData.time);
           if (newData.examType) {
             setValue('examType', newData.examType);
-            console.log('examType', newData.examType);
           }
           if (newData.evaluationType)
             setValue('evaluationType', newData.evaluationType);

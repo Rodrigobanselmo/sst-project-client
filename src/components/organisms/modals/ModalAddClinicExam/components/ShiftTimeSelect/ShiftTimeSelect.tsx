@@ -15,7 +15,7 @@ import { timeMask } from 'core/utils/masks/date.mask';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 
 const weekDays = [2, 3, 4, 5, 6, 7, 1];
-const weekDaysPt = [
+export const weekDaysPt = [
   'Segunda',
   'Terça',
   'Quarta',

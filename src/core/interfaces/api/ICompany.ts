@@ -54,6 +54,7 @@ export interface ICompany {
   initials: string;
   description: string;
   unit: string;
+  obs: string;
   numAsos: number;
   blockResignationExam: boolean;
   esocialStart: Date;

@@ -7,9 +7,11 @@ import {
 } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import dayjs from 'dayjs';
+import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { QueryEnum } from 'core/enums/query.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 import {
@@ -42,6 +44,7 @@ export const useResumeStep = ({
   const { fetchClinic } = useFetchQueryClinic();
   const createMutation = useMutCreateEmployeeHisExam();
   const updateManyMutation = useMutUpdateManyScheduleHisExam();
+  const { enqueueSnackbar } = useSnackbar();
 
   const onCloseUnsaved = async () => {
     onCloseUnsavedMain(() => reset());
@@ -49,6 +52,15 @@ export const useResumeStep = ({
 
   const lastStep = async () => {
     goToStep(stepCount - 1);
+  };
+
+  const onDownloadGuide = (companyId: string, employeeId: number) => {
+    const path = RoutesEnum.PDF_GUIDE.replace(
+      ':employeeId',
+      String(employeeId),
+    ).replace(':companyId', companyId);
+
+    window.open(path, '_blank');
   };
 
   const submitCreateSchedule = async () => {
@@ -110,7 +122,23 @@ export const useResumeStep = ({
 
     await createMutation
       .mutateAsync(submit)
-      .then(() => onClose())
+      .then(() => {
+        if (
+          submit.examsData?.every((exam) => exam.status !== StatusEnum.PENDING)
+        )
+          onDownloadGuide(submit.companyId, submit.employeeId);
+        else {
+          return enqueueSnackbar(
+            'Esperando finalizar pedido de agenda para baixar guia de encaminhamento',
+            {
+              variant: 'warning',
+              autoHideDuration: 5000,
+            },
+          );
+        }
+
+        onClose();
+      })
       .catch(() => null);
   };
 
