@@ -14,6 +14,7 @@ export enum ApiRoutesEnum {
   DOCUMENTS_PGR = '/documents/pgr',
   DOCUMENTS_PGR_ATTACHMENTS = '/documents/pgr/:docId/attachment',
   DOCUMENTS_PGR_PLAN = '/documents/pgr/action-plan',
+  DOCUMENT = '/company/:companyId/document',
   DOWNLOAD_CNAE = '/files/cnae',
   DOWNLOAD_EMPLOYEES = '/files/company/employees/download',
   DOWNLOAD_HIERARCHIES = '/files/company/hierarchies/download',

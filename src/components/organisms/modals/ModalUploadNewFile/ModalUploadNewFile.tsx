@@ -41,7 +41,7 @@ export const initialFileUploadState = {
   onConfirm: async (arg: IUploadNewFileConfirm) => {},
 };
 
-const modalName = ModalEnum.UPLOAD_PHOTO;
+const modalName = ModalEnum.UPLOAD_NEW_FILE;
 
 export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
   const { registerModal, getModalData } = useRegisterModal();

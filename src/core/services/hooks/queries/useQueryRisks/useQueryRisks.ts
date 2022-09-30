@@ -42,7 +42,12 @@ export function useQueryRisks(page = 1, query = {} as IQueryRisks, take = 20) {
   const companyId = _companyId;
 
   const { data, ...result } = useQuery(
-    [QueryEnum.RISK, page, { ...pagination, ...query, companyId }],
+    [
+      QueryEnum.RISK,
+      'pagination',
+      page,
+      { ...pagination, ...query, companyId },
+    ],
     () => queryRisks(pagination, { ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

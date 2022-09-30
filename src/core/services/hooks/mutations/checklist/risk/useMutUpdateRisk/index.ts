@@ -42,6 +42,8 @@ export function useMutUpdateRisk() {
     {
       onSuccess: async (resp) => {
         if (resp) {
+          queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
+
           const replace = (company: string) => {
             const actualData = queryClient.getQueryData(
               // eslint-disable-next-line prettier/prettier

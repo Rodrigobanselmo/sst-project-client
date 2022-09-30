@@ -44,6 +44,8 @@ export function useMutCreateRisk() {
     {
       onSuccess: async (resp) => {
         if (resp) {
+          queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
+
           const actualData = queryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier
               [QueryEnum.RISK, resp.companyId],
