@@ -6,7 +6,12 @@ import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelec
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CompanyStepEnum } from 'project/enum/company-step.enum';
-import { setGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
+import {
+  setGhoOpen,
+  setGhoSearch,
+  setGhoSearchSelect,
+  setGhoState,
+} from 'store/reducers/hierarchy/ghoSlice';
 import { selectStep, setCompanyStep } from 'store/reducers/step/stepSlice';
 
 import { SClinicIcon } from 'assets/icons/SClinicIcon';
@@ -64,6 +69,10 @@ export const useCompanyStep = () => {
   // COMPANY
   const handleEditCompany = useCallback(() => {
     onOpenModal(ModalEnum.COMPANY_EDIT, company);
+  }, [company, onOpenModal]);
+
+  const handleEditDocuments = useCallback(() => {
+    onOpenModal(ModalEnum.DOCUMENTS_VIEW, company);
   }, [company, onOpenModal]);
 
   const handleAddWorkspace = useCallback(() => {
@@ -187,6 +196,8 @@ export const useCompanyStep = () => {
     push(RoutesEnum.HIERARCHY.replace(':companyId', company.id || ''));
     dispatch(setGhoState({ hierarchies: [], data: null }));
     dispatch(setGhoOpen(true));
+    dispatch(setGhoSearch(''));
+    dispatch(setGhoSearchSelect(''));
   }, [
     company.workspace,
     company.hierarchyCount,
@@ -222,6 +233,13 @@ export const useCompanyStep = () => {
         text: 'Usuários',
         tooltipText:
           'Cadastro dos usuários da empresa que ficaram responsaveis por fazer a gestão através do sistema',
+      },
+      [CompanyActionEnum.DOCUMENTS]: {
+        icon: SDocumentIcon,
+        onClick: handleEditDocuments,
+        text: 'Documentos',
+        tooltipText:
+          'Centralização dos documentos da empresa e gerenciamento de vencimentos',
       },
       [CompanyActionEnum.EDIT]: {
         icon: SEditIcon,
@@ -282,6 +300,7 @@ export const useCompanyStep = () => {
     handleAddWorkspace,
     handleAddEmployees,
     handleAddTeam,
+    handleEditDocuments,
     handleEditCompany,
     handleGoHierarchy,
     handleGoGho,
@@ -382,6 +401,9 @@ export const useCompanyStep = () => {
       },
       {
         ...actionsMapStepMemo[CompanyActionEnum.HIERARCHY],
+      },
+      {
+        ...actionsMapStepMemo[CompanyActionEnum.DOCUMENTS],
       },
       {
         ...actionsMapStepMemo[CompanyActionEnum.WORKSPACE],

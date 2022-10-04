@@ -5,47 +5,41 @@ import { useSnackbar } from 'notistack';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IContact } from 'core/interfaces/api/IContact';
+import { IDocument } from 'core/interfaces/api/IDocument';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
 
-export interface IUpdateContact {
+export interface IDeleteDocument {
   id?: number;
-  name: string;
   companyId?: string;
-  phone?: string;
-  phone_1?: string;
-  email?: string;
-  obs?: string;
 }
 
-export async function upsertRiskDocs(data: IUpdateContact, companyId?: string) {
+export async function upsertRiskDocs(
+  data: IDeleteDocument,
+  companyId?: string,
+) {
   if (!companyId) return null;
 
-  const response = await api.patch<IContact>(
-    ApiRoutesEnum.CONTACTS.replace(':companyId', companyId) + '/' + data.id,
-    {
-      ...data,
-      companyId,
-    },
+  const response = await api.delete<IDocument>(
+    ApiRoutesEnum.DOCUMENT.replace(':companyId', companyId) + '/' + data.id,
   );
 
   return response.data;
 }
 
-export function useMutUpdateContact() {
+export function useMutDeleteDocument() {
   const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: IUpdateContact) => upsertRiskDocs(data, getCompanyId(data)),
+    async (data: IDeleteDocument) => upsertRiskDocs(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp) queryClient.invalidateQueries([QueryEnum.CONTACTS]);
+        if (resp) queryClient.invalidateQueries([QueryEnum.DOCUMENTS]);
 
-        enqueueSnackbar('Contato editado com sucesso', {
+        enqueueSnackbar('Documento deletado com sucesso', {
           variant: 'success',
         });
         return resp;

@@ -10,50 +10,47 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
-import { initialContactState } from 'components/organisms/modals/ModalAddContact/hooks/useAddContact';
 import { initialDocumentState } from 'components/organisms/modals/ModalAddDocument/hooks/useAddDocument';
 import dayjs from 'dayjs';
 
 import SAddIcon from 'assets/icons/SAddIcon';
+import SDownloadIcon from 'assets/icons/SDownloadIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 
-import { documentTypeMap } from 'core/constants/maps/document-type.map';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IDocument } from 'core/interfaces/api/IDocument';
-import { useQueryDocuments } from 'core/services/hooks/queries/documents/useQueryDocuments/useQueryDocuments';
-import { useQueryContacts } from 'core/services/hooks/queries/useQueryContacts/useQueryContacts';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { dateToString } from 'core/utils/date/date-format';
+import { sortData } from 'core/utils/sorts/data.sort';
 
-export const DocumentsTable: FC<
+export const DocumentsHistoryTable: FC<
   BoxProps & {
     rowsPerPage?: number;
     onSelectData?: (group: IDocument) => void;
     hideTitle?: boolean;
     companyId?: string;
+    documents: IDocument[];
   }
-> = ({ rowsPerPage = 8, onSelectData, hideTitle, companyId }) => {
-  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
-
-  const {
-    data: group,
-    isLoading: loadGroup,
-    count,
-  } = useQueryDocuments(page, { search }, rowsPerPage, companyId);
+> = ({ rowsPerPage = 8, documents, onSelectData, hideTitle, companyId }) => {
+  const { handleSearchChange } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
+  const documentMain = documents?.[0];
+  const downloadMutation = useMutDownloadFile();
 
   const { onStackOpenModal } = useModal();
 
   const onAddDocument = () => {
-    onStackOpenModal(ModalEnum.DOCUMENT_ADD, { companyId } as Partial<
-      typeof initialDocumentState
-    >);
+    onStackOpenModal(ModalEnum.DOCUMENT_ADD_YEAR, {
+      companyId,
+      parentDocumentId: documentMain?.id,
+      name: documentMain?.name,
+    } as Partial<typeof initialDocumentState>);
   };
 
   const onSelectRow = (group: IDocument) => {
@@ -63,17 +60,23 @@ export const DocumentsTable: FC<
   };
 
   const onEditDocument = (group: IDocument) => {
-    onStackOpenModal(ModalEnum.DOCUMENT_ADD, {
-      // ...group,
-      id: group.id,
+    onStackOpenModal(ModalEnum.DOCUMENT_ADD_YEAR, {
+      ...group,
     } as Partial<typeof initialDocumentState>);
+  };
+
+  const onDownloadFile = (document: IDocument) => {
+    downloadMutation.mutate(
+      `company/${document.companyId}/document/${document.id}/download`,
+    );
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Nome', column: 'minmax(150px, 2fr)' },
-    { text: 'Tipo', column: '120px', justifyContent: 'center' },
-    { text: 'início', column: '80px', justifyContent: 'center' },
-    { text: 'Vencimento', column: '120px', justifyContent: 'center' },
+    // { text: 'Tipo', column: '80px' },
+    // { text: 'início', column: '80px', justifyContent: 'center' },
+    { text: 'Vencimento', column: '100px', justifyContent: 'center' },
+    { text: 'Baixar', column: '50px', justifyContent: 'center' },
     { text: 'Editar', column: '50px', justifyContent: 'center' },
   ];
 
@@ -89,7 +92,6 @@ export const DocumentsTable: FC<
         </>
       )}
       <STable
-        loading={loadGroup}
         rowsNumber={rowsPerPage}
         columns={header.map(({ column }) => column).join(' ')}
       >
@@ -100,8 +102,8 @@ export const DocumentsTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof group[0]>
-          rowsData={group}
+        <STableBody<typeof documents[0]>
+          rowsData={documents.sort((a, b) => sortData(b.endDate, a.endDate))}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
@@ -115,22 +117,16 @@ export const DocumentsTable: FC<
                 <TextIconRow
                   justifyContent="center"
                   clickable
-                  text={documentTypeMap[row.type]?.content || '-'}
-                />
-                <TextIconRow
-                  justifyContent="center"
-                  clickable
-                  text={dateToString(row.startDate, 'MM/YYYY') || '-'}
-                />
-                <TextIconRow
-                  justifyContent="center"
-                  clickable
-                  textProps={{
-                    color: dayjs().isAfter(row.endDate)
-                      ? 'error.main'
-                      : undefined,
-                  }}
                   text={dateToString(row.endDate, 'MM/YYYY') || '-'}
+                />
+                <IconButtonRow
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDownloadFile(row);
+                  }}
+                  loading={downloadMutation.isLoading}
+                  disabled={!row.fileUrl}
+                  icon={<SDownloadIcon sx={{ color: 'primary.main' }} />}
                 />
                 <IconButtonRow
                   onClick={(e) => {
@@ -144,12 +140,14 @@ export const DocumentsTable: FC<
           }}
         />
       </STable>
-      <STablePagination
+      <STagButton
+        onClick={onAddDocument}
+        maxWidth={250}
         mt={2}
-        registersPerPage={rowsPerPage}
-        totalCountOfRegisters={loadGroup ? undefined : count}
-        currentPage={page}
-        onPageChange={setPage}
+        icon={SAddIcon}
+        text={'Adcionar versão atualizada'}
+        active
+        bg={'success.dark'}
       />
     </>
   );

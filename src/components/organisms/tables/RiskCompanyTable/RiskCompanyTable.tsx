@@ -36,6 +36,35 @@ import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryEx
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { useQueryRisksCompany } from 'core/services/hooks/queries/useQueryRisksCompany/useQueryRisksCompany';
 
+export const getRiskDoc = (
+  risk: IRiskFactors,
+  {
+    companyId,
+    hierarchyId,
+    firstHierarchy,
+  }: { companyId?: string; hierarchyId?: string; firstHierarchy?: boolean },
+) => {
+  if (firstHierarchy || hierarchyId) {
+    const data = risk?.docInfo?.find(
+      (i) =>
+        i.hierarchyId && (hierarchyId ? i.hierarchyId == hierarchyId : true),
+    );
+    if (data) return data;
+  }
+
+  if (companyId) {
+    const first = risk?.docInfo?.find(
+      (i) => !i.hierarchyId && i.companyId === companyId,
+    );
+    if (first) return first;
+  }
+
+  const second = risk?.docInfo?.find((i) => !i.hierarchyId);
+  if (second) return second;
+
+  return risk;
+};
+
 export const RiskCompanyTable: FC<
   BoxProps & {
     rowsPerPage?: number;
@@ -240,12 +269,9 @@ export const RiskCompanyTable: FC<
                                 riskId: row.id,
                               })
                             }
-                            riskDocInfo={
-                              row?.docInfo?.find(
-                                (i) =>
-                                  !i.hierarchyId && i.companyId === companyId,
-                              ) || row?.docInfo?.find((i) => !i.hierarchyId)
-                            }
+                            riskDocInfo={getRiskDoc(row, {
+                              companyId,
+                            })}
                           />
                         </Box>
 

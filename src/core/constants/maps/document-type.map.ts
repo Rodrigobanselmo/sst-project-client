@@ -2,7 +2,7 @@ import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 export interface IDocumentTypeOption {
   value: DocumentTypeEnum;
-  name: string;
+  content: string;
 }
 interface IDocumentTypeOptions
   extends Record<DocumentTypeEnum, IDocumentTypeOption> {}
@@ -10,14 +10,20 @@ interface IDocumentTypeOptions
 export const documentTypeMap: IDocumentTypeOptions = {
   [DocumentTypeEnum.PGR]: {
     value: DocumentTypeEnum.PGR,
-    name: 'PGR',
+    content: 'PGR',
   },
   [DocumentTypeEnum.PCSMO]: {
     value: DocumentTypeEnum.PCSMO,
-    name: 'PCMSO',
+    content: 'PCMSO',
   },
   [DocumentTypeEnum.OTHER]: {
     value: DocumentTypeEnum.OTHER,
-    name: 'Outro',
+    content: 'Outro',
   },
 };
+
+export const documentTypeList = [
+  documentTypeMap[DocumentTypeEnum.PGR],
+  documentTypeMap[DocumentTypeEnum.PCSMO],
+  documentTypeMap[DocumentTypeEnum.OTHER],
+];

@@ -18,14 +18,20 @@ export const SCheckRiskDocInfo: FC<ISCheckRiskDocInfo> = ({
   ...props
 }) => {
   const ref = useRef({} as Partial<IRiskDocInfo>);
+  const old = {
+    isPGR: riskDocInfo?.isPGR,
+    isPPP: riskDocInfo?.isPPP,
+    isAso: riskDocInfo?.isAso,
+    isPCMSO: riskDocInfo?.isPCMSO,
+  };
 
   const handleDebounceChange = useDebouncedCallback(() => {
     onSelectCheck(ref.current);
-    ref.current = {};
+    // ref.current = {};
   }, 800);
 
   const onChange = (data: Partial<IRiskDocInfo>) => {
-    ref.current = { ...ref.current, ...data };
+    ref.current = { ...old, ...ref.current, ...data };
     handleDebounceChange();
   };
 

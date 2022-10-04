@@ -10,6 +10,7 @@ import {
   getExamAge,
   getExamPeriodic,
 } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
+import { getRiskDoc } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
 import { RiskOrderEnum } from 'project/enum/risk.enums';
 
 import { originRiskMap } from 'core/constants/maps/origin-risk';
@@ -143,10 +144,10 @@ export const ModalViewRiskData = ({
                     riskId: data.riskFactor.id,
                   })
                 }
-                riskDocInfo={
-                  data?.riskFactor?.docInfo?.find((i) => i.hierarchyId) ||
-                  data?.riskFactor?.docInfo?.[0]
-                }
+                riskDocInfo={getRiskDoc(data?.riskFactor, {
+                  companyId,
+                  firstHierarchy: true,
+                })}
               />
 
               <>

@@ -7,6 +7,7 @@ export enum CompanyActionEnum {
   RISKS = 'RISKS',
   COMPANY_RISKS = 'COMPANY_RISKS',
   USERS = 'USERS',
+  DOCUMENTS = 'DOCUMENTS',
   EDIT = 'EDIT',
   RISK_GROUP = 'RISK_GROUP',
   CLINICS = 'CLINICS',
@@ -18,4 +19,5 @@ export enum ClinicActionEnum {
   EDIT = 'EDIT',
   PROFESSIONALS = 'PROFESSIONALS',
   EXAMS = 'EXAMS',
+  DOCUMENTS = 'DOCUMENTS',
 }

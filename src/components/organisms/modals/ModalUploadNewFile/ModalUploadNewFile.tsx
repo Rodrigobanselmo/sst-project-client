@@ -69,12 +69,13 @@ export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
   }, [getModalData]);
 
   const onClose = () => {
-    onCloseModal(ModalEnum.UPLOAD_FILE);
+    onCloseModal(modalName);
     setFileData(initialFileUploadState);
     reset();
   };
 
   const onSetFiles = async (files: File[]) => {
+    console.log(99999);
     setFileData((data) => ({ ...data, files }));
   };
 
@@ -122,6 +123,7 @@ export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
       text: 'Fazer upload',
       type: 'submit',
       variant: 'contained',
+      onClick: onSubmit,
     },
   ] as IModalButton[];
 

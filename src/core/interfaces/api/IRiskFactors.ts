@@ -76,11 +76,12 @@ export interface IRiskDocInfo {
   companyId: string;
   hierarchyId: string;
   hierarchy: IHierarchy;
+  created_at: Date;
+
   isAso: boolean;
   isPGR: boolean;
   isPCMSO: boolean;
   isPPP: boolean;
-  created_at: Date;
 }
 export interface IRiskFactors {
   id: string;
@@ -112,6 +113,12 @@ export interface IRiskFactors {
   isEmergency?: boolean;
   carnogenicityACGIH?: string;
   carnogenicityLinach?: string;
+
+  isAso: boolean;
+  isPGR: boolean;
+  isPCMSO: boolean;
+  isPPP: boolean;
+
   docInfo?: IRiskDocInfo[];
   riskFactorData?: IRiskData[];
 }

@@ -9,6 +9,8 @@ import {
   selectGhoOpen,
   setGhoOpen,
   setGhoState,
+  setGhoSearch,
+  setGhoSearchSelect,
 } from 'store/reducers/hierarchy/ghoSlice';
 
 import SGhoIcon from 'assets/icons/SGhoIcon';
@@ -68,6 +70,8 @@ export const BottomButton: FC = () => {
             // handleCloseRisk();
             dispatch(setGhoState({ hierarchies: [], data: null }));
             dispatch(setGhoOpen());
+            dispatch(setGhoSearch(''));
+            dispatch(setGhoSearchSelect(''));
           }}
           gap={3}
           px={5}

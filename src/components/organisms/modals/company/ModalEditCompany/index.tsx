@@ -14,6 +14,7 @@ import { FirstModalCompanyStep } from './components/1-data';
 import { SecondModalCompanyStep } from './components/2-address';
 import { SSTModalCompanyStep } from './components/3-sst';
 import { FourthModalCompanyStep } from './components/4-logo';
+import { DocumentModalCompanyStep } from './components/5-documents';
 import { ContactModalCompanyStep } from './components/6-contacts';
 import { useEditCompany } from './hooks/useEditCompany';
 
@@ -60,6 +61,7 @@ export const ModalEditCompany = () => {
           <SecondModalCompanyStep {...props} />
           <SSTModalCompanyStep {...props} />
           <FourthModalCompanyStep {...props} />
+          {/* <DocumentModalCompanyStep {...props} /> */}
           <ContactModalCompanyStep {...props} />
         </Wizard>
       </SModalPaper>

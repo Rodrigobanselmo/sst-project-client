@@ -14,7 +14,7 @@ import { ModalViewProfessional } from 'components/organisms/modals/ModalViewProf
 import {
   ModalViewUsers,
   StackModalViewUsers,
-} from 'components/organisms/modals/ModalViewUsers/ModalViewExam';
+} from 'components/organisms/modals/ModalViewUsers/ModalViewUsers';
 import { NextPage } from 'next';
 
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';

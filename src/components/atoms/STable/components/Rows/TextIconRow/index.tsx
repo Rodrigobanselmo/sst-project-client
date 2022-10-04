@@ -20,6 +20,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
   textAlign,
   sx,
   clickable,
+  textProps = {},
   ...props
 }) => {
   const memoizedChildren = useMemo(() => {
@@ -34,10 +35,11 @@ const TextIconRow: FC<TextIconRowProps> = ({
           <SText
             textAlign={textAlign}
             fontSize={fontSize}
-            sx={{ whiteSpace: 'pre-line' }}
             lineNumber={lineNumber}
-            className="table-row-text"
             lineHeight={lineHeight}
+            className="table-row-text"
+            {...textProps}
+            sx={{ whiteSpace: 'pre-line', ...textProps?.sx }}
           >
             {text}
           </SText>
@@ -46,14 +48,15 @@ const TextIconRow: FC<TextIconRowProps> = ({
       </>
     );
   }, [
-    children,
-    fontSize,
-    icon,
-    lineNumber,
     loading,
+    icon,
     text,
     textAlign,
+    fontSize,
+    lineNumber,
     lineHeight,
+    textProps,
+    children,
   ]);
 
   return (

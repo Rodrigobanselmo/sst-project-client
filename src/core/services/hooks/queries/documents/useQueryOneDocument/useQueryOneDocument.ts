@@ -16,15 +16,18 @@ export const queryOneDocument = async (id: number, companyId: string) => {
   return response.data;
 };
 
-export function useQueryOneDocument(
-  id: number | undefined,
-  getCompanyId?: string | null,
-): IReactQuery<IDocument> {
+export function useQueryOneDocument({
+  id,
+  getCompanyId,
+}: {
+  id: number | undefined;
+  getCompanyId?: string | null;
+}): IReactQuery<IDocument> {
   const { companyId } = useGetCompanyId();
   const companyID = getCompanyId || companyId;
 
   const { data, ...query } = useQuery(
-    [QueryEnum.COMPANY, companyID, id],
+    [QueryEnum.DOCUMENTS, companyID, id],
     () =>
       companyID && id
         ? queryOneDocument(id, companyID)

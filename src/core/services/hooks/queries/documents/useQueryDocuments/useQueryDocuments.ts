@@ -17,7 +17,7 @@ interface IQueryContact {
   companyId?: string;
   workspaceId?: string;
   type?: DocumentTypeEnum[];
-  status: StatusEnum[];
+  status?: StatusEnum[];
 }
 
 export const queryDocuments = async (

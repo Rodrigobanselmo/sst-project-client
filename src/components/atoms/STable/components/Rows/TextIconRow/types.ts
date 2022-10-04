@@ -2,6 +2,7 @@
 import { ElementType, ReactNode } from 'react';
 
 import { SFlexProps } from 'components/atoms/SFlex/types';
+import { STextProps } from 'components/atoms/SText/types';
 
 export type TextIconRowProps = SFlexProps & {
   icon?: ElementType<any>;
@@ -10,4 +11,5 @@ export type TextIconRowProps = SFlexProps & {
   text?: ReactNode;
   loading?: boolean;
   clickable?: boolean;
+  textProps?: STextProps;
 };

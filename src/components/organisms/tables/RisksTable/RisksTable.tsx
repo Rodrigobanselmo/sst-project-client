@@ -36,6 +36,8 @@ import {
 } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryRisks } from 'core/services/hooks/queries/useQueryRisks/useQueryRisks';
 
+import { getRiskDoc } from '../RiskCompanyTable/RiskCompanyTable';
+
 export const RisksTable: FC<
   BoxProps & {
     rowsPerPage?: number;
@@ -52,6 +54,7 @@ export const RisksTable: FC<
     data: risks,
     isLoading: loadRisks,
     count,
+    companyId,
   } = useQueryRisks(page, { search }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
@@ -153,7 +156,9 @@ export const RisksTable: FC<
                         riskId: row.id,
                       })
                     }
-                    riskDocInfo={row?.docInfo?.find((i) => !i.hierarchyId)}
+                    riskDocInfo={getRiskDoc(row, {
+                      companyId,
+                    })}
                   />
                 </Box>
                 <StatusSelect

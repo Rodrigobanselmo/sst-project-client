@@ -64,6 +64,7 @@ export function useMutUpsertRiskDocInfo() {
 }
 
 const editHierarchyRiskData = (riskDocInfo: IRiskDocInfo) => {
+  // queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
   if (!riskDocInfo.hierarchyId) return;
 
   const actualData = queryClient.getQueryData<IRiskData[]>([
