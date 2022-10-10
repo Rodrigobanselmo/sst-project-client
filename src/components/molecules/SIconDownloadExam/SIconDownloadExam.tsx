@@ -100,7 +100,9 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
         isOpen={Boolean(anchorEl)}
         anchorEl={anchorEl}
         startAdornment={() => {
-          <Icon sx={{ fontSize: 15, mr: 4 }} component={SDownloadIcon} />;
+          return (
+            <Icon sx={{ fontSize: 15, mr: 4 }} component={SDownloadIcon} />
+          );
         }}
         handleSelect={handleSelect}
         options={[
