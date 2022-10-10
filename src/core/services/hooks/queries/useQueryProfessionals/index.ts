@@ -47,15 +47,23 @@ export function useQueryProfessionals(
   query = {} as IQueryProfessionals,
   take = 20,
 ) {
-  const { companyId } = useGetCompanyId();
+  const { getCompanyId } = useGetCompanyId();
   const pagination: IPagination = {
     skip: (page - 1) * (take || 20),
     take: take || 20,
   };
 
   const { data, ...result } = useQuery(
-    [QueryEnum.PROFESSIONALS, page, { ...pagination, ...query, companyId }],
-    () => queryProfessionals(pagination, { ...query, companyId }),
+    [
+      QueryEnum.PROFESSIONALS,
+      page,
+      { ...pagination, ...query, companyId: getCompanyId(query) },
+    ],
+    () =>
+      queryProfessionals(pagination, {
+        ...query,
+        companyId: getCompanyId(query),
+      }),
     {
       staleTime: 1000 * 60 * 60, // 60 minute
     },

@@ -66,5 +66,5 @@ export function useQueryHisExamEmployee(
     count: data?.count || 0,
   };
 
-  return { ...result, data: response.data, count: response.count };
+  return { ...result, _companyId, data: response.data, count: response.count };
 }

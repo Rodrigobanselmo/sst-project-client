@@ -20,6 +20,7 @@ export enum PermissionEnum {
   EMPLOYEE = '2.1',
   EMPLOYEE_HISTORY = '2.2',
   COMPANY_SCHEDULE = '2.3',
+  EMPLOYEE_HISTORY_FILE = '2.4',
   EPI = '3',
   RISK = '4.0',
   GS = '4.1',

@@ -34,7 +34,7 @@ export const useSecondStep = ({ data, onClose, ...rest }: IUseAddCompany) => {
 
       await createDoc
         .mutateAsync({
-          version,
+          version: version.replace('+ ', ''),
           description: doc_description,
           name: doc_name,
           companyId: data.companyId,

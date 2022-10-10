@@ -31,6 +31,7 @@ export interface ICreateEmployeeExamHistory {
   conclusion?: ExamHistoryConclusionEnum;
   status?: StatusEnum;
   hierarchyId?: string;
+  subOfficeId?: string;
   clinicObs?: string;
   scheduleType?: ClinicScheduleTypeEnum;
   changeHierarchyDate?: Date;

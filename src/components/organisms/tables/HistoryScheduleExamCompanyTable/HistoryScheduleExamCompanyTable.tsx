@@ -17,15 +17,20 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import { SIconDownloadExam } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
+import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
+import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -38,6 +43,7 @@ import {
 } from 'core/interfaces/api/IEmployee';
 import { useMutUpdateManyScheduleHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
+import { useFetchQueryHisScheduleExamClinic } from 'core/services/hooks/queries/useQueryHisScheduleExamClinic/useQueryHisScheduleExamClinic';
 import { useQueryHisScheduleExamCompany } from 'core/services/hooks/queries/useQueryHisScheduleExamCompany/useQueryHisScheduleExamCompany';
 import { dateToString } from 'core/utils/date/date-format';
 
@@ -53,7 +59,7 @@ export const HistoryScheduleExamCompanyTable: FC<
   }
 > = ({ rowsPerPage = 12, onSelectData, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
-  const { push } = useRouter();
+  const { isAuthSuccess } = useAuthShow();
 
   const {
     data: historyExam,
@@ -73,6 +79,7 @@ export const HistoryScheduleExamCompanyTable: FC<
 
   const updateMutation = useMutUpdateManyScheduleHisExam();
   const { onStackOpenModal } = useModal();
+  const { fetchHisScheduleExam } = useFetchQueryHisScheduleExamClinic();
 
   const onSelectRow = (data: IEmployeeExamsHistory) => {
     // if (isSelect) {
@@ -88,6 +95,7 @@ export const HistoryScheduleExamCompanyTable: FC<
     onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE, {
       examType: data.examType,
       hierarchyId: data.hierarchyId,
+      subOfficeId: data.subOfficeId,
       companyId: data?.employee?.companyId,
       employeeId: data?.employee?.id,
     } as Partial<typeof initialExamScheduleState>);
@@ -102,9 +110,22 @@ export const HistoryScheduleExamCompanyTable: FC<
     window.open(path, '_blank');
   };
 
-  const onEdit = (data?: IEmployeeExamsHistory) => {
-    if (data)
-      onStackOpenModal(ModalEnum.EMPLOYEE_HISTORY_EXAM_EDIT_CLINIC, data);
+  const onEdit = async (data?: IEmployeeExamsHistory) => {
+    if (!isAuthSuccess({ permissions: [PermissionEnum.CLINIC_SCHEDULE] }))
+      return;
+
+    if (data) {
+      const employee = await fetchHisScheduleExam(
+        { employeeId: data.employee?.id },
+        data.clinicId,
+      );
+
+      if (employee && employee.data && employee.data[0])
+        onStackOpenModal(ModalEnum.EMPLOYEE_HISTORY_EXAM_EDIT_CLINIC, {
+          ...employee.data[0],
+          clinicId: data.clinicId,
+        });
+    }
   };
 
   const onChangeStatus = (data?: Partial<IEmployeeExamsHistory>) => {
@@ -171,12 +192,17 @@ export const HistoryScheduleExamCompanyTable: FC<
 
             const employee = row?.employee;
             const company = employee?.company;
-            const disabled = row.status !== StatusEnum.PROCESSING;
+
+            const disabled = ![
+              StatusEnum.PROCESSING,
+              StatusEnum.EXPIRED,
+            ].includes(row.status);
+
             return (
               <STableRow
                 key={row.id}
                 clickable
-                onClick={() => onSelectRow(row)}
+                onClick={() => onEdit(row)}
                 // status={getRowColor(row.status)}
               >
                 <TextIconRow text={dateToString(row?.doneDate)} />
@@ -228,7 +254,11 @@ export const HistoryScheduleExamCompanyTable: FC<
                     />
                   </Box>
                   <Box>
-                    <IconButtonRow
+                    <SIconDownloadExam
+                      companyId={employee?.companyId}
+                      employeeId={employee?.id}
+                    />
+                    {/* <IconButtonRow
                       disabled={disabled}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -241,23 +271,9 @@ export const HistoryScheduleExamCompanyTable: FC<
                           sx={{ color: disabled ? undefined : 'primary.light' }}
                         />
                       }
-                    />
+                    /> */}
                   </Box>
                 </SFlex>
-                {/* <IconButtonRow
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(row);
-                  }}
-                  icon={<SCalendarIcon sx={{ color: 'info.dark' }} />}
-                /> */}
-                {/* <IconButtonRow
-          onClick={(e) => {
-            e.stopPropagation();
-            onEdit(row);
-          }}
-          icon={<SCancelIcon sx={{ color: 'error.dark' }} />}
-        /> */}
               </STableRow>
             );
           }}

@@ -326,6 +326,8 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                             ...data,
                             sector: hierarchy,
                             hierarchy: undefined,
+                            examsData: [],
+                            subOffice: undefined,
                             errors: { ...data.errors, sector: false },
                           });
                         }}
@@ -357,6 +359,8 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                           setData({
                             ...data,
                             hierarchy,
+                            subOffice: undefined,
+                            examsData: [],
                             sector: parentSector,
                             errors: {
                               ...data.errors,
@@ -371,6 +375,36 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                         borderActive={data.hierarchy?.id && 'info'}
                         bg={'background.paper'}
                       />
+                      {data.hierarchy?.id && (
+                        <HierarchySelect
+                          tooltipText={(textField) => textField}
+                          disabled={isPendingExams}
+                          filterOptions={[HierarchyEnum.SUB_OFFICE]}
+                          defaultFilter={HierarchyEnum.SUB_OFFICE}
+                          text="Selecione um Cargo Desenv."
+                          large
+                          icon={null}
+                          maxWidth={'auto'}
+                          parentId={data.hierarchy?.id}
+                          error={data.errors.subOffice}
+                          handleSelect={(hierarchy: IHierarchy) => {
+                            setData({
+                              ...data,
+                              subOffice: hierarchy,
+                              examsData: [],
+                              errors: {
+                                ...data.errors,
+                                subOffice: false,
+                              },
+                            });
+                          }}
+                          companyId={data.companyId}
+                          selectedId={data.subOffice?.id}
+                          active={false}
+                          borderActive={data.subOffice?.id && 'info'}
+                          bg={'background.paper'}
+                        />
+                      )}
                     </SFlex>
                   )}
                 </Box>

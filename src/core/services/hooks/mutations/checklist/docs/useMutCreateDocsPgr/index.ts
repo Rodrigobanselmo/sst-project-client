@@ -61,12 +61,7 @@ export function useMutUpsertRiskDocsPgr() {
     async (data: IUpsertRiskDocs) => upsertRiskDocs(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp)
-          queryClient.refetchQueries([
-            QueryEnum.RISK_GROUP_DOCS,
-            resp.companyId,
-            resp.riskGroupId,
-          ]);
+        if (resp) queryClient.invalidateQueries([QueryEnum.RISK_GROUP_DOCS]);
 
         enqueueSnackbar('Documento editado com sucesso', {
           variant: 'success',

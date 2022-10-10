@@ -19,6 +19,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 interface IQueryClinicEmployeeHistHier {
   date?: Date;
   companyId?: string;
+  employeeId?: number;
 }
 
 export const queryHisExamEmployee = async (
@@ -57,4 +58,34 @@ export function useQueryHisScheduleExamClinic(
   );
 
   return { ...result, data: data || [], count: data?.length || 0 };
+}
+
+export function useFetchQueryHisScheduleExamClinic() {
+  const { companyId } = useGetCompanyId();
+
+  const fetchHisScheduleExam = async (
+    query = {} as IQueryClinicEmployeeHistHier,
+    companyID?: string,
+  ) => {
+    const _companyId = companyID || companyId;
+
+    const response = await queryClient
+      .fetchQuery(
+        [
+          QueryEnum.EMPLOYEE_HISTORY_EXAM,
+          'schedule-clinic',
+          _companyId,
+          { ...query },
+        ],
+        () => queryHisExamEmployee({ ...query, companyId: _companyId }),
+        {
+          staleTime: 1000 * 60 * 10, // 10 minute
+        },
+      )
+      .catch((e) => console.log(e));
+
+    return { data: response || [], count: response?.length || 0 };
+  };
+
+  return { fetchHisScheduleExam };
 }

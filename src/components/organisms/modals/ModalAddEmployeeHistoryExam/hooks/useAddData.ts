@@ -198,9 +198,10 @@ export const useAddData = () => {
         .catch(() => {});
   };
 
-  const onSubmit: SubmitHandler<Omit<SModalInitContactProps, 'id'>> = async (
-    dataForm,
-  ) => {
+  const onSubmit: SubmitHandler<Omit<SModalInitContactProps, 'id'>> = async ({
+    conclusion,
+    ...dataForm
+  }) => {
     if (!data.employeeId) return;
     if (!data.doneDate) return;
     if (!hideClinicExam && !data.exam?.id) return;
@@ -255,6 +256,7 @@ export const useAddData = () => {
 
     const submitData: ICreateEmployeeExamHistory = {
       ...dataForm,
+      ...(conclusion && { conclusion }),
       examId: data.hideClinicExam ? undefined : data.exam?.id,
       clinicId: data.clinic?.id,
       doctorId: data?.doctor?.id,

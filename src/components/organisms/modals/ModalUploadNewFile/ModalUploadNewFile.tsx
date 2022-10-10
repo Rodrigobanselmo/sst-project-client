@@ -75,7 +75,6 @@ export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
   };
 
   const onSetFiles = async (files: File[]) => {
-    console.log(99999);
     setFileData((data) => ({ ...data, files }));
   };
 

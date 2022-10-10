@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
@@ -91,9 +91,11 @@ export const useEditProfessionals = () => {
     ...initialProfessionalState,
   });
 
-  const companies = removeDuplicate([userCompany, company], {
-    removeById: 'id',
-  });
+  const companies = useMemo(() => {
+    return removeDuplicate([userCompany, company], {
+      removeById: 'id',
+    });
+  }, [userCompany, company]);
 
   const isManyCompanies = companies.length > 1;
 
@@ -115,7 +117,7 @@ export const useEditProfessionals = () => {
         return newData;
       });
     }
-  }, [company, getModalData]);
+  }, [getModalData]);
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.PROFESSIONALS_ADD, data);

@@ -177,6 +177,12 @@ export const permissionsConstantMap = {
     info: 'Criação e edição de dados da clínica',
     crud: ['r', 'cu', 'd'],
   },
+  [PermissionEnum.EMPLOYEE_HISTORY_FILE]: {
+    value: PermissionEnum.EMPLOYEE_HISTORY_FILE,
+    label: 'Arquivos de exames',
+    info: 'Controle dos arquivos vinculados aos exames (clínico e complementar) gerados pelas clínicas (upload e download)',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

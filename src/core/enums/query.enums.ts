@@ -37,4 +37,5 @@ export enum QueryEnum {
   RISK_GROUP_DOC = 'risk-group-doc',
   RISK_GROUP_DOCS = 'risk-group-docs',
   USERS = 'users',
+  DASHBOARD_COMPANY = 'dashboard-company',
 }

@@ -134,6 +134,7 @@ export const rolesConstantMap = {
       PermissionEnum.COMPANY,
       PermissionEnum.CLINIC,
       PermissionEnum.CLINIC_SCHEDULE,
+      PermissionEnum.EMPLOYEE_HISTORY_FILE,
       PermissionEnum.EXAM,
       PermissionEnum.EXAM_CLINIC,
       PermissionEnum.PROFESSIONALS,

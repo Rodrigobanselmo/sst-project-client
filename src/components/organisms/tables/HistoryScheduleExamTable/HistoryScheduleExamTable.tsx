@@ -1,6 +1,8 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
+import SCheckBox from 'components/atoms/SCheckBox';
+import SFlex from 'components/atoms/SFlex';
 import {
   ITableRowStatus,
   STable,
@@ -16,28 +18,36 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
 import { SAuthShow } from 'components/molecules/SAuthShow';
+import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
 import {
   ModalAddEmployeeHistoryExam,
   StackModalAddEmployeeHistoryExam,
 } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/ModalAddEmployeeHistoryExam';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
+import EditIcon from 'assets/icons/SEditIcon';
+import SUploadFileIcon from 'assets/icons/SUploadFileIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { useTableSelect } from 'core/hooks/useTableSelect';
 import { IAddress } from 'core/interfaces/api/ICompany';
 import {
   IEmployee,
   IEmployeeExamsHistory,
 } from 'core/interfaces/api/IEmployee';
+import { useMutUploadEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUploadEmployeeHisExam/useMutUploadEmployeeHisExam';
 import {
   IQueryEmployeeHistHier,
   useQueryHisExamEmployee,
@@ -72,6 +82,7 @@ export const HistoryScheduleExamTable: FC<
   ...props
 }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
+  const uploadMutation = useMutUploadEmployeeHisExam();
 
   const {
     data: history,
@@ -144,20 +155,36 @@ export const HistoryScheduleExamTable: FC<
     return `${address.city} - ${address.state}, ${cepMask.mask(address.cep)}`;
   };
 
+  const uploadExam = async ({
+    ids,
+    file,
+    companyId,
+  }: {
+    ids: number[];
+    file: File;
+    companyId?: string;
+  }) => {
+    await uploadMutation.mutateAsync({
+      ids,
+      companyId,
+      file,
+    });
+  };
+
   if (isHideEmpty) {
     if (!history) return null;
     if (history.length === 0) return null;
   }
 
-  const header: (BoxProps & { text: string; column: string })[] = [
+  const header: (BoxProps & { text: ReactNode; column: string })[] = [
     { text: 'Data Agendada', column: '140px' },
     { text: 'Exame', column: 'minmax(150px, 1fr)' },
     { text: 'Funcionário', column: 'minmax(150px, 1fr)' },
     { text: 'Tipo', column: '100px' },
     { text: 'Clínica', column: 'minmax(100px, 1fr)' },
-    { text: 'Status', column: '85px' },
+    { text: 'Status', column: '100px' },
     { text: 'Agendado por', column: '120px' },
-    { text: 'Reagendar', column: '80px', justifyContent: 'center' },
+    { text: '', column: '80px', justifyContent: 'center' },
   ];
 
   return (
@@ -184,8 +211,8 @@ export const HistoryScheduleExamTable: FC<
         columns={header.map(({ column }) => column).join(' ')}
       >
         <STableHeader>
-          {header.map(({ column, text, ...props }) => (
-            <STableHRow key={text} {...props}>
+          {header.map(({ text, ...props }, index) => (
+            <STableHRow key={String(index)} {...props}>
               {text}
             </STableHRow>
           ))}
@@ -285,18 +312,39 @@ export const HistoryScheduleExamTable: FC<
                     <SText fontSize={13}>{row?.clinic?.fantasy || '-'}</SText>
                   }
                 />
-                <TextIconRow
-                  clickable
-                  text={statusOptionsConstantExam[row?.status].name || '-'}
+                <StatusSelect
+                  selected={row?.status}
+                  large={false}
+                  width={'100%'}
+                  sx={{ width: '100%' }}
+                  disabled
+                  options={statusOptionsConstantExam}
+                  statusOptions={[]}
                 />
                 <TextUserRow clickable user={row?.userSchedule} />
-                <IconButtonRow
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onReSchedule(row);
-                  }}
-                  icon={<SCalendarIcon sx={{ color: 'info.dark' }} />}
-                />
+                <SFlex center gap={0} ml={0}>
+                  <IconButtonRow
+                    tooltipTitle="Reagendar exame"
+                    onClick={() => onReSchedule(row)}
+                    icon={<SCalendarIcon sx={{ color: 'info.dark' }} />}
+                  />
+                  <SIconUploadFile
+                    loading={uploadMutation.isLoading}
+                    disabledDownload={!row.fileUrl}
+                    isActive={!!row.fileUrl}
+                    downloadPath={
+                      ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM +
+                      `/${row.id}/download/${row?.employee?.companyId}`
+                    }
+                    onUpload={(file) =>
+                      uploadExam({
+                        file,
+                        ids: [row.id],
+                        companyId: row?.employee?.companyId,
+                      })
+                    }
+                  />
+                </SFlex>
                 {/* <IconButtonRow
                   onClick={(e) => {
                     e.stopPropagation();

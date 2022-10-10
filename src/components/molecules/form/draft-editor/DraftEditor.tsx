@@ -190,7 +190,6 @@ export const DraftEditor = ({
             contentState?.blocks?.length === 1 &&
             contentState?.blocks?.[0]?.text === '';
 
-          console.log(isEmpty);
           if (isEmpty) return onChange?.('');
 
           onChange?.(

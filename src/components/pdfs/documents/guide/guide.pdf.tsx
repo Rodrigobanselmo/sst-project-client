@@ -8,7 +8,7 @@ import dayjs from 'dayjs';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 import { v4 } from 'uuid';
 
-import { daysArr } from 'core/hooks/useCalendar';
+import { daysArr, daysShortArr } from 'core/hooks/useCalendar';
 import { IExam } from 'core/interfaces/api/IExam';
 import { IGuideData } from 'core/interfaces/api/IGuideData';
 import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
@@ -19,6 +19,7 @@ import {
   getContactPhone,
 } from 'core/utils/helpers/getAddress';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 import { s } from './styles';
 
@@ -89,6 +90,39 @@ export default function PdfGuide({ data }: { data: IGuideData }) {
   const hasComplementary = complementary && complementary.length > 0;
   const hasClinic = clinic && clinic?.fantasy;
 
+  const getScheduledText = (isScheduled?: boolean) =>
+    isScheduled ? 'ordem agendada' : 'ordem de chegada';
+
+  const getRangeText = (range: Record<string, string>, date: Date) => {
+    const dayOfWeek = new Date(date).getDay() + 1;
+    let timeOfWeekText = '';
+
+    if (range)
+      Object.entries(range)
+        .sort(([a], [b]) => sortString(a, b))
+        .forEach(([key, value], index) => {
+          if (value && key.includes(`${dayOfWeek}-`)) {
+            let beforeText = index % 2 == 0 ? ' e ' : ' às ';
+            if (key.includes('-0')) beforeText = '';
+
+            timeOfWeekText = timeOfWeekText + beforeText + value;
+          }
+        });
+    // const rangeWeekDay = range[`${dayOfWeek}-`]
+
+    return `${(
+      daysShortArr[dayOfWeek] || ''
+    ).toUpperCase()}: ${timeOfWeekText}`;
+  };
+
+  const getExamRangeTime = (
+    isScheduled: boolean,
+    range: Record<string, string>,
+    date: Date,
+  ) => {
+    return `${getScheduledText(isScheduled)} > ${getRangeText(range, date)}`;
+  };
+
   return (
     <Document>
       <Page style={s.page}>
@@ -140,67 +174,112 @@ export default function PdfGuide({ data }: { data: IGuideData }) {
           <>
             {/* Complementary */}
             <>
-              {data.clinicComplementaryExams.map((examBlock) => (
-                <View style={s.mb}>
-                  {/* Header & Date*/}
-                  <>
-                    <View style={[s.table1, s.darkRow]}>
-                      <Text style={s.h1}>Exames Complementares</Text>
-                    </View>
-                    <View style={[s.table2]}>
-                      <Text style={s.bodyB1}>
-                        Data: {dateToString(examBlock.doneDate)}
-                        &nbsp;&nbsp;&nbsp;&nbsp;Hora: {examBlock.time}
-                        {/* &nbsp;&nbsp;&nbsp;&nbsp;Dia: ( */}
-                        {/* {daysArr[dayjs(examBlock.doneDate).day()]}) */}
-                      </Text>
-                    </View>
-                  </>
+              {data.clinicComplementaryExams.map((examBlock) => {
+                const examRecord: Record<
+                  string,
+                  (IExam & { dayRange: string })[]
+                > = {};
+                examBlock.exams.forEach((exam) => {
+                  const examData = {
+                    ...exam,
+                    dayRange: getExamRangeTime(
+                      examBlock.isScheduled,
+                      examBlock.scheduleRange,
+                      examBlock.doneDate,
+                    ),
+                  };
 
-                  {/* CLINIC & Exams */}
-                  <View style={[s.row]}>
-                    {/* Clinic */}
-                    <View style={[s.table2, { flexGrow: 1, width: 400 }]}>
-                      <Text style={s.bodyB1}>{examBlock.clinic.fantasy}</Text>
-                      <Text style={s.body}>
-                        {getAddressMain(examBlock.clinic.address)}
-                      </Text>
-                      <Text style={s.body}>
-                        {getAddressCity(examBlock.clinic.address)}
-                      </Text>
-                      {examBlock.clinic.contacts[0]?.phone && (
-                        <Text style={s.body}>
-                          {getContactPhone(examBlock.clinic.contacts[0])}
-                        </Text>
-                      )}
-                      {examBlock.clinic.contacts[0]?.email && (
-                        <Text style={s.body}>
-                          Email: {examBlock.clinic.contacts[0].email}
-                        </Text>
-                      )}
-                      {/* <Html>{html(exam.clinic.obs)}</Html> */}
-                    </View>
+                  if (!(examRecord as any)[examData.dayRange])
+                    examRecord[examData.dayRange] = [];
 
-                    {/* EXAMS */}
-                    <View
-                      style={[s.table2L, s.pb4, { flexGrow: 1, width: 330 }]}
-                    >
-                      <Text style={[s.bodyB1, s.mb1]}>Exames:</Text>
-                      <View style={[s.row, s.wrap]}>
-                        {examBlock.exams.map((exam) => {
+                  examRecord[examData.dayRange].push(examData);
+                });
+
+                return (
+                  <View style={s.mb}>
+                    {/* Header & Date*/}
+                    <>
+                      <View style={[s.table1, s.darkRow]}>
+                        <Text style={s.h1}>Exames Complementares</Text>
+                      </View>
+                      <View style={[s.table2]}>
+                        <Text style={s.bodyB1}>
+                          Data: {dateToString(examBlock.doneDate)}
+                          &nbsp;&nbsp;&nbsp;&nbsp;Hora: {examBlock.time}
+                          {/* &nbsp;&nbsp;&nbsp;&nbsp;Dia: ( */}
+                          {/* {daysArr[dayjs(examBlock.doneDate).day()]}) */}
+                        </Text>
+                      </View>
+                    </>
+
+                    {/* CLINIC & Exams */}
+                    <View style={[s.row]}>
+                      {/* Clinic */}
+                      <View style={[s.table2, { flexGrow: 1, width: 330 }]}>
+                        <Text style={s.bodyB1}>{examBlock.clinic.fantasy}</Text>
+                        <Text style={s.body}>
+                          {getAddressMain(examBlock.clinic.address)}
+                        </Text>
+                        <Text style={s.body}>
+                          {getAddressCity(examBlock.clinic.address)}
+                        </Text>
+                        {examBlock.clinic.contacts[0]?.phone && (
+                          <Text style={s.body}>
+                            {getContactPhone(examBlock.clinic.contacts[0])}
+                          </Text>
+                        )}
+                        {examBlock.clinic.contacts[0]?.email && (
+                          <Text style={s.body}>
+                            Email: {examBlock.clinic.contacts[0].email}
+                          </Text>
+                        )}
+                        {/* <Html>{html(exam.clinic.obs)}</Html> */}
+                      </View>
+
+                      {/* EXAMS */}
+                      <View
+                        style={[s.table2L, s.pb4, { flexGrow: 1, width: 400 }]}
+                      >
+                        <Text style={[s.bodyB1, s.mb1]}>Exames:</Text>
+                        {Object.entries(examRecord).map(([key, exams]) => {
                           return (
-                            <Text
-                              style={[s.body, s.tBox, s.mt2, s.darkLightRow]}
-                            >
-                              {exam.name.slice(0, 10)}
-                            </Text>
+                            <View style={[s.mb4]}>
+                              <View style={[s.row, s.mb1]}>
+                                <Text
+                                  style={{
+                                    fontSize: 8,
+                                    fontWeight: 'bold',
+                                    marginRight: 1,
+                                  }}
+                                >
+                                  ATENDIMENTO:{' '}
+                                </Text>
+                                <Text style={s.body}>{key}</Text>
+                              </View>
+                              <View style={[s.row, s.wrap]}>
+                                {exams.map((exam) => {
+                                  return (
+                                    <Text
+                                      style={[
+                                        s.body,
+                                        s.tBox,
+                                        s.mt2,
+                                        s.darkLightRow,
+                                      ]}
+                                    >
+                                      {exam.name.slice(0, 10)}
+                                    </Text>
+                                  );
+                                })}
+                              </View>
+                            </View>
                           );
                         })}
                       </View>
                     </View>
                   </View>
-                </View>
-              ))}
+                );
+              })}
             </>
 
             {/* Instructions */}
@@ -271,6 +350,20 @@ export default function PdfGuide({ data }: { data: IGuideData }) {
                   <Text style={s.body}>Email: {clinic?.contacts[0].email}</Text>
                 )}
                 {/* <Html>{html(exam.clinic.obs)}</Html> */}
+                <View style={[s.row, s.mt3]}>
+                  <Text
+                    style={{ fontSize: 8, fontWeight: 'bold', marginRight: 1 }}
+                  >
+                    ATENDIMENTO:{' '}
+                  </Text>
+                  <Text style={s.body}>
+                    {getExamRangeTime(
+                      data.clinicExam.isScheduled,
+                      data.clinicExam.scheduleRange,
+                      data.clinicExam.doneDate,
+                    )}
+                  </Text>
+                </View>
               </View>
 
               {/*  Date */}

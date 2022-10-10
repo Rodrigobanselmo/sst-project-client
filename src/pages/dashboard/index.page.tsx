@@ -3,14 +3,13 @@ import SPageTitle from 'components/atoms/SPageTitle';
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import { HistoryScheduleExamClinicTable } from 'components/organisms/tables/HistoryScheduleExamClinicTable/HistoryScheduleExamClinicTable';
 import { NextPage } from 'next';
-import { RoleEnum } from 'project/enum/roles.enums';
 
-import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Home: NextPage = () => {
   const { data: company } = useQueryCompany();
+
   return (
     <SContainer>
       <SAuthShow hideIf={company.isClinic}>

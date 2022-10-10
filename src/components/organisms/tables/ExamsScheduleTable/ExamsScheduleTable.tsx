@@ -15,9 +15,11 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
+import { SAuthShow } from 'components/molecules/SAuthShow';
 import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -69,18 +71,25 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
             const isValid = row.expiredDate && !row.closeToExpired;
             return (
               <STableRow key={row.id} status={isValid ? 'info' : undefined}>
-                <SCheckBox
-                  disabled={disabled}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setData?.({
-                      id: row.id,
-                      isSelected: !row.isSelected,
-                    });
-                  }}
-                  label=""
-                  checked={row.isSelected}
-                />
+                <Box>
+                  <SAuthShow
+                    permissions={[PermissionEnum.CLINIC_SCHEDULE]}
+                    cruds={'u'}
+                  >
+                    <SCheckBox
+                      disabled={disabled}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setData?.({
+                          id: row.id,
+                          isSelected: !row.isSelected,
+                        });
+                      }}
+                      label=""
+                      checked={row.isSelected}
+                    />
+                  </SAuthShow>
+                </Box>
                 <Box>
                   <TextIconRow
                     tooltipTitle={<>{row.name}</>}

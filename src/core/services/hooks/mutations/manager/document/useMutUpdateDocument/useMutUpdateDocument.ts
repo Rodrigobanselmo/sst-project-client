@@ -70,7 +70,7 @@ export function useMutUpdateDocument() {
       onSuccess: async (resp) => {
         if (resp) queryClient.invalidateQueries([QueryEnum.DOCUMENTS]);
 
-        enqueueSnackbar('Contato editado com sucesso', {
+        enqueueSnackbar('Documento editado com sucesso', {
           variant: 'success',
         });
         return resp;

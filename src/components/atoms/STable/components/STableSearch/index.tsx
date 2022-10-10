@@ -10,7 +10,7 @@ import STooltip from 'components/atoms/STooltip';
 
 import { SUploadIcon } from 'assets/icons/SUploadIcon';
 
-import { STableSearchProps } from './types';
+import { STableButtonProps, STableSearchProps } from './types';
 
 export const STableAddButton: FC<STableSearchProps> = ({
   onAddClick,
@@ -41,6 +41,47 @@ export const STableAddButton: FC<STableSearchProps> = ({
           {addText && <Box mr={3}>{addText}</Box>}
         </SButton>
       </Box>
+    </STooltip>
+  );
+};
+
+export const STableButton: FC<STableButtonProps> = ({
+  addText,
+  icon = AddIcon,
+  color = 'success.main',
+  tooltip,
+  ...props
+}) => {
+  return (
+    <STooltip title={tooltip || addText}>
+      <div>
+        <SButton
+          {...props}
+          sx={{
+            height: 38,
+            minWidth: 38,
+            borderRadius: 1,
+            m: 0,
+            ml: 2,
+            px: 4,
+            backgroundColor: color,
+            '&:hover': {
+              backgroundColor: color,
+              filter: 'brightness(0.8)',
+            },
+            ...props?.sx,
+          }}
+        >
+          <Icon
+            component={icon}
+            sx={{
+              fontSize: ['1.2rem'],
+              color: 'common.white',
+            }}
+          />
+          {addText && <Box mr={3}>{addText}</Box>}
+        </SButton>
+      </div>
     </STooltip>
   );
 };

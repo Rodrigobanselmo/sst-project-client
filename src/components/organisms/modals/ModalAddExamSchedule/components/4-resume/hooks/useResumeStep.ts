@@ -73,6 +73,7 @@ export const useResumeStep = ({
       changeHierarchyDate: data.changeHierarchyDate,
       clinicObs: data.clinicObs,
       hierarchyId: data?.hierarchy?.id,
+      subOfficeId: data?.subOffice?.id,
     } as ICreateEmployeeExamHistory;
 
     data.examsData.forEach(

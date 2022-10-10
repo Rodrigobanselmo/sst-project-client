@@ -28,15 +28,18 @@ export const initialExamScheduleState = {
   obs: undefined as undefined | string,
   clinicObs: undefined as undefined | string,
   hierarchyId: undefined as undefined | string,
+  subOfficeId: undefined as undefined | string,
   changeHierarchyAnyway: undefined as undefined | boolean,
   changeHierarchyWhenDone: true as undefined | boolean,
   changeHierarchyDate: undefined as undefined | Date,
   sector: undefined as undefined | IHierarchy,
+  subOffice: undefined as undefined | IHierarchy,
   examsData: [] as IExamsScheduleTable[],
   isPendingExams: false,
   errors: {
     sector: false,
     hierarchy: false,
+    subOffice: false,
   },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (employee: IEmployee | null) => {},
@@ -102,6 +105,10 @@ export const useEditExamEmployee = () => {
                   hierarchyTree[
                     hierarchyTree[replaceData.hierarchyId].parentId as any
                   ],
+              }),
+            ...(replaceData.subOfficeId &&
+              hierarchyTree?.[replaceData.subOfficeId] && {
+                subOffice: hierarchyTree?.[replaceData.subOfficeId],
               }),
           }),
         };

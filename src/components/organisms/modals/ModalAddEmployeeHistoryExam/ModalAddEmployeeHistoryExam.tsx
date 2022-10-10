@@ -255,8 +255,8 @@ export const ModalAddEmployeeHistoryExam = () => {
               )}
             </SFlex>
 
-            {isAllFields && (
-              <SFlex flexWrap="wrap" gap={5} mt={8}>
+            <SFlex flexWrap="wrap" gap={5} mt={8}>
+              {isAllFields && (
                 <Box flex={1}>
                   <SelectForm
                     unmountOnChangeDefault
@@ -277,28 +277,28 @@ export const ModalAddEmployeeHistoryExam = () => {
                     options={employeeExamEvaluationTypeList}
                   />
                 </Box>
-                <Box flex={1}>
-                  <SelectForm
-                    unmountOnChangeDefault
-                    defaultValue={String(data.conclusion || '') || ''}
-                    label="Conclusão"
-                    control={control}
-                    placeholder="selecione..."
-                    name="conclusion"
-                    labelPosition="top"
-                    onChange={(e) => {
-                      if (e.target.value)
-                        setData({
-                          ...data,
-                          conclusion: (e as any).target.value,
-                        });
-                    }}
-                    size="small"
-                    options={employeeExamConclusionTypeList}
-                  />
-                </Box>
-              </SFlex>
-            )}
+              )}
+              <Box flex={1} maxWidth={isAllFields ? undefined : 400}>
+                <SelectForm
+                  unmountOnChangeDefault
+                  defaultValue={String(data.conclusion || '') || ''}
+                  label="Conclusão"
+                  control={control}
+                  placeholder="selecione..."
+                  name="conclusion"
+                  labelPosition="top"
+                  onChange={(e) => {
+                    if (e.target.value)
+                      setData({
+                        ...data,
+                        conclusion: (e as any).target.value,
+                      });
+                  }}
+                  size="small"
+                  options={employeeExamConclusionTypeList}
+                />
+              </Box>
+            </SFlex>
           </SFlex>
         )}
 
@@ -342,9 +342,5 @@ export const ModalAddEmployeeHistoryExam = () => {
 };
 
 export const StackModalAddEmployeeHistoryExam = () => {
-  return (
-    <>
-      <ModalAddProfessional />
-    </>
-  );
+  return <>{/* <ModalAddProfessional /> */}</>;
 };

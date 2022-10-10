@@ -13,7 +13,7 @@ export type IClinicExamData = {
   time: string;
   type: ExamHistoryTypeEnum;
   isScheduled: boolean;
-  scheduleRange: any;
+  scheduleRange: Record<string, string>;
 };
 
 export type IClinicComplementaryData = {
@@ -23,7 +23,7 @@ export type IClinicComplementaryData = {
   time: string;
   id: string;
   isScheduled: boolean;
-  scheduleRange: any;
+  scheduleRange: Record<string, string>;
 };
 
 export interface IGuideData extends IEmployee {

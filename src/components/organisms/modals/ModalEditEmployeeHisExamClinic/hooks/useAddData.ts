@@ -1,26 +1,31 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import clone from 'clone';
+import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { IExamComplementsClinicTable } from 'components/organisms/tables/ExamsComplementsClinicTable/ExamsComplementsClinicTable';
 import { IExamComplementsTable } from 'components/organisms/tables/ExamsComplementsTable/ExamsComplementsTable';
+import { useSnackbar } from 'notistack';
 import { ExamHistoryConclusionEnum } from 'project/enum/employee-exam-history-conclusion.enum';
 import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { useTableSelect } from 'core/hooks/useTableSelect';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { IExam } from 'core/interfaces/api/IExam';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { useMutFindExamByHierarchy } from 'core/services/hooks/mutations/checklist/exams/useMutFindExamByHierarchy/useMutUpdateExamRisk';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import {
   ICreateEmployeeExamHistory,
   useMutCreateEmployeeHisExam,
@@ -32,6 +37,7 @@ import {
   IUpdateManyScheduleExamHistory,
   useMutUpdateManyScheduleHisExam,
 } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
+import { useMutUploadEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUploadEmployeeHisExam/useMutUploadEmployeeHisExam';
 import { dateToDate } from 'core/utils/date/date-format';
 
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
@@ -51,15 +57,16 @@ const modalName = ModalEnum.EMPLOYEE_HISTORY_EXAM_EDIT_CLINIC;
 
 export const useAddData = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
+  const { onCloseModal, onStackOpenModal } = useModal();
+  const { enqueueSnackbar } = useSnackbar();
   const initialDataRef = useRef(initialEmployeeHistoryExamState);
 
-  const { handleSubmit, setValue, control, reset, getValues, setError } =
-    useForm({
-      resolver: yupResolver(employeeHistoryExamSchema),
-    });
+  const { handleSubmit, setValue, control, reset, getValues } = useForm({
+    resolver: yupResolver(employeeHistoryExamSchema),
+  });
 
   const updateMutation = useMutUpdateManyScheduleHisExam();
+  const uploadMutation = useMutUploadEmployeeHisExam();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -68,7 +75,12 @@ export const useAddData = () => {
   });
 
   const isEdit = !!data.id;
-  const { companyId } = useGetCompanyId();
+  const { getCompanyId } = useGetCompanyId();
+
+  const companyId = useMemo(
+    () => getCompanyId(data.companyId || data.company?.id),
+    [data.company?.id, data.companyId, getCompanyId],
+  );
 
   const clinicExam = data?.examsHistory?.find((e) => e.exam?.isAttendance);
   const complementaryExams = data?.examsHistory?.filter(
@@ -188,6 +200,46 @@ export const useAddData = () => {
     setData({ ...data, examsHistory: actualExams });
   };
 
+  const { onToggleSelected, onIsSelected, onToggleAll, selectedData } =
+    useTableSelect();
+
+  const uploadExam = async ({ ids, file }: { ids: number[]; file: File }) => {
+    const exams = await uploadMutation.mutateAsync({
+      ids,
+      companyId: data.companyId || data.company?.id,
+      file,
+    });
+
+    setData({
+      ...data,
+      examsHistory: data.examsHistory?.map((exam) => {
+        const found = exams?.find((e) => e.id === exam.id);
+        return { ...exam, ...(found?.fileUrl && { fileUrl: found.fileUrl }) };
+      }),
+    });
+  };
+
+  const onUploadManyFile = () => {
+    const ids = selectedData;
+
+    if (ids.length == 0) {
+      return enqueueSnackbar(
+        'Selecione os exames a cima para adcionar o arquivo',
+        {
+          variant: 'warning',
+        },
+      );
+    }
+
+    onStackOpenModal(ModalEnum.UPLOAD_NEW_FILE, {
+      onConfirm: ({ files }) => {
+        if (files && files[0]) {
+          uploadExam({ file: files[0], ids });
+        }
+      },
+    } as Partial<typeof initialFileUploadState>);
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -206,5 +258,12 @@ export const useAddData = () => {
     clinicExam,
     complementaryExams,
     setAllComplementaryExamDone,
+    onToggleSelected,
+    onIsSelected,
+    onToggleAll,
+    selectedData,
+    uploadExam,
+    uploadMutation,
+    onUploadManyFile,
   };
 };

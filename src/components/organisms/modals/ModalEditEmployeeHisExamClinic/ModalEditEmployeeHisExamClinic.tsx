@@ -4,6 +4,7 @@ import React from 'react';
 import { Box, Divider } from '@mui/material';
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
+import SIconButton from 'components/atoms/SIconButton';
 import { SInput } from 'components/atoms/SInput';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { STagButton } from 'components/atoms/STagButton';
@@ -13,6 +14,7 @@ import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker
 import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { SelectForm } from 'components/molecules/form/select';
+import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import SModal, {
   SModalButtons,
   SModalHeader,
@@ -32,7 +34,10 @@ import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { SCheckIcon } from 'assets/icons/SCheckIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
+import { SUploadFileIcon } from 'assets/icons/SUploadFileIcon';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { dateToDate } from 'core/utils/date/date-format';
 import { get15Time } from 'core/utils/helpers/times';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
@@ -60,6 +65,12 @@ export const ModalEditEmployeeHisExamClinic = () => {
     clinicExam,
     complementaryExams,
     setAllComplementaryExamDone,
+    onToggleSelected,
+    onIsSelected,
+    onToggleAll,
+    uploadExam,
+    uploadMutation,
+    onUploadManyFile,
   } = useAddData();
 
   const buttons = [
@@ -210,6 +221,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
             </Box>
           </SFlex>
         </Box>
+
         <SText color="text.label">
           {clinicExam?.exam?.name || 'Avaliação Clínica Ocupacional'}
         </SText>
@@ -269,10 +281,10 @@ export const ModalEditEmployeeHisExamClinic = () => {
                 />
               </Box>
             </SFlex>
-
-            <SFlex flexWrap="wrap" gap={5} mt={8}>
+            <SFlex flexWrap="wrap" gap={5} mt={8} align="end">
               <Box flex={2}>
                 <ProfessionalInputSelect
+                  query={{ companyId: data.clinicId }}
                   onChange={(prof) => {
                     setData({
                       ...data,
@@ -311,29 +323,59 @@ export const ModalEditEmployeeHisExamClinic = () => {
                 />
               </Box>
             </SFlex>
+
+            <Box width={200} mt={5}>
+              <SIconUploadFile
+                loading={uploadMutation.isLoading}
+                disabledDownload={!clinicExam.fileUrl}
+                isActive={!!clinicExam.fileUrl}
+                downloadPath={
+                  ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM +
+                  `/${clinicExam.id}/download/${
+                    data.companyId || data.company?.id
+                  }`
+                }
+                onUpload={(file) => uploadExam({ file, ids: [clinicExam.id] })}
+                text="Adicionar ASO"
+                isTag
+              />
+            </Box>
           </SFlex>
         )}
 
         {complementaryExams && !!complementaryExams.length && (
           <SFlex direction="column" mb={3} mt={15}>
-            <SFlex>
-              <SText color="text.label" fontSize={16}>
-                Exames Complementares
-              </SText>
-              <STagButton
-                ml={5}
-                icon={SCheckIcon}
-                text={'Marcar todos como realizado'}
-                onClick={setAllComplementaryExamDone}
-              />
-            </SFlex>
+            <SText color="text.label" fontSize={16}>
+              Exames Complementares
+            </SText>
             <Divider sx={{ mb: 5, mt: 3 }} />
             <ExamsComplementsClinicTable
               setData={setComplementaryExam}
               data={complementaryExams}
               control={control}
               setValue={setValue}
+              onToggleSelected={onToggleSelected}
+              onIsSelected={onIsSelected}
+              onToggleAll={onToggleAll}
+              uploadExam={uploadExam}
+              companyId={data.companyId || data.company?.id}
+              isLoadingFile={uploadMutation.isLoading}
             />
+            <SFlex>
+              <STagButton
+                icon={SCheckIcon}
+                text={'Marcar todos como realizado'}
+                onClick={setAllComplementaryExamDone}
+              />
+              <STagButton
+                ml={3}
+                width={200}
+                loading={uploadMutation.isLoading}
+                icon={SUploadFileIcon}
+                text={'Adicinar arquivo'}
+                onClick={onUploadManyFile}
+              />
+            </SFlex>
           </SFlex>
         )}
 

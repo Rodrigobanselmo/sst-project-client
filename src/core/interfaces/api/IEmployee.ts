@@ -34,6 +34,7 @@ export interface IEmployee {
   birthday: Date;
   admissionDate: Date;
   subOffices?: IHierarchy[];
+  clinicId: string;
 
   company: ICompany;
   examsHistory?: IEmployeeExamsHistory[];
@@ -75,9 +76,12 @@ export interface IEmployeeExamsHistory {
   status: StatusEnum;
   obs?: string;
   time: string;
+  fileUrl: string;
 
   hierarchyId: string;
   hierarchy?: IHierarchy;
+  subOfficeId: string;
+  subOffice?: IHierarchy;
   clinicObs: string;
   scheduleType: ClinicScheduleTypeEnum;
   changeHierarchyDate: Date;

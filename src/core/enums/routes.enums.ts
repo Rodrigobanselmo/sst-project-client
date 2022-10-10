@@ -31,4 +31,6 @@ export enum RoutesEnum {
   TEAM_GROUPS = '/dashboard/equipe/:companyId/grupos',
   SIGN_UP = '/cadastro',
   PDF_GUIDE = '/pdf/:companyId/:employeeId/guia-de-emcaminhamento',
+  PDF_KIT_EXAM = '/pdf/:companyId/:employeeId/kit-medico',
+  PDF_DOC_PCD = '/pdf/:companyId/:employeeId/laudo-pcd',
 }

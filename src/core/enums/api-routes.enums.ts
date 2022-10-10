@@ -50,6 +50,7 @@ export enum ApiRoutesEnum {
   UPLOAD_UNIQUE_EMPLOYEES = '/files/company/upload/unique',
   USERS = '/users',
   PDF_GUIDE = '/documents/pdf/guide',
+  COMPANY_DASHBOARD = '/company/:companyId/dashboard',
 
   NOTIFICATION = '/notification',
 }

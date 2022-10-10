@@ -43,6 +43,7 @@ export const SMenu: FC<SMenuProps> = ({
     >
       {options.map((option) => (
         <STMenuItem
+          disabled={option?.disabled}
           key={option.value}
           onClick={(e) => handleMenuSelect(option, e)}
           sx={{ p: 0, m: 0 }}

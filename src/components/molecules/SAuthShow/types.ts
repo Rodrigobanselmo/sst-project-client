@@ -5,4 +5,5 @@ export interface ISAuthShow {
   roles?: RoleEnum[];
   permissions?: PermissionEnum[];
   hideIf?: boolean;
+  cruds?: string;
 }

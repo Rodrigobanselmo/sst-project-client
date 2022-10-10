@@ -16,6 +16,7 @@ import TextUserRow from 'components/atoms/STable/components/Rows/TextUserRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
+import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
 import dayjs from 'dayjs';
 import { employeeExamEvaluationTypeMap } from 'project/enum/employee-exam-history-evaluation.enum';
@@ -26,6 +27,7 @@ import SAddIcon from 'assets/icons/SAddIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
@@ -33,6 +35,7 @@ import {
   IEmployee,
   IEmployeeExamsHistory,
 } from 'core/interfaces/api/IEmployee';
+import { useMutUploadEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUploadEmployeeHisExam/useMutUploadEmployeeHisExam';
 import {
   IQueryEmployeeHistHier,
   useQueryHisExamEmployee,
@@ -60,11 +63,13 @@ export const HistoryEmployeeExamTable: FC<
   query,
 }) => {
   const { search, page, setPage } = useTableSearchAsync();
+  const uploadMutation = useMutUploadEmployeeHisExam();
 
   const {
     data: history,
     isLoading: loadQuery,
     count,
+    _companyId,
   } = useQueryHisExamEmployee(
     page,
     { search, employeeId: employeeId, ...query },
@@ -110,6 +115,22 @@ export const HistoryEmployeeExamTable: FC<
     if (row.status === StatusEnum.CANCELED) return 'inactive';
   };
 
+  const uploadExam = async ({
+    ids,
+    file,
+    companyId,
+  }: {
+    ids: number[];
+    file: File;
+    companyId?: string;
+  }) => {
+    await uploadMutation.mutateAsync({
+      ids,
+      companyId,
+      file,
+    });
+  };
+
   return (
     <>
       {!hideTitle && (
@@ -137,7 +158,7 @@ export const HistoryEmployeeExamTable: FC<
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}
-        columns="100px minmax(150px, 2fr) 100px 80px 100px 100px 85px 150px 150px 50px"
+        columns="100px minmax(150px, 2fr) 100px 80px 100px 100px 85px 150px 150px 80px"
       >
         <STableHeader>
           <STableHRow>Data</STableHRow>
@@ -199,13 +220,31 @@ export const HistoryEmployeeExamTable: FC<
                 />
                 <TextUserRow clickable user={row?.userSchedule} />
                 <TextUserRow clickable user={row?.userDone} />
-                <IconButtonRow
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(row);
-                  }}
-                  icon={<EditIcon />}
-                />
+                <SFlex>
+                  <IconButtonRow
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEdit(row);
+                    }}
+                    icon={<EditIcon />}
+                  />
+                  <SIconUploadFile
+                    loading={uploadMutation.isLoading}
+                    disabledDownload={!row.fileUrl}
+                    isActive={!!row.fileUrl}
+                    downloadPath={
+                      ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM +
+                      `/${row.id}/download/${_companyId}`
+                    }
+                    onUpload={(file) =>
+                      uploadExam({
+                        file,
+                        ids: [row.id],
+                        companyId: _companyId,
+                      })
+                    }
+                  />
+                </SFlex>
               </STableRow>
             );
           }}

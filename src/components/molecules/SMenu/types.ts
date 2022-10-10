@@ -9,6 +9,14 @@ export interface IMenuOptionResponse {
   name: string;
 }
 
+export interface IMenuOption {
+  value: string | number;
+  name: string;
+  disabled?: boolean;
+  iconColor?: string;
+  icon?: ElementType<any>;
+}
+
 export interface SMenuProps extends Omit<MenuProps, 'open' | 'onClose'> {
   isOpen: boolean;
   close: () => void;
@@ -17,12 +25,7 @@ export interface SMenuProps extends Omit<MenuProps, 'open' | 'onClose'> {
     event: MouseEvent<HTMLLIElement>,
   ) => void;
   icon?: ElementType<any> | null;
-  options: {
-    value: string | number;
-    name: string;
-    iconColor?: string;
-    icon?: ElementType<any>;
-  }[];
+  options: IMenuOption[];
   startAdornment?: (option: any) => ReactNode;
   tooltipProps?: (option?: any) => Partial<STooltipProps>;
 }

@@ -17,6 +17,7 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
+import { SIconDownloadExam } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
 import { EvaluationSelect } from 'components/organisms/tagSelects/EvaluationSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
@@ -159,7 +160,8 @@ export const HistoryScheduleExamClinicTable: FC<
     { text: 'Tipo', column: '80px' },
     { text: 'Status', column: '110px', justifyContent: 'center' },
     { text: 'Exame', column: 'minmax(150px, 1fr)' },
-    { text: 'Resultado', column: '100px', justifyContent: 'center', pr: 5 },
+    { text: 'Resultado', column: '100px', justifyContent: 'center' },
+    { text: '', column: '40px', justifyContent: 'end' },
   ];
 
   return (
@@ -202,7 +204,6 @@ export const HistoryScheduleExamClinicTable: FC<
                 key={row.id}
                 clickable
                 onClick={() => onSelectRow(row)}
-                pr={10}
                 // status={getRowColor(row.status)}
               >
                 <TextIconRow text={row?.time} />
@@ -306,7 +307,15 @@ export const HistoryScheduleExamClinicTable: FC<
                     );
                   })}
                 </SFlex>
-
+                {row.examsHistory &&
+                  row.examsHistory?.find((row) => row.exam?.isAttendance) && (
+                    <SFlex justify="end">
+                      <SIconDownloadExam
+                        companyId={row.company.id}
+                        employeeId={row.id}
+                      />
+                    </SFlex>
+                  )}
                 {/* <IconButtonRow
                   onClick={(e) => {
                     e.stopPropagation();

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useWizard } from 'react-use-wizard';
 
 import SFlex from 'components/atoms/SFlex';
@@ -11,6 +11,7 @@ import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedSt
 
 import { QueryEnum } from 'core/enums/query.enums';
 import { IPrgDocData } from 'core/interfaces/api/IRiskData';
+import { queryPgrDocs } from 'core/services/hooks/queries/useQueryPrgDocs';
 import { queryClient } from 'core/services/queryClient';
 
 import { IUseAddCompany } from '../../hooks/useHandleActions';
@@ -29,6 +30,9 @@ export const SecondModalStep = (props: IUseAddCompany) => {
   const { previousStep } = useWizard();
   const { data } = props;
 
+  const [options, setOptions] = useState<string[]>([]);
+  const [actualVersion, setActualVersion] = useState<string>('0.0.0');
+
   const buttons = [
     { onClick: () => previousStep(), text: 'Voltar' },
     {
@@ -38,38 +42,51 @@ export const SecondModalStep = (props: IUseAddCompany) => {
     },
   ] as IModalButton[];
 
-  const actualVersion = useMemo(() => {
-    const docs = queryClient.getQueryData([
-      QueryEnum.RISK_GROUP_DOCS,
-      data.companyId,
-      data.id,
-    ]) as IPrgDocData[];
+  const getActualVersion = useCallback(async () => {
+    const response = await queryPgrDocs(
+      { take: 1, skip: 0 },
+      {
+        riskGroupId: data.id,
+        companyId: data.companyId,
+        workspaceId: data.workspaceId,
+      },
+    );
+
+    const docs = response.data;
 
     if (!docs) '0.0.0';
 
-    const docsWorkspace = docs.filter(
-      (doc) => data.workspaceId === doc.workspaceId,
-    );
+    const actVersion = docs[0] ? docs[0].version : '0.0.0';
 
-    return docsWorkspace[0] ? docsWorkspace[0].version : '0.0.0';
+    setActualVersion(actVersion);
   }, [data.companyId, data.id, data.workspaceId]);
 
-  const options = useMemo(() => {
-    const version = actualVersion;
+  const getOptions = useCallback(async () => {
+    const version = await actualVersion;
 
     const newVersion = version.split('.').map((version, index, arr) => {
       const before = arr.slice(0, index);
       const after = arr.slice(index + 1, arr.length).map(() => '0');
-      return [
+      const op = [
         ...before,
         typeof Number(version) === 'number' ? Number(version) + 1 : 1,
         ...after,
       ].join('.');
+
+      return op;
     });
 
     // return newVersion.map((v) => ({ content: v, value: v }));
-    return newVersion;
+    setOptions(newVersion);
   }, [actualVersion]);
+
+  useEffect(() => {
+    getOptions();
+  }, [getOptions]);
+
+  useEffect(() => {
+    getActualVersion();
+  }, [getActualVersion]);
 
   return (
     <>

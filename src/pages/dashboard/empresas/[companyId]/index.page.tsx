@@ -14,7 +14,6 @@ import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinic
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
-import { ModalUploadNewFile } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { StackModalViewDocuments } from 'components/organisms/modals/ModalViewDocuments/ModalViewDocuments';
 import { ModalViewExam } from 'components/organisms/modals/ModalViewExam/ModalViewExam';
 import {
@@ -118,7 +117,6 @@ const CompanyPage: NextPage = () => {
       <ModalViewUsers />
       <StackModalViewUsers />
       <StackModalViewDocuments />
-      <ModalUploadNewFile />
     </SContainer>
   );
 };

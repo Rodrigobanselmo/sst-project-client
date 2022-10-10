@@ -1,7 +1,8 @@
 import { FC } from 'react';
 
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -10,6 +11,11 @@ import {
   STableRow,
 } from 'components/atoms/STable';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
+import {
+  STableAddButton,
+  STableButton,
+} from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
@@ -23,20 +29,38 @@ import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
+import { SReloadIcon } from 'assets/icons/SReloadIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
+import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IPrgDocData } from 'core/interfaces/api/IRiskData';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
-import { useQueryPrgDocs } from 'core/services/hooks/queries/useQueryPrgDocs';
+import {
+  IQueryRiPgrDoc,
+  useQueryPrgDocs,
+} from 'core/services/hooks/queries/useQueryPrgDocs';
+import { queryClient } from 'core/services/queryClient';
 
-export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
-  riskGroupId,
-}) => {
-  const { data, isLoading } = useQueryPrgDocs(riskGroupId);
+export const DocPgrTable: FC<
+  BoxProps & {
+    riskGroupId: string;
+    rowsPerPage?: number;
+    query?: Partial<IQueryRiPgrDoc>;
+  }
+> = ({ riskGroupId, rowsPerPage = 8, query }) => {
+  const { page, setPage } = useTableSearchAsync();
+  const {
+    data: docs,
+    isLoading,
+    count,
+    isFetching,
+    isRefetching,
+    refetch,
+  } = useQueryPrgDocs(page, { ...query, riskGroupId }, rowsPerPage);
   const { onOpenModal } = useModal();
-  const downloadMutation = useMutDownloadFile();
   const { companyId } = useGetCompanyId();
 
   const handleEditStatus = (status: StatusEnum) => {
@@ -53,9 +77,26 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
 
   return (
     <>
-      <STableTitle icon={LibraryAddCheckIcon}>Versões</STableTitle>
+      <SFlex mb={12} align="center">
+        <Box>
+          <STableTitle mb={0} icon={LibraryAddCheckIcon}>
+            Versões
+          </STableTitle>
+        </Box>
+        <STableButton
+          tooltip="autualizar"
+          onClick={() => {
+            refetch();
+            queryClient.invalidateQueries([QueryEnum.RISK_GROUP_DOC, 1]);
+          }}
+          loading={isLoading || isFetching || isRefetching}
+          sx={{ height: 30, minWidth: 30 }}
+          icon={SReloadIcon}
+          color="grey.500"
+        />
+      </SFlex>
       <STable
-        mb={20}
+        rowsNumber={rowsPerPage}
         loading={isLoading}
         columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px 100px"
       >
@@ -68,13 +109,14 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
           <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Download</STableHRow>
         </STableHeader>
-        <STableBody<typeof data[0]>
-          rowsData={data}
+        <STableBody<typeof docs[0]>
+          hideLoadMore
+          rowsData={docs}
           renderRow={(row) => {
             const processing = row.status == StatusEnum.PROCESSING;
             const isError =
               processing &&
-              dayjs(row.created_at).add(1, 'day').isBefore(dayjs());
+              dayjs(row.created_at).add(3, 'hour').isBefore(dayjs());
 
             return (
               <STableRow key={row.id}>
@@ -99,7 +141,10 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
                   text="Baixar"
                   onClick={() => handleOpenDocModal(row)}
                   large
-                  disabled={processing}
+                  disabled={
+                    processing ||
+                    dayjs(row.created_at).add(7, 'days').isBefore(dayjs())
+                  }
                   icon={SDownloadIcon}
                 />
                 {/* <STagButton
@@ -122,6 +167,13 @@ export const DocPgrTable: FC<BoxProps & { riskGroupId: string }> = ({
           }}
         />
       </STable>
+      <STablePagination
+        mt={2}
+        registersPerPage={rowsPerPage}
+        totalCountOfRegisters={isLoading ? undefined : count}
+        currentPage={page}
+        onPageChange={setPage}
+      />
       <ModalAddRiskGroup />
       <ModalShowHierarchyTree />
       <ModalSelectDocPgr />

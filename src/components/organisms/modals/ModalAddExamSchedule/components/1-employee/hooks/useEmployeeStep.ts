@@ -49,16 +49,22 @@ export const useEmployeeStep = ({
 
   const handleValidSubmit = async () => {
     const hierarchyId = newHierarchy
-      ? data.hierarchy?.id
+      ? data.subOffice?.id || data.hierarchy?.id
       : employee?.hierarchyId;
 
     const company = employee?.company;
+    const isDismissal = data.examType === ExamHistoryTypeEnum.DEMI;
+    const isReturn = data.examType === ExamHistoryTypeEnum.RETU;
+    const isOffice = data.examType === ExamHistoryTypeEnum.OFFI;
+    const isChange = data.examType === ExamHistoryTypeEnum.CHAN;
+    // const isPeriodic = data.examType === ExamHistoryTypeEnum.PERI;
 
     const riskDataHierarchy = await findExamsMutation
       .mutateAsync({
         hierarchyId,
         employeeId: data.employeeId,
         companyId: data.companyId,
+        ...(isOffice && { isOffice: isOffice }),
         ...(isPendingExams && { isPendingExams: true }),
       })
       .catch(() => null);
@@ -69,9 +75,6 @@ export const useEmployeeStep = ({
         riskDataHierarchy.data.map((db_data) => {
           if (actualExams.find((examData) => examData.id === db_data.exam?.id))
             return;
-
-          const isDismissal = data.examType === ExamHistoryTypeEnum.DEMI;
-          const isReturn = data.examType === ExamHistoryTypeEnum.RETU;
 
           const origin = db_data.origins?.find((origin) => {
             if (origin?.skipEmployee) return false;
@@ -103,6 +106,13 @@ export const useEmployeeStep = ({
                 })
               ) {
                 examData.isSelected = false;
+              }
+            }
+
+            if (isOffice || isChange) {
+              if (db_data.exam.isAttendance) {
+                examData.isSelected = true;
+                examData.expiredDate = null;
               }
             }
 

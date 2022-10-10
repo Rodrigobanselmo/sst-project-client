@@ -17,7 +17,6 @@ export const InputForm = ({
   ...restInput
 }: InputFormProps) => {
   useEffect(() => {
-    console.log('123', name, defaultValue);
     defaultValue && setValue?.(name, defaultValue);
   }, [defaultValue, name, setValue]);
 

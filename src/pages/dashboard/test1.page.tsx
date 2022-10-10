@@ -22,9 +22,7 @@ const PageTest = () => {
   const sendEmailMutation = useMutSendEmail();
 
   const senEmail = () => {
-    console.log(1);
     if (instance.blob) {
-      console.log(99);
       const file = new File([instance.blob], 'guia.pdf', {
         type: 'application/pdf',
       });

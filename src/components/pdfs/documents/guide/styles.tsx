@@ -110,6 +110,10 @@ export const s = StyleSheet.create({
     fontSize: 8,
     fontWeight: 'semibold',
   },
+  bodyB2: {
+    fontSize: 8,
+    fontWeight: 'bold',
+  },
   label: {
     fontSize: 7,
     fontWeight: 'normal',

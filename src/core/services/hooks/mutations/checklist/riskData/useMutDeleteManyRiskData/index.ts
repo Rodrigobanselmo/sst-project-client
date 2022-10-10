@@ -24,6 +24,11 @@ export async function deleteManyRiskData(
   companyId?: string,
 ) {
   if (!companyId) return null;
+
+  data.homogeneousGroupIds = data.homogeneousGroupIds?.map(
+    (h) => h.split('//')[0],
+  );
+
   await api.post<IRiskData[][]>(
     `${ApiRoutesEnum.RISK_DATA}/${companyId}/${data.riskFactorGroupDataId}/delete/many`,
     data,

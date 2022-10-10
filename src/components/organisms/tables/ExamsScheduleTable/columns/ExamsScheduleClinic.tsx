@@ -105,7 +105,6 @@ export const ExamsScheduleClinicColumn: FC<
     <SFlex direction="column">
       <ClinicInputSelect
         onChange={(clinic) => {
-          console.log('clinic', clinic);
           setData?.({ clinic, id: row.id });
         }}
         disabled={disabled}

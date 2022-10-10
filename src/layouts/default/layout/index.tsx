@@ -5,10 +5,12 @@ import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditC
 import { ModalAddContact } from 'components/organisms/modals/ModalAddContact/ModalAddContact';
 import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional/ModalAddProfessional';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
+import { ModalUploadNewFile } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { useRouter } from 'next/router';
 
 import { useRedirectDetect } from 'core/hooks/useRedirectDetect';
+import { useQueryDashboard } from 'core/services/hooks/queries/useQueryDashboard';
 
 import { useAppDispatch } from '../../../core/hooks/useAppDispatch';
 import globalStyles from '../../../core/styles/globalStyles';
@@ -19,6 +21,7 @@ import DefaultModal from '../modal';
 const DefaultLayout: FC = ({ children }) => {
   useRedirectDetect();
   const router = useRouter();
+  // const { data } = useQueryDashboard();
   const dispatch = useAppDispatch();
   // const { onCloseModal } = useModal();
   // const store = useStore();
@@ -70,6 +73,7 @@ const DefaultLayout: FC = ({ children }) => {
       <ModalEditCompany />
       <ModalAddContact />
       <ModalUploadPhoto />
+      <ModalUploadNewFile />
       <ModalAddProfessional />
     </main>
   );
