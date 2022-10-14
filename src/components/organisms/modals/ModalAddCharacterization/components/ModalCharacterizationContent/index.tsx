@@ -19,6 +19,7 @@ import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enu
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
+import { SCopyIcon } from 'assets/icons/SCopyIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SOrderIcon from 'assets/icons/SOrderIcon';
@@ -61,6 +62,7 @@ export const ModalCharacterizationContent = (
     onRemove,
     onEditArray,
     onEditArrayContent,
+    handleCopy,
   } = props;
 
   const isEnvironment =
@@ -529,6 +531,14 @@ export const ModalCharacterizationContent = (
             )}
           />
         </>
+      )}
+      {!characterizationData.id && (
+        <STagButton
+          icon={SCopyIcon}
+          text={'Copiar caracterização'}
+          onClick={() => handleCopy()}
+          maxWidth={200}
+        />
       )}
     </SFlex>
   );

@@ -1,6 +1,7 @@
 import { FC, useMemo } from 'react';
 
 import { BoxProps } from '@mui/material';
+import SCheckBox from 'components/atoms/SCheckBox';
 import {
   STable,
   STableBody,
@@ -35,16 +36,33 @@ import { sortString } from 'core/utils/sorts/string.sort';
 
 interface ITableProps extends BoxProps {
   filterType?: CharacterizationTypeEnum;
+  onSelectData?: (notification: ICharacterization) => void;
+  selectedData?: ICharacterization[];
+  companyId?: string;
+  workspaceId?: string;
 }
 
 export const CharacterizationTable: FC<ITableProps> = ({
   filterType,
   children,
+  onSelectData,
+  selectedData,
+  companyId: _companyId,
+  workspaceId: _workspaceId,
 }) => {
-  const { data, isLoading } = useQueryCharacterizations();
   const { onOpenModal } = useModal();
-  const { companyId, workspaceId } = useGetCompanyId();
+  const { companyId: __companyId, workspaceId: __workspaceId } =
+    useGetCompanyId();
 
+  const companyId = _companyId || __companyId;
+  const workspaceId = _workspaceId || __workspaceId;
+
+  const { data, isLoading } = useQueryCharacterizations(1, {
+    companyId,
+    workspaceId,
+  });
+
+  const isSelect = !!onSelectData;
   const upsertMutation = useMutUpsertCharacterization();
 
   const dataResult = useMemo(() => {
@@ -96,9 +114,12 @@ export const CharacterizationTable: FC<ITableProps> = ({
   });
 
   const handleEdit = (data: ICharacterization) => {
-    onOpenModal(ModalEnum.CHARACTERIZATION_ADD, { ...data } as Partial<
-      typeof initialCharacterizationState
-    >);
+    if (isSelect) {
+      onSelectData(data);
+    } else
+      onOpenModal(ModalEnum.CHARACTERIZATION_ADD, { ...data } as Partial<
+        typeof initialCharacterizationState
+      >);
   };
 
   const handleEditPosition = async (
@@ -127,9 +148,12 @@ export const CharacterizationTable: FC<ITableProps> = ({
       {children}
       <STable
         loading={isLoading}
-        columns="minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 110px 90px"
+        columns={`${
+          selectedData ? '15px ' : ''
+        }minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 110px 90px`}
       >
         <STableHeader>
+          {selectedData && <div />}
           <STableHRow>Nome</STableHRow>
           <STableHRow>Descrição</STableHRow>
           <STableHRow justifyContent="center">Tipo</STableHRow>
@@ -148,6 +172,12 @@ export const CharacterizationTable: FC<ITableProps> = ({
 
             return (
               <STableRow clickable onClick={() => handleEdit(row)} key={row.id}>
+                {selectedData && (
+                  <SCheckBox
+                    label=""
+                    checked={!!selectedData.find((exam) => exam.id === row.id)}
+                  />
+                )}
                 <TextIconRow clickable text={row.name || '--'} />
                 <TextIconRow clickable text={row.description || '--'} />
                 <TextIconRow

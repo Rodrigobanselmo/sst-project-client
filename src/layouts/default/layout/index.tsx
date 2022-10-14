@@ -21,7 +21,6 @@ import DefaultModal from '../modal';
 const DefaultLayout: FC = ({ children }) => {
   useRedirectDetect();
   const router = useRouter();
-  // const { data } = useQueryDashboard();
   const dispatch = useAppDispatch();
   // const { onCloseModal } = useModal();
   // const store = useStore();

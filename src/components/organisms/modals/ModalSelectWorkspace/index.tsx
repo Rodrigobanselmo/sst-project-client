@@ -23,6 +23,7 @@ export const initialWorkspaceSelectState = {
   onSelect: (work: IWorkspace | IWorkspace[]) => {},
   title: 'Selecione o estabelecimento',
   multiple: false,
+  companyId: undefined as string | undefined,
   selected: [] as IWorkspace[],
   onCloseWithoutSelect: () => {},
 };
@@ -30,8 +31,8 @@ export const initialWorkspaceSelectState = {
 export const ModalSelectWorkspace: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onOpenModal } = useModal();
-  const { data: company } = useQueryCompany();
   const [selectData, setSelectData] = useState(initialWorkspaceSelectState);
+  const { data: company } = useQueryCompany(selectData.companyId);
 
   useEffect(() => {
     const initialData = getModalData(

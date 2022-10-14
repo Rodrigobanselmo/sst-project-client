@@ -76,7 +76,7 @@ export function useMutCreateEmployeeHisExam() {
       onSuccess: async (resp) => {
         if (resp) {
           queryClient.invalidateQueries([QueryEnum.EMPLOYEE_HISTORY_EXAM]);
-          // queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+          queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
         }
 
         enqueueSnackbar('Exame criado com sucesso', {

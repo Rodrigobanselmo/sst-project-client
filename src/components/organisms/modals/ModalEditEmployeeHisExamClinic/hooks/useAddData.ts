@@ -38,6 +38,7 @@ import {
   useMutUpdateManyScheduleHisExam,
 } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { useMutUploadEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUploadEmployeeHisExam/useMutUploadEmployeeHisExam';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { dateToDate } from 'core/utils/date/date-format';
 
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
@@ -76,10 +77,13 @@ export const useAddData = () => {
 
   const isEdit = !!data.id;
   const { getCompanyId } = useGetCompanyId();
+  const { data: company } = useQueryCompany();
 
+  // const companyId = useMemo(() => getCompanyId({}), [getCompanyId]);
   const companyId = useMemo(
-    () => getCompanyId(data.companyId || data.company?.id),
-    [data.company?.id, data.companyId, getCompanyId],
+    () =>
+      getCompanyId(company.isClinic ? {} : data.companyId || data.company?.id),
+    [company.isClinic, data.company?.id, data.companyId, getCompanyId],
   );
 
   const clinicExam = data?.examsHistory?.find((e) => e.exam?.isAttendance);

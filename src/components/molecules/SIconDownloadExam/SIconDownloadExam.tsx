@@ -66,8 +66,6 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
   };
 
   const handleSelectButton = (e: any) => {
-    if (disabled) return;
-
     e.stopPropagation();
     setAnchorEl(e.currentTarget);
   };
@@ -109,15 +107,17 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
           {
             name: 'Baixar Guia de Encaminhamento',
             value: 1,
-            disabled: !companyId || !employeeId,
+            disabled: !companyId || !employeeId || disabled,
           },
           {
             name: 'Baixar Kit Médico',
             value: 2,
+            disabled: !companyId || !employeeId || disabled,
           },
           {
             name: 'Baixar Laudo PCD',
             value: 3,
+            disabled: !companyId || !employeeId || disabled,
           },
         ]}
       />

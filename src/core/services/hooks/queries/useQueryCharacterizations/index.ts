@@ -10,6 +10,12 @@ import { sortData } from 'core/utils/sorts/data.sort';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
+export interface IQueryCharacterization {
+  search?: string;
+  companyId?: string;
+  workspaceId?: string;
+}
+
 export const queryCharacterizations = async (
   companyId: string,
   workspaceId: string,
@@ -26,10 +32,18 @@ export const queryCharacterizations = async (
     : [];
 };
 
-export function useQueryCharacterizations(): IReactQuery<ICharacterization[]> {
-  const { companyId, workspaceId } = useGetCompanyId();
+export function useQueryCharacterizations(
+  page = 1,
+  query = {} as IQueryCharacterization,
+  take = 8,
+) {
+  const { companyId: _companyId, workspaceId: _workspaceId } =
+    useGetCompanyId();
 
-  const { data, ...query } = useQuery(
+  const companyId = query.companyId || _companyId;
+  const workspaceId = query.workspaceId || _workspaceId;
+
+  const { data, ...queryData } = useQuery(
     [QueryEnum.CHARACTERIZATIONS, companyId, workspaceId],
     () =>
       companyId && workspaceId
@@ -40,5 +54,5 @@ export function useQueryCharacterizations(): IReactQuery<ICharacterization[]> {
     },
   );
 
-  return { ...query, data: data || [] };
+  return { ...queryData, data: data || [] };
 }

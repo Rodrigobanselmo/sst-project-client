@@ -35,6 +35,8 @@ export interface IEmployee {
   admissionDate: Date;
   subOffices?: IHierarchy[];
   clinicId: string;
+  expiredDateExam: Date;
+  lastExam: Date;
 
   company: ICompany;
   examsHistory?: IEmployeeExamsHistory[];
@@ -57,6 +59,7 @@ export interface IEmployeeExamsHistory {
   created_at: Date;
   updated_at: Date;
   doneDate: Date;
+  expiredDate: Date;
   validityInMonths: number;
   examId: number;
   employeeId: number;

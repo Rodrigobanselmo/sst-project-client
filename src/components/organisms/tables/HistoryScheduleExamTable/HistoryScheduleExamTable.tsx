@@ -226,7 +226,9 @@ export const HistoryScheduleExamTable: FC<
           renderRow={(row) => {
             return (
               <STableRow
-                onClick={() => onSelectRow(row)}
+                onClick={() =>
+                  isPending ? onReSchedule(row) : onSelectRow(row)
+                }
                 clickable
                 key={row.id}
                 status={getRowColor(row)}
@@ -325,7 +327,10 @@ export const HistoryScheduleExamTable: FC<
                 <SFlex center gap={0} ml={0}>
                   <IconButtonRow
                     tooltipTitle="Reagendar exame"
-                    onClick={() => onReSchedule(row)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onReSchedule(row);
+                    }}
                     icon={<SCalendarIcon sx={{ color: 'info.dark' }} />}
                   />
                   <SIconUploadFile

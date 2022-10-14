@@ -121,13 +121,15 @@ export const useResumeStep = ({
       },
     );
 
+    const downloadGuide =
+      (submit.examsData?.length &&
+        submit.examsData.every((exam) => exam.status !== StatusEnum.PENDING)) ||
+      (!submit.examsData?.length && submit.status !== StatusEnum.PENDING);
+
     await createMutation
       .mutateAsync(submit)
       .then(() => {
-        if (
-          submit.examsData?.every((exam) => exam.status !== StatusEnum.PENDING)
-        )
-          onDownloadGuide(submit.companyId, submit.employeeId);
+        if (downloadGuide) onDownloadGuide(submit.companyId, submit.employeeId);
         else {
           return enqueueSnackbar(
             'Esperando finalizar pedido de agenda para baixar guia de encaminhamento',

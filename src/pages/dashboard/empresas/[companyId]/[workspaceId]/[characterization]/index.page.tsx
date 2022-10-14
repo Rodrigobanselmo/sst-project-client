@@ -15,9 +15,11 @@ import { ModalAutomateSubOffice } from 'components/organisms/modals/ModalAutomat
 import { ModalEditEpiData } from 'components/organisms/modals/ModalEditEpiRiskData';
 import { ModalEditEngRiskData } from 'components/organisms/modals/ModalEditMedRiskData';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
+import { ModalSelectCharacterization } from 'components/organisms/modals/ModalSelectCharacterization';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { CharacterizationTable } from 'components/organisms/tables/CharacterizationTable';
@@ -88,6 +90,8 @@ const Companies: NextPage = () => {
         />
       </CharacterizationTable>
       <ModalAddCharacterization />
+      <ModalSelectCharacterization />
+      <ModalSelectWorkspace />
       <ModalSelectDocPgr />
       <ModalAddRisk />
       <ModalAddGho />

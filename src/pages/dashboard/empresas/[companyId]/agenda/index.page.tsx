@@ -9,6 +9,7 @@ import { SSidebarExamData } from 'components/molecules/calendar/SSidebarExamData
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { StackModalAddExamSchedule } from 'components/organisms/modals/ModalAddExamSchedule/ModalAddExamSchedule';
+import { HistoryExpiredExamCompanyTable } from 'components/organisms/tables/HistoryExpiredExamCompanyTable/HistoryExpiredExamCompanyTable';
 import { HistoryScheduleExamCompanyTable } from 'components/organisms/tables/HistoryScheduleExamCompanyTable/HistoryScheduleExamCompanyTable';
 import {
   HistoryScheduleExamTable,
@@ -53,12 +54,16 @@ const Schedule: NextPage = () => {
             header={
               <WizardTabs
                 options={[
-                  { label: 'Agendamento de Exames' },
+                  { label: 'Exames Vencidos' },
+                  { label: 'Exames Agendados' },
                   { label: 'Todos os Exames' },
                 ]}
               />
             }
           >
+            <Box sx={{ px: 10, pb: 10 }}>
+              <HistoryExpiredExamCompanyTable mt={10} />
+            </Box>
             <Box sx={{ px: 10, pb: 10 }}>
               <HistoryScheduleExamCompanyTable mt={10} />
             </Box>

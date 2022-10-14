@@ -27,7 +27,7 @@ export const queryHisExamEmployee = async (
   if (!query.companyId) return { data: [], count: 0 };
 
   const response = await api.get<IPaginationResult<IEmployeeExamsHistory[]>>(
-    `${ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM}/schedule/company?${queries}`,
+    `${ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM}/schedule/company?take=${take}&skip=${skip}&${queries}`,
   );
 
   return response.data;

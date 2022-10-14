@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
@@ -18,9 +18,11 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
+import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { IHierarchy, IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutAddCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutAddCharacterizationPhoto';
+import { useMutCopyCharacterization } from 'core/services/hooks/mutations/manager/useMutCopyCharacterization';
 import { useMutDeleteCharacterization } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterization';
 import { useMutDeleteCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterizationPhoto';
 import {
@@ -41,8 +43,11 @@ import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
 import { sortData } from 'core/utils/sorts/data.sort';
 
+import { initialCharacterizationSelectState } from '../../ModalSelectCharacterization';
+import { initialCompanySelectState } from '../../ModalSelectCompany';
 import { initialDocPgrSelectState } from '../../ModalSelectDocPgr';
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
+import { initialWorkspaceSelectState } from '../../ModalSelectWorkspace';
 import { initialInputModalState } from '../../ModalSingleInput';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 import { ViewsDataEnum } from './../../../main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
@@ -108,6 +113,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     resolver: yupResolver(characterizationSchema),
   });
 
+  const copyMutation = useMutCopyCharacterization();
   const deleteMutation = useMutDeleteCharacterization();
   const upsertMutation = useMutUpsertCharacterization();
   const addPhotoMutation = useMutAddCharacterizationPhoto();
@@ -680,6 +686,45 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     document.getElementById(IdsEnum.ADD_PROFILE_CHARACTERIZATION_ID)?.click();
   };
 
+  const handleCopy = useCallback(() => {
+    onStackOpenModal(ModalEnum.COMPANY_SELECT, {
+      onSelect: (companySelected: ICompany) =>
+        onStackOpenModal(ModalEnum.WORKSPACE_SELECT, {
+          title: 'Selecione o Estabelecimento',
+          companyId: companySelected.id,
+          onSelect: (workspace: IWorkspace) => {
+            console.log(workspace);
+            onStackOpenModal(ModalEnum.CHARACTERIZATION_SELECT, {
+              companyId: companySelected.id,
+              workspaceId: workspace.id,
+              multiple: true,
+              onSelect: (char: ICharacterization[]) => {
+                copyMutation
+                  .mutateAsync({
+                    companyCopyFromId: companySelected.id,
+                    workspaceId:
+                      characterizationData.workspaceId ||
+                      (query.workspaceId as string),
+                    characterizationIds: char.map((c) => c.id),
+                    companyId: characterizationData.companyId,
+                  })
+                  .then(() => {
+                    onClose();
+                  });
+              },
+            } as Partial<typeof initialCharacterizationSelectState>);
+          },
+        } as typeof initialWorkspaceSelectState),
+    } as Partial<typeof initialCompanySelectState>);
+  }, [
+    characterizationData.companyId,
+    characterizationData.workspaceId,
+    copyMutation,
+    onClose,
+    onStackOpenModal,
+    query.workspaceId,
+  ]);
+
   return {
     control,
     data: characterizationData,
@@ -695,7 +740,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     hierarchies,
     isEdit,
     isRiskOpen,
-    loading: upsertMutation.isLoading,
+    loading: upsertMutation.isLoading || copyMutation.isLoading,
     loadingDelete: deletePhotoMutation.isLoading,
     manyProfiles,
     modalName,
@@ -720,6 +765,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     saveRef,
     setData: setCharacterizationData,
     setValue,
+    handleCopy,
   };
 };
 
