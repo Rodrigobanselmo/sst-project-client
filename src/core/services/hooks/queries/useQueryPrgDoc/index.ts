@@ -14,7 +14,7 @@ export const queryPrgDocs = async (
   companyId: string,
 ): Promise<IPrgDocData> => {
   const response = await api.get<IPrgDocData>(
-    ApiRoutesEnum.RISK_GROUP_DOCS.replace(':riskGroupId', riskGroupId).replace(
+    ApiRoutesEnum.DOC_VERSIONS.replace(':riskGroupId', riskGroupId).replace(
       ':companyId',
       companyId,
     ) +

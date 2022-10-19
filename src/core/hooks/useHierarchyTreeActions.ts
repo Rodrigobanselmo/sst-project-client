@@ -583,7 +583,7 @@ export const useHierarchyTreeActions = () => {
         return;
       }
 
-      const isHide = !node.label.toLowerCase().includes(normalizedSearch);
+      const isHide = !stringNormalize(node.label).includes(normalizedSearch);
       if (node.searchExpand) nodes[nodeId].searchExpand = false;
       if (isHide) nodes[nodeId].hide = true;
       if (!isHide) {

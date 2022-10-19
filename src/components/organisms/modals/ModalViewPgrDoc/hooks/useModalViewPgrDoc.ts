@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from 'react';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -12,6 +13,8 @@ export const initialViewPgrDocState = {
   id: '',
   riskGroupId: '',
   companyId: '',
+  downloadRoute: ApiRoutesEnum.DOCUMENTS_PGR,
+  downloadAttRoute: ApiRoutesEnum.DOCUMENTS_PGR_ATTACHMENTS,
 };
 
 const modalName = ModalEnum.PGR_DOC_VIEW;

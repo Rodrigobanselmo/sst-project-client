@@ -46,7 +46,7 @@ export const SecondModalStep = (props: IUseAddCompany) => {
     const response = await queryDocVersions(
       { take: 1, skip: 0 },
       {
-        isPGR: true,
+        isPCMSO: true,
         companyId: data.companyId,
         workspaceId: data.workspaceId,
       },

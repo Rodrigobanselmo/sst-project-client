@@ -9,7 +9,6 @@ import SText from 'components/atoms/SText';
 
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
 
-import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 import { IUseDocs } from '../../hooks/useModalViewPgrDoc';
@@ -48,25 +47,21 @@ export const ModalContentDoc = ({
         )}
       </SFlex>
       <SText mt={8} color="text.light">
-        Documento PGR
+        Documento
       </SText>
       <SFlex direction="column" gap={5} mt={5} mb={10}>
         <STagButton
-          text="Baixar documento PGR"
+          text="Baixar documento"
           loading={
             downloadMutation.isLoading &&
             !!downloadMutation.variables &&
             !!downloadMutation.variables.includes(
-              `${ApiRoutesEnum.DOCUMENTS_PGR}/${doc.id}/${
-                doc.companyId || companyId
-              }`,
+              `${doc.downloadRoute}/${doc.id}/${doc.companyId || companyId}`,
             )
           }
           onClick={() =>
             downloadMutation.mutate(
-              `${ApiRoutesEnum.DOCUMENTS_PGR}/${doc.id}/${
-                doc.companyId || companyId
-              }`,
+              `${doc.downloadRoute}/${doc.id}/${doc.companyId || companyId}`,
             )
           }
           width={'100%'}
@@ -89,10 +84,9 @@ export const ModalContentDoc = ({
               }
               onClick={() =>
                 downloadMutation.mutate(
-                  `${ApiRoutesEnum.DOCUMENTS_PGR_ATTACHMENTS.replace(
-                    ':docId',
-                    docQuery.id,
-                  )}/${attachment.id}/${doc.companyId || companyId}`,
+                  `${doc.downloadAttRoute.replace(':docId', docQuery.id)}/${
+                    attachment.id
+                  }/${doc.companyId || companyId}`,
                 )
               }
               width={'100%'}

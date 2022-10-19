@@ -12,14 +12,10 @@ import {
 } from 'components/atoms/STable';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import {
-  STableAddButton,
-  STableButton,
-} from 'components/atoms/STable/components/STableSearch';
+import { STableButton } from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
-import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
 import { ModalViewPgrDoc } from 'components/organisms/modals/ModalViewPgrDoc';
@@ -31,24 +27,25 @@ import { StatusEnum } from 'project/enum/status.enum';
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
 import { SReloadIcon } from 'assets/icons/SReloadIcon';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IPrgDocData } from 'core/interfaces/api/IRiskData';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import {
-  IQueryRiPgrDoc,
-  useQueryPrgDocs,
-} from 'core/services/hooks/queries/useQueryPrgDocs';
+  IQueryDocVersion,
+  useQueryDocVersions,
+} from 'core/services/hooks/queries/useQueryDocVersions/useQueryDocVersions';
 import { queryClient } from 'core/services/queryClient';
 
-export const DocPgrTable: FC<
+export const DocTable: FC<
   BoxProps & {
-    riskGroupId: string;
+    riskGroupId?: string;
+    documentPcmsoId?: string;
     rowsPerPage?: number;
-    query?: Partial<IQueryRiPgrDoc>;
+    query?: Partial<IQueryDocVersion>;
   }
 > = ({ riskGroupId, rowsPerPage = 8, query }) => {
   const { page, setPage } = useTableSearchAsync();
@@ -59,7 +56,7 @@ export const DocPgrTable: FC<
     isFetching,
     isRefetching,
     refetch,
-  } = useQueryPrgDocs(page, { ...query, riskGroupId }, rowsPerPage);
+  } = useQueryDocVersions(page, { ...query }, rowsPerPage);
   const { onOpenModal } = useModal();
   const { companyId } = useGetCompanyId();
 
@@ -72,6 +69,10 @@ export const DocPgrTable: FC<
       id: doc.id,
       companyId,
       riskGroupId,
+      ...(query?.isPCMSO && {
+        downloadRoute: ApiRoutesEnum.DOCUMENTS_PCMSO,
+        downloadAttRoute: ApiRoutesEnum.DOCUMENTS_PCMSO_ATTACHMENTS,
+      }),
     } as typeof initialViewPgrDocState);
   };
 

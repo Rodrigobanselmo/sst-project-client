@@ -34,7 +34,7 @@ import SDownloadIcon from 'assets/icons/SDownloadIcon';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { useMutCreateDocPlanAction } from 'core/services/hooks/mutations/checklist/docs/useMutCreateDocPlanAction';
+import { useMutCreateDocPlanAction } from 'core/services/hooks/mutations/checklist/docsPGR/useMutCreateDocPlanAction';
 import {
   IUpsertRiskDataRec,
   useMutUpsertRiskDataRec,

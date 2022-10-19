@@ -13,34 +13,35 @@ import { sortData } from 'core/utils/sorts/data.sort';
 import { QueryEnum } from '../../../../enums/query.enums';
 import { IPrgDocData } from '../../../../interfaces/api/IRiskData';
 
-export interface IQueryRiPgrDoc {
+export interface IQueryDocVersion {
   search?: string | null;
   companyId?: string;
   workspaceId?: string;
-  riskGroupId: string;
+  pcmsoId?: string[];
+  riskGroupId?: string[];
+  isPGR?: boolean;
+  isPCMSO?: boolean;
 }
 
-export const queryPgrDocs = async (
+export const queryDocVersions = async (
   { skip, take }: IPagination,
-  { riskGroupId, companyId, ...query }: IQueryRiPgrDoc,
+  { companyId, ...query }: IQueryDocVersion,
 ) => {
   if ('search' in query && query.search === null) return { data: [], count: 0 };
   if (!companyId) return { data: [], count: 0 };
   const queries = queryString.stringify(query);
 
   const response = await api.get<IPaginationResult<IPrgDocData[]>>(
-    ApiRoutesEnum.RISK_GROUP_DOCS.replace(':riskGroupId', riskGroupId).replace(
-      ':companyId',
-      companyId,
-    ) + `?take=${take}&skip=${skip}&${queries}`,
+    ApiRoutesEnum.DOC_VERSIONS.replace(':companyId', companyId) +
+      `?take=${take}&skip=${skip}&${queries}`,
   );
 
   return response.data;
 };
 
-export function useQueryPrgDocs(
+export function useQueryDocVersions(
   page = 1,
-  query = {} as IQueryRiPgrDoc,
+  query = {} as IQueryDocVersion,
   take = 20,
 ) {
   const { getCompanyId } = useGetCompanyId();
@@ -54,7 +55,7 @@ export function useQueryPrgDocs(
   const { data, ...result } = useQuery(
     [QueryEnum.RISK_GROUP_DOCS, page, { ...pagination, ...query, companyId }],
     () =>
-      queryPgrDocs(pagination, {
+      queryDocVersions(pagination, {
         ...query,
         companyId,
       }),

@@ -10,7 +10,9 @@ export enum QueryEnum {
   COMPANY = 'company',
   COMPANY_GROUP = 'company-group',
   CONTACTS = 'contacts',
+  DASHBOARD_COMPANY = 'dashboard-company',
   DATABASE_TABLE = 'database-table',
+  DOCUMENT_PCMSO = 'document-pcmso',
   DOCUMENTS = 'documents',
   EMPLOYEE_HISTORY_EXAM = 'employee-history-exam',
   EMPLOYEE_HISTORY_HIER = 'employee-history-hierarchy',
@@ -37,5 +39,4 @@ export enum QueryEnum {
   RISK_GROUP_DOC = 'risk-group-doc',
   RISK_GROUP_DOCS = 'risk-group-docs',
   USERS = 'users',
-  DASHBOARD_COMPANY = 'dashboard-company',
 }

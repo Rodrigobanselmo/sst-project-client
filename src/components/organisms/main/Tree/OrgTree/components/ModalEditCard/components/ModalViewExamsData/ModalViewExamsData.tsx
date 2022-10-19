@@ -73,7 +73,7 @@ export const ModalViewExamsData = ({
           onChange={() => {
             setShowRiskExam(!showRiskExam);
           }}
-          label="Mostar origem"
+          label="Mostrar origem"
           checked={showRiskExam}
           sx={{ mr: 4 }}
           color="text.light"
@@ -83,9 +83,9 @@ export const ModalViewExamsData = ({
         exams={exams}
         showRiskExam={showRiskExam}
         hierarchyId={hierarchyId}
-        onHandleOrigin={(origin) =>
-          onOpenRiskTool(origin.homogeneousGroup, origin.risk)
-        }
+        onHandleOrigin={(origin) => {
+          onOpenRiskTool(origin.homogeneousGroup, origin.risk);
+        }}
       />
     </SFlex>
   );

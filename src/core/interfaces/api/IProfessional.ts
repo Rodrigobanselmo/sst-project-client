@@ -34,6 +34,11 @@ export type IProfessionalToRiskGroup = {
   professional?: IProfessional;
 };
 
+export interface IProfessionalToDocumentPCMSO
+  extends Omit<IProfessionalToRiskGroup, 'riskDataGroupId'> {
+  documentPCMSOId: string;
+}
+
 export type IProfessionalCouncil = {
   id: number;
   councilType: string;

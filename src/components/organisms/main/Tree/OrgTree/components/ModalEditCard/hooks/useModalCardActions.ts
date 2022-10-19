@@ -14,6 +14,36 @@ import { useOpenRiskTool } from '../../RiskTool/hooks/useOpenRiskTool';
 import { ViewsDataEnum } from '../../RiskTool/utils/view-data-type.constant';
 import { ViewTypeEnum } from '../../RiskTool/utils/view-risk-type.constant';
 
+export const getGhoName = (
+  foundGho: IGho | undefined,
+  name: string | undefined,
+) => {
+  let ghoName = foundGho?.name;
+  let viewData = ViewsDataEnum.CHARACTERIZATION;
+
+  switch (foundGho?.type) {
+    case HomoTypeEnum.HIERARCHY:
+      viewData = ViewsDataEnum.HIERARCHY;
+      ghoName = name;
+      break;
+    case (HomoTypeEnum.GSE, undefined, null):
+      viewData = ViewsDataEnum.GSE;
+      ghoName = foundGho?.name;
+      break;
+    case HomoTypeEnum.ENVIRONMENT:
+      viewData = ViewsDataEnum.ENVIRONMENT;
+      ghoName = foundGho?.description?.split('(//)')[0];
+      break;
+
+    default:
+      viewData = ViewsDataEnum.CHARACTERIZATION;
+      ghoName = foundGho?.description?.split('(//)')[0];
+      break;
+  }
+
+  return { ghoName, viewData };
+};
+
 export const useModalCardActions = ({
   selectedNode,
   riskGroupId,
@@ -32,28 +62,10 @@ export const useModalCardActions = ({
   ) => {
     const foundGho = homogeneousGroup;
 
-    let viewData = ViewsDataEnum.CHARACTERIZATION;
-    let ghoName = foundGho?.name;
-
-    switch (foundGho?.type) {
-      case HomoTypeEnum.HIERARCHY:
-        viewData = ViewsDataEnum.HIERARCHY;
-        ghoName = selectedNode?.label || selectedNode?.name;
-        break;
-      case (HomoTypeEnum.GSE, undefined, null):
-        viewData = ViewsDataEnum.GSE;
-        ghoName = foundGho?.name;
-        break;
-      case HomoTypeEnum.ENVIRONMENT:
-        viewData = ViewsDataEnum.ENVIRONMENT;
-        ghoName = foundGho?.description?.split('(//)')[0];
-        break;
-
-      default:
-        viewData = ViewsDataEnum.CHARACTERIZATION;
-        ghoName = foundGho?.description?.split('(//)')[0];
-        break;
-    }
+    const { viewData, ghoName } = getGhoName(
+      foundGho,
+      selectedNode?.label || selectedNode?.name,
+    );
 
     if (foundGho)
       setTimeout(() => {

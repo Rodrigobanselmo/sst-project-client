@@ -12,7 +12,7 @@ import {
 } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { ModalViewProfessional } from 'components/organisms/modals/ModalViewProfessional';
-import { DocPgrTable } from 'components/organisms/tables/DocPgrTable';
+import { DocTable } from 'components/organisms/tables/DocTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
@@ -118,7 +118,7 @@ const Companies: NextPage = () => {
       />
 
       <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
-      <DocPgrTable riskGroupId={query.docId as string} />
+      <DocTable riskGroupId={query.docId as string} query={{ isPGR: true }} />
       <ModalAddDocPgr />
       <ModalViewProfessional />
       <ModalSingleInput />

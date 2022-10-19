@@ -131,6 +131,19 @@ export const useCompanyStep = () => {
     } as Partial<typeof initialDocPgrSelectState>);
   }, [company.id, onOpenModal, push]);
 
+  const handleDocPCMSO = useCallback(() => {
+    onOpenModal(ModalEnum.DOC_PGR_SELECT, {
+      title: 'Selecione o Sistema de Gestão SST do PGR',
+      onSelect: (docPgr: IRiskGroupData) =>
+        push(
+          RoutesEnum.PCMSO_DOCUMENT.replace(/:companyId/g, company.id).replace(
+            /:riskGroupId/g,
+            docPgr.id,
+          ),
+        ),
+    } as Partial<typeof initialDocPgrSelectState>);
+  }, [company.id, onOpenModal, push]);
+
   const handleCompanyRisks = useCallback(() => {
     push(RoutesEnum.COMPANY_RISKS.replace(/:companyId/g, company.id));
   }, [push, company.id]);
@@ -275,6 +288,13 @@ export const useCompanyStep = () => {
         tooltipText:
           'Alimentação de dados para geração de um documento PGR completo',
       },
+      [CompanyActionEnum.PCMSO]: {
+        icon: SDocumentIcon,
+        onClick: handleDocPCMSO,
+        text: 'PCMSO (Documento)',
+        tooltipText:
+          'Alimentação de dados para geração de um documento PCMSO completo',
+      },
       [CompanyActionEnum.CLINICS]: {
         icon: SClinicIcon,
         onClick: handleAddClinic,
@@ -310,6 +330,7 @@ export const useCompanyStep = () => {
     handleAddClinic,
     handleAddExam,
     handleCompanyRisks,
+    handleDocPCMSO,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
@@ -330,6 +351,7 @@ export const useCompanyStep = () => {
     return [
       actionsMapStepMemo[CompanyActionEnum.CLINICS],
       actionsMapStepMemo[CompanyActionEnum.EXAMS_RISK],
+      actionsMapStepMemo[CompanyActionEnum.PCMSO],
     ];
   }, [actionsMapStepMemo]);
 

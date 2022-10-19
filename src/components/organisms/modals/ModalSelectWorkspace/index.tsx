@@ -22,6 +22,7 @@ export const initialWorkspaceSelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSelect: (work: IWorkspace | IWorkspace[]) => {},
   title: 'Selecione o estabelecimento',
+  open: false,
   multiple: false,
   companyId: undefined as string | undefined,
   selected: [] as IWorkspace[],
@@ -30,7 +31,7 @@ export const initialWorkspaceSelectState = {
 
 export const ModalSelectWorkspace: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal, onOpenModal } = useModal();
+  const { onCloseModal, onOpenModal, getStackModal } = useModal();
   const [selectData, setSelectData] = useState(initialWorkspaceSelectState);
   const { data: company } = useQueryCompany(selectData.companyId);
 
@@ -50,6 +51,37 @@ export const ModalSelectWorkspace: FC = () => {
       });
     }
   }, [getModalData]);
+
+  useEffect(() => {
+    const isOpen = !!getStackModal().find(
+      (modal) => modal.name === ModalEnum.WORKSPACE_SELECT,
+    );
+
+    const initialData = getModalData(
+      ModalEnum.WORKSPACE_SELECT,
+    ) as typeof initialWorkspaceSelectState;
+
+    const workspace = company.workspace;
+
+    if (
+      isOpen &&
+      workspace &&
+      workspace.length === 1 &&
+      !initialData.open &&
+      (!initialData.companyId ||
+        workspace?.[0].companyId === initialData?.companyId)
+    ) {
+      onCloseModal(ModalEnum.WORKSPACE_SELECT);
+      setSelectData(initialWorkspaceSelectState);
+      initialData?.onSelect?.(workspace[0]);
+    }
+  }, [
+    getModalData,
+    getStackModal,
+    onCloseModal,
+    company.workspace,
+    selectData,
+  ]);
 
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();
