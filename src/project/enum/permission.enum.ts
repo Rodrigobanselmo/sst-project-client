@@ -40,4 +40,5 @@ export enum PermissionEnum {
   DOCUMENTS = '10',
   CONTRACTS = '11',
   CLINIC = '12',
+  PROTOCOL = '13',
 }

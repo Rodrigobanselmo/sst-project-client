@@ -106,7 +106,11 @@ export const rolesConstantMap = {
     value: RoleEnum.EXAM,
     label: 'Exames',
     info: 'gerenciamento de exames e sua relação aos fatores de risco',
-    permissions: [PermissionEnum.EXAM, PermissionEnum.EXAM_RISK],
+    permissions: [
+      PermissionEnum.EXAM,
+      PermissionEnum.EXAM_RISK,
+      PermissionEnum.PROTOCOL,
+    ],
     order: 1000,
   },
   [RoleEnum.SCHEDULE_EXAM]: {

@@ -183,6 +183,12 @@ export const permissionsConstantMap = {
     info: 'Controle dos arquivos vinculados aos exames (clínico e complementar) gerados pelas clínicas (upload e download)',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.PROTOCOL]: {
+    value: PermissionEnum.PROTOCOL,
+    label: 'Protocolos (ASO)',
+    info: 'Poder criar e editar protocolos que estarão presentes no ASO',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

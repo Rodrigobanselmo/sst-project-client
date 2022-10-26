@@ -21,7 +21,7 @@ import {
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { sortString } from 'core/utils/sorts/string.sort';
 
-import { s } from './styles';
+import { s } from '../styles';
 
 const DraftToPdf = ({ data }: { data?: string }) => {
   // console.log('swq', data);
