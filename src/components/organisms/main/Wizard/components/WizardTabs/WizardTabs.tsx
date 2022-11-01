@@ -6,13 +6,15 @@ import { STabsProps } from 'components/molecules/STabs/types';
 
 type Props = STabsProps;
 
-const WizardTabs: React.FC<Props> = (props) => {
+const WizardTabs: React.FC<Props> = ({ onChangeTab, ...props }) => {
   const { activeStep, goToStep } = useWizard();
 
   return (
     <STabs
       value={activeStep}
-      onChange={(_, value) => goToStep(value)}
+      onChange={(_, value) => {
+        onChangeTab ? onChangeTab(value, goToStep) : goToStep(value);
+      }}
       {...props}
     />
   );

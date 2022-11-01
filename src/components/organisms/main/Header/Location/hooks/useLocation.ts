@@ -35,7 +35,7 @@ type IRouteMapValue = {
 type IRouteMap = Record<RoutesParamsEnum, IRouteMapValue>;
 
 export const useLocation = () => {
-  const { query, pathname, push } = useRouter();
+  const { query, pathname, push, asPath } = useRouter();
   const { data: company } = useQueryCompany();
   const { onStackOpenModal } = useModal();
   const companyId = useMemo(
@@ -84,7 +84,8 @@ export const useLocation = () => {
   const onDropSelect = useCallback(() => {
     const includeCompany = pathname.includes(RoutesParamsEnum.COMPANY);
     const includeWorkspace = pathname.includes(RoutesParamsEnum.WORKSPACE);
-    const includeDoc = pathname.includes(RoutesParamsEnum.DOCUMENTS);
+    const includeDoc =
+      pathname.includes(RoutesParamsEnum.DOCUMENTS) || query.riskGroupId;
     if (!includeCompany) return;
 
     const onChangeRoute = ({
@@ -95,7 +96,19 @@ export const useLocation = () => {
       company: ICompany;
       workspace?: IWorkspace;
       doc?: IRiskGroupData;
-    }) =>
+    }) => {
+      const queryParams = asPath
+        .split('?')[1]
+        ?.split('&')
+        .map((q) =>
+          q.includes('riskGroupId=')
+            ? doc?.id
+              ? `riskGroupId=${doc?.id}`
+              : ''
+            : q,
+        )
+        .join('&');
+
       push(
         '/' +
           pathname
@@ -105,8 +118,11 @@ export const useLocation = () => {
               RoutesParamsEnum.CHARACTERIZATION,
               (query?.characterization as string) || '',
             )
-            .replace(RoutesParamsEnum.DOC, doc?.id || ''),
+            .replace(RoutesParamsEnum.DOC, doc?.id || '') +
+          '?' +
+          queryParams,
       );
+    };
 
     onSelectCompany((company) => {
       if (includeWorkspace) {
@@ -128,12 +144,14 @@ export const useLocation = () => {
       }
     });
   }, [
+    asPath,
     onSelectCompany,
     onSelectDoc,
     onSelectWorkspace,
     pathname,
     push,
     query?.characterization,
+    query.riskGroupId,
   ]);
 
   const routeMap = useMemo<IRouteMap>(() => {
@@ -192,7 +210,7 @@ export const useLocation = () => {
         },
       },
     };
-  }, [company, companyId, onDropSelect, query.docId]);
+  }, [company, companyId, onDropSelect, query?.characterization, query.docId]);
 
   const routes = useMemo(() => {
     const routesPath = pathname

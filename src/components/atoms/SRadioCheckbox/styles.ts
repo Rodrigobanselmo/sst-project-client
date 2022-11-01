@@ -28,7 +28,8 @@ export const StyledGrid = styled(Grid)<IStyledGrid>`
     border: 1px solid;
     border-color: ${(props) => props.theme.palette.background.divider};
     box-sizing: border-box;
-
+    -webkit-box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
+    box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
     &:hover {
       outline: 1px solid ${(props) => props.theme.palette.primary.main};
     }

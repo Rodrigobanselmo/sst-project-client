@@ -20,16 +20,16 @@ import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IGho } from 'core/interfaces/api/IGho';
-import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 
-export const GhoTable: FC<
+export const GhoAllTable: FC<
   BoxProps & {
     companyId?: string;
     onSelectData?: (company: IGho) => void;
     selectedData?: IGho[];
   }
 > = ({ onSelectData, selectedData, companyId }) => {
-  const { data, isLoading } = useQueryGHO(companyId);
+  const { data, isLoading } = useQueryGHOAll(companyId);
   // const { onOpenModal } = useModal();
   // const [filter, setFilter] = useState<HomoTypeEnum | undefined>(undefined);
   const isSelect = !!onSelectData;

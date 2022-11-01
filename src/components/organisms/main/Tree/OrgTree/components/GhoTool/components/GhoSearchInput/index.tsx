@@ -8,7 +8,7 @@ import { selectGhoData } from 'store/reducers/hierarchy/ghoSlice';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
-import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 
 import { STSInput } from './styles';
 import { GhoInputProps } from './types';
@@ -28,7 +28,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
   ) => {
     const selectedGho = useAppSelector(selectGhoData);
     const anchorEl = useRef<HTMLDivElement>(null);
-    const { data: ghoQuery } = useQueryGHO();
+    const { data: ghoQuery } = useQueryGHOAll();
     const handleSearch = useDebouncedCallback((value: string) => {
       onSearch?.(value);
     }, debounceTime);

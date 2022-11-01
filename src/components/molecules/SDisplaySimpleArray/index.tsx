@@ -147,7 +147,11 @@ export function SDisplaySimpleArray({
               ) : (
                 displayText
               )}
-              <SFlex gap={2} flexWrap="wrap" center>
+              <SFlex
+                gap={2}
+                //  flexWrap="wrap"
+                center
+              >
                 {onEdit && (
                   <STooltip placement="left" withWrapper title="subir posição">
                     <SIconButton

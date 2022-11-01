@@ -41,7 +41,7 @@ export const ModalInputHierarchy = React.forwardRef<
     const dispatch = useAppDispatch();
 
     return (
-      <SFlex align="center" gap={10}>
+      <SFlex align="center" gap={10} mb={7}>
         <STSInput
           small={small ? 1 : 0}
           loading={isAddLoading}
@@ -66,7 +66,10 @@ export const ModalInputHierarchy = React.forwardRef<
                 active={filter === hierarchy.value}
                 key={hierarchy.value}
                 tooltipTitle={`filtar por ${hierarchy.name}`}
-                text={hierarchy.name}
+                text={
+                  hierarchy.name.slice(0, 9) +
+                  (hierarchy.name.length > 9 ? '..' : '')
+                }
                 large
                 onClick={() => {
                   dispatch(setHierarchySearch(''));
@@ -97,13 +100,13 @@ export const ModalInputHierarchy = React.forwardRef<
             />
           )}
         </SFlex>
-        <STagButton
+        {/* <STagButton
           ml="auto"
           mr={10}
           text={'selecionar todos'}
           large
           onClick={() => onSelectAll?.()}
-        />
+        /> */}
       </SFlex>
     );
   },

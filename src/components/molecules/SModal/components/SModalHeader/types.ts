@@ -6,9 +6,10 @@ import { BoxProps } from '@mui/material';
 import { ITagAction } from '../../../../atoms/STagAction/types';
 
 export interface SModalHeaderProps extends Omit<BoxProps, 'title'> {
-  title: string | ReactNode;
+  title?: string | ReactNode;
   icon?: ReactNode;
   modalName?: string;
+  tagTitle?: string | ReactNode;
   tag?: ITagAction;
   subtitle?: string;
   onClose: () => void;

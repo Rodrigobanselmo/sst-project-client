@@ -93,10 +93,15 @@ export const ModalSelectCompany: FC = () => {
       keepMounted={false}
       onClose={onCloseNoSelect}
     >
-      <SModalPaper center p={8}>
-        <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
+      <SModalPaper sx={{ minWidth: ['95%', '95%', 1000] }} center p={8}>
+        <SModalHeader
+          tag={'select'}
+          onClose={onCloseNoSelect}
+          title={selectData.title}
+          // title={' '}
+        />
 
-        <SText>{selectData.title}</SText>
+        {/* <SText>{selectData.title}</SText> */}
         <Box minWidth={['100%', 600, 800]} mt={8}>
           <CompaniesTable
             {...(selectData.multiple

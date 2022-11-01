@@ -4,6 +4,7 @@ import { Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
+import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
 import { useRouter } from 'next/router';
 import {
   selectGhoOpen,
@@ -16,27 +17,38 @@ import {
 import SGhoIcon from 'assets/icons/SGhoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
+import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useModal } from 'core/hooks/useModal';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 
 import { SFlexButton } from './styles';
 
 export const BottomButton: FC = () => {
   const dispatch = useAppDispatch();
   const isGhoOpen = useAppSelector(selectGhoOpen);
-  // const { query, asPath, push } = useRouter();
+  const { onOpenModal } = useModal();
+  const { query, asPath, push } = useRouter();
 
-  // const isRiskOpen = query.riskGroupId;
+  const isRiskOpen = query.riskGroupId;
 
-  // const handleCloseRisk = () => {
-  //   push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
-  // };
+  const handleCloseRisk = () => {
+    push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
+  };
 
-  // const handleRiskData = () => {
-  //   if (!isRiskOpen) push(RoutesEnum.PGR);
-  //   else handleCloseRisk();
-  // };
+  const handleRiskData = () => {
+    if (!isRiskOpen)
+      onOpenModal(ModalEnum.DOC_PGR_SELECT, {
+        onSelect: (docPgr: IRiskGroupData) => {
+          push(asPath + '/?riskGroupId=' + docPgr.id, undefined, {
+            shallow: true,
+          });
+        },
+      } as Partial<typeof initialDocPgrSelectState>);
+    else handleCloseRisk();
+  };
 
   return (
     <SFlex
@@ -46,7 +58,7 @@ export const BottomButton: FC = () => {
         position: 'absolute',
       }}
     >
-      {/* <STooltip placement="top" title="Vincular Fatores de Risco">
+      <STooltip placement="top" title="Vincular Fatores de Risco">
         <SFlexButton
           onClick={() => {
             handleRiskData();
@@ -62,7 +74,7 @@ export const BottomButton: FC = () => {
           <Icon sx={{ color: 'gray.500' }} component={SRiskFactorIcon} />
           <SText>Fatores de Risco</SText>
         </SFlexButton>
-      </STooltip> */}
+      </STooltip>
       <STooltip placement="top-start" title="Grupo homogênio de exposição">
         <SFlexButton
           active={isGhoOpen ? 1 : 0}

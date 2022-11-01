@@ -15,7 +15,9 @@ import { IErrorResp } from '../../../../../errors/types';
 interface ICreateGho extends Partial<Pick<IGho, 'name' | 'status'>> {
   id?: number;
   companyId?: string;
-  hierarchies?: IHierarchy[];
+  startDate?: Date;
+  endDate?: Date;
+  hierarchies?: { id: string; workspaceId: string }[];
 }
 
 export async function createGho(data: ICreateGho, companyId?: string) {
@@ -38,6 +40,12 @@ export function useMutCreateGho() {
     {
       onSuccess: async (resp) => {
         if (resp) {
+          queryClient.invalidateQueries({
+            predicate: (query) => {
+              return query.queryKey[0] === QueryEnum.GHO && !!query.queryKey[2];
+            },
+          });
+
           // eslint-disable-next-line prettier/prettier
           const actualData = queryClient.getQueryData<IGho[]>([QueryEnum.GHO, resp.companyId]);
           if (actualData) {

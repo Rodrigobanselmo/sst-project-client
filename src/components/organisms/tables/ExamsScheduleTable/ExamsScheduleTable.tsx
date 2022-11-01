@@ -68,7 +68,10 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
           hideLoadMore
           renderRow={(row) => {
             const isSelected = row?.isSelected;
-            const isValid = row.expiredDate && !row.closeToExpired;
+            const isValid =
+              row.expiredDate &&
+              !row.closeToExpired &&
+              dayjs().isBefore(row.expiredDate);
             return (
               <STableRow key={row.id} status={isValid ? 'info' : undefined}>
                 <Box>

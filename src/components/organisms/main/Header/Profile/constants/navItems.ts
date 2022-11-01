@@ -7,6 +7,6 @@ import { RoutesEnum } from '../../../../../../core/enums/routes.enums';
 
 export const navItems = [
   { href: RoutesEnum.PROFILE, icon: SProfileIcon, label: 'Perfil' },
-  { icon: SCompanyIcon, label: 'Trocar de empresa', action: 'changeCompany' },
+  { icon: SCompanyIcon, label: 'Trocar Acesso', action: 'changeCompany' },
   { icon: ExitToAppIcon, label: 'Sair do App', action: 'signOut' },
 ];

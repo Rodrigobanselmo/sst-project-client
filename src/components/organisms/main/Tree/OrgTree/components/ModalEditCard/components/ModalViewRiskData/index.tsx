@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 
-import { Box, LinearProgress } from '@mui/material';
+import { Box, Icon, LinearProgress } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import { STagRisk } from 'components/atoms/STagRisk';
@@ -12,6 +12,8 @@ import {
 } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
 import { getRiskDoc } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
 import { RiskOrderEnum } from 'project/enum/risk.enums';
+
+import SAddIcon from 'assets/icons/SAddIcon';
 
 import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
@@ -95,12 +97,12 @@ export const ModalViewRiskData = ({
   return (
     <SFlex direction="column" minHeight={220}>
       {(loadingRiskGroup || loadingRiskData) && <LinearProgress />}
-      <SFlex justify="space-between">
+      <SFlex justify="space-between" mb={10}>
         <SButton
           size="small"
           sx={{
+            backgroundColor: 'grey.100',
             width: 'fit-content',
-            backgroundColor: 'white',
             color: 'black',
             boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
             mb: 5,
@@ -111,6 +113,10 @@ export const ModalViewRiskData = ({
           }}
           onClick={() => onOpenOfficeRiskTool()}
         >
+          <Icon
+            sx={{ fontSize: 20, mr: 4, color: 'success.dark' }}
+            component={SAddIcon}
+          />
           Adicionar riscos ao cargo
         </SButton>
         <SSwitch

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import { Box, LinearProgress } from '@mui/material';
+import { Box, Icon, LinearProgress } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import STooltip from 'components/atoms/STooltip';
@@ -10,6 +10,7 @@ import {
 } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
 import { RiskEnum } from 'project/enum/risk.enums';
 
+import SAddIcon from 'assets/icons/SAddIcon';
 import SStarIcon from 'assets/icons/SStarIcon';
 
 import { useQueryExamsHierarchy } from 'core/services/hooks/queries/useQueryExamsHierarchy/useQueryExamsHierarchy';
@@ -51,7 +52,7 @@ export const ModalViewExamsData = ({
     <SFlex direction="column" minHeight={220}>
       {(loadingRiskGroup || loadingExams) && <LinearProgress />}
 
-      <SFlex justify="space-between">
+      <SFlex justify="space-between" mb={10}>
         <SButton
           size="small"
           sx={{
@@ -67,6 +68,10 @@ export const ModalViewExamsData = ({
           }}
           onClick={() => onOpenOfficeRiskTool()}
         >
+          <Icon
+            sx={{ fontSize: 20, mr: 4, color: 'success.dark' }}
+            component={SAddIcon}
+          />
           Adicionar exames ao cargo
         </SButton>
         <SSwitch

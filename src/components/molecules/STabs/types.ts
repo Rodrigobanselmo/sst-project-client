@@ -9,4 +9,5 @@ export interface STabsProps extends TabsProps {
   height?: number;
   mt?: number;
   mb?: number;
+  onChangeTab?: (value: number, cb: (stepIndex: number) => void) => void;
 }

@@ -12,6 +12,7 @@ export enum RoutesEnum {
   DATABASE = '/dashboard/dados',
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',
   EMPLOYEES = '/dashboard/empresas/:companyId/empregados',
+  GHOS = '/dashboard/empresas/:companyId/grupos-homogenios',
   EXAMS = '/dashboard/empresas/:companyId/exames',
   HIERARCHY = '/dashboard/empresas/:companyId/hierarquia',
   LOGIN = '/',

@@ -142,7 +142,7 @@ export const NodeCard: FC<INodeCardProps> = ({
   );
   const GhoId = useAppSelector(selectGhoId);
   const store = useStore();
-  const dispatch = useAppDispatch();
+  // const dispatch = useAppDispatch();
   const { hide, ref } = useObserverHide();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
@@ -153,20 +153,23 @@ export const NodeCard: FC<INodeCardProps> = ({
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onUpdateGho = (newHierarchyIds: string[]) => {
-    if (node.showRef) return;
-    dispatch(setGhoState({ hierarchies: newHierarchyIds }));
+    return;
 
-    const newGhoState = store.getState().gho as IGhoState;
+    // if (node.showRef) return;
+    // dispatch(setGhoState({ hierarchies: newHierarchyIds }));
 
-    if (GhoId)
-      updateMutation.mutate({
-        id: GhoId,
-        hierarchies: newGhoState.hierarchies.map((hierarchy) => ({
-          id: hierarchy.split('//')[0],
-          workspaceId: hierarchy.split('//')[1],
-        })),
-      });
+    // const newGhoState = store.getState().gho as IGhoState;
+
+    // if (GhoId)
+    //   updateMutation.mutate({
+    //     id: GhoId,
+    //     hierarchies: newGhoState.hierarchies.map((hierarchy) => ({
+    //       id: hierarchy.split('//')[0],
+    //       workspaceId: hierarchy.split('//')[1],
+    //     })),
+    //   });
   };
 
   const handleAddGhoHierarchy = (e: MouseEvent<HTMLDivElement>) => {

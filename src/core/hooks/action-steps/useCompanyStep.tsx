@@ -197,28 +197,36 @@ export const useCompanyStep = () => {
   }, [company.workspace, company.id, enqueueSnackbar, push, dispatch]);
 
   const handleGoGho = useCallback(() => {
-    if (company.workspace && company.workspace.length === 0)
-      return enqueueSnackbar('Cadastre um estabelecimento antes de continuar', {
-        variant: 'warning',
-      });
-    if (!company.hierarchyCount)
-      return enqueueSnackbar('Cadastre um cargo antes de continuar', {
-        variant: 'warning',
-      });
+    push({
+      pathname: RoutesEnum.GHOS.replace(':companyId', company.id),
+    });
+  }, [company.id, push]);
 
-    push(RoutesEnum.HIERARCHY.replace(':companyId', company.id || ''));
-    dispatch(setGhoState({ hierarchies: [], data: null }));
-    dispatch(setGhoOpen(true));
-    dispatch(setGhoSearch(''));
-    dispatch(setGhoSearchSelect(''));
-  }, [
-    company.workspace,
-    company.hierarchyCount,
-    company.id,
-    enqueueSnackbar,
-    push,
-    dispatch,
-  ]);
+  //! old gho
+  // const handleGoGho = useCallback(() => {
+  //   if (company.workspace && company.workspace.length === 0)
+  //     return enqueueSnackbar('Cadastre um estabelecimento antes de continuar', {
+  //       variant: 'warning',
+  //     });
+  //   if (!company.hierarchyCount)
+  //     return enqueueSnackbar('Cadastre um cargo antes de continuar', {
+  //       variant: 'warning',
+  //     });
+
+  //   push(RoutesEnum.HIERARCHY.replace(':companyId', company.id || ''));
+  //   dispatch(setGhoState({ hierarchies: [], data: null }));
+  //   dispatch(setGhoOpen(true));
+  //   dispatch(setGhoSearch(''));
+  //   dispatch(setGhoSearchSelect(''));
+  // }, [
+  //   company.workspace,
+  //   company.hierarchyCount,
+  //   company.id,
+  //   enqueueSnackbar,
+  //   push,
+  //   dispatch,
+  // ]);
+  //! old gho
 
   const handleAddTeam = useCallback(() => {
     onOpenModal(ModalEnum.USER_VIEW);

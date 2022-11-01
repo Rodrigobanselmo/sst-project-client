@@ -18,7 +18,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   const { drop, isDragging, drag } = useDnd(node);
   const { onOpenModal } = useModal();
   const menuRef = useRef<HTMLDivElement>(null);
-  const store = useStore();
+  // const store = useStore();
 
   const clx = ['org-tree-node-label-inner'];
 
@@ -27,8 +27,8 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   const handleClickCard = () => {
     if (node.showRef) return;
 
-    const ghoState = store.getState().gho as IGhoState;
-    if (ghoState.open) return null;
+    // const ghoState = store.getState().gho as IGhoState;
+    // if (ghoState.open) return null;
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
     setSelectedItem(node);
   };

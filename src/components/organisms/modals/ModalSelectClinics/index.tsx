@@ -96,7 +96,7 @@ export const ModalSelectClinic: FC = () => {
       onClose={onCloseNoSelect}
     >
       <SModalPaper semiFullScreen center p={8}>
-        <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
+        <SModalHeader tag={'select'} onClose={onCloseNoSelect} title="" />
 
         <SText>{selectData.title}</SText>
         <Box minWidth={['100%', 600, 800]} mt={8}>

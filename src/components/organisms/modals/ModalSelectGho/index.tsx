@@ -12,7 +12,7 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { GhoTable } from 'components/organisms/tables/GhoTable';
+import { GhoAllTable } from 'components/organisms/tables/GhoAllTable';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -105,7 +105,7 @@ export const ModalSelectGho: FC = () => {
               <SText mt={-4} mr={40}>
                 {selectData.title}
               </SText>
-              <GhoTable
+              <GhoAllTable
                 companyId={selectData.companyId}
                 onSelectData={handleSelect}
                 selectedData={

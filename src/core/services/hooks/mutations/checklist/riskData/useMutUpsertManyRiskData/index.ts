@@ -70,7 +70,6 @@ export function useMutUpsertManyRiskData() {
             queryClient.invalidateQueries([
               QueryEnum.RISK_DATA,
               getCompanyId(resp),
-              resp[0][0].riskFactorGroupDataId,
             ]);
 
           return resp;

@@ -30,6 +30,8 @@ export const STTextField = styled(TextField)<{
     `};
 
   &&& .MuiOutlinedInput-root {
+    -webkit-box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
+    box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
     background-color: ${(props) => props.theme.palette.background.paper};
   }
 
@@ -38,7 +40,8 @@ export const STTextField = styled(TextField)<{
   }
 
   &&& .MuiOutlinedInput-notchedOutline {
-    border-color: ${(props) => props.theme.palette.background.border};
+    border-color: ${(props) => props.theme.palette.background.paper};
+    /* border-color: ${(props) => props.theme.palette.background.border}; */
     border-width: 1px;
   }
 

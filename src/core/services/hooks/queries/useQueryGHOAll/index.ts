@@ -11,11 +11,13 @@ import { sortString } from 'core/utils/sorts/string.sort';
 import { QueryEnum } from '../../../../enums/query.enums';
 
 export const queryGHO = async (companyId: string) => {
-  const response = await api.get<IGho[]>(ApiRoutesEnum.GHO + `/${companyId}`);
+  const response = await api.get<IGho[]>(
+    ApiRoutesEnum.GHO + `/all/${companyId}`,
+  );
   return response.data.sort((a, b) => sortString(a, b, 'name'));
 };
 
-export function useQueryGHO(companyIdProp?: string): IReactQuery<IGho[]> {
+export function useQueryGHOAll(companyIdProp?: string): IReactQuery<IGho[]> {
   const { companyId } = useGetCompanyId();
   const companyIdSelected = companyIdProp || companyId;
   // const reload = companyIdProp ? 'reload' : ''; //this reload modal to load hierarchy homogeneousGroups

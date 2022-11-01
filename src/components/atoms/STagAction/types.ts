@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ElementType } from 'react';
+import { ElementType, ReactNode } from 'react';
 
 import { BoxProps } from '@mui/material';
 
@@ -18,7 +18,7 @@ export type ITagAction =
   | 'none';
 
 export interface ISTagProps extends BoxProps {
-  text?: string;
+  text?: string | ReactNode;
   action?: ITagAction;
   icon?: ElementType<any>;
 }

@@ -75,7 +75,6 @@ export function useMutUpsertRiskData() {
         queryClient.invalidateQueries([
           QueryEnum.RISK_DATA,
           getCompanyId(resp?.companyId),
-          resp?.riskFactorGroupDataId,
         ]);
 
         if (resp?.homogeneousGroupId)

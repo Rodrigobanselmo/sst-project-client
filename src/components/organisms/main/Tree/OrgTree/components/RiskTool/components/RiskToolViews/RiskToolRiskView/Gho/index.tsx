@@ -14,7 +14,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
-import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
@@ -32,7 +32,7 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
   riskGroupId,
   isRiskOpen,
 }) => {
-  const { data: ghoQuery } = useQueryGHO();
+  const { data: ghoQuery } = useQueryGHOAll();
   const selectedGhoId = useAppSelector(selectGhoId);
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
 

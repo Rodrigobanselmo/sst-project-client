@@ -31,7 +31,7 @@ export const GhoSelect: FC<IGhoSelectProps> = ({
       options={ghos.map((gho) => ({ name: gho.name, value: gho.id }))}
       text={
         showAll
-          ? `${ghos.map((gho) => gho.name).join(', ')}`
+          ? `${String(ghos.length)} - ${ghos.map((gho) => gho.name).join(', ')}`
           : String(ghos.length)
       }
       title={'Grupos homogênios de exposição'}

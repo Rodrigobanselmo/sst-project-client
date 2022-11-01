@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
+import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { InputForm } from 'components/molecules/form/input';
 import SModal, {
@@ -9,11 +10,13 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 
+import { ModalSelectHierarchy } from '../ModalSelectHierarchy';
 import { EditGhoSelects } from './components/EditGhoSelects';
 import { useAddGho } from './hooks/useAddGho';
 
@@ -22,12 +25,15 @@ export const ModalAddGho = () => {
     registerModal,
     onCloseUnsaved,
     onSubmit,
+    loadingQuery,
     loading,
     ghoData,
     setGhoData,
     control,
     handleSubmit,
     onRemove,
+    onAddHierarchy,
+    hierarchies,
   } = useAddGho();
 
   const buttons = [
@@ -79,6 +85,13 @@ export const ModalAddGho = () => {
             name="description"
             size="small"
           />
+          <Box mt={10}>
+            <HierarchyHomoTable
+              onAdd={onAddHierarchy}
+              loading={loadingQuery}
+              hierarchies={hierarchies as any}
+            />
+          </Box>
         </SFlex>
         <EditGhoSelects ghoData={ghoData} setGhoData={setGhoData} />
         <SModalButtons
@@ -88,5 +101,14 @@ export const ModalAddGho = () => {
         />
       </SModalPaper>
     </SModal>
+  );
+};
+
+export const StackModalAddGho = () => {
+  return (
+    <>
+      <ModalAddGho />
+      <ModalSelectHierarchy />
+    </>
   );
 };

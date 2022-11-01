@@ -100,17 +100,21 @@ export const STagAction: FC<ISTagProps> = ({
           sx={{ fontSize: '16px', color: 'common.white' }}
         />
       )}
-      {!action ? text : ''}
-      {action === 'add' ? 'Adicionar' : ''}
-      {action === 'edit' ? 'Editar' : ''}
-      {action === 'delete' ? 'Deletar' : ''}
-      {action === 'info' ? 'Aviso' : ''}
-      {action === 'success' ? 'Sucesso' : ''}
-      {action === 'warning' ? 'Atenção' : ''}
-      {action === 'error' ? 'Erro' : ''}
-      {action === 'upload' ? 'Envio' : ''}
-      {action === 'version' ? 'Nova versão' : ''}
-      {action === 'select' ? 'Selecione' : ''}
+      {!text && (
+        <>
+          {action === 'add' ? 'Adicionar' : ''}
+          {action === 'edit' ? 'Editar' : ''}
+          {action === 'delete' ? 'Deletar' : ''}
+          {action === 'info' ? 'Aviso' : ''}
+          {action === 'success' ? 'Sucesso' : ''}
+          {action === 'warning' ? 'Atenção' : ''}
+          {action === 'error' ? 'Erro' : ''}
+          {action === 'upload' ? 'Envio' : ''}
+          {action === 'version' ? 'Nova versão' : ''}
+          {action === 'select' ? 'Selecione' : ''}
+        </>
+      )}
+      {text || ''}
 
       {Icon && <Icon sx={{ fontSize: '18px', color: 'common.white' }} />}
     </SFlex>

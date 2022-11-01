@@ -8,13 +8,13 @@ import { NextPage } from 'next';
 
 import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const RiskPage: NextPage = () => {
   const { data } = useQueryHierarchies();
-  const { data: gho } = useQueryGHO();
+  const { data: gho } = useQueryGHOAll();
   const { data: company } = useQueryCompany();
   const store = useStore();
 

@@ -27,6 +27,12 @@ export function useMutDeleteGho() {
 
   return useMutation(async (id: string) => createGho(id, companyId), {
     onSuccess: async (resp) => {
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return query.queryKey[0] === QueryEnum.GHO && !!query.queryKey[2];
+        },
+      });
+
       if (!companyId) {
         enqueueSnackbar('ID da empresa não encontrado', {
           variant: 'error',

@@ -38,6 +38,8 @@ export interface IUpsertCharacterization {
   activities?: string[];
   profileParentId?: string;
   profileName?: string;
+  startDate?: Date;
+  endDate?: Date;
   photos?: IAddCharacterizationPhoto[];
 }
 

@@ -3,8 +3,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { Box } from '@mui/material';
+import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
+import SFlex from 'components/atoms/SFlex';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
+import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
@@ -36,13 +40,15 @@ import {
 } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
 import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
 import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
-import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { queryClient } from 'core/services/queryClient';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
 import { sortData } from 'core/utils/sorts/data.sort';
 
+import { ViewsDataEnum } from '../../../main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
+import { initialBlankState } from '../../ModalBlank/ModalBlank';
 import { initialCharacterizationSelectState } from '../../ModalSelectCharacterization';
 import { initialCompanySelectState } from '../../ModalSelectCompany';
 import { initialDocPgrSelectState } from '../../ModalSelectDocPgr';
@@ -50,7 +56,7 @@ import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
 import { initialWorkspaceSelectState } from '../../ModalSelectWorkspace';
 import { initialInputModalState } from '../../ModalSingleInput';
 import { initialPhotoState } from '../../ModalUploadPhoto';
-import { ViewsDataEnum } from './../../../main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
+import { useStartEndDate } from './useStartEndDate';
 
 export const initialCharacterizationState = {
   id: '',
@@ -67,6 +73,8 @@ export const initialCharacterizationState = {
   profiles: [] as ICharacterization[],
   workspaceId: '',
   parentId: '',
+  startDate: undefined as Date | undefined,
+  endDate: undefined as Date | undefined,
   type: '' as CharacterizationTypeEnum, //? missing
   parentCharacterizationId: '', //? missing
   photos: [] as IAddCharacterizationPhoto[],
@@ -96,7 +104,8 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   const initialDataRef = useRef(initialCharacterizationState);
   const saveRef = useRef<boolean | string>(false);
   const { query, push, asPath } = useRouter();
-  const { data: ghoQuery, isLoading: ghoLoading } = useQueryGHO();
+  const { selectStartEndDate } = useStartEndDate();
+  const { data: ghoQuery, isLoading: ghoLoading } = useQueryGHOAll();
   const dispatch = useAppDispatch();
   const { data: characterizationsQuery } = useQueryCharacterizations();
   const { enqueueSnackbar } = useSnackbar();
@@ -216,12 +225,15 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [characterizationData.hierarchies, characterizationQuery.hierarchies]);
 
-  const onClose = (data?: any) => {
-    onCloseModal(modalName, data);
-    setCharacterizationData(initialCharacterizationState);
-    reset();
-    push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
-  };
+  const onClose = useCallback(
+    (data?: any) => {
+      onCloseModal(modalName, data);
+      setCharacterizationData(initialCharacterizationState);
+      reset();
+      push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
+    },
+    [asPath, modalName, onCloseModal, push, reset],
+  );
 
   const onCloseUnsaved = () => {
     const { name, description, type } = getValues();
@@ -306,6 +318,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       temperature: data.temperature,
       luminosity: data.luminosity,
       profileName: data.profileName,
+      startDate: characterizationData.startDate,
       type: characterizationData.type,
       activities: characterizationData.activities,
       considerations: characterizationData.considerations,
@@ -322,6 +335,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     };
 
     if (isEdit) delete submitData.photos;
+    if (isEdit) delete submitData.hierarchyIds;
 
     await upsertMutation
       .mutateAsync(submitData)
@@ -513,7 +527,11 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   const onAddHierarchy = () => {
-    const handleSelect = (hierarchies: IHierarchyChildren[]) => {
+    const handleSelect = (
+      hierarchies: IHierarchyChildren[],
+      startDate: Date,
+      endDate: Date,
+    ) => {
       const values = getValues();
       if (isEdit) {
         const submitData: IUpsertCharacterization = {
@@ -523,7 +541,11 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           id: characterizationData.id,
           photos: characterizationData.photos,
           type: characterizationData.type,
+          activities: characterizationData.activities,
           considerations: characterizationData.considerations,
+          paragraphs: characterizationData.paragraphs,
+          startDate,
+          endDate,
           hierarchyIds: hierarchies.map(
             (hierarchy) => String(hierarchy.id).split('//')[0],
           ),
@@ -533,21 +555,31 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       } else {
         setCharacterizationData((oldData) => ({
           ...oldData,
-          hierarchies: hierarchies,
+          hierarchies: hierarchies.map((h) => ({
+            ...h,
+            hierarchyOnHomogeneous: [{ startDate, endDate } as any],
+          })),
+          startDate,
+          endDate,
         }));
       }
     };
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
-      onSelect: handleSelect,
+      onSelect: (hIds) =>
+        selectStartEndDate((d) => handleSelect(hIds, d.startDate, d.endDate)),
       selectByGHO: ghoQuery.some((gho) => !gho.type),
       workspaceId: characterizationData.workspaceId,
       addSubOffice: true,
-      hierarchiesIds: hierarchies.map((hierarchy) =>
-        String(hierarchy.id).split('//').length == 1
-          ? String(hierarchy.id) + '//' + characterizationData.workspaceId
-          : String(hierarchy.id),
-      ),
+      hierarchiesIds: hierarchies
+        .filter((h) =>
+          (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
+        )
+        .map((hierarchy) =>
+          String(hierarchy.id).split('//').length == 1
+            ? String(hierarchy.id) + '//' + characterizationData.workspaceId
+            : String(hierarchy.id),
+        ),
     } as typeof initialHierarchySelectState);
   };
 

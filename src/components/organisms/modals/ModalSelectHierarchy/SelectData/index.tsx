@@ -1,6 +1,6 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Divider } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
@@ -11,6 +11,9 @@ import {
   setModalIds,
   setRemoveModalId,
 } from 'store/reducers/hierarchy/hierarchySlice';
+
+import { SAddIcon } from 'assets/icons/SAddIcon';
+import SCloseIcon from 'assets/icons/SCloseIcon';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
@@ -24,7 +27,7 @@ import {
 } from 'core/hooks/useListHierarchyQuery';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
-import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
@@ -41,7 +44,7 @@ export const ModalSelectHierarchyData: FC<{
   selectedData: typeof initialHierarchySelectState;
   handleSingleSelect: (hierarchy: IListHierarchyQuery) => void;
 }> = ({ company, selectedData, handleSingleSelect }) => {
-  const { data: ghoQuery } = useQueryGHO();
+  const { data: ghoQuery } = useQueryGHOAll();
 
   const dispatch = useAppDispatch();
   const { onStackOpenModal } = useModal();
@@ -178,61 +181,83 @@ export const ModalSelectHierarchyData: FC<{
               disabled={selectedData.lockWorkspace}
             />
           ))}
-          <STagButton
-            ml="auto"
-            mr={10}
-            text={'remover todos'}
-            large
-            onClick={() => dispatch(setModalIds([]))}
-          />
         </SFlex>
-        <STGridBox mb={10}>
-          {hierarchyListSelected.map((hierarchy) => {
-            return (
-              <ModalItemHierarchy
-                onClick={() => dispatch(setRemoveModalId(hierarchy.id))}
-                active
-                key={hierarchy.id}
-                data={hierarchy}
+        <SFlex gap={10} mt={10}>
+          <Box flex={1}>
+            <SFlex gap={4} align="center">
+              <SText mr={4}>Adicinar</SText>
+              <STagButton
+                width="150px"
+                text={'adicionar todos'}
+                iconProps={{ sx: { color: 'success.main' } }}
+                icon={SAddIcon}
+                onClick={() => onSelectAll?.()}
               />
-            );
-          })}
-        </STGridBox>
-        <ModalInputHierarchy
-          listFilter={allTypes}
-          onEmployeeAdd={onEmployeeAdd}
-          onSearch={(value) => dispatch(setHierarchySearch(value))}
-          placeholder={
-            filter === 'GHO'
-              ? 'Nome do GSE...'
-              : hierarchyConstant[filter].placeholder
-          }
-          setFilter={(value) => setFilter(value)}
-          filter={filter}
-          onSelectAll={onSelectAll}
-          selectedData={selectedData}
-        />
-        <STGridBox>
-          {filter !== 'GHO' &&
-            hierarchyList.map((hierarchy) => {
-              return (
-                <ModalItemHierarchy
-                  onClick={() =>
-                    selectedData.singleSelect
-                      ? handleSingleSelect(hierarchy)
-                      : dispatch(setAddModalId(hierarchy.id))
-                  }
-                  key={hierarchy.id}
-                  id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
-                    ':id',
-                    hierarchy.id.split('//')[0],
-                  )}
-                  data={hierarchy}
-                />
-              );
-            })}{' '}
-          {filter === 'GHO' && <ModalListGHO ghoQuery={ghoQuery} />}
-        </STGridBox>
+            </SFlex>
+            <Divider sx={{ mb: 10, mt: 7 }} />
+            <ModalInputHierarchy
+              listFilter={allTypes}
+              onEmployeeAdd={onEmployeeAdd}
+              onSearch={(value) => dispatch(setHierarchySearch(value))}
+              placeholder={
+                filter === 'GHO'
+                  ? 'Nome do GSE...'
+                  : hierarchyConstant[filter].placeholder
+              }
+              setFilter={(value) => setFilter(value)}
+              filter={filter}
+              onSelectAll={onSelectAll}
+              selectedData={selectedData}
+            />
+            <SFlex direction="column" gap={5} mb={10}>
+              {filter !== 'GHO' &&
+                hierarchyList.map((hierarchy) => {
+                  return (
+                    <ModalItemHierarchy
+                      onClick={() =>
+                        selectedData.singleSelect
+                          ? handleSingleSelect(hierarchy)
+                          : dispatch(setAddModalId(hierarchy.id))
+                      }
+                      key={hierarchy.id}
+                      id={IdsEnum.HIERARCHY_MODAL_SELECT_ITEM.replace(
+                        ':id',
+                        hierarchy.id.split('//')[0],
+                      )}
+                      data={hierarchy}
+                    />
+                  );
+                })}{' '}
+              {filter === 'GHO' && <ModalListGHO ghoQuery={ghoQuery} />}
+            </SFlex>
+          </Box>
+          <Box flex={1}>
+            <SFlex gap={4} align="center">
+              <SText mr={4}>Selecionados</SText>
+              <STagButton
+                width="150px"
+                text={'remover todos'}
+                iconProps={{ sx: { color: 'error.main' } }}
+                icon={SCloseIcon}
+                onClick={() => dispatch(setModalIds([]))}
+              />
+            </SFlex>
+            <Divider sx={{ mb: 10, mt: 7 }} />
+            <SFlex direction="column" gap={5} mb={10}>
+              {hierarchyListSelected.map((hierarchy) => {
+                return (
+                  <ModalItemHierarchy
+                    onClick={() => dispatch(setRemoveModalId(hierarchy.id))}
+                    active
+                    key={hierarchy.id}
+                    data={hierarchy}
+                    activeRemove={true}
+                  />
+                );
+              })}
+            </SFlex>
+          </Box>
+        </SFlex>
       </SFlex>
     </Box>
   );

@@ -12,12 +12,12 @@ import SText from '../../../../atoms/SText';
 import { SModalHeaderProps } from './types';
 
 export const SModalHeaderTitle: FC<
-  Pick<SModalHeaderProps, 'title' | 'subtitle' | 'tag'>
-> = ({ title, tag }) => {
+  Pick<SModalHeaderProps, 'title' | 'subtitle' | 'tag' | 'tagTitle'>
+> = ({ title, tag, tagTitle }) => {
   if (tag && tag !== 'none' && title)
     return (
       <SFlex width="100%" mb={2} align="center">
-        <STagAction action={tag} />
+        <STagAction text={tagTitle} action={tag} />
         <SText width="70%">{title}</SText>
       </SFlex>
     );
@@ -38,6 +38,7 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
   title,
   subtitle,
   modalName,
+  tagTitle,
   onClose,
   tag,
   secondIconClick,
@@ -62,7 +63,7 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
     >
       {subtitle && (
         <Box>
-          <SModalHeaderTitle title={title} tag={tag} />
+          <SModalHeaderTitle tagTitle={tagTitle} title={title} tag={tag} />
           <SText
             sx={{ whiteSpace: 'pre-line' }}
             mt={5}
@@ -76,7 +77,7 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
       )}
 
       {!subtitle && typeof title === 'string' && (
-        <SModalHeaderTitle title={title} tag={tag} />
+        <SModalHeaderTitle tagTitle={tagTitle} title={title} tag={tag} />
       )}
 
       {!(typeof title === 'string') && title}

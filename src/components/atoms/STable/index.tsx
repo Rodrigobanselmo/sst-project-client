@@ -92,6 +92,7 @@ export type ITableRowStatus =
   | 'info'
   | 'success'
   | 'fade'
+  | 'none'
   | undefined;
 
 export const STableRow: FC<

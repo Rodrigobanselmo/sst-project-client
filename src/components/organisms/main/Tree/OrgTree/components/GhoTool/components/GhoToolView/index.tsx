@@ -18,7 +18,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useModal } from 'core/hooks/useModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { useQueryGHO } from 'core/services/hooks/queries/useQueryGHO';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 
 import { GhoRow } from '../GhoRow';
 import { RiskToolRiskViewProps } from './types';
@@ -31,7 +31,7 @@ export const GhoToolView: FC<RiskToolRiskViewProps> = ({
   filter,
   handleFilter,
 }) => {
-  const { data: ghoQuery } = useQueryGHO();
+  const { data: ghoQuery } = useQueryGHOAll();
   const selectedGhoId = useAppSelector(selectGhoId);
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const { data: company } = useQueryCompany();

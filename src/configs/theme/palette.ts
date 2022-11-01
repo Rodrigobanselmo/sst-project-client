@@ -1,3 +1,5 @@
+// rgb(245, 247, 250)
+
 const palette = {
   primary: {
     extraLight: '#fca557',
