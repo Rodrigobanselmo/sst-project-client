@@ -32,7 +32,7 @@ import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const RiskGroupDataTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryRiskGroupData();
@@ -44,7 +44,7 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
   const { handleSearchChange, results } = useTableSearch({
     data,
     keys: ['name'],
-    sort: (a, b) => sortData(a, b, 'created_at'),
+    sort: (a, b) => sortDate(a, b, 'created_at'),
   });
 
   const handleEditStatus = (status: StatusEnum) => {

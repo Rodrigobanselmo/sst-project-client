@@ -145,6 +145,13 @@ export const rolesConstantMap = {
     ],
     order: 1000,
   },
+  [RoleEnum.ESOCIAL]: {
+    value: RoleEnum.ESOCIAL,
+    label: 'eSocial',
+    info: 'acesso aos recursos do eSocial (geração e envio do XML)',
+    permissions: [PermissionEnum.ESOCIAL],
+    order: 1000,
+  },
   [RoleEnum.NOTIFICATION]: {
     value: RoleEnum.NOTIFICATION,
     label: 'Notificações',

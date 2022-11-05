@@ -42,13 +42,21 @@ import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 export const getCredential = (row: IProfessional) => {
-  return row?.councils
-    ?.map((c) => `${c?.councilUF ? c.councilUF + '-' : ''}${c.councilId}`)
-    .join(' / ');
+  if (row?.councils)
+    return row?.councils
+      ?.map((c) => `${c?.councilUF ? c.councilUF + '-' : ''}${c.councilId}`)
+      .join(' / ');
+
+  return `${row?.councilUF ? row.councilUF + '-' : ''}${row.councilId}`;
 };
 
 export const getCouncil = (row: IProfessional) => {
-  return removeDuplicate(row?.councils?.map((c) => c?.councilType)).join(' / ');
+  if (row?.councils)
+    return removeDuplicate(row?.councils?.map((c) => c?.councilType)).join(
+      ' / ',
+    );
+
+  return row.councilType;
 };
 
 export const getType = (row: IProfessional) => {
@@ -70,6 +78,7 @@ export const ProfessionalsTable: FC<
   selectedData,
   filterInitial,
   isClinic,
+  query: queryProfessionals,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { push, query, asPath } = useRouter();
@@ -98,6 +107,7 @@ export const ProfessionalsTable: FC<
     {
       search,
       type: pageData().filters,
+      ...queryProfessionals,
       ...(isClinic
         ? {
             companies:
@@ -126,6 +136,7 @@ export const ProfessionalsTable: FC<
   const onEditProfessional = (professional: IProfessional) => {
     onStackOpenModal(ModalEnum.PROFESSIONALS_ADD, {
       ...professional,
+      ...(professional?.professionalId && { id: professional.professionalId }),
       isClinic,
     } as unknown as typeof initialProfessionalState);
   };

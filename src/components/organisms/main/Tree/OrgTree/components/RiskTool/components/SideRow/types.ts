@@ -14,6 +14,7 @@ export interface SideRowProps {
   isRepresentAll?: boolean;
   selectedGhoId: string | null;
   riskGroupId: string;
+  riskDataAll?: IRiskData[];
   riskData?: IRiskData;
   viewDataType: ViewsDataEnum;
   handleEditGHO: (data: any) => void;

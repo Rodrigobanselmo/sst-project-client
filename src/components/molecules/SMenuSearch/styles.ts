@@ -33,7 +33,10 @@ export const STSInput = styled(SInput)`
     font-size: 13px;
   }
 
-  //MuiOutlinedInput-input
+  &&& .MuiOutlinedInput-root {
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
 
   & ::placeholder {
     opacity: 0.6;
@@ -46,6 +49,7 @@ export const STMenuItem = styled(MenuItem)<ISTMenuProps>`
     padding: 8px 10px;
     font-size: 13px;
     line-height: 16px;
+    box-shadow: none;
     font-weight: 400;
     color: ${(props) => props.theme.palette.text.main};
     opacity: 0.9;

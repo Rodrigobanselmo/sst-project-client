@@ -72,6 +72,7 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
                     doctorResponsible: prof,
                   });
                 }}
+                query={{ byCouncil: true }}
                 inputProps={{
                   labelPosition: 'top',
                   placeholder: 'Médico responsavel',
@@ -108,6 +109,7 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
                     tecResponsible: prof,
                   });
                 }}
+                query={{ byCouncil: true }}
                 type={[
                   ProfessionalTypeEnum.ENGINEER,
                   ProfessionalTypeEnum.TECHNICIAN,

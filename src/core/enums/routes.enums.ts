@@ -35,4 +35,5 @@ export enum RoutesEnum {
   PDF_GUIDE = '/pdf/:companyId/:employeeId/guia-de-emcaminhamento',
   PDF_KIT_EXAM = '/pdf/:companyId/:employeeId/kit-medico',
   PDF_DOC_PCD = '/pdf/:companyId/:employeeId/laudo-pcd',
+  ESOCIAL = '/dashboard/empresas/:companyId/esocial',
 }

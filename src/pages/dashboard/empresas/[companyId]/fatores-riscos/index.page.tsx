@@ -18,25 +18,24 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 const RiskPage: NextPage = () => {
   return (
     <SContainer>
-      <SWizardBox>
-        <Wizard
-          header={
-            <WizardTabs
-              options={[
-                { label: 'Todos os Riscos Cadastrados' },
-                { label: 'Riscos Identificados' },
-              ]}
-            />
-          }
-        >
-          <Box sx={{ px: 5, pb: 10 }}>
-            <RisksTable />
-          </Box>
-          <Box sx={{ px: 5, pb: 10 }}>
-            <RiskCompanyTable />
-          </Box>
-        </Wizard>
-      </SWizardBox>
+      <Wizard
+        header={
+          <WizardTabs
+            shadow
+            options={[
+              { label: 'Todos os Riscos Cadastrados' },
+              { label: 'Riscos Identificados' },
+            ]}
+          />
+        }
+      >
+        <SWizardBox sx={{ px: 5, py: 10 }}>
+          <RisksTable />
+        </SWizardBox>
+        <SWizardBox sx={{ px: 5, py: 10 }}>
+          <RiskCompanyTable />
+        </SWizardBox>
+      </Wizard>
       <StackModalAddRisk />
     </SContainer>
   );

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
+import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { selectGhoSearch } from 'store/reducers/hierarchy/ghoSlice';
 
@@ -49,6 +50,7 @@ export const SideRow = React.memo<SideRowProps>(
     viewDataType,
     riskGroupId,
     isRepresentAll,
+    riskDataAll,
   }) => {
     const isSelected = selectedGhoId === gho.id;
     const { hide, ref } = useObserverHide();
@@ -80,16 +82,37 @@ export const SideRow = React.memo<SideRowProps>(
           isDeleteLoading={isDeleteLoading}
           hide={hide}
         />
-        {isRiskOpen && (
-          <SideRowTable
-            isSelected={isSelected}
-            hide={hide}
-            gho={gho}
-            riskData={riskData}
-            riskGroupId={riskGroupId}
-            isRepresentAll={isRepresentAll}
-          />
-        )}
+        <SFlex gap={4} direction="column">
+          {isRiskOpen &&
+            (!riskDataAll?.length ||
+              !!riskDataAll?.every((r) => r.endDate)) && (
+              <SideRowTable
+                isSelected={isSelected}
+                hide={hide}
+                gho={gho}
+                riskData={
+                  riskDataAll?.every((r) => r.endDate) ? undefined : riskData
+                }
+                riskGroupId={riskGroupId}
+                isRepresentAll={isRepresentAll}
+              />
+            )}
+          {isRiskOpen &&
+            !!riskDataAll?.length &&
+            riskDataAll?.map((rd) => {
+              return (
+                <SideRowTable
+                  key={rd.id}
+                  isSelected={isSelected}
+                  hide={hide}
+                  gho={gho}
+                  riskData={rd}
+                  riskGroupId={riskGroupId}
+                  isRepresentAll={isRepresentAll}
+                />
+              );
+            })}
+        </SFlex>
       </SFlex>
     );
   },

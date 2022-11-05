@@ -37,6 +37,8 @@ export interface IUpsertRiskData {
   exams?: IExamRiskData[];
   keepEmpty?: boolean;
   json?: any;
+  startDate?: Date;
+  endDate?: Date;
 }
 
 export async function upsertRiskData(

@@ -6,7 +6,7 @@ import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
@@ -28,7 +28,7 @@ export const queryCharacterizations = async (
   );
 
   return response.data
-    ? response.data.sort((a, b) => sortData(b, a, 'created_at'))
+    ? response.data.sort((a, b) => sortDate(b, a, 'created_at'))
     : [];
 };
 

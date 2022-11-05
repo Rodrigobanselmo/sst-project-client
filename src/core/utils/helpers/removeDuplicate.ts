@@ -11,7 +11,7 @@ export function removeDuplicate<T = any>(
   array: T[],
   options?: IDuplicateOptions,
 ) {
-  if (options?.simpleCompare || typeof array[0] === 'string')
+  if (options?.simpleCompare || typeof array?.[0] === 'string')
     return array.filter(
       (item, index, self) => index === self.findIndex((t) => t == item),
     );
@@ -31,7 +31,7 @@ export function removeDuplicate<T = any>(
     );
 
   if (removeById)
-    return array.filter(
+    return array?.filter(
       (item: any, index, self) =>
         index ===
         self.findIndex(
@@ -39,7 +39,7 @@ export function removeDuplicate<T = any>(
         ),
     );
 
-  return array.filter(
+  return array?.filter(
     (item, index, self) =>
       index ===
       self.findIndex((t) => {

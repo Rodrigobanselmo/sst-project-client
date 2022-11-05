@@ -69,7 +69,7 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
           </SText>
           <StyledImage
             alt={companyData.name}
-            src={companyData.logoUrl || '/placeholder-image.png'}
+            src={companyData.logoUrl || '/images/placeholder-image.png'}
             onClick={handleAddPhoto}
           />
           <DraftEditor

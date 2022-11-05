@@ -21,6 +21,8 @@ export interface IRiskData {
   companyId: string;
   riskId: string;
   homogeneousGroupId?: string;
+  endDate?: Date;
+  startDate?: Date;
   hierarchyId?: string;
   riskFactorGroupDataId: string;
   hierarchy?: IHierarchy;

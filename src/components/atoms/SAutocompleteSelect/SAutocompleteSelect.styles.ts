@@ -19,6 +19,7 @@ export const StyledAutocompleteSelect = styled(Autocomplete)`
       transform: translate(14px, 10px);
     }
   }  */
+
 `;
 
 export const StyledAutocompleteIcon = styled(KeyboardArrowDownIcon)`

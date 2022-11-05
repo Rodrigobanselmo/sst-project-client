@@ -56,6 +56,7 @@ export function SideBarNav(): JSX.Element {
                   return (
                     <NavLink
                       isAlwaysClose={isAlwaysClose}
+                      image={item.image}
                       key={item.id}
                       href={item.href.replace(
                         ':companyId',

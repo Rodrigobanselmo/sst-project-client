@@ -1,5 +1,6 @@
 import { FC } from 'react';
 
+import { Divider } from '@mui/material';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -32,12 +33,13 @@ export const STabs: FC<STabsProps> = ({
   options,
   mb = 10,
   mt = -5,
+  shadow,
   ...props
 }) => {
   return (
     <Box
       sx={{
-        borderBottom: 1,
+        borderBottom: shadow ? 1 : 0,
         borderColor: 'divider',
         // backgroundColor: 'sidebar.background',
         // borderTopLeftRadius: 10,
@@ -65,6 +67,14 @@ export const STabs: FC<STabsProps> = ({
           <Tab key={options.label} {...options} />
         ))}
       </Tabs>
+      {shadow && (
+        <Divider
+          sx={{
+            mt: -1,
+            boxShadow: '1px 1px 3px 1px rgba(0, 0, 0, 0.2)',
+          }}
+        />
+      )}
     </Box>
   );
 };

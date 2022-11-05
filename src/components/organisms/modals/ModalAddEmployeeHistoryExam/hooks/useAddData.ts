@@ -46,6 +46,7 @@ export const initialEmployeeHistoryExamState = {
   doctor: undefined as undefined | IProfessional,
   companyId: undefined as undefined | string,
   validityInMonths: undefined as undefined | number,
+  status: undefined as undefined | StatusEnum,
   examsData: [] as IExamComplementsTable[],
   hideClinicExam: undefined as undefined | boolean,
 
@@ -86,7 +87,7 @@ export const useAddData = () => {
 
   const isEdit = !!data.id;
   const isAllFields = !data.id || data.exam?.isAttendance;
-  const hideClinicExam = data.hideClinicExam;
+  const hideClinicExam = data.hideClinicExam || !data.examId;
 
   const { getCompanyId } = useGetCompanyId();
 
@@ -202,9 +203,10 @@ export const useAddData = () => {
     conclusion,
     ...dataForm
   }) => {
+    console.log(data);
     if (!data.employeeId) return;
     if (!data.doneDate) return;
-    if (!hideClinicExam && !data.exam?.id) return;
+    if (isEdit && !hideClinicExam && !data.exam?.id) return;
 
     let isErrorFound = false;
     if (!hideClinicExam && !data.clinic?.id) {
@@ -261,6 +263,7 @@ export const useAddData = () => {
       clinicId: data.clinic?.id,
       doctorId: data?.doctor?.id,
       companyId,
+      status: data?.status,
       employeeId: data.employeeId,
       doneDate: data.doneDate,
       validityInMonths: dataForm.validityInMonths || data.validityInMonths || 0,
@@ -271,8 +274,8 @@ export const useAddData = () => {
             clinicId: dt.clinic?.id,
             doneDate: dt.doneDate,
             examId: dt.id,
+            status: data?.status,
             validityInMonths: dt.validityInMonths,
-            status: dt.status,
           };
         }),
     };
@@ -311,6 +314,7 @@ export const useAddData = () => {
 
     actualExams.push({
       id: exam.id,
+      isSelected: true,
       name: exam.name,
       status: StatusEnum.DONE,
     });

@@ -20,13 +20,16 @@ import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect
 import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
 import { ExamsComplementsTable } from 'components/organisms/tables/ExamsComplementsTable/ExamsComplementsTable';
 import { ExamSelect } from 'components/organisms/tagSelects/ExamSelect';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { employeeExamConclusionTypeList } from 'project/enum/employee-exam-history-conclusion.enum';
 import { employeeExamEvaluationTypeList } from 'project/enum/employee-exam-history-evaluation.enum';
 import { employeeExamTypeList } from 'project/enum/employee-exam-history-type.enum';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
+import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { dateToDate } from 'core/utils/date/date-format';
 import { get15Time } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
@@ -99,10 +102,10 @@ export const ModalAddEmployeeHistoryExam = () => {
               onChange={() => {
                 setData({
                   ...data,
-                  hideClinicExam: !data.hideClinicExam,
+                  hideClinicExam: !hideClinicExam,
                 });
               }}
-              checked={!data.hideClinicExam}
+              checked={!hideClinicExam}
               label="Adicionar exame clínico"
               sx={{ mr: 4, ml: 6 }}
               color="text.light"
@@ -245,6 +248,7 @@ export const ModalAddEmployeeHistoryExam = () => {
                       labelPosition: 'top',
                       placeholder: 'selecione o médico...',
                     }}
+                    query={{ byCouncil: true }}
                     unmountOnChangeDefault
                     defaultValue={data.doctor}
                     name="doctor"
@@ -301,6 +305,11 @@ export const ModalAddEmployeeHistoryExam = () => {
             </SFlex>
           </SFlex>
         )}
+        {!data.examId && (
+          <SText color="text.label">
+            Exame clínico não cadastrado para essa empresa
+          </SText>
+        )}
 
         {!isEdit && (
           <SFlex direction="column" mb={3} mt={15}>
@@ -330,6 +339,23 @@ export const ModalAddEmployeeHistoryExam = () => {
             </SFlex>
           </SFlex>
         )}
+
+        <StatusSelect
+          sx={{ maxWidth: '90px', mt: 10 }}
+          options={statusOptionsConstantExam}
+          selected={data.status}
+          statusOptions={[
+            StatusEnum.DONE,
+            StatusEnum.PROCESSING,
+            StatusEnum.CANCELED,
+          ]}
+          handleSelectMenu={(option) =>
+            setData((old) => ({
+              ...old,
+              status: option.value,
+            }))
+          }
+        />
 
         <SModalButtons
           loading={loading}

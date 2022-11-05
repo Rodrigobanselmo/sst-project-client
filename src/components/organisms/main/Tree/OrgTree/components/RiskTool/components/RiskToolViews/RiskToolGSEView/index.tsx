@@ -15,6 +15,7 @@ import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useQueryRiskDataByGho } from 'core/services/hooks/queries/useQueryRiskDataByGho';
 import { queryClient } from 'core/services/queryClient';
+import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
@@ -70,6 +71,12 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
 
     //! here we are finding the risk and if not found does not apear, error if this risk is from company different than user will fail
     const data = riskDataQuery
+      .sort((a, b) =>
+        sortDate(
+          b.endDate || new Date('3000-01-01T00:00:00.00Z'),
+          a.endDate || new Date('3000-01-01T00:00:00.00Z'),
+        ),
+      )
       .sort(
         (a, b) =>
           sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key), //! performance optimization here or sort
@@ -121,6 +128,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
         );
 
     return data;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     riskDataQuery,
     userCompanyId,

@@ -44,7 +44,7 @@ import { dateToDate } from 'core/utils/date/date-format';
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
 import { SModalInitContactProps } from '../types';
 
-export const initialEmployeeHistoryExamState = {
+export const initialEditEmployeeHistoryExamState = {
   doctor: undefined,
   evaluationType: undefined,
 } as Partial<
@@ -60,7 +60,7 @@ export const useAddData = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onStackOpenModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
-  const initialDataRef = useRef(initialEmployeeHistoryExamState);
+  const initialDataRef = useRef(initialEditEmployeeHistoryExamState);
 
   const { handleSubmit, setValue, control, reset, getValues } = useForm({
     resolver: yupResolver(employeeHistoryExamSchema),
@@ -72,7 +72,7 @@ export const useAddData = () => {
   const { preventUnwantedChanges } = usePreventAction();
 
   const [data, setData] = useState({
-    ...initialEmployeeHistoryExamState,
+    ...initialEditEmployeeHistoryExamState,
   });
 
   const isEdit = !!data.id;
@@ -93,7 +93,9 @@ export const useAddData = () => {
 
   useEffect(() => {
     const initialData =
-      getModalData<Partial<typeof initialEmployeeHistoryExamState>>(modalName);
+      getModalData<Partial<typeof initialEditEmployeeHistoryExamState>>(
+        modalName,
+      );
 
     const setInitialData = async () => {
       if (initialData) {
@@ -116,7 +118,7 @@ export const useAddData = () => {
 
   const onClose = (data?: any) => {
     onCloseModal(modalName, data);
-    setData(initialEmployeeHistoryExamState);
+    setData(initialEditEmployeeHistoryExamState);
     reset();
   };
 

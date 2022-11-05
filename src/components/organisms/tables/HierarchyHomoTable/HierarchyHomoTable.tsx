@@ -37,7 +37,7 @@ import {
 } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { dateToString } from 'core/utils/date/date-format';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 
 export const HierarchyHomoTable: FC<
@@ -138,7 +138,7 @@ export const HierarchyHomoTable: FC<
         </STableHeader> */}
         <STableBody<IHierarchy & IHierarchyOnHomogeneous>
           rowsData={results
-            .sort((a, b) => sortData(b?.endDate, a?.endDate))
+            .sort((a, b) => sortDate(b?.endDate, a?.endDate))
             .sort((a, b) =>
               sortString(a?.name || a?.label, b?.name || a?.label),
             )}

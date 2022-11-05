@@ -150,6 +150,7 @@ export const ModalAddCompanyGroup = () => {
                   doctorResponsible: prof,
                 });
               }}
+              query={{ byCouncil: true }}
               defaultValue={companyGroupData.doctorResponsible}
               name="doctorResponsible"
               label="Médico Coordenador"

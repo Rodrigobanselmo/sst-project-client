@@ -29,6 +29,7 @@ export interface IQueryCompanies {
   isCompany?: boolean;
   type?: CompanyTypesEnum[];
   isPeriodic?: boolean;
+  selectReport?: boolean;
   isChange?: boolean;
   isAdmission?: boolean;
   isReturn?: boolean;

@@ -57,7 +57,7 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cepMask } from 'core/utils/masks/cep.mask';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const HistoryScheduleExamTable: FC<
   BoxProps & {
@@ -219,8 +219,8 @@ export const HistoryScheduleExamTable: FC<
         </STableHeader>
         <STableBody<typeof history[0]>
           rowsData={history
-            .sort((a, b) => sortData(b.created_at, a.created_at))
-            .sort((a, b) => sortData(b.doneDate, a.doneDate))}
+            .sort((a, b) => sortDate(b.created_at, a.created_at))
+            .sort((a, b) => sortDate(b.doneDate, a.doneDate))}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {

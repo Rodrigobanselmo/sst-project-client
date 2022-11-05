@@ -54,86 +54,85 @@ export const CouncilShow = ({
     } as typeof initialCouncilModalState);
   };
 
+  const councils = props?.data?.filter(
+    (v) => v && v.councilId && v.councilType && v.councilUF,
+  );
+
   return (
     <Box>
-      {props?.data
-        ?.filter((i) => i)
-        .map((userData, index) => {
-          return (
-            <SFlex
-              key={userData?.councilId + userData?.councilType}
-              mt={5}
-              flexWrap="wrap"
-              gap={5}
-            >
-              <Box flex={3}>
-                <AutocompleteForm
-                  name={index + 'councilType'}
-                  control={control}
-                  freeSolo
-                  disabled={true}
-                  getOptionLabel={(option) => String(option)}
-                  inputProps={{
-                    labelPosition: 'top',
-                    placeholder: 'Exemplo: CREA, CRM',
-                    name: index + 'councilType',
-                  }}
-                  setValue={(v) => setValue(index + 'councilType', v)}
-                  defaultValue={userData?.councilType || ''}
-                  sx={{ minWidth: [200] }}
-                  label={index ? '' : 'Conselho'}
-                  options={['CRM', 'CREA', 'COREM']}
-                />
-              </Box>
-              <Box flex={1}>
-                <AutocompleteForm
-                  name={index + 'councilUF'}
-                  inputProps={{
-                    labelPosition: 'top',
-                    placeholder: '__',
-                    name: index + 'councilUF',
-                  }}
-                  freeSolo
-                  disabled={true}
-                  control={control}
-                  placeholder={'estado...'}
-                  defaultValue={userData?.councilUF}
-                  setValue={(v) => setValue(index + 'councilUF', v)}
-                  label={index ? '' : 'UF'}
-                  sx={{ minWidth: [100] }}
-                  options={[]}
-                />
-              </Box>
-              <Box flex={4}>
-                <InputForm
-                  defaultValue={userData?.councilId}
-                  label={index ? '' : 'Identificação'}
-                  labelPosition="top"
-                  disabled={true}
-                  sx={{ minWidth: [250] }}
-                  control={control}
-                  placeholder={'identificação...'}
-                  name={index + 'councilId'}
-                  size="small"
-                  endAdornment={
-                    <SIconButton
-                      tooltip="deletar"
-                      onClick={() => onDelete?.(userData)}
-                      disabled={disabled}
-                    >
-                      <Icon
-                        component={SDeleteIcon}
-                        sx={{ fontSize: '1.2rem' }}
-                      />
-                    </SIconButton>
-                  }
-                />
-              </Box>
-            </SFlex>
-          );
-        })}
+      {councils?.map((userData, index) => {
+        return (
+          <SFlex
+            key={userData?.councilId + userData?.councilType}
+            mt={5}
+            flexWrap="wrap"
+            gap={5}
+          >
+            <Box flex={3}>
+              <AutocompleteForm
+                name={index + 'councilType'}
+                control={control}
+                freeSolo
+                disabled={true}
+                getOptionLabel={(option) => String(option)}
+                inputProps={{
+                  labelPosition: 'top',
+                  placeholder: 'Exemplo: CREA, CRM',
+                  name: index + 'councilType',
+                }}
+                setValue={(v) => setValue(index + 'councilType', v)}
+                defaultValue={userData?.councilType || ''}
+                sx={{ minWidth: [200] }}
+                label={index ? '' : 'Conselho'}
+                options={['CRM', 'CREA', 'COREM']}
+              />
+            </Box>
+            <Box flex={1}>
+              <AutocompleteForm
+                name={index + 'councilUF'}
+                inputProps={{
+                  labelPosition: 'top',
+                  placeholder: '__',
+                  name: index + 'councilUF',
+                }}
+                freeSolo
+                disabled={true}
+                control={control}
+                placeholder={'estado...'}
+                defaultValue={userData?.councilUF}
+                setValue={(v) => setValue(index + 'councilUF', v)}
+                label={index ? '' : 'UF'}
+                sx={{ minWidth: [100] }}
+                options={[]}
+              />
+            </Box>
+            <Box flex={4}>
+              <InputForm
+                defaultValue={userData?.councilId}
+                label={index ? '' : 'Identificação'}
+                labelPosition="top"
+                disabled={true}
+                sx={{ minWidth: [250] }}
+                control={control}
+                placeholder={'identificação...'}
+                name={index + 'councilId'}
+                size="small"
+                endAdornment={
+                  <SIconButton
+                    tooltip="deletar"
+                    onClick={() => onDelete?.(userData)}
+                    disabled={disabled}
+                  >
+                    <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
+                  </SIconButton>
+                }
+              />
+            </Box>
+          </SFlex>
+        );
+      })}
 
-      {props?.data?.length === 0 && (
+      {councils?.length === 0 && (
         <SFlex mt={5} flexWrap="wrap" gap={5} onClick={() => onOpenModal()}>
           <Box flex={5}>
             <AutocompleteForm
@@ -185,10 +184,10 @@ export const CouncilShow = ({
         </SFlex>
       )}
 
-      {props?.data && props?.data?.length > 0 && (
+      {councils && councils?.length > 0 && (
         <STagButton
           sx={{ mt: 3 }}
-          tooltipTitle="Rotacionar sentido horário"
+          tooltipTitle=""
           disabled={disabled}
           icon={SAddIcon}
           text="Adicionar Conselho"

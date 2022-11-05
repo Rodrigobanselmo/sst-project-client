@@ -7,6 +7,7 @@ export interface STabOption extends TabProps {
 export interface STabsProps extends TabsProps {
   options: STabOption[];
   height?: number;
+  shadow?: boolean;
   mt?: number;
   mb?: number;
   onChangeTab?: (value: number, cb: (stepIndex: number) => void) => void;

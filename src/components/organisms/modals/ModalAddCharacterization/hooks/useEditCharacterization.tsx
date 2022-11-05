@@ -45,7 +45,7 @@ import { queryClient } from 'core/services/queryClient';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { ViewsDataEnum } from '../../../main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { initialBlankState } from '../../ModalBlank/ModalBlank';
@@ -458,7 +458,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           if (characterization)
             addLocalPhoto(
               characterization.photos.sort((a, b) =>
-                sortData(b, a, 'created_at'),
+                sortDate(b, a, 'created_at'),
               )[0].photoUrl,
             );
         } else {

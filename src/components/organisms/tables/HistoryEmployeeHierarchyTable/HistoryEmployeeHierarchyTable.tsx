@@ -34,7 +34,7 @@ import {
 import { useQueryHisHierEmployee } from 'core/services/hooks/queries/useQueryHisHierEmployee/useQueryHisHierEmployee';
 import { dateToString } from 'core/utils/date/date-format';
 import { getCompanyName } from 'core/utils/helpers/companyName';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const HistoryEmployeeHierarchyTable: FC<
   BoxProps & {
@@ -138,8 +138,8 @@ export const HistoryEmployeeHierarchyTable: FC<
         </STableHeader>
         <STableBody<typeof history[0]>
           rowsData={history
-            .sort((a, b) => sortData(b.created_at, a.created_at))
-            .sort((a, b) => sortData(b.startDate, a.startDate))}
+            .sort((a, b) => sortDate(b.created_at, a.created_at))
+            .sort((a, b) => sortDate(b.startDate, a.startDate))}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {

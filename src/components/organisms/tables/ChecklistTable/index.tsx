@@ -26,7 +26,7 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { useQueryChecklist } from 'core/services/hooks/queries/useQueryChecklist';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const ChecklistTable: FC<BoxProps> = () => {
   const { data, isLoading } = useQueryChecklist();
@@ -36,7 +36,7 @@ export const ChecklistTable: FC<BoxProps> = () => {
   const { handleSearchChange, results } = useTableSearch({
     data,
     keys: ['name'],
-    sort: (a, b) => sortData(a, b, 'created_at'),
+    sort: (a, b) => sortDate(a, b, 'created_at'),
   });
 
   const handleEditStatus = (status: StatusEnum) => {

@@ -44,7 +44,7 @@ import { queryClient } from 'core/services/queryClient';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { ViewsDataEnum } from '../../../main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { initialBlankState } from '../../ModalBlank/ModalBlank';
@@ -70,8 +70,10 @@ export const useStartEndDate = () => {
         <SDatePicker
           inputProps={{
             labelPosition: 'top',
-            error: data?.error,
-            // helperText: ''
+            ...((data?.errorMessage || data?.error) && {
+              error: true,
+              helperText: data?.errorMessage,
+            }),
           }}
           placeholderText="__/__/__"
           selected={data.startDate}
@@ -85,22 +87,34 @@ export const useStartEndDate = () => {
         <SDatePicker
           inputProps={{
             labelPosition: 'top',
-            error: data?.error,
-            // helperText: ''
+            ...((data?.errorMessage || data?.error) && {
+              error: true,
+              helperText: data?.errorMessage,
+            }),
           }}
           placeholderText="__/__/__"
           selected={data.endDate}
           label={'Data fim'}
           onChange={(date) => {
-            if (date) {
-              setData((d: any) => ({ ...d, endDate: date }));
-            }
+            setData((d: any) => ({ ...d, endDate: date }));
           }}
         />
       </SFlex>
     );
 
     const onSelect = (d: any) => {
+      if (d.startDate && d.endDate && d.startDate > d.endDate) {
+        setTimeout(() => {
+          onStackOpenModal(ModalEnum.MODAL_BLANK, {
+            onSelect,
+            content,
+            errorMessage: 'Data de fim antes da data de início',
+            endDate: d?.endDate,
+            startDate: d?.startDate,
+          } as Partial<typeof initialBlankState>);
+        }, 100);
+        return;
+      }
       // if ((!d.startDate && !d.endDate) || d.startDate > d.endDate) {
       //   setTimeout(() => {
       //     onStackOpenModal(ModalEnum.MODAL_BLANK, {

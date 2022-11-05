@@ -62,45 +62,60 @@ export const SideRowGho: FC<SideItemsProps> = ({
   const name = getName();
 
   return (
-    <STooltip title={(isHierarchy ? data.parentsName + ' > ' : '') + name}>
-      <STBoxItemContainer
-        sx={{
-          border: isSelected ? ' 2px solid' : ' 1px solid',
-          borderColor: isSelected ? 'info.main' : 'background.divider',
-          minHeight: '46px',
-        }}
+    <Box>
+      <STooltip
+        placement="right"
+        title={(isHierarchy ? data.parentsName + ' > ' : '') + name}
       >
-        <Box width="75%" overflow="hidden">
-          <Box sx={{ display: 'flex', maxWidth: '75%', overflow: 'hidden' }}>
-            <SText lineNumber={2}>{name}</SText>
+        <STBoxItemContainer
+          sx={{
+            border: isSelected ? ' 2px solid' : ' 1px solid',
+            borderColor: isSelected ? 'info.main' : 'background.divider',
+            minHeight: '46px',
+          }}
+        >
+          <Box
+            // width="75%"
+            overflow="hidden"
+          >
+            <Box
+              sx={{
+                display: 'flex',
+                overflow: 'hidden',
+              }}
+            >
+              <SText lineNumber={2} fontSize="13px">
+                {name}
+              </SText>
+            </Box>
+            {topText && (
+              <SText fontWeight="500" color="text.light" fontSize={12}>
+                {topText}
+              </SText>
+            )}
           </Box>
-          {topText && (
-            <SText fontWeight="500" color="text.light" fontSize={12}>
-              {topText}
-            </SText>
-          )}
-        </Box>
-        <SFlex>
-          {!hide && (
-            <>
-              <STooltip withWrapper title={'Limpar dados'}>
-                <SIconButton
-                  loading={isDeleteLoading}
-                  onClick={() => handleDeleteGHO(String(data.id), data)}
-                  size="small"
-                >
-                  <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
-                </SIconButton>
-              </STooltip>
-              <STooltip withWrapper title={'Editar'}>
+          <SFlex>
+            {!hide && (
+              <>
+                <STooltip withWrapper title={'Limpar dados'}>
+                  <SIconButton
+                    loading={isDeleteLoading}
+                    onClick={() => handleDeleteGHO(String(data.id), data)}
+                    size="small"
+                  >
+                    <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
+                  </SIconButton>
+                </STooltip>
+                {/* <STooltip withWrapper title={'Editar'}>
                 <SIconButton onClick={() => handleEditGHO(data)} size="small">
                   <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />
                 </SIconButton>
-              </STooltip>
-            </>
-          )}
-        </SFlex>
-      </STBoxItemContainer>
-    </STooltip>
+              </STooltip> */}
+              </>
+            )}
+          </SFlex>
+        </STBoxItemContainer>
+      </STooltip>
+    </Box>
   );
 };

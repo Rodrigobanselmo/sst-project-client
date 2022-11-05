@@ -46,7 +46,7 @@ import { intMask } from 'core/utils/masks/int.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { getSexLabel } from '../ModalAddExamSchedule/components/1-employee';
-import { useAddData } from './hooks/useAddData';
+import { useAddData } from './hooks/useEditExamData';
 
 export const ModalEditEmployeeHisExamClinic = () => {
   const {
@@ -284,7 +284,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
             <SFlex flexWrap="wrap" gap={5} mt={8} align="end">
               <Box flex={2}>
                 <ProfessionalInputSelect
-                  query={{ companyId: data.clinicId }}
+                  query={{ byCouncil: true, companyId: data.clinicId }}
                   onChange={(prof) => {
                     setData({
                       ...data,

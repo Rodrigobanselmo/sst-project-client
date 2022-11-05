@@ -26,7 +26,7 @@ import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IDocument } from 'core/interfaces/api/IDocument';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { dateToString } from 'core/utils/date/date-format';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const DocumentsHistoryTable: FC<
   BoxProps & {
@@ -103,7 +103,12 @@ export const DocumentsHistoryTable: FC<
           ))}
         </STableHeader>
         <STableBody<typeof documents[0]>
-          rowsData={documents.sort((a, b) => sortData(b.endDate, a.endDate))}
+          rowsData={documents.sort((a, b) =>
+            sortDate(
+              b.endDate || new Date('3000-01-01T00:00:00.00Z'),
+              a.endDate || new Date('3000-01-01T00:00:00.00Z'),
+            ),
+          )}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {

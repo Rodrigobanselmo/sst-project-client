@@ -56,7 +56,7 @@ export const PieGraph = ({ data, dataset, ...props }: UnmountBoxProps) => {
           </SGraphTitle>
         </Box>
         <SFlex {...props} gap={10}>
-          <Box sx={{ width: 350, pb: 5 }}>
+          <Box sx={{ width: 115, pb: 5 }}>
             <Doughnut data={data} />
           </Box>
           <Box

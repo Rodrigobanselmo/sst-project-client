@@ -17,7 +17,9 @@ import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
+import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 import { ViewsDataEnum } from '../../../../utils/view-data-type.constant';
 import { SideRow } from '../../../SideRow';
@@ -67,7 +69,7 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
     });
 
     if (!selectedGhoFilter.value || !selectedGhoFilter.key) {
-      return ghoFilteredList;
+      return ghoFilteredList.sort((a, b) => sortString(a, b, 'description'));
     }
 
     const riskData = queryClient.getQueryData([
@@ -77,8 +79,10 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
       risk?.id,
     ]) as IRiskData[];
 
-    if (!riskData) return ghoFilteredList;
-    if (riskData.length === 0) return ghoFilteredList;
+    if (!riskData)
+      return ghoFilteredList.sort((a, b) => sortString(a, b, 'description'));
+    if (riskData.length === 0)
+      return ghoFilteredList.sort((a, b) => sortString(a, b, 'description'));
 
     const ghoData = ghoFilteredList.map((gho) => {
       const riskDataFilters = riskData.map((rd) => {
@@ -91,18 +95,24 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
         return copyItem;
       });
 
-      const foundRiskData = riskDataFilters.find(
+      const foundAllRiskData = riskDataFilters.filter(
         (risk) => risk.homogeneousGroupId === gho.id,
       );
 
+      const foundRiskData = foundAllRiskData?.[0];
+
       return {
         ...foundRiskData,
+        allRiskData: foundAllRiskData,
         ...gho,
       };
     }) as IGho[];
-    return ghoData.sort((a, b) =>
-      sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key),
-    );
+
+    return ghoData
+      .sort((a, b) => sortString(a, b, 'description'))
+      .sort((a, b) =>
+        sortFilter(a, b, selectedGhoFilter.value, selectedGhoFilter.key),
+      );
   }, [
     selectedGhoFilter,
     ghoQuery,
@@ -127,6 +137,9 @@ export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
             isDeleteLoading={isDeleteLoading}
             isRiskOpen={isRiskOpen}
             riskGroupId={riskGroupId}
+            riskDataAll={riskData
+              .sort((a, b) => sortDate(b.endDate, a.endDate))
+              .filter((data) => data.homogeneousGroupId == gho.id)}
             riskData={riskData.find(
               (data) => data.homogeneousGroupId == gho.id,
             )}

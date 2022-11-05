@@ -1,7 +1,26 @@
 import { ChangeEvent } from 'react';
 import { Control, FieldValues } from 'react-hook-form';
 
-import { BoxProps, FormControlProps } from '@mui/material';
+import {
+  BoxProps,
+  FormControlLabelProps,
+  FormControlProps,
+} from '@mui/material';
+
+export type RadioInputProps<T> = FormControlProps & {
+  disabled?: boolean;
+  value?: string | number;
+  label?: string;
+  renderLabel?: (option: T) => string;
+  errorMessage?: string;
+  valueField?: string;
+  labelField?: string;
+  helperText?: string;
+  options: T[];
+  row?: boolean;
+  onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  formControlProps?: Partial<FormControlLabelProps>;
+};
 
 export type InputFormBoxProps<T> = FormControlProps & {
   name: string;

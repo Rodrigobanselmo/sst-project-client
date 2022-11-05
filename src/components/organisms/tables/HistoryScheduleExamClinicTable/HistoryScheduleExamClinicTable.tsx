@@ -39,7 +39,7 @@ import {
 import { useMutUpdateManyScheduleHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { useQueryHisScheduleExamClinic } from 'core/services/hooks/queries/useQueryHisScheduleExamClinic/useQueryHisScheduleExamClinic';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 
 import { PersonalDatePicker } from './PersonalDatePicker';
@@ -93,7 +93,7 @@ export const HistoryScheduleExamClinicTable: FC<
     });
 
     return data
-      .sort((a, b) => sortData(a.created_at, b.created_at))
+      .sort((a, b) => sortDate(a.created_at, b.created_at))
       .sort((a, b) =>
         sortNumber(
           Number(a?.examsHistory?.[0]?.time.replace(':', '')),

@@ -6,6 +6,20 @@ interface LinkStyleProps extends LinkProps {
   is_active?: boolean;
 }
 
+export const StyledNavImage = styled('img')<{ open: number }>`
+  height: 25px;
+  width: 24px;
+  object-position: 4px;
+  object-fit: cover;
+  transition: width 0.6s ease;
+
+  ${(props) =>
+    props.open &&
+    css`
+      width: 100%;
+    `};
+`;
+
 export const LinkStyle = styled(Link)<LinkStyleProps>`
   border-left: 3px solid transparent;
   align-items: center;

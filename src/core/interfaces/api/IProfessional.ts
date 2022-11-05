@@ -14,16 +14,19 @@ export type IProfessional = {
   cpf: string;
   phone: string;
   userId: number;
-  crm: string;
-  crea: string;
-  councilType: string;
-  councilUF: string;
-  councilId: string;
   type: ProfessionalTypeEnum;
   status: StatusEnum;
   professionalPgrSignature?: IProfessionalToRiskGroup;
   professionalsPgrSignatures?: IProfessionalToRiskGroup[];
   councils: IProfessionalCouncil[];
+
+  professionalId?: number;
+  councilType?: string;
+  councilUF?: string;
+  councilId?: string;
+
+  crm: string;
+  crea: string;
 };
 
 export type IProfessionalToRiskGroup = {

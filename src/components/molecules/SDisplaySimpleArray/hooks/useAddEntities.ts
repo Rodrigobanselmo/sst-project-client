@@ -22,6 +22,7 @@ export const useAddEntities = ({
 
   const onSelectProfessionalUser = () =>
     onStackOpenModal(ModalEnum.PROFESSIONAL_SELECT, {
+      query: { byCouncil: true },
       title:
         'Selecione os profissionais responsaveis pela elaboração do documento',
       onSelect: (user: SelectUserProfessional | SelectUserProfessional[]) => {

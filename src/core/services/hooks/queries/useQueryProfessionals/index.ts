@@ -23,6 +23,7 @@ export interface IQueryProfessionals {
   email?: string;
   councilType?: string;
   councilId?: string;
+  byCouncil?: boolean;
   type?: ProfessionalTypeEnum[];
 }
 

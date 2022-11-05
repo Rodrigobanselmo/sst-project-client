@@ -114,6 +114,7 @@ export const SideRowTable: FC<SideTableProps> = ({
       handleEditEngs={handleEditEngs}
       handleEditExams={handleEditExams}
       isRepresentAll={risk?.representAll}
+      showEndDate
     />
   );
 };

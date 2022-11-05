@@ -172,6 +172,16 @@ const schedule = {
   shouldMatchExactHref: true,
 };
 
+const esocial = {
+  text: '',
+  image: '/images/esocial-full-logo.png',
+  description: 'Gerenciar eventos do eSocial',
+  id: 'pmdeiorwnvmoewnvoewewfew',
+  href: RoutesEnum.ESOCIAL,
+  // roles: [RoleEnum.ESOCIAL],
+  shouldMatchExactHref: false,
+};
+
 export const generalArray = [
   dashboard,
   profile,
@@ -188,4 +198,5 @@ export const generalArray = [
   oneClinicsData,
   exams,
   risks,
+  esocial,
 ];

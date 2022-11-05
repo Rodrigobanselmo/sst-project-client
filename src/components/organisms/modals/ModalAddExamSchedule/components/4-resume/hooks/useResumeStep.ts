@@ -25,7 +25,7 @@ import {
 } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
 import { queryClient } from 'core/services/queryClient';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
 
@@ -231,7 +231,7 @@ export const useResumeStep = ({
       return dayjs(schedule.doneDate).add(schedule.dueInDays || 0, 'd');
     })
     .filter((i) => i)
-    .sort((a, b) => sortData(a, b))[0];
+    .sort((a, b) => sortDate(a, b))[0];
 
   return {
     onSubmit,

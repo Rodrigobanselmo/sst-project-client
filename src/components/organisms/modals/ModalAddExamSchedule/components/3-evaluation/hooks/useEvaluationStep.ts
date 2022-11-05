@@ -12,7 +12,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
 import { queryClient } from 'core/services/queryClient';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
 
@@ -38,7 +38,7 @@ export const useEvaluationStep = ({
       return dayjs(schedule.doneDate).add(schedule.dueInDays || 0, 'd');
     })
     .filter((i) => i)
-    .sort((a, b) => sortData(b, a))[0];
+    .sort((a, b) => sortDate(b, a))[0];
 
   const onCloseUnsaved = async () => {
     onClose(() => reset());

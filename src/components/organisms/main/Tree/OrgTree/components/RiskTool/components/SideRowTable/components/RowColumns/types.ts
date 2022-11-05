@@ -20,5 +20,6 @@ export interface RowColumnsProps extends BoxProps {
   isSelected?: boolean;
   hide?: boolean;
   isRepresentAll?: boolean;
+  showEndDate?: boolean;
   selectedRisks?: IRiskFactors[];
 }

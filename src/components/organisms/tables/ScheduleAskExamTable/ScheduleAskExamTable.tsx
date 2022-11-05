@@ -40,7 +40,7 @@ import { useQueryHisScheduleExam } from 'core/services/hooks/queries/useQueryHis
 import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const ScheduleAskExamTable: FC<
   BoxProps & {
@@ -137,8 +137,8 @@ export const ScheduleAskExamTable: FC<
         </STableHeader>
         <STableBody<typeof history[0]>
           rowsData={history
-            .sort((a, b) => sortData(b.created_at, a.created_at))
-            .sort((a, b) => sortData(b.doneDate, a.doneDate))}
+            .sort((a, b) => sortDate(b.created_at, a.created_at))
+            .sort((a, b) => sortDate(b.doneDate, a.doneDate))}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {

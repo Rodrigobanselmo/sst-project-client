@@ -189,6 +189,12 @@ export const permissionsConstantMap = {
     info: 'Poder criar e editar protocolos que estarão presentes no ASO',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.ESOCIAL]: {
+    value: PermissionEnum.ESOCIAL,
+    label: 'Eventos eSocial',
+    info: 'Poder emitir e enviar eventos (XML)',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

@@ -10,6 +10,7 @@ import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useQueryRiskData } from 'core/services/hooks/queries/useQueryRiskData';
+import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
 
 import { useListHierarchy } from '../../../../hooks/useListHierarchy';
@@ -89,11 +90,21 @@ export const RiskToolRiskHierarchyView: FC<RiskToolRiskViewProps> = ({
             selectedGhoId={selectedGhoId}
             isDeleteLoading={isDeleteLoading}
             isRiskOpen={isRiskOpen}
-            riskData={(gho as any).riskData}
+            // riskData={(gho as any).riskData}
             riskGroupId={riskGroupId}
-            // riskData={riskData.find((data) =>
-            //   gho.ghos.some((group) => data.homogeneousGroupId == group.id),
-            // )}
+            riskDataAll={riskData
+              .sort((a, b) =>
+                sortDate(
+                  b.endDate || new Date('3000-01-01T00:00:00.00Z'),
+                  a.endDate || new Date('3000-01-01T00:00:00.00Z'),
+                ),
+              )
+              .filter(
+                (data) => data.homogeneousGroupId == gho.id.split('//')[0],
+              )}
+            riskData={riskData.find(
+              (data) => data.homogeneousGroupId == gho.id.split('//')[0],
+            )}
           />
         );
       })}

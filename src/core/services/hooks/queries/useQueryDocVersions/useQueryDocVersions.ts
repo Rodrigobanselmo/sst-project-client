@@ -8,7 +8,7 @@ import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationResult, IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 import { IPrgDocData } from '../../../../interfaces/api/IRiskData';

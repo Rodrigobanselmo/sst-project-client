@@ -11,7 +11,89 @@ import {
 } from '@mui/material';
 
 import { UnmountBox } from '../unmount-box';
-import { InputFormBoxProps } from './types';
+import { InputFormBoxProps, RadioInputProps } from './types';
+
+export function SRadio<T>({
+  label,
+  onChange,
+  options,
+  valueField = 'value',
+  labelField = 'label',
+  disabled,
+  renderLabel,
+  helperText,
+  row,
+  value,
+  formControlProps,
+  errorMessage,
+  ...props
+}: RadioInputProps<T>) {
+  return (
+    <FormControl error={!!errorMessage} variant="standard" {...props}>
+      {label && (
+        <FormLabel
+          sx={{ fontSize: 14, color: 'text.label' }}
+          id="demo-error-radios"
+        >
+          {label}
+        </FormLabel>
+      )}
+      <RadioGroup
+        sx={{ pt: 2 }}
+        aria-labelledby="demo-error-radios"
+        name="quiz"
+        value={value}
+        row={row}
+        onChange={(e) => {
+          onChange && onChange(e);
+        }}
+      >
+        {options.map((option) => {
+          const isString = typeof option === 'string';
+          const optionData = option as any;
+          const key = isString ? option : optionData?.[valueField];
+          const label = isString
+            ? option
+            : renderLabel
+            ? renderLabel(option)
+            : optionData?.[labelField];
+
+          const disabledValue = isString
+            ? false
+            : 'disabled' in option && optionData['disabled'];
+
+          return (
+            <FormControlLabel
+              key={key}
+              value={key}
+              control={<Radio />}
+              label={label}
+              disabled={disabled || disabledValue}
+              sx={{
+                color: 'text.main',
+                '& .MuiSvgIcon-root': {
+                  fontSize: 15,
+                },
+                '& .MuiRadio-root': {
+                  p: 3,
+                  px: 6,
+                },
+                '& .MuiTypography-root': {
+                  fontSize: 14,
+                },
+                ...formControlProps?.sx,
+              }}
+              {...formControlProps}
+            />
+          );
+        })}
+      </RadioGroup>
+      {(!!errorMessage || helperText) && (
+        <FormHelperText>{errorMessage || helperText}</FormHelperText>
+      )}
+    </FormControl>
+  );
+}
 
 export function RadioForm<T>({
   defaultValue,
@@ -46,69 +128,24 @@ export function RadioForm<T>({
           fieldState: { error },
         }) => {
           return (
-            <FormControl error={!!error?.message} variant="standard" {...props}>
-              {label && (
-                <FormLabel
-                  sx={{ fontSize: 14, color: 'text.label' }}
-                  id="demo-error-radios"
-                >
-                  {label}
-                </FormLabel>
-              )}
-              <RadioGroup
-                sx={{ pt: 2 }}
-                aria-labelledby="demo-error-radios"
-                name="quiz"
-                value={value}
-                row={row}
-                onChange={(e) => {
-                  onChange && onChange(e);
-                  func(e);
-                }}
-              >
-                {options.map((option) => {
-                  const isString = typeof option === 'string';
-                  const optionData = option as any;
-                  const key = isString ? option : optionData?.[valueField];
-                  const label = isString
-                    ? option
-                    : renderLabel
-                    ? renderLabel(option)
-                    : optionData?.[labelField];
-
-                  const disabledValue = isString
-                    ? false
-                    : 'disabled' in option && optionData['disabled'];
-
-                  return (
-                    <FormControlLabel
-                      key={key}
-                      value={key}
-                      control={<Radio />}
-                      label={label}
-                      disabled={disabled || disabledValue}
-                      sx={{
-                        color: 'text.main',
-                        '& .MuiSvgIcon-root': {
-                          fontSize: 15,
-                        },
-                        '& .MuiRadio-root': {
-                          p: 3,
-                          px: 6,
-                        },
-                        '& .MuiTypography-root': {
-                          fontSize: 14,
-                        },
-                      }}
-                      {...rest}
-                    />
-                  );
-                })}
-              </RadioGroup>
-              {(!!error?.message || helperText) && (
-                <FormHelperText>{error?.message || helperText}</FormHelperText>
-              )}
-            </FormControl>
+            <SRadio
+              options={options}
+              errorMessage={error?.message}
+              label={label}
+              value={value}
+              helperText={helperText}
+              valueField={valueField}
+              labelField={labelField}
+              disabled={disabled}
+              formControlProps={rest}
+              row={row}
+              renderLabel={renderLabel}
+              onChange={(e) => {
+                onChange && onChange(e);
+                func(e);
+              }}
+              {...props}
+            />
           );
         }}
       />

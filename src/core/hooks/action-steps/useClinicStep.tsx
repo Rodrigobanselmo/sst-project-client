@@ -53,6 +53,7 @@ export const useClinicStep = () => {
 
   const handleAddProfessionals = useCallback(() => {
     onOpenModal(ModalEnum.PROFESSIONAL_SELECT, {
+      query: { byCouncil: true },
       isClinic: true,
       toEdit: true,
       filter: ProfessionalFilterTypeEnum.MEDICINE,

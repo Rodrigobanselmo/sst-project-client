@@ -41,7 +41,7 @@ import {
   useQueryHisExamEmployee,
 } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { dateToString } from 'core/utils/date/date-format';
-import { sortData } from 'core/utils/sorts/data.sort';
+import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const HistoryEmployeeExamTable: FC<
   BoxProps & {
@@ -74,7 +74,7 @@ export const HistoryEmployeeExamTable: FC<
     page,
     { search, employeeId: employeeId, ...query },
     rowsPerPage,
-    companyId,
+    companyId || employee?.companyId,
   );
 
   const isSelect = !!onSelectData;
@@ -84,7 +84,7 @@ export const HistoryEmployeeExamTable: FC<
 
   const onAdd = () => {
     onStackOpenModal(modalName, {
-      companyId,
+      companyId: _companyId,
       employeeId,
       employee,
       hierarchyId: employee?.hierarchyId,
@@ -174,8 +174,8 @@ export const HistoryEmployeeExamTable: FC<
         </STableHeader>
         <STableBody<typeof history[0]>
           rowsData={history
-            .sort((a, b) => sortData(b.created_at, a.created_at))
-            .sort((a, b) => sortData(b.doneDate, a.doneDate))}
+            .sort((a, b) => sortDate(b.created_at, a.created_at))
+            .sort((a, b) => sortDate(b.doneDate, a.doneDate))}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {

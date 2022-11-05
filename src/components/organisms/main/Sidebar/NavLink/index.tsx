@@ -3,13 +3,14 @@ import STooltip from 'components/atoms/STooltip';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { SActiveLink } from '../../../../atoms/SActiveLink';
-import { LinkStyle } from './styles';
+import { LinkStyle, StyledNavImage } from './styles';
 import { INavLinkProps } from './types';
 
 const SText = styled(Typography)``;
 
 export function NavLink({
   href,
+  image,
   icon,
   text,
   description,
@@ -33,10 +34,19 @@ export function NavLink({
           passHref
         >
           <LinkStyle py="0.45rem" px={8} {...rest}>
-            <Icon
-              component={icon}
-              sx={{ fontSize: 20, alignSelf: 'center', ml: isOpen ? 0 : 2 }}
-            />
+            {icon && (
+              <Icon
+                component={icon}
+                sx={{ fontSize: 20, alignSelf: 'center', ml: isOpen ? 0 : 2 }}
+              />
+            )}
+            {image && (
+              <StyledNavImage
+                alt={description}
+                src={image}
+                open={isOpen ? 1 : 0}
+              />
+            )}
             <Box>
               <SText
                 ml={8}
