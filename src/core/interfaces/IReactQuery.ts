@@ -11,6 +11,7 @@ export interface IReactQueryMany<T> extends Omit<UseQueryResult<T>, 'data'> {
 export interface IPaginationResult<T> {
   data: T;
   count: number;
+  error: { message?: string };
   countUnread?: number;
 }
 

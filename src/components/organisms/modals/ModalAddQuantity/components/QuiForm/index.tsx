@@ -32,7 +32,54 @@ export const QuiForm = (props: IUseModalQuantity) => {
 
       {data.longDuration && (
         <>
-          <SText mb={4} color="text.label" fontSize={14}>
+          {data.risk.nr15lt && (
+            <>
+              <SText mb={4} color="text.label" fontSize={14}>
+                NR15 / CMPT{' '}
+                <SText component="span" color="text.label" fontSize={10}>
+                  (concentracao média ponderada no tempo)
+                </SText>
+              </SText>
+              <SFlex
+                sx={{
+                  display: 'grid',
+                  gap: '1rem',
+                  gridTemplateColumns: '1fr 1fr',
+                }}
+              >
+                <InputForm
+                  defaultValue={data.nr15ltValue.replace('.', ',')}
+                  labelPosition="center"
+                  label="Resultado"
+                  control={control}
+                  placeholder={`valor do resultado obtido (${data.risk.unit})...`}
+                  name="nr15ltValue"
+                  size="small"
+                  endAdornment={data.risk.unit}
+                  mask={floatMask.apply({ negative: false, ltAccept: true })}
+                />
+                <InputForm
+                  defaultValue={(data.risk.nr15lt || '').replace('.', ',')}
+                  label="LEO"
+                  labelPosition="center"
+                  control={control}
+                  placeholder={'valor do limite...'}
+                  name="nr15lt"
+                  size="small"
+                  endAdornment={data.risk.unit}
+                  mask={floatMask.apply({ negative: false })}
+                  disabled
+                />
+              </SFlex>
+            </>
+          )}
+
+          <SText
+            mb={4}
+            mt={data.risk.nr15lt ? 8 : 0}
+            color="text.label"
+            fontSize={14}
+          >
             Valor TLV/TWA{' '}
             <SText component="span" color="text.label" fontSize={10}>
               (ACGH)
@@ -43,6 +90,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
               display: 'grid',
               gap: '1rem',
               gridTemplateColumns: '1fr 1fr',
+              mb: 10,
             }}
           >
             <InputForm
@@ -73,44 +121,6 @@ export const QuiForm = (props: IUseModalQuantity) => {
               control={control}
               placeholder={'valor do limite...'}
               name="twa"
-              size="small"
-              endAdornment={data.risk.unit}
-              mask={floatMask.apply({ negative: false })}
-            />
-          </SFlex>
-
-          <SText mb={4} mt={8} color="text.label" fontSize={14}>
-            NR15 / CMPT{' '}
-            <SText component="span" color="text.label" fontSize={10}>
-              (concentracao média ponderada no tempo)
-            </SText>
-          </SText>
-          <SFlex
-            sx={{
-              display: 'grid',
-              gap: '1rem',
-              gridTemplateColumns: '1fr 1fr',
-              mb: 10,
-            }}
-          >
-            <InputForm
-              defaultValue={data.nr15ltValue.replace('.', ',')}
-              labelPosition="center"
-              label="Resultado"
-              control={control}
-              placeholder={`valor do resultado obtido (${data.risk.unit})...`}
-              name="nr15ltValue"
-              size="small"
-              endAdornment={data.risk.unit}
-              mask={floatMask.apply({ negative: false, ltAccept: true })}
-            />
-            <InputForm
-              defaultValue={(data.risk.nr15lt || '').replace('.', ',')}
-              label="LEO"
-              labelPosition="center"
-              control={control}
-              placeholder={'valor do limite...'}
-              name="nr15lt"
               size="small"
               endAdornment={data.risk.unit}
               mask={floatMask.apply({ negative: false })}

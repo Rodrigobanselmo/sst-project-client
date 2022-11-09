@@ -14,7 +14,7 @@ import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
-enum RoutesParamsEnum {
+export enum RoutesParamsEnum {
   BRAND = 'BRAND',
   DOCUMENTS = 'seus_documentos',
   COMPANY = '[companyId]',
@@ -242,7 +242,6 @@ export const useLocation = () => {
       .filter((i) => i)
       .join('/');
 
-    console.log(index, 'path', route);
     return route;
   };
 

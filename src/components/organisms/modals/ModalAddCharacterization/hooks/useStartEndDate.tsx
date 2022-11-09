@@ -133,6 +133,7 @@ export const useStartEndDate = () => {
       content,
       endDate: options?.endDate,
       startDate: options?.startDate,
+      title: 'Selecionar data',
     } as Partial<typeof initialBlankState>);
   };
 

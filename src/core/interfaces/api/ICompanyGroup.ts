@@ -10,5 +10,6 @@ export interface ICompanyGroup {
   companyId: string;
   numAsos: number;
   blockResignationExam: boolean;
+  esocialSend: boolean;
   esocialStart: Date;
 }

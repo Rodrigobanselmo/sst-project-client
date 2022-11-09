@@ -6,6 +6,7 @@ import { SHelp } from 'components/atoms/SHelp';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
+import { SRadio } from 'components/molecules/form/radio';
 import { SelectForm } from 'components/molecules/form/select';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
@@ -43,25 +44,62 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
     <>
       <AnimatedStep>
         <SFlex gap={0} direction="column" mt={8}>
-          <Box mb={10}>
-            <SText mb={5} color="text.label" fontSize={14}>
-              Início eSocial
-            </SText>
-            <DatePickerForm
-              placeholderText={'Início eSocial'}
-              control={control}
-              defaultValue={dateToDate(companyData.esocialStart)}
-              name="esocialStart"
-              labelPosition="center"
-              sx={{ maxWidth: 240 }}
-              onChange={(date) => {
-                setCompanyData({
-                  ...companyData,
-                  esocialStart: date instanceof Date ? date : undefined,
-                });
-              }}
-            />
-          </Box>
+          <SFlex align="center" mb={10} flexWrap="wrap" gap={5}>
+            <Box>
+              <SText mb={5} color="text.label" fontSize={14}>
+                Início eSocial
+              </SText>
+              <DatePickerForm
+                placeholderText={'Início eSocial'}
+                control={control}
+                defaultValue={dateToDate(companyData.esocialStart)}
+                name="esocialStart"
+                labelPosition="center"
+                sx={{ maxWidth: 240 }}
+                onChange={(date) => {
+                  setCompanyData({
+                    ...companyData,
+                    esocialStart: date instanceof Date ? date : undefined,
+                  });
+                }}
+              />
+            </Box>
+            <Box mt={12} ml={10}>
+              <SRadio
+                value={
+                  companyData.esocialSend == undefined
+                    ? undefined
+                    : companyData.esocialSend
+                    ? 1
+                    : 2
+                }
+                valueField="value"
+                row
+                formControlProps={{
+                  sx: {
+                    ml: '-4px',
+                    '& .MuiSvgIcon-root': {
+                      fontSize: 15,
+                    },
+                    '& .MuiTypography-root': {
+                      color: 'text.main',
+                    },
+                  },
+                }}
+                labelField="label"
+                onChange={(e) =>
+                  setCompanyData({
+                    ...companyData,
+                    esocialSend: (e.target as any).value == 1 ? true : false,
+                  })
+                }
+                options={[
+                  { value: 1, label: 'Enviar eventos' },
+                  { value: 2, label: 'Gerar XML' },
+                ]}
+              />
+            </Box>
+          </SFlex>
 
           <SFlex flexWrap="wrap" gap={5}>
             <Box flex={6}>

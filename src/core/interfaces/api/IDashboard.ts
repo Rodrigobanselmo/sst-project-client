@@ -1,4 +1,4 @@
-export interface DailyCompanyReportDto {
+export interface IDailyCompanyReport {
   exam: {
     good?: number;
     expired?: number;
@@ -7,11 +7,18 @@ export interface DailyCompanyReportDto {
     expired30?: number;
     expired90?: number;
   };
+  esocial: {
+    pending?: number;
+    processing?: number;
+    done?: number;
+    transmitted?: number;
+    rejected?: number;
+  };
 }
 
 export interface IDashboard {
   id?: number;
   companyId?: string;
   lastDailyReport?: Date;
-  dailyReport?: DailyCompanyReportDto;
+  dailyReport?: IDailyCompanyReport;
 }

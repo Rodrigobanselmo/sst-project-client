@@ -147,9 +147,9 @@ export const useEditClinicExams = () => {
       return setError('exam', { message: 'Exame obrigatório' });
     }
 
-    if (!dueInDays && !clinicExamData?.exam?.isAttendance) {
-      return setError('dueInDays', { message: 'campo obrigatório' });
-    }
+    // if (!dueInDays && !clinicExamData?.exam?.isAttendance) {
+    //   return setError('dueInDays', { message: 'campo obrigatório' });
+    // }
 
     const startDate = dateToDateLessTime(clinicExamData.startDate);
 

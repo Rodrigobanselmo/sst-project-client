@@ -172,12 +172,12 @@ export const useModalAddQuantity = () => {
         type: QuantityTypeEnum.QUI,
         unit: dataFrom?.unit || undefined,
       };
-
+    console.log(dataFrom);
     if (data.type == QuantityTypeEnum.NOISE)
       submit = {
         ltcatq5: (dataFrom.ltcatq5 || '').replaceAll('.', '').replace(',', '.'),
         ltcatq3: (dataFrom.ltcatq3 || '').replaceAll('.', '').replace(',', '.'),
-        nr15q5: (dataFrom.nr15lt || '').replaceAll('.', '').replace(',', '.'),
+        nr15q5: (dataFrom.nr15q5 || '').replaceAll('.', '').replace(',', '.'),
         type: QuantityTypeEnum.NOISE,
       };
 

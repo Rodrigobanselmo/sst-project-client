@@ -92,3 +92,36 @@ export const statusOptionsConstantExam = {
     color: 'error.main',
   },
 } as IStatusOptions;
+
+export const statusOptionsConstantESocial = {
+  [StatusEnum.DONE]: {
+    value: StatusEnum.DONE,
+    name: 'Transmitido',
+    color: 'success.main',
+  },
+  [StatusEnum.ERROR]: {
+    value: StatusEnum.ERROR,
+    name: 'Rejeitado',
+    color: 'error.main',
+  },
+  [StatusEnum.PROCESSING]: {
+    value: StatusEnum.PROCESSING,
+    name: 'Processando',
+    color: 'warning.main',
+  },
+  [StatusEnum.TRANSMITTED]: {
+    value: StatusEnum.TRANSMITTED,
+    name: 'Gerado',
+    color: 'grey.500',
+  },
+  [StatusEnum.MODIFIED]: {
+    value: StatusEnum.MODIFIED,
+    name: 'A retificar',
+    color: 'info.main',
+  },
+  [StatusEnum.CANCELED]: {
+    value: StatusEnum.CANCELED,
+    name: 'A excluir',
+    color: 'info.main',
+  },
+} as IStatusOptions;

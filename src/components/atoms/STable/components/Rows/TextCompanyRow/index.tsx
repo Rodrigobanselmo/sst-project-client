@@ -11,6 +11,7 @@ import { TextCompanyRowProps } from './types';
 
 export const TextCompanyRow: FC<TextCompanyRowProps> = ({
   company,
+  showCNPJ,
   ...props
 }) => {
   if (!company) return <div />;
@@ -23,16 +24,21 @@ export const TextCompanyRow: FC<TextCompanyRowProps> = ({
             {getCompanyName(company)}
           </SText>
           <SText color="common.white" fontSize={11} mt={1}>
-            CNPJ: {cnpjMask.mask(company.cnpj)}
+            CNPJ: {cnpjMask.mask(company?.cnpj)}
           </SText>
         </div>
       }
       text={
         company?.name ? (
           <div>
-            <SText fontSize={11} mt={1}>
+            <SText fontSize={13} mt={2} lineNumber={showCNPJ ? 1 : 2}>
               {getCompanyName(company)}
             </SText>
+            {showCNPJ && (
+              <SText fontSize={11} mt={0}>
+                {cnpjMask.mask(company?.cnpj)}
+              </SText>
+            )}
           </div>
         ) : (
           '-'

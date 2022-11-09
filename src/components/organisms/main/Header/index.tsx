@@ -6,6 +6,7 @@ import { useSidebarDrawer } from '../../../../core/contexts/SidebarContext';
 import { Location } from './Location';
 import { NotificationNav } from './NotificationNav';
 import { Profile } from './Profile';
+import { Tenant } from './Tenant/Tenant';
 
 export function Header(): JSX.Element {
   const { open, isTablet } = useSidebarDrawer();
@@ -42,6 +43,7 @@ export function Header(): JSX.Element {
         }}
         ml="auto"
       >
+        <Tenant />
         <NotificationNav />
         <Profile showProfileData={!isTablet} />
       </Stack>

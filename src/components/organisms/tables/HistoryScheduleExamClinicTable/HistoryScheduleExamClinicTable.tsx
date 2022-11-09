@@ -96,8 +96,8 @@ export const HistoryScheduleExamClinicTable: FC<
       .sort((a, b) => sortDate(a.created_at, b.created_at))
       .sort((a, b) =>
         sortNumber(
-          Number(a?.examsHistory?.[0]?.time.replace(':', '')),
-          Number(b?.examsHistory?.[0]?.time.replace(':', '')),
+          Number(a?.examsHistory?.[0]?.time?.replace(':', '')),
+          Number(b?.examsHistory?.[0]?.time?.replace(':', '')),
         ),
       );
   }, [employee]);

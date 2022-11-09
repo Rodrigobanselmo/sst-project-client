@@ -27,8 +27,10 @@ export const initialCompanyGroupState = {
   id: 0,
   blockResignationExam: true,
   numAsos: 2,
+  esocialSend: undefined as boolean | undefined,
   esocialStart: undefined as Date | undefined,
   doctorResponsible: undefined as IProfessional | undefined,
+  tecResponsible: undefined as IProfessional | undefined,
 };
 
 export const useAddCompanyGroup = () => {
@@ -113,7 +115,9 @@ export const useAddCompanyGroup = () => {
     const submitData: IUpsertCompanyGroup = {
       companiesIds: companyGroupData.companies.map((company) => company.id),
       id: companyGroupData.id || undefined,
+      esocialSend: companyGroupData.esocialSend,
       doctorResponsibleId: companyGroupData.doctorResponsible?.id,
+      tecResponsibleId: companyGroupData.tecResponsible?.id,
       blockResignationExam: companyGroupData.blockResignationExam,
       ...data,
     };
@@ -131,6 +135,8 @@ export const useAddCompanyGroup = () => {
 
     delete after.doctorResponsible;
     delete before.doctorResponsible;
+    delete after.tecResponsible;
+    delete before.tecResponsible;
     delete after.numAsos;
     delete before.numAsos;
 

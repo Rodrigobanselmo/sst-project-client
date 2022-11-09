@@ -16,13 +16,13 @@ type WithSSRAuthOptions = {
   skipCompanyCheck?: boolean;
 };
 
-export function withSSRAuth<T>(
-  fn: GetServerSideProps<T>,
+export function withSSRAuth(
+  fn: GetServerSideProps<any>,
   options?: WithSSRAuthOptions,
 ): GetServerSideProps {
   return async (
     ctx: GetServerSidePropsContext,
-  ): Promise<GetServerSidePropsResult<T>> => {
+  ): Promise<GetServerSidePropsResult<any>> => {
     const cookies = parseCookies(ctx);
     const token = cookies['nextauth.token'];
     const refreshToken = cookies['nextauth.refreshToken'];

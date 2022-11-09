@@ -218,6 +218,7 @@ export const useAddData = () => {
       isErrorFound = true;
     }
     if (!hideClinicExam && isAllFields && !data?.doctor?.id) {
+      console.log(data);
       setError('doctor', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }

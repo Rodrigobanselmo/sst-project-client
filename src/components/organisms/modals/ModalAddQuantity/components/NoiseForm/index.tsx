@@ -13,6 +13,16 @@ export const NoiseForm = (props: IUseModalQuantity) => {
   return (
     <SFlex width={['100%', 600]} direction="column" gap={10} mt={8}>
       <InputForm
+        defaultValue={data.nr15q5.replace('.', ',')}
+        label="NR 15 (q5 - laudo de insalubridade)"
+        control={control}
+        placeholder={`valor do resultado obtido em ${data.risk.unit}`}
+        name="nr15q5"
+        size="small"
+        endAdornment={data.risk.unit}
+        mask={floatMask.apply({ negative: false, ltAccept: true })}
+      />
+      <InputForm
         defaultValue={data.ltcatq3.replace('.', ',')}
         label="LTCAT (q3) / NHO01 (q3) (recomendado para gestão de risco)"
         control={control}
@@ -28,16 +38,6 @@ export const NoiseForm = (props: IUseModalQuantity) => {
         control={control}
         placeholder={`valor do resultado obtido em ${data.risk.unit}`}
         name="ltcatq5"
-        size="small"
-        endAdornment={data.risk.unit}
-        mask={floatMask.apply({ negative: false, ltAccept: true })}
-      />
-      <InputForm
-        defaultValue={data.nr15q5.replace('.', ',')}
-        label="NR 15 (q5 - laudo de insalubridade)"
-        control={control}
-        placeholder={`valor do resultado obtido em ${data.risk.unit}`}
-        name="nr15q5"
         size="small"
         endAdornment={data.risk.unit}
         mask={floatMask.apply({ negative: false, ltAccept: true })}

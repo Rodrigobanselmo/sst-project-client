@@ -20,7 +20,9 @@ export interface IUpsertCompanyGroup {
   blockResignationExam?: boolean;
   numAsos?: number;
   esocialStart?: Date;
+  esocialSend?: boolean;
   doctorResponsibleId?: number;
+  tecResponsibleId?: number;
 }
 
 export async function upsertCompanyGroup(

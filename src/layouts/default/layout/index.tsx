@@ -9,7 +9,10 @@ import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompa
 import { ModalUploadNewFile } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { useRouter } from 'next/router';
+import { selectUser } from 'store/reducers/user/userSlice';
 
+import { RoutesEnum } from 'core/enums/routes.enums';
+import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useRedirectDetect } from 'core/hooks/useRedirectDetect';
 import { useQueryDashboard } from 'core/services/hooks/queries/useQueryDashboard';
 
@@ -23,6 +26,7 @@ const DefaultLayout: FC = ({ children }) => {
   useRedirectDetect();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const user = useAppSelector(selectUser);
   // const { onCloseModal } = useModal();
   // const store = useStore();
   // const lastPath = useRef('');
@@ -52,6 +56,14 @@ const DefaultLayout: FC = ({ children }) => {
       dispatch(setIsRouteLoading(false));
       // console.log('stop');
     };
+
+    if (
+      router.pathname != RoutesEnum.ONBOARD_USER &&
+      user &&
+      (!user.name || !user.cpf)
+    ) {
+      router.replace(RoutesEnum.ONBOARD_USER);
+    }
 
     router.events.on('routeChangeStart', handleStart);
     router.events.on('routeChangeComplete', handleStop);

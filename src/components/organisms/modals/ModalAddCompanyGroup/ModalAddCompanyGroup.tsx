@@ -9,6 +9,7 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { InputForm } from 'components/molecules/form/input';
+import { SRadio } from 'components/molecules/form/radio';
 import { SelectForm } from 'components/molecules/form/select';
 import SModal, {
   SModalButtons,
@@ -17,6 +18,7 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
+import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { dateToDate } from 'core/utils/date/date-format';
@@ -173,21 +175,84 @@ export const ModalAddCompanyGroup = () => {
           </Box>
         </SFlex>
 
-        <Box mt={10}>
-          <DatePickerForm
-            label="Início eSocial"
-            control={control}
-            defaultValue={dateToDate(companyGroupData?.esocialStart)}
-            name="esocialStart"
-            sx={{ maxWidth: 240 }}
-            onChange={(date) => {
-              setCompanyGroupData({
-                ...companyGroupData,
-                esocialStart: date instanceof Date ? date : undefined,
-              });
-            }}
-          />
-        </Box>
+        <SFlex mt={8} flexWrap="wrap" gap={5}>
+          <Box flex={6}>
+            <ProfessionalInputSelect
+              onChange={(prof) => {
+                setCompanyGroupData({
+                  ...companyGroupData,
+                  tecResponsible: prof,
+                });
+              }}
+              query={{ byCouncil: true }}
+              type={[
+                ProfessionalTypeEnum.ENGINEER,
+                ProfessionalTypeEnum.TECHNICIAN,
+              ]}
+              inputProps={{
+                // labelPosition: 'top',
+                placeholder: 'Técnico ou Engenheiro responsavel',
+              }}
+              defaultValue={companyGroupData.tecResponsible}
+              name="tecResponsible"
+              label="Téc. / Eng."
+              control={control}
+            />
+          </Box>
+        </SFlex>
+
+        <SFlex mt={15} flexWrap="wrap" align="center" gap={5}>
+          <Box>
+            <DatePickerForm
+              label="Início eSocial"
+              control={control}
+              defaultValue={dateToDate(companyGroupData?.esocialStart)}
+              name="esocialStart"
+              sx={{ maxWidth: 240 }}
+              onChange={(date) => {
+                setCompanyGroupData({
+                  ...companyGroupData,
+                  esocialStart: date instanceof Date ? date : undefined,
+                });
+              }}
+            />
+          </Box>
+          <Box>
+            <SRadio
+              value={
+                companyGroupData.esocialSend == undefined
+                  ? undefined
+                  : companyGroupData.esocialSend
+                  ? 1
+                  : 2
+              }
+              valueField="value"
+              row
+              formControlProps={{
+                sx: {
+                  ml: '-4px',
+                  '& .MuiSvgIcon-root': {
+                    fontSize: 15,
+                  },
+                  '& .MuiTypography-root': {
+                    color: 'text.main',
+                  },
+                },
+              }}
+              labelField="label"
+              onChange={(e) =>
+                setCompanyGroupData({
+                  ...companyGroupData,
+                  esocialSend: (e.target as any).value == 1 ? true : false,
+                })
+              }
+              options={[
+                { value: 1, label: 'Enviar eventos' },
+                { value: 2, label: 'Gerar XML' },
+              ]}
+            />
+          </Box>
+        </SFlex>
 
         <SModalButtons
           loading={loading}

@@ -20,10 +20,10 @@ const Home: NextPage = () => {
 
   return (
     <SContainer>
-      <SAuthShow hideIf={company.isClinic}>
+      {/* <SAuthShow hideIf={company.isClinic}>
         <SPageTitle>Site em desenvolvimento</SPageTitle>
         <p>Novas atualizações em breve</p>
-      </SAuthShow>
+      </SAuthShow> */}
       <SAuthShow permissions={[PermissionEnum.COMPANY_SCHEDULE]}>
         <PieGraph
           dataset={[

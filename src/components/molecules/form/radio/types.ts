@@ -9,9 +9,9 @@ import {
 
 export type RadioInputProps<T> = FormControlProps & {
   disabled?: boolean;
-  value?: string | number;
+  value?: string | number | boolean;
   label?: string;
-  renderLabel?: (option: T) => string;
+  renderLabel?: (option: T) => React.ReactNode;
   errorMessage?: string;
   valueField?: string;
   labelField?: string;

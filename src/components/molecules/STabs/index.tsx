@@ -4,6 +4,8 @@ import { Divider } from '@mui/material';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
 
 import { STabsProps } from './types';
 
@@ -59,6 +61,7 @@ export const STabs: FC<STabsProps> = ({
         {...(!!props.height && {
           sx: {
             '& .MuiTabs-scroller': { maxHeight: props.height },
+            svg: { fontSize: 22, pr: 3 },
             ...props.sx,
           },
         })}

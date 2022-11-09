@@ -8,4 +8,6 @@ export enum StatusEnum {
   ERROR = 'ERROR',
   EXPIRED = 'EXPIRED',
   CANCELED = 'CANCELED',
+  TRANSMITTED = 'TRANSMITTED',
+  MODIFIED = 'MODIFIED',
 }

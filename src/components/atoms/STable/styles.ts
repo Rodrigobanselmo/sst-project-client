@@ -40,7 +40,7 @@ export const STSTableHeader = styled(Box)`
 
 export const STSTableRow = styled(Box)<{
   clickable: number;
-  status?: 'inactive' | 'warn' | 'info' | 'success' | 'fade';
+  status?: 'inactive' | 'warn' | 'info' | 'success' | 'fade' | 'none';
 }>`
   display: grid;
   flex-shrink: 0;

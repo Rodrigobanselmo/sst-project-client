@@ -25,15 +25,16 @@ export const StatusSelect: FC<IStatusSelectProps> = ({
         selected
           ? expiresDate
             ? ` expiração: ${dateToString(expiresDate, 'DD/MM/YYYY HH:mm')}`
-            : options[selected].name
+            : // : options[selected]?.name
+              ''
           : ''
       }
-      text={selected ? options[selected].name : ''}
+      text={selected ? options[selected]?.name : ''}
       large
       icon={CircleTwoToneIcon}
       iconProps={{
         sx: {
-          color: selected ? options[selected].color : undefined,
+          color: selected ? options[selected]?.color : undefined,
           fontSize: '15px',
         },
       }}

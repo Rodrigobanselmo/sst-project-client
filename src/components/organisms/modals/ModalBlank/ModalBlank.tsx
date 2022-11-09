@@ -89,7 +89,7 @@ export const ModalBlank: FC = () => {
         center
         p={8}
       >
-        <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
+        <SModalHeader onClose={onCloseNoSelect} title={data.title || ' '} />
 
         <Box mt={8} mb={20}>
           {data.content(setData, data)}

@@ -38,11 +38,11 @@ export const TextEmployeeRow: FC<TextEmployeeRowProps> = ({
       text={
         employee?.name ? (
           <div>
-            <SText fontSize={13} lineNumber={1} mt={1}>
-              {employee.name}
+            <SText fontSize={13} lineNumber={1} mt={2}>
+              {employee?.name}
             </SText>
-            <SText fontSize={11} mt={1}>
-              CPF: {cpfMask.mask(employee.cpf)}
+            <SText fontSize={11} mt={0}>
+              CPF: {cpfMask.mask(employee?.cpf)}
             </SText>
           </div>
         ) : (

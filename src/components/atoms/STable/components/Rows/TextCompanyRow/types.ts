@@ -7,4 +7,5 @@ import { TextIconRowProps } from '../TextIconRow/types';
 
 export type TextCompanyRowProps = TextIconRowProps & {
   company?: ICompany;
+  showCNPJ?: boolean;
 };

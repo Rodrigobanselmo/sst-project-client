@@ -49,7 +49,7 @@ export function Location(): JSX.Element {
 
             return (
               <SFlex align="center" gap={3} key={index}>
-                {route.onDropSelect && (
+                {/* {route.onDropSelect && (
                   <STagButton
                     sx={{
                       minHeight: '15px',
@@ -79,7 +79,7 @@ export function Location(): JSX.Element {
                     icon={SArrowUpFilterIcon}
                     text={'empresas'}
                   />
-                )}
+                )} */}
                 <NextLink href={'/' + getRoutePath(route, index)} passHref>
                   <Link underline="hover">
                     <SText

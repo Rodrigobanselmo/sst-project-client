@@ -6,6 +6,7 @@ import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutati
 
 import { ICompanyGroup } from './ICompanyGroup';
 import { IContact } from './IContact';
+import { IDailyCompanyReport, IDashboard } from './IDashboard';
 import { IExamToClinic } from './IExam';
 
 export interface ICompany {
@@ -57,11 +58,14 @@ export interface ICompany {
   obs: string;
   numAsos: number;
   blockResignationExam: boolean;
+  isGroup: boolean;
   esocialStart: Date;
+  esocialSend: boolean;
   doctorResponsibleId: number;
   tecResponsibleId: number;
   isClinic: boolean;
   clinicExams: IExamToClinic[];
+  report: IDashboard;
   clinicsAvailable: {
     clinicId: string;
     companyId: string;
