@@ -17,11 +17,15 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import STableSearch from 'components/atoms/STable/components/STableSearch';
+import STableSearch, {
+  STableButton,
+} from 'components/atoms/STable/components/STableSearch';
 import SText from 'components/atoms/SText';
 import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
+
+import SReloadIcon from 'assets/icons/SReloadIcon';
 
 import { eSocialEventMap } from 'core/constants/maps/esocial-events.map';
 import { statusOptionsConstantESocial } from 'core/constants/maps/status-options.constant';
@@ -47,9 +51,12 @@ export const ESocialBatchTable: FC<
   const isSelect = !!onSelectData;
 
   const {
-    data: risks,
-    isLoading: loadRisks,
+    data: eventBatch,
+    isLoading,
+    isFetching,
+    isRefetching,
     count,
+    refetch,
   } = useQueryEventBatch(page, { search }, rowsPerPage);
 
   const onSelectRow = (risk: IESocialBatch) => {
@@ -103,9 +110,20 @@ export const ESocialBatchTable: FC<
       <STableSearch
         // onAddClick={onAddRisk}
         onChange={(e) => handleSearchChange(e.target.value)}
-      />
+      >
+        <STableButton
+          addText="autualizar"
+          onClick={() => {
+            refetch();
+          }}
+          loading={isLoading || isFetching || isRefetching}
+          sx={{ mr: 'auto', height: 30, minWidth: 30 }}
+          icon={SReloadIcon}
+          color="grey.500"
+        />
+      </STableSearch>
       <STable
-        loading={loadRisks}
+        loading={isLoading}
         rowsNumber={rowsPerPage}
         columns={header.map(({ column }) => column).join(' ')}
       >
@@ -116,8 +134,8 @@ export const ESocialBatchTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof risks[0]>
-          rowsData={risks}
+        <STableBody<typeof eventBatch[0]>
+          rowsData={eventBatch}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
@@ -166,7 +184,7 @@ export const ESocialBatchTable: FC<
       <STablePagination
         mt={2}
         registersPerPage={rowsPerPage}
-        totalCountOfRegisters={loadRisks ? undefined : count}
+        totalCountOfRegisters={isLoading ? undefined : count}
         currentPage={page}
         onPageChange={setPage}
       />

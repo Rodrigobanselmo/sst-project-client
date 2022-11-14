@@ -1,5 +1,7 @@
 import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
+import { ESocialSendEnum } from 'project/enum/esocial';
+import { EmployeeESocialEventActionEnum } from 'project/enum/esocial-event-action.enum';
 import { EmployeeESocialEventTypeEnum } from 'project/enum/esocial-event-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -13,6 +15,7 @@ export interface IEvent2220 {
   examType: ExamHistoryTypeEnum;
   evaluationType: ExamHistoryEvaluationEnum;
   company: ICompany;
+  type: ESocialSendEnum;
   errors: {
     message: string;
   }[];
@@ -51,6 +54,7 @@ export interface IESocialEvent {
   companyId: string;
   type: EmployeeESocialEventTypeEnum;
   examHistoryId: number;
+  action: EmployeeESocialEventActionEnum;
   receipt: string;
   eventId: string;
   company: ICompany;

@@ -232,7 +232,7 @@ export const ResumeStep = (props: IUseEditEmployee) => {
                             </SText>
                           </SFlex>
                         )}
-                        <SSwitch
+                        {/* <SSwitch
                           onChange={() => {
                             setData({
                               ...data,
@@ -244,7 +244,7 @@ export const ResumeStep = (props: IUseEditEmployee) => {
                           label="Mudar Cargo assim que exame for realizado?"
                           sx={{ mr: 4, ml: 6 }}
                           color="text.light"
-                        />
+                        /> */}
                         {!data.changeHierarchyWhenDone && (
                           <Box mt={10}>
                             <DatePickerForm
@@ -269,7 +269,7 @@ export const ResumeStep = (props: IUseEditEmployee) => {
 
                             {!isDismissal && (
                               <SCheckBox
-                                label="Ao fazer a admissão ou mudança de cargo do funcionário sem o exame clínico realizado, a sua empresa poderá receber possíveis multas do eSocial. Você deja mudar o cargo na data escolhida mesmo com o exame clínico não concluido sabendo das possíveis consequências descritas a cima?"
+                                label="Ao fazer a admissão ou mudança de cargo do funcionário sem o exame clínico realizado, a sua empresa poderá receber multas do eSocial. Você deja mudar o cargo na data escolhida mesmo com o exame clínico não concluido sabendo das possíveis consequências descritas a cima?"
                                 checked={data.changeHierarchyAnyway}
                                 onChange={(e) => {
                                   setData({

@@ -14,12 +14,17 @@ import {
 } from 'components/atoms/STable';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import STableSearch from 'components/atoms/STable/components/STableSearch';
+import STableSearch, {
+  STableButton,
+} from 'components/atoms/STable/components/STableSearch';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
+import SWizardBox from 'components/atoms/SWizardBox';
 import { SRadio } from 'components/molecules/form/radio';
 import { initialSendESocialState } from 'components/organisms/modals/ModalSendESocial/ModalSendESocial';
 import { EmployeeESocialEventTypeEnum } from 'project/enum/esocial-event-type.enum';
+
+import SReloadIcon from 'assets/icons/SReloadIcon';
 
 import { esocialEventOptionsList } from 'core/constants/maps/esocial-events.map';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -33,6 +38,8 @@ import {
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
+import { STTableEsocialBox } from './styles';
+
 export const CompanyESocialTable: FC<
   BoxProps & {
     rowsPerPage?: number;
@@ -45,15 +52,24 @@ export const CompanyESocialTable: FC<
   const [event, setEvent] = useState(EmployeeESocialEventTypeEnum.EXAM_2220);
   const isSelect = !!onSelectData;
 
-  const { companies, count, isLoading } = useQueryCompanies(
-    page,
-    { search, selectReport: true, ...query },
-    rowsPerPage,
-  );
+  const { companies, count, isLoading, refetch, isRefetching, isFetching } =
+    useQueryCompanies(
+      page,
+      { search, selectReport: true, ...query },
+      rowsPerPage,
+    );
 
   const { onStackOpenModal } = useModal();
 
-  const onEdit = (company: ICompany) => {
+  // const onEdit = (company: ICompany) => {
+  //   onStackOpenModal(ModalEnum.MODAL_SEND_ESOCIAL, {
+  //     companyId: company.id,
+  //     company: company,
+  //     type: EmployeeESocialEventTypeEnum.EXAM_2220,
+  //   } as typeof initialSendESocialState);
+  // };
+
+  const onSend2220 = (company: ICompany) => {
     onStackOpenModal(ModalEnum.MODAL_SEND_ESOCIAL, {
       companyId: company.id,
       company: company,
@@ -68,168 +84,278 @@ export const CompanyESocialTable: FC<
   const onSelectRow = (company: ICompany) => {
     if (isSelect) {
       onSelectData(company);
-    } else onEdit(company);
+    }
+    //  else onEdit(company);
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Nome', column: 'minmax(160px, 300px)' },
     { text: 'CNPJ', column: 'minmax(160px, 1fr)' },
+    { text: 'evento', column: '65px', justifyContent: 'center' },
+    { text: '', column: '100px', justifyContent: 'center' },
     { text: 'Pendente', column: '90px', justifyContent: 'center' },
     { text: 'Transmitido', column: '90px', justifyContent: 'center' },
     { text: 'Rejeitado', column: '90px', justifyContent: 'center' },
     { text: 'Gerado', column: '90px', justifyContent: 'center' },
-    { text: '', column: '120px', justifyContent: 'center' },
   ];
 
   if (selectedData) header.unshift({ text: '', column: '15px' });
 
   return (
     <>
-      <SRadio
-        value={event}
-        valueField="value"
-        row
-        formControlProps={{
-          sx: {
-            mt: -5,
-            mb: 10,
-            ml: '-4px',
-            '& .MuiSvgIcon-root': {
-              fontSize: 15,
+      {/* <SWizardBox sx={{ px: 5, py: 10, pb: 0, mb: 4 }}>
+        <SRadio
+          value={event}
+          valueField="value"
+          row
+          formControlProps={{
+            sx: {
+              mt: -8,
+              mb: 3,
+              ml: '-4px',
+              '& .MuiSvgIcon-root': {
+                fontSize: 15,
+              },
+              '& .MuiTypography-root': {
+                color: 'text.light',
+              },
             },
-            '& .MuiTypography-root': {
-              color: 'text.light',
-            },
-          },
-        }}
-        labelField="label"
-        renderLabel={(v) => (
-          <SText>
-            {v.label.split('//')[0]}
-            <SText component="span" ml={2} fontSize={12}>
-              {v.label.split('//')[1]}
+          }}
+          labelField="label"
+          renderLabel={(v) => (
+            <SText>
+              {v.label.split('//')[0]}
+              <SText component="span" ml={2} fontSize={12}>
+                {v.label.split('//')[1]}
+              </SText>
             </SText>
-          </SText>
-        )}
-        onChange={(e) => onChangeEvent((e.target as any).value)}
-        options={esocialEventOptionsList}
-      />
-      <STableSearch
-        // onAddClick={onAddRisk}
-        onChange={(e) => handleSearchChange(e.target.value)}
-      />
-      <STable
-        loading={isLoading}
-        rowsNumber={rowsPerPage}
-        columns={header.map(({ column }) => column).join(' ')}
-      >
-        <STableHeader>
-          {header.map(({ text, ...props }) => (
-            <STableHRow key={text} {...props}>
-              {text}
-            </STableHRow>
-          ))}
-        </STableHeader>
-        <STableBody<typeof companies[0]>
-          rowsData={companies}
-          hideLoadMore
-          rowsInitialNumber={rowsPerPage}
-          renderRow={(row) => {
-            const esocial = row.report?.dailyReport?.esocial;
-            return (
-              <STableRow
-                onClick={() => onSelectRow(row)}
-                clickable
-                key={row.id}
-              >
-                {selectedData && (
-                  <SCheckBox
-                    label=""
-                    checked={!!selectedData.find((exam) => exam.id === row.id)}
+          )}
+          onChange={(e) => onChangeEvent((e.target as any).value)}
+          options={esocialEventOptionsList}
+        />
+      </SWizardBox> */}
+      <SWizardBox sx={{ px: 5, py: 10 }}>
+        <STableSearch
+          // onAddClick={onAddRisk}
+          // boxProps={{ mr: 'auto' }}
+          onChange={(e) => handleSearchChange(e.target.value)}
+        >
+          <STableButton
+            addText="autualizar"
+            onClick={() => {
+              refetch();
+            }}
+            loading={isLoading || isFetching || isRefetching}
+            sx={{ mr: 'auto', height: 30, minWidth: 30 }}
+            icon={SReloadIcon}
+            color="grey.500"
+          />
+        </STableSearch>
+        <STable
+          loading={isLoading}
+          rowsNumber={rowsPerPage}
+          columns={header.map(({ column }) => column).join(' ')}
+        >
+          <STableHeader>
+            {header.map(({ text, ...props }) => (
+              <STableHRow key={text} {...props}>
+                {text}
+              </STableHRow>
+            ))}
+          </STableHeader>
+          <STableBody<typeof companies[0]>
+            rowsData={companies}
+            hideLoadMore
+            rowsInitialNumber={rowsPerPage}
+            renderRow={(row) => {
+              const esocial = row.report?.dailyReport?.esocial;
+              const S2220 = esocial?.S2220;
+              const S2240 = esocial?.S2240;
+
+              return (
+                <STableRow
+                  onClick={() => onSelectRow(row)}
+                  clickable
+                  key={row.id}
+                >
+                  {selectedData && (
+                    <SCheckBox
+                      label=""
+                      checked={
+                        !!selectedData.find((exam) => exam.id === row.id)
+                      }
+                    />
+                  )}
+                  <TextIconRow
+                    align="start"
+                    clickable
+                    text={getCompanyName(row)}
+                    py={4}
                   />
-                )}
-                <TextIconRow clickable text={getCompanyName(row)} py={7} />
-                <TextIconRow clickable text={cnpjMask.mask(row.cnpj)} />
-                <SFlex width="100%" center>
-                  <STagButton
-                    icon={CircleTwoToneIcon}
-                    width={70}
-                    loading={!!esocial?.processing}
-                    textProps={{ sx: { color: 'grey.600' } }}
-                    sx={{ minHeight: 25, maxHeight: 25 }}
-                    iconProps={{
-                      sx: { color: 'warning.main', fontSize: '15px' },
-                    }}
-                    text={String(esocial?.pending || '')}
+                  <TextIconRow
+                    align="start"
+                    py={4}
+                    clickable
+                    text={cnpjMask.mask(row.cnpj)}
                   />
-                </SFlex>
-                <SFlex width="100%" center>
-                  <STagButton
-                    minWidth={70}
-                    sx={{ minHeight: 25, maxHeight: 25 }}
-                    icon={CircleTwoToneIcon}
-                    iconProps={{
-                      sx: { color: 'success.main', fontSize: '15px' },
-                    }}
-                    text={String(esocial?.done || '')}
-                  />
-                </SFlex>
-                <SFlex width="100%" center>
-                  <STagButton
-                    width={70}
-                    sx={{ minHeight: 25, maxHeight: 25 }}
-                    icon={CircleTwoToneIcon}
-                    iconProps={{
-                      sx: { color: 'error.main', fontSize: '15px' },
-                    }}
-                    text={String(esocial?.rejected || '')}
-                  />
-                </SFlex>
-                <SFlex width="100%" center>
-                  <STagButton
-                    width={70}
-                    icon={CircleTwoToneIcon}
-                    sx={{ minHeight: 25, maxHeight: 25 }}
-                    iconProps={{ sx: { color: 'grey.500', fontSize: '15px' } }}
-                    text={String(esocial?.transmitted || '')}
-                  />
-                </SFlex>
-                <Box ml={10}>
-                  <SButton
-                    variant="outlined"
-                    xsmall
-                    sx={{
-                      width: '100%',
-                      backgroundColor: 'white',
-                      color: 'info.main',
-                      borderColor: 'info.main',
-                      '&:hover': {
-                        borderColor: 'info.main',
-                      },
-                    }}
-                  >
-                    Enviar
-                  </SButton>
-                </Box>
-                {/* <IconButtonRow
+                  <STTableEsocialBox>
+                    <TextIconRow center text={'S-2220'} />
+                    <TextIconRow center text={'S-2240'} />
+                    <TextIconRow center text={'Total'} />
+                  </STTableEsocialBox>
+
+                  <STTableEsocialBox ml={0}>
+                    <SButton
+                      variant="outlined"
+                      xsmall
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSend2220(row);
+                      }}
+                      sx={{
+                        width: '100%',
+                        backgroundColor: 'white',
+                        color: 'grey.700',
+                        borderColor: 'grey.700',
+                        '&:hover': {
+                          borderColor: 'grey.700',
+                        },
+                      }}
+                    >
+                      Transmitir
+                    </SButton>
+                    <SButton
+                      variant="outlined"
+                      xsmall
+                      sx={{
+                        width: '100%',
+                        backgroundColor: 'white',
+                        color: 'grey.700',
+                        borderColor: 'grey.700',
+                        '&:hover': {
+                          borderColor: 'grey.700',
+                        },
+                      }}
+                    >
+                      Transmitir
+                    </SButton>
+                  </STTableEsocialBox>
+
+                  <STTableEsocialBox>
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2220?.pending || 0)}
+                      {...(S2220?.pending && { color: 'warning.dark' })}
+                    />
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2240?.pending || 0)}
+                      {...(S2240?.pending && { color: 'warning.dark' })}
+                    />
+                    <STagButton
+                      icon={CircleTwoToneIcon}
+                      width={70}
+                      loading={!!esocial?.processing}
+                      textProps={{ sx: { color: 'grey.600' } }}
+                      sx={{ minHeight: 25, maxHeight: 25 }}
+                      iconProps={{
+                        sx: { color: 'warning.main', fontSize: '15px' },
+                      }}
+                      text={String(esocial?.pending || '')}
+                    />
+                  </STTableEsocialBox>
+                  <STTableEsocialBox>
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2220?.done || 0)}
+                      {...(S2220?.done && { color: 'success.dark' })}
+                    />
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2240?.done || 0)}
+                      {...(S2240?.done && { color: 'success.dark' })}
+                    />
+                    <STagButton
+                      minWidth={70}
+                      sx={{ minHeight: 25, maxHeight: 25 }}
+                      icon={CircleTwoToneIcon}
+                      iconProps={{
+                        sx: { color: 'success.main', fontSize: '15px' },
+                      }}
+                      text={String(esocial?.done || '')}
+                    />
+                  </STTableEsocialBox>
+                  <STTableEsocialBox>
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2220?.rejected || 0)}
+                      {...(S2220?.rejected && { color: 'error.dark' })}
+                    />
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2240?.rejected || 0)}
+                      {...(S2240?.rejected && { color: 'error.dark' })}
+                    />
+                    <STagButton
+                      width={70}
+                      sx={{ minHeight: 25, maxHeight: 25 }}
+                      icon={CircleTwoToneIcon}
+                      iconProps={{
+                        sx: { color: 'error.main', fontSize: '15px' },
+                      }}
+                      text={String(esocial?.rejected || '')}
+                    />
+                  </STTableEsocialBox>
+                  <STTableEsocialBox>
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2220?.transmitted || 0)}
+                      {...(S2220?.transmitted && { color: 'grey.600' })}
+                    />
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2240?.transmitted || 0)}
+                      {...(S2240?.transmitted && { color: 'grey.600' })}
+                    />
+                    <STagButton
+                      width={70}
+                      icon={CircleTwoToneIcon}
+                      sx={{ minHeight: 25, maxHeight: 25 }}
+                      iconProps={{
+                        sx: { color: 'grey.500', fontSize: '15px' },
+                      }}
+                      text={String(esocial?.transmitted || '')}
+                    />
+                  </STTableEsocialBox>
+
+                  {/* <IconButtonRow
                   icon={<EditIcon />}
                   onClick={(e) => {
                     e.stopPropagation();
                     onEdit(row);
                   }}
                 /> */}
-              </STableRow>
-            );
-          }}
+                </STableRow>
+              );
+            }}
+          />
+        </STable>{' '}
+        <STablePagination
+          mt={2}
+          registersPerPage={rowsPerPage}
+          totalCountOfRegisters={isLoading ? undefined : count}
+          currentPage={page}
+          onPageChange={setPage}
         />
-      </STable>{' '}
-      <STablePagination
-        mt={2}
-        registersPerPage={rowsPerPage}
-        totalCountOfRegisters={isLoading ? undefined : count}
-        currentPage={page}
-        onPageChange={setPage}
-      />
+      </SWizardBox>
     </>
   );
 };

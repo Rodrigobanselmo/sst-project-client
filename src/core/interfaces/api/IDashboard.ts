@@ -1,3 +1,11 @@
+export interface IESocialPropsDto {
+  processing?: number;
+  pending?: number;
+  done?: number;
+  transmitted?: number;
+  rejected?: number;
+}
+
 export interface IDailyCompanyReport {
   exam: {
     good?: number;
@@ -13,6 +21,9 @@ export interface IDailyCompanyReport {
     done?: number;
     transmitted?: number;
     rejected?: number;
+    ['S2240']?: IESocialPropsDto;
+    ['S2220']?: IESocialPropsDto;
+    ['S2210']?: IESocialPropsDto;
   };
 }
 

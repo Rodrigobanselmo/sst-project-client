@@ -79,7 +79,11 @@ export const STableButton: FC<STableButtonProps> = ({
               color: 'common.white',
             }}
           />
-          {addText && <Box mr={3}>{addText}</Box>}
+          {addText && (
+            <Box mr={3} ml={2}>
+              {addText}
+            </Box>
+          )}
         </SButton>
       </div>
     </STooltip>

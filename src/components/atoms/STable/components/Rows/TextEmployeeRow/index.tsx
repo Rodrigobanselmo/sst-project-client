@@ -35,21 +35,17 @@ export const TextEmployeeRow: FC<TextEmployeeRowProps> = ({
           )}
         </div>
       }
-      text={
-        employee?.name ? (
-          <div>
-            <SText fontSize={13} lineNumber={1} mt={2}>
-              {employee?.name}
-            </SText>
-            <SText fontSize={11} mt={0}>
-              CPF: {cpfMask.mask(employee?.cpf)}
-            </SText>
-          </div>
-        ) : (
-          '-'
-        )
-      }
+      text={employee?.name ? '' : '-'}
       {...props}
-    />
+    >
+      <div>
+        <SText className="table-row-text" fontSize={12} lineNumber={1} mt={2}>
+          {employee?.name}
+        </SText>
+        <SText className="table-row-text" fontSize={11} mt={0}>
+          CPF: {cpfMask.mask(employee?.cpf)}
+        </SText>
+      </div>
+    </TextIconRow>
   );
 };

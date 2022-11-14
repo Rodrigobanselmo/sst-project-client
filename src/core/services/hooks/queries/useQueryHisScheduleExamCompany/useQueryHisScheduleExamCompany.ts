@@ -13,7 +13,6 @@ import { QueryEnum } from '../../../../enums/query.enums';
 
 interface IQueryCompanyEmployeeHistHier {
   search?: string;
-  date?: Date;
   companyId?: string;
 }
 

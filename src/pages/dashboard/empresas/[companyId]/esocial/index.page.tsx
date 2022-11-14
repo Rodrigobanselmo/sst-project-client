@@ -45,9 +45,7 @@ const EsocialPage: NextPage = () => {
             />
           }
         >
-          <SWizardBox sx={{ px: 5, py: 10 }}>
-            <CompanyESocialTable />
-          </SWizardBox>
+          <CompanyESocialTable />
           <SWizardBox sx={{ px: 5, py: 10 }}>
             <ESocialEventTable />
           </SWizardBox>

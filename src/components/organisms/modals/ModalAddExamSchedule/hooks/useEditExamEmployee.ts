@@ -30,7 +30,7 @@ export const initialExamScheduleState = {
   hierarchyId: undefined as undefined | string,
   subOfficeId: undefined as undefined | string,
   changeHierarchyAnyway: undefined as undefined | boolean,
-  changeHierarchyWhenDone: true as undefined | boolean,
+  changeHierarchyWhenDone: false as undefined | boolean,
   changeHierarchyDate: undefined as undefined | Date,
   sector: undefined as undefined | IHierarchy,
   subOffice: undefined as undefined | IHierarchy,

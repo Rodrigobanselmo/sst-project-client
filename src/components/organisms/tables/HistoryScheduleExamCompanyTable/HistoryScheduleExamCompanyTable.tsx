@@ -70,7 +70,7 @@ export const HistoryScheduleExamCompanyTable: FC<
     {
       search,
       companyId,
-      allCompanies: true,
+      // allCompanies: true,
       ...query,
     },
     rowsPerPage,
@@ -80,12 +80,6 @@ export const HistoryScheduleExamCompanyTable: FC<
   const updateMutation = useMutUpdateManyScheduleHisExam();
   const { onStackOpenModal } = useModal();
   const { fetchHisScheduleExam } = useFetchQueryHisScheduleExamClinic();
-
-  const onSelectRow = (data: IEmployeeExamsHistory) => {
-    // if (isSelect) {
-    //   // onSelectData(data);
-    // } else onEdit(historyExam.find((e) => e.id === data.id));
-  };
 
   const onAdd = () => {
     onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE);
@@ -101,14 +95,14 @@ export const HistoryScheduleExamCompanyTable: FC<
     } as Partial<typeof initialExamScheduleState>);
   };
 
-  const onDownloadGuide = (companyId: string, employeeId: number) => {
-    const path = RoutesEnum.PDF_GUIDE.replace(
-      ':employeeId',
-      String(employeeId),
-    ).replace(':companyId', companyId);
+  // const onDownloadGuide = (companyId: string, employeeId: number) => {
+  //   const path = RoutesEnum.PDF_GUIDE.replace(
+  //     ':employeeId',
+  //     String(employeeId),
+  //   ).replace(':companyId', companyId);
 
-    window.open(path, '_blank');
-  };
+  //   window.open(path, '_blank');
+  // };
 
   const onEdit = async (data?: IEmployeeExamsHistory) => {
     if (!isAuthSuccess({ permissions: [PermissionEnum.CLINIC_SCHEDULE] }))

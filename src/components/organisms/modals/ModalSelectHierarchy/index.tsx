@@ -29,7 +29,7 @@ import { ModalSelectHierarchyData } from './SelectData';
 
 export const initialHierarchySelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onSelect: (hierarchies: IHierarchyChildren[]) => {},
+  onSelect: (hierarchies: IHierarchyChildren[], onClose?: () => void) => {},
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSingleSelect: (hierarchy: IListHierarchyQuery) => {},
   onCloseWithoutSelect: () => {},
@@ -39,6 +39,7 @@ export const initialHierarchySelectState = {
   addSubOffice: false,
   lockWorkspace: true,
   selectByGHO: false,
+  keepOpen: false,
   selectionHierarchy: Object.values(HierarchyEnum),
 };
 
@@ -91,9 +92,10 @@ export const ModalSelectHierarchy: FC = () => {
       .map((id) => data[id.split('//')[0]])
       .filter((i) => i);
 
-    onCloseModal(modalName);
     dispatch(setHierarchySearch(''));
-    selectData.onSelect(hierarchies);
+    selectData.onSelect(hierarchies, () => onCloseModal(modalName));
+
+    if (!selectData.keepOpen) onCloseModal(modalName);
   }, [data, dispatch, onCloseModal, selectData, store]);
 
   const handleSingleSelect = useCallback(

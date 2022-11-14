@@ -39,7 +39,7 @@ export const useResumeStep = ({
   company,
   ...rest
 }: IUseEditEmployee) => {
-  const { control, reset, setValue } = useFormContext();
+  const { control, reset, setValue, setError, setFocus } = useFormContext();
   const { stepCount, goToStep, previousStep } = useWizard();
   const { fetchClinic } = useFetchQueryClinic();
   const createMutation = useMutCreateEmployeeHisExam();
@@ -75,6 +75,12 @@ export const useResumeStep = ({
       hierarchyId: data?.hierarchy?.id,
       subOfficeId: data?.subOffice?.id,
     } as ICreateEmployeeExamHistory;
+
+    if (!data.changeHierarchyWhenDone && !data.changeHierarchyDate) {
+      return setError('doneDate', {
+        message: 'Campo obrigatório',
+      });
+    }
 
     data.examsData.forEach(
       ({

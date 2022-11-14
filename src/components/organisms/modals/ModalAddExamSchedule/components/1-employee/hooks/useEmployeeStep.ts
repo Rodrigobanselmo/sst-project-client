@@ -146,6 +146,15 @@ export const useEmployeeStep = ({
           }
         });
 
+        if (actualExams.some((actualExams) => actualExams.isSelected)) {
+          const clinicExamIndex = actualExams.findIndex(
+            (actualExams) => actualExams.isAttendance,
+          );
+          if (clinicExamIndex != -1)
+            actualExams[clinicExamIndex].isSelected = true;
+          actualExams[clinicExamIndex].expiredDate = null;
+        }
+
         return { ...data, examsData: actualExams };
       });
 

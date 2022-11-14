@@ -114,7 +114,7 @@ export const HistoryExpiredExamCompanyTable: FC<
   const getRowExpiredDate = (date: Date) => {
     if (!date) return '-';
     if (dayjs().diff(date, 'year') > 100) return '-';
-    return dateToString(date);
+    return dateToString(date, 'DD[-]MM[-]YYYY');
   };
 
   const getRowStatus = (data?: IEmployee) => {
@@ -136,8 +136,10 @@ export const HistoryExpiredExamCompanyTable: FC<
       (exam?.status == StatusEnum.PROCESSING ||
         exam?.status == StatusEnum.PENDING) &&
       dayjs().isBefore(exam.doneDate)
-    )
+    ) {
       status.status = exam?.status;
+      status.color = 'info.main';
+    }
 
     if (exam?.status == StatusEnum.DONE && !dayjs().isAfter(exam.expiredDate)) {
       status.status = exam?.status;
@@ -148,12 +150,12 @@ export const HistoryExpiredExamCompanyTable: FC<
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
-    { text: '', column: '15px' },
-    { text: 'Válidade', column: '90px', justifyContent: 'center' },
+    // { text: '', column: '15px' },
     { text: 'Funcionário', column: 'minmax(150px, 1fr)' },
     { text: 'Empresa', column: '150px' },
     // { text: 'Exame', column: '120px' },
-    { text: 'Exame', column: '110px', justifyContent: 'center' },
+    { text: 'Ultimo Exame', column: '110px' },
+    { text: 'Válidade', column: '180px' },
     { text: '', column: '100px', justifyContent: 'end' },
     // { text: 'Reagendar', column: 'minmax(150px, 1fr)', justifyContent: 'center' },
     // { text: 'Guia', column: '80px', justifyContent: 'center' },
@@ -163,7 +165,7 @@ export const HistoryExpiredExamCompanyTable: FC<
     <>
       {!hideTitle && (
         <>
-          <STableTitle>Exames Agendados</STableTitle>
+          <STableTitle>Exames Vencidos</STableTitle>
           <STableSearch
             onAddClick={onAdd}
             boxProps={{ sx: { flex: 1, maxWidth: 400 } }}
@@ -197,11 +199,32 @@ export const HistoryExpiredExamCompanyTable: FC<
             const company = employee?.company;
             const exam = employee?.examsHistory?.[0];
 
-            const isProcessingExam = exam?.status == StatusEnum.PROCESSING;
+            const isScheduled = exam?.status == StatusEnum.PROCESSING;
             const isDoneExam =
               exam?.status == StatusEnum.DONE && exam?.expiredDate;
 
             const status = getRowStatus(row);
+            const textNext =
+              status.status == StatusEnum.EXPIRED
+                ? 'Vencido em: '
+                : isScheduled
+                ? 'Agendado para: '
+                : 'Proximo em: ';
+
+            const validity =
+              textNext +
+              getRowExpiredDate(
+                isScheduled
+                  ? exam.doneDate
+                  : isDoneExam
+                  ? exam?.expiredDate
+                  : row?.expiredDateExam,
+              );
+
+            const lastExam =
+              exam?.doneDate && exam.status == StatusEnum.DONE
+                ? dateToString(exam.doneDate || employee.lastExam)
+                : '-';
 
             const disabled = ![
               StatusEnum.PROCESSING,
@@ -215,24 +238,10 @@ export const HistoryExpiredExamCompanyTable: FC<
                 onClick={() => onEdit(row)}
                 // status={getRowColor(row.status)}
               >
-                <Box
-                  sx={{
-                    minWidth: '15px',
-                    minHeight: '15px',
-                    borderRadius: 1,
-                    backgroundColor: status.color,
-                  }}
-                />
-                <TextIconRow
-                  justifyContent="center"
-                  text={getRowExpiredDate(
-                    isDoneExam ? exam?.expiredDate : row?.expiredDateExam,
-                  )}
-                />
                 <TextEmployeeRow employee={employee} />
                 <TextCompanyRow company={company} />
-
-                <SFlex direction="column">
+                <TextIconRow text={lastExam} />
+                {/* <SFlex direction="column">
                   <StatusSelect
                     selected={status.status}
                     large={false}
@@ -242,11 +251,31 @@ export const HistoryExpiredExamCompanyTable: FC<
                     options={options}
                     statusOptions={[]}
                   />
+                </SFlex> */}
+                <SFlex align="center">
+                  <Box
+                    sx={{
+                      minWidth: '7px',
+                      minHeight: '7px',
+                      maxWidth: '7px',
+                      maxHeight: '7px',
+                      borderRadius: 1,
+                      backgroundColor: status.color,
+                    }}
+                  />
+                  <TextIconRow
+                    lineNumber={1}
+                    fontSize={11}
+                    color="text.light"
+                    sx={{ textDecoration: 'underline' }}
+                    justifyContent="center"
+                    text={validity}
+                  />
                 </SFlex>
                 <SFlex justify="end">
                   <Box>
                     <IconButtonRow
-                      disabled={!isProcessingExam}
+                      disabled={!isScheduled}
                       onClick={(e) => {
                         e.stopPropagation();
                         onReSchedule(row);
@@ -259,9 +288,10 @@ export const HistoryExpiredExamCompanyTable: FC<
                       }
                     />
                   </Box>
+
                   <Box>
                     <SIconDownloadExam
-                      disabled={isProcessingExam}
+                      disabled={isScheduled}
                       companyId={employee?.companyId}
                       employeeId={employee?.id}
                     />

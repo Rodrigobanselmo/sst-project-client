@@ -14,13 +14,14 @@ const TextIconRow: FC<TextIconRowProps> = ({
   lineNumber = 2,
   children,
   onClick,
-  fontSize = 13,
+  fontSize = 12,
   lineHeight,
   loading,
   textAlign,
   sx,
   clickable,
   textProps = {},
+  color,
   ...props
 }) => {
   const memoizedChildren = useMemo(() => {
@@ -38,6 +39,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
             lineNumber={lineNumber}
             lineHeight={lineHeight}
             className="table-row-text"
+            color={color}
             {...textProps}
             sx={{ whiteSpace: 'pre-line', ...textProps?.sx }}
           >

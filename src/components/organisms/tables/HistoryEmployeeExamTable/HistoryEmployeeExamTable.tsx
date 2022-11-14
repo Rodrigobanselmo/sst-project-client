@@ -173,9 +173,11 @@ export const HistoryEmployeeExamTable: FC<
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<typeof history[0]>
-          rowsData={history
-            .sort((a, b) => sortDate(b.created_at, a.created_at))
-            .sort((a, b) => sortDate(b.doneDate, a.doneDate))}
+          rowsData={
+            history
+            // .sort((a, b) => sortDate(b.created_at, a.created_at))
+            // .sort((a, b) => sortDate(b.doneDate, a.doneDate))
+          }
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {

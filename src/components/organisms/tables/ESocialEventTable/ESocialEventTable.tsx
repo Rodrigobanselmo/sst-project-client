@@ -18,13 +18,19 @@ import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextComp
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import STableSearch from 'components/atoms/STable/components/STableSearch';
+import STableSearch, {
+  STableButton,
+} from 'components/atoms/STable/components/STableSearch';
 import SText from 'components/atoms/SText';
 import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
+import { EmployeeESocialEventActionEnum } from 'project/enum/esocial-event-action.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import SReloadIcon from 'assets/icons/SReloadIcon';
+
 import { eSocialEventMap } from 'core/constants/maps/esocial-events.map';
+import { eSocialEventActionMap } from 'core/constants/maps/esocial-events.map copy';
 import { statusOptionsConstantESocial } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -50,8 +56,11 @@ export const ESocialEventTable: FC<
 
   const {
     data: risks,
-    isLoading: loadRisks,
+    isLoading,
     count,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryEvents(page, { search }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
@@ -116,6 +125,7 @@ export const ESocialEventTable: FC<
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Empresa', column: 'minmax(180px, 240px)' },
     { text: 'Funcionário', column: 'minmax(160px, 1fr)' },
+    { text: 'Tipo', column: '120px' },
     { text: 'Data', column: '160px' },
     { text: 'Evento', column: '90px' },
     { text: 'Status', column: '125px', justifyContent: 'center' },
@@ -131,9 +141,20 @@ export const ESocialEventTable: FC<
       <STableSearch
         // onAddClick={onAddRisk}
         onChange={(e) => handleSearchChange(e.target.value)}
-      />
+      >
+        <STableButton
+          addText="autualizar"
+          onClick={() => {
+            refetch();
+          }}
+          loading={isLoading || isFetching || isRefetching}
+          sx={{ mr: 'auto', height: 30, minWidth: 30 }}
+          icon={SReloadIcon}
+          color="grey.500"
+        />
+      </STableSearch>
       <STable
-        loading={loadRisks}
+        loading={isLoading}
         rowsNumber={rowsPerPage}
         columns={header.map(({ column }) => column).join(' ')}
       >
@@ -149,11 +170,18 @@ export const ESocialEventTable: FC<
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
+            const action = eSocialEventActionMap[row?.action];
+            const isExclude =
+              action?.value === EmployeeESocialEventActionEnum.EXCLUDE;
+            const isModify =
+              action?.value === EmployeeESocialEventActionEnum.MODIFY;
+
             return (
               <STableRow
                 onClick={() => onSelectRow(row)}
                 clickable
                 key={row.id}
+                status={isExclude ? 'inactive' : isModify ? 'info' : 'none'}
               >
                 {selectedData && (
                   <SCheckBox
@@ -163,6 +191,7 @@ export const ESocialEventTable: FC<
                 )}
                 <TextCompanyRow showCNPJ clickable company={row.company} />
                 <TextEmployeeRow clickable employee={row.employee} />
+                <TextIconRow clickable text={action?.name} />
                 <TextIconRow
                   clickable
                   text={dateToString(row.created_at, 'DD/MM/YYYY HH:mm:ss')}
@@ -196,7 +225,7 @@ export const ESocialEventTable: FC<
       <STablePagination
         mt={2}
         registersPerPage={rowsPerPage}
-        totalCountOfRegisters={loadRisks ? undefined : count}
+        totalCountOfRegisters={isLoading ? undefined : count}
         currentPage={page}
         onPageChange={setPage}
       />

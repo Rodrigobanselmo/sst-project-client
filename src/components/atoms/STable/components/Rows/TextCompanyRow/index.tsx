@@ -28,23 +28,24 @@ export const TextCompanyRow: FC<TextCompanyRowProps> = ({
           </SText>
         </div>
       }
-      text={
-        company?.name ? (
-          <div>
-            <SText fontSize={13} mt={2} lineNumber={showCNPJ ? 1 : 2}>
-              {getCompanyName(company)}
-            </SText>
-            {showCNPJ && (
-              <SText fontSize={11} mt={0}>
-                {cnpjMask.mask(company?.cnpj)}
-              </SText>
-            )}
-          </div>
-        ) : (
-          '-'
-        )
-      }
+      text={company?.name ? '' : '-'}
       {...props}
-    />
+    >
+      <div>
+        <SText
+          className="table-row-text"
+          fontSize={12}
+          mt={2}
+          lineNumber={showCNPJ ? 1 : 2}
+        >
+          {getCompanyName(company)}
+        </SText>
+        {showCNPJ && (
+          <SText className="table-row-text" fontSize={11} mt={0}>
+            {cnpjMask.mask(company?.cnpj)}
+          </SText>
+        )}
+      </div>
+    </TextIconRow>
   );
 };

@@ -167,7 +167,6 @@ export const useAddGho = () => {
       startDate: Date,
       endDate: Date,
     ) => {
-      console.log(hierarchies);
       if (isEdit) {
         const submitData: IUpdateGho = {
           companyId: ghoData.companyId,
@@ -202,8 +201,12 @@ export const useAddGho = () => {
     };
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
-      onSelect: (hIds) =>
-        selectStartEndDate((d) => handleSelect(hIds, d.startDate, d.endDate)),
+      keepOpen: true,
+      onSelect: (hIds, onClose) =>
+        selectStartEndDate((d) => {
+          handleSelect(hIds, d.startDate, d.endDate);
+          onClose?.();
+        }),
       addSubOffice: true,
       hierarchiesIds: hierarchies
         .filter((h) =>

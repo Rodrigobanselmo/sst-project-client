@@ -123,7 +123,7 @@ export const ModalSendESocial: FC = () => {
       keepMounted={false}
       onClose={onCloseNoSelect}
     >
-      <SModalPaper sx={{ backgroundColor: 'grey.200' }} center p={8}>
+      <SModalPaper semiFullScreen center p={8}>
         <SModalHeader
           onClose={onCloseNoSelect}
           title="Enviar eventos"

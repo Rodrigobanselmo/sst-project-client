@@ -32,7 +32,7 @@ export const queryEvent2220 = async (
   const response = await api.get<IPaginationResult<IEvent2220[]>>(
     `${ApiRoutesEnum.ESOCIAL_EVENT_2220}/${companyId}?take=${take}&skip=${skip}&${queries}`,
   );
-
+  console.log(1);
   return {
     data: response.data?.data.map((r, i) => ({ id: i, ...r })),
     count: response.data?.count,
@@ -54,11 +54,13 @@ export function useQueryEvent2220(
   const companyId = _companyId;
 
   const { data, ...result } = useQuery(
-    [QueryEnum.PREVIEW_EVENT_2220, page, { ...pagination, companyId, ...query }],
+    [
+      QueryEnum.PREVIEW_EVENT_2220,
+      page,
+      { ...pagination, companyId, ...query },
+    ],
     () => queryEvent2220(pagination, { companyId, ...query }),
-    {
-      staleTime: 1000 * 60 * 60, // 1 hour
-    },
+    { refetchOnMount: true },
   );
 
   const response = {

@@ -57,8 +57,8 @@ import { initialInputModalState } from '../../ModalSingleInput';
 import { initialPhotoState } from '../../ModalUploadPhoto';
 
 interface IOptions {
-  startDate?: Date;
-  endDate?: Date;
+  startDate?: Date | null;
+  endDate?: Date | null;
 }
 
 export const useStartEndDate = () => {
@@ -77,11 +77,9 @@ export const useStartEndDate = () => {
           }}
           placeholderText="__/__/__"
           selected={data.startDate}
-          label={'Data de início para novo vínculo de cargos'}
+          label={'Data de início'}
           onChange={(date) => {
-            if (date) {
-              setData((d: any) => ({ ...d, startDate: date }));
-            }
+            setData((d: any) => ({ ...d, startDate: date }));
           }}
         />
         <SDatePicker

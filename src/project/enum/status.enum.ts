@@ -10,4 +10,5 @@ export enum StatusEnum {
   CANCELED = 'CANCELED',
   TRANSMITTED = 'TRANSMITTED',
   MODIFIED = 'MODIFIED',
+  INVALID = 'INVALID',
 }

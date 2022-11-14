@@ -72,8 +72,8 @@ export const RowColumns: FC<RowColumnsProps> = ({
           }),
         {
           // eslint-disable-next-line prettier/prettier
-          startDate: riskData.startDate ? new Date(riskData.startDate) : undefined,
-          endDate: riskData.endDate ? new Date(riskData.endDate) : undefined,
+          startDate: riskData.startDate ? new Date(riskData.startDate) : null,
+          endDate: riskData.endDate ? new Date(riskData.endDate) : null,
         },
       );
   };

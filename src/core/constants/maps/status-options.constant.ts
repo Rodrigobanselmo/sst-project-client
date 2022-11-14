@@ -53,6 +53,11 @@ export const statusOptionsConstant = {
     name: 'Processando',
     color: 'warning.main',
   },
+  [StatusEnum.INVALID]: {
+    value: StatusEnum.INVALID,
+    name: 'inválido',
+    color: 'error.main',
+  },
 } as IStatusOptions;
 
 export const statusOptionsConstantExam = {
@@ -99,9 +104,14 @@ export const statusOptionsConstantESocial = {
     name: 'Transmitido',
     color: 'success.main',
   },
+  [StatusEnum.INVALID]: {
+    value: StatusEnum.INVALID,
+    name: 'Rejeitado',
+    color: 'error.main',
+  },
   [StatusEnum.ERROR]: {
     value: StatusEnum.ERROR,
-    name: 'Rejeitado',
+    name: 'Erro',
     color: 'error.main',
   },
   [StatusEnum.PROCESSING]: {

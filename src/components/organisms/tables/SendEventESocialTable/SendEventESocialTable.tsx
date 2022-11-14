@@ -20,6 +20,7 @@ import SText from 'components/atoms/SText';
 import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { employeeExamEvaluationTypeMap } from 'project/enum/employee-exam-history-evaluation.enum';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
+import { esocialSendMap } from 'project/enum/esocial';
 
 import SCheckIcon from 'assets/icons/SCheckIcon';
 import { SCloseIcon } from 'assets/icons/SCloseIcon';
@@ -64,12 +65,12 @@ export const SendEventESocialTable: FC<
 
   const onViewXMl = (event: IEvent2220) => {
     const xml = event.xml.replaceAll('undefined', '*****');
-
+    console.log(xml);
     onStackOpenModal(ModalEnum.MODAL_BLANK, {
       title: 'Visualizar XML',
       content: () => (
         <Box>
-          {event?.errors?.length && (
+          {!!event?.errors?.length && (
             <Box
               sx={{
                 border: '1px solid',
@@ -123,10 +124,11 @@ export const SendEventESocialTable: FC<
 
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Funcionário', column: 'minmax(160px, 220px)' },
-    { text: 'Empresa', column: 'minmax(180px, 300px)' },
+    { text: 'Empresa', column: 'minmax(180px, 1fr)' },
     { text: 'Tipo exame', column: '120px' },
-    { text: 'Data ASO', column: '100px' },
-    { text: 'Avaliação', column: '70px', justifyContent: 'center' },
+    { text: 'Data ASO', column: '110px' },
+    { text: 'Avaliação', column: '90px' },
+    { text: 'Tipo', column: '60px' },
     { text: 'Disponível', column: '100px', justifyContent: 'center' },
     { text: 'XML', column: '45px', justifyContent: 'center' },
   ];
@@ -164,8 +166,8 @@ export const SendEventESocialTable: FC<
             return (
               <STableRow
                 onClick={() => onSelectRow(row)}
-                clickable
                 key={row.id}
+                status={esocialSendMap[row.type].rowStatus}
               >
                 {selectedData && (
                   <SCheckBox
@@ -173,20 +175,18 @@ export const SendEventESocialTable: FC<
                     checked={!!selectedData.find((exam) => exam.id === row.id)}
                   />
                 )}
-                <TextEmployeeRow clickable employee={employee} />
+                <TextEmployeeRow employee={employee} />
                 <TextCompanyRow showCNPJ clickable company={company} />
                 <TextIconRow
-                  clickable
                   text={employeeExamTypeMap[row.examType]?.content}
                 />
-                <TextIconRow clickable text={dateToString(row.doneDate)} />
+                <TextIconRow text={dateToString(row.doneDate)} />
                 <TextIconRow
-                  justifyContent="center"
-                  clickable
                   text={
                     employeeExamEvaluationTypeMap[row.evaluationType]?.content
                   }
                 />
+                <TextIconRow text={esocialSendMap[row.type]?.content} />
 
                 <SFlex center>
                   <IconButtonRow

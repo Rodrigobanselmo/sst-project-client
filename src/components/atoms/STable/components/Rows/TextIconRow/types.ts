@@ -12,4 +12,5 @@ export type TextIconRowProps = SFlexProps & {
   loading?: boolean;
   clickable?: boolean;
   textProps?: STextProps;
+  color?: string;
 };

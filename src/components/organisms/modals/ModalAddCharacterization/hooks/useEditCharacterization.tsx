@@ -566,8 +566,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     };
 
     onStackOpenModal(ModalEnum.HIERARCHY_SELECT, {
-      onSelect: (hIds) =>
-        selectStartEndDate((d) => handleSelect(hIds, d.startDate, d.endDate)),
+      keepOpen: true,
+      onSelect: (hIds, onClose) =>
+        selectStartEndDate((d) => {
+          handleSelect(hIds, d.startDate, d.endDate);
+          onClose?.();
+        }),
       selectByGHO: ghoQuery.some((gho) => !gho.type),
       workspaceId: characterizationData.workspaceId,
       addSubOffice: true,
