@@ -280,7 +280,7 @@ export const ModalEditCard = () => {
                 placeholder={nodeTypesConstant[type]?.placeholderDesc || ''}
               />
             )}
-            {nodeTypesConstant[type]?.placeholderRealDesc && (
+            {!isSubOffice && nodeTypesConstant[type]?.placeholderRealDesc && (
               <SInput
                 value={selectedNode?.realDescription || ''}
                 onChange={(e) =>
@@ -314,6 +314,8 @@ export const ModalEditCard = () => {
           />
           {isOffice && (
             <EmployeeSelect
+              multiple={false}
+              editOnSelection
               large
               text={'funcionários'}
               actualHierarchy={selectedNode}

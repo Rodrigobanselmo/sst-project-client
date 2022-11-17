@@ -15,6 +15,11 @@ export const usePreventAction = () => {
     object2: any,
     close: (...args: any[]) => any,
   ) => {
+    console.log(cleanObjectValues(object1));
+    console.log(cleanObjectValues(object2));
+    console.log(
+      deepEqual(cleanObjectValues(object1), cleanObjectValues(object2)),
+    );
     if (!deepEqual(cleanObjectValues(object1), cleanObjectValues(object2))) {
       const data = {
         title: 'Descartar mudanças?',

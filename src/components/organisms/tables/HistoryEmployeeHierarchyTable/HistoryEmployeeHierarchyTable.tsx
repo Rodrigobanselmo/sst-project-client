@@ -91,6 +91,7 @@ export const HistoryEmployeeHierarchyTable: FC<
   const onEdit = (data: IEmployeeHierarchyHistory) => {
     onStackOpenModal(modalName, {
       ...data,
+      subOffice: data?.subHierarchies?.[0],
       employeeId,
       companyId,
       sector: data?.hierarchy?.parents?.find(
@@ -126,13 +127,14 @@ export const HistoryEmployeeHierarchyTable: FC<
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}
-        columns="100px  100px  minmax(150px, 2fr)  minmax(150px, 2fr) 200px 50px"
+        columns="100px  100px  minmax(150px, 2fr)  minmax(150px, 2fr) minmax(150px, 2fr) 200px 50px"
       >
         <STableHeader>
           <STableHRow>Data</STableHRow>
           <STableHRow>Motivo</STableHRow>
-          <STableHRow>Cargo</STableHRow>
           <STableHRow>Setor</STableHRow>
+          <STableHRow>Cargo</STableHRow>
+          <STableHRow>Cargo Desvolvido</STableHRow>
           <STableHRow>Empresa</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
@@ -156,10 +158,16 @@ export const HistoryEmployeeHierarchyTable: FC<
                     employeeHierarchyMotiveTypeMap[row.motive]?.content || '-'
                   }
                 />
-                <TextIconRow clickable text={row?.hierarchy?.name || '-'} />
                 <TextIconRow
                   clickable
                   text={row?.hierarchy?.parent?.name || '-'}
+                />
+                <TextIconRow clickable text={row?.hierarchy?.name || '-'} />
+                <TextIconRow
+                  clickable
+                  text={
+                    row?.subHierarchies?.map((s) => s.name).join(', ') || '-'
+                  }
                 />
                 <TextIconRow
                   clickable

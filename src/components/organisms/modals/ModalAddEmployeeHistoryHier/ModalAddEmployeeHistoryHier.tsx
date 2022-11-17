@@ -170,6 +170,34 @@ export const ModalAddEmployeeHistoryHier = () => {
               borderActive={data.hierarchy?.id && 'info'}
               bg={'background.paper'}
             />
+            {data.hierarchy?.id && (
+              <HierarchySelect
+                tooltipText={(textField) => textField}
+                filterOptions={[HierarchyEnum.SUB_OFFICE]}
+                defaultFilter={HierarchyEnum.SUB_OFFICE}
+                text="Selecione um Cargo Desenv."
+                large
+                icon={null}
+                maxWidth={'auto'}
+                parentId={data.hierarchy?.id}
+                error={data.errors.subOffice}
+                handleSelect={(hierarchy: IHierarchy) => {
+                  setData({
+                    ...data,
+                    subOffice: hierarchy,
+                    errors: {
+                      ...data.errors,
+                      subOffice: false,
+                    },
+                  });
+                }}
+                companyId={companyId}
+                selectedId={data.subOffice?.id}
+                active={false}
+                borderActive={data.subOffice?.id && 'info'}
+                bg={'background.paper'}
+              />
+            )}
           </SFlex>
         )}
 

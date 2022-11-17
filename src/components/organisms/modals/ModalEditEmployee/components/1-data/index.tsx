@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Divider } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
@@ -46,193 +46,200 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
-        <Box mb={10}>
-          <CompanyInputSelect
-            onChange={(company) => {
-              company &&
-                setData?.({ ...data, company, companyId: company?.id });
-            }}
-            inputProps={{
-              placeholder: 'Empresa',
-              labelPosition: 'top',
-            }}
-            disableClearable
-            defaultValue={data?.company}
-            withDefaultCompany
-            unmountOnChangeDefault
-            name={'company'}
-            label="Empresa"
-            control={control}
-          />
-        </Box>
-        <SText color="text.label" fontSize={14} mb={5}>
-          Identificação
-        </SText>
-        <SFlex flexWrap="wrap" gap={5}>
-          <Box flex={5}>
-            <InputForm
-              autoFocus
-              defaultValue={data.name}
-              label="Nome"
-              required
-              labelPosition="center"
-              control={control}
-              placeholder={'nome completo do empregado...'}
-              name="name"
-              size="small"
-            />
-          </Box>
-          <Box flex={3}>
-            <InputForm
-              defaultValue={data.socialName}
-              label="Nome social"
-              labelPosition="center"
-              setValue={setValue}
-              control={control}
-              placeholder={'nome social do empregado...'}
-              name="socialName"
-              size="small"
-            />
-          </Box>
-        </SFlex>
-
-        {/* CPF */}
-        <SFlex flexWrap="wrap" gap={5} mt={5} alignItems="end">
-          <Box flex={5}>
-            <InputForm
-              defaultValue={cpfMask.mask(data.cpf)}
-              label="CPF"
-              required
-              labelPosition="center"
-              control={control}
-              placeholder={'000.000.000-00'}
-              name="cpf"
-              mask={cpfMask.apply}
-              size="small"
-            />
-          </Box>
-          <Box flex={3}>
-            <RadioForm
-              control={control}
-              defaultValue={data.sex}
-              required
-              unmountOnChangeDefault
-              name="sex"
-              row
-              options={[
-                { label: 'Feminino', value: SexTypeEnum.F },
-                { label: 'Masculino', value: SexTypeEnum.M },
-              ]}
-            />
-          </Box>
-        </SFlex>
-
-        <SFlex flexWrap="wrap" gap={5} mt={6} mb={8}>
-          <Box>
-            <DatePickerForm
-              label="Data de Nascimento"
-              calendarProps={{
-                excludeDateIntervals: [
-                  {
-                    start: dayjs().add(-12, 'y').toDate(),
-                    end: dayjs().add(100, 'y').toDate(),
-                  },
-                ],
+        <Box>
+          <Box mb={10}>
+            <CompanyInputSelect
+              onChange={(company) => {
+                company &&
+                  setData?.({ ...data, company, companyId: company?.id });
               }}
+              inputProps={{
+                placeholder: 'Empresa',
+                labelPosition: 'top',
+                sx: { maxWidth: 400 },
+              }}
+              disableClearable
+              defaultValue={data?.company}
+              withDefaultCompany
               unmountOnChangeDefault
+              name={'company'}
+              label="Empresa"
               control={control}
-              defaultValue={dateToDate(data.birthday)}
-              name="birthday"
-              onChange={(date) => {
+            />
+          </Box>
+          <SText color="text.label" fontSize={14} mb={8}>
+            Funcionário
+          </SText>
+          <SFlex flexWrap="wrap" gap={5}>
+            <Box flex={5}>
+              <InputForm
+                autoFocus
+                defaultValue={data.name}
+                label="Nome"
+                required
+                labelPosition="center"
+                control={control}
+                placeholder={'nome completo do empregado...'}
+                name="name"
+                size="small"
+              />
+            </Box>
+            <Box flex={3}>
+              <InputForm
+                defaultValue={data.socialName}
+                label="Nome social"
+                labelPosition="center"
+                setValue={setValue}
+                control={control}
+                placeholder={'nome social do empregado...'}
+                name="socialName"
+                size="small"
+              />
+            </Box>
+          </SFlex>
+
+          {/* CPF */}
+          <SFlex flexWrap="wrap" gap={5} mt={8} alignItems="end">
+            <Box flex={5}>
+              <InputForm
+                defaultValue={cpfMask.mask(data.cpf)}
+                label="CPF"
+                required
+                labelPosition="center"
+                control={control}
+                placeholder={'000.000.000-00'}
+                name="cpf"
+                mask={cpfMask.apply}
+                size="small"
+              />
+            </Box>
+            <Box flex={3}>
+              <RadioForm
+                control={control}
+                defaultValue={data.sex}
+                required
+                unmountOnChangeDefault
+                name="sex"
+                row
+                options={[
+                  { label: 'Feminino', value: SexTypeEnum.F },
+                  { label: 'Masculino', value: SexTypeEnum.M },
+                ]}
+              />
+            </Box>
+          </SFlex>
+
+          <SFlex flexWrap="wrap" gap={5} mt={6} mb={8}>
+            <Box>
+              <DatePickerForm
+                label="Data de Nascimento"
+                calendarProps={{
+                  excludeDateIntervals: [
+                    {
+                      start: dayjs().add(-12, 'y').toDate(),
+                      end: dayjs().add(100, 'y').toDate(),
+                    },
+                  ],
+                }}
+                unmountOnChangeDefault
+                control={control}
+                defaultValue={dateToDate(data.birthday)}
+                name="birthday"
+                onChange={(date) => {
+                  setData({
+                    ...data,
+                    birthday: date instanceof Date ? date : undefined,
+                  });
+                }}
+              />
+            </Box>
+            <Box>
+              <InputForm
+                sx={{ width: 80 }}
+                label="Idade"
+                labelPosition="center"
+                control={control}
+                placeholder={'idade'}
+                value={
+                  data.birthday ? dayjs().diff(data.birthday, 'years') : ''
+                }
+                name="age"
+                size="small"
+                disabled
+              />
+            </Box>
+            <Box flex={3}>
+              <InputForm
+                defaultValue={data.nickname}
+                label="Apelido"
+                labelPosition="center"
+                control={control}
+                placeholder={'nome social do empregado...'}
+                name="nickname"
+                setValue={setValue}
+                size="small"
+              />
+            </Box>
+          </SFlex>
+          <SFlex mr={-6} mt={-3} justify="end">
+            <SSwitch
+              onChange={() => {
                 setData({
                   ...data,
-                  birthday: date instanceof Date ? date : undefined,
+                  isComorbidity: !data.isComorbidity,
                 });
               }}
+              checked={data.isComorbidity}
+              label="Possui comorbidade"
+              sx={{ mr: 4 }}
+              color="text.light"
             />
-          </Box>
-          <Box>
-            <InputForm
-              sx={{ width: 80 }}
-              label="Idade"
-              labelPosition="center"
-              control={control}
-              placeholder={'idade'}
-              value={data.birthday ? dayjs().diff(data.birthday, 'years') : ''}
-              name="age"
-              size="small"
-              disabled
-            />
-          </Box>
-          <Box flex={3}>
-            <InputForm
-              defaultValue={data.nickname}
-              label="Apelido"
-              labelPosition="center"
-              control={control}
-              placeholder={'nome social do empregado...'}
-              name="nickname"
-              setValue={setValue}
-              size="small"
-            />
-          </Box>
-        </SFlex>
-        <SFlex mr={-6} mt={-3} justify="end">
-          <SSwitch
-            onChange={() => {
-              setData({
-                ...data,
-                isComorbidity: !data.isComorbidity,
-              });
-            }}
-            checked={data.isComorbidity}
-            label="Possui comorbidade"
-            sx={{ mr: 4 }}
-            color="text.light"
-          />
-        </SFlex>
+          </SFlex>
 
-        <InputForm
-          sx={{ width: 300 }}
-          defaultValue={data.esocialCode}
-          setValue={setValue}
-          label="Matrícula eSocial"
-          labelPosition="top"
-          control={control}
-          placeholder={'código de matrícula...'}
-          name="esocialCode"
-          size="small"
-        />
+          <SText color="text.label" fontSize={14} mb={5} mt={5}>
+            Contato
+          </SText>
+          <SFlex flexWrap="wrap" gap={5} mb={6}>
+            <Box flex={5}>
+              <InputForm
+                defaultValue={data.email}
+                label="Email"
+                labelPosition="center"
+                setValue={setValue}
+                control={control}
+                placeholder={'email do funcionário...'}
+                name="email"
+                size="small"
+              />
+            </Box>
+            <Box flex={3}>
+              <InputForm
+                defaultValue={data.phone}
+                label="Telefone"
+                labelPosition="center"
+                control={control}
+                setValue={setValue}
+                placeholder={'telefone do funcionário...'}
+                name="phone"
+                size="small"
+              />
+            </Box>
+          </SFlex>
 
-        <SText color="text.label" fontSize={14} mb={5} mt={8}>
-          Contato
-        </SText>
-        <SFlex flexWrap="wrap" gap={5} mb={6}>
-          <Box flex={5}>
+          <Box mt={10}>
             <InputForm
-              defaultValue={data.email}
-              label="Email"
-              labelPosition="center"
+              sx={{ width: 300 }}
+              defaultValue={data.esocialCode}
               setValue={setValue}
+              label="Matrícula eSocial"
+              labelPosition="top"
               control={control}
-              placeholder={'email do funcionário...'}
-              name="email"
+              placeholder={'código de matrícula...'}
+              name="esocialCode"
               size="small"
             />
           </Box>
-          <Box flex={3}>
-            <InputForm
-              defaultValue={data.phone}
-              label="Telefone"
-              labelPosition="center"
-              control={control}
-              setValue={setValue}
-              placeholder={'telefone do funcionário...'}
-              name="phone"
-              size="small"
-            />
-          </Box>
-        </SFlex>
+        </Box>
       </AnimatedStep>
       <SModalButtons
         loading={loading}

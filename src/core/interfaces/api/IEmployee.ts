@@ -52,6 +52,7 @@ export interface IEmployeeHierarchyHistory {
   created_at: Date;
   updated_at: Date;
   hierarchy: IHierarchy;
+  subHierarchies: IHierarchy[];
 }
 
 export interface IEmployeeExamsHistory {

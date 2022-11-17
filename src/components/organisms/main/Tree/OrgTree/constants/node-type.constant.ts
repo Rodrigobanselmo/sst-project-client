@@ -96,7 +96,9 @@ export const nodeTypesConstant = {
     title: 'Novo cargo desenvolvido',
     color: 'group',
     name: 'Cargo desenvolvido',
-    placeholderDesc: 'descrição do cargo desenvolvido...',
+    placeholderDesc:
+      'descrição das atividades complementares do cargo desenvolvido...',
+    // placeholderDesc: 'descrição do cargo desenvolvido...',
     placeholderRealDesc: 'descrição real (entrevista) do cargo desenvolvido...',
     placeholder: 'nome do cargo desenvolvido...',
     childOptions: [] as TreeTypeEnum[],

@@ -388,6 +388,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                           parentId={data.hierarchy?.id}
                           error={data.errors.subOffice}
                           handleSelect={(hierarchy: IHierarchy) => {
+                            console.log(hierarchy);
                             setData({
                               ...data,
                               subOffice: hierarchy,

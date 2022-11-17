@@ -13,6 +13,7 @@ export interface IEmployeeSelectProps
   tooltipTitle?: string;
   filterByHierarchyId?: string;
   large?: boolean;
+  editOnSelection?: boolean;
   actualHierarchy?: ITreeSelectedItem | IHierarchy;
   selected?: number[];
   preload?: boolean;

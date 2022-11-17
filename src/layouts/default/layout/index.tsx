@@ -4,6 +4,7 @@ import { Global } from '@emotion/react';
 import { ModalEditCompany } from 'components/organisms/modals/company/ModalEditCompany';
 import { ModalAddContact } from 'components/organisms/modals/ModalAddContact/ModalAddContact';
 import { ModalAddProfessional } from 'components/organisms/modals/ModalAddProfessional/ModalAddProfessional';
+import { ModalAddProfessionalResponsible } from 'components/organisms/modals/ModalAddProfessionalResponsible/ModalAddProfessionalResponsible';
 import { ModalBlank } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalUploadNewFile } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
@@ -83,6 +84,7 @@ const DefaultLayout: FC = ({ children }) => {
       <DefaultModal />
       <ModalSelectCompany />
       <ModalEditCompany />
+      <ModalAddProfessionalResponsible />
       <ModalAddContact />
       <ModalUploadPhoto />
       <ModalUploadNewFile />

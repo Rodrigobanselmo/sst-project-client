@@ -28,7 +28,7 @@ export const ModalEditEmployee = () => {
       <SModalPaper
         overflow="hidden"
         sx={{
-          width: ['100%', 600, 1000],
+          width: ['100%', 600, 1200],
           maxWidth: 1200,
           minHeight: ['100%', 550],
           display: 'flex',
@@ -36,6 +36,7 @@ export const ModalEditEmployee = () => {
         }}
         p={8}
         center
+        // semiFullScreen
       >
         <SModalHeader
           tag={props.data.id ? 'edit' : 'add'}

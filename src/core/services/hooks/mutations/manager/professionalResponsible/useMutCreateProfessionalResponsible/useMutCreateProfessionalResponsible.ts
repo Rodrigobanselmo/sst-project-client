@@ -1,34 +1,32 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
+import { ProfessionalRespTypeEnum } from 'project/enum/professional-responsible-type.enum';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IEmployeeHierarchyHistory } from 'core/interfaces/api/IEmployee';
+import { IProfessionalResponsible } from 'core/interfaces/api/IProfessionalResponsible';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
 
-export interface ICreateEmployeeHierarchyHistory {
-  motive: EmployeeHierarchyMotiveTypeEnum;
+export interface ICreateProfessionalResponsible {
   startDate: Date;
   companyId: string;
-  hierarchyId: string;
-  subOfficeId?: string;
-  employeeId: number;
+  professionalCouncilId: number;
+  type?: ProfessionalRespTypeEnum;
 }
 
-export async function create(
-  data: ICreateEmployeeHierarchyHistory,
+export async function createProfResp(
+  data: ICreateProfessionalResponsible,
   companyId?: string,
 ) {
   if (!companyId) return null;
 
-  const response = await api.post<IEmployeeHierarchyHistory>(
-    ApiRoutesEnum.EMPLOYEE_HISTORY_HIER + '/' + companyId,
+  const response = await api.post<IProfessionalResponsible>(
+    ApiRoutesEnum.PROFESSIONAL_RESP.replace(':companyId', companyId),
     {
       ...data,
       companyId,
@@ -38,21 +36,18 @@ export async function create(
   return response.data;
 }
 
-export function useMutCreateEmployeeHisHier() {
+export function useMutCreateProfessionalResponsible() {
   const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: ICreateEmployeeHierarchyHistory) =>
-      create(data, getCompanyId(data)),
+    async (data: ICreateProfessionalResponsible) =>
+      createProfResp(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp) {
-          queryClient.invalidateQueries([QueryEnum.EMPLOYEE_HISTORY_HIER]);
-          queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
-        }
+        if (resp) queryClient.invalidateQueries([QueryEnum.PROFESSIONAL_RESP]);
 
-        enqueueSnackbar('Cargo vinculado com sucesso', {
+        enqueueSnackbar('Responsável criado com sucesso', {
           variant: 'success',
         });
         return resp;

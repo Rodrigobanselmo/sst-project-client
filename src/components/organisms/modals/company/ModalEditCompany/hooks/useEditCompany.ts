@@ -47,6 +47,7 @@ export const initialCompanyState = {
   numAsos: 2,
   esocialSend: undefined as boolean | undefined,
   esocialStart: undefined as Date | undefined,
+  ambResponsibleStart: undefined as Date | undefined,
   doctorResponsible: undefined as IProfessional | undefined,
   tecResponsible: undefined as IProfessional | undefined,
   responsibleNit: '',

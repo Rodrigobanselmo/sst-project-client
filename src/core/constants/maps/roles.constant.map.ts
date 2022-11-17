@@ -43,6 +43,7 @@ export const rolesConstantMap = {
       PermissionEnum.EMPLOYEE_HISTORY,
       PermissionEnum.HOMO_GROUP,
       PermissionEnum.PROFESSIONALS,
+      PermissionEnum.PROF_RESP,
     ],
     order: 2,
   },

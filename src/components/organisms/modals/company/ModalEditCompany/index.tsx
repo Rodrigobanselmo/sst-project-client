@@ -12,7 +12,7 @@ import { companySchema } from 'core/utils/schemas/company.schema';
 import { ZeroModalCompanyStep } from './components/0-cnpj';
 import { FirstModalCompanyStep } from './components/1-data';
 import { SecondModalCompanyStep } from './components/2-address';
-import { SSTModalCompanyStep } from './components/3-sst';
+import { SSTModalCompanyStep } from './components/3-sst/SstStep';
 import { FourthModalCompanyStep } from './components/4-logo';
 import { DocumentModalCompanyStep } from './components/5-documents';
 import { ContactModalCompanyStep } from './components/6-contacts';

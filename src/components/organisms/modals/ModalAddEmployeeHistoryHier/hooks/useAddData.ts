@@ -28,15 +28,18 @@ export const initialEmployeeHistoryHierState = {
   startDate: undefined as undefined | Date,
   hierarchyId: undefined as undefined | string,
   employeeId: undefined as undefined | number,
+  subOfficeId: undefined as undefined | string,
   employee: undefined as undefined | IEmployee,
   created_at: undefined as undefined | Date,
   updated_at: undefined as undefined | Date,
   companyId: undefined as undefined | string,
   hierarchy: undefined as undefined | IHierarchy,
   sector: undefined as undefined | IHierarchy,
+  subOffice: undefined as undefined | IHierarchy,
   errors: {
     sector: false,
     hierarchy: false,
+    subOffice: false,
   },
 };
 
@@ -130,6 +133,7 @@ export const useAddData = () => {
       id: data.id,
       companyId,
       hierarchyId: data.hierarchy?.id || data?.employee?.hierarchyId || '',
+      subOfficeId: data.subOffice?.id || data?.employee?.subOffices?.[0]?.id,
       employeeId: data.employeeId,
       startDate: data.startDate,
       ...dataForm,

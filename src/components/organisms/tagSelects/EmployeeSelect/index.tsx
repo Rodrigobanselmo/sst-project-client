@@ -4,7 +4,7 @@ import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
-import { initialEmployeeState } from 'components/organisms/modals/ModalAddEmployees/hooks/useEditEmployees';
+import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
 import { useSnackbar } from 'notistack';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -39,6 +39,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
   maxPerPage,
   addButton = true,
   queryEmployee,
+  editOnSelection,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -65,27 +66,28 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     setSearch(value);
   }, 300);
 
-  const handleSelectEmployee = (options: number[]) => {
-    if (handleSelect)
-      handleSelect(
-        options,
-        removeDuplicate(listSelected.current, { removeById: 'id' }),
-      );
-  };
-
   const handleEditEmployee = (
     e: MouseEvent<HTMLButtonElement>,
     option?: IEmployee,
   ) => {
     e.stopPropagation();
     if (option?.id)
-      onStackOpenModal<Partial<typeof initialEmployeeState>>(
-        ModalEnum.EMPLOYEES_ADD,
-        {
-          ...option,
-          name: option.name.split(' - ')[0], //! missing hierarchy para passar na edição
-          hierarchy: { id: option.hierarchyId, name: 'Editar cargo' } as any,
-        },
+      onStackOpenModal<Partial<any>>(ModalEnum.EMPLOYEES_ADD, {
+        ...option,
+        name: option.name.split(' - ')[0], //! missing hierarchy para passar na edição
+        hierarchy: { id: option.hierarchyId, name: 'Editar cargo' } as any,
+      });
+  };
+
+  const handleSelectEmployee = (options: number[], e: any) => {
+    if (editOnSelection && !multiple) {
+      handleEditEmployee(e, options as unknown as any);
+    }
+
+    if (handleSelect)
+      handleSelect(
+        options,
+        removeDuplicate(listSelected.current, { removeById: 'id' }),
       );
   };
 
@@ -98,7 +100,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     const name = value.split(' - ')[0].replace(/\D/g, '');
     const cpf = value.replace(/\d/g, '');
 
-    onStackOpenModal<Partial<typeof initialEmployeeState>>(
+    onStackOpenModal<Partial<typeof initialEditEmployeeState>>(
       ModalEnum.EMPLOYEES_ADD,
       {
         name,

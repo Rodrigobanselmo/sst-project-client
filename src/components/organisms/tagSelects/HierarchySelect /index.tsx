@@ -98,11 +98,12 @@ export const HierarchySelect: FC<ITypeSelectProps> = ({
     !activeFilters && setAllFilterTypes(typesSelected);
 
     if (!list) return [];
-    list.unshift({
-      ...list[0],
-      id: '',
-      name: 'Nenhum',
-    });
+    if (selectedId)
+      list.unshift({
+        ...list[0],
+        id: '',
+        name: 'Remover seleção',
+      });
 
     return list;
   }, [hierarchyListData, filterOptions, activeFilters, parentId]);

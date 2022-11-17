@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { BoxProps, Divider } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -14,25 +15,24 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
-import { initialContactState } from 'components/organisms/modals/ModalAddContact/hooks/useAddContact';
-import { initialDocumentState } from 'components/organisms/modals/ModalAddDocument/hooks/useAddDocument';
-import dayjs from 'dayjs';
+import SText from 'components/atoms/SText';
+import { initialProfessionalResponsibleState } from 'components/organisms/modals/ModalAddProfessionalResponsible/hooks/useAddProfessionalResponsible';
+import { profRespMap } from 'project/enum/professional-responsible-type.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 
-import { documentTypeMap } from 'core/constants/maps/document-type.map';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { IDocument } from 'core/interfaces/api/IDocument';
-import { useQueryDocuments } from 'core/services/hooks/queries/documents/useQueryDocuments/useQueryDocuments';
+import { IProfessionalResponsible } from 'core/interfaces/api/IProfessionalResponsible';
+import { useQueryProfessionalResponsible } from 'core/services/hooks/queries/useQueryProfessionalResponsible/ProfessionalResponsible';
 import { dateToString } from 'core/utils/date/date-format';
 
-export const DocumentsTable: FC<
+export const ProfessionalResponsibleTable: FC<
   BoxProps & {
     rowsPerPage?: number;
-    onSelectData?: (group: IDocument) => void;
+    onSelectData?: (group: IProfessionalResponsible) => void;
     hideTitle?: boolean;
     companyId?: string;
   }
@@ -43,61 +43,67 @@ export const DocumentsTable: FC<
     data: group,
     isLoading: loadGroup,
     count,
-  } = useQueryDocuments(page, { search }, rowsPerPage, companyId);
+  } = useQueryProfessionalResponsible(page, { search }, rowsPerPage, companyId);
 
   const isSelect = !!onSelectData;
 
   const { onStackOpenModal } = useModal();
 
-  const onAddDocument = () => {
-    onStackOpenModal(ModalEnum.DOCUMENT_ADD, { companyId } as Partial<
-      typeof initialDocumentState
+  const onAddProfessionalResponsible = () => {
+    onStackOpenModal(ModalEnum.PROF_RESPONSIBLE, { companyId } as Partial<
+      typeof initialProfessionalResponsibleState
     >);
   };
 
-  const onSelectRow = (group: IDocument) => {
+  const onSelectRow = (group: IProfessionalResponsible) => {
     if (isSelect) {
       onSelectData(group);
-    } else onEditDocument(group);
+    } else onEditProfessionalResponsible(group);
   };
 
-  const onEditDocument = (group: IDocument) => {
-    onStackOpenModal(ModalEnum.DOCUMENT_ADD, {
-      // ...group,
-      id: group.id,
-    } as Partial<typeof initialDocumentState>);
+  const onEditProfessionalResponsible = (group: IProfessionalResponsible) => {
+    onStackOpenModal(ModalEnum.PROF_RESPONSIBLE, {
+      ...group,
+    } as Partial<typeof initialProfessionalResponsibleState>);
   };
-
-  const header: (BoxProps & { text: string; column: string })[] = [
-    { text: 'Nome', column: 'minmax(150px, 2fr)' },
-    { text: 'Tipo', column: '120px', justifyContent: 'center' },
-    { text: 'início', column: '80px', justifyContent: 'center' },
-    { text: 'Vencimento', column: '120px', justifyContent: 'center' },
-    { text: 'Editar', column: '50px', justifyContent: 'center' },
-  ];
 
   return (
     <>
       {!hideTitle && (
         <>
-          <STableTitle>Documentos</STableTitle>
+          <STableTitle>Responsáveis Monitoramento</STableTitle>
           <STableSearch
-            onAddClick={onAddDocument}
+            onAddClick={onAddProfessionalResponsible}
             onChange={(e) => handleSearchChange(e.target.value)}
           />
+        </>
+      )}
+      {hideTitle && (
+        <>
+          <SFlex gap={10} justify="start" mt={20} align="center">
+            <SText fontSize={18}>Responsáveis Monitoramento</SText>
+            <STagButton
+              onClick={onAddProfessionalResponsible}
+              maxWidth={120}
+              icon={SAddIcon}
+              text={'adcionar'}
+              active
+              bg={'success.dark'}
+            />
+          </SFlex>
+          <Divider sx={{ mb: 5, mt: 5 }} />
         </>
       )}
       <STable
         loading={loadGroup}
         rowsNumber={rowsPerPage}
-        columns={header.map(({ column }) => column).join(' ')}
+        columns="80px minmax(200px, 2fr) 110px 50px"
       >
         <STableHeader>
-          {header.map(({ column, text, ...props }) => (
-            <STableHRow key={text} {...props}>
-              {text}
-            </STableHRow>
-          ))}
+          <STableHRow>Tipo</STableHRow>
+          <STableHRow>Nome</STableHRow>
+          <STableHRow>A partir de</STableHRow>
+          <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<typeof group[0]>
           rowsData={group}
@@ -110,31 +116,20 @@ export const DocumentsTable: FC<
                 clickable
                 key={row.id}
               >
-                <TextIconRow clickable text={row.name || '-'} />
                 <TextIconRow
-                  justifyContent="center"
                   clickable
-                  text={documentTypeMap[row.type]?.content || '-'}
+                  text={profRespMap[row.type]?.content || '-'}
                 />
+                <TextIconRow clickable text={row?.professional?.name || '-'} />
                 <TextIconRow
                   justifyContent="center"
                   clickable
-                  text={dateToString(row.startDate, 'MM/YYYY') || '-'}
-                />
-                <TextIconRow
-                  justifyContent="center"
-                  clickable
-                  textProps={{
-                    color: dayjs().isAfter(row.endDate)
-                      ? 'error.main'
-                      : undefined,
-                  }}
-                  text={dateToString(row.endDate, 'MM/YYYY') || '-'}
+                  text={dateToString(row.startDate) || '-'}
                 />
                 <IconButtonRow
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEditDocument(row);
+                    onEditProfessionalResponsible(row);
                   }}
                   icon={<EditIcon />}
                 />
@@ -143,6 +138,7 @@ export const DocumentsTable: FC<
           }}
         />
       </STable>
+
       <STablePagination
         mt={2}
         registersPerPage={rowsPerPage}

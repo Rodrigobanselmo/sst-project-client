@@ -32,9 +32,9 @@ export const SetSubOfficeNameStep = (props: IUseAutomateSubOffice) => {
         <SFlex gap={8} direction="column" mt={8}>
           <SText fontSize="14px" color="text.light">
             <b>OBS: </b>Para adicionar riscos diretamente a um ou mais
-            funcionários o sistema criará um cargo desenvolvido para eles. Você
-            poderá adcionar e/ou remover estes funcionários no orgnograma da
-            empresa.
+            funcionários o sistema criará um cargo desenvolvido. Você poderá
+            adcionar e/ou remover estes funcionários em seu histórico de
+            lotação.
           </SText>
 
           <InputForm
@@ -58,7 +58,7 @@ export const SetSubOfficeNameStep = (props: IUseAutomateSubOffice) => {
             helperText={`EXEMPLO: ${data.hierarchy?.name} (Trabalho em Altura)`}
           />
           <InputForm
-            label={'Descrião do Cargo Desenvolvido'}
+            label={'Descrião das atividades extras ao Cargo Desenvolvido'}
             control={control}
             placeholder={'descrião das atividades do cargo'}
             size="small"

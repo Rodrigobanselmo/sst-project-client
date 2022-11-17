@@ -34,7 +34,7 @@ export const employeeHierarchyMotiveTypeMap: Record<
   },
   [EmployeeHierarchyMotiveTypeEnum.TRANS_PROM]: {
     value: EmployeeHierarchyMotiveTypeEnum.TRANS_PROM,
-    content: 'Transferência/Promoção',
+    content: 'Transferência / Promoção',
   },
   [EmployeeHierarchyMotiveTypeEnum.DEM]: {
     value: EmployeeHierarchyMotiveTypeEnum.DEM,
@@ -45,9 +45,9 @@ export const employeeHierarchyMotiveTypeMap: Record<
 
 export const employeeHierarchyMotiveTypeList = [
   employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.ADM],
-  // employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.TRANS],
-  // employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.ALOC],
-  // employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.PROM],
-  employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.TRANS_PROM],
+  employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.TRANS],
+  employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.ALOC],
+  employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.PROM],
+  // employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.TRANS_PROM],
   employeeHierarchyMotiveTypeMap[EmployeeHierarchyMotiveTypeEnum.DEM],
 ];

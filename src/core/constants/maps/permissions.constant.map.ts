@@ -195,6 +195,12 @@ export const permissionsConstantMap = {
     info: 'Poder emitir e enviar eventos (XML)',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.PROF_RESP]: {
+    value: PermissionEnum.PROF_RESP,
+    label: 'Profissionais Responsáveis Monitoramento',
+    info: 'Gerenciamento dos profissionais responsáveis monitoramento',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

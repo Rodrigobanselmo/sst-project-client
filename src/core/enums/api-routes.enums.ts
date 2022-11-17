@@ -10,6 +10,7 @@ export enum ApiRoutesEnum {
   COMPANY = '/company/:companyId',
   COMPANY_GROUP = '/company/:companyId/group',
   CONTACTS = '/company/:companyId/contact',
+  PROFESSIONAL_RESP = '/company/:companyId/professionals-responsible',
   DATABASE_TABLE = '/files/database-tables',
   DOCUMENTS_PGR = '/documents/pgr',
   DOCUMENTS_PCMSO = '/documents/pcmso',

@@ -12,6 +12,7 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
+import { ProfessionalResponsibleTable } from 'components/organisms/tables/ProfessionalResponsibleTable/ProfessionalResponsibleTable';
 import dayjs from 'dayjs';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
@@ -101,7 +102,53 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             </Box>
           </SFlex>
 
-          <SFlex flexWrap="wrap" gap={5}>
+          {!isEdit && (
+            <SFlex mt={5} flexWrap="wrap" gap={5}>
+              <Box flex={4}>
+                <ProfessionalInputSelect
+                  onChange={(prof) => {
+                    setCompanyData({
+                      ...companyData,
+                      tecResponsible: prof,
+                    });
+                  }}
+                  query={{ byCouncil: true }}
+                  type={[
+                    ProfessionalTypeEnum.ENGINEER,
+                    ProfessionalTypeEnum.TECHNICIAN,
+                  ]}
+                  inputProps={{
+                    labelPosition: 'top',
+                    placeholder: 'profissional responsável ambiental PPP',
+                  }}
+                  defaultValue={companyData.tecResponsible}
+                  name="tecResponsible"
+                  // label="Téc. / Eng."
+                  label="Responsável Ambiental PPP"
+                  control={control}
+                />
+              </Box>
+              <Box flex={2}>
+                <DatePickerForm
+                  placeholderText={'__/__/__'}
+                  control={control}
+                  defaultValue={dateToDate(companyData.ambResponsibleStart)}
+                  name="ambResponsibleStart"
+                  labelPosition="top"
+                  label="A partir de"
+                  onChange={(date) => {
+                    setCompanyData({
+                      ...companyData,
+                      ambResponsibleStart:
+                        date instanceof Date ? date : undefined,
+                    });
+                  }}
+                />
+              </Box>
+            </SFlex>
+          )}
+
+          <SFlex flexWrap="wrap" gap={5} mt={15}>
             <Box flex={6}>
               <ProfessionalInputSelect
                 onChange={(prof) => {
@@ -138,32 +185,7 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             </Box>
           </SFlex>
 
-          <SFlex mt={8} flexWrap="wrap" gap={5}>
-            <Box flex={6}>
-              <ProfessionalInputSelect
-                onChange={(prof) => {
-                  setCompanyData({
-                    ...companyData,
-                    tecResponsible: prof,
-                  });
-                }}
-                query={{ byCouncil: true }}
-                type={[
-                  ProfessionalTypeEnum.ENGINEER,
-                  ProfessionalTypeEnum.TECHNICIAN,
-                ]}
-                inputProps={{
-                  labelPosition: 'top',
-                  placeholder: 'Técnico ou Engenheiro responsavel',
-                }}
-                defaultValue={companyData.tecResponsible}
-                name="tecResponsible"
-                label="Téc. / Eng."
-                control={control}
-              />
-            </Box>
-          </SFlex>
-          <SFlex gap={2} ml={7} mt={5}>
+          <SFlex gap={2} ml={7} mt={5} mb={40}>
             <SSwitch
               onChange={() => {
                 setCompanyData({
@@ -185,6 +207,7 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             />
           </SFlex>
         </SFlex>
+        {isEdit && <ProfessionalResponsibleTable hideTitle />}
       </AnimatedStep>
       <SModalButtons
         loading={loading}
