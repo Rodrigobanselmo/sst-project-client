@@ -19,7 +19,7 @@ const UserPage: NextPage = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    if (user?.name) {
+    if (user?.name && user?.cpf) {
       router.push(RoutesEnum.ONBOARD_NO_TEAM);
     }
   }, [router, user]);

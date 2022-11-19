@@ -102,53 +102,7 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             </Box>
           </SFlex>
 
-          {!isEdit && (
-            <SFlex mt={5} flexWrap="wrap" gap={5}>
-              <Box flex={4}>
-                <ProfessionalInputSelect
-                  onChange={(prof) => {
-                    setCompanyData({
-                      ...companyData,
-                      tecResponsible: prof,
-                    });
-                  }}
-                  query={{ byCouncil: true }}
-                  type={[
-                    ProfessionalTypeEnum.ENGINEER,
-                    ProfessionalTypeEnum.TECHNICIAN,
-                  ]}
-                  inputProps={{
-                    labelPosition: 'top',
-                    placeholder: 'profissional responsável ambiental PPP',
-                  }}
-                  defaultValue={companyData.tecResponsible}
-                  name="tecResponsible"
-                  // label="Téc. / Eng."
-                  label="Responsável Ambiental PPP"
-                  control={control}
-                />
-              </Box>
-              <Box flex={2}>
-                <DatePickerForm
-                  placeholderText={'__/__/__'}
-                  control={control}
-                  defaultValue={dateToDate(companyData.ambResponsibleStart)}
-                  name="ambResponsibleStart"
-                  labelPosition="top"
-                  label="A partir de"
-                  onChange={(date) => {
-                    setCompanyData({
-                      ...companyData,
-                      ambResponsibleStart:
-                        date instanceof Date ? date : undefined,
-                    });
-                  }}
-                />
-              </Box>
-            </SFlex>
-          )}
-
-          <SFlex flexWrap="wrap" gap={5} mt={15}>
+          <SFlex flexWrap="wrap" gap={5}>
             <Box flex={6}>
               <ProfessionalInputSelect
                 onChange={(prof) => {
@@ -185,7 +139,32 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             </Box>
           </SFlex>
 
-          <SFlex gap={2} ml={7} mt={5} mb={40}>
+          {/* <SFlex mt={8} flexWrap="wrap" gap={5}>
+            <Box flex={6}>
+              <ProfessionalInputSelect
+                onChange={(prof) => {
+                  setCompanyData({
+                    ...companyData,
+                    tecResponsible: prof,
+                  });
+                }}
+                query={{ byCouncil: true }}
+                type={[
+                  ProfessionalTypeEnum.ENGINEER,
+                  ProfessionalTypeEnum.TECHNICIAN,
+                ]}
+                inputProps={{
+                  labelPosition: 'top',
+                  placeholder: 'Técnico ou Engenheiro responsavel',
+                }}
+                defaultValue={companyData.tecResponsible}
+                name="tecResponsible"
+                label="Téc. / Eng."
+                control={control}
+              />
+            </Box>
+          </SFlex> */}
+          <SFlex gap={2} ml={7} mt={5}>
             <SSwitch
               onChange={() => {
                 setCompanyData({
@@ -207,7 +186,14 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             />
           </SFlex>
         </SFlex>
-        {isEdit && <ProfessionalResponsibleTable hideTitle />}
+        {companyData.id && (
+          <Box mt={20}>
+            <ProfessionalResponsibleTable
+              companyId={companyData.id}
+              hideTitle
+            />
+          </Box>
+        )}
       </AnimatedStep>
       <SModalButtons
         loading={loading}

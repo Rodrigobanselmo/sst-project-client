@@ -7,8 +7,8 @@ export const useCompanyEdit = ({
   companyData,
   setCompanyData,
   cepMutation,
-  createCompany,
   onSubmitData,
+  isEdit,
   ...rest
 }: IUseAddCompany) => {
   const { trigger, getValues, control, reset, setValue } = useFormContext();
@@ -65,6 +65,7 @@ export const useCompanyEdit = ({
 
       const submitData = {
         ...companyData,
+        isSavedCreation: !isEdit,
         address: {
           neighborhood: neighborhood,
           number: number,
@@ -76,7 +77,7 @@ export const useCompanyEdit = ({
         },
       };
 
-      onSubmitData(submitData, nextStep);
+      onSubmitData(submitData, nextStep, { save: true });
     }
   };
 

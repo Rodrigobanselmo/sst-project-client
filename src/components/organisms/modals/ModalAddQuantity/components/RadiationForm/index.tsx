@@ -25,7 +25,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           placeholder={'Valor da dose efetiva do corpo inteiro'}
           name="doseFB"
           size="small"
-          endAdornment={'µSv'}
+          endAdornment={'mSv'}
           mask={floatMask.apply({
             negative: false,
             decimal: 2,
@@ -39,7 +39,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           placeholder={'Valor da dose efetiva do corpo inteiro'}
           name="doseFBPublic"
           size="small"
-          endAdornment={'µSv'}
+          endAdornment={'mSv'}
           mask={floatMask.apply({
             negative: false,
             decimal: 2,
@@ -59,7 +59,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           placeholder={'Valor da dose equivalente do cristalino'}
           name="doseEye"
           size="small"
-          endAdornment={'µSv'}
+          endAdornment={'mSv'}
           mask={floatMask.apply({
             negative: false,
             decimal: 2,
@@ -73,7 +73,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           placeholder={'Valor da dose equivalente do cristalino'}
           name="doseEyePublic"
           size="small"
-          endAdornment={'µSv'}
+          endAdornment={'mSv'}
           mask={floatMask.apply({
             negative: false,
             decimal: 2,
@@ -93,7 +93,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           placeholder={'Valor da dose equivalente da pele'}
           name="doseSkin"
           size="small"
-          endAdornment={'µSv'}
+          endAdornment={'mSv'}
           mask={floatMask.apply({
             negative: false,
             decimal: 2,
@@ -107,7 +107,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           placeholder={'Valor da dose equivalente da pele'}
           name="doseSkinPublic"
           size="small"
-          endAdornment={'µSv'}
+          endAdornment={'mSv'}
           mask={floatMask.apply({
             negative: false,
             decimal: 2,
@@ -126,7 +126,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
         placeholder={'Valor da dose equivalente das mãos e pés'}
         name="doseHand"
         size="small"
-        endAdornment={'µSv'}
+        endAdornment={'mSv'}
         mask={floatMask.apply({ negative: false, decimal: 2, ltAccept: true })}
       />
     </SFlex>

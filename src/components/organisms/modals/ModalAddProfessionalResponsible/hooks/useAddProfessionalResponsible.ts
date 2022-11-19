@@ -105,6 +105,7 @@ export const useAddProfessionalResponsible = () => {
       ...data,
       id: professionalResponsibleData.id,
       professionalCouncilId: professionalResponsibleData.professional.id,
+      companyId: professionalResponsibleData.companyId,
     };
 
     try {

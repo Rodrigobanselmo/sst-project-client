@@ -41,12 +41,7 @@ export const ContactModalCompanyStep = (props: IUseAddCompany) => {
   return (
     <>
       <AnimatedStep>
-        <SFlex gap={8} direction="column" mt={8}>
-          <SText color="text.label" fontSize={14} mb={-2}>
-            Contatos
-          </SText>
-          <ContactsTable hideTitle companyId={companyData.id || undefined} />
-        </SFlex>
+        <ContactsTable hideTitle companyId={companyData.id || undefined} />
       </AnimatedStep>
       <SModalButtons
         loading={loading}

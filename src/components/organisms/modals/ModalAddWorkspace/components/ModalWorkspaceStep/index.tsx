@@ -20,6 +20,7 @@ export const ModalWorkspaceStep = ({
   onChangeCnpj,
   loadingCnpj,
   loadingCep,
+  setValue,
 }: IUseEditWorkspace) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -33,6 +34,7 @@ export const ModalWorkspaceStep = ({
         maxRows={4}
         label="Nome"
         labelPosition="center"
+        setValue={setValue}
         control={control}
         sx={{ minWidth: ['100%', 600] }}
         placeholder={'nome do estabelecimento de trabalho...'}
@@ -46,6 +48,7 @@ export const ModalWorkspaceStep = ({
         maxRows={4}
         label="Descrição"
         labelPosition="center"
+        setValue={setValue}
         control={control}
         sx={{ minWidth: ['100%', 600] }}
         placeholder={'descrição...'}
@@ -64,6 +67,7 @@ export const ModalWorkspaceStep = ({
           labelPosition="center"
           control={control}
           onChange={({ target: { value } }) => onChangeCep(value)}
+          setValue={setValue}
           placeholder={'descrição...'}
           name="cep"
           mask={cepMask.apply}
@@ -73,6 +77,7 @@ export const ModalWorkspaceStep = ({
         <InputForm
           defaultValue={companyData.street}
           minRows={2}
+          setValue={setValue}
           maxRows={4}
           label="Logradouro"
           labelPosition="center"
@@ -89,6 +94,7 @@ export const ModalWorkspaceStep = ({
         labelPosition="center"
         control={control}
         sx={{ minWidth: ['100%', 600] }}
+        setValue={setValue}
         name="neighborhood"
         size="small"
       />
@@ -97,6 +103,7 @@ export const ModalWorkspaceStep = ({
           defaultValue={companyData.city}
           minRows={2}
           maxRows={4}
+          setValue={setValue}
           label="Cidade"
           labelPosition="center"
           control={control}
@@ -107,6 +114,7 @@ export const ModalWorkspaceStep = ({
           defaultValue={companyData.state}
           minRows={2}
           maxRows={4}
+          setValue={setValue}
           label="Estado"
           labelPosition="center"
           control={control}
@@ -122,6 +130,7 @@ export const ModalWorkspaceStep = ({
           maxRows={4}
           label="Complemento"
           labelPosition="center"
+          setValue={setValue}
           control={control}
           name="complement"
           size="small"
@@ -130,6 +139,7 @@ export const ModalWorkspaceStep = ({
           defaultValue={companyData.number}
           minRows={2}
           maxRows={4}
+          setValue={setValue}
           label="Número"
           labelPosition="center"
           control={control}

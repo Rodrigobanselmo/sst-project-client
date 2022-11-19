@@ -119,9 +119,23 @@ export const useEditWorkspace = () => {
     if (value.replace(/\D/g, '').length === 14) {
       try {
         const data = await cnpjMutation.mutateAsync(value);
+
+        const reset = [
+          'neighborhood',
+          'number',
+          'city',
+          'street',
+          'cep',
+          'complement',
+          'state',
+        ];
+
+        reset.forEach((key) => setValue(key, ''));
         setCompanyData((oldData) => {
           const newData = {
             ...oldData,
+            ...data?.address,
+            cnpj: value,
             companyJson: data || {},
           };
 
@@ -184,6 +198,7 @@ export const useEditWorkspace = () => {
     onClose,
     companyData,
     onSubmit,
+    setValue,
     loading: updateMutation.isLoading || cnpjMutation.isLoading,
     loadingCep: cepMutation.isLoading,
     loadingCnpj: cnpjMutation.isLoading,

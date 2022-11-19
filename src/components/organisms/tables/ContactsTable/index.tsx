@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { BoxProps, Divider } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -12,8 +13,10 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import STableSmallTitle from 'components/atoms/STable/components/STableSmallTitle/STableSmallTitle';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
+import SText from 'components/atoms/SText';
 import { initialContactState } from 'components/organisms/modals/ModalAddContact/hooks/useAddContact';
 
 import SAddIcon from 'assets/icons/SAddIcon';
@@ -74,6 +77,9 @@ export const ContactsTable: FC<
           />
         </>
       )}
+      {hideTitle && (
+        <STableSmallTitle onAddClick={onAddContact} text="Contatos" />
+      )}
       <STable
         loading={loadGroup}
         rowsNumber={rowsPerPage}
@@ -126,18 +132,7 @@ export const ContactsTable: FC<
             );
           }}
         />
-      </STable>{' '}
-      <STagButton
-        onClick={onAddContact}
-        maxWidth={120}
-        mt={-5}
-        mb={-5}
-        // ml="auto"
-        icon={SAddIcon}
-        text={'adcionar'}
-        active
-        bg={'success.dark'}
-      />
+      </STable>
       <STablePagination
         mt={2}
         registersPerPage={rowsPerPage}

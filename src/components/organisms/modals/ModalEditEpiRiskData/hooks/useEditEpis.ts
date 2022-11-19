@@ -73,6 +73,19 @@ export const useEditEpis = () => {
     }
   }, [getModalData]);
 
+  const isEdit = !!epiData.epiRiskData?.epiId;
+  const isAllSelected = !!(
+    epiData.epiRiskData?.epcCheck &&
+    epiData.epiRiskData?.longPeriodsCheck &&
+    epiData.epiRiskData?.maintenanceCheck &&
+    epiData.epiRiskData?.sanitationCheck &&
+    epiData.epiRiskData?.unstoppedCheck &&
+    epiData.epiRiskData?.validationCheck &&
+    epiData.epiRiskData?.tradeSignCheck &&
+    epiData.epiRiskData?.trainingCheck
+  );
+  const isExpired = dayjs(epiData.expiredDate).isBefore(dayjs());
+
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.EPI_EPI_DATA, data);
     setEpiData(initialEpiDataState);
@@ -98,6 +111,7 @@ export const useEditEpis = () => {
       ...data,
       epiRiskData: {
         ...epiData.epiRiskData,
+        efficientlyCheck: isAllSelected,
         epiId: epiData.id,
       },
     };
@@ -142,7 +156,6 @@ export const useEditEpis = () => {
       epiRiskData: {
         ...oldData.epiRiskData,
         epcCheck: isChecked,
-        efficientlyCheck: isChecked,
         longPeriodsCheck: isChecked,
         maintenanceCheck: isChecked,
         sanitationCheck: isChecked,
@@ -153,20 +166,6 @@ export const useEditEpis = () => {
       },
     }));
   };
-
-  const isEdit = !!epiData.epiRiskData?.epiId;
-  const isAllSelected = !!(
-    epiData.epiRiskData?.efficientlyCheck &&
-    epiData.epiRiskData?.epcCheck &&
-    epiData.epiRiskData?.longPeriodsCheck &&
-    epiData.epiRiskData?.maintenanceCheck &&
-    epiData.epiRiskData?.sanitationCheck &&
-    epiData.epiRiskData?.unstoppedCheck &&
-    epiData.epiRiskData?.validationCheck &&
-    epiData.epiRiskData?.tradeSignCheck &&
-    epiData.epiRiskData?.trainingCheck
-  );
-  const isExpired = dayjs(epiData.expiredDate).isBefore(dayjs());
 
   return {
     registerModal,

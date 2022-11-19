@@ -75,7 +75,7 @@ const DefaultLayout: FC = ({ children }) => {
       router.events.off('routeChangeComplete', handleStop);
       router.events.off('routeChangeError', handleStop);
     };
-  }, [router, dispatch]);
+  }, [router, dispatch, user]);
 
   return (
     <main>

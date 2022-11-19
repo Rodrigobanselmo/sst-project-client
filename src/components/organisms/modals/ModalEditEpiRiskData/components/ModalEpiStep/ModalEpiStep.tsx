@@ -117,8 +117,10 @@ export const ModalEpiStep = ({
           responsabilizando pela veracidade das informações
         </SText>
         <SSwitch
-          onChange={(e) => onSelectCheck(e.target.checked, 'efficientlyCheck')}
-          checked={!!epiData.epiRiskData?.efficientlyCheck}
+          // onChange={(e) => onSelectCheck(e.target.checked, 'efficientlyCheck')}
+          // checked={!!epiData.epiRiskData?.efficientlyCheck}
+          onChange={(e) => onSelectAllChecked(e.target.checked)}
+          checked={isAllSelected}
           label="Eficaz?"
           sx={{ mr: 6 }}
           color="text.light"

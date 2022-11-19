@@ -18,6 +18,7 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
+import { ProfessionalResponsibleTable } from 'components/organisms/tables/ProfessionalResponsibleTable/ProfessionalResponsibleTable';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -45,7 +46,7 @@ export const ModalAddCompanyGroup = () => {
   const buttons = [
     {},
     {
-      text: isEdit ? 'Salvar' : 'Criar',
+      text: isEdit ? 'Salvar' : 'Proximo',
       variant: 'contained',
       type: 'submit',
       onClick: () => setCompanyGroupData({ ...companyGroupData }),
@@ -62,6 +63,9 @@ export const ModalAddCompanyGroup = () => {
         center
         p={8}
         component="form"
+        sx={{
+          width: 900,
+        }}
         onSubmit={handleSubmit(onSubmit)}
       >
         <SModalHeader
@@ -75,7 +79,7 @@ export const ModalAddCompanyGroup = () => {
             defaultValue={companyGroupData.name}
             label="Nome"
             control={control}
-            sx={{ minWidth: ['100%', 600] }}
+            sx={{ maxWidth: ['100%', 400] }}
             placeholder={'nome do grupo empresarial...'}
             name="name"
             size="small"
@@ -121,61 +125,64 @@ export const ModalAddCompanyGroup = () => {
           bg="success.dark"
         />
 
-        <SFlex gap={2} ml={7} mt={10}>
-          <SSwitch
-            onChange={() => {
-              setCompanyGroupData({
-                ...companyGroupData,
-                blockResignationExam: !companyGroupData.blockResignationExam,
-              } as any);
-            }}
-            checked={companyGroupData.blockResignationExam}
-            label="Bloqueio demissional"
-            sx={{ mr: 4 }}
-            color="text.light"
-          />
-          <SHelp
-            mb={-1}
-            ml={-5}
-            tooltip={
-              'Bloquar exame demissional antes de 135 dias (Grau de risco 1 e 2) ou 90 dias (Grau de risco 3 e 4)'
-            }
-          />
-        </SFlex>
+        {isEdit && (
+          <>
+            <SFlex gap={2} ml={7} mt={10}>
+              <SSwitch
+                onChange={() => {
+                  setCompanyGroupData({
+                    ...companyGroupData,
+                    blockResignationExam:
+                      !companyGroupData.blockResignationExam,
+                  } as any);
+                }}
+                checked={companyGroupData.blockResignationExam}
+                label="Bloqueio demissional"
+                sx={{ mr: 4 }}
+                color="text.light"
+              />
+              <SHelp
+                mb={-1}
+                ml={-5}
+                tooltip={
+                  'Bloquar exame demissional antes de 135 dias (Grau de risco 1 e 2) ou 90 dias (Grau de risco 3 e 4)'
+                }
+              />
+            </SFlex>
 
-        <SFlex mt={10} flexWrap="wrap" gap={5}>
-          <Box flex={6}>
-            <ProfessionalInputSelect
-              onChange={(prof) => {
-                setCompanyGroupData({
-                  ...companyGroupData,
-                  doctorResponsible: prof,
-                });
-              }}
-              query={{ byCouncil: true }}
-              defaultValue={companyGroupData.doctorResponsible}
-              name="doctorResponsible"
-              label="Médico Coordenador"
-              control={control}
-            />
-          </Box>
-          <Box flex={2}>
-            <SelectForm
-              defaultValue={String(companyGroupData.numAsos)}
-              label="Nº vias Aso"
-              control={control}
-              name="numAsos"
-              labelPosition="center"
-              size="small"
-              options={Array.from({ length: 10 }).map((_, i) => ({
-                value: i + 1,
-                content: i + 1,
-              }))}
-            />
-          </Box>
-        </SFlex>
+            <SFlex mt={10} flexWrap="wrap" gap={5}>
+              <Box flex={6}>
+                <ProfessionalInputSelect
+                  onChange={(prof) => {
+                    setCompanyGroupData({
+                      ...companyGroupData,
+                      doctorResponsible: prof,
+                    });
+                  }}
+                  query={{ byCouncil: true }}
+                  defaultValue={companyGroupData.doctorResponsible}
+                  name="doctorResponsible"
+                  label="Médico Coordenador"
+                  control={control}
+                />
+              </Box>
+              <Box flex={2}>
+                <SelectForm
+                  defaultValue={String(companyGroupData.numAsos)}
+                  label="Nº vias Aso"
+                  control={control}
+                  name="numAsos"
+                  labelPosition="center"
+                  size="small"
+                  options={Array.from({ length: 10 }).map((_, i) => ({
+                    value: i + 1,
+                    content: i + 1,
+                  }))}
+                />
+              </Box>
+            </SFlex>
 
-        <SFlex mt={8} flexWrap="wrap" gap={5}>
+            {/* <SFlex mt={8} flexWrap="wrap" gap={5}>
           <Box flex={6}>
             <ProfessionalInputSelect
               onChange={(prof) => {
@@ -199,60 +206,70 @@ export const ModalAddCompanyGroup = () => {
               control={control}
             />
           </Box>
-        </SFlex>
+        </SFlex> */}
 
-        <SFlex mt={15} flexWrap="wrap" align="center" gap={5}>
-          <Box>
-            <DatePickerForm
-              label="Início eSocial"
-              control={control}
-              defaultValue={dateToDate(companyGroupData?.esocialStart)}
-              name="esocialStart"
-              sx={{ maxWidth: 240 }}
-              onChange={(date) => {
-                setCompanyGroupData({
-                  ...companyGroupData,
-                  esocialStart: date instanceof Date ? date : undefined,
-                });
-              }}
-            />
-          </Box>
-          <Box>
-            <SRadio
-              value={
-                companyGroupData.esocialSend == undefined
-                  ? undefined
-                  : companyGroupData.esocialSend
-                  ? 1
-                  : 2
-              }
-              valueField="value"
-              row
-              formControlProps={{
-                sx: {
-                  ml: '-4px',
-                  '& .MuiSvgIcon-root': {
-                    fontSize: 15,
-                  },
-                  '& .MuiTypography-root': {
-                    color: 'text.main',
-                  },
-                },
-              }}
-              labelField="label"
-              onChange={(e) =>
-                setCompanyGroupData({
-                  ...companyGroupData,
-                  esocialSend: (e.target as any).value == 1 ? true : false,
-                })
-              }
-              options={[
-                { value: 1, label: 'Enviar eventos' },
-                { value: 2, label: 'Gerar XML' },
-              ]}
-            />
-          </Box>
-        </SFlex>
+            <SFlex mt={15} flexWrap="wrap" align="center" gap={5}>
+              <Box>
+                <DatePickerForm
+                  label="Início eSocial"
+                  control={control}
+                  defaultValue={dateToDate(companyGroupData?.esocialStart)}
+                  name="esocialStart"
+                  sx={{ maxWidth: 240 }}
+                  onChange={(date) => {
+                    setCompanyGroupData({
+                      ...companyGroupData,
+                      esocialStart: date instanceof Date ? date : undefined,
+                    });
+                  }}
+                />
+              </Box>
+              <Box>
+                <SRadio
+                  value={
+                    companyGroupData.esocialSend == undefined
+                      ? undefined
+                      : companyGroupData.esocialSend
+                      ? 1
+                      : 2
+                  }
+                  valueField="value"
+                  row
+                  formControlProps={{
+                    sx: {
+                      ml: '-4px',
+                      '& .MuiSvgIcon-root': {
+                        fontSize: 15,
+                      },
+                      '& .MuiTypography-root': {
+                        color: 'text.main',
+                      },
+                    },
+                  }}
+                  labelField="label"
+                  onChange={(e) =>
+                    setCompanyGroupData({
+                      ...companyGroupData,
+                      esocialSend: (e.target as any).value == 1 ? true : false,
+                    })
+                  }
+                  options={[
+                    { value: 1, label: 'Enviar eventos' },
+                    { value: 2, label: 'Gerar XML' },
+                  ]}
+                />
+              </Box>
+            </SFlex>
+            {isEdit && (
+              <Box mt={20}>
+                <ProfessionalResponsibleTable
+                  companyId={companyGroupData.companyGroup?.id}
+                  hideTitle
+                />
+              </Box>
+            )}
+          </>
+        )}
 
         <SModalButtons
           loading={loading}

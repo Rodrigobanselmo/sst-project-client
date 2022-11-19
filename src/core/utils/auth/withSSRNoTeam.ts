@@ -8,12 +8,10 @@ import { parseCookies } from 'nookies';
 
 import { RoutesEnum } from '../../enums/routes.enums';
 
-export function withSSRNoTeam<T>(
-  fn: GetServerSideProps<T>,
-): GetServerSideProps {
+export function withSSRNoTeam(fn: GetServerSideProps<any>): GetServerSideProps {
   return async (
     ctx: GetServerSidePropsContext,
-  ): Promise<GetServerSidePropsResult<T>> => {
+  ): Promise<GetServerSidePropsResult<any>> => {
     const cookies = parseCookies(ctx);
     const token = cookies['nextauth.token'];
 

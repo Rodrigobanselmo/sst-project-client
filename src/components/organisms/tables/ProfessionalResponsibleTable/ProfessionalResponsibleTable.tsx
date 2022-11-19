@@ -13,6 +13,7 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import STableSmallTitle from 'components/atoms/STable/components/STableSmallTitle/STableSmallTitle';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
@@ -79,20 +80,10 @@ export const ProfessionalResponsibleTable: FC<
         </>
       )}
       {hideTitle && (
-        <>
-          <SFlex gap={10} justify="start" mt={20} align="center">
-            <SText fontSize={18}>Responsáveis Monitoramento</SText>
-            <STagButton
-              onClick={onAddProfessionalResponsible}
-              maxWidth={120}
-              icon={SAddIcon}
-              text={'adcionar'}
-              active
-              bg={'success.dark'}
-            />
-          </SFlex>
-          <Divider sx={{ mb: 5, mt: 5 }} />
-        </>
+        <STableSmallTitle
+          onAddClick={onAddProfessionalResponsible}
+          text="Responsáveis Monitoramento"
+        />
       )}
       <STable
         loading={loadGroup}
@@ -106,6 +97,7 @@ export const ProfessionalResponsibleTable: FC<
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<typeof group[0]>
+          hideEmpty
           rowsData={group}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

@@ -23,6 +23,7 @@ export const initialCompanyGroupState = {
   description: '',
   name: '',
   companyId: '',
+  companyGroup: undefined as ICompany | undefined,
   companies: [] as ICompany[],
   id: 0,
   blockResignationExam: true,
@@ -51,6 +52,7 @@ export const useAddCompanyGroup = () => {
     ...initialCompanyGroupState,
   });
 
+  const isEdit = !!companyGroupData.id && companyGroupData.companyGroup?.id;
   const take = 200;
   const { companies, count } = useQueryCompanies(
     1,
@@ -122,9 +124,13 @@ export const useAddCompanyGroup = () => {
       ...data,
     };
 
-    await upsertCompanyGroup.mutateAsync(submitData).catch(() => {});
-
-    onClose();
+    await upsertCompanyGroup
+      .mutateAsync(submitData)
+      .then((data) => {
+        setCompanyGroupData((dt) => ({ ...dt, ...data }));
+        if (isEdit) onClose();
+      })
+      .catch(() => {});
   };
 
   const onCloseUnsaved = () => {
@@ -198,7 +204,7 @@ export const useAddCompanyGroup = () => {
     setCompanyGroupData,
     control,
     handleSubmit,
-    isEdit: !!companyGroupData.id,
+    isEdit,
     handleOpenCompanySelect,
     handleRemoveCompany,
     moreCompanies,
