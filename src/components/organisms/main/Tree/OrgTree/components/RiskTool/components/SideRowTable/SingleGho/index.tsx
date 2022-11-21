@@ -21,7 +21,8 @@ export const SideRowTable: FC<SideTableProps> = ({
   isSelected,
   hide,
   riskGroupId,
-  isRepresentAll,
+  handleDeleteRiskData,
+  isDeleteLoading,
 }) => {
   const risk = useAppSelector(selectRisk);
   const {
@@ -115,6 +116,10 @@ export const SideRowTable: FC<SideTableProps> = ({
       handleEditExams={handleEditExams}
       isRepresentAll={risk?.representAll}
       showEndDate
+      isDeleteLoading={isDeleteLoading}
+      handleDeleteRiskData={() =>
+        handleDeleteRiskData?.(riskData?.id as string, gho)
+      }
     />
   );
 };

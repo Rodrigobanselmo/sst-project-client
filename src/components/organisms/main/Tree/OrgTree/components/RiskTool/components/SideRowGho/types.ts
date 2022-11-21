@@ -1,6 +1,7 @@
 import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
+import { IRiskData } from 'core/interfaces/api/IRiskData';
 
 import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 import { IHierarchyTreeMapObject } from '../RiskToolViews/RiskToolRiskView/types';
@@ -8,6 +9,7 @@ import { IHierarchyTreeMapObject } from '../RiskToolViews/RiskToolRiskView/types
 export interface SideItemsProps {
   isSelected?: boolean;
   viewDataType: ViewsDataEnum;
+  riskData?: IRiskData;
   hide?: boolean;
   data: IGho | IHierarchyTreeMapObject;
   isDeleteLoading?: boolean;

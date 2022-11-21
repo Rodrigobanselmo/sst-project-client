@@ -302,6 +302,11 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
   };
 
   const handleDelete = async () => {
+    return enqueueSnackbar('Função atualmente desativada', {
+      variant: 'error',
+      autoHideDuration: 3000,
+    });
+
     if (selectedRisks.length === 0) return;
     dispatch(setRiskAddState({ isSaving: true }));
 
@@ -319,6 +324,7 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
     };
 
     try {
+      return;
       await deleteManyMut.mutateAsync(submitData);
       setRiskData({ id: '' } as IRiskData);
       dispatch(setRiskAddState({ isSaving: false, isEdited: false }));

@@ -30,6 +30,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
     onHandleEditEngs,
     onHandleRemoveSave,
     onHandleEditExams,
+    upsertRiskData,
   } = useColumnAction();
 
   const handleSelect = async (values: Partial<IUpsertRiskData>) => {
@@ -104,6 +105,7 @@ export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
 
   return (
     <RowColumns
+      isLoading={upsertRiskData.isLoading}
       hide={hide}
       handleSelect={handleSelect}
       handleHelp={handleHelp}

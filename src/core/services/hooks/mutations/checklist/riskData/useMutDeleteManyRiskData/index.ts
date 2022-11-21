@@ -14,9 +14,10 @@ import { IErrorResp } from '../../../../../errors/types';
 export interface IDeleteManyRiskData {
   id?: string;
   companyId?: string;
-  riskFactorGroupDataId: string;
-  riskIds: string[];
+  riskFactorGroupDataId?: string;
+  riskIds?: string[];
   homogeneousGroupIds?: string[];
+  ids?: string[];
 }
 
 export async function deleteManyRiskData(

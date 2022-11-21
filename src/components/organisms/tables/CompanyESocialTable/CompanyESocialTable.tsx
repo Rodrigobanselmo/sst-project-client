@@ -21,7 +21,8 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import SWizardBox from 'components/atoms/SWizardBox';
 import { SRadio } from 'components/molecules/form/radio';
-import { initialSendESocialState } from 'components/organisms/modals/ModalSendESocial/ModalSendESocial';
+import { initialSendESocialState } from 'components/organisms/modals/ModalSend2220ESocial/ModalSend2220ESocial';
+import { initialSendESocial2240State } from 'components/organisms/modals/ModalSend2240ESocial/ModalSend2240ESocial';
 import { EmployeeESocialEventTypeEnum } from 'project/enum/esocial-event-type.enum';
 
 import SReloadIcon from 'assets/icons/SReloadIcon';
@@ -70,11 +71,18 @@ export const CompanyESocialTable: FC<
   // };
 
   const onSend2220 = (company: ICompany) => {
-    onStackOpenModal(ModalEnum.MODAL_SEND_ESOCIAL, {
+    onStackOpenModal(ModalEnum.MODAL_SEND_ESOCIAL_2220, {
       companyId: company.id,
       company: company,
       type: EmployeeESocialEventTypeEnum.EXAM_2220,
     } as typeof initialSendESocialState);
+  };
+
+  const onSend2240 = (company: ICompany) => {
+    onStackOpenModal(ModalEnum.MODAL_SEND_ESOCIAL_2240, {
+      companyId: company.id,
+      company: company,
+    } as typeof initialSendESocial2240State);
   };
 
   const onChangeEvent = (event: EmployeeESocialEventTypeEnum) => {
@@ -227,6 +235,10 @@ export const CompanyESocialTable: FC<
                     <SButton
                       variant="outlined"
                       xsmall
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSend2240(row);
+                      }}
                       sx={{
                         width: '100%',
                         backgroundColor: 'white',

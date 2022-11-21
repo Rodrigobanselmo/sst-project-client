@@ -29,16 +29,16 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { IEvent2220 } from 'core/interfaces/api/IEvent';
+import { IEvent2240 } from 'core/interfaces/api/IEvent';
 import { dateToString } from 'core/utils/date/date-format';
 
-export const SendEventESocialTable: FC<
+export const SendEvent2240ESocialTable: FC<
   BoxProps & {
     isLoading?: boolean;
     rowsPerPage?: number;
-    onSelectData?: (company: IEvent2220) => void;
-    selectedData?: IEvent2220[];
-    events: IEvent2220[];
+    onSelectData?: (company: IEvent2240) => void;
+    selectedData?: IEvent2240[];
+    events: IEvent2240[];
     company?: ICompany;
   }
 > = ({
@@ -57,15 +57,14 @@ export const SendEventESocialTable: FC<
   const isSelect = !!onSelectData;
   const { onStackOpenModal } = useModal();
 
-  const onSelectRow = (company: IEvent2220) => {
+  const onSelectRow = (company: IEvent2240) => {
     if (isSelect) {
       onSelectData(company);
     }
   };
 
-  const onViewXMl = (event: IEvent2220) => {
+  const onViewXMl = (event: IEvent2240) => {
     const xml = event.xml.replaceAll('undefined', '*****');
-    console.log(xml);
     onStackOpenModal(ModalEnum.MODAL_BLANK, {
       title: 'Visualizar XML',
       content: () => (
@@ -125,9 +124,8 @@ export const SendEventESocialTable: FC<
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Funcionário', column: 'minmax(160px, 220px)' },
     { text: 'Empresa', column: 'minmax(180px, 1fr)' },
-    { text: 'Tipo exame', column: '120px' },
-    { text: 'Data ASO', column: '110px' },
-    { text: 'Avaliação', column: '90px' },
+    { text: 'riscos', column: '100px' },
+    { text: 'Data', column: '110px' },
     { text: 'Tipo', column: '60px' },
     { text: 'Disponível', column: '100px', justifyContent: 'center' },
     { text: 'XML', column: '45px', justifyContent: 'center' },
@@ -161,7 +159,7 @@ export const SendEventESocialTable: FC<
             const employee = row?.employee;
             const errors = row?.errors;
 
-            const isError = errors.length > 0;
+            const isError = errors?.length > 0;
 
             return (
               <STableRow
@@ -178,14 +176,21 @@ export const SendEventESocialTable: FC<
                 <TextEmployeeRow employee={employee} />
                 <TextCompanyRow showCNPJ clickable company={company} />
                 <TextIconRow
-                  text={employeeExamTypeMap[row.examType]?.content}
+                  clickable
+                  tooltipProps={{ minLength: 2 }}
+                  tooltipTitle={
+                    <>
+                      {row.risks?.map((name, index) => (
+                        <>
+                          {index} - {name}
+                          <br />
+                        </>
+                      ))}
+                    </>
+                  }
+                  text={`${row.risks.length} riscos`}
                 />
                 <TextIconRow text={dateToString(row.doneDate)} />
-                <TextIconRow
-                  text={
-                    employeeExamEvaluationTypeMap[row.evaluationType]?.content
-                  }
-                />
                 <TextIconRow text={esocialSendMap[row.type]?.content} />
 
                 <SFlex center>
@@ -211,9 +216,9 @@ export const SendEventESocialTable: FC<
                         'Valido'
                       )
                     }
-                    icon={errors.length ? <SCloseIcon /> : <SCheckIcon />}
+                    icon={isError ? <SCloseIcon /> : <SCheckIcon />}
                     sx={{
-                      color: errors.length ? 'error.main' : 'success.main',
+                      color: isError ? 'error.main' : 'success.main',
                     }}
                     onClick={() => onViewXMl(row)}
                   />

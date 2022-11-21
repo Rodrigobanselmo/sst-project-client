@@ -7,6 +7,7 @@ import { nodeTypesConstant } from 'components/organisms/main/Tree/OrgTree/consta
 import { TreeTypeEnum } from 'components/organisms/main/Tree/OrgTree/enums/tree-type.enums';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
+import sortArray from 'sort-array';
 import { setDocSaved, setDocUnsaved } from 'store/reducers/save/saveSlice';
 import { v4 } from 'uuid';
 
@@ -216,6 +217,7 @@ export const useHierarchyTreeActions = () => {
 
           treeMap[firstNodeId].childrenIds.push(workspace.id);
         });
+
         Object.values(hierarchyMap).forEach((values, index) => {
           values.workspaceIds.map((workspaceId) => {
             const hierarchyCopy = getHierarchyCopyFrom(values);
@@ -226,7 +228,13 @@ export const useHierarchyTreeActions = () => {
               stopDrag: options?.stopDrag || false,
               idRef: hierarchyCopy?.id || '',
               copyCompanyId: companyIdCopy,
-              childrenIds: values.children
+              childrenIds: sortArray(values.children, {
+                by: 'name',
+                order: 'asc',
+                computed: {
+                  name: (row) => hierarchyMap[row].name,
+                },
+              })
                 .map((child) =>
                   hierarchyMap[child].workspaceIds.includes(workspaceId)
                     ? `${child}//${workspaceId}`
@@ -255,6 +263,19 @@ export const useHierarchyTreeActions = () => {
                 ...treeMap[workspaceId].childrenIds,
                 `${values.id}//${workspaceId}`,
               ];
+          });
+          values.workspaceIds.map((workspaceId) => {
+            treeMap[workspaceId].childrenIds = sortArray(
+              treeMap?.[workspaceId]?.childrenIds || [],
+              {
+                by: 'name',
+                order: 'asc',
+                computed: {
+                  name: (row) =>
+                    hierarchyMap[(row as any)?.split('//')[0]]?.name,
+                },
+              },
+            );
           });
         });
       }

@@ -25,6 +25,7 @@ export const SideRowGho: FC<SideItemsProps> = ({
   handleEditGHO,
   hide,
   viewDataType,
+  riskData,
 }) => {
   const isHierarchy = 'childrenIds' in data;
 
@@ -97,15 +98,15 @@ export const SideRowGho: FC<SideItemsProps> = ({
           <SFlex>
             {!hide && (
               <>
-                <STooltip withWrapper title={'Limpar dados'}>
+                {/* <STooltip withWrapper title={'Limpar dados'}>
                   <SIconButton
                     loading={isDeleteLoading}
-                    onClick={() => handleDeleteGHO(String(data.id), data)}
+                    onClick={() => handleDeleteGHO(String(riskData.id), data)}
                     size="small"
                   >
                     <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
                   </SIconButton>
-                </STooltip>
+                </STooltip> */}
                 {/* <STooltip withWrapper title={'Editar'}>
                 <SIconButton onClick={() => handleEditGHO(data)} size="small">
                   <Icon component={SEditIcon} sx={{ fontSize: '1.2rem' }} />

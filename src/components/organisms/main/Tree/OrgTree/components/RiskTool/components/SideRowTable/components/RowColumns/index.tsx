@@ -1,13 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, CircularProgress, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import SIconButton from 'components/atoms/SIconButton';
 import { STag } from 'components/atoms/STag';
 import { ITagActionColors } from 'components/atoms/STag/types';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
+
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
@@ -40,6 +43,9 @@ export const RowColumns: FC<RowColumnsProps> = ({
   selectedRisks,
   isRepresentAll,
   showEndDate,
+  handleDeleteRiskData,
+  isDeleteLoading,
+  isLoading,
   ...props
 }) => {
   const { columns } = useRowColumns();
@@ -81,6 +87,7 @@ export const RowColumns: FC<RowColumnsProps> = ({
   return (
     <Box>
       <STGridItem
+        loading={isLoading ? 1 : 0}
         inactive={riskData?.endDate ? 1 : 0}
         sx={{ gridTemplateColumns: columns.map((row) => row.grid).join(' ') }}
         onClick={() =>
@@ -185,27 +192,47 @@ export const RowColumns: FC<RowColumnsProps> = ({
                 <div />
               </>
             )}
+            {isLoading && (
+              <SFlex gap={5} align="center">
+                <CircularProgress color="primary" size={10} />
+                <SText fontSize={11}>Salvando...</SText>
+              </SFlex>
+            )}
           </>
         )}
       </STGridItem>
       {showEndDate && riskData && (
-        <STooltip title={'Editar data'}>
-          <SEndDateBox mt={1} onClick={onEditDate}>
-            <SText
-              fontSize="11px"
-              color={riskData?.endDate ? 'error.main' : 'text.light'}
-              minWidth={110}
+        <SFlex align="center">
+          <STooltip title={'Editar data'}>
+            <SEndDateBox mt={1} onClick={onEditDate}>
+              <SText
+                fontSize="11px"
+                color={riskData?.endDate ? 'error.main' : 'text.light'}
+                minWidth={110}
+              >
+                inicio: {dateToString(riskData?.startDate)}
+              </SText>
+              <SText
+                fontSize="11px"
+                color={riskData?.endDate ? 'error.main' : 'text.light'}
+              >
+                fim: {dateToString(riskData?.endDate)}
+              </SText>
+            </SEndDateBox>
+          </STooltip>
+          <STooltip withWrapper title={'Limpar dados'}>
+            <SIconButton
+              loading={isDeleteLoading}
+              onClick={() => handleDeleteRiskData?.()}
+              size="small"
             >
-              inicio: {dateToString(riskData?.startDate)}
-            </SText>
-            <SText
-              fontSize="11px"
-              color={riskData?.endDate ? 'error.main' : 'text.light'}
-            >
-              fim: {dateToString(riskData?.endDate)}
-            </SText>
-          </SEndDateBox>
-        </STooltip>
+              <Icon
+                component={SDeleteIcon}
+                sx={{ fontSize: '1.2rem', color: 'error.dark' }}
+              />
+            </SIconButton>
+          </STooltip>
+        </SFlex>
       )}
     </Box>
   );

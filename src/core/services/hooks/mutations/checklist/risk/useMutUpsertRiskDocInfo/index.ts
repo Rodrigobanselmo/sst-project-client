@@ -67,6 +67,13 @@ const editHierarchyRiskData = (riskDocInfo: IRiskDocInfo) => {
   // queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
   if (!riskDocInfo.hierarchyId) return;
 
+  queryClient.invalidateQueries([
+    QueryEnum.RISK_DATA,
+    riskDocInfo.companyId,
+    riskDocInfo.hierarchyId,
+    QueryEnum.HIERARCHY,
+  ]);
+
   const actualData = queryClient.getQueryData<IRiskData[]>([
     QueryEnum.RISK_DATA_PLAN,
     riskDocInfo.companyId,

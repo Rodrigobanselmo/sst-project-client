@@ -7,7 +7,8 @@ import { SContainer } from 'components/atoms/SContainer';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
-import { ModalSendESocial } from 'components/organisms/modals/ModalSendESocial/ModalSendESocial';
+import { ModalSend2220ESocial } from 'components/organisms/modals/ModalSend2220ESocial/ModalSend2220ESocial';
+import { ModalSend2240ESocial } from 'components/organisms/modals/ModalSend2240ESocial/ModalSend2240ESocial';
 import { CompanyESocialTable } from 'components/organisms/tables/CompanyESocialTable/CompanyESocialTable';
 import { ESocialBatchTable } from 'components/organisms/tables/ESocialBatchTable/ESocialBatchTable';
 import { ESocialEventTable } from 'components/organisms/tables/ESocialEventTable/ESocialEventTable';
@@ -54,7 +55,8 @@ const EsocialPage: NextPage = () => {
           </SWizardBox>
         </Wizard>
       </SContainer>
-      <ModalSendESocial />
+      <ModalSend2220ESocial />
+      <ModalSend2240ESocial />
     </>
   );
 };

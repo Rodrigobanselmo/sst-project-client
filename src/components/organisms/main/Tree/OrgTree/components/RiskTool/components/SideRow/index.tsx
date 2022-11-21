@@ -81,6 +81,7 @@ export const SideRow = React.memo<SideRowProps>(
           handleDeleteGHO={handleDeleteGHO}
           isDeleteLoading={isDeleteLoading}
           hide={hide}
+          riskData={riskData}
         />
         <SFlex gap={4} direction="column">
           {isRiskOpen &&
@@ -109,6 +110,8 @@ export const SideRow = React.memo<SideRowProps>(
                   riskData={rd}
                   riskGroupId={riskGroupId}
                   isRepresentAll={isRepresentAll}
+                  handleDeleteRiskData={handleDeleteGHO}
+                  isDeleteLoading={isDeleteLoading}
                 />
               );
             })}

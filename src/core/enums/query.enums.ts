@@ -27,6 +27,7 @@ export enum QueryEnum {
   GENERATE_SOURCE = 'risk',
   GHO = 'gho',
   PREVIEW_EVENT_2220 = 'preview-event-2220',
+  PREVIEW_EVENT_2240 = 'preview-event-2240',
   ESOCIAL_EVENT = 'esocial-event',
   ESOCIAL_EVENT_BATCH = 'esocial-event-batch',
   HIERARCHY = 'hierarchy',

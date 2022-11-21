@@ -3,6 +3,7 @@ import { ElementType, ReactNode } from 'react';
 
 import { SFlexProps } from 'components/atoms/SFlex/types';
 import { STextProps } from 'components/atoms/SText/types';
+import { STooltipProps } from 'components/atoms/STooltip/types';
 
 export type TextIconRowProps = SFlexProps & {
   icon?: ElementType<any>;
@@ -13,4 +14,5 @@ export type TextIconRowProps = SFlexProps & {
   clickable?: boolean;
   textProps?: STextProps;
   color?: string;
+  tooltipProps?: Partial<STooltipProps>;
 };

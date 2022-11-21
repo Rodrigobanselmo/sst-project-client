@@ -33,9 +33,10 @@ export const RiskToolGSEViewRowRiskBox: FC<RiskToolGSEViewRowRiskBoxProps> = ({
   const cleanData = (risk: IRiskFactors) => {
     if (hasData && riskData.homogeneousGroupId)
       deleteMutation.mutate({
-        riskFactorGroupDataId: riskGroupId,
-        homogeneousGroupIds: [riskData.homogeneousGroupId],
-        riskIds: [risk.id],
+        // riskFactorGroupDataId: riskGroupId,
+        // homogeneousGroupIds: [riskData.homogeneousGroupId],
+        // riskIds: [risk.id],
+        ids: [riskData.id],
       });
   };
 

@@ -56,6 +56,7 @@ export enum ApiRoutesEnum {
   PDF_GUIDE = '/documents/pdf/guide',
   COMPANY_DASHBOARD = '/company/:companyId/dashboard',
   ESOCIAL_EVENT_2220 = 'esocial/events/2220',
+  ESOCIAL_EVENT_2240 = 'esocial/events/2240',
   ESOCIAL_EVENT_ALL = 'esocial/events/all',
   NOTIFICATION = '/notification',
 }

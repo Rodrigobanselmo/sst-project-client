@@ -22,6 +22,7 @@ const TextIconRow: FC<TextIconRowProps> = ({
   clickable,
   textProps = {},
   color,
+  tooltipProps = {},
   ...props
 }) => {
   const memoizedChildren = useMemo(() => {
@@ -57,12 +58,13 @@ const TextIconRow: FC<TextIconRowProps> = ({
     fontSize,
     lineNumber,
     lineHeight,
+    color,
     textProps,
     children,
   ]);
 
   return (
-    <STooltip title={tooltipTitle ?? text} minLength={100}>
+    <STooltip title={tooltipTitle ?? text} minLength={100} {...tooltipProps}>
       <SFlex
         onClick={onClick}
         sx={{

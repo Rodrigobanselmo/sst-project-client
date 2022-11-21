@@ -23,6 +23,18 @@ export interface IEvent2220 {
   xml: string;
 }
 
+export interface IEvent2240 {
+  id?: number;
+  risks: string[];
+  doneDate: Date;
+  errors: {
+    message: string;
+  }[];
+  employee: IEmployee;
+  type: ESocialSendEnum.SEND;
+  xml: string;
+}
+
 export interface IEsocialSendBatchResponse {
   ideEmpregador?: { tpInsc: number; nrInsc: string };
   ideTransmissor?: { tpInsc: number; nrInsc: string };

@@ -156,35 +156,36 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
     });
   };
 
-  const handleDeleteGHO = useCallback(
-    (id: string, data?: IGho) => {
-      if (riskGroupIdMemo && risk)
-        preventDelete(
-          async () => {
-            cleanMutation.mutate({
-              riskFactorGroupDataId: riskGroupIdMemo as string,
-              homogeneousGroupIds: [id],
-              riskIds: [risk.id],
-            });
-          },
-          <span>
-            <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{data?.name}</p>
-            Você tem certeza que deseja remover todos os dados relativo ao fator
-            de risco/perigo:{' '}
-            <span
-              style={{
-                fontSize: '0.95rem',
-                textDecoration: 'underline',
-                fontWeight: 500,
-              }}
-            >
-              {risk.name}
-            </span>
-          </span>,
-        );
-    },
-    [cleanMutation, preventDelete, riskGroupIdMemo, risk],
-  );
+  // const handleDeleteGHO = useCallback(
+  //   (id: string, data?: IGho) => {
+  //     if (riskGroupIdMemo && risk)
+  //       preventDelete(
+  //         async () => {
+  //           cleanMutation.mutate({
+  //             riskFactorGroupDataId: riskGroupIdMemo as string,
+  //             homogeneousGroupIds: [id],
+  //             riskIds: [risk.id],
+  //             // ids: [riskData.id],
+  //           });
+  //         },
+  //         <span>
+  //           <p style={{ fontWeight: 600, fontSize: '0.95rem' }}>{data?.name}</p>
+  //           Você tem certeza que deseja remover todos os dados relativo ao fator
+  //           de risco/perigo:{' '}
+  //           <span
+  //             style={{
+  //               fontSize: '0.95rem',
+  //               textDecoration: 'underline',
+  //               fontWeight: 500,
+  //             }}
+  //           >
+  //             {risk.name}
+  //           </span>
+  //         </span>,
+  //       );
+  //   },
+  //   [cleanMutation, preventDelete, riskGroupIdMemo, risk],
+  // );
 
   const handleDelete = useCallback(
     (id: string, data?: IGho | IHierarchyTreeMapObject) => {
@@ -192,9 +193,10 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
         preventDelete(
           async () => {
             cleanMutation.mutate({
-              riskFactorGroupDataId: riskGroupIdMemo as string,
-              homogeneousGroupIds: [id],
-              riskIds: [risk.id],
+              // riskFactorGroupDataId: riskGroupIdMemo as string,
+              // homogeneousGroupIds: [id],
+              // riskIds: [risk.id],
+              ids: [id],
             });
           },
           <span>
@@ -320,7 +322,7 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
                   handleSelectGHO={handleSelectGHO}
                   handleDeleteGHO={handleDelete}
                   selectedGhoId={selectedGhoId}
-                  isDeleteLoading={deleteMutation.isLoading}
+                  isDeleteLoading={cleanMutation.isLoading}
                   isRiskOpen={isRiskOpen}
                   viewDataType={viewDataType}
                   riskGroupId={riskGroupIdMemo}

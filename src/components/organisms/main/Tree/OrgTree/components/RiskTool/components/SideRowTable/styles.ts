@@ -6,6 +6,7 @@ import { STGridExtend } from '../../styles';
 export const STGridItem = styled(STGridExtend)<{
   selected?: number;
   inactive?: number;
+  loading?: number;
 }>`
   border: 1px solid ${(props) => props.theme.palette.divider};
   background-color: ${(props) => props.theme.palette.background.box};
@@ -22,7 +23,13 @@ export const STGridItem = styled(STGridExtend)<{
     props.selected &&
     css`
       border: 2px solid ${props.theme.palette.info.main};
-    `}
+    `};
+
+  ${(props) =>
+    props.loading &&
+    css`
+      background-color: ${props.theme.palette.background.divider};
+    `};
 `;
 
 export const SEndDateBox = styled(Box)<{

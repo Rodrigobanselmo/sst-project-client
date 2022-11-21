@@ -9,5 +9,10 @@ export interface SideTableProps {
   riskData?: IRiskData;
   hide?: boolean;
   isRepresentAll?: boolean;
+  isDeleteLoading?: boolean;
   riskGroupId: string;
+  handleDeleteRiskData?: (
+    id: string,
+    data?: IGho | IHierarchyTreeMapObject,
+  ) => void;
 }
