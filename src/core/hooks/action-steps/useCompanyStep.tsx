@@ -313,7 +313,7 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.EXAMS_RISK]: {
         icon: SExamIcon,
         onClick: handleAddExam,
-        text: 'Exames',
+        text: 'Relação de Exames',
         tooltipText: 'Cadastro de exames aos seus respectivos riscos',
       },
       [CompanyActionEnum.COMPANY_RISKS]: {

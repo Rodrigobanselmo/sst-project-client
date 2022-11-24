@@ -1,26 +1,25 @@
 import { useEffect, useState } from 'react';
 
 import { Box } from '@mui/material';
-import { PDFViewer, usePDF } from '@react-pdf/renderer';
+import { Document, PDFViewer, usePDF } from '@react-pdf/renderer';
 import { SButton } from 'components/atoms/SButton';
-import { SContainer } from 'components/atoms/SContainer';
-import PdfGuide from 'components/pdfs/documents/guide/guide.pdf';
+import PdfGuidePage from 'components/pdfs/documents/guide/guide.pdf';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
 import { EmailsTemplatesEnum } from 'core/enums/emails-templates';
-import { IGuideData } from 'core/interfaces/api/IGuideData';
+import { IPdfGuideData } from 'core/interfaces/api/IPdfGuideData';
 import { useMutSendEmail } from 'core/services/hooks/mutations/notification/useMutSendEmail/useMutSendEmail';
 import { useQueryPdfGuide } from 'core/services/hooks/queries/pdfs/useQueryPdfGuide';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
-export function ButtonSendEmail({ data }: { data: IGuideData }) {
+export function ButtonSendEmail({ data }: { data: IPdfGuideData }) {
   const { enqueueSnackbar } = useSnackbar();
 
   const sendEmailMutation = useMutSendEmail();
   const [instance] = usePDF({
-    document: PdfGuide({ data }),
+    document: PdfGuidePage({ data }),
   });
 
   const senEmail = () => {
@@ -60,14 +59,18 @@ const Guide: NextPage = () => {
 
   return (
     <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-      {guideData && guideData?.company && (
-        <>
-          <PDFViewer showToolbar width="100%" height="100%">
-            <PdfGuide data={guideData} />
-          </PDFViewer>
+      <>
+        <PDFViewer showToolbar width="100%" height="100%">
+          <Document>
+            {guideData && guideData?.company && (
+              <PdfGuidePage data={guideData} />
+            )}
+          </Document>
+        </PDFViewer>
+        {guideData && guideData?.company && (
           <ButtonSendEmail data={guideData} />
-        </>
-      )}
+        )}
+      </>
     </Box>
   );
 };

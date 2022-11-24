@@ -192,6 +192,8 @@ export const HistoryScheduleExamCompanyTable: FC<
               StatusEnum.EXPIRED,
             ].includes(row.status);
 
+            const isClinicExam = row.exam?.isAttendance;
+
             return (
               <STableRow
                 key={row.id}
@@ -251,6 +253,7 @@ export const HistoryScheduleExamCompanyTable: FC<
                     <SIconDownloadExam
                       companyId={employee?.companyId}
                       employeeId={employee?.id}
+                      asoId={isClinicExam ? row.id : undefined}
                     />
                     {/* <IconButtonRow
                       disabled={disabled}

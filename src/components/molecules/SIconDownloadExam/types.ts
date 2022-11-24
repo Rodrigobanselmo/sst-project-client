@@ -6,8 +6,10 @@ export interface ISIconUpload {
   tooltipTitle?: string;
   text?: string;
   isTag?: boolean;
+  isMenu?: boolean;
   loading?: boolean;
   isActive?: boolean;
   companyId?: string;
   employeeId?: number;
+  asoId?: number;
 }

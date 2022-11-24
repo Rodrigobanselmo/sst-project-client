@@ -7,9 +7,11 @@ import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import SText from 'components/atoms/SText';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
+import { ModalAddProtocol } from 'components/organisms/modals/ModalAddProtocol/ModalAddProtocol';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalEditExamRisk } from 'components/organisms/modals/ModalEditExamRisk/ModalEditExamRisk';
+import { ModalEditProtocolRisk } from 'components/organisms/modals/ModalEditProtocolRisk/ModalEditProtocolRisk';
 import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
@@ -111,8 +113,10 @@ const CompanyPage: NextPage = () => {
       <ModalSelectDocPgr />
       <ModalSelectClinic />
       <ModalAddExam />
+      <ModalAddProtocol />
       <ModalViewExam />
       <ModalEditExamRisk />
+      <ModalEditProtocolRisk />
 
       <ModalViewUsers />
       <StackModalViewUsers />

@@ -4,6 +4,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import clone from 'clone';
+import { onDownloadPdf } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
 import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { IExamComplementsClinicTable } from 'components/organisms/tables/ExamsComplementsClinicTable/ExamsComplementsClinicTable';
 import { IExamComplementsTable } from 'components/organisms/tables/ExamsComplementsTable/ExamsComplementsTable';
@@ -15,6 +16,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -62,9 +64,10 @@ export const useAddData = () => {
   const { enqueueSnackbar } = useSnackbar();
   const initialDataRef = useRef(initialEditEmployeeHistoryExamState);
 
-  const { handleSubmit, setValue, control, reset, getValues } = useForm({
-    resolver: yupResolver(employeeHistoryExamSchema),
-  });
+  const { handleSubmit, setValue, control, trigger, reset, getValues } =
+    useForm({
+      resolver: yupResolver(employeeHistoryExamSchema),
+    });
 
   const updateMutation = useMutUpdateManyScheduleHisExam();
   const uploadMutation = useMutUploadEmployeeHisExam();
@@ -100,10 +103,15 @@ export const useAddData = () => {
     const setInitialData = async () => {
       if (initialData) {
         setData((oldData) => {
+          const clinicExam = initialData?.examsHistory?.find(
+            (e) => e.exam?.isAttendance,
+          );
+
           const newData = {
             ...oldData,
             ...initialData,
             ...data,
+            doctor: clinicExam?.doctor,
           };
 
           initialDataRef.current = newData;
@@ -113,6 +121,10 @@ export const useAddData = () => {
     };
 
     setInitialData();
+
+    setTimeout(() => {
+      trigger(['sex', 'birthday']);
+    }, 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getModalData]);
 
@@ -161,6 +173,81 @@ export const useAddData = () => {
     await updateMutation
       .mutateAsync({ ...submitData })
       .then(() => onClose())
+      .catch(() => null);
+  };
+
+  const onChangeDoctor = async (prof: IProfessional) => {
+    const [sex, birthday] = getValues(['sex', 'birthday']);
+
+    if (!sex || !birthday) {
+      setData({
+        ...data,
+        doctor: { name: '', id: '' } as any,
+      });
+      setTimeout(() => {
+        setData({
+          ...data,
+          doctor: undefined,
+        });
+      }, 100);
+
+      return enqueueSnackbar(
+        'Preencha os dados do funcionário para prosseguir',
+        {
+          anchorOrigin: {
+            vertical: 'top',
+            horizontal: 'center',
+          },
+          variant: 'warning',
+        },
+      );
+    }
+
+    const submitData: IUpdateManyScheduleExamHistory = {
+      birthday: data.birthday,
+      isClinic: true,
+      companyId,
+      data: [],
+    };
+
+    let asoId: number;
+
+    data.examsHistory?.forEach((examData) => {
+      if (!data.id) return;
+
+      const submit: IUpdateManyScheduleExamHistory['data'][0] = {
+        employeeId: data.id,
+        id: examData.id,
+        conclusion: examData.conclusion,
+        status: examData.status,
+      };
+
+      if (examData.exam?.isAttendance) {
+        if (data.evaluationType) submit.evaluationType = data.evaluationType;
+        asoId = examData.exam.id;
+        if (prof?.id) {
+          submit.doctorId = prof.id;
+          submit.status = StatusEnum.DONE;
+        }
+      }
+
+      submitData.data.push(submit);
+    });
+
+    await updateMutation
+      .mutateAsync({ ...submitData })
+      .then(() => {
+        if (prof?.id)
+          onDownloadPdf(RoutesEnum.PDF_GUIDE, {
+            employeeId: data.id,
+            companyId,
+            asoId,
+          });
+        setData({
+          ...data,
+          doctor: prof,
+        });
+      })
       .catch(() => null);
   };
 
@@ -230,7 +317,7 @@ export const useAddData = () => {
 
     if (ids.length == 0) {
       return enqueueSnackbar(
-        'Selecione os exames a cima para adcionar o arquivo',
+        'Selecione os exames abaixo para adcionar o arquivo',
         {
           variant: 'warning',
         },
@@ -271,5 +358,6 @@ export const useAddData = () => {
     uploadExam,
     uploadMutation,
     onUploadManyFile,
+    onChangeDoctor,
   };
 };

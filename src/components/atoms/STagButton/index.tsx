@@ -30,6 +30,8 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
       topText,
       showOnHover,
       textProps,
+      borderActive,
+      outline,
       ...props
     },
     ref,
@@ -39,12 +41,14 @@ export const STagButton = React.forwardRef<any, ISTagButtonProps>(
     return (
       <STooltip title={tooltipTitle}>
         <STSBoxButton
+          borderActive={borderActive}
           active={active ? 1 : 0}
           disabled={disabled ? 1 : 0}
           bg={bg}
           onClick={loading || disabled ? undefined : onClick}
           error={error ? 1 : 0}
           ref={ref}
+          outline={outline ? 1 : 0}
           sx={{
             minHeight:
               (large ? 32 : 22) + (subText ? 10 : 0) + (topText ? 12 : 0),

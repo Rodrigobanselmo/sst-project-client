@@ -8,12 +8,16 @@ import {
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import dayjs from 'dayjs';
 import { useSnackbar } from 'notistack';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { QueryEnum } from 'core/enums/query.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
+import {
+  ClinicScheduleTypeEnum,
+  ExamTypeEnum,
+} from 'core/interfaces/api/IExam';
 import {
   ICreateEmployeeExamHistory,
   useMutCreateEmployeeHisExam,
@@ -76,7 +80,16 @@ export const useResumeStep = ({
       subOfficeId: data?.subOffice?.id,
     } as ICreateEmployeeExamHistory;
 
-    if (!data.changeHierarchyWhenDone && !data.changeHierarchyDate) {
+    const askDoneDate = [
+      ExamHistoryTypeEnum.ADMI,
+      ExamHistoryTypeEnum.OFFI,
+    ].includes(data.examType as ExamHistoryTypeEnum);
+
+    if (
+      askDoneDate &&
+      !data.changeHierarchyWhenDone &&
+      !data.changeHierarchyDate
+    ) {
       return setError('doneDate', {
         message: 'Campo obrigatório',
       });

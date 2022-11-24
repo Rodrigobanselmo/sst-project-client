@@ -30,6 +30,8 @@ export interface IUpdateExamRisk {
   toAge?: number | null;
   startDate?: Date;
   endDate?: Date;
+  minRiskDegreeQuantity?: number | null;
+  minRiskDegree?: number | null;
 }
 
 export async function updateExam(data: IUpdateExamRisk, companyId?: string) {

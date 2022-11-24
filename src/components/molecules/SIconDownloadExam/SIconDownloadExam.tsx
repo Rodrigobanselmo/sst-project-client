@@ -1,6 +1,7 @@
 import React, { FC, MouseEvent, useState } from 'react';
 
 import { Box, Icon } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
 import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
@@ -20,6 +21,24 @@ import { IMenuSearchOption } from '../SMenuSearch/types';
 import { IAnchorEvent } from '../STagSelect/types';
 import { ISIconUpload } from './types';
 
+export const onDownloadPdf = (
+  base: RoutesEnum,
+  options: {
+    asoId?: number;
+    employeeId?: number;
+    companyId?: string;
+  },
+) => {
+  if (!options.employeeId || !options.companyId) return;
+
+  const path = base
+    .replace(':employeeId', String(options.employeeId))
+    .replace(':asoId', String(options.asoId))
+    .replace(':companyId', options.companyId);
+
+  window.open(path, '_blank');
+};
+
 export const SIconDownloadExam: FC<ISIconUpload> = ({
   handleSelectMenu,
   disabled,
@@ -29,6 +48,8 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
   isActive,
   companyId,
   employeeId,
+  asoId,
+  isMenu = true,
 }) => {
   const [anchorEl, setAnchorEl] = useState<IAnchorEvent>(null);
   const downloadMutation = useMutDownloadFile();
@@ -37,29 +58,19 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
     setAnchorEl(null);
   };
 
-  const onDownload = (base: string) => {
-    if (!employeeId || !companyId) return;
-
-    const path = base
-      .replace(':employeeId', String(employeeId))
-      .replace(':companyId', companyId);
-
-    window.open(path, '_blank');
-  };
-
   const handleSelect = (
     option: IMenuSearchOption,
     e: MouseEvent<HTMLLIElement>,
   ) => {
     e.stopPropagation();
     if (option.value == 1) {
-      onDownload(RoutesEnum.PDF_GUIDE);
+      onDownloadPdf(RoutesEnum.PDF_GUIDE, { employeeId, companyId });
     }
     if (option.value == 2) {
-      onDownload(RoutesEnum.PDF_KIT_EXAM);
+      onDownloadPdf(RoutesEnum.PDF_KIT_EXAM, { employeeId, companyId, asoId });
     }
     if (option.value == 3) {
-      onDownload(RoutesEnum.PDF_DOC_PCD);
+      onDownloadPdf(RoutesEnum.PDF_DOC_PCD, { employeeId, companyId });
     }
 
     handleSelectMenu && handleSelectMenu(option, e);
@@ -72,27 +83,67 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
 
   return (
     <Box>
-      {isTag ? (
-        <STagButton
-          icon={SDocumentIcon}
-          text={text || 'Baixar documentos'}
-          onClick={handleSelectButton}
-          loading={loading || downloadMutation.isLoading}
-          iconProps={{ sx: isActive ? { color: 'info.main' } : {} }}
-        />
-      ) : (
-        <SIconButton
-          tooltip={text || 'Baixar documentos'}
-          sx={{ width: 36, height: 36 }}
-          onClick={handleSelectButton}
-          loading={loading || downloadMutation.isLoading}
-        >
-          <Icon
-            component={SDocumentIcon}
-            sx={isActive ? { color: 'info.main' } : {}}
-          />
-        </SIconButton>
-      )}
+      <>
+        {!isMenu && (
+          <SFlex>
+            {[
+              {
+                name: 'Baixar Guia',
+                value: 1,
+                disabled: !companyId || !employeeId || disabled,
+              },
+              {
+                name: 'Baixar Kit Médico',
+                value: 2,
+                disabled: !companyId || !employeeId || disabled,
+              },
+              {
+                name: 'Baixar Laudo PCD',
+                value: 3,
+                disabled: !companyId || !employeeId || disabled,
+              },
+            ].map((data) => {
+              return (
+                <STagButton
+                  borderActive={'info'}
+                  outline
+                  key={data.value}
+                  text={data.name}
+                  disabled={data.disabled}
+                  onClick={(e) => handleSelect(data, e as any)}
+                  loading={loading || downloadMutation.isLoading}
+                  iconProps={{ sx: isActive ? { color: 'info.main' } : {} }}
+                />
+              );
+            })}
+          </SFlex>
+        )}
+        {isMenu && (
+          <>
+            {isTag ? (
+              <STagButton
+                icon={SDocumentIcon}
+                text={text || 'Baixar documentos'}
+                onClick={handleSelectButton}
+                loading={loading || downloadMutation.isLoading}
+                iconProps={{ sx: isActive ? { color: 'info.main' } : {} }}
+              />
+            ) : (
+              <SIconButton
+                tooltip={text || 'Baixar documentos'}
+                sx={{ width: 36, height: 36 }}
+                onClick={handleSelectButton}
+                loading={loading || downloadMutation.isLoading}
+              >
+                <Icon
+                  component={SDocumentIcon}
+                  sx={isActive ? { color: 'info.main' } : {}}
+                />
+              </SIconButton>
+            )}
+          </>
+        )}
+      </>
       <SMenu
         close={handleClose}
         isOpen={Boolean(anchorEl)}

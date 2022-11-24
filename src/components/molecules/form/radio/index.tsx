@@ -82,6 +82,13 @@ export function SRadio<T>({
                   fontSize: 14,
                 },
                 ...formControlProps?.sx,
+                ...(errorMessage && {
+                  color: 'error.main',
+                  '& .MuiSvgIcon-root': {
+                    color: 'error.main',
+                    fontSize: 15,
+                  },
+                }),
               }}
               {...formControlProps}
             />

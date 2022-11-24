@@ -36,7 +36,7 @@ export async function sendEmail(data: ISendEmail) {
 
   const path = ApiRoutesEnum.NOTIFICATION + '/email';
 
-  const response = await api.post<ICharacterization>(path, formData, {
+  const response = await api.post<any>(path, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
       Authorization: `Bearer ${token}`,
@@ -54,7 +54,7 @@ export function useMutSendEmail() {
     async ({ ...data }: ISendEmail) =>
       sendEmail({ ...data, companyId: getCompanyId(data) }),
     {
-      onSuccess: async (resp) => {
+      onSuccess: async (resp: any) => {
         enqueueSnackbar('Email Enviado com sucesso', { variant: 'success' });
         return resp;
       },

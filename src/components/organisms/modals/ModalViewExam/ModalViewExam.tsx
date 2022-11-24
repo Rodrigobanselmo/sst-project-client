@@ -15,6 +15,7 @@ import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/componen
 import { ViewTypeEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-risk-type.constant';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ExamsRiskTable } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
+import { ProtocolsRiskTable } from 'components/organisms/tables/ProtocolsRiskTable/ProtocolsRiskTable';
 import { useRouter } from 'next/router';
 
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
@@ -127,7 +128,8 @@ export const ModalViewExam: FC = () => {
           header={
             <WizardTabs
               options={[
-                { label: 'Riscos e Exames' },
+                { label: 'Relação de Exames' },
+                { label: 'Relação de Protocolos' },
                 { label: 'Exames Vinculados' },
               ]}
             />
@@ -135,6 +137,9 @@ export const ModalViewExam: FC = () => {
         >
           <Box sx={{ px: 5, pb: 10 }}>
             <ExamsRiskTable />
+          </Box>
+          <Box sx={{ px: 5, pb: 10 }}>
+            <ProtocolsRiskTable />
           </Box>
           <Box sx={{ px: 5, pb: 10 }}>
             {loadingExams && <LinearProgress />}

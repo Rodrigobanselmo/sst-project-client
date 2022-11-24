@@ -60,6 +60,18 @@ export const employeeExamTypeMap: Record<
   },
 };
 
+export const employeeToAsoExamTypeTranslate: Record<
+  string,
+  ExamHistoryTypeEnum
+> = {
+  [ExamHistoryTypeEnum.ADMI]: ExamHistoryTypeEnum.ADMI,
+  [ExamHistoryTypeEnum.PERI]: ExamHistoryTypeEnum.PERI,
+  [ExamHistoryTypeEnum.CHAN]: ExamHistoryTypeEnum.CHAN,
+  [ExamHistoryTypeEnum.RETU]: ExamHistoryTypeEnum.RETU,
+  [ExamHistoryTypeEnum.DEMI]: ExamHistoryTypeEnum.DEMI,
+  [ExamHistoryTypeEnum.OFFI]: ExamHistoryTypeEnum.CHAN,
+};
+
 export const employeeExamTypeList = [
   employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
   employeeExamTypeMap[ExamHistoryTypeEnum.PERI],
@@ -68,6 +80,14 @@ export const employeeExamTypeList = [
   employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
   employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
   employeeExamTypeMap[ExamHistoryTypeEnum.OFFI],
+];
+
+export const asoExamTypeList = [
+  employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
+  employeeExamTypeMap[ExamHistoryTypeEnum.PERI],
+  employeeExamTypeMap[ExamHistoryTypeEnum.RETU],
+  employeeExamTypeMap[ExamHistoryTypeEnum.CHAN],
+  employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
 ];
 
 export const employeeExamScheduleTypeList = (employee?: IEmployee) => {

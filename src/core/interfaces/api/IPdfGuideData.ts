@@ -26,7 +26,7 @@ export type IClinicComplementaryData = {
   scheduleRange: Record<string, string>;
 };
 
-export interface IGuideData extends IEmployee {
+export interface IPdfGuideData extends IEmployee {
   clinics: ICompany[];
   exams: IExam[];
   consultantCompany: ICompany;

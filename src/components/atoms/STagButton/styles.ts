@@ -5,6 +5,7 @@ import { Box, styled } from '@mui/material';
 export const STSBoxButton = styled(Box)<{
   large?: number;
   error?: number;
+  outline?: number;
   active?: number;
   bg?: string;
   disabled?: number;
@@ -28,21 +29,6 @@ export const STSBoxButton = styled(Box)<{
   &:active {
     background-color: ${(props) => props.theme.palette.grey[400]};
   }
-
-  ${(props) =>
-    props.disabled &&
-    css`
-      background-color: ${props.theme.palette.grey[400]};
-      opacity: 0.7;
-
-      &:hover {
-        background-color: ${props.theme.palette.grey[400]};
-      }
-
-      &:active {
-        background-color: ${props.theme.palette.grey[400]};
-      }
-    `};
 
   ${(props) => props.large && css``};
 
@@ -98,5 +84,54 @@ export const STSBoxButton = styled(Box)<{
         color: ${props.theme.palette.info.dark};
       }
       border: 1px solid ${props.theme.palette.info.dark};
+    `};
+
+  ${(props) =>
+    props.borderActive == 'success' &&
+    css`
+      .text_main {
+        color: ${props.theme.palette.success.dark};
+      }
+      border: 1px solid ${props.theme.palette.success.dark};
+    `};
+
+  ${(props) =>
+    props.borderActive == 'error' &&
+    css`
+      .text_main {
+        color: ${props.theme.palette.error.dark};
+      }
+      border: 1px solid ${props.theme.palette.error.dark};
+    `};
+
+  ${(props) =>
+    props.borderActive == 'warning' &&
+    css`
+      .text_main {
+        color: ${props.theme.palette.warning.dark};
+      }
+      border: 1px solid ${props.theme.palette.warning.dark};
+    `};
+
+  ${(props) =>
+    props.outline &&
+    css`
+      background-color: transparent;
+      box-shadow: none;
+    `};
+
+  ${(props) =>
+    props.disabled &&
+    css`
+      background-color: ${props.theme.palette.grey[400]};
+      opacity: 0.7;
+
+      &:hover {
+        background-color: ${props.theme.palette.grey[400]};
+      }
+
+      &:active {
+        background-color: ${props.theme.palette.grey[400]};
+      }
     `};
 `;

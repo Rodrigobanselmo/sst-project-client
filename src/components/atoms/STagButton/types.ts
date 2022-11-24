@@ -17,6 +17,8 @@ export interface ISTagButtonProps extends BoxProps {
   error?: boolean;
   showOnHover?: boolean;
   active?: boolean;
+  outline?: boolean;
   tooltipTitle?: ReactNode;
   textProps?: STextProps;
+  borderActive?: 'error' | 'info' | 'warning' | 'success';
 }

@@ -22,6 +22,7 @@ import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/Moda
 import { EvaluationSelect } from 'components/organisms/tagSelects/EvaluationSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
+import { employeeExamConclusionTypeMap } from 'project/enum/employee-exam-history-conclusion.enum';
 import {
   employeeExamTypeMap,
   ExamHistoryTypeEnum,
@@ -199,6 +200,9 @@ export const HistoryScheduleExamClinicTable: FC<
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
+            const clinicExam = row.examsHistory?.find(
+              (row) => row.exam?.isAttendance,
+            );
             return (
               <STableRow
                 key={row.id}
@@ -276,11 +280,11 @@ export const HistoryScheduleExamClinicTable: FC<
 
                     return (
                       <SFlex key={historyExam.exam.id}>
-                        {historyExam.exam?.isAttendance &&
-                        historyExam.doctor ? (
+                        {historyExam.exam?.isAttendance ? (
                           <EvaluationSelect
                             selected={historyExam.evaluationType}
                             large={false}
+                            disabled={!historyExam.doctor}
                             sx={{
                               minWidth: '110px',
                               maxWidth: '110px',
@@ -295,27 +299,31 @@ export const HistoryScheduleExamClinicTable: FC<
                           />
                         ) : (
                           <SText
-                            fontSize={13}
+                            fontSize={12}
                             lineNumber={1}
-                            sx={{ opacity: 0 }}
+                            textAlign="center"
+                            width={'100%'}
+                            sx={{ opacity: 1 }}
                             mt={1}
                           >
-                            -
+                            {employeeExamConclusionTypeMap[
+                              historyExam.conclusion
+                            ]?.content || 'SEM RESULTADO'}
                           </SText>
                         )}
                       </SFlex>
                     );
                   })}
                 </SFlex>
-                {row.examsHistory &&
-                  row.examsHistory?.find((row) => row.exam?.isAttendance) && (
-                    <SFlex justify="end">
-                      <SIconDownloadExam
-                        companyId={row.company.id}
-                        employeeId={row.id}
-                      />
-                    </SFlex>
-                  )}
+                {row.examsHistory && !!clinicExam && (
+                  <SFlex justify="end">
+                    <SIconDownloadExam
+                      companyId={row.company.id}
+                      employeeId={row.id}
+                      asoId={clinicExam.id}
+                    />
+                  </SFlex>
+                )}
                 {/* <IconButtonRow
                   onClick={(e) => {
                     e.stopPropagation();

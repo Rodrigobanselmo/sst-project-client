@@ -6,6 +6,7 @@ import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { ModalEditExamRisk } from 'components/organisms/modals/ModalEditExamRisk/ModalEditExamRisk';
+import { ModalEditProtocolRisk } from 'components/organisms/modals/ModalEditProtocolRisk/ModalEditProtocolRisk';
 import { ExamsRiskTable } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
 import { ExamsTable } from 'components/organisms/tables/ExamsTable/ExamsTable';
 import { NextPage } from 'next';
@@ -36,6 +37,7 @@ const ExamsPage: NextPage = () => {
       </SWizardBox>
       <ModalAddExam />
       <ModalEditExamRisk />
+      <ModalEditProtocolRisk />
     </SContainer>
   );
 };

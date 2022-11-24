@@ -1,78 +1,52 @@
-import { useEffect, useState } from 'react';
-
 import { Box } from '@mui/material';
-import { PDFViewer, usePDF } from '@react-pdf/renderer';
-import { SButton } from 'components/atoms/SButton';
-import { SContainer } from 'components/atoms/SContainer';
-import PdfGuide from 'components/pdfs/documents/guide/guide.pdf';
+import { Document, PDFViewer } from '@react-pdf/renderer';
+import PdfAsoPage from 'components/pdfs/documents/aso/aso.pdf';
+import PdfProntuarioPage from 'components/pdfs/documents/prontuario/prontuario.pdf';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
 
-import { EmailsTemplatesEnum } from 'core/enums/emails-templates';
-import { IGuideData } from 'core/interfaces/api/IGuideData';
-import { useMutSendEmail } from 'core/services/hooks/mutations/notification/useMutSendEmail/useMutSendEmail';
-import { useQueryPdfGuide } from 'core/services/hooks/queries/pdfs/useQueryPdfGuide';
+import { useQueryPdfKit } from 'core/services/hooks/queries/pdfs/useQueryPdfKit ';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 
-export function ButtonSendEmail({ data }: { data: IGuideData }) {
-  const { enqueueSnackbar } = useSnackbar();
-
-  const sendEmailMutation = useMutSendEmail();
-  const [instance] = usePDF({
-    document: PdfGuide({ data }),
-  });
-
-  const senEmail = () => {
-    if (instance.blob) {
-      const file = new File([instance.blob], 'guia-de-encaminhamento.pdf', {
-        type: 'application/pdf',
-      });
-
-      if (data?.email)
-        sendEmailMutation.mutateAsync({
-          files: [file],
-          template: EmailsTemplatesEnum.REFERRAL_GUIDE,
-          emails: [data.email],
-        });
-      else {
-        return enqueueSnackbar('Email do funcionário não informado', {
-          variant: 'error',
-          autoHideDuration: 1500,
-        });
-      }
-    }
-  };
-
-  return (
-    <Box position="absolute" bottom={20} right={20}>
-      <SButton loading={sendEmailMutation.isLoading} onClick={senEmail}>
-        Enviar por Email ao funcionário
-      </SButton>
-    </Box>
-  );
-}
-
-const Guide: NextPage = () => {
+const Kit: NextPage = () => {
   const { query } = useRouter();
   const employeeId = query.employeeId as string;
-  const { data: guideData } = useQueryPdfGuide(employeeId);
+  const asoId = query.asoId as string;
 
+  const { data: kitData } = useQueryPdfKit(asoId, employeeId);
   return (
     <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-      {guideData && guideData?.company && (
-        <>
-          <PDFViewer showToolbar width="100%" height="100%">
-            <PdfGuide data={guideData} />
-          </PDFViewer>
-          <ButtonSendEmail data={guideData} />
-        </>
-      )}
+      <PDFViewer showToolbar width="100%" height="100%">
+        <Document
+          subject={'Aso e prontuario'}
+          author={'simpleSST'}
+          creator={'simpleSST'}
+          producer={'simpleSST'}
+          keywords={'Aso / prontuario'}
+          title={`VIAS_ASO_E_PRONTUARIO_${getCompanyName(
+            kitData?.aso?.consultantCompany,
+          )}_${getCompanyName(kitData?.aso?.actualCompany)}_${
+            kitData?.aso?.employee?.name
+          }`}
+        >
+          {kitData && kitData.aso?.employee && (
+            <>
+              {Array.from({ length: kitData.aso.numAsos }, (v, i) => i).map(
+                (d) => (
+                  <PdfAsoPage data={kitData.aso} key={d} />
+                ),
+              )}
+              <PdfProntuarioPage data={kitData.prontuario} />
+            </>
+          )}
+        </Document>
+      </PDFViewer>
     </Box>
   );
 };
 
-export default Guide;
+export default Kit;
 
 export const getServerSideProps = withSSRAuth(async () => {
   return {

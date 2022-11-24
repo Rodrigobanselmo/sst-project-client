@@ -122,7 +122,7 @@ export const HistoryExpiredExamCompanyTable: FC<
     // if (exam && status === StatusEnum.DONE) return 'info';
     const diff = -dayjs().diff(data?.expiredDateExam, 'day');
     let status = { color: 'scale.low', status: StatusEnum.DONE };
-
+    if (exam) console.log(data, dayjs().toDate(), exam.doneDate);
     if (!data?.expiredDateExam || diff < 0)
       status = { color: 'scale.high', status: StatusEnum.EXPIRED };
     if (diff >= 0 && diff <= 7)
@@ -135,7 +135,8 @@ export const HistoryExpiredExamCompanyTable: FC<
     if (
       (exam?.status == StatusEnum.PROCESSING ||
         exam?.status == StatusEnum.PENDING) &&
-      dayjs().isBefore(exam.doneDate)
+      (dayjs().isBefore(exam.doneDate) ||
+        dayjs().diff(exam.doneDate, 'day') == 0)
     ) {
       status.status = exam?.status;
       status.color = 'info.main';
@@ -192,6 +193,7 @@ export const HistoryExpiredExamCompanyTable: FC<
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
+            const aso = row.examsHistory?.[0];
             const options = statusOptionsConstantExam;
             options[StatusEnum.PROCESSING].color = 'info.main';
 
@@ -291,9 +293,10 @@ export const HistoryExpiredExamCompanyTable: FC<
 
                   <Box>
                     <SIconDownloadExam
-                      disabled={isScheduled}
+                      disabled={!isScheduled}
                       companyId={employee?.companyId}
                       employeeId={employee?.id}
+                      asoId={aso?.id}
                     />
                     {/* <IconButtonRow
                       disabled={disabled}
