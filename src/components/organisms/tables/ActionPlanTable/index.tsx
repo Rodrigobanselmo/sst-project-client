@@ -16,7 +16,6 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STag } from 'components/atoms/STag';
 import { STagButton } from 'components/atoms/STagButton';
-import { ModalAddEmployee } from 'components/organisms/modals/ModalAddEmployees';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
 import { StackModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
 import { ModalAddComment } from 'components/organisms/modals/ModalRiskDataComment';

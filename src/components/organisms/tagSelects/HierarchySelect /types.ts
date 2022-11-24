@@ -17,5 +17,5 @@ export interface ITypeSelectProps extends Partial<ISTagSearchSelectProps> {
   companyId?: string;
   tooltipText?: (value: string) => ReactNode;
   parentId?: string;
-  borderActive?: string;
+  borderActive?: 'error' | 'info' | 'warning' | 'success';
 }

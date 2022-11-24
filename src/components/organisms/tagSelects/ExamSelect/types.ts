@@ -8,7 +8,7 @@ export interface IExamSelectProps
     Partial<ISTagSearchSelectProps> {
   text?: string;
   tooltipTitle?: string;
-  borderActive?: string;
+  borderActive?: 'error' | 'info' | 'warning' | 'success';
   large?: boolean;
   selected?: (string | number)[];
   multiple?: boolean;

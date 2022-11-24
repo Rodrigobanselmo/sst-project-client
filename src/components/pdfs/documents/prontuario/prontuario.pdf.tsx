@@ -263,7 +263,8 @@ export default function PdfProntuarioPage({
               <View style={[sm.row, { width: 200 }]}></View>
 
               <View style={[sm.row, { minWidth: 70 }]}>
-                <Text style={s.body}>Data: {dayjs().format('DD/MM/YYYY')}</Text>
+                {/* <Text style={s.body}>Data: {dayjs().format('DD/MM/YYYY')}</Text> */}
+                <Text style={s.body}>Data: ___/___/____</Text>
               </View>
 
               <View style={[{ flexGrow: 1, alignItems: 'center' }]}>
@@ -385,7 +386,8 @@ export default function PdfProntuarioPage({
             <View style={[s.signatureBox]}>
               <View style={[s.signBox]}>
                 <Text style={s.signText}>
-                  Data: {dayjs().format('DD/MM/YYYY')}
+                  Data: ___/___/____
+                  {/* Data: {dayjs().format('DD/MM/YYYY')} */}
                 </Text>
               </View>
               <Text style={[s.signText, sm.ta]}>

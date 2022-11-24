@@ -178,7 +178,7 @@ const esocial = {
   description: 'Gerenciar eventos do eSocial',
   id: 'pmdeiorwnvmoewnvoewewfew',
   href: RoutesEnum.ESOCIAL,
-  // roles: [RoleEnum.ESOCIAL],
+  roles: [RoleEnum.ESOCIAL],
   shouldMatchExactHref: false,
 };
 

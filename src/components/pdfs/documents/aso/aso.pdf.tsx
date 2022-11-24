@@ -125,12 +125,12 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
                   {cnpjMask.mask(actualCompany.cnpj)}
                 </Text>
               </View>
-              <View style={[s.table1, { flexGrow: 1 }]}>
+              {/* <View style={[s.table1, { flexGrow: 1 }]}>
                 <Text style={s.label}>Fantasia:</Text>
                 <Text style={s.tableBody}>
                   {getCompanyName(actualCompany, { onlyFantasy: true })}
                 </Text>
-              </View>
+              </View> */}
             </View>
           </View>
         </>
@@ -182,7 +182,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
 
         {/* 1 data exam */}
         <>
-          <View style={[s.tableBox]}>
+          <View style={[s.tableBox, sm.mb]}>
             <View style={[s.tableH, sm.darkRow]}>
               <Text style={sm.bodyBS}>Exame clínico</Text>
             </View>
@@ -225,7 +225,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
               </View>
             </View>
           </View>
-          <View style={[sm.row, sm.mb]}>
+          {/* <View style={[sm.row, sm.mb]}>
             <View style={[s.table1, { flexGrow: 1 }]}>
               <Text style={sm.label}>
                 Data exame clínico:{' '}
@@ -234,7 +234,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
                 </Text>
               </Text>
             </View>
-          </View>
+          </View> */}
         </>
 
         {/* 1 Doctor */}
@@ -327,7 +327,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
                           <Text style={[sm.body]}>
                             {e1.doneDate
                               ? dayjs(e1.doneDate).format('DD/MM/YYYY')
-                              : ''}
+                              : '___/___/____'}
                           </Text>
                         </View>
                       </View>
@@ -349,7 +349,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
                               <Text style={[sm.body]}>
                                 {e2.doneDate
                                   ? dayjs(e2.doneDate).format('DD/MM/YYYY')
-                                  : ''}
+                                  : '___/___/____'}
                               </Text>
                             </View>
                           </>
@@ -368,7 +368,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
           <>
             <View style={[sm.mb, s.tableBox]}>
               <View style={[s.tableH, sm.attentionRow]}>
-                <Text style={sm.bodyBS}>Atividades Especiais</Text>
+                <Text style={sm.bodyBS}>Atividades Específicas</Text>
               </View>
               {protocols?.map((protocol) => {
                 return (
@@ -470,9 +470,10 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
           >
             <View style={[s.signatureBox]}>
               <View style={[s.signBox]}>
-                <Text style={s.signText}>
+                <Text style={s.signText}>Data Exame Clínico: ___/___/____</Text>
+                {/* <Text style={s.signText}>
                   Data: {dayjs().format('DD/MM/YYYY')}
-                </Text>
+                </Text> */}
               </View>
               <Text style={[s.signText, sm.ta]}>
                 Carimbo e Assinatura do Médico
@@ -481,9 +482,10 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
             </View>
             <View style={[s.signatureBox]}>
               <View style={[s.signBox]}>
-                <Text style={s.signText}>
+                <Text style={s.signText}>Data: ___/___/____</Text>
+                {/* <Text style={s.signText}>
                   Data: {dayjs().format('DD/MM/YYYY')}
-                </Text>
+                </Text> */}
                 <Text style={s.signText}>
                   Declaro ter recebido a 2ª via deste ASO
                 </Text>

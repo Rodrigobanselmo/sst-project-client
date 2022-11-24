@@ -135,7 +135,7 @@ export const ModalAddEmployeeHistoryHier = () => {
               }
               companyId={companyId}
               selectedId={data.sector?.id}
-              borderActive={data.sector?.id && 'info'}
+              borderActive={data.sector?.id ? 'info' : undefined}
               active={false}
               bg={'background.paper'}
             />
@@ -167,7 +167,7 @@ export const ModalAddEmployeeHistoryHier = () => {
               companyId={companyId}
               selectedId={data.hierarchy?.id}
               active={false}
-              borderActive={data.hierarchy?.id && 'info'}
+              borderActive={data.hierarchy?.id ? 'info' : undefined}
               bg={'background.paper'}
             />
             {data.hierarchy?.id && (
@@ -194,7 +194,7 @@ export const ModalAddEmployeeHistoryHier = () => {
                 companyId={companyId}
                 selectedId={data.subOffice?.id}
                 active={false}
-                borderActive={data.subOffice?.id && 'info'}
+                borderActive={data.subOffice?.id ? 'info' : undefined}
                 bg={'background.paper'}
               />
             )}
