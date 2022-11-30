@@ -1,4 +1,5 @@
 export enum ApiRoutesEnum {
+  ABSENTEEISMS = '/absenteeism/:companyId',
   AUTH_GROUP = '/auth/group/:companyId',
   CEP = '/company/cep',
   CHARACTERIZATIONS = '/company/:companyId/workspace/:workspaceId/characterizations',
@@ -61,5 +62,9 @@ export enum ApiRoutesEnum {
   ESOCIAL_EVENT_2220 = 'esocial/events/2220',
   ESOCIAL_EVENT_2240 = 'esocial/events/2240',
   ESOCIAL_EVENT_ALL = 'esocial/events/all',
+  ESOCIAL18TABLES = 'esocial/table-18',
+  CID = 'esocial/cid',
+  ABSENTEEISM_MOTIVES = 'esocial/absenteeism-motives',
+  // ESOCIAL18TABLES = 'esocial/table-18',
   NOTIFICATION = '/notification',
 }

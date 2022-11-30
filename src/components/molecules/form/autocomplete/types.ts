@@ -11,9 +11,9 @@ export type AutocompleteFormProps<T> = Omit<
   name: string;
   control: Control<FieldValues, object>;
   label?: string;
-  defaultValue?: T | string;
+  defaultValue?: T | string | number;
   onChange?: (value: T) => void;
-  onGetValue?: (value: T) => string;
+  onGetValue?: (value: T) => string | number;
   setValue?: (value: T | string) => void;
   mask?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
   boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;

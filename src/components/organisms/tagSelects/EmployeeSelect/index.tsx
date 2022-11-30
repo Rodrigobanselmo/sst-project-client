@@ -51,7 +51,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
   const { data, isLoading } = useQueryEmployees(
     1,
     {
-      search: search || (preload ? '' : null),
+      search: search || (preload ? '' : ''),
       ...(filterByHierarchyId
         ? { hierarchyId: filterByHierarchyId || undefined }
         : {}),

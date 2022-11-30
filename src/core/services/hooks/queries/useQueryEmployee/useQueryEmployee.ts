@@ -12,6 +12,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryEmployee {
   companyId?: string;
   id?: number;
+  absenteeismLast60Days?: boolean;
 }
 
 export const queryEmployee = async (query: IQueryEmployee) => {

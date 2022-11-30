@@ -11,4 +11,5 @@ export enum IdsEnum {
   RISK_TOOL_GHO_INPUT_SEARCH = 'risk-tool-gho-input-search-id',
   ADD_PROFILE_CHARACTERIZATION_ID = 'add-profile-characterization-id',
   ADD_RISK_CHARACTERIZATION_ID = 'add-risk-characterization-id',
+  EMPLOYEE_SELECT_ID = 'employee-select-id',
 }

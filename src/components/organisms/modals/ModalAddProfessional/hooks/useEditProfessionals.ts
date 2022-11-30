@@ -42,6 +42,8 @@ export const initialProfessionalState = {
   councilType: '',
   councilUF: '',
   councilId: '',
+  simpleAdd: false,
+  docOnly: false,
   sendEmail: false,
   companyId: '',
   certifications: [] as string[],
@@ -288,6 +290,8 @@ export const useEditProfessionals = () => {
       return 'COREN';
     else if (professionalData.type === ProfessionalTypeEnum.DOCTOR)
       return 'CRM';
+    else if (professionalData.type === ProfessionalTypeEnum.DENTIST)
+      return 'CRO';
 
     return '';
   };

@@ -33,19 +33,20 @@ const AddButton = (props: any) => {
         position: 'absolute',
         textAlign: 'center',
         verticalAlign: 'middle',
-        borderRadius: '50%',
+        borderRadius: '2px',
         cursor: 'pointer',
         bottom: 10,
         right: 10,
         height: 20,
-        width: 20,
+        paddingX: 10,
+        // width: 20,
         backgroundColor: 'success.main',
         '&:hover': {
           backgroundColor: 'success.dark',
         },
       }}
     >
-      +
+      Adicionar +
     </SText>
   );
 };
@@ -56,6 +57,8 @@ export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
   inputProps,
   addProfessionalInitProps,
   query,
+  simpleAdd,
+  docOnly,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -71,6 +74,8 @@ export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
   const onAddProfessional = () => {
     onStackOpenModal(ModalEnum.PROFESSIONALS_ADD, {
       ...addProfessionalInitProps,
+      simpleAdd,
+      docOnly,
     } as typeof initialProfessionalState);
   };
 

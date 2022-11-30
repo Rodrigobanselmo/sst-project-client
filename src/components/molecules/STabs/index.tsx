@@ -41,7 +41,7 @@ export const STabs: FC<STabsProps> = ({
   return (
     <Box
       sx={{
-        borderBottom: shadow ? 1 : 0,
+        borderBottom: shadow ? 0 : 1,
         borderColor: 'divider',
         // backgroundColor: 'sidebar.background',
         // borderTopLeftRadius: 10,

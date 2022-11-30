@@ -107,7 +107,7 @@ export const ModalViewClinicExams: FC = () => {
               ? { selectedData: selectData.selected }
               : {})}
             {...(selectData.onSelect ? { onSelectData: handleSelect } : {})}
-            rowsPerPage={6}
+            rowsPerPage={12}
           />
         </Box>
 

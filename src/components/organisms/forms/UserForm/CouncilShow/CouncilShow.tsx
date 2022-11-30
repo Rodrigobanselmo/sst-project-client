@@ -149,7 +149,7 @@ export const CouncilShow = ({
               setValue={(v) => setValue('councilType', v)}
               sx={{ minWidth: [200] }}
               label="Conselho"
-              options={['CRM', 'CREA', 'COREM']}
+              options={['CRM', 'CREA', 'COREM', 'CRO', 'RMS']}
             />
           </Box>
           <Box flex={1}>

@@ -106,7 +106,7 @@ export const ModalAddCouncil: FC = () => {
               defaultValue={data.councilType || ''}
               sx={{ minWidth: [250] }}
               label="Conselho"
-              options={['CRM', 'CREA', 'COREM']}
+              options={['CRM', 'CREA', 'COREM', 'CRO', 'RMS']}
             />
           </Box>
           <Box flex={1}>

@@ -82,6 +82,20 @@ export const rolesConstantMap = {
     permissions: [PermissionEnum.DOCUMENTS, PermissionEnum.RISK_DOC_INFO],
     order: 3,
   },
+  [RoleEnum.ABSENTEEISM]: {
+    value: RoleEnum.ABSENTEEISM,
+    label: 'Absenteísmo',
+    info: 'Gerenciamento dos afastamentos e faltas da empresa',
+    permissions: [PermissionEnum.ABSENTEEISM],
+    order: 3,
+  },
+  [RoleEnum.CAT]: {
+    value: RoleEnum.CAT,
+    label: 'CAT (eSocial)',
+    info: 'Gerenciamento e envio da CAT (eSocial)',
+    permissions: [PermissionEnum.CAT],
+    order: 3,
+  },
   [RoleEnum.EPI]: {
     value: RoleEnum.EPI,
     label: "EPI's",

@@ -91,9 +91,9 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
       .filter((option) => selected.includes(option[valueField]))
       .map((select) => ({ ...select, checked: true }));
 
-    const optionsResult = options.filter(
-      (option) => !selected.includes(option[valueField]),
-    );
+    const optionsResult =
+      options?.filter((option) => !selected.includes(option[valueField])) ||
+      options;
 
     return [...selectedResult, ...optionsResult];
     // eslint-disable-next-line react-hooks/exhaustive-deps

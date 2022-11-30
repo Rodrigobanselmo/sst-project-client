@@ -201,6 +201,18 @@ export const permissionsConstantMap = {
     info: 'Gerenciamento dos profissionais responsáveis monitoramento',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.CAT]: {
+    value: PermissionEnum.CAT,
+    label: 'CAT (eSocial)',
+    info: 'Gerenciamento CAT (eSocial)',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.ABSENTEEISM]: {
+    value: PermissionEnum.ABSENTEEISM,
+    label: 'Absenteísmo / Afastamento Temporario',
+    info: 'Controle das ausências dos colaboradores durante o expediente de trabalho',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

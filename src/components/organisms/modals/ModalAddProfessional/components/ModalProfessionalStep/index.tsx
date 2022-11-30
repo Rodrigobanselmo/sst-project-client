@@ -20,6 +20,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { SLinkIcon } from 'assets/icons/SLinkIcon';
 
 import {
+  professionalsDocOptionsList,
   professionalsHealthOptionsList,
   professionalsOptionsList,
 } from 'core/constants/maps/professionals.map';
@@ -46,12 +47,28 @@ export const ModalProfessionalStep = ({
     onGetProfessional(x);
   }, 800);
 
+  const optionsList = () => {
+    if (professionalData.docOnly) return professionalsDocOptionsList;
+
+    if (professionalData.isClinic) {
+      if (
+        !professionalData.type ||
+        !!professionalsHealthOptionsList.find(
+          (med) => med.value === professionalData.type,
+        )
+      )
+        return professionalsHealthOptionsList;
+      return professionalsOptionsList;
+    }
+
+    return professionalsOptionsList;
+  };
   return (
     <SFlex direction="column" mt={8}>
       <SText color="text.label" mb={5} fontSize={14}>
         Dados Pessoais
       </SText>
-      <SFlex flexWrap="wrap" gap={5}>
+      <SFlex flexWrap="wrap" gap={5} mb={professionalData.simpleAdd ? 5 : 0}>
         <Box flex={5}>
           <InputForm
             autoFocus
@@ -84,34 +101,36 @@ export const ModalProfessionalStep = ({
         </Box>
       </SFlex>
 
-      <SFlex mt={5} flexWrap="wrap" gap={5} mb={5}>
-        <Box flex={5}>
-          <InputForm
-            defaultValue={professionalData.email}
-            sx={{ minWidth: [300, 500] }}
-            label="Email"
-            onChange={(e) => handleDebounceChange({ email: e.target.value })}
-            labelPosition="center"
-            control={control}
-            placeholder={'email...'}
-            name="email"
-            size="small"
-          />
-        </Box>
-        <Box flex={1}>
-          <InputForm
-            defaultValue={professionalData.phone}
-            label="Telefone"
-            sx={{ minWidth: 200 }}
-            labelPosition="center"
-            control={control}
-            placeholder={'(00) 00000-0000'}
-            name="phone"
-            mask={phoneMask.apply}
-            size="small"
-          />
-        </Box>
-      </SFlex>
+      {!professionalData.simpleAdd && (
+        <SFlex mt={5} flexWrap="wrap" gap={5} mb={5}>
+          <Box flex={5}>
+            <InputForm
+              defaultValue={professionalData.email}
+              sx={{ minWidth: [300, 500] }}
+              label="Email"
+              onChange={(e) => handleDebounceChange({ email: e.target.value })}
+              labelPosition="center"
+              control={control}
+              placeholder={'email...'}
+              name="email"
+              size="small"
+            />
+          </Box>
+          <Box flex={1}>
+            <InputForm
+              defaultValue={professionalData.phone}
+              label="Telefone"
+              sx={{ minWidth: 200 }}
+              labelPosition="center"
+              control={control}
+              placeholder={'(00) 00000-0000'}
+              name="phone"
+              mask={phoneMask.apply}
+              size="small"
+            />
+          </Box>
+        </SFlex>
+      )}
 
       <RadioForm
         name="type"
@@ -127,14 +146,7 @@ export const ModalProfessionalStep = ({
             type,
           }));
         }}
-        options={(professionalData.isClinic &&
-        (!professionalData.type ||
-          !!professionalsHealthOptionsList.find(
-            (med) => med.value === professionalData.type,
-          ))
-          ? professionalsHealthOptionsList
-          : professionalsOptionsList
-        ).map((professionalType) => ({
+        options={optionsList().map((professionalType) => ({
           label: professionalType.name,
           value: professionalType.value,
         }))}
@@ -209,62 +221,65 @@ export const ModalProfessionalStep = ({
         </Box>
       </SFlex> */}
 
-      <SText color="text.label" mt={5} fontSize={14}>
-        Acesso ao Sistema
-      </SText>
-      {!!professionalData.userId && (
-        <STag
-          action="add"
-          width="200px"
-          sx={{
-            backgroundColor: 'gray.600',
-            color: 'white',
-            fontSize: '14px',
-            py: 2,
-          }}
-          text="Profissional já cadastrado"
-        />
-      )}
-      {!professionalData.userId && (
+      {!professionalData.simpleAdd && (
         <>
-          <STagButton
-            tooltipTitle={'copiar'}
-            icon={SLinkIcon}
-            onClick={() => handleCopy()}
-            sx={{ mr: 10, width: 'fit-content' }}
-            bg={'gray.500'}
-            active={true}
-            text={link}
-          />
-          <Box ml={7} mt={5}>
-            <SSwitch
-              onChange={() => {
-                setProfessionalData({
-                  ...professionalData,
-                  sendEmail: !professionalData.sendEmail,
-                });
+          <SText color="text.label" mt={5} fontSize={14}>
+            Acesso ao Sistema
+          </SText>
+          {!!professionalData.userId && (
+            <STag
+              action="add"
+              width="200px"
+              sx={{
+                backgroundColor: 'gray.600',
+                color: 'white',
+                fontSize: '14px',
+                py: 2,
               }}
-              checked={professionalData.sendEmail}
-              label="Enviar convite por email"
-              sx={{ mr: 4 }}
-              color="text.light"
+              text="Profissional já cadastrado"
             />
-          </Box>
+          )}
+          {!professionalData.userId && (
+            <>
+              <STagButton
+                tooltipTitle={'copiar'}
+                icon={SLinkIcon}
+                onClick={() => handleCopy()}
+                sx={{ mr: 10, width: 'fit-content' }}
+                bg={'gray.500'}
+                active={true}
+                text={link}
+              />
+              <Box ml={7} mt={5}>
+                <SSwitch
+                  onChange={() => {
+                    setProfessionalData({
+                      ...professionalData,
+                      sendEmail: !professionalData.sendEmail,
+                    });
+                  }}
+                  checked={professionalData.sendEmail}
+                  label="Enviar convite por email"
+                  sx={{ mr: 4 }}
+                  color="text.light"
+                />
+              </Box>
+            </>
+          )}
+          {!!professionalData.id && (
+            <StatusSelect
+              sx={{ maxWidth: '90px', mt: 10 }}
+              selected={professionalData.status}
+              statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
+              handleSelectMenu={(option) =>
+                setProfessionalData((old) => ({
+                  ...old,
+                  status: option.value,
+                }))
+              }
+            />
+          )}{' '}
         </>
-      )}
-
-      {!!professionalData.id && (
-        <StatusSelect
-          sx={{ maxWidth: '90px', mt: 10 }}
-          selected={professionalData.status}
-          statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
-          handleSelectMenu={(option) =>
-            setProfessionalData((old) => ({
-              ...old,
-              status: option.value,
-            }))
-          }
-        />
       )}
     </SFlex>
   );

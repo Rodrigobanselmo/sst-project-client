@@ -7,6 +7,7 @@ export enum CompanyActionEnum {
   PCMSO = 'PCMSO',
   RISKS = 'RISKS',
   COMPANY_RISKS = 'COMPANY_RISKS',
+  ABSENTEEISM = 'ABSENTEEISM',
   USERS = 'USERS',
   DOCUMENTS = 'DOCUMENTS',
   EDIT = 'EDIT',

@@ -66,6 +66,14 @@ export const ContactsTable: FC<
     } as Partial<typeof initialContactState>);
   };
 
+  const header: (BoxProps & { text: string; column: string })[] = [
+    { text: 'Nome', column: 'minmax(150px, 2fr)' },
+    { text: 'Email', column: 'minmax(200px, 2fr)' },
+    { text: 'Telephone 1', column: '110px' },
+    { text: 'Telephone 2', column: '110px' },
+    { text: 'Editar', column: '50px' },
+  ];
+
   return (
     <>
       {!hideTitle && (
@@ -83,15 +91,14 @@ export const ContactsTable: FC<
       <STable
         loading={loadGroup}
         rowsNumber={rowsPerPage}
-        columns="minmax(150px, 2fr) minmax(200px, 2fr) 110px 110px 50px"
+        columns={header.map(({ column }) => column).join(' ')}
       >
         <STableHeader>
-          <STableHRow>Nome</STableHRow>
-          {/* <STableHRow>Observação</STableHRow> */}
-          <STableHRow>Email</STableHRow>
-          <STableHRow justifyContent="center">Telephone 1</STableHRow>
-          <STableHRow justifyContent="center">Telephone 2</STableHRow>
-          <STableHRow justifyContent="center">Editar</STableHRow>
+          {header.map(({ text, ...props }) => (
+            <STableHRow key={text} {...props}>
+              {text}
+            </STableHRow>
+          ))}
         </STableHeader>
         <STableBody<typeof group[0]>
           rowsData={group}

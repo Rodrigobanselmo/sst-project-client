@@ -130,6 +130,9 @@ export const ProfessionalsTable: FC<
     onStackOpenModal(ModalEnum.PROFESSIONALS_ADD, {
       isClinic,
       companyId: query?.companyId || undefined,
+      ...(isClinic && {
+        type: ProfessionalTypeEnum.DOCTOR,
+      }),
     } as typeof initialProfessionalState);
   };
 

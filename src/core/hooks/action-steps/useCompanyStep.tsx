@@ -14,6 +14,7 @@ import {
 } from 'store/reducers/hierarchy/ghoSlice';
 import { selectStep, setCompanyStep } from 'store/reducers/step/stepSlice';
 
+import SAbsenteeismIcon from 'assets/icons/SAbsenteeismIcon';
 import { SClinicIcon } from 'assets/icons/SClinicIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
@@ -146,6 +147,10 @@ export const useCompanyStep = () => {
 
   const handleCompanyRisks = useCallback(() => {
     push(RoutesEnum.COMPANY_RISKS.replace(/:companyId/g, company.id));
+  }, [push, company.id]);
+
+  const handleAbsenteeism = useCallback(() => {
+    push(RoutesEnum.ABSENTEEISM.replace(/:companyId/g, company.id));
   }, [push, company.id]);
 
   const handleAddClinic = useCallback(() => {
@@ -323,6 +328,12 @@ export const useCompanyStep = () => {
         tooltipText:
           'Riscos Identificados na empresa e sua relevância para os documentos ',
       },
+      [CompanyActionEnum.ABSENTEEISM]: {
+        icon: SAbsenteeismIcon,
+        onClick: handleAbsenteeism,
+        text: 'Absenteísmo',
+        tooltipText: 'Gerenciamento de faltas e afastamentos temporarios',
+      },
     };
   }, [
     handleAddWorkspace,
@@ -339,12 +350,14 @@ export const useCompanyStep = () => {
     handleAddExam,
     handleCompanyRisks,
     handleDocPCMSO,
+    handleAbsenteeism,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
     return [
       actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP],
       actionsMapStepMemo[CompanyActionEnum.RISKS],
+      actionsMapStepMemo[CompanyActionEnum.ABSENTEEISM],
     ];
   }, [actionsMapStepMemo]);
 

@@ -16,6 +16,10 @@ export const professionalMap = {
     value: ProfessionalTypeEnum.NURSE,
     name: 'Enfermeiro',
   },
+  [ProfessionalTypeEnum.DENTIST]: {
+    value: ProfessionalTypeEnum.DENTIST,
+    name: 'Dentista',
+  },
   [ProfessionalTypeEnum.SPEECH_THERAPIST]: {
     value: ProfessionalTypeEnum.SPEECH_THERAPIST,
     name: 'Fonoaudiólogo',
@@ -37,6 +41,11 @@ export const professionalMap = {
     name: 'Outro',
   },
 } as IProfessionalsOptions;
+
+export const professionalsDocOptionsList = [
+  professionalMap[ProfessionalTypeEnum.DOCTOR],
+  professionalMap[ProfessionalTypeEnum.DENTIST],
+];
 
 export const professionalsHealthOptionsList = [
   professionalMap[ProfessionalTypeEnum.DOCTOR],

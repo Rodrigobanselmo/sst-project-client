@@ -43,4 +43,6 @@ export enum PermissionEnum {
   PROTOCOL = '13',
   ESOCIAL = '14',
   PROF_RESP = '15',
+  CAT = '16',
+  ABSENTEEISM = '17',
 }

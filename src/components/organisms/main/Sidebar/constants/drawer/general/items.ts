@@ -3,6 +3,7 @@ import { MdDashboard } from 'react-icons/md';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { RoleEnum } from 'project/enum/roles.enums';
 
+import { SAbsenteeismIcon } from 'assets/icons/SAbsenteeismIcon';
 import SAccessGroupIcon from 'assets/icons/SAccessGroupIcon';
 import { SCalendarIcon } from 'assets/icons/SCalendarIcon';
 import SClinicIcon from 'assets/icons/SClinicIcon';
@@ -182,6 +183,16 @@ const esocial = {
   shouldMatchExactHref: false,
 };
 
+const absenteeism = {
+  text: 'Absenteísmo',
+  Icon: SAbsenteeismIcon,
+  description: 'Gerenciamento de faltas e afastamentos temporarios',
+  id: 'jkbhiuhgcduigbcwkjefhbchiuwe',
+  href: RoutesEnum.ABSENTEEISM,
+  roles: [RoleEnum.ABSENTEEISM],
+  shouldMatchExactHref: false,
+};
+
 export const generalArray = [
   dashboard,
   profile,
@@ -189,6 +200,7 @@ export const generalArray = [
   schedule,
   allCompaniesData,
   companiesData,
+  absenteeism,
   checklist,
   importExportData,
   accessGroups,

@@ -31,7 +31,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
   const { companyId: userCompanyId } = useGetCompanyId(true);
 
   const gho = useAppSelector((state) => state.gho.selected);
-  const homoId = String(gho?.id || '').split('//')[0];
+  const homoId = useMemo(() => String(gho?.id || '').split('//')[0], [gho?.id]);
 
   //! performance optimization here
   const { data: riskDataQuery } = useQueryRiskDataByGho(
@@ -128,10 +128,10 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
         );
 
     return data;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     riskDataQuery,
     userCompanyId,
+    homoId,
     selectedGhoFilter.value,
     selectedGhoFilter.key,
     riskGroupId,

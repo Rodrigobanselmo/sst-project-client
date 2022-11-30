@@ -1,5 +1,7 @@
 export enum QueryEnum {
+  ABSENTEEISMS = 'absenteeisms',
   AUTH_GROUP = 'auth-group',
+  CID = 'CID',
   CHARACTERIZATION = 'characterization',
   CHARACTERIZATIONS = 'characterizations',
   CHECKLIST = 'checklist',
@@ -46,5 +48,7 @@ export enum QueryEnum {
   RISK_GROUP_DATA = 'risk-group-data',
   RISK_GROUP_DOC = 'risk-group-doc',
   RISK_GROUP_DOCS = 'risk-group-docs',
+  ESOCIAL18TABLES = 'ESOCIAL18TABLES',
+  ABSENTEEISM_MOTIVES = 'ABSENTEEISM_MOTIVES',
   USERS = 'users',
 }

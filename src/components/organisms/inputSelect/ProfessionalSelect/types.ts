@@ -13,6 +13,8 @@ export interface IProfessionalSelectProps
   name: string;
   label: string;
   query?: IQueryProfessionals;
+  simpleAdd?: boolean;
+  docOnly?: boolean;
   type?: ProfessionalTypeEnum[];
   addProfessionalInitProps?: Partial<typeof initialProfessionalState>;
   onChange?: (value: IProfessional) => void;

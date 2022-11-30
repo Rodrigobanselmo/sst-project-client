@@ -1,4 +1,5 @@
 export enum RoutesEnum {
+  ABSENTEEISM = '/dashboard/empresas/:companyId/absenteismo',
   ACTION_PLAN = '/dashboard/empresas/:companyId/:workspaceId/plano-de-acao/:riskGroupId',
   CHARACTERIZATIONS = '/dashboard/empresas/:companyId/:workspaceId',
   CHECKLIST = '/dashboard/checklist',

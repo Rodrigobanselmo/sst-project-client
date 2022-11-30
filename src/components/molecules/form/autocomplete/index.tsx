@@ -68,6 +68,10 @@ export function AutocompleteForm<T>({
                     func(onGetValue(v));
                   } else func(String(v));
                 }, 100);
+              } else {
+                if (onGetValue) {
+                  func(onGetValue(v));
+                } else func(String(v));
               }
             }}
             fullWidth
