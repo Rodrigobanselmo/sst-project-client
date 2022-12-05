@@ -14,8 +14,10 @@ export const employeeHistoryHierarchySchema = yup.object().shape({
 });
 
 export const employeeHistoryExamSchema = yup.object().shape({
-  name: yup.string().trim().required('nome obrigatório'),
-  cpf: yup.string().trim().required('CPF obrigatório'),
-  birthday: yup.string().trim().required('Campo obrigatório'),
-  sex: yup.string().trim().required('Campo obrigatório').typeError(' '),
+  // doneDate: yup
+  //   .string()
+  //   .nullable()
+  //   .trim()
+  //   .required('Data de inicío obrigatório'),
+  // examType: yup.string().trim().required('Campo obrigatório'),
 });
