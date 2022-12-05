@@ -60,20 +60,23 @@ const CompanyPage: NextPage = () => {
             {nextStepMemo.map((props) => (
               <SActionButton key={props.text} {...props} />
             ))}
-            <SIconButton
-              onClick={nextStep}
-              tooltip="Pular para próximo passo"
-              sx={{
-                alignSelf: 'center',
-              }}
-            >
-              <Icon
-                component={SArrowNextIcon}
+            <SFlex gap={0} align="center">
+              {/* <SText fontSize={10}>Pular</SText> */}
+              <SIconButton
+                onClick={nextStep}
+                tooltip="Pular para próximo passo"
                 sx={{
-                  fontSize: '1.2rem',
+                  alignSelf: 'center',
                 }}
-              />
-            </SIconButton>
+              >
+                <Icon
+                  component={SArrowNextIcon}
+                  sx={{
+                    fontSize: '1.2rem',
+                  }}
+                />
+              </SIconButton>
+            </SFlex>
           </SFlex>
         </>
       )}

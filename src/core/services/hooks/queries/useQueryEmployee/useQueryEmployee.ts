@@ -30,6 +30,7 @@ export const queryEmployee = async (query: IQueryEmployee) => {
 export function useQueryEmployee(query = {} as IQueryEmployee) {
   const { getCompanyId } = useGetCompanyId();
   const companyId = getCompanyId(query);
+  console.log(query);
 
   const { data, ...result } = useQuery(
     [QueryEnum.EMPLOYEES, query.id, { ...query, companyId }],

@@ -15,7 +15,7 @@ export function DateTimeForm(
   },
 ) {
   return (
-    <Box maxWidth={100} {...props?.boxProps}>
+    <Box maxWidth={props?.boxProps?.maxWidth ?? 100} {...props?.boxProps}>
       <AutocompleteForm
         filterOptions={(x) => x}
         unmountOnChangeDefault

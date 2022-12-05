@@ -4,6 +4,7 @@ import { PieGraph } from 'components/molecules/graphs/pie/PieGraph';
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import { HistoryScheduleExamClinicTable } from 'components/organisms/tables/HistoryScheduleExamClinicTable/HistoryScheduleExamClinicTable';
 import { NextPage } from 'next';
+import dynamic from 'next/dynamic';
 import { PermissionEnum } from 'project/enum/permission.enum';
 
 import defaultTheme from 'configs/theme';
@@ -11,6 +12,16 @@ import defaultTheme from 'configs/theme';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryDashboard } from 'core/services/hooks/queries/useQueryDashboard';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+
+const DraftEditor = dynamic(
+  async () => {
+    const mod = await import(
+      'components/molecules/form/draft-editor/DraftEditor'
+    );
+    return mod.DraftEditor;
+  },
+  { ssr: false },
+);
 
 const Home: NextPage = () => {
   const { data: company } = useQueryCompany();
@@ -20,6 +31,16 @@ const Home: NextPage = () => {
 
   return (
     <SContainer>
+      <DraftEditor
+        size="xs"
+        mt={5}
+        isJson
+        label="Orservações"
+        placeholder="descrição..."
+        onChange={(value) => {
+          console.log(JSON.parse(value));
+        }}
+      />
       {/* <SAuthShow hideIf={company.isClinic}>
         <SPageTitle>Site em desenvolvimento</SPageTitle>
         <p>Novas atualizações em breve</p>

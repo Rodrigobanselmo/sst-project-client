@@ -17,4 +17,5 @@ export interface AutocompleteSelectProps<T = any>
   name: string;
   options: T[];
   inputProps?: SInputProps;
+  pagination?: boolean;
 }

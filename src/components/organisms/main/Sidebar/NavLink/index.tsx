@@ -16,6 +16,7 @@ export function NavLink({
   description,
   shouldMatchExactHref,
   isAlwaysClose,
+  imageType,
   ...rest
 }: INavLinkProps): JSX.Element {
   const { isOpen } = useSidebarDrawer();
@@ -42,6 +43,7 @@ export function NavLink({
             )}
             {image && (
               <StyledNavImage
+                type={imageType}
                 alt={description}
                 src={image}
                 open={isOpen ? 1 : 0}

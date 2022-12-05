@@ -11,7 +11,7 @@ export type IEsocialTable6Country = {
   name: string;
 };
 
-export type IEsocialTable13BodyPart = {
+export type IEsocialTable13Body = {
   code: string;
   desc: string;
 };

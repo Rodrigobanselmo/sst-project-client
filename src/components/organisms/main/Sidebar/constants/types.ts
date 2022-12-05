@@ -17,6 +17,7 @@ export interface IDrawerLinks {
     Icon: any;
     description: string;
     image?: string;
+    imageType?: 'cat';
     id: string;
     roles?: RoleEnum[];
     removeWithRoles?: RoleEnum[];

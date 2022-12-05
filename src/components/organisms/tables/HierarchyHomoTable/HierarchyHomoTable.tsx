@@ -2,40 +2,21 @@ import { FC } from 'react';
 
 import { BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
-import {
-  STable,
-  STableBody,
-  STableHeader,
-  STableHRow,
-  STableRow,
-} from 'components/atoms/STable';
+import { STable, STableBody, STableRow } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
-import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
-import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks/useEditExams';
-import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
-import { StatusEnum } from 'project/enum/status.enum';
 
-import EditIcon from 'assets/icons/SEditIcon';
-import { SExamIcon } from 'assets/icons/SExamIcon';
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 
-import { ModalEnum } from 'core/enums/modal.enums';
-import { useModal } from 'core/hooks/useModal';
+import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useTableSearch } from 'core/hooks/useTableSearch';
-import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IHierarchyOnHomogeneous } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateGho';
+import { useMutDeleteHierarchyGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteHierarchyGho/useMutDeleteHierarchyGho';
 import { useMutUpdateHierarchyGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateHierarchyGho/useMutUpdateHierarchyGho';
-import {
-  IQueryExam,
-  useQueryExams,
-} from 'core/services/hooks/queries/useQueryExams/useQueryExams';
-import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { dateToString } from 'core/utils/date/date-format';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
@@ -63,6 +44,8 @@ export const HierarchyHomoTable: FC<
   const isSelect = !!onSelectData;
   const { selectStartEndDate } = useStartEndDate();
   const updateMutation = useMutUpdateHierarchyGho();
+  const deleteMutation = useMutDeleteHierarchyGho();
+  const { preventDelete } = usePreventAction();
 
   // const {
   //   data: exams,
@@ -98,6 +81,16 @@ export const HierarchyHomoTable: FC<
       );
   };
 
+  const onDelete = (h: IHierarchy & IHierarchyOnHomogeneous) => {
+    if (h.workspaceId) {
+      deleteMutation.mutate({
+        workspaceId: h.workspaceId,
+        ids: [h.id],
+        companyId: h.companyId,
+      });
+    }
+  };
+
   const onSelectRow = (exam: IHierarchy & IHierarchyOnHomogeneous) => {
     if (isSelect) {
       onSelectData(exam);
@@ -126,7 +119,9 @@ export const HierarchyHomoTable: FC<
       <STable
         loading={loading}
         rowsNumber={rowsPerPage}
-        columns={`${selectedData ? '15px ' : ''}minmax(250px, 5fr) 120px 120px`}
+        columns={`${
+          selectedData ? '15px ' : ''
+        }minmax(250px, 5fr) 120px 120px 50px`}
       >
         {/* <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
@@ -169,13 +164,19 @@ export const HierarchyHomoTable: FC<
                   clickable
                   text={`fim: ${dateToString(row.endDate)}`}
                 />
-                {/* <IconButtonRow
-                  icon={<EditIcon />}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEdit(row);
-                  }}
-                /> */}
+                {row.workspaceId ? (
+                  <IconButtonRow
+                    icon={<SDeleteIcon />}
+                    tooltipTitle="deletar"
+                    sx={{ svg: { fontSize: 18 }, height: 20 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      preventDelete(() => onDelete(row));
+                    }}
+                  />
+                ) : (
+                  <div />
+                )}
               </STableRow>
             );
           }}

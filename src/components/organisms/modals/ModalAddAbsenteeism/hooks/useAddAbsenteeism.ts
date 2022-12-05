@@ -129,11 +129,6 @@ export const useAddAbsenteeism = () => {
       getModalData<Partial<typeof initialAbsenteeismState>>(modalName);
 
     if (initialData) {
-      console.log({
-        startDate: absenteeism?.startDate,
-        startTime: getTimeFromDate(absenteeism?.startDate),
-        endTime: getTimeFromDate(absenteeism?.endDate),
-      });
       setAbsenteeismData((oldData) => {
         const newData = {
           ...oldData,

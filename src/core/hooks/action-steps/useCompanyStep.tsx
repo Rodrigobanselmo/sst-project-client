@@ -404,16 +404,19 @@ export const useCompanyStep = () => {
         },
       ];
 
-    if (step === CompanyStepEnum.HOMO_GROUP)
-      return [
-        {
-          ...actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP],
-          sx: { backgroundColor: 'info.main' },
-          success: true,
-        },
-      ];
+    // if (step === CompanyStepEnum.HOMO_GROUP)
+    //   return [
+    //     {
+    //       ...actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP],
+    //       sx: { backgroundColor: 'info.main' },
+    //       success: true,
+    //     },
+    //   ];
 
-    if (step === CompanyStepEnum.RISK_GROUP)
+    if (
+      step === CompanyStepEnum.RISK_GROUP ||
+      step === CompanyStepEnum.HOMO_GROUP
+    )
       return [
         {
           ...actionsMapStepMemo[CompanyActionEnum.RISK_GROUP],

@@ -108,6 +108,7 @@ const SSelect: FC<SSelectProps> = ({
     [renderMenuItemChildren, contentField, valueField, menuItemProps],
   );
 
+  const labelSplit = typeof label == 'string' ? label.split('*') : [label];
   return (
     <FormControl
       required={required}
@@ -121,7 +122,12 @@ const SSelect: FC<SSelectProps> = ({
     >
       {label && labelPosition === 'center' && (
         <InputLabel id={id + '-label'} {...inputLabelProps}>
-          {label}
+          {labelSplit[0] || label}
+          {labelSplit[1] == '' && (
+            <Typography component={'span'} fontSize={14} color={'error.main'}>
+              *
+            </Typography>
+          )}
         </InputLabel>
       )}
       {label && labelPosition === 'top' && (
@@ -130,7 +136,12 @@ const SSelect: FC<SSelectProps> = ({
           color={error ? 'error.main' : 'grey.600'}
           mb={5}
         >
-          {label}
+          {labelSplit[0] || label}
+          {labelSplit[1] == '' && (
+            <Typography component={'span'} fontSize={14} color={'error.main'}>
+              *
+            </Typography>
+          )}
         </Typography>
       )}
       <StyledSelect

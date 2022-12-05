@@ -65,12 +65,18 @@ export const SInput: FC<SInputProps> = ({
     onChange && onChange(e);
   };
 
+  const labelSplit = typeof label == 'string' ? label.split('*') : [label];
   return (
     <div>
       {label && labelPosition === 'top' && (
         <SFlex mb={5} align="center" justify="space-between">
           <Typography fontSize={14} color={error ? 'error.main' : 'grey.600'}>
-            {label}
+            {labelSplit[0] || label}
+            {labelSplit[1] == '' && (
+              <Typography component={'span'} fontSize={14} color={'error.main'}>
+                *
+              </Typography>
+            )}
           </Typography>
           {helpText && (
             <STooltip

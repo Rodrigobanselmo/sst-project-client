@@ -27,6 +27,7 @@ export const EmployeeContent = ({
         multiple={false}
         editOnSelection
         large
+        queryEmployee={{ all: company.isConsulting }}
         id={IdsEnum.EMPLOYEE_SELECT_ID}
         text={'Selecionar Funcionário'}
         handleSelect={(e: IEmployee) =>

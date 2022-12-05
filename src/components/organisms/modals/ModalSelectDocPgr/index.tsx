@@ -81,7 +81,8 @@ export const ModalSelectDocPgr: FC = () => {
     ) {
       onCloseModal(ModalEnum.DOC_PGR_SELECT);
       setSelectData(initialDocPgrSelectState);
-      initialData.onSelect(riskGroupData[0]);
+      if (typeof initialData?.onSelect == 'function')
+        initialData?.onSelect(riskGroupData[0]);
     }
   }, [getModalData, getStackModal, onCloseModal, riskGroupData, selectData]);
 
