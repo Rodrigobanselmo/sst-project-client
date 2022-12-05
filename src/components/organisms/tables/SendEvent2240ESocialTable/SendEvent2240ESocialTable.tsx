@@ -15,6 +15,7 @@ import {
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
+import { TextHierarchyRow } from 'components/atoms/STable/components/Rows/TextHierarchyRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import SText from 'components/atoms/SText';
 import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
@@ -123,6 +124,7 @@ export const SendEvent2240ESocialTable: FC<
 
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Funcionário', column: 'minmax(160px, 220px)' },
+    { text: 'Função', column: 'minmax(180px, 220px)' },
     { text: 'Empresa', column: 'minmax(180px, 1fr)' },
     { text: 'riscos', column: '100px' },
     { text: 'Data', column: '110px' },
@@ -174,6 +176,10 @@ export const SendEvent2240ESocialTable: FC<
                   />
                 )}
                 <TextEmployeeRow employee={employee} />
+                <TextHierarchyRow
+                  office={employee.hierarchy}
+                  sector={employee.sectorHierarchy}
+                />
                 <TextCompanyRow showCNPJ clickable company={company} />
                 <TextIconRow
                   clickable

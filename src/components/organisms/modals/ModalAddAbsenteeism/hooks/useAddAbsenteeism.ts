@@ -28,6 +28,7 @@ import { useQueryCids } from 'core/services/hooks/queries/useQueryCids/useQueryC
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
 import { useQueryEsocial18Tables } from 'core/services/hooks/queries/useQueryEsocial18/useQueryEsocial18';
+import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 
 import { absenteeismSchema } from '../../../../../core/utils/schemas/absenteeism.schema';
 import { SModalSubmitAbsenteeismProps } from '../types';
@@ -132,7 +133,9 @@ export const useAddAbsenteeism = () => {
       setAbsenteeismData((oldData) => {
         const newData = {
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
+          companyId: oldData.companyId || initialData.companyId,
+          employeeId: oldData.employeeId || initialData.employeeId,
           ...absenteeism,
           startTime: getTimeFromDate(absenteeism?.startDate),
           endTime: getTimeFromDate(absenteeism?.endDate),

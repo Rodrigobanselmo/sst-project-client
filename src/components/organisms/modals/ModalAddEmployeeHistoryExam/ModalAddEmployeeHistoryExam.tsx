@@ -237,6 +237,7 @@ export const ModalAddEmployeeHistoryExam = () => {
               {isAllFields && (
                 <Box flex={2}>
                   <ProfessionalInputSelect
+                    disabled={!data.clinic?.id}
                     addProfessionalInitProps={{ companyId: data.clinic?.id }}
                     onChange={(prof) => {
                       setData({
@@ -248,7 +249,7 @@ export const ModalAddEmployeeHistoryExam = () => {
                       labelPosition: 'top',
                       placeholder: 'selecione o médico...',
                     }}
-                    query={{ byCouncil: true }}
+                    query={{ byCouncil: true, companyId: data.clinic?.id }}
                     unmountOnChangeDefault
                     defaultValue={data.doctor}
                     name="doctor"

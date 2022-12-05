@@ -21,6 +21,7 @@ export interface IEmployee {
   companyId: string;
   hierarchyId: string;
   hierarchy: IHierarchy;
+  sectorHierarchy: IHierarchy;
 
   esocialCode: string;
   socialName: string;

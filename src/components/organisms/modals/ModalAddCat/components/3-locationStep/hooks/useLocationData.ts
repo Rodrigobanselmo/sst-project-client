@@ -175,6 +175,7 @@ export const useLocationData = (props: IUseAddCat) => {
       pais: catData.countryCodeEsocial6?.code,
       tpLograd: catData.esocialLograd?.code,
       ideLocalAcidTpInsc,
+      ideLocalAcidCnpj,
     };
 
     onSubmitData(submitData, nextStep);

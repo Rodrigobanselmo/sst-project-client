@@ -50,6 +50,9 @@ export const TimeAwayContent = (props: IUseMotiveData) => {
 
       <SText mt={10} mb={4} color="text.label" fontSize={14}>
         Data de Afastamento
+        <SText component={'span'} color="error.main">
+          *
+        </SText>
       </SText>
       <SFlex flexWrap="wrap" mb={5} gap={5}>
         <Box>
@@ -122,6 +125,9 @@ export const TimeAwayContent = (props: IUseMotiveData) => {
 
       <SText mt={10} mb={4} color="text.label" fontSize={14}>
         Data de Retorno
+        <SText component={'span'} color="error.main">
+          *
+        </SText>
       </SText>
       <SFlex flexWrap="wrap" mb={5} gap={5}>
         <Box>

@@ -42,7 +42,10 @@ import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCh
 import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { queryClient } from 'core/services/queryClient';
-import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
+import {
+  cleanObjectNullValues,
+  cleanObjectValues,
+} from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
 import { sortDate } from 'core/utils/sorts/data.sort';
@@ -172,7 +175,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       setCharacterizationData((oldData) => {
         const newData = {
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
           profileParentId: '',
         };
 

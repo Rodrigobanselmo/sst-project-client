@@ -15,6 +15,7 @@ import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutatio
 import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
 import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/company/useMutCreateCompany';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
+import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 
 export const initialCompanyState = {
   status: StatusEnum.ACTIVE,
@@ -95,7 +96,7 @@ export const useEditCompany = () => {
       setCompanyData((oldData) => {
         const newData = {
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
         };
 
         initialDataRef.current = newData;
@@ -103,7 +104,7 @@ export const useEditCompany = () => {
         return newData;
       });
     }
-  }, [getModalData]);
+  }, [getModalData, setCompanyData]);
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.COMPANY_EDIT, data);

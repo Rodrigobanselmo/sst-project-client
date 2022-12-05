@@ -43,6 +43,7 @@ export enum QueryEnum {
   NOTIFICATION = 'notification',
   PDF_GUIDE = 'pdf-guide',
   PDF_KIT = 'pdf-kit',
+  PREVIEW_EVENT_2210 = 'preview-event-2210',
   PREVIEW_EVENT_2220 = 'preview-event-2220',
   PREVIEW_EVENT_2240 = 'preview-event-2240',
   PROFESSIONAL_RESP = 'PROFESSIONAL_RESP',

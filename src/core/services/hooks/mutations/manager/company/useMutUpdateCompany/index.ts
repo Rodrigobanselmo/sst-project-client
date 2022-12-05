@@ -56,6 +56,9 @@ export function useMutUpdateCompany() {
         if (companyResp) {
           queryClient.invalidateQueries([QueryEnum.COMPANIES, user?.companyId]);
           queryClient.invalidateQueries([QueryEnum.COMPANY, companyResp.id]);
+          queryClient.invalidateQueries([QueryEnum.PREVIEW_EVENT_2240]);
+          queryClient.invalidateQueries([QueryEnum.PREVIEW_EVENT_2220]);
+          queryClient.invalidateQueries([QueryEnum.PREVIEW_EVENT_2210]);
         }
 
         enqueueSnackbar('Empresa editada com sucesso', {

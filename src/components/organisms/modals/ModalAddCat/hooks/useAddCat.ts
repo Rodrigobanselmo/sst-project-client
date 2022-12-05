@@ -40,6 +40,7 @@ import { useQueryCat } from 'core/services/hooks/queries/useQueryCat/useQueryCat
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
 import { useQueryEsocial18Tables } from 'core/services/hooks/queries/useQueryEsocial18/useQueryEsocial18';
+import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 
 import { IEmployee } from '../../../../../core/interfaces/api/IEmployee';
 
@@ -157,7 +158,7 @@ export const useAddCat = () => {
       setCatData((oldData) => {
         const newData = {
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
           companyId: oldData.companyId || initialData.companyId,
           employeeId: oldData.employeeId || initialData.employeeId,
           ...cat,

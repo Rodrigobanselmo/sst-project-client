@@ -48,7 +48,7 @@ export const MotiveContent = (props: IUseMotiveData) => {
           }}
           setValue={(v: any) => setValue('motiveId', v?.id || '')}
           defaultValue={absenteeismData?.motive || ''}
-          label="Tipo de Motivo"
+          label="Tipo de Motivo*"
           options={absenteeismMotives}
         />
       </Box>
