@@ -2,6 +2,7 @@
 import React from 'react';
 
 import { Box } from '@mui/material';
+import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { SHelp } from 'components/atoms/SHelp';
 import { SSwitch } from 'components/atoms/SSwitch';
@@ -41,6 +42,7 @@ export const ModalAddCompanyGroup = () => {
     handleOpenCompanySelect,
     handleRemoveCompany,
     moreCompanies,
+    handleOs,
   } = useAddCompanyGroup();
 
   const buttons = [
@@ -260,6 +262,13 @@ export const ModalAddCompanyGroup = () => {
                 />
               </Box>
             </SFlex>
+
+            <SFlex mt={15} flexWrap="wrap" align="center" gap={5}>
+              <SButton color="info" variant="contained" onClick={handleOs}>
+                Editar Modelo OS
+              </SButton>
+            </SFlex>
+
             {isEdit && (
               <Box mt={20}>
                 <ProfessionalResponsibleTable

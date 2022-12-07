@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { useRouter } from 'next/router';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -38,6 +40,7 @@ export const useAddCompanyGroup = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialCompanyGroupState);
+  const { push } = useRouter();
 
   const { handleSubmit, control, setError, reset, getValues, setValue } =
     useForm({
@@ -194,6 +197,16 @@ export const useAddCompanyGroup = () => {
     });
   };
 
+  const handleOs = useCallback(() => {
+    if (companyGroupData?.companyGroup?.id)
+      push(
+        RoutesEnum.OS.replace(
+          /:companyId/g,
+          companyGroupData?.companyGroup?.id,
+        ),
+      );
+  }, [push, companyGroupData?.companyGroup?.id]);
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -208,5 +221,6 @@ export const useAddCompanyGroup = () => {
     handleOpenCompanySelect,
     handleRemoveCompany,
     moreCompanies,
+    handleOs,
   };
 };

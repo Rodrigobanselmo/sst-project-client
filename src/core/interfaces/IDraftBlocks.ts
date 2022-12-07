@@ -34,7 +34,7 @@ export declare namespace IDraftTypes {
   export interface Block {
     key: string;
     text: string;
-    type: string;
+    type: DraftTypeEnum;
     depth: number;
     inlineStyleRanges: InlineStyleRange[];
     entityRanges: any[];

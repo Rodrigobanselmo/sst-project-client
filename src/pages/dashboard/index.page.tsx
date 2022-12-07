@@ -13,16 +13,6 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryDashboard } from 'core/services/hooks/queries/useQueryDashboard';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
-const DraftEditor = dynamic(
-  async () => {
-    const mod = await import(
-      'components/molecules/form/draft-editor/DraftEditor'
-    );
-    return mod.DraftEditor;
-  },
-  { ssr: false },
-);
-
 const Home: NextPage = () => {
   const { data: company } = useQueryCompany();
   const { data } = useQueryDashboard();
@@ -31,16 +21,6 @@ const Home: NextPage = () => {
 
   return (
     <SContainer>
-      <DraftEditor
-        size="xs"
-        mt={5}
-        isJson
-        label="Orservações"
-        placeholder="descrição..."
-        onChange={(value) => {
-          console.log(JSON.parse(value));
-        }}
-      />
       {/* <SAuthShow hideIf={company.isClinic}>
         <SPageTitle>Site em desenvolvimento</SPageTitle>
         <p>Novas atualizações em breve</p>

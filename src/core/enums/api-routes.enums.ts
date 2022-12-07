@@ -1,5 +1,6 @@
 export enum ApiRoutesEnum {
   ABSENTEEISMS = '/absenteeism/:companyId',
+  OS = '/os/:companyId',
   CATS = '/cat/:companyId',
   AUTH_GROUP = '/auth/group/:companyId',
   CEP = '/company/cep',
@@ -59,6 +60,7 @@ export enum ApiRoutesEnum {
   USERS = '/users',
   PDF_GUIDE = '/documents/pdf/guide',
   PDF_KIT = '/documents/pdf/kit',
+  PDF_OS = '/documents/pdf/os',
   COMPANY_DASHBOARD = '/company/:companyId/dashboard',
   ESOCIAL_EVENT_2220 = 'esocial/events/2220',
   ESOCIAL_EVENT_2240 = 'esocial/events/2240',

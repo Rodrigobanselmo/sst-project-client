@@ -1,6 +1,7 @@
 export enum QueryEnum {
   ABSENTEEISMS = 'absenteeisms',
   CATS = 'cats',
+  OS = 'OS',
   AUTH_GROUP = 'auth-group',
   CID = 'CID',
   ESOCIAL_20 = 'ESOCIAL_20',
@@ -43,6 +44,7 @@ export enum QueryEnum {
   NOTIFICATION = 'notification',
   PDF_GUIDE = 'pdf-guide',
   PDF_KIT = 'pdf-kit',
+  PDF_OS = 'pdf-os',
   PREVIEW_EVENT_2210 = 'preview-event-2210',
   PREVIEW_EVENT_2220 = 'preview-event-2220',
   PREVIEW_EVENT_2240 = 'preview-event-2240',

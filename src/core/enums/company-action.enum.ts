@@ -4,6 +4,7 @@ export enum CompanyActionEnum {
   HOMO_GROUP = 'HOMO_GROUP',
   EMPLOYEE = 'EMPLOYEE',
   PGR = 'PGR',
+  OS = 'OS',
   PCMSO = 'PCMSO',
   RISKS = 'RISKS',
   COMPANY_RISKS = 'COMPANY_RISKS',

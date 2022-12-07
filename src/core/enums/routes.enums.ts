@@ -1,5 +1,6 @@
 export enum RoutesEnum {
   ABSENTEEISM = '/dashboard/empresas/:companyId/absenteismo',
+  OS = '/dashboard/empresas/:companyId/os',
   CAT = '/dashboard/empresas/:companyId/cat',
   ACTION_PLAN = '/dashboard/empresas/:companyId/:workspaceId/plano-de-acao/:riskGroupId',
   CHARACTERIZATIONS = '/dashboard/empresas/:companyId/:workspaceId',
@@ -37,5 +38,6 @@ export enum RoutesEnum {
   PDF_GUIDE = '/pdf/:companyId/:employeeId/guia-de-emcaminhamento',
   PDF_KIT_EXAM = '/pdf/:companyId/:employeeId/kit-medico?aso=:asoId',
   PDF_DOC_PCD = '/pdf/:companyId/:employeeId/laudo-pcd',
+  PDF_OS = '/pdf/:companyId/:employeeId/os',
   ESOCIAL = '/dashboard/empresas/:companyId/esocial',
 }

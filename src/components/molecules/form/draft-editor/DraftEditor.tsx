@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+import { css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { Box } from '@mui/material';
 import SText from 'components/atoms/SText';
@@ -18,7 +19,7 @@ import { useNewDebounce } from 'core/hooks/useNewDebounce';
 
 import { DraftEditorProps } from './types';
 
-const STDraftBox = styled(Box)`
+const STDraftBox = styled(Box)<{ document1?: number }>`
   overflow: visible;
   .wrapper_content {
     /* box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.19); */
@@ -93,6 +94,32 @@ const STDraftBox = styled(Box)`
   .full {
     max-height: 100%;
   }
+
+  ${(props) =>
+    props.document1 &&
+    css`
+      .rdw-dropdown-selectedtext {
+        display: none;
+      }
+      .rdw-dropdown-wrapper {
+        display: none;
+      }
+      .rdw-colorpicker-wrapper {
+        display: none;
+      }
+      .rdw-image-wrapper {
+        display: none;
+      }
+      div[title='Strikethrough'] {
+        display: none;
+      }
+      div[title='Sobrescrito'] {
+        display: none;
+      }
+      div[title='Subscrito'] {
+        display: none;
+      }
+    `};
 `;
 
 const Editor = dynamic(
@@ -111,6 +138,8 @@ export const DraftEditor = ({
   label,
   isJson,
   onChange,
+  textProps,
+  document1,
   ...props
 }: DraftEditorProps) => {
   const [toolbar, setToolbar] = useState(false);
@@ -119,16 +148,20 @@ export const DraftEditor = ({
   );
 
   useEffect(() => {
+    if (!defaultValue) setEditorState(EditorState.createEmpty());
     if (defaultValue) {
+      const isString = typeof defaultValue == 'string';
       if (isJson) {
-        if (defaultValue.includes('<p>')) return;
+        if (isString && defaultValue.includes('<p>')) return;
+
         return setEditorState(
           EditorState.createWithContent(
-            convertFromRaw(JSON.parse(defaultValue)),
+            convertFromRaw(isString ? JSON.parse(defaultValue) : defaultValue),
           ),
         );
       }
 
+      if (!isString) return;
       const blocksFromHtml = htmlToDraft(defaultValue);
       const { contentBlocks, entityMap } = blocksFromHtml;
       const contentState = ContentState.createFromBlockArray(
@@ -173,8 +206,8 @@ export const DraftEditor = ({
   };
 
   return (
-    <STDraftBox {...props}>
-      <SText color="text.label" fontSize={14} mb={5}>
+    <STDraftBox document1={document1 ? 1 : 0} {...props}>
+      <SText color="text.label" fontSize={14} mb={5} {...textProps}>
         {label}
       </SText>
       <Editor

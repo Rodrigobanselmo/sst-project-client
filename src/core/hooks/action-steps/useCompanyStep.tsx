@@ -24,6 +24,7 @@ import { SExamIcon } from 'assets/icons/SExamIcon';
 import { SGhoIcon } from 'assets/icons/SGhoIcon';
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 import SManagerSystemIcon from 'assets/icons/SManagerSystemIcon';
+import SOsIcon from 'assets/icons/SOsIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 import { SWorkspaceIcon } from 'assets/icons/SWorkspaceIcon';
@@ -151,6 +152,10 @@ export const useCompanyStep = () => {
 
   const handleAbsenteeism = useCallback(() => {
     push(RoutesEnum.ABSENTEEISM.replace(/:companyId/g, company.id));
+  }, [push, company.id]);
+
+  const handleOs = useCallback(() => {
+    push(RoutesEnum.OS.replace(/:companyId/g, company.id));
   }, [push, company.id]);
 
   const handleAddClinic = useCallback(() => {
@@ -334,6 +339,12 @@ export const useCompanyStep = () => {
         text: 'Absenteísmo',
         tooltipText: 'Gerenciamento de faltas e afastamentos temporarios',
       },
+      [CompanyActionEnum.OS]: {
+        icon: SOsIcon,
+        onClick: handleOs,
+        text: 'Ordem de Serviço (OS)',
+        tooltipText: 'Configuração e conteúdo da OS',
+      },
     };
   }, [
     handleAddWorkspace,
@@ -351,6 +362,7 @@ export const useCompanyStep = () => {
     handleCompanyRisks,
     handleDocPCMSO,
     handleAbsenteeism,
+    handleOs,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
@@ -365,6 +377,7 @@ export const useCompanyStep = () => {
     return [
       actionsMapStepMemo[CompanyActionEnum.PGR],
       actionsMapStepMemo[CompanyActionEnum.COMPANY_RISKS],
+      actionsMapStepMemo[CompanyActionEnum.OS],
     ];
   }, [actionsMapStepMemo]);
 
