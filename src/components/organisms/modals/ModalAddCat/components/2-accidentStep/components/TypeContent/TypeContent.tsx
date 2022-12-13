@@ -144,6 +144,53 @@ export const TypeContent = (props: IUseAccidentData) => {
         </SFlex>
       )}
 
+      {/* ACI */}
+      <SFlex flexWrap="wrap" mb={5} gap={5}>
+        <Box width={['100%', 220]}>
+          <SelectForm
+            unmountOnChangeDefault
+            setValue={setValue}
+            defaultValue={catData?.tpAcid || ''}
+            control={control}
+            placeholder="selecione..."
+            name="tpAcid"
+            label="Tipo Acidente*"
+            labelPosition="top"
+            onChange={(e) => {
+              if (e.target.value) {
+                setCatData({
+                  ...catData,
+                  tpAcid: e.target.value as number,
+                });
+              }
+            }}
+            size="small"
+            options={tpAcidList}
+          />
+        </Box>
+
+        <Box flex={1}>
+          <Esocial15AcidSelect
+            onChange={(data) => {
+              setCatData((d) => ({
+                ...d,
+                esocialSitGeradora: data,
+                codSitGeradora: data?.code,
+              }));
+            }}
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'selecione motivo...',
+            }}
+            unmountOnChangeDefault
+            defaultValue={catData?.esocialSitGeradora}
+            name="esocialSitGeradora"
+            label="Situação geradora*"
+            control={control}
+          />
+        </Box>
+      </SFlex>
+
       {/* DATE */}
       <SFlex flexWrap="wrap" mb={5} gap={5}>
         <Box>
@@ -213,53 +260,6 @@ export const TypeContent = (props: IUseAccidentData) => {
                 ultDiaTrab: date instanceof Date ? date : undefined,
               });
             }}
-          />
-        </Box>
-      </SFlex>
-
-      {/* ACI */}
-      <SFlex flexWrap="wrap" mb={5} gap={5}>
-        <Box width={['100%', 220]}>
-          <SelectForm
-            unmountOnChangeDefault
-            setValue={setValue}
-            defaultValue={catData?.tpAcid || ''}
-            control={control}
-            placeholder="selecione..."
-            name="tpAcid"
-            label="Tipo Acidente*"
-            labelPosition="top"
-            onChange={(e) => {
-              if (e.target.value) {
-                setCatData({
-                  ...catData,
-                  tpAcid: e.target.value as number,
-                });
-              }
-            }}
-            size="small"
-            options={tpAcidList}
-          />
-        </Box>
-
-        <Box flex={1}>
-          <Esocial15AcidSelect
-            onChange={(data) => {
-              setCatData((d) => ({
-                ...d,
-                esocialSitGeradora: data,
-                codSitGeradora: data?.code,
-              }));
-            }}
-            inputProps={{
-              labelPosition: 'top',
-              placeholder: 'selecione motivo...',
-            }}
-            unmountOnChangeDefault
-            defaultValue={catData?.esocialSitGeradora}
-            name="esocialSitGeradora"
-            label="Situação geradora*"
-            control={control}
           />
         </Box>
       </SFlex>

@@ -8,6 +8,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
 import { IUseAddCat } from '../../hooks/useAddCat';
+import { CatPrintButton } from '../2-accidentStep/components/CatPrintButton/CatPrintButton';
 import { DocContent } from './components/DocContent/DocContent';
 import { useDoctorData } from './hooks/useDoctorData';
 
@@ -36,6 +37,7 @@ export const DoctorStep = (data: IUseAddCat) => {
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
         <Box>
+          {isEdit && <CatPrintButton {...props} />}
           <DocContent {...props} />
         </Box>
       </AnimatedStep>

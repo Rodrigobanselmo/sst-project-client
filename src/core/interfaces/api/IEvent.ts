@@ -9,6 +9,18 @@ import { ICompany } from './ICompany';
 import { IEmployee, IEmployeeExamsHistory } from './IEmployee';
 import { IUser } from './IUser';
 
+export interface IEvent2210 {
+  id?: number;
+  company: ICompany;
+  doneDate: Date;
+  errors: {
+    message: string;
+  }[];
+  employee: IEmployee;
+  type: ESocialSendEnum;
+  xml: string;
+}
+
 export interface IEvent2220 {
   id?: number;
   doneDate: Date;

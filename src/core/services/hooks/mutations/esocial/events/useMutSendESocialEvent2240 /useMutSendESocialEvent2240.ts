@@ -44,7 +44,7 @@ export function useMutSendESocialEvent2240() {
 
   return useMutation(async (data: ISendEvent2240) => mutSend2240(data), {
     onSuccess: async (resp) => {
-      queryClient.invalidateQueries([QueryEnum.PREVIEW_EVENT_2220]);
+      queryClient.invalidateQueries([QueryEnum.PREVIEW_EVENT_2240]);
       queryClient.invalidateQueries([QueryEnum.ESOCIAL_EVENT_BATCH]);
       queryClient.invalidateQueries([QueryEnum.ESOCIAL_EVENT]);
       queryClient.invalidateQueries([QueryEnum.COMPANIES]);

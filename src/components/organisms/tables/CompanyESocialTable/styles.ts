@@ -5,7 +5,7 @@ export const STTableEsocialBox = styled(Box)<{
   unstyled?: number;
 }>`
   display: grid;
-  grid-template-rows: 30px 30px 35px;
+  grid-template-rows: 30px 30px 30px 35px;
   justify-content: center;
   margin-top: 3px;
   align-items: center;

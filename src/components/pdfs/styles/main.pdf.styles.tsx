@@ -70,7 +70,7 @@ export const sm = StyleSheet.create({
     backgroundColor: '#3cbe7d55',
   },
   darkRow: {
-    backgroundColor: '#ddd',
+    backgroundColor: '#c0c0c0',
   },
   darkLightRow: {
     backgroundColor: '#eee',

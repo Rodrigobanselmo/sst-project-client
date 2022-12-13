@@ -21,6 +21,7 @@ import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist/risk/useMutUpsertRiskDocInfo';
 import { useQueryRiskDataByHierarchy } from 'core/services/hooks/queries/useQueryRiskDataByHierarchy';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import { dateToString } from 'core/utils/date/date-format';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 
@@ -235,6 +236,10 @@ export const ModalViewRiskData = ({
                             '&:hover': {
                               textDecoration: 'underline',
                             },
+                            ...(riskData.endDate && {
+                              borderColor: 'error.main',
+                              color: 'error.main',
+                            }),
                           }}
                           fontSize={11}
                           onClick={() =>
@@ -244,6 +249,10 @@ export const ModalViewRiskData = ({
                             )
                           }
                         >
+                          {riskData.endDate
+                            ? `(Data fim: ${dateToString(riskData.endDate)}) `
+                            : ''}
+
                           {riskData.origin ||
                             `${selectedNode?.label || selectedNode?.name} (${
                               originRiskMap?.[(selectedNode?.type || '') as any]

@@ -39,19 +39,20 @@ export const ModalAddCat = () => {
           // secondIcon={catData?.id ? SDeleteIcon : undefined}
           // secondIconClick={handleDelete}
         />
-
         <Wizard
           schemas={[catSchema]}
           header={
             isEdit ? (
-              <WizardTabs
-                height={45}
-                options={[
-                  { label: 'Dados do acidente', sx: { fontSize: 12 } },
-                  { label: 'Local', sx: { fontSize: 12 } },
-                  { label: 'Atestado', sx: { fontSize: 12 } },
-                ]}
-              />
+              <>
+                <WizardTabs
+                  height={45}
+                  options={[
+                    { label: 'Dados do acidente', sx: { fontSize: 12 } },
+                    { label: 'Local', sx: { fontSize: 12 } },
+                    { label: 'Atestado', sx: { fontSize: 12 } },
+                  ]}
+                />
+              </>
             ) : null
           }
         >

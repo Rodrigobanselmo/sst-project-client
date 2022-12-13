@@ -7,11 +7,16 @@ import SText from '../SText';
 
 interface ITagRiskProps {
   riskFactor: IRiskFactors;
+  isEndDate?: boolean;
 
   hideRiskName?: boolean;
 }
 
-export const STagRisk = ({ hideRiskName, riskFactor }: ITagRiskProps) => {
+export const STagRisk = ({
+  isEndDate,
+  hideRiskName,
+  riskFactor,
+}: ITagRiskProps) => {
   return (
     <SText fontSize={14}>
       <SText
@@ -24,6 +29,7 @@ export const STagRisk = ({ hideRiskName, riskFactor }: ITagRiskProps) => {
           width: '40px',
           borderRadius: '4px',
           mr: 2,
+          ...(isEndDate && { backgroundColor: 'error.main' }),
         }}
       >
         <SFlex center>{riskFactor?.type || ''}</SFlex>

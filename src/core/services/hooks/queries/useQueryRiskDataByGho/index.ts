@@ -8,7 +8,6 @@ import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 import { IRiskData } from '../../../../interfaces/api/IRiskData';
-import { sortRiskData } from '../useQueryRiskData';
 
 export const queryRiskData = async (
   companyId: string,

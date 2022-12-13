@@ -47,6 +47,7 @@ export enum QueryEnum {
   PDF_OS = 'pdf-os',
   PREVIEW_EVENT_2210 = 'preview-event-2210',
   PREVIEW_EVENT_2220 = 'preview-event-2220',
+  PREVIEW_EVENT_2230 = 'preview-event-2230',
   PREVIEW_EVENT_2240 = 'preview-event-2240',
   PROFESSIONAL_RESP = 'PROFESSIONAL_RESP',
   PROFESSIONALS = 'professionals',

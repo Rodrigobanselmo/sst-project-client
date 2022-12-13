@@ -24,7 +24,7 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { useMutSendESocialEvent2240 } from 'core/services/hooks/mutations/esocial/2220/useMutSendESocialEvent2240 /useMutSendESocialEvent2240 ';
+import { useMutSendESocialEvent2240 } from 'core/services/hooks/mutations/esocial/events/useMutSendESocialEvent2240 /useMutSendESocialEvent2240';
 import { useQueryEvent2240 } from 'core/services/hooks/queries/useQueryEvent2240/useQueryEvent2240';
 
 export const initialSendESocial2240State = {

@@ -84,15 +84,20 @@ export const ModalBlank: FC = () => {
       onClose={onCloseNoSelect}
     >
       <SModalPaper
-        sx={{ backgroundColor: 'grey.200' }}
+        sx={{
+          backgroundColor: 'grey.200',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'space-between',
+        }}
         // semiFullScreen
         center
         p={8}
       >
         <SModalHeader onClose={onCloseNoSelect} title={data.title || ' '} />
 
-        <Box mt={8} mb={20}>
-          {data.content(setData, data)}
+        <Box maxHeight={400} minHeight={200}>
+          <Box mt={8}>{data.content(setData, data)}</Box>
         </Box>
 
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

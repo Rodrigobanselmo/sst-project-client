@@ -1,6 +1,7 @@
 import React, { FC, useMemo } from 'react';
 
 import { RuleSharp } from '@mui/icons-material';
+import { LinearProgress } from '@mui/material';
 import { STagButton } from 'components/atoms/STagButton';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
@@ -34,10 +35,8 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
   const homoId = useMemo(() => String(gho?.id || '').split('//')[0], [gho?.id]);
 
   //! performance optimization here
-  const { data: riskDataQuery } = useQueryRiskDataByGho(
-    riskGroupId as string,
-    homoId,
-  );
+  const { data: riskDataQuery, isLoading: isRiskGhoLoading } =
+    useQueryRiskDataByGho(riskGroupId as string, homoId);
 
   const handleAddRisk = () => {
     if (!selectedGho)
@@ -139,6 +138,7 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
 
   return (
     <>
+      {isRiskGhoLoading && <LinearProgress />}
       {riskOrderedData.map(([riskData, risk]) => (
         <RiskToolGSEViewRow
           key={riskData.id}

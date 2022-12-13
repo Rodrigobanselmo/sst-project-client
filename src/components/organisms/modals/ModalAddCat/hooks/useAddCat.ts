@@ -130,7 +130,7 @@ export const useAddCat = () => {
   const isDeath = isWithDeath(catData.tpCat);
   const isOrigin = isOriginCat(catData.tpCat);
   const isShowOrigin = isShowOriginCat(catData.tpCat);
-  const hrsWorked = isHrsWorked(catData.tpCat);
+  const hrsWorked = isHrsWorked(catData.tpAcid);
 
   const askCompany = isAskCompany(catData.tpLocal);
   const cepRequired = isCepRequired(catData.tpLocal);

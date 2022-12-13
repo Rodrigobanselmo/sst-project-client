@@ -21,6 +21,7 @@ import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import SWizardBox from 'components/atoms/SWizardBox';
 import { SRadio } from 'components/molecules/form/radio';
+import { initialSendESocial2210State } from 'components/organisms/modals/ModalSend2210ESocial/ModalSend2210ESocial';
 import { initialSendESocialState } from 'components/organisms/modals/ModalSend2220ESocial/ModalSend2220ESocial';
 import { initialSendESocial2240State } from 'components/organisms/modals/ModalSend2240ESocial/ModalSend2240ESocial';
 import { EmployeeESocialEventTypeEnum } from 'project/enum/esocial-event-type.enum';
@@ -69,6 +70,13 @@ export const CompanyESocialTable: FC<
   //     type: EmployeeESocialEventTypeEnum.EXAM_2220,
   //   } as typeof initialSendESocialState);
   // };
+
+  const onSend2210 = (company: ICompany) => {
+    onStackOpenModal(ModalEnum.MODAL_SEND_ESOCIAL_2210, {
+      companyId: company.id,
+      company: company,
+    } as typeof initialSendESocial2210State);
+  };
 
   const onSend2220 = (company: ICompany) => {
     onStackOpenModal(ModalEnum.MODAL_SEND_ESOCIAL_2220, {
@@ -177,6 +185,7 @@ export const CompanyESocialTable: FC<
             rowsInitialNumber={rowsPerPage}
             renderRow={(row) => {
               const esocial = row.report?.dailyReport?.esocial;
+              const S2210 = esocial?.S2210;
               const S2220 = esocial?.S2220;
               const S2240 = esocial?.S2240;
 
@@ -207,12 +216,32 @@ export const CompanyESocialTable: FC<
                     text={cnpjMask.mask(row.cnpj)}
                   />
                   <STTableEsocialBox>
+                    <TextIconRow center text={'S-2210'} />
                     <TextIconRow center text={'S-2220'} />
                     <TextIconRow center text={'S-2240'} />
                     <TextIconRow center text={'Total'} />
                   </STTableEsocialBox>
 
                   <STTableEsocialBox ml={0}>
+                    <SButton
+                      variant="outlined"
+                      xsmall
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSend2210(row);
+                      }}
+                      sx={{
+                        width: '100%',
+                        backgroundColor: 'white',
+                        color: 'grey.700',
+                        borderColor: 'grey.700',
+                        '&:hover': {
+                          borderColor: 'grey.700',
+                        },
+                      }}
+                    >
+                      Transmitir
+                    </SButton>
                     <SButton
                       variant="outlined"
                       xsmall
@@ -257,6 +286,12 @@ export const CompanyESocialTable: FC<
                     <TextIconRow
                       textAlign={'center'}
                       center
+                      text={String(S2210?.pending || 0)}
+                      {...(S2210?.pending && { color: 'warning.dark' })}
+                    />
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
                       text={String(S2220?.pending || 0)}
                       {...(S2220?.pending && { color: 'warning.dark' })}
                     />
@@ -279,6 +314,12 @@ export const CompanyESocialTable: FC<
                     />
                   </STTableEsocialBox>
                   <STTableEsocialBox>
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2210?.done || 0)}
+                      {...(S2210?.done && { color: 'success.dark' })}
+                    />
                     <TextIconRow
                       textAlign={'center'}
                       center
@@ -305,6 +346,12 @@ export const CompanyESocialTable: FC<
                     <TextIconRow
                       textAlign={'center'}
                       center
+                      text={String(S2210?.rejected || 0)}
+                      {...(S2210?.rejected && { color: 'error.dark' })}
+                    />
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
                       text={String(S2220?.rejected || 0)}
                       {...(S2220?.rejected && { color: 'error.dark' })}
                     />
@@ -325,6 +372,12 @@ export const CompanyESocialTable: FC<
                     />
                   </STTableEsocialBox>
                   <STTableEsocialBox>
+                    <TextIconRow
+                      textAlign={'center'}
+                      center
+                      text={String(S2210?.transmitted || 0)}
+                      {...(S2210?.transmitted && { color: 'grey.600' })}
+                    />
                     <TextIconRow
                       textAlign={'center'}
                       center

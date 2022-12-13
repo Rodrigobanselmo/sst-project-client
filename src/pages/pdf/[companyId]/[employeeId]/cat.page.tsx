@@ -1,36 +1,46 @@
 import { Box } from '@mui/material';
 import { Document, PDFViewer } from '@react-pdf/renderer';
-import PdfOSPage from 'components/pdfs/documents/os/os.pdf';
+import PdfCatPage from 'components/pdfs/documents/cat/cat.pdf';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
-import { useQueryPdfOS } from 'core/services/hooks/queries/pdfs/useQueryPdfOS/useQueryPdfOS';
+import { useQueryCat } from 'core/services/hooks/queries/useQueryCat/useQueryCat';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
 const Kit: NextPage = () => {
   const { query } = useRouter();
   const employeeId = query.employeeId as string;
+  const catId = query.catId as string;
+  const companyId = query.companyId as string;
 
-  const { data: osData } = useQueryPdfOS(employeeId);
+  const { data: company } = useQueryCompany(companyId);
+
+  const { data: employee } = useQueryEmployee({
+    id: Number(employeeId || 0),
+    companyId,
+  });
+
+  const { data: cat } = useQueryCat({
+    id: Number(catId || 0),
+    companyId,
+  });
   return (
     <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
       <PDFViewer showToolbar width="100%" height="100%">
         <Document
-          subject={'Ordem de serviço'}
+          subject={'CAT'}
           author={'simpleSST'}
           creator={'simpleSST'}
           producer={'simpleSST'}
-          keywords={'Ordem de serviço'}
-          title={`OS_${getCompanyName(
-            osData?.consultantCompany,
-          )}_${getCompanyName(osData?.actualCompany)}_${
-            osData?.employee?.name
-          }`}
+          keywords={'CAT'}
+          title={`CAT_${getCompanyName(company)}`}
         >
-          {osData && osData?.employee && (
+          {employee && cat && company && (
             <>
-              <PdfOSPage data={osData} />
+              <PdfCatPage data={{ cat, company, employee }} />
             </>
           )}
         </Document>

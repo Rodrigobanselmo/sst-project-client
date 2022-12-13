@@ -123,7 +123,19 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
   const allRisks = risks?.filter((r) => r.riskFactor.type != RiskEnum.OUTROS);
   const isNoRisk = !allRisks.length;
 
-  const list = osList.filter((v) => !!(os as any)[v.field]);
+  if (!epis.length)
+    epis.push({
+      epiId: 0,
+      epi: { id: 0, ca: '', equipment: 'Nenhum EPI' } as any,
+    });
+
+  if (!epcs.length)
+    epcs.push({
+      recMedId: '0',
+      recMed: { id: '0', medName: 'Nenhum EPC' } as any,
+    });
+
+  const list = osList.filter((v) => !!(os as any)?.[v.field]);
 
   let index = 0;
 
@@ -299,7 +311,7 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
                   <Text style={s.h2}>EQUIPAMENTOS DE PROTEÇÃO INDIVIDUAL</Text>
                 </View>
 
-                <View style={[{ flex: 1, borderRight: '1 solid #000' }]}>
+                <View style={[{ flex: 1 }]}>
                   <Text style={s.h2}>EPC</Text>
                 </View>
 
@@ -328,9 +340,11 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
                           ]}
                         >
                           <Text style={s.body}>
-                            <Text style={{ fontWeight: 'extrabold' }}>
-                              {index + 1}.
-                            </Text>{' '}
+                            {epi.epiId != 0 && (
+                              <Text style={{ fontWeight: 'extrabold' }}>
+                                {index + 1}.
+                              </Text>
+                            )}{' '}
                             {epi.epi?.equipment}
                           </Text>
                         </View>
@@ -344,7 +358,7 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
                     by: 'medName',
                     order: 'asc',
                     computed: { medName: (v) => v.recMed?.medName },
-                  }).map((epi, index) => {
+                  }).map((epc, index) => {
                     return (
                       <View style={[sm.row]}>
                         <View
@@ -357,10 +371,12 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
                           ]}
                         >
                           <Text style={s.body}>
-                            <Text style={{ fontWeight: 'extrabold' }}>
-                              {index + 1}.
-                            </Text>{' '}
-                            {epi.recMed?.medName}
+                            {epc.recMedId != '0' && (
+                              <Text style={{ fontWeight: 'extrabold' }}>
+                                {index + 1}.
+                              </Text>
+                            )}{' '}
+                            {epc.recMed?.medName}
                           </Text>
                         </View>
                       </View>

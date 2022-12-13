@@ -32,7 +32,6 @@ export const queryEvent2240 = async (
   const response = await api.get<IPaginationResult<IEvent2240[]>>(
     `${ApiRoutesEnum.ESOCIAL_EVENT_2240}/${companyId}?take=${take}&skip=${skip}&${queries}`,
   );
-  console.log(1);
   return {
     data: response.data?.data.map((r, i) => ({ id: i, ...r })),
     count: response.data?.count,

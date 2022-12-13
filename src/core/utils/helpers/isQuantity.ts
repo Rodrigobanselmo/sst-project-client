@@ -7,28 +7,21 @@ import { stringNormalize } from '../strings/stringNormalize';
 
 export const isQuantity = (risk?: IRiskFactors | null) => {
   if (!risk) return;
-  if (!risk.name) return;
+  if (!risk.esocialCode) return;
 
-  const riskNameNormalized = stringNormalize(risk.name);
+  const code = risk.esocialCode;
 
   if (risk.type === RiskEnum.QUI) return QuantityTypeEnum.QUI;
 
-  if (
-    riskNameNormalized === stringNormalize('Vibrações Localizadas (Mão-Braço)')
-  )
-    return QuantityTypeEnum.VL;
+  if (code == '02.01.002') return QuantityTypeEnum.VL;
 
-  if (riskNameNormalized === stringNormalize('Ruído contínuo ou Intermitente'))
-    return QuantityTypeEnum.NOISE;
+  if (code == '02.01.001') return QuantityTypeEnum.NOISE;
 
-  if (riskNameNormalized === stringNormalize('Temperaturas anormais (calor)'))
-    return QuantityTypeEnum.HEAT;
+  if (code == '02.01.014') return QuantityTypeEnum.HEAT;
 
-  if (riskNameNormalized === stringNormalize('Vibrações de Corpo Inteiro'))
-    return QuantityTypeEnum.VFB;
+  if (code == '02.01.004' || code == '02.01.003') return QuantityTypeEnum.VFB;
 
-  if (riskNameNormalized.includes(stringNormalize('Radiações Ionizantes')))
-    return QuantityTypeEnum.RADIATION;
+  if (code == '02.01.006') return QuantityTypeEnum.RADIATION;
 
   return null;
 };

@@ -12,10 +12,10 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { SendEvent2220ESocialTable } from 'components/organisms/tables/SendEvent2220ESocialTable/SendEvent2220ESocialTable';
+import { SendEvent2210ESocialTable } from 'components/organisms/tables/SendEvent2210ESocialTable/SendEvent2210ESocialTable';
 import NextLink from 'next/link';
 import { useRouter } from 'next/router';
-import { EmployeeESocialEventTypeEnum } from 'project/enum/esocial-event-type.enum';
+import sortArray from 'sort-array';
 
 import SEventIcon from 'assets/icons/SEventIcon/SEventIcon';
 
@@ -24,40 +24,37 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { useMutSendESocialEvent2220 } from 'core/services/hooks/mutations/esocial/events/useMutSendESocialEvent2220/useMutSendESocialEvent2220';
-import { useQueryEvent2220 } from 'core/services/hooks/queries/useQueryEvent2220/useQueryEvent2220';
-import { sortDate } from 'core/utils/sorts/data.sort';
-import { sortNumber } from 'core/utils/sorts/number.sort';
+import { useMutSendESocialEvent2210 } from 'core/services/hooks/mutations/esocial/events/useMutSendESocialEvent2210/useMutSendESocialEvent2210';
+import { useQueryEvent2210 } from 'core/services/hooks/queries/useQueryEvent2210/useQueryEvent2210';
 
-export const initialSendESocialState = {
+export const initialSendESocial2210State = {
   title: '',
   companyId: '',
-  type: '' as EmployeeESocialEventTypeEnum,
   company: null as ICompany | null,
   onSelect: (d: any) => {},
   onCloseWithoutSelect: () => {},
 };
 
-const modalEnum = ModalEnum.MODAL_SEND_ESOCIAL_2220;
+const modalEnum = ModalEnum.MODAL_SEND_ESOCIAL_2210;
 
-export const ModalSend2220ESocial: FC = () => {
+export const ModalSend2210ESocial: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { push } = useRouter();
   const { onCloseModal } = useModal();
-  const [data, setData] = useState(initialSendESocialState);
-  const sendMut2220 = useMutSendESocialEvent2220();
+  const [data, setData] = useState(initialSendESocial2210State);
+  const sendMut2210 = useMutSendESocialEvent2210();
   const {
-    data: event2220,
+    data: event2210,
     count,
     error,
-  } = useQueryEvent2220(1, {
+  } = useQueryEvent2210(1, {
     companyId: data.companyId,
   });
 
   useEffect(() => {
     const initialData = getModalData(
       modalEnum,
-    ) as typeof initialSendESocialState;
+    ) as typeof initialSendESocial2210State;
 
     if (initialData) {
       setData((oldData) => {
@@ -73,7 +70,7 @@ export const ModalSend2220ESocial: FC = () => {
 
   const onClose = () => {
     onCloseModal(modalEnum);
-    setData(initialSendESocialState);
+    setData(initialSendESocial2210State);
   };
 
   const onCloseNoSelect = () => {
@@ -84,22 +81,25 @@ export const ModalSend2220ESocial: FC = () => {
   const onSubmit = () => {
     data.onSelect?.(data);
     if (data.companyId) {
-      if (data.type === EmployeeESocialEventTypeEnum.EXAM_2220) {
-        sendMut2220
-          .mutateAsync({ companyId: data.companyId })
-          .then(() => {
-            onClose();
-          })
-          .catch(() => null);
-      }
+      sendMut2210
+        .mutateAsync({ companyId: data.companyId })
+        .then(() => {
+          onClose();
+        })
+        .catch(() => null);
     }
   };
 
   const eventsOks = useMemo(() => {
-    return event2220
-      .sort((a, b) => sortNumber(b.errors.length, a.errors.length))
-      .sort((a, b) => sortDate(a.doneDate, b.doneDate));
-  }, [event2220]);
+    return sortArray(event2210, {
+      by: ['error', 'name', 'doneDate'],
+      order: ['desc', 'desc', 'desc'],
+      computed: {
+        error: (row) => row?.errors?.length != 0,
+        name: (row) => row.employee.name,
+      },
+    });
+  }, [event2210]);
 
   const buttons = [
     {
@@ -111,7 +111,7 @@ export const ModalSend2220ESocial: FC = () => {
       text: 'Enviar',
       variant: 'contained',
       onClick: () => onSubmit(),
-      loading: sendMut2220.isLoading,
+      loading: sendMut2210.isLoading,
     },
   ] as IModalButton[];
 
@@ -152,7 +152,7 @@ export const ModalSend2220ESocial: FC = () => {
                 iconProps={{ sx: { color: 'grey.600', fontSize: 18 } }}
                 icon={SEventIcon}
               />
-              <SendEvent2220ESocialTable
+              <SendEvent2210ESocialTable
                 company={data.company || undefined}
                 events={eventsOks}
               />
@@ -165,23 +165,3 @@ export const ModalSend2220ESocial: FC = () => {
     </SModal>
   );
 };
-
-// <STableTopDivider
-//   content={'Eventos com erros de formatação'}
-//   icon={SCloseIcon}
-//   iconProps={{ sx: { color: 'error.main' } }}
-// />
-// <SendEventESocialTable
-//   events={eventsWithErrors}
-//   company={data.company || undefined}
-// />
-// <STableTopDivider
-//   mt={10}
-//   content={'Eventos prontos para serem enviados'}
-//   iconProps={{ sx: { color: 'success.main' } }}
-//   icon={SCheckIcon}
-// />
-// <SendEventESocialTable
-//   company={data.company || undefined}
-//   events={eventsOks}
-// />

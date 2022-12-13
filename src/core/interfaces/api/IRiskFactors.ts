@@ -3,6 +3,7 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IEsocialTable24 } from './IEsocial';
 import { IHierarchy } from './IHierarchy';
 import { IRiskData } from './IRiskData';
 
@@ -121,4 +122,7 @@ export interface IRiskFactors {
 
   docInfo?: IRiskDocInfo[];
   riskFactorData?: IRiskData[];
+
+  esocialCode: string;
+  esocial?: IEsocialTable24;
 }

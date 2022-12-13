@@ -16,7 +16,7 @@ export const ChecklistTreeComponent: FC<IOrgTreeProps> = ({
   horizontal = false,
   ...props
 }) => {
-  useQueryAllRisk();
+  // useQueryAllRisk();
 
   const orgContainerRef = useRef<HTMLDivElement>(null);
 

@@ -9,6 +9,7 @@ import {
   IEsocialTable20Lograd,
   IEsocialTable6Country,
 } from './IEsocial';
+import { IESocialEvent } from './IEvent';
 import { IProfessional } from './IProfessional';
 import { ICities, IUf } from './IUFCities';
 
@@ -84,6 +85,8 @@ export type ICat = {
   codParteAting: string;
   codParteAtingEsocial13?: IEsocialTable13Body;
   status: StatusEnum;
+
+  events: IESocialEvent[];
 };
 
 export const tpAcidList = [
@@ -129,6 +132,10 @@ export const lateralidadeList = [
   { value: '2', content: 'Direita' },
   { value: '3', content: 'Ambas' },
 ];
+
+export const getContentByCatListValue = (num: number | string, list: any[]) => {
+  return list.find((x) => x.value == num)?.content;
+};
 
 export const isWithDeath = (num?: number) => [3].includes(num || 0); // tpCat
 

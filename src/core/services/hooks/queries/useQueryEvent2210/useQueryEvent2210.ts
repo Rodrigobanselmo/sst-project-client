@@ -4,23 +4,23 @@ import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IEvent2220 } from 'core/interfaces/api/IEvent';
+import { IEvent2210 } from 'core/interfaces/api/IEvent';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export interface IQueryEvent2220 {
+export interface IQueryEvent2210 {
   search?: string | null;
   companyId?: string;
   all?: boolean;
   companiesIds?: string[];
 }
 
-export const queryEvent2220 = async (
+export const queryEvent2210 = async (
   { skip, take }: IPagination,
-  query: IQueryEvent2220,
+  query: IQueryEvent2210,
 ) => {
   const companyId = query.companyId;
 
@@ -29,8 +29,8 @@ export const queryEvent2220 = async (
 
   const queries = queryString.stringify(query);
 
-  const response = await api.get<IPaginationResult<IEvent2220[]>>(
-    `${ApiRoutesEnum.ESOCIAL_EVENT_2220}/${companyId}?take=${take}&skip=${skip}&${queries}`,
+  const response = await api.get<IPaginationResult<IEvent2210[]>>(
+    `${ApiRoutesEnum.ESOCIAL_EVENT_2210}/${companyId}?take=${take}&skip=${skip}&${queries}`,
   );
   return {
     data: response.data?.data.map((r, i) => ({ id: i, ...r })),
@@ -39,9 +39,9 @@ export const queryEvent2220 = async (
   };
 };
 
-export function useQueryEvent2220(
+export function useQueryEvent2210(
   page = 1,
-  query = {} as IQueryEvent2220,
+  query = {} as IQueryEvent2210,
   take = 20,
 ) {
   const { companyId: _companyId } = useGetCompanyId();
@@ -54,16 +54,16 @@ export function useQueryEvent2220(
 
   const { data, ...result } = useQuery(
     [
-      QueryEnum.PREVIEW_EVENT_2220,
+      QueryEnum.PREVIEW_EVENT_2210,
       page,
       { ...pagination, companyId, ...query },
     ],
-    () => queryEvent2220(pagination, { companyId, ...query }),
+    () => queryEvent2210(pagination, { companyId, ...query }),
     { refetchOnMount: true },
   );
 
   const response = {
-    data: data?.data || ([] as IEvent2220[]),
+    data: data?.data || ([] as IEvent2210[]),
     count: data?.count || 0,
     error: data?.error,
   };
