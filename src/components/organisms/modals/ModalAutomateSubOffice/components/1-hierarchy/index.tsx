@@ -11,7 +11,7 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
-import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect ';
+import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect';
 import dayjs from 'dayjs';
 
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';

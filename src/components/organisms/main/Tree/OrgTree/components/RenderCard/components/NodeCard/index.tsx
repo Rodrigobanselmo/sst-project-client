@@ -6,7 +6,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { Box, Stack } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import STooltip from 'components/atoms/STooltip';
-import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect ';
+import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect';
 import {
   IGhoState,
   selectGhoHierarchy,

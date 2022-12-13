@@ -11,7 +11,7 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect ';
+import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect';
 import {
   EmployeeHierarchyMotiveTypeEnum,
   employeeHierarchyMotiveTypeList,

@@ -15,7 +15,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { ExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/ExamsScheduleTable';
 import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
-import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect ';
+import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect';
 import dayjs from 'dayjs';
 import {
   employeeExamScheduleTypeList,
