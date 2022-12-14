@@ -16,7 +16,10 @@ import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagSelect } from 'components/molecules/STagSelect';
 import { initialCharacterizationState } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 import dayjs from 'dayjs';
-import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
+import {
+  CharacterizationTypeEnum,
+  getIsEnvironment,
+} from 'project/enum/characterization-type.enum';
 
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
 import EditIcon from 'assets/icons/SEditIcon';
@@ -131,6 +134,8 @@ export const CharacterizationTable: FC<ITableProps> = ({
       .catch(() => {});
   };
 
+  const isEnvironment = getIsEnvironment(filterType);
+
   return (
     <>
       <STableTitle icon={SCharacterizationIcon} iconSx={{ fontSize: 30 }}>
@@ -141,6 +146,12 @@ export const CharacterizationTable: FC<ITableProps> = ({
           onOpenModal(ModalEnum.CHARACTERIZATION_ADD, {
             companyId,
             workspaceId,
+            ...(filterType && {
+              type: filterType,
+              characterizationType: isEnvironment
+                ? 'environment'
+                : 'characterization',
+            }),
           } as Partial<typeof initialCharacterizationState>)
         }
         onChange={(e) => handleSearchChange(e.target.value)}

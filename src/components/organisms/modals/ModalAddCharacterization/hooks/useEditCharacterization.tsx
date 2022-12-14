@@ -11,7 +11,10 @@ import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interface
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
-import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
+import {
+  CharacterizationTypeEnum,
+  getIsEnvironment,
+} from 'project/enum/characterization-type.enum';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
 import { IdsEnum } from 'core/enums/ids.enums';
@@ -179,12 +182,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           profileParentId: '',
         };
 
-        const isEnvironment = [
-          CharacterizationTypeEnum.GENERAL,
-          CharacterizationTypeEnum.ADMINISTRATIVE,
-          CharacterizationTypeEnum.OPERATION,
-          CharacterizationTypeEnum.SUPPORT,
-        ].includes(newData.type);
+        const isEnvironment = getIsEnvironment(newData.type);
 
         if (isEnvironment) {
           newData.characterizationType = 'environment';

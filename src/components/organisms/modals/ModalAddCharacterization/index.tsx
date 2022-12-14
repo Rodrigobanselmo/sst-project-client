@@ -81,6 +81,7 @@ export const ModalAddCharacterization = () => {
             width: 1000,
             maxWidth: '95vw',
             display: !isRiskOpen ? 'auto' : 'none',
+            minHeight: '95%',
           }}
         >
           <SModalHeader
