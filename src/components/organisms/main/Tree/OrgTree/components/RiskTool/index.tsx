@@ -31,6 +31,7 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IGho } from 'core/interfaces/api/IGho';
+import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
@@ -105,7 +106,9 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
     onStackOpenModal(ModalEnum.GHO_ADD);
   };
 
-  const handleCopyGHO = async (data: IGho | IHierarchyTreeMapObject) => {
+  const handleCopyGHO = async (
+    data: IGho | IHierarchyTreeMapObject | IHierarchy,
+  ) => {
     const onSelectGhoData = async (gho: IGho, riskGroup: IRiskGroupData) => {
       const homoId = String(data.id).split('//');
       const isHierarchy = homoId.length > 1;

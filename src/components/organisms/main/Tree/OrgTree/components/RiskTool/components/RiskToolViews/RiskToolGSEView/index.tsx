@@ -147,12 +147,14 @@ export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
           riskGroupId={riskGroupId}
         />
       ))}
-      <STagButton
-        active={!!selectedGho}
-        text={'Adicionar fator de risco'}
-        onClick={handleAddRisk}
-        sx={{ mt: 5, mb: 0, maxWidth: 287 }}
-      />
+      {gho && (
+        <STagButton
+          active={!!selectedGho}
+          text={'Adicionar fator de risco'}
+          onClick={handleAddRisk}
+          sx={{ mt: 5, mb: 0, maxWidth: 287 }}
+        />
+      )}
     </>
   );
 };

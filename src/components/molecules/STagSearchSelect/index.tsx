@@ -35,6 +35,7 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   handleMultiSelectMenu,
   preventOpen,
   renderContent,
+  renderButton,
   ...props
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<IAnchorEvent>(null);
@@ -61,17 +62,27 @@ export const STagSearchSelect: FC<ISTagSearchSelectProps> = ({
   return (
     <>
       <div>
-        <STooltip withWrapper title={tooltipTitle}>
-          <STagButton
-            maxWidth={'300px'}
-            large={large}
-            onClick={handleSelectTag}
-            icon={icon}
-            text={text}
-            error={error}
-            {...props}
-          />
-        </STooltip>
+        {!renderButton && (
+          <STooltip withWrapper title={tooltipTitle}>
+            <STagButton
+              maxWidth={'300px'}
+              large={large}
+              onClick={handleSelectTag}
+              icon={icon}
+              text={text}
+              error={error}
+              {...props}
+            />
+          </STooltip>
+        )}
+        {!!renderButton &&
+          renderButton({
+            large,
+            icon,
+            error,
+            text,
+            onClick: handleSelectTag,
+          })}
         {error && (
           <SText
             sx={{ fontSize: 10, color: 'error.main', ml: 5, mt: '0.3rem' }}

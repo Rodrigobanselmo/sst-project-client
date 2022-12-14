@@ -3,6 +3,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { IHierarchyTreeMapObject } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/components/RiskToolViews/RiskToolRiskView/types';
 
 import { IGho } from 'core/interfaces/api/IGho';
+import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 
 import { AppState } from '../..';
 
@@ -13,7 +14,7 @@ export interface IGhoState {
     key: string;
     value: string;
   };
-  selected: IGho | IHierarchyTreeMapObject | null;
+  selected: IGho | IHierarchyTreeMapObject | IHierarchy | null;
   search: string;
   searchRisk: string;
   data: IGho | null;
@@ -77,7 +78,7 @@ export const ghoSlice = createSlice({
     },
     setGhoSelectedId: (
       state,
-      action: PayloadAction<IGho | IHierarchyTreeMapObject | null>,
+      action: PayloadAction<IGho | IHierarchyTreeMapObject | IHierarchy | null>,
     ) => {
       state.selected = action.payload;
     },

@@ -27,5 +27,5 @@ export interface SideRowProps {
         type: string;
       }
     | undefined;
-  handleDeleteGHO: (id: string) => void;
+  handleDeleteGHO: (id: string, gho: any) => void;
 }

@@ -1,28 +1,40 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useCallback, useMemo, useRef } from 'react';
+import React, {
+  FC,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
-import { Icon } from '@mui/material';
+import { Box, Divider, Icon } from '@mui/material';
+import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
-import SIconButton from 'components/atoms/SIconButton';
+import { SInput } from 'components/atoms/SInput';
 import SText from 'components/atoms/SText';
-import STooltip from 'components/atoms/STooltip';
-import { TreeTypeEnum } from 'components/organisms/main/Tree/OrgTree/enums/tree-type.enums';
+import { GhoSelect } from 'components/organisms/tagSelects/GhoSelect';
+import { IGHOTypeSelectProps } from 'components/organisms/tagSelects/GhoSelect/types';
+import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect';
+import { IHierarchyTypeSelectProps } from 'components/organisms/tagSelects/HierarchySelect/types';
 import {
-  setGhoSearch,
   setGhoSearchRisk,
   setGhoSelectedId,
 } from 'store/reducers/hierarchy/ghoSlice';
 
 import { SCopyIcon } from 'assets/icons/SCopyIcon';
 
+import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
+import { originRiskMap } from 'core/constants/maps/origin-risk';
+import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
-import { IdsEnum } from 'core/enums/ids.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useHorizontalScroll } from 'core/hooks/useHorizontalScroll';
 import { IGho } from 'core/interfaces/api/IGho';
-import { arrayChunks } from 'core/utils/arrays/arrayChunks';
+import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 
+import { ITypeSelectProps } from '../../../../Selects/TypeSelect/types';
 import { useListHierarchy } from '../../../hooks/useListHierarchy';
 import {
   ViewsDataEnum,
@@ -31,154 +43,173 @@ import {
 import { IHierarchyTreeMapObject } from '../../RiskToolViews/RiskToolRiskView/types';
 import { SideInput } from '../../SIdeInput';
 import { RiskToolColumns } from '../RiskToolColumns';
-import { RiskToolGhoItem } from './RiskToolGhoItem';
-import { StyledFlexMultiGho } from './styles';
 import { SideSelectViewContentProps } from './types';
+
+const GhoOrHierarchySelect = ({
+  isHierarchy,
+  ...props
+}: IGHOTypeSelectProps &
+  IHierarchyTypeSelectProps & {
+    isHierarchy?: boolean;
+  }) => {
+  if (isHierarchy) return <HierarchySelect {...props} />;
+  return <GhoSelect {...props} />;
+};
 
 export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
   handleAddGHO,
+  ghoQuery,
   handleSelectGHO,
   handleEditGHO,
   handleCopyGHO,
-  ghoQuery,
   inputRef,
   viewType,
   viewDataType,
   loadingCopy,
 }) => {
   const dispatch = useAppDispatch();
-  const inputSelectedRef = useRef<HTMLInputElement>(null);
   const selected = useAppSelector((state) => state.gho.selected);
-  const refScroll = useHorizontalScroll();
-  const { hierarchyListData } = useListHierarchy();
+  const [awaitLoad, setAwaitLoad] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setAwaitLoad(false);
+    }, 1000);
+  }, []);
 
   const handleSelect = useCallback(
-    (data: IGho | IHierarchyTreeMapObject) => {
+    (data: IGho | IHierarchyTreeMapObject | IHierarchy) => {
       dispatch(setGhoSelectedId(data));
       if (inputRef && inputRef.current) inputRef.current.value = '';
     },
     [inputRef, dispatch],
   );
 
-  const data = useMemo(() => {
-    if (viewDataType == ViewsDataEnum.HIERARCHY) {
-      return hierarchyListData();
-    }
-
-    if (viewDataType == ViewsDataEnum.ENVIRONMENT) {
-      return ghoQuery.filter((gho) => gho.type === HomoTypeEnum.ENVIRONMENT);
-    }
-
-    if (viewDataType == ViewsDataEnum.CHARACTERIZATION) {
-      return ghoQuery.filter(
-        (gho) =>
-          gho?.type &&
-          [
-            HomoTypeEnum.WORKSTATION,
-            HomoTypeEnum.EQUIPMENT,
-            HomoTypeEnum.ACTIVITIES,
-          ].includes(gho.type),
-      );
-    }
-
-    return ghoQuery;
-  }, [viewDataType, ghoQuery, hierarchyListData]);
-
-  const getName = () => {
-    if (viewDataType == ViewsDataEnum.HIERARCHY) return selected?.name;
-
+  const getSelectedHierarchy = () => {
     if (selected && 'description' in selected && selected.description) {
       const splitValues = selected.description.split('(//)');
       if (splitValues[1]) {
-        return splitValues[0];
+        return {
+          name: splitValues[0],
+          id: selected?.id,
+          type: originRiskMap[splitValues[1] as any]?.name || '',
+        };
       }
     }
 
-    return selected?.name;
+    if (viewDataType == ViewsDataEnum.HIERARCHY)
+      return {
+        name: selected?.name,
+        id: selected?.id,
+        type:
+          hierarchyConstant[(selected as any)?.type as HierarchyEnum]?.name ||
+          '',
+      };
+
+    return { name: selected?.name, id: selected?.id };
   };
 
-  const name = getName();
+  const { name, type } = getSelectedHierarchy();
+  const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
+
+  const getFilter = () => {
+    if (isHierarchy) return undefined;
+
+    const filterOptions = [];
+    const defaultValue = [];
+
+    if (viewDataType == ViewsDataEnum.ENVIRONMENT) {
+      defaultValue.push(HomoTypeEnum.ENVIRONMENT);
+      filterOptions.push(HomoTypeEnum.ENVIRONMENT);
+    }
+
+    if (viewDataType == ViewsDataEnum.CHARACTERIZATION) {
+      defaultValue.push(HomoTypeEnum.ACTIVITIES);
+      filterOptions.push(
+        HomoTypeEnum.ACTIVITIES,
+        HomoTypeEnum.EQUIPMENT,
+        HomoTypeEnum.WORKSTATION,
+      );
+    }
+
+    if (viewDataType == ViewsDataEnum.GSE) filterOptions.push(HomoTypeEnum.GSE);
+
+    return { filterOptions, defaultFilter: defaultValue[0] };
+  };
 
   return (
     <>
-      <SFlex mt={5}>
-        <SFlex direction="column" justify="space-between" mt={4}>
+      <SFlex>
+        <SFlex justifyContent="space-between" flex={1}>
+          {!awaitLoad && (
+            <GhoOrHierarchySelect
+              isHierarchy={isHierarchy}
+              tooltipText={(textField) => textField}
+              text={name || ''}
+              large
+              icon={null}
+              maxWidth={'auto'}
+              handleSelect={(hierarchy: IHierarchy | IGho) => {
+                handleSelect(hierarchy);
+              }}
+              allFilters
+              companyId={''}
+              renderButton={({ onClick, text }) => {
+                return (
+                  <Box
+                    minWidth={285}
+                    maxWidth={800}
+                    width={
+                      text.length ? Math.max(text.length * 15, 285) : undefined
+                    }
+                  >
+                    <SInput
+                      onClick={onClick}
+                      placeholder={
+                        viewsDataOptionsConstant[viewDataType].placeholder
+                      }
+                      variant="outlined"
+                      subVariant="search"
+                      fullWidth
+                      value={text}
+                      startAdornment={type || ''}
+                      size="small"
+                    />
+                  </Box>
+                );
+              }}
+              active={false}
+              bg={'background.paper'}
+              {...(getFilter() as any)}
+            />
+          )}
+          <SButton
+            onClick={() => {
+              selected && handleCopyGHO(selected);
+            }}
+            loading={loadingCopy}
+            disabled={!selected}
+            variant="outlined"
+            sx={{ height: 30 }}
+          >
+            <SText sx={{ mr: 5 }}>Importar riscos</SText>
+            <Icon component={SCopyIcon} sx={{ fontSize: '1.2rem' }} />
+          </SButton>
+        </SFlex>
+      </SFlex>
+      <Divider sx={{ mt: 8, mb: 8 }} />
+
+      {selected && (
+        <SFlex align="center" gap={4} mb={0} mt={4}>
           <SideInput
-            id={IdsEnum.RISK_TOOL_GHO_INPUT_SEARCH}
-            // onFocus={(e) => console.log(123, e.target.value)}
-            handleAddGHO={handleAddGHO}
-            ref={inputSelectedRef}
-            onSearch={(value) => dispatch(setGhoSearch(value))}
+            onSearch={(value) => dispatch(setGhoSearchRisk(value))}
             handleSelectGHO={handleSelectGHO}
             handleEditGHO={handleEditGHO}
-            placeholder={viewsDataOptionsConstant[viewDataType].placeholder}
+            placeholder="Pesquisar por risco"
           />
-          <SFlex>
-            <SText sx={{ px: 5, pt: 2 }}>
-              <SText fontSize={13} mr={2} color="text.light">
-                selecionado
-              </SText>
-              <STooltip title={name || '--'} withWrapper>
-                <SText
-                  lineNumber={1}
-                  component="span"
-                  fontSize={14}
-                  fontWeight={500}
-                  mr={2}
-                  color="text.light"
-                >
-                  {name || '--'}
-                </SText>
-              </STooltip>
-            </SText>
-            <SIconButton
-              onClick={() => {
-                selected && handleCopyGHO(selected);
-              }}
-              loading={loadingCopy}
-              size="small"
-            >
-              <Icon component={SCopyIcon} sx={{ fontSize: '1.2rem' }} />
-            </SIconButton>
-          </SFlex>
+          <RiskToolColumns viewType={viewType} />
         </SFlex>
-        <StyledFlexMultiGho ref={refScroll}>
-          {arrayChunks<IGho | IHierarchyTreeMapObject>(
-            data,
-            Math.ceil(data.length / 1),
-          ).map((ghoChunk, index) => (
-            <SFlex key={index}>
-              {ghoChunk.map((gho) => {
-                if (
-                  gho.type === TreeTypeEnum.COMPANY ||
-                  gho.type === TreeTypeEnum.WORKSPACE
-                )
-                  return null;
-
-                return (
-                  <RiskToolGhoItem
-                    onClick={() => handleSelect(gho)}
-                    gho={gho}
-                    key={gho.id}
-                    viewDataType={viewDataType}
-                  />
-                );
-              })}
-            </SFlex>
-          ))}
-        </StyledFlexMultiGho>
-      </SFlex>
-      <SFlex align="center" gap={4} mb={0} mt={4}>
-        <SideInput
-          // id={IdsEnum.RISK_TOOL_GHO_SEARCH}
-          ref={inputSelectedRef}
-          onSearch={(value) => dispatch(setGhoSearchRisk(value))}
-          handleSelectGHO={handleSelectGHO}
-          handleEditGHO={handleEditGHO}
-          placeholder="Pesquisar por risco"
-        />
-        <RiskToolColumns viewType={viewType} />
-      </SFlex>
+      )}
     </>
   );
 };

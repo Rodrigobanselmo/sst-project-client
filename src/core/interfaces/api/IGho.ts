@@ -1,6 +1,7 @@
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
+import { IRiskData } from 'core/interfaces/api/IRiskData';
 
 import { IWorkspace } from './ICompany';
 import { IHierarchy } from './IHierarchy';
@@ -22,6 +23,7 @@ export interface IGho {
   hierarchyOnHomogeneous?: IHierarchyOnHomogeneous[];
   workspaceIds: string[];
   type?: HomoTypeEnum;
+  riskData?: IRiskData;
 }
 
 export interface IHierarchyOnHomogeneous {

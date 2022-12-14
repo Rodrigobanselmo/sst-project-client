@@ -130,6 +130,7 @@ export const STTableContainer = styled('div')`
   overflow-x: auto;
   width: 100%;
   min-width: 320px;
+  margin-top: 12px;
 
   &::-webkit-scrollbar {
     border-radius: 24px;

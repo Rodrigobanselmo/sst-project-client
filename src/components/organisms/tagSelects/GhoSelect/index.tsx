@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo, useState } from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
@@ -7,39 +7,47 @@ import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleF
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
-import { HierarchyEnum } from 'core/enums/hierarchy.enum';
+import { originRiskMap } from 'core/constants/maps/origin-risk';
+import { HomoTypeEnum } from 'core/enums/homo-type.enum';
+import { useListGhoQuery } from 'core/hooks/useListGhoQuery';
 import { useListHierarchyQuery } from 'core/hooks/useListHierarchyQuery';
+import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
+import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
-import { hierarchyFilter } from './constants/filters';
-import { IHierarchyTypeSelectProps } from './types';
+import { GhoFilter } from './constants/filters';
+import { IGHOTypeSelectProps } from './types';
 
-export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
+export const GhoSelect: FC<IGHOTypeSelectProps> = ({
   large,
   handleSelect,
   text,
   companyId,
   selectedId,
   tooltipText,
-  defaultFilter = HierarchyEnum.OFFICE,
+  defaultFilter = HomoTypeEnum.ENVIRONMENT,
   filterOptions,
-  parentId,
   allFilters,
   ...props
 }) => {
-  const { hierarchyListData, hierarchyTree } = useListHierarchyQuery(
-    companyId ?? '-',
-  );
-  const [activeFilters, setActiveFilters] = useState<string[]>([defaultFilter]);
-  const [allFilterTypes, setAllFilterTypes] = useState<
-    Record<HierarchyEnum, boolean>
-  >({} as Record<HierarchyEnum, boolean>);
+  const { ghoListData, ghoTree } = useListGhoQuery(companyId);
 
-  const handleSelectRisk = (options: IHierarchy) => {
+  const [activeFilters, setActiveFilters] = useState<string[]>([
+    defaultFilter as any,
+  ]);
+  const [allFilterTypes, setAllFilterTypes] = useState<
+    Record<HomoTypeEnum, boolean>
+  >({} as Record<HomoTypeEnum, boolean>);
+
+  useEffect(() => {
+    setActiveFilters([defaultFilter as any]);
+  }, [defaultFilter]);
+
+  const handleSelectRisk = (options: IGho) => {
     if (options && typeof options.id === 'string')
       handleSelect?.(
-        hierarchyTree[options.id] || { id: '' },
+        ghoTree[options.id] || { id: '' },
         (options as any).parents,
       );
   };
@@ -47,16 +55,21 @@ export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
   const getText = useCallback(
     (selectedId?: string, text?: string) => {
       if (!selectedId) return text || '';
+      const ghoData = ghoTree[selectedId || ''];
 
-      if (hierarchyTree[selectedId || '']) {
+      if (ghoData) {
         let name = '';
 
-        const hierarchyConstValue =
-          hierarchyConstant[hierarchyTree[selectedId || '']?.type || ''];
+        const ghoOriginValue = originRiskMap[ghoData?.type || ''];
 
-        if (hierarchyConstValue) name = `(${hierarchyConstValue.name}) `;
-        if (hierarchyTree[selectedId || ''].name)
-          name = name + hierarchyTree[selectedId || ''].name;
+        if (ghoOriginValue) name = `(${ghoOriginValue.name}) `;
+
+        const isGho = !ghoData.type;
+
+        if (ghoData.name)
+          name =
+            name +
+            (!isGho ? ghoData.description.split('(//)')[0] : ghoData.name);
 
         return name;
       }
@@ -64,7 +77,7 @@ export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
 
       return '';
     },
-    [hierarchyTree],
+    [ghoTree],
   );
 
   const handleActiveFilter = useCallback((filterFilter: string) => {
@@ -72,29 +85,27 @@ export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
   }, []);
 
   const options = useMemo(() => {
-    const typesSelected: Record<HierarchyEnum, boolean> = {} as Record<
-      HierarchyEnum,
+    const typesSelected: Record<HomoTypeEnum, boolean> = {} as Record<
+      HomoTypeEnum,
       boolean
     >;
 
-    const list = hierarchyListData()
-      .map((hierarchyTree) => {
+    const list = ghoListData()
+      .map((gho) => {
         if (
           !filterOptions ||
-          (filterOptions && filterOptions.includes(hierarchyTree.type))
-        )
-          (typesSelected as any)[hierarchyTree.type] = true;
+          (filterOptions && gho.type && filterOptions.includes(gho.type))
+        ) {
+          (typesSelected as any)[gho.type || HomoTypeEnum.GSE] = true;
+        }
 
         return {
-          ...hierarchyTree,
-          // name: getText(hierarchyTree.id),
+          ...gho,
+          name: gho.type ? gho.description.split('(//)')[0] : gho.name,
         };
       })
-      .filter(
-        (h) =>
-          h.type === activeFilters[0] &&
-          (!parentId || (parentId && h.parents.find((p) => p.id === parentId))),
-      );
+      .filter((h) => (h.type || HomoTypeEnum.GSE) === activeFilters[0]);
+
     (!activeFilters ||
       (filterOptions && filterOptions?.length > 1) ||
       allFilters) &&
@@ -109,14 +120,7 @@ export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
       });
 
     return list;
-  }, [
-    hierarchyListData,
-    allFilters,
-    activeFilters,
-    filterOptions,
-    selectedId,
-    parentId,
-  ]);
+  }, [ghoListData, activeFilters, filterOptions, allFilters, selectedId]);
 
   const textField = getText(selectedId, text);
   const isNotSelected = !selectedId;
@@ -143,24 +147,7 @@ export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
 
         const name = getText(option.id);
         return (
-          <STooltip
-            withWrapper
-            placement="bottom-end"
-            title={
-              option.parentsName ? (
-                <>
-                  <SText fontSize={11} color="common.white">
-                    {`${option.parentsName}  > ${option.name}`}
-                  </SText>
-                  <SText fontSize={9} color="common.white">
-                    estabelecimentos: {`${option.workspacesNames.join(' || ')}`}
-                  </SText>
-                </>
-              ) : (
-                ''
-              )
-            }
-          >
+          <STooltip withWrapper placement="bottom-end" title={option.name}>
             <SText fontSize={13} my={-2}>
               {name}
             </SText>
@@ -169,9 +156,11 @@ export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
       }}
       renderFilter={() => (
         <SMenuSimpleFilter
-          options={hierarchyFilter.filter(
-            (filter) => !allFilterTypes || allFilterTypes?.[filter.filter],
-          )}
+          options={
+            GhoFilter.filter(
+              (filter) => !allFilterTypes || allFilterTypes?.[filter.filter],
+            ) as any
+          }
           activeFilters={activeFilters}
           onClickFilter={handleActiveFilter}
         />

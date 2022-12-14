@@ -4,6 +4,7 @@ import { useStore } from 'react-redux';
 
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
+import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect';
 import {
   setGhoMultiAddIds,
   setGhoMultiDisabledAddIds,

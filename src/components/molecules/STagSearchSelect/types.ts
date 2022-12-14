@@ -42,4 +42,11 @@ export interface ISTagSearchSelectProps
   error?: boolean;
   onSearch?: (value: string) => void;
   renderContent?: (option: IMenuSearchOption) => ReactNode;
+  renderButton?: (option: {
+    large: boolean | undefined;
+    icon: React.ElementType<any> | null | undefined;
+    error: boolean | undefined;
+    text: string;
+    onClick: (e: MouseEvent<HTMLDivElement>) => void;
+  }) => ReactNode;
 }

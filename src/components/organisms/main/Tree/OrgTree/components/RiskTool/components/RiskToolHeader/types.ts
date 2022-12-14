@@ -2,6 +2,7 @@
 import { IGhoState } from 'store/reducers/hierarchy/ghoSlice';
 
 import { IGho } from 'core/interfaces/api/IGho';
+import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 
 import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 import { ViewTypeEnum } from '../../utils/view-risk-type.constant';
@@ -16,7 +17,7 @@ export interface SideHeaderProps {
   riskGroupId: string;
   viewDataType: ViewsDataEnum;
   viewType: ViewTypeEnum;
-  handleCopyGHO: (data: IGho | IHierarchyTreeMapObject) => void;
+  handleCopyGHO: (data: IGho | IHierarchyTreeMapObject | IHierarchy) => void;
   handleAddGHO: () => Promise<void>;
   handleEditGHO: (data: IGho) => void;
   handleSelectGHO: (

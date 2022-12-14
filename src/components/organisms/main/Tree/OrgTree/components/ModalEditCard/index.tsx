@@ -317,6 +317,7 @@ export const ModalEditCard = () => {
               multiple={false}
               editOnSelection
               large
+              filterByHierarchyId={String(selectedNode.id)}
               text={'funcionários'}
               actualHierarchy={selectedNode}
               handleSelect={(_, list) => setEmployees(list)}

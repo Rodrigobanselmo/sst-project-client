@@ -43,47 +43,34 @@ export const useOpenRiskTool = () => {
   }: IOpenSelected) => {
     dispatch(
       setRiskAddState({
+        viewType,
         viewData,
         isEdited: false,
+        ...(risks && {
+          risk: risks[0],
+          risks: risks,
+        }),
       }),
     );
     dispatch(
       setGhoFilterValues({
         key: '',
         values: [],
+        ...(filterKey &&
+          filterValue && {
+            key: filterKey,
+            values: [filterValue],
+          }),
       }),
     );
-    dispatch(
-      setRiskAddState({
-        viewType,
-        isEdited: false,
-      }),
-    );
-
-    if (risks)
-      dispatch(
-        setRiskAddState({
-          risk: risks[0],
-          risks: risks,
-          isEdited: false,
-        }),
-      );
-
-    if (filterKey && filterValue)
-      dispatch(
-        setGhoFilterValues({
-          key: filterKey,
-          values: [filterValue],
-        }),
-      );
 
     if (ghoId) {
       setTimeout(() => {
-        document
-          .getElementById(
-            IdsEnum.RISK_TOOL_GHO_HORIZONTAL.replace(':id', ghoId || ''),
-          )
-          ?.click();
+        // document
+        //   .getElementById(
+        //     IdsEnum.RISK_TOOL_GHO_HORIZONTAL.replace(':id', ghoId || ''),
+        //   )
+        //   ?.click();
 
         document
           .getElementById(IdsEnum.RISK_TOOL_GHO_INPUT_SEARCH)
@@ -94,6 +81,12 @@ export const useOpenRiskTool = () => {
             search: ghoName,
             searchSelect: '',
             searchRisk: '',
+            selected: {
+              name: ghoName,
+              id: ghoId,
+              description: ghoName,
+              type: '',
+            } as any,
           }),
         );
       }, 200);

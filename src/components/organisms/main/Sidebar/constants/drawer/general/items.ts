@@ -189,7 +189,7 @@ const absenteeism = {
   description: 'Gerenciamento de faltas e afastamentos temporarios',
   id: 'jkbhiuhgcduigbcwkjefhbchiuwe',
   href: RoutesEnum.ABSENTEEISM,
-  // roles: [RoleEnum.ABSENTEEISM],
+  roles: [RoleEnum.ABSENTEEISM],
   shouldMatchExactHref: false,
 };
 
@@ -201,7 +201,7 @@ const cat = {
   description: 'Emissão CAT',
   id: '1234325gfbfdrgr',
   href: RoutesEnum.CAT,
-  // roles: [RoleEnum.CAT],
+  roles: [RoleEnum.CAT],
   shouldMatchExactHref: false,
 };
 

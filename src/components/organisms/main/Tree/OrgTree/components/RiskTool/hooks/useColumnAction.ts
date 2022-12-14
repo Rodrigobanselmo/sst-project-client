@@ -13,6 +13,7 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEpi, IEpiRiskData } from 'core/interfaces/api/IEpi';
 import { IExam, IExamRiskData } from 'core/interfaces/api/IExam';
 import { IGho } from 'core/interfaces/api/IGho';
+import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import {
   IEngsRiskData,
@@ -165,11 +166,11 @@ export const useColumnAction = () => {
   }: {
     risk?: IRiskFactors;
     handleSelect: (value: number) => void;
-    gho: IGho | IHierarchyTreeMapObject | null;
+    gho: IGho | IHierarchyTreeMapObject | IHierarchy | null;
   }) => {
     if (!gho?.id) return;
 
-    const isHierarchy = !('workspaceIds' in gho);
+    const isHierarchy = !('employeeCount' in gho);
     let workspaceIds = [] as string[];
 
     if (isHierarchy) workspaceIds = [String(getPathById(gho.id)[1])];

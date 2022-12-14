@@ -56,6 +56,8 @@ export const SideRow = React.memo<SideRowProps>(
     const { hide, ref } = useObserverHide();
     const searchSelected = useAppSelector(selectGhoSearch);
 
+    if (!riskData && 'riskData' in gho) riskData = gho.riskData;
+
     const isToFilter =
       searchSelected &&
       !stringNormalize(getGhoName(gho, gho?.name)).includes(
@@ -110,7 +112,14 @@ export const SideRow = React.memo<SideRowProps>(
                   riskData={rd}
                   riskGroupId={riskGroupId}
                   isRepresentAll={isRepresentAll}
-                  handleDeleteRiskData={handleDeleteGHO}
+                  handleDeleteRiskData={(id, gho) =>
+                    handleDeleteGHO(id, {
+                      ...gho,
+                      name: !gho?.description?.split('(//)')?.[1]
+                        ? gho?.name || ''
+                        : gho?.description?.split('(//)')?.[0] || '',
+                    })
+                  }
                   isDeleteLoading={isDeleteLoading}
                 />
               );
