@@ -1,7 +1,7 @@
 import '../core/styles/react-datepicker.css';
 import '../core/styles/react-draft-wysiwyg.css';
 import 'dayjs/locale/pt-br';
-
+import { Analytics } from '@vercel/analytics/react';
 import * as dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -19,6 +19,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     <DefaultProviders>
       <DefaultLayout>
         <Component {...pageProps} />
+        <Analytics />
       </DefaultLayout>
     </DefaultProviders>
   );
