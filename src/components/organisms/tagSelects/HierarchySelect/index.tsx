@@ -3,6 +3,7 @@ import React, { FC, useCallback, useMemo, useState } from 'react';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
+import sortArray from 'sort-array';
 
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
@@ -108,7 +109,7 @@ export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
         name: 'Remover seleção',
       });
 
-    return list;
+    return sortArray(list, { by: 'name', order: 'asc' });
   }, [
     hierarchyListData,
     allFilters,

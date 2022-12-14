@@ -3,6 +3,7 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
+import sortArray from 'sort-array';
 
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
@@ -26,7 +27,7 @@ export const GhoSelect: FC<IGHOTypeSelectProps> = ({
   companyId,
   selectedId,
   tooltipText,
-  defaultFilter = HomoTypeEnum.ENVIRONMENT,
+  defaultFilter = HomoTypeEnum.GSE,
   filterOptions,
   allFilters,
   ...props
@@ -119,7 +120,7 @@ export const GhoSelect: FC<IGHOTypeSelectProps> = ({
         name: 'Remover seleção',
       });
 
-    return list;
+    return sortArray(list, { by: 'name', order: 'asc' });
   }, [ghoListData, activeFilters, filterOptions, allFilters, selectedId]);
 
   const textField = getText(selectedId, text);

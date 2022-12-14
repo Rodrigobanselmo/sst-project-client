@@ -20,6 +20,7 @@ import { useMutDeleteEmployeeHisHier } from 'core/services/hooks/mutations/manag
 import { useMutUpdateEmployeeHisHier } from 'core/services/hooks/mutations/manager/employee-history/useMutUpdateEmployeeHisHier/useMutUpdateEmployeeHisHier';
 
 import { SModalInitContactProps } from '../types';
+import { cleanObjectNullValues } from './../../../../../core/utils/helpers/cleanObjectValues';
 import { employeeHistoryHierarchySchema } from './../../../../../core/utils/schemas/employee.schema';
 
 export const initialEmployeeHistoryHierState = {
@@ -76,7 +77,7 @@ export const useAddData = () => {
       setData((oldData) => {
         const newData = {
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
         };
 
         initialDataRef.current = newData;

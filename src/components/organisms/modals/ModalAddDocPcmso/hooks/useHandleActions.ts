@@ -11,6 +11,8 @@ import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { IUser } from 'core/interfaces/api/IUser';
 import { useQueryDocumentPCMSO } from 'core/services/hooks/queries/useQueryDocumentPCMSO/useQueryDocumentPCMSO';
 
+import { cleanObjectNullValues } from './../../../../../core/utils/helpers/cleanObjectValues';
+
 export const initialPgrDocState = {
   id: '',
   status: StatusEnum.ACTIVE,
@@ -70,7 +72,7 @@ export const useHandleModal = () => {
         const newData = {
           ...initialPgrDocState,
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
         };
 
         if (!newData.validityStart) {

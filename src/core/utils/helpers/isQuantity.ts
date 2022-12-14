@@ -7,9 +7,8 @@ import { stringNormalize } from '../strings/stringNormalize';
 
 export const isQuantity = (risk?: IRiskFactors | null) => {
   if (!risk) return;
-  if (!risk.esocialCode) return;
 
-  const code = risk.esocialCode;
+  const code = risk?.esocialCode;
 
   if (risk.type === RiskEnum.QUI) return QuantityTypeEnum.QUI;
 

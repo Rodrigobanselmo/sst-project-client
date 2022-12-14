@@ -11,6 +11,7 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
 import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateGho';
+import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 import { ghoSchema } from 'core/utils/schemas/gho.schema';
 
 export const initialAddEpiState = {
@@ -47,7 +48,7 @@ export const useAddEpi = () => {
       setEpiData((oldData) => {
         const newData = {
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
         };
 
         initialDataRef.current = newData;

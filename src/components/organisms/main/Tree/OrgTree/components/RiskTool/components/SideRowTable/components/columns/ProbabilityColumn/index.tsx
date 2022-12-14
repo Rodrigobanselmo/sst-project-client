@@ -37,6 +37,7 @@ export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
   const hasQuality = isQuantity(risk);
 
   const onAddQuantity = () => {
+    console.log('risk', risk);
     onStackOpenModal(ModalEnum.QUANTITY_ADD, {
       ...(data?.json ? data?.json : {}),
       risk,

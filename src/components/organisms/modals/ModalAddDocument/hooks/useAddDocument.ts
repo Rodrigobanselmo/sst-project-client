@@ -17,6 +17,7 @@ import {
   useMutUpdateDocument,
 } from 'core/services/hooks/mutations/manager/document/useMutUpdateDocument/useMutUpdateDocument';
 import { useQueryOneDocument } from 'core/services/hooks/queries/documents/useQueryOneDocument/useQueryOneDocument';
+import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 
 import { documentSchema } from '../../../../../core/utils/schemas/document.schema';
 import { SModalInitDocumentProps } from '../types';
@@ -72,7 +73,7 @@ export const useAddDocument = () => {
       setDocumentData((oldData) => {
         const newData = {
           ...oldData,
-          ...initialData,
+          ...cleanObjectNullValues(initialData),
           ...document,
         };
 

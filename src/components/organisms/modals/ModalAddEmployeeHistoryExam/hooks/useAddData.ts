@@ -30,6 +30,7 @@ import { dateToDate } from 'core/utils/date/date-format';
 
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
 import { SModalInitContactProps } from '../types';
+import { cleanObjectNullValues } from './../../../../../core/utils/helpers/cleanObjectValues';
 
 export const initialEmployeeHistoryExamState = {
   id: 0 as number | undefined,
@@ -111,7 +112,7 @@ export const useAddData = () => {
         setData((oldData) => {
           const newData = {
             ...oldData,
-            ...initialData,
+            ...cleanObjectNullValues(initialData),
             ...data,
           };
           newData.doneDate = dateToDate(newData.doneDate);
