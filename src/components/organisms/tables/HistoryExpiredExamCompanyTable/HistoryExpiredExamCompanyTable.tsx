@@ -76,6 +76,8 @@ export const HistoryExpiredExamCompanyTable: FC<
     rowsPerPage,
   );
 
+  console.log('historyExam', historyExam);
+
   const { onStackOpenModal } = useModal();
 
   const onAdd = () => {
@@ -122,7 +124,6 @@ export const HistoryExpiredExamCompanyTable: FC<
     // if (exam && status === StatusEnum.DONE) return 'info';
     const diff = -dayjs().diff(data?.expiredDateExam, 'day');
     let status = { color: 'scale.low', status: StatusEnum.DONE };
-    if (exam) console.log(data, dayjs().toDate(), exam.doneDate);
     if (!data?.expiredDateExam || diff < 0)
       status = { color: 'scale.high', status: StatusEnum.EXPIRED };
     if (diff >= 0 && diff <= 7)
@@ -200,6 +201,9 @@ export const HistoryExpiredExamCompanyTable: FC<
             const employee = row;
             const company = employee?.company;
             const exam = employee?.examsHistory?.[0];
+            const lastDoneExam = employee?.examsHistory?.find(
+              (ex) => ex.status === 'DONE',
+            );
 
             const isScheduled = exam?.status == StatusEnum.PROCESSING;
             const isDoneExam =
@@ -223,10 +227,9 @@ export const HistoryExpiredExamCompanyTable: FC<
                   : row?.expiredDateExam,
               );
 
-            const lastExam =
-              exam?.doneDate && exam.status == StatusEnum.DONE
-                ? dateToString(exam.doneDate || employee.lastExam)
-                : '-';
+            const lastExam = lastDoneExam?.doneDate
+              ? dateToString(lastDoneExam.doneDate || employee.lastExam)
+              : '-';
 
             const disabled = ![
               StatusEnum.PROCESSING,

@@ -1,20 +1,34 @@
+import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
-import {
-  availableScheduleDate,
-  notAvailableScheduleTime,
-} from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
+import { notAvailableScheduleTime } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import dayjs from 'dayjs';
 
-import { QueryEnum } from 'core/enums/query.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
-import { queryClient } from 'core/services/queryClient';
+import { useQueryHisScheduleClinicTime } from 'core/services/hooks/queries/useQueryHisScheduleClinicTime/useQueryHisScheduleClinicTime';
+import { addMinutesToTime, getDateWithTime } from 'core/utils/helpers/times';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
+
+export const getIsBlockedTime = (
+  getBlockTimeList: {
+    from: string;
+    to: string;
+  }[],
+  time: string,
+  examMim: number,
+) => {
+  return !!getBlockTimeList.find(
+    ({ from, to }) =>
+      getDateWithTime(addMinutesToTime(from, -examMim)) <
+        getDateWithTime(time as string) &&
+      getDateWithTime(time as string) < getDateWithTime(to),
+  );
+};
 
 export const useEvaluationStep = ({
   data,
@@ -29,6 +43,14 @@ export const useEvaluationStep = ({
     useFormContext();
   const { nextStep, stepCount, goToStep, previousStep } = useWizard();
   const { fetchClinic } = useFetchQueryClinic();
+
+  const clinicExam = data.examsData.find((x) => x.isAttendance);
+
+  const { data: scheduledTimes, isLoading: isLoadingTime } =
+    useQueryHisScheduleClinicTime({
+      clinicId: clinicExam?.clinic?.id,
+      date: clinicExam?.doneDate,
+    });
 
   const lastComplementaryDate = data.examsData
     .map((schedule) => {
@@ -47,6 +69,22 @@ export const useEvaluationStep = ({
   const lastStep = async () => {
     goToStep(stepCount - 1);
   };
+
+  const examMim = clinicExam?.clinic?.clinicExams?.find(
+    (x) => x.examMinDuration,
+  )?.examMinDuration;
+
+  const getBlockTimeList = useMemo(() => {
+    const clinicExam = data.examsData.find((x) => x.isAttendance);
+
+    if (!examMim) return [];
+
+    return scheduledTimes.map((s) => {
+      const toTime = addMinutesToTime(s.time, examMim);
+      return { from: s.time, to: toTime };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.examsData, scheduledTimes]);
 
   const onSubmit = async () => {
     let isErrorFound = false;
@@ -85,6 +123,31 @@ export const useEvaluationStep = ({
       if (!data.time) {
         setError(`time_${data.id}`, { message: 'Obrigatório' });
         isErrorFound = true;
+      }
+
+      if (data.time) {
+        const isBlocked = getIsBlockedTime(
+          getBlockTimeList,
+          data.time as string,
+          (examMim || 0) / 2,
+        );
+
+        if (isBlocked) {
+          setError(`time_${data.id}`, { message: 'horário já agendado' });
+          isErrorFound = true;
+        }
+
+        if (clinicExam) {
+          const isNotAvailable = notAvailableScheduleTime(
+            data.time as string,
+            clinicExam,
+          );
+
+          if (isNotAvailable) {
+            setError(`time_${data.id}`, { message: 'horário indisponível' });
+            isErrorFound = true;
+          }
+        }
       }
     });
 
@@ -140,6 +203,8 @@ export const useEvaluationStep = ({
     setComplementaryExam,
     lastComplementaryDate,
     isPendingExams,
+    isLoadingTime,
+    getBlockTimeList,
     ...rest,
   };
 };

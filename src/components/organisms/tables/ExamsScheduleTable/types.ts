@@ -46,4 +46,9 @@ export interface IExamsScheduleTableProps extends BoxProps {
   scheduleData: {
     examType: ExamHistoryTypeEnum | undefined;
   };
+  isLoadingTime?: boolean;
+  getBlockTimeList: {
+    from: string;
+    to: string;
+  }[];
 }

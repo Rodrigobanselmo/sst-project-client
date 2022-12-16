@@ -40,7 +40,7 @@ import { SUploadFileIcon } from 'assets/icons/SUploadFileIcon';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { dateToDate } from 'core/utils/date/date-format';
-import { get15Time } from 'core/utils/helpers/times';
+import { getTimeList } from 'core/utils/helpers/times';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { timeMask } from 'core/utils/masks/date.mask';
 import { intMask } from 'core/utils/masks/int.mask';

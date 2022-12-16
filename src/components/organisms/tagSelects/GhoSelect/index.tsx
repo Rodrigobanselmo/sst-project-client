@@ -7,14 +7,10 @@ import sortArray from 'sort-array';
 
 import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 
-import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { useListGhoQuery } from 'core/hooks/useListGhoQuery';
-import { useListHierarchyQuery } from 'core/hooks/useListHierarchyQuery';
 import { IGho } from 'core/interfaces/api/IGho';
-import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { GhoFilter } from './constants/filters';

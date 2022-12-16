@@ -15,7 +15,7 @@ import SCalendarIcon from 'assets/icons/SCalendarIcon';
 
 import useCalendar, { ICalendarDay } from 'core/hooks/useCalendar';
 import { dateFromNowInDays } from 'core/utils/date/date-format';
-import { get15Time } from 'core/utils/helpers/times';
+import { getTimeList } from 'core/utils/helpers/times';
 
 import {
   STSideExamDataContainer,

@@ -74,6 +74,7 @@ export enum ApiRoutesEnum {
   ESOCIAL1415TABLES = 'esocial/table-14-15',
   ESOCIAL15TABLES = 'esocial/table-15',
   ESOCIAL6TABLES = 'esocial/table-6',
+  ESOCIAL24TABLES = 'esocial/table-24',
   CITIES = 'esocial/cities',
   CID = 'esocial/cid',
   ABSENTEEISM_MOTIVES = 'esocial/absenteeism-motives',

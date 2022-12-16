@@ -35,6 +35,8 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
     hasExamsAskSchedule,
     isPendingExams,
     company,
+    getBlockTimeList,
+    isLoadingTime,
   } = useEvaluationStep(props);
 
   const buttons = [
@@ -63,6 +65,8 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
           <Divider sx={{ mb: 5, mt: 3 }} />
 
           <ExamsScheduleTable
+            getBlockTimeList={getBlockTimeList}
+            isLoadingTime={isLoadingTime}
             setData={setComplementaryExam}
             data={data.examsData.filter((x) => x.isAttendance)}
             control={control}

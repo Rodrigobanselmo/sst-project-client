@@ -31,7 +31,7 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { dateToDate } from 'core/utils/date/date-format';
-import { get15Time } from 'core/utils/helpers/times';
+import { getTimeList } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 import { intMask } from 'core/utils/masks/int.mask';
 
@@ -153,7 +153,7 @@ export const ModalAddEmployeeHistoryExam = () => {
                     mask={timeMask.apply}
                     label="Hora"
                     sx={{ width: [100] }}
-                    options={get15Time(0, 0, 23, 59)}
+                    options={getTimeList(0, 0, 23, 59)}
                   />
                 </Box>
               )}

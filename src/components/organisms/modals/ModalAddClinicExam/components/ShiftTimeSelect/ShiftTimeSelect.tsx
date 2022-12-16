@@ -10,7 +10,7 @@ import SText from 'components/atoms/SText';
 
 import { SCopyIcon } from 'assets/icons/SCopyIcon';
 
-import { get15Time } from 'core/utils/helpers/times';
+import { getTimeList } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 
@@ -145,7 +145,7 @@ export const ShiftTimeSelect = ({
                         }}
                         freeSolo
                         ListboxProps={{ sx: { fontSize: '14px' } } as any}
-                        options={get15Time(startHour, startMin, 20, 0)}
+                        options={getTimeList(startHour, startMin, 20, 0)}
                         onChange={(e, v) => {
                           onChangeSchedule(v || '', weekDay, key);
                         }}

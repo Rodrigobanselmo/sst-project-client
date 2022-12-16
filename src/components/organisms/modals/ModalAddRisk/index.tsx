@@ -20,9 +20,13 @@ import { enumToArray } from 'core/utils/helpers/convertEnum';
 import { ModalAddGenerateSource } from '../ModalAddGenerateSource';
 import { ModalAddRecMed } from '../ModalAddRecMed';
 import { EditRiskSelects } from './components/EditRiskSelects';
+import { RiskQuiContent } from './components/RiskQuiContent/RiskQuiContent';
+import { RiskSharedContent } from './components/RiskSharedContent/RiskSharedContent';
 import { useAddRisk } from './hooks/useAddRisk';
 
 export const ModalAddRisk = () => {
+  const props = useAddRisk();
+
   const {
     registerModal,
     onCloseUnsaved,
@@ -30,9 +34,9 @@ export const ModalAddRisk = () => {
     loading,
     riskData,
     setRiskData,
-    control,
     handleSubmit,
-  } = useAddRisk();
+    type,
+  } = props;
 
   const buttons = [
     {},
@@ -61,90 +65,8 @@ export const ModalAddRisk = () => {
           onClose={onCloseUnsaved}
           title={'Fator de risco'}
         />
-        <Box mt={8}>
-          <InputForm
-            defaultValue={riskData.name}
-            autoFocus
-            multiline
-            minRows={2}
-            maxRows={5}
-            label="Descrição do risco"
-            control={control}
-            sx={{ width: ['100%', 600] }}
-            placeholder={'descrição do fator de risco...'}
-            name="name"
-            size="small"
-            firstLetterCapitalize
-          />
-          <RadioFormText
-            type="radio"
-            control={control}
-            defaultValue={riskData.type}
-            options={Object.keys(RiskEnum)}
-            name="type"
-            mt={3}
-            columns={5}
-          />
-          <RadioFormText
-            type="radio"
-            label="Severidade"
-            control={control}
-            defaultValue={String(riskData.severity)}
-            options={enumToArray(SeverityEnum, 'value')}
-            name="severity"
-            mt={5}
-            mb={15}
-            columns={5}
-          />
-          <InputForm
-            defaultValue={riskData.risk}
-            multiline
-            minRows={2}
-            maxRows={5}
-            label={
-              <>
-                Risco{' '}
-                <span style={{ fontSize: 11 }}>
-                  (Órgãos Alvo ou Maior Parte do Corpo Prejudicada - Resumo de
-                  Sintomas)
-                </span>
-              </>
-            }
-            control={control}
-            sx={{ width: ['100%', 600], mb: 8 }}
-            placeholder={'descrião do risco...'}
-            name="risk"
-            size="small"
-            firstLetterCapitalize
-          />
-          <InputForm
-            defaultValue={riskData.symptoms}
-            multiline
-            minRows={2}
-            maxRows={5}
-            label="Sintomas, Danos ou Qualquer consequência negativa"
-            control={control}
-            sx={{ width: ['100%', 600] }}
-            placeholder={'descrião dos sintomas...'}
-            name="symptoms"
-            size="small"
-            firstLetterCapitalize
-          />
-        </Box>
-        <Box sx={{ ml: 7, mt: 5 }}>
-          <SSwitch
-            onChange={() => {
-              setRiskData({
-                ...riskData,
-                isEmergency: !riskData.isEmergency,
-              });
-            }}
-            checked={riskData.isEmergency}
-            label="Vincular ao plano de emergencia"
-            sx={{ mr: 4 }}
-            color="text.light"
-          />
-        </Box>
+        <RiskSharedContent {...props} />
+        {type == 'QUI' && <RiskQuiContent {...props} />}
         <EditRiskSelects riskData={riskData} setRiskData={setRiskData} />
 
         <SModalButtons

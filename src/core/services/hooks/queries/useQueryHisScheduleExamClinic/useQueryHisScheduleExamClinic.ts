@@ -4,15 +4,9 @@ import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import {
-  IEmployee,
-  IEmployeeExamsHistory,
-} from 'core/interfaces/api/IEmployee';
-import { IPagination } from 'core/interfaces/IPagination';
-import { IPaginationResult } from 'core/interfaces/IReactQuery';
+import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
-import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 

@@ -7,13 +7,19 @@ import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
+import { getIsBlockedTime } from 'components/organisms/modals/ModalAddExamSchedule/components/3-evaluation/hooks/useEvaluationStep';
 import dayjs from 'dayjs';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 
 import { clinicScheduleMap } from 'core/constants/maps/clinic-schedule-type.map';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
+import { useQueryHisScheduleClinicTime } from 'core/services/hooks/queries/useQueryHisScheduleClinicTime/useQueryHisScheduleClinicTime';
 import { dateToDate, dateToString } from 'core/utils/date/date-format';
-import { get15Time } from 'core/utils/helpers/times';
+import {
+  addMinutesToTime,
+  getTimeList,
+  getTimeFromMinutes,
+} from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IExamsScheduleTable, IExamsScheduleTableProps } from '../types';
@@ -80,6 +86,8 @@ export const ExamsScheduleClinicColumn: FC<
   company,
   disabled,
   isPendingExams,
+  getBlockTimeList,
+  isLoadingTime,
 }) => {
   const examType =
     scheduleData.examType && employeeExamTypeMap[scheduleData.examType];
@@ -100,6 +108,10 @@ export const ExamsScheduleClinicColumn: FC<
 
     return 0;
   };
+
+  const examMim = row?.clinic?.clinicExams?.find(
+    (x) => x.examMinDuration,
+  )?.examMinDuration;
 
   return (
     <SFlex direction="column">
@@ -193,26 +205,33 @@ export const ExamsScheduleClinicColumn: FC<
                       },
                     },
                   }}
-                  getOptionDisabled={(time) =>
-                    notAvailableScheduleTime(time, row)
-                  }
+                  getOptionDisabled={(time) => {
+                    return (
+                      notAvailableScheduleTime(time, row) ||
+                      getIsBlockedTime(
+                        getBlockTimeList,
+                        time,
+                        (examMim || 0) / 2,
+                      )
+                    );
+                  }}
                   onChange={(time) => {
                     setData?.({ time: time || undefined, id: row.id });
                     setValue('time_' + String(row.id), time || '');
                   }}
                   onInputChange={(e, time) => {
                     handleDebounceChange?.({
-                      time,
+                      time: timeMask.mask(time),
                       clinic: row.clinic as any,
                       id: row.id,
                     });
                   }}
-                  disabled={!row.doneDate || disabled}
+                  disabled={!row.doneDate || disabled || isLoadingTime}
                   defaultValue={String(row.time || '')}
                   setValue={(v) => setValue('time_' + String(row.id), v || '')}
                   mask={timeMask.apply}
                   label=""
-                  options={get15Time(startHour(), 0, 20, 0)}
+                  options={getTimeList(startHour(), 0, 20, 0, examMim)}
                 />
               </Box>
               {isAsk && (
@@ -244,7 +263,7 @@ export const ExamsScheduleClinicColumn: FC<
                     }}
                     onInputChange={(e, time2) => {
                       handleDebounceChange?.({
-                        time2,
+                        time2: timeMask.mask(time2),
                         clinic: row.clinic as any,
                         id: row.id,
                       });
@@ -256,7 +275,7 @@ export const ExamsScheduleClinicColumn: FC<
                     }
                     mask={timeMask.apply}
                     label=""
-                    options={get15Time(startHour(), 0, 20, 0)}
+                    options={getTimeList(startHour(), 0, 20, 0)}
                   />
                 </Box>
               )}

@@ -14,7 +14,7 @@ import SCalendarIcon from 'assets/icons/SCalendarIcon';
 
 import useCalendar, { ICalendarDay } from 'core/hooks/useCalendar';
 import { dateFromNowInDays } from 'core/utils/date/date-format';
-import { get15Time } from 'core/utils/helpers/times';
+import { getTimeList } from 'core/utils/helpers/times';
 
 import {
   STCalendarContainerBox,
@@ -52,7 +52,10 @@ export const SCalendarWeek = (props: SCalendarProps) => {
   const lowerTime = 6;
   const higherTime = 20;
 
-  const timeList = useMemo(() => get15Time(lowerTime, 0, higherTime, 0, 2), []);
+  const timeList = useMemo(
+    () => getTimeList(lowerTime, 0, higherTime, 0, 2),
+    [],
+  );
 
   const getWeekDaysConst = (day: ICalendarDay) => {
     const isToday = day.dateFormat === todayFormatted;

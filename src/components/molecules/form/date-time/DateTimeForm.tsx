@@ -5,7 +5,7 @@ import { Box, BoxProps } from '@mui/material';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { AutocompleteFormProps } from 'components/molecules/form/autocomplete/types';
 
-import { get15Time } from 'core/utils/helpers/times';
+import { getTimeList } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 
 export function DateTimeForm(
@@ -28,7 +28,7 @@ export function DateTimeForm(
         }}
         mask={timeMask.apply}
         sx={{ width: [100] }}
-        options={get15Time(...(props?.get15TimeArray || [0, 0, 23, 59]))}
+        options={getTimeList(...(props?.get15TimeArray || [0, 0, 23, 59]))}
         // label="Hora"
         // setValue={(v) => props?.setValue('startTime', v)}
         // defaultValue={props.defaultValue}
