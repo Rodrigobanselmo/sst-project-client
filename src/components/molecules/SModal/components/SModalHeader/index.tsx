@@ -2,6 +2,7 @@ import { FC } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
 
 import { Box, Icon } from '@mui/material';
+import STooltip from 'components/atoms/STooltip';
 
 import { useModal } from 'core/hooks/useModal';
 
@@ -83,9 +84,11 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
       {!(typeof title === 'string') && title}
 
       {secondIconClick && secondIcon && (
-        <SIconButton sx={{ ml: 5, mt: -4, mr: -4 }} onClick={secondIconClick}>
-          <Icon sx={{ fontSize: 25 }} component={secondIcon} />
-        </SIconButton>
+        <STooltip withWrapper title="DELETAR">
+          <SIconButton sx={{ ml: 5, mt: -4, mr: -4 }} onClick={secondIconClick}>
+            <Icon sx={{ fontSize: 25 }} component={secondIcon} />
+          </SIconButton>
+        </STooltip>
       )}
 
       <SIconButton sx={{ ml: 5, mt: -4, mr: -4 }} onClick={onCloseAction}>

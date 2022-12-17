@@ -40,35 +40,7 @@ export function useMutUpdateRecMed() {
       updateRecMed(data, data.companyId || user?.companyId),
     {
       onSuccess: async (newRecMed) => {
-        if (newRecMed) {
-          const replace = (company: string) => {
-            // eslint-disable-next-line prettier/prettier
-            const actualData = queryClient.getQueryData([QueryEnum.RISK, company]);
-            if (actualData)
-              queryClient.setQueryData(
-                [QueryEnum.RISK, company],
-                (oldData: IRiskFactors[] | undefined) =>
-                  oldData
-                    ? oldData.map((risk) =>
-                        risk.id === newRecMed.riskId
-                          ? {
-                              ...risk,
-                              recMed: [
-                                ...risk.recMed.map((rm) =>
-                                  rm.id === newRecMed.id
-                                    ? { ...rm, ...newRecMed }
-                                    : rm,
-                                ),
-                              ],
-                            }
-                          : risk,
-                      )
-                    : [],
-              );
-          };
-          replace(newRecMed.companyId);
-          if (newRecMed.companyId != companyId) replace(companyId || '');
-        }
+        queryClient.invalidateQueries([QueryEnum.REC_MED]);
 
         enqueueSnackbar(
           'Recomendação e/ou Medida de controle criado com sucesso',

@@ -1,5 +1,6 @@
 import { BoxProps } from '@mui/material';
 import { ISTagSearchSelectProps } from 'components/molecules/STagSearchSelect/types';
+import { RecTypeEnum } from 'project/enum/recType.enum';
 
 import { IRecMed, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
@@ -13,6 +14,7 @@ export interface IRecMedSelectProps
   risk?: IRiskFactors;
   multiple?: boolean;
   onlyFromActualRisks?: boolean;
+  type?: RecTypeEnum;
   handleSelect?: (selectedIds: string[] | IRecMed) => void;
   onEnter?: (value: string) => void;
   onCreate?: (value: IRecMed | null) => void;

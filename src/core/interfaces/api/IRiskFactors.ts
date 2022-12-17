@@ -19,6 +19,7 @@ export interface IRecMed {
   recType?: RecTypeEnum;
   created_at: string;
   engsRiskData: IEngsRiskData;
+  isAll: boolean;
 }
 
 export interface IEngsRiskData {
@@ -54,6 +55,7 @@ export interface IGenerateSource {
   status: StatusEnum;
   created_at: string;
   recMeds?: IRecMed[];
+  isAll: boolean;
 }
 
 export interface IRecMedCreate {

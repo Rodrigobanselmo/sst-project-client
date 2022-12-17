@@ -74,7 +74,7 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
   useEffect(() => {
     setTimeout(() => {
       setAwaitLoad(false);
-    }, 1000);
+    }, 1500);
   }, []);
 
   const handleSelect = useCallback(

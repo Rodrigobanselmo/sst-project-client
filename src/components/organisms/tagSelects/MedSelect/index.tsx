@@ -1,4 +1,4 @@
-import React, { FC, MouseEvent, useMemo } from 'react';
+import React, { FC, MouseEvent, useMemo, useState } from 'react';
 
 import { Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
@@ -6,8 +6,8 @@ import STooltip from 'components/atoms/STooltip';
 import { initialAddRecMedState } from 'components/organisms/modals/ModalAddRecMed/hooks/useAddRecMed';
 import { initialEngsRiskDataState } from 'components/organisms/modals/ModalEditMedRiskData/hooks/useEditEngsRisk';
 import { MedTypeEnum } from 'project/enum/medType.enum';
-import { RiskEnum } from 'project/enum/risk.enums';
 import { isNaRecMed } from 'project/utils/isNa';
+import sortArray from 'sort-array';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import SMeasureControlIcon from 'assets/icons/SMeasureControlIcon';
@@ -17,9 +17,7 @@ import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
-import { useQueryAllRisk } from 'core/services/hooks/queries/useQueryRiskAll';
-import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
-import { sortString } from 'core/utils/sorts/string.sort';
+import { useQueryRecMed } from 'core/services/hooks/queries/useQueryRecMed/useQueryRecMed';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IRecMedSelectProps } from './types';
@@ -33,13 +31,28 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
   risk,
   type,
   multiple = true,
-  onlyFromActualRisks,
   onlyInput,
   onlyEpi = false,
   onCreate = () => {},
   ...props
 }) => {
-  const { data } = useQueryAllRisk();
+  const riskIdsArray = [...(riskIds.map((rId) => String(rId)) || [])];
+  if (risk) riskIdsArray.push(risk.id);
+
+  const [disabled, isDisabled] = useState(true);
+
+  const { data: recMed } = useQueryRecMed(
+    1,
+    {
+      onlyMed: true,
+      riskIds: riskIdsArray,
+      riskType: risk?.type,
+      ...(type && { medType: [type] }),
+    },
+    300,
+    disabled,
+  );
+
   const { onStackOpenModal } = useModal();
 
   const handleSelectRecMed = (options: IRecMed) => {
@@ -92,76 +105,46 @@ export const MedSelect: FC<IRecMedSelectProps> = ({
     option?: IRecMed,
   ) => {
     e.stopPropagation();
-    const risk = data.find((r) => r.id === option?.riskId);
-
-    if (risk)
-      onStackOpenModal<Partial<typeof initialAddRecMedState>>(
-        ModalEnum.ENG_MED_ADD,
-        {
-          riskIds: riskIds,
-          edit: true,
-          risk,
-          medName: option?.medName || '',
-          recName: option?.recName || '',
-          status: option?.status,
-          id: option?.id,
-          onlyInput,
-          medType:
-            onlyInput == 'adm'
-              ? MedTypeEnum.ADM
-              : onlyInput == 'eng'
-              ? MedTypeEnum.ENG
-              : '',
-        },
-      );
+    onStackOpenModal<Partial<typeof initialAddRecMedState>>(
+      ModalEnum.ENG_MED_ADD,
+      {
+        riskIds: riskIdsArray,
+        edit: true,
+        risk,
+        medName: option?.medName || '',
+        recName: option?.recName || '',
+        status: option?.status,
+        id: option?.id,
+        onlyInput,
+        medType:
+          onlyInput == 'adm'
+            ? MedTypeEnum.ADM
+            : onlyInput == 'eng'
+            ? MedTypeEnum.ENG
+            : '',
+      },
+    );
   };
 
   const options = useMemo(() => {
-    const allRisksIds = riskIds.map((id) => String(id));
+    const recMedList = recMed;
 
-    [...allRisksIds].map((riskId) => {
-      const riskFound = data.find((r) => r.id == riskId);
-      if (riskFound) {
-        const riskFoundAll = data.find(
-          (r) =>
-            (r.type === riskFound.type || r.type === RiskEnum.OUTROS) &&
-            r.representAll,
-        );
-        if (riskFoundAll) allRisksIds.push(String(riskFoundAll.id));
-      }
+    return sortArray(recMedList, {
+      by: ['primary', 'all', 'medName'],
+      order: ['desc', 'desc', 'asc'],
+      computed: {
+        primary: (v) => v.medName?.slice(0, 3) == 'Não',
+        all: (v) => !v.isAll,
+      },
     });
-
-    const allRisksIdsUnique = removeDuplicate(allRisksIds, {
-      simpleCompare: true,
-    });
-
-    if (data)
-      return data
-        .reduce((acc, risk) => {
-          const recMed = risk.recMed || ([] as IRecMed[]);
-          return [...acc, ...recMed];
-        }, [] as IRecMed[])
-        .map((recMed) => ({
-          ...recMed,
-          hideWithoutSearch: !allRisksIdsUnique?.includes(
-            String(recMed.riskId),
-          ),
-        }))
-        .filter(
-          (recMed) =>
-            recMed.medName &&
-            (type ? recMed.medType == type : true) &&
-            (onlyFromActualRisks ? !recMed.hideWithoutSearch : true),
-        )
-        .sort((a, b) => sortString(a, b, 'medName'));
-
-    return [];
-  }, [data, onlyFromActualRisks, riskIds, type]);
+  }, [recMed]);
 
   const recMedLength = String(selectedMed ? selectedMed.length : 0);
 
   return (
     <STagSearchSelect
+      onClick={() => isDisabled(false)}
+      isLoading={disabled}
       options={options}
       icon={SMeasureControlIcon}
       multiple={multiple}

@@ -104,9 +104,13 @@ export const useAddGho = () => {
   };
 
   const onRemove = () => {
-    deleteGhoMut.mutate(ghoData.id);
-    setGhoData(initialAddGhoState);
-    reset();
+    deleteGhoMut
+      .mutateAsync(ghoData.id)
+      .then(() => {
+        onClose();
+        reset();
+      })
+      .catch(() => null);
   };
 
   const onSubmit: SubmitHandler<{ name: string; description: string }> = async (

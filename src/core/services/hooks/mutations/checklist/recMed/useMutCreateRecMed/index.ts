@@ -32,37 +32,14 @@ export async function createRecMed(data: ICreateRecMed, companyId?: string) {
 
 export function useMutCreateRecMed() {
   const { enqueueSnackbar } = useSnackbar();
-  const { companyId, user } = useGetCompanyId(true);
+  const { user } = useGetCompanyId(true);
 
   return useMutation(
     async (data: ICreateRecMed) =>
       createRecMed(data, data.companyId || user?.companyId),
     {
       onSuccess: async (newRecMed) => {
-        if (newRecMed) {
-          const replace = (company: string) => {
-            // eslint-disable-next-line prettier/prettier
-            const actualData = queryClient.getQueryData([QueryEnum.RISK, company]);
-            if (actualData)
-              queryClient.setQueryData(
-                [QueryEnum.RISK, company],
-                (oldData: IRiskFactors[] | undefined) =>
-                  oldData
-                    ? oldData.map((risk) =>
-                        risk.id === newRecMed.riskId
-                          ? {
-                              ...risk,
-                              recMed: [...risk.recMed, newRecMed],
-                            }
-                          : risk,
-                      )
-                    : [],
-              );
-          };
-
-          replace(newRecMed.companyId);
-          if (newRecMed.companyId != companyId) replace(companyId || '');
-        }
+        queryClient.invalidateQueries([QueryEnum.REC_MED]);
 
         enqueueSnackbar(
           'Recomendação e/ou Medida de controle criado com sucesso',
