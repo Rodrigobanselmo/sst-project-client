@@ -75,8 +75,6 @@ export const useEvaluationStep = ({
   )?.examMinDuration;
 
   const getBlockTimeList = useMemo(() => {
-    const clinicExam = data.examsData.find((x) => x.isAttendance);
-
     if (!examMim) return [];
 
     return scheduledTimes.map((s) => {

@@ -56,6 +56,7 @@ export const RiskSelect: FC<ITypeSelectProps> = ({
     if (option)
       onStackOpenModal(ModalEnum.RISK_ADD, {
         ...option,
+        propagation: option?.propagation?.join(', '),
       } as Partial<typeof initialAddRiskState>);
   };
 

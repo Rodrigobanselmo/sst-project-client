@@ -15,8 +15,10 @@ import { ModalAddHierarchyRisk } from 'components/organisms/modals/ModalAddChara
 import { ModalParametersContentBasic } from 'components/organisms/modals/ModalAddCharacterization/components/ModalParametersBasic';
 import { TypeInputModal } from 'components/organisms/modals/ModalSingleInput';
 import { ParagraphSelect } from 'components/organisms/tagSelects/ParagraphSelect';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 import { SCopyIcon } from 'assets/icons/SCopyIcon';
@@ -63,6 +65,7 @@ export const ModalCharacterizationContent = (
     onEditArray,
     onEditArrayContent,
     handleCopy,
+    isEdit,
   } = props;
 
   const isEnvironment =
@@ -561,6 +564,21 @@ export const ModalCharacterizationContent = (
           onClick={() => handleCopy()}
           maxWidth={200}
         />
+      )}
+      {isEdit && (
+        <SFlex gap={8} mt={10} align="flex-start">
+          <StatusSelect
+            selected={characterizationData.status}
+            statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
+            handleSelectMenu={(option: any) => {
+              if (option?.value)
+                setCharacterizationData({
+                  ...characterizationData,
+                  status: option.value,
+                });
+            }}
+          />
+        </SFlex>
       )}
     </SFlex>
   );

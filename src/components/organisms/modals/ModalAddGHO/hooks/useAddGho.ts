@@ -139,6 +139,9 @@ export const useAddGho = () => {
             return acc;
           }, [] as { id: string; workspaceId: string }[]),
         })
+        .then(() => {
+          onClose();
+        })
         .catch(() => {});
     } else {
       await updateGhoMut
@@ -146,10 +149,11 @@ export const useAddGho = () => {
           ...submitData,
           id: ghoData.id,
         })
+        .then(() => {
+          onClose();
+        })
         .catch(() => {});
     }
-
-    onClose();
   };
 
   const onCloseUnsaved = () => {

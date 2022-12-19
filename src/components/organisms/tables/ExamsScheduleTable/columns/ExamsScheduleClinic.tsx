@@ -206,14 +206,16 @@ export const ExamsScheduleClinicColumn: FC<
                     },
                   }}
                   getOptionDisabled={(time) => {
-                    return (
-                      notAvailableScheduleTime(time, row) ||
-                      getIsBlockedTime(
+                    if (getBlockTimeList) {
+                      const isblock = getIsBlockedTime(
                         getBlockTimeList,
                         time,
                         (examMim || 0) / 2,
-                      )
-                    );
+                      );
+
+                      if (isblock) return isblock;
+                    }
+                    return notAvailableScheduleTime(time, row);
                   }}
                   onChange={(time) => {
                     setData?.({ time: time || undefined, id: row.id });

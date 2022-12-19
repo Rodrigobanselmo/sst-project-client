@@ -12,6 +12,7 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
+import { StatusEnum } from './../../../../../../project/enum/status.enum';
 
 export interface IAddCharacterizationPhoto {
   file?: File;
@@ -40,6 +41,7 @@ export interface IUpsertCharacterization {
   profileName?: string;
   startDate?: Date;
   endDate?: Date;
+  status?: StatusEnum;
   photos?: IAddCharacterizationPhoto[];
 }
 

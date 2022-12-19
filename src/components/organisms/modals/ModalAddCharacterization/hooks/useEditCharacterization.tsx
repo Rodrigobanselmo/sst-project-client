@@ -16,6 +16,7 @@ import {
   getIsEnvironment,
 } from 'project/enum/characterization-type.enum';
 import { ParagraphEnum } from 'project/enum/paragraph.enum';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -81,6 +82,7 @@ export const initialCharacterizationState = {
   parentId: '',
   startDate: undefined as Date | undefined,
   endDate: undefined as Date | undefined,
+  status: undefined as StatusEnum | undefined,
   type: '' as CharacterizationTypeEnum, //? missing
   parentCharacterizationId: '', //? missing
   photos: [] as IAddCharacterizationPhoto[],
@@ -328,6 +330,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       workspaceId: characterizationData.workspaceId,
       order: characterizationData.order,
       photos: characterizationData.photos,
+      status: characterizationData.status,
       profileParentId: characterizationData.profileParentId,
       id: characterizationData.id || undefined,
       hierarchyIds: hierarchies.map(
