@@ -224,7 +224,6 @@ export const QuiForm = (props: IUseModalQuantity) => {
           </SFlex>
         </>
       )}
-      {console.log(data.risk)}
       {!data.risk.unit && (
         <>
           <SText mb={4} mt={8} color="text.label" fontSize={14}>

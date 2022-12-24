@@ -90,8 +90,8 @@ export const ModalAddEmployeeHistoryExam = () => {
           tag={isEdit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
           title={isEdit ? 'Editar exame' : 'Lançamento de novo exame'}
-          secondIcon={data?.id ? SDeleteIcon : undefined}
-          secondIconClick={handleDelete}
+          // secondIcon={data?.id ? SDeleteIcon : undefined}
+          // secondIconClick={handleDelete}
         />
         <SFlex justify="space-between">
           <SText color="text.label">

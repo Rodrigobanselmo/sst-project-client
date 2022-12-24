@@ -123,7 +123,6 @@ export const useAddProfessionalResponsible = () => {
 
     const before = { ...initialDataRef.current } as any;
     const after = { ...professionalResponsibleData, ...values } as any;
-    console.log(values);
     if (preventUnwantedChanges(before, after, onClose)) return;
     onClose();
   };

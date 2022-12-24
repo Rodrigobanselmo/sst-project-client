@@ -1,4 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { ActionPlanTable } from 'components/organisms/tables/ActionPlanTable';
 import { NextPage } from 'next';
 
@@ -6,9 +7,12 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const ActionPlanPage: NextPage = () => {
   return (
-    <SContainer>
-      <ActionPlanTable />
-    </SContainer>
+    <>
+      <SHeaderTag title={'Plano de Ação'} />
+      <SContainer>
+        <ActionPlanTable />
+      </SContainer>
+    </>
   );
 };
 

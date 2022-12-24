@@ -79,7 +79,12 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
 
   const handleSelect = useCallback(
     (data: IGho | IHierarchyTreeMapObject | IHierarchy) => {
-      dispatch(setGhoSelectedId(data));
+      dispatch(
+        setGhoSelectedId({
+          childrenIds: (data as any)?.children?.map((i: any) => i?.id),
+          ...data,
+        } as any),
+      );
       if (inputRef && inputRef.current) inputRef.current.value = '';
     },
     [inputRef, dispatch],

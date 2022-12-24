@@ -172,7 +172,7 @@ export const useModalAddQuantity = () => {
         type: QuantityTypeEnum.QUI,
         unit: dataFrom?.unit || undefined,
       };
-    console.log(dataFrom);
+
     if (data.type == QuantityTypeEnum.NOISE)
       submit = {
         ltcatq5: (dataFrom.ltcatq5 || '').replaceAll('.', '').replace(',', '.'),

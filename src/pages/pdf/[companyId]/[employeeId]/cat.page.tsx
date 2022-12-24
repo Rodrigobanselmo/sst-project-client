@@ -1,5 +1,6 @@
 import { Box } from '@mui/material';
 import { Document, PDFViewer } from '@react-pdf/renderer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import PdfCatPage from 'components/pdfs/documents/cat/cat.pdf';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -28,24 +29,27 @@ const Kit: NextPage = () => {
     companyId,
   });
   return (
-    <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-      <PDFViewer showToolbar width="100%" height="100%">
-        <Document
-          subject={'CAT'}
-          author={'simpleSST'}
-          creator={'simpleSST'}
-          producer={'simpleSST'}
-          keywords={'CAT'}
-          title={`CAT_${getCompanyName(company)}`}
-        >
-          {employee && cat && company && (
-            <>
-              <PdfCatPage data={{ cat, company, employee }} />
-            </>
-          )}
-        </Document>
-      </PDFViewer>
-    </Box>
+    <>
+      <SHeaderTag hideInitial title={`PDF:CAT ${employee?.name || ''}`} />
+      <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
+        <PDFViewer showToolbar width="100%" height="100%">
+          <Document
+            subject={'CAT'}
+            author={'simpleSST'}
+            creator={'simpleSST'}
+            producer={'simpleSST'}
+            keywords={'CAT'}
+            title={`CAT_${getCompanyName(company)}`}
+          >
+            {employee && cat && company && (
+              <>
+                <PdfCatPage data={{ cat, company, employee }} />
+              </>
+            )}
+          </Document>
+        </PDFViewer>
+      </Box>
+    </>
   );
 };
 

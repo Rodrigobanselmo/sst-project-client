@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useStore } from 'react-redux';
 
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
 import { ModalEditCard } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
@@ -61,29 +62,32 @@ const Hierarchy: NextPage = () => {
   }
 
   return (
-    <STFlexContainer>
-      <OrgTreeComponent horizontal />
-      <ModalAddRisk />
-      <ModalAddGho />
-      <ModalAddGenerateSource />
-      <ModalAddRecMed />
-      <ModalAddEpi />
-      <ModalAddProbability />
-      <ModalAddQuantity />
-      <ModalExcelHierarchies />
+    <>
+      <SHeaderTag title={'Cargos'} />
+      <STFlexContainer>
+        <OrgTreeComponent horizontal />
+        <ModalAddRisk />
+        <ModalAddGho />
+        <ModalAddGenerateSource />
+        <ModalAddRecMed />
+        <ModalAddEpi />
+        <ModalAddProbability />
+        <ModalAddQuantity />
+        <ModalExcelHierarchies />
 
-      <ModalEditCard />
-      <ModalRiskTool />
-      <StackModalEditEmployee />
-      <ModalSelectWorkspace />
-      <ModalSelectHierarchy />
-      <ModalSelectGho />
-      <ModalSelectDocPgr />
-      <ModalEditEpiData />
-      <ModalEditEngRiskData />
-      <ModalEditExamRiskData />
-      <ModalAutomateSubOffice />
-    </STFlexContainer>
+        <ModalEditCard />
+        <ModalRiskTool />
+        <StackModalEditEmployee />
+        <ModalSelectWorkspace />
+        <ModalSelectHierarchy />
+        <ModalSelectGho />
+        <ModalSelectDocPgr />
+        <ModalEditEpiData />
+        <ModalEditEngRiskData />
+        <ModalEditExamRiskData />
+        <ModalAutomateSubOffice />
+      </STFlexContainer>
+    </>
   );
 };
 

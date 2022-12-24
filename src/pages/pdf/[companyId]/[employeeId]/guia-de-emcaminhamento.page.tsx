@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Box } from '@mui/material';
 import { Document, PDFViewer, usePDF } from '@react-pdf/renderer';
 import { SButton } from 'components/atoms/SButton';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import PdfGuidePage from 'components/pdfs/documents/guide/guide.pdf';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -58,20 +59,23 @@ const Guide: NextPage = () => {
   const { data: guideData } = useQueryPdfGuide(employeeId);
 
   return (
-    <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-      <>
-        <PDFViewer showToolbar width="100%" height="100%">
-          <Document>
-            {guideData && guideData?.company && (
-              <PdfGuidePage data={guideData} />
-            )}
-          </Document>
-        </PDFViewer>
-        {guideData && guideData?.company && (
-          <ButtonSendEmail data={guideData} />
-        )}
-      </>
-    </Box>
+    <>
+      <SHeaderTag hideInitial title={`PDF:Guia ${guideData?.name || ''}`} />
+      <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
+        <>
+          <PDFViewer showToolbar width="100%" height="100%">
+            <Document>
+              {guideData && guideData?.company && (
+                <PdfGuidePage data={guideData} />
+              )}
+            </Document>
+          </PDFViewer>
+          {guideData && guideData?.company && (
+            <ButtonSendEmail data={guideData} />
+          )}
+        </>
+      </Box>
+    </>
   );
 };
 

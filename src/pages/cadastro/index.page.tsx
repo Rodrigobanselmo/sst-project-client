@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { Typography } from '@mui/material';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
@@ -23,29 +24,32 @@ const Home: NextPage = () => {
   }, [push, query.token, user]);
 
   return (
-    <STContainer sx={{ p: [10], gap: 10 }}>
-      <STSectionBox component="section">
-        <SLogo />
-        <Typography
-          color={'text.light'}
-          variant="h5"
-          fontSize={['1rem', '1.25rem']}
-          fontWeight="500"
-        >
-          Bem vindo a <br />
-          <Typography variant="h1" component="p" fontSize={['2rem', '3rem']}>
-            {brandNameConstant}
+    <>
+      <SHeaderTag hideInitial title={'Cadastro'} />
+      <STContainer sx={{ p: [10], gap: 10 }}>
+        <STSectionBox component="section">
+          <SLogo />
+          <Typography
+            color={'text.light'}
+            variant="h5"
+            fontSize={['1rem', '1.25rem']}
+            fontWeight="500"
+          >
+            Bem vindo a <br />
+            <Typography variant="h1" component="p" fontSize={['2rem', '3rem']}>
+              {brandNameConstant}
+            </Typography>
           </Typography>
-        </Typography>
 
-        <LoginForm />
-      </STSectionBox>
+          <LoginForm />
+        </STSectionBox>
 
-      <STSectionBox
-        component="section"
-        display={['none', 'flex']}
-      ></STSectionBox>
-    </STContainer>
+        <STSectionBox
+          component="section"
+          display={['none', 'flex']}
+        ></STSectionBox>
+      </STContainer>
+    </>
   );
 };
 

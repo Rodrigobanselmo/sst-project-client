@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react';
 
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { SPageMenu } from 'components/molecules/SPageMenu';
 import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
@@ -80,35 +81,38 @@ const Companies: NextPage = () => {
   };
 
   return (
-    <SContainer>
-      <CharacterizationTable filterType={pageData.type || undefined}>
-        <SPageMenu
-          active={pageData.value}
-          options={characterizationOptionsList}
-          onChange={onChangeRoute}
-          mb={10}
-        />
-      </CharacterizationTable>
-      <ModalAddCharacterization />
-      <ModalSelectCharacterization />
-      <ModalSelectWorkspace />
-      <ModalSelectDocPgr />
-      <ModalAddRisk />
-      <ModalAddGho />
-      <ModalAddGenerateSource />
-      <ModalAddRecMed />
-      <ModalAddEpi />
-      <ModalAddProbability />
-      <ModalAddQuantity />
-      <ModalAddWorkspace />
-      <ModalSingleInput />
-      <ModalExcelHierarchies />
-      <ModalSelectHierarchy />
-      <ModalSelectGho />
-      <ModalEditEpiData />
-      <ModalEditEngRiskData />
-      <ModalAutomateSubOffice />
-    </SContainer>
+    <>
+      <SHeaderTag title={'Ambientes'} />
+      <SContainer>
+        <CharacterizationTable filterType={pageData.type || undefined}>
+          <SPageMenu
+            active={pageData.value}
+            options={characterizationOptionsList}
+            onChange={onChangeRoute}
+            mb={10}
+          />
+        </CharacterizationTable>
+        <ModalAddCharacterization />
+        <ModalSelectCharacterization />
+        <ModalSelectWorkspace />
+        <ModalSelectDocPgr />
+        <ModalAddRisk />
+        <ModalAddGho />
+        <ModalAddGenerateSource />
+        <ModalAddRecMed />
+        <ModalAddEpi />
+        <ModalAddProbability />
+        <ModalAddQuantity />
+        <ModalAddWorkspace />
+        <ModalSingleInput />
+        <ModalExcelHierarchies />
+        <ModalSelectHierarchy />
+        <ModalSelectGho />
+        <ModalEditEpiData />
+        <ModalEditEngRiskData />
+        <ModalAutomateSubOffice />
+      </SContainer>
+    </>
   );
 };
 

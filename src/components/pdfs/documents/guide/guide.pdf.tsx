@@ -44,7 +44,6 @@ Font.register({
 });
 
 export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
-  // console.log('lnw', guideData);
   const consultant = data.consultantCompany;
   const clinic = data?.clinicExam?.clinic;
   const complementary = data?.clinicComplementaryExams;

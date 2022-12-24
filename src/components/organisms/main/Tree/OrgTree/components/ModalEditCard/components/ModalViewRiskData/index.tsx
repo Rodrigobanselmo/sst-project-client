@@ -11,7 +11,9 @@ import {
   getExamPeriodic,
 } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
 import { getRiskDoc } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
+import { useSnackbar } from 'notistack';
 import { RiskOrderEnum } from 'project/enum/risk.enums';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 
@@ -34,6 +36,15 @@ interface IModalRiskDataViewProps {
   selectedNode: ITreeSelectedItem | null;
 }
 
+const isRiskDataInactive = (riskData: IRiskData) => {
+  const isHomoInactive =
+    riskData.homogeneousGroup?.status == StatusEnum.INACTIVE;
+
+  const isInactive = riskData.endDate || isHomoInactive;
+
+  return { isInactive, isHomoInactive };
+};
+
 export const ModalViewRiskData = ({
   selectedNode,
 }: IModalRiskDataViewProps) => {
@@ -55,6 +66,7 @@ export const ModalViewRiskData = ({
     useQueryRiskDataByHierarchy(hierarchyId);
 
   const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
+  const { enqueueSnackbar } = useSnackbar();
 
   const onChangeRiskDocInfo = (docInfo: Partial<IRiskDocInfo>) => {
     if (!docInfo.riskId) return;
@@ -92,7 +104,14 @@ export const ModalViewRiskData = ({
           RiskOrderEnum[a?.type || 'FIS'],
           RiskOrderEnum[b?.type || 'FIS'],
         ),
-      );
+      )
+      .map((risk) => ({
+        ...risk,
+        isEndDate: risk.riskData.every((rd) => {
+          const { isInactive } = isRiskDataInactive(rd);
+          return isInactive;
+        }),
+      }));
   }, [riskDataHierarchy]);
 
   return (
@@ -140,7 +159,10 @@ export const ModalViewRiskData = ({
               key={data.riskFactor.id}
             >
               <SFlex>
-                <STagRisk riskFactor={data.riskFactor} />
+                <STagRisk
+                  isEndDate={data.isEndDate}
+                  riskFactor={data.riskFactor}
+                />
               </SFlex>
 
               <SCheckRiskDocInfo
@@ -159,6 +181,14 @@ export const ModalViewRiskData = ({
 
               <>
                 {data?.riskData.map((riskData) => {
+                  const { isHomoInactive, isInactive } =
+                    isRiskDataInactive(riskData);
+
+                  const endText =
+                    isInactive && isHomoInactive
+                      ? '(INATIVO) '
+                      : `(Data fim: ${dateToString(riskData.endDate)}) `;
+
                   return (
                     <SFlex direction="column" key={riskData.id} gap={0}>
                       {showRiskExam && (
@@ -236,22 +266,32 @@ export const ModalViewRiskData = ({
                             '&:hover': {
                               textDecoration: 'underline',
                             },
-                            ...(riskData.endDate && {
+                            ...(isInactive && {
                               borderColor: 'error.main',
                               color: 'error.main',
                             }),
                           }}
                           fontSize={11}
-                          onClick={() =>
+                          onClick={() => {
+                            if (isHomoInactive)
+                              return enqueueSnackbar(
+                                'Grupo homogênio inativo',
+                                {
+                                  variant: 'error',
+                                  anchorOrigin: {
+                                    vertical: 'top',
+                                    horizontal: 'center',
+                                  },
+                                },
+                              );
+
                             onOpenRiskTool(
                               riskData.homogeneousGroup,
                               data.riskFactor,
-                            )
-                          }
+                            );
+                          }}
                         >
-                          {riskData.endDate
-                            ? `(Data fim: ${dateToString(riskData.endDate)}) `
-                            : ''}
+                          {isInactive ? endText : ''}
 
                           {riskData.origin ||
                             `${selectedNode?.label || selectedNode?.name} (${

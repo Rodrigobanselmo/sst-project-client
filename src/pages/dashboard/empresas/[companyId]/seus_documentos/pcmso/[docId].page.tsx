@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { SActionButton } from 'components/atoms/SActionButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import { DocumentPcmsoForm } from 'components/organisms/forms/DocumentPcmsoForm/DocumentPcmsoForm';
@@ -54,29 +55,31 @@ const PCMSO: NextPage = () => {
   }, [onOpenModal]);
 
   return (
-    <SContainer>
-      <SPageTitle mb={15} icon={SDocumentIcon}>
-        Documento PCMSO
-      </SPageTitle>
-      <SPageTitleSection mb={5} mt={15} title="Ações" />
-      <SFlex mb={15} gap={10}>
-        <SActionButton
-          icon={SExamIcon}
-          onClick={handleAddExam}
-          text={'Exames'}
-          width={'175px'}
-          primary
-          sx={{ backgroundColor: 'info.main' }}
-          tooltipText={'Vincular exames aos fatores de risco'}
-        />
-        <SActionButton
-          icon={SRiskFactorIcon}
-          onClick={handleGoToRiskData}
-          text={'Vincular fatores de risco'}
-          primary
-        />
-      </SFlex>
-      {/* <SPageTitleSection title="Gestão" icon={SPhotoIcon} />
+    <>
+      <SHeaderTag title={'PCMSO'} />
+      <SContainer>
+        <SPageTitle mb={15} icon={SDocumentIcon}>
+          Documento PCMSO
+        </SPageTitle>
+        <SPageTitleSection mb={5} mt={15} title="Ações" />
+        <SFlex mb={15} gap={10}>
+          <SActionButton
+            icon={SExamIcon}
+            onClick={handleAddExam}
+            text={'Exames'}
+            width={'175px'}
+            primary
+            sx={{ backgroundColor: 'info.main' }}
+            tooltipText={'Vincular exames aos fatores de risco'}
+          />
+          <SActionButton
+            icon={SRiskFactorIcon}
+            onClick={handleGoToRiskData}
+            text={'Vincular fatores de risco'}
+            primary
+          />
+        </SFlex>
+        {/* <SPageTitleSection title="Gestão" icon={SPhotoIcon} />
       <SActionButton
         mb={15}
         mt={5}
@@ -86,17 +89,18 @@ const PCMSO: NextPage = () => {
         width={'175px'}
       /> */}
 
-      <DocumentPcmsoForm mb={15} riskGroupId={query.docId as string} />
-      <DocTable
-        documentPcmsoId={query.docId as string}
-        query={{ isPCMSO: true }}
-      />
-      <ModalAddDocPcmso />
-      <ModalViewProfessional />
-      <ModalSingleInput />
-      <ModalSelectWorkspace />
-      <ModalViewExam />
-    </SContainer>
+        <DocumentPcmsoForm mb={15} riskGroupId={query.docId as string} />
+        <DocTable
+          documentPcmsoId={query.docId as string}
+          query={{ isPCMSO: true }}
+        />
+        <ModalAddDocPcmso />
+        <ModalViewProfessional />
+        <ModalSingleInput />
+        <ModalSelectWorkspace />
+        <ModalViewExam />
+      </SContainer>
+    </>
   );
 };
 

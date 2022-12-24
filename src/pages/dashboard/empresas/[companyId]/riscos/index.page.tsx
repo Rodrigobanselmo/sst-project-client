@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useStore } from 'react-redux';
 
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { StackModalRiskTool } from 'components/organisms/modals/ModalRiskTool';
 import { RiskCompanyTable } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
 import { NextPage } from 'next';
@@ -40,6 +41,7 @@ const RiskPage: NextPage = () => {
 
   return (
     <>
+      <SHeaderTag title={'Riscos'} />
       <SContainer>
         <RiskCompanyTable />
       </SContainer>

@@ -55,7 +55,6 @@ export const CompanyGroupsTable: FC<
   };
 
   const onEditCompanyGroup = (group: ICompanyGroup) => {
-    console.log(group);
     onOpenModal(ModalEnum.COMPANY_GROUP_ADD, {
       ...group,
       esocialStart: dateToDate(group.esocialStart),

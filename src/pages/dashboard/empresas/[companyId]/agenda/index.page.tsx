@@ -3,6 +3,7 @@ import { Wizard } from 'react-use-wizard';
 import { Box } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SWizardBox from 'components/atoms/SWizardBox';
 import { SCalendarWeek } from 'components/molecules/calendar/SCalendarWeek/SCalendarWeek';
 import { SSidebarExamData } from 'components/molecules/calendar/SSidebarExamData/SSidebarExamData';
@@ -32,6 +33,7 @@ const Schedule: NextPage = () => {
 
   return (
     <>
+      <SHeaderTag title={'Agenda'} />
       <SContainer>
         <SAuthShow hideIf={!hideIfIsConsultant}>
           <SWizardBox sx={{ px: 10, py: 10 }} mb={20}>

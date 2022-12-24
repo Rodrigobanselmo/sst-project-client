@@ -39,7 +39,6 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
   const { preventWarn } = usePreventAction();
   const store = useStore();
   const upsertRiskData = useMutUpsertManyRiskData();
-  const { query } = useRouter();
 
   const isHierarchy = selectedGho && 'childrenIds' in selectedGho;
 
@@ -53,13 +52,12 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
   const handleSelectRisk = (options: string[] | IRiskFactors) => {
     if (Array.isArray(options)) {
       if (options?.length === 0) return;
-
       if (isViewTypeGroup) {
         const gho = selectedGho;
 
         if (gho?.id) {
           const homoId = String(gho.id).split('//');
-
+          console.log(gho);
           upsertRiskData.mutate({
             keepEmpty: true,
             homogeneousGroupIds: [homoId[0]],
@@ -143,7 +141,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
       handleSelect={(options) => handleSelectRisk(options as string[])}
       text={
         isViewTypeGroup
-          ? 'Adicionar ricos'
+          ? 'Adicionar riscos'
           : selectedRisk
           ? textRisk
           : 'selecione um risco'

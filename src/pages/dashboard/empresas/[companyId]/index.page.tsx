@@ -1,6 +1,7 @@
 import { Icon } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SIconButton from 'components/atoms/SIconButton';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
@@ -49,82 +50,86 @@ const CompanyPage: NextPage = () => {
   } = useCompanyStep();
 
   useFetchFeedback(isLoading && !company?.id);
+  const companyName = getCompanyName(company);
 
   return (
-    <SContainer>
-      <SPageTitle icon={SClinicIcon}>{getCompanyName(company)}</SPageTitle>
-      {nextStepMemo && (
-        <>
-          <SText mt={20}>Proximo passo</SText>
-          <SFlex mt={5} gap={10} flexWrap="wrap">
-            {nextStepMemo.map((props) => (
-              <SActionButton key={props.text} {...props} />
-            ))}
-            <SFlex gap={0} align="center">
-              {/* <SText fontSize={10}>Pular</SText> */}
-              <SIconButton
-                onClick={nextStep}
-                tooltip="Pular para próximo passo"
-                sx={{
-                  alignSelf: 'center',
-                }}
-              >
-                <Icon
-                  component={SArrowNextIcon}
+    <>
+      <SHeaderTag hideInitial title={companyName} />
+      <SContainer>
+        <SPageTitle icon={SClinicIcon}>{companyName}</SPageTitle>
+        {nextStepMemo && (
+          <>
+            <SText mt={20}>Proximo passo</SText>
+            <SFlex mt={5} gap={10} flexWrap="wrap">
+              {nextStepMemo.map((props) => (
+                <SActionButton key={props.text} {...props} />
+              ))}
+              <SFlex gap={0} align="center">
+                {/* <SText fontSize={10}>Pular</SText> */}
+                <SIconButton
+                  onClick={nextStep}
+                  tooltip="Pular para próximo passo"
                   sx={{
-                    fontSize: '1.2rem',
+                    alignSelf: 'center',
                   }}
-                />
-              </SIconButton>
+                >
+                  <Icon
+                    component={SArrowNextIcon}
+                    sx={{
+                      fontSize: '1.2rem',
+                    }}
+                  />
+                </SIconButton>
+              </SFlex>
             </SFlex>
-          </SFlex>
-        </>
-      )}
-      <SText mt={20}>Dados da empresa</SText>
-      <SFlex mt={5} gap={10} flexWrap="wrap">
-        {actionsStepMemo.map((props) => (
-          <SActionButton key={props.text} {...props} />
-        ))}
-      </SFlex>
+          </>
+        )}
+        <SText mt={20}>Dados da empresa</SText>
+        <SFlex mt={5} gap={10} flexWrap="wrap">
+          {actionsStepMemo.map((props) => (
+            <SActionButton key={props.text} {...props} />
+          ))}
+        </SFlex>
 
-      <SPageTitleSection title="Segurança" icon={SPhotoIcon} />
-      <SFlex mt={5} gap={10} flexWrap="wrap">
-        {modulesStepMemo.map((props) => (
-          <SActionButton key={props.text} {...props} />
-        ))}
-      </SFlex>
+        <SPageTitleSection title="Segurança" icon={SPhotoIcon} />
+        <SFlex mt={5} gap={10} flexWrap="wrap">
+          {modulesStepMemo.map((props) => (
+            <SActionButton key={props.text} {...props} />
+          ))}
+        </SFlex>
 
-      <SPageTitleSection title="Medicina" />
-      <SFlex mt={5} gap={10} flexWrap="wrap">
-        {medicineStepMemo.map((props) => (
-          <SActionButton key={props.text} {...props} />
-        ))}
-      </SFlex>
+        <SPageTitleSection title="Medicina" />
+        <SFlex mt={5} gap={10} flexWrap="wrap">
+          {medicineStepMemo.map((props) => (
+            <SActionButton key={props.text} {...props} />
+          ))}
+        </SFlex>
 
-      <SText mt={20}>Atalhos</SText>
-      <SFlex mt={5} gap={10} flexWrap="wrap">
-        {shortActionsStepMemo.map((props) => (
-          <SActionButton key={props.text} {...props} />
-        ))}
-      </SFlex>
-      <WorkspaceTable hideModal />
-      <ModalAddWorkspace />
-      <ModalAddExcelEmployees />
-      <ModalAddRiskGroup />
-      <ModalShowHierarchyTree />
-      <ModalSelectWorkspace />
-      <ModalSelectDocPgr />
-      <ModalSelectClinic />
-      <ModalAddExam />
-      <ModalAddProtocol />
-      <ModalViewExam />
-      <ModalEditExamRisk />
-      <ModalEditProtocolRisk />
+        <SText mt={20}>Atalhos</SText>
+        <SFlex mt={5} gap={10} flexWrap="wrap">
+          {shortActionsStepMemo.map((props) => (
+            <SActionButton key={props.text} {...props} />
+          ))}
+        </SFlex>
+        <WorkspaceTable hideModal />
+        <ModalAddWorkspace />
+        <ModalAddExcelEmployees />
+        <ModalAddRiskGroup />
+        <ModalShowHierarchyTree />
+        <ModalSelectWorkspace />
+        <ModalSelectDocPgr />
+        <ModalSelectClinic />
+        <ModalAddExam />
+        <ModalAddProtocol />
+        <ModalViewExam />
+        <ModalEditExamRisk />
+        <ModalEditProtocolRisk />
 
-      <ModalViewUsers />
-      <StackModalViewUsers />
-      <StackModalViewDocuments />
-    </SContainer>
+        <ModalViewUsers />
+        <StackModalViewUsers />
+        <StackModalViewDocuments />
+      </SContainer>
+    </>
   );
 };
 

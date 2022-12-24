@@ -733,7 +733,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           title: 'Selecione o Estabelecimento',
           companyId: companySelected.id,
           onSelect: (workspace: IWorkspace) => {
-            console.log(workspace);
             onStackOpenModal(ModalEnum.CHARACTERIZATION_SELECT, {
               companyId: companySelected.id,
               workspaceId: workspace.id,

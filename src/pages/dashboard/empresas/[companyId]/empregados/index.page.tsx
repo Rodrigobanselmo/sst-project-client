@@ -1,4 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { EmployeesTable } from 'components/organisms/tables/EmployeesTable/EmployeesTable';
 import { NextPage } from 'next';
 
@@ -6,9 +7,12 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const EmployeesPage: NextPage = () => {
   return (
-    <SContainer>
-      <EmployeesTable />
-    </SContainer>
+    <>
+      <SHeaderTag title={'Funcionários'} />
+      <SContainer>
+        <EmployeesTable />
+      </SContainer>
+    </>
   );
 };
 

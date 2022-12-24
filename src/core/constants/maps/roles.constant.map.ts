@@ -174,6 +174,13 @@ export const rolesConstantMap = {
     permissions: [] as any,
     order: 1000,
   },
+  [RoleEnum.ESOCIAL_EDIT]: {
+    value: RoleEnum.ESOCIAL_EDIT,
+    label: 'Editar Histórico eSocial',
+    info: 'Póssivel editar dados que irão afetar eventos já enviados ao eSocial (Retificação e Exclusão de eventos)',
+    permissions: [] as any,
+    order: 1000,
+  },
 } as IRolesOptions;
 
 // [RoleEnum.MANAGEMENT]: {

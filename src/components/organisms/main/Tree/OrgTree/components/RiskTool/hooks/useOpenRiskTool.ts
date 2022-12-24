@@ -86,6 +86,7 @@ export const useOpenRiskTool = () => {
               id: ghoId,
               description: ghoName,
               type: '',
+              ...(viewData == ViewsDataEnum.HIERARCHY && { childrenIds: [] }),
             } as any,
           }),
         );

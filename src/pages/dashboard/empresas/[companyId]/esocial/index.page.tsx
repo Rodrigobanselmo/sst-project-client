@@ -4,6 +4,7 @@ import { Wizard } from 'react-use-wizard';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import TopicIcon from '@mui/icons-material/Topic';
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
@@ -22,6 +23,7 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 const EsocialPage: NextPage = () => {
   return (
     <>
+      <SHeaderTag title={'eSocial'} />
       <SContainer>
         <STableTitle>Eventos eSocial</STableTitle>
         <Wizard

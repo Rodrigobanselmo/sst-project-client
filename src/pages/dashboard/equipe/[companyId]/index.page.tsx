@@ -1,6 +1,7 @@
 import { Wizard } from 'react-use-wizard';
 
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddAccessGroup } from 'components/organisms/modals/ModalAddAccessGroup';
@@ -14,26 +15,32 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Team: NextPage = () => {
   return (
-    <SContainer>
-      <Wizard
-        header={
-          <WizardTabs
-            shadow
-            options={[{ label: 'Usuários' }, { label: 'Grupo de Permissões' }]}
-          />
-        }
-      >
-        <SWizardBox sx={{ px: 5, py: 10 }}>
-          <UsersTable />
-        </SWizardBox>
-        <SWizardBox sx={{ px: 5, py: 10 }}>
-          <AccessGroupsTable />
-        </SWizardBox>
-      </Wizard>
-      <ModalAddUsers />
-      <ModalSelectAccessGroups />
-      <ModalAddAccessGroup />
-    </SContainer>
+    <>
+      <SHeaderTag title={'Usuários'} />
+      <SContainer>
+        <Wizard
+          header={
+            <WizardTabs
+              shadow
+              options={[
+                { label: 'Usuários' },
+                { label: 'Grupo de Permissões' },
+              ]}
+            />
+          }
+        >
+          <SWizardBox sx={{ px: 5, py: 10 }}>
+            <UsersTable />
+          </SWizardBox>
+          <SWizardBox sx={{ px: 5, py: 10 }}>
+            <AccessGroupsTable />
+          </SWizardBox>
+        </Wizard>
+        <ModalAddUsers />
+        <ModalSelectAccessGroups />
+        <ModalAddAccessGroup />
+      </SContainer>
+    </>
   );
 };
 

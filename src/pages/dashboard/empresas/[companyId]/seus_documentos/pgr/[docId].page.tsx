@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { SActionButton } from 'components/atoms/SActionButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import { ModalAddDocPgr } from 'components/organisms/modals/ModalAddDocPgr';
@@ -85,45 +86,48 @@ const Companies: NextPage = () => {
   }, [company.id, company?.workspace, onOpenModal, push]);
 
   return (
-    <SContainer>
-      <SPageTitle mb={15} icon={SDocumentIcon}>
-        Documento PGR
-      </SPageTitle>
-      <SPageTitleSection mb={5} mt={15} title="Ações" />
-      <SFlex gap={10}>
+    <>
+      <SHeaderTag title={'PGR'} />
+      <SContainer>
+        <SPageTitle mb={15} icon={SDocumentIcon}>
+          Documento PGR
+        </SPageTitle>
+        <SPageTitleSection mb={5} mt={15} title="Ações" />
+        <SFlex gap={10}>
+          <SActionButton
+            icon={SPhotoIcon}
+            onClick={handleAddCharacterization}
+            text={'Caracterização Básica'}
+            success
+            tooltipText={
+              'Cadastro de ambientes de trabalho, atividades e posto de trabalh (adicionar fotografia)'
+            }
+          />
+          <SActionButton
+            icon={SRiskFactorIcon}
+            onClick={handleGoToRiskData}
+            text={'Vincular fatores de risco'}
+            primary
+          />
+        </SFlex>
+        <SPageTitleSection title="Gestão" icon={SPhotoIcon} />
         <SActionButton
-          icon={SPhotoIcon}
-          onClick={handleAddCharacterization}
-          text={'Caracterização Básica'}
-          success
-          tooltipText={
-            'Cadastro de ambientes de trabalho, atividades e posto de trabalh (adicionar fotografia)'
-          }
+          mb={15}
+          mt={5}
+          icon={SActionPlanIcon}
+          onClick={handleGoToActionPlan}
+          text={'Plano de ação'}
+          width={'175px'}
         />
-        <SActionButton
-          icon={SRiskFactorIcon}
-          onClick={handleGoToRiskData}
-          text={'Vincular fatores de risco'}
-          primary
-        />
-      </SFlex>
-      <SPageTitleSection title="Gestão" icon={SPhotoIcon} />
-      <SActionButton
-        mb={15}
-        mt={5}
-        icon={SActionPlanIcon}
-        onClick={handleGoToActionPlan}
-        text={'Plano de ação'}
-        width={'175px'}
-      />
 
-      <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
-      <DocTable riskGroupId={query.docId as string} query={{ isPGR: true }} />
-      <ModalAddDocPgr />
-      <ModalViewProfessional />
-      <ModalSingleInput />
-      <ModalSelectWorkspace />
-    </SContainer>
+        <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
+        <DocTable riskGroupId={query.docId as string} query={{ isPGR: true }} />
+        <ModalAddDocPgr />
+        <ModalViewProfessional />
+        <ModalSingleInput />
+        <ModalSelectWorkspace />
+      </SContainer>
+    </>
   );
 };
 

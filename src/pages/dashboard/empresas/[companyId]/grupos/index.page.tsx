@@ -1,4 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { ModalAddCompanyGroup } from 'components/organisms/modals/ModalAddCompanyGroup/ModalAddCompanyGroup';
 import { CompanyGroupsTable } from 'components/organisms/tables/CompanyGroupsTable ';
 import { NextPage } from 'next';
@@ -7,10 +8,13 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const CompanyGroup: NextPage = () => {
   return (
-    <SContainer>
-      <CompanyGroupsTable />
-      <ModalAddCompanyGroup />
-    </SContainer>
+    <>
+      <SHeaderTag title={'Grupos Empresariais'} />
+      <SContainer>
+        <CompanyGroupsTable />
+        <ModalAddCompanyGroup />
+      </SContainer>
+    </>
   );
 };
 

@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 
 import { Typography } from '@mui/material';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { SLogo } from 'components/atoms/SLogo';
 import { UserForm } from 'components/organisms/forms/UserForm';
 import { ModalAddCouncil } from 'components/organisms/modals/ModalAddCouncil';
@@ -25,26 +26,29 @@ const UserPage: NextPage = () => {
   }, [router, user]);
 
   return (
-    <STContainer sx={{ p: [10], gap: 10 }}>
-      <STSectionBox component="section">
-        <SLogo mb={3} />
-        <Typography
-          color={'text.light'}
-          variant="h5"
-          fontSize={['1rem', '1.25rem']}
-          fontWeight="500"
-          mb={20}
-        >
-          <Typography component="p" fontSize={['1.2rem', '1.8rem']}>
-            Informe seus dados
+    <>
+      <SHeaderTag hideInitial title={'Dados Perfil'} />
+      <STContainer sx={{ p: [10], gap: 10 }}>
+        <STSectionBox component="section">
+          <SLogo mb={3} />
+          <Typography
+            color={'text.light'}
+            variant="h5"
+            fontSize={['1rem', '1.25rem']}
+            fontWeight="500"
+            mb={20}
+          >
+            <Typography component="p" fontSize={['1.2rem', '1.8rem']}>
+              Informe seus dados
+            </Typography>
           </Typography>
-        </Typography>
 
-        <UserForm onlyEdit />
-      </STSectionBox>
-      <ModalSingleInput />
-      <ModalAddCouncil />
-    </STContainer>
+          <UserForm onlyEdit />
+        </STSectionBox>
+        <ModalSingleInput />
+        <ModalAddCouncil />
+      </STContainer>
+    </>
   );
 };
 

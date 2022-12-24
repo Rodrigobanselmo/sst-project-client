@@ -59,7 +59,6 @@ export const useAccidentData = (props: IUseAddCat) => {
       setError('dtObito', { message: 'Campo obrigatório' });
       error = true;
     }
-    console.log(isShowOrigin && !isDeath && !catData.catOriginId);
     if (isShowOrigin && !isDeath && !catData.catOriginId) {
       setError('catOriginId', { message: 'Campo obrigatório' });
       error = true;

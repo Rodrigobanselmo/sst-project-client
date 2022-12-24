@@ -2,6 +2,7 @@ import { Wizard } from 'react-use-wizard';
 
 import { Box } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
@@ -17,27 +18,30 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const RiskPage: NextPage = () => {
   return (
-    <SContainer>
-      <Wizard
-        header={
-          <WizardTabs
-            shadow
-            options={[
-              { label: 'Todos os Riscos Cadastrados' },
-              { label: 'Riscos Identificados' },
-            ]}
-          />
-        }
-      >
-        <SWizardBox sx={{ px: 5, py: 10 }}>
-          <RisksTable />
-        </SWizardBox>
-        <SWizardBox sx={{ px: 5, py: 10 }}>
-          <RiskCompanyTable />
-        </SWizardBox>
-      </Wizard>
-      <StackModalAddRisk />
-    </SContainer>
+    <>
+      <SHeaderTag title={'Riscos'} />
+      <SContainer>
+        <Wizard
+          header={
+            <WizardTabs
+              shadow
+              options={[
+                { label: 'Todos os Riscos Cadastrados' },
+                { label: 'Riscos Identificados' },
+              ]}
+            />
+          }
+        >
+          <SWizardBox sx={{ px: 5, py: 10 }}>
+            <RisksTable />
+          </SWizardBox>
+          <SWizardBox sx={{ px: 5, py: 10 }}>
+            <RiskCompanyTable />
+          </SWizardBox>
+        </Wizard>
+        <StackModalAddRisk />
+      </SContainer>
+    </>
   );
 };
 

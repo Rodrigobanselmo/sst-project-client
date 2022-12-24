@@ -1,4 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { RiskGroupDataTable } from 'components/organisms/tables/RiskGroupDataTable ';
 import { NextPage } from 'next';
 
@@ -6,9 +7,12 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const RiskGroup: NextPage = () => {
   return (
-    <SContainer>
-      <RiskGroupDataTable />
-    </SContainer>
+    <>
+      <SHeaderTag title={'Gestão SST'} />
+      <SContainer>
+        <RiskGroupDataTable />
+      </SContainer>
+    </>
   );
 };
 

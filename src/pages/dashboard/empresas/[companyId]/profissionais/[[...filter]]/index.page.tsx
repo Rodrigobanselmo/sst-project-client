@@ -1,4 +1,5 @@
 import { SContainer } from 'components/atoms/SContainer';
+import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { ProfessionalsTable } from 'components/organisms/tables/ProfessonalsTable/ProfessonalsTable';
 import { NextPage } from 'next';
 
@@ -6,9 +7,12 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const ProfessionalsPage: NextPage = () => {
   return (
-    <SContainer>
-      <ProfessionalsTable />
-    </SContainer>
+    <>
+      <SHeaderTag title={'Profissionais'} />
+      <SContainer>
+        <ProfessionalsTable />
+      </SContainer>
+    </>
   );
 };
 

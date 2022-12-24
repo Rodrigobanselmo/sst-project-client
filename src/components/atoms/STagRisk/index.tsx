@@ -18,7 +18,12 @@ export const STagRisk = ({
   riskFactor,
 }: ITagRiskProps) => {
   return (
-    <SText fontSize={14}>
+    <SText
+      sx={{
+        ...(isEndDate && { color: 'error.main' }),
+      }}
+      fontSize={14}
+    >
       <SText
         fontSize={10}
         component="span"
@@ -29,7 +34,6 @@ export const STagRisk = ({
           width: '40px',
           borderRadius: '4px',
           mr: 2,
-          ...(isEndDate && { backgroundColor: 'error.main' }),
         }}
       >
         <SFlex center>{riskFactor?.type || ''}</SFlex>

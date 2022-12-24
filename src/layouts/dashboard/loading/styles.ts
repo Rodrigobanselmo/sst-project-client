@@ -7,6 +7,7 @@ export const STBoxChildren = styled(Box)`
   flex: 1;
   position: relative;
   overflow: auto;
+
   &::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -36,7 +37,7 @@ const SlideUp = keyframes`
 export const STLoadLogoSimpleIcon = styled(LogoSimpleIcon)`
   height: 80px;
   width: 80px;
-  position: absolute;
+  position: fixed;
   right: calc(50% - 40px);
   top: calc(50% - 70px);
   animation: ${SlideUp} 1.5s;
@@ -44,10 +45,12 @@ export const STLoadLogoSimpleIcon = styled(LogoSimpleIcon)`
 `;
 
 export const STBoxLoading = styled(Box)`
-  height: 100%;
+  height: 99%;
   width: 100%;
-  position: absolute;
-  top: 0;
+  position: fixed;
+  top: 4px;
   background-color: ${({ theme }) => theme.palette.background.default};
   z-index: ${({ theme }) => theme.mixins.loadingFeedback};
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
 `;
