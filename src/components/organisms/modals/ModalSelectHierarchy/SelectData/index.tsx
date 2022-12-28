@@ -14,6 +14,7 @@ import {
 
 import { SAddIcon } from 'assets/icons/SAddIcon';
 import SCloseIcon from 'assets/icons/SCloseIcon';
+import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
@@ -43,7 +44,8 @@ export const ModalSelectHierarchyData: FC<{
   company: ICompany;
   selectedData: typeof initialHierarchySelectState;
   handleSingleSelect: (hierarchy: IListHierarchyQuery) => void;
-}> = ({ company, selectedData, handleSingleSelect }) => {
+  setSelectData: React.Dispatch<React.SetStateAction<any>>;
+}> = ({ company, selectedData, handleSingleSelect, setSelectData }) => {
   const { data: ghoQuery } = useQueryGHOAll();
 
   const dispatch = useAppDispatch();
@@ -134,6 +136,13 @@ export const ModalSelectHierarchyData: FC<{
     dispatch(setModalIds(hierarchyList.map((hierarchy) => hierarchy.id)));
   };
 
+  const onSelectEditALl = () => {
+    setSelectData({
+      ...selectedData,
+      hierarchiesIds: selectedData.allHierarchiesIds,
+    });
+  };
+
   const onSelectWorkspace = (workspace: IWorkspace) => {
     if (selectedData.lockWorkspace) return;
     setWorkspaceSelected(workspace);
@@ -192,6 +201,13 @@ export const ModalSelectHierarchyData: FC<{
                 iconProps={{ sx: { color: 'success.main' } }}
                 icon={SAddIcon}
                 onClick={() => onSelectAll?.()}
+              />
+              <STagButton
+                width="150px"
+                text={'editar ativos'}
+                iconProps={{ sx: { color: 'info.main' } }}
+                icon={SEditIcon}
+                onClick={() => onSelectEditALl?.()}
               />
             </SFlex>
             <Divider sx={{ mb: 10, mt: 7 }} />

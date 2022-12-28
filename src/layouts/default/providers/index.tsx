@@ -22,6 +22,8 @@ import { PersistGate } from 'redux-persist/integration/react';
 
 import SCloseIcon from 'assets/icons/SCloseIcon';
 
+import { OnlineStatusProvider } from 'core/hooks/useOnlineStatus';
+
 import theme from '../../../configs/theme';
 import { AuthProvider } from '../../../core/contexts/AuthContext';
 import { queryClient } from '../../../core/services/queryClient';
@@ -36,44 +38,46 @@ const DefaultProviders: FC = ({ children }) => {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <EmotionProvider theme={theme}>
-          <ThemeProvider theme={theme}>
-            <SnackbarProvider
-              ref={notistackRef}
-              maxSnack={3}
-              preventDuplicate
-              action={(key) => (
-                <SIconButton
-                  onClick={onClickDismiss(key)}
-                  sx={{
-                    width: '2rem',
-                    height: '2rem',
-                    position: 'absolute',
-                    right: '8px',
-                    top: '8px',
-                  }}
-                >
-                  <Icon
-                    sx={{ color: 'common.white', fontSize: '18px' }}
-                    component={SCloseIcon}
-                  />
-                </SIconButton>
-              )}
-              anchorOrigin={{
-                vertical: 'bottom',
-                horizontal: 'right',
-              }}
-              style={{ maxWidth: '28rem', paddingRight: 40 }}
-            >
-              <AuthProvider>
-                <QueryClientProvider client={queryClient}>
-                  {children}
-                  <ReactQueryDevtools />
-                </QueryClientProvider>
-              </AuthProvider>
-            </SnackbarProvider>
-          </ThemeProvider>
-        </EmotionProvider>
+        <OnlineStatusProvider>
+          <EmotionProvider theme={theme}>
+            <ThemeProvider theme={theme}>
+              <SnackbarProvider
+                ref={notistackRef}
+                maxSnack={3}
+                preventDuplicate
+                action={(key) => (
+                  <SIconButton
+                    onClick={onClickDismiss(key)}
+                    sx={{
+                      width: '2rem',
+                      height: '2rem',
+                      position: 'absolute',
+                      right: '8px',
+                      top: '8px',
+                    }}
+                  >
+                    <Icon
+                      sx={{ color: 'common.white', fontSize: '18px' }}
+                      component={SCloseIcon}
+                    />
+                  </SIconButton>
+                )}
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'right',
+                }}
+                style={{ maxWidth: '28rem', paddingRight: 40 }}
+              >
+                <AuthProvider>
+                  <QueryClientProvider client={queryClient}>
+                    {children}
+                    <ReactQueryDevtools />
+                  </QueryClientProvider>
+                </AuthProvider>
+              </SnackbarProvider>
+            </ThemeProvider>
+          </EmotionProvider>
+        </OnlineStatusProvider>
       </PersistGate>
     </Provider>
   );

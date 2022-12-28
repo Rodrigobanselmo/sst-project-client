@@ -11,6 +11,7 @@ import NextLink from 'next/link';
 import * as Yup from 'yup';
 
 import { useAuth } from 'core/contexts/AuthContext';
+import { useOnlineStatus } from 'core/hooks/useOnlineStatus';
 
 import { SButton } from '../../../../components/atoms/SButton';
 import { InputForm } from '../../../../components/molecules/form/input';
@@ -26,8 +27,9 @@ export const LoginForm: FC = () => {
     resolver: yupResolver(Yup.object().shape({ ...loginSchema })),
   });
 
+  const { isLocal } = useOnlineStatus();
   const { mutate, isLoading } = useMutationLogin();
-  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(isLocal || false);
 
   const password = watch('password');
   const email = watch('email');

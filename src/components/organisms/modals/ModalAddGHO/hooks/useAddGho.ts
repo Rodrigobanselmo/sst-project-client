@@ -174,6 +174,7 @@ export const useAddGho = () => {
       hierarchies: IHierarchy[],
       startDate: Date,
       endDate: Date,
+      close?: () => void,
     ) => {
       if (isEdit) {
         const submitData: IUpdateGho = {
@@ -194,7 +195,10 @@ export const useAddGho = () => {
           }, [] as { id: string; workspaceId: string }[]),
         };
 
-        updateGhoMut.mutateAsync(submitData).catch(() => {});
+        updateGhoMut
+          .mutateAsync(submitData)
+          .then(() => close?.())
+          .catch(() => {});
       } else {
         setGhoData((oldData) => ({
           ...oldData,
@@ -212,11 +216,10 @@ export const useAddGho = () => {
       keepOpen: true,
       onSelect: (hIds, onClose) =>
         selectStartEndDate((d) => {
-          handleSelect(hIds, d.startDate, d.endDate);
-          onClose?.();
+          handleSelect(hIds, d.startDate, d.endDate, onClose);
         }),
       addSubOffice: true,
-      hierarchiesIds: hierarchies
+      allHierarchiesIds: hierarchies
         .filter((h) =>
           (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
         )

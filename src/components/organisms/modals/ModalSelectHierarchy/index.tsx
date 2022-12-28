@@ -34,6 +34,7 @@ export const initialHierarchySelectState = {
   onSingleSelect: (hierarchy: IListHierarchyQuery) => {},
   onCloseWithoutSelect: () => {},
   hierarchiesIds: [] as string[],
+  allHierarchiesIds: [] as string[],
   workspaceId: '' as string,
   singleSelect: false,
   addSubOffice: false,
@@ -83,6 +84,7 @@ export const ModalSelectHierarchy: FC = () => {
     selectData.onCloseWithoutSelect?.();
     onCloseModal(modalName);
     dispatch(setHierarchySearch(''));
+    setSelectData(initialHierarchySelectState);
   };
 
   const handleSelect = useCallback(() => {
@@ -93,9 +95,15 @@ export const ModalSelectHierarchy: FC = () => {
       .filter((i) => i);
 
     dispatch(setHierarchySearch(''));
-    selectData.onSelect(hierarchies, () => onCloseModal(modalName));
+    selectData.onSelect(hierarchies, () => {
+      setSelectData(initialHierarchySelectState);
+      onCloseModal(modalName);
+    });
 
-    if (!selectData.keepOpen) onCloseModal(modalName);
+    if (!selectData.keepOpen) {
+      setSelectData(initialHierarchySelectState);
+      onCloseModal(modalName);
+    }
   }, [data, dispatch, onCloseModal, selectData, store]);
 
   const handleSingleSelect = useCallback(
@@ -103,6 +111,7 @@ export const ModalSelectHierarchy: FC = () => {
       onCloseModal(modalName);
       dispatch(setHierarchySearch(''));
       selectData.onSingleSelect(hierarchy);
+      setSelectData(initialHierarchySelectState);
     },
     [dispatch, onCloseModal, selectData],
   );
@@ -141,6 +150,7 @@ export const ModalSelectHierarchy: FC = () => {
               selectedData={selectData}
               company={company}
               handleSingleSelect={handleSingleSelect}
+              setSelectData={setSelectData}
             />
           )}
           {(!hasWorkspace || !hasHierarchy) &&

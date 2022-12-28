@@ -66,7 +66,7 @@ export const useStartEndDate = () => {
 
   const selectStartEndDate = (cb: (d: any) => void, options?: IOptions) => {
     const content = (setData: any, data: any) => (
-      <SFlex direction="column" gap={10} mb={150}>
+      <SFlex direction="row" gap={10} mb={150}>
         <SDatePicker
           inputProps={{
             labelPosition: 'top',

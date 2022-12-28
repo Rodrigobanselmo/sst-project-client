@@ -73,7 +73,13 @@ export function useMutUpdateGho() {
       },
       onError: (error: IErrorResp) => {
         if (error.response?.data)
-          enqueueSnackbar(error.response.data.message, { variant: 'error' });
+          enqueueSnackbar(error.response.data.message, {
+            variant: 'error',
+            anchorOrigin: {
+              vertical: 'top',
+              horizontal: 'center',
+            },
+          });
       },
     },
   );

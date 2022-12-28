@@ -16,6 +16,7 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 
+import { ModalAutomateSubOffice } from '../ModalAutomateSubOffice';
 import { ModalSelectHierarchy } from '../ModalSelectHierarchy';
 import { EditGhoSelects } from './components/EditGhoSelects';
 import { useAddGho } from './hooks/useAddGho';
@@ -109,6 +110,7 @@ export const StackModalAddGho = () => {
     <>
       <ModalAddGho />
       <ModalSelectHierarchy />
+      <ModalAutomateSubOffice />
     </>
   );
 };

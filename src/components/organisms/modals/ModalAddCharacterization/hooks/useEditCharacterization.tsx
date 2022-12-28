@@ -535,6 +535,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       hierarchies: IHierarchyChildren[],
       startDate: Date,
       endDate: Date,
+      close?: () => void,
     ) => {
       const values = getValues();
       if (isEdit) {
@@ -555,7 +556,10 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           ),
         };
         if (isEdit) delete submitData.photos;
-        upsertMutation.mutateAsync(submitData).catch(() => {});
+        upsertMutation
+          .mutateAsync(submitData)
+          .then(() => close?.())
+          .catch(() => {});
       } else {
         setCharacterizationData((oldData) => ({
           ...oldData,
@@ -573,13 +577,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       keepOpen: true,
       onSelect: (hIds, onClose) =>
         selectStartEndDate((d) => {
-          handleSelect(hIds, d.startDate, d.endDate);
-          onClose?.();
+          handleSelect(hIds, d.startDate, d.endDate, onClose);
         }),
       selectByGHO: ghoQuery.some((gho) => !gho.type),
       workspaceId: characterizationData.workspaceId,
       addSubOffice: true,
-      hierarchiesIds: hierarchies
+      allHierarchiesIds: hierarchies
         .filter((h) =>
           (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),
         )

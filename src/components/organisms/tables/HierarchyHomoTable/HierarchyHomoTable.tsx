@@ -114,7 +114,7 @@ export const HierarchyHomoTable: FC<
       <STableSearch
         onAddClick={onAddExam}
         onChange={(e) => handleSearchChange(e.target.value)}
-        addText="Vincular cargos"
+        addText="Editar cargos"
       />
       <STable
         loading={loading}

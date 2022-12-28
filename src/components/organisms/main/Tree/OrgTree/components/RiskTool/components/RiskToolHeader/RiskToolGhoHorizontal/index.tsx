@@ -28,6 +28,7 @@ import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
+import { IdsEnum } from 'core/enums/ids.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useHorizontalScroll } from 'core/hooks/useHorizontalScroll';
@@ -76,6 +77,13 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
       setAwaitLoad(false);
     }, 1500);
   }, []);
+
+  useEffect(() => {
+    if (!awaitLoad) {
+      const listItem = document.getElementById(IdsEnum.INPUT_MENU_SEARCH);
+      listItem?.click();
+    }
+  }, [awaitLoad, viewDataType]);
 
   const handleSelect = useCallback(
     (data: IGho | IHierarchyTreeMapObject | IHierarchy) => {
@@ -169,6 +177,7 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
                     }
                   >
                     <SInput
+                      id={IdsEnum.INPUT_MENU_SEARCH}
                       onClick={onClick}
                       placeholder={
                         viewsDataOptionsConstant[viewDataType].placeholder
