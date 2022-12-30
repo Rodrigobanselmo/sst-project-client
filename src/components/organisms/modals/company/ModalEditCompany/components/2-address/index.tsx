@@ -111,7 +111,6 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
               control={control}
               name="number"
               size="small"
-              mask={intMask.apply}
             />
           </SFlex>
         </SFlex>

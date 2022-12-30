@@ -80,7 +80,9 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
 
   useEffect(() => {
     if (!awaitLoad) {
-      const listItem = document.getElementById(IdsEnum.INPUT_MENU_SEARCH);
+      const listItem = document.getElementById(
+        IdsEnum.INPUT_MENU_SEARCH_GHO_HIERARCHY,
+      );
       listItem?.click();
     }
   }, [awaitLoad, viewDataType]);
@@ -177,7 +179,7 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
                     }
                   >
                     <SInput
-                      id={IdsEnum.INPUT_MENU_SEARCH}
+                      id={IdsEnum.INPUT_MENU_SEARCH_GHO_HIERARCHY}
                       onClick={onClick}
                       placeholder={
                         viewsDataOptionsConstant[viewDataType].placeholder

@@ -6,7 +6,7 @@ export const addressSchema = yup.object().shape({
   neighborhood: yup.string().trim(),
   city: yup.string().trim(),
   state: yup.string().uppercase().trim(),
-  number: yup.number().typeError('Número inválido'),
+  number: yup.string().typeError('Número inválido'),
   complement: yup.string(),
 });
 
@@ -16,7 +16,7 @@ export const addressClinicSchema = yup.object().shape({
   neighborhood: yup.string().trim(),
   city: yup.string().trim().required('Dado obrigatório'),
   state: yup.string().uppercase().trim().required('Dado obrigatório'),
-  number: yup.number().typeError('Número inválido'),
+  number: yup.string().typeError('Número inválido'),
   complement: yup.string(),
 });
 

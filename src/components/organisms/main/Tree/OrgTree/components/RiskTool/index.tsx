@@ -24,6 +24,7 @@ import {
 
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -38,6 +39,7 @@ import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/use
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import { queryClient } from 'core/services/queryClient';
 
 import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
@@ -128,6 +130,7 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
       riskGroup: IRiskGroupData,
       company: ICompany,
     ) => {
+      queryClient.invalidateQueries([QueryEnum.GHO]);
       onStackOpenModal(ModalEnum.HOMOGENEOUS_SELECT, {
         // title: 'Selecione o Sistema de Gestão SST do GSE',
         onSelect: (gho) => onSelectGhoData(gho as IGho, riskGroup),

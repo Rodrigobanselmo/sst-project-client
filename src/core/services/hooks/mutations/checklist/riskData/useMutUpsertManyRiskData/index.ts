@@ -14,6 +14,40 @@ import { sortString } from 'core/utils/sorts/string.sort';
 
 import { IErrorResp } from '../../../../../errors/types';
 
+export const isEmptyRiskData = (riskData: IRiskData) => {
+  const isEmpty =
+    !riskData.adms?.length &&
+    !riskData.recs?.length &&
+    !riskData.engs?.length &&
+    !riskData.epis?.length &&
+    !riskData.exams?.length &&
+    !riskData.generateSources?.length &&
+    !riskData.endDate &&
+    !riskData.startDate &&
+    !riskData.probability;
+
+  return isEmpty;
+};
+
+const invalidateGho = (riskData: IRiskData[]) => {
+  riskData.some((rd) => {
+    const isEmpty = isEmptyRiskData(rd);
+    if (!isEmpty) return;
+
+    const riskDataGet = queryClient.getQueryData<IRiskData[]>([
+      QueryEnum.RISK_DATA,
+      rd.companyId,
+      rd.riskFactorGroupDataId,
+      rd.homogeneousGroupId,
+    ]);
+
+    if (!riskDataGet || riskDataGet.length == 1) {
+      queryClient.invalidateQueries([QueryEnum.GHO]);
+      return true;
+    }
+  });
+};
+
 export interface IUpsertManyRiskData {
   id?: string;
   companyId?: string;

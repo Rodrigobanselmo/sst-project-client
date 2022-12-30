@@ -53,6 +53,7 @@ export function useMutCreateHierarchy() {
             // eslint-disable-next-line prettier/prettier
             [QueryEnum.HIERARCHY, resp.companyId]
           );
+
           if (actualData)
             queryClient.setQueryData(
               [QueryEnum.HIERARCHY, resp.companyId],

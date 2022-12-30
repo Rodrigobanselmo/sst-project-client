@@ -1,5 +1,6 @@
 export enum IdsEnum {
   INPUT_MENU_SEARCH = 'input-menu-search',
+  INPUT_MENU_SEARCH_GHO_HIERARCHY = 'input-menu-search-gho-hierarchy',
   MENU_CLOSE = 'menu-close',
   CROP_IMAGE_BUTTON = 'crop-image-button',
   MENU_ITEM_ID = 'menu-item-:id',

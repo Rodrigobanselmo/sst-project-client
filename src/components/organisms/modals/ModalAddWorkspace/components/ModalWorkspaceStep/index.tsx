@@ -137,8 +137,6 @@ export const ModalWorkspaceStep = ({
         />
         <InputForm
           defaultValue={companyData.number}
-          minRows={2}
-          maxRows={4}
           setValue={setValue}
           label="Número"
           labelPosition="center"

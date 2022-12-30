@@ -57,7 +57,6 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
 
         if (gho?.id) {
           const homoId = String(gho.id).split('//');
-          console.log(gho);
           upsertRiskData.mutate({
             keepEmpty: true,
             homogeneousGroupIds: [homoId[0]],
