@@ -105,7 +105,13 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
   }, [dispatch]);
 
   const handleAddGHO = async () => {
-    onStackOpenModal(ModalEnum.GHO_ADD);
+    const isGSE = viewDataType == ViewsDataEnum.GSE;
+    const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
+    const isCharacterization =
+      viewDataType == ViewsDataEnum.CHARACTERIZATION ||
+      viewDataType == ViewsDataEnum.ENVIRONMENT;
+
+    if (isGSE) onStackOpenModal(ModalEnum.GHO_ADD);
   };
 
   const handleCopyGHO = async (

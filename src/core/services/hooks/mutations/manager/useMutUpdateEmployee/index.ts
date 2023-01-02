@@ -16,6 +16,7 @@ export interface IUpdateEmployee {
   name?: string;
   cpf?: string;
   hierarchyId?: string;
+  cbo: string;
   status?: StatusEnum;
   companyId?: string;
 }

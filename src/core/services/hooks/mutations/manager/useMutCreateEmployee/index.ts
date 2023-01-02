@@ -15,6 +15,7 @@ import { IErrorResp } from '../../../../errors/types';
 export interface ICreateEmployee {
   name: string;
   cpf: string;
+  cbo: string;
   hierarchyId: string;
   status?: StatusEnum;
   companyId?: string;

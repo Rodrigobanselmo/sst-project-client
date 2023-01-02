@@ -65,6 +65,7 @@ export const usePersonalData = ({
         email,
         phone,
         socialName,
+        cbo: data.cbo,
       };
 
       onSubmitData(submitData, nextStep);

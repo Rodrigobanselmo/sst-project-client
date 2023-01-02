@@ -10,6 +10,7 @@ export enum QueryEnum {
   ESOCIAL_15 = 'ESOCIAL_15',
   ESOCIAL_17 = 'ESOCIAL_17',
   ESOCIAL_13 = 'ESOCIAL_13',
+  CBO = 'CBO',
   CITIES = 'CITIES',
   CHARACTERIZATION = 'characterization',
   CHARACTERIZATIONS = 'characterizations',

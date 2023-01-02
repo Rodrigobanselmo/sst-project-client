@@ -9,6 +9,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { ICbo } from 'core/interfaces/api/ICbo';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutCreateEmployee } from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
@@ -32,6 +33,7 @@ export const initialEditEmployeeState = {
   nickname: undefined as string | undefined,
   phone: undefined as string | undefined,
   email: undefined as string | undefined,
+  cbo: undefined as string | undefined,
   isComorbidity: false,
   sex: undefined as SexTypeEnum | undefined,
   cidId: undefined,

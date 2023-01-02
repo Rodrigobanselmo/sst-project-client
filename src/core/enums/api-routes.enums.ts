@@ -77,6 +77,7 @@ export enum ApiRoutesEnum {
   ESOCIAL24TABLES = 'esocial/table-24',
   CITIES = 'esocial/cities',
   CID = 'esocial/cid',
+  CBO = 'esocial/cbo',
   ABSENTEEISM_MOTIVES = 'esocial/absenteeism-motives',
   // ESOCIAL18TABLES = 'esocial/table-18',
   NOTIFICATION = '/notification',

@@ -10,6 +10,7 @@ import { RadioForm } from 'components/molecules/form/radio';
 import { UnmountBox } from 'components/molecules/form/unmount-box';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { CboSelect } from 'components/organisms/inputSelect/CboSelect/CboSelect';
 import { CompanyInputSelect } from 'components/organisms/inputSelect/CompanySelect/CompanyInputSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import dayjs from 'dayjs';
@@ -226,19 +227,40 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
             </Box>
           </SFlex>
 
-          <Box mt={10}>
-            <InputForm
-              sx={{ width: 300 }}
-              defaultValue={data.esocialCode}
-              setValue={setValue}
-              label="Matrícula eSocial"
-              labelPosition="top"
-              control={control}
-              placeholder={'código de matrícula...'}
-              name="esocialCode"
-              size="small"
-            />
-          </Box>
+          <SFlex flexWrap="wrap" gap={5} mb={6}>
+            <Box mt={10}>
+              <InputForm
+                sx={{ width: 300 }}
+                defaultValue={data.esocialCode}
+                setValue={setValue}
+                label="Matrícula eSocial"
+                labelPosition="top"
+                control={control}
+                placeholder={'código de matrícula...'}
+                name="esocialCode"
+                size="small"
+              />
+            </Box>
+            <Box mt={10} width={400}>
+              <CboSelect
+                onChange={(data) => {
+                  setData((d) => ({
+                    ...d,
+                    cbo: data?.code,
+                  }));
+                }}
+                inputProps={{
+                  labelPosition: 'top',
+                  placeholder: 'selecione...',
+                }}
+                unmountOnChangeDefault
+                defaultValue={{ code: data?.cbo, desc: '' } as any}
+                name="cbo"
+                label="CBO"
+                control={control}
+              />
+            </Box>
+          </SFlex>
         </Box>
       </AnimatedStep>
       <SModalButtons

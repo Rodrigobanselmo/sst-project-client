@@ -11,8 +11,10 @@ import React, {
 import { Box, Divider, Icon } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
+import { SEndButton } from 'components/atoms/SIconButton/SEndButton';
 import { SInput } from 'components/atoms/SInput';
 import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
 import { GhoSelect } from 'components/organisms/tagSelects/GhoSelect';
 import { IGHOTypeSelectProps } from 'components/organisms/tagSelects/GhoSelect/types';
 import { HierarchySelect } from 'components/organisms/tagSelects/HierarchySelect';
@@ -190,6 +192,18 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
                       value={text}
                       startAdornment={type || ''}
                       size="small"
+                      endAdornment={
+                        <>
+                          {handleAddGHO && (
+                            <STooltip withWrapper title={'Adicionar'}>
+                              <SEndButton
+                                bg={'tag.add'}
+                                onClick={() => handleAddGHO()}
+                              />
+                            </STooltip>
+                          )}
+                        </>
+                      }
                     />
                   </Box>
                 );
