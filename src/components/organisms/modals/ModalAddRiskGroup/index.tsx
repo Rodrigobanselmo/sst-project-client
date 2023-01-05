@@ -196,7 +196,7 @@ export const ModalAddRiskGroup = () => {
         />
         {company.hierarchyCount ? (
           <>
-            <Box mt={8}>
+            {/* <Box mt={8}>
               <SInput
                 autoFocus
                 value={riskGroupData.name}
@@ -212,7 +212,7 @@ export const ModalAddRiskGroup = () => {
                 sx={{ width: ['100%'] }}
                 placeholder={'Nome do sistema de gestão...'}
               />
-            </Box>
+            </Box> */}
             <SFlex gap={8} mt={10} align="center">
               <StatusSelect
                 selected={riskGroupData.status}

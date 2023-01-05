@@ -45,9 +45,7 @@ export function useMutCreateExam() {
       createExam(data, data.companyId || user?.companyId),
     {
       onSuccess: async (newExam) => {
-        if (newExam) {
-          queryClient.invalidateQueries([QueryEnum.EXAMS]);
-        }
+        queryClient.invalidateQueries([QueryEnum.EXAMS]);
 
         enqueueSnackbar('Exame criado com sucesso', {
           variant: 'success',

@@ -37,10 +37,6 @@ export const ModalExamStep = ({
 }: IUseEditExam) => {
   return (
     <SFlex sx={{ minWidth: [300, 600, 800] }} direction="column" mt={8}>
-      <SText color="text.label" mb={5} fontSize={14}>
-        Dados Pessoais
-      </SText>
-
       <SFlex mt={5} flexWrap="wrap" gap={5}>
         <Box flex={5}>
           <AutocompleteForm

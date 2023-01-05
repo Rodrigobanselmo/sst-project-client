@@ -25,9 +25,7 @@ export function useMutDeleteExam() {
 
   return useMutation(async (id: number) => deleteExam(id, user?.companyId), {
     onSuccess: async (newExam) => {
-      if (newExam) {
-        queryClient.invalidateQueries([QueryEnum.EXAMS]);
-      }
+      queryClient.invalidateQueries([QueryEnum.EXAMS]);
 
       enqueueSnackbar('Exame deletada com sucesso', {
         variant: 'success',
