@@ -67,7 +67,11 @@ export const STabs: FC<STabsProps> = ({
         })}
       >
         {options.map((options) => (
-          <Tab key={options.label} {...options} />
+          <Tab
+            sx={{ fontSize: [10, 10, 14] }}
+            key={options.label}
+            {...options}
+          />
         ))}
       </Tabs>
       {shadow && (

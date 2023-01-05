@@ -102,7 +102,7 @@ export const permissionsConstantMap = {
   },
   [PermissionEnum.CHARACTERIZATION]: {
     value: PermissionEnum.CHARACTERIZATION,
-    label: 'Caracterização básica',
+    label: 'Caracterização do Ambiente',
     info: 'Gerenciamento dos ambientes, posto de trabalho, atividades e etc da empresa',
     crud: ['r', 'cu', 'd'],
   },

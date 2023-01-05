@@ -15,6 +15,7 @@ import { STableButtonProps, STableSearchProps } from './types';
 export const STableAddButton: FC<STableSearchProps> = ({
   onAddClick,
   addText,
+  sm,
 }) => {
   return (
     <STooltip title={addText ? '' : 'Adicionar'}>
@@ -23,8 +24,8 @@ export const STableAddButton: FC<STableSearchProps> = ({
           onClick={onAddClick}
           color="success"
           sx={{
-            height: 38,
-            minWidth: 38,
+            height: sm ? 30 : 38,
+            minWidth: sm ? 30 : 38,
             borderRadius: 1,
             m: 0,
             ml: 2,
@@ -34,7 +35,7 @@ export const STableAddButton: FC<STableSearchProps> = ({
           <Icon
             component={AddIcon}
             sx={{
-              fontSize: ['1.4rem'],
+              fontSize: [sm ? '1rem' : '1.4rem'],
               color: 'common.white',
             }}
           />

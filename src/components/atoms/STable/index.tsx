@@ -108,6 +108,7 @@ export const STableRow: FC<
     clickable={clickable ? 1 : 0}
     px={6}
     py={2}
+    display="grid"
     className={'table_grid ' + className}
     {...props}
   />

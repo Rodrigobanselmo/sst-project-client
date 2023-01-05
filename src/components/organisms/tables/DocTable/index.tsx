@@ -103,7 +103,7 @@ export const DocTable: FC<
       >
         <STableHeader>
           <STableHRow>Identificação</STableHRow>
-          <STableHRow>Nome</STableHRow>
+          <STableHRow>Descrição</STableHRow>
           <STableHRow>Estabelecimento</STableHRow>
           <STableHRow justifyContent="center">Versão</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>

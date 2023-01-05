@@ -132,7 +132,7 @@ export const ModalAddRiskGroup = () => {
                     Você tem certeza que deseja importar da empresa{' '}
                     <b> {companySelected.name}</b> todos os dados de:
                     <ul>
-                      <li>Caracterização Básica</li>
+                      <li>Caracterização do Ambiente</li>
                       <li>Grupos homogênios</li>
                       <li>Fatores de riscos/perigos</li>
                     </ul>

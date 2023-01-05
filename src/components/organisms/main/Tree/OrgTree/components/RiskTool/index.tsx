@@ -30,6 +30,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
+import { usePushRoute } from 'core/hooks/usePushRoute';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
@@ -73,6 +74,7 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
   const copyHomoMutation = useMutCopyHomo();
   const risk = useAppSelector(selectRisk);
   const { companyId } = useGetCompanyId();
+  const { handleAddCharacterization, handleAddEmployees } = usePushRoute();
 
   const viewType = useAppSelector((state) => state.riskAdd.viewType);
   const viewDataType = useAppSelector((state) => state.riskAdd.viewData);
@@ -104,7 +106,8 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
     );
   }, [dispatch]);
 
-  const handleAddGHO = async () => {
+  const handleAddGHO = async (e: any) => {
+    e.stopPropagation();
     const isGSE = viewDataType == ViewsDataEnum.GSE;
     const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
     const isCharacterization =
@@ -112,6 +115,8 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
       viewDataType == ViewsDataEnum.ENVIRONMENT;
 
     if (isGSE) onStackOpenModal(ModalEnum.GHO_ADD);
+    if (isCharacterization) handleAddCharacterization();
+    if (isHierarchy) handleAddEmployees();
   };
 
   const handleCopyGHO = async (
@@ -310,7 +315,7 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
               handleCopyGHO={handleCopyGHO}
               handleSelectGHO={handleSelectGHO}
               handleEditGHO={handleEditGHO}
-              handleAddGHO={handleAddGHO}
+              handleAddGHO={handleAddGHO as any}
               isAddLoading={addMutation.isLoading}
               riskInit={isRiskOpen}
               inputRef={inputRef}
@@ -345,7 +350,7 @@ export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
                   viewDataType={viewDataType}
                   handleSelectGHO={handleSelectGHO}
                   handleEditGHO={handleEditGHO}
-                  handleAddGHO={handleAddGHO}
+                  handleAddGHO={handleAddGHO as any}
                   inputRef={inputRef}
                   ghoQuery={ghoQuery}
                 />

@@ -67,7 +67,10 @@ const Schedule: NextPage = () => {
               <HistoryExpiredExamCompanyTable mt={10} />
             </Box>
             <Box sx={{ px: 10, pb: 10 }}>
-              <HistoryScheduleExamCompanyTable mt={10} />
+              <HistoryScheduleExamCompanyTable
+                mt={10}
+                query={{ allCompanies: true }}
+              />
             </Box>
             <Box sx={{ px: 10, pb: 10 }}>
               <HistoryScheduleExamTable

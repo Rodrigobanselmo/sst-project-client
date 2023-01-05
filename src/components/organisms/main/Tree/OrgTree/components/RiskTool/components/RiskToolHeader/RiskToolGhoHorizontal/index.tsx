@@ -198,7 +198,7 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
                             <STooltip withWrapper title={'Adicionar'}>
                               <SEndButton
                                 bg={'tag.add'}
-                                onClick={() => handleAddGHO()}
+                                onClick={(e) => (handleAddGHO as any)(e)} //handleAddGHO()
                               />
                             </STooltip>
                           )}

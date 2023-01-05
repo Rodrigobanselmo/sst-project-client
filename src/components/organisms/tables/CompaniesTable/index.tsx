@@ -131,11 +131,13 @@ export const CompaniesTable: FC<
                   sx={{ maxWidth: '120px' }}
                   selected={row.status}
                   disabled={isSelect}
-                  statusOptions={[
-                    StatusEnum.PENDING,
-                    StatusEnum.ACTIVE,
-                    StatusEnum.INACTIVE,
-                  ]}
+                  statusOptions={
+                    [
+                      // StatusEnum.PENDING,
+                      // StatusEnum.ACTIVE,
+                      // StatusEnum.INACTIVE,
+                    ]
+                  }
                   handleSelectMenu={(option, e) => {
                     e.stopPropagation();
                     handleEditStatus(option.value);

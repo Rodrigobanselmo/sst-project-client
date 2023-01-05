@@ -80,9 +80,9 @@ export const ExamStep = (props: IUseEditEmployee) => {
             scheduleData={data}
             isPendingExams={isPendingExams}
           />
-          {hasExamsAskSchedule && data.obs && (
+          {hasExamsAskSchedule && (
             <InputForm
-              defaultValue={data.obs}
+              defaultValue={data?.obs || ''}
               label={'Observações do Pedido de Agenda'}
               multiline
               minRows={3}

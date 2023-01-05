@@ -16,6 +16,7 @@ export const StyledNavImage = styled('img')<{ open: number; type?: 'cat' }>`
   ${(props) =>
     props.open &&
     css`
+      object-position: 0px;
       width: 100%;
     `};
 

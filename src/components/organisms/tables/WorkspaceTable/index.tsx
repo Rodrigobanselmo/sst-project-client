@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
 import { BoxProps } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -10,6 +11,7 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { STableAddButton } from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
@@ -23,6 +25,7 @@ import SWorkspaceIcon from 'assets/icons/SWorkspaceIcon';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
+import { usePushRoute } from 'core/hooks/usePushRoute';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
@@ -31,6 +34,7 @@ export const WorkspaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
 }) => {
   const { data, isLoading } = useQueryCompany();
   const { onOpenModal } = useModal();
+  const { handleAddWorkspace } = usePushRoute();
 
   const { push } = useRouter();
 
@@ -62,9 +66,12 @@ export const WorkspaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
 
   return (
     <>
-      <STableTitle mb={8} mt={40} variant="h6" icon={SWorkspaceIcon}>
-        Estabelecimento (Área de trabalho)
-      </STableTitle>
+      <SFlex mb={8} mt={40} align="center">
+        <STableTitle mb={0} mt={0} variant="h6" icon={SWorkspaceIcon}>
+          Estabelecimento (Área de trabalho)
+        </STableTitle>
+        <STableAddButton sm onAddClick={handleAddWorkspace} addText={''} />
+      </SFlex>
       <STable
         loading={isLoading}
         columns="minmax(200px, 5fr) minmax(150px, 1fr) minmax(100px, 150px) 80px 80px"

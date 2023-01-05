@@ -97,8 +97,8 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
             <>
               {/* employee */}
               <Box sx={{ ...border_box }} mb={5}>
-                <SFlex flexWrap="wrap" gap={5} mb={10}>
-                  <Box flex={2}>
+                <SFlex flexWrap="wrap" gap={'20px 10px'} mb={10}>
+                  <Box minWidth="200px" flex={2}>
                     <SInput
                       value={employee?.name || ''}
                       disabled
@@ -112,7 +112,11 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                       }}
                     />
                   </Box>
-                  <Box flex={1} maxWidth="150px">
+                  <Box
+                    flex={1}
+                    minWidth="150px"
+                    maxWidth={['100%', '100%', '150px']}
+                  >
                     <SInput
                       value={cpfMask.mask(employee?.cpf) || ''}
                       disabled
@@ -139,7 +143,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                 </SFlex>
 
                 <SFlex flexWrap="wrap" gap={5}>
-                  <Box minWidth="400px" flex={1}>
+                  <Box minWidth={['100%', '100%', '400px']} flex={1}>
                     <SInput
                       value={employee?.email || ''}
                       disabled
@@ -236,7 +240,11 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
 
               {/* hierarchy */}
               <SFlex flexWrap="wrap" mt={5}>
-                <Box flex={notInHierarchy ? 1 : 4} sx={{ ...border_box }}>
+                <Box
+                  minWidth={200}
+                  flex={notInHierarchy ? 1 : 4}
+                  sx={{ ...border_box }}
+                >
                   {employee?.hierarchy?.parents?.map((parent, index) => {
                     return (
                       <SInput

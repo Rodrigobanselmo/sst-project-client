@@ -87,7 +87,7 @@ export const ModalAddCharacterization = () => {
           <SModalHeader
             tag={isEdit ? 'edit' : 'add'}
             onClose={onCloseUnsaved}
-            title={'Caracterização Básica'}
+            title={'Caracterização do Ambiente'}
             secondIcon={characterizationData?.id ? SDeleteIcon : undefined}
             secondIconClick={onRemove}
           />

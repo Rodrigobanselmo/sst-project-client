@@ -23,7 +23,11 @@ const SPageTitle: FC<SPageTitleProps> = ({
           sx={{ fontSize: '22px', mr: 4, color: 'text.main', ...iconSx }}
         />
       )}
-      <SText variant={'h4'} {...props}>
+      <SText
+        fontSize={['1.3rem', '1.3rem', '1.563rem']}
+        variant={'h4'}
+        {...props}
+      >
         {children}
       </SText>
     </SFlex>

@@ -10,6 +10,7 @@ import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { InputForm } from 'components/molecules/form/input';
 import { SelectForm } from 'components/molecules/form/select';
+import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import SModal, {
   SModalButtons,
   SModalHeader,
@@ -30,6 +31,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { dateToDate } from 'core/utils/date/date-format';
 import { getTimeList } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
@@ -56,6 +58,8 @@ export const ModalAddEmployeeHistoryExam = () => {
     addExam,
     setComplementaryExam,
     hideClinicExam,
+    uploadMutation,
+    uploadExam,
   } = useAddData();
 
   const buttons = [
@@ -338,6 +342,29 @@ export const ModalAddEmployeeHistoryExam = () => {
                 />
               </Box>
             </SFlex>
+          </SFlex>
+        )}
+
+        {data.id && (
+          <SFlex mt={8} ml={-2}>
+            <SText></SText>
+            <SIconUploadFile
+              loading={uploadMutation.isLoading}
+              disabledDownload={!data.fileUrl}
+              isActive={!!data.fileUrl}
+              isTag
+              downloadPath={
+                ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM +
+                `/${data.id}/download/${data.companyId}`
+              }
+              onUpload={(file) =>
+                uploadExam({
+                  file,
+                  ids: [data.id as number],
+                  companyId: data?.companyId,
+                })
+              }
+            />
           </SFlex>
         )}
 

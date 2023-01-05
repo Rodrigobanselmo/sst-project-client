@@ -41,6 +41,7 @@ import { useMutSetClinicsCompany } from 'core/services/hooks/mutations/manager/c
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { useAppSelector } from '../useAppSelector';
+import { usePushRoute } from '../usePushRoute';
 
 export const useCompanyStep = () => {
   const { data: company, isLoading } = useQueryCompany();
@@ -49,6 +50,7 @@ export const useCompanyStep = () => {
   const dispatch = useAppDispatch();
   const stepLocal = useAppSelector(selectStep(company.id));
   const { enqueueSnackbar } = useSnackbar();
+  const { handleAddWorkspace, handleAddEmployees } = usePushRoute();
 
   const setClinicsMutation = useMutSetClinicsCompany();
 
@@ -76,38 +78,6 @@ export const useCompanyStep = () => {
   const handleEditDocuments = useCallback(() => {
     onOpenModal(ModalEnum.DOCUMENTS_VIEW, company);
   }, [company, onOpenModal]);
-
-  const handleAddWorkspace = useCallback(() => {
-    const data: Partial<typeof initialWorkspaceState> = {
-      name: company.type,
-      cep: company?.address?.cep,
-      number: company?.address?.number,
-      city: company?.address?.city,
-      complement: company?.address?.complement,
-      state: company?.address?.state,
-      street: company?.address?.street,
-      neighborhood: company?.address?.neighborhood,
-    };
-
-    const isFirstWorkspace = company.workspace && company.workspace.length == 0;
-    onOpenModal(ModalEnum.WORKSPACE_ADD, isFirstWorkspace ? data : {});
-  }, [company, onOpenModal]);
-
-  const handleAddEmployees = useCallback(() => {
-    if (!company.employeeCount && !company.hierarchyCount) {
-      onOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
-    } else {
-      push({
-        pathname: RoutesEnum.EMPLOYEES.replace(':companyId', company.id),
-      });
-    }
-  }, [
-    company.employeeCount,
-    company.hierarchyCount,
-    company.id,
-    onOpenModal,
-    push,
-  ]);
 
   const handleAddManagerSystem = useCallback(() => {
     if (company.riskGroupCount) {

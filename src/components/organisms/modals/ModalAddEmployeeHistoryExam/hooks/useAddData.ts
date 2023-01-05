@@ -26,6 +26,7 @@ import {
 import { useMutDeleteEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutDeleteEmployeeHisExam/useMutDeleteEmployeeHisExam';
 import { useMutFindByIdEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutFindByIdEmployeeHisExam/useMutFindByIdEmployeeHisExam';
 import { useMutUpdateEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateEmployeeHisExam/useMutUpdateEmployeeHisExam';
+import { useMutUploadEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUploadEmployeeHisExam/useMutUploadEmployeeHisExam';
 import { dateToDate } from 'core/utils/date/date-format';
 
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
@@ -46,6 +47,7 @@ export const initialEmployeeHistoryExamState = {
   clinic: undefined as undefined | ICompany,
   doctor: undefined as undefined | IProfessional,
   companyId: undefined as undefined | string,
+  fileUrl: undefined as undefined | string,
   validityInMonths: undefined as undefined | number,
   status: undefined as undefined | StatusEnum,
   examsData: [] as IExamComplementsTable[],
@@ -344,6 +346,24 @@ export const useAddData = () => {
     setData({ ...data, examsData: actualExams });
   };
 
+  const uploadMutation = useMutUploadEmployeeHisExam();
+
+  const uploadExam = async ({
+    ids,
+    file,
+    companyId,
+  }: {
+    ids: number[];
+    file: File;
+    companyId?: string;
+  }) => {
+    await uploadMutation.mutateAsync({
+      ids,
+      companyId,
+      file,
+    });
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -367,5 +387,7 @@ export const useAddData = () => {
     setComplementaryExam,
     isAllFields,
     hideClinicExam,
+    uploadMutation,
+    uploadExam,
   };
 };

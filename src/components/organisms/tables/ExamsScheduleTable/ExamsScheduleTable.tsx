@@ -73,8 +73,15 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
               !row.closeToExpired &&
               dayjs().isBefore(row.expiredDate);
             return (
-              <STableRow key={row.id} status={isValid ? 'info' : undefined}>
-                <Box>
+              <STableRow
+                key={row.id}
+                status={isValid ? 'info' : undefined}
+                display={['flex', 'flex', 'grid']}
+                flexDirection={['column', 'column', 'row']}
+                alignItems={['start', 'start', 'center']}
+                justifyContent={['start', 'start', 'start']}
+              >
+                <Box width={['100%', '100%', 'fit-content']}>
                   <SAuthShow
                     permissions={[PermissionEnum.CLINIC_SCHEDULE]}
                     cruds={'u'}
@@ -93,7 +100,8 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
                     />
                   </SAuthShow>
                 </Box>
-                <Box>
+
+                <Box width={['100%', '100%', 'fit-content']}>
                   <TextIconRow
                     tooltipTitle={<>{row.name}</>}
                     text={
@@ -127,6 +135,7 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
                     </SText>
                   )}
                 </Box>
+
                 {isSelected && (
                   <>
                     <ExamsScheduleClinicColumn
@@ -134,6 +143,7 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
                       row={row}
                       handleDebounceChange={handleDebounceChange}
                     />
+                    {!showDueInDays && <Box mt={[5, 5, 0]} />}
                     {showDueInDays && (
                       <TextIconRow
                         justifyContent="center"

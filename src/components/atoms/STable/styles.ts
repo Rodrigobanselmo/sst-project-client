@@ -42,7 +42,6 @@ export const STSTableRow = styled(Box)<{
   clickable: number;
   status?: 'inactive' | 'warn' | 'info' | 'success' | 'fade' | 'none';
 }>`
-  display: grid;
   flex-shrink: 0;
   -webkit-box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
   box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);

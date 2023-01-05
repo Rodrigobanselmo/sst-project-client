@@ -22,12 +22,11 @@ import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
-import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
+import { usePushRoute } from 'core/hooks/usePushRoute';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
-import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 import { DocumentPgrForm } from '../../../../../../components/organisms/forms/DocumentPgrForm';
@@ -35,7 +34,8 @@ import { DocumentPgrForm } from '../../../../../../components/organisms/forms/Do
 const Companies: NextPage = () => {
   const { query, push } = useRouter();
   const { onOpenModal } = useModal();
-  const { data: company } = useQueryCompany();
+
+  const { handleAddCharacterization } = usePushRoute();
 
   const handleGoToRiskData = () => {
     push(
@@ -61,30 +61,6 @@ const Companies: NextPage = () => {
     } as typeof initialWorkspaceSelectState);
   };
 
-  const handleAddCharacterization = useCallback(() => {
-    const workspaceLength = company?.workspace?.length || 0;
-    const goToEnv = (workId: string) => {
-      push({
-        pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
-          ':companyId',
-          company.id,
-        ).replace(':workspaceId', workId)}/${CharacterizationEnum.ALL}`,
-      });
-    };
-
-    if (workspaceLength != 1) {
-      const initialWorkspaceState = {
-        title: 'Selecione para qual Estabelecimento deseja adicionar',
-        onSelect: (workspace: IWorkspace) => goToEnv(workspace.id),
-      } as typeof initialWorkspaceSelectState;
-
-      onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
-    }
-
-    if (!company?.workspace) return;
-    if (workspaceLength == 1) goToEnv(company.workspace[0].id);
-  }, [company.id, company?.workspace, onOpenModal, push]);
-
   return (
     <>
       <SHeaderTag title={'PGR'} />
@@ -97,7 +73,7 @@ const Companies: NextPage = () => {
           <SActionButton
             icon={SPhotoIcon}
             onClick={handleAddCharacterization}
-            text={'Caracterização Básica'}
+            text={'Caracterização do Ambiente'}
             success
             tooltipText={
               'Cadastro de ambientes de trabalho, atividades e posto de trabalh (adicionar fotografia)'

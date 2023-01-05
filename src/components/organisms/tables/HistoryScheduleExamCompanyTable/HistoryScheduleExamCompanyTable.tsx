@@ -70,7 +70,6 @@ export const HistoryScheduleExamCompanyTable: FC<
     {
       search,
       companyId,
-      // allCompanies: true,
       ...query,
     },
     rowsPerPage,
@@ -158,7 +157,7 @@ export const HistoryScheduleExamCompanyTable: FC<
           <STableSearch
             onAddClick={onAdd}
             boxProps={{ sx: { flex: 1, maxWidth: 400 } }}
-            addText="Agendar Exame"
+            addText="Agendar"
             placeholder="Pesquisar por nome, cpf, email, matrícula..."
             onChange={(e) => handleSearchChange(e.target.value)}
           />

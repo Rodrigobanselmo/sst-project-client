@@ -197,7 +197,7 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
               <View style={sm.row}>
                 <View style={[s.table1]}>
                   <Text style={s.label}>Setor:</Text>
-                  <Text style={s.tableBody}>{sector.name}</Text>
+                  <Text style={s.tableBody}>{sector?.name}</Text>
                 </View>
 
                 <View style={[s.table1]}>
@@ -345,7 +345,7 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
                                 {index + 1}.
                               </Text>
                             )}{' '}
-                            {epi.epi?.equipment}
+                            ({epi.epi?.ca}) - {epi.epi?.equipment}
                           </Text>
                         </View>
                       </View>

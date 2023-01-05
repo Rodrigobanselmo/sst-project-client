@@ -14,6 +14,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 interface IQueryCompanyEmployeeHistHier {
   search?: string;
   companyId?: string;
+  allCompanies?: boolean;
 }
 
 export const queryHisExamEmployee = async (

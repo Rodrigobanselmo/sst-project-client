@@ -20,4 +20,5 @@ export type STableSearchProps = SInputProps & {
   boxProps?: Partial<BoxProps>;
   icon?: any;
   color?: string;
+  sm?: boolean;
 };

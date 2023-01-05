@@ -36,7 +36,10 @@ export const SideInput = React.forwardRef<any, SideInputProps>(
                 withWrapper
                 title={selectedGho?.id ? 'Salvar' : 'Adicionar'}
               >
-                <SEndButton bg={'tag.add'} onClick={() => handleAddGHO()} />
+                <SEndButton
+                  bg={'tag.add'}
+                  onClick={(e) => (handleAddGHO as any)(e)} //handleAddGHO()
+                />
               </STooltip>
             )}
           </>

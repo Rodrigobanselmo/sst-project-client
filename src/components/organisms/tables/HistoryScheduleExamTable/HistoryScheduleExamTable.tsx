@@ -198,7 +198,7 @@ export const HistoryScheduleExamTable: FC<
             <STableSearch
               boxProps={{ sx: { flex: 1, maxWidth: 400 } }}
               onAddClick={onAdd}
-              addText="Agendar Exame"
+              addText="Agendar"
               placeholder="Pesquisar por nome, cpf ou matricula"
               onChange={(e) => handleSearchChange(e.target.value)}
             />

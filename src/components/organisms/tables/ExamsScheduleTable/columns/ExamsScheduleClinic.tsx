@@ -114,7 +114,7 @@ export const ExamsScheduleClinicColumn: FC<
   )?.examMinDuration;
 
   return (
-    <SFlex direction="column">
+    <SFlex width={['100%', '100%', '100%']} direction="column">
       <ClinicInputSelect
         onChange={(clinic) => {
           setData?.({ clinic, id: row.id });

@@ -33,6 +33,7 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
       onSearch?.(value);
     }, debounceTime);
 
+    // handleAddGHO()
     return (
       <>
         <STSInput
@@ -44,7 +45,10 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
                   title={selectedGho?.id ? 'Salvar' : 'Adicionar'}
                 >
                   <div ref={anchorEl}>
-                    <SEndButton bg={'tag.add'} onClick={() => handleAddGHO()} />
+                    <SEndButton
+                      bg={'tag.add'}
+                      onClick={(e) => (handleAddGHO as any)(e)}
+                    />{' '}
                   </div>
                 </STooltip>
               )}
