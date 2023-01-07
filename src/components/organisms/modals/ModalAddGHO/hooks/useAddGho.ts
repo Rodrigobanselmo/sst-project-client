@@ -83,7 +83,7 @@ export const useAddGho = () => {
       ModalEnum.GHO_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setGhoData((oldData) => {
         const newData = {
           ...oldData,

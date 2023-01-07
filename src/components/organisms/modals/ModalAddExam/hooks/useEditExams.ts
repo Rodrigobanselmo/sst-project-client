@@ -83,7 +83,7 @@ export const useEditExams = () => {
     const initialData =
       getModalData<Partial<typeof initialExamState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setExamData((oldData) => {
         const newData = {
           ...oldData,

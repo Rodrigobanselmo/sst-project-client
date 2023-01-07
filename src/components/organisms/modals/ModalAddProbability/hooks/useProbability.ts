@@ -84,7 +84,7 @@ export const useProbability = () => {
     const initialData =
       getModalData<Partial<typeof initialProbState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setProbabilityData((oldData) => {
         const newData = {
           ...oldData,

@@ -82,7 +82,7 @@ export const useEditExamEmployee = () => {
   useEffect(() => {
     const initialData =
       getModalData<Partial<typeof initialExamScheduleState>>(modalName);
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const replaceData = {} as any;
 

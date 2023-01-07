@@ -37,7 +37,7 @@ export const ModalViewClinicExams: FC = () => {
       modalName,
     ) as typeof initialClinicExamsViewState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

@@ -56,7 +56,7 @@ export const useAddProfessionalResponsible = () => {
         modalName,
       );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setProfessionalResponsibleData((oldData) => {
         const newData = {
           ...oldData,

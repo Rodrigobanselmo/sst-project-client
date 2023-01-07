@@ -154,7 +154,7 @@ export const useAddCat = () => {
     const initialData =
       getModalData<Partial<typeof initialCatState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setCatData((oldData) => {
         const newData = {
           ...oldData,

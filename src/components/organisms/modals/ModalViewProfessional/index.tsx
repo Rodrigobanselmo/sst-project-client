@@ -42,7 +42,7 @@ export const ModalViewProfessional: FC = () => {
       ModalEnum.PROFESSIONAL_SELECT,
     ) as typeof initialProfessionalViewState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

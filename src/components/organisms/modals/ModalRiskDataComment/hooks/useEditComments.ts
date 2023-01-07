@@ -69,7 +69,7 @@ export const useEditComments = () => {
       ModalEnum.RISK_DATA_COMMENTS_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setCommentData((oldData) => {
         const newData = {
           ...oldData,

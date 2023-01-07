@@ -32,7 +32,7 @@ export const ModalPdfView: FC = () => {
       ModalEnum.USER_VIEW,
     ) as typeof initialUsersViewState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,

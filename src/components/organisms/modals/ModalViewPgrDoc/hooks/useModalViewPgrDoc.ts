@@ -33,7 +33,7 @@ export const useModalViewPgrDoc = () => {
     const initialData =
       getModalData<Partial<typeof initialViewPgrDocState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setDoc((oldData) => {
         const newData = {
           ...oldData,

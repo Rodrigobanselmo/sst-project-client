@@ -46,7 +46,7 @@ export const ModalAddCouncil: FC = () => {
     const initialData =
       getModalData<Partial<typeof initialCouncilModalState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => ({
         ...oldData,
         ...initialData,

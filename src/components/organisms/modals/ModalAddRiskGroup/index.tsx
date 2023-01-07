@@ -100,7 +100,7 @@ export const ModalAddRiskGroup = () => {
       ModalEnum.RISK_GROUP_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setRiskGroupData((oldData) => {
         const newData = {
           ...oldData,

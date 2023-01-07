@@ -59,7 +59,7 @@ export const useEditEpis = () => {
       ModalEnum.EPI_EPI_DATA,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setEpiData((oldData) => {
         const newData = {
           ...oldData,

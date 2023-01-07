@@ -115,7 +115,7 @@ export const useModalAddQuantity = () => {
     const initialData =
       getModalData<Partial<typeof initialQuantityState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,

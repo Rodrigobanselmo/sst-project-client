@@ -54,7 +54,7 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
     const initialData =
       getModalData<Partial<typeof initialInputModalState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => ({
         ...oldData,
         ...initialData,

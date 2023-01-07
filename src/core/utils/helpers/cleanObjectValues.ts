@@ -1,4 +1,6 @@
+import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import clone from 'clone';
+import dayjs from 'dayjs';
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const cleanObjectValues = (obj: Object) => {
@@ -9,6 +11,18 @@ export const cleanObjectValues = (obj: Object) => {
       copy[key] = new Date(copy[key]);
     if (!copy[key]) delete copy[key];
     if (typeof copy[key] === 'function') delete copy[key];
+
+    if (key === 'cpf') copy[key] = onlyNumbers(copy[key]);
+    if (key === 'cnpj') copy[key] = onlyNumbers(copy[key]);
+    if (key === 'cep') copy[key] = onlyNumbers(copy[key]);
+    if (key === 'cnae') copy[key] = onlyNumbers(copy[key]);
+    if (key === 'cbo') copy[key] = onlyNumbers(copy[key]);
+    if (key === 'cid') copy[key] = onlyNumbers(copy[key]);
+    if (
+      ['startDate', 'endDate', 'birthday'].includes(key) &&
+      copy[key] instanceof Date
+    )
+      copy[key] = dayjs(copy[key]).format('DDMMYYYY');
   });
 
   return copy;

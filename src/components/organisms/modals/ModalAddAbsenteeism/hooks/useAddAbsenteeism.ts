@@ -129,7 +129,7 @@ export const useAddAbsenteeism = () => {
     const initialData =
       getModalData<Partial<typeof initialAbsenteeismState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setAbsenteeismData((oldData) => {
         const newData = {
           ...oldData,

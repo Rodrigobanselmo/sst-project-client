@@ -72,7 +72,7 @@ export const useEditWorkspace = () => {
       ModalEnum.WORKSPACE_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setCompanyData((oldData) => {
         const newData = {
           ...oldData,

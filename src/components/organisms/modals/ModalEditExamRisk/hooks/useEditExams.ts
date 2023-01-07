@@ -80,7 +80,7 @@ export const useEditExams = () => {
       ModalEnum.EXAM_RISK,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setExamData((oldData) => {
         const newData = {
           ...oldData,

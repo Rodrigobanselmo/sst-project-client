@@ -2,6 +2,8 @@
 import { useCallback } from 'react';
 import { useStore } from 'react-redux';
 
+import clone from 'clone';
+
 import {
   ICurrentModal,
   setModalName,
@@ -32,7 +34,17 @@ export const useModal = () => {
     const indexToRemove = reversePrev.findIndex((item) => item.name === name);
     if (indexToRemove !== -1) {
       reversePrev.splice(indexToRemove, 1);
-      return [...reversePrev.reverse().filter((item) => item.name !== name)];
+      if (reversePrev?.[0]) {
+        const data = {
+          ...(reversePrev[0]?.data || {}),
+          passBack: true,
+        };
+
+        reversePrev[0] = { ...reversePrev[0], data };
+      }
+
+      // return [...reversePrev.reverse().filter((item) => item.name !== name)];
+      return [...reversePrev.reverse()];
     }
 
     return array;
@@ -55,7 +67,14 @@ export const useModal = () => {
         return setPileModal([]);
       }
 
-      let newPile = [...registerStackModal.slice(0, -1)];
+      let newPile = [...registerStackModal.slice(0, -1)].map((p) => {
+        let pcopy = p;
+        if (pcopy?.data?.passBack) {
+          pcopy = clone(pcopy);
+          delete pcopy.data.passBack;
+        }
+        return p;
+      });
       let newCurrentModal = [...currentModal.slice(0, -1)];
 
       if (name) {
@@ -66,7 +85,7 @@ export const useModal = () => {
       const lastModalInPile = newPile[newPile.length - 1];
       const lastCurrentModal = newCurrentModal[newCurrentModal.length - 1];
 
-      if (lastModalInPile && lastCurrentModal !== lastModalInPile)
+      if (lastModalInPile && lastCurrentModal.name !== lastModalInPile.name)
         newCurrentModal = [...newCurrentModal, { ...lastModalInPile, data }];
 
       setCurrentModal(newCurrentModal);

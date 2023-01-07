@@ -44,7 +44,7 @@ export const useEditCompany = () => {
     const initialData =
       getModalData<Partial<typeof initialScheduleExamState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setCompanyData((oldData) => {
         const replaceData = {} as any;
 

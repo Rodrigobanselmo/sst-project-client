@@ -1,10 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useCallback, useState } from 'react';
+
+import clone from 'clone';
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
 import { SexTypeEnum } from 'project/enum/sex.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -71,7 +74,7 @@ export const useEditEmployee = () => {
     const initialData =
       getModalData<Partial<typeof initialEditEmployeeState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const replaceData = {} as any;
 
@@ -101,8 +104,18 @@ export const useEditEmployee = () => {
     setData(initialEditEmployeeState);
   };
 
-  const onCloseUnsaved = (action?: () => void) => {
-    if (preventUnwantedChanges(data, initialDataRef.current, onClose)) return;
+  const onCloseUnsaved = (action?: () => void, values?: any) => {
+    const button = document.getElementById(IdsEnum.CANCEL_BUTTON);
+    if (button && values == undefined && action == undefined) {
+      return button?.click();
+    }
+    const before = clone(initialDataRef.current);
+    const after = clone({ ...data, ...(values || {}) });
+
+    delete after.company;
+    delete before.company;
+
+    if (preventUnwantedChanges(before, after, onClose)) return;
     onClose();
     action?.();
   };

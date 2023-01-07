@@ -24,7 +24,7 @@ export const useEditEmployees = () => {
       ModalEnum.EMPLOYEES_EXCEL_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setEmployee((oldData) => {
         const newData = {
           ...oldData,

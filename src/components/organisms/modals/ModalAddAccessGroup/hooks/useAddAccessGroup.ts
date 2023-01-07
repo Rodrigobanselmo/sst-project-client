@@ -58,7 +58,7 @@ export const useAddAccessGroup = () => {
       ModalEnum.ACCESS_GROUP_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setAccessGroupData((oldData) => {
         const newData = {
           ...oldData,

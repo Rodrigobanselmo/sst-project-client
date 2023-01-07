@@ -11,7 +11,6 @@ export const usePersonalData = ({
   onSubmitData,
   setData,
   onCloseUnsaved: onClose,
-  onStackOpenModal,
   ...rest
 }: IUseEditEmployee) => {
   const { trigger, getValues, setError, control, reset, setValue } =
@@ -30,7 +29,19 @@ export const usePersonalData = ({
   ];
 
   const onCloseUnsaved = async () => {
-    onClose(() => reset());
+    const { name, cpf, sex, nickname, esocialCode, email, phone, socialName } =
+      getValues();
+
+    onClose(() => reset(), {
+      name,
+      cpf,
+      sex,
+      nickname,
+      esocialCode,
+      email,
+      phone,
+      socialName,
+    });
   };
 
   const lastStep = async () => {

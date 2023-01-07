@@ -37,7 +37,7 @@ export const ModalSelectAccessGroups: FC = () => {
       ModalEnum.ACCESS_GROUP_SELECT,
     ) as typeof initialAccessGroupsSelectState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

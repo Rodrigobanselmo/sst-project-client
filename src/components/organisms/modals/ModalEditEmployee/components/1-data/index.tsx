@@ -16,6 +16,7 @@ import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedSt
 import dayjs from 'dayjs';
 import { SexTypeEnum } from 'project/enum/sex.enums';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { dateToDate } from 'core/utils/date/date-format';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 

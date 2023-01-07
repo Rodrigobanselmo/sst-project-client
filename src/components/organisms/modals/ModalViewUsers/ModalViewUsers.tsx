@@ -32,7 +32,7 @@ export const ModalViewUsers: FC = () => {
       ModalEnum.USER_VIEW,
     ) as typeof initialUsersViewState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

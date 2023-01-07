@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { useModal } from 'core/hooks/useModal';
 
 import { SButton } from '../../../../atoms/SButton';
@@ -45,6 +46,7 @@ export const SModalButtons: FC<SModalHeaderProps> = ({
               variant={variant ? variant : isFirst ? 'outlined' : 'contained'}
               onClick={onClose}
               style={{ minWidth: 100 }}
+              {...(isFirst && { id: IdsEnum.CANCEL_BUTTON })}
               {...buttonProps}
             >
               {arrowBack && (

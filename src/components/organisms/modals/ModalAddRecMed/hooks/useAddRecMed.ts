@@ -59,7 +59,7 @@ export const useAddRecMed = () => {
       ModalEnum.ENG_MED_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setRecMedData((oldData) => {
         const newData = {
           ...oldData,

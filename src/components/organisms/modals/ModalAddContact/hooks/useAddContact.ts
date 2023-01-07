@@ -53,7 +53,7 @@ export const useAddContact = () => {
     const initialData =
       getModalData<Partial<typeof initialContactState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setContactData((oldData) => {
         const newData = {
           ...oldData,

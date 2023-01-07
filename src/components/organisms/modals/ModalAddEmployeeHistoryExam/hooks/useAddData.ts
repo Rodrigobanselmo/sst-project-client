@@ -101,7 +101,7 @@ export const useAddData = () => {
       getModalData<Partial<typeof initialEmployeeHistoryExamState>>(modalName);
 
     const setInitialData = async () => {
-      if (initialData) {
+      if (initialData && !(initialData as any).passBack) {
         const data = initialData.id
           ? await findByMutation
               .mutateAsync({
@@ -206,26 +206,32 @@ export const useAddData = () => {
     conclusion,
     ...dataForm
   }) => {
-    console.log(data);
     if (!data.employeeId) return;
     if (!data.doneDate) return;
     if (isEdit && !hideClinicExam && !data.exam?.id) return;
 
+    const isCanceled = data.status === StatusEnum.CANCELED;
+
     let isErrorFound = false;
-    if (!hideClinicExam && !data.clinic?.id) {
+    if (!isCanceled && !hideClinicExam && !data.clinic?.id) {
       setError('clinic', { message: 'Validade obrigatório' });
       isErrorFound = true;
     }
-    if (!hideClinicExam && !data.validityInMonths) {
+    if (!isCanceled && !hideClinicExam && !data.validityInMonths) {
       setError('validityInMonths', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }
-    if (!hideClinicExam && isAllFields && !data?.doctor?.id) {
+    if (!isCanceled && !hideClinicExam && isAllFields && !data?.doctor?.id) {
       console.log(data);
       setError('doctor', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }
-    if (!hideClinicExam && isAllFields && !data?.evaluationType) {
+    if (
+      !isCanceled &&
+      !hideClinicExam &&
+      isAllFields &&
+      !data?.evaluationType
+    ) {
       setError('evaluationType', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }
@@ -233,16 +239,16 @@ export const useAddData = () => {
     //   setError('conclusion', { message: 'Campo obrigatório' });
     //   isErrorFound = true;
     // }
-    if (!hideClinicExam && !data?.examType) {
+    if (!isCanceled && !hideClinicExam && !data?.examType) {
       setError('examType', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }
-    if (!hideClinicExam && !data?.doneDate) {
+    if (!isCanceled && !hideClinicExam && !data?.doneDate) {
       setError('doneDate', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }
 
-    if (!isEdit)
+    if (!isCanceled && !isEdit)
       data.examsData.forEach((data) => {
         if (!data.isSelected) return;
         if (!data.clinic?.id) {

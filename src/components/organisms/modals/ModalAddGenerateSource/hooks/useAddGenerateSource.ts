@@ -61,7 +61,7 @@ export const useAddGenerateSource = () => {
       Partial<typeof initialAddGenerateSourceState>
     >(ModalEnum.GENERATE_SOURCE_ADD);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setGenerateSourceData((oldData) => {
         const newData = {
           ...oldData,

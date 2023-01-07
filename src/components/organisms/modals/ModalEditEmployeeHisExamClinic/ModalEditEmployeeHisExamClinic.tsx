@@ -27,16 +27,19 @@ import { ProfessionalInputSelect } from 'components/organisms/inputSelect/Profes
 import { ExamsComplementsClinicTable } from 'components/organisms/tables/ExamsComplementsClinicTable/ExamsComplementsClinicTable';
 import { ExamsComplementsTable } from 'components/organisms/tables/ExamsComplementsTable/ExamsComplementsTable';
 import { ExamSelect } from 'components/organisms/tagSelects/ExamSelect';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { employeeExamConclusionTypeList } from 'project/enum/employee-exam-history-conclusion.enum';
 import { employeeExamEvaluationTypeList } from 'project/enum/employee-exam-history-evaluation.enum';
 import { employeeExamTypeList } from 'project/enum/employee-exam-history-type.enum';
 import { SexTypeEnum } from 'project/enum/sex.enums';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import { SCheckIcon } from 'assets/icons/SCheckIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { SUploadFileIcon } from 'assets/icons/SUploadFileIcon';
 
+import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { dateToDate } from 'core/utils/date/date-format';
@@ -231,6 +234,22 @@ export const ModalEditEmployeeHisExamClinic = () => {
         <Divider sx={{ mb: 10, mt: 3 }} />
         {!!clinicExam && (
           <SFlex direction="column">
+            <StatusSelect
+              sx={{ maxWidth: '150px', mt: -5, mb: 10 }}
+              options={statusOptionsConstantExam}
+              selected={data.status}
+              statusOptions={[
+                StatusEnum.DONE,
+                StatusEnum.PROCESSING,
+                StatusEnum.CANCELED,
+              ]}
+              handleSelectMenu={(option) =>
+                setData((old) => ({
+                  ...old,
+                  status: option.value,
+                }))
+              }
+            />
             <SFlex flexWrap="wrap" gap={5}>
               <Box maxWidth={200}>
                 <DatePickerForm

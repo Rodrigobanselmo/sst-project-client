@@ -55,7 +55,7 @@ export const useEditEngsRisk = () => {
       ModalEnum.EPC_RISK_DATA,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setEngData((oldData) => {
         const newData = {
           ...oldData,

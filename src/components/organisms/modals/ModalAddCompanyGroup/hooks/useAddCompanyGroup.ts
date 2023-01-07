@@ -70,7 +70,7 @@ export const useAddCompanyGroup = () => {
       ModalEnum.COMPANY_GROUP_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setCompanyGroupData((oldData) => {
         const newData = {
           ...oldData,

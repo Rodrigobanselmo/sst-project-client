@@ -210,7 +210,7 @@ export const useAddRisk = () => {
       });
     }
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setRiskData((oldData) => {
         const newData = {
           ...oldData,

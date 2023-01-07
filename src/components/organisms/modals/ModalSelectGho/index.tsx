@@ -41,7 +41,7 @@ export const ModalSelectGho: FC = () => {
       ModalEnum.HOMOGENEOUS_SELECT,
     ) as typeof initialGhoSelectState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

@@ -74,7 +74,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
     const initialData =
       getModalData<Partial<typeof initialPhotoState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setPhotoData((oldData) => ({
         ...oldData,
         ...initialData,

@@ -42,7 +42,7 @@ export const ModalSelectClinic: FC = () => {
       modalName,
     ) as typeof initialClinicSelectState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

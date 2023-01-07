@@ -54,7 +54,7 @@ export const ModalViewExam: FC = () => {
       modalName,
     ) as typeof initialProfessionalViewState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

@@ -37,7 +37,7 @@ export const ModalBlank: FC = () => {
       ModalEnum.MODAL_BLANK,
     ) as typeof initialBlankState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,

@@ -44,7 +44,7 @@ export const ModalSelectCharacterization: FC = () => {
       ModalEnum.CHARACTERIZATION_SELECT,
     ) as typeof initialCharacterizationSelectState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

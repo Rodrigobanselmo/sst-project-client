@@ -1,4 +1,5 @@
 export enum IdsEnum {
+  CANCEL_BUTTON = 'cancel-button',
   INPUT_MENU_SEARCH = 'input-menu-search',
   INPUT_MENU_SEARCH_GHO_HIERARCHY = 'input-menu-search-gho-hierarchy',
   MENU_CLOSE = 'menu-close',

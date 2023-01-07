@@ -39,7 +39,7 @@ export const ModalViewDocuments: FC = () => {
       ModalEnum.DOCUMENTS_VIEW,
     ) as typeof initialDocumentsViewState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,

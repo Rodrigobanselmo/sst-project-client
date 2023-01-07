@@ -44,7 +44,7 @@ export const useHandleModal = () => {
     const initialData =
       getModalData<Partial<typeof initialAutomateSubOfficeState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...initialAutomateSubOfficeState,

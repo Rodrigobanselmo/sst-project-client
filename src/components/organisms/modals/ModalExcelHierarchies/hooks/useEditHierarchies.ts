@@ -25,7 +25,7 @@ export const useEditHierarchies = () => {
     const initialData =
       getModalData<Partial<typeof initialEmployState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setHierarchyData((oldData) => {
         const newData = {
           ...oldData,

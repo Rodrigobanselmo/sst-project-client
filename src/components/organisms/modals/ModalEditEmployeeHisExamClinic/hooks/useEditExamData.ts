@@ -48,10 +48,12 @@ import { SModalInitContactProps } from '../types';
 
 export const initialEditEmployeeHistoryExamState = {
   doctor: undefined,
+  status: undefined,
   evaluationType: undefined,
 } as Partial<
   IEmployee & {
     doctor?: IProfessional;
+    status?: undefined | StatusEnum;
     evaluationType?: ExamHistoryEvaluationEnum;
   }
 >;
@@ -101,7 +103,7 @@ export const useAddData = () => {
       );
 
     const setInitialData = async () => {
-      if (initialData) {
+      if (initialData && !(initialData as any).passBack) {
         setData((oldData) => {
           const clinicExam = initialData?.examsHistory?.find(
             (e) => e.exam?.isAttendance,
@@ -112,6 +114,7 @@ export const useAddData = () => {
             ...initialData,
             ...data,
             doctor: clinicExam?.doctor,
+            status: clinicExam?.status,
           };
 
           initialDataRef.current = newData;
@@ -156,14 +159,15 @@ export const useAddData = () => {
         employeeId: data.id,
         id: examData.id,
         conclusion: examData.conclusion,
-        status: examData.status,
+        status: data.status || examData.status,
       };
 
       if (examData.exam?.isAttendance) {
         if (data.evaluationType) submit.evaluationType = data.evaluationType;
         if (data.doctor?.id) {
           submit.doctorId = data.doctor.id;
-          submit.status = StatusEnum.DONE;
+          if (!data.status || data.status === StatusEnum.PROCESSING)
+            submit.status = StatusEnum.DONE;
         }
       }
 
@@ -252,10 +256,12 @@ export const useAddData = () => {
   };
 
   const onCloseUnsaved = () => {
-    const values = getValues();
+    const { doctor, evaluationType, examType, doneDate, time, ...values } =
+      getValues();
 
     const before = { ...initialDataRef.current } as any;
     const after = { ...data, ...values } as any;
+
     if (preventUnwantedChanges(before, after, onClose)) return;
     onClose();
   };

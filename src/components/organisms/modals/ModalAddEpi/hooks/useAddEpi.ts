@@ -44,7 +44,7 @@ export const useAddEpi = () => {
       ModalEnum.EPI_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setEpiData((oldData) => {
         const newData = {
           ...oldData,

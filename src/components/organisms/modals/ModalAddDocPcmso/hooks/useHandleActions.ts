@@ -67,7 +67,7 @@ export const useHandleModal = () => {
     const initialData =
       getModalData<Partial<typeof initialPgrDocState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...initialPgrDocState,

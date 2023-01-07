@@ -92,7 +92,7 @@ export const useEditCompany = () => {
       ModalEnum.COMPANY_EDIT,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setCompanyData((oldData) => {
         const newData = {
           ...oldData,

@@ -15,6 +15,23 @@ export const usePreventAction = () => {
     object2: any,
     close: (...args: any[]) => any,
   ) => {
+    // console.log(cleanObjectValues(object1), cleanObjectValues(object2));
+    // Object.entries(object1).map(([key, value]) => {
+    //   const obj2 = object2?.[key];
+    //   const isEq = obj2 == value;
+    //   if (!isEq) {
+    //     if (typeof value == 'object' && object2[key]) {
+    //       Object.entries(object1[key]).map(([key2, value]) => {
+    //         const obj22 = object2[key]?.[key2];
+    //         const isEq = obj22 == value;
+    //         if (!isEq) {
+    //           console.log(2, key2);
+    //         }
+    //       });
+    //     } else console.log(1, key);
+    //   }
+    // });
+
     if (!deepEqual(cleanObjectValues(object1), cleanObjectValues(object2))) {
       const data = {
         title: 'Descartar mudanças?',

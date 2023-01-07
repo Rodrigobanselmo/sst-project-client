@@ -67,7 +67,7 @@ export const useEditProtocols = () => {
       ModalEnum.PROTOCOL_RISK,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setProtocolData((oldData) => {
         const newData = {
           ...oldData,

@@ -40,7 +40,7 @@ export const ModalSelectCompany: FC = () => {
       ModalEnum.COMPANY_SELECT,
     ) as typeof initialCompanySelectState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

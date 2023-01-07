@@ -73,7 +73,7 @@ export const useAddData = () => {
     const initialData =
       getModalData<Partial<typeof initialEmployeeHistoryHierState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,

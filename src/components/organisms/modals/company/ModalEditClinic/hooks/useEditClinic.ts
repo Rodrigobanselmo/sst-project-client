@@ -97,7 +97,7 @@ export const useEditCompany = () => {
       ModalEnum.CLINIC_EDIT,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setCompanyData((oldData) => {
         const replaceData = {} as any;
 

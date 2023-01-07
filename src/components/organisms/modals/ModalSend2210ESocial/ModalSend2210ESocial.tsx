@@ -56,7 +56,7 @@ export const ModalSend2210ESocial: FC = () => {
       modalEnum,
     ) as typeof initialSendESocial2210State;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,

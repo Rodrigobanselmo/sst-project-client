@@ -46,7 +46,7 @@ export const useModalTree = () => {
       modalName,
     ) as typeof initialHierarchyTreeState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

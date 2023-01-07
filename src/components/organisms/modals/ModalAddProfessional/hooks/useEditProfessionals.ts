@@ -106,7 +106,7 @@ export const useEditProfessionals = () => {
       ModalEnum.PROFESSIONALS_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setProfessionalData((oldData) => {
         const newData = {
           ...oldData,

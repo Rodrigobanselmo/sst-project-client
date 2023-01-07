@@ -74,7 +74,7 @@ export const useEditProtocols = () => {
     const initialData =
       getModalData<Partial<typeof initialProtocolState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setProtocolData((oldData) => {
         const newData = {
           ...oldData,

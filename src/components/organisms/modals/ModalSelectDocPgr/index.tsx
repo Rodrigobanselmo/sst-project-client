@@ -50,7 +50,7 @@ export const ModalSelectDocPgr: FC = () => {
       ModalEnum.DOC_PGR_SELECT,
     ) as typeof initialDocPgrSelectState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

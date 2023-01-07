@@ -108,7 +108,7 @@ export const useAddUser = () => {
       ModalEnum.USER_ADD,
     );
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setUserData((oldData) => {
         const newData = {
           ...oldData,

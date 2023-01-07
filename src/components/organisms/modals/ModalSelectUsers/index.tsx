@@ -37,7 +37,7 @@ export const ModalSelectUsers: FC = () => {
       ModalEnum.USER_SELECT,
     ) as typeof initialUsersSelectState;
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

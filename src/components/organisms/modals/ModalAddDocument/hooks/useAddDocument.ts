@@ -69,7 +69,7 @@ export const useAddDocument = () => {
     const initialData =
       getModalData<Partial<typeof initialDocumentState>>(modalName);
 
-    if (initialData) {
+    if (initialData && !(initialData as any).passBack) {
       setDocumentData((oldData) => {
         const newData = {
           ...oldData,
