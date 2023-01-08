@@ -16,6 +16,7 @@ import { Esocial15AcidSelect } from 'components/organisms/inputSelect/Esocial15A
 import { Esocial20LogradSelect } from 'components/organisms/inputSelect/Esocial20LogradSelect/Esocial20LogradSelect';
 import { EsocialCatSelect } from 'components/organisms/inputSelect/EsocialCatSelect/EsocialCatSelect';
 import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
+import dayjs from 'dayjs';
 
 import {
   iniciatCATList,
@@ -201,6 +202,9 @@ export const TypeContent = (props: IUseAccidentData) => {
             defaultValue={dateToDate(catData.dtAcid)}
             name="dtAcid"
             labelPosition="top"
+            calendarProps={{
+              filterDate: (date) => dayjs().isAfter(date),
+            }}
             sx={{ maxWidth: 240 }}
             label="Data Acidente*"
             onChange={(date) => {
@@ -252,6 +256,9 @@ export const TypeContent = (props: IUseAccidentData) => {
             defaultValue={dateToDate(catData.ultDiaTrab)}
             name="ultDiaTrab"
             labelPosition="top"
+            calendarProps={{
+              filterDate: (date) => dayjs().isAfter(date),
+            }}
             sx={{ maxWidth: 240 }}
             label="Ult. dia trabalho*"
             onChange={(date) => {

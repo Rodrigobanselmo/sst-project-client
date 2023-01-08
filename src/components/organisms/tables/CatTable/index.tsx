@@ -115,6 +115,7 @@ export const CatsTable: FC<
                 onClick={() => onSelectRow(row)}
                 clickable
                 key={row.id}
+                status={row.status == 'CANCELED' ? 'inactive' : undefined}
               >
                 <TextEmployeeRow employee={employee} />
                 <TextCompanyRow company={company} />

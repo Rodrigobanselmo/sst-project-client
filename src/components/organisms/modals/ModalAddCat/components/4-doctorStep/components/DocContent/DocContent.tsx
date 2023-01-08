@@ -10,6 +10,7 @@ import { InputForm } from 'components/molecules/form/input';
 import { CidInputSelect } from 'components/organisms/inputSelect/CidSelect/CidSelect';
 import { Esocial17InjurySelect } from 'components/organisms/inputSelect/Esocial17InjurySelect/Esocial17InjurySelect';
 import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
+import dayjs from 'dayjs';
 
 import { dateToDate } from 'core/utils/date/date-format';
 import { intMask } from 'core/utils/masks/int.mask';
@@ -29,6 +30,10 @@ export const DocContent = (props: IUseDoctorData) => {
             defaultValue={dateToDate(catData.dtAtendimento)}
             name="dtAtendimento"
             labelPosition="top"
+            calendarProps={{
+              filterDate: (date) =>
+                dayjs(date).add(1, 'd').isAfter(catData.dtAcid),
+            }}
             sx={{ maxWidth: 240 }}
             label="Data atendimento*"
             onChange={(date) => {

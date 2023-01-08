@@ -6,6 +6,8 @@ import SFlex from 'components/atoms/SFlex';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import { IUseAddCat } from '../../hooks/useAddCat';
 import { CatPrintButton } from './components/CatPrintButton/CatPrintButton';
@@ -37,7 +39,20 @@ export const AccidentStep = (data: IUseAddCat) => {
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
         <Box>
-          {isEdit && <CatPrintButton {...props} />}
+          {isEdit && (
+            <SFlex>
+              <CatPrintButton {...props} />
+              <Box width={120} ml={5}>
+                <StatusSelect
+                  selected={props.catData?.status}
+                  statusOptions={[StatusEnum.ACTIVE, StatusEnum.CANCELED]}
+                  handleSelectMenu={(option) =>
+                    props.setCatData({ ...props.catData, status: option.value })
+                  }
+                />
+              </Box>
+            </SFlex>
+          )}
           <TypeContent {...props} />
         </Box>
       </AnimatedStep>

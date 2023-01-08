@@ -35,6 +35,7 @@ export const Esocial20LogradSelect: FC<IEsocialTable20SelectProps> = ({
       filterOptions={(e) => e}
       inputProps={{
         onBlur: () => setSearch(''),
+        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {

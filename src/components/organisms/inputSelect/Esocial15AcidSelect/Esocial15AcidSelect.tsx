@@ -34,6 +34,7 @@ export const Esocial15AcidSelect: FC<IEsocialTable15SelectProps> = ({
       onInputChange={(e, v) => handleSearchChange(v)}
       // filterOptions={(e) => e}
       inputProps={{
+        onFocus: () => setSearch(''),
         onBlur: () => setSearch(''),
         ...inputProps,
       }}

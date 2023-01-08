@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useRef, useState } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -59,6 +59,7 @@ export const ClinicInputSelect: FC<IClinicSelectProps> = ({
       filterOptions={(e) => e}
       inputProps={{
         onBlur: () => setSearch(''),
+        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {

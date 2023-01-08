@@ -23,7 +23,7 @@ export const CatPrintButton = (props: any) => {
   };
 
   return (
-    <Box maxWidth={120} mb={10}>
+    <Box minWidth={120} mb={10}>
       <STagButton
         tooltipTitle="Imprimir CAT"
         large

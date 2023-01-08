@@ -77,6 +77,7 @@ export const CompanyInputSelect: FC<ICompanyInputSelect> = ({
       filterOptions={(e) => e}
       inputProps={{
         onBlur: () => setSearch(''),
+        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {

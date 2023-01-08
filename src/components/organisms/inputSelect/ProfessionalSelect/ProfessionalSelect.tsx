@@ -88,6 +88,7 @@ export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
       filterOptions={(e) => e}
       inputProps={{
         onBlur: () => setSearch(''),
+        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {
@@ -103,7 +104,7 @@ export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
             bg="success.main"
             onClick={onAddProfessional}
           />
-          Nenhuma opção
+          Nenhuma opção wdwe
         </SFlex>
       }
       renderOption={(props, option) => (

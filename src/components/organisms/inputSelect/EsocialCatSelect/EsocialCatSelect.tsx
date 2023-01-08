@@ -44,6 +44,7 @@ export const EsocialCatSelect: FC<ICatSelectProps> = ({
       // filterOptions={(e) => e}
       inputProps={{
         onBlur: () => setSearch(''),
+        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {

@@ -35,6 +35,7 @@ export const Esocial13BodySelect: FC<IEsocialTable13SelectProps> = ({
       filterOptions={(e) => e}
       inputProps={{
         onBlur: () => setSearch(''),
+        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {

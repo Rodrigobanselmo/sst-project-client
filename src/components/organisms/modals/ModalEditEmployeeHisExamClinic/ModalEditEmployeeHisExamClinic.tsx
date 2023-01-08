@@ -350,7 +350,8 @@ export const ModalEditEmployeeHisExamClinic = () => {
             <SFlex justify="end" mt={5}>
               <SIconDownloadExam
                 isMenu={false}
-                disabled={!data.doctor}
+                // disabled={!data.doctor}
+                missingDoctor={!data.doctor}
                 companyId={data.companyId || data.company?.id}
                 employeeId={data.id}
                 asoId={clinicExam?.id}

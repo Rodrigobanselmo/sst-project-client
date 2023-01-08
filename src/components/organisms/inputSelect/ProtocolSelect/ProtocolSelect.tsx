@@ -50,6 +50,7 @@ export const ProtocolInputSelect: FC<IProtocolSelectProps> = ({
       filterOptions={(e) => e}
       inputProps={{
         onBlur: () => setSearch(''),
+        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {

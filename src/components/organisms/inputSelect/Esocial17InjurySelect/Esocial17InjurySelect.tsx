@@ -35,6 +35,7 @@ export const Esocial17InjurySelect: FC<IEsocialTable17SelectProps> = ({
       filterOptions={(e) => e}
       inputProps={{
         onBlur: () => setSearch(''),
+        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {

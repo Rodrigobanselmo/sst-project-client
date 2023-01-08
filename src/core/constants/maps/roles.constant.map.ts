@@ -93,7 +93,7 @@ export const rolesConstantMap = {
     value: RoleEnum.CAT,
     label: 'CAT (eSocial)',
     info: 'Gerenciamento e envio da CAT (eSocial)',
-    permissions: [PermissionEnum.CAT],
+    permissions: [PermissionEnum.CAT, PermissionEnum.PROFESSIONALS],
     order: 3,
   },
   [RoleEnum.EPI]: {

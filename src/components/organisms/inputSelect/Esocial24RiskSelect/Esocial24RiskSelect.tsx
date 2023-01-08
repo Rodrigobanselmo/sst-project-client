@@ -35,6 +35,7 @@ export const Esocial24RiskSelect: FC<IEsocialTable24SelectProps> = ({
       onInputChange={(e, v) => handleSearchChange(v)}
       filterOptions={(e) => e}
       inputProps={{
+        onFocus: () => setSearch(''),
         onBlur: () => setSearch(''),
         ...inputProps,
       }}

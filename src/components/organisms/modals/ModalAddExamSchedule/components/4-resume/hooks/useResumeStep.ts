@@ -150,7 +150,7 @@ export const useResumeStep = ({
       .then(() => {
         if (downloadGuide) onDownloadGuide(submit.companyId, submit.employeeId);
         else {
-          return enqueueSnackbar(
+          enqueueSnackbar(
             'Esperando finalizar pedido de agenda para baixar guia de encaminhamento',
             {
               variant: 'warning',

@@ -49,6 +49,7 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
   companyId,
   employeeId,
   asoId,
+  missingDoctor,
   isMenu = true,
 }) => {
   const [anchorEl, setAnchorEl] = useState<IAnchorEvent>(null);
@@ -95,12 +96,14 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
               {
                 name: 'Baixar Kit Médico',
                 value: 2,
-                disabled: !companyId || !employeeId || disabled,
+                disabled:
+                  !companyId || missingDoctor || !employeeId || disabled,
               },
               {
                 name: 'Baixar Laudo PCD',
                 value: 3,
-                disabled: !companyId || !employeeId || disabled,
+                disabled:
+                  !companyId || missingDoctor || !employeeId || disabled,
               },
             ].map((data) => {
               return (
