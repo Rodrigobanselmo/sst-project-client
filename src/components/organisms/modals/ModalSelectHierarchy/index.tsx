@@ -95,6 +95,7 @@ export const ModalSelectHierarchy: FC = () => {
       .filter((i) => i);
 
     dispatch(setHierarchySearch(''));
+
     selectData.onSelect(hierarchies, () => {
       setSelectData(initialHierarchySelectState);
       onCloseModal(modalName);

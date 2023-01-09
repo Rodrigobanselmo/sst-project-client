@@ -209,6 +209,7 @@ export const useAddGho = () => {
           startDate,
           endDate,
         }));
+        close?.();
       }
     };
 

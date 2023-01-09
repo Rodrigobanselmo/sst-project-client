@@ -34,6 +34,10 @@ export const STBoxContainer = styled(Box)<{
     props.expanded &&
     css`
       min-height: calc(100vh - 130px);
+
+      @media (max-height: 720px) {
+        bottom: -50px;
+      }
     `};
 
   &::-webkit-scrollbar {

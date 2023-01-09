@@ -145,7 +145,7 @@ export const permissionsConstantMap = {
     value: PermissionEnum.HOMO_GROUP,
     label: 'GSE',
     info: 'gerenciamento dos grupos similares de exposição',
-    crud: ['r', 'cu'],
+    crud: ['r', 'cu', 'd'],
   },
   [PermissionEnum.RISK_DOC_INFO]: {
     value: PermissionEnum.RISK_DOC_INFO,
