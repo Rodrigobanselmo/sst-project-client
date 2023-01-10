@@ -60,7 +60,6 @@ export const ModalAddClinicExam = () => {
           onClose={onCloseUnsaved}
           title={'Exame realizado pela Clínica'}
         />
-        {allClinicExams.map((m) => dayjs(m.startDate).format())}
         {isEdit && (
           <SPageMenu
             active={String(clinicExamData.id)}
