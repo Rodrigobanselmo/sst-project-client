@@ -2,7 +2,10 @@ import { useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
-import { notAvailableScheduleTime } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
+import {
+  getBlockDates,
+  notAvailableScheduleTime,
+} from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import dayjs from 'dayjs';
 
@@ -13,6 +16,7 @@ import { addMinutesToTime, getDateWithTime } from 'core/utils/helpers/times';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
+import { IScheduleBlock } from './../../../../../../../core/interfaces/api/IScheduleBlock';
 
 export const getIsBlockedTime = (
   getBlockTimeList: {
@@ -21,7 +25,22 @@ export const getIsBlockedTime = (
   }[],
   time: string,
   examMim: number,
+  block?: { date?: Date; scheduleBlocks: Record<string, IScheduleBlock[]> },
 ) => {
+  const listTime = getBlockTimeList;
+
+  if (block && block.date) {
+    const blockDate =
+      block.scheduleBlocks[dayjs(block.date).format('YYYYMMDD')] || [];
+
+    blockDate.forEach((scheduleBlock) => {
+      listTime.push({
+        from: scheduleBlock.startTime,
+        to: scheduleBlock.endTime,
+      });
+    });
+  }
+
   return !!getBlockTimeList.find(
     ({ from, to }) =>
       getDateWithTime(addMinutesToTime(from, -examMim)) <
@@ -124,11 +143,16 @@ export const useEvaluationStep = ({
       }
 
       if (data.time) {
+        const { blockDateTime } = getBlockDates({ row: data });
+
         const isBlocked = getIsBlockedTime(
           getBlockTimeList,
           data.time as string,
           (examMim || 0) / 2,
+          { date: data.doneDate, scheduleBlocks: blockDateTime },
         );
+
+        console.log(getBlockTimeList);
 
         if (isBlocked) {
           setError(`time_${data.id}`, { message: 'horário já agendado' });

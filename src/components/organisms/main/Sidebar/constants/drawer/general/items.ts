@@ -1,6 +1,7 @@
 import { MdDashboard } from 'react-icons/md';
 
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import { SAbsenteeismIcon } from 'assets/icons/SAbsenteeismIcon';
@@ -14,11 +15,13 @@ import SExamIcon from 'assets/icons/SExamIcon';
 import SProfessionalIcon from 'assets/icons/SProfessionalIcon';
 import SProfileIcon from 'assets/icons/SProfileIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
+import SScheduleBlockIcon from 'assets/icons/SScheduleBlockIcon/SScheduleBlockIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
 import { RoutesEnum } from '../../../../../../../core/enums/routes.enums';
+import { IDrawerLinksItems } from '../../types';
 
-const dashboard = {
+const dashboard: IDrawerLinksItems = {
   text: 'Home',
   Icon: MdDashboard,
   description: 'HOME',
@@ -27,7 +30,7 @@ const dashboard = {
   shouldMatchExactHref: true,
 };
 
-const profile = {
+const profile: IDrawerLinksItems = {
   text: 'Perfil',
   Icon: SProfileIcon,
   description: 'Perfil de usuário',
@@ -36,7 +39,7 @@ const profile = {
   shouldMatchExactHref: true,
 };
 
-const team = {
+const team: IDrawerLinksItems = {
   text: 'Gerenciar usuários',
   Icon: STeamIcon,
   description: 'Gerenciar usuários e suas permirssões de acesso',
@@ -46,7 +49,7 @@ const team = {
   roles: [RoleEnum.USER],
 };
 
-const accessGroups = {
+const accessGroups: IDrawerLinksItems = {
   text: 'Grupo de Permissões',
   Icon: SAccessGroupIcon,
   description: 'Criar grupo de permirssões de acesso',
@@ -56,7 +59,7 @@ const accessGroups = {
   shouldMatchExactHref: true,
 };
 
-const companyGroups = {
+const companyGroups: IDrawerLinksItems = {
   text: 'Grupo Empresarial',
   Icon: SCompanyGroupIcon,
   description: 'Gerenciamento dos grupos empresariais',
@@ -66,7 +69,7 @@ const companyGroups = {
   shouldMatchExactHref: true,
 };
 
-const checklist = {
+const checklist: IDrawerLinksItems = {
   text: 'Checklist',
   Icon: LibraryAddCheckIcon,
   description: 'Criação e edição de checklists para captação de dados de campo',
@@ -75,7 +78,7 @@ const checklist = {
   roles: [RoleEnum.CHECKLIST],
 };
 
-const importExportData = {
+const importExportData: IDrawerLinksItems = {
   text: 'Banco de dados',
   Icon: SDatabaseIcon,
   description: 'Criação e edição das tabelas presentes no banco de dados',
@@ -84,7 +87,7 @@ const importExportData = {
   roles: [RoleEnum.MASTER],
 };
 
-const allCompaniesData = {
+const allCompaniesData: IDrawerLinksItems = {
   text: 'Empresas',
   Icon: SCompanyIcon,
   description: 'Visualizar empresas cadastradas',
@@ -94,7 +97,7 @@ const allCompaniesData = {
   shouldMatchExactHref: true,
 };
 
-const allClinicsData = {
+const allClinicsData: IDrawerLinksItems = {
   text: 'Clinicas',
   Icon: SClinicIcon,
   description: 'Visualizar clínicas cadastradas',
@@ -108,7 +111,7 @@ const allClinicsData = {
   },
 };
 
-const oneClinicsData = {
+const oneClinicsData: IDrawerLinksItems = {
   text: 'Clinica',
   Icon: SClinicIcon,
   description: 'Visualizar clínica',
@@ -121,7 +124,7 @@ const oneClinicsData = {
   },
 };
 
-const companiesData = {
+const companiesData: IDrawerLinksItems = {
   text: 'Empresa',
   Icon: SCompanyIcon,
   description: 'Visualizar sua empresa',
@@ -132,7 +135,7 @@ const companiesData = {
   shouldMatchExactHref: true,
 };
 
-const professionals = {
+const professionals: IDrawerLinksItems = {
   text: 'Profissionais',
   Icon: SProfessionalIcon,
   description:
@@ -143,7 +146,7 @@ const professionals = {
   shouldMatchExactHref: true,
 };
 
-const exams = {
+const exams: IDrawerLinksItems = {
   text: 'Exames',
   Icon: SExamIcon,
   description: 'Visualizar os exames médicos cadastrados',
@@ -153,7 +156,7 @@ const exams = {
   shouldMatchExactHref: true,
 };
 
-const risks = {
+const risks: IDrawerLinksItems = {
   text: 'Fatores de Risco',
   Icon: SRiskFactorIcon,
   description: 'Visualizar os riscos cadastrados',
@@ -163,7 +166,7 @@ const risks = {
   shouldMatchExactHref: true,
 };
 
-const schedule = {
+const schedule: IDrawerLinksItems = {
   text: 'Agenda',
   Icon: SCalendarIcon,
   description: 'Visualizar agenda',
@@ -173,7 +176,7 @@ const schedule = {
   shouldMatchExactHref: true,
 };
 
-const esocial = {
+const esocial: IDrawerLinksItems = {
   text: '',
   image: '/images/esocial-full-logo.png',
   description: 'Gerenciar eventos do eSocial',
@@ -183,7 +186,7 @@ const esocial = {
   shouldMatchExactHref: false,
 };
 
-const absenteeism = {
+const absenteeism: IDrawerLinksItems = {
   text: 'Absenteísmo',
   Icon: SAbsenteeismIcon,
   description: 'Gerenciamento de faltas e afastamentos temporarios',
@@ -193,7 +196,7 @@ const absenteeism = {
   shouldMatchExactHref: false,
 };
 
-const cat = {
+const cat: IDrawerLinksItems = {
   text: 'CAT',
   imageType: 'cat',
   image: '/images/cat-colored.png',
@@ -205,11 +208,24 @@ const cat = {
   shouldMatchExactHref: false,
 };
 
+const block: IDrawerLinksItems = {
+  text: 'Bloqueio de agenda',
+  description:
+    'Bloquear a agenda de clínicas em caso de feriados ou adversidades',
+  Icon: SScheduleBlockIcon,
+  id: 'dejkwbcieuwg7wiwhuwe',
+  href: RoutesEnum.SCHEDULE_BLOCK,
+  roles: [RoleEnum.SCHEDULE_EXAM],
+  permissions: [PermissionEnum.SCHEDULE_BLOCK],
+  shouldMatchExactHref: false,
+};
+
 export const generalArray = [
   dashboard,
   profile,
   team,
   schedule,
+  block,
   allCompaniesData,
   companiesData,
   absenteeism,

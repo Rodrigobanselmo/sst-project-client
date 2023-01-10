@@ -10,8 +10,10 @@ import SText from 'components/atoms/SText';
 import { ModalEditClinic } from 'components/organisms/modals/company/ModalEditClinic/ModalEditClinic';
 import { ModalAddClinicExam } from 'components/organisms/modals/ModalAddClinicExam/ModalAddClinicExam';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
+import { ModalAddScheduleBlock } from 'components/organisms/modals/ModalAddScheduleBlock/ModalAddScheduleBlock';
 import { ModalViewClinicExams } from 'components/organisms/modals/ModalViewClinicExams';
 import { ModalViewProfessional } from 'components/organisms/modals/ModalViewProfessional';
+import { ModalViewScheduleBlocks } from 'components/organisms/modals/ModalViewScheduleBlocks/ModalViewScheduleBlocks';
 import {
   ModalViewUsers,
   StackModalViewUsers,
@@ -71,11 +73,13 @@ const CompanyPage: NextPage = () => {
         </SFlex>
 
         <ModalViewProfessional />
+        <ModalViewScheduleBlocks />
         <ModalViewClinicExams />
         <ModalEditClinic />
         <ModalAddExam />
         <ModalAddClinicExam />
 
+        <ModalAddScheduleBlock />
         <ModalViewUsers />
         <StackModalViewUsers />
       </SContainer>

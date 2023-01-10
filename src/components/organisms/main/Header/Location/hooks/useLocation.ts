@@ -18,6 +18,7 @@ export enum RoutesParamsEnum {
   BRAND = 'BRAND',
   DOCUMENTS = 'seus_documentos',
   COMPANY = '[companyId]',
+  CLINIC = 'clinicas',
   DOC = '[docId]',
   PGR = 'pgr',
   PCMSO = 'pcmso',

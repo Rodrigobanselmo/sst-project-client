@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Controller } from 'react-hook-form';
 
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
+import dayjs from 'dayjs';
 
 import { dateMask } from 'core/utils/masks/date.mask';
 
@@ -55,6 +56,9 @@ export const DatePickerForm = ({
             label={label}
             onFocus={() => setIsFocused(true)}
             onChange={(date, e) => {
+              console.log(1, date);
+              date = dayjs(date).toDate();
+              console.log(2, date);
               func(date, e);
               onChange && onChange(date);
             }}

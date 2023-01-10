@@ -13,13 +13,9 @@ import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enu
 
 import { clinicScheduleMap } from 'core/constants/maps/clinic-schedule-type.map';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
-import { useQueryHisScheduleClinicTime } from 'core/services/hooks/queries/useQueryHisScheduleClinicTime/useQueryHisScheduleClinicTime';
+import { IScheduleBlock } from 'core/interfaces/api/IScheduleBlock';
 import { dateToDate, dateToString } from 'core/utils/date/date-format';
-import {
-  addMinutesToTime,
-  getTimeList,
-  getTimeFromMinutes,
-} from 'core/utils/helpers/times';
+import { getTimeList } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IExamsScheduleTable, IExamsScheduleTableProps } from '../types';
@@ -40,6 +36,50 @@ export const availableScheduleDate = (
   const day = dateJS.day();
 
   return !!row.scheduleRange && !!row.scheduleRange[`${day + 1}-0`];
+};
+
+export const getBlockDates = ({ row }: { row: IExamsScheduleTable }) => {
+  const scheduleBlock = row.clinic?.scheduleBlocks || [];
+  const scheduleRange = row?.scheduleRange || {};
+
+  const blockDate: Date[] = [];
+  const blockDateTime: Record<string, IScheduleBlock[]> = {};
+
+  scheduleBlock.forEach((block) => {
+    const start = dayjs(block.startDate);
+    const end = dayjs(block.endDate);
+
+    const diff = end.diff(start, 'day') + 1;
+
+    for (let i = 0; i < diff; i++) {
+      const date = start.add(i, 'day');
+      const weekday = date.day() + 1;
+
+      const firstTime = scheduleRange[`${weekday}-0`];
+      let lastTime = scheduleRange[`${weekday}-1`];
+
+      for (let i = 2; i < 20; i++) {
+        const time = scheduleRange[`${weekday}-${i}`];
+        if (!time) break;
+
+        lastTime = time;
+        continue;
+      }
+
+      const isBlockStart = block.startTime <= firstTime;
+      const isBlockEnd = block.endTime >= lastTime;
+
+      if (isBlockEnd && isBlockStart) {
+        blockDate.push(date.toDate());
+      } else {
+        const formatDate = date.format('YYYYMMDD');
+        if (!blockDateTime[formatDate]) blockDateTime[formatDate] = [];
+        blockDateTime[formatDate].push(block);
+      }
+    }
+  });
+
+  return { blockDate, blockDateTime };
 };
 
 export const notAvailableScheduleTime = (
@@ -113,6 +153,7 @@ export const ExamsScheduleClinicColumn: FC<
     (x) => x.examMinDuration,
   )?.examMinDuration;
 
+  const { blockDate, blockDateTime } = getBlockDates({ row });
   return (
     <SFlex width={['100%', '100%', '100%']} direction="column">
       <ClinicInputSelect
@@ -140,6 +181,7 @@ export const ExamsScheduleClinicColumn: FC<
           ...(examType && { [examType.type]: true }),
         }}
       />
+
       {row.clinic?.id && (
         <>
           <SFlex>
@@ -166,11 +208,20 @@ export const ExamsScheduleClinicColumn: FC<
                   },
                 }}
                 calendarProps={{
-                  filterDate: (date) =>
-                    availableScheduleDate(date, row, {
+                  excludeDates: blockDate,
+                  filterDate: (date) => {
+                    const isAvailableDate = availableScheduleDate(date, row, {
                       afterDate:
                         lastComplementaryDate && lastComplementaryDate.toDate(),
-                    }),
+                    });
+
+                    if (!isAvailableDate) return false;
+
+                    row.clinic?.scheduleBlocks;
+
+                    return true;
+                  },
+
                   disabled,
                 }}
                 superSmall={true}
@@ -211,6 +262,7 @@ export const ExamsScheduleClinicColumn: FC<
                         getBlockTimeList,
                         time,
                         (examMim || 0) / 2,
+                        { scheduleBlocks: blockDateTime, date: row.doneDate },
                       );
 
                       if (isblock) return isblock;

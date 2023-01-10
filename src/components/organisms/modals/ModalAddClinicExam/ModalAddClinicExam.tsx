@@ -7,6 +7,7 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { SPageMenu } from 'components/molecules/SPageMenu';
+import dayjs from 'dayjs';
 
 import { dateToString } from 'core/utils/date/date-format';
 import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
@@ -59,6 +60,7 @@ export const ModalAddClinicExam = () => {
           onClose={onCloseUnsaved}
           title={'Exame realizado pela Clínica'}
         />
+        {allClinicExams.map((m) => dayjs(m.startDate).format())}
         {isEdit && (
           <SPageMenu
             active={String(clinicExamData.id)}

@@ -37,17 +37,30 @@ export const ClinicsTable: FC<
   BoxProps & {
     rowsPerPage?: number;
     onSelectData?: (company: ICompany) => void;
+    simpleShow?: boolean;
     selectedData?: string[];
     query?: IQueryCompanies;
     type?: IQueryCompaniesTypes;
   }
-> = ({ rowsPerPage = 8, onSelectData, selectedData, query, type }) => {
+> = ({
+  rowsPerPage = 8,
+  simpleShow,
+  onSelectData,
+  selectedData,
+  query,
+  type,
+}) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const isSelect = !!onSelectData;
-
+  console.log(query);
   const { companies, count, isLoading } = useQueryCompanies(
     page,
-    { search, ...query, isClinic: true },
+    {
+      search,
+      ...query,
+      isClinic: true,
+      ...(search && { scheduleBlockId: undefined }),
+    },
     rowsPerPage,
     type,
   );
@@ -80,20 +93,22 @@ export const ClinicsTable: FC<
     <>
       {!isSelect && <STableTitle icon={SClinicIcon}>Clínicas</STableTitle>}
       <STableSearch
-        onAddClick={() => onStackOpenModal(ModalEnum.CLINIC_EDIT)}
+        {...(!simpleShow && {
+          onAddClick: () => onStackOpenModal(ModalEnum.CLINIC_EDIT),
+        })}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable
         loading={isLoading}
         rowsNumber={rowsPerPage}
-        columns={`${
-          selectedData ? '15px ' : ''
-        }minmax(200px, 4fr) minmax(200px, 5fr) minmax(150px, 1fr) 50px 100px 70px 90px`}
+        columns={`${selectedData ? '15px ' : ''}minmax(200px, 4fr) ${
+          !simpleShow ? 'minmax(200px, 5fr) ' : ''
+        }minmax(150px, 1fr) 50px 100px 70px 90px`}
       >
         <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
           <STableHRow>Clínica</STableHRow>
-          <STableHRow>Endereço</STableHRow>
+          {!simpleShow && <STableHRow>Endereço</STableHRow>}
           <STableHRow>Cidade</STableHRow>
           <STableHRow>UF</STableHRow>
           <STableHRow>Telefone</STableHRow>
@@ -120,7 +135,9 @@ export const ClinicsTable: FC<
                   />
                 )}
                 <TextIconRow clickable text={row.fantasy} />
-                <TextIconRow clickable text={getAddress(row.address)} />
+                {!simpleShow && (
+                  <TextIconRow clickable text={getAddress(row.address)} />
+                )}
                 <TextIconRow clickable text={row?.address?.city || '-'} />
                 <TextIconRow clickable text={row?.address?.state} />
                 <TextIconRow

@@ -34,6 +34,8 @@ export const useAuthShow = () => {
   return { isAuthSuccess, user };
 };
 
+//<Acces
+//<SAcces
 export const SAuthShow: FC<ISAuthShow> = ({
   roles,
   permissions,

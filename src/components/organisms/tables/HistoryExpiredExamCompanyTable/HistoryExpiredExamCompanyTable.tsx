@@ -76,8 +76,6 @@ export const HistoryExpiredExamCompanyTable: FC<
     rowsPerPage,
   );
 
-  console.log('historyExam', historyExam);
-
   const { onStackOpenModal } = useModal();
 
   const onAdd = () => {

@@ -1,15 +1,19 @@
 import { useCallback, useMemo } from 'react';
 
+import { useAuthShow } from 'components/molecules/SAuthShow';
 import { initialClinicExamsViewState } from 'components/organisms/modals/ModalViewClinicExams';
 import { initialProfessionalViewState } from 'components/organisms/modals/ModalViewProfessional';
+import { initialScheduleBlockViewState } from 'components/organisms/modals/ModalViewScheduleBlocks/ModalViewScheduleBlocks';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CompanyStepEnum } from 'project/enum/company-step.enum';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { selectStep, setCompanyStep } from 'store/reducers/step/stepSlice';
 
 import SDoctorIcon from 'assets/icons/SDoctorIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SExamIcon from 'assets/icons/SExamIcon';
+import { SScheduleBlockIcon } from 'assets/icons/SScheduleBlockIcon/SScheduleBlockIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 
 import { ProfessionalFilterTypeEnum } from 'core/constants/maps/professionals-filter.map';
@@ -30,6 +34,7 @@ export const useClinicStep = () => {
   const dispatch = useAppDispatch();
   const stepLocal = useAppSelector(selectStep(company.id));
   const { enqueueSnackbar } = useSnackbar();
+  const { isAuthSuccess } = useAuthShow();
 
   useFetchFeedback(isLoading && !company?.id);
   const step = useMemo(() => {
@@ -72,6 +77,12 @@ export const useClinicStep = () => {
     onOpenModal(ModalEnum.USER_VIEW);
   }, [onOpenModal]);
 
+  const handleAddScheduleBlocks = useCallback(() => {
+    onOpenModal(ModalEnum.SCHEDULE_BLOCK_SELECT, {
+      toEdit: true,
+    } as typeof initialScheduleBlockViewState);
+  }, [onOpenModal]);
+
   const actionsMapStepMemo = useMemo(() => {
     return {
       [ClinicActionEnum.USERS]: {
@@ -96,12 +107,18 @@ export const useClinicStep = () => {
         onClick: handleAddExams,
         text: 'Exames Realizados',
       },
+      [ClinicActionEnum.SCHEDULE_BLOCKS]: {
+        icon: SScheduleBlockIcon,
+        onClick: handleAddScheduleBlocks,
+        text: 'Bloquear Agenda',
+      },
     };
   }, [
     handleAddTeam,
     handleEditCompany,
     handleAddProfessionals,
     handleAddExams,
+    handleAddScheduleBlocks,
   ]);
 
   const nextStepMemo = useMemo(() => {
@@ -138,7 +155,7 @@ export const useClinicStep = () => {
   }, [actionsMapStepMemo, step]);
 
   const actionsStepMemo = useMemo(() => {
-    return [
+    const steps = [
       {
         ...actionsMapStepMemo[ClinicActionEnum.EDIT],
       },
@@ -152,7 +169,12 @@ export const useClinicStep = () => {
         ...actionsMapStepMemo[ClinicActionEnum.USERS],
       },
     ];
-  }, [actionsMapStepMemo]);
+
+    if (isAuthSuccess({ permissions: [PermissionEnum.SCHEDULE_BLOCK] }))
+      steps.push(actionsMapStepMemo[ClinicActionEnum.SCHEDULE_BLOCKS] as any);
+
+    return steps;
+  }, [actionsMapStepMemo, isAuthSuccess]);
 
   const nextStep = () => {
     const cantJump = [] as CompanyStepEnum[];

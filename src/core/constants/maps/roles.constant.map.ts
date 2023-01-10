@@ -132,7 +132,11 @@ export const rolesConstantMap = {
     value: RoleEnum.SCHEDULE_EXAM,
     label: 'Agenda',
     info: 'agendamento de exames para os funcionários',
-    permissions: [PermissionEnum.COMPANY_SCHEDULE, PermissionEnum.EXAM] as any,
+    permissions: [
+      PermissionEnum.COMPANY_SCHEDULE,
+      PermissionEnum.EXAM,
+      PermissionEnum.SCHEDULE_BLOCK,
+    ] as any,
     order: 1000,
   },
   [RoleEnum.EMPLOYEE]: {

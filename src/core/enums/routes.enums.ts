@@ -32,6 +32,7 @@ export enum RoutesEnum {
   RISKS = '/dashboard/empresas/:companyId/fatores-riscos',
   RISK_DATA = '/dashboard/empresas/:companyId/hierarquia?riskGroupId=:riskGroupId',
   SCHEDULE = '/dashboard/empresas/:companyId/agenda',
+  SCHEDULE_BLOCK = '/dashboard/empresas/:companyId/agenda-block',
   TEAM = '/dashboard/equipe/:companyId',
   TEAM_GROUPS = '/dashboard/equipe/:companyId/grupos',
   SIGN_UP = '/cadastro',

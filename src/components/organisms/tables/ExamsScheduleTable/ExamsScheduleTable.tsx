@@ -1,9 +1,7 @@
 import { FC } from 'react';
-import { Control, FieldValues, UseFormSetValue } from 'react-hook-form';
 
-import { Box, BoxProps } from '@mui/material';
+import { Box } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
-import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -13,20 +11,12 @@ import {
 } from 'components/atoms/STable';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import SText from 'components/atoms/SText';
-import { AutocompleteForm } from 'components/molecules/form/autocomplete';
-import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { SAuthShow } from 'components/molecules/SAuthShow';
-import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
-import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { PermissionEnum } from 'project/enum/permission.enum';
-import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
-import { ICompany } from 'core/interfaces/api/ICompany';
-import { dateToDate, dateToString } from 'core/utils/date/date-format';
-import { intMask } from 'core/utils/masks/int.mask';
+import { dateToString } from 'core/utils/date/date-format';
 
 import { ExamsScheduleClinicColumn } from './columns/ExamsScheduleClinic';
 import { IExamsScheduleTable, IExamsScheduleTableProps } from './types';

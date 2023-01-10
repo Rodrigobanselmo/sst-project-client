@@ -213,6 +213,12 @@ export const permissionsConstantMap = {
     info: 'Controle das ausências dos colaboradores durante o expediente de trabalho',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.SCHEDULE_BLOCK]: {
+    value: PermissionEnum.SCHEDULE_BLOCK,
+    label: 'Bloquear Prestadores (Feriados e etc...)',
+    info: 'Pode bloquear a disponibilidade de dias específicos dos prestadores em caso de feriados e adversidades',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

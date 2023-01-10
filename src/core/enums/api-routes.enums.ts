@@ -79,6 +79,7 @@ export enum ApiRoutesEnum {
   CID = 'esocial/cid',
   CBO = 'esocial/cbo',
   ABSENTEEISM_MOTIVES = 'esocial/absenteeism-motives',
+  SCHEDULE_BLOCKS = 'schedule-block/:companyId',
   // ESOCIAL18TABLES = 'esocial/table-18',
   NOTIFICATION = '/notification',
 }

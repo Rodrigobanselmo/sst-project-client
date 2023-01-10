@@ -34,6 +34,7 @@ export interface IQueryCompanies {
   isAdmission?: boolean;
   isReturn?: boolean;
   isDismissal?: boolean;
+  scheduleBlockId?: number;
 }
 
 export type IQueryCompaniesTypes = '/by-user' | '';

@@ -15,7 +15,7 @@ import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
   const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
-  const { isValidRoles, isToRemoveWithRoles } = useAccess();
+  const { isValidRoles, isValidPermissions, isToRemoveWithRoles } = useAccess();
   const { userCompanyId } = useGetCompanyId();
   const { data: company } = useQueryCompany(userCompanyId);
 
@@ -33,6 +33,7 @@ export function SideBarNav(): JSX.Element {
         <Stack px={0} spacing={8}>
           {Drawer_Links.map((category) => {
             if (!isValidRoles(category.data?.roles)) return null;
+            if (!isValidPermissions(category.data?.permissions)) return null;
             if (isToRemoveWithRoles(category.data?.removeWithRoles))
               return null;
 
@@ -40,6 +41,7 @@ export function SideBarNav(): JSX.Element {
               <NavSection key={category.data.id} title={category.data.text}>
                 {category.items.map((item) => {
                   if (!isValidRoles(item?.roles)) return null;
+                  if (!isValidPermissions(item?.permissions)) return null;
                   if (isToRemoveWithRoles(item?.removeWithRoles)) return null;
                   if (item.showIf) {
                     let show = false;

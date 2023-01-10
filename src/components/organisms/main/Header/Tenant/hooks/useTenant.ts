@@ -21,14 +21,16 @@ export const useLocation = () => {
 
   const onSelectCompany = useCallback(
     (cb: (company: ICompany) => void) => {
+      const includeClinic = pathname.includes(RoutesParamsEnum.CLINIC);
       onStackOpenModal(ModalEnum.COMPANY_SELECT, {
         multiple: false,
+        query: { isClinic: includeClinic },
         onSelect: (company: ICompany) => {
           cb(company);
         },
       } as Partial<typeof initialCompanySelectState>);
     },
-    [onStackOpenModal],
+    [onStackOpenModal, pathname],
   );
 
   const onSelectWorkspace = useCallback(

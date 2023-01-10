@@ -2,6 +2,7 @@ import { CompanyStepEnum } from 'project/enum/company-step.enum';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IScheduleBlock } from 'core/interfaces/api/IScheduleBlock';
 import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
 
 import { ICompanyGroup } from './ICompanyGroup';
@@ -65,6 +66,7 @@ export interface ICompany {
   tecResponsibleId: number;
   isClinic: boolean;
   clinicExams: IExamToClinic[];
+  scheduleBlocks?: IScheduleBlock[];
   report: IDashboard;
   clinicsAvailable: {
     clinicId: string;
