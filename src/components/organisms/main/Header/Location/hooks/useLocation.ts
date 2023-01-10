@@ -176,6 +176,10 @@ export const useLocation = () => {
         value: RoutesParamsEnum.DOC,
         name: '',
       },
+      [RoutesParamsEnum.CLINIC]: {
+        value: RoutesParamsEnum.CLINIC,
+        name: RoutesParamsEnum.CLINIC,
+      },
       [RoutesParamsEnum.PGR]: {
         value: RoutesParamsEnum.PGR,
         name: 'PGR',
