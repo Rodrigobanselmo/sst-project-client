@@ -3,16 +3,15 @@ import { useWizard } from 'react-use-wizard';
 
 import {
   availableScheduleDate,
+  getBlockDates,
   notAvailableScheduleTime,
 } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 
-import { QueryEnum } from 'core/enums/query.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
-import { queryClient } from 'core/services/queryClient';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
+import { getIsBlockedTime } from '../../3-evaluation/hooks/useEvaluationStep';
 
 export const useExamsStep = ({
   data,
@@ -53,6 +52,35 @@ export const useExamsStep = ({
       if (!data.time) {
         setError(`time_${data.id}`, { message: 'Obrigatório' });
         isErrorFound = true;
+      }
+
+      if (data.time) {
+        const { blockDateTime } = getBlockDates({ row: data });
+        const examMim = 0;
+
+        const isBlocked = getIsBlockedTime(
+          [],
+          data.time as string,
+          (examMim || 0) / 2,
+          { date: data.doneDate, scheduleBlocks: blockDateTime },
+        );
+
+        if (isBlocked) {
+          setError(`time_${data.id}`, { message: 'horário indisponível' });
+          isErrorFound = true;
+        }
+
+        if (data) {
+          const isNotAvailable = notAvailableScheduleTime(
+            data.time as string,
+            data,
+          );
+
+          if (isNotAvailable) {
+            setError(`time_${data.id}`, { message: 'horário indisponível' });
+            isErrorFound = true;
+          }
+        }
       }
     });
 

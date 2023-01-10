@@ -257,16 +257,15 @@ export const ExamsScheduleClinicColumn: FC<
                     },
                   }}
                   getOptionDisabled={(time) => {
-                    if (getBlockTimeList) {
-                      const isblock = getIsBlockedTime(
-                        getBlockTimeList,
-                        time,
-                        (examMim || 0) / 2,
-                        { scheduleBlocks: blockDateTime, date: row.doneDate },
-                      );
+                    const isblock = getIsBlockedTime(
+                      getBlockTimeList || [],
+                      time,
+                      (examMim || 0) / 2,
+                      { scheduleBlocks: blockDateTime, date: row.doneDate },
+                    );
 
-                      if (isblock) return isblock;
-                    }
+                    if (isblock) return isblock;
+
                     return notAvailableScheduleTime(time, row);
                   }}
                   onChange={(time) => {
@@ -308,9 +307,11 @@ export const ExamsScheduleClinicColumn: FC<
                         },
                       },
                     }}
-                    getOptionDisabled={(time) =>
-                      notAvailableScheduleTime(time, row)
-                    }
+                    getOptionDisabled={(time) => {
+                      if (row?.time && row?.time > time) return true;
+
+                      return notAvailableScheduleTime(time, row);
+                    }}
                     onChange={(time) => {
                       setData?.({ time2: time || undefined, id: row.id });
                       setValue('time_2_' + String(row.id), time || '');
@@ -329,7 +330,9 @@ export const ExamsScheduleClinicColumn: FC<
                     }
                     mask={timeMask.apply}
                     label=""
-                    options={getTimeList(startHour(), 0, 20, 0)}
+                    options={getTimeList(startHour(), 0, 20, 0).filter(
+                      (time) => time > (row?.time || ''),
+                    )}
                   />
                 </Box>
               )}

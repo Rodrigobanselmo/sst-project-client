@@ -152,8 +152,6 @@ export const useEvaluationStep = ({
           { date: data.doneDate, scheduleBlocks: blockDateTime },
         );
 
-        console.log(getBlockTimeList);
-
         if (isBlocked) {
           setError(`time_${data.id}`, { message: 'horário já agendado' });
           isErrorFound = true;

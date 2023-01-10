@@ -56,9 +56,6 @@ export const DatePickerForm = ({
             label={label}
             onFocus={() => setIsFocused(true)}
             onChange={(date, e) => {
-              console.log(1, date);
-              date = dayjs(date).toDate();
-              console.log(2, date);
               func(date, e);
               onChange && onChange(date);
             }}
