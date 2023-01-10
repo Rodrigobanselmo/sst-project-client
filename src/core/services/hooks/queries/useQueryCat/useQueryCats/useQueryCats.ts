@@ -3,13 +3,12 @@ import { useQuery } from 'react-query';
 import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { ICat } from 'core/interfaces/api/ICat';
 import { IPagination } from 'core/interfaces/IPagination';
 import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
-
-import { QueryEnum } from '../../../../enums/query.enums';
 
 interface IQueryCat {
   search?: string | null;
