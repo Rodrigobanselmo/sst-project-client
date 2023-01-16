@@ -8,6 +8,7 @@ import {
 } from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import dayjs from 'dayjs';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
@@ -24,7 +25,7 @@ export const getIsBlockedTime = (
     to: string;
   }[],
   time: string,
-  examMim: number,
+  halfExamMim: number,
   block?: { date?: Date; scheduleBlocks: Record<string, IScheduleBlock[]> },
 ) => {
   const listTime = getBlockTimeList;
@@ -43,7 +44,7 @@ export const getIsBlockedTime = (
 
   return !!getBlockTimeList.find(
     ({ from, to }) =>
-      getDateWithTime(addMinutesToTime(from, -examMim)) <
+      getDateWithTime(addMinutesToTime(from, -halfExamMim)) <
         getDateWithTime(time as string) &&
       getDateWithTime(time as string) < getDateWithTime(to),
   );
@@ -63,11 +64,16 @@ export const useEvaluationStep = ({
   const { nextStep, stepCount, goToStep, previousStep } = useWizard();
   const { fetchClinic } = useFetchQueryClinic();
 
-  const clinicExam = data.examsData.find((x) => x.isAttendance);
+  const isEval = data.examType == ExamHistoryTypeEnum.EVAL;
+
+  const clinicExam = data.examsData.find((x) =>
+    isEval ? x.isAvaliation : x.isAttendance,
+  );
 
   const { data: scheduledTimes, isLoading: isLoadingTime } =
     useQueryHisScheduleClinicTime({
       clinicId: clinicExam?.clinic?.id,
+      examId: clinicExam?.id,
       date: clinicExam?.doneDate,
     });
 
@@ -113,7 +119,7 @@ export const useEvaluationStep = ({
         data.isAttendance &&
         (isPendingExams || data.isSelected)
       ) {
-        if (lastComplementaryDate?.isAfter(dayjs(data.doneDate))) {
+        if (!isEval && lastComplementaryDate?.isAfter(dayjs(data.doneDate))) {
           isErrorFound = true;
           enqueueSnackbar(
             'Necessario mudar data do exame clínico para data posterior ao ultimo resultado dos exames complementares',
@@ -225,6 +231,7 @@ export const useEvaluationStep = ({
     isPendingExams,
     isLoadingTime,
     getBlockTimeList,
+    isEval,
     ...rest,
   };
 };

@@ -5,11 +5,12 @@ import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTa
 import { useSnackbar } from 'notistack';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
+import { ClinicScheduleTypeEnum, IExam } from 'core/interfaces/api/IExam';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { useMutCreateEmployee } from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
@@ -26,6 +27,7 @@ export const initialExamScheduleState = {
   examType: undefined as ExamHistoryTypeEnum | undefined,
   hierarchy: undefined as undefined | IHierarchy,
   obs: undefined as undefined | string,
+  avaliationExam: undefined as undefined | IExam,
   clinicObs: undefined as undefined | string,
   hierarchyId: undefined as undefined | string,
   subOfficeId: undefined as undefined | string,
@@ -82,6 +84,7 @@ export const useEditExamEmployee = () => {
   useEffect(() => {
     const initialData =
       getModalData<Partial<typeof initialExamScheduleState>>(modalName);
+
     if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const replaceData = {} as any;

@@ -25,6 +25,7 @@ export interface IExamsScheduleTable {
   isSelected?: boolean;
   scheduleType?: ClinicScheduleTypeEnum;
   isAttendance?: boolean;
+  isAvaliation?: boolean;
   validityInMonths?: number;
   expiredDate?: Date | null;
   closeToExpired?: boolean;
@@ -40,6 +41,7 @@ export interface IExamsScheduleTableProps extends BoxProps {
   hideHeader?: boolean;
   hideInstruct?: boolean;
   company?: ICompany;
+  companyId?: string;
   isPendingExams?: boolean;
   disabled?: boolean;
   handleDebounceChange?: DebouncedState<(value: any) => void>;

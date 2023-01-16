@@ -14,9 +14,12 @@ import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
 import SExamIcon from 'assets/icons/SExamIcon';
 import SProfessionalIcon from 'assets/icons/SProfessionalIcon';
 import SProfileIcon from 'assets/icons/SProfileIcon';
+import SReportIcon from 'assets/icons/SReportIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 import SScheduleBlockIcon from 'assets/icons/SScheduleBlockIcon/SScheduleBlockIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
+
+import { ModalEnum } from 'core/enums/modal.enums';
 
 import { RoutesEnum } from '../../../../../../../core/enums/routes.enums';
 import { IDrawerLinksItems } from '../../types';
@@ -220,6 +223,18 @@ const block: IDrawerLinksItems = {
   shouldMatchExactHref: false,
 };
 
+const report: IDrawerLinksItems = {
+  text: 'Relatórios',
+  description: 'Gerar relatórios ',
+  Icon: SReportIcon,
+  id: 'fkjewhfwe7887wegh87we',
+  modalName: ModalEnum.REPORT_SELECT,
+  // href: RoutesEnum.SCHEDULE_BLOCK,
+  roles: [RoleEnum.SCHEDULE_EXAM],
+  permissions: [PermissionEnum.SCHEDULE_BLOCK],
+  shouldMatchExactHref: false,
+};
+
 export const generalArray = [
   dashboard,
   profile,
@@ -238,6 +253,7 @@ export const generalArray = [
   oneClinicsData,
   exams,
   risks,
+  report,
   cat,
   esocial,
 ];

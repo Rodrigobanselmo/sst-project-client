@@ -27,12 +27,13 @@ export const ExamSelect: FC<IExamSelectProps> = ({
   multiple = true,
   selected,
   onlyExam = false,
+  query,
   ...props
 }) => {
   const [search, setSearch] = useState('');
   const { data, isLoading } = useQueryExams(
     1,
-    { search, status: StatusEnum.ACTIVE },
+    { search, status: StatusEnum.ACTIVE, ...query },
     15,
   );
   const { onStackOpenModal } = useModal();

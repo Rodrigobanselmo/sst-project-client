@@ -24,8 +24,8 @@ export const STableAddButton: FC<STableSearchProps> = ({
           onClick={onAddClick}
           color="success"
           sx={{
-            height: sm ? 30 : 38,
-            minWidth: sm ? 30 : 38,
+            height: sm ? 30 : [30, 30, 38],
+            minWidth: sm ? 30 : [30, 30, 38],
             borderRadius: 1,
             m: 0,
             ml: 2,
@@ -35,58 +35,17 @@ export const STableAddButton: FC<STableSearchProps> = ({
           <Icon
             component={AddIcon}
             sx={{
-              fontSize: [sm ? '1rem' : '1.4rem'],
+              fontSize: [
+                sm
+                  ? ['0.9rem', '0.9rem', '1rem']
+                  : ['1.1rem', '1.1rem', '1.4rem'],
+              ],
               color: 'common.white',
             }}
           />
           {addText && <Box mr={3}>{addText}</Box>}
         </SButton>
       </Box>
-    </STooltip>
-  );
-};
-
-export const STableButton: FC<STableButtonProps> = ({
-  addText,
-  icon = AddIcon,
-  color = 'success.main',
-  tooltip,
-  ...props
-}) => {
-  return (
-    <STooltip title={tooltip || addText}>
-      <div>
-        <SButton
-          {...props}
-          sx={{
-            height: 38,
-            minWidth: 38,
-            borderRadius: 1,
-            m: 0,
-            ml: 2,
-            px: 4,
-            backgroundColor: color,
-            '&:hover': {
-              backgroundColor: color,
-              filter: 'brightness(0.8)',
-            },
-            ...props?.sx,
-          }}
-        >
-          <Icon
-            component={icon}
-            sx={{
-              fontSize: ['1.2rem'],
-              color: 'common.white',
-            }}
-          />
-          {addText && (
-            <Box mr={3} ml={2}>
-              {addText}
-            </Box>
-          )}
-        </SButton>
-      </div>
     </STooltip>
   );
 };

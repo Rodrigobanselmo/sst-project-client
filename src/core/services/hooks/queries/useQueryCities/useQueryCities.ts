@@ -15,6 +15,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryEsocialCities {
   search?: string | null;
   companyId?: string;
+  addressCompany?: boolean;
 }
 
 export const queryEsocialCities = async (
@@ -25,7 +26,11 @@ export const queryEsocialCities = async (
 
   const queries = queryString.stringify(query);
   const response = await api.get<IPaginationResult<ICities[]>>(
-    `${ApiRoutesEnum.CITIES}?take=${take}&skip=${skip}&${queries}`,
+    `${
+      !query.addressCompany
+        ? ApiRoutesEnum.CITIES
+        : ApiRoutesEnum.CITIES_ADDRESS_COMPANY
+    }?take=${take}&skip=${skip}&${queries}`,
   );
 
   return response.data;

@@ -1,6 +1,7 @@
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { ModalAddCompanyGroup } from 'components/organisms/modals/ModalAddCompanyGroup/ModalAddCompanyGroup';
+import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { CompanyGroupsTable } from 'components/organisms/tables/CompanyGroupsTable ';
 import { NextPage } from 'next';
 
@@ -12,7 +13,10 @@ const CompanyGroup: NextPage = () => {
       <SHeaderTag title={'Grupos Empresariais'} />
       <SContainer>
         <CompanyGroupsTable />
-        <ModalAddCompanyGroup />
+        <>
+          <ModalAddCompanyGroup />
+          <ModalSelectClinic />
+        </>
       </SContainer>
     </>
   );

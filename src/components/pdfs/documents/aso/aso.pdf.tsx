@@ -1,13 +1,11 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
-import Html from 'react-pdf-html';
 
-import { Document, Page, Text, View, Image, Font } from '@react-pdf/renderer';
+import { Font, Image, Page, Text, View } from '@react-pdf/renderer';
 import dayjs from 'dayjs';
 import {
   asoExamTypeList,
-  employeeExamTypeMap,
   employeeToAsoExamTypeTranslate,
 } from 'project/enum/employee-exam-history-type.enum';
 import {
@@ -16,24 +14,11 @@ import {
   RiskMap as riskMap,
 } from 'project/enum/risk.enums';
 import { sexTypeMap } from 'project/enum/sex.enums';
-import { v4 } from 'uuid';
 
-import { daysArr, daysShortArr } from 'core/hooks/useCalendar';
-import { IExam } from 'core/interfaces/api/IExam';
 import { IPdfAsoData } from 'core/interfaces/api/IPdfAsoData';
-import { IPdfGuideData } from 'core/interfaces/api/IPdfGuideData';
-import { IPdfKitData } from 'core/interfaces/api/IPdfKitData';
 import { arrayChunks } from 'core/utils/arrays/arrayChunks';
-import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
-import { getCompanyName } from 'core/utils/helpers/companyName';
-import {
-  getAddressCity,
-  getAddressMain,
-  getContactPhone,
-} from 'core/utils/helpers/getAddress';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
-import { sortString } from 'core/utils/sorts/string.sort';
 
 import { sm } from '../../styles/main.pdf.styles';
 import { s } from './styles';
@@ -153,7 +138,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
               <Text style={s.label}>CPF:</Text>
               <Text style={s.tableBody}>{cpfMask.mask(employee.cpf)}</Text>
             </View>
-            <View style={[s.table1, { width: 50 }]}>
+            <View style={[s.table1, { width: 100 }]}>
               <Text style={s.label}>Sexo:</Text>
               <Text style={s.tableBody}>
                 {sexTypeMap[employee?.sex]?.name || '-'}
@@ -163,7 +148,8 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
               <Text style={s.label}>Data de nascimento:</Text>
               <Text style={s.tableBody}>
                 {employee.birthday &&
-                  dayjs(employee.birthday).format('DD/MM/YYYY')}
+                  dayjs(employee.birthday).format('DD/MM/YYYY')}{' '}
+                ({dayjs().diff(employee.birthday, 'y')} anos)
               </Text>
             </View>
           </View>

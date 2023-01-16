@@ -20,6 +20,7 @@ export interface ICreateExam {
   instruction?: string;
   material?: string;
   isAttendance?: boolean;
+  isAvaliation?: boolean;
   type?: ExamTypeEnum;
   analyses?: string;
   esocial27Code?: string;

@@ -5,6 +5,7 @@ import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddCompanyGroup } from 'components/organisms/modals/ModalAddCompanyGroup/ModalAddCompanyGroup';
+import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { CompaniesTable } from 'components/organisms/tables/CompaniesTable';
 import { CompanyGroupsTable } from 'components/organisms/tables/CompanyGroupsTable ';
 import { NextPage } from 'next';
@@ -43,7 +44,10 @@ const Companies: NextPage = () => {
           </SWizardBox>
         </Wizard>
       </SContainer>
-      <ModalAddCompanyGroup />
+      <>
+        <ModalAddCompanyGroup />
+        <ModalSelectClinic />
+      </>
     </>
   );
 };

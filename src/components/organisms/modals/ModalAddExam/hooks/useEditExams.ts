@@ -36,6 +36,7 @@ export const initialExamState = {
   analyses: '',
   esocial27Code: '',
   isAttendance: undefined as boolean | undefined,
+  isAvaliation: undefined as boolean | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (exam: IExam | null) => {},
 };
@@ -123,7 +124,8 @@ export const useEditExams = () => {
       id: examData.id,
       status: examData.status,
       instruction: examData.instruction,
-      isAttendance: examData.isAttendance || undefined,
+      isAttendance: examData.isAttendance,
+      isAvaliation: examData.isAvaliation,
     };
 
     try {

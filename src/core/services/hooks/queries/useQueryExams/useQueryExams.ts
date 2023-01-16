@@ -18,6 +18,8 @@ export interface IQueryExam {
   companyId?: string;
   clinicId?: string;
   status?: StatusEnum;
+  isAvaliation?: boolean;
+  isAttendance?: boolean;
 }
 
 export const queryExams = async (

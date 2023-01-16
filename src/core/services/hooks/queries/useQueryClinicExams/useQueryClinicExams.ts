@@ -11,7 +11,7 @@ import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export interface IQueryExam {
+export interface IQueryClinicExam {
   search?: string | null;
   companyId?: string;
   examId?: number;
@@ -23,7 +23,7 @@ export interface IQueryExam {
 
 export const queryExams = async (
   { skip, take }: IPagination,
-  query: IQueryExam,
+  query: IQueryClinicExam,
 ) => {
   if ('search' in query && query.search === null) return { data: [], count: 0 };
 
@@ -39,7 +39,7 @@ export const queryExams = async (
 
 export function useQueryClinicExams(
   page = 1,
-  query = {} as IQueryExam,
+  query = {} as IQueryClinicExam,
   take = 20,
 ) {
   const { companyId } = useGetCompanyId();

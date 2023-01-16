@@ -9,6 +9,7 @@ import { initialExamState } from 'components/organisms/modals/ModalAddExam/hooks
 import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useQueryExams } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
@@ -19,6 +20,7 @@ import { IExamSelectProps } from './types';
 export const ExamInputSelect: FC<IExamSelectProps> = ({
   onChange,
   inputProps,
+  query,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -30,7 +32,7 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
 
   const { data: exams, isLoading: loadExams } = useQueryExams(
     1,
-    { search, status: StatusEnum.ACTIVE },
+    { search, status: StatusEnum.ACTIVE, ...query },
     20,
   );
 

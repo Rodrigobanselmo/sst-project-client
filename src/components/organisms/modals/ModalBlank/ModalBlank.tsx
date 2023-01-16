@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { FC, useEffect, useState } from 'react';
+import { UseMutationResult } from 'react-query';
 
 import { Box } from '@mui/material';
 import SText from 'components/atoms/SText';
@@ -20,7 +21,9 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 
 export const initialBlankState = {
   title: '',
-  onSelect: (d: any) => {},
+  subtitle: '',
+  handleOnClose: false,
+  onSelect: (d: any, onClose?: () => void) => {},
   onCloseWithoutSelect: () => {},
   content: (setData: React.Dispatch<React.SetStateAction<any>>, data: any) => (
     <></>
@@ -60,8 +63,8 @@ export const ModalBlank: FC = () => {
   };
 
   const onSubmit = () => {
-    data.onSelect?.(data);
-    onClose();
+    data.onSelect?.(data, onClose);
+    if (!data.handleOnClose) onClose();
   };
 
   const buttons = [
@@ -94,7 +97,11 @@ export const ModalBlank: FC = () => {
         center
         p={8}
       >
-        <SModalHeader onClose={onCloseNoSelect} title={data.title || ' '} />
+        <SModalHeader
+          subtitle={data.subtitle}
+          onClose={onCloseNoSelect}
+          title={data.title || ' '}
+        />
 
         <Box maxHeight={400} minHeight={200}>
           <Box mt={8}>{data.content(setData, data)}</Box>

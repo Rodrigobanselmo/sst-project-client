@@ -31,6 +31,7 @@ export interface IExam {
   created_at: Date;
   system: boolean;
   isAttendance: boolean;
+  isAvaliation: boolean;
   analyses: string;
   deleted_at: Date;
   examToClinic: IExamToClinic[];

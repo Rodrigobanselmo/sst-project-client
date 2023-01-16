@@ -189,6 +189,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
   return (
     <STagSearchSelect
       options={options}
+      id={IdsEnum.EMPLOYEE_SELECT_ID}
       icon={SEmployeeIcon}
       onClick={() => (listSelected.current = selectedEmployees)}
       onSearch={(value) => handleSearchChange(value)}

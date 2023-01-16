@@ -61,10 +61,13 @@ export function SideBarNav(): JSX.Element {
                       image={item.image}
                       imageType={item.imageType}
                       key={item.id}
-                      href={item.href.replace(
-                        ':companyId',
-                        userCompanyId || '',
-                      )}
+                      modalName={item.modalName}
+                      href={
+                        item?.href?.replace(
+                          ':companyId',
+                          userCompanyId || '',
+                        ) || ''
+                      }
                       icon={item.Icon}
                       text={item.text}
                       description={item.description}

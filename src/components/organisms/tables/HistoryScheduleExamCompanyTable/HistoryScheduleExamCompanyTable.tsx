@@ -107,17 +107,23 @@ export const HistoryScheduleExamCompanyTable: FC<
     if (!isAuthSuccess({ permissions: [PermissionEnum.CLINIC_SCHEDULE] }))
       return;
 
+    console.log(data);
+
     if (data) {
       const employee = await fetchHisScheduleExam(
-        { employeeId: data.employee?.id },
+        {
+          employeeId: data.employee?.id,
+          examIsAvaliation: data.exam?.isAvaliation,
+        },
         data.clinicId,
       );
 
-      if (employee && employee.data && employee.data[0])
+      if (employee && employee.data && employee.data[0]) {
         onStackOpenModal(ModalEnum.EMPLOYEE_HISTORY_EXAM_EDIT_CLINIC, {
           ...employee.data[0],
           clinicId: data.clinicId,
         });
+      }
     }
   };
 
@@ -211,7 +217,13 @@ export const HistoryScheduleExamCompanyTable: FC<
                   }
                 />
                 <TextIconRow
-                  text={row.exam?.isAttendance ? 'Clínico' : 'Complementar'}
+                  text={
+                    row.exam?.isAttendance
+                      ? 'Clínico'
+                      : row.exam?.isAvaliation
+                      ? 'Consulta Méd.'
+                      : 'Complementar'
+                  }
                 />
 
                 <SFlex direction="column">

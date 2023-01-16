@@ -76,6 +76,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
     uploadMutation,
     onUploadManyFile,
     onChangeDoctor,
+    isAvaliation,
   } = useAddData();
 
   const buttons = [
@@ -304,7 +305,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
               </Box>
             </SFlex>
             <SFlex flexWrap="wrap" gap={5} mt={8} align="end">
-              <Box flex={2}>
+              <Box flex={2} maxWidth={500}>
                 <ProfessionalInputSelect
                   query={{ byCouncil: true, companyId: data.clinicId }}
                   onChange={(prof) => {
@@ -354,6 +355,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
                 missingDoctor={!data.doctor}
                 companyId={data.companyId || data.company?.id}
                 employeeId={data.id}
+                isAvaliation={clinicExam?.exam?.isAvaliation}
                 asoId={clinicExam?.id}
               />
               <Box width={200} ml="auto">
@@ -370,7 +372,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
                   onUpload={(file) =>
                     uploadExam({ file, ids: [clinicExam.id] })
                   }
-                  text="Adicionar ASO"
+                  text={isAvaliation ? 'Adicionar arquivo' : 'Adicionar ASO'}
                   isTag
                 />
               </Box>

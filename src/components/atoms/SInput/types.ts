@@ -8,7 +8,7 @@ export type SInputProps = TextFieldProps & {
   startAdornment?: ReactNode;
   endAdornment?: ReactNode;
   circularProps?: CircularProgressProps;
-  labelPosition?: 'center' | 'top';
+  labelPosition?: 'center' | 'top' | 'left';
   success?: boolean;
   unstyled?: boolean;
   secondary?: boolean;

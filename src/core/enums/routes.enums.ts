@@ -38,6 +38,7 @@ export enum RoutesEnum {
   SIGN_UP = '/cadastro',
   PDF_GUIDE = '/pdf/:companyId/:employeeId/guia-de-emcaminhamento',
   PDF_KIT_EXAM = '/pdf/:companyId/:employeeId/kit-medico?aso=:asoId',
+  PDF_KIT_EVAL = '/pdf/:companyId/:employeeId/prontuario-evaluation',
   PDF_DOC_PCD = '/pdf/:companyId/:employeeId/laudo-pcd',
   PDF_OS = '/pdf/:companyId/:employeeId/os',
   PDF_CAT = '/pdf/:companyId/:employeeId/cat',

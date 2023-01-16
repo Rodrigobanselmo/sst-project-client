@@ -1,4 +1,4 @@
-import { styled, Typography, Box, Icon } from '@mui/material';
+import { styled, Typography, Box, Icon, Link } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
@@ -17,6 +17,7 @@ export function NavLink({
   shouldMatchExactHref,
   isAlwaysClose,
   imageType,
+  modalName,
   ...rest
 }: INavLinkProps): JSX.Element {
   const { isOpen } = useSidebarDrawer();
@@ -33,6 +34,7 @@ export function NavLink({
           shouldMatchExactHref={shouldMatchExactHref}
           href={href}
           passHref
+          modalName={modalName}
         >
           <LinkStyle py="0.45rem" px={8} {...rest}>
             {icon && (

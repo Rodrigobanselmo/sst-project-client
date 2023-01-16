@@ -29,14 +29,19 @@ export async function setClinicCompany(
 }
 
 export function useMutSetClinicsCompany() {
-  const { companyId } = useGetCompanyId();
+  const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: ISetCompanyClinics[]) => setClinicCompany(data, companyId),
+    async (data: ISetCompanyClinics[]) =>
+      setClinicCompany(data, getCompanyId(data)),
     {
-      onSuccess: async () => {
-        queryClient.invalidateQueries([QueryEnum.COMPANY, companyId]);
+      onSuccess: async (data) => {
+        queryClient.invalidateQueries([QueryEnum.COMPANY_GROUP]);
+        queryClient.invalidateQueries([QueryEnum.COMPANIES]);
+        if (data?.companyId)
+          queryClient.invalidateQueries([QueryEnum.COMPANY, data?.companyId]);
+        else queryClient.invalidateQueries([QueryEnum.COMPANY]);
 
         enqueueSnackbar('Clinicas editadas com sucesso', {
           variant: 'success',

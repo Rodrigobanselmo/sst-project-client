@@ -97,6 +97,8 @@ export const useEditClinicExams = () => {
   );
 
   const isEdit = !!clinicExamData?.id;
+  const isDocConsult =
+    clinicExamData?.exam?.isAttendance || clinicExamData?.exam?.isAvaliation;
 
   const initializeModalDate = (initialData?: any) => {
     if (!initialData) return;
@@ -209,6 +211,7 @@ export const useEditClinicExams = () => {
     initializeModalDate,
     onStackOpenModal,
     onSelectCheck,
+    isDocConsult,
   };
 };
 

@@ -1,11 +1,12 @@
 const customMixinsIndex = {
-  loadingFeedback: 1001,
+  loadingFeedback: 1500,
   saveFeedback: 997,
   mouseControl: 999,
-  popper: 1000,
+  popper: 1300,
   nodeLabel: 11,
   nodeCard: 10,
   sidebarTree: 998,
+  // MODAL: 1300,
 };
 
 const customMixinsSize = {

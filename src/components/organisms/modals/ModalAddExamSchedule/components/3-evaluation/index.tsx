@@ -8,6 +8,7 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { ExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/ExamsScheduleTable';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { IUseEditEmployee } from '../../hooks/useEditExamEmployee';
@@ -37,6 +38,8 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
     company,
     getBlockTimeList,
     isLoadingTime,
+    employee,
+    isEval,
   } = useEvaluationStep(props);
 
   const buttons = [
@@ -60,7 +63,9 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
       <AnimatedStep>
         <Box mt={2}>
           <SText color="text.label" fontSize={16}>
-            Agendar Exame de Avaliação Clínica Ocupacional
+            {isEval
+              ? 'Agendar Consulta Médica'
+              : 'Agendar Exame de Avaliação Clínica Ocupacional'}
           </SText>
           <Divider sx={{ mb: 5, mt: 3 }} />
 
@@ -68,23 +73,33 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
             getBlockTimeList={getBlockTimeList}
             isLoadingTime={isLoadingTime}
             setData={setComplementaryExam}
-            data={data.examsData.filter((x) => x.isAttendance)}
+            data={data.examsData.filter((x) =>
+              isEval ? x.isAvaliation : x.isAttendance,
+            )}
             control={control}
             setValue={setValue}
             hideHeader
             scheduleData={data}
             lastComplementaryDate={lastComplementaryDate}
             isPendingExams={isPendingExams}
+            companyId={employee?.companyId || company?.id}
             company={company}
+            {...(isEval && {
+              lastComplementaryDate: undefined,
+            })}
           />
-          <SText fontSize={14}>
-            Último resuldado dos exames complementar:{' '}
-            <u>{lastComplementaryDate?.format('DD/MM/YYYY')}</u>
-          </SText>
-          <SText fontSize={12}>
-            O Exame clínico so poderá ser marcado após a obtenção dos resultados
-            de todos os exames complementares
-          </SText>
+          {!isEval && (
+            <>
+              <SText fontSize={14}>
+                Último resuldado dos exames complementar:{' '}
+                <u>{lastComplementaryDate?.format('DD/MM/YYYY')}</u>
+              </SText>
+              <SText fontSize={12}>
+                O Exame clínico so poderá ser marcado após a obtenção dos
+                resultados de todos os exames complementares
+              </SText>
+            </>
+          )}
           {hasExamsAskSchedule && (
             <InputForm
               defaultValue={data.clinicObs}

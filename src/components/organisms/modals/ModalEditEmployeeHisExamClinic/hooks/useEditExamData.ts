@@ -46,6 +46,15 @@ import { dateToDate } from 'core/utils/date/date-format';
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
 import { SModalInitContactProps } from '../types';
 
+export const onGetExamPdfRoute = ({
+  isAvaliation,
+}: {
+  isAvaliation?: boolean;
+}) => {
+  if (isAvaliation) return RoutesEnum.PDF_KIT_EVAL;
+  return RoutesEnum.PDF_KIT_EXAM;
+};
+
 export const initialEditEmployeeHistoryExamState = {
   doctor: undefined,
   status: undefined,
@@ -91,10 +100,14 @@ export const useAddData = () => {
     [company.isClinic, data.company?.id, data.companyId, getCompanyId],
   );
 
-  const clinicExam = data?.examsHistory?.find((e) => e.exam?.isAttendance);
-  const complementaryExams = data?.examsHistory?.filter(
-    (e) => !e.exam?.isAttendance,
+  const clinicExam = data?.examsHistory?.find(
+    (e) => e.exam?.isAttendance || e.exam?.isAvaliation,
   );
+  const complementaryExams = data?.examsHistory?.filter(
+    (e) => !e.exam?.isAttendance && !e.exam?.isAvaliation,
+  );
+
+  const isAvaliation = clinicExam?.exam?.isAvaliation;
 
   useEffect(() => {
     const initialData =
@@ -106,7 +119,7 @@ export const useAddData = () => {
       if (initialData && !(initialData as any).passBack) {
         setData((oldData) => {
           const clinicExam = initialData?.examsHistory?.find(
-            (e) => e.exam?.isAttendance,
+            (e) => e.exam?.isAttendance || e.exam?.isAvaliation,
           );
 
           const newData = {
@@ -214,7 +227,7 @@ export const useAddData = () => {
       data: [],
     };
 
-    let asoId: number;
+    let asoOrAvaliationId: number;
 
     data.examsHistory?.forEach((examData) => {
       if (!data.id) return;
@@ -226,9 +239,9 @@ export const useAddData = () => {
         status: examData.status,
       };
 
-      if (examData.exam?.isAttendance) {
+      if (examData.exam?.isAttendance || examData.exam?.isAvaliation) {
         if (data.evaluationType) submit.evaluationType = data.evaluationType;
-        asoId = examData.exam.id;
+        asoOrAvaliationId = examData?.id;
         if (prof?.id) {
           submit.doctorId = prof.id;
           submit.status = StatusEnum.DONE;
@@ -242,10 +255,10 @@ export const useAddData = () => {
       .mutateAsync({ ...submitData })
       .then(() => {
         if (prof?.id)
-          onDownloadPdf(RoutesEnum.PDF_GUIDE, {
+          onDownloadPdf(onGetExamPdfRoute({ isAvaliation }), {
             employeeId: data.id,
             companyId,
-            asoId,
+            asoId: asoOrAvaliationId,
           });
         setData({
           ...data,
@@ -365,5 +378,6 @@ export const useAddData = () => {
     uploadMutation,
     onUploadManyFile,
     onChangeDoctor,
+    isAvaliation,
   };
 };

@@ -201,22 +201,41 @@ export const ModalExamStep = ({
         sx={{ mb: 5 }}
         placeholder={'instruções...'}
       />
-      {!examData.id && (
+
+      <SFlex>
+        {!examData.id && (
+          <Box ml={7}>
+            <SSwitch
+              onChange={() => {
+                setExamData({
+                  ...examData,
+                  isAttendance: !examData.isAttendance,
+                  isAvaliation: false,
+                });
+              }}
+              checked={examData.isAttendance}
+              label="Exame Clínico"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          </Box>
+        )}
         <Box ml={7}>
           <SSwitch
             onChange={() => {
               setExamData({
                 ...examData,
-                isAttendance: !examData.isAttendance,
+                isAvaliation: !examData.isAvaliation,
+                isAttendance: false,
               });
             }}
-            checked={examData.isAttendance}
-            label="Atendimento (ASO)"
+            checked={examData.isAvaliation}
+            label="Consulta médica"
             sx={{ mr: 4 }}
             color="text.light"
           />
         </Box>
-      )}
+      </SFlex>
       {!!examData.id && (
         <StatusSelect
           sx={{ maxWidth: '90px', mt: 10 }}

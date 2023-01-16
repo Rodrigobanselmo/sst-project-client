@@ -11,8 +11,8 @@ import {
   STableRow,
 } from 'components/atoms/STable';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import { STableButton } from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';

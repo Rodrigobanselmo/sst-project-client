@@ -20,7 +20,7 @@ const Kit: NextPage = () => {
     <>
       <SHeaderTag
         hideInitial
-        title={`PDF:Kit Med ${kitData?.aso.employee?.name || ''}`}
+        title={`PDF:Kit Med ${kitData?.aso?.employee?.name || ''}`}
       />
       <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
         <PDFViewer showToolbar width="100%" height="100%">

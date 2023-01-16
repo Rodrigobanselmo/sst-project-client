@@ -2,6 +2,8 @@
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 
+import { ModalEnum } from 'core/enums/modal.enums';
+
 import { RoutesEnum } from '../../../../../core/enums/routes.enums';
 
 export interface IDrawerLinksData {
@@ -19,11 +21,12 @@ export interface IDrawerLinksItems {
   description: string;
   image?: string;
   imageType?: 'cat';
+  modalName?: ModalEnum;
   id: string;
   roles?: RoleEnum[];
   removeWithRoles?: RoleEnum[];
   permissions?: PermissionEnum[];
-  href: RoutesEnum;
+  href?: RoutesEnum;
   shouldMatchExactHref?: boolean;
   showIf?: {
     isClinic?: boolean;

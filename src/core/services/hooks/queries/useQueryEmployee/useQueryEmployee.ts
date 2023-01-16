@@ -17,6 +17,9 @@ export interface IQueryEmployee {
 
 export const queryEmployee = async (query: IQueryEmployee) => {
   const companyId = query.companyId;
+
+  if (!companyId) return undefined;
+
   const id = query.id;
   const queries = queryString.stringify(query);
 

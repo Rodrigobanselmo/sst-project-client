@@ -4,6 +4,7 @@ import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
+import { onGetExamPdfRoute } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
@@ -51,6 +52,7 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
   asoId,
   missingDoctor,
   isMenu = true,
+  isAvaliation,
 }) => {
   const [anchorEl, setAnchorEl] = useState<IAnchorEvent>(null);
   const downloadMutation = useMutDownloadFile();
@@ -68,7 +70,11 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
       onDownloadPdf(RoutesEnum.PDF_GUIDE, { employeeId, companyId });
     }
     if (option.value == 2) {
-      onDownloadPdf(RoutesEnum.PDF_KIT_EXAM, { employeeId, companyId, asoId });
+      onDownloadPdf(onGetExamPdfRoute({ isAvaliation }), {
+        employeeId,
+        companyId,
+        asoId,
+      });
     }
     if (option.value == 3) {
       onDownloadPdf(RoutesEnum.PDF_DOC_PCD, { employeeId, companyId });
@@ -99,12 +105,12 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
                 disabled:
                   !companyId || missingDoctor || !employeeId || disabled,
               },
-              {
-                name: 'Baixar Laudo PCD',
-                value: 3,
-                disabled:
-                  !companyId || missingDoctor || !employeeId || disabled,
-              },
+              // {
+              //   name: 'Baixar Laudo PCD',
+              //   value: 3,
+              //   disabled:
+              //     !companyId || missingDoctor || !employeeId || disabled,
+              // },
             ].map((data) => {
               return (
                 <STagButton
@@ -168,11 +174,11 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
             value: 2,
             disabled: !companyId || !employeeId || disabled,
           },
-          {
-            name: 'Baixar Laudo PCD',
-            value: 3,
-            disabled: !companyId || !employeeId || disabled,
-          },
+          // {
+          //   name: 'Baixar Laudo PCD',
+          //   value: 3,
+          //   disabled: !companyId || !employeeId || disabled,
+          // },
         ]}
       />
     </Box>

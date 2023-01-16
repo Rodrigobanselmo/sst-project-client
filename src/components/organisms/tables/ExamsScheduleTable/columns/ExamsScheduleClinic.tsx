@@ -128,6 +128,7 @@ export const ExamsScheduleClinicColumn: FC<
   isPendingExams,
   getBlockTimeList,
   isLoadingTime,
+  companyId,
 }) => {
   const examType =
     scheduleData.examType && employeeExamTypeMap[scheduleData.examType];
@@ -178,10 +179,10 @@ export const ExamsScheduleClinicColumn: FC<
         addMore={false}
         query={{
           clinicExamsIds: [row.id],
-          ...(examType && { [examType.type]: true }),
+          ...(companyId && { companyToClinicsId: companyId }),
+          ...(examType && !row.isAvaliation && { [examType.type]: true }),
         }}
       />
-
       {row.clinic?.id && (
         <>
           <SFlex>
@@ -284,7 +285,13 @@ export const ExamsScheduleClinicColumn: FC<
                   setValue={(v) => setValue('time_' + String(row.id), v || '')}
                   mask={timeMask.apply}
                   label=""
-                  options={getTimeList(startHour(), 0, 20, 0, examMim)}
+                  options={getTimeList(
+                    startHour(),
+                    0,
+                    20,
+                    0,
+                    examMim ? (examMim > 30 ? 30 : examMim) : examMim,
+                  )}
                 />
               </Box>
               {isAsk && (

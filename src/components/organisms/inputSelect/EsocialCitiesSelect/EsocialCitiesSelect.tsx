@@ -12,6 +12,7 @@ import { ICitiesSelectProps } from './types';
 export const EsocialCitiesSelect: FC<ICitiesSelectProps> = ({
   onChange,
   inputProps,
+  addressCompany,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -22,13 +23,17 @@ export const EsocialCitiesSelect: FC<ICitiesSelectProps> = ({
 
   const { data: tables, isLoading: loadTables } = useQueryCities(
     1,
-    { search },
+    { search, addressCompany },
     20,
   );
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.name || ''}
+      getOptionLabel={(option) =>
+        option?.name
+          ? `${option.name} - ${option?.ufCode || option?.uf?.uf || ''}`
+          : ''
+      }
       options={tables}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}
@@ -49,7 +54,9 @@ export const EsocialCitiesSelect: FC<ICitiesSelectProps> = ({
           {/* {((cids[0] && option.id == cids[0].id) || !cids[0]) && (
             <AddButton onAdd={onAddCid} />
           )} */}
-          {`${option.name}` || ''}
+          {option?.name
+            ? `${option.name} - ${option?.ufCode || option?.uf?.uf || ''}`
+            : ''}
         </Box>
       )}
     />

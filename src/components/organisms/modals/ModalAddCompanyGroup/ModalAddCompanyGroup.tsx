@@ -22,7 +22,9 @@ import { ProfessionalInputSelect } from 'components/organisms/inputSelect/Profes
 import { ProfessionalResponsibleTable } from 'components/organisms/tables/ProfessionalResponsibleTable/ProfessionalResponsibleTable';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { usePushRoute } from 'core/hooks/usePushRoute';
 import { dateToDate } from 'core/utils/date/date-format';
 
 import { CompanyTag } from '../ModalAddUsers/components/CompanyTag';
@@ -45,6 +47,8 @@ export const ModalAddCompanyGroup = () => {
     handleOs,
   } = useAddCompanyGroup();
 
+  const { handleAddClinic } = usePushRoute();
+
   const buttons = [
     {},
     {
@@ -52,6 +56,7 @@ export const ModalAddCompanyGroup = () => {
       variant: 'contained',
       type: 'submit',
       onClick: () => setCompanyGroupData({ ...companyGroupData }),
+      id: IdsEnum.CONFIRM_BUTTON,
     },
   ] as IModalButton[];
 
@@ -170,7 +175,11 @@ export const ModalAddCompanyGroup = () => {
               </Box>
               <Box flex={2}>
                 <SelectForm
-                  defaultValue={String(companyGroupData.numAsos)}
+                  defaultValue={
+                    typeof companyGroupData.numAsos == 'number'
+                      ? String(companyGroupData.numAsos)
+                      : ''
+                  }
                   label="Nº vias Aso"
                   control={control}
                   name="numAsos"
@@ -264,9 +273,29 @@ export const ModalAddCompanyGroup = () => {
             </SFlex>
 
             <SFlex mt={15} flexWrap="wrap" align="center" gap={5}>
-              <SButton color="info" variant="contained" onClick={handleOs}>
-                Editar Modelo OS
-              </SButton>
+              <SFlex flexWrap="wrap" align="center" gap={5}>
+                <SButton color="info" variant="outlined" onClick={handleOs}>
+                  Editar Modelo OS
+                </SButton>
+              </SFlex>
+
+              <SFlex flexWrap="wrap" align="center" gap={5}>
+                <SButton
+                  color="info"
+                  variant="outlined"
+                  onClick={() => {
+                    const button = document.getElementById(
+                      IdsEnum.CONFIRM_BUTTON,
+                    );
+                    if (button) {
+                      button?.click();
+                    }
+                    handleAddClinic(companyGroupData.companyGroup);
+                  }}
+                >
+                  Clinicas Cadastradas
+                </SButton>
+              </SFlex>
             </SFlex>
 
             {isEdit && (

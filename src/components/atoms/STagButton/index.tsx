@@ -2,13 +2,34 @@
 /* eslint-disable react/display-name */
 import React from 'react';
 
-import { CircularProgress, Icon } from '@mui/material';
+import { CircularProgress, Icon, Box, Typography } from '@mui/material';
 
 import SFlex from '../SFlex';
 import SText from '../SText';
 import STooltip from '../STooltip';
 import { STSBoxButton } from './styles';
 import { ISTagButtonProps } from './types';
+
+export const STagButtonLabelLeft = React.forwardRef<any, ISTagButtonProps>(
+  ({ children, text, ...props }) => {
+    return (
+      <Box
+        {...{
+          display: 'flex',
+          alignItems: 'center',
+          flexDirection: 'row',
+          ...props,
+        }}
+      >
+        <Typography mr={4} fontSize={14} color={'grey.600'}>
+          {text}:
+        </Typography>
+
+        {children}
+      </Box>
+    );
+  },
+);
 
 export const STagButton = React.forwardRef<any, ISTagButtonProps>(
   (

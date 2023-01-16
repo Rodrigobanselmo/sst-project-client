@@ -1,28 +1,11 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
-import Html from 'react-pdf-html';
 
-import { Document, Page, Text, View, Image, Font } from '@react-pdf/renderer';
-import {
-  osList,
-  romansNumbers,
-} from 'components/organisms/forms/OsForm/hooks/useOSForm';
+import { Font, Image, Page, Text, View } from '@react-pdf/renderer';
 import dayjs from 'dayjs';
-import {
-  employeeExamTypeMap,
-  employeeToAsoExamTypeTranslate,
-} from 'project/enum/employee-exam-history-type.enum';
-import {
-  RiskEnum,
-  riskEnumList,
-  RiskMap as riskMap,
-} from 'project/enum/risk.enums';
 import { sexTypeMap } from 'project/enum/sex.enums';
-import sortArray from 'sort-array';
-import { v4 } from 'uuid';
 
-import { daysArr, daysShortArr } from 'core/hooks/useCalendar';
 import {
   getContentByCatListValue,
   iniciatCATList,
@@ -33,28 +16,11 @@ import {
   tpInscList,
   tpLocalList,
 } from 'core/interfaces/api/ICat';
-import { IExam } from 'core/interfaces/api/IExam';
 import { IPdfCATData } from 'core/interfaces/api/IPdfCATData';
-import { IPdfGuideData } from 'core/interfaces/api/IPdfGuideData';
-import { IPdfKitData } from 'core/interfaces/api/IPdfKitData';
-import { IPdfOSData } from 'core/interfaces/api/IPdfOSData';
-import {
-  IPdfProntuarioData,
-  IProntuarioQuestion,
-} from 'core/interfaces/api/IPdfProntuarioData';
-import { DraftTypeEnum, IDraftTypes } from 'core/interfaces/IDraftBlocks';
-import { arrayChunks } from 'core/utils/arrays/arrayChunks';
-import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
-import { getCompanyName } from 'core/utils/helpers/companyName';
-import {
-  getAddressCity,
-  getAddressMain,
-  getContactPhone,
-} from 'core/utils/helpers/getAddress';
+import { dateToString } from 'core/utils/date/date-format';
 import { cnaeMask } from 'core/utils/masks/cnae.mask';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
-import { sortString } from 'core/utils/sorts/string.sort';
 
 import { sm } from '../../styles/main.pdf.styles';
 import { s } from './styles';

@@ -50,9 +50,8 @@ export const useCompanyStep = () => {
   const dispatch = useAppDispatch();
   const stepLocal = useAppSelector(selectStep(company.id));
   const { enqueueSnackbar } = useSnackbar();
-  const { handleAddWorkspace, handleAddEmployees } = usePushRoute();
-
-  const setClinicsMutation = useMutSetClinicsCompany();
+  const { handleAddWorkspace, handleAddEmployees, handleAddClinic } =
+    usePushRoute();
 
   useFetchFeedback(isLoading && !company?.id);
   const step = useMemo(() => {
@@ -127,24 +126,6 @@ export const useCompanyStep = () => {
   const handleOs = useCallback(() => {
     push(RoutesEnum.OS.replace(/:companyId/g, company.id));
   }, [push, company.id]);
-
-  const handleAddClinic = useCallback(() => {
-    onOpenModal(ModalEnum.CLINIC_SELECT, {
-      title: 'Selecione as Clinicas',
-      selected:
-        company.clinicsAvailable?.map((clinics) => ({
-          id: clinics.clinicId,
-        })) || [],
-      onSelect: (clinics: ICompany[]) =>
-        setClinicsMutation.mutate(
-          clinics.map((clinic) => ({
-            clinicId: clinic.id,
-            companyId: company.id,
-          })),
-        ),
-      multiple: true,
-    } as Partial<typeof initialClinicSelectState>);
-  }, [company.clinicsAvailable, company.id, onOpenModal, setClinicsMutation]);
 
   const handleAddExam = useCallback(() => {
     onOpenModal(ModalEnum.EXAM_RISK_VIEW);
@@ -285,7 +266,7 @@ export const useCompanyStep = () => {
       },
       [CompanyActionEnum.CLINICS]: {
         icon: SClinicIcon,
-        onClick: handleAddClinic,
+        onClick: () => handleAddClinic(),
         text: 'Clínicas Cadastradas',
         tooltipText:
           'Cadastro de clínicas que prestarão serviços a esta empresa',

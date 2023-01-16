@@ -124,6 +124,7 @@ export const useAddCompanyGroup = () => {
       doctorResponsibleId: companyGroupData.doctorResponsible?.id,
       tecResponsibleId: companyGroupData.tecResponsible?.id,
       blockResignationExam: companyGroupData.blockResignationExam,
+      numAsos: companyGroupData.numAsos,
       ...data,
     };
 

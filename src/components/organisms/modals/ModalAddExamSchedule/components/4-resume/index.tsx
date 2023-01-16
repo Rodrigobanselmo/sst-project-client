@@ -307,6 +307,7 @@ export const ResumeStep = (props: IUseEditEmployee) => {
             hideInstruct
             scheduleData={data}
             lastComplementaryDate={lastComplementaryDate}
+            companyId={employee?.companyId}
           />
         </Box>
       </AnimatedStep>

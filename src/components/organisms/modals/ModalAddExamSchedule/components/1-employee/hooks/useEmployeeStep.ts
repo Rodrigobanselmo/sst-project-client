@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
@@ -21,14 +22,12 @@ import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
 
 export const useEmployeeStep = ({
   data,
-  onSubmitData,
   setData,
   onCloseUnsaved: onClose,
   employee,
   newHierarchy,
   isPendingExams,
   fetchClinic,
-  getClinic,
   ...rest
 }: IUseEditEmployee) => {
   const { trigger, getValues, control, reset, setValue } = useFormContext();
@@ -36,6 +35,13 @@ export const useEmployeeStep = ({
 
   const findExamsMutation = useMutFindExamByHierarchy();
   const { fetchHisScheduleExam } = useFetchQueryHisScheduleExam();
+
+  useEffect(() => {
+    if (!data.employeeId) {
+      const button = document.getElementById(IdsEnum.EMPLOYEE_SELECT_ID);
+      button?.click();
+    }
+  }, [data]);
 
   const fields: string[] = ['examType'];
 
@@ -208,6 +214,7 @@ export const useEmployeeStep = ({
             id: employeeHistory.exam.id,
             name: employeeHistory.exam.name,
             isAttendance: employeeHistory.exam.isAttendance,
+            isAvaliation: employeeHistory.exam?.isAvaliation,
             status: employeeHistory.status,
             ...(isPending && {
               doneDateAsk: employeeHistory.doneDate,

@@ -9,6 +9,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 
 interface IQueryClinicEmployeeHistHier {
   clinicId?: string;
+  examId?: number;
   date?: Date;
 }
 

@@ -9,5 +9,6 @@ export interface ICitiesSelectProps
   control: Control<FieldValues, object>;
   name: string;
   label: string;
+  addressCompany?: boolean;
   onChange?: (value: ICities) => void;
 }

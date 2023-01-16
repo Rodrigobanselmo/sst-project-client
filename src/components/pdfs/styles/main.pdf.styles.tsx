@@ -119,11 +119,11 @@ export const sm = StyleSheet.create({
     fontWeight: 'normal',
   },
   bodyB1: {
-    fontSize: 8,
+    fontSize: 10,
     fontWeight: 'semibold',
   },
   bodyB2: {
-    fontSize: 8,
+    fontSize: 13,
     fontWeight: 'bold',
   },
   label: {

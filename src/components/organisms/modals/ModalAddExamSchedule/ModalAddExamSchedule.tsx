@@ -9,6 +9,7 @@ import { examScheduleSchema } from 'core/utils/schemas/examSchedule.schema';
 
 import { ModalEditEmployee } from '../ModalEditEmployee/ModalEditEmployee';
 import { EmployeeStep } from './components/1-employee';
+import { EvalStep } from './components/2-eval';
 import { ExamStep } from './components/2-exams';
 import { EvaluationStep } from './components/3-evaluation';
 import { ResumeStep } from './components/4-resume';
@@ -43,7 +44,8 @@ export const ModalAddExamSchedule = () => {
         />
         <Wizard schemas={[examScheduleSchema]}>
           <EmployeeStep {...props} />
-          <ExamStep {...props} />
+          {props.data.examType != 'EVAL' && <ExamStep {...props} />}
+          {props.data.examType == 'EVAL' && <EvalStep {...props} />}
           <EvaluationStep {...props} />
           <ResumeStep {...props} />
         </Wizard>

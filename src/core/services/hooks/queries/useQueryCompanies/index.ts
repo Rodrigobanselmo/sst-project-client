@@ -19,8 +19,8 @@ export interface IQueryCompanies {
   search?: string;
   companyId?: string;
   clinicExamsIds?: number[];
-  companiesIds?: string[];
   clinicsCompanyId?: string;
+  companyToClinicsId?: string;
   userId?: number;
   groupId?: number;
   isClinic?: boolean;
@@ -35,6 +35,11 @@ export interface IQueryCompanies {
   isReturn?: boolean;
   isDismissal?: boolean;
   scheduleBlockId?: number;
+
+  companiesIds?: string[];
+  companiesGroupIds?: string[];
+  cities?: string[];
+  uf?: string[];
 }
 
 export type IQueryCompaniesTypes = '/by-user' | '';

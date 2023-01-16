@@ -215,7 +215,7 @@ you can applie different input props depending on options.
         inputProps={(option) => ({
           name: option.name,
           onChange: (e) =>
-            console.log('checkbox', e.target.checked, 'name:', option.name),
+            console.info('checkbox', e.target.checked, 'name:', option.name),
         })}
         itemProps={{ fontSize: 14 }}
       />

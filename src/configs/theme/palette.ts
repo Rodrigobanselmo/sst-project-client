@@ -111,6 +111,7 @@ const palette = {
   },
   info: {
     main: '#4559c9',
+    light: '#899ed1',
   },
   background: {
     default: '#dddee2',

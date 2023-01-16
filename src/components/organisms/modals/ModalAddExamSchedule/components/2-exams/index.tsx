@@ -4,10 +4,13 @@ import { Box, Divider } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
+import { SAuthShow } from 'components/molecules/SAuthShow';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { ExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/ExamsScheduleTable';
+import { ExamSelect } from 'components/organisms/tagSelects/ExamSelect';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
@@ -72,6 +75,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
           </SText>
           <Divider sx={{ mb: 5, mt: 3 }} />
           <ExamsScheduleTable
+            companyId={employee?.companyId}
             setData={setComplementaryExam}
             data={data.examsData.filter((x) => x.isSelected && !x.isAttendance)}
             control={control}
@@ -103,6 +107,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
           </SText>
           <Divider sx={{ mb: 5, mt: 3 }} />
           <ExamsScheduleTable
+            companyId={employee?.companyId}
             setData={setComplementaryExam}
             data={data.examsData.filter(
               (x) => !x.isSelected && !x.isAttendance,
@@ -113,6 +118,40 @@ export const ExamStep = (props: IUseEditEmployee) => {
             scheduleData={data}
             isPendingExams={isPendingExams}
           />
+
+          <SAuthShow permissions={[PermissionEnum.CLINIC_SCHEDULE]} cruds={'u'}>
+            <Box flex={1} mt={10}>
+              <SText color="text.label" fontSize={14} mb={3}>
+                Adicionar outros exame
+              </SText>
+              <ExamSelect
+                sx={{ width: '190px' }}
+                asyncLoad
+                large
+                text={'selecione um exame'}
+                multiple={false}
+                onlyExam
+                query={{ isAttendance: false, isAvaliation: false }}
+                handleSelect={(option) => {
+                  if (option?.id) {
+                    setData({
+                      ...data,
+                      examsData: [
+                        ...data.examsData,
+                        {
+                          name: option.name,
+                          id: option.id,
+                          isSelected: true,
+                          isAttendance: option.isAttendance,
+                          validityInMonths: 0,
+                        },
+                      ],
+                    });
+                  }
+                }}
+              />
+            </Box>
+          </SAuthShow>
         </Box>
       </AnimatedStep>
       <SModalButtons

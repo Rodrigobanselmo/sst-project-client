@@ -7,4 +7,5 @@ export type ICities = {
   code: string;
   name: string;
   ufCode: string | null;
+  uf?: IUf;
 };

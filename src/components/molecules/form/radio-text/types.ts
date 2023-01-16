@@ -23,4 +23,5 @@ export type InputFormBoxProps = BoxProps & {
   type: SRadioCheckboxProps['type'];
   columns: SRadioCheckboxProps['columns'];
   ball?: boolean;
+  optionsFieldName?: { valueField?: string; contentField?: string };
 };

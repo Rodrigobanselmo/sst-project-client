@@ -17,10 +17,9 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import STableSearch, {
-  STableButton,
-} from 'components/atoms/STable/components/STableSearch';
+import STableSearch from 'components/atoms/STable/components/STableSearch';
 import SText from 'components/atoms/SText';
 import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
@@ -143,7 +142,7 @@ export const ESocialEventTable: FC<
         onChange={(e) => handleSearchChange(e.target.value)}
       >
         <STableButton
-          addText="autualizar"
+          text="autualizar"
           onClick={() => {
             refetch();
           }}

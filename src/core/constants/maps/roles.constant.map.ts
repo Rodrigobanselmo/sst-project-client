@@ -30,7 +30,10 @@ export const rolesConstantMap = {
     value: RoleEnum.CONTRACTS,
     label: 'Empresas Contratantes',
     info: 'Gerenciamento de empresas cotratantes',
-    permissions: [PermissionEnum.CONTRACTS] as any,
+    permissions: [
+      PermissionEnum.CONTRACTS,
+      PermissionEnum.COMPANY_GROUPS,
+    ] as any,
     order: 1000,
   },
   [RoleEnum.COMPANY]: {

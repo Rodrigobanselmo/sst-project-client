@@ -91,7 +91,7 @@ const CompanyPage: NextPage = () => {
           ))}
         </SFlex>
 
-        <SPageTitleSection title="Segurança" icon={SPhotoIcon} />
+        <SPageTitleSection title="Segurança" />
         <SFlex mt={5} gap={10} flexWrap="wrap">
           {modulesStepMemo.map((props) => (
             <SActionButton key={props.text} {...props} />

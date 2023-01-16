@@ -19,6 +19,7 @@ interface ICreateExam {
   status?: StatusEnum;
   instruction?: string;
   material?: string;
+  isAvaliation?: boolean;
   type?: ExamTypeEnum;
   analyses?: string;
 }

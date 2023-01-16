@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 
 import { BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -11,9 +11,14 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { clinicFilterList } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
+import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
+import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import STooltip from 'components/atoms/STooltip';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -51,8 +56,9 @@ export const ClinicsTable: FC<
   type,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+  const filterProps = useFilterTable();
   const isSelect = !!onSelectData;
-  console.log(query);
+
   const { companies, count, isLoading } = useQueryCompanies(
     page,
     {
@@ -60,11 +66,15 @@ export const ClinicsTable: FC<
       ...query,
       isClinic: true,
       ...(search && { scheduleBlockId: undefined }),
+      ...(search && { companyToClinicsId: undefined }),
+      ...filterProps.filtersQuery,
     },
     rowsPerPage,
     type,
   );
   const { onStackOpenModal } = useModal();
+  const isFilterSelectCompanyToClinicsId =
+    !!query?.companyToClinicsId && !search;
 
   const { push } = useRouter();
 
@@ -97,7 +107,10 @@ export const ClinicsTable: FC<
           onAddClick: () => onStackOpenModal(ModalEnum.CLINIC_EDIT),
         })}
         onChange={(e) => handleSearchChange(e.target.value)}
-      />
+      >
+        <STableFilterIcon filters={clinicFilterList} {...filterProps} />
+      </STableSearch>
+      <FilterTagList filterProps={filterProps} />
       <STable
         loading={isLoading}
         rowsNumber={rowsPerPage}
@@ -120,6 +133,9 @@ export const ClinicsTable: FC<
           rowsInitialNumber={rowsPerPage}
           rowsData={companies}
           renderRow={(row) => {
+            const checked =
+              selectedData &&
+              !!selectedData.find((companyId) => companyId === row.id);
             return (
               <STableRow
                 clickable
@@ -127,12 +143,22 @@ export const ClinicsTable: FC<
                 key={row.id}
               >
                 {selectedData && (
-                  <SCheckBox
-                    label=""
-                    checked={
-                      !!selectedData.find((companyId) => companyId === row.id)
+                  <STooltip
+                    title={
+                      !checked && isFilterSelectCompanyToClinicsId
+                        ? 'Selecionado atravez do grupo empresarial'
+                        : ''
                     }
-                  />
+                  >
+                    <SCheckBox
+                      label=""
+                      {...(!checked &&
+                        isFilterSelectCompanyToClinicsId && {
+                          color: 'info',
+                        })}
+                      checked={checked || isFilterSelectCompanyToClinicsId}
+                    />
+                  </STooltip>
                 )}
                 <TextIconRow clickable text={row.fantasy} />
                 {!simpleShow && (

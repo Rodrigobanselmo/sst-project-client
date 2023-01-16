@@ -1,48 +1,20 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
-import Html from 'react-pdf-html';
 
-import { Document, Page, Text, View, Image, Font } from '@react-pdf/renderer';
+import { Font, Image, Page, Text, View } from '@react-pdf/renderer';
 import {
   osList,
   romansNumbers,
 } from 'components/organisms/forms/OsForm/hooks/useOSForm';
 import dayjs from 'dayjs';
-import {
-  employeeExamTypeMap,
-  employeeToAsoExamTypeTranslate,
-} from 'project/enum/employee-exam-history-type.enum';
-import {
-  RiskEnum,
-  riskEnumList,
-  RiskMap as riskMap,
-} from 'project/enum/risk.enums';
-import { sexTypeMap } from 'project/enum/sex.enums';
+import { RiskEnum } from 'project/enum/risk.enums';
 import sortArray from 'sort-array';
-import { v4 } from 'uuid';
 
-import { daysArr, daysShortArr } from 'core/hooks/useCalendar';
-import { IExam } from 'core/interfaces/api/IExam';
-import { IPdfGuideData } from 'core/interfaces/api/IPdfGuideData';
-import { IPdfKitData } from 'core/interfaces/api/IPdfKitData';
 import { IPdfOSData } from 'core/interfaces/api/IPdfOSData';
-import {
-  IPdfProntuarioData,
-  IProntuarioQuestion,
-} from 'core/interfaces/api/IPdfProntuarioData';
+import { IProntuarioQuestion } from 'core/interfaces/api/IPdfProntuarioData';
 import { DraftTypeEnum, IDraftTypes } from 'core/interfaces/IDraftBlocks';
-import { arrayChunks } from 'core/utils/arrays/arrayChunks';
-import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
-import { getCompanyName } from 'core/utils/helpers/companyName';
-import {
-  getAddressCity,
-  getAddressMain,
-  getContactPhone,
-} from 'core/utils/helpers/getAddress';
-import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
-import { sortString } from 'core/utils/sorts/string.sort';
 
 import { sm } from '../../styles/main.pdf.styles';
 import { s } from './styles';
@@ -67,47 +39,6 @@ Font.register({
     },
   ],
 });
-
-const PdfQuestionsComponent = (questions: IProntuarioQuestion[]) => {
-  return (
-    <View>
-      {questions.map((q) => {
-        const hasTextAnswer = typeof q?.textAnswer === 'string';
-        return (
-          <View style={[sm.row, { flexGrow: 1 }]}>
-            <View style={[sm.row, { width: 170 }]}>
-              <Text style={[sm.body, { marginRight: 5 }]}>{q.name}</Text>
-            </View>
-
-            <View style={[sm.row, { minWidth: 102 }]}>
-              {q.objectiveAnswer?.map((oA) => {
-                return (
-                  <View style={[sm.row, { paddingRight: 17 }]}>
-                    <View style={[s.checkbox, { marginRight: 3 }]}></View>
-                    <Text style={[s.body]}>{oA}</Text>
-                  </View>
-                );
-              })}
-            </View>
-
-            {hasTextAnswer && (
-              <View style={[sm.row, { flexGrow: 1 }]}>
-                <View style={[sm.row]}>
-                  {q.textAnswer && (
-                    <Text style={[s.body, { marginRight: 3 }]}>
-                      {q.textAnswer}
-                    </Text>
-                  )}
-                  <View style={[s.line]}>e</View>
-                </View>
-              </View>
-            )}
-          </View>
-        );
-      })}
-    </View>
-  );
-};
 
 export default function PdfOSPage({ data }: { data: IPdfOSData }) {
   const os = data.os;

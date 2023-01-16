@@ -70,6 +70,7 @@ export const employeeToAsoExamTypeTranslate: Record<
   [ExamHistoryTypeEnum.RETU]: ExamHistoryTypeEnum.RETU,
   [ExamHistoryTypeEnum.DEMI]: ExamHistoryTypeEnum.DEMI,
   [ExamHistoryTypeEnum.OFFI]: ExamHistoryTypeEnum.CHAN,
+  [ExamHistoryTypeEnum.EVAL]: ExamHistoryTypeEnum.EVAL,
 };
 
 export const employeeExamTypeList = [
@@ -102,5 +103,6 @@ export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
     employeeExamTypeMap[ExamHistoryTypeEnum.CHAN],
     employeeExamTypeMap[ExamHistoryTypeEnum.OFFI],
     employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
+    employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
   ];
 };

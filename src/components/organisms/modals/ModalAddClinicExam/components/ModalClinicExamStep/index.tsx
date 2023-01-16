@@ -42,6 +42,7 @@ export const ModalClinicExamStep = ({
   isEdit,
   setValue,
   onSelectCheck,
+  isDocConsult,
 }: IUseEditClinicExam) => {
   return (
     <SFlex sx={{ minWidth: [300, 600, 800] }} direction="column" mt={8}>
@@ -51,8 +52,16 @@ export const ModalClinicExamStep = ({
 
       <ExamInputSelect
         onChange={(exam) => {
+          const isAvaliation = exam?.isAvaliation;
           setClinicExamData({
             ...clinicExamData,
+            ...(isAvaliation && {
+              isPeriodic: false,
+              isChange: false,
+              isAdmission: false,
+              isReturn: false,
+              isDismissal: false,
+            }),
             exam,
           });
         }}
@@ -158,7 +167,7 @@ export const ModalClinicExamStep = ({
       />
 
       <SFlex mt={8} flexWrap="wrap" gap={5}>
-        {clinicExamData?.exam?.isAttendance && (
+        {isDocConsult && (
           <Box flex={2} mt={5} mr={20}>
             <InputForm
               label="Duração do atendimento (min)"
