@@ -33,9 +33,7 @@ export const queryHierarchies = async (companyId: string) => {
   return setMapHierarchies(response.data);
 };
 
-export function useQueryHierarchies(
-  companyID?: string,
-): IReactQuery<IHierarchyMap> {
+export function useQueryHierarchies(companyID?: string) {
   const { companyId } = useGetCompanyId();
   const company = companyID || companyId;
 
