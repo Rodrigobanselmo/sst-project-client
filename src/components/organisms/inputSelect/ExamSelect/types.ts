@@ -10,6 +10,6 @@ export interface IExamSelectProps
   control: Control<FieldValues, object>;
   name: string;
   label: string;
-  query: IQueryExam;
+  query?: IQueryExam;
   onChange?: (value: IExam) => void;
 }

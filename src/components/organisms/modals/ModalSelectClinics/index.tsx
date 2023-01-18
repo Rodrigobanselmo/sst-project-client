@@ -24,7 +24,7 @@ const modalName = ModalEnum.CLINIC_SELECT;
 export const initialClinicSelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onSelect: (clinic: IClinic | IClinic[]) => {},
-  title: 'Selecione a empresa',
+  title: 'Selecione a clínica',
   multiple: false,
   selected: [] as IClinic[],
   query: {} as IQueryCompanies,

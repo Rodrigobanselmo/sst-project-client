@@ -15,7 +15,6 @@ const CompanyGroup: NextPage = () => {
         <CompanyGroupsTable />
         <>
           <ModalAddCompanyGroup />
-          <ModalSelectClinic />
         </>
       </SContainer>
     </>

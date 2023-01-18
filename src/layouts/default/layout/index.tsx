@@ -8,6 +8,7 @@ import { ModalAddProfessionalResponsible } from 'components/organisms/modals/Mod
 import { ModalBlank } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { ModalReport } from 'components/organisms/modals/ModalReport/ModalReport';
 import { ModalReportSelect } from 'components/organisms/modals/ModalReportSelect/ModalReportSelect';
+import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalUploadNewFile } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
@@ -85,6 +86,7 @@ const DefaultLayout: FC = ({ children }) => {
       <DashboardLayout>{children}</DashboardLayout>
       <DefaultModal />
       <ModalSelectCompany />
+      <ModalSelectClinic />
       <ModalEditCompany />
       <ModalAddProfessionalResponsible />
       <ModalAddContact />

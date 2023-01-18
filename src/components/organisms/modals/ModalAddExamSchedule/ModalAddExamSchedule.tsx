@@ -7,6 +7,7 @@ import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/W
 
 import { examScheduleSchema } from 'core/utils/schemas/examSchedule.schema';
 
+import { ModalAddEmployeeHistoryHier } from '../ModalAddEmployeeHistoryHier/ModalAddEmployeeHistoryHier';
 import { ModalEditEmployee } from '../ModalEditEmployee/ModalEditEmployee';
 import { EmployeeStep } from './components/1-employee';
 import { EvalStep } from './components/2-eval';
@@ -59,6 +60,7 @@ export const StackModalAddExamSchedule = () => {
     <>
       <ModalAddExamSchedule />
       <ModalEditEmployee />
+      <ModalAddEmployeeHistoryHier />
     </>
   );
 };

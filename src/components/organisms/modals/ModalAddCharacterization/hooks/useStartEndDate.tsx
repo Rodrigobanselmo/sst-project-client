@@ -1,60 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
-import { Box } from '@mui/material';
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
-import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
-import { ITreeMapObject } from 'components/organisms/main/Tree/OrgTree/interfaces';
-import { useRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
-import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enum';
-import { ParagraphEnum } from 'project/enum/paragraph.enum';
 
-import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { QueryEnum } from 'core/enums/query.enums';
-import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useModal } from 'core/hooks/useModal';
-import { usePreventAction } from 'core/hooks/usePreventAction';
-import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { ICharacterization } from 'core/interfaces/api/ICharacterization';
-import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
-import { IHierarchy, IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
-import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
-import { useMutAddCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutAddCharacterizationPhoto';
-import { useMutCopyCharacterization } from 'core/services/hooks/mutations/manager/useMutCopyCharacterization';
-import { useMutDeleteCharacterization } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterization';
-import { useMutDeleteCharacterizationPhoto } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterizationPhoto';
-import {
-  IUpdateCharacterizationPhoto,
-  useMutUpdateCharacterizationPhoto,
-} from 'core/services/hooks/mutations/manager/useMutUpdateCharacterizationPhoto';
-import {
-  IAddCharacterizationPhoto,
-  IUpsertCharacterization,
-  useMutUpsertCharacterization,
-} from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
-import { useQueryCharacterization } from 'core/services/hooks/queries/useQueryCharacterization';
-import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryCharacterizations';
-import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
-import { queryClient } from 'core/services/queryClient';
-import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
-import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
-import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
-import { sortDate } from 'core/utils/sorts/data.sort';
 
-import { ViewsDataEnum } from '../../../main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { initialBlankState } from '../../ModalBlank/ModalBlank';
-import { initialCharacterizationSelectState } from '../../ModalSelectCharacterization';
-import { initialCompanySelectState } from '../../ModalSelectCompany';
-import { initialDocPgrSelectState } from '../../ModalSelectDocPgr';
-import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
-import { initialWorkspaceSelectState } from '../../ModalSelectWorkspace';
-import { initialInputModalState } from '../../ModalSingleInput';
-import { initialPhotoState } from '../../ModalUploadPhoto';
 
 interface IOptions {
   startDate?: Date | null;

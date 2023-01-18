@@ -118,7 +118,6 @@ const CompanyPage: NextPage = () => {
         <ModalShowHierarchyTree />
         <ModalSelectWorkspace />
         <ModalSelectDocPgr />
-        <ModalSelectClinic />
         <ModalAddExam />
         <ModalAddProtocol />
         <ModalViewExam />

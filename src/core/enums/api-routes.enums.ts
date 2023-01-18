@@ -27,7 +27,6 @@ export enum ApiRoutesEnum {
   DOWNLOAD_EMPLOYEES = '/files/company/employees/download',
   DOWNLOAD_HIERARCHIES = '/files/company/hierarchies/download',
   DOWNLOAD_UNIQUE_EMPLOYEES = '/files/company/download/unique',
-  REPORT_CLINIC = '/files/report/clinic/:companyId',
   EMPLOYEES = '/employee',
   EMPLOYEE_HISTORY_HIER = '/employee-history/hierarchy',
   EMPLOYEE_HISTORY_EXAM = '/employee-history/exam',
@@ -85,4 +84,8 @@ export enum ApiRoutesEnum {
   SCHEDULE_BLOCKS = 'schedule-block/:companyId',
   // ESOCIAL18TABLES = 'esocial/table-18',
   NOTIFICATION = '/notification',
+
+  // Report
+  REPORT_CLINIC = '/files/report/clinic/:companyId',
+  REPORT_EXPIRED_EXAM = '/files/report/expired-exam/:companyId',
 }

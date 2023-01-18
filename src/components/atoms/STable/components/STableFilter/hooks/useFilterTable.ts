@@ -1,7 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
 
 import clone from 'clone';
+import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
+import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -31,6 +33,16 @@ export type IFilterAdd<T> = {
 
 export type IFilterTableData = {
   [FilterFieldEnum.COMPANIES]?: IFilterTableType<ICompany[]>;
+  [FilterFieldEnum.START_DATE]?: IFilterTableType<Date[]>;
+  [FilterFieldEnum.END_DATE]?: IFilterTableType<Date[]>;
+  [FilterFieldEnum.EVALUATION_TYPE]?: IFilterTableType<
+    ExamHistoryEvaluationEnum[]
+  >;
+  [FilterFieldEnum.IS_ADMISSION]?: IFilterTableType<boolean[]>;
+  [FilterFieldEnum.IS_CHANGE]?: IFilterTableType<boolean[]>;
+  [FilterFieldEnum.IS_DISMISSAL]?: IFilterTableType<boolean[]>;
+  [FilterFieldEnum.IS_RETURN]?: IFilterTableType<boolean[]>;
+  [FilterFieldEnum.IS_PERIODIC]?: IFilterTableType<boolean[]>;
 };
 
 export const useFilterTable = (deafult?: IFilterTableData) => {
@@ -41,7 +53,7 @@ export const useFilterTable = (deafult?: IFilterTableData) => {
     <T>(
       filterField: FilterFieldEnum,
       addData: IFilterAdd<T>,
-      options?: { addOnly?: boolean },
+      options?: { addOnly?: boolean; removeIfEqual?: boolean },
     ) => {
       const data = addData.data;
 
@@ -70,6 +82,34 @@ export const useFilterTable = (deafult?: IFilterTableData) => {
           }),
           field: filterField,
         } as IFilterTableType;
+
+        if (options?.removeIfEqual) {
+          const equalFilters = lastFilter?.filters
+            ?.filter((lastF) =>
+              filterData.filters.find(
+                (f) => lastF.filterValue == f.filterValue,
+              ),
+            )
+            .map((f) => f.filterValue);
+
+          equalFilters?.map((eqFilterValue) => {
+            const indexActual = filterData.filters.findIndex(
+              (filter) => filter.filterValue == eqFilterValue,
+            );
+            const indexLast = lastFilter.filters.findIndex(
+              (filter) => filter.filterValue == eqFilterValue,
+            );
+
+            if (indexActual != -1) {
+              filterData.filters.splice(indexActual, 1);
+              (filterData.data as any[]).splice(indexActual, 1);
+            }
+            if (indexLast != -1) {
+              lastFilter.filters.splice(indexLast, 1);
+              (lastFilter.data as any[]).splice(indexLast, 1);
+            }
+          });
+        }
 
         if (options?.addOnly) {
           if (lastFilter?.data) filterData.data.push(...lastFilter.data);
@@ -125,9 +165,11 @@ export const useFilterTable = (deafult?: IFilterTableData) => {
 
   const onFilterCompanies = useCallback(
     (query?: IQueryCompanies) => {
-      const filterField = query?.isGroup
-        ? FilterFieldEnum.COMPANIES_GROUP
-        : FilterFieldEnum.COMPANIES;
+      const getFilterField = () => {
+        if (query?.isGroup) return FilterFieldEnum.COMPANIES_GROUP;
+        return FilterFieldEnum.COMPANIES;
+      };
+      const filterField = getFilterField();
 
       const onSelect = (companies: ICompany[]) => {
         addFilter(filterField, {
@@ -150,6 +192,28 @@ export const useFilterTable = (deafult?: IFilterTableData) => {
     [addFilter, filter, onStackOpenModal],
   );
 
+  const onFilterClinics = useCallback(
+    (query?: IQueryCompanies) => {
+      const filterField = FilterFieldEnum.CLINICS;
+
+      const onSelect = (companies: ICompany[]) => {
+        addFilter(filterField, {
+          data: companies,
+          getId: (data) => data.id,
+          getName: (data) => data.fantasy,
+        });
+      };
+
+      onStackOpenModal(ModalEnum.CLINIC_SELECT, {
+        multiple: true,
+        onSelect,
+        query,
+        selected: (filter as any)[filterField]?.data || [],
+      } as Partial<typeof initialClinicSelectState>);
+    },
+    [addFilter, filter, onStackOpenModal],
+  );
+
   const filtersQuery = useMemo(() => {
     const query: Record<string, any> = {};
 
@@ -165,6 +229,7 @@ export const useFilterTable = (deafult?: IFilterTableData) => {
     clearFilter,
     removeTagsFilter,
     onFilterCompanies,
+    onFilterClinics,
     filtersQuery,
   };
 };

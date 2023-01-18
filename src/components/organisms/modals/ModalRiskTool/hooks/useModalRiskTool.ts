@@ -27,15 +27,17 @@ export const useModalRiskTool = (modalName = modalNameInit) => {
     const initialData =
       getModalData<Partial<typeof initialRiskToolState>>(modalName);
 
-    setData((oldData) => {
-      const newData = {
-        ...oldData,
-        ...initialData,
-      };
+    if (!(initialData as any).passBack) {
+      setData((oldData) => {
+        const newData = {
+          ...oldData,
+          ...initialData,
+        };
 
-      initialDataRef.current = newData;
-      return newData;
-    });
+        initialDataRef.current = newData;
+        return newData;
+      });
+    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [getModalData]);

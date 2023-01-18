@@ -68,6 +68,7 @@ export const ModalSelectWorkspace: FC = () => {
       workspace &&
       workspace.length === 1 &&
       !initialData.open &&
+      !(initialData as any).passBack &&
       (!initialData.companyId ||
         workspace?.[0].companyId === initialData?.companyId)
     ) {

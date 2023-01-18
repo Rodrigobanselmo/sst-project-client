@@ -4,15 +4,20 @@ import { useForm } from 'react-hook-form';
 import { getStates } from '@brazilian-utils/brazilian-utils';
 import { Box, Typography } from '@mui/material';
 import AutocompleteSelect from 'components/atoms/SAutocompleteSelect';
+import SCheckBox from 'components/atoms/SCheckBox';
+import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton, STagButtonLabelLeft } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { RadioFormText } from 'components/molecules/form/radio-text';
 import { EsocialCitiesSelect } from 'components/organisms/inputSelect/EsocialCitiesSelect/EsocialCitiesSelect';
+import { employeeExamEvaluationTypeList } from 'project/enum/employee-exam-history-evaluation.enum';
+
+import { dateToString } from 'core/utils/date/date-format';
 
 import { SPopperArrow } from '../../../../../molecules/SPopperArrow';
-import { FilterFieldEnum } from '../constants/filter.map';
+import { examsTypeList, FilterFieldEnum } from '../constants/filter.map';
 import {
   ReportDownloadtypeEnum,
   reportDownloadtypeList,
@@ -39,6 +44,202 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
 
   return (
     <SFlex gap={4} direction={'column'} mt={4} {...props}>
+      {(filters[FilterFieldEnum.START_DATE] ||
+        filters[FilterFieldEnum.END_DATE]) && (
+        <SFlex direction="row" gap={10} mb={10}>
+          {filters[FilterFieldEnum.START_DATE] && (
+            <Box>
+              <SDatePicker
+                inputProps={{
+                  labelPosition: 'top',
+                  superSmall: true,
+                }}
+                placeholderText="__/__/__"
+                selected={
+                  filterProps.filter?.[FilterFieldEnum.START_DATE]?.data?.[0]
+                }
+                label={'Data de início'}
+                onChange={(date) => {
+                  if (date)
+                    filterProps.addFilter(FilterFieldEnum.START_DATE, {
+                      data: date,
+                      getId: () => date.toISOString(),
+                      getName: () => dateToString(date),
+                    });
+                }}
+              />
+            </Box>
+          )}
+          {filters[FilterFieldEnum.END_DATE] && (
+            <Box>
+              <SDatePicker
+                inputProps={{
+                  labelPosition: 'top',
+                  superSmall: true,
+                }}
+                placeholderText="__/__/__"
+                selected={
+                  filterProps.filter?.[FilterFieldEnum.END_DATE]?.data?.[0]
+                }
+                label={'Data fim'}
+                onChange={(date) => {
+                  if (date)
+                    filterProps.addFilter(FilterFieldEnum.END_DATE, {
+                      data: date,
+                      getId: () => date.toISOString(),
+                      getName: () => dateToString(date),
+                    });
+                }}
+              />
+            </Box>
+          )}
+        </SFlex>
+      )}
+
+      {examsTypeList.find((field) => filters[field]) && (
+        <Box mb={5}>
+          <SText color="text.label" fontSize={14} mt={6} mb={3}>
+            Filtar por tipo de exames:
+          </SText>
+          <SFlex flexWrap={'wrap'}>
+            {filters[FilterFieldEnum.IS_ADMISSION] && (
+              <SCheckBox
+                label="Admissional"
+                checked={
+                  typeof filterProps.filter?.[FilterFieldEnum.IS_ADMISSION]
+                    ?.data?.[0] != 'boolean'
+                }
+                onChange={() => {
+                  filterProps.addFilter(
+                    FilterFieldEnum.IS_ADMISSION,
+                    {
+                      data: false,
+                      getId: () => 'Admissional',
+                      getName: () => 'Admissional',
+                    },
+                    { removeIfEqual: true },
+                  );
+                }}
+              />
+            )}
+            {filters[FilterFieldEnum.IS_PERIODIC] && (
+              <SCheckBox
+                label="Periódico"
+                checked={
+                  typeof filterProps.filter?.[FilterFieldEnum.IS_PERIODIC]
+                    ?.data?.[0] != 'boolean'
+                }
+                onChange={() => {
+                  filterProps.addFilter(
+                    FilterFieldEnum.IS_PERIODIC,
+                    {
+                      data: false,
+                      getId: () => 'Periódico',
+                      getName: () => 'Periódico',
+                    },
+                    { removeIfEqual: true },
+                  );
+                }}
+              />
+            )}
+            {filters[FilterFieldEnum.IS_CHANGE] && (
+              <SCheckBox
+                label="Mudança"
+                checked={
+                  typeof filterProps.filter?.[FilterFieldEnum.IS_CHANGE]
+                    ?.data?.[0] != 'boolean'
+                }
+                onChange={() => {
+                  filterProps.addFilter(
+                    FilterFieldEnum.IS_CHANGE,
+                    {
+                      data: false,
+                      getId: () => 'Mudança',
+                      getName: () => 'Mudança',
+                    },
+                    { removeIfEqual: true },
+                  );
+                }}
+              />
+            )}
+            {filters[FilterFieldEnum.IS_RETURN] && (
+              <SCheckBox
+                label="Retorno"
+                checked={
+                  typeof filterProps.filter?.[FilterFieldEnum.IS_RETURN]
+                    ?.data?.[0] != 'boolean'
+                }
+                onChange={() => {
+                  filterProps.addFilter(
+                    FilterFieldEnum.IS_RETURN,
+                    {
+                      data: false,
+                      getId: () => 'Retorno',
+                      getName: () => 'Retorno',
+                    },
+                    { removeIfEqual: true },
+                  );
+                }}
+              />
+            )}
+            {filters[FilterFieldEnum.IS_DISMISSAL] && (
+              <SCheckBox
+                label="Demissional"
+                checked={
+                  typeof filterProps.filter?.[FilterFieldEnum.IS_DISMISSAL]
+                    ?.data?.[0] != 'boolean'
+                }
+                onChange={() => {
+                  filterProps.addFilter(
+                    FilterFieldEnum.IS_DISMISSAL,
+                    {
+                      data: false,
+                      getId: () => 'Demissional',
+                      getName: () => 'Demissional',
+                    },
+                    { removeIfEqual: true },
+                  );
+                }}
+              />
+            )}
+          </SFlex>
+        </Box>
+      )}
+
+      {filters[FilterFieldEnum.EVALUATION_TYPE] && (
+        <Box mb={5}>
+          <SText color="text.label" fontSize={14} mt={6} mb={3}>
+            Filtar por tipo de exames:
+          </SText>
+          <SFlex flexWrap={'wrap'}>
+            {employeeExamEvaluationTypeList.map((evaluation) => {
+              return (
+                <SCheckBox
+                  key={evaluation.value}
+                  label={evaluation.content}
+                  checked={
+                    !filterProps.filter?.[
+                      FilterFieldEnum.EVALUATION_TYPE
+                    ]?.data?.includes(evaluation.value)
+                  }
+                  onChange={() => {
+                    filterProps.addFilter(
+                      FilterFieldEnum.EVALUATION_TYPE,
+                      {
+                        data: evaluation.value,
+                        getId: () => evaluation.value,
+                        getName: () => evaluation.content,
+                      },
+                      { removeIfEqual: true, addOnly: true },
+                    );
+                  }}
+                />
+              );
+            })}
+          </SFlex>
+        </Box>
+      )}
+
       {filters[FilterFieldEnum.UF] && (
         <Box mb={5}>
           <AutocompleteSelect
@@ -68,7 +269,8 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
           />
         </Box>
       )}
-      {filters[FilterFieldEnum.UF] && (
+
+      {filters[FilterFieldEnum.CITIES] && (
         <Box mb={5}>
           <EsocialCitiesSelect
             addressCompany
@@ -96,6 +298,7 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
           />
         </Box>
       )}
+
       <SFlex gap={3} direction={'column'}>
         {filters[FilterFieldEnum.COMPANIES] && (
           <STagButtonLabelLeft text="Empresas">
@@ -116,6 +319,18 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
               text={'Filtrar'}
               onClick={() => {
                 filterProps.onFilterCompanies({ isGroup: true });
+                closePopper?.();
+              }}
+            />
+          </STagButtonLabelLeft>
+        )}
+        {filters[FilterFieldEnum.CLINICS] && (
+          <STagButtonLabelLeft text="Clínicas">
+            <STagButton
+              width="60px"
+              text={'Filtrar'}
+              onClick={() => {
+                filterProps.onFilterClinics();
                 closePopper?.();
               }}
             />

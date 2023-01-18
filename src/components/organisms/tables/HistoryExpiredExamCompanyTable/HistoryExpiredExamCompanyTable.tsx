@@ -14,37 +14,31 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import {
+  examsFilterList,
+  expiredExamFilterList,
+} from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
+import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
+import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { STag } from 'components/atoms/STag';
-import { useAuthShow } from 'components/molecules/SAuthShow';
 import { SIconDownloadExam } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
-import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
-import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
-import { useRouter } from 'next/router';
-import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
-import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
-import SDocumentIcon from 'assets/icons/SDocumentIcon';
-import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
-import { useMutUpdateManyScheduleHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
-import { useFetchQueryHisScheduleExamClinic } from 'core/services/hooks/queries/useQueryHisScheduleExamClinic/useQueryHisScheduleExamClinic';
-import { useQueryHisScheduleExamCompany } from 'core/services/hooks/queries/useQueryHisScheduleExamCompany/useQueryHisScheduleExamCompany';
 import { dateToString } from 'core/utils/date/date-format';
 
 export const HistoryExpiredExamCompanyTable: FC<
@@ -59,6 +53,7 @@ export const HistoryExpiredExamCompanyTable: FC<
   }
 > = ({ rowsPerPage = 8, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
+  const filterProps = useFilterTable();
 
   const {
     data: historyExam,
@@ -72,6 +67,7 @@ export const HistoryExpiredExamCompanyTable: FC<
       expiredExam: true,
       all: true,
       ...query,
+      ...filterProps.filtersQuery,
     },
     rowsPerPage,
   );
@@ -112,8 +108,8 @@ export const HistoryExpiredExamCompanyTable: FC<
   };
 
   const getRowExpiredDate = (date: Date) => {
-    if (!date) return '-';
-    if (dayjs().diff(date, 'year') > 100) return '-';
+    if (!date) return 'sem exame';
+    if (dayjs().diff(date, 'year') > 100) return 'nenhum';
     return dateToString(date, 'DD[-]MM[-]YYYY');
   };
 
@@ -172,9 +168,15 @@ export const HistoryExpiredExamCompanyTable: FC<
             addText="Agendar"
             placeholder="Pesquisar por nome, cpf, email, matrícula..."
             onChange={(e) => handleSearchChange(e.target.value)}
-          />
+          >
+            <STableFilterIcon
+              filters={expiredExamFilterList}
+              {...filterProps}
+            />
+          </STableSearch>
         </>
       )}
+      <FilterTagList filterProps={filterProps} />
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}

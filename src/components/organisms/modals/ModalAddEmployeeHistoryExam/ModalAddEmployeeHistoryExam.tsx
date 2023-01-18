@@ -345,7 +345,7 @@ export const ModalAddEmployeeHistoryExam = () => {
           </SFlex>
         )}
 
-        {data.id && (
+        {!!data.id && (
           <SFlex mt={8} ml={-2}>
             <SText></SText>
             <SIconUploadFile

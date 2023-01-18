@@ -46,7 +46,6 @@ const Companies: NextPage = () => {
       </SContainer>
       <>
         <ModalAddCompanyGroup />
-        <ModalSelectClinic />
       </>
     </>
   );
