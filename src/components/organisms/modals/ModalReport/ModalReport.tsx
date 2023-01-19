@@ -24,7 +24,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import {
-  IReportClinic,
+  IReportBase,
   useMutReportClinic,
 } from 'core/services/hooks/mutations/reports/useMutReportClinic/useMutReportClinic';
 
@@ -74,11 +74,25 @@ export const ModalReport: FC = () => {
 
   const onSubmit = async () => {
     const submitData = filterProps.filtersQuery;
-    submitData[FilterFieldEnum.DOWLOAD_TYPE] =
-      filterProps.filtersQuery[FilterFieldEnum.DOWLOAD_TYPE]?.[0];
+
+    const uniqueField = [
+      FilterFieldEnum.DOWLOAD_TYPE,
+      FilterFieldEnum.START_DATE,
+      FilterFieldEnum.END_DATE,
+      FilterFieldEnum.IS_ADMISSION,
+      FilterFieldEnum.IS_PERIODIC,
+      FilterFieldEnum.IS_CHANGE,
+      FilterFieldEnum.IS_DISMISSAL,
+      FilterFieldEnum.IS_RETURN,
+    ];
+
+    uniqueField.forEach((field) => {
+      if (filterProps.filtersQuery[field])
+        submitData[field] = filterProps.filtersQuery[field]?.[0];
+    });
 
     clinicMutation
-      .mutateAsync(submitData as IReportClinic)
+      .mutateAsync(submitData as IReportBase)
       .then(() => {
         onClose();
       })

@@ -10,6 +10,16 @@ import { handleBlobError } from 'core/utils/helpers/handleBlobError';
 
 import { IErrorResp } from '../../../../errors/types';
 
+export const handleError = (error: any, enqueueSnackbar: any) => {
+  if (error.response?.status == 403)
+    enqueueSnackbar('Sem permissões para acesso', { variant: 'error' });
+  else
+    enqueueSnackbar(
+      'Algo aconteceu, tente novamente mais tarde ou entre em contato com o suporte',
+      { variant: 'error' },
+    );
+};
+
 export async function uploadFile(file: File, path: string, payload?: any) {
   const formData = new FormData();
   formData.append('file', file);

@@ -10,6 +10,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';
+import { handleBlobError } from 'core/utils/helpers/handleBlobError';
 
 import { IErrorResp } from '../../../../errors/types';
 
@@ -18,15 +19,21 @@ export interface IReportBase {
   downloadType?: ReportDownloadtypeEnum;
   companiesIds?: string[];
   companiesGroupIds?: string[];
-}
-
-export interface IReportClinic extends IReportBase {
-  cities?: string[];
   uf?: string[];
+  startDate?: Date;
+  endDate?: Date;
+
+  notInEvaluationType?: string[];
+  isPeriodic?: boolean;
+  isChange?: boolean;
+  isAdmission?: boolean;
+  isReturn?: boolean;
+  isDismissal?: boolean;
 }
 
-export async function mutReportClinic(data: IReportClinic, companyId: string) {
+export async function mutReportClinic(data: IReportBase, companyId: string) {
   const { token } = await refreshToken();
+
   const response = await api.post(
     `${ApiRoutesEnum.REPORT_CLINIC}`.replace(':companyId', companyId),
     {
@@ -52,7 +59,7 @@ export function useMutReportClinic() {
   const { getCompanyId } = useGetCompanyId();
 
   return useMutation(
-    async (data: IReportClinic) => mutReportClinic(data, getCompanyId(data)),
+    async (data: IReportBase) => mutReportClinic(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
         if (resp.isXml)
@@ -60,12 +67,10 @@ export function useMutReportClinic() {
             variant: 'success',
           });
 
-        console.log(resp);
         return resp;
       },
       onError: (error: IErrorResp) => {
-        if (error.response?.data)
-          enqueueSnackbar(error.response.data.message, { variant: 'error' });
+        handleBlobError(error, enqueueSnackbar);
       },
     },
   );

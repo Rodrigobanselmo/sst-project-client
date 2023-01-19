@@ -574,6 +574,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           startDate,
           endDate,
         }));
+        close?.();
       }
     };
 
