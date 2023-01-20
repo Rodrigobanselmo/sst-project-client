@@ -81,13 +81,13 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
   }, []);
 
   useEffect(() => {
-    if (!awaitLoad) {
+    if (!awaitLoad && !selected) {
       const listItem = document.getElementById(
         IdsEnum.INPUT_MENU_SEARCH_GHO_HIERARCHY,
       );
       listItem?.click();
     }
-  }, [awaitLoad, viewDataType]);
+  }, [awaitLoad, viewDataType, selected]);
 
   const handleSelect = useCallback(
     (data: IGho | IHierarchyTreeMapObject | IHierarchy) => {
