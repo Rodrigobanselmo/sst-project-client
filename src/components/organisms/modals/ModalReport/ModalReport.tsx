@@ -19,18 +19,23 @@ import { ModalAddAccessGroup } from 'components/organisms/modals/ModalAddAccessG
 import { ModalAddUsers } from 'components/organisms/modals/ModalAddUsers';
 import { ModalSelectAccessGroups } from 'components/organisms/modals/ModalSelectAccessGroup';
 import { UsersTable } from 'components/organisms/tables/UsersTable';
+import dayjs from 'dayjs';
 
+import { clinicExamCloseToExpire } from 'core/constants/brand.constant copy';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import {
   IReportBase,
-  useMutReportClinic,
-} from 'core/services/hooks/mutations/reports/useMutReportClinic/useMutReportClinic';
+  ReportTypeEnum,
+} from 'core/services/hooks/mutations/reports/useMutReportClinic/types';
+import { useMutReportClinic } from 'core/services/hooks/mutations/reports/useMutReportClinic/useMutReportClinic';
+import { dateToString } from 'core/utils/date/date-format';
 
 export const initialReportState = {
   title: 'Gerar Relatório',
   subtitle: '',
+  isDefault: false,
   report: undefined as undefined | IReportJson['reports'][0],
   onCloseWithoutSelect: () => {},
 };
@@ -39,8 +44,8 @@ export const ModalReport: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const [data, setData] = useState(initialReportState);
-  const filterProps = useFilterTable();
-  const clinicMutation = useMutReportClinic();
+  const { addFilter, ...filterProps } = useFilterTable();
+  const reportMutation = useMutReportClinic();
 
   const report = data.report;
 
@@ -61,6 +66,32 @@ export const ModalReport: FC = () => {
     }
   }, [getModalData]);
 
+  useEffect(() => {
+    if (data.report && !data.isDefault) {
+      if (data.report?.type === ReportTypeEnum.CLOSE_EXPIRED_EXAM)
+        addFilter(FilterFieldEnum.LTE_EXPIRED_EXAM, {
+          data: dayjs().add(clinicExamCloseToExpire, 'day').toDate(),
+          getId: (v) => v.toISOString(),
+          getName: (v) => dateToString(v),
+        });
+
+      if (data.report?.type === ReportTypeEnum.DONE_EXAM) {
+        addFilter(FilterFieldEnum.START_DATE, {
+          data: dayjs().set('date', 1).toDate(),
+          getId: (v) => v.toISOString(),
+          getName: (v) => dateToString(v),
+        });
+        addFilter(FilterFieldEnum.END_DATE, {
+          data: dayjs().toDate(),
+          getId: (v) => v.toISOString(),
+          getName: (v) => dateToString(v),
+        });
+      }
+
+      setData((dta) => ({ ...dta, isDefault: true }));
+    }
+  }, [addFilter, data]);
+
   const onClose = () => {
     onCloseModal(ModalEnum.MODAL_REPORT);
     setData(initialReportState);
@@ -73,17 +104,14 @@ export const ModalReport: FC = () => {
   };
 
   const onSubmit = async () => {
-    const submitData = filterProps.filtersQuery;
+    const submitData: any = filterProps.filtersQuery;
+    submitData.type = data.report?.type || ReportTypeEnum.CLINICS;
 
     const uniqueField = [
       FilterFieldEnum.DOWLOAD_TYPE,
       FilterFieldEnum.START_DATE,
       FilterFieldEnum.END_DATE,
-      FilterFieldEnum.IS_ADMISSION,
-      FilterFieldEnum.IS_PERIODIC,
-      FilterFieldEnum.IS_CHANGE,
-      FilterFieldEnum.IS_DISMISSAL,
-      FilterFieldEnum.IS_RETURN,
+      FilterFieldEnum.LTE_EXPIRED_EXAM,
     ];
 
     uniqueField.forEach((field) => {
@@ -91,8 +119,8 @@ export const ModalReport: FC = () => {
         submitData[field] = filterProps.filtersQuery[field]?.[0];
     });
 
-    clinicMutation
-      .mutateAsync(submitData as IReportBase)
+    reportMutation
+      .mutateAsync(submitData)
       .then(() => {
         onClose();
       })
@@ -146,13 +174,14 @@ export const ModalReport: FC = () => {
                 FilterFieldEnum.DOWLOAD_TYPE,
               ],
               ...filterProps,
+              addFilter,
             }}
           />
         </Box>
-        <FilterTagList mt={10} filterProps={filterProps} />
+        <FilterTagList mt={10} filterProps={{ ...filterProps, addFilter }} />
 
         <SModalButtons
-          loading={clinicMutation?.isLoading}
+          loading={reportMutation?.isLoading}
           onClose={onCloseNoSelect}
           buttons={buttons}
         />

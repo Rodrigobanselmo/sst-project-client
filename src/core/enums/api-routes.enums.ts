@@ -88,4 +88,5 @@ export enum ApiRoutesEnum {
   // Report
   REPORT_CLINIC = '/files/report/clinic/:companyId',
   REPORT_EXPIRED_EXAM = '/files/report/expired-exam/:companyId',
+  REPORT_DONE_EXAM = '/files/report/done-exam/:companyId',
 }

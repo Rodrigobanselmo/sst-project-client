@@ -4,6 +4,7 @@ import clone from 'clone';
 import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -38,11 +39,8 @@ export type IFilterTableData = {
   [FilterFieldEnum.EVALUATION_TYPE]?: IFilterTableType<
     ExamHistoryEvaluationEnum[]
   >;
-  [FilterFieldEnum.IS_ADMISSION]?: IFilterTableType<boolean[]>;
-  [FilterFieldEnum.IS_CHANGE]?: IFilterTableType<boolean[]>;
-  [FilterFieldEnum.IS_DISMISSAL]?: IFilterTableType<boolean[]>;
-  [FilterFieldEnum.IS_RETURN]?: IFilterTableType<boolean[]>;
-  [FilterFieldEnum.IS_PERIODIC]?: IFilterTableType<boolean[]>;
+  [FilterFieldEnum.EXAM_TYPE]?: IFilterTableType<ExamHistoryTypeEnum[]>;
+  [FilterFieldEnum.LTE_EXPIRED_EXAM]?: IFilterTableType<Date[]>;
 };
 
 export const useFilterTable = (deafult?: IFilterTableData) => {

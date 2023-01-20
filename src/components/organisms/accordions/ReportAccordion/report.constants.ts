@@ -1,10 +1,13 @@
 import {
   clinicFilterList,
-  examsFilterList,
+  doneExamsFilterList,
+  expiredExamFilterList,
   FilterFieldEnum,
 } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
+
+import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReportClinic/types';
 
 export interface IReportJson {
   name: string;
@@ -15,33 +18,41 @@ export interface IReportJson {
     permissions?: PermissionEnum[];
     name: string;
     ask: FilterFieldEnum[];
+    type: ReportTypeEnum;
   }[];
 }
 
 export const reports: IReportJson[] = [
   {
     name: 'Clínicas',
-    roles: [],
+    roles: [RoleEnum.CLINICS],
     permissions: [],
     reports: [
       {
         name: 'Lista de Clínicas',
         ask: clinicFilterList,
-      },
-      {
-        name: 'Exames Clínicas',
-        ask: clinicFilterList,
+        type: ReportTypeEnum.CLINICS,
       },
     ],
   },
   {
     name: 'Exames',
-    roles: [],
-    permissions: [],
+    roles: [RoleEnum.SCHEDULE_EXAM],
     reports: [
       {
         name: 'Exames vencidos',
-        ask: examsFilterList,
+        ask: expiredExamFilterList,
+        type: ReportTypeEnum.EXPIRED_EXAM,
+      },
+      {
+        name: 'Exames a vencer',
+        ask: expiredExamFilterList,
+        type: ReportTypeEnum.CLOSE_EXPIRED_EXAM,
+      },
+      {
+        name: 'Exames realizados',
+        ask: doneExamsFilterList,
+        type: ReportTypeEnum.DONE_EXAM,
       },
     ],
   },

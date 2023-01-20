@@ -7,17 +7,20 @@ import AutocompleteSelect from 'components/atoms/SAutocompleteSelect';
 import SCheckBox from 'components/atoms/SCheckBox';
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
+import { SInput } from 'components/atoms/SInput';
 import { STagButton, STagButtonLabelLeft } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { RadioFormText } from 'components/molecules/form/radio-text';
 import { EsocialCitiesSelect } from 'components/organisms/inputSelect/EsocialCitiesSelect/EsocialCitiesSelect';
+import dayjs from 'dayjs';
 import { employeeExamEvaluationTypeList } from 'project/enum/employee-exam-history-evaluation.enum';
+import { asoExamTypeList } from 'project/enum/employee-exam-history-type.enum';
 
 import { dateToString } from 'core/utils/date/date-format';
 
 import { SPopperArrow } from '../../../../../molecules/SPopperArrow';
-import { examsTypeList, FilterFieldEnum } from '../constants/filter.map';
+import { FilterFieldEnum, filterFieldMap } from '../constants/filter.map';
 import {
   ReportDownloadtypeEnum,
   reportDownloadtypeList,
@@ -44,164 +47,102 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
 
   return (
     <SFlex gap={4} direction={'column'} mt={4} {...props}>
-      {(filters[FilterFieldEnum.START_DATE] ||
-        filters[FilterFieldEnum.END_DATE]) && (
+      {[
+        FilterFieldEnum.END_DATE,
+        FilterFieldEnum.START_DATE,
+        FilterFieldEnum.LTE_EXPIRED_EXAM,
+      ].find((field) => filters[field]) && (
         <SFlex direction="row" gap={10} mb={10}>
-          {filters[FilterFieldEnum.START_DATE] && (
-            <Box>
-              <SDatePicker
-                inputProps={{
-                  labelPosition: 'top',
-                  superSmall: true,
-                }}
-                placeholderText="__/__/__"
-                selected={
-                  filterProps.filter?.[FilterFieldEnum.START_DATE]?.data?.[0]
-                }
-                label={'Data de início'}
-                onChange={(date) => {
-                  if (date)
-                    filterProps.addFilter(FilterFieldEnum.START_DATE, {
-                      data: date,
-                      getId: () => date.toISOString(),
-                      getName: () => dateToString(date),
-                    });
-                }}
-              />
-            </Box>
-          )}
-          {filters[FilterFieldEnum.END_DATE] && (
-            <Box>
-              <SDatePicker
-                inputProps={{
-                  labelPosition: 'top',
-                  superSmall: true,
-                }}
-                placeholderText="__/__/__"
-                selected={
-                  filterProps.filter?.[FilterFieldEnum.END_DATE]?.data?.[0]
-                }
-                label={'Data fim'}
-                onChange={(date) => {
-                  if (date)
-                    filterProps.addFilter(FilterFieldEnum.END_DATE, {
-                      data: date,
-                      getId: () => date.toISOString(),
-                      getName: () => dateToString(date),
-                    });
-                }}
-              />
-            </Box>
-          )}
+          {[
+            FilterFieldEnum.START_DATE,
+            FilterFieldEnum.END_DATE,
+            FilterFieldEnum.LTE_EXPIRED_EXAM,
+          ].map((field) => {
+            if (!filters[field]) return null;
+
+            return (
+              <Box key={field}>
+                <SDatePicker
+                  inputProps={{
+                    labelPosition: 'top',
+                    superSmall: true,
+                  }}
+                  {...(field == FilterFieldEnum.LTE_EXPIRED_EXAM && {
+                    filterDate: (date) =>
+                      dayjs().isBefore(dayjs(date).add(1, 'day')),
+                  })}
+                  placeholderText="__/__/__"
+                  selected={(filterProps as any).filter?.[field]?.data?.[0]}
+                  label={filterFieldMap[field].name}
+                  onChange={(date) => {
+                    if (date)
+                      filterProps.addFilter(field, {
+                        data: date,
+                        getId: () => date.toISOString(),
+                        getName: () => dateToString(date),
+                      });
+                  }}
+                />
+              </Box>
+            );
+          })}
+          {filters[FilterFieldEnum.LTE_EXPIRED_EXAM] &&
+            filterProps.filter?.[FilterFieldEnum.LTE_EXPIRED_EXAM]
+              ?.data?.[0] && (
+              <Box mt={16}>
+                <SInput
+                  labelPosition="center"
+                  size="small"
+                  superSmall
+                  sx={{ width: 140 }}
+                  value={
+                    -dayjs().diff(
+                      filterProps.filter?.[FilterFieldEnum.LTE_EXPIRED_EXAM]
+                        ?.data?.[0],
+                      'day',
+                    ) + 1
+                  }
+                  endAdornment={
+                    <SText fontSize={12} mr={3}>
+                      dias de hoje
+                    </SText>
+                  }
+                />
+              </Box>
+            )}
         </SFlex>
       )}
 
-      {examsTypeList.find((field) => filters[field]) && (
+      {filters[FilterFieldEnum.EXAM_TYPE] && (
         <Box mb={5}>
           <SText color="text.label" fontSize={14} mt={6} mb={3}>
             Filtar por tipo de exames:
           </SText>
           <SFlex flexWrap={'wrap'}>
-            {filters[FilterFieldEnum.IS_ADMISSION] && (
-              <SCheckBox
-                label="Admissional"
-                checked={
-                  typeof filterProps.filter?.[FilterFieldEnum.IS_ADMISSION]
-                    ?.data?.[0] != 'boolean'
-                }
-                onChange={() => {
-                  filterProps.addFilter(
-                    FilterFieldEnum.IS_ADMISSION,
-                    {
-                      data: false,
-                      getId: () => 'Admissional',
-                      getName: () => 'Admissional',
-                    },
-                    { removeIfEqual: true },
-                  );
-                }}
-              />
-            )}
-            {filters[FilterFieldEnum.IS_PERIODIC] && (
-              <SCheckBox
-                label="Periódico"
-                checked={
-                  typeof filterProps.filter?.[FilterFieldEnum.IS_PERIODIC]
-                    ?.data?.[0] != 'boolean'
-                }
-                onChange={() => {
-                  filterProps.addFilter(
-                    FilterFieldEnum.IS_PERIODIC,
-                    {
-                      data: false,
-                      getId: () => 'Periódico',
-                      getName: () => 'Periódico',
-                    },
-                    { removeIfEqual: true },
-                  );
-                }}
-              />
-            )}
-            {filters[FilterFieldEnum.IS_CHANGE] && (
-              <SCheckBox
-                label="Mudança"
-                checked={
-                  typeof filterProps.filter?.[FilterFieldEnum.IS_CHANGE]
-                    ?.data?.[0] != 'boolean'
-                }
-                onChange={() => {
-                  filterProps.addFilter(
-                    FilterFieldEnum.IS_CHANGE,
-                    {
-                      data: false,
-                      getId: () => 'Mudança',
-                      getName: () => 'Mudança',
-                    },
-                    { removeIfEqual: true },
-                  );
-                }}
-              />
-            )}
-            {filters[FilterFieldEnum.IS_RETURN] && (
-              <SCheckBox
-                label="Retorno"
-                checked={
-                  typeof filterProps.filter?.[FilterFieldEnum.IS_RETURN]
-                    ?.data?.[0] != 'boolean'
-                }
-                onChange={() => {
-                  filterProps.addFilter(
-                    FilterFieldEnum.IS_RETURN,
-                    {
-                      data: false,
-                      getId: () => 'Retorno',
-                      getName: () => 'Retorno',
-                    },
-                    { removeIfEqual: true },
-                  );
-                }}
-              />
-            )}
-            {filters[FilterFieldEnum.IS_DISMISSAL] && (
-              <SCheckBox
-                label="Demissional"
-                checked={
-                  typeof filterProps.filter?.[FilterFieldEnum.IS_DISMISSAL]
-                    ?.data?.[0] != 'boolean'
-                }
-                onChange={() => {
-                  filterProps.addFilter(
-                    FilterFieldEnum.IS_DISMISSAL,
-                    {
-                      data: false,
-                      getId: () => 'Demissional',
-                      getName: () => 'Demissional',
-                    },
-                    { removeIfEqual: true },
-                  );
-                }}
-              />
-            )}
+            {asoExamTypeList.map((evaluation) => {
+              return (
+                <SCheckBox
+                  key={evaluation.value}
+                  label={evaluation.content}
+                  checked={
+                    !filterProps.filter?.[
+                      FilterFieldEnum.EXAM_TYPE
+                    ]?.data?.includes(evaluation.value)
+                  }
+                  onChange={() => {
+                    filterProps.addFilter(
+                      FilterFieldEnum.EXAM_TYPE,
+                      {
+                        data: evaluation.value,
+                        getId: () => evaluation.value,
+                        getName: () => evaluation.content,
+                      },
+                      { removeIfEqual: true, addOnly: true },
+                    );
+                  }}
+                />
+              );
+            })}
           </SFlex>
         </Box>
       )}

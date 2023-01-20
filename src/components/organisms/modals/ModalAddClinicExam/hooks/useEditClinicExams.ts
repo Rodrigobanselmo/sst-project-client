@@ -102,7 +102,7 @@ export const useEditClinicExams = () => {
 
   const initializeModalDate = (initialData?: any) => {
     if (!initialData) return;
-    if (!(initialData as any).passBack) return;
+    if ((initialData as any).passBack) return;
 
     setClinicExamData((oldData) => {
       const newData = {
