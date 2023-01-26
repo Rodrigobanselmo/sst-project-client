@@ -219,6 +219,12 @@ export const permissionsConstantMap = {
     info: 'Pode bloquear a disponibilidade de dias específicos dos prestadores em caso de feriados e adversidades',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.ALERT]: {
+    value: PermissionEnum.ALERT,
+    label: 'Gerenciar Alertas (Emails...)',
+    info: 'Pode gerenciar quem deverá receber os alertas por email',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

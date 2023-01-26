@@ -18,7 +18,12 @@ export type IFilterTagProps = {
   onRemove: (tag: IFilterTag) => void;
 } & SFlexProps;
 
-export const FilterTag: FC<IFilterTagProps> = ({ tag, onRemove, ...props }) => {
+export const FilterTag: FC<IFilterTagProps> = ({
+  tag,
+  onRemove,
+  maxWidth,
+  ...props
+}) => {
   return (
     <SFlex
       border={'1px solid'}
@@ -35,11 +40,16 @@ export const FilterTag: FC<IFilterTagProps> = ({ tag, onRemove, ...props }) => {
       <STooltip title={tag.name.length > 30 ? tag.name : ''}>
         <Box display="flex" flexDirection={'column'} flex={1}>
           {tag?.field && (
-            <SText color="grey.600" maxWidth="150px" noBreak fontSize={10}>
+            <SText
+              color="grey.600"
+              maxWidth={maxWidth || '150px'}
+              noBreak
+              fontSize={10}
+            >
               {filterFieldMap[tag.field].name}
             </SText>
           )}
-          <SText maxWidth="150px" noBreak fontSize={11}>
+          <SText maxWidth={maxWidth || '150px'} noBreak fontSize={11}>
             {tag.name}
           </SText>
         </Box>

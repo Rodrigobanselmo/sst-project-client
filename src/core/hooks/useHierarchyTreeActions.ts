@@ -118,7 +118,7 @@ export const useHierarchyTreeActions = () => {
         try {
           await cb();
         } catch (error) {
-          console.log(error);
+          console.info(error);
           setTree(nodes);
         }
       }
@@ -315,12 +315,42 @@ export const useHierarchyTreeActions = () => {
         callBack?: () => void;
       },
     ) => {
-      const isDiffWorkspace =
-        nodesMap.length == 3 &&
-        ((nodesMap[0].id as string) || '').split('//')[1] &&
-        ((nodesMap[0].id as string) || '').split('//')[1] !=
-          ((nodesMap[2].id as string) || '').split('//')[1];
-      if (isDiffWorkspace)
+      const isDiffWorkspace = () => {
+        if (nodesMap.length != 3) return false;
+
+        if (
+          !((nodesMap?.[0]?.id as string) || '').split('//')[1] &&
+          !((nodesMap?.[2]?.id as string) || '').split('//')[1]
+        ) {
+          const isMovingToAnyCardAndIsSameWorkspace =
+            ((nodesMap?.[0]?.id as string) || '').split('//')[0] ==
+            ((nodesMap?.[2]?.id as string) || '').split('//')[0];
+
+          if (!isMovingToAnyCardAndIsSameWorkspace) return true;
+        } else if (!((nodesMap?.[2]?.id as string) || '').split('//')[1]) {
+          const isMovingToWorkspaceCardAndIsSameWorkspace =
+            ((nodesMap?.[0]?.id as string) || '').split('//')[1] ==
+            ((nodesMap?.[2]?.id as string) || '').split('//')[0];
+
+          if (!isMovingToWorkspaceCardAndIsSameWorkspace) return true;
+        } else if (!((nodesMap?.[0]?.id as string) || '').split('//')[1]) {
+          const isMovingToWorkspaceCardAndIsSameWorkspace =
+            ((nodesMap?.[0]?.id as string) || '').split('//')[0] ==
+            ((nodesMap?.[2]?.id as string) || '').split('//')[1];
+
+          if (!isMovingToWorkspaceCardAndIsSameWorkspace) return true;
+        } else {
+          const isMovingToAnyCardAndIsSameWorkspace =
+            ((nodesMap?.[0]?.id as string) || '').split('//')[1] ==
+            ((nodesMap?.[2]?.id as string) || '').split('//')[1];
+
+          if (!isMovingToAnyCardAndIsSameWorkspace) return true;
+        }
+
+        return false;
+      };
+
+      if (isDiffWorkspace())
         return enqueueSnackbar(
           'Não é possivel editar o estabelecomento dessa forma, utilize a edição pelo card.',
           {

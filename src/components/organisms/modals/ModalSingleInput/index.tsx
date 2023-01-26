@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import { InputForm } from 'components/molecules/form/input';
 import SModal, {
@@ -23,6 +24,7 @@ export enum TypeInputModal {
   PROFESSIONAL = 'professional',
   COUNCIL = 'COUNCIL',
   CONTACT = 'CONTACT',
+  EMAIL = 'EMAIL',
   EMPLOYEE = 'EMPLOYEE',
 }
 
@@ -42,7 +44,7 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
 
-  const { handleSubmit, control, reset } = useForm({
+  const { handleSubmit, control, reset, setError } = useForm({
     resolver: yupResolver(photoSchema),
   });
 
@@ -69,6 +71,11 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
   };
 
   const onSubmit: SubmitHandler<{ name: string }> = async (formData) => {
+    if (data.type == TypeInputModal.EMAIL) {
+      if (!isValidEmail(formData.name))
+        return setError('name', { message: 'Email inválido' });
+    }
+
     data.onConfirm && (await data.onConfirm(formData.name));
     onClose();
   };

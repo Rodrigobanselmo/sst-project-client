@@ -1,18 +1,20 @@
 import { FC } from 'react';
 
 import SText from 'components/atoms/SText';
+import { initialReportSelectState } from 'components/organisms/modals/ModalReportSelect/ModalReportSelect';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useAccess } from 'core/hooks/useAccess';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 
 import { useAuth } from '../../../../../../../core/contexts/AuthContext';
 import { SPopperArrow } from '../../../../../../molecules/SPopperArrow';
-import { navItems } from '../../constants/navItems';
+import { navItems, NavItemsActionEnum } from '../../constants/navItems';
 import { StackStyled } from './styles';
 import { INavProfileProps } from './types';
 
@@ -25,15 +27,16 @@ export const NavPopper: FC<INavProfileProps> = ({
   const router = useRouter();
   const { enqueueSnackbar } = useSnackbar();
   const { onOpenModal } = useModal();
+  const { isValidRoles, isValidPermissions } = useAccess();
 
   const handleNavAction = (action?: string, href?: string) => {
     switch (action) {
-      case 'signOut':
+      case NavItemsActionEnum.SIGN_OUT:
         signOut();
         enqueueSnackbar('Logout realizado com sucesso', { variant: 'success' });
         break;
 
-      case 'changeCompany':
+      case NavItemsActionEnum.CHANGE_COMPANY:
         onOpenModal(ModalEnum.COMPANY_SELECT, {
           multiple: false,
           onSelect: async (company: ICompany) => {
@@ -44,9 +47,16 @@ export const NavPopper: FC<INavProfileProps> = ({
         } as Partial<typeof initialCompanySelectState>);
         break;
 
+      case NavItemsActionEnum.REPORTS:
+        onOpenModal(
+          ModalEnum.REPORT_SELECT,
+          {} as Partial<typeof initialReportSelectState>,
+        );
+        break;
+
       default:
         router.push({
-          pathname: href,
+          pathname: href?.replace(':companyId', user?.companyId || ''),
         });
         break;
     }
@@ -66,27 +76,35 @@ export const NavPopper: FC<INavProfileProps> = ({
         color: 'text.main',
       }}
     >
-      {navItems.map(({ label, icon: Icon, action, href }) => {
-        if (
-          action === 'changeCompany' &&
-          user?.companies &&
-          user.companies?.length < 2
-        )
-          return null;
-        return (
-          <StackStyled
-            key={label}
-            px={5}
-            py={2}
-            direction="row"
-            spacing={3}
-            onClick={() => handleNavAction(action, href)}
-          >
-            <Icon sx={{ color: 'gray.600', fontSize: '17px' }} />
-            <SText fontSize={14}>{label}</SText>
-          </StackStyled>
-        );
-      })}
+      {navItems.map(
+        ({ label, icon: Icon, action, href, color, permissions, roles }) => {
+          if (
+            action === NavItemsActionEnum.CHANGE_COMPANY &&
+            user?.companies &&
+            user.companies?.length < 2
+          )
+            return null;
+
+          if (!isValidRoles(roles)) return null;
+          if (!isValidPermissions(permissions)) return null;
+
+          return (
+            <StackStyled
+              key={label}
+              px={5}
+              py={2}
+              direction="row"
+              spacing={3}
+              onClick={() => handleNavAction(action, href)}
+            >
+              <Icon sx={{ color: color || 'gray.600', fontSize: '17px' }} />
+              <SText color={color} fontSize={14}>
+                {label}
+              </SText>
+            </StackStyled>
+          );
+        },
+      )}
     </SPopperArrow>
   );
 };

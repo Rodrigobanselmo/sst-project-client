@@ -230,8 +230,8 @@ const report: IDrawerLinksItems = {
   id: 'fkjewhfwe7887wegh87we',
   modalName: ModalEnum.REPORT_SELECT,
   // href: RoutesEnum.SCHEDULE_BLOCK,
-  roles: [RoleEnum.SCHEDULE_EXAM],
-  permissions: [PermissionEnum.SCHEDULE_BLOCK],
+  // roles: [RoleEnum.],
+  // permissions: [PermissionEnum.],
   shouldMatchExactHref: false,
 };
 
@@ -253,7 +253,7 @@ export const generalArray = [
   oneClinicsData,
   exams,
   risks,
-  report,
+  // report,
   cat,
   esocial,
 ];

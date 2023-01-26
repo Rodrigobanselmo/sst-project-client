@@ -45,6 +45,7 @@ export const ModalAddCompanyGroup = () => {
     handleRemoveCompany,
     moreCompanies,
     handleOs,
+    handleAlerts,
   } = useAddCompanyGroup();
 
   const { handleAddClinic } = usePushRoute();
@@ -295,6 +296,16 @@ export const ModalAddCompanyGroup = () => {
                 >
                   Clinicas Cadastradas
                 </SButton>
+
+                <SFlex flexWrap="wrap" align="center" gap={5}>
+                  <SButton
+                    color="info"
+                    variant="outlined"
+                    onClick={handleAlerts}
+                  >
+                    Configurar Alertas
+                  </SButton>
+                </SFlex>
               </SFlex>
             </SFlex>
 

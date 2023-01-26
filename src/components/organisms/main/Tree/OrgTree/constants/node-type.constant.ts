@@ -34,7 +34,7 @@ export const nodeTypesConstant = {
       TreeTypeEnum.SECTOR,
       TreeTypeEnum.DIRECTORY,
       TreeTypeEnum.MANAGEMENT,
-      TreeTypeEnum.OFFICE,
+      // TreeTypeEnum.OFFICE,
     ],
   },
   [TreeTypeEnum.DIRECTORY]: {
@@ -48,7 +48,7 @@ export const nodeTypesConstant = {
     childOptions: [
       TreeTypeEnum.SECTOR,
       TreeTypeEnum.MANAGEMENT,
-      TreeTypeEnum.OFFICE,
+      // TreeTypeEnum.OFFICE,
     ],
   },
   [TreeTypeEnum.MANAGEMENT]: {
@@ -59,7 +59,7 @@ export const nodeTypesConstant = {
     placeholderDesc: 'descrição da gerência...',
     placeholderRealDesc: 'descrição real (entrevista) da gerência...',
     placeholder: 'nome da gerência...',
-    childOptions: [TreeTypeEnum.SECTOR, TreeTypeEnum.OFFICE],
+    childOptions: [TreeTypeEnum.SECTOR],
   },
   [TreeTypeEnum.SECTOR]: {
     value: TreeTypeEnum.SECTOR,

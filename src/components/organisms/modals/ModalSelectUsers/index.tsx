@@ -100,24 +100,30 @@ export const ModalSelectUsers: FC = () => {
               <SText mt={-4} mr={40}>
                 {selectData.title}
               </SText>
-              {users.map((work) => (
-                <STableRow clickable onClick={handleSelect(work)} key={work.id}>
-                  <SFlex align="center">
-                    <Checkbox
-                      checked={
-                        !!selectData.selected.find((w) => w.id === work.id)
-                      }
-                      size="small"
-                      sx={{
-                        'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                          color: 'grey.400',
-                        },
-                      }}
-                    />
-                    {work.name}
-                  </SFlex>
-                </STableRow>
-              ))}
+              {users
+                .filter((i) => i.name)
+                .map((work) => (
+                  <STableRow
+                    clickable
+                    onClick={handleSelect(work)}
+                    key={work.id}
+                  >
+                    <SFlex align="center">
+                      <Checkbox
+                        checked={
+                          !!selectData.selected.find((w) => w.id === work.id)
+                        }
+                        size="small"
+                        sx={{
+                          'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
+                            color: 'grey.400',
+                          },
+                        }}
+                      />
+                      {work.name}
+                    </SFlex>
+                  </STableRow>
+                ))}
             </SFlex>
           ) : (
             <>

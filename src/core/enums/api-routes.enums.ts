@@ -1,6 +1,7 @@
 export enum ApiRoutesEnum {
   ABSENTEEISMS = '/absenteeism/:companyId',
   OS = '/os/:companyId',
+  ALERT = '/alert/:companyId',
   CATS = '/cat/:companyId',
   AUTH_GROUP = '/auth/group/:companyId',
   CEP = '/company/cep',

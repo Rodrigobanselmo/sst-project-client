@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 
+export const weekDaysShortArr = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'];
 export const daysShortArr = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
 
 export const daysArr = [

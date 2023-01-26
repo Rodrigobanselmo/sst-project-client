@@ -2,6 +2,7 @@ export enum QueryEnum {
   ABSENTEEISMS = 'absenteeisms',
   CATS = 'cats',
   OS = 'OS',
+  ALERT = 'ALERT',
   AUTH_GROUP = 'auth-group',
   CID = 'CID',
   ESOCIAL_20 = 'ESOCIAL_20',

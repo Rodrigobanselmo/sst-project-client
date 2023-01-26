@@ -33,6 +33,7 @@ export const rolesConstantMap = {
     permissions: [
       PermissionEnum.CONTRACTS,
       PermissionEnum.COMPANY_GROUPS,
+      PermissionEnum.ALERT,
     ] as any,
     order: 1000,
   },
@@ -47,6 +48,7 @@ export const rolesConstantMap = {
       PermissionEnum.HOMO_GROUP,
       PermissionEnum.PROFESSIONALS,
       PermissionEnum.PROF_RESP,
+      PermissionEnum.ALERT,
     ],
     order: 2,
   },

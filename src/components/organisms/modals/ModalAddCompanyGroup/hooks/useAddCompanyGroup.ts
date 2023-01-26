@@ -208,6 +208,16 @@ export const useAddCompanyGroup = () => {
       );
   }, [push, companyGroupData?.companyGroup?.id]);
 
+  const handleAlerts = useCallback(() => {
+    if (companyGroupData?.companyGroup?.id)
+      push(
+        RoutesEnum.ALERTS.replace(
+          /:companyId/g,
+          companyGroupData?.companyGroup?.id,
+        ),
+      );
+  }, [push, companyGroupData?.companyGroup?.id]);
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -223,5 +233,6 @@ export const useAddCompanyGroup = () => {
     handleRemoveCompany,
     moreCompanies,
     handleOs,
+    handleAlerts,
   };
 };

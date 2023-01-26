@@ -82,6 +82,7 @@ export const ModalReportSelect: FC = () => {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
+          width: ['100%', '100%', 600],
         }}
         center
         p={8}

@@ -8,8 +8,8 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { useMutCopyOs } from 'core/services/hooks/mutations/manager/company/useMutCopyOs';
-import { useMutUpsertOs } from 'core/services/hooks/mutations/manager/company/useMutUpsertOs/useMutUpsertOs';
+import { useMutCopyOs } from 'core/services/hooks/mutations/manager/os/useMutCopyOs';
+import { useMutUpsertOs } from 'core/services/hooks/mutations/manager/os/useMutUpsertOs/useMutUpsertOs';
 import { useQueryOs } from 'core/services/hooks/queries/useQueryOs/useQueryOs';
 
 export const osList = [

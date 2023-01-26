@@ -1,6 +1,7 @@
 export enum RoutesEnum {
   ABSENTEEISM = '/dashboard/empresas/:companyId/absenteismo',
   OS = '/dashboard/empresas/:companyId/os',
+  ALERTS = '/dashboard/empresas/:companyId/alertas',
   CAT = '/dashboard/empresas/:companyId/cat',
   ACTION_PLAN = '/dashboard/empresas/:companyId/:workspaceId/plano-de-acao/:riskGroupId',
   CHARACTERIZATIONS = '/dashboard/empresas/:companyId/:workspaceId',

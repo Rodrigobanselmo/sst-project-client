@@ -1,4 +1,5 @@
 import '../core/styles/react-datepicker.css';
+import '../core/styles/cronStyles.css';
 import '../core/styles/react-draft-wysiwyg.css';
 import 'dayjs/locale/pt-br';
 import { Analytics } from '@vercel/analytics/react';

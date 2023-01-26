@@ -159,7 +159,8 @@ export const useDnd = (node: ITreeMapObject) => {
     if (node.stopDrag) return false;
     const nodesMap = store.getState().hierarchy.nodes as ITreeMap;
     const actualDragItem = nodesMap[dragItem.id];
-
+    console.log(node.type);
+    console.log(actualDragItem.type);
     const differentId = actualDragItem.id !== node.id;
     const notChildOfDrop = !isChild(actualDragItem.id, node.id);
     const typeIncludesNode =

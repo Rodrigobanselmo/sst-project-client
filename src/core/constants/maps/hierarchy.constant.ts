@@ -20,11 +20,7 @@ export const hierarchyConstant = {
     name: 'Diretória',
     color: 'check',
     placeholder: 'Nome da diretória...',
-    childOptions: [
-      HierarchyEnum.MANAGEMENT,
-      HierarchyEnum.SECTOR,
-      HierarchyEnum.OFFICE,
-    ],
+    childOptions: [HierarchyEnum.MANAGEMENT, HierarchyEnum.SECTOR],
   },
   [HierarchyEnum.MANAGEMENT]: {
     value: HierarchyEnum.MANAGEMENT,
@@ -32,7 +28,7 @@ export const hierarchyConstant = {
     name: 'Gerência',
     color: 'option',
     placeholder: 'Nome da gerência...',
-    childOptions: [HierarchyEnum.SECTOR, HierarchyEnum.OFFICE],
+    childOptions: [HierarchyEnum.SECTOR],
   },
   [HierarchyEnum.SECTOR]: {
     value: HierarchyEnum.SECTOR,
