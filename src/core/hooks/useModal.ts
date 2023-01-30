@@ -85,7 +85,7 @@ export const useModal = () => {
       const lastModalInPile = newPile[newPile.length - 1];
       const lastCurrentModal = newCurrentModal[newCurrentModal.length - 1];
 
-      if (lastModalInPile && lastCurrentModal.name !== lastModalInPile.name)
+      if (lastModalInPile && lastCurrentModal?.name !== lastModalInPile?.name)
         newCurrentModal = [...newCurrentModal, { ...lastModalInPile, data }];
 
       setCurrentModal(newCurrentModal);

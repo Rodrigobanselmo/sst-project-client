@@ -264,6 +264,8 @@ export const NodeCard: FC<INodeCardProps> = ({
               sx={{ pr: 1, pl: 2 }}
               onClick={handleAddCard}
               icon={AddIcon}
+              active
+              bg={'success.main'}
             />
             {showPopperHelp && (
               <Box

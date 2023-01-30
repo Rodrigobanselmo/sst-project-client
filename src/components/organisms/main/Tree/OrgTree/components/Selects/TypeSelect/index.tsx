@@ -51,6 +51,7 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
       icon={MergeTypeIcon}
       handleSelectMenu={handleEditTypeCard}
       title={'Tipo de hierarquia'}
+      disabled={node.type == TreeTypeEnum.OFFICE}
       {...props}
     />
   );
