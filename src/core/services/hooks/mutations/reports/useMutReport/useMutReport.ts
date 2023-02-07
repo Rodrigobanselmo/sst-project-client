@@ -39,7 +39,7 @@ export async function mutReport(
   return data;
 }
 
-export function useMutReportClinic() {
+export function useMutReport() {
   const { enqueueSnackbar } = useSnackbar();
   const { getCompanyId } = useGetCompanyId(true);
 

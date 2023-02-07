@@ -143,6 +143,7 @@ export const useAddDocumentYear = () => {
       },
     } as Partial<typeof initialFileUploadState>);
   };
+
   const onDownloadFile = () => {
     downloadMutation.mutate(
       `company/${documentData.companyId}/document/${documentData.id}/download`,

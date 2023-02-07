@@ -28,8 +28,8 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import {
   IReportBase,
   ReportTypeEnum,
-} from 'core/services/hooks/mutations/reports/useMutReportClinic/types';
-import { useMutReportClinic } from 'core/services/hooks/mutations/reports/useMutReportClinic/useMutReportClinic';
+} from 'core/services/hooks/mutations/reports/useMutReport/types';
+import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport/useMutReport';
 import { dateToString } from 'core/utils/date/date-format';
 
 export const initialReportState = {
@@ -45,7 +45,7 @@ export const ModalReport: FC = () => {
   const { onCloseModal } = useModal();
   const [data, setData] = useState(initialReportState);
   const { addFilter, ...filterProps } = useFilterTable();
-  const reportMutation = useMutReportClinic();
+  const reportMutation = useMutReport();
 
   const report = data.report;
 
@@ -108,7 +108,7 @@ export const ModalReport: FC = () => {
     submitData.type = data.report?.type || ReportTypeEnum.CLINICS;
 
     const uniqueField = [
-      FilterFieldEnum.DOWLOAD_TYPE,
+      FilterFieldEnum.DOWNLOAD_TYPE,
       FilterFieldEnum.START_DATE,
       FilterFieldEnum.END_DATE,
       FilterFieldEnum.LTE_EXPIRED_EXAM,
@@ -171,7 +171,7 @@ export const ModalReport: FC = () => {
             filterProps={{
               filters: [
                 ...(report ? report.ask : ([] as any)),
-                FilterFieldEnum.DOWLOAD_TYPE,
+                FilterFieldEnum.DOWNLOAD_TYPE,
               ],
               ...filterProps,
               addFilter,

@@ -20,9 +20,18 @@ export const handleError = (error: any, enqueueSnackbar: any) => {
     );
 };
 
-export async function uploadFile(file: File, path: string, payload?: any) {
+export async function uploadFile(
+  files: File | File[],
+  path: string,
+  payload?: any,
+) {
   const formData = new FormData();
-  formData.append('file', file);
+
+  if (!Array.isArray(files)) formData.append('file', files);
+  if (Array.isArray(files))
+    files?.forEach((file) => {
+      if (file) formData.append('files[]', file);
+    });
 
   if (payload)
     Object.entries(payload).forEach(([key, value]) => {

@@ -129,7 +129,7 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
         />
       )}
 
-      {filters[FilterFieldEnum.DOWLOAD_TYPE] && (
+      {filters[FilterFieldEnum.DOWNLOAD_TYPE] && (
         <Box
           mt={10}
           // flex={1}
@@ -145,7 +145,7 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
             options={reportDownloadtypeList}
             onChange={(e) => {
               if ((e.target as any).value)
-                filterProps.addFilter(FilterFieldEnum.DOWLOAD_TYPE, {
+                filterProps.addFilter(FilterFieldEnum.DOWNLOAD_TYPE, {
                   data: (e.target as any).value,
                   getId: (d) => d,
                   getName: (d) => d,
@@ -157,7 +157,7 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
             display="flex"
             width={'135%'}
             flexDirection="column"
-            {...((filterProps as any).filter[FilterFieldEnum.DOWLOAD_TYPE]
+            {...((filterProps as any).filter[FilterFieldEnum.DOWNLOAD_TYPE]
               ?.filters?.length && { disabled: true })}
           />
         </Box>

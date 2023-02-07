@@ -1,8 +1,10 @@
 import { useCallback, useMemo } from 'react';
 
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
+import { initialModalImportExport } from 'components/organisms/modals/ModalImportExport/hooks/useModalImportExport';
 import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
 import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
+import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CompanyStepEnum } from 'project/enum/company-step.enum';
@@ -29,6 +31,7 @@ import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import STeamIcon from 'assets/icons/STeamIcon';
 import { SWorkspaceIcon } from 'assets/icons/SWorkspaceIcon';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { CompanyActionEnum } from 'core/enums/company-action.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
@@ -37,7 +40,11 @@ import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
+import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import { useMutSetClinicsCompany } from 'core/services/hooks/mutations/manager/company/useMutSetClinicsCompany';
+import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
+import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport/useMutReport';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { useAppSelector } from '../useAppSelector';
@@ -52,6 +59,9 @@ export const useCompanyStep = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { handleAddWorkspace, handleAddEmployees, handleAddClinic } =
     usePushRoute();
+
+  const uploadMutation = useMutUploadFile();
+  const reportMutation = useMutReport();
 
   useFetchFeedback(isLoading && !company?.id);
   const step = useMemo(() => {
@@ -73,6 +83,26 @@ export const useCompanyStep = () => {
   const handleEditCompany = useCallback(() => {
     onOpenModal(ModalEnum.COMPANY_EDIT, company);
   }, [company, onOpenModal]);
+
+  const handleUploadRisk = useCallback(() => {
+    onOpenModal(ModalEnum.IMPORT_EXPORT_MODAL, {
+      onDownload: async () => {
+        await reportMutation.mutateAsync({
+          type: ReportTypeEnum.RISK_STRUCTURE,
+          companyId: company.id,
+        });
+      },
+      onConfirm: async ({ files }) => {
+        await uploadMutation.mutateAsync({
+          file: files[0],
+          path: ApiRoutesEnum.UPLOAD_COMPANY_STRUCTURE.replace(
+            ':companyId',
+            company.id,
+          ),
+        });
+      },
+    } as Partial<typeof initialModalImportExport>);
+  }, [company.id, onOpenModal, reportMutation, uploadMutation]);
 
   const handleEditDocuments = useCallback(() => {
     onOpenModal(ModalEnum.DOCUMENTS_VIEW, company);
@@ -451,5 +481,6 @@ export const useCompanyStep = () => {
     isLoading,
     nextStep,
     medicineStepMemo,
+    handleUploadRisk,
   };
 };

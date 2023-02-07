@@ -5,6 +5,7 @@ import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SIconButton from 'components/atoms/SIconButton';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
+import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { ModalAddExam } from 'components/organisms/modals/ModalAddExam/ModalAddExam';
 import { ModalAddExcelEmployees } from 'components/organisms/modals/ModalAddExcelEmployees';
@@ -13,6 +14,7 @@ import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalEditExamRisk } from 'components/organisms/modals/ModalEditExamRisk/ModalEditExamRisk';
 import { ModalEditProtocolRisk } from 'components/organisms/modals/ModalEditProtocolRisk/ModalEditProtocolRisk';
+import { ModalImportExport } from 'components/organisms/modals/ModalImportExport';
 import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
@@ -29,6 +31,7 @@ import { NextPage } from 'next';
 import { SArrowNextIcon } from 'assets/icons/SArrowNextIcon';
 import SClinicIcon from 'assets/icons/SClinicIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
+import SUploadIcon from 'assets/icons/SUploadIcon';
 
 import { useCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
@@ -47,6 +50,7 @@ const CompanyPage: NextPage = () => {
     company,
     isLoading,
     medicineStepMemo,
+    handleUploadRisk,
   } = useCompanyStep();
 
   useFetchFeedback(isLoading && !company?.id);
@@ -111,6 +115,16 @@ const CompanyPage: NextPage = () => {
             <SActionButton key={props.text} {...props} />
           ))}
         </SFlex>
+        <SText mt={20}>Importações</SText>
+        <SFlex mt={5} gap={10} flexWrap="wrap">
+          <STagButton
+            text="Planilha de riscos"
+            onClick={handleUploadRisk}
+            width={'200px'}
+            icon={SUploadIcon}
+          />
+        </SFlex>
+
         <WorkspaceTable hideModal />
         <ModalAddWorkspace />
         <ModalAddExcelEmployees />
@@ -123,6 +137,7 @@ const CompanyPage: NextPage = () => {
         <ModalViewExam />
         <ModalEditExamRisk />
         <ModalEditProtocolRisk />
+        <ModalImportExport />
 
         <ModalViewUsers />
         <StackModalViewUsers />

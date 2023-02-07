@@ -13,7 +13,7 @@ export enum FilterFieldEnum {
   LTE_EXPIRED_EXAM = 'lteExpiredDateExam',
 
   //ALL
-  DOWLOAD_TYPE = 'downloadType',
+  DOWNLOAD_TYPE = 'downloadType',
 }
 
 type IMap = Record<
@@ -65,8 +65,8 @@ export const filterFieldMap: IMap = {
     value: FilterFieldEnum.LTE_EXPIRED_EXAM,
     name: 'Exames a vencer até',
   },
-  [FilterFieldEnum.DOWLOAD_TYPE]: {
-    value: FilterFieldEnum.DOWLOAD_TYPE,
+  [FilterFieldEnum.DOWNLOAD_TYPE]: {
+    value: FilterFieldEnum.DOWNLOAD_TYPE,
     name: '',
   },
 };

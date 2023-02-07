@@ -16,7 +16,7 @@ export const FilterTagList: FC<IFilterTagProps> = ({
 }) => {
   const tagsMemo = React.useMemo(() => {
     const tags = Object.values(filterProps.filter)
-      .filter((f) => f.field != FilterFieldEnum.DOWLOAD_TYPE)
+      .filter((f) => f.field != FilterFieldEnum.DOWNLOAD_TYPE)
       .flatMap((t) => [...t.filters.map((_t) => ({ ..._t, field: t.field }))]);
 
     return tags;

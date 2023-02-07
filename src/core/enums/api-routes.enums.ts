@@ -57,8 +57,8 @@ export enum ApiRoutesEnum {
   UPLOAD_CNAE = '/files/cnae',
   UPLOAD_EMPLOYEES = '/files/company/employees/upload',
   UPLOAD_HIERARCHY = '/files/company/hierarchies/upload',
-  UPLOAD_COMPANY_STRUCTURE = '/files/company/company-structure/upload',
   UPLOAD_UNIQUE_EMPLOYEES = '/files/company/upload/unique',
+  UPLOAD_COMPANY_STRUCTURE = '/files/company/company-structure/upload/:companyId',
   USERS = '/users',
   PDF_GUIDE = '/documents/pdf/guide',
   PDF_KIT = '/documents/pdf/kit',
@@ -91,4 +91,5 @@ export enum ApiRoutesEnum {
   REPORT_CLINIC = '/files/report/clinic/:companyId',
   REPORT_EXPIRED_EXAM = '/files/report/expired-exam/:companyId',
   REPORT_DONE_EXAM = '/files/report/done-exam/:companyId',
+  REPORT_RISK_STRUCTURE = '/files/report/risk-structure/:companyId',
 }

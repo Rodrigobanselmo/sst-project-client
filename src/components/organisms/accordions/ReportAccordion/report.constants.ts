@@ -7,7 +7,7 @@ import {
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 
-import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReportClinic/types';
+import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
 
 export interface IReportJson {
   name: string;
