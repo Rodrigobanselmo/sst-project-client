@@ -13,6 +13,7 @@ import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enu
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
 import { useQueryHisScheduleClinicTime } from 'core/services/hooks/queries/useQueryHisScheduleClinicTime/useQueryHisScheduleClinicTime';
+import { addBusinessDays } from 'core/utils/date/addBusinessDays';
 import { addMinutesToTime, getDateWithTime } from 'core/utils/helpers/times';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
@@ -82,7 +83,7 @@ export const useEvaluationStep = ({
       if (!isPendingExams && (!schedule.isSelected || schedule.isAttendance))
         return;
       if (!schedule.doneDate) return;
-      return dayjs(schedule.doneDate).add(schedule.dueInDays || 0, 'd');
+      return dayjs(addBusinessDays(schedule.doneDate, schedule.dueInDays || 0));
     })
     .filter((i) => i)
     .sort((a, b) => sortDate(b, a))[0];

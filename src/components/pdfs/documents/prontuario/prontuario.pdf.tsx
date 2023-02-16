@@ -377,7 +377,7 @@ export default function PdfProntuarioPage({
                 // { height: 70, flexDirection: 'row', alignItems: 'flex-start' },
               ]}
             >
-              <Text style={[sm.bodyB1, { marginBottom: 5 }]}>Observações:</Text>
+              <Text style={[s.bodyB1, { marginBottom: 5 }]}>Observações:</Text>
             </View>
           </>
         </View>

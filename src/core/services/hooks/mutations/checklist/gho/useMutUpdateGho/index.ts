@@ -14,6 +14,7 @@ import { IErrorResp } from '../../../../../errors/types';
 export interface IUpdateGho extends Partial<Pick<IGho, 'name' | 'status'>> {
   id: string;
   hierarchies?: { id: string; workspaceId: string }[];
+  workspaceIds?: string[];
   companyId?: string;
   startDate?: Date;
   endDate?: Date;

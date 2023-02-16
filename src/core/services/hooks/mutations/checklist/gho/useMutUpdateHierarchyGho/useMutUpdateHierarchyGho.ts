@@ -13,7 +13,6 @@ import { IErrorResp } from '../../../../../errors/types';
 
 interface IUpdateGho {
   ids: number[];
-  workspaceId: string;
   companyId?: string;
   startDate?: Date;
   endDate?: Date;

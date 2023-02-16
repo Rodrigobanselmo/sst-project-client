@@ -52,6 +52,10 @@ export const s = StyleSheet.create({
     width: 50,
     marginRight: 5,
   },
+  bodyB1: {
+    fontSize: 8,
+    fontWeight: 'semibold',
+  },
   protoText: {
     width: 200,
     marginRight: 5,

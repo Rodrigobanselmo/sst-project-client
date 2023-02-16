@@ -13,7 +13,6 @@ import { IErrorResp } from '../../../../../errors/types';
 
 interface IDeleteGho {
   ids: number[];
-  workspaceId: string;
   companyId?: string;
 }
 

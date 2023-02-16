@@ -107,13 +107,12 @@ export const HistoryScheduleExamCompanyTable: FC<
     if (!isAuthSuccess({ permissions: [PermissionEnum.CLINIC_SCHEDULE] }))
       return;
 
-    console.log(data);
-
     if (data) {
       const employee = await fetchHisScheduleExam(
         {
           employeeId: data.employee?.id,
           examIsAvaliation: data.exam?.isAvaliation,
+          notAfterDate: data.doneDate,
         },
         data.clinicId,
       );

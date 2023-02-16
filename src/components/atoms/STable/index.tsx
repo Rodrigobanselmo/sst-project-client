@@ -54,7 +54,7 @@ export function STableBody<T>({
   renderRow,
   rowsData,
   rowsInitialNumber = 8,
-  numberRowsToLoadMore = 8,
+  numberRowsToLoadMore = 100,
   hideLoadMore,
   hideEmpty,
   contentEmpty,

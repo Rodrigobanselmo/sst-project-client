@@ -204,15 +204,16 @@ export const AlertForm = (props: BoxProps) => {
                               ...alertValue?.configJson,
                             };
 
-                            const includes =
-                              configJson.weekDays.includes(numDay);
+                            const includes = (
+                              configJson as any
+                            ).weekDays.includes(numDay);
 
                             if (includes) {
                               configJson.weekDays = configJson.weekDays.filter(
                                 (i) => i != numDay,
                               );
                             } else {
-                              configJson.weekDays.push(numDay);
+                              (configJson as any).weekDays.push(numDay);
                             }
 
                             onConfigSave({

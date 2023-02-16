@@ -22,6 +22,7 @@ import { ghoSchema } from 'core/utils/schemas/gho.schema';
 
 import { useStartEndDate } from '../../ModalAddCharacterization/hooks/useStartEndDate';
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
+import { IWorkspace } from './../../../../../core/interfaces/api/ICompany';
 
 export const initialAddGhoState = {
   status: StatusEnum.ACTIVE,
@@ -29,6 +30,8 @@ export const initialAddGhoState = {
   companyId: '',
   hierarchies: [] as IHierarchy[],
   description: '',
+  workspaces: [] as IWorkspace[],
+  workspaceIds: [] as string[],
   id: '',
   startDate: undefined as Date | undefined,
   endDate: undefined as Date | undefined,
@@ -127,6 +130,9 @@ export const useAddGho = () => {
           ...submitData,
           startDate: ghoData.startDate,
           endDate: ghoData.endDate,
+          ...(ghoData.workspaceIds.length && {
+            workspaceIds: ghoData.workspaceIds,
+          }),
           hierarchies: ghoData.hierarchies.reduce((acc, hierarchy) => {
             acc = [
               ...acc,
@@ -147,6 +153,9 @@ export const useAddGho = () => {
       await updateGhoMut
         .mutateAsync({
           ...submitData,
+          ...(ghoData.workspaceIds.length && {
+            workspaceIds: ghoData.workspaceIds,
+          }),
           id: ghoData.id,
         })
         .then(() => {
@@ -251,5 +260,6 @@ export const useAddGho = () => {
     handleSubmit,
     onRemove: () => preventDelete(onRemove),
     onAddHierarchy,
+    ghoQuery,
   };
 };

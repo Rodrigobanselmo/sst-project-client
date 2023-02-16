@@ -6,7 +6,6 @@ import { Font, Image, Page, Text, View } from '@react-pdf/renderer';
 import dayjs from 'dayjs';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 
-import { daysShortArr } from 'core/hooks/useCalendar';
 import { IExam } from 'core/interfaces/api/IExam';
 import { IPdfGuideData } from 'core/interfaces/api/IPdfGuideData';
 import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
@@ -43,6 +42,8 @@ Font.register({
   ],
 });
 
+const daysShortArr = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
+
 export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
   const consultant = data.consultantCompany;
   const clinic = data?.clinicExam?.clinic;
@@ -72,7 +73,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
     // const rangeWeekDay = range[`${dayOfWeek}-`]
 
     return `${(
-      daysShortArr[dayOfWeek] || ''
+      daysShortArr[dayOfWeek - 1] || ''
     ).toUpperCase()}: ${timeOfWeekText}`;
   };
 
@@ -113,22 +114,22 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
         <View style={sm.row}>
           <View style={[s.table1, { width: 100 }]}>
             <Text style={sm.label}>CPF:</Text>
-            <Text style={sm.bodyB1}>{cpfMask.mask(data.cpf)}</Text>
+            <Text style={s.bodyB1}>{cpfMask.mask(data.cpf)}</Text>
           </View>
           <View style={[s.table1L, { flexGrow: 1 }]}>
             <Text style={sm.label}>Nome Completo:</Text>
-            <Text style={sm.bodyB1}>{data.name}</Text>
+            <Text style={s.bodyB1}>{data.name}</Text>
           </View>
         </View>
 
         <View style={sm.row}>
           <View style={[s.table2, { width: 250 }]}>
             <Text style={sm.label}>Empresa:</Text>
-            <Text style={sm.bodyB1}>{getCompanyName(data.company)}</Text>
+            <Text style={s.bodyB1}>{getCompanyName(data.company)}</Text>
           </View>
           <View style={[s.table2L, { flexGrow: 1 }]}>
             <Text style={sm.label}>Função:</Text>
-            <Text style={sm.bodyB1}>{data?.hierarchy?.name}</Text>
+            <Text style={s.bodyB1}>{data?.hierarchy?.name}</Text>
           </View>
         </View>
       </View>
@@ -167,7 +168,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
                       <Text style={sm.h1}>Exames Complementares</Text>
                     </View>
                     <View style={[s.table2]}>
-                      <Text style={sm.bodyB1}>
+                      <Text style={s.bodyB1}>
                         Data: {dateToString(examBlock.doneDate)}
                         &nbsp;&nbsp;&nbsp;&nbsp;Hora: {examBlock.time}
                         {/* &nbsp;&nbsp;&nbsp;&nbsp;Dia: ( */}
@@ -180,20 +181,20 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
                   <View style={[sm.row]}>
                     {/* Clinic */}
                     <View style={[s.table2, { flexGrow: 1, width: 330 }]}>
-                      <Text style={sm.bodyB1}>{examBlock.clinic.fantasy}</Text>
-                      <Text style={sm.body}>
+                      <Text style={s.bodyB1}>{examBlock.clinic.fantasy}</Text>
+                      <Text style={s.body}>
                         {getAddressMain(examBlock.clinic.address)}
                       </Text>
-                      <Text style={sm.body}>
+                      <Text style={s.body}>
                         {getAddressCity(examBlock.clinic.address)}
                       </Text>
                       {examBlock.clinic.contacts[0]?.phone && (
-                        <Text style={sm.body}>
+                        <Text style={s.body}>
                           {getContactPhone(examBlock.clinic.contacts[0])}
                         </Text>
                       )}
                       {examBlock.clinic.contacts[0]?.email && (
-                        <Text style={sm.body}>
+                        <Text style={s.body}>
                           Email: {examBlock.clinic.contacts[0].email}
                         </Text>
                       )}
@@ -204,7 +205,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
                     <View
                       style={[s.table2L, sm.pb4, { flexGrow: 1, width: 400 }]}
                     >
-                      <Text style={[sm.bodyB1, sm.mb1]}>Exames:</Text>
+                      <Text style={[s.bodyB1, sm.mb1]}>Exames:</Text>
                       {Object.entries(examRecord).map(([key, exams]) => {
                         return (
                           <View style={[sm.mb4]}>
@@ -218,14 +219,14 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
                               >
                                 ATENDIMENTO:{' '}
                               </Text>
-                              <Text style={sm.body}>{key}</Text>
+                              <Text style={s.body}>{key}</Text>
                             </View>
                             <View style={[sm.row, sm.wrap]}>
                               {exams.map((exam) => {
                                 return (
                                   <Text
                                     style={[
-                                      sm.body,
+                                      s.body,
                                       sm.tBox,
                                       sm.mt2,
                                       sm.darkLightRow,
@@ -248,7 +249,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
 
           {/* Instructions */}
           <View style={[s.table1, sm.mb]}>
-            <Text style={[sm.bodyB1, { marginBottom: 5 }]}>
+            <Text style={[s.bodyB1, { marginBottom: 5 }]}>
               Orientações para a realização dos exames complementares:
             </Text>
             {data.exams.map((exam) => {
@@ -256,8 +257,8 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
               return (
                 <View style={{ marginBottom: 4 }}>
                   <View style={[sm.row]}>
-                    <Text style={[sm.bodyBS, sm.bullet]}>•</Text>
-                    <Text style={sm.bodyBS}>{exam.name}</Text>
+                    <Text style={[s.bodyBS, sm.bullet]}>•</Text>
+                    <Text style={s.bodyBS}>{exam.name}</Text>
                   </View>
 
                   <View>
@@ -268,12 +269,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
                         return (
                           <View style={[sm.row]}>
                             <Text
-                              style={[
-                                sm.bodyB1,
-                                sm.tBox,
-                                sm.mt2,
-                                sm.bulletDown,
-                              ]}
+                              style={[s.bodySB1, s.tBox, sm.mt2, sm.bulletDown]}
                             >
                               {instruction}
                             </Text>
@@ -307,16 +303,16 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
               <Text style={[sm.title, { fontSize: 10, marginBottom: 5 }]}>
                 Clínica Credenciada
               </Text>
-              <Text style={sm.bodyB1}>{clinic?.fantasy}</Text>
-              <Text style={sm.body}>{getAddressMain(clinic?.address)}</Text>
-              <Text style={sm.body}>{getAddressCity(clinic?.address)}</Text>
+              <Text style={s.bodyB1}>{clinic?.fantasy}</Text>
+              <Text style={s.body}>{getAddressMain(clinic?.address)}</Text>
+              <Text style={s.body}>{getAddressCity(clinic?.address)}</Text>
               {clinic?.contacts[0]?.phone && (
-                <Text style={sm.body}>
+                <Text style={s.body}>
                   {getContactPhone(clinic?.contacts[0])}
                 </Text>
               )}
               {clinic?.contacts[0]?.email && (
-                <Text style={sm.body}>Email: {clinic?.contacts[0].email}</Text>
+                <Text style={s.body}>Email: {clinic?.contacts[0].email}</Text>
               )}
               {/* <Html>{html(exam.clinic.obs)}</Html> */}
               <View style={[sm.row, sm.mt5]}>
@@ -325,7 +321,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
                 >
                   ATENDIMENTO:{' '}
                 </Text>
-                <Text style={sm.body}>
+                <Text style={s.body}>
                   {getExamRangeTime(
                     data.clinicExam.isScheduled,
                     data.clinicExam.scheduleRange,
@@ -339,19 +335,19 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
             <View style={[sm.row]}>
               <View style={[s.table2, { flexGrow: 1 }]}>
                 <Text style={sm.label}>Data:</Text>
-                <Text style={sm.bodyB1}>
+                <Text style={s.bodyB1}>
                   {dateToString(data.clinicExam.doneDate)}
                 </Text>
                 {/* {daysArr[dayjs(data.clinicExam.doneDate).day()]}) */}
               </View>
               <View style={[s.table2L, { flexGrow: 1 }]}>
                 <Text style={sm.label}>Hora:</Text>
-                <Text style={sm.bodyB1}>{data.clinicExam.time}</Text>
+                <Text style={s.bodyB1}>{data.clinicExam.time}</Text>
               </View>
               {data.clinicExam?.type && (
                 <View style={[s.table2L, { flexGrow: 1 }]}>
                   <Text style={sm.label}>Exame:</Text>
-                  <Text style={sm.bodyB1}>
+                  <Text style={s.bodyB1}>
                     {employeeExamTypeMap[data.clinicExam.type].content}
                   </Text>
                 </View>
@@ -361,7 +357,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
 
           {/* Complementary Instructions */}
           <View style={[s.table1, sm.mb]}>
-            <Text style={[sm.bodyB1, { marginBottom: 5 }]}>
+            <Text style={[s.bodyB1, { marginBottom: 5 }]}>
               Orientações para a realização dos exames médicos na Clínica
               Credenciada:
             </Text>
@@ -378,8 +374,8 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
               return (
                 <View style={{ marginBottom: 4 }}>
                   <View style={[sm.row, { marginBottom: 3 }]}>
-                    <Text style={[sm.bodyB1, sm.bullet]}>•</Text>
-                    <Text style={sm.bodyB1}>{exam.name}</Text>
+                    <Text style={[s.bodyB1, sm.bullet]}>•</Text>
+                    <Text style={s.bodyB1}>{exam.name}</Text>
                   </View>
 
                   <View>
@@ -389,7 +385,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
                       .map((instruction) => {
                         return (
                           <View style={[sm.row, sm.bulletDown]}>
-                            <Text style={[sm.bodyB1, sm.tBox, sm.mt2]}>
+                            <Text style={[s.bodyB1, sm.tBox, sm.mt2]}>
                               {instruction}
                             </Text>
                           </View>

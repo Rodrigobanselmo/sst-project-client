@@ -307,7 +307,11 @@ export const ModalEditEmployeeHisExamClinic = () => {
             <SFlex flexWrap="wrap" gap={5} mt={8} align="end">
               <Box flex={2} maxWidth={500}>
                 <ProfessionalInputSelect
-                  query={{ byCouncil: true, companyId: data.clinicId }}
+                  query={{
+                    byCouncil: true,
+                    companyId: data.clinicId,
+                    clinicId: data.clinicId,
+                  }}
                   onChange={(prof) => {
                     onChangeDoctor(prof);
                     // setData({

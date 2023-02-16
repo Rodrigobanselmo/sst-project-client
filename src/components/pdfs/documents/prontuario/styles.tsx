@@ -22,6 +22,10 @@ export const s = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
   },
+  bodyB1: {
+    fontSize: 10,
+    fontWeight: 'semibold',
+  },
   tableH: {
     ...standard.table,
     borderBottom: '1 solid #000',

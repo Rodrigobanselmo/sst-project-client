@@ -174,7 +174,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
             </View>
             <View style={sm.row}>
               <View style={[s.table1, { flexGrow: 1 }]}>
-                <Text style={sm.bodyB1}>
+                <Text style={s.bodyB1}>
                   PORTARIA Nº 24 DE 29/12/94 E Nº 8 DE 08/05/96 - NR7
                 </Text>
               </View>
@@ -215,7 +215,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
             <View style={[s.table1, { flexGrow: 1 }]}>
               <Text style={sm.label}>
                 Data exame clínico:{' '}
-                <Text style={sm.bodyB1}>
+                <Text style={s.bodyB1}>
                   {dayjs(clinicExam.doneDate).format('DD/MM/YYYY')}
                 </Text>
               </Text>
@@ -277,7 +277,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
 
             {isNoRisk && (
               <View style={[sm.row, s.table1]}>
-                <Text style={[sm.bodyB1]}>Ausência de risco específico</Text>
+                <Text style={[s.bodyB1]}>Ausência de risco específico</Text>
               </View>
             )}
           </View>
@@ -439,7 +439,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
             // { height: 70, flexDirection: 'row', alignItems: 'flex-start' },
           ]}
         >
-          <Text style={[sm.bodyB1, { marginBottom: 5 }]}>Observações:</Text>
+          <Text style={[s.bodyB1, { marginBottom: 5 }]}>Observações:</Text>
         </View>
       </View>
       <View>

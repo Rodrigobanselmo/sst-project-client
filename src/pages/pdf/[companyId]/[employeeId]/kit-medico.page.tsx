@@ -13,7 +13,7 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 const Kit: NextPage = () => {
   const { query } = useRouter();
   const employeeId = query.employeeId as string;
-  const asoId = query.asoId as string;
+  const asoId = query.aso as string;
 
   const { data: kitData } = useQueryPdfKit(asoId, employeeId);
   return (

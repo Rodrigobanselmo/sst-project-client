@@ -35,6 +35,7 @@ export const ModalAddGho = () => {
     onRemove,
     onAddHierarchy,
     hierarchies,
+    ghoQuery,
   } = useAddGho();
 
   const buttons = [
@@ -69,19 +70,19 @@ export const ModalAddGho = () => {
             maxRows={4}
             label="Nome"
             control={control}
-            sx={{ width: ['100%', 600] }}
+            sx={{ width: ['100%', '100%', '100%', 800] }}
             placeholder={'nome do GSE...'}
             name="name"
             size="small"
           />
           <InputForm
             multiline
-            defaultValue={ghoData.description}
+            defaultValue={ghoData.description || ghoQuery.description}
             minRows={2}
             maxRows={4}
             label="Descrição"
             control={control}
-            sx={{ width: ['100%', 600] }}
+            sx={{ width: ['100%', '100%', '100%', 800] }}
             placeholder={'descrição do GSE...'}
             name="description"
             size="small"
@@ -94,7 +95,11 @@ export const ModalAddGho = () => {
             />
           </Box>
         </SFlex>
-        <EditGhoSelects ghoData={ghoData} setGhoData={setGhoData} />
+        <EditGhoSelects
+          ghoQuery={ghoQuery}
+          ghoData={ghoData}
+          setGhoData={setGhoData}
+        />
         <SModalButtons
           loading={loading}
           onClose={onCloseUnsaved}

@@ -27,7 +27,13 @@ export const Row: FC<RowItemsProps> = ({
   anchorEl,
 }) => {
   const hierarchies = data.hierarchies
-    ? data.hierarchies.map((value) => value.id + '//' + value.workspaceId)
+    ? data.hierarchies
+        .map((value) =>
+          data?.workspaceIds?.map(
+            (workspaceId) => value.id + '//' + workspaceId,
+          ),
+        )
+        .flat(1)
     : [];
 
   return (

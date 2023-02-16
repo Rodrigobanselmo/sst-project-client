@@ -137,6 +137,7 @@ export const CouncilShow = ({
           <Box flex={5}>
             <AutocompleteForm
               name="councilType"
+              onClick={() => onOpenModal()}
               control={control}
               freeSolo
               disabled={true}
@@ -155,6 +156,7 @@ export const CouncilShow = ({
           <Box flex={1}>
             <AutocompleteForm
               name="councilUF"
+              onClick={() => onOpenModal()}
               inputProps={{
                 labelPosition: 'top',
                 placeholder: '__',
@@ -173,6 +175,7 @@ export const CouncilShow = ({
             <InputForm
               label="Identificação"
               labelPosition="top"
+              onClick={() => onOpenModal()}
               disabled={true}
               sx={{ minWidth: [250] }}
               control={control}

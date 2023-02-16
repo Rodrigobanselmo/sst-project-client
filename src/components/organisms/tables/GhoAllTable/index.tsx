@@ -75,10 +75,6 @@ export const GhoAllTable: FC<
     keys: ['name'],
   });
 
-  // const handleEdit = (data: IEnvironment) => {
-  //   onOpenModal(ModalEnum.ENVIRONMENT_ADD, { ...data });
-  // };
-
   const onSelectRow = (company: IGho) => {
     if (isSelect) {
       onSelectData(company);

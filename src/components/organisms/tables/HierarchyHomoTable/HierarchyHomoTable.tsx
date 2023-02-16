@@ -1,16 +1,18 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import { STable, STableBody, STableRow } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
+import SText from 'components/atoms/SText';
 import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
 import dayjs from 'dayjs';
 
 import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 
+import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import { IHierarchyOnHomogeneous } from 'core/interfaces/api/IGho';
@@ -62,39 +64,33 @@ export const HierarchyHomoTable: FC<
   };
 
   const onEdit = (h: IHierarchy & IHierarchyOnHomogeneous) => {
-    //! missing edit when creating
-    if (h.workspaceId)
-      selectStartEndDate(
-        (data) => {
-          updateMutation.mutate({
-            workspaceId: h.workspaceId,
-            ids: [h.id],
-            endDate: data.endDate,
-            startDate: data.startDate,
-            companyId: h.companyId,
-          });
-        },
-        {
-          endDate: h.endDate ? dayjs(h.endDate).toDate() : undefined,
-          startDate: h.startDate ? dayjs(h.startDate).toDate() : undefined,
-        },
-      );
+    selectStartEndDate(
+      (data) => {
+        updateMutation.mutate({
+          ids: [h.id],
+          endDate: data.endDate,
+          startDate: data.startDate,
+          companyId: h.companyId,
+        });
+      },
+      {
+        endDate: h.endDate ? dayjs(h.endDate).toDate() : undefined,
+        startDate: h.startDate ? dayjs(h.startDate).toDate() : undefined,
+      },
+    );
   };
 
   const onDelete = (h: IHierarchy & IHierarchyOnHomogeneous) => {
-    if (h.workspaceId) {
-      deleteMutation.mutate({
-        workspaceId: h.workspaceId,
-        ids: [h.id],
-        companyId: h.companyId,
-      });
-    }
+    deleteMutation.mutate({
+      ids: [h.id],
+      companyId: h.companyId,
+    });
   };
 
-  const onSelectRow = (exam: IHierarchy & IHierarchyOnHomogeneous) => {
+  const onSelectRow = (hier: IHierarchy & IHierarchyOnHomogeneous) => {
     if (isSelect) {
-      onSelectData(exam);
-    } else onEdit(exam);
+      onSelectData(hier);
+    } else onEdit(hier);
   };
 
   const { handleSearchChange, results } = useTableSearch({
@@ -108,6 +104,25 @@ export const HierarchyHomoTable: FC<
     }, [] as any[]),
     keys: ['name', 'label'],
   });
+
+  const getName = (row: IHierarchy) => {
+    const parents = row?.parents || [];
+    const fullPath = [row, ...parents].reverse();
+
+    const sector = row?.parents?.find((p) => p.type == 'SECTOR');
+    const sub_sector = row?.parents?.find((p) => p.type == 'SUB_SECTOR');
+    const path = [row.name];
+    if (sub_sector?.name) path.push(sub_sector?.name);
+    if (sector?.name) path.push(sector?.name);
+
+    const name =
+      row.type == 'OFFICE'
+        ? path.reverse().join(' --> ')
+        : `${path.length > 1 ? path.reverse().join(' --> ') : row.name} (${
+            originRiskMap[row.type]?.name
+          })`;
+    return { fullPath, name };
+  };
 
   return (
     <>
@@ -123,25 +138,16 @@ export const HierarchyHomoTable: FC<
           selectedData ? '15px ' : ''
         }minmax(250px, 5fr) 120px 120px 50px`}
       >
-        {/* <STableHeader>
-          {selectedData && <STableHRow></STableHRow>}
-          <STableHRow>Nome</STableHRow>
-          <STableHRow>Análise</STableHRow>
-          <STableHRow>Material</STableHRow>
-          <STableHRow justifyContent="center">Status</STableHRow>
-          <STableHRow justifyContent="center">Editar</STableHRow>
-        </STableHeader> */}
-        <STableBody<IHierarchy & IHierarchyOnHomogeneous>
+        <STableBody<
+          IHierarchy & IHierarchyOnHomogeneous & { fullPath: IHierarchy[] }
+        >
           rowsData={results
+            .map((r) => ({ ...r, ...getName(r) }))
             .sort((a, b) => sortDate(b?.endDate, a?.endDate))
-            .sort((a, b) =>
-              sortString(a?.name || a?.label, b?.name || a?.label),
-            )}
+            .sort((a, b) => sortString(a?.name, b?.name))}
           // hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
-            const fromTree = row && 'label' in row;
-            const name = fromTree ? (row as any).label : row.name;
             return (
               <STableRow
                 onClick={() => onSelectRow(row)}
@@ -155,7 +161,25 @@ export const HierarchyHomoTable: FC<
                     checked={!!selectedData.find((exam) => exam.id === row.id)}
                   />
                 )}
-                <TextIconRow clickable text={name || '-'} />
+                <TextIconRow
+                  clickable
+                  tooltipTitle={
+                    <Box>
+                      {row.fullPath.map((p) => (
+                        <SText fontSize={10} color="white" key={p.name}>
+                          {originRiskMap[p.type].name}:{' '}
+                          <SText color="white" component="span" fontSize={12}>
+                            {p.name}
+                          </SText>
+                        </SText>
+                      ))}
+                    </Box>
+                  }
+                  text={row.name || '-'}
+                  tooltipProps={{
+                    minLength: 10,
+                  }}
+                />
                 <TextIconRow
                   clickable
                   text={`inicio: ${dateToString(row.startDate)}`}
@@ -181,7 +205,7 @@ export const HierarchyHomoTable: FC<
             );
           }}
         />
-      </STable>{' '}
+      </STable>
       {/* <STablePagination
         mt={2}
         registersPerPage={rowsPerPage}

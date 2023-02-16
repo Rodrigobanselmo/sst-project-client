@@ -55,11 +55,11 @@ export const GhosTable: FC<
     console.log(status); // TODO edit checklist status
   };
 
-  const onAddRisk = () => {
+  const onAddGHO = () => {
     onStackOpenModal(ModalEnum.GHO_ADD, {} as typeof initialAddGhoState);
   };
 
-  const onEditRisk = (gho: IGho) => {
+  const onEditGHO = (gho: IGho) => {
     onStackOpenModal(ModalEnum.GHO_ADD, {
       ...(gho as any),
     } as typeof initialAddGhoState);
@@ -68,7 +68,7 @@ export const GhosTable: FC<
   const onSelectRow = (risk: IGho) => {
     if (isSelect) {
       onSelectData(risk);
-    } else onEditRisk(risk);
+    } else onEditGHO(risk);
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
@@ -85,7 +85,7 @@ export const GhosTable: FC<
         <STableTitle icon={SGhoIcon}>Grupo Similar de Exposição</STableTitle>
       )}
       <STableSearch
-        onAddClick={onAddRisk}
+        onAddClick={onAddGHO}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable
@@ -130,7 +130,7 @@ export const GhosTable: FC<
                   icon={<EditIcon />}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEditRisk(row);
+                    onEditGHO(row);
                   }}
                 />
               </STableRow>

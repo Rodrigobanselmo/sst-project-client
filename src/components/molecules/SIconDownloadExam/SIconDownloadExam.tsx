@@ -102,8 +102,7 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
               {
                 name: 'Baixar Kit Médico',
                 value: 2,
-                disabled:
-                  !companyId || missingDoctor || !employeeId || disabled,
+                disabled: !companyId || !employeeId || disabled,
               },
               // {
               //   name: 'Baixar Laudo PCD',

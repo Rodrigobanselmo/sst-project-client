@@ -16,6 +16,7 @@ interface ICreateGho extends Partial<Pick<IGho, 'name' | 'status'>> {
   id?: number;
   companyId?: string;
   startDate?: Date;
+  workspaceIds?: string[];
   endDate?: Date;
   hierarchies?: { id: string; workspaceId: string }[];
 }

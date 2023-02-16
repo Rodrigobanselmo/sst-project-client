@@ -12,6 +12,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 
 interface IQueryClinicEmployeeHistHier {
   date?: Date;
+  notAfterDate?: Date;
   companyId?: string;
   examIsAvaliation?: boolean;
   employeeId?: number;

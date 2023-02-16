@@ -18,7 +18,7 @@ export const queryGuide = async (
     ApiRoutesEnum.PDF_KIT +
       `/${employeeId}` +
       `/${companyId}` +
-      `${asoId ? '/' + asoId : ''}`,
+      (asoId ? `/${asoId}` : ''),
   );
 
   const aso = response.data?.aso;
@@ -48,7 +48,7 @@ export function useQueryPdfKit(
   const companyIdSelected = companyIdProp || companyId;
 
   const { data, ...query } = useQuery(
-    [QueryEnum.PDF_KIT, companyIdSelected, employeeId],
+    [QueryEnum.PDF_KIT, companyIdSelected, employeeId, asoId],
     () =>
       companyIdSelected && employeeId
         ? queryGuide(employeeId, companyIdSelected, asoId)
