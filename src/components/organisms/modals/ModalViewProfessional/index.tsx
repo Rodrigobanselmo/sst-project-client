@@ -42,7 +42,8 @@ export const ModalViewProfessional: FC = () => {
       ModalEnum.PROFESSIONAL_SELECT,
     ) as typeof initialProfessionalViewState;
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

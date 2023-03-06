@@ -154,7 +154,8 @@ export const useAddCat = () => {
     const initialData =
       getModalData<Partial<typeof initialCatState>>(modalName);
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setCatData((oldData) => {
         const newData = {
           ...oldData,

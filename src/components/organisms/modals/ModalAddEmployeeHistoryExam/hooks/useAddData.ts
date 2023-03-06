@@ -101,7 +101,8 @@ export const useAddData = () => {
       getModalData<Partial<typeof initialEmployeeHistoryExamState>>(modalName);
 
     const setInitialData = async () => {
-      if (initialData && !(initialData as any).passBack) {
+      // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
         const data = initialData.id
           ? await findByMutation
               .mutateAsync({

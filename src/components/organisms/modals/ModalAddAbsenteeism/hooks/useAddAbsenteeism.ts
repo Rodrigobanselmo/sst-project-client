@@ -129,7 +129,8 @@ export const useAddAbsenteeism = () => {
     const initialData =
       getModalData<Partial<typeof initialAbsenteeismState>>(modalName);
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setAbsenteeismData((oldData) => {
         const newData = {
           ...oldData,

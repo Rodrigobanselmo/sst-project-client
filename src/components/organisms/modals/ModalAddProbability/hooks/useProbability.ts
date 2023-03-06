@@ -84,7 +84,8 @@ export const useProbability = () => {
     const initialData =
       getModalData<Partial<typeof initialProbState>>(modalName);
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setProbabilityData((oldData) => {
         const newData = {
           ...oldData,

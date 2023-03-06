@@ -1,6 +1,7 @@
 /* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { NodeDocumentModel } from 'components/organisms/documentModel/DocumentModelTree/types/types';
+import { initialEditDocumentModelState } from 'components/organisms/modals/ModalEditDocumentModel/hooks/useEditDocumentModel';
 
 import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
 
@@ -9,6 +10,7 @@ import { AppState } from '../..';
 export interface IDocumentSlice {
   model: IDocumentModelFull | null;
   needSynchronization: boolean;
+  modalEditData: Partial<typeof initialEditDocumentModelState>;
   dragItem: {
     index?: number;
     dropTargetId?: string | number;
@@ -21,6 +23,7 @@ const initialState: IDocumentSlice = {
   needSynchronization: false,
   dragItem: {},
   selectItem: null,
+  modalEditData: {},
 };
 
 const name = 'document';
@@ -31,6 +34,12 @@ export const documentSlice = createSlice({
   reducers: {
     setSaveDocument: (state) => {
       state.needSynchronization = false;
+    },
+    setDocumentModalEditData: (
+      state,
+      action: PayloadAction<IDocumentSlice['modalEditData']>,
+    ) => {
+      state.modalEditData = action.payload;
     },
     setDocumentModel: (
       state,
@@ -62,6 +71,7 @@ export const {
   setDocumentModel,
   setDocumentSelectItem,
   setSaveDocument,
+  setDocumentModalEditData,
 } = documentSlice.actions;
 
 export const selectAllDocumentModel = (state: AppState) => state[name].model;

@@ -44,7 +44,8 @@ export const ModalBlank: FC = () => {
       ModalEnum.MODAL_BLANK,
     ) as typeof initialBlankState;
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,

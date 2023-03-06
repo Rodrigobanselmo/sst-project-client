@@ -40,7 +40,8 @@ export const ModalSelectWorkspace: FC = () => {
       ModalEnum.WORKSPACE_SELECT,
     ) as typeof initialWorkspaceSelectState;
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

@@ -4,7 +4,7 @@ import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
+import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
@@ -21,7 +21,7 @@ export const queryDocumentModel = async (
 
   const queries = queryString.stringify(query);
 
-  const response = await api.get<IDocumentModelFull>(
+  const response = await api.get<IDocumentModel>(
     `${ApiRoutesEnum.DOCUMENT_MODEL}/${id}`.replace(':companyId', companyId) +
       `?${queries}`,
   );

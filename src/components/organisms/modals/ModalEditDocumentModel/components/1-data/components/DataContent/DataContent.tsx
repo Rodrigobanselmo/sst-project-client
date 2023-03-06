@@ -27,7 +27,7 @@ export const DataContent = (props: IUseData) => {
         sx={{ maxWidth: ['100%', 800] }}
         name="name"
         size="small"
-        onChange={setChangedState}
+        onChange={() => setChangedState()}
       />
       <InputForm
         defaultValue={data?.description}
@@ -42,7 +42,7 @@ export const DataContent = (props: IUseData) => {
         minRows={3}
         maxRows={6}
         multiline
-        onChange={setChangedState}
+        onChange={() => setChangedState()}
       />
 
       {!isEdit && (
@@ -78,6 +78,7 @@ export const DataContent = (props: IUseData) => {
           control={control}
           placeholder="selecione..."
           name="type"
+          disabled={isEdit}
           label="Tipo de Documento"
           labelPosition="top"
           onChange={(e) => {

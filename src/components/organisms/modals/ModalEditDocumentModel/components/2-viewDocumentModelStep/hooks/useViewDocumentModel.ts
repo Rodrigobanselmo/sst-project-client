@@ -1,5 +1,6 @@
 import { useStore } from 'react-redux';
 
+import { getModelSectionsBySelectedItem } from 'components/organisms/documentModel/DocumentModelContent/utils/getModelBySelectedItem';
 import {
   IDocumentSlice,
   setSaveDocument,
@@ -22,14 +23,23 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
   };
 
   const onDownloadPreview = async () => {
-    if (data.type && model) {
-      downloadPreview
-        .mutateAsync({
-          type: data.type,
-          companyId: data.companyId,
-          data: model?.document,
-        })
-        .catch(() => null);
+    const selectedItem = (store.getState().document as IDocumentSlice)
+      .selectItem;
+    if (data.type && model && selectedItem) {
+      const modelSections = getModelSectionsBySelectedItem(model, selectedItem);
+
+      if (modelSections) {
+        downloadPreview
+          .mutateAsync({
+            type: data.type,
+            companyId: data.companyId,
+            data: {
+              ...model?.document,
+              sections: [{ data: modelSections as any }],
+            },
+          })
+          .catch(() => null);
+      }
     }
   };
 

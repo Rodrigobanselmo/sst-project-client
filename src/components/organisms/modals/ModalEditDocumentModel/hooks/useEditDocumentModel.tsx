@@ -7,6 +7,7 @@ import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 import {
   IDocumentSlice,
+  setDocumentModalEditData,
   setDocumentModel,
 } from 'store/reducers/document/documentSlice';
 
@@ -71,37 +72,45 @@ export const useEditDocumentModel = () => {
   });
 
   useEffect(() => {
-    const needSynchronization = (store.getState().document as IDocumentSlice)
-      .needSynchronization;
+    if (modelData) {
+      const needSynchronization = (store.getState().document as IDocumentSlice)
+        .needSynchronization;
 
-    const setDocument = () => {
-      dispatch(setDocumentModel(modelData || null));
-    };
+      const setDocument = () => {
+        dispatch(setDocumentModel(modelData || null));
+      };
 
-    if (!needSynchronization) {
-      setDocument();
-    } else {
-      onStackOpenModal(ModalEnum.MODAL_BLANK, {
-        handleOnCloseWithoutSelect: true,
-        closeButtonText: 'Não salvar',
-        submitButtonText: 'Continuar editando',
-        // onSelect:, //!
-        onCloseWithoutSelect: () => {
-          preventDelete(
-            setDocument,
-            'Essa ação é permanente, caso continue os dados não salvos seram perdidos para sempre',
-            { confirmCancel: 'Voltar', confirmText: 'Confirmar sem salvar' },
-          );
-        },
-        content: (data: any) => (
-          <Box>
-            <SText>
-              Você possui mudanças no documento {'X'} que não foram salvas.
-            </SText>
-            <SText>Deseja continuar de onde parou?</SText>
-          </Box>
-        ),
-      } as Partial<typeof initialBlankState>);
+      const onContinueOldDocument = () => {
+        const modalEditData = (store.getState().document as IDocumentSlice)
+          .modalEditData;
+        setData((data) => ({ ...data, ...modalEditData }));
+      };
+
+      if (!needSynchronization) {
+        setDocument();
+      } else {
+        onStackOpenModal(ModalEnum.MODAL_BLANK, {
+          handleOnCloseWithoutSelect: true,
+          closeButtonText: 'Não salvar',
+          submitButtonText: 'Continuar editando',
+          onSelect: onContinueOldDocument,
+          onCloseWithoutSelect: () => {
+            preventDelete(
+              setDocument,
+              'Essa ação é permanente, caso continue os dados não salvos seram perdidos para sempre',
+              { confirmCancel: 'Voltar', confirmText: 'Confirmar sem salvar' },
+            );
+          },
+          content: (data: any) => (
+            <Box>
+              <SText>
+                Você possui mudanças no documento {'X'} que não foram salvas.
+              </SText>
+              <SText>Deseja continuar de onde parou?</SText>
+            </Box>
+          ),
+        } as Partial<typeof initialBlankState>);
+      }
     }
   }, [dispatch, modelData, onStackOpenModal, preventDelete, store]);
 
@@ -109,7 +118,8 @@ export const useEditDocumentModel = () => {
     const initialData =
       getModalData<Partial<typeof initialEditDocumentModelState>>(modalName);
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,
@@ -118,6 +128,7 @@ export const useEditDocumentModel = () => {
         };
 
         initialDataRef.current = newData;
+        dispatch(setDocumentModalEditData(newData));
         return newData;
       });
     }
@@ -143,7 +154,7 @@ export const useEditDocumentModel = () => {
   };
 
   const setChangedState = () => {
-    if (data.isChanged)
+    if (!data.isChanged)
       setData((d) => ({
         ...d,
         isChanged: true,

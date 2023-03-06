@@ -35,7 +35,8 @@ export const ModalReportSelect: FC = () => {
       ModalEnum.REPORT_SELECT,
     ) as typeof initialReportSelectState;
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setData((oldData) => {
         const newData = {
           ...oldData,

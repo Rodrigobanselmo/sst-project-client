@@ -60,7 +60,8 @@ export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
     const initialData =
       getModalData<Partial<typeof initialFileUploadState>>(modalName);
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setFileData((oldData) => ({
         ...oldData,
         ...initialData,

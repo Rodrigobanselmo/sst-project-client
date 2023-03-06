@@ -41,7 +41,8 @@ export const ModalSelectGho: FC = () => {
       ModalEnum.HOMOGENEOUS_SELECT,
     ) as typeof initialGhoSelectState;
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

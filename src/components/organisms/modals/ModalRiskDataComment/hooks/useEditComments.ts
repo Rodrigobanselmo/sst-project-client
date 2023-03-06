@@ -69,7 +69,8 @@ export const useEditComments = () => {
       ModalEnum.RISK_DATA_COMMENTS_ADD,
     );
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setCommentData((oldData) => {
         const newData = {
           ...oldData,

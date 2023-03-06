@@ -116,7 +116,8 @@ export const useAddData = () => {
       );
 
     const setInitialData = async () => {
-      if (initialData && !(initialData as any).passBack) {
+      // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
         setData((oldData) => {
           const clinicExam = initialData?.examsHistory?.find(
             (e) => e.exam?.isAttendance || e.exam?.isAvaliation,

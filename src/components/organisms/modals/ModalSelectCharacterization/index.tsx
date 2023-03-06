@@ -44,7 +44,8 @@ export const ModalSelectCharacterization: FC = () => {
       ModalEnum.CHARACTERIZATION_SELECT,
     ) as typeof initialCharacterizationSelectState;
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

@@ -67,7 +67,8 @@ export const useEditProtocols = () => {
       ModalEnum.PROTOCOL_RISK,
     );
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setProtocolData((oldData) => {
         const newData = {
           ...oldData,

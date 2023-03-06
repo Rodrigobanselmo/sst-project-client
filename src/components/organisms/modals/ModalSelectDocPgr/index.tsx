@@ -50,7 +50,8 @@ export const ModalSelectDocPgr: FC = () => {
       ModalEnum.DOC_PGR_SELECT,
     ) as typeof initialDocPgrSelectState;
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

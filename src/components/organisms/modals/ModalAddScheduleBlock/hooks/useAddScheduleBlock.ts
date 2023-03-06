@@ -88,7 +88,8 @@ export const useAddScheduleBlock = () => {
       Partial<typeof initialScheduleBlockState> & { companyId: string }
     >(modalName);
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setScheduleblockData((oldData) => {
         const newData = {
           ...oldData,

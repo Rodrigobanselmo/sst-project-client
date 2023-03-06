@@ -55,7 +55,8 @@ export const useEditEngsRisk = () => {
       ModalEnum.EPC_RISK_DATA,
     );
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setEngData((oldData) => {
         const newData = {
           ...oldData,

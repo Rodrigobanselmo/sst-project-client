@@ -53,7 +53,8 @@ export const useAddContact = () => {
     const initialData =
       getModalData<Partial<typeof initialContactState>>(modalName);
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setContactData((oldData) => {
         const newData = {
           ...oldData,

@@ -74,7 +74,8 @@ export const useEditProtocols = () => {
     const initialData =
       getModalData<Partial<typeof initialProtocolState>>(modalName);
 
-    if (initialData && !(initialData as any).passBack) {
+    // eslint-disable-next-line prettier/prettier
+    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setProtocolData((oldData) => {
         const newData = {
           ...oldData,
