@@ -11,7 +11,7 @@ export const STTextField = styled(TextField)<{
   size: string;
   backgroundColor?: string;
   unstyled: number;
-  sub_variant?: 'search' | 'standard';
+  sub_variant?: 'search' | 'standard' | 'search_v2';
   multiline?: boolean;
   smallPlaceholder?: number;
 }>`
@@ -205,6 +205,12 @@ export const STTextField = styled(TextField)<{
           opacity: 1;
         }
       }
+    `};
+
+  ${(props) =>
+    props.sub_variant == 'search_v2' &&
+    css`
+      padding: 10px;
     `};
 
   ${(props) =>

@@ -31,7 +31,7 @@ export const SSidebarExamData = (props: SCalendarProps) => {
         preload
         maxWidth="100%"
         maxPerPage={10}
-        handleSelect={(employee) => console.log(employee)}
+        // handleSelect={(employee) => console.error(employee)}
         text={'Selecionar Funcionario'}
         addButton={false}
         queryEmployee={{ all: true }}

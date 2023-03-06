@@ -91,7 +91,7 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
           tooltipTitle=""
           multiple={false}
           handleSelect={(options: IExam) => {
-            if (options?.id) console.log(options);
+            if (options?.id) console.error(options);
           }}
         /> */
 }

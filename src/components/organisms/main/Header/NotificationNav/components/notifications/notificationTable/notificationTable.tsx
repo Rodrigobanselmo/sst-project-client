@@ -64,7 +64,7 @@ export const NotificationTable: FC<
   const { onStackOpenModal } = useModal();
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const onAddExam = () => {

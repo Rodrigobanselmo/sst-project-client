@@ -90,8 +90,6 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
     },
   ] as IModalButton[];
 
-  // console.log('photoData', canvasRef.current.toDataURL());
-
   const inputProps = () => {
     if (data.type == TypeInputModal.TEXT) return {};
     if (data.type == TypeInputModal.TEXT_AREA)

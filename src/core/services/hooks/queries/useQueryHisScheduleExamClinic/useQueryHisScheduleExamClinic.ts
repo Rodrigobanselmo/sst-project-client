@@ -78,7 +78,7 @@ export function useFetchQueryHisScheduleExamClinic() {
           staleTime: 1000 * 60 * 10, // 10 minute
         },
       )
-      .catch((e) => console.log(e));
+      .catch((e) => console.error(e));
 
     return { data: response || [], count: response?.length || 0 };
   };

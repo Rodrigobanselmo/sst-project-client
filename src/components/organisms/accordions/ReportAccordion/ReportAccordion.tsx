@@ -47,8 +47,6 @@ export const ReportAccordion: FC<IReportAccordionProps> = ({ ...props }) => {
     };
 
   const onSelectReport = (report: IReportJson['reports'][0]) => {
-    console.log(report);
-
     onStackOpenModal(ModalEnum.MODAL_REPORT, {
       subtitle: report.name,
       report,

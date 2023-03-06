@@ -71,6 +71,13 @@ export const filterFieldMap: IMap = {
   },
 };
 
+export const companyFilterList = [
+  FilterFieldEnum.CITIES,
+  FilterFieldEnum.UF,
+  FilterFieldEnum.COMPANIES,
+  FilterFieldEnum.COMPANIES_GROUP,
+];
+
 export const clinicFilterList = [
   FilterFieldEnum.CITIES,
   FilterFieldEnum.UF,

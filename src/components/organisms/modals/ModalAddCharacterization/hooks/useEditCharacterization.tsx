@@ -427,11 +427,11 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
             });
           }
         } catch (error) {
-          console.log(error);
+          console.error(error);
         }
       })
       .catch((e) => {
-        console.log(e);
+        console.error(e);
       });
   };
 
@@ -603,19 +603,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     value: string,
     type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
   ) => {
-    console.log({
-      ...characterizationData,
-      [type]: [
-        ...characterizationData[type].filter(
-          (v) => v.split('{type}=')[0] !== value.split('{type}=')[0],
-        ),
-        value +
-          '{type}=' +
-          (type === 'paragraphs'
-            ? ParagraphEnum.PARAGRAPH
-            : ParagraphEnum.BULLET_0),
-      ],
-    });
     if (characterizationData[type])
       setCharacterizationData({
         ...characterizationData,

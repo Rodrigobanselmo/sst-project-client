@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from 'react';
 
+import { ISActionButtonProps } from 'components/atoms/SActionButton/types';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { initialModalImportExport } from 'components/organisms/modals/ModalImportExport/hooks/useModalImportExport';
 import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
@@ -8,6 +9,7 @@ import { initialFileUploadState } from 'components/organisms/modals/ModalUploadN
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CompanyStepEnum } from 'project/enum/company-step.enum';
+import { RoleEnum } from 'project/enum/roles.enums';
 import {
   setGhoOpen,
   setGhoSearch,
@@ -57,8 +59,12 @@ export const useCompanyStep = () => {
   const dispatch = useAppDispatch();
   const stepLocal = useAppSelector(selectStep(company.id));
   const { enqueueSnackbar } = useSnackbar();
-  const { handleAddWorkspace, handleAddEmployees, handleAddClinic } =
-    usePushRoute();
+  const {
+    handleAddWorkspace,
+    handleAddEmployees,
+    handleAddClinic,
+    handleSetApplyServiceCompany,
+  } = usePushRoute();
 
   const uploadMutation = useMutUploadFile();
   const reportMutation = useMutReport();
@@ -224,7 +230,7 @@ export const useCompanyStep = () => {
   }, [onOpenModal]);
 
   const actionsMapStepMemo = useMemo(() => {
-    return {
+    const actions: Record<CompanyActionEnum, ISActionButtonProps> = {
       [CompanyActionEnum.WORKSPACE]: {
         icon: SWorkspaceIcon,
         onClick: handleAddWorkspace,
@@ -326,7 +332,16 @@ export const useCompanyStep = () => {
         text: 'Ordem de Serviço (OS)',
         tooltipText: 'Configuração e conteúdo da OS',
       },
+      [CompanyActionEnum.APPLY_SERVICE_COMPANY]: {
+        icon: SEditIcon,
+        onClick: () => handleSetApplyServiceCompany(),
+        text: 'Quem Gerencia a Empresa?',
+        tooltipText: 'Editar quem tem acesso a esta empresa',
+        roles: [RoleEnum.MASTER],
+      },
     };
+
+    return actions;
   }, [
     handleAddWorkspace,
     handleAddEmployees,
@@ -344,6 +359,7 @@ export const useCompanyStep = () => {
     handleDocPCMSO,
     handleAbsenteeism,
     handleOs,
+    handleSetApplyServiceCompany,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
@@ -447,6 +463,9 @@ export const useCompanyStep = () => {
       },
       {
         ...actionsMapStepMemo[CompanyActionEnum.WORKSPACE],
+      },
+      {
+        ...actionsMapStepMemo[CompanyActionEnum.APPLY_SERVICE_COMPANY],
       },
     ];
   }, [actionsMapStepMemo]);

@@ -11,7 +11,15 @@ import { STableButtonProps } from './types';
 
 export const STableButton = React.forwardRef<any, STableButtonProps>(
   (
-    { text, sm, icon = AddIcon, color = 'success.main', tooltip, ...props },
+    {
+      text,
+      sm,
+      icon = AddIcon,
+      color = 'success.main',
+      tooltip,
+      iconColor,
+      ...props
+    },
     ref,
   ) => {
     return (
@@ -40,7 +48,9 @@ export const STableButton = React.forwardRef<any, STableButtonProps>(
                 fontSize: sm
                   ? ['0.9rem', '0.9rem', '1rem']
                   : ['1.1rem', '1.1rem', '1.4rem'],
-                color: 'common.white',
+                color: !props.disabled
+                  ? iconColor || 'common.white'
+                  : undefined,
               }}
             />
             {text && (

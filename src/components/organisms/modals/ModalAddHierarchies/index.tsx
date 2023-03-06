@@ -49,7 +49,7 @@ export const ModalAddHierarchies = () => {
               path: path,
             })
             .catch(() => {});
-          queryClient.refetchQueries([QueryEnum.COMPANY, companyId]);
+          queryClient.invalidateQueries([QueryEnum.COMPANY, companyId]);
           onClose();
         }}
         maxFiles={1}

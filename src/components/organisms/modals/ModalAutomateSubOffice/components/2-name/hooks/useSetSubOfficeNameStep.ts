@@ -38,7 +38,7 @@ export const useSetSubOfficeNameStep = ({
           data.callback(hierarchyResp);
         })
         .catch((e) => {
-          console.log(e);
+          console.error(e);
         });
     }
   };

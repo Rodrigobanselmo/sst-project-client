@@ -35,7 +35,7 @@ export const InvitesPopper: FC<IInvitesPopperProps> = ({
     await acceptInviteMut.mutateAsync({ token: id }).catch(() => {});
     refreshUser();
     router.push('/');
-    queryClient.refetchQueries([QueryEnum.INVITES_USER]);
+    queryClient.invalidateQueries([QueryEnum.INVITES_USER]);
     close();
   };
 

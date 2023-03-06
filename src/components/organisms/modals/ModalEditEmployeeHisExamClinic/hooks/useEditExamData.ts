@@ -106,7 +106,6 @@ export const useAddData = () => {
   const complementaryExams = data?.examsHistory?.filter(
     (e) => !e.exam?.isAttendance && !e.exam?.isAvaliation,
   );
-  console.log(999, data);
 
   const isAvaliation = clinicExam?.exam?.isAvaliation;
 

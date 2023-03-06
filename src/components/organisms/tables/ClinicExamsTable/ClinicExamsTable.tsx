@@ -58,7 +58,7 @@ export const ClinicExamsTable: FC<
   const { preventWarn } = usePreventAction();
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const onImportExams = () => {

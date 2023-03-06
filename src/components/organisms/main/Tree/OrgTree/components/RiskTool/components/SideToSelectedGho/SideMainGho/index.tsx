@@ -91,7 +91,6 @@ export const SideMainGho: FC<SideItemsProps> = ({
               id={data.id}
               checked={isSelected}
               onClick={handleSelect}
-              onChange={() => console.log()}
               size="small"
               sx={{
                 'svg[data-testid="CheckBoxOutlineBlankIcon"]': {

@@ -70,7 +70,7 @@ export const UserDataModalStep = (props: IUseUserDataModal) => {
           preload
           maxWidth="100%"
           maxPerPage={10}
-          handleSelect={(employee) => console.log(employee)}
+          // handleSelect={(employee) => console.error(employee)}
           // handleSelect={(_, list) =>
           //   setData((old) => ({ ...old, selectedEmployees: list }))
           // }

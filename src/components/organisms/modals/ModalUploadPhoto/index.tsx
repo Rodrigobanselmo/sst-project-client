@@ -266,8 +266,6 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
     },
   ] as IModalButton[];
 
-  // console.log('photoData', canvasRef.current.toDataURL());
-
   return (
     <SModal {...registerModal(modalName)} keepMounted={false} onClose={onClose}>
       <SModalPaper

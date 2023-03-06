@@ -10,9 +10,7 @@ import {
 import { IExam } from './IExam';
 import { IGho } from './IGho';
 import { IHierarchy } from './IHierarchy';
-import { IProfessional } from './IProfessional';
 import { IGenerateSource, IRecMed, IRiskFactors } from './IRiskFactors';
-import { IUser } from './IUser';
 
 export interface IRiskData {
   id: string;
@@ -92,25 +90,7 @@ export interface IRiskGroupData {
   created_at: Date;
   companyId: string;
   status: StatusEnum;
-  elaboratedBy?: string;
-  revisionBy?: string;
-  approvedBy?: string;
-  source?: string;
-  visitDate?: Date;
-  complementarySystems: string[];
-  complementaryDocs: string[];
-  coordinatorBy: string;
-  validityEnd?: Date | null;
-  validityStart?: Date | null;
-  professionals?: IProfessional[];
-  users?: IUser[];
-  isQ5?: boolean;
-  hasEmergencyPlan?: boolean;
   data?: IRiskData[];
-  months_period_level_5: number;
-  months_period_level_4: number;
-  months_period_level_3: number;
-  months_period_level_2: number;
 }
 
 export interface IPrgDocData {
@@ -119,7 +99,7 @@ export interface IPrgDocData {
   description: string;
   fileUrl: string;
   version: string;
-  riskGroupId: string;
+  documentDataId: string;
   created_at: Date;
   updated_at: Date;
   companyId: string;

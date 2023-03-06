@@ -1,5 +1,6 @@
 // import { Reducer } from '@reduxjs/toolkit';
 
+import documentReducer from './document/documentSlice';
 import ghoMultiReducer from './hierarchy/ghoMultiSlice';
 import ghoReducer from './hierarchy/ghoSlice';
 import hierarchyReducer from './hierarchy/hierarchySlice';
@@ -24,4 +25,5 @@ export const rootReducer = {
   hierarchy: hierarchyReducer,
   ghoMulti: ghoMultiReducer,
   step: stepReducer,
+  document: documentReducer,
 };

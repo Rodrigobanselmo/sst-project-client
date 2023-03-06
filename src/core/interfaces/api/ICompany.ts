@@ -68,10 +68,19 @@ export interface ICompany {
   clinicExams: IExamToClinic[];
   scheduleBlocks?: IScheduleBlock[];
   report: IDashboard;
+  receivingServiceContracts?: ICompanyContract[];
   clinicsAvailable: {
     clinicId: string;
     companyId: string;
   }[];
+}
+
+export interface ICompanyContract {
+  status: StatusEnum;
+  applyingServiceCompanyId: string;
+  receivingServiceCompanyId: string;
+  receivingServiceCompany: ICompany;
+  applyingServiceCompany: ICompany;
 }
 
 export interface IWorkspace {

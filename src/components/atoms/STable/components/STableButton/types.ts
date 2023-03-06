@@ -9,4 +9,5 @@ export type STableButtonProps = Omit<SButtonProps, 'color'> & {
   tooltip?: string;
   sm?: boolean;
   color?: string;
+  iconColor?: string;
 };

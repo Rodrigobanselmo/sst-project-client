@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
-import { initialPgrDocState } from 'components/organisms/modals/ModalAddDocPgr/hooks/useHandleActions';
+import { initialPgrDocState } from 'components/organisms/modals/ModalAddDocVersion/hooks/usePGRHandleActions';
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -113,7 +113,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
     const initialWorkspaceState = {
       title: 'Selecione o estabelecimento para o Sistema de Gestão SST',
       onSelect: (work: IWorkspace) =>
-        onOpenModal(ModalEnum.RISK_GROUP_DOC_ADD, {
+        onOpenModal(ModalEnum.DOCUMENT_DATA_UPSERT, {
           workspaceId: work.id,
           workspaceName: work.name,
           ...initialState,

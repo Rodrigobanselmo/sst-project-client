@@ -72,7 +72,7 @@ export function useMutUpdateSimpleManyHierarchy() {
           return;
         }
 
-        // if (resp) queryClient.refetchQueries([QueryEnum.HIERARCHY, companyId]);
+        // if (resp) queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
         if (resp) {
           const actualData = queryClient.getQueryData<
             Record<string, IHierarchy>

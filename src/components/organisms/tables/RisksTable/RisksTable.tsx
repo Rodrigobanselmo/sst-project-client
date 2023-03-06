@@ -61,7 +61,7 @@ export const RisksTable: FC<
   const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const onAddRisk = () => {

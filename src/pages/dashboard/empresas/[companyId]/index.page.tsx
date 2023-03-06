@@ -26,7 +26,9 @@ import {
   StackModalViewUsers,
 } from 'components/organisms/modals/ModalViewUsers/ModalViewUsers';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { NextPage } from 'next';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import { SArrowNextIcon } from 'assets/icons/SArrowNextIcon';
 import SClinicIcon from 'assets/icons/SClinicIcon';
@@ -59,6 +61,7 @@ const CompanyPage: NextPage = () => {
   return (
     <>
       <SHeaderTag hideInitial title={companyName} />
+
       <SContainer>
         <SPageTitle icon={SClinicIcon}>{companyName}</SPageTitle>
         {nextStepMemo && (

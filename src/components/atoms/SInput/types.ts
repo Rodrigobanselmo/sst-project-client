@@ -13,7 +13,7 @@ export type SInputProps = TextFieldProps & {
   unstyled?: boolean;
   secondary?: boolean;
   smallPlaceholder?: boolean;
-  subVariant?: 'search' | 'standard';
+  subVariant?: 'search' | 'standard' | 'search_v2';
   backgroundColor?: string;
   helpText?: string;
   firstLetterCapitalize?: boolean;

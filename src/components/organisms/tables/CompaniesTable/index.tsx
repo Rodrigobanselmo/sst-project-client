@@ -12,6 +12,10 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { companyFilterList } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
+import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
+import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -47,14 +51,16 @@ export const CompaniesTable: FC<
   }
 > = ({ rowsPerPage = 8, onSelectData, selectedData, query, type }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+  const filterProps = useFilterTable();
   const isSelect = !!onSelectData;
 
   const { companies, count, isLoading } = useQueryCompanies(
     page,
-    { search, ...query },
+    { search, ...query, ...filterProps.filtersQuery },
     rowsPerPage,
     type,
   );
+
   const { onStackOpenModal } = useModal();
   const uploadMutation = useMutUploadFile();
   // const downloadMutation = useMutDownloadFile(); //?download company
@@ -62,7 +68,7 @@ export const CompaniesTable: FC<
   const { push } = useRouter();
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const handleGoToCompany = (companyId: string) => {
@@ -83,7 +89,10 @@ export const CompaniesTable: FC<
       <STableSearch
         onAddClick={() => onStackOpenModal(ModalEnum.COMPANY_EDIT)}
         onChange={(e) => handleSearchChange(e.target.value)}
-      />
+      >
+        <STableFilterIcon filters={companyFilterList} {...filterProps} />
+      </STableSearch>
+      <FilterTagList filterProps={filterProps} />
       <STable
         loading={isLoading}
         rowsNumber={rowsPerPage}
@@ -112,6 +121,9 @@ export const CompaniesTable: FC<
                 clickable
                 onClick={() => onSelectRow(row)}
                 key={row.id}
+                status={
+                  row.status == StatusEnum.INACTIVE ? 'inactive' : undefined
+                }
               >
                 {selectedData && (
                   <SCheckBox

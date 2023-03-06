@@ -27,7 +27,7 @@ const Attachments: NextPage = () => {
     if (docId && attachmentId) {
       downloadMutation
         .mutateAsync(
-          `${ApiRoutesEnum.DOCUMENTS_PGR_ATTACHMENTS.replace(
+          `${ApiRoutesEnum.DOCUMENTS_BASE_ATTACHMENTS.replace(
             ':docId',
             docId,
           )}/${attachmentId}/${companyIdRef || companyId}`,

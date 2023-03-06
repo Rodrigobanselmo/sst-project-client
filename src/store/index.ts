@@ -38,8 +38,7 @@ const persistConfig = {
   key: 'root',
   version: 1,
   storage: storageClient,
-  whitelist: [rootReducer.step.name],
-  // whitelist: [rootReducer.example.name],
+  whitelist: ['document'],
 };
 
 const persistedReducer = persistReducer(persistConfig, reducer);

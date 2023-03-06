@@ -6,16 +6,14 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import {
-  IProfessional,
-  IProfessionalToRiskGroup,
-} from 'core/interfaces/api/IProfessional';
+import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { IUser, IUserToRiskGroup } from 'core/interfaces/api/IUser';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
+import { IProfessionalToDocumentData } from './../../../../../../interfaces/api/IProfessional';
 
 export interface IUpsertRiskGroupData {
   id?: string;
@@ -34,8 +32,7 @@ export interface IUpsertRiskGroupData {
   isQ5?: boolean;
   hasEmergencyPlan?: boolean;
   complementarySystems?: string[];
-  users?: (IUser | IUserToRiskGroup)[];
-  professionals?: (IProfessional | IProfessionalToRiskGroup)[];
+  professionals?: (IProfessional | IProfessionalToDocumentData)[];
   professionalsIds?: string[];
 }
 
@@ -45,24 +42,15 @@ export async function upsertRiskGroupData(
 ) {
   if (!companyId) return null;
 
-  if (data?.users)
-    data.users = data?.users?.map((user) => {
-      if ('isSigner' in user) return user;
-
-      return {
-        userId: user.id,
-        isSigner: user.userPgrSignature?.isSigner,
-      };
-    }) as any;
-
   if (data?.professionals)
     data.professionals = data?.professionals?.map((professional) => {
       if ('isSigner' in professional) return professional;
 
       return {
         professionalId: professional.id,
-        isSigner: professional.professionalPgrSignature?.isSigner,
-        isElaborator: professional.professionalPgrSignature?.isElaborator,
+        isSigner: professional.professionalDocumentDataSignature?.isSigner,
+        isElaborator:
+          professional.professionalDocumentDataSignature?.isElaborator,
       };
     }) as any;
 
@@ -114,13 +102,13 @@ export function useMutUpsertRiskGroupData() {
             );
         }
 
-        queryClient.refetchQueries([
+        queryClient.invalidateQueries([
           QueryEnum.RISK_GROUP_DATA,
           getCompanyId(resp),
           resp?.id,
         ]);
 
-        queryClient.refetchQueries([QueryEnum.COMPANY, getCompanyId(resp)]);
+        queryClient.invalidateQueries([QueryEnum.COMPANY, getCompanyId(resp)]);
 
         enqueueSnackbar('Documento editado com sucesso', {
           variant: 'success',

@@ -16,8 +16,8 @@ export type IProfessional = {
   userId: number;
   type: ProfessionalTypeEnum;
   status: StatusEnum;
-  professionalPgrSignature?: IProfessionalToRiskGroup;
-  professionalsPgrSignatures?: IProfessionalToRiskGroup[];
+  professionalDocumentDataSignature?: IProfessionalToDocumentData;
+  professionalsDocumentDataSignatures?: IProfessionalToDocumentData[];
   councils: IProfessionalCouncil[];
 
   professionalId?: number;
@@ -29,17 +29,12 @@ export type IProfessional = {
   crea: string;
 };
 
-export type IProfessionalToRiskGroup = {
+export interface IProfessionalToDocumentData {
+  documentDataId: string;
   professionalId: number;
-  riskDataGroupId: string;
   isSigner: boolean;
   isElaborator: boolean;
   professional?: IProfessional;
-};
-
-export interface IProfessionalToDocumentPCMSO
-  extends Omit<IProfessionalToRiskGroup, 'riskDataGroupId'> {
-  documentPCMSOId: string;
 }
 
 export type IProfessionalCouncil = {

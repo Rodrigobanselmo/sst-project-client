@@ -16,6 +16,20 @@ const defaultTheme = createTheme({
   shape,
   mixins,
   spacing: (factor: number) => `${0.125 * factor}rem`, // (Bootstrap strategy) 4px
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        ul: {
+          listStyle: 'none',
+        },
+      },
+    },
+    MuiSvgIcon: {
+      styleOverrides: {
+        root: { verticalAlign: 'middle' },
+      },
+    },
+  },
 });
 
 export default defaultTheme;

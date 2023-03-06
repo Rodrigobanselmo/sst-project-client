@@ -116,7 +116,7 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
       {filters[FilterFieldEnum.EXAM_TYPE] && (
         <Box mb={5}>
           <SText color="text.label" fontSize={14} mt={6} mb={3}>
-            Filtar por tipo de exames:
+            Filtrar por tipo de exames:
           </SText>
           <SFlex flexWrap={'wrap'}>
             {asoExamTypeList.map((evaluation) => {
@@ -193,7 +193,10 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
             name=""
             label={'Estado'}
             sx={{ minWidth: [200], maxWidth: [110] }}
-            // inputValue={filterProps.filter[FilterEnum.UF].}
+            // value={
+            //   (filterProps as any).filter[FilterFieldEnum.UF]?.filters?.[0]
+            //     ?.filterValue
+            // }
             onChange={(e, v: typeof ufs[0]) => {
               if (v)
                 filterProps.addFilter(

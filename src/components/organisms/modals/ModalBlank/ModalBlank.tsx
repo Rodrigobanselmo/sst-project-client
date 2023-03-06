@@ -22,9 +22,13 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 export const initialBlankState = {
   title: '',
   subtitle: '',
+  closeButtonText: 'Calcelar' as string | undefined,
+  submitButtonText: 'Confirmar' as string | undefined,
   handleOnClose: false,
+  handleOnCloseWithoutSelect: false as boolean | undefined,
+  hideButton: false as boolean | undefined,
   onSelect: (d: any, onClose?: () => void) => {},
-  onCloseWithoutSelect: () => {},
+  onCloseWithoutSelect: (onClose?: () => void) => {},
   content: (setData: React.Dispatch<React.SetStateAction<any>>, data: any) => (
     <></>
   ),
@@ -58,8 +62,8 @@ export const ModalBlank: FC = () => {
   };
 
   const onCloseNoSelect = () => {
-    data.onCloseWithoutSelect?.();
-    onClose();
+    data.onCloseWithoutSelect?.(onClose);
+    if (!data.handleOnCloseWithoutSelect) onClose();
   };
 
   const onSubmit = () => {
@@ -70,11 +74,11 @@ export const ModalBlank: FC = () => {
   const buttons = [
     {
       variant: 'outlined',
-      text: 'Calcelar',
+      text: data.closeButtonText,
       onClick: () => onCloseNoSelect(),
     },
     {
-      text: 'Confirmar',
+      text: data.submitButtonText,
       variant: 'contained',
       onClick: () => onSubmit(),
     },
@@ -107,7 +111,9 @@ export const ModalBlank: FC = () => {
           <Box mt={8}>{data.content(setData, data)}</Box>
         </Box>
 
-        <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />
+        {!data.hideButton && (
+          <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />
+        )}
       </SModalPaper>
     </SModal>
   );

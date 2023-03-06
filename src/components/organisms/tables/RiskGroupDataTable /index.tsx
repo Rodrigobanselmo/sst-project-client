@@ -48,7 +48,7 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
   });
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const handleEditRiskGroup = (data: IRiskGroupData) => {
@@ -141,7 +141,7 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
                   onClick={(e) => {
                     e.stopPropagation();
                     downloadMutation.mutate(
-                      ApiRoutesEnum.DOCUMENTS_PGR + `/${row.id}/${companyId}`,
+                      ApiRoutesEnum.DOCUMENTS_BASE + `/${row.id}/${companyId}`,
                     );
                   }}
                   large

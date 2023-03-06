@@ -49,11 +49,10 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
   const { push } = useRouter();
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const handleGoToEmployee = (companyId: string, employeeId: number) => {
-    console.log(employeeId); // TODO edit checklist status
     //push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
   };
 

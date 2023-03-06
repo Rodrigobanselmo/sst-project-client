@@ -28,7 +28,7 @@ export function InvitesIcon(): JSX.Element {
 
   const handleClick = () => {
     toggle();
-    queryClient.refetchQueries([QueryEnum.INVITES_USER]);
+    queryClient.invalidateQueries([QueryEnum.INVITES_USER]);
   };
 
   useEffect(() => {

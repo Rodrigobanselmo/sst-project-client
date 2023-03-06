@@ -52,7 +52,7 @@ export function useFetchQueryCompany() {
           staleTime: 1000 * 60 * 60, // 60 minute
         },
       )
-      .catch((e) => console.log(e));
+      .catch((e) => console.error(e));
 
     return data;
   };

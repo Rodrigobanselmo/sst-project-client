@@ -13,13 +13,15 @@ import {
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
+import { STableAddButton } from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
+import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
-import { ModalViewPgrDoc } from 'components/organisms/modals/ModalViewPgrDoc';
-import { initialViewPgrDocState } from 'components/organisms/modals/ModalViewPgrDoc/hooks/useModalViewPgrDoc';
+import { ModalViewDocDownload } from 'components/organisms/modals/ModalViewDocDownloads';
+import { initialViewDocDownloadState } from 'components/organisms/modals/ModalViewDocDownloads/hooks/useModalViewDocDownload';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -33,6 +35,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { IPrgDocData } from 'core/interfaces/api/IRiskData';
 import {
   IQueryDocVersion,
@@ -42,12 +45,11 @@ import { queryClient } from 'core/services/queryClient';
 
 export const DocTable: FC<
   BoxProps & {
-    riskGroupId?: string;
     documentPcmsoId?: string;
     rowsPerPage?: number;
     query?: Partial<IQueryDocVersion>;
   }
-> = ({ riskGroupId, rowsPerPage = 8, query }) => {
+> = ({ rowsPerPage = 8, query }) => {
   const { page, setPage } = useTableSearchAsync();
   const {
     data: docs,
@@ -61,37 +63,51 @@ export const DocTable: FC<
   const { companyId } = useGetCompanyId();
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const handleOpenDocModal = (doc: IPrgDocData) => {
-    onOpenModal(ModalEnum.PGR_DOC_VIEW, {
+    onOpenModal(ModalEnum.DOCUMENT_DOWNLOAD, {
       id: doc.id,
       companyId,
-      riskGroupId,
-      ...(query?.isPCMSO && {
-        downloadRoute: ApiRoutesEnum.DOCUMENTS_PCMSO,
-        downloadAttRoute: ApiRoutesEnum.DOCUMENTS_PCMSO_ATTACHMENTS,
-      }),
-    } as typeof initialViewPgrDocState);
+    } as typeof initialViewDocDownloadState);
+  };
+
+  const onGenerateVersion = async () => {
+    const initialWorkspaceState = {
+      title: 'Selecione o estabelecimento para o Sistema de Gestão SST',
+      onSelect: (work: IWorkspace) =>
+        onOpenModal(ModalEnum.DOCUMENT_DATA_UPSERT, {
+          workspaceId: work.id,
+          workspaceName: work.name,
+          companyId,
+        }),
+    } as typeof initialWorkspaceSelectState;
+
+    onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
   };
 
   return (
     <>
-      <SFlex mb={12} align="center">
+      <SFlex mb={12} mt={30} align="center">
         <Box>
-          <STableTitle mb={0} icon={LibraryAddCheckIcon}>
+          <STableTitle mb={0} mr={5} icon={LibraryAddCheckIcon}>
             Versões
           </STableTitle>
         </Box>
+        <STableAddButton
+          addText="Adicionar"
+          sm
+          onAddClick={() => onGenerateVersion()}
+        />
         <STableButton
           tooltip="autualizar"
           onClick={() => {
             refetch();
-            queryClient.invalidateQueries([QueryEnum.RISK_GROUP_DOC, 1]);
+            queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
           }}
           loading={isLoading || isFetching || isRefetching}
-          sx={{ height: 30, minWidth: 30 }}
+          sx={{ height: 30, minWidth: 30, ml: 2 }}
           icon={SReloadIcon}
           color="grey.500"
         />
@@ -157,7 +173,7 @@ export const DocTable: FC<
                   }
                   onClick={() =>
                     downloadMutation.mutate(
-                      ApiRoutesEnum.DOCUMENTS_PGR + `/${row.id}/${companyId}`,
+                      ApiRoutesEnum.DOCUMENTS_BASE + `/${row.id}/${companyId}`,
                     )
                   }
                   large
@@ -178,7 +194,7 @@ export const DocTable: FC<
       <ModalAddRiskGroup />
       <ModalShowHierarchyTree />
       <ModalSelectDocPgr />
-      <ModalViewPgrDoc />
+      <ModalViewDocDownload />
     </>
   );
 };

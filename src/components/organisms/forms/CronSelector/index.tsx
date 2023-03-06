@@ -8,11 +8,7 @@ import { ICronSelector } from './types';
 
 export const CronSelector = (props: ICronSelector) => {
   const { translations, value, setValue } = useCronSelector(props);
-  // // eslint-disable-next-line quotes
-  // const elements = document.querySelectorAll("[title='Mês']");
-  // for (let i = 0; i < elements.length; i++) {
-  //   console.log(elements[i]);
-  // }
+
   return (
     <Box {...props}>
       <Cron

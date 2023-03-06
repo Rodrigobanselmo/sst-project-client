@@ -83,7 +83,7 @@ export const CidInputSelect: FC<ICidSelectProps> = ({
           tooltipTitle=""
           multiple={false}
           handleSelect={(options: ICid) => {
-            if (options?.id) console.log(options);
+            if (options?.id) console.error(options);
           }}
         /> */
 }

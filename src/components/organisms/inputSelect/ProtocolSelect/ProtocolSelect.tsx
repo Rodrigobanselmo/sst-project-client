@@ -91,7 +91,7 @@ export const ProtocolInputSelect: FC<IProtocolSelectProps> = ({
           tooltipTitle=""
           multiple={false}
           handleSelect={(options: IProtocol) => {
-            if (options?.id) console.log(options);
+            if (options?.id) console.error(options);
           }}
         /> */
 }

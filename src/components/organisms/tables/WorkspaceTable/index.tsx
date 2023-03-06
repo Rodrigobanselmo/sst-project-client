@@ -39,7 +39,7 @@ export const WorkspaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
   const { push } = useRouter();
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const handleEdit = (row: IWorkspace) => {
@@ -92,12 +92,13 @@ export const WorkspaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
                 <TextIconRow text={row.description || ' -- '} />
                 <TextIconRow
                   text={row.abbreviation}
-                  onClick={() => handleGoToHierarchy(row.companyId)}
+                  // onClick={() => handleGoToHierarchy(row.companyId)}
                 />
                 <StatusSelect
                   large
                   sx={{ maxWidth: '120px' }}
                   selected={row.status}
+                  disabled
                   statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />

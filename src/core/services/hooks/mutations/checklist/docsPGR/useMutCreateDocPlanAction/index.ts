@@ -1,13 +1,11 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
-import { StatusEnum } from 'project/enum/status.enum';
 
 import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IPrgDocData } from 'core/interfaces/api/IRiskData';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';
@@ -56,7 +54,7 @@ export function useMutCreateDocPlanAction() {
     async (data: IUpsertRiskDocs) => upsertRiskDocs(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp) queryClient.invalidateQueries([QueryEnum.RISK_GROUP_DOCS]);
+        if (resp) queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
 
         enqueueSnackbar('Documento baixado com sucesso', {
           variant: 'success',

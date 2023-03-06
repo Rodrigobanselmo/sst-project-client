@@ -1,21 +1,25 @@
-import { useCallback } from 'react';
-
 import { SActionButton } from 'components/atoms/SActionButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
-import { ModalAddDocPgr } from 'components/organisms/modals/ModalAddDocPgr';
+import { ModalAddDocPGRVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPGRVersion';
+import { ModalEditDocumentModelData } from 'components/organisms/modals/ModalEditDocumentModel/ModalEditDocumentModel';
 import {
   initialWorkspaceSelectState,
   ModalSelectWorkspace,
 } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
+import {
+  initialDocumentModelsViewState,
+  StackModalViewDocumentModels,
+} from 'components/organisms/modals/ModalViewDocumentModels/ModalViewDocumentModels';
 import { ModalViewProfessional } from 'components/organisms/modals/ModalViewProfessional';
 import { DocTable } from 'components/organisms/tables/DocTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import SActionPlanIcon from 'assets/icons/SActionPlanIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
@@ -28,8 +32,6 @@ import { useModal } from 'core/hooks/useModal';
 import { usePushRoute } from 'core/hooks/usePushRoute';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
-
-import { DocumentPgrForm } from '../../../../../../components/organisms/forms/DocumentPgrForm';
 
 const Companies: NextPage = () => {
   const { query, push } = useRouter();
@@ -61,6 +63,17 @@ const Companies: NextPage = () => {
     } as typeof initialWorkspaceSelectState);
   };
 
+  const handleEditDocumentModel = () => {
+    onOpenModal(ModalEnum.DOCUMENTS_MODEL_VIEW, {
+      companyId: query.companyId,
+      title: 'Modelo Documento PGR',
+      query: {
+        type: DocumentTypeEnum.PGR,
+        companyId: query.companyId,
+      },
+    } as typeof initialDocumentModelsViewState);
+  };
+
   return (
     <>
       <SHeaderTag title={'PGR'} />
@@ -71,10 +84,10 @@ const Companies: NextPage = () => {
         <SPageTitleSection mb={5} mt={15} title="Ações" />
         <SFlex gap={10}>
           <SActionButton
+            active
             icon={SPhotoIcon}
             onClick={handleAddCharacterization}
             text={'Caracterização do Ambiente'}
-            success
             tooltipText={
               'Cadastro de ambientes de trabalho, atividades e posto de trabalh (adicionar fotografia)'
             }
@@ -84,6 +97,11 @@ const Companies: NextPage = () => {
             onClick={handleGoToRiskData}
             text={'Vincular fatores de risco'}
             primary
+          />
+          <SActionButton
+            icon={SDocumentIcon}
+            onClick={handleEditDocumentModel}
+            text={'Modelo PGR'}
           />
         </SFlex>
         <SPageTitleSection title="Gestão" icon={SPhotoIcon} />
@@ -96,12 +114,14 @@ const Companies: NextPage = () => {
           width={'175px'}
         />
 
-        <DocumentPgrForm mb={15} riskGroupId={query.docId as string} />
-        <DocTable riskGroupId={query.docId as string} query={{ isPGR: true }} />
-        <ModalAddDocPgr />
+        <DocTable query={{ type: DocumentTypeEnum.PGR }} />
+        <ModalAddDocPGRVersion />
         <ModalViewProfessional />
         <ModalSingleInput />
+        <ModalSingleInput />
         <ModalSelectWorkspace />
+        <ModalEditDocumentModelData />
+        <StackModalViewDocumentModels />
       </SContainer>
     </>
   );

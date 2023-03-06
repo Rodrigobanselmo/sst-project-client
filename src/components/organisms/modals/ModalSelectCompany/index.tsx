@@ -30,6 +30,8 @@ export const initialCompanySelectState = {
   type: '' as IQueryCompaniesTypes,
 };
 
+const modalName = ModalEnum.COMPANY_SELECT;
+
 export const ModalSelectCompany: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
@@ -37,7 +39,7 @@ export const ModalSelectCompany: FC = () => {
 
   useEffect(() => {
     const initialData = getModalData(
-      ModalEnum.COMPANY_SELECT,
+      modalName,
     ) as typeof initialCompanySelectState;
 
     if (initialData && !(initialData as any).passBack) {
@@ -55,7 +57,7 @@ export const ModalSelectCompany: FC = () => {
   const onCloseNoSelect = () => {
     setSelectData(initialCompanySelectState);
     selectData.onCloseWithoutSelect?.();
-    onCloseModal(ModalEnum.COMPANY_SELECT);
+    onCloseModal(modalName);
   };
 
   const handleSelect = (company?: ICompany) => {
@@ -70,7 +72,7 @@ export const ModalSelectCompany: FC = () => {
       });
       return;
     }
-    onCloseModal(ModalEnum.COMPANY_SELECT);
+    onCloseModal(modalName);
     setSelectData(initialCompanySelectState);
     selectData.onSelect(company || selectData.selected);
   };
@@ -81,7 +83,7 @@ export const ModalSelectCompany: FC = () => {
     buttons.push({
       onClick: () => {
         setSelectData(initialCompanySelectState);
-        onCloseModal(ModalEnum.COMPANY_SELECT);
+        onCloseModal(modalName);
         selectData.onSelect(selectData.selected);
       },
     });
@@ -89,7 +91,7 @@ export const ModalSelectCompany: FC = () => {
 
   return (
     <SModal
-      {...registerModal(ModalEnum.COMPANY_SELECT)}
+      {...registerModal(modalName)}
       keepMounted={false}
       onClose={onCloseNoSelect}
     >

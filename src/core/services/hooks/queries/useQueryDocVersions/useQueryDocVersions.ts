@@ -1,14 +1,13 @@
 import { useQuery } from 'react-query';
 
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 import queryString from 'query-string';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IPagination } from 'core/interfaces/IPagination';
-import { IPaginationResult, IReactQuery } from 'core/interfaces/IReactQuery';
+import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
-import { emptyArrayReturn } from 'core/utils/helpers/emptyFunc';
-import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 import { IPrgDocData } from '../../../../interfaces/api/IRiskData';
@@ -17,10 +16,8 @@ export interface IQueryDocVersion {
   search?: string | null;
   companyId?: string;
   workspaceId?: string;
-  pcmsoId?: string[];
-  riskGroupId?: string[];
-  isPGR?: boolean;
-  isPCMSO?: boolean;
+  documentDataId?: string[];
+  type?: DocumentTypeEnum;
 }
 
 export const queryDocVersions = async (
@@ -53,7 +50,7 @@ export function useQueryDocVersions(
   const companyId = getCompanyId(query.companyId);
 
   const { data, ...result } = useQuery(
-    [QueryEnum.RISK_GROUP_DOCS, page, { ...pagination, ...query, companyId }],
+    [QueryEnum.DOCUMENT_VERSION, page, { ...pagination, ...query, companyId }],
     () =>
       queryDocVersions(pagination, {
         ...query,

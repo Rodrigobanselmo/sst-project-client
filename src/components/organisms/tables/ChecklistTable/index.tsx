@@ -40,7 +40,7 @@ export const ChecklistTable: FC<BoxProps> = () => {
   });
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const handleGoToChecklistTree = (id: number) => {

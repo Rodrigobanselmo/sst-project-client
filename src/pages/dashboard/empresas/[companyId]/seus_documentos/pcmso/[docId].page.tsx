@@ -6,35 +6,24 @@ import SFlex from 'components/atoms/SFlex';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SPageTitle from 'components/atoms/SPageTitle';
 import SPageTitleSection from 'components/atoms/SPageTitleSection';
-import { DocumentPcmsoForm } from 'components/organisms/forms/DocumentPcmsoForm/DocumentPcmsoForm';
-import { ModalAddDocPcmso } from 'components/organisms/modals/ModalAddDocPcmso';
-import { ModalRiskTool } from 'components/organisms/modals/ModalRiskTool';
-import {
-  initialWorkspaceSelectState,
-  ModalSelectWorkspace,
-} from 'components/organisms/modals/ModalSelectWorkspace';
+import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
 import { ModalViewExam } from 'components/organisms/modals/ModalViewExam/ModalViewExam';
 import { ModalViewProfessional } from 'components/organisms/modals/ModalViewProfessional';
 import { DocTable } from 'components/organisms/tables/DocTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
-import SActionPlanIcon from 'assets/icons/SActionPlanIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import { SExamIcon } from 'assets/icons/SExamIcon';
-import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 
-import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
-import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
-
-import { DocumentPgrForm } from '../../../../../../components/organisms/forms/DocumentPgrForm';
 
 const PCMSO: NextPage = () => {
   const { query, push } = useRouter();
@@ -89,12 +78,10 @@ const PCMSO: NextPage = () => {
         width={'175px'}
       /> */}
 
-        <DocumentPcmsoForm mb={15} riskGroupId={query.docId as string} />
         <DocTable
           documentPcmsoId={query.docId as string}
-          query={{ isPCMSO: true }}
+          query={{ type: DocumentTypeEnum.PGR }}
         />
-        <ModalAddDocPcmso />
         <ModalViewProfessional />
         <ModalSingleInput />
         <ModalSelectWorkspace />

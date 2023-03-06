@@ -34,7 +34,6 @@ export const EditGhoSelects: FC<IEditGhoSelects> = ({
       <WorkspacesSelect
         large
         handleSelect={(item) => {
-          console.log(item);
           if (Array.isArray(item))
             setGhoData((d: any) => ({ ...d, workspaceIds: item }));
         }}

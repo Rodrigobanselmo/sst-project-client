@@ -79,7 +79,7 @@ export const ClinicsTable: FC<
   const { push } = useRouter();
 
   const handleEditStatus = (status: StatusEnum) => {
-    console.log(status); // TODO edit checklist status
+    // TODO edit checklist status
   };
 
   const handleGoToClinic = (companyId: string) => {

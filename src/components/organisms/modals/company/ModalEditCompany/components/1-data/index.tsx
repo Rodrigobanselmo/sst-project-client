@@ -11,6 +11,7 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { CnaeInputSelect } from 'components/organisms/inputSelect/CnaeSelect/CnaeSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
@@ -242,6 +243,19 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
             name="primary_activity"
             label="CNAE"
             control={control}
+          />
+
+          <StatusSelect
+            large
+            sx={{ maxWidth: '120px', mt: -10 }}
+            selected={companyData.status}
+            statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
+            handleSelectMenu={(option) =>
+              setCompanyData({
+                ...companyData,
+                status: option.value,
+              })
+            }
           />
         </SFlex>
         <SFlex ml={5} mt={10} direction="column">

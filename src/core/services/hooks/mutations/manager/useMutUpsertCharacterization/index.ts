@@ -154,7 +154,7 @@ export function useMutUpsertCharacterization() {
         return resp;
       },
       onError: (error: IErrorResp) => {
-        console.log(error);
+        console.error(error);
         enqueueSnackbar(error.response.data.message, {
           variant: 'error',
           anchorOrigin: {

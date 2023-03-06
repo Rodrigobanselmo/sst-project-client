@@ -86,8 +86,8 @@ export const ModalImportExport = () => {
               path: path,
             })
             .catch(() => {});
-          queryClient.refetchQueries([QueryEnum.HIERARCHY, companyId]);
-          queryClient.refetchQueries([QueryEnum.GHO, companyId]);
+          queryClient.invalidateQueries([QueryEnum.HIERARCHY, companyId]);
+          queryClient.invalidateQueries([QueryEnum.GHO, companyId]);
           onClose();
         }}
         maxFiles={1}

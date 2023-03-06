@@ -12,12 +12,13 @@ import {
 } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
 import { getRiskDoc } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
 import { useSnackbar } from 'notistack';
-import { RiskOrderEnum } from 'project/enum/risk.enums';
+import { RiskEnum, RiskOrderEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
 
 import { originRiskMap } from 'core/constants/maps/origin-risk';
+import { EsocialCodeEnum } from 'core/enums/esocial-code.enum';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist/risk/useMutUpsertRiskDocInfo';
@@ -151,6 +152,9 @@ export const ModalViewRiskData = ({
       </SFlex>
       <SFlex direction="column" gap={5}>
         {riskDataMemo.map((data) => {
+          const cantEdit =
+            data.riskFactor.esocialCode == EsocialCodeEnum.AUSENCIA_DE_RISCO;
+
           return (
             <SFlex
               gap={0}
@@ -165,19 +169,21 @@ export const ModalViewRiskData = ({
                 />
               </SFlex>
 
-              <SCheckRiskDocInfo
-                onUnmount={upsertRiskDocInfo.isError}
-                onSelectCheck={(docInfo) =>
-                  onChangeRiskDocInfo({
-                    ...docInfo,
-                    riskId: data.riskFactor.id,
-                  })
-                }
-                riskDocInfo={getRiskDoc(data?.riskFactor, {
-                  companyId,
-                  firstHierarchy: true,
-                })}
-              />
+              {!cantEdit && (
+                <SCheckRiskDocInfo
+                  onUnmount={upsertRiskDocInfo.isError}
+                  onSelectCheck={(docInfo) =>
+                    onChangeRiskDocInfo({
+                      ...docInfo,
+                      riskId: data.riskFactor.id,
+                    })
+                  }
+                  riskDocInfo={getRiskDoc(data?.riskFactor, {
+                    companyId,
+                    firstHierarchy: true,
+                  })}
+                />
+              )}
 
               <>
                 {data?.riskData.map((riskData) => {

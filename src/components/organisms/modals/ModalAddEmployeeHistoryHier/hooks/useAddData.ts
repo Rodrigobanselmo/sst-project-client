@@ -150,7 +150,7 @@ export const useAddData = () => {
         onClose();
       }
     } catch (error) {
-      console.log('error');
+      console.error('error');
     }
   };
 

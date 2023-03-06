@@ -88,7 +88,7 @@ export function useFetchQueryCities() {
           staleTime: 1000 * 60 * 10, // 10 minute
         },
       )
-      .catch((e) => console.log(e));
+      .catch((e) => console.error(e));
 
     const response = {
       data: data?.data || ([] as ICities[]),

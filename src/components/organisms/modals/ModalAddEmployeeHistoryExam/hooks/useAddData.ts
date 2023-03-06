@@ -222,7 +222,6 @@ export const useAddData = () => {
       isErrorFound = true;
     }
     if (!isCanceled && !hideClinicExam && isAllFields && !data?.doctor?.id) {
-      console.log(data);
       setError('doctor', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }
@@ -304,7 +303,7 @@ export const useAddData = () => {
         onClose();
       }
     } catch (error) {
-      console.log('error');
+      console.error('error');
     }
   };
 

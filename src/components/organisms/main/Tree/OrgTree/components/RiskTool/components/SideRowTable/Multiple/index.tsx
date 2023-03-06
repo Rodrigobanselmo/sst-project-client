@@ -329,7 +329,6 @@ export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
       setRiskData({ id: '' } as IRiskData);
       dispatch(setRiskAddState({ isSaving: false, isEdited: false }));
     } catch (error) {
-      console.log(error);
       dispatch(setRiskAddState({ isSaving: false }));
     }
   };
