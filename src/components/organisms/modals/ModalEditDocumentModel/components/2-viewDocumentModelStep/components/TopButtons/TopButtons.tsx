@@ -1,6 +1,7 @@
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STableButton } from 'components/atoms/STable/components/STableButton';
+import { RemoveDoubleClickButton } from 'components/organisms/documentModel/DocumentModelContent/TypeSectionItem/RemoveDoubleClickButton';
 import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice';
 
 import { SDownloadIcon } from 'assets/icons/SDownloadIcon';
@@ -15,7 +16,8 @@ export const TopButtons = ({
   downlandLoading,
   onDownloadPreview,
   saveLoading,
-}: IUseViewDocumentModel) => {
+  handleDeleteActualItems,
+}: IUseViewDocumentModel & { handleDeleteActualItems?: () => void }) => {
   const selectItem = useAppSelector(selectDocumentSelectItem);
   return (
     <Box
@@ -27,7 +29,13 @@ export const TopButtons = ({
       mb={-20}
       sx={{ backgroundColor: 'grey.50' }}
     >
-      <SFlex justifyContent={'end'}>
+      <SFlex justifyContent={'end'} alignItems="center">
+        <SFlex justifyContent={'end'} alignItems="center" mr={20}>
+          <RemoveDoubleClickButton
+            onHandleDeletion={() => handleDeleteActualItems?.()}
+            disabled={!selectItem}
+          />
+        </SFlex>
         <STableButton
           text="Baixar"
           icon={SDownloadIcon}

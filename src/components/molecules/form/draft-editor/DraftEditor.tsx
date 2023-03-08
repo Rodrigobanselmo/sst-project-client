@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 import { css } from '@emotion/react';
 import styled from '@emotion/styled';
@@ -19,7 +19,7 @@ import { useNewDebounce } from 'core/hooks/useNewDebounce';
 
 import { DraftEditorProps } from './types';
 
-const STDraftBox = styled(Box)<{ document1?: number }>`
+const STDraftBox = styled(Box)<{ document1?: number; document2?: number }>`
   overflow: visible;
   .wrapper_content {
     /* box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.19); */
@@ -91,8 +91,34 @@ const STDraftBox = styled(Box)<{ document1?: number }>`
     max-height: 900px;
   }
 
+  .maxHeight_model {
+    min-height: 50px;
+    max-height: 900px;
+  }
+
   .full {
     max-height: 100%;
+  }
+
+  .rdw-suggestion-wrapper {
+    height: 500px;
+    min-height: 500px;
+  }
+
+  .rdw-suggestion-dropdown {
+    width: 400px;
+    min-width: 300px;
+    max-width: 500px;
+
+    max-height: 320px;
+    font-size: 12px;
+  }
+
+  .rdw-suggestion-option {
+  }
+
+  .rdw-editor-main {
+    overflow: visible;
   }
 
   ${(props) =>
@@ -120,6 +146,43 @@ const STDraftBox = styled(Box)<{ document1?: number }>`
         display: none;
       }
     `};
+
+  ${(props) =>
+    props.document2 &&
+    css`
+      .wrapper_content {
+        margin-bottom: 15px;
+        /* background-color: ${props.theme.palette.grey[50]}; */
+      }
+
+      .editor_content {
+        padding-bottom: 10px;
+        background-color: transparent;
+      }
+
+      .rdw-option-wrapper {
+        max-height: 0px;
+        min-width: 0px;
+        max-width: 10px;
+        img {
+          padding: 0;
+          max-height: 11px;
+        }
+      }
+
+      .rdw-image-wrapper {
+        display: none;
+      }
+      .rdw-list-wrapper {
+        display: none;
+      }
+      .rdw-fontfamily-wrapper {
+        display: none;
+      }
+      div[title='Strikethrough'] {
+        display: none;
+      }
+    `};
 `;
 
 const Editor = dynamic(
@@ -140,12 +203,24 @@ export const DraftEditor = ({
   onChange,
   textProps,
   document1,
+  toolbarOpen,
+  editorProps,
+  document_model,
+  handleReturn,
+  toolbarProps,
+  mention,
   ...props
 }: DraftEditorProps) => {
-  const [toolbar, setToolbar] = useState(false);
+  const [toolbar, setToolbar] = useState(toolbarOpen || false);
   const [editorState, setEditorState] = useState(() =>
     EditorState.createEmpty(),
   );
+
+  // const setEditorReference = (ref: any) => {
+  //   if (this && (this as any)?.editorReferece)
+  //     (this as any).editorReferece = ref;
+  //   ref?.focus();
+  // };
 
   useEffect(() => {
     if (!defaultValue) setEditorState(EditorState.createEmpty());
@@ -186,6 +261,7 @@ export const DraftEditor = ({
   };
 
   const handleClickAway = (): void => {
+    if (typeof toolbarOpen === 'boolean') return;
     onDebounce(() => {
       setToolbar(false);
     }, 10000);
@@ -206,12 +282,18 @@ export const DraftEditor = ({
   };
 
   return (
-    <STDraftBox document1={document1 ? 1 : 0} {...props}>
+    <STDraftBox
+      document1={document1 ? 1 : 0}
+      document2={document_model ? 1 : 0}
+      {...props}
+    >
       <SText color="text.label" fontSize={14} mb={5} {...textProps}>
         {label}
       </SText>
       <Editor
+        // editorRef={setEditorReference}
         onTab={onTab}
+        mention={mention}
         wrapperClassName="wrapper_content"
         editorClassName={`editor_content maxHeight_${size} ${
           allVisible ? 'full' : ''
@@ -231,9 +313,22 @@ export const DraftEditor = ({
         }}
         placeholder={placeholder}
         editorState={editorState}
+        handleReturn={handleReturn}
         toolbar={{
           inline: {
             monospace: { className: 'display-none' },
+          },
+          // options: [
+          //   'inline',
+          //   'textAlign',
+          //   'list',
+          //   'link',
+          //   'fontSize',
+          //   'colorPicker',
+          //   'emoji',
+          // ],
+          fontSize: {
+            options: [6, 7, 7.5, 8, 9, 10, 11, 12, 14, 16, 18, 24, 30, 36],
           },
           textAlign: { inDropdown: true },
           link: { inDropdown: true },
@@ -247,16 +342,18 @@ export const DraftEditor = ({
           embedded: {
             className: 'display-none',
           },
+          ...toolbarProps,
         }}
         localization={{
           locale: 'pt',
         }}
         onFocus={() => {
-          onClearDebounce();
-          setToolbar(true);
+          setToolbar(typeof toolbarOpen === 'boolean' ? toolbarOpen : true);
+          if (typeof toolbarOpen !== 'boolean') onClearDebounce();
         }}
         toolbarHidden={!toolbar}
         onEditorStateChange={handleChange}
+        {...(editorProps as any)}
       />
     </STDraftBox>
   );

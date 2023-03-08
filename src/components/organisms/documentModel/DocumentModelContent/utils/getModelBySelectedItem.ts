@@ -4,7 +4,8 @@ import { NodeDocumentModel } from '../../DocumentModelTree/types/types';
 import { itemLevelMap } from '../constants/item-types.map';
 
 export const getModelSectionsBySelectedItem = (
-  model: IDocumentModelFull,
+  document: IDocumentModelFull['document'],
+  sections: IDocumentModelFull['sections'],
   selectedItem: NodeDocumentModel,
 ) => {
   const isSection =
@@ -15,12 +16,17 @@ export const getModelSectionsBySelectedItem = (
   let actualDeep = 0;
   let startToAdd = false;
   let stopToAdd = false;
+  let hasAdded = false;
 
-  const sectionsData = model.document.sections
-    .map(({ children: sectionChildren, ...section }) => {
+  const sectionsData = document.sections
+    .map(({ children: sectionChildren, ...section }, index) => {
       if (stopToAdd) return false;
       const data = section.data.map((sectionItem) => {
         if (stopToAdd) return false;
+
+        const sectionData = sections[sectionItem.type];
+        const isBreak = sectionData?.isBreakSection;
+
         const sectionId = sectionItem.id;
 
         if (isSection && sectionId != selectedItem.id && !startToAdd)
@@ -35,6 +41,8 @@ export const getModelSectionsBySelectedItem = (
 
         if (children) {
           children = children.filter((element) => {
+            if (stopToAdd) return false;
+
             const elementId = element.id;
             const deep = itemLevelMap[element.type]?.level;
 
@@ -45,7 +53,7 @@ export const getModelSectionsBySelectedItem = (
               actualDeep = deep;
             }
             // eslint-disable-next-line prettier/prettier
-              if (isElement && elementId !== selectedItem.id && deep === actualDeep && startToAdd) {
+              if (isElement && elementId !== selectedItem.id && deep &&deep <= actualDeep && startToAdd) {
               stopToAdd = true;
               return false;
             }
@@ -55,11 +63,26 @@ export const getModelSectionsBySelectedItem = (
           });
         }
 
-        if (startToAdd)
+        const isNotEmptySection =
+          Array.isArray(children) && (children as any).length;
+
+        if (startToAdd && isNotEmptySection && !isBreak) {
+          hasAdded = true;
           return {
             ...sectionItem,
+            sectionIndex: index,
             ...(children && { children }),
           };
+        }
+
+        if (startToAdd && isBreak && !hasAdded) {
+          hasAdded = true;
+          stopToAdd = true;
+          return {
+            ...sectionItem,
+            sectionIndex: index,
+          };
+        }
 
         return false;
       });

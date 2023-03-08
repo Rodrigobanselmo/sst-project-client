@@ -92,6 +92,7 @@ export interface IDocumentModelFull {
     string,
     {
       type: string;
+      order: number;
       label: string;
       text: string;
       active?: boolean;

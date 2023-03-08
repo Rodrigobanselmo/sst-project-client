@@ -4,6 +4,8 @@ import type { XYCoord, DragSourceMonitor } from 'react-dnd';
 
 import type { DragDropMonitor } from 'dnd-core';
 
+import { IDocumentModelElement } from 'core/interfaces/api/IDocumentModel';
+
 export type NodeModel<T = unknown> = {
   id: number | string;
   parent: number | string;

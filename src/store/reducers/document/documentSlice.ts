@@ -1,9 +1,18 @@
-/* eslint-disable no-param-reassign */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { NodeDocumentModel } from 'components/organisms/documentModel/DocumentModelTree/types/types';
+import clone from 'clone';
+/* eslint-disable no-param-reassign */
+import {
+  NodeDocumentModel,
+  NodeDocumentModelElementData,
+  NodeDocumentModelSectionData,
+} from 'components/organisms/documentModel/DocumentModelTree/types/types';
 import { initialEditDocumentModelState } from 'components/organisms/modals/ModalEditDocumentModel/hooks/useEditDocumentModel';
 
-import { IDocumentModelData } from 'core/interfaces/api/IDocumentModel';
+import {
+  IDocumentModelData,
+  IDocumentModelElement,
+  IDocumentModelSection,
+} from 'core/interfaces/api/IDocumentModel';
 
 import { AppState } from '../..';
 
@@ -28,6 +37,138 @@ const initialState: IDocumentSlice = {
 
 const name = 'document';
 
+const getSection = (state: IDocumentSlice, id: string) => {
+  const data = {
+    sectionIndex: 0,
+    sectionSecondIndex: 0,
+    section: undefined as IDocumentModelSection | undefined,
+    lastSection: undefined as IDocumentModelSection | undefined,
+  };
+
+  const sectionsGroup = state.model?.sections || [];
+  let found = false;
+
+  for (let i = 0; i < sectionsGroup.length; i++) {
+    const sections = sectionsGroup[i];
+
+    for (let i_sec = 0; i_sec < sections.data.length; i_sec++) {
+      const section = sections.data[i_sec];
+
+      if (section && section.id == id) {
+        data.sectionSecondIndex = i_sec;
+        data.sectionIndex = i;
+        data.section = section;
+        found = true;
+        break;
+      }
+
+      if (sections.children?.[section.id]) data.lastSection = section;
+    }
+
+    if (found) break;
+  }
+
+  return data;
+};
+
+const getChild = (state: IDocumentSlice, id: string) => {
+  const data = {
+    sectionId: '',
+    sectionIndex: 0,
+    childrenIndex: 0,
+    element: {} as IDocumentModelElement,
+  };
+
+  const sectionsGroup = state.model?.sections || [];
+  let found = false;
+
+  for (let i = 0; i < sectionsGroup.length; i++) {
+    const sections = sectionsGroup[i];
+    const children = sectionsGroup[i].children;
+
+    for (let i_sec = 0; i_sec < sections.data.length; i_sec++) {
+      const section = sections.data[i_sec];
+      if (children?.[section.id]) {
+        for (let i_el = 0; i_el < children[section.id].length; i_el++) {
+          const element = children[section.id]?.[i_el];
+
+          if (element && element.id == id) {
+            data.childrenIndex = i_el;
+            data.sectionIndex = i;
+            data.sectionId = section.id;
+            data.element = element;
+            found = true;
+            break;
+          }
+        }
+      }
+    }
+
+    if (found) break;
+  }
+
+  return data;
+};
+
+const getManySectionAndChild = (state: IDocumentSlice, ids: string[]) => {
+  const allSectionData = [];
+  const allChildrenData = [];
+
+  const dataSection = {
+    sectionIndex: 0,
+    sectionSecondIndex: 0,
+    section: undefined as IDocumentModelSection | undefined,
+    lastSection: undefined as IDocumentModelSection | undefined,
+  };
+
+  const dataElement = {
+    sectionId: '',
+    sectionIndex: 0,
+    childrenIndex: 0,
+    element: {} as IDocumentModelElement,
+  };
+
+  const sectionsGroup = state.model?.sections || [];
+
+  for (let i = 0; i < sectionsGroup.length; i++) {
+    const sections = sectionsGroup[i];
+    const children = sectionsGroup[i].children;
+
+    for (let i_sec = 0; i_sec < sections.data.length; i_sec++) {
+      const section = sections.data[i_sec];
+
+      if (section && ids.includes(section.id)) {
+        dataSection.sectionSecondIndex = i_sec;
+        dataSection.sectionIndex = i;
+        dataSection.section = section;
+
+        allSectionData.push(dataSection);
+        break;
+      }
+
+      if (sections.children?.[section.id]) dataSection.lastSection = section;
+
+      if (children?.[section.id]) {
+        for (let i_el = 0; i_el < children[section.id].length; i_el++) {
+          const element = children[section.id]?.[i_el];
+
+          if (element && ids.includes(element.id)) {
+            dataElement.childrenIndex = i_el;
+            dataElement.sectionIndex = i;
+            dataElement.sectionId = section.id;
+            dataElement.element = element;
+
+            allChildrenData.push(dataElement);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return { allSectionData, allChildrenData };
+};
+
 export const documentSlice = createSlice({
   name,
   initialState,
@@ -40,6 +181,171 @@ export const documentSlice = createSlice({
       action: PayloadAction<IDocumentSlice['modalEditData']>,
     ) => {
       state.modalEditData = action.payload;
+    },
+    setDocumentEditElementChild: (
+      state,
+      action: PayloadAction<{
+        element: Partial<NodeDocumentModelElementData>;
+      }>,
+    ) => {
+      if (!action.payload.element.id) return state;
+
+      const data = getChild(state, action.payload.element.id);
+
+      const element = action.payload.element;
+      const sectionsGroup = state.model?.sections || [];
+      const children = sectionsGroup[data.sectionIndex].children;
+
+      if (children)
+        children[data.sectionId][data.childrenIndex] = {
+          ...data.element,
+          ...element,
+        };
+    },
+    setDocumentAddElementAfterChild: (
+      state,
+      action: PayloadAction<{
+        element: Partial<NodeDocumentModelElementData>;
+      }>,
+    ) => {
+      if (!action.payload.element.id) return state;
+      const data = getChild(state, action.payload.element.id);
+
+      const element = action.payload.element;
+      const sectionsGroup = state.model?.sections || [];
+      const children = sectionsGroup[data.sectionIndex].children;
+
+      if (children) {
+        const cloneChildren = clone(children[data.sectionId]);
+
+        cloneChildren.splice(data.childrenIndex + 1, 0, {
+          ...data.element,
+          ...element,
+        });
+
+        children[data.sectionId] = cloneChildren;
+      }
+    },
+    setDocumentDeleteElementChild: (
+      state,
+      action: PayloadAction<{ id: string }>,
+    ) => {
+      if (!action.payload.id) return state;
+      const data = getChild(state, action.payload.id);
+
+      const sectionsGroup = state.model?.sections || [];
+      const children = sectionsGroup[data.sectionIndex].children;
+
+      if (children) {
+        const cloneChildren = clone(children[data.sectionId]);
+
+        cloneChildren.splice(data.childrenIndex, 1);
+
+        children[data.sectionId] = cloneChildren;
+      }
+    },
+    setDocumentDeleteSection: (
+      state,
+      action: PayloadAction<{ id: string }>,
+    ) => {
+      if (!action.payload.id) return state;
+      const data = getSection(state, action.payload.id);
+
+      const sectionsGroup = state.model?.sections || [];
+      const sections = sectionsGroup[data.sectionIndex].data;
+      const children = sectionsGroup[data.sectionIndex].children;
+
+      if (
+        !data.lastSection &&
+        data.section?.id &&
+        children?.[data.section.id]
+      ) {
+        alert('Não é possivel remover a primeira seção do documento');
+        return state;
+      }
+
+      if (sections) {
+        const cloneSections = clone(sections);
+
+        cloneSections.splice(data.sectionSecondIndex, 1);
+
+        sectionsGroup[data.sectionIndex].data = cloneSections;
+
+        if (data.section?.id && children) {
+          const sectionChildren = children[data.section.id];
+
+          if (sectionChildren && data.lastSection?.id) {
+            const newChildren = clone(children);
+
+            newChildren[data.lastSection.id].push(...sectionChildren);
+            delete newChildren[data.section.id];
+
+            sectionsGroup[data.sectionIndex].children = newChildren;
+          }
+        }
+      }
+    },
+    setDocumentDeleteMany: (
+      state,
+      action: PayloadAction<{ ids: string[] }>,
+    ) => {
+      if (!action.payload.ids) return state;
+      const { allChildrenData, allSectionData } = getManySectionAndChild(
+        state,
+        action.payload.ids,
+      );
+
+      allChildrenData.forEach((data) => {
+        const sectionsGroup = state.model?.sections || [];
+        const children = sectionsGroup[data.sectionIndex].children;
+
+        if (children) {
+          const cloneChildren = clone(children[data.sectionId]);
+
+          cloneChildren.splice(data.childrenIndex, 1);
+
+          children[data.sectionId] = cloneChildren;
+        }
+      });
+
+      allSectionData.forEach((data) => {
+        const sectionsGroup = state.model?.sections || [];
+        const sections = sectionsGroup[data.sectionIndex].data;
+        const children = sectionsGroup[data.sectionIndex].children;
+
+        if (sections) {
+          const cloneSections = clone(sections);
+
+          cloneSections.splice(data.sectionSecondIndex, 1);
+
+          sectionsGroup[data.sectionIndex].data = cloneSections;
+
+          if (data.section?.id && children) {
+            const sectionChildren = children[data.section.id];
+
+            if (sectionChildren && data.lastSection?.id) {
+              const newChildren = clone(children);
+
+              newChildren[data.lastSection.id].push(...sectionChildren);
+              delete newChildren[data.section.id];
+
+              sectionsGroup[data.sectionIndex].children = newChildren;
+            }
+          }
+        }
+      });
+    },
+    setDocumentAddSection: (
+      state,
+      action: PayloadAction<{
+        section: NodeDocumentModelSectionData;
+      }>,
+    ) => {
+      if (!action.payload.section.type) return state;
+      if (!state.model?.sections?.[0]?.data) return state;
+      const section = action.payload.section;
+
+      state.model.sections[0].data = [section, ...state.model.sections[0].data];
     },
     setDocumentModel: (
       state,
@@ -79,6 +385,12 @@ export const {
   setSaveDocument,
   setDocumentModalEditData,
   setDocumentModelSections,
+  setDocumentEditElementChild,
+  setDocumentAddElementAfterChild,
+  setDocumentDeleteElementChild,
+  setDocumentAddSection,
+  setDocumentDeleteSection,
+  setDocumentDeleteMany,
 } = documentSlice.actions;
 
 export const selectAllDocumentModel = (state: AppState) => state[name].model;

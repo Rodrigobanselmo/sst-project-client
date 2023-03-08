@@ -1,19 +1,24 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { useStore } from 'react-redux';
 
 import clone from 'clone';
 import {
+  IDocumentSlice,
+  selectAllDocumentModel,
   setDocumentModelSections,
   setDocumentSelectItem,
   setSaveDocument,
 } from 'store/reducers/document/documentSlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { useAppSelector } from 'core/hooks/useAppSelector';
 import {
   IDocumentModelData,
   IDocumentModelFull,
 } from 'core/interfaces/api/IDocumentModel';
 
 import { DropOptions, getDescendants } from '../../../../dnd-tree/Main';
+import { getModelSectionsBySelectedItem } from '../../DocumentModelContent/utils/getModelBySelectedItem';
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
 import { itemLevelMap } from '../constants/item-types.map';
 import {
@@ -25,100 +30,135 @@ import {
 export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
   const [treeData, setTreeData] = useState<NodeDocumentModel[]>([]);
   const dispatch = useAppDispatch();
+  const store = useStore();
 
-  useEffect(() => {
-    if (model) {
-      const treeArray: NodeDocumentModel[] = [];
-      const variables = { ...model.variables, ...model.document.variables };
+  const document = useAppSelector(selectAllDocumentModel);
 
-      model.document.sections.forEach(
-        ({ children: sectionChildren, ...section }) => {
-          let parentIds: string[] = [];
+  const getNewTreeData = useCallback((model: IDocumentModelFull) => {
+    const treeArray: NodeDocumentModel[] = [];
+    const variables = { ...model.variables, ...model.document.variables };
 
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          section.data.forEach(({ children: _children, ...sectionItem }) => {
-            const sectionData = model.sections[sectionItem.type];
-            const isBreak = sectionData?.isBreakSection;
-            if (isBreak) parentIds = [];
+    model.document.sections.forEach(
+      ({ children: sectionChildren, ...section }) => {
+        let parentIds: string[] = [];
 
-            const sectionId = sectionItem.id;
-            const children = sectionChildren?.[sectionId];
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        section.data.forEach(({ children: _children, ...sectionItem }) => {
+          const sectionData = model.sections[sectionItem.type];
+          const isBreak = sectionData?.isBreakSection;
+          if (isBreak) parentIds = [];
 
-            const parentId = parentIds[parentIds.length - 1] || 0;
-            treeArray.push({
-              id: sectionId,
-              parent: parentId,
-              droppable: false,
-              text: replaceAllVariables(
-                sectionItem?.label ||
-                  sectionItem?.text ||
-                  sectionData?.label ||
-                  'Seção',
-                variables,
-              ),
-              data: {
-                ...clone(sectionItem),
+          const sectionId = sectionItem.id;
+          const children = sectionChildren?.[sectionId];
+
+          const parentId = parentIds[parentIds.length - 1] || 0;
+          treeArray.push({
+            id: sectionId,
+            parent: parentId,
+            droppable: false,
+            text: replaceAllVariables(
+              sectionItem?.label ||
+                sectionItem?.text ||
+                sectionData?.label ||
+                'Seção',
+              variables,
+            ),
+            data: {
+              ...clone(sectionItem),
+              ...(children && {
                 hasChildren: true,
                 children: [],
-                section: true,
-              },
-            });
-
-            if (children) {
-              children.forEach((element) => {
-                const deep = itemLevelMap[element.type]?.level;
-                if (!deep) return;
-
-                const elementData = model.elements[element.type];
-
-                const deepIndex = deep - 1;
-                parentIds[deepIndex] = element.id;
-                const parentId = (deepIndex && parentIds[deepIndex - 1]) || 0;
-                parentIds = parentIds.slice(0, deepIndex + 1);
-
-                if (
-                  treeArray[treeArray.length - 1]?.data != undefined &&
-                  'section' in (treeArray[treeArray.length - 1] as any).data
-                )
-                  treeArray[treeArray.length - 1].parent = parentId;
-
-                treeArray.push({
-                  id: element.id,
-                  parent: parentId,
-                  droppable: !!deep && deep < 8,
-                  previewText: elementData.label,
-                  text: replaceAllVariables(element.text, variables),
-                  data: {
-                    ...clone(element),
-                    element: true,
-                  },
-                });
-              });
-            }
+              }),
+              childrenTree: [],
+              section: true,
+            },
           });
-        },
-      );
 
-      setTreeData(treeArray);
-    }
-  }, [model]);
+          if (children) {
+            children.forEach((element) => {
+              const deep = itemLevelMap[element.type]?.level;
+              if (!deep) {
+                treeArray[treeArray.length - 1].data?.childrenTree?.push({
+                  ...element,
+                  childrenTree: [],
+                  element: true,
+                });
+                return;
+              }
+
+              const elementData = model.elements[element.type];
+
+              const deepIndex = deep - 1;
+              parentIds[deepIndex] = element.id;
+              const parentId = (deepIndex && parentIds[deepIndex - 1]) || 0;
+              parentIds = parentIds.slice(0, deepIndex + 1);
+
+              if (
+                treeArray[treeArray.length - 1]?.data != undefined &&
+                'section' in (treeArray[treeArray.length - 1] as any).data
+              )
+                treeArray[treeArray.length - 1].parent = parentId;
+
+              treeArray.push({
+                id: element.id,
+                parent: parentId,
+                droppable: !!deep && deep < 8,
+                previewText: elementData.label,
+                text: replaceAllVariables(element.text, variables),
+                data: {
+                  ...clone(element),
+                  childrenTree: [],
+                  element: true,
+                },
+              });
+            });
+          }
+        });
+      },
+    );
+
+    return treeArray;
+  }, []);
 
   useEffect(() => {
-    const data: IDocumentModelData['sections'] = [{ data: [] }];
+    if (model && document) {
+      const treeArray = getNewTreeData({ ...model, document });
+      setTreeData(treeArray);
+    }
+  }, [model, document, getNewTreeData]);
+
+  // const getNewTreeDataFromStore = () => {
+  //   const modelRedux = (store.getState().document as IDocumentSlice).model;
+
+  //   if (!modelRedux) return;
+  //   if (!model) return;
+
+  //   const newTreeData = getNewTreeData({ ...model, document: modelRedux });
+  //   return newTreeData;
+  // };
+
+  const parseTreeToModel = (newTreeData: NodeDocumentModel[]) => {
+    const data: IDocumentModelData['sections'] = [{ data: [], children: {} }];
+
+    if (!newTreeData) return;
 
     const addSection = (section: NodeDocumentModelSectionData) => {
       data[0].data.push(section);
 
       const index = data[0].data.length - 1;
       data[0].data[index].children = [];
+
+      if (data[0].children) data[0].children[data[0].data[index].id] = [];
     };
 
     const addChildren = (child: NodeDocumentModelElementData) => {
       const index = data[0].data.length - 1;
-      data[0].data[index]?.children?.push(child);
+      // data[0].data[index]?.children?.push(child);
+
+      data[0].children?.[data[0].data[index]?.id]?.push(child);
     };
 
-    const addNode = (
+    const selectAdd = (
       item: NodeDocumentModelElementData | NodeDocumentModelSectionData,
     ) => {
       const isSection = 'section' in item;
@@ -133,13 +173,37 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
       }
     };
 
+    const addNode = ({
+      childrenTree,
+      ...item
+    }: NodeDocumentModelElementData | NodeDocumentModelSectionData) => {
+      selectAdd(item);
+      if (childrenTree) {
+        childrenTree.forEach((i) => {
+          selectAdd(i);
+        });
+      }
+    };
+
     const canAddParents: Record<string | number, boolean> = { 0: true };
     const pendingItems: Record<
       string | number,
       (NodeDocumentModelSectionData | NodeDocumentModelElementData)[]
     > = {};
 
-    treeData.forEach((item) => {
+    newTreeData;
+
+    const sortedNodes: NodeDocumentModel[] = [];
+
+    const sortNode = (node: NodeDocumentModel) => {
+      sortedNodes.push(node);
+      const children = newTreeData.filter((n) => n.parent === node.id);
+      children.forEach((child) => sortNode(child));
+    };
+
+    newTreeData.filter((n) => n.parent == 0).forEach((node) => sortNode(node));
+
+    sortedNodes.forEach((item) => {
       const canAdd = canAddParents[item.parent];
       if (canAdd) {
         canAddParents[item.id] = true;
@@ -154,11 +218,16 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
     });
 
     dispatch(setSaveDocument());
+    const modelRedux = (store.getState().document as IDocumentSlice).model;
+    console.log('modelRedux', modelRedux);
 
-    console.log('ok', data);
-    console.log(treeData);
-    // dispatch(setDocumentModelSections(data));
-  }, [treeData, dispatch]);
+    dispatch(setDocumentModelSections(data));
+    console.log('data', data);
+
+    console.log('newTreeData', newTreeData);
+
+    return data;
+  };
 
   const reorderArray = (
     array: NodeDocumentModel[],
@@ -179,8 +248,15 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
       typeof dropTargetId === 'undefined'
     )
       return;
-    const start = treeData.find((v) => v.id === dragSourceId);
-    const end = treeData.find((v) => v.id === dropTargetId);
+
+    const newTreeData = treeData;
+    // const newTreeData = getNewTreeDataFromStore();
+
+    if (!newTreeData) return;
+
+    const start = newTreeData.find((v) => v.id === dragSourceId);
+    const endIndex = newTreeData.findIndex((v) => v.id === dropTargetId);
+    const end = newTreeData[endIndex];
 
     if (
       start?.parent === dropTargetId &&
@@ -193,6 +269,7 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
           treeData.indexOf(start),
           destinationIndex,
         );
+        parseTreeToModel(output);
         return output;
       });
     }
@@ -203,13 +280,14 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
       typeof destinationIndex === 'number'
     ) {
       if (
-        getDescendants(treeData, dragSourceId).find(
+        getDescendants(newTreeData, dragSourceId).find(
           (el) => el.id === dropTargetId,
         ) ||
         dropTargetId === dragSourceId ||
         (end && !end?.droppable)
       )
         return;
+
       setTreeData((treeData) => {
         const output = reorderArray(
           treeData,
@@ -220,6 +298,7 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
         const outputCopy = clone(output);
         const movedElement = outputCopy.find((el) => el.id === dragSourceId);
         if (movedElement) movedElement.parent = dropTargetId;
+        parseTreeToModel(outputCopy);
         return outputCopy;
       });
     }

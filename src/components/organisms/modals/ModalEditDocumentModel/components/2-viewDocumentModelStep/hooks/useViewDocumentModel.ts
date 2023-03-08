@@ -1,6 +1,5 @@
 import { useStore } from 'react-redux';
 
-import clone from 'clone';
 import { getModelSectionsBySelectedItem } from 'components/organisms/documentModel/DocumentModelContent/utils/getModelBySelectedItem';
 import {
   IDocumentSlice,

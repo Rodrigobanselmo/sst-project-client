@@ -1,8 +1,13 @@
 import { useMemo } from 'react';
 
 import clone from 'clone';
-import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice';
+import {
+  selectAllDocumentModel,
+  selectDocumentSelectItem,
+  setDocumentDeleteMany,
+} from 'store/reducers/document/documentSlice';
 
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
 
@@ -10,26 +15,36 @@ import { ITypeDocumentModel } from '../types/types';
 import { getModelSectionsBySelectedItem } from '../utils/getModelBySelectedItem';
 
 export const useContentDocumentModel = ({
-  model,
+  model: modelQuery,
 }: {
   model: IDocumentModelFull | undefined;
 }) => {
   const selectedItem = useAppSelector(selectDocumentSelectItem);
+  const document = useAppSelector(selectAllDocumentModel);
+  const dispatch = useAppDispatch();
 
   const data = useMemo(() => {
-    if (model && selectedItem) {
+    if (modelQuery && document && selectedItem) {
       const arrayData: ITypeDocumentModel[] = [];
+
       const isSection =
         selectedItem && selectedItem.data && 'section' in selectedItem.data;
-      const modelSections = getModelSectionsBySelectedItem(model, selectedItem);
+      const modelSections = getModelSectionsBySelectedItem(
+        document,
+        modelQuery.sections,
+        selectedItem,
+      );
 
+      let lastSection: any = {};
       (modelSections || []).forEach((sectionItem, index) => {
         if (!sectionItem) return;
         const children = sectionItem?.children;
 
+        if (isSection) lastSection = sectionItem;
+
         if ((!isSection && index != 0) || isSection)
           arrayData.push({
-            ...clone(sectionItem),
+            ...sectionItem,
             section: true,
           });
 
@@ -37,6 +52,8 @@ export const useContentDocumentModel = ({
           children.forEach((element) => {
             arrayData.push({
               ...element,
+              sectionId: lastSection.id,
+              sectionIndex: lastSection.sectionIndex,
               element: true,
             });
           });
@@ -45,25 +62,34 @@ export const useContentDocumentModel = ({
 
       return arrayData;
     }
-  }, [model, selectedItem]);
+  }, [modelQuery, selectedItem, document]);
 
   const variables = useMemo(() => {
-    if (model) {
-      return { ...model.variables, ...model.document.variables };
+    if (modelQuery && document) {
+      return {
+        ...modelQuery.variables,
+        ...modelQuery.document.variables,
+        ...document.variables,
+      };
     }
-  }, [model]);
+  }, [modelQuery, document]);
 
   const elements = useMemo(() => {
-    if (model) {
-      return model.elements;
+    if (modelQuery) {
+      return modelQuery.elements;
     }
-  }, [model]);
+  }, [modelQuery]);
 
   const sections = useMemo(() => {
-    if (model) {
-      return model.sections;
+    if (modelQuery) {
+      return modelQuery.sections;
     }
-  }, [model]);
+  }, [modelQuery]);
 
-  return { data, variables, elements, sections };
+  const handleDeleteActualItems = () => {
+    if (data)
+      dispatch(setDocumentDeleteMany({ ids: data.map((item) => item.id) }));
+  };
+
+  return { data, variables, elements, sections, handleDeleteActualItems };
 };

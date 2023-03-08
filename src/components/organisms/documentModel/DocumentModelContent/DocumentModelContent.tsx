@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { cloneElement } from 'react';
 
 import { LinearProgress } from '@mui/material';
 
@@ -8,25 +8,28 @@ import { useContentDocumentModel } from './hooks/useContentDocumentModel';
 import { STStructContainer } from './styles';
 import { TypeSectionItem } from './TypeSectionItem/TypeSectionItem';
 
-export function DocumentModelContent(props: {
+export const DocumentModelContent: React.FC<{
   model: IDocumentModelFull | undefined;
   loading?: boolean;
-}) {
-  const { data, variables, elements, sections } =
+}> = ({ children, ...props }) => {
+  const { data, variables, elements, sections, handleDeleteActualItems } =
     useContentDocumentModel(props);
 
   return (
-    <STStructContainer className="documentModelContainer">
-      {props.loading && <LinearProgress />}
+    <>
+      {children && cloneElement(children as any, { handleDeleteActualItems })}
+      <STStructContainer className="documentModelContainer">
+        {props.loading && <LinearProgress />}
 
-      {data && variables && elements && sections && (
-        <TypeSectionItem
-          data={data}
-          variables={variables}
-          elements={elements}
-          sections={sections}
-        />
-      )}
-    </STStructContainer>
+        {data && variables && elements && sections && (
+          <TypeSectionItem
+            data={data}
+            variables={variables}
+            elements={elements}
+            sections={sections}
+          />
+        )}
+      </STStructContainer>
+    </>
   );
-}
+};

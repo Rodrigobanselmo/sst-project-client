@@ -12,11 +12,23 @@ export const STContainerItem = styled(Box)`
   }
 
   &:first-child > div:first-child {
+    margin-top: 2px;
+  }
+`;
+
+export const STContainerWrapperItem = styled(Box)`
+  padding: 0px 40px;
+  cursor: pointer;
+  :hover {
+    background-color: ${(p) => p.theme.palette.grey[200]};
+  }
+
+  &:first-child > div:first-child {
     margin-top: 0px;
   }
 `;
 
-export const STSection = styled(Box)`
+export const STSection = styled(Box)<{ open?: number }>`
   display: flex;
   font-weight: bold;
   align-items: center;
@@ -27,6 +39,12 @@ export const STSection = styled(Box)`
   border-radius: 4px;
   margin-top: 100px;
   margin-bottom: 10px;
+
+  ${(props) =>
+    props.open &&
+    css`
+      margin-top: 2px;
+    `};
 `;
 
 export const STHeaderText = styled(SText)<{ title?: number }>`

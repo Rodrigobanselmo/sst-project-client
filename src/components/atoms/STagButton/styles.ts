@@ -13,7 +13,7 @@ export const STSBoxButton = styled(Box)<{
 }>`
   border: 1px solid ${(props) => props.theme.palette.background.divider};
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: center;
   flex-direction: column;
   border-radius: 5px;
@@ -75,6 +75,15 @@ export const STSBoxButton = styled(Box)<{
     props.error &&
     css`
       border: 2px solid ${props.theme.palette.error.main};
+    `};
+
+  ${(props) =>
+    props.borderActive == 'primary' &&
+    css`
+      .text_main {
+        color: ${props.theme.palette.primary.dark};
+      }
+      border: 1px solid ${props.theme.palette.primary.dark};
     `};
 
   ${(props) =>
