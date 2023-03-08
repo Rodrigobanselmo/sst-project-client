@@ -7,6 +7,7 @@ import { SSwitch } from 'components/atoms/SSwitch';
 import { InputForm } from 'components/molecules/form/input';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { DocumentModelSelect } from 'components/organisms/inputSelect/DocumentModelSelect/DocumentModelSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
 import { IUsePGRHandleModal } from '../../hooks/usePGRHandleActions';
@@ -45,6 +46,28 @@ export const MainModalStep = (props: IUsePGRHandleModal) => {
             smallPlaceholder
             firstLetterCapitalize
           />
+
+          <Box mb={5} mt={3} maxWidth={['400px']}>
+            <DocumentModelSelect
+              fullWidth
+              onChange={(data) => {
+                setData((d) => ({
+                  ...d,
+                  modelId: data ? data.id : undefined,
+                  model: data,
+                }));
+              }}
+              inputProps={{
+                labelPosition: 'top',
+                placeholder: 'selecione...',
+              }}
+              unmountOnChangeDefault
+              defaultValue={data?.model}
+              name="model"
+              label={'Selecionar modelo de documento'}
+              control={control}
+            />
+          </Box>
 
           <Box
             mt={5}

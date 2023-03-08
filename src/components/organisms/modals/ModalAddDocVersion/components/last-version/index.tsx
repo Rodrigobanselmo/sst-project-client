@@ -8,6 +8,7 @@ import { SelectForm } from 'components/molecules/form/select';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { queryDocVersions } from 'core/services/hooks/queries/useQueryDocVersions/useQueryDocVersions';
 
@@ -43,7 +44,7 @@ export const VersionModalStep = (props: IUsePGRHandleModal) => {
     const response = await queryDocVersions(
       { take: 1, skip: 0 },
       {
-        isPGR: true,
+        type: DocumentTypeEnum.PGR,
         companyId: data.companyId,
         workspaceId: data.workspaceId,
       },

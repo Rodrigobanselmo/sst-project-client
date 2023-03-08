@@ -33,7 +33,7 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
       text: 'Voltar',
     },
     {
-      text: 'Confirmar Dados',
+      text: 'Salvar',
       variant: 'contained',
       onClick: () => onSubmit(),
     },

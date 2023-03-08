@@ -15,7 +15,7 @@ export const DocumentPgrForm = ({
   riskGroupId,
   ...props
 }: INextStepButtonProps) => {
-  const { data } = useQueryRiskGroupDataOne(riskGroupId as string);
+  const { data } = useQueryRiskGroupDataOne(riskGroupId as string) as any;
 
   const {
     onSave,

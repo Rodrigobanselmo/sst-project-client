@@ -13,12 +13,12 @@ export type DraftEditorProps = {
   allVisible?: boolean;
   toolbarProps?: object;
   document1?: boolean;
-  mention: {
+  mention?: {
     separator: string;
     trigger: string;
     suggestions: { text: string; value: string; url: string }[];
   };
-  handleReturn: (
+  handleReturn?: (
     e: SyntheticKeyboardEvent,
     editorState: EditorState,
   ) => boolean;

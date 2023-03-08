@@ -37,16 +37,14 @@ export const Container = <T,>(props: Props): ReactElement => {
     }
   }
 
-  // const [isOver, dragSource, drop] = useDropRoot(ref);
+  const [isOver, dragSource, drop] = useDropRoot(ref);
 
-  // if (
-  //   props.parentId === treeContext.rootId &&
-  //   isDroppable(dragSource?.id, treeContext.rootId, treeContext)
-  // ) {
-  //   drop(ref);
-  // }
-
-  const isOver = false;
+  if (
+    props.parentId === treeContext.rootId &&
+    isDroppable(dragSource?.id, treeContext.rootId, treeContext)
+  ) {
+    drop(ref);
+  }
 
   const className = useContainerClassName(props.parentId, isOver);
   const rootProps = treeContext.rootProps || {};

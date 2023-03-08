@@ -63,10 +63,7 @@ export const getModelSectionsBySelectedItem = (
           });
         }
 
-        const isNotEmptySection =
-          Array.isArray(children) && (children as any).length;
-
-        if (startToAdd && isNotEmptySection && !isBreak) {
+        if (startToAdd && !isBreak) {
           hasAdded = true;
           return {
             ...sectionItem,

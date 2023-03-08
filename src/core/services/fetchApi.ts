@@ -87,7 +87,7 @@ export function setupAPIClient(ctx = undefined) {
                 fetchApi
                   .post('/refresh', { refresh_token })
                   .then((response) => {
-                    const { token } = response.data;
+                    const { token } = (response as any).data;
 
                     setCookie(null, 'nextauth.token', token, {
                       maxAge: 60 * 60 * 25 * 30, // 30 days
@@ -97,7 +97,7 @@ export function setupAPIClient(ctx = undefined) {
                     setCookie(
                       null,
                       'nextauth.refreshToken',
-                      response.data.refresh_token,
+                      (response as any).data.refresh_token,
                       {
                         maxAge: 60 * 60 * 25 * 30, // 30 days
                         path: '/',

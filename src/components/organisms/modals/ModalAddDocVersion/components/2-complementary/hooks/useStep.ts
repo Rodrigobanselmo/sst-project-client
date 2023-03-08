@@ -45,7 +45,7 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
     await updateMutation
       .mutateAsync(submitData)
       .then(() => {
-        goToStep(stepCount - 1);
+        // goToStep(stepCount - 1);
       })
       .catch(() => {});
   };

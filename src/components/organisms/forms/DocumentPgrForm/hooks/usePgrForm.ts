@@ -24,7 +24,7 @@ interface ISubmit
   visitDate?: string;
 }
 
-export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
+export const usePgrForm = (docId: string, data?: any) => {
   const { onOpenModal } = useModal();
   const { handleSubmit, control, getValues, trigger, setFocus } = useForm({
     resolver: yupResolver(pgrSchema),
@@ -89,7 +89,7 @@ export const usePgrForm = (docId: string, data?: IRiskGroupData) => {
     if (!data) return;
     setUneditable(true);
 
-    const initialState: Partial<typeof initialPgrDocState> = {
+    const initialState: Partial<any> = {
       approvedBy: data.approvedBy || '',
       elaboratedBy: data.elaboratedBy || '',
       revisionBy: data.revisionBy || '',

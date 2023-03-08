@@ -24,6 +24,7 @@ export interface IUpsertPGRDocumentData {
   validityEnd?: Date;
   validityStart?: Date;
   type?: DocumentTypeEnum;
+  modelId?: number;
 
   elaboratedBy?: string;
   revisionBy?: string;

@@ -34,7 +34,7 @@ export const useContentDocumentModel = ({
         modelQuery.sections,
         selectedItem,
       );
-
+      console.log(modelSections);
       let lastSection: any = {};
       (modelSections || []).forEach((sectionItem, index) => {
         if (!sectionItem) return;

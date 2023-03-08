@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import clone from 'clone';
+import { DocumentSectionTypeEnum } from 'project/enum/document-model.enum';
 import {
   IDocumentSlice,
   selectAllDocumentModel,
@@ -9,16 +10,17 @@ import {
   setDocumentSelectItem,
   setSaveDocument,
 } from 'store/reducers/document/documentSlice';
+import { v4 } from 'uuid';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import {
   IDocumentModelData,
   IDocumentModelFull,
+  IDocumentModelSection,
 } from 'core/interfaces/api/IDocumentModel';
 
 import { DropOptions, getDescendants } from '../../../../dnd-tree/Main';
-import { getModelSectionsBySelectedItem } from '../../DocumentModelContent/utils/getModelBySelectedItem';
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
 import { itemLevelMap } from '../constants/item-types.map';
 import {
@@ -145,15 +147,43 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
     const addSection = (section: NodeDocumentModelSectionData) => {
       data[0].data.push(section);
 
-      const index = data[0].data.length - 1;
-      data[0].data[index].children = [];
+      if (section.hasChildren) {
+        const index = data[0].data.length - 1;
+        data[0].data[index].children = [];
 
-      if (data[0].children) data[0].children[data[0].data[index].id] = [];
+        if (data[0].children) data[0].children[data[0].data[index].id] = [];
+      }
     };
 
     const addChildren = (child: NodeDocumentModelElementData) => {
-      const index = data[0].data.length - 1;
-      // data[0].data[index]?.children?.push(child);
+      let index = data[0].data.length - 1;
+
+      {
+        // se não tiver children, quer dizer que coloquei uma section sem children logo apos uma section com children e preciso duplicar a section anterior
+        if (!data[0].children?.[data[0].data[index]?.id]) {
+          const section = clone(
+            data[0].data
+              .reverse()
+              .find((i) => i.hasChildren || i.children?.length) ||
+              ({
+                id: '',
+                type: DocumentSectionTypeEnum.SECTION,
+                hasChildren: true,
+                children: [],
+              } as IDocumentModelSection),
+          );
+
+          section.children = [];
+          section.hasChildren = true;
+          section.id = v4();
+
+          data[0].data = [...data[0].data, section];
+
+          if (data[0].children) data[0].children[section.id] = [];
+
+          index = data[0].data.length - 1;
+        }
+      }
 
       data[0].children?.[data[0].data[index]?.id]?.push(child);
     };
@@ -195,13 +225,15 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
 
     const sortedNodes: NodeDocumentModel[] = [];
 
-    const sortNode = (node: NodeDocumentModel) => {
+    const sortByParentNode = (node: NodeDocumentModel) => {
       sortedNodes.push(node);
       const children = newTreeData.filter((n) => n.parent === node.id);
-      children.forEach((child) => sortNode(child));
+      children.forEach((child) => sortByParentNode(child));
     };
 
-    newTreeData.filter((n) => n.parent == 0).forEach((node) => sortNode(node));
+    newTreeData
+      .filter((n) => n.parent == 0)
+      .forEach((node) => sortByParentNode(node));
 
     sortedNodes.forEach((item) => {
       const canAdd = canAddParents[item.parent];
@@ -218,13 +250,7 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
     });
 
     dispatch(setSaveDocument());
-    const modelRedux = (store.getState().document as IDocumentSlice).model;
-    console.log('modelRedux', modelRedux);
-
     dispatch(setDocumentModelSections(data));
-    console.log('data', data);
-
-    console.log('newTreeData', newTreeData);
 
     return data;
   };

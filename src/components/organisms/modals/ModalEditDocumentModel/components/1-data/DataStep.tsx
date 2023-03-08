@@ -8,7 +8,6 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
 import { IUseDocumentModel } from '../../hooks/useEditDocumentModel';
-import { CatPrintButton } from '../3-accidentStep/components/CatPrintButton/CatPrintButton';
 import { DataContent } from './components/DataContent/DataContent';
 import { useDataStep } from './hooks/useDataStep';
 

@@ -22,7 +22,8 @@ export const useMainStep = ({
   initialDataRef,
   ...rest
 }: IUsePGRHandleModal) => {
-  const { trigger, getValues, setValue, control, reset } = useFormContext();
+  const { trigger, getValues, setValue, control, setError, reset } =
+    useFormContext();
   const { enqueueSnackbar } = useSnackbar();
   const { goToStep, stepCount } = useWizard();
 
@@ -74,11 +75,15 @@ export const useMainStep = ({
         });
       }
 
+      if (!data.modelId)
+        return setError('model', { message: 'Campo obrigatório' });
+
       const submitData: IUpsertPGRDocumentData = {
         id: data.id,
         companyId: data.companyId,
         workspaceId: data.workspaceId,
         name,
+        modelId: data.modelId,
 
         validityStart: dateFormat(`01/${validityStart}`),
         validityEnd: dateFormat(`01/${validityEnd}`),

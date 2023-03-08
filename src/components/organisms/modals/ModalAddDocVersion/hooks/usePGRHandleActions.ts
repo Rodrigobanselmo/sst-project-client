@@ -8,6 +8,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocumentData/useQueryDocumentData';
 
@@ -22,6 +23,8 @@ export const initialPgrDocState = {
   validityStart: null as Date | null,
   type: undefined as DocumentTypeEnum | undefined,
 
+  modelId: undefined as number | undefined,
+  model: undefined as IDocumentModel | undefined,
   elaboratedBy: '',
   revisionBy: '',
   approvedBy: '',
@@ -58,6 +61,8 @@ export const usePGRHandleModal = () => {
     companyId: data.companyId,
     workspaceId: data.workspaceId,
   });
+
+  console.log(doc);
 
   const onClose = useCallback(
     (data?: any) => {

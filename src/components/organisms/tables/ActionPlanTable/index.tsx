@@ -24,6 +24,7 @@ import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHie
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { RiskRecTypeEnum } from 'project/enum/RiskRecType.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -38,6 +39,7 @@ import {
   IUpsertRiskDataRec,
   useMutUpsertRiskDataRec,
 } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskDataRec';
+import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocumentData/useQueryDocumentData';
 import { useQueryRiskDataPlan } from 'core/services/hooks/queries/useQueryRiskDataPlan';
 import { useQueryRiskGroupDataOne } from 'core/services/hooks/queries/useQueryRiskGroupDataOne';
 
@@ -49,9 +51,17 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
   const [update, setUpdate] = useState(0);
   const riskGroupDataId = query.riskGroupId as string;
   const workspaceId = query.workspaceId as string;
+  const companyId = query.companyId as string;
 
   const { data: riskGroupData, isLoading: loadRiskGroup } =
     useQueryRiskGroupDataOne(riskGroupDataId);
+
+  const { data: doc, isLoading: docLoading } = useQueryDocumentData({
+    type: DocumentTypeEnum.PGR,
+    companyId,
+    workspaceId,
+  });
+
   const {
     data: employees,
     isLoading: loadEmployees,
@@ -210,7 +220,7 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                       status: StatusEnum.PENDING,
                     };
 
-                    const months = ((riskGroupData || {}) as any)[
+                    const months = ((doc || {}) as any)[
                       `months_period_level_${level}`
                     ];
 
@@ -219,8 +229,8 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
                         return dayjs(dataRec.endDate);
                       }
 
-                      if (riskGroupData && months)
-                        return dayjs(riskGroupData?.validityStart).add(
+                      if (doc && months)
+                        return dayjs(doc?.validityStart).add(
                           months + 1,
                           'months',
                         );

@@ -12,6 +12,7 @@ import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enu
 import sortArray from 'sort-array';
 import {
   setDocumentAddElementAfterChild,
+  setDocumentAddElementAfterSection,
   setDocumentDeleteElementChild,
   setDocumentDeleteSection,
   setDocumentEditElementChild,
@@ -155,6 +156,18 @@ export const ItemWrapper: React.FC<Props> = ({
     );
   };
 
+  const onAddElementAfterSection = (
+    element: NodeDocumentModelElementData,
+    sectionId: string,
+  ) => {
+    dispatch(
+      setDocumentAddElementAfterSection({
+        element: { ...element },
+        sectionId,
+      }),
+    );
+  };
+
   const onDeleteChild = (id: string) => {
     dispatch(setDocumentDeleteElementChild({ id }));
   };
@@ -178,6 +191,18 @@ export const ItemWrapper: React.FC<Props> = ({
           text: '[DUPLICADO] ' + data.text.slice(0, 10) + '...',
         }),
       });
+  };
+
+  const handleAddChild = (data: ITypeDocumentModel) => {
+    onAddElementAfterSection(
+      {
+        id: '',
+        text: 'Novo parágrafo....',
+        type: DocumentSectionChildrenTypeEnum.PARAGRAPH,
+        element: true,
+      },
+      data.id,
+    );
   };
 
   const handleDelete = (data: ITypeDocumentModel) => {
@@ -280,6 +305,19 @@ export const ItemWrapper: React.FC<Props> = ({
                       value.type &&
                       onEditChild({ id: item.id, type: value.type })
                     }
+                  />
+                )}
+                {isSection && (
+                  <STagButton
+                    maxWidth={'300px'}
+                    onClick={() => handleAddChild(item)}
+                    tooltipTitle="Adicionar item abaixo"
+                    text={'Adicionar Parágrafo +'}
+                    active
+                    // bg="success.main"
+                    bg="common.white"
+                    iconProps={{ sx: { color: 'success.main' } }}
+                    borderActive="success"
                   />
                 )}
                 {isElement && (
