@@ -178,8 +178,6 @@ export const ItemWrapper: React.FC<Props> = ({
 
   const handleEdit = (value: Partial<NodeDocumentModelElementData> | null) => {
     if (!value) return;
-    setOpen(false);
-
     if ('element' in item) onEditChild({ ...value, id: item.id });
   };
 
@@ -220,6 +218,7 @@ export const ItemWrapper: React.FC<Props> = ({
   ) => {
     const contentState = convertToRaw(editorState.getCurrentContent());
     handleEdit(parseFromEditorToElement(contentState));
+    setOpen(false);
     return true;
   };
 
@@ -262,7 +261,7 @@ export const ItemWrapper: React.FC<Props> = ({
           .filter((v) => v.active != false && !v.isBoolean && v.label)
           .map((variable) => ({
             text: variable.label,
-            url: variable.value,
+            url: variable.value || '',
             value: variable.label,
           })),
         { by: ['text'], order: ['asc'] },
@@ -354,7 +353,7 @@ export const ItemWrapper: React.FC<Props> = ({
                   textProps={{ color: 'grey.700' }}
                   label={''}
                   placeholder="descrição..."
-                  defaultValue={parseToEditor(item)}
+                  defaultValue={parseToEditor(item) as any}
                   onChange={(value) =>
                     handleEdit(
                       parseFromEditorToElement(
@@ -363,7 +362,6 @@ export const ItemWrapper: React.FC<Props> = ({
                     )
                   }
                   toolbarOpen
-                  handleReturn={handleReturn}
                   mention={{
                     separator: ' ',
                     trigger: '@',
@@ -380,7 +378,7 @@ export const ItemWrapper: React.FC<Props> = ({
                       'link',
                     ],
                   }}
-                  {...((mapProps as any)[item.type]?.multiline && {
+                  {...(!(mapProps as any)[item.type]?.multiline && {
                     handleReturn,
                   })}
                 />
