@@ -38,6 +38,7 @@ export type IDocumentModelSection = {
   id: string;
   type: string;
   label?: string;
+  hasChildren?: boolean;
   children?: IDocumentModelElement[];
   footerText?: string;
   text?: string;

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 
+import clone from 'clone';
 import { selectDocumentSelectItem } from 'store/reducers/document/documentSlice';
 
 import { useAppSelector } from 'core/hooks/useAppSelector';
@@ -18,17 +19,19 @@ export const useContentDocumentModel = ({
   const data = useMemo(() => {
     if (model && selectedItem) {
       const arrayData: ITypeDocumentModel[] = [];
-
+      const isSection =
+        selectedItem && selectedItem.data && 'section' in selectedItem.data;
       const modelSections = getModelSectionsBySelectedItem(model, selectedItem);
 
-      (modelSections || []).forEach((sectionItem) => {
+      (modelSections || []).forEach((sectionItem, index) => {
         if (!sectionItem) return;
         const children = sectionItem?.children;
 
-        arrayData.push({
-          ...sectionItem,
-          section: true,
-        });
+        if ((!isSection && index != 0) || isSection)
+          arrayData.push({
+            ...clone(sectionItem),
+            section: true,
+          });
 
         if (children) {
           children.forEach((element) => {

@@ -1,5 +1,6 @@
 import { useStore } from 'react-redux';
 
+import clone from 'clone';
 import { getModelSectionsBySelectedItem } from 'components/organisms/documentModel/DocumentModelContent/utils/getModelBySelectedItem';
 import {
   IDocumentSlice,
@@ -44,7 +45,9 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
   };
 
   const onSubmit = async () => {
-    const model = (store.getState().document as IDocumentSlice).model;
+    const modelData = (store.getState().document as IDocumentSlice).model;
+    if (!modelData) return;
+
     const query: IQueryDocumentModelData = {
       id: data.id,
       companyId: data.companyId,
@@ -53,14 +56,14 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
     queryClient.setQueryData(
       [QueryEnum.DOCUMENT_MODEL_DATA, query],
       (oldData: any) => {
-        return { ...oldData, document: model?.document };
+        return { ...oldData, document: modelData };
       },
     );
 
     props.updateMutation
       .mutateAsync({
         id: data.id,
-        data: model?.document,
+        data: modelData,
         companyId: data.companyId,
       })
       .then(() => {

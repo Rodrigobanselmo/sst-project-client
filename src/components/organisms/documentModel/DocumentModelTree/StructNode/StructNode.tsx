@@ -44,7 +44,9 @@ export const StructNode: React.FC<{
       className={`nodeWrapper tree-node ${
         node.droppable && isDropTarget ? 'dropTarget' : ''
       } ${node?.data && 'section' in node.data ? 'nodeWrapperSection' : ''} ${
-        node?.data && 'children' in node.data ? 'nodeWrapperChildren' : ''
+        node?.data && 'hasChildren' in node.data && node?.data.hasChildren
+          ? 'nodeWrapperChildren'
+          : ''
       } ${isSelected ? 'nodeWrapperSelected' : ''}`}
       style={{ marginInlineStart: indent }}
       onClick={handleToggle}

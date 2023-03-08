@@ -77,7 +77,7 @@ export const useEditDocumentModel = () => {
         .needSynchronization;
 
       const setDocument = () => {
-        dispatch(setDocumentModel(modelData || null));
+        dispatch(setDocumentModel(modelData.document || null));
       };
 
       const onContinueOldDocument = () => {

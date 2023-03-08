@@ -10,7 +10,7 @@ export type NodeModel<T = unknown> = {
   text: string;
   droppable?: boolean;
   previewText?: string;
-  data?: T;
+  data: T;
 };
 
 export type DragItem<T> = NodeModel<T> & {

@@ -3,12 +3,12 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { NodeDocumentModel } from 'components/organisms/documentModel/DocumentModelTree/types/types';
 import { initialEditDocumentModelState } from 'components/organisms/modals/ModalEditDocumentModel/hooks/useEditDocumentModel';
 
-import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
+import { IDocumentModelData } from 'core/interfaces/api/IDocumentModel';
 
 import { AppState } from '../..';
 
 export interface IDocumentSlice {
-  model: IDocumentModelFull | null;
+  model: IDocumentModelData | null;
   needSynchronization: boolean;
   modalEditData: Partial<typeof initialEditDocumentModelState>;
   dragItem: {
@@ -49,6 +49,12 @@ export const documentSlice = createSlice({
       state.dragItem = {};
       state.selectItem = null;
     },
+    setDocumentModelSections: (
+      state,
+      action: PayloadAction<IDocumentModelData['sections']>,
+    ) => {
+      if (state.model) state.model.sections = action.payload;
+    },
     setDocumentDragItem: (
       state,
       action: PayloadAction<IDocumentSlice['dragItem']>,
@@ -72,6 +78,7 @@ export const {
   setDocumentSelectItem,
   setSaveDocument,
   setDocumentModalEditData,
+  setDocumentModelSections,
 } = documentSlice.actions;
 
 export const selectAllDocumentModel = (state: AppState) => state[name].model;

@@ -14,10 +14,6 @@ export function DocumentModelContent(props: {
 }) {
   const { data, variables, elements, sections } =
     useContentDocumentModel(props);
-  // const dispatch = useAppDispatch();
-
-  // const handleSelect = (node: NodeDocumentModel) =>
-  //   dispatch(setDocumentSelectItem(node));
 
   return (
     <STStructContainer className="documentModelContainer">
