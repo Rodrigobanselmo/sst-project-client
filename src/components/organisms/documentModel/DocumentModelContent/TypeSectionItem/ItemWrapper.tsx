@@ -362,7 +362,7 @@ export const ItemWrapper: React.FC<Props> = ({
             style = InlineStyleTypeEnum.COLOR;
             value = inlineStyle.style.replace('color-', '');
           } else if (inlineStyle.style.includes('fontsize')) {
-            style = InlineStyleTypeEnum.COLOR;
+            style = InlineStyleTypeEnum.FONTSIZE;
             value = inlineStyle.style.replace('fontsize-', '');
           }
 
