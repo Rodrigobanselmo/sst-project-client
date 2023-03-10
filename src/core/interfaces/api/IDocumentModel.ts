@@ -1,3 +1,4 @@
+import { InlineStyleTypeEnum } from 'project/enum/document-model.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -24,6 +25,13 @@ interface IBase {
   addWithAllVars?: string[];
 }
 
+export interface IInlineStyleRange {
+  offset: number;
+  length: number;
+  style: InlineStyleTypeEnum;
+  value?: string;
+}
+
 export type IDocumentModelElement = {
   id: string;
   type: string;
@@ -32,6 +40,7 @@ export type IDocumentModelElement = {
   size?: number;
   color?: string;
   align?: DocModelAlignmentType;
+  inlineStyleRangeBlock?: IInlineStyleRange[][];
 } & IBase;
 
 export type IDocumentModelSection = {
@@ -75,7 +84,7 @@ export type IDocVariables = Record<
 >;
 
 export type IDocumentModelData = {
-  variables: IDocVariables;
+  variables: IDocVariables['string'][];
   sections: IDocumentModelGroup[];
 };
 

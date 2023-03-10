@@ -56,7 +56,12 @@ export const CompaniesTable: FC<
 
   const { companies, count, isLoading } = useQueryCompanies(
     page,
-    { search, ...query, ...filterProps.filtersQuery },
+    {
+      search,
+      ...query,
+      ...(search && { companiesIds: undefined }),
+      ...filterProps.filtersQuery,
+    },
     rowsPerPage,
     type,
   );

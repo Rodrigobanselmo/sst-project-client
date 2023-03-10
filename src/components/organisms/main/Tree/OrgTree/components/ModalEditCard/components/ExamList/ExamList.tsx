@@ -88,7 +88,7 @@ export const ExamList = ({
                         component="span"
                         fontSize={10}
                       >
-                        Validade:{' '}
+                        Peridiocidade:{' '}
                         {origin.validityInMonths
                           ? origin.validityInMonths + ' meses'
                           : '-'}

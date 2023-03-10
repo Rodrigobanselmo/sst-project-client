@@ -164,7 +164,7 @@ export const HistoryEmployeeExamTable: FC<
           <STableHRow>Data</STableHRow>
           <STableHRow>Exame</STableHRow>
           <STableHRow>Tipo</STableHRow>
-          <STableHRow>Validade</STableHRow>
+          <STableHRow>Peridiocidade</STableHRow>
           <STableHRow>Vencimento</STableHRow>
           <STableHRow>Resultado</STableHRow>
           <STableHRow>Status</STableHRow>

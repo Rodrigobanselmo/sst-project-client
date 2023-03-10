@@ -163,7 +163,7 @@ export const ModalAddEmployeeHistoryExam = () => {
               )}
               <Box maxWidth={200}>
                 <InputForm
-                  label="Validade"
+                  label="Peridiocidade"
                   control={control}
                   sx={{ minWidth: 100 }}
                   placeholder={'meses'}

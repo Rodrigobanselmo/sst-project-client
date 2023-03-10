@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
+import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { useRouter } from 'next/router';
 
@@ -128,7 +129,7 @@ export const usePushRoute = () => {
             applyServiceIds: company.map(({ id }) => id),
           }),
         multiple: true,
-      } as Partial<typeof initialClinicSelectState>);
+      } as Partial<typeof initialCompanySelectState>);
     },
     [company, onStackOpenModal, setApplyCompanyMutation],
   );

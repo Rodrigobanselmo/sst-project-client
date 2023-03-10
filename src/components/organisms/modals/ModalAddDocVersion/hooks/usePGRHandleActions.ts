@@ -62,8 +62,6 @@ export const usePGRHandleModal = () => {
     workspaceId: data.workspaceId,
   });
 
-  console.log(doc);
-
   const onClose = useCallback(
     (data?: any) => {
       onCloseModal(modalName, data);

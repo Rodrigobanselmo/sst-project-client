@@ -215,7 +215,7 @@ export const useAddData = () => {
 
     let isErrorFound = false;
     if (!isCanceled && !hideClinicExam && !data.clinic?.id) {
-      setError('clinic', { message: 'Validade obrigatório' });
+      setError('clinic', { message: 'Peridiocidade obrigatório' });
       isErrorFound = true;
     }
     if (!isCanceled && !hideClinicExam && !data.validityInMonths) {

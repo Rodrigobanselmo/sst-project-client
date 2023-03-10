@@ -9,7 +9,11 @@ import {
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
-import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
+import {
+  IDocumentModelFull,
+  IDocVariables,
+  IDocVariablesAllType,
+} from 'core/interfaces/api/IDocumentModel';
 
 import { ITypeDocumentModel } from '../types/types';
 import { getModelSectionsBySelectedItem } from '../utils/getModelBySelectedItem';
@@ -34,7 +38,7 @@ export const useContentDocumentModel = ({
         modelQuery.sections,
         selectedItem,
       );
-      console.log(modelSections);
+
       let lastSection: any = {};
       (modelSections || []).forEach((sectionItem, index) => {
         if (!sectionItem) return;
@@ -66,10 +70,19 @@ export const useContentDocumentModel = ({
 
   const variables = useMemo(() => {
     if (modelQuery && document) {
+      let docVariables = document?.variables as any;
+
+      if (Array.isArray(docVariables)) {
+        docVariables = docVariables.reduce(
+          (acc, item) => ({ ...acc, [item.type]: item }),
+          {} as IDocumentModelFull['variables'],
+        );
+      }
+
       return {
         ...modelQuery.variables,
         ...modelQuery.document.variables,
-        ...document.variables,
+        ...docVariables,
       };
     }
   }, [modelQuery, document]);
@@ -91,5 +104,11 @@ export const useContentDocumentModel = ({
       dispatch(setDocumentDeleteMany({ ids: data.map((item) => item.id) }));
   };
 
-  return { data, variables, elements, sections, handleDeleteActualItems };
+  return {
+    data,
+    variables: variables as unknown as IDocVariablesAllType | undefined,
+    elements,
+    sections,
+    handleDeleteActualItems,
+  };
 };

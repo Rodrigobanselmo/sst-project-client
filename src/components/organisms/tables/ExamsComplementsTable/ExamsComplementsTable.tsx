@@ -58,7 +58,7 @@ export const ExamsComplementsTable: FC<
           <STableHRow>Data</STableHRow>
           <STableHRow>Exame</STableHRow>
           <STableHRow>Clínica</STableHRow>
-          <STableHRow>Validade</STableHRow>
+          <STableHRow>Peridiocidade</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
         </STableHeader>
         <STableBody<IExamComplementsTable>

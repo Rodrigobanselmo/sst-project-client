@@ -2,6 +2,7 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
+import { useCompanyTenant } from 'core/hooks/useCompanyTenant';
 import { ICreateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutCreateDocumentModel/useMutCreateDocumentModel';
 
 import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
@@ -12,10 +13,11 @@ export const useDataStep = (props: IUseDocumentModel) => {
   const { getValues, control, setError, reset, setValue, clearErrors } =
     useFormContext();
   const { stepCount, goToStep, nextStep, previousStep } = useWizard();
-
   const onCloseUnsaved = async () => {
     onClose(() => reset());
   };
+
+  const { handleSelectCompany, getIsSameCompany } = useCompanyTenant();
 
   const lastStep = async () => {
     await onSubmit();
@@ -49,12 +51,29 @@ export const useDataStep = (props: IUseDocumentModel) => {
       type: data.type,
     };
 
+    const isSameCompany = getIsSameCompany(data.companyId);
+
+    const create = async (companyId?: string) => {
+      const createdData = await createMutation.mutateAsync({
+        ...submitData,
+        ...(companyId ? { companyId } : {}),
+      });
+      if (createdData) {
+        setData((d) => ({
+          ...d,
+          id: createdData?.id,
+          ...(companyId ? { companyId } : {}),
+        }));
+        nextStep();
+      }
+    };
+
     try {
       if (!submitData.id) {
-        const createdData = await createMutation.mutateAsync(submitData);
-        if (createdData) {
-          setData((d) => ({ ...d, id: createdData?.id }));
-          nextStep();
+        if (!isSameCompany) {
+          handleSelectCompany(create, data.companyId);
+        } else {
+          create();
         }
       } else {
         await updateMutation.mutateAsync(submitData);

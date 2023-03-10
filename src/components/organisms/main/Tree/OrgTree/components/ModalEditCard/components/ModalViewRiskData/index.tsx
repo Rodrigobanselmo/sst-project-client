@@ -214,7 +214,7 @@ export const ModalViewRiskData = ({
                                       component="span"
                                       fontSize={10}
                                     >
-                                      Validade:{' '}
+                                      Peridiocidade:{' '}
                                       {exam?.examsRiskData.validityInMonths
                                         ? exam?.examsRiskData.validityInMonths +
                                           ' meses'

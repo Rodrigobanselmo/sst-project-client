@@ -36,6 +36,7 @@ export const initialHierarchySelectState = {
   hierarchiesIds: [] as string[],
   allHierarchiesIds: [] as string[],
   workspaceId: '' as string,
+  workspaceIdsFilter: [] as string[],
   singleSelect: false,
   addSubOffice: false,
   lockWorkspace: true,

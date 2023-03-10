@@ -115,7 +115,6 @@ export const useMainStep = ({
             goToStep(stepCount);
           })
           .catch(() => {});
-        setData((data) => ({ ...data, ...submitData } as any));
       }
       goToStep(stepCount - 1);
     }

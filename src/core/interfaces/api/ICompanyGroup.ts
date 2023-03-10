@@ -5,6 +5,7 @@ export interface ICompanyGroup {
   name: string;
   description: string;
   companies: ICompany[];
+  companyGroup: ICompany;
   created_at: Date;
   updated_at: Date;
   companyId: string;

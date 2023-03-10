@@ -8,6 +8,17 @@ export enum DocumentSectionTypeEnum {
   ITERABLE_CHARACTERIZATION = 'ITERABLE_CHARACTERIZATION',
 }
 
+export enum InlineStyleTypeEnum {
+  BOLD = 'BOLD',
+  ITALIC = 'ITALIC',
+  UNDERLINE = 'UNDERLINE',
+  SUPERSCRIPT = 'SUPERSCRIPT',
+  SUBSCRIPT = 'SUBSCRIPT',
+  COLOR = 'COLOR',
+  BG_COLOR = 'BG_COLOR',
+  FONTSIZE = 'FONTSIZE',
+}
+
 export enum DocumentSectionChildrenTypeEnum {
   TITLE = 'TITLE',
   H1 = 'H1',

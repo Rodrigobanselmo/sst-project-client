@@ -135,12 +135,12 @@ export const ModalExamStep = ({
             setValue={(v) => setValue('validityInMonths', v)}
             defaultValue={examData.validityInMonths || ''}
             mask={intMask.apply}
-            label="Validade (meses)"
+            label="Peridiocidade (meses)"
             options={[3, 6, 9, 12, 18, 24]}
           />
         </Box>
         <Box flex={2}>
-          <AutocompleteForm
+          {/* <AutocompleteForm
             name="lowValidityInMonths"
             control={control}
             filterOptions={(x) => x}
@@ -154,10 +154,10 @@ export const ModalExamStep = ({
             setValue={(v) => setValue('lowValidityInMonths', v)}
             defaultValue={examData.lowValidityInMonths || ''}
             mask={intMask.apply}
-            label="Validade para comorbidades (meses)"
+            label="Peridiocidade para comorbidades (meses)"
             sx={{ minWidth: [300] }}
             options={[3, 6, 9, 12, 18, 24]}
-          />
+          /> */}
         </Box>
       </SFlex>
 

@@ -8,7 +8,10 @@ import { ElementTypeModelSelect } from 'components/organisms/tagSelects/ElementT
 import { SectionTypeModelSelect } from 'components/organisms/tagSelects/SectionTypeModelSelect/SectionTypeModelSelect';
 import { convertToRaw, EditorState, RawDraftContentState } from 'draft-js';
 import dynamic from 'next/dynamic';
-import { DocumentSectionChildrenTypeEnum } from 'project/enum/document-model.enum';
+import {
+  DocumentSectionChildrenTypeEnum,
+  InlineStyleTypeEnum,
+} from 'project/enum/document-model.enum';
 import sortArray from 'sort-array';
 import {
   setDocumentAddElementAfterChild,
@@ -26,10 +29,18 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import {
   IDocumentModelFull,
   IDocVariablesAllType,
+  IInlineStyleRange,
 } from 'core/interfaces/api/IDocumentModel';
 import { generateRandomString } from 'core/utils/helpers/generateRandomString';
 
 import { NodeDocumentModelElementData } from '../../DocumentModelTree/types/types';
+import {
+  IReplaceAllVarItem,
+  replaceAllVariables,
+} from '../../utils/replaceAllVariables';
+import { replaceMultiple } from '../../utils/replaceMultiple';
+import { replaceSubstring } from '../../utils/replaceSubstring';
+import { transformArrayToObjectFunction } from '../../utils/transformArrayToObjectFunction';
 import { ITypeDocumentModel } from '../types/types';
 import { RemoveDoubleClickButton } from './RemoveDoubleClickButton';
 import { STContainerItem } from './styles';
@@ -50,6 +61,7 @@ const mapProps: Record<
     edit?: boolean;
     multiline?: boolean;
     draft?: boolean;
+    toolbar?: boolean;
     fontSize?: boolean;
   }
 > = {
@@ -58,43 +70,46 @@ const mapProps: Record<
     multiline: true,
     draft: true,
     fontSize: true,
+    toolbar: true,
   },
   [DocumentSectionChildrenTypeEnum.BULLET]: {
     edit: true,
     draft: true,
     fontSize: true,
+    toolbar: true,
   },
   [DocumentSectionChildrenTypeEnum.BULLET_SPACE]: {
     edit: true,
     draft: true,
     fontSize: true,
+    toolbar: true,
   },
   [DocumentSectionChildrenTypeEnum.PARAGRAPH_FIGURE]: {
     edit: true,
     draft: true,
+    toolbar: true,
   },
   [DocumentSectionChildrenTypeEnum.PARAGRAPH_TABLE]: {
     edit: true,
     draft: true,
+    toolbar: true,
   },
   [DocumentSectionChildrenTypeEnum.LEGEND]: {
     edit: true,
     draft: true,
+    toolbar: true,
   },
   [DocumentSectionChildrenTypeEnum.TITLE]: {
     edit: true,
     draft: true,
-    fontSize: true,
   },
   [DocumentSectionChildrenTypeEnum.H1]: {
     edit: true,
     draft: true,
-    fontSize: true,
   },
   [DocumentSectionChildrenTypeEnum.H2]: {
     edit: true,
     draft: true,
-    fontSize: true,
   },
   [DocumentSectionChildrenTypeEnum.H3]: {
     edit: true,
@@ -216,27 +231,92 @@ export const ItemWrapper: React.FC<Props> = ({
     e: SyntheticKeyboardEvent,
     editorState: EditorState,
   ) => {
-    const contentState = convertToRaw(editorState.getCurrentContent());
-    handleEdit(parseFromEditorToElement(contentState));
-    setOpen(false);
+    // const contentState = convertToRaw(editorState.getCurrentContent());
+    // handleEdit(parseFromEditorToElement(contentState));
+    // setOpen(false);
     return true;
   };
 
   const parseToEditor = (item: ITypeDocumentModel) => {
-    const content = {
-      entityMap: {},
-      blocks: [
-        ...(item.text || '')?.split('\n').map((text) => ({
+    const entityMap: any[] = [];
+
+    const createEntityRangeVars = (items: IReplaceAllVarItem[]) => {
+      return items.map((v) => {
+        entityMap.push({
+          data: {
+            value: v.data?.type,
+            url: '',
+            text: v.wrapperVariable,
+          },
+          mutability: 'IMMUTABLE',
+          type: 'MENTION',
+        });
+
+        return {
+          key: entityMap.length - 1,
+          length: v.length,
+          offset: v.offset,
+        };
+      });
+    };
+
+    const getInlineStyleRanges = (inlineStyleRange: IInlineStyleRange[]) => {
+      return inlineStyleRange.map((inlineStyle) => {
+        let style: string = inlineStyle.style;
+
+        if (inlineStyle.style == InlineStyleTypeEnum.BG_COLOR) {
+          style = 'bgcolor-' + inlineStyle.value;
+        } else if (inlineStyle.style == InlineStyleTypeEnum.COLOR) {
+          style = 'color-' + inlineStyle.value;
+        } else if (inlineStyle.style == InlineStyleTypeEnum.FONTSIZE) {
+          style = 'fontsize-' + inlineStyle.value;
+        }
+
+        return {
+          length: inlineStyle.length,
+          offset: inlineStyle.offset,
+          style: style,
+        };
+      });
+    };
+
+    const blocks: RawDraftContentState['blocks'] = (item.text || '')
+      ?.split('\n')
+      .map((itemText, index) => {
+        const { text, variables: foundVars } = replaceAllVariables(
+          itemText,
+          variables,
+          { wrapper: true },
+        );
+
+        let inlineStyleRanges: any[] = [];
+        let data = {};
+
+        const entityRanges = createEntityRangeVars(foundVars);
+        if ('element' in item && item.inlineStyleRangeBlock) {
+          inlineStyleRanges = getInlineStyleRanges(
+            item.inlineStyleRangeBlock[index],
+          );
+
+          data = { ...(item.align && { 'text-align': item.align }) };
+        }
+
+        return {
           key: generateRandomString(),
           text,
           type: 'unstyled',
           depth: 0,
-          inlineStyleRanges: [],
-          entityRanges: [],
-          data: {},
-        })),
-      ],
+          inlineStyleRanges,
+          entityRanges: entityRanges,
+          data,
+        };
+      });
+
+    const content = {
+      entityMap: transformArrayToObjectFunction(entityMap),
+      blocks,
     };
+
     return content;
   };
 
@@ -244,13 +324,64 @@ export const ItemWrapper: React.FC<Props> = ({
     content: RawDraftContentState,
   ): Partial<NodeDocumentModelElementData> | null => {
     if (!content) return null;
+
+    const text = content.blocks
+      .reduce((acc, block) => {
+        if (block.text) {
+          let text = block.text;
+
+          text = replaceMultiple(
+            text,
+            block.entityRanges.map((entity) => {
+              return {
+                length: entity.length,
+                offset: entity.offset,
+                replacementText: content.entityMap[entity.key]?.data?.value
+                  ? `??${content.entityMap[entity.key].data.value}??`
+                  : '',
+              };
+            }),
+          );
+
+          return [...acc, text];
+        }
+        return acc;
+      }, [] as string[])
+      .join('\n');
+
+    const inlineStyleRange = content.blocks.map(
+      (block): IInlineStyleRange[] => {
+        return block.inlineStyleRanges.map((inlineStyle): IInlineStyleRange => {
+          let style = inlineStyle.style as unknown as InlineStyleTypeEnum;
+          let value: string | undefined = undefined;
+
+          if (inlineStyle.style.includes('bgcolor')) {
+            style = InlineStyleTypeEnum.BG_COLOR;
+            value = inlineStyle.style.replace('bgcolor-', '');
+          } else if (inlineStyle.style.includes('color')) {
+            style = InlineStyleTypeEnum.COLOR;
+            value = inlineStyle.style.replace('color-', '');
+          } else if (inlineStyle.style.includes('fontsize')) {
+            style = InlineStyleTypeEnum.COLOR;
+            value = inlineStyle.style.replace('fontsize-', '');
+          }
+
+          return {
+            style,
+            offset: inlineStyle.offset,
+            length: inlineStyle.length,
+            value,
+          };
+        });
+      },
+    );
+
     return {
-      text: content.blocks
-        .reduce((acc, curr) => {
-          if (curr.text) return [...acc, curr.text];
-          return acc;
-        }, [] as string[])
-        .join('\n'),
+      inlineStyleRangeBlock: inlineStyleRange,
+      text,
+      ...(content.blocks[0].data?.['text-align'] && {
+        align: content.blocks[0].data['text-align'],
+      }),
     };
   };
 
@@ -262,7 +393,7 @@ export const ItemWrapper: React.FC<Props> = ({
           .map((variable) => ({
             text: variable.label,
             url: variable.value || '',
-            value: variable.label,
+            value: variable.type,
           })),
         { by: ['text'], order: ['asc'] },
       ),
@@ -378,6 +509,7 @@ export const ItemWrapper: React.FC<Props> = ({
                       'link',
                     ],
                   }}
+                  {...(!mapProps[item.type]?.toolbar && { toolbarOpen: false })}
                   {...(!(mapProps as any)[item.type]?.multiline && {
                     handleReturn,
                   })}

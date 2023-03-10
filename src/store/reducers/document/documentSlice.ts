@@ -188,6 +188,8 @@ export const documentSlice = createSlice({
           ...data.element,
           ...element,
         };
+
+      state.needSynchronization = true;
     },
     setDocumentAddElementAfterChild: (
       state,
@@ -213,6 +215,8 @@ export const documentSlice = createSlice({
 
         children[data.sectionId] = cloneChildren;
       }
+
+      state.needSynchronization = true;
     },
     setDocumentAddElementAfterSection: (
       state,
@@ -240,6 +244,8 @@ export const documentSlice = createSlice({
           ...children[action.payload.sectionId],
         ];
       }
+
+      state.needSynchronization = true;
     },
     setDocumentDeleteElementChild: (
       state,
@@ -258,6 +264,8 @@ export const documentSlice = createSlice({
 
         children[data.sectionId] = cloneChildren;
       }
+
+      state.needSynchronization = true;
     },
     setDocumentDeleteSection: (
       state,
@@ -299,6 +307,8 @@ export const documentSlice = createSlice({
           }
         }
       }
+
+      state.needSynchronization = true;
     },
     setDocumentDeleteMany: (
       state,
@@ -310,6 +320,7 @@ export const documentSlice = createSlice({
       const stateModel = state.model;
       if (stateModel) stateModel.sections = sectionsGroup;
 
+      state.needSynchronization = true;
       return state;
     },
     setDocumentAddSection: (
@@ -323,6 +334,7 @@ export const documentSlice = createSlice({
       const section = action.payload.section;
 
       state.model.sections[0].data = [section, ...state.model.sections[0].data];
+      state.needSynchronization = true;
     },
     setDocumentModel: (
       state,
@@ -330,13 +342,16 @@ export const documentSlice = createSlice({
     ) => {
       state.model = action.payload;
       state.dragItem = {};
-      state.selectItem = null;
+      state.needSynchronization = false;
     },
     setDocumentModelSections: (
       state,
       action: PayloadAction<IDocumentModelData['sections']>,
     ) => {
-      if (state.model) state.model.sections = action.payload;
+      if (state.model) {
+        state.model.sections = action.payload;
+        state.needSynchronization = true;
+      }
     },
     setDocumentDragItem: (
       state,

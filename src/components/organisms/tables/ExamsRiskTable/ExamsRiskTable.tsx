@@ -163,12 +163,12 @@ export const ExamsRiskTable: FC<
           <STableHRow>Sexo</STableHRow>
           <STableHRow>Faixa etária</STableHRow>
           <STableHRow justifyContent="center">
-            Validade
+            Peridiocidade
             <span style={{ fontSize: 9, margin: '1px 0 0px 5px' }}>
               (Comorbidades)
             </span>
           </STableHRow>
-          <STableHRow justifyContent="center">Validade</STableHRow>
+          <STableHRow justifyContent="center">Peridiocidade</STableHRow>
           {/* <STableHRow justifyContent="center">Status</STableHRow> */}
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>

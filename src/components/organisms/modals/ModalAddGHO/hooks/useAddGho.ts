@@ -230,6 +230,10 @@ export const useAddGho = () => {
           handleSelect(hIds, d.startDate, d.endDate, onClose);
         }),
       addSubOffice: true,
+      lockWorkspace: false,
+      workspaceIdsFilter: ghoQuery.workspaceIds,
+      workspaceId: ghoQuery.workspaceIds[0],
+
       allHierarchiesIds: hierarchies
         .filter((h) =>
           (h as any)?.hierarchyOnHomogeneous?.some((hg: any) => !hg?.endDate),

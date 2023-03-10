@@ -55,49 +55,49 @@ export const TypeSectionItem: React.FC<Props> = ({
       [DocumentSectionChildrenTypeEnum.TITLE]: (item: IElement) => (
         <STHeaderText pb={3} pt={0} fontSize={getFontSize(16)}>
           <SText component={'span'}>Título</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H1]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(14)}>
           <SText component={'span'}>H1</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H2]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(13)}>
           <SText component={'span'}>H2</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H3]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(12)}>
           <SText component={'span'}>H3</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H4]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(11)}>
           <SText component={'span'}>H4</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H5]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(10)}>
           <SText component={'span'}>H5</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H6]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(10)}>
           <SText component={'span'}>H6</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.PARAGRAPH]: (item: IElement) => (
         <STParagraph fontSize={getFontSize(10)} pb={getSpacing(160)}>
           {replaceAllVariables(item.text, variables, { wrapper: true })
-            .split('\n')
+            .text.split('\n')
             .map((text, index) => (
               <>
                 {index != 0 && <br />}
@@ -108,7 +108,7 @@ export const TypeSectionItem: React.FC<Props> = ({
       ),
       [DocumentSectionChildrenTypeEnum.LEGEND]: (item: IElement) => (
         <STParagraph fontSize={getFontSize(8)} pb={getSpacing(300)}>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STParagraph>
       ),
       [DocumentSectionChildrenTypeEnum.PARAGRAPH_TABLE]: (item: IElement) => (
@@ -116,7 +116,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           <SText component={'span'} fontSize={getFontSize(8)}>
             Tabela
           </SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STParagraph>
       ),
       [DocumentSectionChildrenTypeEnum.PARAGRAPH_FIGURE]: (item: IElement) => (
@@ -124,7 +124,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           <SText component={'span'} fontSize={getFontSize(8)}>
             Imagem
           </SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STParagraph>
       ),
       [DocumentSectionChildrenTypeEnum.BULLET]: (item: IElement) => (
@@ -133,7 +133,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           level={item.level || 0}
           pb={getSpacing(160)}
         >
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STBullet>
       ),
       [DocumentSectionChildrenTypeEnum.BULLET_SPACE]: (item: IElement) => (
@@ -143,7 +143,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           pb={getSpacing(80)}
           // lineHeight={getLineHeight(350)}
         >
-          {replaceAllVariables(item.text, variables, { wrapper: true })}
+          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STBulletSpace>
       ),
       [DocumentSectionChildrenTypeEnum.BREAK]: (item: IElement) => (
@@ -152,12 +152,6 @@ export const TypeSectionItem: React.FC<Props> = ({
     }),
     [variables],
   );
-
-  const mapProps = {
-    [DocumentSectionChildrenTypeEnum.PARAGRAPH]: {
-      multiline: true,
-    },
-  };
 
   return (
     <>

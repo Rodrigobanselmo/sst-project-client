@@ -56,13 +56,6 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
       companyId: data.companyId,
     };
 
-    queryClient.setQueryData(
-      [QueryEnum.DOCUMENT_MODEL_DATA, query],
-      (oldData: any) => {
-        return { ...oldData, document: modelData };
-      },
-    );
-
     props.updateMutation
       .mutateAsync({
         id: data.id,
@@ -71,6 +64,12 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
       })
       .then(() => {
         dispatch(setSaveDocument());
+        queryClient.setQueryData(
+          [QueryEnum.DOCUMENT_MODEL_DATA, query],
+          (oldData: any) => {
+            return { ...oldData, document: modelData };
+          },
+        );
       })
       .catch(() => null);
   };

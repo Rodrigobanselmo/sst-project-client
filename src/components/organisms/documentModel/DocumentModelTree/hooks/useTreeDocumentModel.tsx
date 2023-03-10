@@ -32,13 +32,25 @@ import {
 export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
   const [treeData, setTreeData] = useState<NodeDocumentModel[]>([]);
   const dispatch = useAppDispatch();
-  const store = useStore();
 
   const document = useAppSelector(selectAllDocumentModel);
 
   const getNewTreeData = useCallback((model: IDocumentModelFull) => {
     const treeArray: NodeDocumentModel[] = [];
-    const variables = { ...model.variables, ...model.document.variables };
+
+    let docVariables = document?.variables as any;
+
+    if (Array.isArray(docVariables)) {
+      docVariables = docVariables.reduce(
+        (acc, item) => ({ ...acc, [item.type]: item }),
+        {} as IDocumentModelFull['variables'],
+      );
+    }
+
+    const variables = {
+      ...model.variables,
+      ...docVariables,
+    };
 
     model.document.sections.forEach(
       ({ children: sectionChildren, ...section }) => {
@@ -64,7 +76,7 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
                 sectionData?.label ||
                 'Seção',
               variables,
-            ),
+            ).text,
             data: {
               ...clone(sectionItem),
               ...(children && {
@@ -106,7 +118,7 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
                 parent: parentId,
                 droppable: !!deep && deep < 8,
                 previewText: elementData.label,
-                text: replaceAllVariables(element.text, variables),
+                text: replaceAllVariables(element.text, variables).text,
                 data: {
                   ...clone(element),
                   childrenTree: [],

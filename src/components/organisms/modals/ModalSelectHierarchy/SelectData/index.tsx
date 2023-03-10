@@ -176,20 +176,29 @@ export const ModalSelectHierarchyData: FC<{
       <SFlex direction="column" gap={5}>
         <SFlex gap={4} align="center">
           <SText mr={4}>Estabelecimento:</SText>
-          {company?.workspace?.map((workspace) => (
-            <STagButton
-              bg={
-                workspaceSelected.id === workspace.id ? 'info.main' : undefined
-              }
-              active={workspaceSelected.id === workspace.id}
-              key={workspace.id}
-              tooltipTitle={`filtar por ${workspace.name}`}
-              text={workspace.name}
-              large
-              onClick={() => onSelectWorkspace(workspace)}
-              disabled={selectedData.lockWorkspace}
-            />
-          ))}
+          {company?.workspace?.map((workspace) => {
+            if (
+              selectedData?.workspaceIdsFilter?.length &&
+              !selectedData.workspaceIdsFilter.includes(workspace.id)
+            )
+              return null;
+            return (
+              <STagButton
+                bg={
+                  workspaceSelected.id === workspace.id
+                    ? 'info.main'
+                    : undefined
+                }
+                active={workspaceSelected.id === workspace.id}
+                key={workspace.id}
+                tooltipTitle={`filtar por ${workspace.name}`}
+                text={workspace.name}
+                large
+                onClick={() => onSelectWorkspace(workspace)}
+                disabled={selectedData.lockWorkspace}
+              />
+            );
+          })}
         </SFlex>
         <SFlex gap={10} mt={10}>
           <Box flex={1}>
