@@ -7,6 +7,7 @@ import { EditorProps, EditorState } from 'draft-js';
 export type DraftEditorProps = {
   size?: 'xs' | 's' | 'm' | 'l' | 'xl' | 'model';
   defaultValue?: any;
+  autofocus?: boolean;
   isJson?: boolean;
   placeholder?: string;
   label?: string;
@@ -18,6 +19,12 @@ export type DraftEditorProps = {
     trigger: string;
     suggestions: { text: string; value: string; url: string }[];
   };
+  handlePastedText?: (
+    setEditorState: React.Dispatch<React.SetStateAction<EditorState>>,
+    text: string,
+    html: string | undefined,
+    editorState: EditorState,
+  ) => any;
   handleReturn?: (
     e: SyntheticKeyboardEvent,
     editorState: EditorState,

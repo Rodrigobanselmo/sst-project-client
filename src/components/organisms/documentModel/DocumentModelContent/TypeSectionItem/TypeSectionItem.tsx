@@ -1,6 +1,5 @@
-import React, { ReactElement, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
-import FolderIcon from '@mui/icons-material/Folder';
 import { Box } from '@mui/material';
 import SText from 'components/atoms/SText';
 import {
@@ -19,17 +18,17 @@ import {
 } from '../../DocumentModelTree/types/types';
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
 import { ITypeDocumentModel } from '../types/types';
-import { getFontSize, getLineHeight, getSpacing } from '../utils/getFontSize';
+import { getFontSize, getSpacing } from '../utils/getFontSize';
 import { ItemWrapper } from './ItemWrapper';
+import { StyledText } from './StyledText';
 import {
-  STParagraph,
-  STOther,
-  STSection,
-  STContainerItem,
-  STHeaderText,
+  STBreakPage,
   STBullet,
   STBulletSpace,
-  STBreakPage,
+  STHeaderText,
+  STOther,
+  STParagraph,
+  STSection,
 } from './styles';
 
 type Props = {
@@ -52,6 +51,100 @@ export const TypeSectionItem: React.FC<Props> = ({
           Início de seção {item.label && <>: {item.label}</>}
         </STSection>
       ),
+      [DocumentSectionChildrenTypeEnum.PARAGRAPH]: (item: IElement) => (
+        <STParagraph fontSize={getFontSize(10)} pb={getSpacing(160)}>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
+        </STParagraph>
+      ),
+      [DocumentSectionChildrenTypeEnum.LEGEND]: (item: IElement) => (
+        <STParagraph fontSize={getFontSize(8)} pb={getSpacing(300)}>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
+        </STParagraph>
+      ),
+      [DocumentSectionChildrenTypeEnum.PARAGRAPH_TABLE]: (item: IElement) => (
+        <STParagraph fontSize={getFontSize(8)} pb={getSpacing(70)}>
+          <SText component={'span'} fontSize={getFontSize(8)}>
+            Tabela
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
+        </STParagraph>
+      ),
+      [DocumentSectionChildrenTypeEnum.PARAGRAPH_FIGURE]: (item: IElement) => (
+        <STParagraph fontSize={getFontSize(8)} pb={getSpacing(70)}>
+          <SText component={'span'} fontSize={getFontSize(8)}>
+            Imagem
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
+        </STParagraph>
+      ),
+      [DocumentSectionChildrenTypeEnum.BULLET]: (item: IElement) => (
+        <STBullet
+          fontSize={getFontSize(item.size || 10)}
+          level={item.level || 0}
+          pb={getSpacing(160)}
+        >
+          <Box>
+            {item.text.split('\n').map((text, index) => (
+              <StyledText
+                inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+                text={text}
+                variables={variables}
+                key={item.id + index}
+              />
+            ))}
+          </Box>
+        </STBullet>
+      ),
+      [DocumentSectionChildrenTypeEnum.BULLET_SPACE]: (item: IElement) => (
+        <STBulletSpace
+          fontSize={getFontSize(item.size || 10)}
+          level={item.level || 0}
+          pb={getSpacing(80)}
+          // lineHeight={getLineHeight(350)}
+        >
+          <Box>
+            {item.text.split('\n').map((text, index) => (
+              <StyledText
+                inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+                text={text}
+                variables={variables}
+                key={item.id + index}
+              />
+            ))}
+          </Box>
+        </STBulletSpace>
+      ),
+
+      // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>  BREAK PAGE
+
       [DocumentSectionChildrenTypeEnum.TITLE]: (item: IElement) => (
         <STHeaderText pb={3} pt={0} fontSize={getFontSize(16)}>
           <SText component={'span'}>Título</SText>
@@ -93,58 +186,6 @@ export const TypeSectionItem: React.FC<Props> = ({
           <SText component={'span'}>H6</SText>
           {replaceAllVariables(item.text, variables, { wrapper: true }).text}
         </STHeaderText>
-      ),
-      [DocumentSectionChildrenTypeEnum.PARAGRAPH]: (item: IElement) => (
-        <STParagraph fontSize={getFontSize(10)} pb={getSpacing(160)}>
-          {replaceAllVariables(item.text, variables, { wrapper: true })
-            .text.split('\n')
-            .map((text, index) => (
-              <>
-                {index != 0 && <br />}
-                {text}
-              </>
-            ))}
-        </STParagraph>
-      ),
-      [DocumentSectionChildrenTypeEnum.LEGEND]: (item: IElement) => (
-        <STParagraph fontSize={getFontSize(8)} pb={getSpacing(300)}>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
-        </STParagraph>
-      ),
-      [DocumentSectionChildrenTypeEnum.PARAGRAPH_TABLE]: (item: IElement) => (
-        <STParagraph fontSize={getFontSize(8)} pb={getSpacing(70)}>
-          <SText component={'span'} fontSize={getFontSize(8)}>
-            Tabela
-          </SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
-        </STParagraph>
-      ),
-      [DocumentSectionChildrenTypeEnum.PARAGRAPH_FIGURE]: (item: IElement) => (
-        <STParagraph fontSize={getFontSize(8)} pb={getSpacing(70)}>
-          <SText component={'span'} fontSize={getFontSize(8)}>
-            Imagem
-          </SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
-        </STParagraph>
-      ),
-      [DocumentSectionChildrenTypeEnum.BULLET]: (item: IElement) => (
-        <STBullet
-          fontSize={getFontSize(item.size || 10)}
-          level={item.level || 0}
-          pb={getSpacing(160)}
-        >
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
-        </STBullet>
-      ),
-      [DocumentSectionChildrenTypeEnum.BULLET_SPACE]: (item: IElement) => (
-        <STBulletSpace
-          fontSize={getFontSize(item.size || 10)}
-          level={item.level || 0}
-          pb={getSpacing(80)}
-          // lineHeight={getLineHeight(350)}
-        >
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
-        </STBulletSpace>
       ),
       [DocumentSectionChildrenTypeEnum.BREAK]: (item: IElement) => (
         <STBreakPage>Quebra de Página</STBreakPage>

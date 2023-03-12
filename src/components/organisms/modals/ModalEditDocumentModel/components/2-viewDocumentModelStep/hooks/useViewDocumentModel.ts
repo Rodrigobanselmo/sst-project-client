@@ -25,9 +25,11 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
   const onDownloadPreview = async () => {
     const selectedItem = (store.getState().document as IDocumentSlice)
       .selectItem;
-    if (data.type && model && selectedItem) {
+
+    const modelDocument = (store.getState().document as IDocumentSlice).model;
+    if (data.type && modelDocument && model && selectedItem) {
       const modelSections = getModelSectionsBySelectedItem(
-        model.document,
+        modelDocument,
         model.sections,
         selectedItem,
       );

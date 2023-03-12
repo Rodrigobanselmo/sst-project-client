@@ -6,7 +6,14 @@ import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import { ElementTypeModelSelect } from 'components/organisms/tagSelects/ElementTypeModelSelect/ElementTypeModelSelect';
 import { SectionTypeModelSelect } from 'components/organisms/tagSelects/SectionTypeModelSelect/SectionTypeModelSelect';
-import { convertToRaw, EditorState, RawDraftContentState } from 'draft-js';
+import DOMPurify from 'dompurify';
+import {
+  ContentState,
+  convertFromHTML,
+  EditorState,
+  Modifier,
+  RawDraftContentState,
+} from 'draft-js';
 import dynamic from 'next/dynamic';
 import {
   DocumentSectionChildrenTypeEnum,
@@ -21,10 +28,6 @@ import {
   setDocumentEditElementChild,
 } from 'store/reducers/document/documentSlice';
 
-import SAddIcon from 'assets/icons/SAddIcon';
-import { SCloseIcon } from 'assets/icons/SCloseIcon';
-import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
-
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import {
   IDocumentModelFull,
@@ -33,13 +36,13 @@ import {
 } from 'core/interfaces/api/IDocumentModel';
 import { generateRandomString } from 'core/utils/helpers/generateRandomString';
 
+import { SSaveIcon } from 'assets/icons/SSaveIcon';
 import { NodeDocumentModelElementData } from '../../DocumentModelTree/types/types';
 import {
   IReplaceAllVarItem,
   replaceAllVariables,
 } from '../../utils/replaceAllVariables';
 import { replaceMultiple } from '../../utils/replaceMultiple';
-import { replaceSubstring } from '../../utils/replaceSubstring';
 import { transformArrayToObjectFunction } from '../../utils/transformArrayToObjectFunction';
 import { ITypeDocumentModel } from '../types/types';
 import { RemoveDoubleClickButton } from './RemoveDoubleClickButton';
@@ -75,11 +78,13 @@ const mapProps: Record<
   [DocumentSectionChildrenTypeEnum.BULLET]: {
     edit: true,
     draft: true,
+    multiline: true,
     fontSize: true,
     toolbar: true,
   },
   [DocumentSectionChildrenTypeEnum.BULLET_SPACE]: {
     edit: true,
+    multiline: true,
     draft: true,
     fontSize: true,
     toolbar: true,
@@ -191,9 +196,27 @@ export const ItemWrapper: React.FC<Props> = ({
     dispatch(setDocumentDeleteSection({ id }));
   };
 
-  const handleEdit = (value: Partial<NodeDocumentModelElementData> | null) => {
+  const handleEdit = (
+    value: Partial<NodeDocumentModelElementData>[] | null,
+  ) => {
     if (!value) return;
-    if ('element' in item) onEditChild({ ...value, id: item.id });
+
+    if ('element' in item) {
+      const line = value.splice(0, 1)[0];
+      if (line) {
+        onEditChild({ ...line, id: item.id });
+      }
+
+      if (value.length > 0) {
+        dispatch(
+          setDocumentAddElementAfterChild({
+            element: value
+              .reverse()
+              .map((line) => ({ ...item, ...line, id: item.id })),
+          }),
+        );
+      }
+    }
   };
 
   const handleDuplicate = (data: ITypeDocumentModel) => {
@@ -224,7 +247,9 @@ export const ItemWrapper: React.FC<Props> = ({
   };
 
   const handleClickAway = () => {
-    setOpen(false);
+    setTimeout(() => {
+      setOpen(false);
+    }, 100);
   };
 
   const handleReturn = (
@@ -244,8 +269,8 @@ export const ItemWrapper: React.FC<Props> = ({
       return items.map((v) => {
         entityMap.push({
           data: {
-            value: v.data?.type,
-            url: '',
+            value: v.data?.label || v.data?.type,
+            url: v.data?.type,
             text: v.wrapperVariable,
           },
           mutability: 'IMMUTABLE',
@@ -261,6 +286,8 @@ export const ItemWrapper: React.FC<Props> = ({
     };
 
     const getInlineStyleRanges = (inlineStyleRange: IInlineStyleRange[]) => {
+      if (!inlineStyleRange) return [];
+
       return inlineStyleRange.map((inlineStyle) => {
         let style: string = inlineStyle.style;
 
@@ -286,7 +313,12 @@ export const ItemWrapper: React.FC<Props> = ({
         const { text, variables: foundVars } = replaceAllVariables(
           itemText,
           variables,
-          { wrapper: true },
+          {
+            wrapper: true,
+            keepOriginal: true,
+            beforeWrapper: '{{',
+            afterWrapper: '}}',
+          },
         );
 
         let inlineStyleRanges: any[] = [];
@@ -303,7 +335,7 @@ export const ItemWrapper: React.FC<Props> = ({
 
         return {
           key: generateRandomString(),
-          text,
+          text: text as string,
           type: 'unstyled',
           depth: 0,
           inlineStyleRanges,
@@ -322,67 +354,84 @@ export const ItemWrapper: React.FC<Props> = ({
 
   const parseFromEditorToElement = (
     content: RawDraftContentState,
-  ): Partial<NodeDocumentModelElementData> | null => {
+  ): Partial<NodeDocumentModelElementData>[] | null => {
     if (!content) return null;
-
+    console.log(content);
     const text = content.blocks
       .reduce((acc, block) => {
-        if (block.text) {
-          let text = block.text;
+        let text = block.text;
 
-          text = replaceMultiple(
-            text,
-            block.entityRanges.map((entity) => {
-              return {
-                length: entity.length,
-                offset: entity.offset,
-                replacementText: content.entityMap[entity.key]?.data?.value
-                  ? `??${content.entityMap[entity.key].data.value}??`
-                  : '',
-              };
-            }),
-          );
+        text = replaceMultiple(
+          text,
+          block.entityRanges.map((entity) => {
+            return {
+              length: entity.length,
+              offset: entity.offset,
+              replacementText: content.entityMap[entity.key]?.data?.url
+                ? `??${content.entityMap[entity.key].data.url}??`
+                : '',
+            };
+          }),
+        );
 
-          return [...acc, text];
-        }
-        return acc;
+        return [...acc, text];
       }, [] as string[])
       .join('\n');
 
-    const inlineStyleRange = content.blocks.map(
-      (block): IInlineStyleRange[] => {
-        return block.inlineStyleRanges.map((inlineStyle): IInlineStyleRange => {
-          let style = inlineStyle.style as unknown as InlineStyleTypeEnum;
-          let value: string | undefined = undefined;
+    const paragraph = text
+      .split('\n\n')
+      .map((t) => {
+        return t.trim();
+      })
+      .filter((t) => t.length > 0);
 
-          if (inlineStyle.style.includes('bgcolor')) {
-            style = InlineStyleTypeEnum.BG_COLOR;
-            value = inlineStyle.style.replace('bgcolor-', '');
-          } else if (inlineStyle.style.includes('color')) {
-            style = InlineStyleTypeEnum.COLOR;
-            value = inlineStyle.style.replace('color-', '');
-          } else if (inlineStyle.style.includes('fontsize')) {
-            style = InlineStyleTypeEnum.FONTSIZE;
-            value = inlineStyle.style.replace('fontsize-', '');
+    const blocks = content.blocks.filter((t) => t.text.trim().length > 0);
+
+    const inlineStyleRange = blocks.map((block): IInlineStyleRange[] => {
+      return block.inlineStyleRanges.map((inlineStyle): IInlineStyleRange => {
+        let style = inlineStyle.style as unknown as InlineStyleTypeEnum;
+        let value: string | undefined = undefined;
+
+        if (inlineStyle.style.includes('bgcolor')) {
+          style = InlineStyleTypeEnum.BG_COLOR;
+          value = inlineStyle.style.replace('bgcolor-', '');
+        } else if (inlineStyle.style.includes('color')) {
+          style = InlineStyleTypeEnum.COLOR;
+          value = inlineStyle.style.replace('color-', '');
+        } else if (inlineStyle.style.includes('fontsize')) {
+          style = InlineStyleTypeEnum.FONTSIZE;
+          value = inlineStyle.style.replace('fontsize-', '');
+        }
+
+        return {
+          style,
+          offset: inlineStyle.offset,
+          length: inlineStyle.length,
+          value,
+        };
+      });
+    });
+
+    const data = paragraph.map(
+      (paragraph, index): Partial<NodeDocumentModelElementData> => {
+        const numNewlines = (paragraph.match(/\n/g) || []).length + 1;
+
+        let align = blocks[index + numNewlines - 1]?.data?.['text-align'];
+        if (align) {
+          if (align == 'justify') {
+            align = 'both';
           }
+        }
 
-          return {
-            style,
-            offset: inlineStyle.offset,
-            length: inlineStyle.length,
-            value,
-          };
-        });
+        return {
+          inlineStyleRangeBlock: inlineStyleRange.splice(0, numNewlines),
+          text: paragraph,
+          ...(align && { align }),
+        };
       },
     );
 
-    return {
-      inlineStyleRangeBlock: inlineStyleRange,
-      text,
-      ...(content.blocks[0].data?.['text-align'] && {
-        align: content.blocks[0].data['text-align'],
-      }),
-    };
+    return data;
   };
 
   const suggestions = useMemo(
@@ -391,31 +440,74 @@ export const ItemWrapper: React.FC<Props> = ({
         Object.values(variables)
           .filter((v) => v.active != false && !v.isBoolean && v.label)
           .map((variable) => ({
-            text: variable.label,
-            url: variable.value || '',
-            value: variable.type,
+            text: variable.label || variable.type,
+            url: variable.type,
+            value: '{' + variable.type + '}}',
           })),
         { by: ['text'], order: ['asc'] },
       ),
     [variables],
   );
 
+  const handlePastedText = (
+    setEditorState: React.Dispatch<React.SetStateAction<EditorState>>,
+    text: string,
+    html: string | undefined,
+    editorState: EditorState,
+  ) => {
+    if (!text) {
+      return editorState;
+    }
+
+    text = text.replaceAll('●	', '').replaceAll('\n', '\n\n');
+
+    const contentState = editorState.getCurrentContent();
+    const selectionState = editorState.getSelection();
+
+    const newContentState = Modifier.replaceText(
+      contentState,
+      selectionState,
+      text,
+    );
+
+    const newEditorState = EditorState.push(
+      editorState,
+      newContentState,
+      'insert-characters',
+    );
+
+    setEditorState(newEditorState);
+
+    return 'handled';
+  };
+
   return (
     <STContainerItem onClick={onOpen}>
       {open && (
         <>
-          <ClickAwayListener onClickAway={handleClickAway}>
+          <ClickAwayListener
+            mouseEvent="onMouseDown"
+            onClickAway={handleClickAway}
+          >
             <Box marginBottom={4} marginTop={4}>
               <SFlex>
+                <STagButton
+                  maxWidth={'300px'}
+                  mr={10}
+                  onClick={handleClickAway}
+                  icon={SSaveIcon}
+                  iconProps={{ sx: { color: 'primary.main' } }}
+                  borderActive="primary"
+                />
                 {isElement && (
                   <ElementTypeModelSelect
                     elements={elements}
                     selected={item.type}
                     minWidth={80}
-                    borderActive="primary"
+                    borderActive="info"
                     active
                     bg="common.white"
-                    marginRight="10px"
+                    marginRight="5px"
                     handleSelect={(value) =>
                       value.type &&
                       onEditChild({ id: item.id, type: value.type })
@@ -427,10 +519,10 @@ export const ItemWrapper: React.FC<Props> = ({
                     sections={sections}
                     selected={item.type}
                     minWidth={80}
-                    borderActive="primary"
+                    borderActive="info"
                     active
                     bg="common.white"
-                    marginRight="10px"
+                    marginRight="5px"
                     handleSelect={(value) =>
                       value.type &&
                       onEditChild({ id: item.id, type: value.type })
@@ -469,15 +561,17 @@ export const ItemWrapper: React.FC<Props> = ({
                 <STagButton
                   maxWidth={'300px'}
                   onClick={handleClickAway}
-                  icon={SCloseIcon}
-                  text={'Fechar'}
-                  iconProps={{ sx: { color: 'error.dark' } }}
-                  borderActive="error"
+                  icon={SSaveIcon}
+                  text={'Salvar'}
+                  iconProps={{ sx: { color: 'primary.main' } }}
+                  borderActive="primary"
+                  ml="8px"
                 />
               </SFlex>
               {mapProps[item.type]?.draft && (
                 <DraftEditor
                   size="model"
+                  handlePastedText={handlePastedText}
                   mt={5}
                   isJson
                   document_model
@@ -495,7 +589,7 @@ export const ItemWrapper: React.FC<Props> = ({
                   toolbarOpen
                   mention={{
                     separator: ' ',
-                    trigger: '@',
+                    trigger: '{',
                     suggestions,
                   }}
                   toolbarProps={{

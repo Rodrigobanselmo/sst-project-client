@@ -194,27 +194,38 @@ export const documentSlice = createSlice({
     setDocumentAddElementAfterChild: (
       state,
       action: PayloadAction<{
-        element: Partial<NodeDocumentModelElementData>;
+        element:
+          | Partial<NodeDocumentModelElementData>
+          | Partial<NodeDocumentModelElementData>[];
       }>,
     ) => {
-      if (!action.payload.element.id) return state;
-      const data = getChild(state, action.payload.element.id);
+      let elements: Partial<NodeDocumentModelElementData>[] = [];
 
-      const element = action.payload.element;
-      const sectionsGroup = state.model?.sections || [];
-      const children = sectionsGroup[data.sectionIndex].children;
-
-      if (children) {
-        const cloneChildren = clone(children[data.sectionId]);
-
-        cloneChildren.splice(data.childrenIndex + 1, 0, {
-          ...data.element,
-          ...element,
-          id: v4(),
-        });
-
-        children[data.sectionId] = cloneChildren;
+      if (!Array.isArray(action.payload.element))
+        elements = [action.payload.element];
+      else {
+        elements = action.payload.element;
       }
+
+      elements.forEach((element) => {
+        if (!element.id) return state;
+        const data = getChild(state, element.id);
+
+        const sectionsGroup = state.model?.sections || [];
+        const children = sectionsGroup[data.sectionIndex].children;
+
+        if (children) {
+          const cloneChildren = clone(children[data.sectionId]);
+
+          cloneChildren.splice(data.childrenIndex + 1, 0, {
+            ...data.element,
+            ...element,
+            id: v4(),
+          });
+
+          children[data.sectionId] = cloneChildren;
+        }
+      });
 
       state.needSynchronization = true;
     },

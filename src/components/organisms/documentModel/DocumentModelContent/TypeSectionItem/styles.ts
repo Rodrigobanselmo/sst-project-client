@@ -70,20 +70,8 @@ export const STHeaderText = styled(SText)<{ title?: number }>`
 `;
 
 export const STParagraph = styled(SText)`
-  display: flex;
   align-items: center;
   gap: 8px;
-
-  span {
-    display: inline-flex;
-    font-size: 90%;
-    background-color: ${(props) => props.theme.palette.grey[50]};
-    border: 1px solid;
-    border-color: ${(props) => props.theme.palette.gray[300]};
-    color: ${(props) => props.theme.palette.gray[600]};
-    border-radius: 4px;
-    padding: 0px 5px;
-  }
 `;
 
 export const STBullet = styled(SText)<{ level: number }>`

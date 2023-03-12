@@ -209,6 +209,8 @@ export const DraftEditor = ({
   handleReturn,
   toolbarProps,
   mention,
+  handlePastedText,
+  autofocus,
   ...props
 }: DraftEditorProps) => {
   const [toolbar, setToolbar] = useState(toolbarOpen || false);
@@ -216,11 +218,24 @@ export const DraftEditor = ({
     EditorState.createEmpty(),
   );
 
-  // const setEditorReference = (ref: any) => {
-  //   if (this && (this as any)?.editorReferece)
-  //     (this as any).editorReferece = ref;
-  //   ref?.focus();
-  // };
+  const startOnEnd = useRef(true);
+
+  function moveFocusToEnd(editorState: EditorState) {
+    editorState = EditorState.moveSelectionToEnd(editorState);
+    return EditorState.forceSelection(editorState, editorState.getSelection());
+  }
+
+  const setEditorReference = (ref: any) => {
+    if (startOnEnd.current && autofocus) {
+      setTimeout(() => {
+        if (this && (this as any)?.editorReferece)
+          (this as any).editorReferece = ref;
+        ref?.focus();
+        startOnEnd.current = false;
+        if (editorState) setEditorState(moveFocusToEnd(editorState));
+      }, 100);
+    }
+  };
 
   useEffect(() => {
     if (!defaultValue) setEditorState(EditorState.createEmpty());
@@ -291,7 +306,7 @@ export const DraftEditor = ({
         {label}
       </SText>
       <Editor
-        // editorRef={setEditorReference}
+        editorRef={setEditorReference}
         onTab={onTab}
         mention={mention}
         wrapperClassName="wrapper_content"
@@ -301,6 +316,7 @@ export const DraftEditor = ({
         onBlur={() => {
           handleClickAway();
           const contentState = convertToRaw(editorState.getCurrentContent());
+          startOnEnd.current = true;
           const isEmpty =
             contentState?.blocks?.length === 1 &&
             contentState?.blocks?.[0]?.text === '';
@@ -314,6 +330,9 @@ export const DraftEditor = ({
         placeholder={placeholder}
         editorState={editorState}
         handleReturn={handleReturn}
+        handlePastedText={(text, html, editor) =>
+          handlePastedText?.(setEditorState, text, html, editor)
+        }
         toolbar={{
           inline: {
             monospace: { className: 'display-none' },
@@ -348,6 +367,7 @@ export const DraftEditor = ({
           locale: 'pt',
         }}
         onFocus={() => {
+          setEditorState(moveFocusToEnd(editorState));
           setToolbar(typeof toolbarOpen === 'boolean' ? toolbarOpen : true);
           if (typeof toolbarOpen !== 'boolean') onClearDebounce();
         }}

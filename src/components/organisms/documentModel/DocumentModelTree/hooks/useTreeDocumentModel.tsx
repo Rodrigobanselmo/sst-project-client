@@ -76,7 +76,7 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
                 sectionData?.label ||
                 'Seção',
               variables,
-            ).text,
+            ).text as string,
             data: {
               ...clone(sectionItem),
               ...(children && {
@@ -118,7 +118,8 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
                 parent: parentId,
                 droppable: !!deep && deep < 8,
                 previewText: elementData.label,
-                text: replaceAllVariables(element.text, variables).text,
+                text: replaceAllVariables(element.text, variables)
+                  .text as string,
                 data: {
                   ...clone(element),
                   childrenTree: [],

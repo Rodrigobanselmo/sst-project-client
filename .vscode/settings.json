@@ -7,5 +7,6 @@
     "IPGR",
     "Prontuario",
     "stel"
-  ]
+  ],
+  "editor.formatOnSave": true
 }
