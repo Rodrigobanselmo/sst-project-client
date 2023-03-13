@@ -60,6 +60,9 @@ export async function updateCharacterization(
 
   Object.entries(data).forEach(([key, value]) => {
     if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return formData.append(`${key}[]`, '');
+      }
       return value.forEach((item) => {
         formData.append(`${key}[]`, item);
       });
@@ -94,6 +97,8 @@ export function useMutUpsertCharacterization() {
     {
       onSuccess: async (resp) => {
         if (resp) {
+          queryClient.invalidateQueries([QueryEnum.GHO]);
+
           const actualData = queryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier
             [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],

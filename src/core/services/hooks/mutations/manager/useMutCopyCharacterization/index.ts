@@ -46,6 +46,7 @@ export function useMutCopyCharacterization() {
         queryClient.invalidateQueries([QueryEnum.ENVIRONMENTS]);
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATIONS]);
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
+        queryClient.invalidateQueries([QueryEnum.GHO]);
 
         enqueueSnackbar('Ambientes e/ou Atividades copiados com sucesso', {
           variant: 'success',
