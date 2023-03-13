@@ -47,9 +47,17 @@ export const CompaniesTable: FC<
     onSelectData?: (company: ICompany) => void;
     selectedData?: ICompany[];
     query?: IQueryCompanies;
+    hideTitle?: boolean;
     type?: IQueryCompaniesTypes;
   }
-> = ({ rowsPerPage = 8, onSelectData, selectedData, query, type }) => {
+> = ({
+  rowsPerPage = 8,
+  onSelectData,
+  selectedData,
+  query,
+  hideTitle,
+  type,
+}) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const filterProps = useFilterTable();
   const isSelect = !!onSelectData;
@@ -88,7 +96,7 @@ export const CompaniesTable: FC<
 
   return (
     <>
-      {!isSelect && (
+      {!isSelect && !hideTitle && (
         <STableTitle icon={BusinessTwoToneIcon}>Empresas</STableTitle>
       )}
       <STableSearch

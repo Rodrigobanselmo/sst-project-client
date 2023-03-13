@@ -188,19 +188,15 @@ export const HierarchyHomoTable: FC<
                   clickable
                   text={`fim: ${dateToString(row.endDate)}`}
                 />
-                {row.workspaceId ? (
-                  <IconButtonRow
-                    icon={<SDeleteIcon />}
-                    tooltipTitle="deletar"
-                    sx={{ svg: { fontSize: 18 }, height: 20 }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      preventDelete(() => onDelete(row));
-                    }}
-                  />
-                ) : (
-                  <div />
-                )}
+                <IconButtonRow
+                  icon={<SDeleteIcon />}
+                  tooltipTitle="deletar"
+                  sx={{ svg: { fontSize: 18 }, height: 20 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    preventDelete(() => onDelete(row));
+                  }}
+                />
               </STableRow>
             );
           }}

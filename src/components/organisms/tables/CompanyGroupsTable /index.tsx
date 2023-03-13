@@ -28,10 +28,11 @@ import { dateToDate } from 'core/utils/date/date-format';
 
 export const CompanyGroupsTable: FC<
   BoxProps & {
+    hideTitle?: boolean;
     rowsPerPage?: number;
     onSelectData?: (group: ICompanyGroup) => void;
   }
-> = ({ rowsPerPage = 8, onSelectData }) => {
+> = ({ rowsPerPage = 8, onSelectData, hideTitle }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const {
@@ -64,7 +65,7 @@ export const CompanyGroupsTable: FC<
 
   return (
     <>
-      {!isSelect && (
+      {!isSelect && !hideTitle && (
         <STableTitle icon={SCompanyGroupIcon}>Grupos Empresariais</STableTitle>
       )}
       <STableSearch

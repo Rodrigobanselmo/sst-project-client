@@ -1,18 +1,22 @@
 import { Wizard } from 'react-use-wizard';
 
+import BusinessTwoToneIcon from '@mui/icons-material/BusinessTwoTone';
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
+import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddCompanyGroup } from 'components/organisms/modals/ModalAddCompanyGroup/ModalAddCompanyGroup';
-import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { CompaniesTable } from 'components/organisms/tables/CompaniesTable';
 import { CompanyGroupsTable } from 'components/organisms/tables/CompanyGroupsTable ';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
+import { useRouter } from 'next/router';
 
 const Companies: NextPage = () => {
+  const { query } = useRouter();
   return (
     <>
       <SHeaderTag title={'Empresas'} />
@@ -21,6 +25,22 @@ const Companies: NextPage = () => {
           header={
             <WizardTabs
               shadow
+              onUrl
+              active={query.active ? Number(query.active) : 0}
+              renderChildren={(activeStep) => (
+                <>
+                  {activeStep === 0 && (
+                    <STableTitle icon={BusinessTwoToneIcon}>
+                      Empresas
+                    </STableTitle>
+                  )}
+                  {activeStep === 1 && (
+                    <STableTitle icon={SCompanyGroupIcon}>
+                      Grupos Empresariais
+                    </STableTitle>
+                  )}
+                </>
+              )}
               options={[
                 {
                   label: 'Empresas',
@@ -37,10 +57,10 @@ const Companies: NextPage = () => {
           }
         >
           <SWizardBox sx={{ px: 5, py: 10 }}>
-            <CompaniesTable />
+            <CompaniesTable hideTitle />
           </SWizardBox>
           <SWizardBox sx={{ px: 5, py: 10 }}>
-            <CompanyGroupsTable />
+            <CompanyGroupsTable hideTitle />
           </SWizardBox>
         </Wizard>
       </SContainer>

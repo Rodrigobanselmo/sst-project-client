@@ -303,7 +303,7 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.CLINICS]: {
         icon: SClinicIcon,
         onClick: () => handleAddClinic(),
-        text: 'Clínicas Cadastradas',
+        text: 'Clínicas Vinculadas',
         tooltipText:
           'Cadastro de clínicas que prestarão serviços a esta empresa',
       },

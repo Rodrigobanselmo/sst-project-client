@@ -294,7 +294,7 @@ export const ModalAddCompanyGroup = () => {
                     handleAddClinic(companyGroupData.companyGroup);
                   }}
                 >
-                  Clinicas Cadastradas
+                  Clinicas Vinculadas
                 </SButton>
 
                 <SFlex flexWrap="wrap" align="center" gap={5}>
