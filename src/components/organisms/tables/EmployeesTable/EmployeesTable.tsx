@@ -33,9 +33,9 @@ import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
-export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
-  rowsPerPage = 8,
-}) => {
+export const EmployeesTable: FC<
+  BoxProps & { rowsPerPage?: number; hideModal?: boolean }
+> = ({ rowsPerPage = 8, hideModal }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const { data: hierarchy, isLoading: loadHierarchy } = useQueryHierarchies();
@@ -157,9 +157,13 @@ export const EmployeesTable: FC<BoxProps & { rowsPerPage?: number }> = ({
         currentPage={page}
         onPageChange={setPage}
       />
-      <StackModalEditEmployee />
-      <ModalAddExcelEmployees />
-      <ModalSelectHierarchy />
+      {hideModal && (
+        <>
+          <StackModalEditEmployee />
+          <ModalAddExcelEmployees />
+          <ModalSelectHierarchy />
+        </>
+      )}
     </>
   );
 };

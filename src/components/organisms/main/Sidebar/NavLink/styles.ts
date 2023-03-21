@@ -6,7 +6,10 @@ interface LinkStyleProps extends LinkProps {
   is_active?: boolean;
 }
 
-export const StyledNavImage = styled('img')<{ open: number; type?: 'cat' }>`
+export const StyledNavImage = styled('img')<{
+  open: number;
+  type?: 'cat' | 'esocial';
+}>`
   height: 25px;
   width: 24px;
   object-position: 4px;
@@ -33,6 +36,26 @@ export const StyledNavImage = styled('img')<{ open: number; type?: 'cat' }>`
 
   ${(props) =>
     props.type == 'cat' &&
+    props.open &&
+    css`
+      margin-right: -2px;
+      margin-left: -4px;
+    `};
+
+  ${(props) =>
+    props.type == 'esocial' &&
+    css`
+      object-position: 5px;
+      margin-left: -1px;
+      margin-right: -7px;
+      height: 25px;
+      width: 25px;
+      object-fit: fill;
+      object-fit: cover;
+    `};
+
+  ${(props) =>
+    props.type == 'esocial' &&
     props.open &&
     css`
       margin-right: -2px;

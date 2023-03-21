@@ -10,7 +10,7 @@ import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
-import { IPrgDocData } from '../../../../interfaces/api/IRiskData';
+import { IRiskDocument } from '../../../../interfaces/api/IRiskData';
 
 export interface IQueryDocVersion {
   search?: string | null;
@@ -28,7 +28,7 @@ export const queryDocVersions = async (
   if (!companyId) return { data: [], count: 0 };
   const queries = queryString.stringify(query);
 
-  const response = await api.get<IPaginationResult<IPrgDocData[]>>(
+  const response = await api.get<IPaginationResult<IRiskDocument[]>>(
     ApiRoutesEnum.DOC_VERSIONS.replace(':companyId', companyId) +
       `?take=${take}&skip=${skip}&${queries}`,
   );
@@ -62,7 +62,7 @@ export function useQueryDocVersions(
   );
 
   const response = {
-    data: data?.data || ([] as IPrgDocData[]),
+    data: data?.data || ([] as IRiskDocument[]),
     count: data?.count || 0,
   };
 

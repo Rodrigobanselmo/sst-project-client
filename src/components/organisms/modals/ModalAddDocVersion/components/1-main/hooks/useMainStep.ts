@@ -2,7 +2,6 @@ import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
 import clone from 'clone';
-import deepEqual from 'deep-equal';
 import { useSnackbar } from 'notistack';
 
 import { IProfessional } from 'core/interfaces/api/IProfessional';
@@ -11,17 +10,16 @@ import {
   useMutUpsertPGRDocumentData,
 } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertPGRDocumentData/useMutUpsertPGRDocumentData';
 import { dateFormat } from 'core/utils/date/date-format';
-import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
-import { IUsePGRHandleModal } from '../../../hooks/usePGRHandleActions';
+import { IUseMainActionsModal } from '../../../hooks/useMainActions';
 
 export const useMainStep = ({
   data,
   setData,
   initialDataRef,
   ...rest
-}: IUsePGRHandleModal) => {
+}: IUseMainActionsModal) => {
   const { trigger, getValues, setValue, control, setError, reset } =
     useFormContext();
   const { enqueueSnackbar } = useSnackbar();
@@ -95,28 +93,22 @@ export const useMainStep = ({
         coordinatorBy,
       };
 
-      const before = cleanObjectValues(initialDataRef.current);
-      const after = { ...data, ...submitData };
+      await updateMutation
+        .mutateAsync(submitData)
+        .then(() => {
+          setData((data) => {
+            const setDataObj = {
+              ...data,
+              validityStart: dateFormat(`01/${validityStart}`) || null,
+              validityEnd: dateFormat(`01/${validityEnd}`) || null,
+            };
+            initialDataRef.current = setDataObj;
 
-      if (!deepEqual(after, before)) {
-        await updateMutation
-          .mutateAsync(submitData)
-          .then(() => {
-            setData((data) => {
-              const setDataObj = {
-                ...data,
-                validityStart: dateFormat(`01/${validityStart}`) || null,
-                validityEnd: dateFormat(`01/${validityEnd}`) || null,
-              };
-              initialDataRef.current = setDataObj;
-
-              return setDataObj;
-            });
-            goToStep(stepCount);
-          })
-          .catch(() => {});
-      }
-      goToStep(stepCount - 1);
+            return setDataObj;
+          });
+          goToStep(stepCount - 1);
+        })
+        .catch(() => {});
     }
   };
 

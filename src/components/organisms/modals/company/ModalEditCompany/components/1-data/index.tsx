@@ -30,7 +30,7 @@ import { useCompanyEdit } from './hooks/useCompanyFirstEdit';
 export const FirstModalCompanyStep = (props: IUseAddCompany) => {
   const { control, onSubmit, loading, onCloseUnsaved } = useCompanyEdit(props);
   const { isValidRoles } = useAccess();
-  const { companyData, setCompanyData, isEdit } = props;
+  const { companyData, setCompanyData, isEdit, userCompany } = props;
 
   const buttons = [
     {},
@@ -259,39 +259,75 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
           />
         </SFlex>
         <SFlex ml={5} mt={10} direction="column">
-          {isValidRoles([RoleEnum.MASTER]) && (
-            <SSwitch
-              onChange={(e) => {
-                setCompanyData({
-                  ...companyData,
-                  license: {
-                    ...companyData.license,
-                    status: e.target.checked
-                      ? StatusEnum.ACTIVE
-                      : StatusEnum.INACTIVE,
+          <SFlex display={'grid'} gridTemplateColumns={'1fr 1fr 1fr'}>
+            {isValidRoles([RoleEnum.MASTER]) && (
+              <SSwitch
+                onChange={(e) => {
+                  setCompanyData({
+                    ...companyData,
+                    license: {
+                      ...companyData.license,
+                      status: e.target.checked
+                        ? StatusEnum.ACTIVE
+                        : StatusEnum.INACTIVE,
+                    },
+                  });
+                }}
+                checked={!!(companyData.license.status === StatusEnum.ACTIVE)}
+                label="Ativar licença de uso da plataforma"
+                sx={{ mr: 4 }}
+                color="text.light"
+              />
+            )}
+            {isValidRoles([RoleEnum.MASTER]) && (
+              <SSwitch
+                onChange={(e) => {
+                  setCompanyData({
+                    ...companyData,
+                    isConsulting: e.target.checked,
+                  });
+                }}
+                checked={!!companyData.isConsulting}
+                label="Empresa de consultoria"
+                sx={{ mr: 4 }}
+                color="text.light"
+              />
+            )}
+          </SFlex>
+          <SFlex display={'grid'} gridTemplateColumns={'1fr 1fr 1fr'}>
+            {isValidRoles([RoleEnum.CONTRACTS, RoleEnum.MASTER]) && (
+              <>
+                {[
+                  {
+                    label: 'Acesso ao PGR, PCMSO, etc...',
+                    item: 'isDocuments',
                   },
-                });
-              }}
-              checked={!!(companyData.license.status === StatusEnum.ACTIVE)}
-              label="Ativar licença de uso da plataforma"
-              sx={{ mr: 4 }}
-              color="text.light"
-            />
-          )}
-          {isValidRoles([RoleEnum.MASTER]) && (
-            <SSwitch
-              onChange={(e) => {
-                setCompanyData({
-                  ...companyData,
-                  isConsulting: e.target.checked,
-                });
-              }}
-              checked={!!companyData.isConsulting}
-              label="Empresa de consultoria"
-              sx={{ mr: 4 }}
-              color="text.light"
-            />
-          )}
+                  { label: 'Acesso ao eSocial', item: 'esocial' },
+                  { label: 'Acesso ao Agendamento', item: 'schedule' },
+                  { label: 'Acesso à CAT', item: 'cat' },
+                  { label: 'Acesso ao Absenteísmo', item: 'absenteeism' },
+                ].map(({ item, label }) => {
+                  if (!(userCompany as any)[item]) return null;
+
+                  return (
+                    <SSwitch
+                      key={item}
+                      onChange={(e) => {
+                        setCompanyData({
+                          ...companyData,
+                          [item]: e.target.checked,
+                        } as any);
+                      }}
+                      checked={!!(companyData as any)[item]}
+                      label={label}
+                      sx={{ mr: 4 }}
+                      color="text.light"
+                    />
+                  );
+                })}
+              </>
+            )}
+          </SFlex>
         </SFlex>
       </AnimatedStep>
       <SModalButtons

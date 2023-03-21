@@ -11,7 +11,9 @@ export interface INavLinkProps extends LinkProps {
   text: string;
   description: string;
   image?: string;
-  imageType?: 'cat';
+  deep?: number;
+  imageType?: 'cat' | 'esocial';
   shouldMatchExactHref?: boolean;
   isAlwaysClose?: boolean;
+  canOpen?: boolean;
 }

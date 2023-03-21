@@ -137,7 +137,7 @@ export const ModalSend2210ESocial: FC = () => {
               <SText mb={10}>{error?.message}</SText>
               <NextLink
                 passHref
-                href={`${RoutesEnum.COMPANIES}/${data.companyId}`}
+                href={RoutesEnum.COMPANY.replace(':companyId', data.companyId)}
               >
                 <SLink unstyled>
                   <SButton onClick={() => onClose()}>Editar empresa</SButton>

@@ -40,6 +40,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
   addButton = true,
   queryEmployee,
   editOnSelection,
+  searchAllEmployees,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -52,7 +53,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
     1,
     {
       search: search || (preload ? '' : ''),
-      ...(filterByHierarchyId
+      ...(filterByHierarchyId && !(searchAllEmployees && search)
         ? { hierarchyId: filterByHierarchyId || undefined }
         : {}),
       ...queryEmployee,

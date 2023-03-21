@@ -2,7 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import { Box } from '@mui/material';
+import clone from 'clone';
 import SText from 'components/atoms/SText';
+import { parseInlineStyleText } from 'components/organisms/documentModel/utils/parseInlineStyleText';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 import {
@@ -80,7 +82,61 @@ export const useEditDocumentModel = () => {
         .modalEditData;
 
       const setDocument = () => {
-        dispatch(setDocumentModel(modelData.document || null));
+        //! edit document **
+        const modelDataClone = clone(modelData);
+        modelDataClone.document.sections = modelDataClone.document.sections.map(
+          (_section) => {
+            const section = clone(_section);
+            if (section.children) {
+              Object.keys(section.children).forEach((key) => {
+                if (!section?.children?.[key]) return;
+
+                section.children[key] = section.children[key].map((_child) => {
+                  const child = clone(_child);
+                  if (child?.text) {
+                    child.text = child.text
+                      .split('\n')
+                      .map((text, index) => {
+                        const out = parseInlineStyleText(text);
+
+                        if (out.inlineEntity.length) {
+                          if (!child.entityRangeBlock)
+                            child.entityRangeBlock = [];
+                          if (!child.entityRangeBlock?.[index])
+                            child.entityRangeBlock[index] = [];
+
+                          child.entityRangeBlock[index] = [
+                            ...out.inlineEntity,
+                            ...child.entityRangeBlock[index],
+                          ];
+                        }
+
+                        if (out.inlineStyle.length) {
+                          if (!child.inlineStyleRangeBlock)
+                            child.inlineStyleRangeBlock = [];
+                          if (!child.inlineStyleRangeBlock?.[index])
+                            child.inlineStyleRangeBlock[index] = [];
+
+                          child.inlineStyleRangeBlock[index] = [
+                            ...out.inlineStyle,
+                            ...child.inlineStyleRangeBlock[index],
+                          ];
+                        }
+
+                        return out.text;
+                      })
+                      .join('\n');
+                  }
+                  return child;
+                });
+              });
+            }
+
+            return section;
+          },
+        );
+        //! edit document **
+        dispatch(setDocumentModel(modelDataClone.document || null));
         dispatch(setDocumentModalEditData(initialDataRef.current));
       };
 

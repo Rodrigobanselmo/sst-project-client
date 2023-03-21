@@ -1,8 +1,6 @@
 import { CircularProgress, Icon } from '@mui/material';
 import SText from 'components/atoms/SText';
 
-import { useAccess } from 'core/hooks/useAccess';
-
 import STooltip from '../STooltip';
 import { STBox } from './styles';
 import { ISActionButtonProps } from './types';
@@ -16,15 +14,8 @@ export const SActionButton = ({
   tooltipText,
   loading,
   disabled,
-  roles,
-  permissions,
   ...props
 }: ISActionButtonProps) => {
-  const { isValidRoles, isValidPermissions } = useAccess();
-
-  if (!isValidRoles(roles)) return null;
-  if (!isValidPermissions(permissions)) return null;
-
   return (
     <STooltip title={tooltipText}>
       <STBox

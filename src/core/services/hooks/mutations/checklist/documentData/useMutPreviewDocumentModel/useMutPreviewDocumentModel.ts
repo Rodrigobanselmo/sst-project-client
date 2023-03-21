@@ -9,7 +9,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IDocumentModelData } from 'core/interfaces/api/IDocumentModel';
-import { IPrgDocData } from 'core/interfaces/api/IRiskData';
+import { IRiskDocument } from 'core/interfaces/api/IRiskData';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';

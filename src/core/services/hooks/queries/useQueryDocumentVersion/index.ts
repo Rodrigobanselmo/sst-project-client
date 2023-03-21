@@ -6,29 +6,29 @@ import { IReactQuery } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
-import { IPrgDocData } from '../../../../interfaces/api/IRiskData';
+import { IRiskDocument } from '../../../../interfaces/api/IRiskData';
 
 export const queryPrgDocs = async (
   id: string,
   companyId: string,
-): Promise<IPrgDocData> => {
-  const response = await api.get<IPrgDocData>(
+): Promise<IRiskDocument> => {
+  const response = await api.get<IRiskDocument>(
     ApiRoutesEnum.DOC_VERSIONS.replace(':companyId', companyId) + '/' + id,
   );
 
   return response.data;
 };
 
-export function useQueryDocumentVersion(id: string): IReactQuery<IPrgDocData> {
+export function useQueryDocumentVersion(id: string): IReactQuery<IRiskDocument> {
   const { companyId } = useGetCompanyId();
 
   const { data, ...query } = useQuery(
     [QueryEnum.DOCUMENT_VERSION, companyId, id],
-    () => (companyId && id ? queryPrgDocs(id, companyId) : ({} as IPrgDocData)),
+    () => (companyId && id ? queryPrgDocs(id, companyId) : ({} as IRiskDocument)),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },
   );
 
-  return { ...query, data: data || ({} as IPrgDocData) };
+  return { ...query, data: data || ({} as IRiskDocument) };
 }

@@ -10,11 +10,12 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { DocumentModelSelect } from 'components/organisms/inputSelect/DocumentModelSelect/DocumentModelSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
+import { IUseMainActionsModal } from '../../hooks/useMainActions';
 import { IUsePGRHandleModal } from '../../hooks/usePGRHandleActions';
 import { SignatureAndValidation } from './components/SignatureAndValidation';
 import { useMainStep } from './hooks/useMainStep';
 
-export const MainModalStep = (props: IUsePGRHandleModal) => {
+export const MainModalStep = (props: IUseMainActionsModal) => {
   const propsStep = useMainStep(props);
   const { onSubmit, control, onCloseUnsaved, loading, setValue } = propsStep;
 

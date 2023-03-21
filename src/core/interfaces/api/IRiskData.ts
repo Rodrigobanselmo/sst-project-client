@@ -7,6 +7,7 @@ import {
   RiskRecTextTypeEnum,
   RiskRecTypeEnum,
 } from './../../../project/enum/RiskRecType.enum';
+import { IDocumentData } from './IDocumentData';
 import { IExam } from './IExam';
 import { IGho } from './IGho';
 import { IHierarchy } from './IHierarchy';
@@ -93,13 +94,14 @@ export interface IRiskGroupData {
   data?: IRiskData[];
 }
 
-export interface IPrgDocData {
+export interface IRiskDocument {
   id: string;
   name: string;
   description: string;
   fileUrl: string;
   version: string;
   documentDataId: string;
+  documentData: IDocumentData;
   created_at: Date;
   updated_at: Date;
   companyId: string;

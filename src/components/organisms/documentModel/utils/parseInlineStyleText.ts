@@ -1,18 +1,36 @@
+import { InlineStyleTypeEnum } from 'project/enum/document-model.enum';
+
 interface InlineStyle {
   offset: number;
   length: number;
-  style: string;
+  style: InlineStyleTypeEnum;
+  value?: string;
+}
+
+interface InlineEntity {
+  offset: number;
+  length: number;
+  data?: {
+    type: string;
+    mutability: string;
+    data: {
+      url: string;
+      targetOption: string;
+    };
+  };
 }
 
 interface TextObject {
   text: string;
   inlineStyle: InlineStyle[];
+  inlineEntity: InlineEntity[];
 }
 
 export function parseInlineStyleText(str: string) {
   const output: TextObject = {
     text: '',
     inlineStyle: [],
+    inlineEntity: [],
   };
   const boldPattern = /\*\*(.*?)\*\*/g;
   const inlinePattern = /\^\^(.*?)\^\^/g;
@@ -27,7 +45,7 @@ export function parseInlineStyleText(str: string) {
     output.inlineStyle.push({
       offset: output.text.length,
       length: match[1].length,
-      style: 'bold',
+      style: InlineStyleTypeEnum.BOLD,
     });
     output.text += match[1];
     lastIndex = match.index + match[0].length;
@@ -42,7 +60,7 @@ export function parseInlineStyleText(str: string) {
     output.inlineStyle.push({
       offset: output.text.length,
       length: match[1].length,
-      style: 'superscript',
+      style: InlineStyleTypeEnum.SUPERSCRIPT,
     });
     output.text += match[1];
     lastIndex = match.index + match[0].length;
@@ -53,13 +71,21 @@ export function parseInlineStyleText(str: string) {
   lastIndex = 0;
   match;
   while ((match = linkPattern.exec(newStr)) !== null) {
+    const texts = match[1].split('|');
     output.text += newStr.slice(lastIndex, match.index);
-    output.inlineStyle.push({
+    output.inlineEntity.push({
       offset: output.text.length,
-      length: match[1].length,
-      style: 'link',
+      length: texts[1].length,
+      data: {
+        type: 'LINK',
+        mutability: 'MUTABLE',
+        data: {
+          url: texts[0],
+          targetOption: '_blank',
+        },
+      },
     });
-    output.text += match[1];
+    output.text += texts[1];
     lastIndex = match.index + match[0].length;
   }
 

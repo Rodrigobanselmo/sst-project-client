@@ -47,6 +47,7 @@ export const DocumentModelTable: FC<
   hideTitle,
   companyId,
   query,
+  children,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -105,6 +106,7 @@ export const DocumentModelTable: FC<
           onAddClick={onAddModel}
           onChange={(e) => handleSearchChange(e.target.value)}
         />
+        {children}
       </>
       <STable
         loading={loadGroup}

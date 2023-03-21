@@ -108,9 +108,6 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
         <SIconButton onClick={handleCloseRisk} size="small">
           <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
         </SIconButton>
-        <SText fontSize="0.9rem" color="GrayText">
-          Grupo similar de exposição
-        </SText>
 
         {riskInit && (
           <SFlex center sx={{ ml: 'auto' }}>

@@ -1,25 +1,31 @@
 import { useCallback, useState } from 'react';
 
+import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
+import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
+import { ViewTypeEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-risk-type.constant';
 import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
+import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
+import { initialDocumentModelsViewState } from 'components/organisms/modals/ModalViewDocumentModels/ModalViewDocumentModels';
 import { useRouter } from 'next/router';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
+import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutSetApplyServiceCompany } from 'core/services/hooks/mutations/manager/company/useMutSetApplyServiceCompany/useMutSetApplyServiceCompany';
 import { useMutSetClinicsCompany } from 'core/services/hooks/mutations/manager/company/useMutSetClinicsCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-
-import { useModal } from './useModal';
+import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocumentModels/useQueryDocumentModels';
 
 export const usePushRoute = () => {
   const { data: company } = useQueryCompany();
-  const { push } = useRouter();
-  const { onStackOpenModal } = useModal();
+  const { push, asPath } = useRouter();
+  const { onOpenRiskToolSelected, onStackOpenModal } = useOpenRiskTool();
 
   const setClinicsMutation = useMutSetClinicsCompany();
   const setApplyCompanyMutation = useMutSetApplyServiceCompany();
@@ -134,6 +140,48 @@ export const usePushRoute = () => {
     [company, onStackOpenModal, setApplyCompanyMutation],
   );
 
+  const handleEditDocumentModel = (
+    companyId: string,
+    query?: IQueryDocumentModels,
+  ) => {
+    onStackOpenModal(ModalEnum.DOCUMENTS_MODEL_VIEW, {
+      companyId: companyId,
+      title: 'Modelo Documento',
+      query: {
+        companyId: companyId,
+        ...query,
+      },
+    } as typeof initialDocumentModelsViewState);
+  };
+
+  const handleGoToRisk = () => {
+    const split = asPath.split('?');
+    const pathname = split[0];
+    const query = split[1] ? '&' + split[1] : '';
+    onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
+      title:
+        'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
+      onSelect: (docPgr: IRiskGroupData) => {
+        push(pathname + '/?riskGroupId=' + docPgr.id + query, undefined, {
+          shallow: true,
+        });
+      },
+    } as Partial<typeof initialDocPgrSelectState>);
+  };
+
+  const handleOpenAddRiskModal = useCallback(() => {
+    onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
+      title:
+        'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
+      onSelect: (docPgr: IRiskGroupData) =>
+        onOpenRiskToolSelected({
+          riskGroupId: docPgr.id,
+          viewsDataInit: ViewsDataEnum.HIERARCHY,
+          viewTypeInit: ViewTypeEnum.SIMPLE_BY_GROUP,
+        }),
+    } as Partial<typeof initialDocPgrSelectState>);
+  }, [onOpenRiskToolSelected, onStackOpenModal]);
+
   return {
     handleAddCharacterization,
     handleAddEmployees,
@@ -141,5 +189,8 @@ export const usePushRoute = () => {
     handleAddClinic,
     handleSetApplyServiceCompany,
     setClinicsMutation,
+    handleEditDocumentModel,
+    handleGoToRisk,
+    handleOpenAddRiskModal,
   };
 };

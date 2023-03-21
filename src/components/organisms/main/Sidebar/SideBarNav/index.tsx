@@ -1,23 +1,22 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { Stack } from '@mui/material';
+import { useRouter } from 'next/router';
 
-import { useAccess } from 'core/hooks/useAccess';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
-import { Drawer_Links } from '../constants';
 import { LogoNavbar } from '../Logo';
 import { NavLink } from '../NavLink';
 import { NavSection } from '../NavSection';
 import { SearchBox } from '../SearchBox';
+import { useDrawerItems } from './hooks/useDrawerItems';
 import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
   const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
-  const { isValidRoles, isValidPermissions, isToRemoveWithRoles } = useAccess();
   const { userCompanyId } = useGetCompanyId();
-  const { data: company } = useQueryCompany(userCompanyId);
+  const { sections } = useDrawerItems();
+  const { query } = useRouter();
 
   return (
     <BoxContainerStyled
@@ -31,48 +30,56 @@ export function SideBarNav(): JSX.Element {
       </Stack>
       <BoxSectionStyled pt={10}>
         <Stack px={0} spacing={8}>
-          {Drawer_Links.map((category) => {
-            if (!isValidRoles(category.data?.roles)) return null;
-            if (!isValidPermissions(category.data?.permissions)) return null;
-            if (isToRemoveWithRoles(category.data?.removeWithRoles))
-              return null;
-
+          {sections.map((category) => {
+            if (category.items.length === 0) return null;
             return (
-              <NavSection key={category.data.id} title={category.data.text}>
+              <NavSection key={category.data.text} title={category.data.text}>
                 {category.items.map((item) => {
-                  if (!isValidRoles(item?.roles)) return null;
-                  if (!isValidPermissions(item?.permissions)) return null;
-                  if (isToRemoveWithRoles(item?.removeWithRoles)) return null;
-                  if (item.showIf) {
-                    let show = false;
-                    // eslint-disable-next-line prettier/prettier
-                    if (!show) show = !!(item.showIf.isClinic && company.isClinic);
-                    // eslint-disable-next-line prettier/prettier
-                    if (!show)  show = !!(item.showIf.isConsulting && company.isConsulting );
-                    // eslint-disable-next-line prettier/prettier
-                    if (!show) show = !!(item.showIf.isCompany && !company.isConsulting && !company.isClinic );
-
-                    if (!show) return null;
-                  }
+                  if (item.items && item.items.length === 0) return null;
 
                   return (
                     <NavLink
                       isAlwaysClose={isAlwaysClose}
                       image={item.image}
                       imageType={item.imageType}
-                      key={item.id}
-                      modalName={item.modalName}
+                      key={item.text}
+                      onClick={item.onClick}
                       href={
-                        item?.href?.replace(
-                          ':companyId',
-                          userCompanyId || '',
-                        ) || ''
+                        item?.href
+                          ?.replace(':companyId', userCompanyId || '')
+                          ?.replace(':stage', (query.stage as string) || '0') ||
+                        ''
                       }
                       icon={item.Icon}
                       text={item.text}
+                      canOpen={item.items && item.items?.length > 0}
                       description={item.description}
                       shouldMatchExactHref={item.shouldMatchExactHref}
-                    />
+                    >
+                      {item.items &&
+                        item.items.map((item) => {
+                          return (
+                            <NavLink
+                              isAlwaysClose={isAlwaysClose}
+                              image={item.image}
+                              imageType={item.imageType}
+                              key={item.text}
+                              deep={1}
+                              onClick={item.onClick}
+                              href={
+                                item?.href?.replace(
+                                  ':companyId',
+                                  userCompanyId || '',
+                                ) || ''
+                              }
+                              icon={item.Icon}
+                              text={item.text}
+                              description={item.description}
+                              shouldMatchExactHref={item.shouldMatchExactHref}
+                            />
+                          );
+                        })}
+                    </NavLink>
                   );
                 })}
               </NavSection>

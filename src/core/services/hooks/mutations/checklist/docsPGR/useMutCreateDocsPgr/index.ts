@@ -7,7 +7,7 @@ import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { IPrgDocData } from 'core/interfaces/api/IRiskData';
+import { IRiskDocument } from 'core/interfaces/api/IRiskData';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';
@@ -35,7 +35,7 @@ export async function upsertRiskDocs(
 
   const { token } = await refreshToken();
 
-  const response = await api.post<IPrgDocData>(
+  const response = await api.post<IRiskDocument>(
     `${ApiRoutesEnum.DOCUMENTS_PGR}`,
     {
       companyId,

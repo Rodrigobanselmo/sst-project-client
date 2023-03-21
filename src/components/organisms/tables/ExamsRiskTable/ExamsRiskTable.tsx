@@ -21,6 +21,7 @@ import { company } from 'faker/locale/zh_TW';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
+import { SExamIcon } from 'assets/icons/SExamIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -137,9 +138,9 @@ export const ExamsRiskTable: FC<
                 </SText>
               </>
             }
-            icon={SRiskFactorIcon}
+            icon={SExamIcon}
           >
-            Riscos e seus Exames
+            Exames
           </STableTitle>
         </>
       )}
@@ -153,7 +154,10 @@ export const ExamsRiskTable: FC<
         rowsNumber={rowsPerPage}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(250px, 5fr) minmax(150px, 5fr) 120px 55px 135px 150px 90px 80px`}
+        }minmax(250px, 5fr) minmax(150px, 5fr) 120px 55px 135px ${
+          // eslint-disable-next-line no-constant-condition
+          false ? '180px' : ''
+        }90px 80px`}
       >
         <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
@@ -162,12 +166,12 @@ export const ExamsRiskTable: FC<
           <STableHRow>Periodicidade</STableHRow>
           <STableHRow>Sexo</STableHRow>
           <STableHRow>Faixa etária</STableHRow>
-          <STableHRow justifyContent="center">
+          {/* <STableHRow justifyContent="center">
             Peridiocidade
             <span style={{ fontSize: 9, margin: '1px 0 0px 5px' }}>
               (Comorbidades)
             </span>
-          </STableHRow>
+          </STableHRow> */}
           <STableHRow justifyContent="center">Peridiocidade</STableHRow>
           {/* <STableHRow justifyContent="center">Status</STableHRow> */}
           <STableHRow justifyContent="center">Editar</STableHRow>

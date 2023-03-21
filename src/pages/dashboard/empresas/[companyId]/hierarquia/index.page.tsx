@@ -1,9 +1,7 @@
-import { useEffect } from 'react';
-import { useStore } from 'react-redux';
-
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import OrgTreeComponent from 'components/organisms/main/Tree/OrgTree';
 import { ModalEditCard } from 'components/organisms/main/Tree/OrgTree/components/ModalEditCard';
+import { useHierarchyTreeLoad } from 'components/organisms/main/Tree/OrgTree/hooks/useHierarchyTreeLoad';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
 import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
@@ -25,39 +23,12 @@ import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWor
 import { NextPage } from 'next';
 import { STFlexContainer } from 'pages/dashboard/checklist/index.styles';
 
-import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
-import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
-import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Hierarchy: NextPage = () => {
-  const { data } = useQueryHierarchies();
-  const { data: gho } = useQueryGHOAll();
-  const { data: company } = useQueryCompany();
-  const store = useStore();
+  const { hierarchies, company } = useHierarchyTreeLoad();
 
-  const { setTree, transformToTreeMap, searchFilterNodes } =
-    useHierarchyTreeActions();
-
-  useEffect(() => {
-    const search = store.getState().hierarchy.search as string;
-
-    if (data && company && gho) {
-      setTree(transformToTreeMap(data, company));
-      if (search) searchFilterNodes(search);
-    }
-  }, [
-    setTree,
-    data,
-    company,
-    gho,
-    transformToTreeMap,
-    store,
-    searchFilterNodes,
-  ]);
-
-  if (!data || !company) {
+  if (!hierarchies || !company) {
     return null;
   }
 

@@ -7,6 +7,7 @@ export enum CompanyActionEnum {
   HIERARCHY = 'HIERARCHY',
   HOMO_GROUP = 'HOMO_GROUP',
   RISKS = 'RISKS',
+  RISKS_MODAL = 'RISKS_MODAL',
   RISK_GROUP = 'RISK_GROUP',
   PGR = 'PGR',
   PCMSO = 'PCMSO',
@@ -16,6 +17,13 @@ export enum CompanyActionEnum {
   ABSENTEEISM = 'ABSENTEEISM',
   OS = 'OS',
   APPLY_SERVICE_COMPANY = 'APPLY_SERVICE_COMPANY',
+  DOCUMENT_MODEL = 'DOCUMENT_MODEL',
+  CHARACTERIZATION = 'CHARACTERIZATION',
+
+  EMPLOYEES_GROUP_PAGE = 'empregados',
+  COMPANY_GROUP_PAGE = 'empresa',
+  SST_GROUP_PAGE = 'sst',
+  DOCUMENTS_GROUP_PAGE = 'documentos',
 }
 
 export enum ClinicActionEnum {

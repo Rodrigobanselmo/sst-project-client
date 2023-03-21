@@ -1,3 +1,5 @@
+import sortArray from 'sort-array';
+
 interface Replacement {
   offset: number;
   length: number;
@@ -10,7 +12,11 @@ export function replaceMultiple(
 ): string {
   let newString = originalString;
 
-  for (let i = 0; i < replacements.length; i++) {
+  for (
+    let i = 0;
+    i < sortArray(replacements, { by: 'offset', order: 'asc' }).length;
+    i++
+  ) {
     const replacement = replacements[i];
     newString =
       newString.slice(0, replacement.offset) +

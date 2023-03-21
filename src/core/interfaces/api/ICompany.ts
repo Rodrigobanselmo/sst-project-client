@@ -9,6 +9,7 @@ import { ICompanyGroup } from './ICompanyGroup';
 import { IContact } from './IContact';
 import { IDailyCompanyReport, IDashboard } from './IDashboard';
 import { IExamToClinic } from './IExam';
+import { IRiskDocument } from './IRiskData';
 
 export interface ICompany {
   id: string;
@@ -47,8 +48,19 @@ export interface ICompany {
   hierarchyCount: number;
   homogenousGroupCount: number;
   professionalCount?: number;
+  episCount?: number;
+
   examCount?: number;
   usersCount?: number;
+  riskCount?: number;
+  examsCount?: number;
+  characterizationCount?: number;
+  lastDocumentVersion?: IRiskDocument[];
+  employeeAwayCount?: number;
+  employeeInactiveCount?: number;
+  clinicsConnectedCount?: number;
+  protocolsCount?: number;
+
   step?: CompanyStepEnum;
   steps?: CompanyStepEnum[];
   responsibleNit: string;
@@ -59,12 +71,10 @@ export interface ICompany {
   obs: string;
   numAsos: number;
   blockResignationExam: boolean;
-  isGroup: boolean;
   esocialStart: Date;
   esocialSend: boolean;
   doctorResponsibleId: number;
   tecResponsibleId: number;
-  isClinic: boolean;
   clinicExams: IExamToClinic[];
   scheduleBlocks?: IScheduleBlock[];
   report: IDashboard;
@@ -73,6 +83,15 @@ export interface ICompany {
     clinicId: string;
     companyId: string;
   }[];
+
+  isDocuments: boolean;
+  esocial: boolean;
+  schedule: boolean;
+  cat: boolean;
+  absenteeism: boolean;
+
+  isGroup: boolean;
+  isClinic: boolean;
 }
 
 export interface ICompanyContract {

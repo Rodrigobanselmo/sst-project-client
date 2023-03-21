@@ -14,7 +14,7 @@ import {
   useMutUpsertRiskGroupData,
 } from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
 import { dateFormat } from 'core/utils/date/date-format';
-import { pgrSchema } from 'core/utils/schemas/pgr.schema';
+import { documentDataSchema } from 'core/utils/schemas/docuementData.schema';
 
 interface ISubmit
   extends Omit<
@@ -27,7 +27,7 @@ interface ISubmit
 export const usePgrForm = (docId: string, data?: any) => {
   const { onOpenModal } = useModal();
   const { handleSubmit, control, getValues, trigger, setFocus } = useForm({
-    resolver: yupResolver(pgrSchema),
+    resolver: yupResolver(documentDataSchema),
   });
 
   const [uneditable, setUneditable] = useState(true);

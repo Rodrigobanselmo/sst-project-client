@@ -78,23 +78,6 @@ export const UserDataModalStep = (props: IUseUserDataModal) => {
           multiple={false}
           {...props}
         />
-        {/* <SSwitch
-              onChange={(e) => {
-                setCompanyData({
-                  ...companyData,
-                  license: {
-                    ...companyData.license,
-                    status: e.target.checked
-                      ? StatusEnum.ACTIVE
-                      : StatusEnum.INACTIVE,
-                  },
-                });
-              }}
-              checked={!!(companyData.license.status === StatusEnum.ACTIVE)}
-              label="Ativar licença de uso da plataforma"
-              sx={{ mr: 4 }}
-              color="text.light"
-            /> */}
       </AnimatedStep>
       <SModalButtons
         loading={loading}

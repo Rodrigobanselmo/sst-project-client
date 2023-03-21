@@ -84,7 +84,7 @@ export const useLocation = () => {
             ? doc?.id
               ? `riskGroupId=${doc?.id}`
               : ''
-            : q,
+            : q || '',
         )
         .join('&');
 
@@ -92,14 +92,15 @@ export const useLocation = () => {
         '/' +
           pathname
             .replace(RoutesParamsEnum.COMPANY, company.id)
+            .replace(RoutesParamsEnum.COMPANY, company.id)
+            .replace(RoutesParamsEnum.STAGE, query.stage as string)
             .replace(RoutesParamsEnum.WORKSPACE, workspace?.id || '')
             .replace(
               RoutesParamsEnum.CHARACTERIZATION,
               (query?.characterization as string) || '',
             )
             .replace(RoutesParamsEnum.DOC, doc?.id || '') +
-          '?' +
-          queryParams,
+          (queryParams ? `?${queryParams}` : ''),
       );
     };
 

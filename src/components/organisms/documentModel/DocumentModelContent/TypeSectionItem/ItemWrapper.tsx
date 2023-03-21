@@ -6,14 +6,7 @@ import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import { ElementTypeModelSelect } from 'components/organisms/tagSelects/ElementTypeModelSelect/ElementTypeModelSelect';
 import { SectionTypeModelSelect } from 'components/organisms/tagSelects/SectionTypeModelSelect/SectionTypeModelSelect';
-import DOMPurify from 'dompurify';
-import {
-  ContentState,
-  convertFromHTML,
-  EditorState,
-  Modifier,
-  RawDraftContentState,
-} from 'draft-js';
+import { EditorState, Modifier, RawDraftContentState } from 'draft-js';
 import dynamic from 'next/dynamic';
 import {
   DocumentSectionChildrenTypeEnum,
@@ -27,16 +20,19 @@ import {
   setDocumentDeleteSection,
   setDocumentEditElementChild,
 } from 'store/reducers/document/documentSlice';
+import { v4 } from 'uuid';
+
+import { SSaveIcon } from 'assets/icons/SSaveIcon';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import {
   IDocumentModelFull,
   IDocVariablesAllType,
+  IEntityRange,
   IInlineStyleRange,
 } from 'core/interfaces/api/IDocumentModel';
 import { generateRandomString } from 'core/utils/helpers/generateRandomString';
 
-import { SSaveIcon } from 'assets/icons/SSaveIcon';
 import { NodeDocumentModelElementData } from '../../DocumentModelTree/types/types';
 import {
   IReplaceAllVarItem,
@@ -66,6 +62,8 @@ const mapProps: Record<
     draft?: boolean;
     toolbar?: boolean;
     fontSize?: boolean;
+    duplicate?: boolean;
+    paragraph?: boolean;
   }
 > = {
   [DocumentSectionChildrenTypeEnum.PARAGRAPH]: {
@@ -74,6 +72,7 @@ const mapProps: Record<
     draft: true,
     fontSize: true,
     toolbar: true,
+    duplicate: true,
   },
   [DocumentSectionChildrenTypeEnum.BULLET]: {
     edit: true,
@@ -81,6 +80,7 @@ const mapProps: Record<
     multiline: true,
     fontSize: true,
     toolbar: true,
+    duplicate: true,
   },
   [DocumentSectionChildrenTypeEnum.BULLET_SPACE]: {
     edit: true,
@@ -88,49 +88,60 @@ const mapProps: Record<
     draft: true,
     fontSize: true,
     toolbar: true,
+    duplicate: true,
   },
   [DocumentSectionChildrenTypeEnum.PARAGRAPH_FIGURE]: {
     edit: true,
     draft: true,
     toolbar: true,
+    duplicate: true,
   },
   [DocumentSectionChildrenTypeEnum.PARAGRAPH_TABLE]: {
     edit: true,
     draft: true,
     toolbar: true,
+    duplicate: true,
   },
   [DocumentSectionChildrenTypeEnum.LEGEND]: {
     edit: true,
     draft: true,
     toolbar: true,
+    duplicate: true,
   },
   [DocumentSectionChildrenTypeEnum.TITLE]: {
     edit: true,
     draft: true,
+    paragraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H1]: {
     edit: true,
     draft: true,
+    paragraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H2]: {
     edit: true,
     draft: true,
+    paragraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H3]: {
     edit: true,
     draft: true,
+    paragraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H4]: {
     edit: true,
     draft: true,
+    paragraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H5]: {
     edit: true,
     draft: true,
+    paragraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H6]: {
     edit: true,
     draft: true,
+    paragraph: true,
   },
 };
 
@@ -220,6 +231,7 @@ export const ItemWrapper: React.FC<Props> = ({
   };
 
   const handleDuplicate = (data: ITypeDocumentModel) => {
+    console.log(data);
     if ('element' in data)
       onDuplicateChild({
         ...data,
@@ -266,7 +278,7 @@ export const ItemWrapper: React.FC<Props> = ({
     const entityMap: any[] = [];
 
     const createEntityRangeVars = (items: IReplaceAllVarItem[]) => {
-      return items.map((v) => {
+      const entities = items.map((v) => {
         entityMap.push({
           data: {
             value: v.data?.label || v.data?.type,
@@ -283,6 +295,8 @@ export const ItemWrapper: React.FC<Props> = ({
           offset: v.offset,
         };
       });
+
+      return entities;
     };
 
     const getInlineStyleRanges = (inlineStyleRange: IInlineStyleRange[]) => {
@@ -325,12 +339,25 @@ export const ItemWrapper: React.FC<Props> = ({
         let data = {};
 
         const entityRanges = createEntityRangeVars(foundVars);
+
         if ('element' in item && item.inlineStyleRangeBlock) {
           inlineStyleRanges = getInlineStyleRanges(
             item.inlineStyleRangeBlock[index],
           );
 
           data = { ...(item.align && { 'text-align': item.align }) };
+        }
+
+        if ('element' in item && item.entityRangeBlock) {
+          item.entityRangeBlock[index]?.forEach((v) => {
+            entityMap.push(v.data);
+
+            entityRanges.push({
+              key: entityMap.length - 1,
+              length: v.length,
+              offset: v.offset,
+            });
+          });
         }
 
         return {
@@ -356,22 +383,32 @@ export const ItemWrapper: React.FC<Props> = ({
     content: RawDraftContentState,
   ): Partial<NodeDocumentModelElementData>[] | null => {
     if (!content) return null;
-    console.log(content);
+
     const text = content.blocks
       .reduce((acc, block) => {
         let text = block.text;
 
         text = replaceMultiple(
           text,
-          block.entityRanges.map((entity) => {
-            return {
-              length: entity.length,
-              offset: entity.offset,
-              replacementText: content.entityMap[entity.key]?.data?.url
-                ? `??${content.entityMap[entity.key].data.url}??`
-                : '',
-            };
-          }),
+          block.entityRanges
+            .filter((entity) => {
+              return content.entityMap[entity.key].type == 'MENTION';
+            })
+            .map((entity) => {
+              let replacementText = '';
+
+              if (content.entityMap[entity.key].type == 'MENTION') {
+                replacementText = content.entityMap[entity.key]?.data?.url
+                  ? `??${content.entityMap[entity.key].data.url}??`
+                  : '';
+              }
+
+              return {
+                length: entity.length,
+                offset: entity.offset,
+                replacementText,
+              };
+            }),
         );
 
         return [...acc, text];
@@ -412,6 +449,22 @@ export const ItemWrapper: React.FC<Props> = ({
       });
     });
 
+    const entityRangeBlock = blocks.map((block): IEntityRange[] => {
+      if (!block.entityRanges) return [];
+
+      return block.entityRanges
+        .filter((entity) => {
+          return content.entityMap[entity.key].type != 'MENTION';
+        })
+        .map((entity): IEntityRange => {
+          return {
+            offset: entity.offset,
+            length: entity.length,
+            data: content.entityMap[entity.key] as any,
+          };
+        });
+    });
+
     const data = paragraph.map(
       (paragraph, index): Partial<NodeDocumentModelElementData> => {
         const numNewlines = (paragraph.match(/\n/g) || []).length + 1;
@@ -425,6 +478,7 @@ export const ItemWrapper: React.FC<Props> = ({
 
         return {
           inlineStyleRangeBlock: inlineStyleRange.splice(0, numNewlines),
+          entityRangeBlock: entityRangeBlock.splice(0, numNewlines),
           text: paragraph,
           ...(align && { align }),
         };
@@ -542,12 +596,35 @@ export const ItemWrapper: React.FC<Props> = ({
                     borderActive="success"
                   />
                 )}
-                {isElement && (
+                {isElement && (mapProps as any)[item.type]?.duplicate && (
                   <STagButton
                     maxWidth={'300px'}
                     onClick={() => handleDuplicate(item)}
                     tooltipTitle="Adicionar item abaixo"
                     text={'Duplicar +'}
+                    active
+                    // bg="success.main"
+                    bg="common.white"
+                    iconProps={{ sx: { color: 'success.main' } }}
+                    borderActive="success"
+                  />
+                )}
+                {isElement && (mapProps as any)[item.type]?.paragraph && (
+                  <STagButton
+                    maxWidth={'300px'}
+                    onClick={() =>
+                      handleDuplicate({
+                        text: '[NOVO PÁRAGRAFO]',
+                        type: DocumentSectionChildrenTypeEnum.PARAGRAPH,
+                        element: true,
+                        id: v4(),
+                        sectionId: item.sectionId,
+                        sectionIndex: item.sectionIndex,
+                        align: item.align,
+                      })
+                    }
+                    tooltipTitle="Adicionar item abaixo"
+                    text={'Parágrafo +'}
                     active
                     // bg="success.main"
                     bg="common.white"

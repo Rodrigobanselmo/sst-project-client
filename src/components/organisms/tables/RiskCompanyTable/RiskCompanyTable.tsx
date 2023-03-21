@@ -28,6 +28,7 @@ import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { usePushRoute } from 'core/hooks/usePushRoute';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
@@ -74,14 +75,14 @@ export const RiskCompanyTable: FC<
   }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const [showOrigins, setShowRiskExam] = useState(false);
+  const [openId, setOpenId] = useState('');
   const { data: riskGroupData, isLoading: loadingRiskGroup } =
     useQueryRiskGroupData();
 
   const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
-
+  const { handleOpenAddRiskModal } = usePushRoute();
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
-  const { push } = useRouter();
-  const { onOpenRiskToolSelected, onStackOpenModal } = useOpenRiskTool();
+  const { onOpenRiskToolSelected } = useOpenRiskTool();
 
   const isSelect = !!onSelectData;
   const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
@@ -103,26 +104,29 @@ export const RiskCompanyTable: FC<
   };
 
   const onAddRisk = () => {
-    onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
-      title:
-        'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
-      onSelect: (docPgr: IRiskGroupData) =>
-        push(
-          RoutesEnum.RISK_DATA.replace(/:companyId/g, companyId).replace(
-            /:riskGroupId/g,
-            docPgr.id,
-          ),
-        ),
-    } as Partial<typeof initialDocPgrSelectState>);
+    handleOpenAddRiskModal();
+    // onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
+    //   title:
+    //     'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
+    //   onSelect: (docPgr: IRiskGroupData) =>
+    //     push(
+    //       RoutesEnum.RISK_DATA.replace(/:companyId/g, companyId).replace(
+    //         /:riskGroupId/g,
+    //         docPgr.id,
+    //       ),
+    //     ),
+    // } as Partial<typeof initialDocPgrSelectState>);
   };
 
   // const onEditExam = (exam: IRiskFactors) => {};
 
-  const onSelectRow = (exam: IRiskFactors) => {
+  const onSelectRow = (risk: IRiskFactors) => {
     if (isSelect) {
-      onSelectData(exam);
+      onSelectData(risk);
     }
-    //  else onEditExam(exam);
+
+    // if (openId == risk.id) return setOpenId('');
+    return setOpenId(risk.id);
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
@@ -136,7 +140,7 @@ export const RiskCompanyTable: FC<
     <>
       {!isSelect && (
         <STableTitle
-          subtitle="List de fatores de risco e perigos identificados na empresa"
+          subtitle="Lista de fatores de risco e perigos identificados na empresa"
           icon={SRiskFactorIcon}
         >
           Fatores de risco e perigos
@@ -151,7 +155,7 @@ export const RiskCompanyTable: FC<
             onChange={() => {
               setShowRiskExam(!showOrigins);
             }}
-            label="Mostar origens"
+            label="Expandir Todos"
             checked={showOrigins}
             sx={{ mr: 4 }}
             color="text.light"
@@ -175,6 +179,7 @@ export const RiskCompanyTable: FC<
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
+            const isOpen = showOrigins || openId === row.id;
             return (
               <>
                 <STableRow
@@ -193,7 +198,7 @@ export const RiskCompanyTable: FC<
                   )}
                   <STagRisk hideRiskName riskFactor={row} />
                   <TextIconRow clickable text={row.name || '-'} />
-                  {showOrigins && (
+                  {isOpen && (
                     <Box gridColumn={'1 / 10'} mb={6} mt={-1}>
                       {row?.riskFactorData?.map((riskData) => {
                         return (
@@ -220,13 +225,14 @@ export const RiskCompanyTable: FC<
                                   },
                                 }}
                                 fontSize={11}
-                                onClick={() =>
+                                onClick={(e) => {
+                                  e.stopPropagation();
                                   onOpenRiskToolSelected({
                                     homogeneousGroup: riskData.homogeneousGroup,
                                     riskFactor: row,
                                     riskGroupId,
-                                  })
-                                }
+                                  });
+                                }}
                               >
                                 {riskData.origin || ''}
                               </SText>
@@ -248,7 +254,7 @@ export const RiskCompanyTable: FC<
                       })}
                     </Box>
                   )}
-                  {!showOrigins && (
+                  {isOpen && (
                     <Box gridColumn={'1 / 10'} mb={6} mt={-1}>
                       <SFlex gap={'10px'} flexWrap="wrap">
                         <Box

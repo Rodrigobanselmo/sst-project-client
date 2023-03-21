@@ -16,6 +16,7 @@ import {
   NodeDocumentModelElementData as IElement,
   NodeDocumentModelSectionData as ISection,
 } from '../../DocumentModelTree/types/types';
+import { parseInlineStyleText } from '../../utils/parseInlineStyleText';
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
 import { ITypeDocumentModel } from '../types/types';
 import { getFontSize, getSpacing } from '../utils/getFontSize';
@@ -57,6 +58,7 @@ export const TypeSectionItem: React.FC<Props> = ({
             <StyledText
               inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
+              entityRange={item.entityRangeBlock?.[index] || []}
               variables={variables}
               key={item.id + index}
             />
@@ -68,6 +70,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           {item.text.split('\n').map((text, index) => (
             <StyledText
               inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+              entityRange={item.entityRangeBlock?.[index] || []}
               text={text}
               variables={variables}
               key={item.id + index}
@@ -82,6 +85,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           </SText>
           {item.text.split('\n').map((text, index) => (
             <StyledText
+              entityRange={item.entityRangeBlock?.[index] || []}
               inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
@@ -97,6 +101,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           </SText>
           {item.text.split('\n').map((text, index) => (
             <StyledText
+              entityRange={item.entityRangeBlock?.[index] || []}
               inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
@@ -114,6 +119,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           <Box>
             {item.text.split('\n').map((text, index) => (
               <StyledText
+                entityRange={item.entityRangeBlock?.[index] || []}
                 inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
                 text={text}
                 variables={variables}
@@ -133,6 +139,7 @@ export const TypeSectionItem: React.FC<Props> = ({
           <Box>
             {item.text.split('\n').map((text, index) => (
               <StyledText
+                entityRange={item.entityRangeBlock?.[index] || []}
                 inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
                 text={text}
                 variables={variables}

@@ -323,6 +323,7 @@ export const ModalEditCard = () => {
               handleSelect={(_, list) => setEmployees(list)}
               selectedEmployees={allEmployees}
               loading={isLoading}
+              searchAllEmployees
               {...preventAddEmployee()}
             />
           )}

@@ -5,13 +5,13 @@ import { useFormContext } from 'react-hook-form';
 
 import { useMutAddQueueDocs } from 'core/services/hooks/mutations/checklist/documentData/useMutAddQueueDocs/useMutAddQueueDocs';
 
-import { IUsePGRHandleModal } from '../../../hooks/usePGRHandleActions';
+import { IUseMainActionsModal } from '../../../hooks/useMainActions';
 
 export const useSecondStep = ({
   data,
   onClose,
   ...rest
-}: IUsePGRHandleModal) => {
+}: IUseMainActionsModal) => {
   const { trigger, getValues, control, reset, setError, clearErrors } =
     useFormContext();
   const [isMajorVersion, setIsMajorVersion] = useState(false);

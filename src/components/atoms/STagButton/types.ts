@@ -13,6 +13,7 @@ export interface ISTagButtonProps extends BoxProps {
   icon?: ElementType<any> | null;
   iconProps?: IconProps;
   loading?: boolean;
+  searchAllEmployees?: boolean;
   disabled?: boolean;
   error?: boolean;
   showOnHover?: boolean;

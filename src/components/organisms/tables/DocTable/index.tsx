@@ -13,9 +13,13 @@ import {
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import { STableAddButton } from 'components/atoms/STable/components/STableSearch';
+import STableSearch, {
+  STableAddButton,
+} from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
+import SText from 'components/atoms/SText';
+import { initialMainDocState } from 'components/organisms/modals/ModalAddDocVersion/hooks/useMainActions';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
@@ -24,6 +28,7 @@ import { ModalViewDocDownload } from 'components/organisms/modals/ModalViewDocDo
 import { initialViewDocDownloadState } from 'components/organisms/modals/ModalViewDocDownloads/hooks/useModalViewDocDownload';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
@@ -36,7 +41,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
-import { IPrgDocData } from 'core/interfaces/api/IRiskData';
+import { IRiskDocument } from 'core/interfaces/api/IRiskData';
 import {
   IQueryDocVersion,
   useQueryDocVersions,
@@ -45,12 +50,13 @@ import { queryClient } from 'core/services/queryClient';
 
 export const DocTable: FC<
   BoxProps & {
-    documentPcmsoId?: string;
+    hideTitle?: boolean;
     rowsPerPage?: number;
     query?: Partial<IQueryDocVersion>;
+    type: DocumentTypeEnum;
   }
-> = ({ rowsPerPage = 8, query }) => {
-  const { page, setPage } = useTableSearchAsync();
+> = ({ rowsPerPage = 8, hideTitle, query, type }) => {
+  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const {
     data: docs,
     isLoading,
@@ -58,7 +64,15 @@ export const DocTable: FC<
     isFetching,
     isRefetching,
     refetch,
-  } = useQueryDocVersions(page, { ...query }, rowsPerPage);
+  } = useQueryDocVersions(
+    page,
+    {
+      search,
+      ...query,
+      type,
+    },
+    rowsPerPage,
+  );
   const { onOpenModal } = useModal();
   const { companyId } = useGetCompanyId();
 
@@ -66,7 +80,19 @@ export const DocTable: FC<
     // TODO edit checklist status
   };
 
-  const handleOpenDocModal = (doc: IPrgDocData) => {
+  const documentMap: Record<DocumentTypeEnum, { title: string }> = {
+    [DocumentTypeEnum.PGR]: {
+      title: 'PGR',
+    },
+    [DocumentTypeEnum.PCSMO]: {
+      title: 'PCMSO',
+    },
+    [DocumentTypeEnum.OTHER]: {
+      title: 'Outros',
+    },
+  };
+
+  const handleOpenDocModal = (doc: IRiskDocument) => {
     onOpenModal(ModalEnum.DOCUMENT_DOWNLOAD, {
       id: doc.id,
       companyId,
@@ -81,7 +107,8 @@ export const DocTable: FC<
           workspaceId: work.id,
           workspaceName: work.name,
           companyId,
-        }),
+          type,
+        } as typeof initialMainDocState),
     } as typeof initialWorkspaceSelectState;
 
     onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
@@ -89,17 +116,19 @@ export const DocTable: FC<
 
   return (
     <>
-      <SFlex mb={12} mt={30} align="center">
-        <Box>
-          <STableTitle mb={0} mr={5} icon={LibraryAddCheckIcon}>
-            Versões
-          </STableTitle>
-        </Box>
-        <STableAddButton
-          addText="Adicionar"
-          sm
-          onAddClick={() => onGenerateVersion()}
-        />
+      {!hideTitle && (
+        <STableTitle mr={5} icon={LibraryAddCheckIcon}>
+          Versões{' '}
+          <SText component="span" fontSize={14} fontWeight="600">
+            ({documentMap[type]?.title})
+          </SText>
+        </STableTitle>
+      )}
+
+      <STableSearch
+        onAddClick={() => onGenerateVersion()}
+        onChange={(e) => handleSearchChange(e.target.value)}
+      >
         <STableButton
           tooltip="autualizar"
           onClick={() => {
@@ -107,11 +136,11 @@ export const DocTable: FC<
             queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
           }}
           loading={isLoading || isFetching || isRefetching}
-          sx={{ height: 30, minWidth: 30, ml: 2 }}
           icon={SReloadIcon}
           color="grey.500"
         />
-      </SFlex>
+      </STableSearch>
+
       <STable
         rowsNumber={rowsPerPage}
         loading={isLoading}

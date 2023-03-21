@@ -32,6 +32,19 @@ export interface IInlineStyleRange {
   value?: string;
 }
 
+export interface IEntityRange {
+  offset: number;
+  length: number;
+  data?: {
+    type: string;
+    mutability: string;
+    data: {
+      url: string;
+      targetOption: string;
+    };
+  };
+}
+
 export type IDocumentModelElement = {
   id: string;
   type: string;
@@ -41,6 +54,7 @@ export type IDocumentModelElement = {
   color?: string;
   align?: DocModelAlignmentType;
   inlineStyleRangeBlock?: IInlineStyleRange[][];
+  entityRangeBlock?: IEntityRange[][];
 } & IBase;
 
 export type IDocumentModelSection = {

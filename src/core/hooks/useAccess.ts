@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { RoleEnum } from 'project/enum/roles.enums';
 import {
@@ -18,43 +18,52 @@ export const useAccess = () => {
     [permissions],
   );
 
-  const isValidRoles = (accessRoles?: string[]) => {
-    const isPublic = !accessRoles || accessRoles.length === 0;
-    if (isPublic) return true;
-    if (!roles) return false;
+  const isValidRoles = useCallback(
+    (accessRoles?: string[]) => {
+      const isPublic = !accessRoles || accessRoles.length === 0;
+      if (isPublic) return true;
+      if (!roles) return false;
 
-    if (isMaster) return true;
+      if (isMaster) return true;
 
-    const isPrivate = accessRoles.length > 0;
-    const isAccessible = accessRoles?.some((role) => roles?.includes(role));
-    if (isPrivate && !isAccessible) return false;
+      const isPrivate = accessRoles.length > 0;
+      const isAccessible = accessRoles?.some((role) => roles?.includes(role));
+      if (isPrivate && !isAccessible) return false;
 
-    return true;
-  };
+      return true;
+    },
+    [isMaster, roles],
+  );
 
-  const isValidPermissions = (accessPermissions?: string[]) => {
-    const isPublic = !accessPermissions || accessPermissions.length === 0;
-    if (isPublic) return true;
-    if (isMaster) return true;
+  const isValidPermissions = useCallback(
+    (accessPermissions?: string[]) => {
+      const isPublic = !accessPermissions || accessPermissions.length === 0;
+      if (isPublic) return true;
+      if (isMaster) return true;
 
-    if (!permissions) return false;
+      if (!permissions) return false;
 
-    const isPrivate = accessPermissions.length > 0;
-    const isAccessible = accessPermissions?.some((permissionShort) =>
-      permissionsValue?.includes(permissionShort),
-    );
-    if (isPrivate && !isAccessible) return false;
+      const isPrivate = accessPermissions.length > 0;
+      const isAccessible = accessPermissions?.some((permissionShort) =>
+        permissionsValue?.includes(permissionShort),
+      );
+      if (isPrivate && !isAccessible) return false;
 
-    return true;
-  };
+      return true;
+    },
+    [isMaster, permissions, permissionsValue],
+  );
 
-  const isToRemoveWithRoles = (removeWithRoles?: string[]) => {
-    const isToRemoveAccessible = removeWithRoles?.some((role) =>
-      roles?.includes(role),
-    );
+  const isToRemoveWithRoles = useCallback(
+    (removeWithRoles?: string[]) => {
+      const isToRemoveAccessible = removeWithRoles?.some((role) =>
+        roles?.includes(role),
+      );
 
-    return isToRemoveAccessible;
-  };
+      return isToRemoveAccessible;
+    },
+    [roles],
+  );
 
   return { isValidRoles, isValidPermissions, isToRemoveWithRoles };
 };

@@ -225,6 +225,18 @@ export const permissionsConstantMap = {
     info: 'Pode gerenciar quem deverá receber os alertas por email',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.DOCUMENT_MODEL]: {
+    value: PermissionEnum.DOCUMENT_MODEL,
+    label: 'Criar e editar modelos de documentos',
+    info: 'Pode gerenciar modelos de documentos',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.CLINIC_COMPANY_LINK]: {
+    value: PermissionEnum.CLINIC_COMPANY_LINK,
+    label: 'Vincular Clínicas prestadoras de serviços as empresas',
+    info: 'Informar para quais empresas as clínicas irão prestar serviços',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [

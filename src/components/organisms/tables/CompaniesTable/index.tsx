@@ -85,7 +85,7 @@ export const CompaniesTable: FC<
   };
 
   const handleGoToCompany = (companyId: string) => {
-    push(`${RoutesEnum.COMPANIES}/${companyId}`);
+    push(RoutesEnum.COMPANY.replace(':companyId', companyId));
   };
 
   const onSelectRow = (company: ICompany) => {

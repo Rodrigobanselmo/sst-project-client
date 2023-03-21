@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useState } from 'react';
+import { Wizard } from 'react-use-wizard';
 
 import { Box } from '@mui/material';
 import SModal, {
@@ -7,7 +8,10 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { STabs } from 'components/molecules/STabs';
+import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { DocumentModelTable } from 'components/organisms/tables/DocumentModelTable/DocumentModelTable';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -27,6 +31,7 @@ export const ModalViewDocumentModels: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const [data, setData] = useState(initialDocumentModelsViewState);
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     const initialData = getModalData(
@@ -53,6 +58,11 @@ export const ModalViewDocumentModels: FC = () => {
 
   const buttons = [{}] as IModalButton[];
 
+  const typeMap: Record<number, DocumentTypeEnum> = {
+    0: DocumentTypeEnum.PGR,
+    1: DocumentTypeEnum.PCSMO,
+  };
+
   return (
     <SModal
       {...registerModal(modalName)}
@@ -69,10 +79,31 @@ export const ModalViewDocumentModels: FC = () => {
 
         <Box mt={8} mb={20}>
           <DocumentModelTable
-            query={data.query}
+            query={{
+              ...(typeMap[activeStep] && { type: typeMap[activeStep] }),
+              ...data.query,
+            }}
             title={data.title}
             companyId={data.companyId}
-          />
+          >
+            {!data.query?.type && (
+              <STabs
+                value={activeStep}
+                onChange={(_, value) => {
+                  setActiveStep(value);
+                }}
+                shadow
+                options={[
+                  {
+                    label: 'PGR',
+                  },
+                  {
+                    label: 'PCMSO',
+                  },
+                ]}
+              />
+            )}
+          </DocumentModelTable>
         </Box>
 
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

@@ -12,80 +12,60 @@ import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocumentData/useQueryDocumentData';
 
+import { IPGRDocumentData } from './../../../../../core/interfaces/api/IDocumentData';
+import { IUseMainActionsModal, useMainActions } from './useMainActions';
+
 export const initialPgrDocState = {
-  id: '',
-  name: '',
-  status: StatusEnum.ACTIVE,
-  companyId: '',
-  workspaceId: '',
-  workspaceName: '',
-  validityEnd: null as Date | null,
-  validityStart: null as Date | null,
-  type: undefined as DocumentTypeEnum | undefined,
-
-  modelId: undefined as number | undefined,
-  model: undefined as IDocumentModel | undefined,
-  elaboratedBy: '',
-  revisionBy: '',
-  approvedBy: '',
-  coordinatorBy: '',
-  professionals: [] as IProfessional[],
-
   json: {
-    visitDate: null as Date | null,
+    visitDate: null as Date | null | undefined,
     source: '',
     complementaryDocs: [] as string[],
     complementarySystems: [] as string[],
     isQ5: false,
     hasEmergencyPlan: false,
   },
-
-  workspaceClosed: false,
 };
 
-const modalName = ModalEnum.DOCUMENT_DATA_UPSERT;
-
 export const usePGRHandleModal = () => {
-  const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
-  const initialDataRef = useRef(initialPgrDocState);
-
-  const { preventUnwantedChanges } = usePreventAction();
-
-  const [data, setData] = useState({
-    ...initialPgrDocState,
-  });
-
-  const { data: doc, isLoading: docLoading } = useQueryDocumentData({
+  const props = useMainActions({
     type: DocumentTypeEnum.PGR,
-    companyId: data.companyId,
-    workspaceId: data.workspaceId,
+    initialDocState: initialPgrDocState,
   });
 
-  const onClose = useCallback(
-    (data?: any) => {
-      onCloseModal(modalName, data);
-      setData(initialPgrDocState);
-    },
-    [onCloseModal],
-  );
+  const {
+    registerModal,
+    onCloseUnsaved,
+    onClose,
+    data,
+    setData,
+    modalName,
+    initialDataRef,
+    docLoading,
+    getModalData,
+    doc,
+    initialState,
+  } = props;
 
   useEffect(() => {
-    if (data && data?.workspaceClosed && !data?.workspaceId) return onClose();
-  }, [data, onClose]);
-
-  useEffect(() => {
-    const initialData =
-      getModalData<Partial<typeof initialPgrDocState>>(modalName);
+    const initialData = getModalData<Partial<typeof initialState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
     if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setData((oldData) => {
+        const documentPGR: Partial<IPGRDocumentData> =
+          doc?.type == DocumentTypeEnum.PGR ? doc : {};
+
         const newData = {
-          ...initialPgrDocState,
+          ...initialState,
           ...oldData,
           ...initialData,
-          ...doc,
+          ...documentPGR,
+          json: {
+            ...initialState.json,
+            ...oldData.json,
+            ...initialData?.json,
+            ...documentPGR?.json,
+          },
           type: DocumentTypeEnum.PGR,
         };
 
@@ -102,12 +82,8 @@ export const usePGRHandleModal = () => {
         return newData;
       });
     }
-  }, [getModalData, doc, onClose]);
-
-  const onCloseUnsaved = () => {
-    if (preventUnwantedChanges(data, initialDataRef.current, onClose)) return;
-    onClose();
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [getModalData, doc, onClose, setData]);
 
   return {
     registerModal,
@@ -118,6 +94,7 @@ export const usePGRHandleModal = () => {
     modalName,
     initialDataRef,
     docLoading,
+    props: props as unknown as IUseMainActionsModal,
   };
 };
 

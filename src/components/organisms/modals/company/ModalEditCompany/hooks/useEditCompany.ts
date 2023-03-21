@@ -5,16 +5,19 @@ import { CompanyTypesEnum } from 'project/enum/company-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICnae } from 'core/interfaces/api/ICompany';
 import { IContact } from 'core/interfaces/api/IContact';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
+import { useMutUpsertRiskGroupData } from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
 import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
 import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
 import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/company/useMutCreateCompany';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
 
 export const initialCompanyState = {
@@ -58,6 +61,11 @@ export const initialCompanyState = {
   stateRegistration: '',
   isSavedCreation: false,
   contacts: [] as IContact[],
+  isDocuments: false,
+  schedule: false,
+  absenteeism: false,
+  esocial: false,
+  cat: false,
   address: {
     neighborhood: '',
     number: '',
@@ -74,10 +82,14 @@ export const useEditCompany = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialCompanyState);
 
+  const { userCompanyId } = useGetCompanyId();
+  const { data: userCompany } = useQueryCompany(userCompanyId);
+
   const updateCompany = useMutUpdateCompany();
   const createCompany = useMutCreateCompany();
   const cepMutation = useMutationCEP();
   const cnpjMutation = useMutationCNPJ();
+  const riskGroupMutation = useMutUpsertRiskGroupData();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -91,13 +103,17 @@ export const useEditCompany = () => {
     const initialData = getModalData<Partial<typeof initialCompanyState>>(
       ModalEnum.COMPANY_EDIT,
     );
-
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (initialData  && !(initialData as any).passBack) {
       setCompanyData((oldData) => {
         const newData = {
           ...oldData,
           ...cleanObjectNullValues(initialData),
+          isDocuments: true,
+          schedule: userCompany.schedule,
+          absenteeism: userCompany.absenteeism,
+          esocial: userCompany.esocial,
+          cat: userCompany.cat,
         };
 
         initialDataRef.current = newData;
@@ -105,7 +121,7 @@ export const useEditCompany = () => {
         return newData;
       });
     }
-  }, [getModalData, setCompanyData]);
+  }, [getModalData, setCompanyData, userCompany]);
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.COMPANY_EDIT, data);
@@ -129,6 +145,14 @@ export const useEditCompany = () => {
         .mutateAsync(submitData)
         .then((company) => {
           nextStep();
+          if (company)
+            riskGroupMutation.mutate({
+              id: '',
+              name: 'Gestão',
+              status: StatusEnum.PROGRESS,
+              companyId: company.id,
+            });
+
           setCompanyData((companyData) => ({
             ...companyData,
             ...submitData,
@@ -164,6 +188,7 @@ export const useEditCompany = () => {
     isEdit,
     onSubmitData,
     cnpjMutation,
+    userCompany,
     loading:
       updateCompany.isLoading ||
       createCompany.isLoading ||

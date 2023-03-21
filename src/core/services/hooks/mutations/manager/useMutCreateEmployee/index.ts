@@ -8,6 +8,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { api } from 'core/services/apiClient';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';

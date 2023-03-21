@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useWizard } from 'react-use-wizard';
 
 import SFlex from 'components/atoms/SFlex';
@@ -12,10 +12,10 @@ import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { queryDocVersions } from 'core/services/hooks/queries/useQueryDocVersions/useQueryDocVersions';
 
-import { IUsePGRHandleModal } from '../../hooks/usePGRHandleActions';
+import { IUseMainActionsModal } from '../../hooks/useMainActions';
 import { useSecondStep } from './hooks/useSecondStep';
 
-export const VersionModalStep = (props: IUsePGRHandleModal) => {
+export const VersionModalStep = (props: IUseMainActionsModal) => {
   const {
     control,
     onSubmit,

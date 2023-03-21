@@ -20,6 +20,7 @@ export enum RoutesParamsEnum {
   COMPANY = '[companyId]',
   CLINIC = 'clinicas',
   DOC = '[docId]',
+  STAGE = '[stage]',
   PGR = 'pgr',
   PCMSO = 'pcmso',
   WORKSPACE = '[workspaceId]',

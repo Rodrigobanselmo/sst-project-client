@@ -45,31 +45,6 @@ export const DataContent = (props: IUseData) => {
         onChange={() => setChangedState()}
       />
 
-      {!isEdit && (
-        <Box mb={5} mt={3} maxWidth={['100%']}>
-          <DocumentModelSelect
-            fullWidth
-            onChange={(data) => {
-              setData((d) => ({
-                ...d,
-                copyFromId: data ? data.id : undefined,
-                copyFrom: data,
-                isChanged: true,
-              }));
-            }}
-            inputProps={{
-              labelPosition: 'top',
-              placeholder: 'selecione...',
-            }}
-            unmountOnChangeDefault
-            defaultValue={data?.copyFrom}
-            name="copyFromId"
-            label={'Copiar modelo de outro documento'}
-            control={control}
-          />
-        </Box>
-      )}
-
       <Box maxWidth={['100%', 200]}>
         <SelectForm
           unmountOnChangeDefault
@@ -92,6 +67,32 @@ export const DataContent = (props: IUseData) => {
           options={documentTypeList}
         />
       </Box>
+
+      {!isEdit && (
+        <Box mb={5} mt={3} maxWidth={['100%']}>
+          <DocumentModelSelect
+            fullWidth
+            query={{ type: data?.type }}
+            onChange={(data) => {
+              setData((d) => ({
+                ...d,
+                copyFromId: data ? data.id : undefined,
+                copyFrom: data,
+                isChanged: true,
+              }));
+            }}
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'selecione...',
+            }}
+            unmountOnChangeDefault
+            defaultValue={data?.copyFrom}
+            name="copyFromId"
+            label={'Copiar modelo de outro documento'}
+            control={control}
+          />
+        </Box>
+      )}
 
       {isEdit && (
         <SFlex gap={8} mt={10} align="flex-start">

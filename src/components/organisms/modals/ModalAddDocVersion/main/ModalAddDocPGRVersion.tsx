@@ -5,12 +5,12 @@ import SModal, { SModalHeader, SModalPaper } from 'components/molecules/SModal';
 import { Wizard } from 'components/organisms/main/Wizard';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 
-import { pgrSchema } from 'core/utils/schemas/pgr.schema';
+import { documentDataSchema } from 'core/utils/schemas/docuementData.schema';
 import { validitySchema } from 'core/utils/schemas/validity.schema';
 import { versionSchema } from 'core/utils/schemas/version.schema';
 
 import { MainModalStep } from '../components/1-main';
-import { ComplementaryModalStep } from '../components/2-complementary';
+import { ComplementaryModalStep } from '../components/2-pgr';
 import { VersionModalStep } from '../components/last-version';
 import { usePGRHandleModal } from '../hooks/usePGRHandleActions';
 
@@ -39,11 +39,11 @@ export const ModalAddDocPGRVersion = () => {
               ]}
             />
           }
-          schemas={[pgrSchema, versionSchema, validitySchema]}
+          schemas={[documentDataSchema, versionSchema, validitySchema]}
         >
-          <MainModalStep {...props} />
+          <MainModalStep {...props.props} />
           <ComplementaryModalStep {...props} />
-          <VersionModalStep {...props} />
+          <VersionModalStep {...props.props} />
         </Wizard>
       </SModalPaper>
     </SModal>

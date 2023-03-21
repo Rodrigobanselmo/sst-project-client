@@ -5,17 +5,19 @@ import { InlineStyleTypeEnum } from 'project/enum/document-model.enum';
 
 import {
   IDocVariablesAllType,
+  IEntityRange,
   IInlineStyleRange,
 } from 'core/interfaces/api/IDocumentModel';
 
-import { getFontSize } from '../utils/getFontSize';
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
+import { getFontSize } from '../utils/getFontSize';
 
 export const StyledText: FC<{
   inlineStyleRange: IInlineStyleRange[];
+  entityRange: IEntityRange[];
   text: string;
   variables: IDocVariablesAllType;
-}> = ({ inlineStyleRange, text, variables }) => {
+}> = ({ inlineStyleRange, entityRange, text, variables }) => {
   const getStyle = (range: IInlineStyleRange): React.CSSProperties => {
     const style: React.CSSProperties = {};
     switch (range.style) {
@@ -66,6 +68,23 @@ export const StyledText: FC<{
       styleMap[i] = { ...getStyle(range), ...styleMap[i] };
     }
   });
+
+  if (entityRange?.length)
+    entityRange.forEach((range) => {
+      for (let i = range.offset; i < range.offset + range.length; i++) {
+        if (!styleMap[i]) {
+          styleMap[i] = {};
+        }
+
+        if (range.data?.type === 'LINK') {
+          styleMap[i] = {
+            color: 'blueviolet',
+            textDecoration: 'underline',
+            ...styleMap[i],
+          };
+        }
+      }
+    });
 
   const renderText = () => {
     const result = [];

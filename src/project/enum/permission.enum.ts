@@ -47,4 +47,6 @@ export enum PermissionEnum {
   ABSENTEEISM = '17',
   SCHEDULE_BLOCK = '18',
   ALERT = '19',
+  DOCUMENT_MODEL = '20',
+  CLINIC_COMPANY_LINK = '21',
 }

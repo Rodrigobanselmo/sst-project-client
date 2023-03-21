@@ -72,6 +72,12 @@ export const initialClinicState = {
     complement: '',
     state: '',
   },
+  pgr: true,
+  pcmso: true,
+  esocial: true,
+  schedule: true,
+  cat: true,
+  absenteeism: true,
 };
 
 export const useEditCompany = () => {

@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { SActionButton } from 'components/atoms/SActionButton';
 import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
@@ -114,10 +115,14 @@ const Companies: NextPage = () => {
           width={'175px'}
         />
 
-        <DocTable query={{ type: DocumentTypeEnum.PGR }} />
+        <Box mt={30}>
+          <DocTable
+            query={{ type: DocumentTypeEnum.PGR }}
+            type={DocumentTypeEnum.PGR}
+          />
+        </Box>
         <ModalAddDocPGRVersion />
         <ModalViewProfessional />
-        <ModalSingleInput />
         <ModalSingleInput />
         <ModalSelectWorkspace />
         <ModalEditDocumentModelData />

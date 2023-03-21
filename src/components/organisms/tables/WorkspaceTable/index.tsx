@@ -67,10 +67,14 @@ export const WorkspaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
   return (
     <>
       <SFlex mb={8} mt={40} align="center">
-        <STableTitle mb={0} mt={0} variant="h6" icon={SWorkspaceIcon}>
-          Estabelecimento (Área de trabalho)
+        <STableTitle mb={0} mt={0} mr={10} variant="h6" icon={SWorkspaceIcon}>
+          Estabelecimentos
         </STableTitle>
-        <STableAddButton sm onAddClick={handleAddWorkspace} addText={''} />
+        <STableAddButton
+          sm
+          onAddClick={handleAddWorkspace}
+          addText={'Adicionar'}
+        />
       </SFlex>
       <STable
         loading={isLoading}
