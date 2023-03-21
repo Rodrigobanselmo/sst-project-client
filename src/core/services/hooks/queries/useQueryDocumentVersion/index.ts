@@ -19,12 +19,15 @@ export const queryPrgDocs = async (
   return response.data;
 };
 
-export function useQueryDocumentVersion(id: string): IReactQuery<IRiskDocument> {
+export function useQueryDocumentVersion(
+  id: string,
+): IReactQuery<IRiskDocument> {
   const { companyId } = useGetCompanyId();
 
   const { data, ...query } = useQuery(
     [QueryEnum.DOCUMENT_VERSION, companyId, id],
-    () => (companyId && id ? queryPrgDocs(id, companyId) : ({} as IRiskDocument)),
+    () =>
+      companyId && id ? queryPrgDocs(id, companyId) : ({} as IRiskDocument),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },

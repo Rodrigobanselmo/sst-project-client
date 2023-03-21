@@ -64,7 +64,8 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
           setValue={setValue}
           defaultValue={
             dateToString(data?.validityEnd, 'MM/YYYY') ||
-            (data.json?.complementarySystems?.length > 0
+            ('json' in data &&
+            (data as any).json?.complementarySystems?.length > 0
               ? dayjs().add(3, 'years').format('MM/YYYY')
               : dayjs().add(2, 'years').format('MM/YYYY'))
           }

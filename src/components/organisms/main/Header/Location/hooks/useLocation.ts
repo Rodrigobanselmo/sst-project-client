@@ -215,6 +215,10 @@ export const useLocation = () => {
             return RoutesEnum.COMPANY.replace(':companyId', companyId);
         },
       },
+      [RoutesParamsEnum.STAGE]: {
+        value: '',
+        name: '',
+      },
     };
   }, [company, companyId, onDropSelect, query?.characterization, query.docId]);
 
