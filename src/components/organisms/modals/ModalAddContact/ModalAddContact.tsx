@@ -89,12 +89,12 @@ export const ModalAddContact = () => {
           </Box>
           <Box flex={1}>
             <InputForm
-              defaultValue={contactData.phone_2}
+              defaultValue={contactData.phone_1}
               label="Telefone Secundário"
               control={control}
               sx={{ minWidth: 200 }}
               placeholder={'(__) _____-____'}
-              name="phone_2"
+              name="phone_1"
               size="small"
               labelPosition="center"
               mask={phoneMask.apply}
