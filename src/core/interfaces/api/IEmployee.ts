@@ -37,6 +37,7 @@ export interface IEmployee {
   subOffices?: IHierarchy[];
   clinicId: string;
   expiredDateExam: Date;
+  skippedDismissalExam: boolean;
   lastExam: Date;
 
   company: ICompany;

@@ -126,7 +126,7 @@ export const ContactsTable: FC<
                 <TextIconRow
                   justifyContent="center"
                   clickable
-                  text={row.phone_2 || '-'}
+                  text={row.phone_1 || '-'}
                 />
                 <IconButtonRow
                   onClick={(e) => {

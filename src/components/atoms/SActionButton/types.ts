@@ -3,7 +3,10 @@ import { BoxProps } from '@mui/material';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 
-import { CompanyActionEnum } from 'core/enums/company-action.enum';
+import {
+  ClinicActionEnum,
+  CompanyActionEnum,
+} from 'core/enums/company-action.enum';
 
 export interface ISActionButtonProps extends Partial<BoxProps> {
   text: string;
@@ -17,7 +20,7 @@ export interface ISActionButtonProps extends Partial<BoxProps> {
   roles?: RoleEnum[];
   permissions?: PermissionEnum[];
   infos?: { label: string; value: string | number }[];
-  type?: CompanyActionEnum;
+  type?: CompanyActionEnum | ClinicActionEnum;
   showIf?: {
     isClinic?: boolean;
     isConsulting?: boolean;

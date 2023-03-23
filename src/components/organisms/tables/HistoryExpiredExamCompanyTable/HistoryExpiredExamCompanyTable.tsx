@@ -38,6 +38,99 @@ import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { dateToString } from 'core/utils/date/date-format';
 
+export const getEmployeeRowStatus = (data?: IEmployee) => {
+  const exam = data?.examsHistory?.[0];
+  // if (exam && status === StatusEnum.DONE) return 'info';
+  const diff = -dayjs().diff(data?.expiredDateExam, 'day');
+  let status = { color: 'scale.low', status: StatusEnum.DONE };
+  if (!data?.expiredDateExam || diff <= 0)
+    status = { color: 'scale.high', status: StatusEnum.EXPIRED };
+  if (diff >= 0 && diff <= 7)
+    status = { color: 'scale.mediumHigh', status: StatusEnum.DONE };
+  if (diff >= 7 && diff <= 30)
+    status = { color: 'scale.medium', status: StatusEnum.DONE };
+  if (diff >= 30 && diff <= 90)
+    status = { color: 'scale.mediumLow', status: StatusEnum.DONE };
+
+  if (
+    (exam?.status == StatusEnum.PROCESSING ||
+      exam?.status == StatusEnum.PENDING) &&
+    (dayjs().isBefore(exam.doneDate) || dayjs().diff(exam.doneDate, 'day') == 0)
+  ) {
+    status.status = exam?.status;
+    status.color = 'info.main';
+  }
+
+  if (exam?.status == StatusEnum.DONE && !dayjs().isAfter(exam.expiredDate)) {
+    status.status = exam?.status;
+    status.color = 'scale.low';
+  }
+
+  return status;
+};
+
+export const getEmployeeRowExpiredDate = (date: Date) => {
+  if (!date) return 'sem exame';
+  if (dayjs().diff(date, 'year') > 100) return 'nenhum';
+  return dateToString(date, 'DD[-]MM[-]YYYY');
+};
+
+export const getEmployeeRowExamData = (row: IEmployee) => {
+  const aso = row.examsHistory?.[0];
+  const options = statusOptionsConstantExam;
+  options[StatusEnum.PROCESSING].color = 'info.main';
+
+  const employee = row;
+  const company = employee?.company;
+  const exam = employee?.examsHistory?.[0];
+  const lastDoneExam = employee?.examsHistory?.find(
+    (ex) => ex.status === 'DONE',
+  );
+
+  const isScheduled = exam?.status == StatusEnum.PROCESSING;
+  const isDoneExam = exam?.status == StatusEnum.DONE && exam?.expiredDate;
+
+  const status = getEmployeeRowStatus(row);
+  const textNext =
+    status.status == StatusEnum.EXPIRED
+      ? 'Vencido em: '
+      : isScheduled
+      ? 'Agendado para: '
+      : 'Proximo em: ';
+
+  const validity =
+    textNext +
+    getEmployeeRowExpiredDate(
+      isScheduled
+        ? exam.doneDate
+        : isDoneExam
+        ? exam?.expiredDate
+        : row?.expiredDateExam,
+    );
+
+  const lastExam =
+    lastDoneExam?.doneDate || employee.lastExam
+      ? dateToString(lastDoneExam?.doneDate || employee.lastExam)
+      : '-';
+
+  const disabled = ![StatusEnum.PROCESSING, StatusEnum.EXPIRED].includes(
+    row.status,
+  );
+
+  return {
+    disabled,
+    status,
+    isScheduled,
+    isDoneExam,
+    validity,
+    lastExam,
+    exam,
+    company,
+    employee,
+    aso,
+  };
+};
+
 export const HistoryExpiredExamCompanyTable: FC<
   BoxProps & {
     rowsPerPage?: number;
@@ -104,44 +197,6 @@ export const HistoryExpiredExamCompanyTable: FC<
     return undefined;
   };
 
-  const getRowExpiredDate = (date: Date) => {
-    if (!date) return 'sem exame';
-    if (dayjs().diff(date, 'year') > 100) return 'nenhum';
-    return dateToString(date, 'DD[-]MM[-]YYYY');
-  };
-
-  const getRowStatus = (data?: IEmployee) => {
-    const exam = data?.examsHistory?.[0];
-    // if (exam && status === StatusEnum.DONE) return 'info';
-    const diff = -dayjs().diff(data?.expiredDateExam, 'day');
-    let status = { color: 'scale.low', status: StatusEnum.DONE };
-    if (!data?.expiredDateExam || diff < 0)
-      status = { color: 'scale.high', status: StatusEnum.EXPIRED };
-    if (diff >= 0 && diff <= 7)
-      status = { color: 'scale.mediumHigh', status: StatusEnum.DONE };
-    if (diff >= 7 && diff <= 30)
-      status = { color: 'scale.medium', status: StatusEnum.DONE };
-    if (diff >= 30 && diff <= 90)
-      status = { color: 'scale.mediumLow', status: StatusEnum.DONE };
-
-    if (
-      (exam?.status == StatusEnum.PROCESSING ||
-        exam?.status == StatusEnum.PENDING) &&
-      (dayjs().isBefore(exam.doneDate) ||
-        dayjs().diff(exam.doneDate, 'day') == 0)
-    ) {
-      status.status = exam?.status;
-      status.color = 'info.main';
-    }
-
-    if (exam?.status == StatusEnum.DONE && !dayjs().isAfter(exam.expiredDate)) {
-      status.status = exam?.status;
-      status.color = 'scale.low';
-    }
-
-    return status;
-  };
-
   const header: (BoxProps & { text: string; column: string })[] = [
     // { text: '', column: '15px' },
     { text: 'Funcionário', column: 'minmax(150px, 1fr)' },
@@ -191,47 +246,16 @@ export const HistoryExpiredExamCompanyTable: FC<
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
-            const aso = row.examsHistory?.[0];
-            const options = statusOptionsConstantExam;
-            options[StatusEnum.PROCESSING].color = 'info.main';
-
-            const employee = row;
-            const company = employee?.company;
-            const exam = employee?.examsHistory?.[0];
-            const lastDoneExam = employee?.examsHistory?.find(
-              (ex) => ex.status === 'DONE',
-            );
-
-            const isScheduled = exam?.status == StatusEnum.PROCESSING;
-            const isDoneExam =
-              exam?.status == StatusEnum.DONE && exam?.expiredDate;
-
-            const status = getRowStatus(row);
-            const textNext =
-              status.status == StatusEnum.EXPIRED
-                ? 'Vencido em: '
-                : isScheduled
-                ? 'Agendado para: '
-                : 'Proximo em: ';
-
-            const validity =
-              textNext +
-              getRowExpiredDate(
-                isScheduled
-                  ? exam.doneDate
-                  : isDoneExam
-                  ? exam?.expiredDate
-                  : row?.expiredDateExam,
-              );
-
-            const lastExam = lastDoneExam?.doneDate
-              ? dateToString(lastDoneExam.doneDate || employee.lastExam)
-              : '-';
-
-            const disabled = ![
-              StatusEnum.PROCESSING,
-              StatusEnum.EXPIRED,
-            ].includes(row.status);
+            const {
+              disabled,
+              status,
+              validity,
+              lastExam,
+              company,
+              employee,
+              isScheduled,
+              aso,
+            } = getEmployeeRowExamData(row);
 
             return (
               <STableRow

@@ -22,7 +22,7 @@ export const initialContactState = {
   id: 0,
   name: '',
   phone: '',
-  phone_2: '',
+  phone_1: '',
   email: '',
   companyId: '',
   obs: '',

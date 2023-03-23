@@ -3,7 +3,7 @@ export type IContact = {
   name: string;
   companyId: string;
   phone: string;
-  phone_2: string;
+  phone_1: string;
   email: string;
   isPrincipal: boolean;
   obs: string;

@@ -1,7 +1,8 @@
 import { FC } from 'react';
 
 import BadgeIcon from '@mui/icons-material/Badge';
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
+import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -10,7 +11,13 @@ import {
   STableRow,
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
+import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
+import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { employeeFilterList } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
+import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
+import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -29,23 +36,38 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
-import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import {
+  IQueryEmployee,
+  useQueryEmployees,
+} from 'core/services/hooks/queries/useQueryEmployees';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
-export const EmployeesTable: FC<
-  BoxProps & { rowsPerPage?: number; hideModal?: boolean }
-> = ({ rowsPerPage = 8, hideModal }) => {
-  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+import { getEmployeeRowExamData } from '../HistoryExpiredExamCompanyTable/HistoryExpiredExamCompanyTable';
 
-  const { data: hierarchy, isLoading: loadHierarchy } = useQueryHierarchies();
+export const EmployeesTable: FC<
+  BoxProps & {
+    rowsPerPage?: number;
+    hideModal?: boolean;
+    query?: IQueryEmployee;
+  }
+> = ({ rowsPerPage = 8, hideModal, query }) => {
+  const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+  const { data: company, isLoading: loadCompany } = useQueryCompany();
+  const filterProps = useFilterTable();
+
   const {
     data: employees,
     isLoading: loadEmployees,
     count,
-  } = useQueryEmployees(page, { search }, rowsPerPage);
+  } = useQueryEmployees(
+    page,
+    { search, expiredExam: true, ...query, ...filterProps.filtersQuery },
+    rowsPerPage,
+  );
 
-  const { onOpenModal } = useModal();
+  const { onStackOpenModal } = useModal();
   const { push } = useRouter();
 
   const handleEditStatus = (status: StatusEnum) => {
@@ -61,15 +83,15 @@ export const EmployeesTable: FC<
   };
 
   const onAddEmployee = () => {
-    onOpenModal(ModalEnum.EMPLOYEES_ADD);
+    onStackOpenModal(ModalEnum.EMPLOYEES_ADD, {});
   };
 
   const onExportClick = () => {
-    onOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
+    onStackOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
   };
 
   const onEditEmployee = (employee: IEmployee) => {
-    onOpenModal(ModalEnum.EMPLOYEES_ADD, {
+    onStackOpenModal(ModalEnum.EMPLOYEES_ADD, {
       id: employee.id,
       companyId: employee.companyId,
       cpf: cpfMask.mask(employee.cpf),
@@ -87,12 +109,24 @@ export const EmployeesTable: FC<
       hierarchyId: employee.hierarchyId,
       hierarchy: {
         id: employee.hierarchyId,
-        name:
-          hierarchy[employee.hierarchyId] &&
-          hierarchy[employee.hierarchyId].name,
+        name: employee?.hierarchy?.name,
       } as any,
     } as typeof initialEditEmployeeState);
   };
+
+  const header: (BoxProps & { text: string; column: string })[] = [
+    { text: 'Funcionário', column: 'minmax(200px, 5fr)' },
+    ...(query?.all ? [{ text: 'Empresa', column: '150px' }] : []),
+    { text: 'Cargo', column: 'minmax(190px, 1fr)' },
+    ...(company.schedule
+      ? [
+          { text: 'Válidade', column: '180px' },
+          { text: 'Ultimo Exame', column: '110px' },
+        ]
+      : []),
+    { text: 'Status', column: '90px', justifyContent: 'center' },
+    { text: 'Editar', column: '80px', justifyContent: 'center' },
+  ];
 
   return (
     <>
@@ -101,42 +135,68 @@ export const EmployeesTable: FC<
         onAddClick={onAddEmployee}
         onExportClick={onExportClick}
         onChange={(e) => handleSearchChange(e.target.value)}
-      />
+      >
+        <STableFilterIcon filters={employeeFilterList} {...filterProps} />
+      </STableSearch>
+      <FilterTagList filterProps={filterProps} />
       <STable
-        loading={loadEmployees}
+        loading={loadEmployees || loadCompany}
         rowsNumber={rowsPerPage}
-        columns="minmax(200px, 5fr) minmax(150px, 1fr) minmax(100px, 150px) 90px 80px"
+        columns={header.map(({ column }) => column).join(' ')}
       >
         <STableHeader>
-          <STableHRow>Nome</STableHRow>
-          <STableHRow>Cargo</STableHRow>
-          <STableHRow>CPF</STableHRow>
-          <STableHRow justifyContent="center">Status</STableHRow>
-          <STableHRow justifyContent="center">Editar</STableHRow>
+          {header.map(({ text, ...props }) => (
+            <STableHRow key={text} {...props}>
+              {text}
+            </STableHRow>
+          ))}
         </STableHeader>
         <STableBody<typeof employees[0]>
           rowsData={employees}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
+            const { status, validity, lastExam, employee } =
+              getEmployeeRowExamData(row);
+
             return (
               <STableRow
                 onClick={() => onEditEmployee(row)}
                 clickable
                 key={row.id}
               >
-                <TextIconRow text={row.name} />
+                <TextEmployeeRow employee={employee} />
+                {query?.all && <TextCompanyRow company={employee.company} />}
                 <TextIconRow
-                  text={
-                    hierarchy[row.hierarchyId] &&
-                    hierarchy[row.hierarchyId].name
-                  }
-                  loading={loadHierarchy}
-                  fontSize={13}
+                  text={employee.hierarchy?.name}
+                  fontSize={12}
                   mr={3}
-                  // onClick={() => handleGoToHierarchy(row.companyId)}
                 />
-                <TextIconRow fontSize={14} text={cpfMask.mask(row.cpf)} />
+
+                {company.schedule && (
+                  <SFlex align="center">
+                    <Box
+                      sx={{
+                        minWidth: '7px',
+                        minHeight: '7px',
+                        maxWidth: '7px',
+                        maxHeight: '7px',
+                        borderRadius: 1,
+                        backgroundColor: status.color,
+                      }}
+                    />
+                    <TextIconRow
+                      lineNumber={1}
+                      fontSize={11}
+                      color="text.light"
+                      sx={{ textDecoration: 'underline' }}
+                      justifyContent="center"
+                      text={validity}
+                    />
+                  </SFlex>
+                )}
+                {company.schedule && <TextIconRow text={lastExam} />}
+
                 <StatusSelect
                   large
                   sx={{ maxWidth: '120px' }}

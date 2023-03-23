@@ -70,6 +70,7 @@ export const useEmployeeStep = ({
         hierarchyId,
         employeeId: data.employeeId,
         companyId: data.companyId,
+        ...(isDismissal && { isDismissal: isDismissal }),
         ...(isOffice && { isOffice: isOffice }),
         ...(isPendingExams && { isPendingExams: true }),
       })

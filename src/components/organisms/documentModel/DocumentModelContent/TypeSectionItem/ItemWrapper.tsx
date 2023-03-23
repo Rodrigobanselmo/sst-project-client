@@ -231,7 +231,6 @@ export const ItemWrapper: React.FC<Props> = ({
   };
 
   const handleDuplicate = (data: ITypeDocumentModel) => {
-    console.log(data);
     if ('element' in data)
       onDuplicateChild({
         ...data,

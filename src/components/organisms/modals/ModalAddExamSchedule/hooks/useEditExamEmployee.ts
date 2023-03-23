@@ -7,6 +7,7 @@ import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enu
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -58,7 +59,9 @@ export const useEditExamEmployee = () => {
   const createEmployee = useMutCreateEmployee();
   const { fetchClinic, getClinic } = useFetchQueryClinic();
   const { enqueueSnackbar } = useSnackbar();
-  const { data: company } = useQueryCompany();
+
+  const { userCompanyId } = useGetCompanyId();
+  const { data: company } = useQueryCompany(userCompanyId);
 
   const { preventUnwantedChanges } = usePreventAction();
 

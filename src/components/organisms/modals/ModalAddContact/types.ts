@@ -5,7 +5,7 @@ export interface SModalInitContactProps {
   id: number;
   name: string;
   phone: string;
-  phone_2: string;
+  phone_1: string;
   email: string;
   obs: string;
 }

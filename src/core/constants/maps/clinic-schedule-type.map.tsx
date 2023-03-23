@@ -28,14 +28,14 @@ export const getContacts = ({
   if (scheduleType != ClinicScheduleTypeEnum.EMAIL)
     return [
       contact?.phone ? ['Telefone', contact.phone] : '',
-      contact?.phone_2 ? ['Telefone 2', contact.phone_2] : '',
+      contact?.phone_1 ? ['Telefone 2', contact.phone_1] : '',
       // contact?.email ? ['Email', contact.email] : '',
     ].filter((i) => i);
 
   return [
     contact?.email ? ['Email', contact.email] : '',
     // contact?.phone ? ['Telefone', contact.phone] : '',
-    // contact?.phone_2 ? ['Telefone 2', contact.phone_2] : '',
+    // contact?.phone_1 ? ['Telefone 2', contact.phone_1] : '',
   ].filter((i) => i);
 };
 

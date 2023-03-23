@@ -211,21 +211,21 @@ export const ExamsRiskTable: FC<
                   clickable
                   justifyContent="center"
                   text={
-                    row?.lowValidityInMonths
-                      ? row?.lowValidityInMonths + ' meses'
-                      : '-'
-                  }
-                />{' '}
-                <TextIconRow
-                  clickable
-                  justifyContent="center"
-                  align="center"
-                  text={
                     row?.validityInMonths
                       ? row?.validityInMonths + ' meses'
                       : '-'
                   }
-                />
+                />{' '}
+                {/* <TextIconRow
+                  clickable
+                  justifyContent="center"
+                  align="center"
+                  text={
+                    row?.lowValidityInMonths
+                      ? row?.lowValidityInMonths + ' meses'
+                      : '-'
+                  }
+                /> */}
                 {/* <TextIconRow clickable text={row.material || '-'} /> */}
                 {/* <StatusSelect
                   large={false}

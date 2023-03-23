@@ -65,17 +65,20 @@ export const useEditEmployee = () => {
 
   const isEdit = !!data.id;
 
-  const { data: employee, isLoading: employeeLoading } = useQueryEmployee({
-    id: data.id,
-    companyId: data.companyId,
-  });
+  const { data: employee, isLoading: employeeLoading } = useQueryEmployee(
+    {
+      id: data.id,
+      companyId: data.companyId,
+    },
+    { enabled: !!data.id },
+  );
 
   useEffect(() => {
     const initialData =
       getModalData<Partial<typeof initialEditEmployeeState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (initialData && !(initialData as any).passBack) {
       setData((oldData) => {
         const replaceData = {} as any;
 
@@ -106,10 +109,11 @@ export const useEditEmployee = () => {
   };
 
   const onCloseUnsaved = (action?: () => void, values?: any) => {
-    const button = document.getElementById(IdsEnum.CANCEL_BUTTON);
-    if (button && values == undefined && action == undefined) {
-      return button?.click();
-    }
+    //se eu fecho por cima ele não limpa os
+    // const button = document.getElementById(IdsEnum.CANCEL_BUTTON);
+    // if (button && values == undefined && action == undefined) {
+    //   return button?.click();
+    // }
     const before = clone(initialDataRef.current);
     const after = clone({ ...data, ...(values || {}) });
 
@@ -168,6 +172,7 @@ export const useEditEmployee = () => {
       updateEmployee.isLoading || createEmployee.isLoading || employeeLoading,
     modalName,
     onStackOpenModal,
+    employee,
   };
 };
 

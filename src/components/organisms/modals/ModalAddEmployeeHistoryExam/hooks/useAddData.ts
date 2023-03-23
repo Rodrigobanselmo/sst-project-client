@@ -290,6 +290,8 @@ export const useAddData = () => {
         }),
     };
 
+    if (!submitData.evaluationType) delete submitData.evaluationType;
+
     try {
       if (!data.id) {
         await createMutation.mutateAsync(submitData);

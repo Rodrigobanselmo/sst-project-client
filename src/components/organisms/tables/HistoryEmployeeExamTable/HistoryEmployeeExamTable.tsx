@@ -1,7 +1,10 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { BoxProps, Icon } from '@mui/material';
+import { Box } from '@mui/system';
+import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
+import SIconButton from 'components/atoms/SIconButton';
 import {
   ITableRowStatus,
   STable,
@@ -16,14 +19,17 @@ import TextUserRow from 'components/atoms/STable/components/Rows/TextUserRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
+import SText from 'components/atoms/SText';
 import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
+import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import dayjs from 'dayjs';
 import { employeeExamEvaluationTypeMap } from 'project/enum/employee-exam-history-evaluation.enum';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SAddIcon from 'assets/icons/SAddIcon';
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
@@ -36,6 +42,7 @@ import {
   IEmployeeExamsHistory,
 } from 'core/interfaces/api/IEmployee';
 import { useMutUploadEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUploadEmployeeHisExam/useMutUploadEmployeeHisExam';
+import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
 import {
   IQueryEmployeeHistHier,
   useQueryHisExamEmployee,
@@ -64,6 +71,7 @@ export const HistoryEmployeeExamTable: FC<
 }) => {
   const { search, page, setPage } = useTableSearchAsync();
   const uploadMutation = useMutUploadEmployeeHisExam();
+  const updateEmployee = useMutUpdateEmployee();
 
   const {
     data: history,
@@ -90,6 +98,36 @@ export const HistoryEmployeeExamTable: FC<
       hierarchyId: employee?.hierarchyId,
       doneDate: new Date(),
     } as Partial<typeof initialEmployeeHistoryExamState>);
+  };
+
+  const onAddExamBefore = () => {
+    if (employeeId)
+      onStackOpenModal(ModalEnum.MODAL_BLANK, {
+        onSelect: (data: any) => {
+          updateEmployee
+            .mutateAsync({ lastExam: data.startDate, id: employeeId })
+            .catch(() => {});
+        },
+        content: (setData: any, data: any) => (
+          <SFlex direction="row" gap={10} mb={150}>
+            <SDatePicker
+              inputProps={{
+                labelPosition: 'top',
+                ...((data?.errorMessage || data?.error) && {
+                  error: true,
+                  helperText: data?.errorMessage,
+                }),
+              }}
+              placeholderText="__/__/__"
+              selected={data.startDate}
+              label={'Data do Exame Anterior ao Contrato'}
+              onChange={(date) => {
+                setData((d: any) => ({ ...d, startDate: date }));
+              }}
+            />
+          </SFlex>
+        ),
+      } as Partial<typeof initialBlankState>);
   };
 
   const onSelectRow = (data: IEmployeeExamsHistory) => {
@@ -146,6 +184,17 @@ export const HistoryEmployeeExamTable: FC<
               text={'Novo exame'}
               active
               bg={'success.dark'}
+              textProps={{ sx: { mb: 0 } }}
+            />
+            <STagButton
+              onClick={onAddExamBefore}
+              maxWidth={220}
+              mt={-5}
+              mb={-5}
+              icon={SAddIcon}
+              text={'Exame anterior contrato'}
+              active
+              bg={'grey.500'}
               textProps={{ sx: { mb: 0 } }}
             />
           </SFlex>
@@ -252,6 +301,37 @@ export const HistoryEmployeeExamTable: FC<
           }}
         />
       </STable>{' '}
+      {employee?.lastExam && (
+        <SFlex
+          align={'center'}
+          justifyContent={'space-between'}
+          sx={{
+            mt: 2,
+            mb: 4,
+            backgroundColor: 'background.box',
+            px: 10,
+            py: 3,
+            border: '1px solid',
+            borderColor: 'grey.400',
+            borderRadius: 4,
+          }}
+        >
+          <SText sx={{ mt: 0, fontSize: 13 }}>
+            Exame Anterior ao Contrato: {dateToString(employee?.lastExam)}
+          </SText>
+          <SIconButton
+            onClick={() =>
+              updateEmployee
+                .mutateAsync({ lastExam: null, id: employeeId })
+                .catch(() => {})
+            }
+            sx={{ height: 30, width: 50 }}
+          >
+            <SText sx={{ mt: 0, fontSize: 12 }}>deletar</SText>
+            <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
+          </SIconButton>
+        </SFlex>
+      )}
       <STablePagination
         mt={2}
         registersPerPage={rowsPerPage}

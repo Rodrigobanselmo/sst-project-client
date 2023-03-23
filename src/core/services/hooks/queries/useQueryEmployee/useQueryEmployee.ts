@@ -22,6 +22,7 @@ export const queryEmployee = async (query: IQueryEmployee) => {
 
   const id = query.id;
   const queries = queryString.stringify(query);
+  if (!id) return undefined;
 
   const response = await api.get<IEmployee>(
     `${ApiRoutesEnum.EMPLOYEES}/id/${id}/${companyId}?${queries}`,
@@ -30,7 +31,10 @@ export const queryEmployee = async (query: IQueryEmployee) => {
   return response.data;
 };
 
-export function useQueryEmployee(query = {} as IQueryEmployee) {
+export function useQueryEmployee(
+  query = {} as IQueryEmployee,
+  options = {} as { enabled?: boolean },
+) {
   const { getCompanyId } = useGetCompanyId();
   const companyId = getCompanyId(query);
 
@@ -39,9 +43,15 @@ export function useQueryEmployee(query = {} as IQueryEmployee) {
     () => queryEmployee({ ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
-      enabled: !!query.id,
+      enabled: !!query.id && options.enabled != false,
     },
   );
 
-  return { ...result, data };
+  return {
+    ...result,
+    data,
+    ...(options.enabled == false && {
+      data: undefined,
+    }),
+  };
 }

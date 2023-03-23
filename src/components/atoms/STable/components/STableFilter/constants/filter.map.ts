@@ -93,6 +93,8 @@ export const expiredExamFilterList = [
   FilterFieldEnum.LTE_EXPIRED_EXAM,
 ];
 
+export const employeeFilterList = [FilterFieldEnum.LTE_EXPIRED_EXAM];
+
 export const doneExamsFilterList = [
   FilterFieldEnum.CLINICS,
   FilterFieldEnum.EXAM_TYPE,

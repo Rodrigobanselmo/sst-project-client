@@ -16,6 +16,6 @@ export const getAddressCity = (address?: IAddress) => {
 export const getContactPhone = (contact?: IContact) => {
   if (!contact) return '';
   return `Tel: ${contact.phone}  ${
-    contact.phone_2 ? `/ Tel2: ${contact.phone_2}` : ''
+    contact.phone_1 ? `/ Tel2: ${contact.phone_1}` : ''
   }`;
 };

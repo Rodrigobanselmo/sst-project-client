@@ -10,7 +10,7 @@ import { IUseEditEmployee } from '../../hooks/useEditEmployee';
 import { useExamData } from './hooks/useExamData';
 
 export const ExamHistoryStep = (props: IUseEditEmployee) => {
-  const { control, onSubmit, data, loading, onCloseUnsaved, isEdit, setData } =
+  const { onSubmit, loading, onCloseUnsaved, isEdit, employee } =
     useExamData(props);
 
   const buttons = [
@@ -29,7 +29,12 @@ export const ExamHistoryStep = (props: IUseEditEmployee) => {
         {/* <SText color="text.label" fontSize={14} mb={5}>
           Identificação
         </SText> */}
-        <HistoryEmployeeExamTable employee={data as any} employeeId={data.id} />
+        {employee && (
+          <HistoryEmployeeExamTable
+            employee={employee}
+            employeeId={employee.id}
+          />
+        )}
       </AnimatedStep>
       <SModalButtons
         loading={loading}

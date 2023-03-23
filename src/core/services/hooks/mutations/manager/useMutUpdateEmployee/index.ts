@@ -16,9 +16,11 @@ export interface IUpdateEmployee {
   name?: string;
   cpf?: string;
   hierarchyId?: string;
-  cbo: string;
+  cbo?: string;
   status?: StatusEnum;
   companyId?: string;
+  lastExam?: Date | null;
+  id?: number;
 }
 
 export async function updateEmployee(

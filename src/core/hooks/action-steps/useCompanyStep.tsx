@@ -376,6 +376,9 @@ export const useCompanyStep = () => {
         text: 'Clínicas Vinculadas',
         tooltipText:
           'Cadastro de clínicas que prestarão serviços a esta empresa',
+        showIf: {
+          isSchedule: true,
+        },
       },
       [CompanyActionEnum.EXAMS_RISK]: {
         type: CompanyActionEnum.EXAMS_RISK,
@@ -669,6 +672,7 @@ export const useCompanyStep = () => {
     return [
       actionsMapStepMemo[CompanyActionEnum.EDIT],
       actionsMapStepMemo[CompanyActionEnum.HIERARCHY],
+      actionsMapStepMemo[CompanyActionEnum.CLINICS],
       actionsMapStepMemo[CompanyActionEnum.USERS],
       actionsMapStepMemo[CompanyActionEnum.APPLY_SERVICE_COMPANY],
     ].filter((action) => onFilterBase(action));
@@ -731,7 +735,7 @@ export const useCompanyStep = () => {
         : []),
       actionsMapStepMemo[CompanyActionEnum.CHARACTERIZATION],
       actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP],
-      actionsMapStepMemo[CompanyActionEnum.RISKS],
+      actionsMapStepMemo[CompanyActionEnum.RISKS_MODAL],
     ].filter((action) => onFilterBase(action));
   }, [
     company.workspace?.length,

@@ -2,11 +2,8 @@ import { Wizard } from 'react-use-wizard';
 
 import { Box } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
-import SFlex from 'components/atoms/SFlex';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SWizardBox from 'components/atoms/SWizardBox';
-import { SCalendarWeek } from 'components/molecules/calendar/SCalendarWeek/SCalendarWeek';
-import { SSidebarExamData } from 'components/molecules/calendar/SSidebarExamData/SSidebarExamData';
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { StackModalAddExamSchedule } from 'components/organisms/modals/ModalAddExamSchedule/ModalAddExamSchedule';
@@ -19,14 +16,13 @@ import {
 import { ScheduleAskExamTable } from 'components/organisms/tables/ScheduleAskExamTable/ScheduleAskExamTable';
 import { NextPage } from 'next';
 
-import { ModalEnum } from 'core/enums/modal.enums';
-import { useModal } from 'core/hooks/useModal';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Schedule: NextPage = () => {
-  const { onStackOpenModal } = useModal();
-  const { data: company } = useQueryCompany();
+  const { userCompanyId } = useGetCompanyId();
+  const { data: company } = useQueryCompany(userCompanyId);
 
   const hideIfIsClinic = company.isClinic;
   const hideIfIsConsultant = company.isConsulting;

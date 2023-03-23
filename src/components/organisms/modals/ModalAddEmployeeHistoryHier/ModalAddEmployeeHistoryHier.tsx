@@ -217,12 +217,12 @@ export const ModalAddEmployeeHistoryHier = () => {
           </Box>
           <Box flex={1}>
             <InputForm
-              defaultValue={data.phone_2}
+              defaultValue={data.phone_1}
               label="Telefone Secundário"
               control={control}
               sx={{ minWidth: 200 }}
               placeholder={'(__) _____-____'}
-              name="phone_2"
+              name="phone_1"
               size="small"
               labelPosition="center"
               mask={phoneMask.apply}

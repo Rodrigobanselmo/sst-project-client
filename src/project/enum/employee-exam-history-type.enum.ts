@@ -94,7 +94,20 @@ export const asoExamTypeList = [
 export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
   if (!employee) return [];
 
-  if (!employee.hierarchyId)
+  if (!employee.hierarchyId) {
+    const dismissalWithoutExam =
+      !employee.skippedDismissalExam && employee.expiredDateExam !== null;
+
+    if (dismissalWithoutExam)
+      return [
+        employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
+        employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
+      ];
+
+    return [employeeExamTypeMap[ExamHistoryTypeEnum.ADMI]];
+  }
+
+  if (!employee.hierarchyId && employee.expiredDateExam === null)
     return [employeeExamTypeMap[ExamHistoryTypeEnum.ADMI]];
 
   return [
