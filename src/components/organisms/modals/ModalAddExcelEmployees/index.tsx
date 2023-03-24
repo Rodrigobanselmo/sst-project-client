@@ -57,6 +57,8 @@ export const ModalAddExcelEmployees = () => {
             })
             .catch(() => {});
           queryClient.invalidateQueries([QueryEnum.COMPANY, companyId]);
+          queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+          queryClient.invalidateQueries([QueryEnum.GHO]);
           onClose();
         }}
         maxFiles={1}

@@ -21,6 +21,8 @@ import { useRouter } from 'next/router';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { SCheckIcon } from 'assets/icons/SCheckIcon';
+import { SCloseIcon } from 'assets/icons/SCloseIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 import { SProfessionalIcon } from 'assets/icons/SProfessionalIcon';
 
@@ -67,18 +69,27 @@ export const ProfessionalsTable: FC<
   BoxProps & {
     rowsPerPage?: number;
     isClinic?: boolean;
+    showResponsible?: boolean;
+    loadingResponsible?: boolean;
     onSelectData?: (company: IProfessional) => void;
+    onEditResponsible?: (row: IProfessional, selected: boolean) => void;
     selectedData?: IProfessional[];
     query?: IQueryProfessionals;
     filterInitial?: ProfessionalFilterTypeEnum;
+    responsibleId?: number;
   }
 > = ({
   rowsPerPage = 8,
   onSelectData,
+  responsibleId,
+  showResponsible,
   selectedData,
   filterInitial,
   isClinic,
   query: queryProfessionals,
+  onEditResponsible,
+  loadingResponsible,
+  children,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { push, query, asPath } = useRouter();
@@ -144,6 +155,13 @@ export const ProfessionalsTable: FC<
     } as unknown as typeof initialProfessionalState);
   };
 
+  const handleEditResponsible = (
+    professional: IProfessional,
+    selected: boolean,
+  ) => {
+    onEditResponsible?.(professional, selected);
+  };
+
   const onChangeRoute = (type: string) => {
     const pathSplit = asPath.split('/');
     const values = Object.values(ProfessionalFilterTypeEnum);
@@ -169,6 +187,24 @@ export const ProfessionalsTable: FC<
     } else onEditProfessional(professional);
   };
 
+  const header: (BoxProps & { text: string; column: string })[] = [
+    { text: 'Nome', column: 'minmax(200px, 5fr)' },
+    { text: 'email', column: 'minmax(200px, 4fr)' },
+    { text: 'CPF', column: 'minmax(120px, 2fr)' },
+    { text: 'Conselho', column: '80px' },
+    { text: 'Registro', column: 'minmax(110px, 150px)' },
+    { text: 'Telefone', column: 'minmax(110px, 150px)' },
+    { text: 'Profissional', column: 'minmax(110px, 150px)' },
+    { text: 'Usuário', column: '100px', justifyContent: 'center' },
+    { text: 'Status', column: '100px', justifyContent: 'center' },
+    ...(showResponsible
+      ? [{ text: 'Responsável', column: '80px', justifyContent: 'center' }]
+      : []),
+    { text: 'Editar', column: '80px', justifyContent: 'center' },
+  ];
+
+  if (selectedData) header.unshift({ text: '', column: '15px' });
+
   return (
     <>
       {!isSelect && (
@@ -178,6 +214,7 @@ export const ProfessionalsTable: FC<
         onAddClick={onAddProfessional}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
+      {children}
       {!isClinic && (
         <SPageMenu
           active={pageData().value}
@@ -189,26 +226,14 @@ export const ProfessionalsTable: FC<
       <STable
         loading={loadProfessionals}
         rowsNumber={rowsPerPage}
-        columns={`${
-          selectedData ? '15px ' : ''
-        }minmax(200px, 5fr) minmax(200px, 4fr) minmax(120px, 2fr) 80px minmax(110px, 150px) minmax(110px, 150px) minmax(110px, 150px) 100px 100px 80px`}
+        columns={header.map(({ column }) => column).join(' ')}
       >
         <STableHeader>
-          {selectedData && <STableHRow></STableHRow>}
-          <STableHRow>Nome</STableHRow>
-          <STableHRow>email</STableHRow>
-          <STableHRow>CPF</STableHRow>
-          <STableHRow>Conselho</STableHRow>
-          <STableHRow>Registro</STableHRow>
-          <STableHRow>Telefone</STableHRow>
-          <STableHRow>Profissional</STableHRow>
-          <STableHRow justifyContent="center" ml={-5}>
-            Usuário
-          </STableHRow>
-          <STableHRow justifyContent="center" ml={-5}>
-            Status
-          </STableHRow>
-          <STableHRow justifyContent="center">Editar</STableHRow>
+          {header.map(({ text, ...props }) => (
+            <STableHRow key={text} {...props}>
+              {text}
+            </STableHRow>
+          ))}
         </STableHeader>
         <STableBody<typeof professionals[0]>
           rowsData={professionals}
@@ -260,6 +285,25 @@ export const ProfessionalsTable: FC<
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                   disabled
                 />
+                {showResponsible && (
+                  <IconButtonRow
+                    loading={loadingResponsible}
+                    icon={
+                      responsibleId && row.id == responsibleId ? (
+                        <SCheckIcon sx={{ color: 'success.main' }} />
+                      ) : (
+                        <SCloseIcon sx={{ fontSize: 18 }} />
+                      )
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditResponsible(
+                        row,
+                        !(responsibleId && row.id == responsibleId),
+                      );
+                    }}
+                  />
+                )}
                 <IconButtonRow
                   icon={<EditIcon />}
                   onClick={(e) => {

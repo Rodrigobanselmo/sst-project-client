@@ -43,7 +43,7 @@ export const getEmployeeRowStatus = (data?: IEmployee) => {
   // if (exam && status === StatusEnum.DONE) return 'info';
   const diff = -dayjs().diff(data?.expiredDateExam, 'day');
   let status = { color: 'scale.low', status: StatusEnum.DONE };
-  if (!data?.expiredDateExam || diff <= 0)
+  if (!data?.expiredDateExam || diff < 0)
     status = { color: 'scale.high', status: StatusEnum.EXPIRED };
   if (diff >= 0 && diff <= 7)
     status = { color: 'scale.mediumHigh', status: StatusEnum.DONE };

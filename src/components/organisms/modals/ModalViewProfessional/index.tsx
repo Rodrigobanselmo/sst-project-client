@@ -3,6 +3,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { Box, Checkbox } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STableRow } from 'components/atoms/STable';
+import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import SModal, {
   SModalButtons,
@@ -12,11 +13,14 @@ import SModal, {
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { ProfessionalsTable } from 'components/organisms/tables/ProfessonalsTable/ProfessonalsTable';
 
+import { SCheckIcon } from 'assets/icons/SCheckIcon';
+
 import { ProfessionalFilterTypeEnum } from 'core/constants/maps/professionals-filter.map';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
+import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 import { IQueryProfessionals } from 'core/services/hooks/queries/useQueryProfessionals';
 
 export const initialProfessionalViewState = {
@@ -30,12 +34,15 @@ export const initialProfessionalViewState = {
   toEdit: false,
   filter: ProfessionalFilterTypeEnum.ALL,
   onCloseWithoutSelect: () => {},
+  doctorResponsibleId: null as number | null,
 };
 
 export const ModalViewProfessional: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const [selectData, setSelectData] = useState(initialProfessionalViewState);
+
+  const updateCompany = useMutUpdateCompany();
 
   useEffect(() => {
     const initialData = getModalData(
@@ -79,6 +86,25 @@ export const ModalViewProfessional: FC = () => {
     selectData.onSelect(professional || selectData.selected);
   };
 
+  const handleEditResponsible = async (
+    professional: IProfessional,
+    selected: boolean,
+  ) => {
+    await updateCompany
+      .mutateAsync({
+        doctorResponsibleId: selected ? professional.id : null,
+      })
+      .then(() => {
+        setSelectData((oldData) => {
+          return {
+            ...oldData,
+            doctorResponsibleId: selected ? professional.id : null,
+          };
+        });
+      })
+      .catch(() => {});
+  };
+
   const buttons = [{}] as IModalButton[];
 
   if (selectData.multiple) {
@@ -107,17 +133,24 @@ export const ModalViewProfessional: FC = () => {
         <SText mt={-4} mr={40}>
           {selectData.title}
         </SText>
+
         <Box mt={8}>
           <ProfessionalsTable
             {...(selectData.multiple
               ? { selectedData: selectData.selected }
               : {})}
             {...(!selectData.toEdit ? { onSelectData: handleSelect } : {})}
+            showResponsible
+            loadingResponsible={updateCompany.isLoading}
             isClinic={selectData.isClinic}
             filterInitial={selectData.filter}
             query={selectData.query}
             rowsPerPage={6}
-          />
+            responsibleId={selectData?.doctorResponsibleId || undefined}
+            onEditResponsible={(professional, selected) => {
+              handleEditResponsible(professional, selected);
+            }}
+          ></ProfessionalsTable>
         </Box>
 
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

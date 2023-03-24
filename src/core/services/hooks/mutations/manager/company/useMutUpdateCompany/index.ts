@@ -33,6 +33,7 @@ export interface IUpdateCompany
   legal_nature_code?: string;
   cadastral_situation_description?: string;
   workspace?: Partial<IWorkspace>[];
+  doctorResponsibleId?: number | null;
 }
 
 export async function updateCompany(data: IUpdateCompany, companyId?: string) {

@@ -108,10 +108,11 @@ export const useClinicStep = () => {
       // query: { byCouncil: true },
       isClinic: true,
       toEdit: true,
+      doctorResponsibleId: company.doctorResponsibleId,
       filter: ProfessionalFilterTypeEnum.MEDICINE,
       title: 'Profissionais da saúde',
     } as typeof initialProfessionalViewState);
-  }, [onOpenModal]);
+  }, [onOpenModal, company]);
 
   const handleAddExams = useCallback(() => {
     onOpenModal(
