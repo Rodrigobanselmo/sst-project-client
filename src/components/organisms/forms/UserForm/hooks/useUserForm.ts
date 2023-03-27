@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import clone from 'clone';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
 import { useAuth } from 'core/contexts/AuthContext';
@@ -94,6 +95,19 @@ export const useUserForm = (onlyEdit?: boolean) => {
     });
   };
 
+  const onEditCouncil = (
+    value: Partial<IProfessionalCouncil>,
+    index: number,
+  ) => {
+    const councils = clone(userData?.councils || []);
+    councils[index] = { ...councils[index], ...value };
+
+    setUserData({
+      ...userData,
+      councils: councils,
+    });
+  };
+
   const onDeleteCouncil = (value: Partial<IProfessionalCouncil>) => {
     setUserData({
       ...userData,
@@ -150,6 +164,7 @@ export const useUserForm = (onlyEdit?: boolean) => {
     setValue,
     onAddCouncil,
     onDeleteCouncil,
+    onEditCouncil,
   };
 };
 

@@ -14,4 +14,5 @@ export interface ISIconUpload {
   companyId?: string;
   employeeId?: number;
   asoId?: number;
+  showIfKitMedico?: () => Promise<boolean>;
 }

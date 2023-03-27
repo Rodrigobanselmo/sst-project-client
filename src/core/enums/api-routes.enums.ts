@@ -40,6 +40,7 @@ export enum ApiRoutesEnum {
   HIERARCHY = '/hierarchy',
   INVITES = '/invites',
   ME = '/users/me',
+  COUNCIL = '/:companyId/councils',
   PROFESSIONALS = '/professionals',
   REC_MED = '/rec-med',
   EXAM = '/exam',

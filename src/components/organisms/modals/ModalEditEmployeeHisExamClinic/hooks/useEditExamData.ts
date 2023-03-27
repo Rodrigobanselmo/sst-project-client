@@ -75,10 +75,17 @@ export const useAddData = () => {
   const { enqueueSnackbar } = useSnackbar();
   const initialDataRef = useRef(initialEditEmployeeHistoryExamState);
 
-  const { handleSubmit, setValue, control, trigger, reset, getValues } =
-    useForm({
-      resolver: yupResolver(employeeHistoryExamSchema),
-    });
+  const {
+    handleSubmit,
+    setError,
+    setValue,
+    control,
+    trigger,
+    reset,
+    getValues,
+  } = useForm({
+    resolver: yupResolver(employeeHistoryExamSchema),
+  });
 
   const updateMutation = useMutUpdateManyScheduleHisExam();
   const uploadMutation = useMutUploadEmployeeHisExam();
@@ -209,6 +216,9 @@ export const useAddData = () => {
         });
       }, 100);
 
+      if (!sex) setError('sex', { message: 'Campo Obrigatório' });
+      if (!birthday) setError('birthday', { message: 'Campo Obrigatório' });
+
       return enqueueSnackbar(
         'Preencha os dados do funcionário para prosseguir',
         {
@@ -267,6 +277,26 @@ export const useAddData = () => {
         });
       })
       .catch(() => null);
+  };
+
+  const showIfKitMedico = async () => {
+    const [sex, birthday] = getValues(['sex', 'birthday']);
+
+    if (!sex || !birthday) {
+      if (!sex) setError('sex', { message: 'Campo Obrigatório' });
+      if (!birthday) setError('birthday', { message: 'Campo Obrigatório' });
+      enqueueSnackbar('Preencha os dados do funcionário para prosseguir', {
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'center',
+        },
+        variant: 'warning',
+      });
+
+      return false;
+    }
+
+    return true;
   };
 
   const onCloseUnsaved = () => {
@@ -380,5 +410,6 @@ export const useAddData = () => {
     onUploadManyFile,
     onChangeDoctor,
     isAvaliation,
+    showIfKitMedico,
   };
 };

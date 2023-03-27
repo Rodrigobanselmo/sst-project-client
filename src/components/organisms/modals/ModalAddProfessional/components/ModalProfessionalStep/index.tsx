@@ -42,6 +42,8 @@ export const ModalProfessionalStep = ({
   onAddCouncil,
   onDeleteCouncil,
   getCouncilValue,
+  loadingCouncil,
+  onEditCouncil,
 }: IUseEditProfessional) => {
   const handleDebounceChange = useDebouncedCallback((x: any = {}) => {
     onGetProfessional(x);
@@ -154,11 +156,13 @@ export const ModalProfessionalStep = ({
 
       <CouncilShow
         data={professionalData.councils || []}
-        onAdd={(v) => onAddCouncil(v)}
-        onDelete={(v) => onDeleteCouncil(v)}
+        onAdd={(v) => onAddCouncil(v as any)}
+        onEdit={(v, index) => onEditCouncil(v as any, index)}
+        onDelete={(v) => onDeleteCouncil(v as any)}
         initialValues={{ councilType: getCouncilValue() }}
         control={control}
         setValue={setValue}
+        loading={loadingCouncil}
       />
 
       {/* <SText color="text.label" mt={5} fontSize={14}>

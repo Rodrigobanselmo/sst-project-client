@@ -51,6 +51,7 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
   employeeId,
   asoId,
   missingDoctor,
+  showIfKitMedico,
   isMenu = true,
   isAvaliation,
 }) => {
@@ -61,7 +62,7 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
     setAnchorEl(null);
   };
 
-  const handleSelect = (
+  const handleSelect = async (
     option: IMenuSearchOption,
     e: MouseEvent<HTMLLIElement>,
   ) => {
@@ -70,6 +71,8 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
       onDownloadPdf(RoutesEnum.PDF_GUIDE, { employeeId, companyId });
     }
     if (option.value == 2) {
+      if (showIfKitMedico && !(await showIfKitMedico())) return;
+
       onDownloadPdf(onGetExamPdfRoute({ isAvaliation }), {
         employeeId,
         companyId,

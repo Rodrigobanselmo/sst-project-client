@@ -28,12 +28,16 @@ export const CouncilShow = ({
   initialValues,
   control: control2,
   setValue: setValue2,
+  loading,
+  onEdit,
   ...props
 }: BoxProps & {
   data?: IProfessionalCouncil[];
   disabled?: boolean;
+  loading?: boolean;
   initialValues?: Partial<typeof initialCouncilModalState>;
   onAdd?: (value: Partial<IProfessionalCouncil>) => void;
+  onEdit?: (value: Partial<IProfessionalCouncil>, index: number) => void;
   control?: Control<FieldValues, object>;
   setValue?: UseFormSetValue<FieldValues>;
   onDelete?: (value: Partial<IProfessionalCouncil>) => void;
@@ -54,6 +58,19 @@ export const CouncilShow = ({
     } as typeof initialCouncilModalState);
   };
 
+  const onEditOpenModal = (
+    value: Partial<IProfessionalCouncil>,
+    index: number,
+  ) => {
+    if (disabled) return;
+
+    onStackOpenModal(ModalEnum.COUNCIL, {
+      onConfirm: (v) => onEdit?.(v, index),
+      ...initialValues,
+      ...value,
+    } as typeof initialCouncilModalState);
+  };
+
   const councils = props?.data?.filter(
     (v) => v && v.councilId && v.councilType && v.councilUF,
   );
@@ -63,10 +80,13 @@ export const CouncilShow = ({
       {councils?.map((userData, index) => {
         return (
           <SFlex
-            key={userData?.councilId + userData?.councilType}
+            key={
+              userData?.councilId + userData?.councilType + userData?.councilUF
+            }
             mt={5}
             flexWrap="wrap"
             gap={5}
+            onClick={() => onEditOpenModal(userData, index)}
           >
             <Box flex={3}>
               <AutocompleteForm
@@ -111,6 +131,7 @@ export const CouncilShow = ({
                 defaultValue={userData?.councilId}
                 label={index ? '' : 'Identificação'}
                 labelPosition="top"
+                setValue={setValue}
                 disabled={true}
                 sx={{ minWidth: [250] }}
                 control={control}
@@ -119,8 +140,12 @@ export const CouncilShow = ({
                 size="small"
                 endAdornment={
                   <SIconButton
+                    loading={loading}
                     tooltip="deletar"
-                    onClick={() => onDelete?.(userData)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete?.(userData);
+                    }}
                     disabled={disabled}
                   >
                     <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />

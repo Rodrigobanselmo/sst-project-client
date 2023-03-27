@@ -2,8 +2,10 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
+import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import clone from 'clone';
 import { useSnackbar } from 'notistack';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -19,6 +21,9 @@ import {
   IProfessional,
   IProfessionalCouncil,
 } from 'core/interfaces/api/IProfessional';
+import { useMutCreateCouncil } from 'core/services/hooks/mutations/manager/council/useMutCreateCouncil/useMutCreateCouncil';
+import { useMutDeleteCouncil } from 'core/services/hooks/mutations/manager/council/useMutDeleteCouncil/useMutDeleteCouncil';
+import { useMutUpdateCouncil } from 'core/services/hooks/mutations/manager/council/useMutUpdateCouncil/useMutUpdateCouncil';
 import {
   ICreateProfessional,
   useMutCreateProfessional,
@@ -85,6 +90,9 @@ export const useEditProfessionals = () => {
   const createMutation = useMutCreateProfessional();
   const updateMutation = useMutUpdateProfessional();
   const findFirstMutation = useMutFindFirstProfessional();
+  const createCouncilMutation = useMutCreateCouncil();
+  const updateCouncilMutation = useMutUpdateCouncil();
+  const deleteCouncilMutation = useMutDeleteCouncil();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -160,6 +168,13 @@ export const useEditProfessionals = () => {
     //   return;
     // }
 
+    if (professionalData.sendEmail && !isValidEmail(data.email)) {
+      setError('email', {
+        message: data.email ? 'Email inválido' : 'campo obrigatório',
+      });
+      return;
+    }
+
     const submitData: ICreateProfessional & { id?: number } = {
       ...data,
       id: professionalData.id,
@@ -205,6 +220,8 @@ export const useEditProfessionals = () => {
   }: any) => {
     const setValues = (data: IProfessional | null) => {
       if (!data?.id) return;
+      if (professionalData.id && professionalData.id == data.id) return;
+
       setValue('name', data?.name);
       setValue('phone', data?.phone);
       setValue('email', data?.email);
@@ -254,15 +271,61 @@ export const useEditProfessionals = () => {
   };
 
   const onAddCouncil = (value: Partial<IProfessionalCouncil>) => {
-    onGetProfessional(value);
+    const counsils = [
+      ...(professionalData?.councils || []),
+      { ...value } as any,
+    ];
+
+    const uniqueCouncils = counsils.filter(
+      (c, index, self) =>
+        index ===
+        self.findIndex(
+          (t) =>
+            t.councilType === c.councilType &&
+            t.councilId === c.councilId &&
+            t.councilUF === c.councilUF,
+        ),
+    );
 
     setProfessionalData({
       ...professionalData,
-      councils: [...(professionalData?.councils || []), value as any],
+      councils: uniqueCouncils,
     });
+
+    // createCouncilMutation
+    //   .mutateAsync({
+    //     professionalId: professionalData.id,
+    //     companyId: professionalData.companyId,
+    //     councilId: value.councilId,
+    //     councilType: value.councilType,
+    //     councilUF: value.councilUF,
+    //   })
+    //   .then((preview) => {
+    //     const counsils = [
+    //       ...(professionalData?.councils || []),
+    //       { ...value, ...preview } as any,
+    //     ];
+
+    //     const uniqueCouncils = counsils.filter(
+    //       (c, index, self) =>
+    //         index ===
+    //         self.findIndex(
+    //           (t) =>
+    //             t.councilType === c.councilType &&
+    //             t.councilId === c.councilId &&
+    //             t.councilUF === c.councilUF,
+    //         ),
+    //     );
+
+    //     setProfessionalData({
+    //       ...professionalData,
+    //       councils: uniqueCouncils,
+    //     });
+    //   })
+    //   .catch(() => {});
   };
 
-  const onDeleteCouncil = (value: Partial<IProfessionalCouncil>) => {
+  const onDeleteCouncil = (value: IProfessionalCouncil) => {
     setProfessionalData({
       ...professionalData,
       councils: (professionalData?.councils || []).filter(
@@ -273,6 +336,39 @@ export const useEditProfessionals = () => {
             c.councilUF === value.councilUF
           ),
       ),
+    });
+    // deleteCouncilMutation
+    // .mutateAsync({
+    //   professionalId: value.professionalId,
+    //   id: value.id,
+    //   companyId: professionalData.companyId,
+    // })
+    // .then(() => {
+    //   setProfessionalData({
+    //     ...professionalData,
+    //     councils: (professionalData?.councils || []).filter(
+    //       (c) =>
+    //         !(
+    //           c.councilId === value.councilId &&
+    //           c.councilType === value.councilType &&
+    //           c.councilUF === value.councilUF
+    //         ),
+    //     ),
+    //   });
+    // })
+    // .catch(() => {});
+  };
+
+  const onEditCouncil = (
+    value: Partial<IProfessionalCouncil>,
+    index: number,
+  ) => {
+    const councils = clone(professionalData?.councils || []);
+    councils[index] = { ...councils[index], ...value };
+
+    setProfessionalData({
+      ...professionalData,
+      councils: councils,
     });
   };
 
@@ -318,6 +414,11 @@ export const useEditProfessionals = () => {
     onAddCouncil,
     onDeleteCouncil,
     getCouncilValue,
+    onEditCouncil,
+    loadingCouncil:
+      deleteCouncilMutation.isLoading ||
+      createCouncilMutation.isLoading ||
+      updateCouncilMutation.isLoading,
   };
 };
 

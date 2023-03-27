@@ -77,6 +77,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
     onUploadManyFile,
     onChangeDoctor,
     isAvaliation,
+    showIfKitMedico,
   } = useAddData();
 
   const buttons = [
@@ -189,6 +190,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
             <Box minWidth="200px" maxWidth="200px">
               <DatePickerForm
                 label="data nascimento"
+                placeholderText={'__/__/__'}
                 calendarProps={{
                   excludeDateIntervals: [
                     {
@@ -354,6 +356,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
 
             <SFlex justify="end" mt={5}>
               <SIconDownloadExam
+                showIfKitMedico={showIfKitMedico}
                 isMenu={false}
                 // disabled={!data.doctor}
                 missingDoctor={!data.doctor}

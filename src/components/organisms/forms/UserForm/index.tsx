@@ -37,6 +37,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
     setValue,
     onAddCouncil,
     onDeleteCouncil,
+    onEditCouncil,
   } = useUserForm(props.onlyEdit);
 
   useFetchFeedback(!user);
@@ -109,6 +110,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
             data={userData.councils || []}
             onAdd={(v) => onAddCouncil(v)}
             onDelete={(v) => onDeleteCouncil(v)}
+            onEdit={(v, i) => onEditCouncil(v, i)}
             disabled={uneditable}
           />
         )}

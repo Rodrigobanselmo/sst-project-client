@@ -104,7 +104,11 @@ export const HistoryScheduleExamCompanyTable: FC<
   // };
 
   const onEdit = async (data?: IEmployeeExamsHistory) => {
-    if (!isAuthSuccess({ permissions: [PermissionEnum.CLINIC_SCHEDULE] }))
+    if (
+      !isAuthSuccess({
+        permissions: [PermissionEnum.CLINIC_SCHEDULE, PermissionEnum.MASTER],
+      })
+    )
       return;
 
     if (data) {

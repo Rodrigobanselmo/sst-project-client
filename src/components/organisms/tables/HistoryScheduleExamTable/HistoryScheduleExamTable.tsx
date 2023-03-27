@@ -376,7 +376,9 @@ export const HistoryScheduleExamTable: FC<
 export const StackHistoryScheduleExamTable = () => {
   return (
     <>
-      <SAuthShow permissions={[PermissionEnum.EMPLOYEE_HISTORY]}>
+      <SAuthShow
+        permissions={[PermissionEnum.EMPLOYEE_HISTORY, PermissionEnum.MASTER]}
+      >
         <ModalAddEmployeeHistoryExam />
         <StackModalAddEmployeeHistoryExam />
       </SAuthShow>

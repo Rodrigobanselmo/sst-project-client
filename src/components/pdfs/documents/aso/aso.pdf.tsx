@@ -149,7 +149,8 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
               <Text style={s.tableBody}>
                 {employee.birthday &&
                   dayjs(employee.birthday).format('DD/MM/YYYY')}{' '}
-                ({dayjs().diff(employee.birthday, 'y')} anos)
+                {employee.birthday &&
+                  `(${dayjs().diff(employee.birthday, 'y')} anos)`}
               </Text>
             </View>
           </View>

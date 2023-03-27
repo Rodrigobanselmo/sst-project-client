@@ -36,6 +36,8 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { getMoney } from 'core/utils/helpers/getMoney.utils';
 import { getText } from 'core/utils/helpers/getText';
 
+import { getExamPeriodic } from '../ExamsRiskTable/ExamsRiskTable';
+
 export const ClinicExamsTable: FC<
   BoxProps & {
     rowsPerPage?: number;
@@ -121,13 +123,14 @@ export const ClinicExamsTable: FC<
         rowsNumber={rowsPerPage}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(250px, 5fr) minmax(150px, 3fr) minmax(150px, 3fr) 90px 80px`}
+        }minmax(250px, 5fr) minmax(150px, 1fr) minmax(150px, 1fr) minmax(150px, 1fr) 90px 80px`}
       >
         <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
           <STableHRow>Nome</STableHRow>
           <STableHRow>Prazo</STableHRow>
           <STableHRow>Valor</STableHRow>
+          <STableHRow>Disponibilidade</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
@@ -153,6 +156,7 @@ export const ClinicExamsTable: FC<
                 <TextIconRow clickable text={getText(exam?.name)} />
                 <TextIconRow clickable text={getText(row?.dueInDays)} />
                 <TextIconRow clickable text={getMoney(row?.price)} />
+                <TextIconRow clickable text={getExamPeriodic(row)?.text} />
                 <StatusSelect
                   large={false}
                   sx={{ maxWidth: '90px' }}
