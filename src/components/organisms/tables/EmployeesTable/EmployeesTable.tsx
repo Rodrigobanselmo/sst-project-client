@@ -45,6 +45,7 @@ import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarc
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { getEmployeeRowExamData } from '../HistoryExpiredExamCompanyTable/HistoryExpiredExamCompanyTable';
+import { SDropIconEmployee } from './components/SDropIconEmployee/SDropIconEmployee';
 
 export const EmployeesTable: FC<
   BoxProps & {
@@ -52,7 +53,7 @@ export const EmployeesTable: FC<
     hideModal?: boolean;
     query?: IQueryEmployee;
   }
-> = ({ rowsPerPage = 8, hideModal, query }) => {
+> = ({ rowsPerPage = 8, hideModal, query, ...props }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { data: company, isLoading: loadCompany } = useQueryCompany();
   const filterProps = useFilterTable();
@@ -156,8 +157,16 @@ export const EmployeesTable: FC<
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
-            const { status, validity, lastExam, employee } =
-              getEmployeeRowExamData(row);
+            const {
+              status,
+              validity,
+              lastExam,
+              employee,
+              isScheduled,
+              isExpired,
+              canScheduleWith45Days,
+              exam,
+            } = getEmployeeRowExamData(row);
 
             return (
               <STableRow
@@ -204,7 +213,19 @@ export const EmployeesTable: FC<
                   statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />
-                <IconButtonRow icon={<EditIcon />} />
+                <SFlex center>
+                  <SDropIconEmployee
+                    employee={row}
+                    company={company}
+                    loading={loadEmployees || loadCompany}
+                    isScheduled={isScheduled}
+                    isExpired={isExpired}
+                    onEditEmployee={onEditEmployee}
+                    canSchedule={canScheduleWith45Days}
+                    exam={exam}
+                  />
+                </SFlex>
+                {/* <IconButtonRow icon={<EditIcon />} /> */}
               </STableRow>
             );
           }}
@@ -217,7 +238,7 @@ export const EmployeesTable: FC<
         currentPage={page}
         onPageChange={setPage}
       />
-      {hideModal && (
+      {!hideModal && (
         <>
           <StackModalEditEmployee />
           <ModalAddExcelEmployees />

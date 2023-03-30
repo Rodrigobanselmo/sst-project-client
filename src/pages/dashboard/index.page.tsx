@@ -1,7 +1,9 @@
+import { Box } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
 import SPageTitle from 'components/atoms/SPageTitle';
 import { PieGraph } from 'components/molecules/graphs/pie/PieGraph';
 import { SAuthShow } from 'components/molecules/SAuthShow';
+import { EmployeesTable } from 'components/organisms/tables/EmployeesTable/EmployeesTable';
 import { HistoryScheduleExamClinicTable } from 'components/organisms/tables/HistoryScheduleExamClinicTable/HistoryScheduleExamClinicTable';
 import { NextPage } from 'next';
 import dynamic from 'next/dynamic';
@@ -74,6 +76,12 @@ const Home: NextPage = () => {
 
       <SAuthShow hideIf={!company.isClinic}>
         <HistoryScheduleExamClinicTable />
+      </SAuthShow>
+
+      <SAuthShow hideIf={company.isClinic}>
+        <Box mt={20}>
+          <EmployeesTable query={{ all: true }} />
+        </Box>
       </SAuthShow>
     </SContainer>
   );

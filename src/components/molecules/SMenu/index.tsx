@@ -46,7 +46,16 @@ export const SMenu: FC<SMenuProps> = ({
           disabled={option?.disabled}
           key={option.value}
           onClick={(e) => handleMenuSelect(option, e)}
-          sx={{ p: 0, m: 0 }}
+          sx={{
+            p: 0,
+            m: 0,
+            ...(option.borderTop && {
+              borderTop:
+                typeof option.borderTop === 'string'
+                  ? option.borderTop
+                  : '1px solid #e0e0e0',
+            }),
+          }}
         >
           {option && (icon || option.icon) && (
             <Icon
@@ -67,7 +76,11 @@ export const SMenu: FC<SMenuProps> = ({
             {...tooltipProps(option)}
           >
             <Box width="100%" overflow="hidden">
-              <SText className="noBreakText" fontSize={13}>
+              <SText
+                className="noBreakText"
+                fontSize={13}
+                color={option?.color}
+              >
                 {option.name}
               </SText>
             </Box>

@@ -47,9 +47,9 @@ export const getEmployeeRowStatus = (data?: IEmployee) => {
     status = { color: 'scale.high', status: StatusEnum.EXPIRED };
   if (diff >= 0 && diff <= 7)
     status = { color: 'scale.mediumHigh', status: StatusEnum.DONE };
-  if (diff >= 7 && diff <= 30)
+  if (diff > 7 && diff <= 30)
     status = { color: 'scale.medium', status: StatusEnum.DONE };
-  if (diff >= 30 && diff <= 90)
+  if (diff >= 30 && diff <= 45)
     status = { color: 'scale.mediumLow', status: StatusEnum.DONE };
 
   if (
@@ -61,10 +61,10 @@ export const getEmployeeRowStatus = (data?: IEmployee) => {
     status.color = 'info.main';
   }
 
-  if (exam?.status == StatusEnum.DONE && !dayjs().isAfter(exam.expiredDate)) {
-    status.status = exam?.status;
-    status.color = 'scale.low';
-  }
+  // if (exam?.status == StatusEnum.DONE && !dayjs().isAfter(exam.expiredDate)) {
+  //   status.status = exam?.status;
+  //   status.color = 'scale.low';
+  // }
 
   return status;
 };
@@ -91,12 +91,14 @@ export const getEmployeeRowExamData = (row: IEmployee) => {
   const isDoneExam = exam?.status == StatusEnum.DONE && exam?.expiredDate;
 
   const status = getEmployeeRowStatus(row);
-  const textNext =
-    status.status == StatusEnum.EXPIRED
-      ? 'Vencido em: '
-      : isScheduled
-      ? 'Agendado para: '
-      : 'Proximo em: ';
+
+  const isExpired = status.status == StatusEnum.EXPIRED;
+
+  const textNext = isExpired
+    ? 'Vencido em: '
+    : isScheduled
+    ? 'Agendado para: '
+    : 'Proximo em: ';
 
   const validity =
     textNext +
@@ -117,6 +119,10 @@ export const getEmployeeRowExamData = (row: IEmployee) => {
     row.status,
   );
 
+  const canScheduleWith45Days =
+    !employee?.expiredDateExam ||
+    -dayjs().diff(employee.expiredDateExam, 'day') < 45;
+
   return {
     disabled,
     status,
@@ -128,6 +134,8 @@ export const getEmployeeRowExamData = (row: IEmployee) => {
     company,
     employee,
     aso,
+    isExpired,
+    canScheduleWith45Days,
   };
 };
 

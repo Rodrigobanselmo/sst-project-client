@@ -38,7 +38,8 @@ const DraftEditor = dynamic(
 );
 
 export const OsForm = (props: BoxProps) => {
-  const { onSave, loading, data, setData, onCopy, onDownloadOS } = useOSForm();
+  const { onSave, loading, data, setData, onCopy, onDownloadOS, companyId } =
+    useOSForm();
 
   return (
     <STBox {...props}>
@@ -95,7 +96,7 @@ export const OsForm = (props: BoxProps) => {
         maxPerPage={5}
         handleSelect={(employee: IEmployee) => {
           const id = employee?.id;
-          if (id) onDownloadOS(id);
+          if (id) onDownloadOS(id, companyId);
         }}
         text={'Gerar OS (Selecionar Funcionário)'}
         large

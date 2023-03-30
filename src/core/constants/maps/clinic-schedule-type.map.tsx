@@ -55,7 +55,11 @@ export const clinicScheduleMap = {
             >
               Instruções:
             </SText>{' '}
-            Clínica com agendamento via <u>Telefone</u>. <br />
+            Clínica com agendamento via
+            <strong>
+              <u>Telefone</u>
+            </strong>
+            . <br />
             {!options?.hideText && (
               <>
                 <SFlex gap={'2px 20px'} flexWrap="wrap">
@@ -105,7 +109,11 @@ export const clinicScheduleMap = {
             >
               Instruções:
             </SText>{' '}
-            Clínica com agendamento via <u>EMAIL</u>. <br />
+            Clínica com agendamento via{' '}
+            <strong>
+              <u>EMAIL</u>
+            </strong>
+            . <br />
             {!options?.hideText && (
               <>
                 <SFlex gap={'2px 20px'} mt={-1} mb={2} flexWrap="wrap">
@@ -159,7 +167,11 @@ export const clinicScheduleMap = {
             >
               Instruções:
             </SText>{' '}
-            Clínica com agendamento via <u>Pedido de Angenda</u>. <br />
+            Clínica com agendamento via{' '}
+            <strong>
+              <u>Pedido de Agenda</u>
+            </strong>
+            . <br />
             {!options?.hideText && (
               <SText lineHeight={1} fontSize={11} component={'span'}>
                 Selecione a melhor data para realizar o exame e caso haja alguma

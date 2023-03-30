@@ -13,7 +13,9 @@ export interface IMenuOption {
   value: string | number;
   name: string;
   disabled?: boolean;
+  borderTop?: string | boolean;
   iconColor?: string;
+  color?: string;
   icon?: ElementType<any>;
 }
 

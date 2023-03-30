@@ -10,7 +10,7 @@ const EmployeesPage: NextPage = () => {
     <>
       <SHeaderTag title={'Funcionários'} />
       <SContainer>
-        <EmployeesTable />
+        <EmployeesTable query={{ all: true }} />
       </SContainer>
     </>
   );

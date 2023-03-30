@@ -47,6 +47,8 @@ import { useFetchQueryHisScheduleExamClinic } from 'core/services/hooks/queries/
 import { useQueryHisScheduleExamCompany } from 'core/services/hooks/queries/useQueryHisScheduleExamCompany/useQueryHisScheduleExamCompany';
 import { dateToString } from 'core/utils/date/date-format';
 
+import { useScheduleExam } from './hooks/useScheduleExam';
+
 export const HistoryScheduleExamCompanyTable: FC<
   BoxProps & {
     rowsPerPage?: number;
@@ -77,22 +79,9 @@ export const HistoryScheduleExamCompanyTable: FC<
   );
 
   const updateMutation = useMutUpdateManyScheduleHisExam();
-  const { onStackOpenModal } = useModal();
   const { fetchHisScheduleExam } = useFetchQueryHisScheduleExamClinic();
 
-  const onAdd = () => {
-    onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE);
-  };
-
-  const onReSchedule = (data: IEmployeeExamsHistory) => {
-    onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE, {
-      examType: data.examType,
-      hierarchyId: data.hierarchyId,
-      subOfficeId: data.subOfficeId,
-      companyId: data?.employee?.companyId,
-      employeeId: data?.employee?.id,
-    } as Partial<typeof initialExamScheduleState>);
-  };
+  const { onAdd, onReSchedule, onStackOpenModal } = useScheduleExam();
 
   // const onDownloadGuide = (companyId: string, employeeId: number) => {
   //   const path = RoutesEnum.PDF_GUIDE.replace(

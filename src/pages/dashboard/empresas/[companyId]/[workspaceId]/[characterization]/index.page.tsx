@@ -14,6 +14,7 @@ import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
 import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
 import { ModalAutomateSubOffice } from 'components/organisms/modals/ModalAutomateSubOffice';
 import { ModalEditEpiData } from 'components/organisms/modals/ModalEditEpiRiskData';
+import { ModalEditExamRiskData } from 'components/organisms/modals/ModalEditExamRiskData/ModalEditExamRiskData';
 import { ModalEditEngRiskData } from 'components/organisms/modals/ModalEditMedRiskData';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { ModalSelectCharacterization } from 'components/organisms/modals/ModalSelectCharacterization';
@@ -22,7 +23,6 @@ import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
-import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { CharacterizationTable } from 'components/organisms/tables/CharacterizationTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -111,6 +111,7 @@ const Companies: NextPage = () => {
         <ModalEditEpiData />
         <ModalEditEngRiskData />
         <ModalAutomateSubOffice />
+        <ModalEditExamRiskData />
       </SContainer>
     </>
   );

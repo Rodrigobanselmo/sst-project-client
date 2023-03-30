@@ -138,6 +138,20 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
                   </Text>
                 </View>
               </View>
+
+              {/* - Estabelecimentos - empresa */}
+              {actualCompany?.workspace &&
+                actualCompany.workspace.length > 1 &&
+                data?.workspaces.length && (
+                  <View style={sm.row}>
+                    <View style={[s.table1]}>
+                      <Text style={s.label}>Estabelecimento(s):</Text>
+                      <Text style={s.tableBody}>
+                        {data?.workspaces.map((w) => w.name).join(', ')}
+                      </Text>
+                    </View>
+                  </View>
+                )}
             </View>
           </>
 

@@ -57,6 +57,17 @@ export const romansNumbers = [
   'X',
 ];
 
+export const onDownloadOS = async (id: number, companyId?: string) => {
+  if (companyId) {
+    const path = RoutesEnum.PDF_OS.replace(':employeeId', String(id)).replace(
+      ':companyId',
+      companyId,
+    );
+
+    window.open(path, '_blank');
+  }
+};
+
 export const useOSForm = () => {
   const { data: os, isLoading } = useQueryOs();
   const [data, setData] = useState(os || undefined);
@@ -96,17 +107,6 @@ export const useOSForm = () => {
     } as Partial<typeof initialCompanySelectState>);
   };
 
-  const onDownloadOS = async (id: number) => {
-    if (companyId) {
-      const path = RoutesEnum.PDF_OS.replace(':employeeId', String(id)).replace(
-        ':companyId',
-        companyId,
-      );
-
-      window.open(path, '_blank');
-    }
-  };
-
   return {
     loading: updateMutation.isLoading || isLoading,
     onSave,
@@ -114,6 +114,7 @@ export const useOSForm = () => {
     setData,
     onCopy,
     onDownloadOS,
+    companyId,
   };
 };
 
