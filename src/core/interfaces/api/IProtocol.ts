@@ -1,3 +1,5 @@
+import { IGho } from './IGho';
+import { IHierarchy } from './IHierarchy';
 import { IRiskFactors } from './IRiskFactors';
 
 export interface IProtocol {
@@ -20,4 +22,6 @@ export interface IProtocolToRisk {
   companyId: string;
   risk: IRiskFactors;
   protocol: IProtocol;
+  hierarchies: IHierarchy[];
+  homoGroups: IGho[];
 }

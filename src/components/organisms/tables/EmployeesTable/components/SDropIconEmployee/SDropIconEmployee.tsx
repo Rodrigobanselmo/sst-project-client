@@ -4,6 +4,7 @@ import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
+import { onDownloadPdf } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
 import { onDownloadOS } from 'components/organisms/forms/OsForm/hooks/useOSForm';
 import { useScheduleExam } from 'components/organisms/tables/HistoryScheduleExamCompanyTable/hooks/useScheduleExam';
 
@@ -12,6 +13,8 @@ import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SMoreOptionsIcon from 'assets/icons/SMoreOptionsIcon/SMoreOptionsIcon';
 import { SOsIcon } from 'assets/icons/SOsIcon';
+
+import { RoutesEnum } from 'core/enums/routes.enums';
 
 import { SMenu } from '../../../../../molecules/SMenu';
 import { IMenuSearchOption } from '../../../../../molecules/SMenuSearch/types';
@@ -48,16 +51,19 @@ export const SDropIconEmployee: FC<ISIconUpload> = ({
     e: MouseEvent<HTMLLIElement>,
   ) => {
     e.stopPropagation();
-    if (option.value == 1) {
+    if (option.value == 'OS') {
       onDownloadOS(employeeId, companyId);
     }
-    if (option.value == 2) {
+    if (option.value == 'SCHEDULE') {
       onReSchedule({
         employee,
         ...(isScheduled && { ...exam }),
       });
     }
-    if (option.value == 3) {
+    if (option.value == 'GUIA') {
+      onDownloadPdf(RoutesEnum.PDF_GUIDE, { employeeId, companyId });
+    }
+    if (option.value == 'EDIT') {
       onEditEmployee?.(employee);
     }
 
@@ -70,14 +76,14 @@ export const SDropIconEmployee: FC<ISIconUpload> = ({
   };
 
   const scheduleTypeString = () => {
-    if (isExpired || canSchedule) return 'Agendar Exame';
     if (isScheduled) return 'Reagendar Exame';
+    if (isExpired || canSchedule) return 'Agendar Exame';
     return 'Exame na valídade';
   };
 
   const options: {
     name: string;
-    value: number;
+    value: number | string;
     disabled?: boolean;
     borderTop?: boolean;
     color?: string;
@@ -86,29 +92,36 @@ export const SDropIconEmployee: FC<ISIconUpload> = ({
   }[] = [
     {
       name: 'Baixar Ordem de Serviço (OS)',
-      value: 1,
+      value: 'OS',
       disabled: !companyId || !employeeId || disabled,
       icon: SOsIcon,
     },
-    // {
-    //   name: 'Baixar Guia',
-    //   value: 2,
-    //   disabled: !companyId || !employeeId || disabled,
-    // },
+    ...(isScheduled
+      ? [
+          {
+            name: 'Baixar Guia',
+            value: 'GUIA',
+            icon: SDocumentIcon,
+            disabled: !companyId || !employeeId || disabled,
+            color: 'primary.main',
+            iconColor: 'primary.main',
+          },
+        ]
+      : []),
     {
       name: scheduleTypeString(),
-      value: 2,
+      value: 'SCHEDULE',
       icon: SCalendarIcon,
       disabled:
         !companyId || !employeeId || disabled || (!canSchedule && !isExpired),
-      ...(isExpired && {
-        color: 'info.dark',
-        iconColor: 'info.dark',
+      ...((isExpired || isScheduled) && {
+        color: 'info.main',
+        iconColor: 'info.main',
       }),
     },
     {
       name: 'Editar Funcionário',
-      value: 3,
+      value: 'EDIT',
       icon: SEditIcon,
       disabled: !companyId || !employeeId || disabled,
       borderTop: true,

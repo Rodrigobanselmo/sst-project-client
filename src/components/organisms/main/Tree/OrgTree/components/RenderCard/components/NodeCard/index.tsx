@@ -3,6 +3,7 @@ import React, { FC, MouseEvent, useRef } from 'react';
 import { useStore } from 'react-redux';
 
 import AddIcon from '@mui/icons-material/Add';
+import MergeTypeIcon from '@mui/icons-material/MergeType';
 import { Box, Stack } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import STooltip from 'components/atoms/STooltip';
@@ -28,6 +29,7 @@ import { ModalEnum } from '../../../../../../../../../core/enums/modal.enums';
 import { useHierarchyTreeActions } from '../../../../../../../../../core/hooks/useHierarchyTreeActions';
 import { STagButton } from '../../../../../../../../atoms/STagButton';
 import SText from '../../../../../../../../atoms/SText';
+import { nodeTypesConstant } from '../../../../constants/node-type.constant';
 import { TreeTypeEnum } from '../../../../enums/tree-type.enums';
 import { ITreeMapObject, ITreeSelectedItem } from '../../../../interfaces';
 import { OptionsHelpSelect } from '../../../Selects/OptionsHelpSelect';
@@ -316,24 +318,15 @@ export const NodeCard: FC<INodeCardProps> = ({
         )}
       </Box>
       {!hide && (
-        <>
-          <Stack
-            onClick={handleAddGhoHierarchy}
-            spacing={2}
-            mt={3}
-            direction="row"
-          >
-            {!showRefSelect && (
-              <TypeSelect
-                node={node as ITreeSelectedItem}
-                parentId={node?.parentId || 'no-node'}
-                handleSelect={(option) =>
-                  editNodes([
-                    { id: node.id, type: option.value as TreeTypeEnum },
-                  ])
-                }
-              />
-            )}
+        <SFlex gap={2} mt={3}>
+          {!showRefSelect && (
+            <STagButton
+              text={nodeTypesConstant[node.type]?.name}
+              icon={MergeTypeIcon}
+              title={'Tipo de hierarquia'}
+            />
+          )}
+          <Stack onClick={handleAddGhoHierarchy} spacing={2} direction="row">
             {showGhoSelect && <GhoSelectCard node={node} />}
             {showOptionsSelect && (
               <OptionsHelpSelect
@@ -361,7 +354,7 @@ export const NodeCard: FC<INodeCardProps> = ({
               />
             )}
           </Stack>
-        </>
+        </SFlex>
       )}
     </div>
   );

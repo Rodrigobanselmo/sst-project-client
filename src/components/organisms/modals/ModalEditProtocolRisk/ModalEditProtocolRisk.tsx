@@ -43,7 +43,7 @@ export const ModalEditProtocolRisk = () => {
       <SModalPaper
         p={8}
         center
-        width={['100%', 700]}
+        width={['100%', 500]}
         component="form"
         onSubmit={handleSubmit(onSubmit)}
       >

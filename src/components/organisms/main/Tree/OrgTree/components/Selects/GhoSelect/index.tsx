@@ -9,22 +9,22 @@ import { IGho } from 'core/interfaces/api/IGho';
 import { STagSelect } from '../../../../../../../molecules/STagSelect';
 import { IGhoSelectProps } from './types';
 
+export const getHomoGroupName = (homogeneousGroup: IGho) => {
+  const splitHomo = homogeneousGroup?.description?.split('(//)');
+  if (splitHomo.length > 1)
+    return `${splitHomo[0]}\n(${originRiskMap[splitHomo[1]]?.name})`;
+  if (!homogeneousGroup.type) return `${homogeneousGroup.name}\n(GSE)`;
+};
+
 export const GhoSelect: FC<IGhoSelectProps> = ({
   showAll,
   large,
   node,
   ...props
 }) => {
-  const getName = (homogeneousGroup: IGho) => {
-    const splitHomo = homogeneousGroup.description.split('(//)');
-    if (splitHomo.length > 1)
-      return `${splitHomo[0]}\n(${originRiskMap[splitHomo[1]]?.name})`;
-    if (!homogeneousGroup.type) return `${homogeneousGroup.name}\n(GSE)`;
-  };
-
   const ghos = node.ghos
     .filter((gho) => gho?.type !== HomoTypeEnum.HIERARCHY)
-    .map((gho) => ({ ...gho, name: getName(gho) || '' }));
+    .map((gho) => ({ ...gho, name: getHomoGroupName(gho) || '' }));
 
   return (
     <STagSelect

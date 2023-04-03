@@ -5,9 +5,12 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { IGho } from 'core/interfaces/api/IGho';
+import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { IProtocol, IProtocolToRisk } from 'core/interfaces/api/IProtocol';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import {
@@ -26,6 +29,8 @@ export const initialProtocolRiskState = {
   riskId: '' as string,
   risk: {} as IRiskFactors,
   protocol: {} as IProtocol,
+  homoGroups: [] as IGho[],
+  hierarchies: [] as IHierarchy[],
   error: {
     risk: false,
     protocol: false,
@@ -35,11 +40,6 @@ export const initialProtocolRiskState = {
 };
 
 interface ISubmit {
-  validityInMonths: string;
-  lowValidityInMonths: string;
-  considerBetweenDays: string;
-  fromAge: string;
-  toAge: string;
   minRiskDegree: string;
   minRiskDegreeQuantity: string;
 }
@@ -61,6 +61,7 @@ export const useEditProtocols = () => {
 
   const createMutation = useMutCreateProtocolRisk();
   const updateMutation = useMutUpdateProtocolRisk();
+  const { companyId } = useGetCompanyId();
 
   useEffect(() => {
     const initialData = getModalData<Partial<typeof initialProtocolRiskState>>(
@@ -105,7 +106,11 @@ export const useEditProtocols = () => {
     minRiskDegree,
     // minRiskDegreeQuantity,
   }) => {
-    if (!protocolData.riskId) {
+    if (
+      !protocolData.riskId &&
+      protocolData.hierarchies.length === 0 &&
+      protocolData.homoGroups.length === 0
+    ) {
       setProtocolData((oldData) => ({
         ...oldData,
         error: { ...oldData.error, risk: true },
@@ -122,11 +127,14 @@ export const useEditProtocols = () => {
     }
 
     const submitData: ICreateProtocolRisk & { id?: number } = {
-      ...protocolData,
+      companyId: companyId,
+      riskId: protocolData.riskId,
+      protocolId: protocolData.protocolId,
+      hierarchyIds: protocolData.hierarchies.map((hierarchy) => hierarchy.id),
+      homoGroupsIds: protocolData.homoGroups.map((homoGroup) => homoGroup.id),
       minRiskDegree: minRiskDegree ? parseInt(minRiskDegree, 10) : 1,
-      // minRiskDegreeQuantity: minRiskDegreeQuantity
-      //   ? parseInt(minRiskDegreeQuantity, 10)
-      //   : 1,
+      minRiskDegreeQuantity: protocolData.minRiskDegreeQuantity,
+      ...(protocolData.id && { id: protocolData.id }),
     };
 
     try {
@@ -151,14 +159,15 @@ export const useEditProtocols = () => {
     registerModal,
     onCloseUnsaved,
     onClose,
-    protocolData,
     onSubmit,
     loading: false,
     control,
     handleSubmit,
+    protocolData,
     setProtocolData,
     isEdit,
     setValue,
+    companyId,
   };
 };
 

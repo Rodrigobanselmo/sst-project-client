@@ -18,6 +18,8 @@ export interface IUpdateProtocolRisk {
   companyId?: string;
   minRiskDegreeQuantity?: number | null;
   minRiskDegree?: number | null;
+  homoGroupsIds?: string[];
+  hierarchyIds?: string[];
 }
 
 export async function updateProtocol(
