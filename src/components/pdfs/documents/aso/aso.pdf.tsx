@@ -327,7 +327,9 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
                                   {e2.doneDate && 'X'}
                                 </Text>
                               </View>
-                              <Text style={s.label}>{e2.exam.name}</Text>
+                              <Text style={s.label}>
+                                {e2.exam.name.slice(0, 48)}
+                              </Text>
                             </View>
                             <View style={[sm.row, { width: 80 }]}>
                               <Text style={[sm.body, { marginRight: 5 }]}>
