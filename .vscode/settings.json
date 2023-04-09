@@ -9,5 +9,14 @@
     "Prontuario",
     "stel"
   ],
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "workbench.colorCustomizations": {
+    // "tab.inactiveBackground": "#101a20",
+    // "tab.activeBackground": "#00253c",
+    // "panel.background": "#101a20",
+    // "statusBar.background": "#101a20",
+    "titleBar.activeBackground": "#101a20",
+    // "sideBar.background": "#101a20",
+    "activityBar.background": "#101a20",
+  }
 }

@@ -149,7 +149,7 @@ export const useCompanyStep = () => {
     onStackOpenModal(ModalEnum.IMPORT_EXPORT_MODAL, {
       onDownload: async () => {
         await reportMutation.mutateAsync({
-          type: ReportTypeEnum.RISK_STRUCTURE,
+          type: ReportTypeEnum.MODEL_RISK,
           companyId: company.id,
         });
       },

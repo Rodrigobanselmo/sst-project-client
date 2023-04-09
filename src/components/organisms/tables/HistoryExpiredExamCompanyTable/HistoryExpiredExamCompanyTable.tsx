@@ -31,11 +31,14 @@ import SCalendarIcon from 'assets/icons/SCalendarIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { useThrottle } from 'core/hooks/useThrottle';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
+import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
 
 export const getEmployeeRowStatus = (data?: IEmployee) => {
@@ -157,6 +160,9 @@ export const HistoryExpiredExamCompanyTable: FC<
     data: historyExam,
     isLoading: loadQuery,
     count,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryEmployees(
     page,
     {
@@ -217,6 +223,12 @@ export const HistoryExpiredExamCompanyTable: FC<
     // { text: 'Guia', column: '80px', justifyContent: 'center' },
   ];
 
+  const onRefetchThrottle = useThrottle(() => {
+    refetch();
+    // invalidate next or previous pages
+    queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+  }, 1000);
+
   return (
     <>
       {!hideTitle && (
@@ -228,12 +240,10 @@ export const HistoryExpiredExamCompanyTable: FC<
             addText="Agendar"
             placeholder="Pesquisar por nome, cpf, email, matrícula..."
             onChange={(e) => handleSearchChange(e.target.value)}
-          >
-            <STableFilterIcon
-              filters={expiredExamFilterList}
-              {...filterProps}
-            />
-          </STableSearch>
+            loadingReload={loadQuery || isFetching || isRefetching}
+            onReloadClick={onRefetchThrottle}
+            filterProps={{ filters: expiredExamFilterList, ...filterProps }}
+          />
         </>
       )}
       <FilterTagList filterProps={filterProps} />

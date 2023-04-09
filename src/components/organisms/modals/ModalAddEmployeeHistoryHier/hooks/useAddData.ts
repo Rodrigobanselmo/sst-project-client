@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import dayjs from 'dayjs';
 import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -137,9 +138,10 @@ export const useAddData = () => {
       hierarchyId: data.hierarchy?.id || data?.employee?.hierarchyId || '',
       subOfficeId: data.subOffice?.id || data?.employee?.subOffices?.[0]?.id,
       employeeId: data.employeeId,
-      startDate: data.startDate,
       ...dataForm,
+      startDate: dayjs(data.startDate).format('DD/MM/YYYY'),
     };
+    console.log(submitData);
 
     try {
       if (!submitData.id) {

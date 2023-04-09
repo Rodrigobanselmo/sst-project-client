@@ -11,6 +11,7 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -22,17 +23,21 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import { SExamIcon } from 'assets/icons/SExamIcon';
+import SReloadIcon from 'assets/icons/SReloadIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { useThrottle } from 'core/hooks/useThrottle';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IExamToRisk } from 'core/interfaces/api/IExam';
 import { useMutCopyExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutCopyExamRisk/useMutCopyExamRisk';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryExamsRisk } from 'core/services/hooks/queries/useQueryExamsRisk/useQueryExamsRisk';
+import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
 export const getExamPeriodic = (row: Partial<IExamToRisk>) => {
@@ -75,6 +80,9 @@ export const ExamsRiskTable: FC<
     isLoading: loadExams,
     count,
     companyId,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryExamsRisk(page, { search }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
@@ -123,6 +131,13 @@ export const ExamsRiskTable: FC<
     } else onEditExam(exam);
   };
 
+  const onRefetchThrottle = useThrottle(() => {
+    refetch();
+    // invalidate next or previous pages
+    queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
+    queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
+  }, 1000);
+
   return (
     <>
       {!isSelect && (
@@ -148,6 +163,8 @@ export const ExamsRiskTable: FC<
         onAddClick={onAddExam}
         onExportClick={onImportExams}
         onChange={(e) => handleSearchChange(e.target.value)}
+        loadingReload={loadExams || isFetching || isRefetching}
+        onReloadClick={onRefetchThrottle}
       />
       <STable
         loading={loadExams || copyExamMutation.isLoading}

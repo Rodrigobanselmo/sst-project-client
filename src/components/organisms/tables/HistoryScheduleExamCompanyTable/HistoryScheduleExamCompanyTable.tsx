@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from 'react';
+import { FC } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -19,24 +19,19 @@ import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import { SIconDownloadExam } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
-import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
-import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
-import { useRouter } from 'next/router';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
-import SDocumentIcon from 'assets/icons/SDocumentIcon';
-import { SEditIcon } from 'assets/icons/SEditIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { RoutesEnum } from 'core/enums/routes.enums';
-import { useModal } from 'core/hooks/useModal';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { useThrottle } from 'core/hooks/useThrottle';
 import {
   IEmployee,
   IEmployeeExamsHistory,
@@ -45,6 +40,7 @@ import { useMutUpdateManyScheduleHisExam } from 'core/services/hooks/mutations/m
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { useFetchQueryHisScheduleExamClinic } from 'core/services/hooks/queries/useQueryHisScheduleExamClinic/useQueryHisScheduleExamClinic';
 import { useQueryHisScheduleExamCompany } from 'core/services/hooks/queries/useQueryHisScheduleExamCompany/useQueryHisScheduleExamCompany';
+import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
 
 import { useScheduleExam } from './hooks/useScheduleExam';
@@ -67,6 +63,9 @@ export const HistoryScheduleExamCompanyTable: FC<
     data: historyExam,
     isLoading: loadQuery,
     count,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryHisScheduleExamCompany(
     page,
     {
@@ -147,6 +146,12 @@ export const HistoryScheduleExamCompanyTable: FC<
     // { text: 'Guia', column: '80px', justifyContent: 'center' },
   ];
 
+  const onRefetchThrottle = useThrottle(() => {
+    refetch();
+    // invalidate next or previous pages
+    queryClient.invalidateQueries([QueryEnum.EMPLOYEE_HISTORY_EXAM]);
+  }, 1000);
+
   return (
     <>
       {!hideTitle && (
@@ -158,6 +163,8 @@ export const HistoryScheduleExamCompanyTable: FC<
             addText="Agendar"
             placeholder="Pesquisar por nome, cpf, email, matrícula..."
             onChange={(e) => handleSearchChange(e.target.value)}
+            loadingReload={loadQuery || isFetching || isRefetching}
+            onReloadClick={onRefetchThrottle}
           />
         </>
       )}

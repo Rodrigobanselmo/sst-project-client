@@ -14,7 +14,7 @@ import { IErrorResp } from '../../../../../errors/types';
 
 export interface ICreateEmployeeHierarchyHistory {
   motive: EmployeeHierarchyMotiveTypeEnum;
-  startDate: Date;
+  startDate: string;
   companyId: string;
   hierarchyId: string;
   subOfficeId?: string;

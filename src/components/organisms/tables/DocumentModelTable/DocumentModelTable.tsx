@@ -13,7 +13,6 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { initialCatState } from 'components/organisms/modals/ModalAddCat/hooks/useAddCat';
 import { initialEditDocumentModelState } from 'components/organisms/modals/ModalEditDocumentModel/hooks/useEditDocumentModel';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { DocumentTypeEnum } from 'project/enum/document.enums';

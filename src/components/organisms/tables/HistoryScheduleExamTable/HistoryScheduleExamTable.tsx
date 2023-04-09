@@ -1,7 +1,6 @@
 import { FC, ReactNode } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
-import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
 import {
   ITableRowStatus,
@@ -18,7 +17,6 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
-import STooltip from 'components/atoms/STooltip';
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import { initialEmployeeHistoryExamState } from 'components/organisms/modals/ModalAddEmployeeHistoryExam/hooks/useAddData';
@@ -33,15 +31,14 @@ import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
-import EditIcon from 'assets/icons/SEditIcon';
-import SUploadFileIcon from 'assets/icons/SUploadFileIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { useTableSelect } from 'core/hooks/useTableSelect';
+import { useThrottle } from 'core/hooks/useThrottle';
 import { IAddress } from 'core/interfaces/api/ICompany';
 import {
   IEmployee,
@@ -52,6 +49,7 @@ import {
   IQueryEmployeeHistHier,
   useQueryHisExamEmployee,
 } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
+import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cepMask } from 'core/utils/masks/cep.mask';
@@ -88,6 +86,9 @@ export const HistoryScheduleExamTable: FC<
     data: history,
     isLoading: loadQuery,
     count,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryHisExamEmployee(
     page,
     {
@@ -107,6 +108,12 @@ export const HistoryScheduleExamTable: FC<
   const isSelect = !!onSelectData;
 
   const { onStackOpenModal } = useModal();
+
+  const onRefetchThrottle = useThrottle(() => {
+    refetch();
+    // invalidate next or previous pages
+    queryClient.invalidateQueries([QueryEnum.EMPLOYEE_HISTORY_EXAM]);
+  }, 1000);
 
   const onAdd = () => {
     onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE);
@@ -201,6 +208,8 @@ export const HistoryScheduleExamTable: FC<
               addText="Agendar"
               placeholder="Pesquisar por nome, cpf ou matricula"
               onChange={(e) => handleSearchChange(e.target.value)}
+              loadingReload={loadQuery || isFetching || isRefetching}
+              onReloadClick={onRefetchThrottle}
             />
           )}
         </>

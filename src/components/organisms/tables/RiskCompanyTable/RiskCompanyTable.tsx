@@ -21,21 +21,36 @@ import { STagRisk } from 'components/atoms/STagRisk';
 import SText from 'components/atoms/SText';
 import { SCheckRiskDocInfo } from 'components/molecules/SCheckRiskDocInfo';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
-import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
-import { useRouter } from 'next/router';
 
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
-import { ModalEnum } from 'core/enums/modal.enums';
-import { RoutesEnum } from 'core/enums/routes.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { usePushRoute } from 'core/hooks/usePushRoute';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
+import { useThrottle } from 'core/hooks/useThrottle';
 import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist/risk/useMutUpsertRiskDocInfo';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { useQueryRisksCompany } from 'core/services/hooks/queries/useQueryRisksCompany/useQueryRisksCompany';
+import { queryClient } from 'core/services/queryClient';
+
+// import { useThrottle } from 'core/hooks/useThrottle';
+// import { queryClient } from 'core/services/queryClient';
+// import { QueryEnum } from 'core/enums/query.enums';
+
+// isFetching,
+// isRefetching,
+// refetch,
+
+// const onRefetchThrottle = useThrottle(() => {
+//   refetch();
+//   // invalidate next or previous pages
+//   queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+// }, 1000);
+
+// loadingReload={loadQuery || isFetching || isRefetching}
+// onReloadClick={onRefetchThrottle}
 
 export const getRiskDoc = (
   risk: IRiskFactors,
@@ -92,6 +107,9 @@ export const RiskCompanyTable: FC<
     isLoading: loadRisks,
     count,
     companyId,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryRisksCompany(page, { search }, rowsPerPage);
 
   const onChangeRiskDocInfo = (docInfo: Partial<IRiskDocInfo>) => {
@@ -136,6 +154,12 @@ export const RiskCompanyTable: FC<
 
   if (selectedData) header.unshift({ text: '', column: '15px' });
 
+  const onRefetchThrottle = useThrottle(() => {
+    refetch();
+    // invalidate next or previous pages
+    queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
+  }, 1000);
+
   return (
     <>
       {!isSelect && (
@@ -149,6 +173,8 @@ export const RiskCompanyTable: FC<
       <STableSearch
         onAddClick={onAddRisk}
         onChange={(e) => handleSearchChange(e.target.value)}
+        loadingReload={loadRisks || isFetching || isRefetching}
+        onReloadClick={onRefetchThrottle}
       >
         <SFlex justify="end" flex={1}>
           <SSwitch

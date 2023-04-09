@@ -11,6 +11,7 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -22,9 +23,11 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import { SExamIcon } from 'assets/icons/SExamIcon';
+import SReloadIcon from 'assets/icons/SReloadIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IExam } from 'core/interfaces/api/IExam';
@@ -35,6 +38,7 @@ import {
   useQueryExams,
 } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 import { useQueryRisks } from 'core/services/hooks/queries/useQueryRisks/useQueryRisks';
+import { queryClient } from 'core/services/queryClient';
 
 import { getRiskDoc } from '../RiskCompanyTable/RiskCompanyTable';
 
@@ -55,6 +59,9 @@ export const RisksTable: FC<
     isLoading: loadRisks,
     count,
     companyId,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryRisks(page, { search }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
@@ -110,7 +117,19 @@ export const RisksTable: FC<
       <STableSearch
         onAddClick={onAddRisk}
         onChange={(e) => handleSearchChange(e.target.value)}
-      />
+      >
+        <STableButton
+          tooltip="autualizar"
+          onClick={() => {
+            refetch();
+            // invalidate next or previous pages
+            queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
+          }}
+          loading={loadRisks || isFetching || isRefetching}
+          icon={SReloadIcon}
+          color="grey.500"
+        />
+      </STableSearch>
       <STable
         loading={loadRisks}
         rowsNumber={rowsPerPage}

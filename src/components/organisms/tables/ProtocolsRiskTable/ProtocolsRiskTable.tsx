@@ -11,6 +11,7 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -20,17 +21,21 @@ import { initialCompanySelectState } from 'components/organisms/modals/ModalSele
 import { company } from 'faker/locale/zh_TW';
 
 import EditIcon from 'assets/icons/SEditIcon';
+import SReloadIcon from 'assets/icons/SReloadIcon';
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { useThrottle } from 'core/hooks/useThrottle';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IProtocolToRisk } from 'core/interfaces/api/IProtocol';
 import { useMutCopyProtocolRisk } from 'core/services/hooks/mutations/checklist/protocols/useMutCopyProtocolRisk/useMutCopyProtocolRisk';
 import { IQueryProtocol } from 'core/services/hooks/queries/useQueryProtocols/useQueryProtocols';
 import { useQueryProtocolsRisk } from 'core/services/hooks/queries/useQueryProtocolsRisk/useQueryProtocolsRisk';
+import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
 export const ProtocolsRiskTable: FC<
@@ -50,6 +55,9 @@ export const ProtocolsRiskTable: FC<
     isLoading: loadProtocols,
     count,
     companyId,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryProtocolsRisk(page, { search }, rowsPerPage);
 
   const { onStackOpenModal } = useModal();
@@ -101,6 +109,12 @@ export const ProtocolsRiskTable: FC<
     } else onEditProtocol(protocol);
   };
 
+  const onRefetchThrottle = useThrottle(() => {
+    refetch();
+    // invalidate next or previous pages
+    queryClient.invalidateQueries([QueryEnum.PROTOCOLS_RISK]);
+  }, 1000);
+
   return (
     <>
       {!isSelect && (
@@ -125,6 +139,8 @@ export const ProtocolsRiskTable: FC<
       <STableSearch
         onAddClick={onAddProtocol}
         onExportClick={onImportProtocols}
+        onReloadClick={onRefetchThrottle}
+        loadingReload={loadProtocols || isFetching || isRefetching}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
       <STable

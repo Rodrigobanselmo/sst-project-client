@@ -71,7 +71,8 @@ export const RiskToolTopButtons: FC<SideTopProps> = ({
     : selectedRiskStore;
 
   const handleCloseRisk = () => {
-    push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
+    if (asPath?.split('?')?.[1]?.includes?.('riskGroupId'))
+      push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
     dispatch(setGhoOpen(false));
     handleSelectGHO(null, []);
     onCloseModal(ModalEnum.RISK_TOOL);

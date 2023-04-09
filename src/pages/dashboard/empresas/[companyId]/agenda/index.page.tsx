@@ -47,35 +47,30 @@ const Schedule: NextPage = () => {
           </SWizardBox>
         </SAuthShow>
 
-        <SWizardBox>
-          <Wizard
-            header={
-              <WizardTabs
-                options={[
-                  { label: 'Exames Vencidos' },
-                  { label: 'Exames Agendados' },
-                  { label: 'Todos os Exames' },
-                ]}
-              />
-            }
-          >
-            <Box sx={{ px: 10, pb: 10 }}>
-              <HistoryExpiredExamCompanyTable mt={10} />
-            </Box>
-            <Box sx={{ px: 10, pb: 10 }}>
-              <HistoryScheduleExamCompanyTable
-                mt={10}
-                query={{ allCompanies: true }}
-              />
-            </Box>
-            <Box sx={{ px: 10, pb: 10 }}>
-              <HistoryScheduleExamTable
-                mt={10}
-                query={{ allCompanies: true }}
-              />
-            </Box>
-          </Wizard>
-        </SWizardBox>
+        <Wizard
+          header={
+            <WizardTabs
+              options={[
+                { label: 'Exames Vencidos' },
+                { label: 'Exames Agendados' },
+                { label: 'Todos os Exames' },
+              ]}
+            />
+          }
+        >
+          <Box sx={{ px: 10, pb: 10 }}>
+            <HistoryExpiredExamCompanyTable mt={10} />
+          </Box>
+          <Box sx={{ px: 10, pb: 10 }}>
+            <HistoryScheduleExamCompanyTable
+              mt={10}
+              query={{ allCompanies: true }}
+            />
+          </Box>
+          <Box sx={{ px: 10, pb: 10 }}>
+            <HistoryScheduleExamTable mt={10} query={{ allCompanies: true }} />
+          </Box>
+        </Wizard>
       </SContainer>
       <StackModalAddExamSchedule />
       <StackHistoryScheduleExamTable />

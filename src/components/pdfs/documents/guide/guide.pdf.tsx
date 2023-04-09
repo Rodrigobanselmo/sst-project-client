@@ -118,7 +118,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
           </View>
           <View style={[s.table1L, { flexGrow: 1 }]}>
             <Text style={sm.label}>Nome Completo:</Text>
-            <Text style={s.bodyB1}>{data.name}</Text>
+            <Text style={s.bodyB1}>{data.socialName || data.name}</Text>
           </View>
         </View>
 

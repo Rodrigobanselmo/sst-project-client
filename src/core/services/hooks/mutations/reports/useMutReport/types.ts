@@ -7,7 +7,9 @@ export enum ReportTypeEnum {
   EXPIRED_EXAM,
   DONE_EXAM,
   CLOSE_EXPIRED_EXAM,
-  RISK_STRUCTURE,
+
+  MODEL_RISK,
+  MODEL_EMPLOYEE,
 }
 type IMap = Record<
   ReportTypeEnum,
@@ -49,8 +51,12 @@ export const reportTypeMap: IMap = {
     value: ReportTypeEnum.DONE_EXAM,
     route: ApiRoutesEnum.REPORT_DONE_EXAM,
   },
-  [ReportTypeEnum.RISK_STRUCTURE]: {
-    value: ReportTypeEnum.RISK_STRUCTURE,
-    route: ApiRoutesEnum.REPORT_RISK_STRUCTURE,
+  [ReportTypeEnum.MODEL_RISK]: {
+    value: ReportTypeEnum.MODEL_RISK,
+    route: ApiRoutesEnum.MODEL_RISK_DOWNALOD,
+  },
+  [ReportTypeEnum.MODEL_EMPLOYEE]: {
+    value: ReportTypeEnum.MODEL_EMPLOYEE,
+    route: ApiRoutesEnum.MODEL_EMPLOYEE_DOWNALOD,
   },
 };

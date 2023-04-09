@@ -8,8 +8,12 @@ import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
 import STooltip from 'components/atoms/STooltip';
 
+import SReloadIcon from 'assets/icons/SReloadIcon';
 import { SUploadIcon } from 'assets/icons/SUploadIcon';
 
+import { STableButton } from '../STableButton';
+import { STableExport } from '../STableExport';
+import { STableFilterIcon } from '../STableFilter/STableFilterIcon/STableFilterIcon';
 import { STableButtonProps, STableSearchProps } from './types';
 
 export const STableAddButton: FC<STableSearchProps> = ({
@@ -53,9 +57,13 @@ export const STableAddButton: FC<STableSearchProps> = ({
 const STableSearch: FC<STableSearchProps> = ({
   onAddClick,
   onExportClick,
+  onImportClick,
+  onReloadClick,
+  loadingReload,
   children,
   addText,
   boxProps,
+  filterProps,
   ...props
 }) => (
   <SFlex mb={10} align="center">
@@ -74,35 +82,23 @@ const STableSearch: FC<STableSearchProps> = ({
     {onAddClick && (
       <STableAddButton onAddClick={onAddClick} addText={addText} />
     )}
-    {onExportClick && (
-      <STooltip title="Importar e Exportar">
-        <div>
-          <SButton
-            onClick={onExportClick}
-            sx={{
-              height: 38,
-              minWidth: 38,
-              maxWidth: 38,
-              borderRadius: 1,
-              m: 0,
-              backgroundColor: 'grey.700',
-              '&:hover': {
-                backgroundColor: 'grey.800',
-              },
-              ml: 1,
-            }}
-          >
-            <Icon
-              component={SUploadIcon}
-              sx={{
-                fontSize: ['1.2rem'],
-                color: 'common.white',
-              }}
-            />
-          </SButton>
-        </div>
-      </STooltip>
+    {onReloadClick && (
+      <STableButton
+        tooltip="autualizar"
+        onClick={onReloadClick}
+        loading={loadingReload}
+        icon={SReloadIcon}
+        color="grey.500"
+      />
     )}
+    {(onExportClick || onImportClick) && (
+      <STableExport
+        onExportClick={onExportClick}
+        onInportClick={onImportClick}
+      />
+    )}
+    {filterProps && <STableFilterIcon {...filterProps} />}
+
     {children}
   </SFlex>
 );

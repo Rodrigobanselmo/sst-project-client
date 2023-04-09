@@ -31,6 +31,7 @@ export async function mutReport(
       },
     },
   );
+
   if (response.headers['content-type'] === 'application/json; charset=utf-8')
     return response.data;
 

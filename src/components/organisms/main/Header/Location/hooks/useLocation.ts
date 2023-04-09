@@ -34,7 +34,7 @@ type IRouteMapValue = {
   action?: () => string | void;
 };
 
-type IRouteMap = Record<RoutesParamsEnum, IRouteMapValue>;
+type IRouteMap = Record<RoutesParamsEnum, IRouteMapValue | null>;
 
 export const useLocation = () => {
   const { query, pathname, push, asPath } = useRouter();
@@ -223,6 +223,15 @@ export const useLocation = () => {
   }, [company, companyId, onDropSelect, query?.characterization, query.docId]);
 
   const routes = useMemo(() => {
+    const notIncluded = [
+      {
+        pathname: '/dashboard/empresas/[companyId]/novo/[stage]',
+        value: 'novo',
+      },
+    ]
+      .map((v) => v.pathname == pathname && v.value)
+      .filter((v) => v);
+
     const routesPath = pathname
       .split('/')
       .map(
@@ -232,10 +241,10 @@ export const useLocation = () => {
             value: route,
           },
       )
-      .filter((route) => route);
+      .filter((route) => route && ![...notIncluded].includes(route.value));
 
-    if (routesPath.length <= 1) {
-      routesPath.unshift(routeMap[RoutesParamsEnum.BRAND]);
+    if (routesPath.length <= 1 && routeMap[RoutesParamsEnum.BRAND]) {
+      routesPath.unshift(routeMap[RoutesParamsEnum.BRAND] as any);
     }
     return routesPath;
   }, [pathname, routeMap]);

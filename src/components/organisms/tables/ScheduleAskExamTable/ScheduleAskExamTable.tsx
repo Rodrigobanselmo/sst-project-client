@@ -30,13 +30,16 @@ import EditIcon from 'assets/icons/SEditIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { useThrottle } from 'core/hooks/useThrottle';
 import {
   IEmployee,
   IEmployeeExamsHistory,
 } from 'core/interfaces/api/IEmployee';
 import { useQueryHisScheduleExam } from 'core/services/hooks/queries/useQueryHisScheduleExam/useQueryHisScheduleExam';
+import { queryClient } from 'core/services/queryClient';
 import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
@@ -65,6 +68,9 @@ export const ScheduleAskExamTable: FC<
     data: history,
     isLoading: loadQuery,
     count,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryHisScheduleExam(
     page,
     { search, allCompanies: true, employeeId: employeeId },
@@ -82,6 +88,12 @@ export const ScheduleAskExamTable: FC<
       onSelectData(data);
     } else onEdit(data);
   };
+
+  const onRefetchThrottle = useThrottle(() => {
+    refetch();
+    // invalidate next or previous pages
+    queryClient.invalidateQueries([QueryEnum.EMPLOYEE_HISTORY_EXAM]);
+  }, 1000);
 
   const onEdit = (data: IEmployeeExamsHistory) => {
     onStackOpenModal(modalName, {
@@ -123,6 +135,11 @@ export const ScheduleAskExamTable: FC<
           {/* <STableSearch onChange={(e) => handleSearchChange(e.target.value)} /> */}
         </>
       )}
+      <STableSearch
+        onChange={(e) => handleSearchChange(e.target.value)}
+        loadingReload={loadQuery || isFetching || isRefetching}
+        onReloadClick={onRefetchThrottle}
+      />
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}

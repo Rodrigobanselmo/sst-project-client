@@ -92,5 +92,6 @@ export enum ApiRoutesEnum {
   REPORT_CLINIC = '/files/report/clinic/:companyId',
   REPORT_EXPIRED_EXAM = '/files/report/expired-exam/:companyId',
   REPORT_DONE_EXAM = '/files/report/done-exam/:companyId',
-  REPORT_RISK_STRUCTURE = '/files/report/risk-structure/:companyId',
+  MODEL_RISK_DOWNALOD = '/files/models/risk/:companyId',
+  MODEL_EMPLOYEE_DOWNALOD = '/files/models/employee/:companyId',
 }

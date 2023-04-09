@@ -31,17 +31,25 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { useImportExport } from 'core/hooks/useImportExport';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
+import { useThrottle } from 'core/hooks/useThrottle';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
+import { GetCompanyStructureResponse } from 'core/services/hooks/mutations/general/useMutUploadFile/types';
+import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   IQueryEmployee,
   useQueryEmployees,
 } from 'core/services/hooks/queries/useQueryEmployees';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
+import { queryClient } from 'core/services/queryClient';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { getEmployeeRowExamData } from '../HistoryExpiredExamCompanyTable/HistoryExpiredExamCompanyTable';
@@ -57,11 +65,15 @@ export const EmployeesTable: FC<
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { data: company, isLoading: loadCompany } = useQueryCompany();
   const filterProps = useFilterTable();
+  const downloadMutation = useMutDownloadFile();
 
   const {
     data: employees,
     isLoading: loadEmployees,
     count,
+    isFetching,
+    isRefetching,
+    refetch,
   } = useQueryEmployees(
     page,
     { search, expiredExam: true, ...query, ...filterProps.filtersQuery },
@@ -70,6 +82,7 @@ export const EmployeesTable: FC<
 
   const { onStackOpenModal } = useModal();
   const { push } = useRouter();
+  const { handleUploadTable } = useImportExport();
 
   const handleEditStatus = (status: StatusEnum) => {
     // TODO edit checklist status
@@ -88,7 +101,26 @@ export const EmployeesTable: FC<
   };
 
   const onExportClick = () => {
-    onStackOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
+    handleUploadTable({
+      companyId: company.id,
+      pathApi: ApiRoutesEnum.UPLOAD_COMPANY_STRUCTURE.replace(
+        ':companyId',
+        company.id,
+      ),
+      type: ReportTypeEnum.MODEL_EMPLOYEE,
+      payload: {
+        createEmployee: true,
+        createHierarchy: true,
+        createHomo: true,
+        createHierOnHomo: true,
+      } as GetCompanyStructureResponse,
+    });
+  };
+
+  const onImportClick = () => {
+    downloadMutation.mutate(
+      ApiRoutesEnum.DOWNLOAD_EMPLOYEES + `/${company.id}`,
+    );
   };
 
   const onEditEmployee = (employee: IEmployee) => {
@@ -129,16 +161,24 @@ export const EmployeesTable: FC<
     { text: 'Editar', column: '80px', justifyContent: 'center' },
   ];
 
+  const onRefetchThrottle = useThrottle(() => {
+    refetch();
+    // invalidate next or previous pages
+    queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+  }, 1000);
+
   return (
     <>
       <STableTitle icon={BadgeIcon}>Funcionários</STableTitle>
       <STableSearch
         onAddClick={onAddEmployee}
         onExportClick={onExportClick}
+        onImportClick={onImportClick}
         onChange={(e) => handleSearchChange(e.target.value)}
-      >
-        <STableFilterIcon filters={employeeFilterList} {...filterProps} />
-      </STableSearch>
+        loadingReload={loadEmployees || isFetching || isRefetching}
+        onReloadClick={onRefetchThrottle}
+        filterProps={{ filters: employeeFilterList, ...filterProps }}
+      />
       <FilterTagList filterProps={filterProps} />
       <STable
         loading={loadEmployees || loadCompany}
