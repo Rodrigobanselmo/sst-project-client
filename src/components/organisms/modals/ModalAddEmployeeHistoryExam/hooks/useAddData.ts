@@ -3,10 +3,12 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { useAuthShow } from 'components/molecules/SAuthShow';
 import { IExamComplementsTable } from 'components/organisms/tables/ExamsComplementsTable/ExamsComplementsTable';
 import { ExamHistoryConclusionEnum } from 'project/enum/employee-exam-history-conclusion.enum';
 import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -70,6 +72,7 @@ export const useAddData = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialEmployeeHistoryExamState);
+  // const { isAuthSuccess } = useAuthShow();
 
   const { handleSubmit, setValue, control, reset, getValues, setError } =
     useForm({
@@ -222,23 +225,28 @@ export const useAddData = () => {
       setError('validityInMonths', { message: 'Campo obrigatório' });
       isErrorFound = true;
     }
-    if (!isCanceled && !hideClinicExam && isAllFields && !data?.doctor?.id) {
-      setError('doctor', { message: 'Campo obrigatório' });
-      isErrorFound = true;
-    }
-    if (
-      !isCanceled &&
-      !hideClinicExam &&
-      isAllFields &&
-      !data?.evaluationType
-    ) {
-      setError('evaluationType', { message: 'Campo obrigatório' });
-      isErrorFound = true;
-    }
+    // if (isAuthSuccess({ permissions: [PermissionEnum.] }))
+    // if (!isCanceled && !hideClinicExam && isAllFields && !data?.doctor?.id) {
+    //   setError('doctor', { message: 'Campo obrigatório' });
+    //   isErrorFound = true;
+    // }
+    // if (
+    //   !isCanceled &&
+    //   !hideClinicExam &&
+    //   isAllFields &&
+    //   !data?.evaluationType
+    // ) {
+    //   setError('evaluationType', { message: 'Campo obrigatório' });
+    //   isErrorFound = true;
+    // }
+
+    //?
     // if (!hideClinicExam && isAllFields && !data?.conclusion) {
     //   setError('conclusion', { message: 'Campo obrigatório' });
     //   isErrorFound = true;
     // }
+    //?
+
     if (!isCanceled && !hideClinicExam && !data?.examType) {
       setError('examType', { message: 'Campo obrigatório' });
       isErrorFound = true;

@@ -52,6 +52,7 @@ export const STableExport: FC<STableExportProps> = ({
           <SButton
             {...props}
             onClick={handleSelectButton}
+            {...(onExportClick && !onInportClick && { onClick: onExportClick })}
             sx={{
               height: 38,
               minWidth: 38,
@@ -90,7 +91,7 @@ export const STableExport: FC<STableExportProps> = ({
           {
             name: 'Baixar Planilha',
             value: 1,
-            disabled: !onInportClick,
+            disabled: !onInportClick || true,
             icon: SDownloadIcon,
           },
         ]}

@@ -30,7 +30,7 @@ export const initialExamRiskState = {
   isChange: true,
   isAdmission: true,
   isReturn: false,
-  isDismissal: false,
+  isDismissal: true,
   validityInMonths: undefined as number | undefined,
   lowValidityInMonths: undefined as number | undefined,
   considerBetweenDays: undefined as number | undefined,
