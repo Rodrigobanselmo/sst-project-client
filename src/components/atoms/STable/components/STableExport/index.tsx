@@ -91,7 +91,7 @@ export const STableExport: FC<STableExportProps> = ({
           {
             name: 'Baixar Planilha',
             value: 1,
-            disabled: !onInportClick || true,
+            disabled: !onInportClick,
             icon: SDownloadIcon,
           },
         ]}
