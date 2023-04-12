@@ -43,7 +43,7 @@ export const SendEvent2240ESocialTable: FC<
     company?: ICompany;
   }
 > = ({
-  rowsPerPage = 8,
+  rowsPerPage = 15,
   company,
   isLoading,
   onSelectData,
@@ -155,7 +155,7 @@ export const SendEvent2240ESocialTable: FC<
         </STableHeader>
         <STableBody<typeof events[0]>
           rowsData={results}
-          hideLoadMore
+          // hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
             const employee = row?.employee;
