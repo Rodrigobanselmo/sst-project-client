@@ -20,28 +20,30 @@ const Kit: NextPage = () => {
         hideInitial
         title={`PDF:OS ${osData?.employee?.name || ''}`}
       />
-      <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        <PDFViewer showToolbar width="100%" height="100%">
-          <Document
-            subject={'Ordem de serviço'}
-            author={'simpleSST'}
-            creator={'simpleSST'}
-            producer={'simpleSST'}
-            keywords={'Ordem de serviço'}
-            title={`OS_${getCompanyName(
-              osData?.consultantCompany,
-            )}_${getCompanyName(osData?.actualCompany)}_${
-              osData?.employee?.name
-            }`}
-          >
-            {osData && osData?.employee && (
-              <>
-                <PdfOSPage data={osData} />
-              </>
-            )}
-          </Document>
-        </PDFViewer>
-      </Box>
+      {osData && !!Object.keys(osData).length && (
+        <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
+          <PDFViewer showToolbar width="100%" height="100%">
+            <Document
+              subject={'Ordem de serviço'}
+              author={'simpleSST'}
+              creator={'simpleSST'}
+              producer={'simpleSST'}
+              keywords={'Ordem de serviço'}
+              title={`OS_${getCompanyName(
+                osData?.consultantCompany,
+              )}_${getCompanyName(osData?.actualCompany)}_${
+                osData?.employee?.name
+              }`}
+            >
+              {osData && osData?.employee && (
+                <>
+                  <PdfOSPage data={osData} />
+                </>
+              )}
+            </Document>
+          </PDFViewer>
+        </Box>
+      )}
     </>
   );
 };

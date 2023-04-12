@@ -20,6 +20,7 @@ export interface IUpsertRiskDocs {
   name: string;
   riskGroupId: string;
   workspaceId: string;
+  documentDataId: string;
   workspaceName: string;
   description?: string;
   version?: string;

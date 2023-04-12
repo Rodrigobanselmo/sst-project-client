@@ -145,7 +145,7 @@ export const useClinicStep = () => {
         type: ClinicActionEnum.EDIT,
         icon: SEditIcon,
         onClick: handleEditCompany,
-        text: 'Editar Dados da Empresa',
+        text: 'Editar Dados da Clínica',
       },
       [ClinicActionEnum.PROFESSIONALS]: {
         type: ClinicActionEnum.PROFESSIONALS,

@@ -54,7 +54,7 @@ export function useMutCreateCompany() {
           queryClient.invalidateQueries([QueryEnum.COMPANIES, user?.companyId]);
         }
 
-        enqueueSnackbar('Empresa criada com sucesso', {
+        enqueueSnackbar('Clínica criada com sucesso', {
           variant: 'success',
         });
         return companyResp;

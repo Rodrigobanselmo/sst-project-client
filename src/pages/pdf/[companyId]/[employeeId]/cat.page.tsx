@@ -32,22 +32,20 @@ const Kit: NextPage = () => {
     <>
       <SHeaderTag hideInitial title={`PDF:CAT ${employee?.name || ''}`} />
       <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        <PDFViewer showToolbar width="100%" height="100%">
-          <Document
-            subject={'CAT'}
-            author={'simpleSST'}
-            creator={'simpleSST'}
-            producer={'simpleSST'}
-            keywords={'CAT'}
-            title={`CAT_${getCompanyName(company)}`}
-          >
-            {employee && cat && company && (
-              <>
-                <PdfCatPage data={{ cat, company, employee }} />
-              </>
-            )}
-          </Document>
-        </PDFViewer>
+        {cat && employee && company && !!Object.keys(cat).length && (
+          <PDFViewer showToolbar width="100%" height="100%">
+            <Document
+              subject={'CAT'}
+              author={'simpleSST'}
+              creator={'simpleSST'}
+              producer={'simpleSST'}
+              keywords={'CAT'}
+              title={`CAT_${getCompanyName(company)}`}
+            >
+              <PdfCatPage data={{ cat, company, employee }} />
+            </Document>
+          </PDFViewer>
+        )}
       </Box>
     </>
   );

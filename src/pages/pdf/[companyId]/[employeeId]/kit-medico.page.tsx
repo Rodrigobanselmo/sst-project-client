@@ -23,31 +23,33 @@ const Kit: NextPage = () => {
         title={`PDF:Kit Med ${kitData?.aso?.employee?.name || ''}`}
       />
       <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        <PDFViewer showToolbar width="100%" height="100%">
-          <Document
-            subject={'Aso e prontuario'}
-            author={'simpleSST'}
-            creator={'simpleSST'}
-            producer={'simpleSST'}
-            keywords={'Aso / prontuario'}
-            title={`VIAS_ASO_E_PRONTUARIO_${getCompanyName(
-              kitData?.aso?.consultantCompany,
-            )}_${getCompanyName(kitData?.aso?.actualCompany)}_${
-              kitData?.aso?.employee?.name
-            }`}
-          >
-            {kitData && kitData.aso?.employee && (
-              <>
-                {Array.from({ length: kitData.aso.numAsos }, (v, i) => i).map(
-                  (d) => (
-                    <PdfAsoPage data={kitData.aso} key={d} />
-                  ),
-                )}
-                <PdfProntuarioPage data={kitData.prontuario} />
-              </>
-            )}
-          </Document>
-        </PDFViewer>
+        {kitData && !!Object.keys(kitData).length && (
+          <PDFViewer showToolbar width="100%" height="100%">
+            <Document
+              subject={'Aso e prontuario'}
+              author={'simpleSST'}
+              creator={'simpleSST'}
+              producer={'simpleSST'}
+              keywords={'Aso / prontuario'}
+              title={`VIAS_ASO_E_PRONTUARIO_${getCompanyName(
+                kitData?.aso?.consultantCompany,
+              )}_${getCompanyName(kitData?.aso?.actualCompany)}_${
+                kitData?.aso?.employee?.name
+              }`}
+            >
+              {kitData && kitData.aso?.employee && (
+                <>
+                  {Array.from({ length: kitData.aso.numAsos }, (v, i) => i).map(
+                    (d) => (
+                      <PdfAsoPage data={kitData.aso} key={d} />
+                    ),
+                  )}
+                  <PdfProntuarioPage data={kitData.prontuario} />
+                </>
+              )}
+            </Document>
+          </PDFViewer>
+        )}
       </Box>
     </>
   );

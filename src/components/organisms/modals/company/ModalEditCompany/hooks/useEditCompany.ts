@@ -48,7 +48,7 @@ export const initialCompanyState = {
   legal_nature_code: '',
   cadastral_situation_description: '',
   blockResignationExam: true,
-  numAsos: 2,
+  numAsos: 3,
   esocialSend: undefined as boolean | undefined,
   esocialStart: undefined as Date | undefined,
   ambResponsibleStart: undefined as Date | undefined,

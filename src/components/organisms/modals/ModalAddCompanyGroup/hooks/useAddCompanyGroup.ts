@@ -29,7 +29,7 @@ export const initialCompanyGroupState = {
   companies: [] as ICompany[],
   id: 0,
   blockResignationExam: true,
-  numAsos: 2,
+  numAsos: 3,
   esocialSend: undefined as boolean | undefined,
   esocialStart: undefined as Date | undefined,
   doctorResponsible: undefined as IProfessional | undefined,

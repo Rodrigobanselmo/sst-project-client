@@ -51,7 +51,7 @@ export const initialClinicState = {
   legal_nature_code: '',
   cadastral_situation_description: '',
   blockResignationExam: true,
-  numAsos: 2,
+  numAsos: 3,
   esocialStart: undefined as Date | undefined,
   doctorResponsible: undefined as IProfessional | undefined,
   tecResponsible: undefined as IProfessional | undefined,

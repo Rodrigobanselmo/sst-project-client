@@ -63,15 +63,15 @@ const Guide: NextPage = () => {
       <SHeaderTag hideInitial title={`PDF:Guia ${guideData?.name || ''}`} />
       <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
         <>
-          <PDFViewer showToolbar width="100%" height="100%">
-            <Document>
-              {guideData && guideData?.company && (
-                <PdfGuidePage data={guideData} />
-              )}
-            </Document>
-          </PDFViewer>
-          {guideData && guideData?.company && (
-            <ButtonSendEmail data={guideData} />
+          {guideData && guideData?.company && !!Object.keys(guideData).length && (
+            <>
+              <PDFViewer showToolbar width="100%" height="100%">
+                <Document>
+                  <PdfGuidePage data={guideData} />
+                </Document>
+              </PDFViewer>
+              <ButtonSendEmail data={guideData} />
+            </>
           )}
         </>
       </Box>

@@ -25,27 +25,29 @@ const Evaluation: NextPage = () => {
         title={`PDF:Evaluation Med ${evaluationData?.employee?.name || ''}`}
       />
       <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        <PDFViewer showToolbar width="100%" height="100%">
-          <Document
-            subject={'Aso e prontuario'}
-            author={'simpleSST'}
-            creator={'simpleSST'}
-            producer={'simpleSST'}
-            keywords={'Aso / prontuario'}
-            title={`VIAS_ASO_E_PRONTUARIO_${getCompanyName(
-              evaluationData?.consultantCompany,
-            )}_${getCompanyName(evaluationData?.actualCompany)}_${
-              evaluationData?.employee?.name
-            }`}
-          >
-            {evaluationData && evaluationData?.employee && (
-              <>
-                <PdfEvaluationPage data={evaluationData} />
-                <PdfAtestadoPage data={evaluationData} />
-              </>
-            )}
-          </Document>
-        </PDFViewer>
+        {evaluationData && !!Object.keys(evaluationData).length && (
+          <PDFViewer showToolbar width="100%" height="100%">
+            <Document
+              subject={'Aso e prontuario'}
+              author={'simpleSST'}
+              creator={'simpleSST'}
+              producer={'simpleSST'}
+              keywords={'Aso / prontuario'}
+              title={`VIAS_ASO_E_PRONTUARIO_${getCompanyName(
+                evaluationData?.consultantCompany,
+              )}_${getCompanyName(evaluationData?.actualCompany)}_${
+                evaluationData?.employee?.name
+              }`}
+            >
+              {evaluationData && evaluationData?.employee && (
+                <>
+                  <PdfEvaluationPage data={evaluationData} />
+                  <PdfAtestadoPage data={evaluationData} />
+                </>
+              )}
+            </Document>
+          </PDFViewer>
+        )}
       </Box>
     </>
   );
