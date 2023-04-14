@@ -6,8 +6,11 @@ import { initialCompanySelectState } from 'components/organisms/modals/ModalSele
 import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 
+import { useAuth } from 'core/contexts/AuthContext';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
+import usePersistedState from 'core/hooks/usePersistState';
+import { usePersistTimeoutState } from 'core/hooks/usePersistTimeoutState';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { getCompanyName } from 'core/utils/helpers/companyName';
@@ -43,9 +46,19 @@ export type IFilterTableData = {
   [FilterFieldEnum.LTE_EXPIRED_EXAM]?: IFilterTableType<Date[]>;
 };
 
-export const useFilterTable = (deafult?: IFilterTableData) => {
+export const useFilterTable = (
+  deafult?: IFilterTableData,
+  options?: {
+    timeout?: number;
+    key?: string;
+  },
+) => {
   const { onStackOpenModal } = useModal();
-  const [filter, setFilter] = useState<IFilterTableData>(deafult || {});
+  const [filter, setFilter] = usePersistTimeoutState<IFilterTableData>(
+    (options?.key || '') + '_filter',
+    deafult || {},
+    options?.timeout,
+  );
 
   const addFilter = useCallback(
     <T>(

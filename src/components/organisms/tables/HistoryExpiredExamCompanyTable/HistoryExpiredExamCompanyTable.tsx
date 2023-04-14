@@ -21,9 +21,11 @@ import { STableFilterIcon } from 'components/atoms/STable/components/STableFilte
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import SText from 'components/atoms/SText';
 import { SIconDownloadExam } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -154,7 +156,10 @@ export const HistoryExpiredExamCompanyTable: FC<
   }
 > = ({ rowsPerPage = 8, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
-  const filterProps = useFilterTable();
+  const filterProps = useFilterTable(undefined, {
+    key: 'historyExpiredExamCompanyTable',
+    timeout: 60 * 60 * 1000,
+  });
 
   const {
     data: historyExam,
@@ -215,8 +220,8 @@ export const HistoryExpiredExamCompanyTable: FC<
     // { text: '', column: '15px' },
     { text: 'Funcionário', column: 'minmax(150px, 1fr)' },
     { text: 'Empresa', column: '150px' },
-    // { text: 'Exame', column: '120px' },
     { text: 'Ultimo Exame', column: '110px' },
+    { text: 'Status', column: '80px' },
     { text: 'Válidade', column: '180px' },
     { text: '', column: '100px', justifyContent: 'end' },
     // { text: 'Reagendar', column: 'minmax(150px, 1fr)', justifyContent: 'center' },
@@ -233,7 +238,12 @@ export const HistoryExpiredExamCompanyTable: FC<
     <>
       {!hideTitle && (
         <>
-          <STableTitle>Exames Vencidos</STableTitle>
+          <STableTitle>
+            Funcionários{' '}
+            <SText component="span" fontSize={14}>
+              (Exames Vencidos)
+            </SText>
+          </STableTitle>
           <STableSearch
             onAddClick={onAdd}
             boxProps={{ sx: { flex: 1, maxWidth: 400 } }}
@@ -283,19 +293,19 @@ export const HistoryExpiredExamCompanyTable: FC<
                 // status={getRowColor(row.status)}
               >
                 <TextEmployeeRow employee={employee} />
-                <TextCompanyRow company={company} />
+                <TextCompanyRow fontSize={10} company={company} />
                 <TextIconRow text={lastExam} />
-                {/* <SFlex direction="column">
+                <SFlex direction="column">
                   <StatusSelect
                     selected={status.status}
                     large={false}
                     disabled
                     width={'100%'}
                     sx={{ width: '100%' }}
-                    options={options}
+                    // options={options}
                     statusOptions={[]}
                   />
-                </SFlex> */}
+                </SFlex>
                 <SFlex align="center">
                   <Box
                     sx={{

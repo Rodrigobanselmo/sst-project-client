@@ -117,13 +117,17 @@ export const SIconDownloadExam: FC<ISIconUpload> = ({
               return (
                 <STagButton
                   borderActive={'info'}
-                  outline
+                  // outline
                   key={data.value}
                   text={data.name}
                   disabled={data.disabled}
                   onClick={(e) => handleSelect(data, e as any)}
                   loading={loading || downloadMutation.isLoading}
-                  iconProps={{ sx: isActive ? { color: 'info.main' } : {} }}
+                  icon={SDocumentIcon}
+                  iconProps={{
+                    sx: { color: data.disabled ? 'grey.600' : 'info.main' },
+                  }}
+                  textProps={{ sx: { color: 'text.main' }, className: '' }}
                 />
               );
             })}

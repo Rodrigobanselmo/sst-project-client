@@ -17,6 +17,7 @@ import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextComp
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import { TextHierarchyRow } from 'components/atoms/STable/components/Rows/TextHierarchyRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
 import SText from 'components/atoms/SText';
 import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { employeeExamEvaluationTypeMap } from 'project/enum/employee-exam-history-evaluation.enum';
@@ -43,19 +44,21 @@ export const SendEvent2240ESocialTable: FC<
     company?: ICompany;
   }
 > = ({
-  rowsPerPage = 15,
+  rowsPerPage = 10,
   company,
   isLoading,
   onSelectData,
   selectedData,
   events,
 }) => {
-  const { handleSearchChange, results } = useTableSearch({
+  const { page, setPage, results } = useTableSearch({
     data: events,
     keys: [],
+    rowsPerPage,
   });
 
   const isSelect = !!onSelectData;
+  const count = events.length;
   const { onStackOpenModal } = useModal();
 
   const onSelectRow = (company: IEvent2240) => {
@@ -155,7 +158,7 @@ export const SendEvent2240ESocialTable: FC<
         </STableHeader>
         <STableBody<typeof events[0]>
           rowsData={results}
-          // hideLoadMore
+          hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
             const employee = row?.employee;
@@ -242,6 +245,13 @@ export const SendEvent2240ESocialTable: FC<
           }}
         />
       </STable>
+      <STablePagination
+        mt={2}
+        registersPerPage={rowsPerPage}
+        totalCountOfRegisters={count}
+        currentPage={page}
+        onPageChange={setPage}
+      />
     </>
   );
 };

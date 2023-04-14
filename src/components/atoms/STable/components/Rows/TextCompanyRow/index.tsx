@@ -12,6 +12,7 @@ import { TextCompanyRowProps } from './types';
 export const TextCompanyRow: FC<TextCompanyRowProps> = ({
   company,
   showCNPJ,
+  fontSize = 11,
   ...props
 }) => {
   if (!company) return <div />;
@@ -20,10 +21,10 @@ export const TextCompanyRow: FC<TextCompanyRowProps> = ({
     <TextIconRow
       tooltipTitle={
         <div onClick={(e) => e.stopPropagation()}>
-          <SText color="common.white" fontSize={11} mt={1}>
+          <SText color="common.white" fontSize={fontSize} mt={1}>
             {getCompanyName(company)}
           </SText>
-          <SText color="common.white" fontSize={11} mt={1}>
+          <SText color="common.white" fontSize={fontSize} mt={1}>
             CNPJ: {cnpjMask.mask(company?.cnpj)}
           </SText>
         </div>
@@ -34,14 +35,14 @@ export const TextCompanyRow: FC<TextCompanyRowProps> = ({
       <div>
         <SText
           className="table-row-text"
-          fontSize={12}
+          fontSize={Number(fontSize) + 1}
           mt={2}
           lineNumber={showCNPJ ? 1 : 2}
         >
           {getCompanyName(company)}
         </SText>
         {showCNPJ && (
-          <SText className="table-row-text" fontSize={11} mt={0}>
+          <SText className="table-row-text" fontSize={fontSize} mt={0}>
             {cnpjMask.mask(company?.cnpj)}
           </SText>
         )}

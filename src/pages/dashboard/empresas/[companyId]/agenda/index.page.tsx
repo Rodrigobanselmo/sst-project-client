@@ -51,7 +51,7 @@ const Schedule: NextPage = () => {
           header={
             <WizardTabs
               options={[
-                { label: 'Exames Vencidos' },
+                { label: 'Funcionários' },
                 { label: 'Exames Agendados' },
                 { label: 'Todos os Exames' },
               ]}

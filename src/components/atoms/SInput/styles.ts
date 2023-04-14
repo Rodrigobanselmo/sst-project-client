@@ -40,8 +40,7 @@ export const STTextField = styled(TextField)<{
   }
 
   &&& .MuiOutlinedInput-notchedOutline {
-    border-color: ${(props) => props.theme.palette.background.paper};
-    /* border-color: ${(props) => props.theme.palette.background.border}; */
+    border-color: ${(props) => props.theme.palette.background.border};
     border-width: 1px;
   }
 

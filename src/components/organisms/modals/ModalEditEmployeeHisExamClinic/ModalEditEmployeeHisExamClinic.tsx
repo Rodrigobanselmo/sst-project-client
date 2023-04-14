@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box, Divider } from '@mui/material';
+import { Box, Divider, Icon } from '@mui/material';
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -51,6 +51,7 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { getSexLabel } from '../ModalAddExamSchedule/components/1-employee';
 import { useAddData } from './hooks/useEditExamData';
+import { STagNewButton } from './STagNewButton';
 
 export const ModalEditEmployeeHisExamClinic = () => {
   const {
@@ -78,6 +79,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
     onChangeDoctor,
     isAvaliation,
     showIfKitMedico,
+    onChangeStatusToDone,
   } = useAddData();
 
   const buttons = [
@@ -231,197 +233,238 @@ export const ModalEditEmployeeHisExamClinic = () => {
           </SFlex>
         </Box>
 
-        <SText color="text.label">
-          {clinicExam?.exam?.name || 'Avaliação Clínica Ocupacional'}
-        </SText>
-        <Divider sx={{ mb: 10, mt: 3 }} />
-        {!!clinicExam && (
-          <SFlex direction="column">
-            <StatusSelect
-              sx={{ maxWidth: '150px', mt: -5, mb: 10 }}
-              options={statusOptionsConstantExam}
-              selected={data.status}
-              statusOptions={[
-                StatusEnum.DONE,
-                StatusEnum.PROCESSING,
-                StatusEnum.CANCELED,
-              ]}
-              handleSelectMenu={(option) =>
-                setData((old) => ({
-                  ...old,
-                  status: option.value,
-                }))
-              }
-            />
-            <SFlex flexWrap="wrap" gap={5}>
-              <Box maxWidth={200}>
-                <DatePickerForm
-                  label="Data do exame"
-                  control={control}
-                  defaultValue={dateToDate(clinicExam.doneDate)}
-                  sx={{ minWidth: 200 }}
-                  placeholderText="__/__/__"
-                  name="doneDate"
-                  labelPosition="top"
-                  unmountOnChangeDefault
-                  calendarProps={{
-                    disabled: true,
+        <Box
+          sx={{
+            p: 12,
+            border: '1px solid',
+            borderRadius: 1,
+            borderColor: 'gray.400',
+            backgroundColor: 'white',
+            mt: 10,
+          }}
+        >
+          <SText color="text.label">
+            {clinicExam?.exam?.name || 'Avaliação Clínica Ocupacional'}
+          </SText>
+          <Divider sx={{ mb: 4, mt: 3 }} />
+          {!!clinicExam && (
+            <SFlex direction="column">
+              <SFlex gap={5} mb={10}>
+                <Box width={200}>
+                  <SIconUploadFile
+                    loading={uploadMutation.isLoading}
+                    disabledDownload={!clinicExam.fileUrl}
+                    isActive={!!clinicExam.fileUrl}
+                    downloadPath={
+                      ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM +
+                      `/${clinicExam.id}/download/${
+                        data.companyId || data.company?.id
+                      }`
+                    }
+                    onUpload={(file) =>
+                      uploadExam({ file, ids: [clinicExam.id] })
+                    }
+                    text={isAvaliation ? 'Adicionar arquivo' : 'Adicionar ASO'}
+                    isTag
+                  />
+                </Box>
+                <STagButton
+                  icon={SCheckIcon}
+                  text={'Marcar como realizado'}
+                  onClick={() => {
+                    onChangeStatusToDone();
+                  }}
+                  borderActive="success"
+                  textProps={{ sx: { color: 'text.light' }, className: '' }}
+                  color="success"
+                  iconProps={{
+                    sx: { color: 'success.main' },
                   }}
                 />
-              </Box>
-              <Box mr={20} maxWidth={100}>
-                <AutocompleteForm
-                  name="time"
-                  control={control}
-                  filterOptions={(x) => x}
-                  unmountOnChangeDefault
-                  freeSolo
-                  getOptionLabel={(option) => String(option)}
-                  inputProps={{
-                    labelPosition: 'top',
-                    placeholder: '00:00',
-                    name: 'time',
-                  }}
-                  setValue={(v) => setValue('time', v)}
-                  defaultValue={clinicExam.time || ''}
-                  mask={timeMask.apply}
-                  label="Hora"
-                  options={[]}
-                  sx={{ width: [100] }}
-                  disabled
-                />
-              </Box>
-              <Box flex={1}>
-                <SelectForm
-                  unmountOnChangeDefault
-                  defaultValue={String(clinicExam.examType || '') || ''}
-                  label="Tipo de Exame"
-                  control={control}
-                  placeholder="selecione..."
-                  name="examType"
-                  labelPosition="top"
-                  size="small"
-                  disabled
-                  options={employeeExamTypeList}
-                />
-              </Box>
-            </SFlex>
-            <SFlex flexWrap="wrap" gap={5} mt={8} align="end">
-              <Box flex={2} maxWidth={500}>
-                <ProfessionalInputSelect
-                  query={{
-                    byCouncil: true,
-                    companyId: data.clinicId,
-                    clinicId: data.clinicId,
-                  }}
-                  onChange={(prof) => {
-                    onChangeDoctor(prof);
-                    // setData({
-                    //   ...data,
-                    //   doctor: prof,
-                    // });
-                  }}
-                  inputProps={{
-                    labelPosition: 'top',
-                    placeholder: 'selecione o médico...',
-                  }}
-                  unmountOnChangeDefault
-                  defaultValue={data.doctor || clinicExam.doctor}
-                  name="doctor"
-                  label="Médico"
-                  control={control}
-                />
-              </Box>
-              <Box flex={1}>
-                <SelectForm
-                  unmountOnChangeDefault
-                  defaultValue={String(clinicExam.evaluationType || '') || ''}
-                  label="Avaliação"
-                  control={control}
-                  placeholder="selecione..."
-                  name="evaluationType"
-                  labelPosition="top"
-                  onChange={(e) => {
-                    if (e.target.value)
-                      setData({
-                        ...data,
-                        evaluationType: (e as any).target.value,
-                      });
-                  }}
-                  size="small"
-                  options={employeeExamEvaluationTypeList}
-                />
-              </Box>
-            </SFlex>
+              </SFlex>
 
-            <SFlex justify="end" mt={5}>
-              <SIconDownloadExam
-                showIfKitMedico={showIfKitMedico}
-                isMenu={false}
-                // disabled={!data.doctor}
-                missingDoctor={!data.doctor}
-                companyId={data.companyId || data.company?.id}
-                employeeId={data.id}
-                isAvaliation={clinicExam?.exam?.isAvaliation}
-                asoId={clinicExam?.id}
-              />
-              <Box width={200} ml="auto">
-                <SIconUploadFile
+              <SFlex flexWrap="wrap" gap={5}>
+                <Box maxWidth={200}>
+                  <DatePickerForm
+                    label="Data do exame"
+                    control={control}
+                    defaultValue={dateToDate(clinicExam.doneDate)}
+                    sx={{ minWidth: 200 }}
+                    placeholderText="__/__/__"
+                    name="doneDate"
+                    labelPosition="top"
+                    unmountOnChangeDefault
+                    calendarProps={{
+                      disabled: true,
+                    }}
+                  />
+                </Box>
+                <Box mr={20} maxWidth={100}>
+                  <AutocompleteForm
+                    name="time"
+                    control={control}
+                    filterOptions={(x) => x}
+                    unmountOnChangeDefault
+                    freeSolo
+                    getOptionLabel={(option) => String(option)}
+                    inputProps={{
+                      labelPosition: 'top',
+                      placeholder: '00:00',
+                      name: 'time',
+                    }}
+                    setValue={(v) => setValue('time', v)}
+                    defaultValue={clinicExam.time || ''}
+                    mask={timeMask.apply}
+                    label="Hora"
+                    options={[]}
+                    sx={{ width: [100] }}
+                    disabled
+                  />
+                </Box>
+                <Box flex={1}>
+                  <SelectForm
+                    unmountOnChangeDefault
+                    defaultValue={String(clinicExam.examType || '') || ''}
+                    label="Tipo de Exame"
+                    control={control}
+                    placeholder="selecione..."
+                    name="examType"
+                    labelPosition="top"
+                    size="small"
+                    disabled
+                    options={employeeExamTypeList}
+                  />
+                </Box>
+              </SFlex>
+              <SFlex flexWrap="wrap" gap={5} mt={8} align="end">
+                <Box flex={2} maxWidth={500}>
+                  <ProfessionalInputSelect
+                    query={{
+                      byCouncil: true,
+                      companyId: data.clinicId,
+                      clinicId: data.clinicId,
+                    }}
+                    onChange={(prof) => {
+                      onChangeDoctor(prof);
+                    }}
+                    inputProps={{
+                      labelPosition: 'top',
+                      placeholder: 'selecione o médico...',
+                    }}
+                    unmountOnChangeDefault
+                    defaultValue={data.doctor || clinicExam.doctor}
+                    name="doctor"
+                    label="Médico"
+                    control={control}
+                  />
+                </Box>
+                <Box flex={1}>
+                  <SelectForm
+                    unmountOnChangeDefault
+                    defaultValue={String(clinicExam.evaluationType || '') || ''}
+                    label="Avaliação"
+                    control={control}
+                    placeholder="selecione..."
+                    name="evaluationType"
+                    labelPosition="top"
+                    onChange={(e) => {
+                      if (e.target.value)
+                        setData({
+                          ...data,
+                          evaluationType: (e as any).target.value,
+                        });
+                    }}
+                    size="small"
+                    options={employeeExamEvaluationTypeList}
+                  />
+                </Box>
+              </SFlex>
+
+              <SFlex align={'end'} mt={10}>
+                <SIconDownloadExam
+                  showIfKitMedico={showIfKitMedico}
+                  isMenu={false}
+                  isActive
+                  // disabled={!data.doctor}
+                  missingDoctor={!data.doctor}
+                  companyId={data.companyId || data.company?.id}
+                  employeeId={data.id}
+                  isAvaliation={clinicExam?.exam?.isAvaliation}
+                  asoId={clinicExam?.id}
+                />
+                <StatusSelect
+                  sx={{ maxWidth: '150px', ml: 'auto' }}
+                  options={statusOptionsConstantExam}
+                  selected={data.status}
+                  statusOptions={[
+                    StatusEnum.DONE,
+                    StatusEnum.PROCESSING,
+                    StatusEnum.CANCELED,
+                  ]}
+                  handleSelectMenu={(option) =>
+                    setData((old) => ({
+                      ...old,
+                      status: option.value,
+                    }))
+                  }
+                />
+              </SFlex>
+            </SFlex>
+          )}
+        </Box>
+
+        <Box
+          sx={{
+            p: 12,
+            border: '1px solid',
+            borderRadius: 1,
+            borderColor: 'gray.400',
+            backgroundColor: 'white',
+            mt: 15,
+          }}
+        >
+          {complementaryExams && !!complementaryExams.length && (
+            <SFlex direction="column" mb={3}>
+              <SText color="text.label" fontSize={16}>
+                Exames Complementares
+              </SText>
+              <Divider sx={{ mb: 2, mt: 1 }} />
+              <SFlex mb={10}>
+                <STagButton
+                  ml={3}
+                  width={200}
                   loading={uploadMutation.isLoading}
-                  disabledDownload={!clinicExam.fileUrl}
-                  isActive={!!clinicExam.fileUrl}
-                  downloadPath={
-                    ApiRoutesEnum.EMPLOYEE_HISTORY_EXAM +
-                    `/${clinicExam.id}/download/${
-                      data.companyId || data.company?.id
-                    }`
-                  }
-                  onUpload={(file) =>
-                    uploadExam({ file, ids: [clinicExam.id] })
-                  }
-                  text={isAvaliation ? 'Adicionar arquivo' : 'Adicionar ASO'}
-                  isTag
+                  icon={SUploadFileIcon}
+                  text={'Adicinar arquivo'}
+                  onClick={onUploadManyFile}
                 />
-              </Box>
-            </SFlex>
-          </SFlex>
-        )}
-
-        {complementaryExams && !!complementaryExams.length && (
-          <SFlex direction="column" mb={3} mt={15}>
-            <SText color="text.label" fontSize={16}>
-              Exames Complementares
-            </SText>
-            <Divider sx={{ mb: 2, mt: 1 }} />
-            <SFlex mb={10}>
-              <STagButton
-                icon={SCheckIcon}
-                text={'Marcar todos como realizado'}
-                onClick={setAllComplementaryExamDone}
+                <STagButton
+                  icon={SCheckIcon}
+                  text={'Marcar todos como realizado'}
+                  onClick={setAllComplementaryExamDone}
+                  borderActive="success"
+                  textProps={{ sx: { color: 'text.light' }, className: '' }}
+                  color="success"
+                  iconProps={{
+                    sx: { color: 'success.main' },
+                  }}
+                />
+              </SFlex>
+              <ExamsComplementsClinicTable
+                setData={setComplementaryExam}
+                data={complementaryExams}
+                control={control}
+                setValue={setValue}
+                onToggleSelected={onToggleSelected}
+                onIsSelected={onIsSelected}
+                onToggleAll={onToggleAll}
+                uploadExam={uploadExam}
+                companyId={data.companyId || data.company?.id}
+                isLoadingFile={uploadMutation.isLoading}
               />
-              <STagButton
-                ml={3}
-                width={200}
-                loading={uploadMutation.isLoading}
-                icon={SUploadFileIcon}
-                text={'Adicinar arquivo'}
-                onClick={onUploadManyFile}
-              />
             </SFlex>
-            <ExamsComplementsClinicTable
-              setData={setComplementaryExam}
-              data={complementaryExams}
-              control={control}
-              setValue={setValue}
-              onToggleSelected={onToggleSelected}
-              onIsSelected={onIsSelected}
-              onToggleAll={onToggleAll}
-              uploadExam={uploadExam}
-              companyId={data.companyId || data.company?.id}
-              isLoadingFile={uploadMutation.isLoading}
-            />
-          </SFlex>
-        )}
+          )}
+        </Box>
 
         <SModalButtons
           loading={loading}

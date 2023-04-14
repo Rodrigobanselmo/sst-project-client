@@ -83,6 +83,7 @@ export const useAddData = () => {
     trigger,
     reset,
     getValues,
+    setFocus,
   } = useForm({
     resolver: yupResolver(employeeHistoryExamSchema),
   });
@@ -134,8 +135,8 @@ export const useAddData = () => {
             ...oldData,
             ...initialData,
             ...data,
-            doctor: clinicExam?.doctor,
-            status: clinicExam?.status,
+            doctor: data.doctor || clinicExam?.doctor,
+            status: data.status || clinicExam?.status,
           };
 
           initialDataRef.current = newData;
@@ -202,81 +203,102 @@ export const useAddData = () => {
   };
 
   const onChangeDoctor = async (prof: IProfessional) => {
-    const [sex, birthday] = getValues(['sex', 'birthday']);
+    // const [sex, birthday] = getValues(['sex', 'birthday']);
 
-    if (!sex || !birthday) {
-      setData({
-        ...data,
-        doctor: { name: '', id: '' } as any,
-      });
-      setTimeout(() => {
-        setData({
-          ...data,
-          doctor: undefined,
-        });
-      }, 100);
+    // if (!sex || !birthday) {
+    //   setData({
+    //     ...data,
+    //     doctor: { name: '', id: '' } as any,
+    //   });
+    //   setTimeout(() => {
+    //     setData({
+    //       ...data,
+    //       doctor: undefined,
+    //     });
+    //   }, 100);
 
-      if (!sex) setError('sex', { message: 'Campo Obrigatório' });
-      if (!birthday) setError('birthday', { message: 'Campo Obrigatório' });
+    //   setFocus('sex');
+    //   if (!sex) setError('sex', { message: 'Campo Obrigatório' });
+    //   if (!birthday) setError('birthday', { message: 'Campo Obrigatório' });
 
-      return enqueueSnackbar(
-        'Preencha os dados do funcionário para prosseguir',
-        {
-          anchorOrigin: {
-            vertical: 'top',
-            horizontal: 'center',
-          },
-          variant: 'warning',
-        },
-      );
-    }
+    //   return enqueueSnackbar(
+    //     'Preencha os dados do funcionário para prosseguir',
+    //     {
+    //       anchorOrigin: {
+    //         vertical: 'top',
+    //         horizontal: 'center',
+    //       },
+    //       variant: 'warning',
+    //     },
+    //   );
+    // }
 
-    const submitData: IUpdateManyScheduleExamHistory = {
-      birthday: data.birthday,
-      isClinic: true,
-      companyId,
-      data: [],
-    };
-
-    let asoOrAvaliationId: number;
-
-    data.examsHistory?.forEach((examData) => {
-      if (!data.id) return;
-
-      const submit: IUpdateManyScheduleExamHistory['data'][0] = {
-        employeeId: data.id,
-        id: examData.id,
-        conclusion: examData.conclusion,
-        status: examData.status,
-      };
-
-      if (examData.exam?.isAttendance || examData.exam?.isAvaliation) {
-        if (data.evaluationType) submit.evaluationType = data.evaluationType;
-        asoOrAvaliationId = examData?.id;
-        if (prof?.id) {
-          submit.doctorId = prof.id;
-          submit.status = StatusEnum.DONE;
-        }
-      }
-
-      submitData.data.push(submit);
+    setData({
+      ...data,
+      doctor: prof,
     });
 
-    await updateMutation
-      .mutateAsync({ ...submitData })
-      .then(() => {
-        if (prof?.id)
-          onDownloadPdf(onGetExamPdfRoute({ isAvaliation }), {
-            employeeId: data.id,
-            companyId,
-            asoId: asoOrAvaliationId,
-          });
-        setData({
-          ...data,
-          doctor: prof,
-        });
-      })
-      .catch(() => null);
+    // const submitData: IUpdateManyScheduleExamHistory = {
+    //   birthday: data.birthday,
+    //   isClinic: true,
+    //   companyId,
+    //   data: [],
+    // };
+
+    // let asoOrAvaliationId: number;
+
+    // data.examsHistory?.forEach((examData) => {
+    //   if (!data.id) return;
+
+    //   const submit: IUpdateManyScheduleExamHistory['data'][0] = {
+    //     employeeId: data.id,
+    //     id: examData.id,
+    //     conclusion: examData.conclusion,
+    //     status: examData.status,
+    //   };
+
+    //   if (examData.exam?.isAttendance || examData.exam?.isAvaliation) {
+    //     if (data.evaluationType) submit.evaluationType = data.evaluationType;
+    //     asoOrAvaliationId = examData?.id;
+    //     if (prof?.id) {
+    //       submit.doctorId = prof.id;
+    //       submit.status = StatusEnum.DONE;
+    //     }
+    //   }
+
+    //   submitData.data.push(submit);
+    // });
+
+    // await updateMutation
+    //   .mutateAsync({ ...submitData })
+    //   .then(() => {
+    //     if (prof?.id)
+    //       onDownloadPdf(onGetExamPdfRoute({ isAvaliation }), {
+    //         employeeId: data.id,
+    //         companyId,
+    //         asoId: asoOrAvaliationId,
+    //       });
+    //     setData({
+    //       ...data,
+    //       doctor: prof,
+    //     });
+    //   })
+    //   .catch(() => null);
+  };
+
+  const onChangeStatusToDone = async () => {
+    setData((old) => ({
+      ...old,
+      status: StatusEnum.DONE,
+    }));
+
+    enqueueSnackbar('Exame realizado com sucesso', {
+      anchorOrigin: {
+        vertical: 'top',
+        horizontal: 'center',
+      },
+      variant: 'success',
+    });
   };
 
   const showIfKitMedico = async () => {
@@ -285,6 +307,7 @@ export const useAddData = () => {
     if (!sex || !birthday) {
       if (!sex) setError('sex', { message: 'Campo Obrigatório' });
       if (!birthday) setError('birthday', { message: 'Campo Obrigatório' });
+      setFocus('sex');
       enqueueSnackbar('Preencha os dados do funcionário para prosseguir', {
         anchorOrigin: {
           vertical: 'top',
@@ -341,6 +364,14 @@ export const useAddData = () => {
     });
 
     setData({ ...data, examsHistory: actualExams });
+
+    enqueueSnackbar('Exames realizados com sucesso', {
+      anchorOrigin: {
+        vertical: 'top',
+        horizontal: 'center',
+      },
+      variant: 'success',
+    });
   };
 
   const { onToggleSelected, onIsSelected, onToggleAll, selectedData } =
@@ -375,6 +406,7 @@ export const useAddData = () => {
     }
 
     onStackOpenModal(ModalEnum.UPLOAD_NEW_FILE, {
+      accept: '',
       onConfirm: ({ files }) => {
         if (files && files[0]) {
           uploadExam({ file: files[0], ids });
@@ -411,5 +443,6 @@ export const useAddData = () => {
     onChangeDoctor,
     isAvaliation,
     showIfKitMedico,
+    onChangeStatusToDone,
   };
 };

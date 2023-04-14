@@ -31,6 +31,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 
+import { statusOptionsConstantEmployee } from 'core/constants/maps/status-options.constant';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -247,9 +248,11 @@ export const EmployeesTable: FC<
                 {company.schedule && <TextIconRow text={lastExam} />}
 
                 <StatusSelect
-                  large
-                  sx={{ maxWidth: '120px' }}
+                  large={false}
+                  sx={{ maxWidth: '110px' }}
+                  textProps={{ fontSize: 11 }}
                   selected={row.status}
+                  options={statusOptionsConstantEmployee}
                   statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />

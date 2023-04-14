@@ -47,6 +47,7 @@ export const SIconUploadFile: FC<ISIconUpload> = ({
 
     if (option.value == 1) {
       onStackOpenModal(ModalEnum.UPLOAD_NEW_FILE, {
+        accept: '',
         onConfirm: ({ files }) => {
           if (files && files[0]) {
             onUpload?.(files[0]);

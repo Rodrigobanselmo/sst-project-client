@@ -86,7 +86,13 @@ export const SFileDndUpload: FC<ISFileDndUpload> = ({
         is_drag_active={isDragActive ? 1 : 0}
       >
         <input {...getInputProps()} />
-        <SUploadFileIcon sx={{ color: 'grey.400', fontSize: '2rem' }} />
+        <SUploadFileIcon
+          sx={{
+            color: 'grey.400',
+            fontSize: '2rem',
+            ...(files?.length && { color: 'info.main' }),
+          }}
+        />
         {isDragActive && <p>Solte seu arquivo aqui ...</p>}{' '}
         {!isDragActive && (
           <p style={{ whiteSpace: 'pre-wrap', textAlign: 'center' }}>{text}</p>

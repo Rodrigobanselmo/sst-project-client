@@ -61,7 +61,11 @@ export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
       getModalData<Partial<typeof initialFileUploadState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setFileData((oldData) => ({
         ...oldData,
         ...initialData,
@@ -134,8 +138,7 @@ export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
         component="form"
         center
         p={8}
-        width={'fit-content'}
-        minWidth={600}
+        width={600}
       >
         <SModalHeader onClose={onClose} title={fileData.title} />
         <DndProvider backend={HTML5Backend}>
@@ -145,9 +148,9 @@ export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
             onChange={onSetFiles}
           />
         </DndProvider>
-        <SButton onClick={handleRemove} xsmall color="error">
+        {/* <SButton onClick={handleRemove} xsmall variant="outlined" color="error">
           Remover
-        </SButton>
+        </SButton> */}
         <SModalButtons
           loading={isLoading}
           onClose={onClose}

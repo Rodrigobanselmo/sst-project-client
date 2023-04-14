@@ -53,6 +53,7 @@ export const SendEvent2210ESocialTable: FC<
   const { handleSearchChange, results } = useTableSearch({
     data: events,
     keys: [],
+    rowsPerPage,
   });
 
   const isSelect = !!onSelectData;

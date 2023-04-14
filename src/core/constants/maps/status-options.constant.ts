@@ -135,3 +135,37 @@ export const statusOptionsConstantESocial = {
     color: 'info.main',
   },
 } as IStatusOptions;
+
+export const statusOptionsConstantEmployee = {
+  ...statusOptionsConstant,
+  [StatusEnum.ACTIVE]: {
+    value: StatusEnum.ACTIVE,
+    name: 'Ativo',
+    color: 'success.main',
+  },
+  [StatusEnum.CANCELED]: {
+    value: StatusEnum.CANCELED,
+    name: 'Cancelado',
+    color: 'error.main',
+  },
+  [StatusEnum.INACTIVE]: {
+    value: StatusEnum.INACTIVE,
+    name: 'Demitido',
+    color: 'error.main',
+  },
+  [StatusEnum.PENDING]: {
+    value: StatusEnum.PENDING,
+    name: 'Pendente',
+    color: 'warning.main',
+  },
+  [StatusEnum.PROGRESS]: {
+    value: StatusEnum.PROGRESS,
+    name: 'Progresso',
+    color: 'info.main',
+  },
+  [StatusEnum.INVALID]: {
+    value: StatusEnum.INVALID,
+    name: 'inválido',
+    color: 'error.main',
+  },
+} as IStatusOptions;
