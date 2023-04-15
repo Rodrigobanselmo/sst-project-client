@@ -10,6 +10,8 @@ import { ClinicScheduleTypeEnum, IExam } from './IExam';
 import { IHierarchy } from './IHierarchy';
 import { IProfessional } from './IProfessional';
 import { IUser } from './IUser';
+import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
+import { StatusExamEnum } from 'project/enum/statusExam.enum';
 
 export interface IEmployee {
   id: number;
@@ -39,6 +41,8 @@ export interface IEmployee {
   expiredDateExam: Date;
   skippedDismissalExam: boolean;
   lastExam: Date;
+  statusExam?: StatusExamEnum;
+  statusStep?: StatusEmployeeStepEnum;
 
   company: ICompany;
   examsHistory?: IEmployeeExamsHistory[];

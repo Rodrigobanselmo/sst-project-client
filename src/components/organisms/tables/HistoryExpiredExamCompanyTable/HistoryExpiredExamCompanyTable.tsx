@@ -31,7 +31,10 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
 
-import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
+import {
+  statusOptionsConstantEmployee,
+  statusOptionsConstantExam,
+} from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -297,12 +300,14 @@ export const HistoryExpiredExamCompanyTable: FC<
                 <TextIconRow text={lastExam} />
                 <SFlex direction="column">
                   <StatusSelect
-                    selected={status.status}
+                    selected={employee.statusStep || employee.status}
                     large={false}
                     disabled
+                    iconProps={{ sx: { fontSize: 10 } }}
+                    textProps={{ sx: { fontSize: 10 } }}
                     width={'100%'}
                     sx={{ width: '100%' }}
-                    // options={options}
+                    options={statusOptionsConstantEmployee}
                     statusOptions={[]}
                   />
                 </SFlex>

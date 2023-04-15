@@ -201,8 +201,6 @@ export const ModalEditCard = () => {
       <SModalPaper width={['100%', 600, 800, 1000]} center p={8}>
         <SModalHeader
           onClose={onCloseUnsaved}
-          secondIcon={type === TreeTypeEnum.COMPANY ? undefined : SDeleteIcon}
-          secondIconClick={onRemoveNode}
           title={
             <Box width="100%">
               <SFlex mb={2} align="center">

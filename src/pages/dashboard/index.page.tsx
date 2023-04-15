@@ -75,7 +75,9 @@ const Home: NextPage = () => {
       </SAuthShow>
 
       <SAuthShow hideIf={!company.isClinic}>
-        <HistoryScheduleExamClinicTable />
+        <Box mt={20}>
+          <HistoryScheduleExamClinicTable />
+        </Box>
       </SAuthShow>
 
       <SAuthShow hideIf={company.isClinic}>

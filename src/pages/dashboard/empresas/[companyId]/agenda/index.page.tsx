@@ -36,7 +36,7 @@ const Schedule: NextPage = () => {
             <ScheduleAskExamTable />
           </SWizardBox>
         </SAuthShow>
-        <SAuthShow hideIf={hideIfIsConsultant}>
+        <SAuthShow hideIf={!hideIfIsConsultant}>
           <SWizardBox sx={{ px: 10, py: 10 }} mb={20}>
             <HistoryScheduleExamTable
               isHideEmpty

@@ -1,4 +1,8 @@
 import { StatusEnum } from 'project/enum/status.enum';
+import {
+  IStatusEmployeeStepOptions,
+  statusEmployeeStepMap,
+} from './status-employee-step.map';
 
 export interface IStatusOption {
   value: StatusEnum;
@@ -155,7 +159,7 @@ export const statusOptionsConstantEmployee = {
   },
   [StatusEnum.PENDING]: {
     value: StatusEnum.PENDING,
-    name: 'Pendente',
+    name: 'Em Admissão',
     color: 'warning.main',
   },
   [StatusEnum.PROGRESS]: {
@@ -165,7 +169,8 @@ export const statusOptionsConstantEmployee = {
   },
   [StatusEnum.INVALID]: {
     value: StatusEnum.INVALID,
-    name: 'inválido',
+    name: 'Em demissão',
     color: 'error.main',
   },
-} as IStatusOptions;
+  ...statusEmployeeStepMap,
+} as IStatusOptions & IStatusEmployeeStepOptions;

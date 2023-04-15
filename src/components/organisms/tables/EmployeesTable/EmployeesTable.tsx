@@ -158,7 +158,7 @@ export const EmployeesTable: FC<
           { text: 'Ultimo Exame', column: '110px' },
         ]
       : []),
-    { text: 'Status', column: '90px', justifyContent: 'center' },
+    { text: 'Status', column: '100px', justifyContent: 'center' },
     { text: 'Editar', column: '80px', justifyContent: 'center' },
   ];
 
@@ -249,11 +249,12 @@ export const EmployeesTable: FC<
 
                 <StatusSelect
                   large={false}
-                  sx={{ maxWidth: '110px' }}
-                  textProps={{ fontSize: 11 }}
-                  selected={row.status}
+                  sx={{ maxWidth: '130px' }}
+                  iconProps={{ sx: { fontSize: 10 } }}
+                  textProps={{ fontSize: 10 }}
+                  selected={row.statusStep || row.status}
                   options={statusOptionsConstantEmployee}
-                  statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
+                  statusOptions={[]}
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />
                 <SFlex center>

@@ -42,6 +42,7 @@ export const HierarchyHistoryStep = (props: IUseEditEmployee) => {
         <HistoryEmployeeHierarchyTable
           employee={data as any}
           employeeId={data.id}
+          companyId={data.companyId}
         />
       </AnimatedStep>
       <SModalButtons

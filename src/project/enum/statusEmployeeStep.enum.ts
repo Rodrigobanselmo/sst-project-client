@@ -1,9 +1,7 @@
-export enum StatusExamEnum {
-  EXPIRED = 'EXPIRED',
-  CLOSE_1 = 'CLOSE_1',
-  CLOSE_2 = 'CLOSE_2',
-  CLOSE_3 = 'CLOSE_3',
-  DONE = 'DONE',
-  PROCESSING = 'PROCESSING',
-  PENDING = 'PENDING',
+export enum StatusEmployeeStepEnum {
+  IN_DEMISSION = 'IN_DEMISSION',
+  DEMISSION = 'DEMISSION',
+  IN_ADMISSION = 'IN_ADMISSION',
+  ADMISSION = 'ADMISSION',
+  IN_TRANS = 'IN_TRANS',
 }

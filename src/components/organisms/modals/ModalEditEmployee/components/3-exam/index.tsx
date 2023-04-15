@@ -22,7 +22,7 @@ export const ExamHistoryStep = (props: IUseEditEmployee) => {
       onClick: () => onSubmit(),
     },
   ] as IModalButton[];
-
+  console.log(99, employee);
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
@@ -33,6 +33,7 @@ export const ExamHistoryStep = (props: IUseEditEmployee) => {
           <HistoryEmployeeExamTable
             employee={employee}
             employeeId={employee.id}
+            companyId={employee.companyId}
           />
         )}
       </AnimatedStep>

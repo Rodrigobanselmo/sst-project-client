@@ -105,7 +105,11 @@ export const HistoryEmployeeExamTable: FC<
       onStackOpenModal(ModalEnum.MODAL_BLANK, {
         onSelect: (data: any) => {
           updateEmployee
-            .mutateAsync({ lastExam: data.startDate, id: employeeId })
+            .mutateAsync({
+              lastExam: data.startDate,
+              id: employeeId,
+              companyId: _companyId,
+            })
             .catch(() => {});
         },
         content: (setData: any, data: any) => (

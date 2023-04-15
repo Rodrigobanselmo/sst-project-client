@@ -12,7 +12,7 @@ export const StatusSelect: FC<IStatusSelectProps> = ({
   selected,
   statusOptions,
   expiresDate,
-  options = statusOptionsConstant,
+  options = statusOptionsConstant as any,
   ...props
 }) => {
   return (
@@ -32,13 +32,15 @@ export const StatusSelect: FC<IStatusSelectProps> = ({
       text={selected ? options[selected]?.name : ''}
       large
       icon={CircleTwoToneIcon}
+      {...props}
       iconProps={{
+        ...props.iconProps,
         sx: {
           color: selected ? options[selected]?.color : undefined,
           fontSize: '15px',
+          ...props.iconProps?.sx,
         },
       }}
-      {...props}
     />
   );
 };

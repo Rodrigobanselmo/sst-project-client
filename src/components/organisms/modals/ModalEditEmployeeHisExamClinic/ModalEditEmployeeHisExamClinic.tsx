@@ -115,7 +115,19 @@ export const ModalEditEmployeeHisExamClinic = () => {
           onClose={onCloseUnsaved}
           title={'Dados Agendamento'}
         />
-        <Box mb={10}>
+
+        <Box
+          sx={{
+            p: 12,
+            pt: 8,
+            border: '1px solid',
+            borderRadius: 1,
+            borderColor: 'grey.400',
+            backgroundColor: 'white',
+          }}
+        >
+          <SText color="text.label">Dados do funcinário</SText>
+          <Divider sx={{ mb: 16, mt: 3 }} />
           <SFlex flexWrap="wrap" gap={5} mb={10}>
             <Box flex={2}>
               <InputForm
@@ -236,9 +248,10 @@ export const ModalEditEmployeeHisExamClinic = () => {
         <Box
           sx={{
             p: 12,
+            pt: 8,
             border: '1px solid',
             borderRadius: 1,
-            borderColor: 'gray.400',
+            borderColor: 'grey.400',
             backgroundColor: 'white',
             mt: 10,
           }}
@@ -416,9 +429,10 @@ export const ModalEditEmployeeHisExamClinic = () => {
         <Box
           sx={{
             p: 12,
+            pt: 8,
             border: '1px solid',
             borderRadius: 1,
-            borderColor: 'gray.400',
+            borderColor: 'grey.400',
             backgroundColor: 'white',
             mt: 15,
           }}
