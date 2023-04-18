@@ -1,6 +1,6 @@
 import { MutableRefObject } from 'react';
 
-import { BoxProps, PopperPlacementType } from '@mui/material';
+import { BoxProps, PopperPlacementType, PopperProps } from '@mui/material';
 
 export interface IPopperProps extends BoxProps {
   isOpen: boolean;
@@ -9,4 +9,5 @@ export interface IPopperProps extends BoxProps {
   color?: 'dark' | 'paper' | 'darkPaper' | 'default';
   disabledArrow?: boolean;
   placement?: PopperPlacementType;
+  popperProps?: Partial<PopperProps>;
 }

@@ -22,11 +22,13 @@ export const EvaluationSelect: FC<IStatusSelectProps> = ({
         value: type.value,
       }))}
       tooltipTitle={selected && employeeExamEvaluationTypeMap[selected].content}
-      text={selected ? employeeExamEvaluationTypeMap[selected].content : ''}
-      large
-      icon={
-        selected ? employeeExamEvaluationTypeMap[selected].icon : SCancelIcon
+      text={
+        selected
+          ? employeeExamEvaluationTypeMap[selected].content
+          : 'Sem avaliação'
       }
+      large
+      icon={selected ? employeeExamEvaluationTypeMap[selected].icon : null}
       iconMenu={() => <></>}
       iconProps={{
         sx: {

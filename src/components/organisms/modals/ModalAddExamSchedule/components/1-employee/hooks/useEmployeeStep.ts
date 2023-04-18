@@ -19,6 +19,8 @@ import { queryClient } from 'core/services/queryClient';
 import { isShouldDemissionBlock } from 'core/utils/helpers/demissionalBlockCalc';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
+import { useSnackbar } from 'notistack';
+import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
 
 export const useEmployeeStep = ({
   data,
@@ -30,8 +32,11 @@ export const useEmployeeStep = ({
   fetchClinic,
   ...rest
 }: IUseEditEmployee) => {
-  const { trigger, getValues, control, reset, setValue } = useFormContext();
+  const { trigger, getValues, control, setError, reset, setValue, setFocus } =
+    useFormContext();
   const { nextStep, stepCount, goToStep } = useWizard();
+  const { enqueueSnackbar } = useSnackbar();
+  const updateEmployee = useMutUpdateEmployee();
 
   const findExamsMutation = useMutFindExamByHierarchy();
   const { fetchHisScheduleExam } = useFetchQueryHisScheduleExam();
@@ -251,6 +256,30 @@ export const useEmployeeStep = ({
 
   const onSubmit = async () => {
     const isValid = await trigger(fields);
+    const [sex, birthday, name, email, phone] = getValues([
+      'sex',
+      'birthday',
+      'name',
+      'email',
+      'phone',
+    ]);
+
+    if (!sex || !birthday) {
+      setFocus('sex');
+      if (!sex) setError('sex', { message: 'Campo Obrigatório' });
+      if (!birthday) setError('birthday', { message: 'Campo Obrigatório' });
+
+      return enqueueSnackbar(
+        'Preencha os dados do funcionário para prosseguir',
+        {
+          anchorOrigin: {
+            vertical: 'top',
+            horizontal: 'center',
+          },
+          variant: 'warning',
+        },
+      );
+    }
 
     if (newHierarchy) {
       if (!data.hierarchy?.id) {
@@ -262,9 +291,20 @@ export const useEmployeeStep = ({
       }
     }
 
-    if (isValid) {
+    if (isValid && employee?.id) {
       // eslint-disable-next-line no-empty-pattern
       const {} = getValues();
+
+      await updateEmployee.mutateAsync({
+        id: employee?.id,
+        name,
+        sex: sex as any,
+        companyId: data.companyId,
+        email,
+        phone,
+        ...(data.birthday && { birthday: data.birthday }),
+      });
+
       data.isPendingExams ? handleEditPendingSubmit() : handleValidSubmit();
     }
   };

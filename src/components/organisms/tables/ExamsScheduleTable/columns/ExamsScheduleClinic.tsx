@@ -19,13 +19,21 @@ import { getTimeList } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IExamsScheduleTable, IExamsScheduleTableProps } from '../types';
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import { PermissionEnum } from 'project/enum/permission.enum';
 
 export const availableScheduleDate = (
   date: Date,
   row: { scheduleRange?: Record<string, string>; isAttendance?: boolean },
-  options?: { afterDate?: Date },
+  options?: { afterDate?: Date; notToday?: boolean },
 ) => {
   const dateJS = dayjs(date);
+
+  if (options?.notToday) {
+    const today = dayjs(); // get the current date and time
+
+    if (today.isSame(dateJS, 'day')) return false;
+  }
 
   if (dateJS.isBefore(dayjs().add(-1, 'day').toDate())) return false;
 
@@ -130,6 +138,8 @@ export const ExamsScheduleClinicColumn: FC<
   isLoadingTime,
   companyId,
 }) => {
+  const { isAuthSuccess } = useAuthShow();
+
   const examType =
     scheduleData.examType && employeeExamTypeMap[scheduleData.examType];
   const isAsk =
@@ -185,7 +195,7 @@ export const ExamsScheduleClinicColumn: FC<
       />
       {row.clinic?.id && (
         <>
-          <SFlex>
+          <SFlex mt={4}>
             <Box flex={1}>
               <DatePickerForm
                 label=""
@@ -214,6 +224,10 @@ export const ExamsScheduleClinicColumn: FC<
                     const isAvailableDate = availableScheduleDate(date, row, {
                       afterDate:
                         lastComplementaryDate && lastComplementaryDate.toDate(),
+                      notToday: !isAuthSuccess({
+                        permissions: [PermissionEnum.CLINIC_SCHEDULE],
+                        cruds: 'u',
+                      }),
                     });
 
                     if (!isAvailableDate) return false;

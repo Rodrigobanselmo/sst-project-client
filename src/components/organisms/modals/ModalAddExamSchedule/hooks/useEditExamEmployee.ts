@@ -26,6 +26,7 @@ export const initialExamScheduleState = {
   employeeId: undefined as number | undefined,
   companyId: undefined as string | undefined,
   examType: undefined as ExamHistoryTypeEnum | undefined,
+  birthday: undefined as Date | undefined,
   hierarchy: undefined as undefined | IHierarchy,
   obs: undefined as undefined | string,
   avaliationExam: undefined as undefined | IExam,
@@ -89,7 +90,11 @@ export const useEditExamEmployee = () => {
       getModalData<Partial<typeof initialExamScheduleState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const replaceData = {} as any;
 

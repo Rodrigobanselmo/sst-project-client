@@ -56,7 +56,7 @@ export const ClinicsTable: FC<
   type,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
-  const filterProps = useFilterTable();
+  const filterProps = useFilterTable(undefined, { setPage });
   const isSelect = !!onSelectData;
 
   const { companies, count, isLoading } = useQueryCompanies(

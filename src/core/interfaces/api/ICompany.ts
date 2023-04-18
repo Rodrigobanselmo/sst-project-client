@@ -10,6 +10,7 @@ import { IContact } from './IContact';
 import { IDailyCompanyReport, IDashboard } from './IDashboard';
 import { IExamToClinic } from './IExam';
 import { IRiskDocument } from './IRiskData';
+import { IProfessional } from './IProfessional';
 
 export interface ICompany {
   id: string;
@@ -48,6 +49,7 @@ export interface ICompany {
   hierarchyCount: number;
   homogenousGroupCount: number;
   professionalCount?: number;
+  doctorResponsible?: IProfessional;
   episCount?: number;
 
   examCount?: number;

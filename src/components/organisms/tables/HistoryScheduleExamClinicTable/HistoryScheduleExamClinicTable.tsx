@@ -60,7 +60,7 @@ export const HistoryScheduleExamClinicTable: FC<
 
   const { data: employee, isLoading: loadQuery } =
     useQueryHisScheduleExamClinic({
-      date: actualDate,
+      date: dayjs(actualDate).format('DD/MM/YYYY'),
       companyId,
       ...query,
     });

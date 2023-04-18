@@ -60,6 +60,7 @@ export const ModalAddEmployeeHistoryExam = () => {
     hideClinicExam,
     uploadMutation,
     uploadExam,
+    onUserSchedule,
   } = useAddData();
 
   const buttons = [
@@ -344,6 +345,24 @@ export const ModalAddEmployeeHistoryExam = () => {
             </SFlex>
           </SFlex>
         )}
+        <SFlex align={'end'} mt={10}>
+          <Box mr="auto">
+            <SText color="text.label" fontSize={'13px'}>
+              Agendado por:{' '}
+              <SText component="span" color="text.light" fontSize={'13px'}>
+                {data.userSchedule?.name} ({data.userSchedule?.email})
+              </SText>
+            </SText>
+            {data.userDone && (
+              <SText color="text.label" fontSize={'13px'}>
+                {onUserSchedule(data)}:{' '}
+                <SText component="span" color="text.light" fontSize={'13px'}>
+                  {data.userDone?.name} ({data.userDone?.email})
+                </SText>
+              </SText>
+            )}
+          </Box>
+        </SFlex>
 
         {!!data.id && (
           <SFlex mt={8} ml={-2}>
@@ -369,7 +388,7 @@ export const ModalAddEmployeeHistoryExam = () => {
         )}
 
         <StatusSelect
-          sx={{ maxWidth: '90px', mt: 10 }}
+          sx={{ maxWidth: '120px', mr: 'auto', mt: 10 }}
           options={statusOptionsConstantExam}
           selected={data.status}
           statusOptions={[
@@ -389,7 +408,7 @@ export const ModalAddEmployeeHistoryExam = () => {
           loading={loading}
           onClose={onCloseUnsaved}
           buttons={buttons}
-        />
+        ></SModalButtons>
       </SModalPaper>
     </SModal>
   );

@@ -1,3 +1,7 @@
+import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
+import { statusEmployeeStepMap } from './../../../../../../core/constants/maps/status-employee-step.map';
+import { StatusEnum } from 'project/enum/status.enum';
+
 export enum FilterFieldEnum {
   COMPANIES = 'companiesIds',
   CLINICS = 'clinicsIds',
@@ -6,11 +10,13 @@ export enum FilterFieldEnum {
   UF = 'uf',
   START_DATE = 'startDate',
   END_DATE = 'endDate',
+  STATUS = 'notInStatus',
 
   // EXAM
   EVALUATION_TYPE = 'notInEvaluationType',
   EXAM_TYPE = 'notInExamType',
   LTE_EXPIRED_EXAM = 'lteExpiredDateExam',
+  EXAM_AVALIATION_EXAM = 'notInAvaliationType',
 
   //ALL
   DOWNLOAD_TYPE = 'downloadType',
@@ -65,6 +71,14 @@ export const filterFieldMap: IMap = {
     value: FilterFieldEnum.LTE_EXPIRED_EXAM,
     name: 'Exames a vencer até',
   },
+  [FilterFieldEnum.EXAM_AVALIATION_EXAM]: {
+    value: FilterFieldEnum.EXAM_AVALIATION_EXAM,
+    name: 'remover exames',
+  },
+  [FilterFieldEnum.STATUS]: {
+    value: FilterFieldEnum.STATUS,
+    name: 'Remover status',
+  },
   [FilterFieldEnum.DOWNLOAD_TYPE]: {
     value: FilterFieldEnum.DOWNLOAD_TYPE,
     name: '',
@@ -95,12 +109,23 @@ export const expiredExamFilterList = [
 
 export const employeeFilterList = [FilterFieldEnum.LTE_EXPIRED_EXAM];
 
-export const doneExamsFilterList = [
-  FilterFieldEnum.CLINICS,
-  FilterFieldEnum.EXAM_TYPE,
-  FilterFieldEnum.EVALUATION_TYPE,
-  FilterFieldEnum.COMPANIES,
-  FilterFieldEnum.COMPANIES_GROUP,
-  FilterFieldEnum.START_DATE,
-  FilterFieldEnum.END_DATE,
-];
+export const doneExamsFilterList = {
+  fields: [
+    FilterFieldEnum.CLINICS,
+    FilterFieldEnum.EXAM_TYPE,
+    FilterFieldEnum.EVALUATION_TYPE,
+    FilterFieldEnum.COMPANIES,
+    FilterFieldEnum.COMPANIES_GROUP,
+    FilterFieldEnum.START_DATE,
+    FilterFieldEnum.END_DATE,
+    FilterFieldEnum.EXAM_AVALIATION_EXAM,
+    FilterFieldEnum.STATUS,
+  ],
+  statusOptions: [
+    StatusEnum.DONE,
+    StatusEnum.PROCESSING,
+    StatusEnum.EXPIRED,
+    StatusEnum.CANCELED,
+  ],
+  statusSchema: statusOptionsConstantExam,
+};

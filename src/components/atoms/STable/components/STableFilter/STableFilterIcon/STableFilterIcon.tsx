@@ -26,11 +26,28 @@ export const STableFilterIcon: React.FC<IFilterIconProps> = (filterProps) => {
   return (
     <>
       <STableButton
+        boxProps={{ ml: 'auto' }}
+        variant="outlined"
+        iconColor="gray.600"
+        sx={{
+          minWidth: 120,
+          borderRadius: 3,
+          color: 'text.primary',
+          borderColor: 'gray.600',
+          backgroundColor: 'transparent',
+          '&:hover': {
+            backgroundColor: '#00000011',
+            borderColor: 'gray.600',
+            filter: 'brightness(0.8)',
+          },
+        }}
+        sm
         tooltip="Filtro"
         ref={anchorEl}
         onClick={handleClick}
         icon={SFilterIcon}
         color="gray.600"
+        text={'Filtrar'}
       />
 
       <STableFilterPopper

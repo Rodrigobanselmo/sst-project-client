@@ -70,6 +70,7 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
                 flexDirection={['column', 'column', 'row']}
                 alignItems={['start', 'start', 'center']}
                 justifyContent={['start', 'start', 'start']}
+                minHeight={35}
               >
                 <Box width={['100%', '100%', 'fit-content']}>
                   <SAuthShow
@@ -128,11 +129,13 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
 
                 {isSelected && (
                   <>
-                    <ExamsScheduleClinicColumn
-                      {...props}
-                      row={row}
-                      handleDebounceChange={handleDebounceChange}
-                    />
+                    <Box mt={showDueInDays ? 2 : -2}>
+                      <ExamsScheduleClinicColumn
+                        {...props}
+                        row={row}
+                        handleDebounceChange={handleDebounceChange}
+                      />
+                    </Box>
                     {!showDueInDays && <Box mt={[5, 5, 0]} />}
                     {showDueInDays && (
                       <TextIconRow

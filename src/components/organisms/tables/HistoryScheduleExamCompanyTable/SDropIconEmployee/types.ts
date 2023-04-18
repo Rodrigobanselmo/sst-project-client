@@ -1,10 +1,7 @@
 import { MouseEvent } from 'react';
 
 import { ICompany } from 'core/interfaces/api/ICompany';
-import {
-  IEmployee,
-  IEmployeeExamsHistory,
-} from 'core/interfaces/api/IEmployee';
+import { IEmployee } from 'core/interfaces/api/IEmployee';
 
 export interface ISIconUpload {
   disabled?: boolean;
@@ -13,14 +10,11 @@ export interface ISIconUpload {
   isTag?: boolean;
   isMenu?: boolean;
   loading?: boolean;
-  skipOS?: boolean;
-  skipGuia?: boolean;
-  employee: IEmployee;
-  company: ICompany;
+  employee?: IEmployee;
   isScheduled?: boolean;
-  isExpired?: boolean;
-  canSchedule?: boolean;
+  isAvaliation?: boolean;
+  asoId?: number;
+  onReSchedule: () => void;
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
   onEditEmployee: (employee: IEmployee) => void;
-  exam?: IEmployeeExamsHistory;
 }

@@ -45,6 +45,8 @@ import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
+import { SDropIconEmployee } from '../EmployeesTable/components/SDropIconEmployee/SDropIconEmployee';
+import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
 
 export const getEmployeeRowStatus = (data?: IEmployee) => {
   const exam = data?.examsHistory?.[0];
@@ -162,6 +164,7 @@ export const HistoryExpiredExamCompanyTable: FC<
   const filterProps = useFilterTable(undefined, {
     key: 'historyExpiredExamCompanyTable',
     timeout: 60 * 60 * 1000,
+    setPage,
   });
 
   const {
@@ -212,23 +215,25 @@ export const HistoryExpiredExamCompanyTable: FC<
     }
   };
 
-  const getRowColor = (status: StatusEnum): ITableRowStatus | undefined => {
-    if (status === StatusEnum.DONE) return 'info';
-    if (status === StatusEnum.EXPIRED) return 'inactive';
-    if (status === StatusEnum.CANCELED) return 'inactive';
-    return undefined;
+  const onEditEmployee = (employee: IEmployee) => {
+    onStackOpenModal(ModalEnum.EMPLOYEES_ADD, {
+      id: employee.id,
+      companyId: employee.companyId,
+    } as typeof initialEditEmployeeState);
   };
 
   const header: (BoxProps & { text: string; column: string })[] = [
     // { text: '', column: '15px' },
-    { text: 'Funcionário', column: 'minmax(150px, 1fr)' },
+    { text: 'Funcionário', column: 'minmax(200px, 5fr)' },
     { text: 'Empresa', column: '150px' },
-    { text: 'Ultimo Exame', column: '110px' },
-    { text: 'Status', column: '80px' },
+    { text: 'Cargo', column: 'minmax(190px, 1fr)' },
     { text: 'Válidade', column: '180px' },
+    { text: 'Ultimo Exame', column: '110px' },
+    { text: 'Status', column: '90px' },
     { text: '', column: '100px', justifyContent: 'end' },
     // { text: 'Reagendar', column: 'minmax(150px, 1fr)', justifyContent: 'center' },
     // { text: 'Guia', column: '80px', justifyContent: 'center' },
+    { text: 'Editar', column: '40px', justifyContent: 'center' },
   ];
 
   const onRefetchThrottle = useThrottle(() => {
@@ -286,6 +291,9 @@ export const HistoryExpiredExamCompanyTable: FC<
               employee,
               isScheduled,
               aso,
+              canScheduleWith45Days,
+              exam,
+              isExpired,
             } = getEmployeeRowExamData(row);
 
             return (
@@ -297,20 +305,11 @@ export const HistoryExpiredExamCompanyTable: FC<
               >
                 <TextEmployeeRow employee={employee} />
                 <TextCompanyRow fontSize={10} company={company} />
-                <TextIconRow text={lastExam} />
-                <SFlex direction="column">
-                  <StatusSelect
-                    selected={employee.statusStep || employee.status}
-                    large={false}
-                    disabled
-                    iconProps={{ sx: { fontSize: 10 } }}
-                    textProps={{ sx: { fontSize: 10 } }}
-                    width={'100%'}
-                    sx={{ width: '100%' }}
-                    options={statusOptionsConstantEmployee}
-                    statusOptions={[]}
-                  />
-                </SFlex>
+                <TextIconRow
+                  text={employee.hierarchy?.name}
+                  fontSize={12}
+                  mr={3}
+                />
                 <SFlex align="center">
                   <Box
                     sx={{
@@ -329,6 +328,20 @@ export const HistoryExpiredExamCompanyTable: FC<
                     sx={{ textDecoration: 'underline' }}
                     justifyContent="center"
                     text={validity}
+                  />
+                </SFlex>
+                <TextIconRow text={lastExam} />
+                <SFlex direction="column">
+                  <StatusSelect
+                    selected={employee.statusStep || employee.status}
+                    large={false}
+                    disabled
+                    iconProps={{ sx: { fontSize: 10 } }}
+                    textProps={{ sx: { fontSize: 10 } }}
+                    width={'100%'}
+                    sx={{ width: '100%' }}
+                    options={statusOptionsConstantEmployee}
+                    statusOptions={[]}
                   />
                 </SFlex>
                 <SFlex justify="end">
@@ -370,6 +383,20 @@ export const HistoryExpiredExamCompanyTable: FC<
                       }
                     /> */}
                   </Box>
+                </SFlex>
+                <SFlex center>
+                  <SDropIconEmployee
+                    employee={employee}
+                    company={{ ...employee.company, id: employee.companyId }}
+                    loading={loadQuery || isFetching || isRefetching}
+                    isScheduled={isScheduled}
+                    isExpired={isExpired}
+                    onEditEmployee={onEditEmployee}
+                    canSchedule={canScheduleWith45Days}
+                    exam={exam}
+                    skipOS
+                    skipGuia
+                  />
                 </SFlex>
               </STableRow>
             );

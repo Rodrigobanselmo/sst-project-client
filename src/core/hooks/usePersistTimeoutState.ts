@@ -14,6 +14,7 @@ export function usePersistTimeoutState<T>(
     if (
       timeout &&
       storageValue &&
+      storageValue != '{}' &&
       (!timestamp || Date.now() - Number(timestamp) < timeout)
     ) {
       return JSON.parse(storageValue);
@@ -21,6 +22,21 @@ export function usePersistTimeoutState<T>(
 
     return initialState;
   });
+
+  useEffect(() => {
+    const event = localStorage.getItem(`${key}_event`);
+
+    const clearCache = () => {
+      localStorage.removeItem(key);
+      localStorage.removeItem(`${key}_timestamp`);
+      localStorage.removeItem(`${key}_event`);
+    };
+
+    if (!event) {
+      localStorage.setItem(`${key}_event`, 'true');
+      window.addEventListener('beforeunload', clearCache);
+    }
+  }, [key]);
 
   useEffect(() => {
     if (timeout) {

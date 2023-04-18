@@ -1,8 +1,12 @@
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
+import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
-import { IEmployeeExamsHistory } from 'core/interfaces/api/IEmployee';
+import {
+  IEmployee,
+  IEmployeeExamsHistory,
+} from 'core/interfaces/api/IEmployee';
 
 export const useScheduleExam = () => {
   const { onStackOpenModal } = useModal();
@@ -21,5 +25,12 @@ export const useScheduleExam = () => {
     } as Partial<typeof initialExamScheduleState>);
   };
 
-  return { onAdd, onReSchedule, onStackOpenModal };
+  const onEditEmployee = (employee: IEmployee) => {
+    onStackOpenModal(ModalEnum.EMPLOYEES_ADD, {
+      id: employee.id,
+      companyId: employee.companyId,
+    } as typeof initialEditEmployeeState);
+  };
+
+  return { onAdd, onReSchedule, onStackOpenModal, onEditEmployee };
 };

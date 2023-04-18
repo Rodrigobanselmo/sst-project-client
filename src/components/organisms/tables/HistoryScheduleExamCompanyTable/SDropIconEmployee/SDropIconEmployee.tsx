@@ -16,10 +16,11 @@ import { SOsIcon } from 'assets/icons/SOsIcon';
 
 import { RoutesEnum } from 'core/enums/routes.enums';
 
-import { SMenu } from '../../../../../molecules/SMenu';
-import { IMenuSearchOption } from '../../../../../molecules/SMenuSearch/types';
-import { IAnchorEvent } from '../../../../../molecules/STagSelect/types';
+import { SMenu } from '../../../../molecules/SMenu';
+import { IMenuSearchOption } from '../../../../molecules/SMenuSearch/types';
+import { IAnchorEvent } from '../../../../molecules/STagSelect/types';
 import { ISIconUpload } from './types';
+import { onGetExamPdfRoute } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 
 export const SDropIconEmployee: FC<ISIconUpload> = ({
   handleSelectMenu,
@@ -29,44 +30,41 @@ export const SDropIconEmployee: FC<ISIconUpload> = ({
   isMenu = true,
   loading,
   employee,
-  company,
   onEditEmployee,
+  onReSchedule,
   isScheduled,
-  isExpired,
-  canSchedule,
-  exam,
-  skipOS,
-  skipGuia,
+  asoId,
+  isAvaliation,
 }) => {
   const [anchorEl, setAnchorEl] = useState<IAnchorEvent>(null);
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  const { onReSchedule } = useScheduleExam();
-
-  const companyId = company.id;
-  const employeeId = employee.id;
+  const employeeId = employee?.id;
+  const companyId = employee?.companyId;
 
   const handleSelect = async (
     option: IMenuSearchOption,
     e: MouseEvent<HTMLLIElement>,
   ) => {
     e.stopPropagation();
-    if (option.value == 'OS') {
-      onDownloadOS(employeeId, companyId);
-    }
     if (option.value == 'SCHEDULE') {
-      onReSchedule({
-        employee,
-        ...(isScheduled && { ...exam }),
-      });
+      onReSchedule();
     }
     if (option.value == 'GUIA') {
-      onDownloadPdf(RoutesEnum.PDF_GUIDE, { employeeId, companyId });
+      if (companyId)
+        onDownloadPdf(RoutesEnum.PDF_GUIDE, { employeeId, companyId });
+    }
+    if (option.value == 'KIT') {
+      onDownloadPdf(onGetExamPdfRoute({ isAvaliation }), {
+        employeeId,
+        companyId,
+        asoId,
+      });
     }
     if (option.value == 'EDIT') {
-      onEditEmployee?.(employee);
+      employee && onEditEmployee?.(employee);
     }
 
     handleSelectMenu && handleSelectMenu(option, e);
@@ -79,8 +77,7 @@ export const SDropIconEmployee: FC<ISIconUpload> = ({
 
   const scheduleTypeString = () => {
     if (isScheduled) return 'Reagendar Exame';
-    if (isExpired || canSchedule) return 'Agendar Exame';
-    return 'Exame na valídade';
+    return 'Agendar Exame';
   };
 
   const options: {
@@ -92,35 +89,28 @@ export const SDropIconEmployee: FC<ISIconUpload> = ({
     iconColor?: string;
     icon?: any;
   }[] = [
-    ...(!skipOS
-      ? [
-          {
-            name: 'Baixar Ordem de Serviço (OS)',
-            value: 'OS',
-            disabled: !companyId || !employeeId || disabled,
-            icon: SOsIcon,
-          },
-        ]
-      : []),
-    ...(!skipGuia && isScheduled
+    ...(isScheduled
       ? [
           {
             name: 'Baixar Guia',
             value: 'GUIA',
             icon: SDocumentIcon,
             disabled: !companyId || !employeeId || disabled,
-            color: 'primary.main',
-            iconColor: 'primary.main',
           },
         ]
       : []),
     {
+      name: 'Baixar Kit',
+      value: 'KIT',
+      icon: SDocumentIcon,
+      disabled: !companyId || !employeeId || !asoId || disabled,
+    },
+    {
       name: scheduleTypeString(),
       value: 'SCHEDULE',
       icon: SCalendarIcon,
-      disabled:
-        !companyId || !employeeId || disabled || (!canSchedule && !isExpired),
-      ...((isExpired || isScheduled) && {
+      disabled: !companyId || !employeeId,
+      ...(isScheduled && {
         color: 'info.main',
         iconColor: 'info.main',
       }),

@@ -16,9 +16,9 @@ import {
   IExamToRisk,
 } from 'core/interfaces/api/IExam';
 import {
-  ICreateClientExam,
-  useMutUpsertClientExam,
-} from 'core/services/hooks/mutations/checklist/exams/useMutUpsertClientExam/useMutCreateClientExam';
+  ICreateClinicExam,
+  useMutUpsertClinicExam,
+} from 'core/services/hooks/mutations/checklist/exams/useMutUpsertClinicExam/useMutCreateClinicExam';
 import { useQueryClinicExams } from 'core/services/hooks/queries/useQueryClinicExams/useQueryClinicExams';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { dateToDateLessTime } from 'core/utils/date/date-format';
@@ -29,6 +29,7 @@ import {
 import { moneyConverter } from 'core/utils/helpers/money';
 
 import { clinicExamsSchema } from './../../../../../core/utils/schemas/clinicExams.schema';
+import { useMutDeleteClinicExam } from 'core/services/hooks/mutations/checklist/exams/useMutDeleteClinicExam/useMutDeleteClinicExam';
 
 export const initialClinicExamState = {
   id: 0,
@@ -74,10 +75,11 @@ export const useEditClinicExams = () => {
   const { handleSubmit, setValue, setError, control, reset, getValues } =
     useForm({ resolver: yupResolver(clinicExamsSchema) });
 
-  const upsertMutation = useMutUpsertClientExam();
+  const upsertMutation = useMutUpsertClinicExam();
+  const deleteMutation = useMutDeleteClinicExam();
   // const updateMutation = useMutUpdateExam();
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const initialDataRef = useRef(initialClinicExamState);
   const [clinicExamData, setClinicExamData] = useState({
@@ -160,7 +162,7 @@ export const useEditClinicExams = () => {
       return setError('startDate', { message: 'Data de início obrigatório' });
     }
 
-    const submitData: ICreateClientExam = {
+    const submitData: ICreateClinicExam = {
       ...data,
       dueInDays,
       companyId: clinicExamData.companyId,
@@ -194,6 +196,26 @@ export const useEditClinicExams = () => {
     }));
   };
 
+  const onDelete = async (id: number) => {
+    preventDelete(() => {
+      deleteMutation
+        .mutateAsync({ id, companyId: company.id })
+        .then(() => {
+          onClose();
+          if (allClinicExams.length != 1)
+            setTimeout(() => {
+              onStackOpenModal(
+                modalName,
+                allClinicExams.find(
+                  (clinicExam) => clinicExam.id != Number(id),
+                ),
+              );
+            }, 10);
+        })
+        .catch(() => null);
+    });
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -213,6 +235,8 @@ export const useEditClinicExams = () => {
     onStackOpenModal,
     onSelectCheck,
     isDocConsult,
+    onDelete,
+    loadDelete: deleteMutation.isLoading,
   };
 };
 

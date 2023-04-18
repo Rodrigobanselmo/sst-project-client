@@ -20,8 +20,15 @@ export const useAuthShow = () => {
           const permissionInit = permission.split('-')[0];
           return user.permissions?.find((userPerm) => {
             const splitPer = userPerm.split('-');
-            if (!cruds) return splitPer[0] == permissionInit;
-            return cruds.split('').every((crud) => splitPer[1].includes(crud));
+
+            const isValidPermission = splitPer[0] == permissionInit;
+            if (!cruds) return isValidPermission;
+
+            const isValidCrud = cruds
+              .split('')
+              .every((crud) => splitPer[1].includes(crud));
+
+            return isValidPermission && isValidCrud;
           });
         })
       )

@@ -11,12 +11,16 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 
 export interface IUpdateEmployee {
   name?: string;
   cpf?: string;
   hierarchyId?: string;
   cbo?: string;
+  email?: string;
+  phone?: string;
+  sex?: SexTypeEnum;
   status?: StatusEnum;
   companyId?: string;
   lastExam?: Date | null;

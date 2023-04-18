@@ -4,17 +4,12 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
 import clone from 'clone';
-import { onDownloadPdf } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
 import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { IExamComplementsClinicTable } from 'components/organisms/tables/ExamsComplementsClinicTable/ExamsComplementsClinicTable';
-import { IExamComplementsTable } from 'components/organisms/tables/ExamsComplementsTable/ExamsComplementsTable';
 import { useSnackbar } from 'notistack';
-import { ExamHistoryConclusionEnum } from 'project/enum/employee-exam-history-conclusion.enum';
 import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
-import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -23,27 +18,20 @@ import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useTableSelect } from 'core/hooks/useTableSelect';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { IEmployee } from 'core/interfaces/api/IEmployee';
-import { IExam } from 'core/interfaces/api/IExam';
-import { IProfessional } from 'core/interfaces/api/IProfessional';
-import { useMutFindExamByHierarchy } from 'core/services/hooks/mutations/checklist/exams/useMutFindExamByHierarchy/useMutUpdateExamRisk';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import {
-  ICreateEmployeeExamHistory,
-  useMutCreateEmployeeHisExam,
-} from 'core/services/hooks/mutations/manager/employee-history-exam/useMutCreateEmployeeHisExam/useMutCreateEmployeeHisExam';
-import { useMutDeleteEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutDeleteEmployeeHisExam/useMutDeleteEmployeeHisExam';
-import { useMutFindByIdEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutFindByIdEmployeeHisExam/useMutFindByIdEmployeeHisExam';
-import { useMutUpdateEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateEmployeeHisExam/useMutUpdateEmployeeHisExam';
+  IEmployee,
+  IEmployeeExamsHistory,
+} from 'core/interfaces/api/IEmployee';
+import { IProfessional } from 'core/interfaces/api/IProfessional';
 import {
   IUpdateManyScheduleExamHistory,
   useMutUpdateManyScheduleHisExam,
 } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { useMutUploadEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUploadEmployeeHisExam/useMutUploadEmployeeHisExam';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { dateToDate } from 'core/utils/date/date-format';
 
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
+import { initialExamScheduleState } from '../../ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { SModalInitContactProps } from '../types';
 
 export const onGetExamPdfRoute = ({
@@ -55,6 +43,13 @@ export const onGetExamPdfRoute = ({
   return RoutesEnum.PDF_KIT_EXAM;
 };
 
+export const onUserSchedule = (examHistory: IEmployeeExamsHistory) => {
+  if (examHistory.status == StatusEnum.DONE) return 'Realizado por';
+  if (examHistory.status == StatusEnum.CANCELED) return 'Cancelado por';
+
+  return 'Editado por';
+};
+
 export const initialEditEmployeeHistoryExamState = {
   doctor: undefined,
   status: undefined,
@@ -62,8 +57,10 @@ export const initialEditEmployeeHistoryExamState = {
 } as Partial<
   IEmployee & {
     doctor?: IProfessional;
+    clinic?: ICompany;
     status?: undefined | StatusEnum;
     evaluationType?: ExamHistoryEvaluationEnum;
+    reScheduleExamData?: IEmployeeExamsHistory;
   }
 >;
 
@@ -125,7 +122,11 @@ export const useAddData = () => {
 
     const setInitialData = async () => {
       // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+      if (
+        initialData &&
+        Object.keys(initialData)?.length &&
+        !(initialData as any).passBack
+      ) {
         setData((oldData) => {
           const clinicExam = initialData?.examsHistory?.find(
             (e) => e.exam?.isAttendance || e.exam?.isAvaliation,
@@ -181,16 +182,18 @@ export const useAddData = () => {
         employeeId: data.id,
         id: examData.id,
         conclusion: examData.conclusion,
-        status: data.status || examData.status,
+        status: examData.status,
       };
 
       if (examData.exam?.isAttendance) {
         if (data.evaluationType) submit.evaluationType = data.evaluationType;
-        if (data.doctor?.id) {
-          submit.doctorId = data.doctor.id;
-          if (!data.status || data.status === StatusEnum.PROCESSING)
-            submit.status = StatusEnum.DONE;
-        }
+
+        submit.status = data.status;
+        // if (data.doctor?.id) {
+        //   submit.doctorId = data.doctor.id;
+        //   if (!data.status || data.status === StatusEnum.PROCESSING)
+        //     submit.status = StatusEnum.DONE;
+        // }
       }
 
       submitData.data.push(submit);
@@ -290,6 +293,12 @@ export const useAddData = () => {
     setData((old) => ({
       ...old,
       status: StatusEnum.DONE,
+      examsHistory: data.examsHistory?.map((e) => ({
+        ...e,
+        ...(e.status == StatusEnum.PROCESSING && {
+          status: StatusEnum.DONE,
+        }),
+      })),
     }));
 
     enqueueSnackbar('Exame realizado com sucesso', {
@@ -298,6 +307,21 @@ export const useAddData = () => {
         horizontal: 'center',
       },
       variant: 'success',
+    });
+  };
+
+  const onChangeStatusToCancel = async () => {
+    setData((old) => ({
+      ...old,
+      status: StatusEnum.CANCELED,
+    }));
+
+    enqueueSnackbar('Exame cancelado com sucesso', {
+      anchorOrigin: {
+        vertical: 'top',
+        horizontal: 'center',
+      },
+      variant: 'warning',
     });
   };
 
@@ -415,6 +439,25 @@ export const useAddData = () => {
     } as Partial<typeof initialFileUploadState>);
   };
 
+  const onReSchedule = () => {
+    const exam = data.reScheduleExamData;
+
+    if (exam)
+      onStackOpenModal(ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE, {
+        examType: exam.examType,
+        hierarchyId: exam.hierarchyId,
+        subOfficeId: exam.subOfficeId,
+        companyId: exam?.employee?.companyId,
+        employeeId: exam?.employee?.id,
+      } as Partial<typeof initialExamScheduleState>);
+  };
+
+  const onGetExamType = (clinicExam: IEmployeeExamsHistory) => {
+    if (clinicExam.examType) return clinicExam.examType;
+
+    return '';
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -444,5 +487,8 @@ export const useAddData = () => {
     isAvaliation,
     showIfKitMedico,
     onChangeStatusToDone,
+    onReSchedule,
+    onChangeStatusToCancel,
+    onGetExamType,
   };
 };

@@ -22,6 +22,10 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { sm } from '../../styles/main.pdf.styles';
 import { s } from './styles';
+import {
+  getAddressCityState,
+  getAddressMain,
+} from 'core/utils/helpers/getAddress';
 
 Font.register({
   family: 'Open Sans',
@@ -51,6 +55,8 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
   const consultant = aso.consultantCompany;
   const actualCompany = aso.actualCompany;
   const clinicExam = aso?.clinicExam;
+  const clinic = clinicExam.clinic;
+  const clinicDoc = clinic?.doctorResponsible;
   // const prontuario = data.prontuario;
   // const clinic = clinicExam?.clinic;
   const complementary = aso.doneExams.filter((e) => !e.exam.isAttendance);
@@ -66,28 +72,63 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
     <Page style={s.page}>
       <View>
         {/* title */}
-        <>
-          <Text style={[s.header]}>A.S.O - ATESTADO DE SAÚDE OCUPACIONAL</Text>
-          <View style={{ flexDirection: 'row', marginBottom: 20 }}>
-            <View style={{ flexGrow: 1 }}>
-              <Text style={sm.title}>
-                {consultant?.name}{' '}
-                <Text style={sm.subTitle}>
-                  {consultant?.contacts?.[0]?.phone};{' '}
-                  {consultant?.contacts?.[0]?.email}
-                </Text>
-              </Text>
-            </View>
-            <View style={{ flexGrow: 1 }}>
-              <Image
-                style={sm.image}
-                src={
-                  consultant?.logoUrl + '?noCache=' + Math.random().toString()
-                }
-              />
+        <View style={{ marginBottom: 10 }}>
+          <View style={{ flexDirection: 'row' }}>
+            <Image
+              style={s.image}
+              src={consultant?.logoUrl + '?noCache=' + Math.random().toString()}
+            />
+            <Text style={[s.header]}>
+              A.S.O - ATESTADO DE SAÚDE OCUPACIONAL
+            </Text>
+            <View
+              style={[
+                s.image,
+                { justifyContent: 'center', alignItems: 'flex-end' },
+              ]}
+            >
+              <Text style={[s.title]}>{clinicExam.id}</Text>
             </View>
           </View>
-        </>
+          <View style={{ flexDirection: 'row' }}>
+            <View style={{ flexGrow: 1, textAlign: 'center' }}>
+              <Text style={s.title}>{consultant?.name} </Text>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={sm.subTitle}>
+                  {getAddressMain(consultant?.address)}{' '}
+                </Text>
+                <Text style={sm.subTitle}>
+                  {getAddressCityState(consultant?.address)}{' '}
+                </Text>
+                <Text style={sm.subTitle}>
+                  -{' '}
+                  {consultant?.contacts?.[0]?.phone ||
+                    consultant?.contacts?.[0]?.email}
+                </Text>
+              </View>
+            </View>
+          </View>
+          <View style={[{ flexGrow: 1, marginTop: 5 }]}>
+            <Text style={[sm.subTitle, { fontSize: 8 }]}>
+              Clínica credenciada: {clinic?.fantasy} -{' '}
+              {getAddressCityState(clinic?.address)} -{' '}
+              {consultant?.contacts?.[0]?.phone ||
+                consultant?.contacts?.[0]?.email}
+            </Text>
+            {clinicDoc && (
+              <Text style={sm.subTitle2}>
+                Responsável técnico: {clinicDoc.name} - {clinicDoc.councilId}{' '}
+                {clinicDoc.councilUF}
+              </Text>
+            )}
+          </View>
+        </View>
 
         {/* 1 Empresa */}
         <>

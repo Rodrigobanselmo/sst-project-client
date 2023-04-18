@@ -13,7 +13,7 @@ const standard: ReturnType<typeof StyleSheet.create> = {
 
 export const s = StyleSheet.create({
   page: {
-    paddingTop: 30,
+    paddingTop: 20,
     paddingBottom: 30,
     paddingHorizontal: 30,
     fontFamily: 'Open Sans',
@@ -21,6 +21,18 @@ export const s = StyleSheet.create({
     justifyContent: 'space-between',
     display: 'flex',
     flexDirection: 'column',
+  },
+  image: {
+    width: 100,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: 'black',
+    textAlign: 'center',
   },
   tableH: {
     ...standard.table,
@@ -67,6 +79,11 @@ export const s = StyleSheet.create({
     // paddingVertical: 1,
     borderRadius: 10,
   },
+  tableClinicBox: {
+    border: '1 solid #555',
+    padding: 2,
+  },
+
   tableBox: {
     border: '1 solid #000',
   },
@@ -100,9 +117,13 @@ export const s = StyleSheet.create({
     marginRight: 4,
   },
   header: {
+    marginTop: 10,
     fontSize: 12,
     marginBottom: 10,
     textAlign: 'center',
+    width: '100%',
+    flex: 1,
+    flexGrow: 1,
     fontWeight: 'extrabold',
     color: 'black',
   },

@@ -10,7 +10,7 @@ export const TableCheckSelectAll: FC<{
 }> = ({ onToggleAll, isSelected }) => {
   return (
     <Box my={-5}>
-      <STooltip title="Selecionar todos">
+      <STooltip title="Selecionar todos" placement="right">
         <SCheckBox
           label=""
           onChange={() => {

@@ -23,6 +23,7 @@ export const STableFilterPopper: FC<IFilterPopperProps> = ({
       close={close}
       color="paper"
       placement="bottom-start"
+      popperProps={{ disablePortal: true }}
       sx={{
         transform: 'translate(6px, 15px)',
         width: ['90%', 400],
@@ -32,9 +33,9 @@ export const STableFilterPopper: FC<IFilterPopperProps> = ({
         color: 'text.main',
       }}
     >
-      <SText color="text.secondary" fontSize={13}>
+      {/* <SText color="text.light" fontWeight={'600'} fontSize={13}>
         Filtrar por:
-      </SText>
+      </SText> */}
       <STableFilterBox closePopper={close} filterProps={filterProps} />
     </SPopperArrow>
   );

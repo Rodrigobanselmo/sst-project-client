@@ -46,7 +46,7 @@ export const FilterTag: FC<IFilterTagProps> = ({
               noBreak
               fontSize={10}
             >
-              {filterFieldMap[tag.field].name}
+              {filterFieldMap[tag.field]?.name}
             </SText>
           )}
           <SText maxWidth={maxWidth || '150px'} noBreak fontSize={11}>

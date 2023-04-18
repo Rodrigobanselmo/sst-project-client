@@ -33,8 +33,8 @@ export const ClinicInputSelect: FC<IClinicSelectProps> = ({
 
   const { companies, isLoading } = useQueryCompanies(
     1,
-    { search, isClinic: true, ...query },
-    50,
+    { search, isClinic: true, disabled: props.disabled, ...query },
+    20,
   );
 
   const onAddClinic = () => {
@@ -67,6 +67,14 @@ export const ClinicInputSelect: FC<IClinicSelectProps> = ({
         setSearch('');
       }}
       {...props}
+      {...(props.disabled && {
+        sx: {
+          '.MuiAutocomplete-endAdornment': {
+            display: 'none',
+          },
+          ...props.sx,
+        },
+      })}
       noOptionsText={
         <SFlex gap={8}>
           {addMore && (

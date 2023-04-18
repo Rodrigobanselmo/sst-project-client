@@ -1,7 +1,7 @@
-import { FC } from 'react';
+import { FC, useState } from 'react';
 import { Control, FieldValues, UseFormSetValue } from 'react-hook-form';
 
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import {
   STable,
@@ -34,6 +34,7 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEmployeeExamsHistory } from 'core/interfaces/api/IEmployee';
 import { dateToDate, dateToString } from 'core/utils/date/date-format';
 import { intMask } from 'core/utils/masks/int.mask';
+import { onUserSchedule } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 
 export interface IExamComplementsClinicTable extends IEmployeeExamsHistory {}
 
@@ -67,6 +68,12 @@ export const ExamsComplementsClinicTable: FC<
   isLoadingFile,
 }) => {
   const ids = (data || []).map(({ id }) => id);
+  const [openId, setOpenId] = useState(0);
+
+  const onSelectRow = (examData: IExamComplementsClinicTable) => {
+    if (examData.id == openId) return setOpenId(0);
+    return setOpenId(examData.id);
+  };
 
   return (
     <>
@@ -87,15 +94,20 @@ export const ExamsComplementsClinicTable: FC<
           rowsData={data || []}
           hideLoadMore
           renderRow={(row) => {
+            const isOpen = openId === row.id;
             return (
               <STableRow
                 key={row.id}
                 status={row.status === 'DONE' ? 'info' : undefined}
+                onClick={() => onSelectRow(row)}
+                clickable
               >
-                <TableCheckSelect
-                  isSelected={!!onIsSelected?.(row.id)}
-                  onToggleSelected={() => onToggleSelected?.(row.id)}
-                />
+                <Box onClick={(e) => e.stopPropagation()}>
+                  <TableCheckSelect
+                    isSelected={!!onIsSelected?.(row.id)}
+                    onToggleSelected={() => onToggleSelected?.(row.id)}
+                  />
+                </Box>
                 <TextIconRow text={`${dateToString(row?.doneDate)}`} />
                 <TextIconRow text={`${row?.time}`} />
                 <TextIconRow text={row?.exam?.name} />
@@ -144,6 +156,23 @@ export const ExamsComplementsClinicTable: FC<
                   }
                   onUpload={(file) => uploadExam?.({ file, ids: [row.id] })}
                 />
+                {isOpen && (
+                  <Box gridColumn={'1 / 10'} mb={2} mt={-1}>
+                    <SText color="text.label" fontSize={'13px'}>
+                      Clínica: {row.clinic?.fantasy}
+                    </SText>
+                    <SText color="text.label" fontSize={'13px'}>
+                      Agendado por: {row.userSchedule?.name} (
+                      {row.userSchedule?.email})
+                    </SText>
+                    {row.userDone && (
+                      <SText color="text.label" fontSize={'13px'}>
+                        {onUserSchedule(row)}: {row.userDone?.name} (
+                        {row.userDone?.email})
+                      </SText>
+                    )}
+                  </Box>
+                )}
               </STableRow>
             );
           }}

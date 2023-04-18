@@ -34,6 +34,7 @@ import { dateToDate } from 'core/utils/date/date-format';
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
 import { SModalInitContactProps } from '../types';
 import { cleanObjectNullValues } from './../../../../../core/utils/helpers/cleanObjectValues';
+import { IUser } from 'core/interfaces/api/IUser';
 
 export const initialEmployeeHistoryExamState = {
   id: 0 as number | undefined,
@@ -54,6 +55,8 @@ export const initialEmployeeHistoryExamState = {
   status: undefined as undefined | StatusEnum,
   examsData: [] as IExamComplementsTable[],
   hideClinicExam: undefined as undefined | boolean,
+  userDone: undefined as undefined | IUser,
+  userSchedule: undefined as undefined | IUser,
 
   examType: undefined as undefined | ExamHistoryTypeEnum,
   evaluationType: undefined as undefined | ExamHistoryEvaluationEnum,
@@ -105,7 +108,11 @@ export const useAddData = () => {
 
     const setInitialData = async () => {
       // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+      if (
+        initialData &&
+        Object.keys(initialData)?.length &&
+        !(initialData as any).passBack
+      ) {
         const data = initialData.id
           ? await findByMutation
               .mutateAsync({
@@ -380,6 +387,13 @@ export const useAddData = () => {
     });
   };
 
+  const onUserSchedule = (examHistory: typeof data) => {
+    if (examHistory.status == StatusEnum.DONE) return 'Realizado por';
+    if (examHistory.status == StatusEnum.CANCELED) return 'Cancelado por';
+
+    return 'Editado por';
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -405,5 +419,6 @@ export const useAddData = () => {
     hideClinicExam,
     uploadMutation,
     uploadExam,
+    onUserSchedule,
   };
 };

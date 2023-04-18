@@ -11,10 +11,13 @@ import { queryClient } from 'core/services/queryClient';
 import { QueryEnum } from '../../../../enums/query.enums';
 
 interface IQueryClinicEmployeeHistHier {
-  date?: Date;
+  date?: string;
   notAfterDate?: Date;
   companyId?: string;
   examIsAvaliation?: boolean;
+  getClinic?: boolean;
+  getUser?: boolean;
+  getHierarchy?: boolean;
   employeeId?: number;
 }
 

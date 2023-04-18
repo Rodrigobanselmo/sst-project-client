@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Divider } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
 import SText from 'components/atoms/SText';
@@ -29,6 +29,11 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { IUseEditEmployee } from '../../hooks/useEditExamEmployee';
 import { useEmployeeStep } from './hooks/useEmployeeStep';
+import { SBoxPaper } from 'components/atoms/SBoxPaper';
+import { InputForm } from 'components/molecules/form/input';
+import { RadioForm } from 'components/molecules/form/radio';
+import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
+import { dateToDate } from 'core/utils/date/date-format';
 
 export const getSexLabel = (sex?: SexTypeEnum) => {
   if (sex === SexTypeEnum.F) return 'Feminino';
@@ -96,82 +101,111 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
           {employee?.id && (
             <>
               {/* employee */}
-              <Box sx={{ ...border_box }} mb={5}>
-                <SFlex flexWrap="wrap" gap={'20px 10px'} mb={10}>
-                  <Box minWidth="200px" flex={2}>
-                    <SInput
-                      value={employee?.name || ''}
-                      disabled
+
+              <SBoxPaper mb={4}>
+                <SText color="text.label">Dados do funcinário</SText>
+                <Divider sx={{ mb: 16, mt: 3 }} />
+                <SFlex flexWrap="wrap" gap={5} mb={10}>
+                  <Box flex={2}>
+                    <InputForm
+                      defaultValue={employee?.name || ''}
+                      control={control}
+                      name="name"
                       label="Nome do funcionário"
-                      superSmall
+                      size="small"
                       InputLabelProps={{ shrink: true }}
                       labelPosition="center"
-                      variant="standard"
                       sx={{
                         width: ['100%'],
                       }}
                     />
                   </Box>
-                  <Box
-                    flex={1}
-                    minWidth="150px"
-                    maxWidth={['100%', '100%', '150px']}
-                  >
-                    <SInput
-                      value={cpfMask.mask(employee?.cpf) || ''}
-                      disabled
+                  <Box flex={1} maxWidth="200px">
+                    <InputForm
+                      defaultValue={cpfMask.mask(employee.cpf)}
+                      placeholder={'000.000.000-00'}
+                      control={control}
+                      setValue={setValue}
+                      name="cpf"
                       label="CPF"
-                      superSmall
+                      size="small"
                       InputLabelProps={{ shrink: true }}
                       labelPosition="center"
-                      variant="standard"
                       sx={{ width: ['100%'] }}
                     />
                   </Box>
-                  <Box flex={1} minWidth="200px">
-                    <SInput
-                      value={employee?.esocialCode || ''}
-                      disabled
-                      label="Matrícula (eSocial)"
-                      superSmall
-                      InputLabelProps={{ shrink: true }}
-                      labelPosition="center"
-                      variant="standard"
-                      sx={{ width: ['100%'] }}
+                  <Box flex={1} minWidth="250px" maxWidth="150px">
+                    <RadioForm
+                      control={control}
+                      defaultValue={employee.sex}
+                      unmountOnChangeDefault
+                      name="sex"
+                      row
+                      options={[
+                        { label: 'Feminino', value: SexTypeEnum.F },
+                        { label: 'Masculino', value: SexTypeEnum.M },
+                      ]}
                     />
                   </Box>
                 </SFlex>
 
                 <SFlex flexWrap="wrap" gap={5}>
-                  <Box minWidth={['100%', '100%', '400px']} flex={1}>
-                    <SInput
-                      value={employee?.email || ''}
-                      disabled
+                  <Box minWidth="300px" flex={1}>
+                    <InputForm
+                      defaultValue={employee?.email || ''}
+                      control={control}
+                      name="email"
                       label="Email"
-                      superSmall
+                      size="small"
                       InputLabelProps={{ shrink: true }}
                       labelPosition="center"
-                      variant="standard"
                       sx={{
                         width: ['100%'],
                       }}
                     />
                   </Box>
                   <Box flex={1} minWidth="150px" maxWidth="150px">
-                    <SInput
-                      value={phoneMask.mask(employee?.phone) || ''}
-                      disabled
+                    <InputForm
+                      defaultValue={phoneMask.mask(employee?.phone) || ''}
+                      control={control}
+                      name="phone"
                       label="Telefone"
-                      superSmall
+                      size="small"
                       InputLabelProps={{ shrink: true }}
                       labelPosition="center"
-                      variant="standard"
                       sx={{
                         width: ['100%'],
                       }}
                     />
                   </Box>
-                  <Box flex={1} minWidth="50px" maxWidth="50px">
+                  <Box minWidth="200px" maxWidth="200px">
+                    <DatePickerForm
+                      label="data nascimento"
+                      placeholderText={'__/__/__'}
+                      calendarProps={{
+                        open: false,
+                        excludeDateIntervals: [
+                          {
+                            start: dayjs().add(-12, 'y').toDate(),
+                            end: dayjs().add(100, 'y').toDate(),
+                          },
+                        ],
+                      }}
+                      unmountOnChangeDefault
+                      size="small"
+                      control={control}
+                      defaultValue={dateToDate(employee.birthday)}
+                      name="birthday"
+                      InputLabelProps={{ shrink: true }}
+                      onChange={(date) => {
+                        setData({
+                          ...data,
+                          birthday: date instanceof Date ? date : undefined,
+                        });
+                      }}
+                    />
+                  </Box>
+                  <Box flex={1} minWidth="80px" maxWidth="80px">
                     <SInput
                       value={
                         employee?.birthday
@@ -180,31 +214,16 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                       }
                       disabled
                       label="Idade"
-                      superSmall
+                      size="small"
                       InputLabelProps={{ shrink: true }}
                       labelPosition="center"
-                      variant="standard"
-                      sx={{
-                        width: ['100%'],
-                      }}
-                    />
-                  </Box>
-                  <Box flex={1} minWidth="150px" maxWidth="150px">
-                    <SInput
-                      value={getSexLabel(employee?.sex) || ''}
-                      disabled
-                      label="Sexo"
-                      superSmall
-                      InputLabelProps={{ shrink: true }}
-                      labelPosition="center"
-                      variant="standard"
                       sx={{
                         width: ['100%'],
                       }}
                     />
                   </Box>
                 </SFlex>
-              </Box>
+              </SBoxPaper>
 
               {/* company */}
               <Box sx={{ ...border_box }}>

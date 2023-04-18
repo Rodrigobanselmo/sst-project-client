@@ -84,6 +84,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
                 placeholder={'nome completo do empregado...'}
                 name="name"
                 size="small"
+                setValue={setValue}
               />
             </Box>
             <Box flex={3}>
@@ -113,6 +114,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
                 name="cpf"
                 mask={cpfMask.apply}
                 size="small"
+                setValue={setValue}
               />
             </Box>
             <Box flex={3}>
@@ -168,6 +170,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
                 name="age"
                 size="small"
                 disabled
+                setValue={setValue}
               />
             </Box>
             <Box flex={3}>

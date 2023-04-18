@@ -231,28 +231,38 @@ export default function PdfProntuarioPage({
         <View>
           {/* title */}
           <>
-            <View style={{ flexDirection: 'row', marginBottom: 3 }}>
-              <View style={{ flexGrow: 1 }}>
-                <Text style={sm.title}>
-                  {consultant?.name}{' '}
-                  <Text style={sm.subTitle}>
-                    {consultant?.contacts?.[0]?.phone};{' '}
-                    {consultant?.contacts?.[0]?.email}
-                  </Text>
+            <View style={{ flexDirection: 'row', marginBottom: 7 }}>
+              <View style={{ flexGrow: 1, marginTop: 10 }}>
+                <Text style={s.title}>{consultant?.name} </Text>
+                <Text style={sm.subTitle}>
+                  {consultant?.contacts?.[0]?.phone};{' '}
+                  {consultant?.contacts?.[0]?.email}
                 </Text>
               </View>
               <View style={{ flexGrow: 1 }}>
                 <Image
-                  style={sm.image}
+                  style={[s.image]}
                   src={
                     consultant?.logoUrl + '?noCache=' + Math.random().toString()
                   }
                 />
               </View>
             </View>
-            <Text style={[s.header]}>
-              PRONTUÁRIO CLÍNICO INDIVIDUAL - PCMSO - NR7
-            </Text>
+            <View style={{ flexDirection: 'row' }}>
+              <View style={{ flexGrow: 1 }}></View>
+              <Text style={[s.header]}>
+                PRONTUÁRIO CLÍNICO INDIVIDUAL - PCMSO - NR7
+              </Text>
+              <View
+                style={{
+                  flexGrow: 1,
+                  justifyContent: 'flex-end',
+                  alignItems: 'flex-end',
+                }}
+              >
+                <Text style={[s.header]}>{clinicExam.id}</Text>
+              </View>
+            </View>
           </>
 
           {/* 1 Funcionario */}

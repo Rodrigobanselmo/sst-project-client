@@ -40,6 +40,8 @@ export interface IQueryCompanies {
   companiesGroupIds?: string[];
   cities?: string[];
   uf?: string[];
+
+  disabled?: boolean;
 }
 
 export type IQueryCompaniesTypes = '/by-user' | '';
@@ -81,7 +83,7 @@ export function useQueryCompanies(
   const { data, ...rest } = useQuery(
     [QueryEnum.COMPANIES, companyId, page, { ...pagination, ...query }, type],
     () =>
-      companyId
+      companyId && !query.disabled
         ? queryCompanies(pagination, { ...query, companyId }, type)
         : <Promise<IPaginationReturn<ICompany>>>emptyMapReturn(),
     {

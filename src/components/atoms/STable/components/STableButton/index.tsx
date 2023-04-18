@@ -18,12 +18,13 @@ export const STableButton = React.forwardRef<any, STableButtonProps>(
       color = 'success.main',
       tooltip,
       iconColor,
+      boxProps,
       ...props
     },
     ref,
   ) => {
     return (
-      <Box ref={ref}>
+      <Box {...boxProps} ref={ref}>
         <STooltip title={tooltip || text}>
           <SButton
             {...props}

@@ -3,11 +3,10 @@ import { FC } from 'react';
 import { Box, BoxProps } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import {
-  ITableRowStatus,
   STable,
   STableBody,
-  STableHeader,
   STableHRow,
+  STableHeader,
   STableRow,
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
@@ -18,10 +17,12 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { useAuthShow } from 'components/molecules/SAuthShow';
-import { SIconDownloadExam } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
-import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
+import {
+  ExamHistoryTypeEnum,
+  employeeExamTypeMap,
+} from 'project/enum/employee-exam-history-type.enum';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -43,6 +44,17 @@ import { useQueryHisScheduleExamCompany } from 'core/services/hooks/queries/useQ
 import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
 
+import { SUploadFileIcon } from 'assets/icons/SUploadFileIcon';
+import { TextClinicRow } from 'components/atoms/STable/components/Rows/TextClinicRow';
+import { TextExamResult } from 'components/atoms/STable/components/Rows/TextExamResult';
+import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
+import {
+  FilterFieldEnum,
+  doneExamsFilterList,
+} from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
+import { initialEditEmployeeHistoryExamState } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
+import { SDropIconEmployee } from './SDropIconEmployee/SDropIconEmployee';
 import { useScheduleExam } from './hooks/useScheduleExam';
 
 export const HistoryScheduleExamCompanyTable: FC<
@@ -57,6 +69,26 @@ export const HistoryScheduleExamCompanyTable: FC<
   }
 > = ({ rowsPerPage = 12, onSelectData, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
+  const filterProps = useFilterTable(
+    {
+      notInStatus: {
+        data: [StatusEnum.CANCELED],
+        filters: [
+          {
+            filterValue: StatusEnum.CANCELED,
+            name: 'Cancelado',
+          },
+        ],
+        field: FilterFieldEnum.STATUS,
+      },
+    },
+    {
+      key: 'historyScheduleExamCompanyTable',
+      timeout: 60 * 60 * 1000,
+      setPage,
+    },
+  );
+  console.log(filterProps);
   const { isAuthSuccess } = useAuthShow();
 
   const {
@@ -72,6 +104,7 @@ export const HistoryScheduleExamCompanyTable: FC<
       search,
       companyId,
       ...query,
+      ...filterProps.filtersQuery,
     },
     rowsPerPage,
     companyId,
@@ -80,7 +113,8 @@ export const HistoryScheduleExamCompanyTable: FC<
   const updateMutation = useMutUpdateManyScheduleHisExam();
   const { fetchHisScheduleExam } = useFetchQueryHisScheduleExamClinic();
 
-  const { onAdd, onReSchedule, onStackOpenModal } = useScheduleExam();
+  const { onAdd, onReSchedule, onStackOpenModal, onEditEmployee } =
+    useScheduleExam();
 
   // const onDownloadGuide = (companyId: string, employeeId: number) => {
   //   const path = RoutesEnum.PDF_GUIDE.replace(
@@ -105,6 +139,9 @@ export const HistoryScheduleExamCompanyTable: FC<
           employeeId: data.employee?.id,
           examIsAvaliation: data.exam?.isAvaliation,
           notAfterDate: data.doneDate,
+          getClinic: true,
+          getUser: true,
+          getHierarchy: true,
         },
         data.clinicId,
       );
@@ -113,35 +150,37 @@ export const HistoryScheduleExamCompanyTable: FC<
         onStackOpenModal(ModalEnum.EMPLOYEE_HISTORY_EXAM_EDIT_CLINIC, {
           ...employee.data[0],
           clinicId: data.clinicId,
-        });
+          reScheduleExamData: data,
+        } as typeof initialEditEmployeeHistoryExamState);
       }
     }
   };
 
-  const onChangeStatus = (data?: Partial<IEmployeeExamsHistory>) => {
-    if (data && data.id && data.employeeId) {
+  const onChangeStatus = (
+    data: Partial<IEmployeeExamsHistory>,
+    employee?: IEmployee,
+  ) => {
+    if (data && data.id && data.employeeId && employee) {
       updateMutation.mutateAsync({
         isClinic: true,
+        companyId: employee?.companyId,
         data: [{ employeeId: data.employeeId, id: data.id, ...data }],
       });
     }
   };
 
-  const getRowColor = (status: StatusEnum): ITableRowStatus | undefined => {
-    if (status === StatusEnum.DONE) return 'info';
-    if (status === StatusEnum.EXPIRED) return 'inactive';
-    if (status === StatusEnum.CANCELED) return 'inactive';
-    return undefined;
-  };
-
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Data', column: '80px' },
+    { text: 'Hora', column: '50px' },
     { text: 'Funcionário', column: 'minmax(150px, 1fr)' },
-    { text: 'Empresa', column: '150px' },
+    { text: 'Empresa', column: 'minmax(150px, 180px)' },
+    { text: 'Status', column: '110px' },
+    { text: 'Clínica', column: 'minmax(150px, 180px)' },
     { text: 'Tipo', column: 'minmax(80px, 140px)' },
-    { text: 'Exame', column: '120px' },
-    { text: 'Status', column: '110px', justifyContent: 'center' },
-    { text: '', column: '100px', justifyContent: 'end' },
+    { text: 'Exame', column: '80px' },
+    { text: 'ASO', column: '50px', justifyContent: 'start' },
+    { text: 'Resultado', column: '110px', justifyContent: 'center' },
+    { text: '', column: '90px', justifyContent: 'end' },
     // { text: 'Reagendar', column: 'minmax(150px, 1fr)', justifyContent: 'center' },
     // { text: 'Guia', column: '80px', justifyContent: 'center' },
   ];
@@ -165,13 +204,16 @@ export const HistoryScheduleExamCompanyTable: FC<
             onChange={(e) => handleSearchChange(e.target.value)}
             loadingReload={loadQuery || isFetching || isRefetching}
             onReloadClick={onRefetchThrottle}
+            filterProps={{ filters: doneExamsFilterList, ...filterProps }}
           />
         </>
       )}
+      <FilterTagList filterProps={filterProps} />
       <STable
         loading={loadQuery}
         rowsNumber={rowsPerPage}
         columns={header.map(({ column }) => column).join(' ')}
+        minHeight={720}
       >
         <STableHeader>
           {header.map(({ column, text, ...props }) => (
@@ -206,8 +248,32 @@ export const HistoryScheduleExamCompanyTable: FC<
                 // status={getRowColor(row.status)}
               >
                 <TextIconRow text={dateToString(row?.doneDate)} />
+                <TextIconRow text={row.time} />
                 <TextEmployeeRow employee={employee} />
-                <TextCompanyRow company={company} />
+                <TextCompanyRow fontSize={10} mr={10} company={company} />
+                <SFlex direction="column" mr={10}>
+                  <StatusSelect
+                    selected={row.status}
+                    large={false}
+                    disabled
+                    width={'100%'}
+                    sx={{ width: '100%' }}
+                    options={options}
+                    statusOptions={[]}
+                    handleSelectMenu={(option) =>
+                      employee?.id &&
+                      onChangeStatus(
+                        {
+                          id: row.id,
+                          employeeId: employee?.id,
+                          status: option.value,
+                        },
+                        employee,
+                      )
+                    }
+                  />
+                </SFlex>
+                <TextClinicRow fontSize={11} clinic={row.clinic} mr={10} />
                 <TextIconRow
                   text={
                     row.examType
@@ -220,29 +286,31 @@ export const HistoryScheduleExamCompanyTable: FC<
                     row.exam?.isAttendance
                       ? 'Clínico'
                       : row.exam?.isAvaliation
-                      ? 'Consulta Méd.'
-                      : 'Complementar'
+                      ? 'Cons. Méd.'
+                      : 'Compl.'
                   }
                 />
 
-                <SFlex direction="column">
-                  <StatusSelect
-                    selected={row.status}
-                    large={false}
-                    disabled
-                    width={'100%'}
-                    sx={{ width: '100%' }}
-                    options={options}
-                    statusOptions={[]}
-                    handleSelectMenu={(option) =>
-                      onChangeStatus({
-                        id: row.id,
-                        employeeId: row.id,
-                        status: option.value,
-                      })
-                    }
-                  />
+                <SFlex ml={-10} justify="start">
+                  {row.exam?.isAttendance && (
+                    <IconButtonRow
+                      disabled={!row.fileUrl}
+                      tooltip="ASO"
+                      icon={
+                        <SUploadFileIcon
+                          sx={{ color: !row.fileUrl ? undefined : 'info.dark' }}
+                        />
+                      }
+                    />
+                  )}
                 </SFlex>
+
+                <TextExamResult
+                  onChangeEvaluation={(d) => onChangeStatus(d, employee)}
+                  employeeId={employee?.id}
+                  historyExam={row}
+                />
+
                 <SFlex justify="end">
                   <Box>
                     <IconButtonRow
@@ -259,13 +327,12 @@ export const HistoryScheduleExamCompanyTable: FC<
                       }
                     />
                   </Box>
-                  <Box>
-                    <SIconDownloadExam
+                  {/* <SIconDownloadExam
                       companyId={employee?.companyId}
                       employeeId={employee?.id}
                       asoId={isClinicExam ? row.id : undefined}
-                    />
-                    {/* <IconButtonRow
+                    /> */}
+                  {/* <IconButtonRow
                       disabled={disabled}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -279,7 +346,17 @@ export const HistoryScheduleExamCompanyTable: FC<
                         />
                       }
                     /> */}
-                  </Box>
+                  <SFlex center>
+                    <SDropIconEmployee
+                      employee={row.employee}
+                      loading={loadQuery}
+                      isScheduled={!disabled}
+                      asoId={isClinicExam ? row.id : undefined}
+                      isAvaliation={row.examType == ExamHistoryTypeEnum.EVAL}
+                      onEditEmployee={onEditEmployee}
+                      onReSchedule={() => onReSchedule(row)}
+                    />
+                  </SFlex>
                 </SFlex>
               </STableRow>
             );

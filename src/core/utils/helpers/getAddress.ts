@@ -13,6 +13,11 @@ export const getAddressCity = (address?: IAddress) => {
   return `${address.city} - ${address.state}, ${cepMask.mask(address.cep)}`;
 };
 
+export const getAddressCityState = (address?: IAddress) => {
+  if (!address) return '';
+  return `${address.city} - ${address.state}`;
+};
+
 export const getContactPhone = (contact?: IContact) => {
   if (!contact) return '';
   return `Tel: ${contact.phone}  ${

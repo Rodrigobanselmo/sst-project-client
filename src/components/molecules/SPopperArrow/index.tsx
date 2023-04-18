@@ -21,6 +21,7 @@ export const SPopperArrow: FC<IPopperProps> = ({
   color = 'paper',
   disabledArrow,
   placement = 'bottom-end',
+  popperProps,
   ...props
 }) => {
   const [arrowRef, setArrowRef] = useState(null);
@@ -56,6 +57,7 @@ export const SPopperArrow: FC<IPopperProps> = ({
           },
         },
       ]}
+      {...popperProps}
     >
       {({ TransitionProps }) => (
         <ClickAwayListener onClickAway={handleClickAway}>

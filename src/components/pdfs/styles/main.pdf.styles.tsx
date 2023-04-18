@@ -107,6 +107,13 @@ export const sm = StyleSheet.create({
     fontSize: 9,
     fontWeight: 'normal',
     color: 'black',
+    textAlign: 'center',
+  },
+  subTitle2: {
+    fontSize: 8,
+    fontWeight: 'semibold',
+    color: 'black',
+    textAlign: 'center',
   },
   h1: {
     fontSize: 8,

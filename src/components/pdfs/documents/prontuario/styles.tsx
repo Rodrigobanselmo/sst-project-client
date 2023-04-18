@@ -13,7 +13,7 @@ const standard: ReturnType<typeof StyleSheet.create> = {
 
 export const s = StyleSheet.create({
   page: {
-    paddingTop: 30,
+    paddingTop: 20,
     paddingBottom: 30,
     paddingHorizontal: 30,
     fontFamily: 'Open Sans',
@@ -21,6 +21,17 @@ export const s = StyleSheet.create({
     justifyContent: 'space-between',
     display: 'flex',
     flexDirection: 'column',
+  },
+  image: {
+    width: 100,
+    alignItems: 'flex-end',
+    justifyContent: 'flex-end',
+  },
+  title: {
+    width: 420,
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: 'black',
   },
   bodyB1: {
     fontSize: 10,

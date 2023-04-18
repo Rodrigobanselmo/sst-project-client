@@ -24,6 +24,8 @@ import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditClinicExam } from '../../hooks/useEditClinicExams';
 import { ShiftTimeSelect } from '../ShiftTimeSelect/ShiftTimeSelect';
+import { STagButton } from 'components/atoms/STagButton';
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 
 const DraftEditor = dynamic(
   async () => {
@@ -43,6 +45,8 @@ export const ModalClinicExamStep = ({
   setValue,
   onSelectCheck,
   isDocConsult,
+  onDelete,
+  loadDelete,
 }: IUseEditClinicExam) => {
   return (
     <SFlex sx={{ minWidth: [300, 600, 800] }} direction="column" mt={8}>
@@ -266,17 +270,28 @@ export const ModalClinicExamStep = ({
       </SFlex>
 
       {!!clinicExamData.id && (
-        <StatusSelect
-          sx={{ maxWidth: '90px', mt: 10 }}
-          selected={clinicExamData.status}
-          statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
-          handleSelectMenu={(option) =>
-            setClinicExamData((old) => ({
-              ...old,
-              status: option.value,
-            }))
-          }
-        />
+        <SFlex sx={{ maxWidth: '90px', mt: 10, gap: 8 }}>
+          <StatusSelect
+            selected={clinicExamData.status}
+            statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
+            handleSelectMenu={(option) =>
+              setClinicExamData((old) => ({
+                ...old,
+                status: option.value,
+              }))
+            }
+          />
+          <STagButton
+            large
+            onClick={() => onDelete(clinicExamData.id)}
+            icon={SDeleteIcon}
+            text={'Deletar'}
+            loading={loadDelete}
+            disabled={loadDelete}
+            borderActive="error"
+            iconProps={{ sx: { color: 'error.dark' } }}
+          />
+        </SFlex>
       )}
     </SFlex>
   );

@@ -1,34 +1,24 @@
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
-import {
-  availableScheduleDate,
-  notAvailableScheduleTime,
-} from 'components/organisms/tables/ExamsScheduleTable/columns/ExamsScheduleClinic';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import dayjs from 'dayjs';
 import { useSnackbar } from 'notistack';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
-import { QueryEnum } from 'core/enums/query.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import {
-  ClinicScheduleTypeEnum,
-  ExamTypeEnum,
-} from 'core/interfaces/api/IExam';
+import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 import {
   ICreateEmployeeExamHistory,
   useMutCreateEmployeeHisExam,
 } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutCreateEmployeeHisExam/useMutCreateEmployeeHisExam';
-import { useMutUpdateEmployeeHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateEmployeeHisExam/useMutUpdateEmployeeHisExam';
 import {
   IUpdateManyScheduleExamHistory,
   useMutUpdateManyScheduleHisExam,
 } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic';
-import { queryClient } from 'core/services/queryClient';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
@@ -87,7 +77,7 @@ export const useResumeStep = ({
 
     if (
       askDoneDate &&
-      !data.changeHierarchyWhenDone &&
+      data.changeHierarchyAnyway &&
       !data.changeHierarchyDate
     ) {
       return setError('doneDate', {

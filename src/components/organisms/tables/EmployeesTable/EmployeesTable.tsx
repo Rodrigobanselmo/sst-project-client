@@ -65,7 +65,9 @@ export const EmployeesTable: FC<
 > = ({ rowsPerPage = 8, hideModal, query, ...props }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { data: company, isLoading: loadCompany } = useQueryCompany();
-  const filterProps = useFilterTable();
+  const filterProps = useFilterTable(undefined, {
+    setPage,
+  });
   const downloadMutation = useMutDownloadFile();
 
   const {

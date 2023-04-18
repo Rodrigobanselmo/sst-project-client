@@ -31,7 +31,7 @@ export const employeeExamEvaluationTypeMap: Record<
     value: ExamHistoryEvaluationEnum.INAPT,
     content: 'Inapto',
     icon: SThumbDownIcon,
-    color: 'error.main',
+    color: 'error.dark',
   },
   [ExamHistoryEvaluationEnum.INCONCLUSIVE]: {
     value: ExamHistoryEvaluationEnum.INCONCLUSIVE,

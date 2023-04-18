@@ -5,57 +5,44 @@ import { useSnackbar } from 'notistack';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { ClinicScheduleTypeEnum, IExam } from 'core/interfaces/api/IExam';
+import { IExam } from 'core/interfaces/api/IExam';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
 
-export interface ICreateClientExam {
-  examId: number;
-  companyId: string;
-  groupId?: string;
-  startDate: Date;
-  dueInDays?: number;
-  price?: number;
-  isScheduled?: boolean;
-  observation?: string;
-  isPeriodic?: boolean;
-  isChange?: boolean;
-  isAdmission?: boolean;
-  isReturn?: boolean;
-  isDismissal?: boolean;
-  status?: string;
-  scheduleRange?: any;
-  examMinDuration?: string;
-  scheduleType?: ClinicScheduleTypeEnum;
+export interface IDeleteClinicExam {
+  id: number;
+  companyId?: string;
 }
 
-export async function createExam(data: ICreateClientExam, companyId?: string) {
+export async function deleteClinicExam(
+  data: IDeleteClinicExam,
+  companyId?: string,
+) {
   if (!companyId) return null;
 
-  const response = await api.post<IExam>(`${ApiRoutesEnum.CLINIC_EXAM}`, {
-    ...data,
-    companyId,
-  });
+  const response = await api.delete<IExam>(
+    `${ApiRoutesEnum.CLINIC_EXAM}/${companyId}/${data.id}`,
+  );
 
   return response.data;
 }
 
-export function useMutUpsertClientExam() {
+export function useMutDeleteClinicExam() {
   const { enqueueSnackbar } = useSnackbar();
   const { companyId } = useGetCompanyId();
 
   return useMutation(
-    async (data: ICreateClientExam) =>
-      createExam(data, data.companyId || companyId),
+    async (data: IDeleteClinicExam) =>
+      deleteClinicExam(data, data.companyId || companyId),
     {
       onSuccess: async (newExam) => {
         if (newExam) {
           queryClient.invalidateQueries([QueryEnum.CLINIC_EXAMS]);
         }
 
-        enqueueSnackbar('Exames inseridos com sucesso', {
+        enqueueSnackbar('Exame deletado com sucesso', {
           variant: 'success',
         });
         return newExam;

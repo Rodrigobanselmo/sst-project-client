@@ -78,6 +78,7 @@ export function AutocompleteForm<T>({
             label={label}
             onInputChange={onInputChange}
             {...rest}
+            sx={{ fontSize: 10 }}
             {...restSelect}
             {...(freeSolo && {
               inputValue: value || '',

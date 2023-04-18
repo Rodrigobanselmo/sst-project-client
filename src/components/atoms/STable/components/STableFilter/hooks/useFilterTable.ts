@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import clone from 'clone';
 import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
@@ -17,6 +17,8 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { FilterFieldEnum } from '../constants/filter.map';
+import { StatusEnum } from 'project/enum/status.enum';
+import { ExamAvaliationEnum } from 'project/enum/employee-exam-history-avaliation.enum';
 
 export type IFilterTag = {
   filterValue: string;
@@ -39,11 +41,15 @@ export type IFilterTableData = {
   [FilterFieldEnum.COMPANIES]?: IFilterTableType<ICompany[]>;
   [FilterFieldEnum.START_DATE]?: IFilterTableType<Date[]>;
   [FilterFieldEnum.END_DATE]?: IFilterTableType<Date[]>;
+  [FilterFieldEnum.EXAM_TYPE]?: IFilterTableType<ExamHistoryTypeEnum[]>;
+  [FilterFieldEnum.LTE_EXPIRED_EXAM]?: IFilterTableType<Date[]>;
+  [FilterFieldEnum.STATUS]?: IFilterTableType<StatusEnum[]>;
+  [FilterFieldEnum.EXAM_AVALIATION_EXAM]?: IFilterTableType<
+    ExamAvaliationEnum[]
+  >;
   [FilterFieldEnum.EVALUATION_TYPE]?: IFilterTableType<
     ExamHistoryEvaluationEnum[]
   >;
-  [FilterFieldEnum.EXAM_TYPE]?: IFilterTableType<ExamHistoryTypeEnum[]>;
-  [FilterFieldEnum.LTE_EXPIRED_EXAM]?: IFilterTableType<Date[]>;
 };
 
 export const useFilterTable = (
@@ -51,6 +57,7 @@ export const useFilterTable = (
   options?: {
     timeout?: number;
     key?: string;
+    setPage?: (page: number) => void;
   },
 ) => {
   const { onStackOpenModal } = useModal();
@@ -59,6 +66,11 @@ export const useFilterTable = (
     deafult || {},
     options?.timeout,
   );
+
+  useEffect(() => {
+    options?.setPage?.(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
 
   const addFilter = useCallback(
     <T>(

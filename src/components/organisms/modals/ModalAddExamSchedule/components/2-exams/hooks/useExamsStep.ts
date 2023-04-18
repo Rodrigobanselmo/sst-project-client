@@ -12,6 +12,8 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
 import { getIsBlockedTime } from '../../3-evaluation/hooks/useEvaluationStep';
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import { PermissionEnum } from 'project/enum/permission.enum';
 
 export const useExamsStep = ({
   data,
@@ -25,6 +27,8 @@ export const useExamsStep = ({
   const { setError, control, getValues, reset, setValue, clearErrors } =
     useFormContext();
   const { nextStep, stepCount, goToStep, previousStep } = useWizard();
+
+  const { isAuthSuccess } = useAuthShow();
 
   const onCloseUnsaved = async () => {
     onClose(() => reset());
@@ -144,9 +148,18 @@ export const useExamsStep = ({
             (_data as any)['scheduleType'] = examClinic?.scheduleType;
 
             if (key === 'doneDate') {
-              const isOk = availableScheduleDate(value as any, {
-                scheduleRange: examClinic?.scheduleRange,
-              });
+              const isOk = availableScheduleDate(
+                value as any,
+                {
+                  scheduleRange: examClinic?.scheduleRange,
+                },
+                {
+                  notToday: !isAuthSuccess({
+                    permissions: [PermissionEnum.CLINIC_SCHEDULE],
+                    cruds: 'u',
+                  }),
+                },
+              );
 
               if (isOk) (_data as any)[key] = (exam as any)[key];
             }

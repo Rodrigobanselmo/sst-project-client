@@ -50,8 +50,12 @@ import { intMask } from 'core/utils/masks/int.mask';
 import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { getSexLabel } from '../ModalAddExamSchedule/components/1-employee';
-import { useAddData } from './hooks/useEditExamData';
+import { onUserSchedule, useAddData } from './hooks/useEditExamData';
 import { STagNewButton } from './STagNewButton';
+import { SButton } from 'components/atoms/SButton';
+import SCalendarIcon from 'assets/icons/SCalendarIcon';
+import { SCloseIcon } from 'assets/icons/SCloseIcon';
+import { SBoxPaper } from 'components/atoms/SBoxPaper';
 
 export const ModalEditEmployeeHisExamClinic = () => {
   const {
@@ -80,6 +84,9 @@ export const ModalEditEmployeeHisExamClinic = () => {
     isAvaliation,
     showIfKitMedico,
     onChangeStatusToDone,
+    onReSchedule,
+    onChangeStatusToCancel,
+    onGetExamType,
   } = useAddData();
 
   const buttons = [
@@ -116,16 +123,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
           title={'Dados Agendamento'}
         />
 
-        <Box
-          sx={{
-            p: 12,
-            pt: 8,
-            border: '1px solid',
-            borderRadius: 1,
-            borderColor: 'grey.400',
-            backgroundColor: 'white',
-          }}
-        >
+        <SBoxPaper mb={10}>
           <SText color="text.label">Dados do funcinário</SText>
           <Divider sx={{ mb: 16, mt: 3 }} />
           <SFlex flexWrap="wrap" gap={5} mb={10}>
@@ -138,6 +136,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
                 size="small"
                 InputLabelProps={{ shrink: true }}
                 labelPosition="center"
+                setValue={setValue}
                 sx={{
                   width: ['100%'],
                 }}
@@ -182,6 +181,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
                 size="small"
                 InputLabelProps={{ shrink: true }}
                 labelPosition="center"
+                setValue={setValue}
                 sx={{
                   width: ['100%'],
                 }}
@@ -190,6 +190,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
             <Box flex={1} minWidth="150px" maxWidth="150px">
               <InputForm
                 defaultValue={phoneMask.mask(data?.phone) || ''}
+                setValue={setValue}
                 control={control}
                 name="phone"
                 label="Telefone"
@@ -243,27 +244,48 @@ export const ModalEditEmployeeHisExamClinic = () => {
               />
             </Box>
           </SFlex>
+        </SBoxPaper>
+
+        <Box mb={10}>
+          <SIconDownloadExam
+            showIfKitMedico={showIfKitMedico}
+            isMenu={false}
+            isActive
+            // disabled={!data.doctor}
+            missingDoctor={!data.doctor}
+            companyId={data.companyId || data.company?.id}
+            employeeId={data.id}
+            isAvaliation={clinicExam?.exam?.isAvaliation}
+            asoId={clinicExam?.id}
+          />
         </Box>
 
-        <Box
-          sx={{
-            p: 12,
-            pt: 8,
-            border: '1px solid',
-            borderRadius: 1,
-            borderColor: 'grey.400',
-            backgroundColor: 'white',
-            mt: 10,
-          }}
-        >
+        <SBoxPaper>
+          {/* <SFlex align={'center'} mb={5}> */}
           <SText color="text.label">
             {clinicExam?.exam?.name || 'Avaliação Clínica Ocupacional'}
           </SText>
+          {/* <Box ml="auto">
+              <STagButton
+                icon={SCalendarIcon}
+                text={'Reagendar Exame'}
+                onClick={() => {
+                  onReSchedule();
+                }}
+                borderActive="info"
+                textProps={{ sx: { color: 'text.main' }, className: '' }}
+                color="success"
+                iconProps={{
+                  sx: { color: 'info.dark' },
+                }}
+              />
+            </Box> */}
+          {/* </SFlex> */}
           <Divider sx={{ mb: 4, mt: 3 }} />
           {!!clinicExam && (
             <SFlex direction="column">
               <SFlex gap={5} mb={10}>
-                <Box width={200}>
+                <Box width={200} mr={'auto'}>
                   <SIconUploadFile
                     loading={uploadMutation.isLoading}
                     disabledDownload={!clinicExam.fileUrl}
@@ -281,17 +303,50 @@ export const ModalEditEmployeeHisExamClinic = () => {
                     isTag
                   />
                 </Box>
+                {data.status != StatusEnum.DONE && (
+                  <STagButton
+                    icon={SCheckIcon}
+                    text={'realizar'}
+                    onClick={() => {
+                      onChangeStatusToDone();
+                      // if (data.status != StatusEnum.DONE) onChangeStatusToDone();
+                      // else onChangeStatusToCancel();
+                    }}
+                    borderActive="success"
+                    textProps={{ sx: { color: 'text.main' }, className: '' }}
+                    color="success"
+                    iconProps={{
+                      sx: { color: 'success.main' },
+                    }}
+                  />
+                )}
+                {data.status != StatusEnum.CANCELED && (
+                  <STagButton
+                    icon={SCloseIcon}
+                    text={'cancelar'}
+                    onClick={() => {
+                      onChangeStatusToCancel();
+                    }}
+                    borderActive="error"
+                    textProps={{ sx: { color: 'text.main' }, className: '' }}
+                    color="error"
+                    iconProps={{
+                      sx: { color: 'error.main' },
+                    }}
+                  />
+                )}
                 <STagButton
-                  icon={SCheckIcon}
-                  text={'Marcar como realizado'}
+                  icon={SCalendarIcon}
+                  text={'reagendar'}
                   onClick={() => {
-                    onChangeStatusToDone();
+                    onReSchedule();
                   }}
-                  borderActive="success"
-                  textProps={{ sx: { color: 'text.light' }, className: '' }}
+                  disabled={data.status == StatusEnum.DONE}
+                  borderActive="info"
+                  textProps={{ sx: { color: 'text.main' }, className: '' }}
                   color="success"
                   iconProps={{
-                    sx: { color: 'success.main' },
+                    sx: { color: 'info.dark' },
                   }}
                 />
               </SFlex>
@@ -337,8 +392,33 @@ export const ModalEditEmployeeHisExamClinic = () => {
                 <Box flex={1}>
                   <SelectForm
                     unmountOnChangeDefault
-                    defaultValue={String(clinicExam.examType || '') || ''}
+                    defaultValue={onGetExamType(clinicExam)}
                     label="Tipo de Exame"
+                    endAdornment={
+                      <SFlex
+                        direction="column"
+                        minWidth={150}
+                        justify={'end'}
+                        align={'end'}
+                        mr={10}
+                      >
+                        {clinicExam.hierarchy && (
+                          <SText
+                            sx={{ color: 'red !important' }}
+                            noBreak
+                            fontSize={11}
+                          >
+                            (Cargo) {clinicExam.hierarchy.name}
+                          </SText>
+                        )}
+
+                        {clinicExam.subOffice && (
+                          <SText mt={-3} color="text.light" fontSize={11}>
+                            (Cargo desenv.) {clinicExam.subOffice?.name}
+                          </SText>
+                        )}
+                      </SFlex>
+                    }
                     control={control}
                     placeholder="selecione..."
                     name="examType"
@@ -349,6 +429,29 @@ export const ModalEditEmployeeHisExamClinic = () => {
                   />
                 </Box>
               </SFlex>
+
+              <Box flex={1} mt={8}>
+                <ClinicInputSelect
+                  onChange={(clinic) => {
+                    setData({
+                      ...data,
+                      clinic,
+                    });
+                  }}
+                  inputProps={{
+                    labelPosition: 'top',
+                    placeholder: 'selecione a clínica...',
+                  }}
+                  disabled
+                  unmountOnChangeDefault
+                  defaultValue={clinicExam.clinic}
+                  name="clinic"
+                  label="Clínica"
+                  control={control}
+                  query={{}}
+                />
+              </Box>
+
               <SFlex flexWrap="wrap" gap={5} mt={8} align="end">
                 <Box flex={2} maxWidth={500}>
                   <ProfessionalInputSelect
@@ -394,20 +497,37 @@ export const ModalEditEmployeeHisExamClinic = () => {
               </SFlex>
 
               <SFlex align={'end'} mt={10}>
-                <SIconDownloadExam
-                  showIfKitMedico={showIfKitMedico}
-                  isMenu={false}
-                  isActive
-                  // disabled={!data.doctor}
-                  missingDoctor={!data.doctor}
-                  companyId={data.companyId || data.company?.id}
-                  employeeId={data.id}
-                  isAvaliation={clinicExam?.exam?.isAvaliation}
-                  asoId={clinicExam?.id}
-                />
+                <Box>
+                  <SText color="text.label" fontSize={'13px'}>
+                    Agendado por:{' '}
+                    <SText
+                      component="span"
+                      color="text.light"
+                      fontSize={'13px'}
+                    >
+                      {clinicExam.userSchedule?.name} (
+                      {clinicExam.userSchedule?.email})
+                    </SText>
+                  </SText>
+                  {clinicExam.userDone && (
+                    <SText color="text.label" fontSize={'13px'}>
+                      {onUserSchedule(clinicExam)}:{' '}
+                      <SText
+                        component="span"
+                        color="text.light"
+                        fontSize={'13px'}
+                      >
+                        {clinicExam.userDone?.name} (
+                        {clinicExam.userDone?.email})
+                      </SText>
+                    </SText>
+                  )}
+                </Box>
+
                 <StatusSelect
                   sx={{ maxWidth: '150px', ml: 'auto' }}
                   options={statusOptionsConstantExam}
+                  large={false}
                   selected={data.status}
                   statusOptions={[
                     StatusEnum.DONE,
@@ -424,19 +544,9 @@ export const ModalEditEmployeeHisExamClinic = () => {
               </SFlex>
             </SFlex>
           )}
-        </Box>
+        </SBoxPaper>
 
-        <Box
-          sx={{
-            p: 12,
-            pt: 8,
-            border: '1px solid',
-            borderRadius: 1,
-            borderColor: 'grey.400',
-            backgroundColor: 'white',
-            mt: 15,
-          }}
-        >
+        <SBoxPaper mt={10}>
           {complementaryExams && !!complementaryExams.length && (
             <SFlex direction="column" mb={3}>
               <SText color="text.label" fontSize={16}>
@@ -478,7 +588,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
               />
             </SFlex>
           )}
-        </Box>
+        </SBoxPaper>
 
         <SModalButtons
           loading={loading}

@@ -27,7 +27,7 @@ export const queryEmployees = async (
   { skip, take }: IPagination,
   query: IQueryEmployee,
 ) => {
-  if ('hierarchyId' in query && !query.hierarchyId)
+  if (('hierarchyId' in query && !query.hierarchyId) || !query.companyId)
     return { data: [], count: 0 };
 
   if ('hierarchySubOfficeId' in query && !query.hierarchySubOfficeId)
