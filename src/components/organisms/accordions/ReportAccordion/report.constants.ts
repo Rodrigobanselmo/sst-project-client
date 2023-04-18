@@ -2,11 +2,11 @@ import {
   clinicFilterList,
   doneExamsFilterList,
   expiredExamFilterList,
-  FilterFieldEnum,
 } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 
+import { IFilterIconProps } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/types';
 import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
 
 export interface IReportJson {
@@ -17,7 +17,7 @@ export interface IReportJson {
     roles?: RoleEnum[];
     permissions?: PermissionEnum[];
     name: string;
-    ask: FilterFieldEnum[];
+    ask: IFilterIconProps['filters'];
     type: ReportTypeEnum;
   }[];
 }

@@ -55,7 +55,11 @@ export const ModalReport: FC = () => {
     ) as typeof initialReportState;
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const newData = {
           ...oldData,
@@ -141,6 +145,13 @@ export const ModalReport: FC = () => {
     },
   ] as IModalButton[];
 
+  const filters = report?.ask || [];
+  if (Array.isArray(filters)) {
+    filters.push(FilterFieldEnum.DOWNLOAD_TYPE);
+  } else {
+    filters.fields.push(FilterFieldEnum.DOWNLOAD_TYPE);
+  }
+
   return (
     <SModal
       {...registerModal(ModalEnum.MODAL_REPORT)}
@@ -170,10 +181,7 @@ export const ModalReport: FC = () => {
           <STableFilterBox
             mt={8}
             filterProps={{
-              filters: [
-                ...(report ? report.ask : ([] as any)),
-                FilterFieldEnum.DOWNLOAD_TYPE,
-              ],
+              filters,
               ...filterProps,
               addFilter,
             }}
