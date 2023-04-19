@@ -30,7 +30,11 @@ export const ModalEditDocumentModelData = () => {
         center
         p={8}
       >
-        <SModalHeader tag={'info'} onClose={onClose} title={data.title} />
+        <SModalHeader
+          tag={'info'}
+          onClose={onClose}
+          title={data.title + (data.name ? ` - ${data.name}` : '')}
+        />
         <Wizard
           schemas={[]}
           header={

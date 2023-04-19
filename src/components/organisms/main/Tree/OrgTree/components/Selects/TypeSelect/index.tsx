@@ -17,6 +17,7 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
   parentId,
   handleSelect,
   node,
+  add,
   ...props
 }) => {
   const parentNode = useAppSelector(
@@ -51,7 +52,7 @@ export const TypeSelect: FC<ITypeSelectProps> = ({
       icon={MergeTypeIcon}
       handleSelectMenu={handleEditTypeCard}
       title={'Tipo de hierarquia'}
-      disabled={node.type == TreeTypeEnum.OFFICE}
+      disabled={!add && node.type == TreeTypeEnum.OFFICE}
       {...props}
     />
   );

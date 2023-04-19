@@ -201,6 +201,8 @@ export const ModalEditCard = () => {
       <SModalPaper width={['100%', 600, 800, 1000]} center p={8}>
         <SModalHeader
           onClose={onCloseUnsaved}
+          // secondIcon={type === TreeTypeEnum.COMPANY ? undefined : SDeleteIcon}
+          // secondIconClick={onRemoveNode}
           title={
             <Box width="100%">
               <SFlex mb={2} align="center">
@@ -304,6 +306,7 @@ export const ModalEditCard = () => {
             large
             node={selectedNode as ITreeSelectedItem}
             parentId={selectedNode?.parentId || 'no-node'}
+            add={selectedNode?.action === 'add'}
             handleSelect={(option) =>
               setEditNodeSelectedItem({
                 type: option.value as TreeTypeEnum,
@@ -352,9 +355,24 @@ export const ModalEditCard = () => {
               color="text.light"
             />
           ) : (
-            <SButton variant={'outlined'} size="small" onClick={onCloseUnsaved}>
-              Cancelar
-            </SButton>
+            <>
+              <SButton
+                variant={'outlined'}
+                size="small"
+                color="error"
+                onClick={onRemoveNode}
+                sx={{ mr: 'auto' }}
+              >
+                Deletar
+              </SButton>
+              <SButton
+                variant={'outlined'}
+                size="small"
+                onClick={onCloseUnsaved}
+              >
+                Cancelar
+              </SButton>
+            </>
           )}
           <SButton variant={'contained'} size="small" onClick={onSave}>
             Salvar
