@@ -31,6 +31,7 @@ import {
 } from 'core/services/hooks/mutations/reports/useMutReport/types';
 import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport/useMutReport';
 import { dateToString } from 'core/utils/date/date-format';
+import clone from 'clone';
 
 export const initialReportState = {
   title: 'Gerar Relatório',
@@ -145,7 +146,7 @@ export const ModalReport: FC = () => {
     },
   ] as IModalButton[];
 
-  const filters = report?.ask || [];
+  const filters = report?.ask ? clone(report?.ask || []) : [];
   if (Array.isArray(filters)) {
     filters.push(FilterFieldEnum.DOWNLOAD_TYPE);
   } else {

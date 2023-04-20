@@ -22,6 +22,7 @@ import { useMutUpdateHierarchyGho } from 'core/services/hooks/mutations/checklis
 import { dateToString } from 'core/utils/date/date-format';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
 
 export const HierarchyHomoTable: FC<
   BoxProps & {
@@ -93,15 +94,18 @@ export const HierarchyHomoTable: FC<
     } else onEdit(hier);
   };
 
-  const { handleSearchChange, results } = useTableSearch({
-    data: hierarchies.reduce((acc, curr) => {
-      const newData = curr.hierarchyOnHomogeneous?.map((h) => ({
-        ...curr,
-        ...h,
-      })) || [curr];
+  const data = hierarchies.reduce((acc, curr) => {
+    const newData = curr.hierarchyOnHomogeneous?.map((h) => ({
+      ...curr,
+      ...h,
+    })) || [curr];
 
-      return [...acc, ...(newData || [])];
-    }, [] as any[]),
+    return [...acc, ...(newData || [])];
+  }, [] as any[]);
+
+  const { handleSearchChange, results, page, setPage } = useTableSearch({
+    rowsPerPage: 8,
+    data,
     keys: ['name', 'label'],
   });
 
@@ -147,6 +151,7 @@ export const HierarchyHomoTable: FC<
             .sort((a, b) => sortString(a?.name, b?.name))}
           // hideLoadMore
           rowsInitialNumber={rowsPerPage}
+          hideLoadMore
           renderRow={(row) => {
             return (
               <STableRow
@@ -202,13 +207,13 @@ export const HierarchyHomoTable: FC<
           }}
         />
       </STable>
-      {/* <STablePagination
+      <STablePagination
         mt={2}
         registersPerPage={rowsPerPage}
-        totalCountOfRegisters={loading ? undefined : count}
+        totalCountOfRegisters={loading ? undefined : data.length}
         currentPage={page}
         onPageChange={setPage}
-      /> */}
+      />
     </>
   );
 };

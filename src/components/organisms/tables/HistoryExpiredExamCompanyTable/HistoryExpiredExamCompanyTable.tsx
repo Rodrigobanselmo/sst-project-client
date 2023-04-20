@@ -47,6 +47,7 @@ import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
 import { SDropIconEmployee } from '../EmployeesTable/components/SDropIconEmployee/SDropIconEmployee';
 import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
+import clone from 'clone';
 
 export const getEmployeeRowStatus = (data?: IEmployee) => {
   const exam = data?.examsHistory?.[0];
@@ -87,7 +88,7 @@ export const getEmployeeRowExpiredDate = (date: Date) => {
 
 export const getEmployeeRowExamData = (row: IEmployee) => {
   const aso = row.examsHistory?.[0];
-  const options = statusOptionsConstantExam;
+  const options = clone(statusOptionsConstantExam);
   options[StatusEnum.PROCESSING].color = 'info.main';
 
   const employee = row;
