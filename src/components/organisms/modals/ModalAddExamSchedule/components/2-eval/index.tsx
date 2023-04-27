@@ -25,6 +25,7 @@ export const EvalStep = (props: IUseEditEmployee) => {
     setData,
     previousStep,
     evalExam,
+    clearErrors,
   } = useExamsStep(props);
 
   const buttons = [

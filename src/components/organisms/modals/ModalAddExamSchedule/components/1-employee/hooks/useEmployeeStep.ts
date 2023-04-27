@@ -21,6 +21,10 @@ import { isShouldDemissionBlock } from 'core/utils/helpers/demissionalBlockCalc'
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
 import { useSnackbar } from 'notistack';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
+import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
+import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
+import { ModalEnum } from 'core/enums/modal.enums';
+import { IEmployee } from 'core/interfaces/api/IEmployee';
 
 export const useEmployeeStep = ({
   data,
@@ -30,11 +34,15 @@ export const useEmployeeStep = ({
   newHierarchy,
   isPendingExams,
   fetchClinic,
+  userAllow,
+  getIsToBlockDismissal,
+  onStackOpenModal,
+  skipHierarchySelect,
   ...rest
 }: IUseEditEmployee) => {
   const { trigger, getValues, control, setError, reset, setValue, setFocus } =
     useFormContext();
-  const { nextStep, stepCount, goToStep } = useWizard();
+  const { nextStep, stepCount, goToStep, activeStep } = useWizard();
   const { enqueueSnackbar } = useSnackbar();
   const updateEmployee = useMutUpdateEmployee();
 
@@ -68,7 +76,10 @@ export const useEmployeeStep = ({
     const isReturn = data.examType === ExamHistoryTypeEnum.RETU;
     const isOffice = data.examType === ExamHistoryTypeEnum.OFFI;
     const isChange = data.examType === ExamHistoryTypeEnum.CHAN;
-    // const isPeriodic = data.examType === ExamHistoryTypeEnum.PERI;
+    const isAdmission = data.examType === ExamHistoryTypeEnum.ADMI;
+    const isPeriodic = data.examType === ExamHistoryTypeEnum.PERI;
+
+    let jumpCompleteStep = false;
 
     const riskDataHierarchy = await findExamsMutation
       .mutateAsync({
@@ -92,41 +103,35 @@ export const useEmployeeStep = ({
             if (origin?.skipEmployee) return false;
 
             if (isReturn) if (!origin.isReturn) return false;
-
             if (isDismissal) if (!origin.isDismissal) return false;
+            if (isChange) if (!origin.isChange) return false;
+            if (isAdmission) if (!origin.isAdmission) return false;
+            if (isPeriodic || isOffice) if (!origin.isPeriodic) return false;
 
             return true;
           });
 
           if (db_data.exam && origin) {
             const examData = {
-              expiredDate: origin?.expiredDate,
-              isSelected: !origin?.expiredDate || !!origin?.closeToExpired,
+              expiredDate: origin?.closeToExpired ? null : origin?.expiredDate,
+              isSelected:
+                !origin?.expiredDate ||
+                new Date() > origin.expiredDate ||
+                !!origin?.closeToExpired,
               validityInMonths: origin?.validityInMonths,
             };
 
             if (isDismissal) {
               examData.isSelected = true;
               examData.expiredDate = null;
-
-              if (
-                origin.expiredDate &&
-                company &&
-                isShouldDemissionBlock(company, {
-                  expiredDate: origin.expiredDate,
-                  validityInMonths: origin.validityInMonths,
-                })
-              ) {
-                examData.isSelected = false;
-              }
             }
 
-            if (isOffice || isChange) {
-              if (db_data.exam.isAttendance) {
-                examData.isSelected = true;
-                examData.expiredDate = null;
-              }
-            }
+            // if (isOffice || isChange) {
+            //   if (db_data.exam.isAttendance) {
+            //     examData.isSelected = true;
+            //     examData.expiredDate = null;
+            //   }
+            // }
 
             if (isReturn) {
               examData.isSelected = true;
@@ -158,19 +163,47 @@ export const useEmployeeStep = ({
           }
         });
 
-        if (actualExams.some((actualExams) => actualExams.isSelected)) {
+        const hasComplementaryExamToAsk = actualExams.some(
+          (actualExams) => !actualExams.isAttendance && actualExams.isSelected,
+        );
+
+        // add clinic exam if any exam is selected and is not periodic
+        if (!isPeriodic && hasComplementaryExamToAsk) {
           const clinicExamIndex = actualExams.findIndex(
             (actualExams) => actualExams.isAttendance,
           );
-          if (clinicExamIndex != -1)
+
+          if (clinicExamIndex != -1) {
             actualExams[clinicExamIndex].isSelected = true;
-          actualExams[clinicExamIndex].expiredDate = null;
+            actualExams[clinicExamIndex].expiredDate = null;
+          }
         }
 
-        return { ...data, examsData: actualExams };
+        if (userAllow) {
+          if (!hasComplementaryExamToAsk) jumpCompleteStep = true;
+        }
+
+        const hierarchyHistory = employee?.hierarchyHistory?.[0];
+
+        const isActualHierarchyDismissal =
+          hierarchyHistory?.motive === EmployeeHierarchyMotiveTypeEnum.DEM;
+        const changeHierarchyDate = isActualHierarchyDismissal
+          ? hierarchyHistory?.startDate
+          : null;
+
+        return {
+          ...data,
+          ...(isDismissal &&
+            changeHierarchyDate && {
+              changeHierarchyDate,
+            }),
+          examsData: actualExams,
+        };
       });
 
-    nextStep();
+    if (jumpCompleteStep) {
+      goToStep(activeStep + 2);
+    } else nextStep();
   };
 
   const handleEditPendingSubmit = async () => {
@@ -281,7 +314,7 @@ export const useEmployeeStep = ({
       );
     }
 
-    if (newHierarchy) {
+    if (newHierarchy && !skipHierarchySelect) {
       if (!data.hierarchy?.id) {
         setData({
           ...data,
@@ -309,6 +342,28 @@ export const useEmployeeStep = ({
     }
   };
 
+  const handleSelectEmployee = (employee: IEmployee, onClose?: () => void) => {
+    employee?.id &&
+      setData((old) => ({
+        ...old,
+        companyId: employee.companyId,
+        employeeId: employee.id,
+        examType: undefined,
+        examsData: [],
+      }));
+
+    onClose?.();
+  };
+
+  const handleAddEmployee = () => {
+    onStackOpenModal<Partial<typeof initialEditEmployeeState>>(
+      ModalEnum.EMPLOYEES_ADD,
+      {
+        onCreate: handleSelectEmployee,
+      },
+    );
+  };
+
   useEffect(() => {
     if (!data.examsData.length && employee && isPendingExams)
       handleEditPendingSubmit();
@@ -327,7 +382,12 @@ export const useEmployeeStep = ({
     employee,
     newHierarchy,
     isPendingExams,
+    skipHierarchySelect,
+    handleSelectEmployee,
+    handleAddEmployee,
     ...rest,
+    loading:
+      rest.loading || updateEmployee.isLoading || findExamsMutation.isLoading,
   };
 };
 

@@ -43,6 +43,7 @@ export const initialEditEmployeeState = {
   shiftId: undefined as number | undefined,
   birthday: undefined as Date | undefined,
   subOffices: undefined as IHierarchy[] | undefined,
+  onCreate: (employee: IEmployee, close: () => void) => {},
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (employee: IEmployee | null) => {},
 };
@@ -134,6 +135,7 @@ export const useEditEmployee = () => {
       await createEmployee
         .mutateAsync(submitData)
         .then((employee) => {
+          if (employee) data.onCreate(employee, onClose);
           nextStep();
           setData((data) => ({
             ...data,

@@ -41,6 +41,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
     isPendingExams,
     previousStep,
     setComplementaryExam,
+    company,
   } = useExamsStep(props);
 
   const hasExamsAskSchedule = data.examsData?.some(
@@ -65,7 +66,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
       onClick: () => onSubmit(),
     },
   ] as IModalButton[];
-
+  console.log(data);
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
@@ -75,7 +76,6 @@ export const ExamStep = (props: IUseEditEmployee) => {
           </SText>
           <Divider sx={{ mb: 5, mt: 3 }} />
           <ExamsScheduleTable
-            companyId={employee?.companyId}
             setData={setComplementaryExam}
             data={data.examsData.filter((x) => x.isSelected && !x.isAttendance)}
             control={control}
@@ -83,6 +83,8 @@ export const ExamStep = (props: IUseEditEmployee) => {
             hideHeader
             scheduleData={data}
             isPendingExams={isPendingExams}
+            company={company}
+            companyId={employee?.companyId || company?.id}
           />
           {hasExamsAskSchedule && (
             <InputForm

@@ -52,7 +52,10 @@ import {
   FilterFieldEnum,
   doneExamsFilterList,
 } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
-import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
+import {
+  IFilterTableData,
+  useFilterTable,
+} from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import { initialEditEmployeeHistoryExamState } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 import { SDropIconEmployee } from './SDropIconEmployee/SDropIconEmployee';
 import { useScheduleExam } from './hooks/useScheduleExam';
@@ -66,11 +69,13 @@ export const HistoryScheduleExamCompanyTable: FC<
     employeeId?: number;
     employee?: IEmployee;
     query?: IQueryEmployeeHistHier;
+    filter?: IFilterTableData;
+    setFilter?: (filter: IFilterTableData) => void;
   }
-> = ({ rowsPerPage = 12, onSelectData, hideTitle, companyId, query }) => {
+> = ({ rowsPerPage = 12, setFilter, filter, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
   const filterProps = useFilterTable(
-    {
+    filter || {
       notInStatus: {
         data: [StatusEnum.CANCELED],
         filters: [
@@ -83,12 +88,13 @@ export const HistoryScheduleExamCompanyTable: FC<
       },
     },
     {
-      key: 'historyScheduleExamCompanyTable',
-      timeout: 60 * 60 * 1000,
+      // key: 'historyScheduleExamCompanyTable',
+      // timeout: 60 * 60 * 1000,
       setPage,
+      setFilter,
     },
   );
-  console.log(filterProps);
+
   const { isAuthSuccess } = useAuthShow();
 
   const {
@@ -142,11 +148,24 @@ export const HistoryScheduleExamCompanyTable: FC<
           getClinic: true,
           getUser: true,
           getHierarchy: true,
+          id: data.id,
+          examType: data.examType,
+          status: data.status,
+          hierarchyId: data.hierarchyId,
+          employeeCompanyId:
+            data.employee?.companyId || data.employee?.company?.id,
         },
         data.clinicId,
       );
 
       if (employee && employee.data && employee.data[0]) {
+        if (employee.data[0].examsHistory)
+          employee.data[0].examsHistory =
+            employee.data[0]?.examsHistory?.filter(
+              (exam) =>
+                !(exam.exam?.isAttendance && exam.doneDate < data.doneDate),
+            );
+
         onStackOpenModal(ModalEnum.EMPLOYEE_HISTORY_EXAM_EDIT_CLINIC, {
           ...employee.data[0],
           clinicId: data.clinicId,

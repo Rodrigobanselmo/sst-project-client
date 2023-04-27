@@ -62,6 +62,7 @@ export const ResumeStep = (props: IUseEditEmployee) => {
     setComplementaryExam,
     lastComplementaryDate,
     hasExamsAskSchedule,
+    skipHierarchySelect,
   } = useResumeStep(props);
 
   const buttons = [
@@ -245,7 +246,7 @@ export const ResumeStep = (props: IUseEditEmployee) => {
                           sx={{ mr: 4, ml: 6 }}
                           color="text.light"
                         /> */}
-                        {!data.changeHierarchyWhenDone && (
+                        {!skipHierarchySelect && !data.changeHierarchyWhenDone && (
                           <Box mt={10}>
                             <DatePickerForm
                               label="Data para mudança de cargo"

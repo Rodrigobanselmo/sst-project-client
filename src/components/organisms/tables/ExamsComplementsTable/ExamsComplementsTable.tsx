@@ -65,7 +65,11 @@ export const ExamsComplementsTable: FC<
           rowsData={data || []}
           hideLoadMore
           renderRow={(row) => {
-            const isValid = row.expiredDate && !row.closeToExpired;
+            const isValid =
+              row?.expiredDate &&
+              new Date(row.expiredDate) > new Date() &&
+              !row.closeToExpired;
+
             return (
               <STableRow key={row.id} status={isValid ? 'info' : undefined}>
                 <SCheckBox

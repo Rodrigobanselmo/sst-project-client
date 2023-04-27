@@ -31,7 +31,7 @@ export const statusEmployeeStepMap = {
   },
   [StatusEmployeeStepEnum.IN_TRANS]: {
     value: StatusEmployeeStepEnum.IN_TRANS,
-    name: 'Em Transferência',
-    color: 'success.main',
+    name: 'Em transferência',
+    color: 'info.main',
   },
 } as IStatusEmployeeStepOptions;

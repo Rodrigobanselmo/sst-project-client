@@ -19,10 +19,13 @@ import { NextPage } from 'next';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { useState } from 'react';
+import { IFilterTableData } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 
 const Schedule: NextPage = () => {
   const { userCompanyId } = useGetCompanyId();
   const { data: company } = useQueryCompany(userCompanyId);
+  const [filter, setFilter] = useState<IFilterTableData | undefined>(undefined);
 
   const hideIfIsClinic = company.isClinic;
   const hideIfIsConsultant = company.isConsulting;
@@ -65,6 +68,8 @@ const Schedule: NextPage = () => {
             <HistoryScheduleExamCompanyTable
               mt={10}
               query={{ allCompanies: true }}
+              setFilter={setFilter}
+              filter={filter}
             />
           </Box>
           <Box sx={{ px: 10, pb: 10 }}>

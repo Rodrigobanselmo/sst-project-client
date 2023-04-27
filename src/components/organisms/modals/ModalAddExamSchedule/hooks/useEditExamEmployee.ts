@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import { useSnackbar } from 'notistack';
@@ -21,6 +21,10 @@ import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/u
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 
 import { IEmployee } from '../../../../../core/interfaces/api/IEmployee';
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import { PermissionEnum } from 'project/enum/permission.enum';
+import { isShouldDemissionBlock } from 'core/utils/helpers/demissionalBlockCalc';
+import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
 
 export const initialExamScheduleState = {
   employeeId: undefined as number | undefined,
@@ -53,7 +57,7 @@ const modalName = ModalEnum.EMPLOYEES_ADD_EXAM_SCHEDULE;
 
 export const useEditExamEmployee = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
+  const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialExamScheduleState);
 
   const updateEmployee = useMutUpdateEmployee();
@@ -65,6 +69,7 @@ export const useEditExamEmployee = () => {
   const { data: company } = useQueryCompany(userCompanyId);
 
   const { preventUnwantedChanges } = usePreventAction();
+  const { isAuthSuccess } = useAuthShow();
 
   const [data, setData] = useState({
     ...initialExamScheduleState,
@@ -154,6 +159,38 @@ export const useEditExamEmployee = () => {
       data.isAttendance && data.scheduleType === ClinicScheduleTypeEnum.ASK,
   );
 
+  const userAllow = useMemo(
+    () =>
+      isAuthSuccess({
+        permissions: [PermissionEnum.CLINIC_SCHEDULE],
+        cruds: 'u',
+      }),
+    [isAuthSuccess],
+  );
+
+  const getIsToBlockDismissal = useCallback(
+    (data: typeof initialExamScheduleState) => {
+      const isDismissal = data?.examType === ExamHistoryTypeEnum.DEMI;
+      const clinicExamDoneDate = employee?.lastDoneExam?.doneDate;
+
+      const isToBlockDismissal =
+        isDismissal &&
+        company &&
+        isShouldDemissionBlock(company, {
+          doneDate: clinicExamDoneDate,
+          dismissalDate: data.changeHierarchyDate,
+        });
+
+      return { isToBlockDismissal, clinicExamDoneDate, isDismissal };
+    },
+    [company, employee?.lastDoneExam?.doneDate],
+  );
+
+  const isComplementarySelected = useMemo(
+    () => data.examsData?.some((x) => x.isSelected && !x.isAttendance),
+    [data.examsData],
+  );
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -175,6 +212,18 @@ export const useEditExamEmployee = () => {
     getClinic,
     enqueueSnackbar,
     company,
+    userAllow,
+    isComplementarySelected,
+    getIsToBlockDismissal,
+    onStackOpenModal,
+    skipHierarchySelect:
+      employee?.hierarchyId &&
+      employee.statusStep &&
+      [
+        StatusEmployeeStepEnum.IN_ADMISSION,
+        StatusEmployeeStepEnum.IN_TRANS,
+      ].includes(employee.statusStep) &&
+      employee?.hierarchyId,
   };
 };
 

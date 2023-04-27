@@ -46,6 +46,8 @@ export interface IEmployee {
 
   company: ICompany;
   examsHistory?: IEmployeeExamsHistory[];
+  lastDoneExam?: IEmployeeExamsHistory;
+  hierarchyHistory?: IEmployeeHierarchyHistory[];
 }
 
 export interface IEmployeeHierarchyHistory {

@@ -55,7 +55,7 @@ export const clinicScheduleMap = {
             >
               Instruções:
             </SText>{' '}
-            Clínica com agendamento via
+            Clínica com agendamento via{' '}
             <strong>
               <u>Telefone</u>
             </strong>

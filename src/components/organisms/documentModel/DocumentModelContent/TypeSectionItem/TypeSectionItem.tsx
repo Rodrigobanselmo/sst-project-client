@@ -154,44 +154,114 @@ export const TypeSectionItem: React.FC<Props> = ({
 
       [DocumentSectionChildrenTypeEnum.TITLE]: (item: IElement) => (
         <STHeaderText pb={3} pt={0} fontSize={getFontSize(16)}>
-          <SText component={'span'}>Título</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
+          <SText component={'span'} className="title">
+            Título
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              entityRange={[]}
+              inlineStyleRange={[]}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H1]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(14)}>
-          <SText component={'span'}>H1</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
+          <SText component={'span'} className="title">
+            H1
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              entityRange={[]}
+              inlineStyleRange={[]}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H2]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(13)}>
-          <SText component={'span'}>H2</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
+          <SText component={'span'} className="title">
+            H2
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              entityRange={[]}
+              inlineStyleRange={[]}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H3]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(12)}>
-          <SText component={'span'}>H3</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
+          <SText component={'span'} className="title">
+            H3
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              entityRange={[]}
+              inlineStyleRange={[]}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H4]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(11)}>
-          <SText component={'span'}>H4</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
+          <SText component={'span'} className="title">
+            H4
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              entityRange={[]}
+              inlineStyleRange={[]}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H5]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(10)}>
-          <SText component={'span'}>H5</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
+          <SText component={'span'} className="title">
+            H5
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              entityRange={[]}
+              inlineStyleRange={[]}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.H6]: (item: IElement) => (
         <STHeaderText fontSize={getFontSize(10)}>
-          <SText component={'span'}>H6</SText>
-          {replaceAllVariables(item.text, variables, { wrapper: true }).text}
+          <SText component={'span'} className="title">
+            H6
+          </SText>
+          {item.text.split('\n').map((text, index) => (
+            <StyledText
+              entityRange={[]}
+              inlineStyleRange={[]}
+              text={text}
+              variables={variables}
+              key={item.id + index}
+            />
+          ))}
         </STHeaderText>
       ),
       [DocumentSectionChildrenTypeEnum.BREAK]: (item: IElement) => (

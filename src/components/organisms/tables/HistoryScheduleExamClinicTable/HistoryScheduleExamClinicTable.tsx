@@ -39,7 +39,10 @@ import {
 } from 'core/interfaces/api/IEmployee';
 import { useMutUpdateManyScheduleHisExam } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutUpdateManyScheduleHisExam/useMutUpdateManyScheduleHisExam';
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
-import { useQueryHisScheduleExamClinic } from 'core/services/hooks/queries/useQueryHisScheduleExamClinic/useQueryHisScheduleExamClinic';
+import {
+  IQueryClinicEmployeeHistHier,
+  useQueryHisScheduleExamClinic,
+} from 'core/services/hooks/queries/useQueryHisScheduleExamClinic/useQueryHisScheduleExamClinic';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 
@@ -53,7 +56,7 @@ export const HistoryScheduleExamClinicTable: FC<
     companyId?: string;
     employeeId?: number;
     employee?: IEmployee;
-    query?: IQueryEmployeeHistHier;
+    query?: IQueryClinicEmployeeHistHier;
   }
 > = ({ rowsPerPage = 12, onSelectData, hideTitle, companyId, query }) => {
   const [actualDate, setActualDate] = useState(dayjs().toDate());
@@ -243,7 +246,7 @@ export const HistoryScheduleExamClinicTable: FC<
                         statusOptions={[
                           StatusEnum.DONE,
                           StatusEnum.PROCESSING,
-                          StatusEnum.INACTIVE,
+                          StatusEnum.CANCELED,
                         ]}
                         handleSelectMenu={(option) =>
                           onChangeStatus({

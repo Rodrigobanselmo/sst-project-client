@@ -8,6 +8,8 @@ import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/W
 import { DataStep } from './components/1-data/DataStep';
 import { ViewDocumentModelStep } from './components/2-viewDocumentModelStep/ViewDocumentModelStep';
 import { useEditDocumentModel } from './hooks/useEditDocumentModel';
+import { VariablesDocTable } from 'components/organisms/tables/VariablesDocTable/VariablesDocTable';
+import { VariablesStep } from './components/3-variables/VariablesStep';
 
 export const ModalEditDocumentModelData = () => {
   const props = useEditDocumentModel();
@@ -54,6 +56,7 @@ export const ModalEditDocumentModelData = () => {
         >
           <DataStep {...props} />
           {isEdit && <ViewDocumentModelStep {...props} />}
+          {isEdit && <VariablesStep {...props} />}
         </Wizard>
       </SModalPaper>
     </SModal>

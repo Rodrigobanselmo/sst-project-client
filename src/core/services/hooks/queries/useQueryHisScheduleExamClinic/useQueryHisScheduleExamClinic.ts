@@ -9,8 +9,10 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
+import { StatusEnum } from 'project/enum/status.enum';
 
-interface IQueryClinicEmployeeHistHier {
+export interface IQueryClinicEmployeeHistHier {
   date?: string;
   notAfterDate?: Date;
   companyId?: string;
@@ -19,6 +21,11 @@ interface IQueryClinicEmployeeHistHier {
   getUser?: boolean;
   getHierarchy?: boolean;
   employeeId?: number;
+  employeeCompanyId?: string;
+  examType?: ExamHistoryTypeEnum;
+  status?: StatusEnum;
+  id?: number;
+  hierarchyId?: string;
 }
 
 export const queryHisExamEmployee = async (

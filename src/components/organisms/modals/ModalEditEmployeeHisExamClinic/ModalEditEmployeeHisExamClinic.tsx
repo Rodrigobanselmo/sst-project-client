@@ -207,6 +207,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
                 label="data nascimento"
                 placeholderText={'__/__/__'}
                 calendarProps={{
+                  open: false,
                   excludeDateIntervals: [
                     {
                       start: dayjs().add(-12, 'y').toDate(),

@@ -165,6 +165,7 @@ export const ExamsScheduleClinicColumn: FC<
   )?.examMinDuration;
 
   const { blockDate, blockDateTime } = getBlockDates({ row });
+
   return (
     <SFlex width={['100%', '100%', '100%']} direction="column">
       <ClinicInputSelect
@@ -199,6 +200,7 @@ export const ExamsScheduleClinicColumn: FC<
             <Box flex={1}>
               <DatePickerForm
                 label=""
+                clearIfEmpty
                 control={control}
                 setValue={setValue}
                 unmountOnChangeDefault

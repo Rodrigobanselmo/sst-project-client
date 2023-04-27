@@ -29,8 +29,8 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
     setData?.(value);
   }, 1000);
 
-  const showDueInDays =
-    !hideInstruct && data && !data.some((d) => d.isAttendance);
+  const isAttendance = data && !!data.some((d) => d.isAttendance);
+  const showDueInDays = !hideInstruct && !isAttendance;
 
   return (
     <>
@@ -129,7 +129,7 @@ export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
 
                 {isSelected && (
                   <>
-                    <Box mt={showDueInDays ? 2 : -2}>
+                    <Box mt={!row.clinic?.id ? -2 : 2}>
                       <ExamsScheduleClinicColumn
                         {...props}
                         row={row}

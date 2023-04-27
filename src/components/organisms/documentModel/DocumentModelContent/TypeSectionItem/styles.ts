@@ -57,15 +57,17 @@ export const STHeaderText = styled(SText)<{ title?: number }>`
   padding-top: ${() => getSpacing(320, { px: true })}px;
 
   span {
-    display: inline-flex;
-    font-size: 70%;
-    background-color: ${(props) => props.theme.palette.gray[50]};
-    border: 1px solid;
-    border-color: ${(props) => props.theme.palette.gray[300]};
-    color: ${(props) => props.theme.palette.gray[600]};
-    border-radius: 4px;
-    padding: 0px 10px;
-    margin-top: 3px;
+    &.title {
+      display: inline-flex;
+      font-size: 70%;
+      background-color: ${(props) => props.theme.palette.gray[50]};
+      border: 1px solid;
+      border-color: ${(props) => props.theme.palette.gray[300]};
+      color: ${(props) => props.theme.palette.gray[600]};
+      border-radius: 4px;
+      padding: 0px 10px;
+      margin-top: 3px;
+    }
   }
 `;
 

@@ -16,6 +16,7 @@ export type InputDateFormProps = Partial<SInputProps> & {
     | ((e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void)
     | null;
   inputFormat?: string;
+  clearIfEmpty?: boolean;
   placeholderText?: string;
   calendarProps?: Partial<ReactDatePickerProps>;
   unmountOnChangeDefault?: boolean;

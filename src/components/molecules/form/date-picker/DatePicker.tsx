@@ -24,12 +24,14 @@ export const DatePickerForm = ({
   unmountOnChangeDefault,
   boxProps,
   setValue,
+  clearIfEmpty,
   ...restInput
 }: InputDateFormProps) => {
   const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     defaultValue !== undefined && setValue?.(name, defaultValue as any);
+    clearIfEmpty && setValue?.(name, defaultValue as any);
   }, [defaultValue, name, setValue]);
 
   return (

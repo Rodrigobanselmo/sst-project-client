@@ -34,6 +34,8 @@ import { InputForm } from 'components/molecules/form/input';
 import { RadioForm } from 'components/molecules/form/radio';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { dateToDate } from 'core/utils/date/date-format';
+import { STagButton } from 'components/atoms/STagButton';
+import { SAddIcon } from 'assets/icons/SAddIcon';
 
 export const getSexLabel = (sex?: SexTypeEnum) => {
   if (sex === SexTypeEnum.F) return 'Feminino';
@@ -56,6 +58,9 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
     notInHierarchy,
     newHierarchy,
     isPendingExams,
+    skipHierarchySelect,
+    handleSelectEmployee,
+    handleAddEmployee,
   } = useEmployeeStep(props);
 
   const buttons = [
@@ -71,27 +76,40 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
-        <EmployeeSelect
-          maxWidth="200px"
-          maxPerPage={5}
-          handleSelect={(employee: IEmployee) => {
-            employee?.id &&
-              setData((old) => ({
-                ...old,
-                companyId: employee.companyId,
-                employeeId: employee.id,
-                examType: undefined,
-                examsData: [],
-              }));
-          }}
-          text={'Selecionar Funcionario'}
-          // addButton={false}
-          large
-          queryEmployee={{ all: true }}
-          tooltipTitle="Encontrar funcionário"
-          selectedEmployees={[]}
-          multiple={false}
-        />
+        <SFlex>
+          <EmployeeSelect
+            maxWidth="200px"
+            maxPerPage={5}
+            handleSelect={(emp: IEmployee) => handleSelectEmployee(emp)}
+            text={'Selecionar Funcionario'}
+            // addButton={false}
+            large
+            queryEmployee={{ all: true }}
+            tooltipTitle="Encontrar funcionário"
+            selectedEmployees={[]}
+            multiple={false}
+            handleAddEmployee={handleSelectEmployee}
+            {...(!employee?.id && {
+              borderActive: 'primary',
+            })}
+          />
+          <STagButton
+            large
+            icon={SAddIcon}
+            text={'Novo Funcionario'}
+            iconProps={{ sx: { fontSize: 18, mr: -1, color: 'success.main' } }}
+            onClick={() => {
+              handleAddEmployee();
+            }}
+            {...(!employee?.id && {
+              borderActive: 'success',
+              // bg: 'success.dark',
+              // iconProps: { sx: { fontSize: 18, mr: -1 } },
+              // active: true,
+              // textProps: { sx: { fontWeight: '600' } },
+            })}
+          />
+        </SFlex>
         <Box
           mt={12}
           sx={{
@@ -329,111 +347,116 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                     options={employeeExamScheduleTypeList(employee)}
                     boxProps={{ flex: 1 }}
                   />
-                  {newHierarchy && data.companyId && employee?.id && (
-                    <SFlex direction="column" gap={4} mb={5} mt={5}>
-                      <SText color="text.label" fontSize={14}>
-                        Novo Cargo
-                      </SText>
-                      <HierarchySelect
-                        tooltipText={(textField) => textField}
-                        filterOptions={[HierarchyEnum.SECTOR]}
-                        defaultFilter={HierarchyEnum.SECTOR}
-                        disabled={isPendingExams}
-                        text={
-                          data.sector?.name
-                            ? data.sector.name
-                            : 'Selecione um Setor'
-                        }
-                        large
-                        icon={null}
-                        error={data.errors.sector}
-                        maxWidth={'auto'}
-                        handleSelect={(hierarchy: IHierarchy) => {
-                          setData({
-                            ...data,
-                            sector: hierarchy,
-                            hierarchy: undefined,
-                            examsData: [],
-                            subOffice: undefined,
-                            errors: { ...data.errors, sector: false },
-                          });
-                        }}
-                        companyId={data.companyId}
-                        selectedId={data.sector?.id}
-                        borderActive={data.sector?.id ? 'info' : undefined}
-                        active={false}
-                        bg={'background.paper'}
-                      />
-                      <HierarchySelect
-                        tooltipText={(textField) => textField}
-                        disabled={isPendingExams}
-                        filterOptions={[HierarchyEnum.OFFICE]}
-                        defaultFilter={HierarchyEnum.OFFICE}
-                        text="Selecione um Cargo"
-                        large
-                        icon={null}
-                        maxWidth={'auto'}
-                        parentId={data.sector?.id}
-                        error={data.errors.hierarchy}
-                        handleSelect={(hierarchy: IHierarchy, parents) => {
-                          const parentSector =
-                            parents &&
-                            parents.find(
-                              (hierarchy) =>
-                                hierarchy.type == HierarchyEnum.SECTOR,
-                            );
-
-                          setData({
-                            ...data,
-                            hierarchy,
-                            subOffice: undefined,
-                            examsData: [],
-                            sector: parentSector,
-                            errors: {
-                              ...data.errors,
-                              sector: false,
-                              hierarchy: false,
-                            },
-                          });
-                        }}
-                        companyId={data.companyId}
-                        selectedId={data.hierarchy?.id}
-                        active={false}
-                        borderActive={data.hierarchy?.id ? 'info' : undefined}
-                        bg={'background.paper'}
-                      />
-                      {data.hierarchy?.id && (
+                  {!skipHierarchySelect &&
+                    newHierarchy &&
+                    data.companyId &&
+                    employee?.id && (
+                      <SFlex direction="column" gap={4} mb={5} mt={5}>
+                        <SText color="text.label" fontSize={14}>
+                          Novo Cargo
+                        </SText>
                         <HierarchySelect
                           tooltipText={(textField) => textField}
+                          filterOptions={[HierarchyEnum.SECTOR]}
+                          defaultFilter={HierarchyEnum.SECTOR}
                           disabled={isPendingExams}
-                          filterOptions={[HierarchyEnum.SUB_OFFICE]}
-                          defaultFilter={HierarchyEnum.SUB_OFFICE}
-                          text="Selecione um Cargo Desenv."
+                          text={
+                            data.sector?.name
+                              ? data.sector.name
+                              : 'Selecione um Setor'
+                          }
                           large
                           icon={null}
+                          error={data.errors.sector}
                           maxWidth={'auto'}
-                          parentId={data.hierarchy?.id}
-                          error={data.errors.subOffice}
                           handleSelect={(hierarchy: IHierarchy) => {
                             setData({
                               ...data,
-                              subOffice: hierarchy,
+                              sector: hierarchy,
+                              hierarchy: undefined,
                               examsData: [],
+                              subOffice: undefined,
+                              errors: { ...data.errors, sector: false },
+                            });
+                          }}
+                          companyId={data.companyId}
+                          selectedId={data.sector?.id}
+                          borderActive={data.sector?.id ? 'info' : undefined}
+                          active={false}
+                          bg={'background.paper'}
+                        />
+                        <HierarchySelect
+                          tooltipText={(textField) => textField}
+                          disabled={isPendingExams}
+                          filterOptions={[HierarchyEnum.OFFICE]}
+                          defaultFilter={HierarchyEnum.OFFICE}
+                          text="Selecione um Cargo"
+                          large
+                          icon={null}
+                          maxWidth={'auto'}
+                          parentId={data.sector?.id}
+                          error={data.errors.hierarchy}
+                          handleSelect={(hierarchy: IHierarchy, parents) => {
+                            const parentSector =
+                              parents &&
+                              parents.find(
+                                (hierarchy) =>
+                                  hierarchy.type == HierarchyEnum.SECTOR,
+                              );
+
+                            setData({
+                              ...data,
+                              hierarchy,
+                              subOffice: undefined,
+                              examsData: [],
+                              sector: parentSector,
                               errors: {
                                 ...data.errors,
-                                subOffice: false,
+                                sector: false,
+                                hierarchy: false,
                               },
                             });
                           }}
                           companyId={data.companyId}
-                          selectedId={data.subOffice?.id}
+                          selectedId={data.hierarchy?.id}
                           active={false}
-                          borderActive={data.subOffice?.id ? 'info' : undefined}
+                          borderActive={data.hierarchy?.id ? 'info' : undefined}
                           bg={'background.paper'}
                         />
-                      )}
-                    </SFlex>
-                  )}
+                        {data.hierarchy?.id && (
+                          <HierarchySelect
+                            tooltipText={(textField) => textField}
+                            disabled={isPendingExams}
+                            filterOptions={[HierarchyEnum.SUB_OFFICE]}
+                            defaultFilter={HierarchyEnum.SUB_OFFICE}
+                            text="Selecione um Cargo Desenv."
+                            large
+                            icon={null}
+                            maxWidth={'auto'}
+                            parentId={data.hierarchy?.id}
+                            error={data.errors.subOffice}
+                            handleSelect={(hierarchy: IHierarchy) => {
+                              setData({
+                                ...data,
+                                subOffice: hierarchy,
+                                examsData: [],
+                                errors: {
+                                  ...data.errors,
+                                  subOffice: false,
+                                },
+                              });
+                            }}
+                            companyId={data.companyId}
+                            selectedId={data.subOffice?.id}
+                            active={false}
+                            borderActive={
+                              data.subOffice?.id ? 'info' : undefined
+                            }
+                            bg={'background.paper'}
+                          />
+                        )}
+                      </SFlex>
+                    )}
                 </Box>
               </SFlex>
             </>

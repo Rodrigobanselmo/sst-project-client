@@ -27,5 +27,6 @@ export interface IEmployeeSelectProps
     list: IEmployee[],
   ) => void;
   handleMultiSelect?: (selected: IEmployee) => void;
+  handleAddEmployee?: (selected: IEmployee, close: () => void) => void;
   onEnter?: (value: string) => void;
 }

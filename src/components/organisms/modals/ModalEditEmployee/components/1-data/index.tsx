@@ -137,7 +137,9 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
             <Box>
               <DatePickerForm
                 label="Data de Nascimento"
+                placeholderText={'__/__/__'}
                 calendarProps={{
+                  open: false,
                   excludeDateIntervals: [
                     {
                       start: dayjs().add(-12, 'y').toDate(),

@@ -16,6 +16,7 @@ import {
 } from 'core/interfaces/api/IDocumentModel';
 
 import { AppState } from '../..';
+import { IVariableDocument } from 'components/organisms/tables/VariablesDocTable/VariablesDocTable';
 
 export interface IDocumentSlice {
   model: IDocumentModelData | null;
@@ -376,6 +377,29 @@ export const documentSlice = createSlice({
     ) => {
       state.selectItem = action.payload;
     },
+    setDocumentModelAddVariable: (
+      state,
+      action: PayloadAction<IVariableDocument>,
+    ) => {
+      if (state.model && state.model.variables) {
+        const variable = action.payload;
+        state.model.variables = [
+          ...state.model.variables.filter((v) => v.type !== variable.type),
+          variable,
+        ];
+      }
+    },
+    setDocumentModelRemoveVariable: (
+      state,
+      action: PayloadAction<IVariableDocument>,
+    ) => {
+      if (state.model && state.model.variables) {
+        const variable = action.payload;
+        state.model.variables = [
+          ...state.model.variables.filter((v) => v.type !== variable.type),
+        ];
+      }
+    },
   },
 });
 
@@ -395,9 +419,13 @@ export const {
   setDocumentDeleteSection,
   setDocumentDeleteMany,
   setDocumentAddElementAfterSection,
+  setDocumentModelAddVariable,
+  setDocumentModelRemoveVariable,
 } = documentSlice.actions;
 
 export const selectAllDocumentModel = (state: AppState) => state[name].model;
+export const selectAllDocumentModelVariables = (state: AppState) =>
+  state[name].model?.variables;
 
 export const selectEqualDocumentDragItem =
   (id: string | number) => (state: AppState) =>

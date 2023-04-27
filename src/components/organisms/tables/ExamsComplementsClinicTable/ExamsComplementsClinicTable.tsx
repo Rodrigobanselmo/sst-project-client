@@ -140,7 +140,7 @@ export const ExamsComplementsClinicTable: FC<
                   statusOptions={[
                     StatusEnum.DONE,
                     StatusEnum.PROCESSING,
-                    StatusEnum.INACTIVE,
+                    StatusEnum.CANCELED,
                   ]}
                   handleSelectMenu={(option) =>
                     setData?.({ status: option.value, id: row.id })

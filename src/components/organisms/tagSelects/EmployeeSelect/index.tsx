@@ -107,6 +107,7 @@ export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
         name,
         cpf,
         hierarchy: actualHierarchy,
+        onCreate: props.handleAddEmployee,
       },
     );
   };

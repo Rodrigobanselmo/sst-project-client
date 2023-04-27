@@ -111,6 +111,7 @@ export interface IExamOriginData extends Partial<IExamRiskData> {
   closeToExpired?: boolean;
   homogeneousGroup?: IGho;
   expiredDate?: Date | null;
+  doneDate?: Date | null;
   risk: IRiskFactors;
 }
 

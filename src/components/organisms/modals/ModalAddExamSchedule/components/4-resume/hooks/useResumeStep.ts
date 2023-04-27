@@ -66,7 +66,7 @@ export const useResumeStep = ({
       changeHierarchyAnyway: data.changeHierarchyAnyway,
       changeHierarchyDate: data.changeHierarchyDate,
       clinicObs: data.clinicObs,
-      hierarchyId: data?.hierarchy?.id,
+      hierarchyId: rest.skipHierarchySelect || data?.hierarchy?.id,
       subOfficeId: data?.subOffice?.id,
     } as ICreateEmployeeExamHistory;
 
@@ -130,6 +130,8 @@ export const useResumeStep = ({
       },
     );
 
+    const noExams = data.examsData.some((data) => data.isSelected);
+
     const downloadGuide =
       (submit.examsData?.length &&
         submit.examsData.every((exam) => exam.status !== StatusEnum.PENDING)) ||
@@ -138,15 +140,17 @@ export const useResumeStep = ({
     await createMutation
       .mutateAsync(submit)
       .then(() => {
-        if (downloadGuide) onDownloadGuide(submit.companyId, submit.employeeId);
+        if (downloadGuide && noExams)
+          onDownloadGuide(submit.companyId, submit.employeeId);
         else {
-          enqueueSnackbar(
-            'Esperando finalizar pedido de agenda para baixar guia de encaminhamento',
-            {
-              variant: 'warning',
-              autoHideDuration: 5000,
-            },
-          );
+          if (!noExams)
+            enqueueSnackbar(
+              'Esperando finalizar pedido de agenda para baixar guia de encaminhamento',
+              {
+                variant: 'warning',
+                autoHideDuration: 5000,
+              },
+            );
         }
 
         onClose();

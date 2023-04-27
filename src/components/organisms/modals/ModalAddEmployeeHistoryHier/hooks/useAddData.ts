@@ -75,7 +75,11 @@ export const useAddData = () => {
       getModalData<Partial<typeof initialEmployeeHistoryHierState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const newData = {
           ...oldData,
@@ -135,8 +139,8 @@ export const useAddData = () => {
     const submitData: ICreateEmployeeHierarchyHistory & { id?: number } = {
       id: data.id,
       companyId,
-      hierarchyId: data.hierarchy?.id || data?.employee?.hierarchyId || '',
-      subOfficeId: data.subOffice?.id || data?.employee?.subOffices?.[0]?.id,
+      hierarchyId: data.hierarchy?.id as string,
+      subOfficeId: data.subOffice?.id as string,
       employeeId: data.employeeId,
       ...dataForm,
       startDate: dayjs(data.startDate).format('DD/MM/YYYY'),

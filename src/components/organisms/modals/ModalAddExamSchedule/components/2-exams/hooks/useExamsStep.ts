@@ -22,13 +22,12 @@ export const useExamsStep = ({
   employee,
   fetchClinic,
   getClinic,
+  userAllow,
   ...rest
 }: IUseEditEmployee) => {
   const { setError, control, getValues, reset, setValue, clearErrors } =
     useFormContext();
   const { nextStep, stepCount, goToStep, previousStep } = useWizard();
-
-  const { isAuthSuccess } = useAuthShow();
 
   const onCloseUnsaved = async () => {
     onClose(() => reset());
@@ -96,6 +95,7 @@ export const useExamsStep = ({
 
   const setComplementaryExam = async (exam: Partial<IExamsScheduleTable>) => {
     let clinic: ICompany | undefined = undefined;
+    clearErrors();
 
     if (exam.clinic?.id) {
       const clinicData = await fetchClinic(exam.clinic.id);
@@ -154,10 +154,7 @@ export const useExamsStep = ({
                   scheduleRange: examClinic?.scheduleRange,
                 },
                 {
-                  notToday: !isAuthSuccess({
-                    permissions: [PermissionEnum.CLINIC_SCHEDULE],
-                    cruds: 'u',
-                  }),
+                  notToday: !userAllow,
                 },
               );
 
@@ -197,6 +194,7 @@ export const useExamsStep = ({
     employee,
     previousStep,
     setComplementaryExam,
+    clearErrors,
     ...rest,
   };
 };

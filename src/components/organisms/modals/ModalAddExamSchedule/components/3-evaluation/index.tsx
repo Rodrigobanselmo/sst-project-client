@@ -13,6 +13,13 @@ import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { IUseEditEmployee } from '../../hooks/useEditExamEmployee';
 import { useEvaluationStep } from './hooks/useEvaluationStep';
+import dayjs from 'dayjs';
+import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
+import { dateToDate } from 'core/utils/date/date-format';
+import {
+  getRiskDegreeBlockDays,
+  isShouldDemissionBlock,
+} from 'core/utils/helpers/demissionalBlockCalc';
 
 const getSexLabel = (sex?: SexTypeEnum) => {
   if (sex === SexTypeEnum.F) return 'Feminino';
@@ -39,7 +46,10 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
     getBlockTimeList,
     isLoadingTime,
     employee,
+    isComplementarySelected,
     isEval,
+    setData,
+    getIsToBlockDismissal,
   } = useEvaluationStep(props);
 
   const buttons = [
@@ -58,6 +68,9 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
     },
   ] as IModalButton[];
 
+  const { clinicExamDoneDate, isDismissal, isToBlockDismissal } =
+    getIsToBlockDismissal(data);
+
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
@@ -68,14 +81,21 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
               : 'Agendar Exame de Avaliação Clínica Ocupacional'}
           </SText>
           <Divider sx={{ mb: 5, mt: 3 }} />
-
           <ExamsScheduleTable
             getBlockTimeList={getBlockTimeList}
             isLoadingTime={isLoadingTime}
             setData={setComplementaryExam}
-            data={data.examsData.filter((x) =>
-              isEval ? x.isAvaliation : x.isAttendance,
-            )}
+            data={data.examsData
+              .filter((x) => (isEval ? x.isAvaliation : x.isAttendance))
+              .map((examData) => {
+                return {
+                  ...examData,
+                  ...(isDismissal && {
+                    isSelected: !isToBlockDismissal,
+                    expiredDate: null,
+                  }),
+                };
+              })}
             control={control}
             setValue={setValue}
             hideHeader
@@ -88,7 +108,49 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
               lastComplementaryDate: undefined,
             })}
           />
-          {!isEval && (
+          {isDismissal && (
+            <DatePickerForm
+              label="Data da demissão"
+              control={control}
+              defaultValue={dateToDate(data.changeHierarchyDate)}
+              sx={{ maxWidth: 300, mb: 5 }}
+              placeholderText="__/__/__"
+              name="doneDate"
+              labelPosition="top"
+              unmountOnChangeDefault
+              onChange={(date) => {
+                setData({
+                  ...data,
+                  changeHierarchyDate: date instanceof Date ? date : undefined,
+                });
+              }}
+            />
+          )}
+
+          {isDismissal && (
+            <>
+              <SText fontSize={15}>
+                Exame demissional {isToBlockDismissal ? 'não' : ''} necessario
+              </SText>
+              <SText fontSize={12}>
+                Último exame clinico:{' '}
+                {clinicExamDoneDate
+                  ? `${dayjs(data.changeHierarchyDate).diff(
+                      clinicExamDoneDate,
+                      'days',
+                    )} dias atrás`
+                  : ''}
+              </SText>
+              <SText fontSize={12}>
+                Bloquar exame demissional antes de{' '}
+                {getRiskDegreeBlockDays(company) == 90
+                  ? '90 dias (Grau de risco 3 e 4)'
+                  : '135 dias (Grau de risco 1 e 2)'}
+              </SText>
+            </>
+          )}
+
+          {isComplementarySelected && !isEval && (
             <>
               <SText fontSize={14}>
                 Último resuldado dos exames complementar:{' '}

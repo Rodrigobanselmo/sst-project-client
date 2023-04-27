@@ -1,4 +1,5 @@
 import { IEmployee } from 'core/interfaces/api/IEmployee';
+import { StatusEmployeeStepEnum } from './statusEmployeeStep.enum';
 
 export enum ExamHistoryTypeEnum {
   ADMI = 'ADMI',
@@ -95,20 +96,38 @@ export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
   if (!employee) return [];
 
   if (!employee.hierarchyId) {
-    const dismissalWithoutExam =
-      !employee.skippedDismissalExam && employee.expiredDateExam !== null;
+    const isInDismissal =
+      employee.statusStep == StatusEmployeeStepEnum.IN_DEMISSION;
 
-    if (dismissalWithoutExam)
+    if (isInDismissal)
       return [
         employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
         employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
+        employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
       ];
 
     return [employeeExamTypeMap[ExamHistoryTypeEnum.ADMI]];
   }
 
-  if (!employee.hierarchyId && employee.expiredDateExam === null)
-    return [employeeExamTypeMap[ExamHistoryTypeEnum.ADMI]];
+  const isInAdmission =
+    employee.statusStep == StatusEmployeeStepEnum.IN_ADMISSION;
+  const isInOfficeChange =
+    employee.statusStep == StatusEmployeeStepEnum.IN_TRANS;
+
+  if (isInAdmission)
+    return [
+      employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
+      employeeExamTypeMap[ExamHistoryTypeEnum.RETU],
+      employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
+    ];
+
+  if (isInOfficeChange)
+    return [
+      employeeExamTypeMap[ExamHistoryTypeEnum.OFFI],
+      employeeExamTypeMap[ExamHistoryTypeEnum.RETU],
+      employeeExamTypeMap[ExamHistoryTypeEnum.CHAN],
+      employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
+    ];
 
   return [
     employeeExamTypeMap[ExamHistoryTypeEnum.PERI],

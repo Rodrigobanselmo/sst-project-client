@@ -58,17 +58,15 @@ export const useFilterTable = (
     timeout?: number;
     key?: string;
     setPage?: (page: number) => void;
+    setFilter?: (filter: IFilterTableData) => void;
   },
 ) => {
   const { onStackOpenModal } = useModal();
-  const [filter, setFilter] = usePersistTimeoutState<IFilterTableData>(
-    (options?.key || '') + '_filter',
-    deafult || {},
-    options?.timeout,
-  );
+  const [filter, setFilter] = useState<IFilterTableData>(deafult || {});
 
   useEffect(() => {
     options?.setPage?.(1);
+    options?.setFilter?.(filter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filter]);
 

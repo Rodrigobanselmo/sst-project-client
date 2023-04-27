@@ -9,6 +9,7 @@ export const SPageMenu: FC<SPageMenuProps> = ({
   options,
   active,
   onChange,
+  large = true,
   ...props
 }) => {
   return (
@@ -16,7 +17,7 @@ export const SPageMenu: FC<SPageMenuProps> = ({
       {options.map((options) => (
         <STagButton
           active={active === options.value}
-          large
+          large={large}
           key={options.value}
           onClick={(e) => onChange(options.value, e)}
           text={options.label}

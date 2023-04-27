@@ -48,6 +48,7 @@ import { dateToString } from 'core/utils/date/date-format';
 import { SDropIconEmployee } from '../EmployeesTable/components/SDropIconEmployee/SDropIconEmployee';
 import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
 import clone from 'clone';
+import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
 
 export const getEmployeeRowStatus = (data?: IEmployee) => {
   const exam = data?.examsHistory?.[0];
@@ -98,6 +99,12 @@ export const getEmployeeRowExamData = (row: IEmployee) => {
     (ex) => ex.status === 'DONE',
   );
 
+  const isDismissal = employee.statusStep == StatusEmployeeStepEnum.DEMISSION;
+  const isInAdmission =
+    employee.statusStep == StatusEmployeeStepEnum.IN_ADMISSION;
+  const isInOfficeChange =
+    employee.statusStep == StatusEmployeeStepEnum.IN_TRANS;
+
   const isScheduled = exam?.status == StatusEnum.PROCESSING;
   const isDoneExam = exam?.status == StatusEnum.DONE && exam?.expiredDate;
 
@@ -105,21 +112,22 @@ export const getEmployeeRowExamData = (row: IEmployee) => {
 
   const isExpired = status.status == StatusEnum.EXPIRED;
 
-  const textNext = isExpired
-    ? 'Vencido em: '
-    : isScheduled
-    ? 'Agendado para: '
-    : 'Proximo em: ';
+  let textNext = 'Proximo em: ';
 
-  const validity =
+  if (isInAdmission) textNext = 'Fazer até: ';
+  if (isInOfficeChange) textNext = 'Fazer até: ';
+  if (isScheduled) textNext = 'Agendado para: ';
+  if (isExpired) textNext = 'Vencido em: ';
+
+  let validity =
     textNext +
     getEmployeeRowExpiredDate(
-      isScheduled
-        ? exam.doneDate
-        : isDoneExam
-        ? exam?.expiredDate
-        : row?.expiredDateExam,
+      isScheduled ? exam.doneDate : row?.expiredDateExam,
     );
+
+  if (isDismissal) {
+    validity = 'Demitido';
+  }
 
   const lastExam =
     lastDoneExam?.doneDate || employee.lastExam

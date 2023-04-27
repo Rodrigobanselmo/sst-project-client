@@ -48,6 +48,8 @@ export const useExamsStep = ({
     employee,
     previousStep,
     evalExam,
+    setError,
+    clearErrors,
     ...rest,
   };
 };
