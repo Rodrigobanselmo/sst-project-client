@@ -398,13 +398,7 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
       </SFlex>
 
       {filters[FilterFieldEnum.DOWNLOAD_TYPE] && (
-        <Box
-          mt={10}
-          // flex={1}
-          // display="flex"
-          // width={'100%'}
-          // flexDirection="column"
-        >
+        <Box mt={10} overflow={'hidden'}>
           <RadioFormText
             type="radio"
             optionsFieldName={{ valueField: 'value', contentField: 'name' }}

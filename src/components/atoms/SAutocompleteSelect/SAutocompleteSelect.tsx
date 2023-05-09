@@ -25,6 +25,12 @@ const SAutocompleteSelect: FC<AutocompleteSelectProps> = ({
         labelPosition="center"
         {...params}
         {...inputProps}
+        sx={{
+          '.MuiInputBase-input': {
+            mr: '50px',
+          },
+          ...inputProps?.sx,
+        }}
         size="small"
         label={label}
         onChange={(e) => intMask.apply(e.target.value)}

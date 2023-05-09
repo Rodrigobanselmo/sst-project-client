@@ -14,7 +14,7 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import { employeeFilterList } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { employeeFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/employeeFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';

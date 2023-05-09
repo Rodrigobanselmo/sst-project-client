@@ -39,6 +39,9 @@ export const ModalEditClinic = () => {
           tag={props.companyData.id ? 'edit' : 'add'}
           onClose={props.onCloseUnsaved}
           title={'Clínica'}
+          {...(props.companyData.id && {
+            onDelete: props.onDelete,
+          })}
         />
 
         <Wizard

@@ -178,7 +178,7 @@ export const ModalReport: FC = () => {
           title={data.title || ' '}
         />
 
-        <Box maxHeight={500} minHeight={200}>
+        <Box maxHeight={500} overflow={'hidden'}>
           <STableFilterBox
             mt={8}
             filterProps={{

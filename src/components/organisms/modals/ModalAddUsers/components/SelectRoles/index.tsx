@@ -251,20 +251,22 @@ export const SelectRoles: FC<ISelectRolesSelects> = ({
                               )
                                 return null;
 
+                              const isChecked = data.permissions[role.value]
+                                ?.find(
+                                  (permission) =>
+                                    permission.split('-')[0] === pKey,
+                                )
+                                ?.includes(type);
                               return (
                                 <SCheckBox
-                                  {...(type === 'r' && {
-                                    disabled: true,
-                                    checked: true,
-                                  })}
+                                  {...(type === 'r' &&
+                                    isChecked && {
+                                      disabled: true,
+                                      checked: true,
+                                    })}
                                   key={type}
                                   label={text}
-                                  checked={data.permissions[role.value]
-                                    ?.find(
-                                      (permission) =>
-                                        permission.split('-')[0] === pKey,
-                                    )
-                                    ?.includes(type)}
+                                  checked={isChecked}
                                   onChange={() =>
                                     handleSelectPermission(
                                       role,

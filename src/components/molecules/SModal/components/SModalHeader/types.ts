@@ -15,4 +15,5 @@ export interface SModalHeaderProps extends Omit<BoxProps, 'title'> {
   onClose: () => void;
   secondIcon?: ElementType<any>;
   secondIconClick?: () => void;
+  onDelete?: () => void;
 }

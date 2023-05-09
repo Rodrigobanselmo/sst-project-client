@@ -17,6 +17,9 @@ import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutatio
 import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
 import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/company/useMutCreateCompany';
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
+import { useMutDeleteCompany } from 'core/services/hooks/mutations/manager/company/useMutDeleteCompany/useMutDeleteCompany';
+import { RoutesEnum } from 'core/enums/routes.enums';
+import { useRouter } from 'next/router';
 
 export const initialClinicState = {
   status: StatusEnum.ACTIVE,
@@ -83,14 +86,16 @@ export const initialClinicState = {
 export const useEditCompany = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
+  const { push } = useRouter();
   const initialDataRef = useRef(initialClinicState);
 
   const updateCompany = useMutUpdateCompany();
+  const deleteCompany = useMutDeleteCompany();
   const createCompany = useMutCreateCompany({ isClinic: true });
   const cepMutation = useMutationCEP();
   const cnpjMutation = useMutationCNPJ();
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const [companyData, setCompanyData] = useState({
     ...initialClinicState,
@@ -98,13 +103,28 @@ export const useEditCompany = () => {
 
   const isEdit = !!companyData.id && companyData.isSavedCreation === false;
 
+  const onDelete = () => {
+    preventDelete(() =>
+      deleteCompany
+        .mutateAsync({ companyId: companyData.id, isClinic: true })
+        .then(() => {
+          onClose();
+          push(RoutesEnum.CLINICS);
+        }),
+    );
+  };
+
   useEffect(() => {
     const initialData = getModalData<Partial<typeof initialClinicState>>(
       ModalEnum.CLINIC_EDIT,
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setCompanyData((oldData) => {
         const replaceData = {} as any;
 
@@ -188,6 +208,7 @@ export const useEditCompany = () => {
       updateCompany.isLoading ||
       createCompany.isLoading ||
       cepMutation.isLoading,
+    onDelete,
   };
 };
 

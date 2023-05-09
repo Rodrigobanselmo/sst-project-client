@@ -1,4 +1,5 @@
 import { UseQueryResult } from 'react-query';
+import { IExam } from './api/IExam';
 
 export interface IReactQuery<T> extends Omit<UseQueryResult<T>, 'data'> {
   data: T;
@@ -13,6 +14,7 @@ export interface IPaginationResult<T> {
   count: number;
   error: { message?: string };
   countUnread?: number;
+  exams?: IExam[];
 }
 
 export interface IReactQueryPagination<T>

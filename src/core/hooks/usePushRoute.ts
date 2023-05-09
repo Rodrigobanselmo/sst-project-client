@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
@@ -10,17 +10,20 @@ import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelec
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { initialDocumentModelsViewState } from 'components/organisms/modals/ModalViewDocumentModels/ModalViewDocumentModels';
 import { useRouter } from 'next/router';
-import { DocumentTypeEnum } from 'project/enum/document.enums';
 
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
+import { GetCompanyStructureResponse } from 'core/services/hooks/mutations/general/useMutUploadFile/types';
 import { useMutSetApplyServiceCompany } from 'core/services/hooks/mutations/manager/company/useMutSetApplyServiceCompany/useMutSetApplyServiceCompany';
 import { useMutSetClinicsCompany } from 'core/services/hooks/mutations/manager/company/useMutSetClinicsCompany';
+import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocumentModels/useQueryDocumentModels';
+import { useImportExport } from './useImportExport';
 
 export const usePushRoute = () => {
   const { data: company } = useQueryCompany();
@@ -29,10 +32,24 @@ export const usePushRoute = () => {
 
   const setClinicsMutation = useMutSetClinicsCompany();
   const setApplyCompanyMutation = useMutSetApplyServiceCompany();
+  const { handleUploadTable } = useImportExport();
 
   const handleAddEmployees = useCallback(() => {
     if (!company.employeeCount && !company.hierarchyCount) {
-      onStackOpenModal(ModalEnum.EMPLOYEES_EXCEL_ADD);
+      handleUploadTable({
+        companyId: company.id,
+        pathApi: ApiRoutesEnum.UPLOAD_COMPANY_STRUCTURE.replace(
+          ':companyId',
+          company.id,
+        ),
+        type: ReportTypeEnum.MODEL_EMPLOYEE,
+        payload: {
+          createEmployee: true,
+          createHierarchy: true,
+          createHomo: true,
+          createHierOnHomo: true,
+        } as GetCompanyStructureResponse,
+      });
     } else {
       push({
         pathname: RoutesEnum.EMPLOYEES.replace(':companyId', company.id),
@@ -42,7 +59,7 @@ export const usePushRoute = () => {
     company.employeeCount,
     company.hierarchyCount,
     company.id,
-    onStackOpenModal,
+    handleUploadTable,
     push,
   ]);
 

@@ -30,7 +30,7 @@ export interface IOpenSelected {
 
 export const useOpenRiskTool = () => {
   const dispatch = useAppDispatch();
-  const { onStackOpenModal } = useModal();
+  const { onStackOpenModal, onCloseModal } = useModal();
 
   const onOpenSelected = useCallback(
     ({
@@ -162,5 +162,10 @@ export const useOpenRiskTool = () => {
     [onOpenSelected, onStackOpenModal],
   );
 
-  return { onOpenSelected, onOpenRiskToolSelected, onStackOpenModal };
+  return {
+    onOpenSelected,
+    onOpenRiskToolSelected,
+    onStackOpenModal,
+    onCloseModal,
+  };
 };

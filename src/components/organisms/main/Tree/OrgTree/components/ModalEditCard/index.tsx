@@ -47,6 +47,7 @@ import { TypeSelect } from '../Selects/TypeSelect';
 import { ModalViewExamsData } from './components/ModalViewExamsData/ModalViewExamsData';
 import { ModalViewRiskData } from './components/ModalViewRiskData';
 import { useModalCard } from './hooks/useModalCard';
+import { SDeleteButton } from 'components/molecules/SDeleteButton/SDeleteButton';
 
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectHierarchyTreeSelectItem);
@@ -203,6 +204,7 @@ export const ModalEditCard = () => {
           onClose={onCloseUnsaved}
           // secondIcon={type === TreeTypeEnum.COMPANY ? undefined : SDeleteIcon}
           // secondIconClick={onRemoveNode}
+          onDelete={onRemoveNode}
           title={
             <Box width="100%">
               <SFlex mb={2} align="center">
@@ -356,15 +358,7 @@ export const ModalEditCard = () => {
             />
           ) : (
             <>
-              <SButton
-                variant={'outlined'}
-                size="small"
-                color="error"
-                onClick={onRemoveNode}
-                sx={{ mr: 'auto' }}
-              >
-                Deletar
-              </SButton>
+              {/* <SDeleteButton>Deletar</SDeleteButton> */}
               <SButton
                 variant={'outlined'}
                 size="small"

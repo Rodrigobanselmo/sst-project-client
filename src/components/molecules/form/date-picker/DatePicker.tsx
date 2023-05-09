@@ -25,6 +25,8 @@ export const DatePickerForm = ({
   boxProps,
   setValue,
   clearIfEmpty,
+  superSmall,
+  sx,
   ...restInput
 }: InputDateFormProps) => {
   const [isFocused, setIsFocused] = useState(false);
@@ -70,7 +72,23 @@ export const DatePickerForm = ({
               error: !!error,
               ...rest,
               ...restInput,
+              superSmall,
               onFocus: () => setIsFocused(true),
+              sx: {
+                ...(superSmall && {
+                  input: {
+                    fontSize: 15,
+                    margin: 0,
+                    py: 1.5,
+                    px: 3,
+                  },
+                  svg: {
+                    fontSize: 18,
+                    mr: 1,
+                  },
+                }),
+                ...sx,
+              },
             }}
             onChangeRaw={(e) => {
               if (typeof e.target.value === 'string') {

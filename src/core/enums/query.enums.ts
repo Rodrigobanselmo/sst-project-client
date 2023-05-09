@@ -33,6 +33,7 @@ export enum QueryEnum {
   EMPLOYEE_HISTORY_EXAM = 'employee-history-exam',
   EMPLOYEE_HISTORY_HIER = 'employee-history-hierarchy',
   EMPLOYEES = 'employees',
+  SCHEDULE_MEDICAL_VISIT = 'SCHEDULE_MEDICAL_VISIT',
   ENVIRONMENT = 'environment',
   ENVIRONMENTS = 'environments',
   EPIS = 'epis',

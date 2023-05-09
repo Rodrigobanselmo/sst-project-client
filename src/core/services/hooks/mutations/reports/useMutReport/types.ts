@@ -5,6 +5,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 export enum ReportTypeEnum {
   CLINICS,
   EXPIRED_EXAM,
+  COMPLEMENTARY_EXAM,
   DONE_EXAM,
   CLOSE_EXPIRED_EXAM,
 
@@ -58,5 +59,9 @@ export const reportTypeMap: IMap = {
   [ReportTypeEnum.MODEL_EMPLOYEE]: {
     value: ReportTypeEnum.MODEL_EMPLOYEE,
     route: ApiRoutesEnum.MODEL_EMPLOYEE_DOWNALOD,
+  },
+  [ReportTypeEnum.COMPLEMENTARY_EXAM]: {
+    value: ReportTypeEnum.COMPLEMENTARY_EXAM,
+    route: ApiRoutesEnum.REPORT_COMPLEMENTARY_EXAM,
   },
 };

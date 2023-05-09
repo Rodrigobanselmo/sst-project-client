@@ -15,4 +15,5 @@ export enum IdsEnum {
   ADD_PROFILE_CHARACTERIZATION_ID = 'add-profile-characterization-id',
   ADD_RISK_CHARACTERIZATION_ID = 'add-risk-characterization-id',
   EMPLOYEE_SELECT_ID = 'employee-select-id',
+  EMPLOYEE_SCHEDULE_MEDICAL_EXAM_TYPE_CHECKBOX = 'schedule_medical_visit_table_checkbox_exam_type_:id',
 }

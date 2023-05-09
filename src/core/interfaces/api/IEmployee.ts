@@ -13,6 +13,16 @@ import { IUser } from './IUser';
 import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
 import { StatusExamEnum } from 'project/enum/statusExam.enum';
 
+export type IEmployeeInfoExam = Record<
+  number,
+  {
+    expiredDate?: Date;
+    closeToExpired?: boolean;
+    isAttendance: boolean;
+    examId: number;
+    validity: number;
+  }
+>;
 export interface IEmployee {
   id: number;
   created_at: Date;
@@ -48,6 +58,8 @@ export interface IEmployee {
   examsHistory?: IEmployeeExamsHistory[];
   lastDoneExam?: IEmployeeExamsHistory;
   hierarchyHistory?: IEmployeeHierarchyHistory[];
+  examType?: ExamHistoryTypeEnum;
+  infoExams?: IEmployeeInfoExam;
 }
 
 export interface IEmployeeHierarchyHistory {
@@ -65,6 +77,7 @@ export interface IEmployeeHierarchyHistory {
 
 export interface IEmployeeExamsHistory {
   id: number;
+  scheduleMedicalVisitId: number;
   created_at: Date;
   updated_at: Date;
   doneDate: Date;

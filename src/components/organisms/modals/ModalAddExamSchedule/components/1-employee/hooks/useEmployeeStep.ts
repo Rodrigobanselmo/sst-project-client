@@ -168,14 +168,26 @@ export const useEmployeeStep = ({
         );
 
         // add clinic exam if any exam is selected and is not periodic
-        if (!isPeriodic && hasComplementaryExamToAsk) {
-          const clinicExamIndex = actualExams.findIndex(
-            (actualExams) => actualExams.isAttendance,
-          );
+        {
+          const isNOTPeriodicWithComplementary =
+            !isPeriodic && hasComplementaryExamToAsk;
+          const isPeriodicWithComplementaryAndLastExamIsReturn =
+            isPeriodic &&
+            hasComplementaryExamToAsk &&
+            employee?.lastDoneExam?.examType === ExamHistoryTypeEnum.RETU;
 
-          if (clinicExamIndex != -1) {
-            actualExams[clinicExamIndex].isSelected = true;
-            actualExams[clinicExamIndex].expiredDate = null;
+          if (
+            isPeriodicWithComplementaryAndLastExamIsReturn ||
+            isNOTPeriodicWithComplementary
+          ) {
+            const clinicExamIndex = actualExams.findIndex(
+              (actualExams) => actualExams.isAttendance,
+            );
+
+            if (clinicExamIndex != -1) {
+              actualExams[clinicExamIndex].isSelected = true;
+              actualExams[clinicExamIndex].expiredDate = null;
+            }
           }
         }
 

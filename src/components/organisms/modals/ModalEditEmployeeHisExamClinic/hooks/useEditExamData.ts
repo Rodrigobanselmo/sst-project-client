@@ -33,6 +33,7 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
 import { initialExamScheduleState } from '../../ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { SModalInitContactProps } from '../types';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 
 export const onGetExamPdfRoute = ({
   isAvaliation,
@@ -139,6 +140,14 @@ export const useAddData = () => {
             doctor: data.doctor || clinicExam?.doctor,
             status: data.status || clinicExam?.status,
           };
+
+          const isReturn = clinicExam?.examType === ExamHistoryTypeEnum.RETU;
+
+          if (isReturn && newData.examsHistory) {
+            newData.examsHistory = newData.examsHistory?.filter(
+              (e) => e.examType == ExamHistoryTypeEnum.RETU,
+            );
+          }
 
           initialDataRef.current = newData;
           return newData;
@@ -293,12 +302,12 @@ export const useAddData = () => {
     setData((old) => ({
       ...old,
       status: StatusEnum.DONE,
-      examsHistory: data.examsHistory?.map((e) => ({
-        ...e,
-        ...(e.status == StatusEnum.PROCESSING && {
-          status: StatusEnum.DONE,
-        }),
-      })),
+      // examsHistory: data.examsHistory?.map((e) => ({
+      //   ...e,
+      //   ...(e.status == StatusEnum.PROCESSING && {
+      //     status: StatusEnum.DONE,
+      //   }),
+      // })),
     }));
 
     enqueueSnackbar('Exame realizado com sucesso', {

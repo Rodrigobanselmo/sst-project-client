@@ -93,7 +93,7 @@ export const statusOptionsConstantExam = {
   [StatusEnum.PROCESSING]: {
     value: StatusEnum.PROCESSING,
     name: 'Agendado',
-    color: 'warning.main',
+    color: 'info.main',
   },
   [StatusEnum.INACTIVE]: {
     value: StatusEnum.INACTIVE,

@@ -129,12 +129,12 @@ export const permissionsConstantMap = {
     info: 'gerenciamento dos exames cadastrados nas clínicas para agendamentos',
     crud: ['c', 'r', 'u', 'd'],
   },
-  [PermissionEnum.RISK_DOC_INFO]: {
-    value: PermissionEnum.RISK_DOC_INFO,
-    label: 'Relevância dos Risco',
-    info: 'Pode alterar para qual documentos o risco irá fazer parte',
-    crud: ['r', 'cu'],
-  },
+  // [PermissionEnum.RISK_DOC_INFO]: {
+  //   value: PermissionEnum.RISK_DOC_INFO,
+  //   label: 'Relevância dos Risco',
+  //   info: 'Pode alterar para qual documentos o risco irá fazer parte',
+  //   crud: ['r', 'cu'],
+  // },
   [PermissionEnum.CLINIC_SCHEDULE]: {
     value: PermissionEnum.CLINIC_SCHEDULE,
     label: 'Controle de Agendamento (Clínica)',
@@ -235,6 +235,12 @@ export const permissionsConstantMap = {
     value: PermissionEnum.CLINIC_COMPANY_LINK,
     label: 'Vincular Clínicas prestadoras de serviços as empresas',
     info: 'Informar para quais empresas as clínicas irão prestar serviços',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.SCHEDULE_MEDICAL_VISIT]: {
+    value: PermissionEnum.SCHEDULE_MEDICAL_VISIT,
+    label: 'Gerenciar Visitas Médicas',
+    info: 'Pode gerenciar as visitas médicas',
     crud: ['c', 'r', 'u', 'd'],
   },
 } as IPermissionsOptions;

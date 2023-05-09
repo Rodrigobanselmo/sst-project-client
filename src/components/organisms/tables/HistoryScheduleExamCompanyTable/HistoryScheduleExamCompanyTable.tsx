@@ -10,13 +10,22 @@ import {
   STableRow,
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
+import { TextClinicRow } from 'components/atoms/STable/components/Rows/TextClinicRow';
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
+import { TextExamResult } from 'components/atoms/STable/components/Rows/TextExamResult';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import { FilterFieldEnum } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
+import {
+  IFilterTableData,
+  useFilterTable,
+} from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { useAuthShow } from 'components/molecules/SAuthShow';
+import { initialEditEmployeeHistoryExamState } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import {
@@ -27,6 +36,7 @@ import { PermissionEnum } from 'project/enum/permission.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
+import { SUploadFileIcon } from 'assets/icons/SUploadFileIcon';
 
 import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -44,21 +54,8 @@ import { useQueryHisScheduleExamCompany } from 'core/services/hooks/queries/useQ
 import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
 
-import { SUploadFileIcon } from 'assets/icons/SUploadFileIcon';
-import { TextClinicRow } from 'components/atoms/STable/components/Rows/TextClinicRow';
-import { TextExamResult } from 'components/atoms/STable/components/Rows/TextExamResult';
-import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
-import {
-  FilterFieldEnum,
-  doneExamsFilterList,
-} from 'components/atoms/STable/components/STableFilter/constants/filter.map';
-import {
-  IFilterTableData,
-  useFilterTable,
-} from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
-import { initialEditEmployeeHistoryExamState } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
-import { SDropIconEmployee } from './SDropIconEmployee/SDropIconEmployee';
 import { useScheduleExam } from './hooks/useScheduleExam';
+import { SDropIconEmployee } from './SDropIconEmployee/SDropIconEmployee';
 
 export const HistoryScheduleExamCompanyTable: FC<
   BoxProps & {

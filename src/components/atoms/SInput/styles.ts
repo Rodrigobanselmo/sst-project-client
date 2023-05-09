@@ -62,12 +62,14 @@ export const STTextField = styled(TextField)<{
     props.ssx &&
     css`
       &&& .MuiInputBase-root {
+        font-size: 14px;
         max-height: 32px;
+        min-height: 32px;
         padding: 1px 4px;
       }
 
       &&&.MuiFormControl-root.MuiTextField-root:after {
-        margin-top: -15px;
+        margin-top: -8px;
       }
 
       &&& .MuiInputBase-root {

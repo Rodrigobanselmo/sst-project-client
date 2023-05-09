@@ -36,6 +36,8 @@ import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker
 import { dateToDate } from 'core/utils/date/date-format';
 import { STagButton } from 'components/atoms/STagButton';
 import { SAddIcon } from 'assets/icons/SAddIcon';
+import { SDoctorIcon } from 'assets/icons/SDoctorIcon';
+import { SCompanyIcon } from 'assets/icons/SCompanyIcon';
 
 export const getSexLabel = (sex?: SexTypeEnum) => {
   if (sex === SexTypeEnum.F) return 'Feminino';
@@ -89,26 +91,44 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
             selectedEmployees={[]}
             multiple={false}
             handleAddEmployee={handleSelectEmployee}
-            {...(!employee?.id && {
-              borderActive: 'primary',
-            })}
+            {...(!employee?.id &&
+              {
+                // borderActive: 'primary',
+              })}
           />
           <STagButton
             large
             icon={SAddIcon}
             text={'Novo Funcionario'}
-            iconProps={{ sx: { fontSize: 18, mr: -1, color: 'success.main' } }}
+            iconProps={{ sx: { fontSize: 20, mr: -1, color: 'success.main' } }}
             onClick={() => {
               handleAddEmployee();
             }}
             {...(!employee?.id && {
-              borderActive: 'success',
+              // borderActive: 'success',
               // bg: 'success.dark',
               // iconProps: { sx: { fontSize: 18, mr: -1 } },
               // active: true,
-              // textProps: { sx: { fontWeight: '600' } },
+              textProps: { sx: { fontWeight: '400', color: 'success.dark' } },
             })}
           />
+          {/* <STagButton
+            large
+            icon={SCompanyIcon}
+            text={'Visita médica'}
+            // iconProps={{ sx: { fontSize: 20, mr: -1 } }}
+            onClick={() => {
+              handleAddEmployee();
+            }}
+            {...(!employee?.id &&
+              {
+                // borderActive: 'success',
+                // bg: 'success.dark',
+                // iconProps: { sx: { fontSize: 18, mr: -1 } },
+                // active: true,
+                // textProps: { sx: { fontWeight: '400', color: 'success.dark' } },
+              })}
+          /> */}
         </SFlex>
         <Box
           mt={12}

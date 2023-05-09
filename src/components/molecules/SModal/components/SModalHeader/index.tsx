@@ -11,6 +11,8 @@ import SIconButton from '../../../../atoms/SIconButton';
 import { STagAction } from '../../../../atoms/STagAction';
 import SText from '../../../../atoms/SText';
 import { SModalHeaderProps } from './types';
+import { SButton } from 'components/atoms/SButton';
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 
 export const SModalHeaderTitle: FC<
   Pick<SModalHeaderProps, 'title' | 'subtitle' | 'tag' | 'tagTitle'>
@@ -44,6 +46,7 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
   tag,
   secondIconClick,
   secondIcon,
+  onDelete,
   ...props
 }) => {
   const { onCloseModal } = useModal();
@@ -87,6 +90,17 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
         <STooltip withWrapper title="DELETAR">
           <SIconButton sx={{ ml: 5, mt: -4, mr: -4 }} onClick={secondIconClick}>
             <Icon sx={{ fontSize: 25 }} component={secondIcon} />
+          </SIconButton>
+        </STooltip>
+      )}
+
+      {onDelete && (
+        <STooltip withWrapper title="DELETAR">
+          <SIconButton sx={{ ml: 5, mt: -4, mr: -4 }} onClick={onDelete}>
+            <Icon
+              sx={{ fontSize: 25, color: 'error.dark' }}
+              component={SDeleteIcon}
+            />
           </SIconButton>
         </STooltip>
       )}

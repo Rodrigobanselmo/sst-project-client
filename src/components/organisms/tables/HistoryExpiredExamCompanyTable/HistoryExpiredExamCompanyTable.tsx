@@ -14,7 +14,7 @@ import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import { expiredExamFilterList } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { expiredExamFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/expiredExamFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
@@ -40,7 +40,10 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { useThrottle } from 'core/hooks/useThrottle';
-import { IEmployee } from 'core/interfaces/api/IEmployee';
+import {
+  IEmployee,
+  IEmployeeExamsHistory,
+} from 'core/interfaces/api/IEmployee';
 import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { queryClient } from 'core/services/queryClient';
@@ -50,12 +53,14 @@ import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditE
 import clone from 'clone';
 import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
 
-export const getEmployeeRowStatus = (data?: IEmployee) => {
-  const exam = data?.examsHistory?.[0];
+export const getEmployeeRowStatus = (
+  exam?: IEmployeeExamsHistory,
+  expiredDateExam?: Date,
+) => {
   // if (exam && status === StatusEnum.DONE) return 'info';
-  const diff = -dayjs().diff(data?.expiredDateExam, 'day');
+  const diff = -dayjs().diff(expiredDateExam, 'day');
   let status = { color: 'scale.low', status: StatusEnum.DONE };
-  if (!data?.expiredDateExam || diff < 0)
+  if (!expiredDateExam || diff < 0)
     status = { color: 'scale.high', status: StatusEnum.EXPIRED };
   if (diff >= 0 && diff <= 7)
     status = { color: 'scale.mediumHigh', status: StatusEnum.DONE };
@@ -81,43 +86,66 @@ export const getEmployeeRowStatus = (data?: IEmployee) => {
   return status;
 };
 
-export const getEmployeeRowExpiredDate = (date: Date) => {
+export const getEmployeeRowExpiredDate = (date?: Date) => {
   if (!date) return 'sem exame';
   if (dayjs().diff(date, 'year') > 100) return 'nenhum';
   return dateToString(date, 'DD[-]MM[-]YYYY');
 };
 
-export const getEmployeeRowExamData = (row: IEmployee) => {
-  const aso = row.examsHistory?.[0];
-  const options = clone(statusOptionsConstantExam);
-  options[StatusEnum.PROCESSING].color = 'info.main';
-
-  const employee = row;
-  const company = employee?.company;
-  const exam = employee?.examsHistory?.[0];
-  const lastDoneExam = employee?.examsHistory?.find(
-    (ex) => ex.status === 'DONE',
-  );
-
-  const isDismissal = employee.statusStep == StatusEmployeeStepEnum.DEMISSION;
+export const getEmployeeRowExpiredDateText = (
+  employee: IEmployee,
+  status: StatusEnum,
+  exam?: IEmployeeExamsHistory,
+) => {
   const isInAdmission =
     employee.statusStep == StatusEmployeeStepEnum.IN_ADMISSION;
   const isInOfficeChange =
     employee.statusStep == StatusEmployeeStepEnum.IN_TRANS;
 
   const isScheduled = exam?.status == StatusEnum.PROCESSING;
-  const isDoneExam = exam?.status == StatusEnum.DONE && exam?.expiredDate;
 
-  const status = getEmployeeRowStatus(row);
+  const isExpired = status == StatusEnum.EXPIRED;
 
-  const isExpired = status.status == StatusEnum.EXPIRED;
-
-  let textNext = 'Proximo em: ';
+  let textNext = 'Proximo: ';
 
   if (isInAdmission) textNext = 'Fazer até: ';
   if (isInOfficeChange) textNext = 'Fazer até: ';
-  if (isScheduled) textNext = 'Agendado para: ';
-  if (isExpired) textNext = 'Vencido em: ';
+  if (isScheduled) textNext = 'Agendado: ';
+  if (isExpired) textNext = 'Vencido: ';
+
+  return {
+    textNext,
+  };
+};
+
+export const getEmployeeRowExamData = (row: IEmployee) => {
+  const examHistory = row.examsHistory?.filter(
+    (exam) => !exam.exam || exam.exam?.isAttendance,
+  );
+
+  const aso = examHistory?.[0];
+
+  const options = clone(statusOptionsConstantExam);
+  options[StatusEnum.PROCESSING].color = 'info.main';
+
+  const employee = row;
+  const company = employee?.company;
+  const exam = examHistory?.[0];
+  const lastDoneExam = examHistory?.find((ex) => ex.status === 'DONE');
+
+  const isDismissal = employee.statusStep == StatusEmployeeStepEnum.DEMISSION;
+  const isScheduled = exam?.status == StatusEnum.PROCESSING;
+  const isDoneExam = exam?.status == StatusEnum.DONE && exam?.expiredDate;
+
+  const status = getEmployeeRowStatus(examHistory?.[0], row?.expiredDateExam);
+
+  const isExpired = status.status == StatusEnum.EXPIRED;
+
+  const textNext = getEmployeeRowExpiredDateText(
+    employee,
+    status.status,
+    exam,
+  ).textNext;
 
   let validity =
     textNext +

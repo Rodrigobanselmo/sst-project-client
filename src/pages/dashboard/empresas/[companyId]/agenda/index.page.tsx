@@ -21,6 +21,8 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { useState } from 'react';
 import { IFilterTableData } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
+import { ScheduleMedicalVisitTable } from 'components/organisms/tables/ScheduleMedicalVisitTable/ScheduleMedicalVisitTable';
+import { ModalEditScheduleMedicalVisit } from 'components/organisms/modals/ModalEditScheduleMedicalVisit/ModalEditScheduleMedicalVisit';
 
 const Schedule: NextPage = () => {
   const { userCompanyId } = useGetCompanyId();
@@ -57,6 +59,7 @@ const Schedule: NextPage = () => {
                 { label: 'Funcionários' },
                 { label: 'Exames Agendados' },
                 { label: 'Todos os Exames' },
+                { label: 'Visita Médica' },
               ]}
             />
           }
@@ -75,10 +78,14 @@ const Schedule: NextPage = () => {
           <Box sx={{ px: 10, pb: 10 }}>
             <HistoryScheduleExamTable mt={10} query={{ allCompanies: true }} />
           </Box>
+          <Box sx={{ px: 10, pb: 10 }}>
+            <ScheduleMedicalVisitTable mt={10} />
+          </Box>
         </Wizard>
       </SContainer>
       <StackModalAddExamSchedule />
       <StackHistoryScheduleExamTable />
+      <ModalEditScheduleMedicalVisit />
     </>
   );
 };

@@ -10,7 +10,7 @@ import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutRepo
 import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport/useMutReport';
 
 export const useImportExport = () => {
-  const { onStackOpenModal } = useOpenRiskTool();
+  const { onStackOpenModal, onCloseModal } = useOpenRiskTool();
 
   const uploadMutation = useMutUploadFile();
   const reportMutation = useMutReport();
@@ -29,17 +29,24 @@ export const useImportExport = () => {
     }) => {
       onStackOpenModal(ModalEnum.IMPORT_EXPORT_MODAL, {
         onDownload: async () => {
-          await reportMutation.mutateAsync({
-            type: type,
-            companyId,
-          });
+          await reportMutation
+            .mutateAsync({
+              type: type,
+              companyId,
+            })
+            .catch(() => null);
         },
         onConfirm: async ({ files }) => {
-          await uploadMutation.mutateAsync({
-            file: files[0],
-            path: pathApi,
-            payload,
-          });
+          await uploadMutation
+            .mutateAsync({
+              file: files[0],
+              path: pathApi,
+              payload,
+            })
+            .then(() => {
+              onCloseModal(ModalEnum.IMPORT_EXPORT_MODAL);
+            })
+            .catch(() => null);
         },
       } as Partial<typeof initialModalImportExport>);
     },

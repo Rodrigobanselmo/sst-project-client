@@ -50,6 +50,10 @@ export const STSTableRow = styled(Box)<{
   align-items: center;
   width: 100%;
 
+  .table-row-checkbox {
+    background-color: ${({ theme }) => theme.palette.background.paper};
+  }
+
   ${(props) =>
     props.clickable &&
     css`
@@ -60,6 +64,10 @@ export const STSTableRow = styled(Box)<{
       cursor: pointer;
       &:hover {
         background-color: ${props.theme.palette.background.box};
+
+        .table-row-checkbox {
+          background-color: ${props.theme.palette.background.box};
+        }
       }
     `};
 

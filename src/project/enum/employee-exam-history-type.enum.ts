@@ -101,8 +101,8 @@ export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
 
     if (isInDismissal)
       return [
-        employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
         employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
+        employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
         employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
       ];
 

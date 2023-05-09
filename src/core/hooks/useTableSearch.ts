@@ -8,7 +8,9 @@ interface IUseTableSearch {
   data: any[];
   keys: Fuse.FuseOptionKey[];
   rowsPerPage?: number;
+  minLengthSearch?: number;
   sort?: (a: any, b: any) => number;
+  transformSearchTextBefore?: (search: string) => string;
 }
 
 export const useTableSearch = ({
@@ -16,6 +18,8 @@ export const useTableSearch = ({
   keys,
   sort,
   rowsPerPage = 10,
+  minLengthSearch,
+  transformSearchTextBefore,
 }: IUseTableSearch) => {
   const [search, setSearch] = useState<string>('');
   const [page, setPage] = useState(1);
@@ -30,8 +34,17 @@ export const useTableSearch = ({
   }, [data, keys]);
 
   const results = useMemo(() => {
-    const fuseResults = fuse.search(search, { limit: 20 });
-    const resultSearch = search
+    let searchValue =
+      minLengthSearch && minLengthSearch > 0 && search.length < minLengthSearch
+        ? ''
+        : search;
+
+    if (transformSearchTextBefore) {
+      searchValue = transformSearchTextBefore(searchValue);
+    }
+
+    const fuseResults = fuse.search(searchValue, { limit: 20 });
+    const resultSearch = searchValue
       ? fuseResults.map((result) => result.item)
       : sort
       ? Array.isArray(data)
@@ -40,7 +53,7 @@ export const useTableSearch = ({
       : data;
 
     return resultSearch.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-  }, [data, fuse, page, rowsPerPage, search, sort]);
+  }, [data, fuse, minLengthSearch, page, rowsPerPage, search, sort]);
 
   return { results, handleSearchChange, fuse, search, page, setPage };
 };

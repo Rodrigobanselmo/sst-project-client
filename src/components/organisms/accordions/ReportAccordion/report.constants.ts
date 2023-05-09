@@ -1,13 +1,12 @@
-import {
-  clinicFilterList,
-  doneExamsFilterList,
-  expiredExamFilterList,
-} from 'components/atoms/STable/components/STableFilter/constants/filter.map';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 
 import { IFilterIconProps } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/types';
 import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
+import { clinicFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/clinicFilterList';
+import { expiredExamFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/expiredExamFilterList';
+import { doneExamsFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/doneExamsFilterList';
+import { complementaryFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/complementaryFilterList';
 
 export interface IReportJson {
   name: string;
@@ -53,6 +52,11 @@ export const reports: IReportJson[] = [
         name: 'Exames realizados',
         ask: doneExamsFilterList,
         type: ReportTypeEnum.DONE_EXAM,
+      },
+      {
+        name: 'Exames complementares',
+        ask: complementaryFilterList,
+        type: ReportTypeEnum.COMPLEMENTARY_EXAM,
       },
     ],
   },

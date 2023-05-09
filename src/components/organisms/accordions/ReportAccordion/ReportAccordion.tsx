@@ -1,30 +1,16 @@
 import React, { FC, useState } from 'react';
 
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-} from '@mui/material';
+import { Accordion, AccordionDetails, AccordionSummary } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import {
-  clinicFilterList,
-  FilterFieldEnum,
-} from 'components/atoms/STable/components/STableFilter/constants/filter.map';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
-import { STableFilterBox } from 'components/atoms/STable/components/STableFilter/STableFilterBox/STableFilterBox';
 import SText from 'components/atoms/SText';
-import { AutocompleteForm } from 'components/molecules/form/autocomplete';
-import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { initialReportState } from 'components/organisms/modals/ModalReport/ModalReport';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useAccess } from 'core/hooks/useAccess';
 import { useModal } from 'core/hooks/useModal';
-import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
-import { useQueryCbo } from 'core/services/hooks/queries/useQueryCbo/useQueryCbo';
 
 import { IReportJson, reports } from './report.constants';
 import { IReportAccordionProps } from './types';

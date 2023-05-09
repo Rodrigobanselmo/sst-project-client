@@ -31,6 +31,7 @@ export enum ApiRoutesEnum {
   EMPLOYEES = '/employee',
   EMPLOYEE_HISTORY_HIER = '/employee-history/hierarchy',
   EMPLOYEE_HISTORY_EXAM = '/employee-history/exam',
+  SCHEDULE_MEDICAL_VISIT = '/company/:companyId/schedule-medical-visit',
   EMPLOYEES_DELETE_SUB_OFFICE = '/employee/:employeeId/sub-office/:subOfficeId/:companyId',
   ENVIRONMENTS = '/company/:companyId/workspace/:workspaceId/environments',
   ENVIRONMENTS_PHOTO = '/company/:companyId/workspace/:workspaceId/environments/photo',
@@ -91,6 +92,7 @@ export enum ApiRoutesEnum {
   // Report
   REPORT_CLINIC = '/files/report/clinic/:companyId',
   REPORT_EXPIRED_EXAM = '/files/report/expired-exam/:companyId',
+  REPORT_COMPLEMENTARY_EXAM = '/files/report/complementary-exam/:companyId',
   REPORT_DONE_EXAM = '/files/report/done-exam/:companyId',
   MODEL_RISK_DOWNALOD = '/files/models/risk/:companyId',
   MODEL_EMPLOYEE_DOWNALOD = '/files/models/employee/:companyId',

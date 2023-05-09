@@ -7,10 +7,10 @@ import { Checkbox, FormControlLabel } from '@mui/material';
 import { SCheckBoxProps } from './types';
 
 const SCheckBox = React.forwardRef<any, SCheckBoxProps>(
-  ({ label, ...props }, ref) => (
+  ({ label, sx, ...props }, ref) => (
     <FormControlLabel
       label={label}
-      sx={{ '.MuiFormControlLabel-label': { fontSize: 14 } }}
+      sx={{ '.MuiFormControlLabel-label': { fontSize: 14 }, ...sx }}
       control={
         <Checkbox
           sx={{

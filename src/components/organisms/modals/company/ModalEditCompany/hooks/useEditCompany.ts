@@ -19,6 +19,9 @@ import { useMutCreateCompany } from 'core/services/hooks/mutations/manager/compa
 import { useMutUpdateCompany } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
+import { useMutDeleteCompany } from 'core/services/hooks/mutations/manager/company/useMutDeleteCompany/useMutDeleteCompany';
+import { useRouter } from 'next/router';
+import { RoutesEnum } from 'core/enums/routes.enums';
 
 export const initialCompanyState = {
   status: StatusEnum.ACTIVE,
@@ -83,15 +86,17 @@ export const useEditCompany = () => {
   const initialDataRef = useRef(initialCompanyState);
 
   const { userCompanyId } = useGetCompanyId();
+  const { push } = useRouter();
   const { data: userCompany } = useQueryCompany(userCompanyId);
 
   const updateCompany = useMutUpdateCompany();
   const createCompany = useMutCreateCompany();
+  const deleteCompany = useMutDeleteCompany();
   const cepMutation = useMutationCEP();
   const cnpjMutation = useMutationCNPJ();
   const riskGroupMutation = useMutUpsertRiskGroupData();
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const [companyData, setCompanyData] = useState({
     ...initialCompanyState,
@@ -104,7 +109,7 @@ export const useEditCompany = () => {
       ModalEnum.COMPANY_EDIT,
     );
     // eslint-disable-next-line prettier/prettier
-    if (initialData  && !(initialData as any).passBack) {
+    if (initialData && !(initialData as any).passBack) {
       setCompanyData((oldData) => {
         const newData = {
           ...oldData,
@@ -133,6 +138,15 @@ export const useEditCompany = () => {
       return;
     onClose();
     action?.();
+  };
+
+  const onDelete = () => {
+    preventDelete(() =>
+      deleteCompany.mutateAsync({ companyId: companyData.id }).then(() => {
+        onClose();
+        push(RoutesEnum.COMPANIES);
+      }),
+    );
   };
 
   const onSubmitData = async (
@@ -193,6 +207,7 @@ export const useEditCompany = () => {
       updateCompany.isLoading ||
       createCompany.isLoading ||
       cepMutation.isLoading,
+    onDelete,
   };
 };
 

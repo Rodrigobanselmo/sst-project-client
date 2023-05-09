@@ -79,6 +79,7 @@ export const rolesConstantMap = {
       PermissionEnum.RISK_DATA,
       PermissionEnum.RISK,
       PermissionEnum.CLINIC_COMPANY_LINK,
+      PermissionEnum.SCHEDULE_MEDICAL_VISIT,
     ],
     order: 2,
   },
