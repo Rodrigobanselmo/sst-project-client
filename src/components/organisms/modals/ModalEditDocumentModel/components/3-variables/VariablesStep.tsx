@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from 'react';
+import { useState } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -7,14 +7,13 @@ import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 
-import { IUseDocumentModel } from '../../hooks/useEditDocumentModel';
-import { DataContent } from './components/DataContent/DataContent';
-import { useDataStep } from './hooks/useDataStep';
-import { VariablesDocTable } from 'components/organisms/tables/VariablesDocTable/VariablesDocTable';
+import clone from 'clone';
 import { SPageMenu } from 'components/molecules/SPageMenu';
+import { VariablesDocTable } from 'components/organisms/tables/VariablesDocTable/VariablesDocTable';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { selectAllDocumentModelVariables } from 'store/reducers/document/documentSlice';
-import clone from 'clone';
+import { IUseDocumentModel } from '../../hooks/useEditDocumentModel';
+import { useDataStep } from './hooks/useDataStep';
 
 export const VariablesStep = (data: IUseDocumentModel) => {
   const props = useDataStep(data);

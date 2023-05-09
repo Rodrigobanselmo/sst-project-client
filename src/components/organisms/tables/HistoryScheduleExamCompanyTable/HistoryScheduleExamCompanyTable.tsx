@@ -56,6 +56,7 @@ import { dateToString } from 'core/utils/date/date-format';
 
 import { useScheduleExam } from './hooks/useScheduleExam';
 import { SDropIconEmployee } from './SDropIconEmployee/SDropIconEmployee';
+import { doneExamsFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/doneExamsFilterList';
 
 export const HistoryScheduleExamCompanyTable: FC<
   BoxProps & {
