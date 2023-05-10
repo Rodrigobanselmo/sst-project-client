@@ -27,6 +27,7 @@ export const initialEditEmployeeState = {
   status: StatusEnum.ACTIVE,
   name: undefined as string | undefined,
   cpf: undefined as string | undefined,
+  rg: undefined as string | undefined,
   hierarchyId: undefined as string | undefined,
   companyId: undefined as string | undefined,
   company: undefined as ICompany | undefined,
@@ -43,9 +44,13 @@ export const initialEditEmployeeState = {
   shiftId: undefined as number | undefined,
   birthday: undefined as Date | undefined,
   subOffices: undefined as IHierarchy[] | undefined,
-  onCreate: (employee: IEmployee, close: () => void) => {},
+  onCreate: (employee: IEmployee, close: () => void) => {
+    //
+  },
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  callback: (employee: IEmployee | null) => {},
+  callback: (employee: IEmployee | null) => {
+    //
+  },
 };
 
 const modalName = ModalEnum.EMPLOYEES_ADD;
@@ -143,7 +148,9 @@ export const useEditEmployee = () => {
             ...employee,
           }));
         })
-        .catch(() => {});
+        .catch(() => {
+          //
+        });
     } else if (!isEdit) {
       nextStep();
       setData((data) => ({
@@ -156,7 +163,9 @@ export const useEditEmployee = () => {
         .then(() => {
           onClose();
         })
-        .catch(() => {});
+        .catch(() => {
+          //
+        });
     }
   };
 

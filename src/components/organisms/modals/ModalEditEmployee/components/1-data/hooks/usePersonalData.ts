@@ -29,8 +29,17 @@ export const usePersonalData = ({
   ];
 
   const onCloseUnsaved = async () => {
-    const { name, cpf, sex, nickname, esocialCode, email, phone, socialName } =
-      getValues();
+    const {
+      name,
+      cpf,
+      sex,
+      nickname,
+      esocialCode,
+      email,
+      phone,
+      socialName,
+      rg,
+    } = getValues();
 
     onClose(() => reset(), {
       name,
@@ -41,6 +50,7 @@ export const usePersonalData = ({
       email,
       phone,
       socialName,
+      rg,
     });
   };
 
@@ -64,6 +74,7 @@ export const usePersonalData = ({
         email,
         phone,
         socialName,
+        rg,
       } = getValues();
 
       const submitData = {
@@ -77,6 +88,7 @@ export const usePersonalData = ({
         phone,
         socialName,
         cbo: data.cbo,
+        rg,
       };
 
       onSubmitData(submitData, nextStep);

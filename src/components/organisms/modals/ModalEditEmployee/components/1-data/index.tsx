@@ -117,6 +117,19 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
                 setValue={setValue}
               />
             </Box>
+            <Box flex={5}>
+              <InputForm
+                defaultValue={data.rg}
+                label="RG"
+                required
+                labelPosition="center"
+                control={control}
+                placeholder={'00000000-0'}
+                name="rg"
+                size="small"
+                setValue={setValue}
+              />
+            </Box>
             <Box flex={3}>
               <RadioForm
                 control={control}
