@@ -1,9 +1,14 @@
 import React from 'react';
 
 import { Box, Divider } from '@mui/material';
+import { SBoxPaper } from 'components/atoms/SBoxPaper';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
+import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
+import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
+import { InputForm } from 'components/molecules/form/input';
+import { RadioForm } from 'components/molecules/form/radio';
 import { SelectForm } from 'components/molecules/form/select';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
@@ -17,11 +22,16 @@ import {
 } from 'project/enum/employee-exam-history-type.enum';
 import { SexTypeEnum } from 'project/enum/sex.enums';
 
+import { SAddIcon } from 'assets/icons/SAddIcon';
+import { SCompanyIcon } from 'assets/icons/SCompanyIcon';
+import { SDoctorIcon } from 'assets/icons/SDoctorIcon';
+
 import { hierarchyConstant } from 'core/constants/maps/hierarchy.constant';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { border_box } from 'core/styles/cssInJsStyles';
+import { dateToDate } from 'core/utils/date/date-format';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
@@ -29,15 +39,6 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { IUseEditEmployee } from '../../hooks/useEditExamEmployee';
 import { useEmployeeStep } from './hooks/useEmployeeStep';
-import { SBoxPaper } from 'components/atoms/SBoxPaper';
-import { InputForm } from 'components/molecules/form/input';
-import { RadioForm } from 'components/molecules/form/radio';
-import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
-import { dateToDate } from 'core/utils/date/date-format';
-import { STagButton } from 'components/atoms/STagButton';
-import { SAddIcon } from 'assets/icons/SAddIcon';
-import { SDoctorIcon } from 'assets/icons/SDoctorIcon';
-import { SCompanyIcon } from 'assets/icons/SCompanyIcon';
 
 export const getSexLabel = (sex?: SexTypeEnum) => {
   if (sex === SexTypeEnum.F) return 'Feminino';
@@ -156,6 +157,20 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                       sx={{
                         width: ['100%'],
                       }}
+                    />
+                  </Box>
+                  <Box flex={1} maxWidth="200px">
+                    <InputForm
+                      defaultValue={employee.rg}
+                      placeholder={'00000000-0'}
+                      control={control}
+                      setValue={setValue}
+                      name="rg"
+                      label="RG"
+                      size="small"
+                      InputLabelProps={{ shrink: true }}
+                      labelPosition="center"
+                      sx={{ width: ['100%'] }}
                     />
                   </Box>
                   <Box flex={1} maxWidth="200px">

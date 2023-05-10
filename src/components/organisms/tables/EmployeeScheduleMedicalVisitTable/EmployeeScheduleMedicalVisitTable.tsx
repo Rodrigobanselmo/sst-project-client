@@ -54,6 +54,10 @@ import {
 import { NumSelected } from './NumSelected';
 import { IExam } from 'core/interfaces/api/IExam';
 import { IdsEnum } from 'core/enums/ids.enums';
+import { SDropButton } from 'components/atoms/SDropButton/SDropButton';
+import { SDocumentIcon } from 'assets/icons/SDocumentIcon';
+import { IMenuSearchOption } from 'components/molecules/SMenuSearch/types';
+import { SDownloadIcon } from 'assets/icons/SDownloadIcon';
 
 export type IEmployeeSelectedProps = Record<
   number,
@@ -109,6 +113,10 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
           examTypes: selectedExamTypeRef.current,
         };
       },
+      reset: () => {
+        selectedRef.current = initialSelectedData || {};
+        selectedExamTypeRef.current = {};
+      },
     }));
 
     const {
@@ -145,12 +153,14 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
       setPage,
     });
 
-    const employeeSelect = useMemo(
+    const employeeExamsSelect = useMemo(
       () =>
         employeeExamsHistorySelected?.reduce((acc, curr) => {
-          acc[curr.employeeId] = curr;
+          if (!acc[curr.employeeId]) acc[curr.employeeId] = {};
+          acc[curr.employeeId][curr.examId] = curr;
+
           return acc;
-        }, {} as Record<number, IEmployeeExamsHistory>),
+        }, {} as Record<number, Record<number, IEmployeeExamsHistory>>),
       [employeeExamsHistorySelected],
     );
 
@@ -341,10 +351,13 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
             const isExpired =
               !exam?.expiredDate || dayjs(exam?.expiredDate).isBefore(dayjs());
 
+            const employeeExam = employeeExamsSelect?.[employee.id];
+            const examOnVisit = employeeExam?.[exam.examId];
+
             const select =
               exam?.closeToExpired || isExpired || attendanceExpired;
 
-            if (select) {
+            if (select && !examOnVisit) {
               const checked =
                 !!selectedRef.current?.[employee.id]?.[exam.examId]?.checked;
               if (checked && !pass) {
@@ -359,6 +372,8 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
           });
       });
     }
+
+    function onDownloadAso(option: IMenuSearchOption) {}
 
     const sortedExams = sortArray(exams, { by: 'isAttendance', order: 'desc' });
 
@@ -403,14 +418,31 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
           borderRadius={1}
           sx={{ backgroundColor: 'background.paper' }}
         >
-          <NumSelected ref={numRef} selectedRef={selectedRef} />
-          {/* <STagButton
-          icon={SCheckboxIcon}
-          width="25px"
-          text={''}
-          mr={5}
-          onClick={onSelectExpiredExams}
-        /> */}
+          <NumSelected
+            {...(employeeExamsHistorySelected?.length &&
+              employeeExamsSelect && {
+                numSelected: Object.keys(employeeExamsSelect).length,
+              })}
+            ref={numRef}
+            selectedRef={selectedRef}
+          />
+          <SDropButton
+            icon={SDocumentIcon}
+            text="Baixar ASO"
+            onSelect={onDownloadAso}
+            options={[
+              {
+                name: 'Imprimir ASOs',
+                icon: SDownloadIcon,
+                value: 1,
+              },
+              {
+                name: 'Imprimir ASOs (c/ data)',
+                icon: SDownloadIcon,
+                value: 2,
+              },
+            ]}
+          />
         </SFlex>
         <STable
           loading={loadQuery}
@@ -511,6 +543,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                 getEmployeeRowExamData(row);
               const employeeChecked = selectedRef.current[row.id];
               const examTypeLits = employeeExamScheduleTypeList(employee);
+              const employeeExam = employeeExamsSelect?.[row.id];
 
               return (
                 <STableRow
@@ -518,7 +551,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                   clickable
                   position={'relative'}
                   // onClick={() => onClickRow(row)}
-                  {...(employeeSelect?.[row.id] && {
+                  {...(employeeExamsSelect?.[row.id] && {
                     status: 'info',
                   })}
                 >
@@ -540,9 +573,11 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                         e.stopPropagation();
                         onSelectEmployee(row);
                       }}
+                      disabled={!!employeeExam}
                       defaultChecked={
-                        employeeChecked &&
-                        Object.values(employeeChecked).some((v) => v)
+                        !!employeeExam ||
+                        (employeeChecked &&
+                          Object.values(employeeChecked).some((v) => v))
                       }
                     />
                     <TextEmployeeRow employee={employee} />
@@ -591,7 +626,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                       setValue={setValue}
                       defaultValue={
                         selectedExamTypeRef.current[row.id] ||
-                        employeeSelect?.[row.id]?.examType ||
+                        employeeExamsSelect?.[row.id]?.[0]?.examType ||
                         examTypeLits[0].value
                       }
                       label=""
@@ -644,6 +679,8 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                       examHistoryData,
                     ).textNext;
 
+                    const examOnVisit = employeeExam?.[exam.id];
+
                     return (
                       <SFlex
                         onClick={(e) => {
@@ -661,7 +698,9 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                             e.stopPropagation();
                             onClickEmployeeExam(row, exam);
                           }}
+                          disabled={!!examOnVisit}
                           defaultChecked={
+                            !!examOnVisit ||
                             !!selectedRef.current?.[row.id]?.[exam.id]?.checked
                           }
                         />

@@ -2,15 +2,21 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
+import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
 import dayjs from 'dayjs';
+import { useSnackbar } from 'notistack';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
+import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { IdsEnum } from 'core/enums/ids.enums';
+import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { ICompany } from 'core/interfaces/api/ICompany';
+import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
 import { useMutFindExamByHierarchy } from 'core/services/hooks/mutations/checklist/exams/useMutFindExamByHierarchy/useMutUpdateExamRisk';
+import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
 import {
   useFetchQueryHisScheduleExam,
   useQueryHisScheduleExam,
@@ -19,12 +25,6 @@ import { queryClient } from 'core/services/queryClient';
 import { isShouldDemissionBlock } from 'core/utils/helpers/demissionalBlockCalc';
 
 import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
-import { useSnackbar } from 'notistack';
-import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
-import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
-import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
-import { ModalEnum } from 'core/enums/modal.enums';
-import { IEmployee } from 'core/interfaces/api/IEmployee';
 
 export const useEmployeeStep = ({
   data,
@@ -301,12 +301,13 @@ export const useEmployeeStep = ({
 
   const onSubmit = async () => {
     const isValid = await trigger(fields);
-    const [sex, birthday, name, email, phone] = getValues([
+    const [sex, birthday, name, email, phone, rg] = getValues([
       'sex',
       'birthday',
       'name',
       'email',
       'phone',
+      'rg',
     ]);
 
     if (!sex || !birthday) {
@@ -347,6 +348,7 @@ export const useEmployeeStep = ({
         companyId: data.companyId,
         email,
         phone,
+        rg,
         ...(data.birthday && { birthday: data.birthday }),
       });
 

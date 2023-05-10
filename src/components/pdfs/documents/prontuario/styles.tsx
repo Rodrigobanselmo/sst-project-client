@@ -172,5 +172,5 @@ export const s = StyleSheet.create({
     fontWeight: 'normal',
     color: 'black',
   },
-  mrl: { marginRight: 10 },
+  mrl: { marginRight: 6 },
 });

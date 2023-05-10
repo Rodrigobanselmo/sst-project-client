@@ -120,7 +120,7 @@ export const PdfEmployeeComponent = ({
         </View>
 
         {/* - Funcionario - dados */}
-        <View style={sm.row}>
+        <View style={[sm.row, sm.wrap]}>
           <View style={[s.table1, s.mrl]}>
             <Text style={s.label}>Nome Completo:</Text>
             <Text style={s.tableBody}>{employee.name}</Text>
@@ -131,6 +131,13 @@ export const PdfEmployeeComponent = ({
             <Text style={s.tableBody}>{cpfMask.mask(employee.cpf)}</Text>
           </View>
 
+          {employee.rg && (
+            <View style={[s.table1, s.mrl]}>
+              <Text style={s.label}>RG:</Text>
+              <Text style={s.tableBody}>{employee.rg}</Text>
+            </View>
+          )}
+
           <View style={[s.table1, s.mrl]}>
             <Text style={s.label}>Sexo:</Text>
             <Text style={s.tableBody}>
@@ -138,7 +145,7 @@ export const PdfEmployeeComponent = ({
             </Text>
           </View>
           <View style={[s.table1, { flexGrow: 1 }]}>
-            <Text style={s.label}>Data de nascimento:</Text>
+            <Text style={s.label}>Data de nasc.:</Text>
             <Text style={s.tableBody}>
               {employee.birthday &&
                 dayjs(employee.birthday).format('DD/MM/YYYY')}{' '}

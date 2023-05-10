@@ -15,6 +15,7 @@ export interface AutocompleteSelectProps<T = any>
   > {
   label: string;
   name: string;
+  freeSolo?: boolean;
   options: T[];
   inputProps?: SInputProps;
   pagination?: boolean;

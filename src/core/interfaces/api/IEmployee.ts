@@ -30,6 +30,7 @@ export interface IEmployee {
   status: StatusEnum;
   name: string;
   cpf: string;
+  rg: string;
   companyId: string;
   hierarchyId: string;
   hierarchy: IHierarchy;

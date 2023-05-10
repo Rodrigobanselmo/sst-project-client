@@ -9,8 +9,9 @@ export const NumSelected = forwardRef<
   any,
   BoxProps & {
     selectedRef: { current: IEmployeeSelectedProps };
+    numSelected?: number;
   }
->(({ selectedRef, ...props }, ref) => {
+>(({ selectedRef, numSelected, ...props }, ref) => {
   const triggerUpdate = useUpdate();
 
   useImperativeHandle(ref, () => ({
@@ -22,11 +23,10 @@ export const NumSelected = forwardRef<
       <SText fontSize={12} fontWeight={600}>
         Funcionários selecionados:{' '}
         <SText fontSize={12} component={'span'}>
-          {
+          {numSelected ||
             Object.values(selectedRef.current).filter((ref) =>
               Object.values(ref).some((s) => s?.checked),
-            ).length
-          }
+            ).length}
         </SText>
       </SText>
     </Box>

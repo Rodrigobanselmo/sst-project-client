@@ -57,6 +57,7 @@ import { dateToString } from 'core/utils/date/date-format';
 import { useScheduleExam } from './hooks/useScheduleExam';
 import { SDropIconEmployee } from './SDropIconEmployee/SDropIconEmployee';
 import { doneExamsFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/doneExamsFilterList';
+import clone from 'clone';
 
 export const HistoryScheduleExamCompanyTable: FC<
   BoxProps & {
@@ -244,7 +245,7 @@ export const HistoryScheduleExamCompanyTable: FC<
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           renderRow={(row) => {
-            const options = statusOptionsConstantExam;
+            const options = clone(statusOptionsConstantExam);
             options[StatusEnum.PROCESSING].color = 'info.main';
 
             const employee = row?.employee;

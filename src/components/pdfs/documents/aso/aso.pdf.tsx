@@ -17,15 +17,15 @@ import { sexTypeMap } from 'project/enum/sex.enums';
 
 import { IPdfAsoData } from 'core/interfaces/api/IPdfAsoData';
 import { arrayChunks } from 'core/utils/arrays/arrayChunks';
+import {
+  getAddressCityState,
+  getAddressMain,
+} from 'core/utils/helpers/getAddress';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { sm } from '../../styles/main.pdf.styles';
 import { s } from './styles';
-import {
-  getAddressCityState,
-  getAddressMain,
-} from 'core/utils/helpers/getAddress';
 
 Font.register({
   family: 'Open Sans',
@@ -168,24 +168,30 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
           </View>
 
           <View style={sm.row}>
-            <View style={[s.table1, { flexGrow: 1 }]}>
+            <View style={[s.table1, { marginRight: 10 }]}>
               <Text style={s.label}>Nome Completo:</Text>
               <Text style={s.tableBody}>{employee.name}</Text>
             </View>
-          </View>
-
-          <View style={sm.row}>
-            <View style={[s.table1, { width: 100 }]}>
+            <View style={[s.table1, { marginRight: 10 }]}>
               <Text style={s.label}>CPF:</Text>
               <Text style={s.tableBody}>{cpfMask.mask(employee.cpf)}</Text>
             </View>
-            <View style={[s.table1, { width: 100 }]}>
+            {employee.rg && (
+              <View style={[s.table1]}>
+                <Text style={s.label}>RG:</Text>
+                <Text style={s.tableBody}>{employee.rg}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={sm.row}>
+            <View style={[s.table1, { marginRight: 10 }]}>
               <Text style={s.label}>Sexo:</Text>
               <Text style={s.tableBody}>
                 {sexTypeMap[employee?.sex]?.name || '-'}
               </Text>
             </View>
-            <View style={[s.table1, { flexGrow: 1 }]}>
+            <View style={[s.table1]}>
               <Text style={s.label}>Data de nascimento:</Text>
               <Text style={s.tableBody}>
                 {employee.birthday &&
@@ -337,7 +343,7 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
                 {arrayChunks(complementary, 2).map(([e1, e2]) => {
                   return (
                     <View style={[sm.row, { justifyContent: 'space-between' }]}>
-                      <View style={[sm.row, { flexGrow: 1, maxWidth: 270 }]}>
+                      <View style={[sm.row, { flexGrow: 1, maxWidth: 240 }]}>
                         <View style={[sm.row, { flexGrow: 1 }]}>
                           <View style={[s.checkbox, { marginRight: 5 }]}>
                             <Text style={[sm.bodyBS]}>

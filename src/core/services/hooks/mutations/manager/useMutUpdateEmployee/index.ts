@@ -1,6 +1,7 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
+import { SexTypeEnum } from 'project/enum/sex.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -11,11 +12,11 @@ import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
-import { SexTypeEnum } from 'project/enum/sex.enums';
 
 export interface IUpdateEmployee {
   name?: string;
   cpf?: string;
+  rg?: string;
   hierarchyId?: string;
   cbo?: string;
   email?: string;

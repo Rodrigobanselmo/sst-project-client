@@ -30,6 +30,7 @@ export const ModalEditScheduleMedicalVisit = () => {
     modalName,
     tableRef,
     setValue,
+    isEdit,
   } = props;
 
   const buttons = [
@@ -55,9 +56,9 @@ export const ModalEditScheduleMedicalVisit = () => {
         onSubmit={handleSubmit(onSubmit)}
       >
         <SModalHeader
-          tag={data.id ? 'edit' : 'add'}
+          tag={isEdit ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={!data.id ? 'Agendar Visita médica' : 'Visita médica'}
+          title={!isEdit ? 'Agendar Visita médica' : 'Visita médica'}
         />
 
         <MedicalVisitForm {...props} />

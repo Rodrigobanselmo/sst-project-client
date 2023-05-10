@@ -14,21 +14,30 @@ const SAutocompleteSelect: FC<AutocompleteSelectProps> = ({
   label,
   options,
   inputProps,
+  freeSolo,
   ...props
 }) => (
   <StyledAutocompleteSelect
     options={options}
     popupIcon={<StyledAutocompleteIcon />}
     noOptionsText={'Nenhuma opção'}
+    freeSolo={freeSolo}
     renderInput={(params) => (
       <SInput
         labelPosition="center"
         {...params}
         {...inputProps}
         sx={{
-          '.MuiInputBase-input': {
-            mr: '50px',
-          },
+          ...(!freeSolo && {
+            '.MuiInputBase-input': {
+              mr: '50px',
+            },
+          }),
+          ...(freeSolo && {
+            '.MuiInputBase-input': {
+              mr: '25px',
+            },
+          }),
           ...inputProps?.sx,
         }}
         size="small"

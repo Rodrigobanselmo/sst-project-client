@@ -60,6 +60,7 @@ export const useModalEditScheduleMedicalVisit = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialModalEditScheduleMedicalVisitState);
   const tableRef = useRef<{
+    reset: () => void;
     getData: () => {
       data: IEmployeeSelectedProps;
       examTypes: IEmployeeSelectedExamTypeProps;
@@ -228,11 +229,12 @@ export const useModalEditScheduleMedicalVisit = () => {
     if (!data.company?.id) return;
     if (!data.clinic?.id) return;
     if (!data.doneClinicDate) return;
-    if (!exams.length) {
+    if (!exams.length && !isEdit) {
       enqueueSnackbar('Selecione ao menos 1 funcionario', {
         variant: 'warning',
         autoHideDuration: 3000,
       });
+      return;
     }
 
     const submitData: IUpdateScheduleMedicalExam = {
@@ -286,6 +288,7 @@ export const useModalEditScheduleMedicalVisit = () => {
     tableRef,
     setValue,
     medicalVisit,
+    isEdit,
   };
 };
 

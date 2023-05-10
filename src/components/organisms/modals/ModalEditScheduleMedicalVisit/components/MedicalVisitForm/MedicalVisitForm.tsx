@@ -22,6 +22,8 @@ export const MedicalVisitForm: FC<IUseModalEditScheduleMedicalVisit> = ({
   setData,
   data,
   control,
+  isEdit,
+  tableRef,
 }) => {
   return (
     <SFlex direction={'column'} gap={5}>
@@ -29,6 +31,7 @@ export const MedicalVisitForm: FC<IUseModalEditScheduleMedicalVisit> = ({
         <CompanyInputSelect
           onChange={(company) => {
             company && setData?.({ ...data, company, companyId: company?.id });
+            tableRef.current?.reset();
           }}
           inputProps={{
             placeholder: 'Empresa',
@@ -44,6 +47,7 @@ export const MedicalVisitForm: FC<IUseModalEditScheduleMedicalVisit> = ({
           label="Empresa"
           size="small"
           control={control}
+          disabled={!!isEdit}
         />
 
         <SFlex align={'flex-end'} justifyContent={'flex-end'} mb={-3}>
