@@ -142,7 +142,7 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
               {/* - Estabelecimentos - empresa */}
               {actualCompany?.workspace &&
                 actualCompany.workspace.length > 1 &&
-                data?.workspaces.length && (
+                data?.workspaces?.length && (
                   <View style={sm.row}>
                     <View style={[s.table1]}>
                       <Text style={s.label}>Estabelecimento(s):</Text>
