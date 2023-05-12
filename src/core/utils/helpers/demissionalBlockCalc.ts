@@ -16,7 +16,7 @@ export const isShouldDemissionBlock = (
     validityInMonths?: number;
   },
 ) => {
-  if (!company?.blockResignationExam) return false;
+  if (!company?.blockResignationExam || !doneDateProp) return false;
 
   const doneDate = doneDateProp
     ? dayjs(doneDateProp)
