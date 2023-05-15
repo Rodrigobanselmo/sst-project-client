@@ -6,12 +6,12 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IContact } from 'core/interfaces/api/IContact';
+import { IScheduleMedicalVisit } from 'core/interfaces/api/IScheduleMedicalVisit';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
 import { ICreateScheduleMedicalExam } from '../useMutCreateScheduleMedicalVisit/useMutCreateScheduleMedicalVisit';
-import { IScheduleMedicalVisit } from 'core/interfaces/api/IScheduleMedicalVisit';
 
 export interface IUpdateScheduleMedicalExam extends ICreateScheduleMedicalExam {
   id?: number;

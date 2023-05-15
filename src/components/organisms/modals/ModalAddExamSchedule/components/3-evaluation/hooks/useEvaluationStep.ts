@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useWizard } from 'react-use-wizard';
 
@@ -58,12 +58,21 @@ export const useEvaluationStep = ({
   employee,
   isPendingExams,
   enqueueSnackbar,
+  getIsToBlockDismissal,
+  isComplementarySelected,
   ...rest
 }: IUseEditEmployee) => {
   const { setError, getValues, control, reset, setValue, clearErrors } =
     useFormContext();
   const { nextStep, stepCount, goToStep, previousStep } = useWizard();
   const { fetchClinic } = useFetchQueryClinic();
+  const [disableBlock, setDisableBlock] = useState(false);
+
+  const { isToBlockDismissal, clinicExamDoneDate, isDismissal } =
+    getIsToBlockDismissal(data);
+
+  const isDismissalExam =
+    !isComplementarySelected && !disableBlock && isToBlockDismissal;
 
   const isEval = data.examType == ExamHistoryTypeEnum.EVAL;
 
@@ -133,7 +142,7 @@ export const useEvaluationStep = ({
         }
       }
 
-      if (!data.isAttendance || !data.isSelected) return;
+      if (!data.isAttendance || !data.isSelected || !disableBlock) return;
       if (!data.clinic?.id) {
         setError(`clinic_${data.id}`, { message: 'Campo obrigatório' });
         isErrorFound = true;
@@ -188,6 +197,11 @@ export const useEvaluationStep = ({
   const setComplementaryExam = async (exam: Partial<IExamsScheduleTable>) => {
     let clinic: ICompany | undefined = undefined;
 
+    if (isDismissalExam) {
+      exam.isSelected = true;
+      setDisableBlock(true);
+    }
+
     if (exam.clinic?.id) {
       const clinicData = await fetchClinic(exam.clinic.id);
       if (clinicData) clinic = clinicData;
@@ -233,6 +247,12 @@ export const useEvaluationStep = ({
     isLoadingTime,
     getBlockTimeList,
     isEval,
+    isDismissalExam,
+    getIsToBlockDismissal,
+    clinicExamDoneDate,
+    isDismissal,
+    isToBlockDismissal,
+    isComplementarySelected,
     ...rest,
   };
 };

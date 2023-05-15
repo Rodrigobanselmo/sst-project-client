@@ -6,6 +6,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
 import { onGetExamPdfRoute } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
+import queryString from 'query-string';
 
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import { SDownloadIcon } from 'assets/icons/SDownloadIcon';
@@ -27,15 +28,28 @@ export const onDownloadPdf = (
   options: {
     asoId?: number;
     employeeId?: number;
+    scheduleMedicalVisitId?: number;
     companyId?: string;
+    withDate?: boolean;
   },
 ) => {
-  if (!options.employeeId || !options.companyId) return;
+  if (
+    (!options.employeeId && !options.scheduleMedicalVisitId) ||
+    !options.companyId
+  )
+    return;
 
-  const path = base
-    .replace(':employeeId', String(options.employeeId))
-    .replace(':asoId', String(options.asoId))
-    .replace(':companyId', options.companyId);
+  const queries = queryString.stringify({
+    asoId: options.asoId,
+    employeeId: options.employeeId,
+    withDate: options.withDate,
+    scheduleMedicalVisitId: options.scheduleMedicalVisitId,
+  });
+
+  const path =
+    base
+      .replace(':employeeId', String(options.employeeId))
+      .replace(':companyId', options.companyId) + `?${queries}`;
 
   window.open(path, '_blank');
 };

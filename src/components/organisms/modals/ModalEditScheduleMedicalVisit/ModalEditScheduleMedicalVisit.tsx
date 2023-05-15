@@ -9,12 +9,12 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { EmployeeScheduleMedicalVisitTable } from 'components/organisms/tables/EmployeeScheduleMedicalVisitTable/EmployeeScheduleMedicalVisitTable';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 
 import { MedicalVisitForm } from './components/MedicalVisitForm/MedicalVisitForm';
 import { useModalEditScheduleMedicalVisit } from './hooks/useModalEditScheduleMedicalVisit';
-import { EmployeeScheduleMedicalVisitTable } from 'components/organisms/tables/EmployeeScheduleMedicalVisitTable/EmployeeScheduleMedicalVisitTable';
 
 export const ModalEditScheduleMedicalVisit = () => {
   const props = useModalEditScheduleMedicalVisit();
@@ -64,6 +64,7 @@ export const ModalEditScheduleMedicalVisit = () => {
         <MedicalVisitForm {...props} />
         <EmployeeScheduleMedicalVisitTable
           mt={10}
+          scheduleMedicalVisitId={data.id}
           control={control}
           setValue={setValue}
           companyId={data.company?.id}

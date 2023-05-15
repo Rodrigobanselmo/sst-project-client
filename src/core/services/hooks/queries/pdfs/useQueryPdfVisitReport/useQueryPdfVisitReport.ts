@@ -6,48 +6,33 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IPdfGuideData } from 'core/interfaces/api/IPdfGuideData';
 import { IPdfKitData, IPdfKitDataApi } from 'core/interfaces/api/IPdfKitData';
+import { IPdfVisitReportData } from 'core/interfaces/api/IPdfVisitReportData';
 import { api } from 'core/services/apiClient';
 import { emptyArrayReturn, emptyMapReturn } from 'core/utils/helpers/emptyFunc';
 
 import { QueryEnum } from '../../../../../enums/query.enums';
 
 export interface IQuery {
-  asoId?: number;
-  employeeId?: number;
   scheduleMedicalVisitId?: number;
 }
 
-export const queryGuide = async (
+export const queryVisitReport = async (
   companyId: string,
   query?: IQuery,
-): Promise<IPdfKitData[]> => {
+): Promise<IPdfVisitReportData> => {
   const queries = queryString.stringify(query || {});
 
-  const response = await api.get<IPdfKitDataApi[]>(
-    ApiRoutesEnum.PDF_KIT + `/${companyId}?${queries}`,
+  const response = await api.get<IPdfVisitReportData>(
+    ApiRoutesEnum.PDF_VISIT_REPORT + `/${companyId}?${queries}`,
   );
 
-  return response.data.map<IPdfKitData>((item) => {
-    const aso = item?.aso;
-
-    return {
-      ...item,
-      prontuario: {
-        ...item?.prontuario,
-        actualCompany: aso?.actualCompany,
-        clinicExam: aso?.clinicExam,
-        admissionDate: aso?.admissionDate,
-        consultantCompany: aso?.consultantCompany,
-        employee: aso?.employee,
-        risks: aso?.risks,
-        sector: aso?.sector,
-        doctorResponsible: aso?.doctorResponsible,
-      },
-    };
-  });
+  return response.data;
 };
 
-export function useQueryPdfKit(queries?: IQuery, companyIdProp?: string) {
+export function useQueryPdfVisitReport(
+  queries?: IQuery,
+  companyIdProp?: string,
+) {
   const { companyId } = useGetCompanyId();
   const companyIdSelected = companyIdProp || companyId;
 
@@ -55,8 +40,8 @@ export function useQueryPdfKit(queries?: IQuery, companyIdProp?: string) {
     [QueryEnum.PDF_KIT, companyIdSelected, queries],
     () =>
       companyIdSelected
-        ? queryGuide(companyIdSelected, queries)
-        : <Promise<IPdfKitData[]>>emptyArrayReturn(),
+        ? queryVisitReport(companyIdSelected, queries)
+        : <Promise<IPdfVisitReportData>>emptyMapReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },

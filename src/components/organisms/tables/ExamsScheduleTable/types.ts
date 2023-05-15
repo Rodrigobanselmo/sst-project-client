@@ -26,6 +26,7 @@ export interface IExamsScheduleTable {
   scheduleType?: ClinicScheduleTypeEnum;
   isAttendance?: boolean;
   isAvaliation?: boolean;
+  isToBlockDismissal?: boolean;
   validityInMonths?: number;
   expiredDate?: Date | null;
   closeToExpired?: boolean;

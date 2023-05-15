@@ -70,7 +70,7 @@ export const sm = StyleSheet.create({
     backgroundColor: '#3cbe7d55',
   },
   darkRow: {
-    backgroundColor: '#c0c0c0',
+    backgroundColor: palette.gray[100],
   },
   darkLightRow: {
     backgroundColor: '#eee',
@@ -87,6 +87,12 @@ export const sm = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 10,
+  },
+  line: {
+    borderBottom: '0.5px solid #000',
+    height: 12,
+    width: '100%',
+    flexGrow: 1,
   },
   bullet: { marginHorizontal: 7 },
   bulletDown: { marginLeft: 14 },

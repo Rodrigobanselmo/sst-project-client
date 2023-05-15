@@ -48,7 +48,13 @@ Font.register({
   ],
 });
 
-export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
+export default function PdfAsoPage({
+  data,
+  withDate,
+}: {
+  data: IPdfAsoData;
+  withDate?: boolean;
+}) {
   const aso = data;
   const employee = aso?.employee;
   const sector = aso?.sector;
@@ -506,10 +512,16 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
           >
             <View style={[s.signatureBox]}>
               <View style={[s.signBox]}>
-                <Text style={s.signText}>Data Exame Clínico: ___/___/____</Text>
-                {/* <Text style={s.signText}>
-                  Data: {dayjs().format('DD/MM/YYYY')}
-                </Text> */}
+                {withDate && clinicExam.doneDate ? (
+                  <Text style={s.signText}>
+                    Data Exame Clínico:{' '}
+                    {dayjs(clinicExam.doneDate).format('DD/MM/YYYY')}
+                  </Text>
+                ) : (
+                  <Text style={s.signText}>
+                    Data Exame Clínico: ___/___/____
+                  </Text>
+                )}
               </View>
               <Text style={[s.signText, sm.ta]}>
                 Carimbo e Assinatura do Médico
@@ -518,10 +530,13 @@ export default function PdfAsoPage({ data }: { data: IPdfAsoData }) {
             </View>
             <View style={[s.signatureBox]}>
               <View style={[s.signBox]}>
-                <Text style={s.signText}>Data: ___/___/____</Text>
-                {/* <Text style={s.signText}>
-                  Data: {dayjs().format('DD/MM/YYYY')}
-                </Text> */}
+                {withDate && clinicExam.doneDate ? (
+                  <Text style={s.signText}>
+                    Data: {dayjs(clinicExam.doneDate).format('DD/MM/YYYY')}
+                  </Text>
+                ) : (
+                  <Text style={s.signText}>Data: ___/___/____</Text>
+                )}
                 <Text style={s.signText}>
                   Declaro ter recebido a 2ª via deste ASO
                 </Text>

@@ -121,7 +121,6 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               <InputForm
                 defaultValue={data.rg}
                 label="RG"
-                required
                 labelPosition="center"
                 control={control}
                 placeholder={'00000000-0'}

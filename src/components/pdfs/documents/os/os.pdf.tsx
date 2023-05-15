@@ -77,7 +77,7 @@ export default function PdfOSPage({ data }: { data: IPdfOSData }) {
           {/* title */}
           <>
             <View fixed style={{ flexDirection: 'row', marginBottom: 12 }}>
-              <View style={{ flexGrow: 1 }}>
+              <View style={{ flexGrow: 1, maxHeight: 30 }}>
                 <Image
                   style={s.image}
                   src={

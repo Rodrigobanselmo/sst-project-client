@@ -1,7 +1,15 @@
 /* eslint-disable react/display-name */
 import { useImperativeHandle, useMemo, useRef } from 'react';
+import React from 'react';
+import {
+  Control,
+  FieldValues,
+  UseFormSetValue,
+  useForm,
+} from 'react-hook-form';
 
 import { Box, BoxProps } from '@mui/material';
+import { SDropButton } from 'components/atoms/SDropButton/SDropButton';
 import SFlex from 'components/atoms/SFlex';
 import {
   STable,
@@ -15,36 +23,40 @@ import { FilterTagList } from 'components/atoms/STable/components/STableFilter/F
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
-import SText from 'components/atoms/SText';
-import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
-import dayjs from 'dayjs';
-import { StatusEnum } from 'project/enum/status.enum';
-
-import { SCheckboxIcon } from 'assets/icons/SUncheckBoxIcon';
 import { STagButton } from 'components/atoms/STagButton';
+import SText from 'components/atoms/SText';
 import STooltip from 'components/atoms/STooltip';
 import { SelectForm } from 'components/molecules/form/select';
+import { onDownloadPdf } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
+import { IMenuSearchOption } from 'components/molecules/SMenuSearch/types';
+import { onGetExamPdfRoute } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
+import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
+import dayjs from 'dayjs';
+import { useSnackbar } from 'notistack';
+import {
+  employeeExamScheduleTypeList,
+  ExamHistoryTypeEnum,
+} from 'project/enum/employee-exam-history-type.enum';
+import { StatusEnum } from 'project/enum/status.enum';
+import sortArray from 'sort-array';
+
+import { SDocumentIcon } from 'assets/icons/SDocumentIcon';
+import { SDownloadIcon } from 'assets/icons/SDownloadIcon';
+import { SCheckboxIcon } from 'assets/icons/SUncheckBoxIcon';
+
 import { statusOptionsConstantEmployee } from 'core/constants/maps/status-options.constant';
+import { IdsEnum } from 'core/enums/ids.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useTableSearch } from 'core/hooks/useTableSearch';
 import {
   IEmployee,
   IEmployeeExamsHistory,
   IEmployeeInfoExam,
 } from 'core/interfaces/api/IEmployee';
+import { IExam } from 'core/interfaces/api/IExam';
 import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees';
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
-import {
-  employeeExamScheduleTypeList,
-  ExamHistoryTypeEnum,
-} from 'project/enum/employee-exam-history-type.enum';
-import React from 'react';
-import {
-  Control,
-  FieldValues,
-  UseFormSetValue,
-  useForm,
-} from 'react-hook-form';
-import sortArray from 'sort-array';
+
 import {
   getEmployeeRowExamData,
   getEmployeeRowExpiredDate,
@@ -52,12 +64,6 @@ import {
   getEmployeeRowStatus,
 } from '../HistoryExpiredExamCompanyTable/HistoryExpiredExamCompanyTable';
 import { NumSelected } from './NumSelected';
-import { IExam } from 'core/interfaces/api/IExam';
-import { IdsEnum } from 'core/enums/ids.enums';
-import { SDropButton } from 'components/atoms/SDropButton/SDropButton';
-import { SDocumentIcon } from 'assets/icons/SDocumentIcon';
-import { IMenuSearchOption } from 'components/molecules/SMenuSearch/types';
-import { SDownloadIcon } from 'assets/icons/SDownloadIcon';
 
 export type IEmployeeSelectedProps = Record<
   number,
@@ -79,6 +85,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
   any,
   BoxProps & {
     rowsPerPage?: number;
+    scheduleMedicalVisitId?: number;
     companyId?: string;
     query?: IQueryEmployeeHistHier;
     initialSelectedData?: IEmployeeSelectedProps;
@@ -90,6 +97,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
   (
     {
       rowsPerPage = 500,
+      scheduleMedicalVisitId,
       companyId,
       initialSelectedData,
       query,
@@ -105,6 +113,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
     );
     const numRef = useRef<{ update: () => void }>(null);
     const selectedExamTypeRef = useRef<IEmployeeSelectedExamTypeProps>({});
+    const { enqueueSnackbar } = useSnackbar();
 
     useImperativeHandle(ref, () => ({
       getData: () => {
@@ -373,7 +382,49 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
       });
     }
 
-    function onDownloadAso(option: IMenuSearchOption) {}
+    function onDownloadAso(option: IMenuSearchOption) {
+      if (!scheduleMedicalVisitId)
+        enqueueSnackbar('Crie a Visita médica antes de baixar o ASO', {
+          variant: 'error',
+          autoHideDuration: 1500,
+        });
+
+      const map: Record<any, { handle: () => void }> = {
+        1: {
+          handle: () => {
+            onDownloadPdf(onGetExamPdfRoute({ isAvaliation: false }), {
+              companyId,
+              scheduleMedicalVisitId,
+            });
+          },
+        },
+        2: {
+          handle: () => {
+            onDownloadPdf(onGetExamPdfRoute({ isAvaliation: false }), {
+              companyId,
+              withDate: true,
+              scheduleMedicalVisitId,
+            });
+          },
+        },
+      };
+
+      if (option.value) map[option.value]?.handle();
+    }
+
+    function onDownloadVisitReport() {
+      if (!scheduleMedicalVisitId)
+        enqueueSnackbar('Crie a Visita médica antes de baixar o ASO', {
+          variant: 'error',
+          autoHideDuration: 1500,
+        });
+
+      onDownloadPdf(RoutesEnum.PDF_VISIT_REPORT, {
+        companyId,
+        withDate: true,
+        scheduleMedicalVisitId,
+      });
+    }
 
     const sortedExams = sortArray(exams, { by: 'isAttendance', order: 'desc' });
 
@@ -425,6 +476,12 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
               })}
             ref={numRef}
             selectedRef={selectedRef}
+            mr="auto"
+          />
+          <STagButton
+            icon={SDocumentIcon}
+            text={'Baixar Relatório'}
+            onClick={onDownloadVisitReport}
           />
           <SDropButton
             icon={SDocumentIcon}
@@ -551,9 +608,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                   clickable
                   position={'relative'}
                   // onClick={() => onClickRow(row)}
-                  {...(employeeExamsSelect?.[row.id] && {
-                    status: 'info',
-                  })}
+                  {...(employeeExam && { status: 'info' })}
                 >
                   <SFlex
                     position={'sticky'}
@@ -626,13 +681,15 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                       setValue={setValue}
                       defaultValue={
                         selectedExamTypeRef.current[row.id] ||
-                        employeeExamsSelect?.[row.id]?.[0]?.examType ||
+                        (employeeExam &&
+                          Object.values(employeeExam)?.[0]?.examType) ||
                         examTypeLits[0].value
                       }
                       label=""
                       labelPosition="top"
                       control={control}
                       placeholder="selecione..."
+                      disabled={!!employeeExam}
                       superSmall
                       name={IdsEnum.EMPLOYEE_SCHEDULE_MEDICAL_EXAM_TYPE_CHECKBOX.replace(
                         ':id',

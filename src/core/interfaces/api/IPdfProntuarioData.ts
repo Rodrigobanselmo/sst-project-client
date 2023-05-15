@@ -25,6 +25,7 @@ export interface IPdfProntuarioData {
   doctorResponsible: Partial<IProfessional>;
   clinicExam: IEmployeeExamsHistory;
   sector: IHierarchy;
+  withDate?: boolean;
   risks: {
     riskData: IRiskData;
     riskFactor: IRiskFactors;

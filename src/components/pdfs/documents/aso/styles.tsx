@@ -36,10 +36,10 @@ export const s = StyleSheet.create({
   },
   tableH: {
     ...standard.table,
-    borderBottom: '1 solid #000',
+    borderBottom: '0.5px solid #000',
   },
   checkbox: {
-    border: '1 solid #000',
+    border: '0.5px solid #000',
     height: 12,
     width: 18,
     alignItems: 'center',
@@ -73,19 +73,19 @@ export const s = StyleSheet.create({
     marginRight: 5,
   },
   tBox: {
-    // border: '1 solid #b1b1b1',
+    // border: '0.5px solid #b1b1b1',
     marginRight: 3,
     paddingHorizontal: 4,
     // paddingVertical: 1,
     borderRadius: 10,
   },
   tableClinicBox: {
-    border: '1 solid #555',
+    border: '0.5px solid #555',
     padding: 2,
   },
 
   tableBox: {
-    border: '1 solid #000',
+    border: '0.5px solid #000',
   },
   table1: {
     ...standard.table,
@@ -128,7 +128,7 @@ export const s = StyleSheet.create({
     color: 'black',
   },
   signBox: {
-    borderBottom: '1 solid #000',
+    borderBottom: '0.5px solid #000',
     height: 70,
     marginBottom: 2,
   },

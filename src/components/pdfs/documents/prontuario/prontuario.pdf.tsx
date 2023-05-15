@@ -38,6 +38,8 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { sortString } from 'core/utils/sorts/string.sort';
 
 import { sm } from '../../styles/main.pdf.styles';
+import { PdfEmployeeComponent } from './components/employeeComponent.pdf';
+import { PdfQuestionsComponent } from './components/questionsComponent.pdf';
 import { s } from './styles';
 
 Font.register({
@@ -61,163 +63,12 @@ Font.register({
   ],
 });
 
-const PdfQuestionsComponent = (questions: IProntuarioQuestion[]) => {
-  return (
-    <View>
-      {questions.map((q) => {
-        const hasTextAnswer = typeof q?.textAnswer === 'string';
-        return (
-          <View style={[sm.row, { flexGrow: 1 }]}>
-            <View style={[sm.row, { width: 170 }]}>
-              <Text style={[sm.body, { marginRight: 5 }]}>{q.name}</Text>
-            </View>
-
-            <View style={[sm.row, { minWidth: 102 }]}>
-              {q.objectiveAnswer?.map((oA) => {
-                return (
-                  <View style={[sm.row, { paddingRight: 17 }]}>
-                    <View style={[s.checkbox, { marginRight: 3 }]}></View>
-                    <Text style={[s.body]}>{oA}</Text>
-                  </View>
-                );
-              })}
-            </View>
-
-            {hasTextAnswer && (
-              <View style={[sm.row, { flexGrow: 1 }]}>
-                <View style={[sm.row]}>
-                  {q.textAnswer && (
-                    <Text style={[s.body, { marginRight: 3 }]}>
-                      {q.textAnswer}
-                    </Text>
-                  )}
-                  <View style={[s.line]}>e</View>
-                </View>
-              </View>
-            )}
-          </View>
-        );
-      })}
-    </View>
-  );
-};
-
-export const PdfEmployeeComponent = ({
-  employee,
-  ...prontuario
-}: IPdfProntuarioData) => {
-  const actualCompany = prontuario.actualCompany;
-  const clinicExam = prontuario.clinicExam;
-  const risks = prontuario.risks;
-  const allRisks = risks?.filter((r) => r.riskFactor.type != RiskEnum.OUTROS);
-  const isNoRisk = !allRisks.length;
-
-  return (
-    <>
-      <View style={[sm.mb4, s.tableBox]}>
-        <View style={[s.tableH, sm.darkRow]}>
-          <Text style={s.bodyB}>FUNCIONÁRIO</Text>
-        </View>
-
-        {/* - Funcionario - dados */}
-        <View style={[sm.row, sm.wrap]}>
-          <View style={[s.table1, s.mrl]}>
-            <Text style={s.label}>Nome Completo:</Text>
-            <Text style={s.tableBody}>{employee.name}</Text>
-          </View>
-
-          <View style={[s.table1, s.mrl]}>
-            <Text style={s.label}>CPF:</Text>
-            <Text style={s.tableBody}>{cpfMask.mask(employee.cpf)}</Text>
-          </View>
-
-          {employee.rg && (
-            <View style={[s.table1, s.mrl]}>
-              <Text style={s.label}>RG:</Text>
-              <Text style={s.tableBody}>{employee.rg}</Text>
-            </View>
-          )}
-
-          <View style={[s.table1, s.mrl]}>
-            <Text style={s.label}>Sexo:</Text>
-            <Text style={s.tableBody}>
-              {sexTypeMap[employee?.sex]?.name || ''}
-            </Text>
-          </View>
-          <View style={[s.table1, { flexGrow: 1 }]}>
-            <Text style={s.label}>Data de nasc.:</Text>
-            <Text style={s.tableBody}>
-              {employee.birthday &&
-                dayjs(employee.birthday).format('DD/MM/YYYY')}{' '}
-              {employee.birthday &&
-                `(${dayjs().diff(employee.birthday, 'y')} anos)`}
-            </Text>
-          </View>
-        </View>
-
-        {/* - Funcionario - empresa */}
-        <View style={sm.row}>
-          <View style={[s.table1]}>
-            <Text style={s.label}>Empresa:</Text>
-            <Text style={s.tableBody}>
-              {getCompanyName(actualCompany).slice(0, 40)} -{' '}
-              {cnpjMask.mask(actualCompany.cnpj)}
-            </Text>
-          </View>
-
-          <View style={[s.table1]}>
-            <Text style={s.label}>Função:</Text>
-            <Text style={s.tableBody}>
-              {employee?.hierarchy?.name.slice(0, 30)}
-            </Text>
-          </View>
-        </View>
-
-        <View style={sm.row}>
-          <View style={[s.table1, s.mrl]}>
-            <Text style={s.label}>Tipo de Exame:</Text>
-            <Text style={s.tableBody}>
-              {employeeExamTypeMap[
-                employeeToAsoExamTypeTranslate[clinicExam.examType]
-              ]?.content || ''}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* RISCOS */}
-      <View style={[sm.mb2, s.tableBox]}>
-        <View style={[s.tableH, sm.darkRow]}>
-          <Text style={s.bodyB}>RISCOS OCUPACIONAIS</Text>
-        </View>
-
-        <View style={sm.row}>
-          <View style={[s.table1, s.mrl, { alignItems: 'flex-start' }]}>
-            {!isNoRisk && (
-              <Text style={[s.body, sm.mb1, { width: 450 }]}>
-                {allRisks
-                  .map((risk) => {
-                    return risk.riskFactor.name;
-                  })
-                  .join(', ')}
-              </Text>
-            )}
-            {isNoRisk && (
-              <Text style={[s.body, { width: 420 }]}>
-                Ausência de risco específico
-              </Text>
-            )}
-          </View>
-        </View>
-      </View>
-    </>
-  );
-};
-
 export default function PdfProntuarioPage({
   data,
+  withDate,
 }: {
   data: IPdfProntuarioData;
+  withDate?: boolean;
 }) {
   const prontuario = data;
   const examination = prontuario.examination || [];
@@ -246,7 +97,7 @@ export default function PdfProntuarioPage({
                   {consultant?.contacts?.[0]?.email}
                 </Text>
               </View>
-              <View style={{ flexGrow: 1 }}>
+              <View style={{ flexGrow: 1, maxHeight: 30 }}>
                 <Image
                   style={[s.image]}
                   src={
@@ -293,8 +144,13 @@ export default function PdfProntuarioPage({
               <View style={[sm.row, { width: 200 }]}></View>
 
               <View style={[sm.row, { minWidth: 70 }]}>
-                {/* <Text style={s.body}>Data: {dayjs().format('DD/MM/YYYY')}</Text> */}
-                <Text style={s.body}>Data: ___/___/____</Text>
+                {withDate && clinicExam.doneDate ? (
+                  <Text style={s.body}>
+                    Data: {dayjs(clinicExam.doneDate).format('DD/MM/YYYY')}
+                  </Text>
+                ) : (
+                  <Text style={s.body}>Data: ___/___/____</Text>
+                )}
               </View>
 
               <View style={[{ flexGrow: 1, alignItems: 'center' }]}>
@@ -415,10 +271,13 @@ export default function PdfProntuarioPage({
           >
             <View style={[s.signatureBox]}>
               <View style={[s.signBox]}>
-                <Text style={s.signText}>
-                  Data: ___/___/____
-                  {/* Data: {dayjs().format('DD/MM/YYYY')} */}
-                </Text>
+                {withDate && clinicExam.doneDate ? (
+                  <Text style={s.signText}>
+                    Data: {dayjs(clinicExam.doneDate).format('DD/MM/YYYY')}
+                  </Text>
+                ) : (
+                  <Text style={s.signText}>Data: ___/___/____</Text>
+                )}
               </View>
               <Text style={[s.signText, sm.ta]}>
                 Carimbo e Assinatura do Médico

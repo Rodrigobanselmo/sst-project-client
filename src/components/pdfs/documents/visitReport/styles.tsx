@@ -13,7 +13,7 @@ const standard: ReturnType<typeof StyleSheet.create> = {
 
 export const s = StyleSheet.create({
   page: {
-    paddingTop: 30,
+    paddingTop: 20,
     paddingBottom: 30,
     paddingHorizontal: 30,
     fontFamily: 'Open Sans',
@@ -22,45 +22,20 @@ export const s = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
   },
-  title: {
-    width: 300,
-    fontSize: 15,
-    color: '#123e96',
-    textAlign: 'center',
-    fontWeight: 'extrabold',
-  },
-  title2: {
-    width: 300,
-    fontSize: 12,
-    color: 'black',
-    textAlign: 'center',
-    fontWeight: 'extrabold',
-  },
   image: {
-    width: 80,
-    alignItems: 'flex-end',
-    justifyContent: 'flex-end',
+    width: 100,
+    alignItems: 'flex-start',
+    justifyContent: 'flex-start',
+    marginBottom: 10,
+  },
+  title: {
+    fontSize: 9,
+    fontWeight: 'bold',
+    color: 'black',
   },
   tableH: {
     ...standard.table,
-    borderBottom: '1 solid #000',
-  },
-  tableHB: {
-    ...standard.table,
-    paddingHorizontal: 20,
-    justifyContent: 'center',
-    paddingVertical: 2,
-    borderBottom: '1 solid #000',
-  },
-  tableEpi: {
-    padding: 6,
-    paddingVertical: 2,
-    flexDirection: 'row',
-    borderBottom: '1 solid #000',
-  },
-  dashedDivider: {
-    borderBottom: '1 dashed #000',
-    marginVertical: 8,
+    borderBottom: '0.5px solid #000',
   },
   checkbox: {
     border: '0.5px solid #000',
@@ -68,12 +43,6 @@ export const s = StyleSheet.create({
     width: 18,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  line: {
-    borderBottom: '1 solid #000',
-    height: 8,
-    width: '100%',
-    flexGrow: 1,
   },
   boxCheck: {
     paddingVertical: 4,
@@ -94,6 +63,10 @@ export const s = StyleSheet.create({
     width: 50,
     marginRight: 5,
   },
+  bodyB1: {
+    fontSize: 8,
+    fontWeight: 'semibold',
+  },
   protoText: {
     width: 200,
     marginRight: 5,
@@ -105,6 +78,11 @@ export const s = StyleSheet.create({
     // paddingVertical: 1,
     borderRadius: 10,
   },
+  tableClinicBox: {
+    border: '0.5px solid #555',
+    padding: 2,
+  },
+
   tableBox: {
     border: '0.5px solid #000',
   },
@@ -118,9 +96,8 @@ export const s = StyleSheet.create({
   },
   table2: {
     ...standard.table,
-    flexDirection: 'column',
-    alignItems: 'flex-start',
-    paddingVertical: 5,
+    borderTop: 0,
+    flexDirection: 'row',
   },
   table2L: {
     ...standard.table,
@@ -130,69 +107,35 @@ export const s = StyleSheet.create({
   },
   tableBody: {
     fontSize: 8,
-    fontWeight: 'semibold',
   },
   label: {
-    fontSize: 8,
+    fontSize: 7,
     fontWeight: 'normal',
     color: '#333',
     marginRight: 4,
   },
-  h1: {
-    fontSize: 8,
+  header: {
+    marginTop: 10,
+    fontSize: 10,
+    marginBottom: 10,
+    textAlign: 'center',
+    width: '100%',
+    flex: 1,
+    flexGrow: 1,
     fontWeight: 'extrabold',
-    textAlign: 'center',
-  },
-  h2: {
-    fontSize: 8,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  body: {
-    fontSize: 8,
-    fontWeight: 'normal',
-  },
-  bodyB: {
-    fontSize: 8,
-    fontWeight: 'bold',
-  },
-  bodySB: {
-    fontSize: 8,
-    fontWeight: 'semibold',
-  },
-  bodyS: {
-    fontSize: 7,
-    fontWeight: 'normal',
-  },
-  bodyBS: {
-    fontSize: 7,
-    fontWeight: 'bold',
+    color: 'black',
   },
   signBox: {
-    borderBottom: '1 solid #000',
+    borderBottom: '0.5px solid #000',
     height: 70,
     marginBottom: 2,
   },
   signatureBox: {
-    width: 250,
-  },
-  doctorRespBox: {
     width: 200,
-    justifyContent: 'center',
-    alignItems: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  signHeader: {
-    fontSize: 9,
-    fontWeight: 'semibold',
-    color: 'black',
   },
   signText: {
     fontSize: 9,
     fontWeight: 'normal',
     color: 'black',
   },
-  mrl: { marginRight: 10 },
-  textBoxWrap: { flexDirection: 'row', flexWrap: 'wrap' },
 });

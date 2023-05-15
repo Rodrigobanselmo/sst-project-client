@@ -1,22 +1,23 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { FC } from 'react';
 
+import { Box } from '@mui/material';
+import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
+import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
+import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
+import { CompanyInputSelect } from 'components/organisms/inputSelect/CompanySelect/CompanyInputSelect';
+import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
+
+import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
+import { dateToDate } from 'core/utils/date/date-format';
 
 import {
   IUseModalEditScheduleMedicalVisit,
   initialModalEditScheduleMedicalVisitState,
 } from '../../hooks/useModalEditScheduleMedicalVisit';
-import { Box } from '@mui/material';
-import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
-import { ProfessionalInputSelect } from 'components/organisms/inputSelect/ProfessionalSelect/ProfessionalSelect';
-import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
-import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
-import { dateToDate } from 'core/utils/date/date-format';
-import { CompanyInputSelect } from 'components/organisms/inputSelect/CompanySelect/CompanyInputSelect';
-import { statusOptionsConstantExam } from 'core/constants/maps/status-options.constant';
 
 export const MedicalVisitForm: FC<IUseModalEditScheduleMedicalVisit> = ({
   setData,
@@ -24,6 +25,7 @@ export const MedicalVisitForm: FC<IUseModalEditScheduleMedicalVisit> = ({
   control,
   isEdit,
   tableRef,
+  setValue,
 }) => {
   return (
     <SFlex direction={'column'} gap={5}>

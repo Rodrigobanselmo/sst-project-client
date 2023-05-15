@@ -8,13 +8,14 @@ import PdfGuidePage from 'components/pdfs/documents/guide/guide.pdf';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
+import { setIsFetchingData } from 'store/reducers/routeLoad/routeLoadSlice';
 
 import { EmailsTemplatesEnum } from 'core/enums/emails-templates';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { IPdfGuideData } from 'core/interfaces/api/IPdfGuideData';
 import { useMutSendEmail } from 'core/services/hooks/mutations/notification/useMutSendEmail/useMutSendEmail';
 import { useQueryPdfGuide } from 'core/services/hooks/queries/pdfs/useQueryPdfGuide';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
-
 export function ButtonSendEmail({ data }: { data: IPdfGuideData }) {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -57,6 +58,11 @@ const Guide: NextPage = () => {
   const { query } = useRouter();
   const employeeId = query.employeeId as string;
   const { data: guideData } = useQueryPdfGuide(employeeId);
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    dispatch(setIsFetchingData(true));
+  }, [dispatch]);
 
   return (
     <>
@@ -66,7 +72,7 @@ const Guide: NextPage = () => {
           {guideData && guideData?.company && !!Object.keys(guideData).length && (
             <>
               <PDFViewer showToolbar width="100%" height="100%">
-                <Document>
+                <Document onRender={() => dispatch(setIsFetchingData(false))}>
                   <PdfGuidePage data={guideData} />
                 </Document>
               </PDFViewer>

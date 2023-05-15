@@ -10,7 +10,6 @@ import {
 } from 'core/interfaces/api/IPdfProntuarioData';
 
 import { sm } from '../../styles/main.pdf.styles';
-import { PdfEmployeeComponent } from '../prontuario/prontuario.pdf';
 import { s } from './styles';
 
 Font.register({

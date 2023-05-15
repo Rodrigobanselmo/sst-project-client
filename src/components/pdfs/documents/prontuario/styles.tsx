@@ -39,21 +39,21 @@ export const s = StyleSheet.create({
   },
   tableH: {
     ...standard.table,
-    borderBottom: '1 solid #000',
+    borderBottom: '0.5px solid #000',
   },
   dashedDivider: {
-    borderBottom: '1 dashed #000',
+    borderBottom: '0.5px dashed #000',
     marginVertical: 8,
   },
   checkbox: {
-    border: '1 solid #000',
+    border: '0.5px solid #000',
     height: 12,
     width: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   line: {
-    borderBottom: '1 solid #000',
+    borderBottom: '0.5px solid #000',
     height: 8,
     width: '100%',
     flexGrow: 1,
@@ -89,7 +89,7 @@ export const s = StyleSheet.create({
     borderRadius: 10,
   },
   tableBox: {
-    border: '1 solid #000',
+    border: '0.5px solid #000',
   },
   table1: {
     ...standard.table,
@@ -148,7 +148,7 @@ export const s = StyleSheet.create({
     fontWeight: 'bold',
   },
   signBox: {
-    borderBottom: '1 solid #000',
+    borderBottom: '0.5px solid #000',
     height: 70,
     marginBottom: 2,
   },

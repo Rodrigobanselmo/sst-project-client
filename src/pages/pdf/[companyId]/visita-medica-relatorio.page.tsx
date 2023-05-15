@@ -4,57 +4,55 @@ import { Box } from '@mui/material';
 import { Document, PDFViewer } from '@react-pdf/renderer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import PdfAsoPage from 'components/pdfs/documents/aso/aso.pdf';
-import PdfAtestadoPage from 'components/pdfs/documents/atestado/atestado.pdf';
-import PdfEvaluationPage from 'components/pdfs/documents/evaluation/evaluation.pdf';
 import PdfProntuarioPage from 'components/pdfs/documents/prontuario/prontuario.pdf';
+import PdfVisitReportPage from 'components/pdfs/documents/visitReport/visitReport.pdf';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { setIsFetchingData } from 'store/reducers/routeLoad/routeLoadSlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
-import { useQueryPdfEvaluation } from 'core/services/hooks/queries/pdfs/useQueryPdfEvaluation';
+import { useQueryPdfKit } from 'core/services/hooks/queries/pdfs/useQueryPdfKit ';
+import { useQueryPdfVisitReport } from 'core/services/hooks/queries/pdfs/useQueryPdfVisitReport/useQueryPdfVisitReport';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
-const Evaluation: NextPage = () => {
+const Kit: NextPage = () => {
   const { query } = useRouter();
-  const employeeId = query.employeeId as string;
-  const asoId = query.asoId as string;
+  const scheduleMedicalVisitId = query.scheduleMedicalVisitId as string;
+  const withDate = Boolean(query.withDate as string);
   const dispatch = useAppDispatch();
+
+  const { data: visitReportData } = useQueryPdfVisitReport({
+    scheduleMedicalVisitId: scheduleMedicalVisitId
+      ? Number(scheduleMedicalVisitId)
+      : undefined,
+  });
 
   useEffect(() => {
     dispatch(setIsFetchingData(true));
   }, [dispatch]);
 
-  const { data: evaluationData } = useQueryPdfEvaluation(employeeId);
+  const showpdf =
+    !!visitReportData && !!Object.keys(visitReportData || {}).length;
+
   return (
     <>
-      <SHeaderTag
-        hideInitial
-        title={`PDF:Evaluation Med ${evaluationData?.employee?.name || ''}`}
-      />
+      <SHeaderTag hideInitial title={'PDF: Relatório Visita Médica'} />
       <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        {evaluationData && !!Object.keys(evaluationData).length && (
+        {showpdf && (
           <PDFViewer showToolbar width="100%" height="100%">
             <Document
-              onRender={() => dispatch(setIsFetchingData(false))}
               subject={'Aso e prontuario'}
               author={'simpleSST'}
               creator={'simpleSST'}
               producer={'simpleSST'}
+              onRender={() => dispatch(setIsFetchingData(false))}
               keywords={'Aso / prontuario'}
-              title={`VIAS_ASO_E_PRONTUARIO_${getCompanyName(
-                evaluationData?.consultantCompany,
-              )}_${getCompanyName(evaluationData?.actualCompany)}_${
-                evaluationData?.employee?.name
-              }`}
+              title={`Relatório_Visíta_Médica_${getCompanyName(
+                visitReportData?.consultantCompany,
+              )}_${getCompanyName(visitReportData.actualCompany)}`}
             >
-              {evaluationData && evaluationData?.employee && (
-                <>
-                  <PdfEvaluationPage data={evaluationData} />
-                  <PdfAtestadoPage data={evaluationData} />
-                </>
-              )}
+              <PdfVisitReportPage data={visitReportData} withDate={withDate} />
             </Document>
           </PDFViewer>
         )}
@@ -63,7 +61,7 @@ const Evaluation: NextPage = () => {
   );
 };
 
-export default Evaluation;
+export default Kit;
 
 export const getServerSideProps = withSSRAuth(async () => {
   return {

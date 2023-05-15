@@ -38,6 +38,7 @@ export const useEmployeeStep = ({
   getIsToBlockDismissal,
   onStackOpenModal,
   skipHierarchySelect,
+  company,
   ...rest
 }: IUseEditEmployee) => {
   const { trigger, getValues, control, setError, reset, setValue, setFocus } =
@@ -253,7 +254,9 @@ export const useEmployeeStep = ({
           if (!employeeHistory.exam.name) return;
           if (!employeeHistory.clinicId) return;
 
-          const clinicData = await fetchClinic(employeeHistory.clinicId);
+          const clinicData = await fetchClinic(employeeHistory.clinicId).catch(
+            () => null,
+          );
           const examClinic = clinicData?.clinicExams?.find(
             (examClinic) => examClinic.examId == employeeHistory?.exam?.id,
           );
@@ -292,7 +295,6 @@ export const useEmployeeStep = ({
 
     if (schedulesExams?.data) {
       const newData = await getData();
-      schedulesExams;
       setData(newData);
     }
 
@@ -341,16 +343,18 @@ export const useEmployeeStep = ({
       // eslint-disable-next-line no-empty-pattern
       const {} = getValues();
 
-      await updateEmployee.mutateAsync({
-        id: employee?.id,
-        name,
-        sex: sex as any,
-        companyId: data.companyId,
-        email,
-        phone,
-        rg,
-        ...(data.birthday && { birthday: data.birthday }),
-      });
+      await updateEmployee
+        .mutateAsync({
+          id: employee?.id,
+          name,
+          sex: sex as any,
+          companyId: data.companyId,
+          email,
+          phone,
+          rg,
+          ...(data.birthday && { birthday: data.birthday }),
+        })
+        .catch((err) => {});
 
       data.isPendingExams ? handleEditPendingSubmit() : handleValidSubmit();
     }

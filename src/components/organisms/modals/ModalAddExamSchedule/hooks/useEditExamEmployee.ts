@@ -1,9 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
+import { useAuthShow } from 'components/molecules/SAuthShow';
 import { IExamsScheduleTable } from 'components/organisms/tables/ExamsScheduleTable/types';
 import { useSnackbar } from 'notistack';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
+import { PermissionEnum } from 'project/enum/permission.enum';
+import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -19,12 +22,9 @@ import { useFetchQueryClinic } from 'core/services/hooks/queries/useQueryClinic'
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
 import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
+import { isShouldDemissionBlock } from 'core/utils/helpers/demissionalBlockCalc';
 
 import { IEmployee } from '../../../../../core/interfaces/api/IEmployee';
-import { useAuthShow } from 'components/molecules/SAuthShow';
-import { PermissionEnum } from 'project/enum/permission.enum';
-import { isShouldDemissionBlock } from 'core/utils/helpers/demissionalBlockCalc';
-import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
 
 export const initialExamScheduleState = {
   employeeId: undefined as number | undefined,
@@ -168,10 +168,28 @@ export const useEditExamEmployee = () => {
     [isAuthSuccess],
   );
 
+  const getIsToBlockDismissalExam = useCallback(
+    (data: typeof initialExamScheduleState, doneDate?: Date) => {
+      const isDismissal = data?.examType === ExamHistoryTypeEnum.DEMI;
+
+      const isToBlockDismissal =
+        isDismissal &&
+        company &&
+        isShouldDemissionBlock(company, {
+          doneDate,
+          dismissalDate: data.changeHierarchyDate,
+        });
+
+      return { isToBlockDismissal, isDismissal };
+    },
+    [company],
+  );
+
   const getIsToBlockDismissal = useCallback(
     (data: typeof initialExamScheduleState) => {
       const isDismissal = data?.examType === ExamHistoryTypeEnum.DEMI;
-      const clinicExamDoneDate = employee?.lastDoneExam?.doneDate;
+      const clinicExamDoneDate =
+        employee?.lastDoneExam?.doneDate || employee?.lastExam;
 
       const isToBlockDismissal =
         isDismissal &&
@@ -183,7 +201,7 @@ export const useEditExamEmployee = () => {
 
       return { isToBlockDismissal, clinicExamDoneDate, isDismissal };
     },
-    [company, employee?.lastDoneExam?.doneDate],
+    [company, employee?.lastDoneExam?.doneDate, employee?.lastExam],
   );
 
   const isComplementarySelected = useMemo(
@@ -215,6 +233,7 @@ export const useEditExamEmployee = () => {
     userAllow,
     isComplementarySelected,
     getIsToBlockDismissal,
+    getIsToBlockDismissalExam,
     onStackOpenModal,
     skipHierarchySelect:
       employee?.hierarchyId &&

@@ -64,6 +64,7 @@ export enum ApiRoutesEnum {
   USERS = '/users',
   PDF_GUIDE = '/documents/pdf/guide',
   PDF_KIT = '/documents/pdf/kit',
+  PDF_VISIT_REPORT = '/documents/pdf/visit-report',
   PDF_EVALUATION = '/documents/pdf/prontuario-evaluation',
   PDF_OS = '/documents/pdf/os',
   COMPANY_DASHBOARD = '/company/:companyId/dashboard',

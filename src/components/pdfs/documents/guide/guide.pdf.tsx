@@ -100,7 +100,7 @@ export default function PdfGuidePage({ data }: { data: IPdfGuideData }) {
               </Text>
             </Text>
           </View>
-          <View style={{ flexGrow: 1 }}>
+          <View style={{ flexGrow: 1, maxHeight: 30 }}>
             <Image
               style={sm.image}
               src={consultant?.logoUrl + '?noCache=' + Math.random().toString()}

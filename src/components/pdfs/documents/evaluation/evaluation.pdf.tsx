@@ -38,7 +38,7 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { sortString } from 'core/utils/sorts/string.sort';
 
 import { sm } from '../../styles/main.pdf.styles';
-import { PdfEmployeeComponent } from '../prontuario/prontuario.pdf';
+import { PdfEmployeeComponent } from '../prontuario/components/employeeComponent.pdf';
 import { s } from './styles';
 
 Font.register({
@@ -126,7 +126,7 @@ export default function PdfEvaluationPage({
                   </Text>
                 </Text>
               </View>
-              <View style={{ flexGrow: 1 }}>
+              <View style={{ flexGrow: 1, maxHeight: 30 }}>
                 <Image
                   style={sm.image}
                   src={
