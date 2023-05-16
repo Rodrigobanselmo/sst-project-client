@@ -1,4 +1,5 @@
 import { IEmployee } from 'core/interfaces/api/IEmployee';
+
 import { StatusEmployeeStepEnum } from './statusEmployeeStep.enum';
 
 export enum ExamHistoryTypeEnum {
@@ -103,10 +104,19 @@ export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
       return [
         employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
         employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
+        employeeExamTypeMap[ExamHistoryTypeEnum.PERI], // added
+        employeeExamTypeMap[ExamHistoryTypeEnum.CHAN], // added
+        employeeExamTypeMap[ExamHistoryTypeEnum.OFFI], // added
+        employeeExamTypeMap[ExamHistoryTypeEnum.RETU], // added
         employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
       ];
 
-    return [employeeExamTypeMap[ExamHistoryTypeEnum.ADMI]];
+    return [
+      employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
+      employeeExamTypeMap[ExamHistoryTypeEnum.OFFI], // added
+      employeeExamTypeMap[ExamHistoryTypeEnum.RETU], // added
+      employeeExamTypeMap[ExamHistoryTypeEnum.EVAL], // added
+    ];
   }
 
   const isInAdmission =
@@ -117,6 +127,9 @@ export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
   if (isInAdmission)
     return [
       employeeExamTypeMap[ExamHistoryTypeEnum.ADMI],
+      employeeExamTypeMap[ExamHistoryTypeEnum.PERI], // added
+      employeeExamTypeMap[ExamHistoryTypeEnum.CHAN], // added
+      employeeExamTypeMap[ExamHistoryTypeEnum.OFFI], // added
       employeeExamTypeMap[ExamHistoryTypeEnum.RETU],
       employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
     ];
@@ -124,8 +137,11 @@ export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
   if (isInOfficeChange)
     return [
       employeeExamTypeMap[ExamHistoryTypeEnum.OFFI],
+      employeeExamTypeMap[ExamHistoryTypeEnum.PERI], // added
       employeeExamTypeMap[ExamHistoryTypeEnum.RETU],
       employeeExamTypeMap[ExamHistoryTypeEnum.CHAN],
+      employeeExamTypeMap[ExamHistoryTypeEnum.ADMI], // added
+      employeeExamTypeMap[ExamHistoryTypeEnum.DEMI], // added
       employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
     ];
 
@@ -134,6 +150,7 @@ export const employeeExamScheduleTypeList = (employee?: IEmployee) => {
     employeeExamTypeMap[ExamHistoryTypeEnum.RETU],
     employeeExamTypeMap[ExamHistoryTypeEnum.CHAN],
     employeeExamTypeMap[ExamHistoryTypeEnum.OFFI],
+    employeeExamTypeMap[ExamHistoryTypeEnum.ADMI], // added
     employeeExamTypeMap[ExamHistoryTypeEnum.DEMI],
     employeeExamTypeMap[ExamHistoryTypeEnum.EVAL],
   ];
