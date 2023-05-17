@@ -21,6 +21,7 @@ export interface ICreateEmployee {
   hierarchyId: string;
   status?: StatusEnum;
   companyId?: string;
+  cidIds?: string[];
 }
 
 export async function upsertRiskDocs(

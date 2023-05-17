@@ -1,12 +1,16 @@
 import React, { FC, useState } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Icon } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
+import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { StatusEnum } from 'project/enum/status.enum';
 import { useDebouncedCallback } from 'use-debounce';
+
+import { SAlertIcon } from 'assets/icons/SAlertIcon';
+import { SWaitingIcon } from 'assets/icons/SWaitingIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -31,6 +35,16 @@ export const CidInputSelect: FC<ICidSelectProps> = ({
 
   const onAddCid = () => {
     // onStackOpenModal(ModalEnum.CIDS_ADD, {} as typeof initialCidState);
+    onStackOpenModal(ModalEnum.MODAL_BLANK, {
+      title: 'Atenção',
+      submitButtonText: 'OK',
+      content: () => (
+        <SFlex>
+          <Icon component={SAlertIcon} sx={{ fontSize: 22 }} />
+          <SText>Solicitar suporte para adicionar novo CID</SText>
+        </SFlex>
+      ),
+    } as Partial<typeof initialBlankState>);
   };
 
   return (
@@ -46,25 +60,25 @@ export const CidInputSelect: FC<ICidSelectProps> = ({
       }}
       onChange={(value) => {
         onChange?.(value);
-        setSearch('');
+        setTimeout(() => setSearch(''), 400);
       }}
       {...props}
       noOptionsText={
         <SFlex gap={8}>
-          {/* <STagButton
+          <STagButton
             text="Adicionar"
             active
             bg="success.main"
             onClick={onAddCid}
-          /> */}
+          />
           Nenhuma opção
         </SFlex>
       }
       renderOption={(props, option) => (
         <Box component="li" {...props}>
-          {/* {((cids[0] && option.id == cids[0].id) || !cids[0]) && (
+          {((cids[0] && option.cid == cids[0].cid) || !cids[0]) && (
             <AddButton onAdd={onAddCid} />
-          )} */}
+          )}
           {`${option.cid} - ${option.description}` || ''}
         </Box>
       )}

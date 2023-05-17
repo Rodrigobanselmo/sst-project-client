@@ -14,7 +14,7 @@ const standard: ReturnType<typeof StyleSheet.create> = {
 export const s = StyleSheet.create({
   page: {
     paddingTop: 20,
-    paddingBottom: 30,
+    paddingBottom: 20,
     paddingHorizontal: 30,
     fontFamily: 'Open Sans',
     backgroundColor: '#fff',

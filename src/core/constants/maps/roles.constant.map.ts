@@ -148,6 +148,7 @@ export const rolesConstantMap = {
       PermissionEnum.COMPANY_SCHEDULE,
       PermissionEnum.EXAM,
       PermissionEnum.SCHEDULE_BLOCK,
+      PermissionEnum.SCHEDULE_MEDICAL_VISIT,
     ] as any,
     order: 1000,
   },

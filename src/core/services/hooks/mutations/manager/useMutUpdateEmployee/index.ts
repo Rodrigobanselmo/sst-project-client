@@ -26,6 +26,7 @@ export interface IUpdateEmployee {
   companyId?: string;
   lastExam?: Date | null;
   id?: number;
+  cidIds?: string[];
 }
 
 export async function updateEmployee(

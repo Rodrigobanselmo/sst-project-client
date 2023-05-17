@@ -13,9 +13,13 @@ import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICbo } from 'core/interfaces/api/ICbo';
+import { ICid } from 'core/interfaces/api/ICid';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { useMutCreateEmployee } from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
+import {
+  ICreateEmployee,
+  useMutCreateEmployee,
+} from 'core/services/hooks/mutations/manager/useMutCreateEmployee';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
 import { useFetchQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
@@ -39,8 +43,9 @@ export const initialEditEmployeeState = {
   email: undefined as string | undefined,
   cbo: undefined as string | undefined,
   isComorbidity: false,
+  isPCD: false,
   sex: undefined as SexTypeEnum | undefined,
-  cidId: undefined,
+  cids: [] as ICid[],
   shiftId: undefined as number | undefined,
   birthday: undefined as Date | undefined,
   subOffices: undefined as IHierarchy[] | undefined,
@@ -136,6 +141,13 @@ export const useEditEmployee = () => {
     nextStep: () => void,
     { save }: { save?: boolean } = { save: true },
   ) => {
+    if (submitData.isPCD)
+      submitData.cidIds = (
+        submitData as typeof initialEditEmployeeState
+      ).cids.map((cid) => cid.cid);
+
+    if (!submitData.isPCD) (submitData as ICreateEmployee).cidIds = [];
+
     if (!isEdit && save) {
       await createEmployee
         .mutateAsync(submitData)

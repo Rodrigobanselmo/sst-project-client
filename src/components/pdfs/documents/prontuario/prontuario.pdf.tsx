@@ -83,6 +83,12 @@ export default function PdfProntuarioPage({
   const allRisks = risks?.filter((r) => r.riskFactor.type != RiskEnum.OUTROS);
   const isNoRisk = !allRisks.length;
 
+  const complementary = prontuario?.doneExams?.filter(
+    (e) => !e.exam.isAttendance,
+  );
+
+  const isNoExams = !complementary?.length || complementary.length > 12;
+
   return (
     <Page style={s.page}>
       <View>
@@ -211,9 +217,79 @@ export default function PdfProntuarioPage({
             <View style={[sm.mt4]}>{PdfQuestionsComponent(examination)}</View>
           </>
 
+          {/* 1 Exams */}
+          {!isNoExams && (
+            <>
+              <View style={[sm.mt6, s.tableBox]}>
+                <View style={[s.tableH, sm.darkRow]}>
+                  <Text style={sm.bodyBS}>Exames Realizados</Text>
+                </View>
+
+                <View style={{ padding: 6, paddingVertical: 2 }}>
+                  {arrayChunks(complementary, 2).map(([e1, e2]) => {
+                    return (
+                      <View
+                        style={[sm.row, { justifyContent: 'space-between' }]}
+                      >
+                        <View style={[sm.row, { flexGrow: 1, maxWidth: 240 }]}>
+                          <View style={[sm.row, { flexGrow: 1 }]}>
+                            <View style={[s.checkbox, { marginRight: 5 }]}>
+                              <Text style={[sm.bodyBS]}>
+                                {e1.doneDate && 'X'}
+                              </Text>
+                            </View>
+                            <Text style={[s.label, { overflow: 'hidden' }]}>
+                              {e1.exam.name.slice(0, 48)}
+                            </Text>
+                          </View>
+                          <View style={[sm.row, { width: 80 }]}>
+                            <Text style={[sm.body, { marginRight: 5 }]}>
+                              Data:
+                            </Text>
+                            <Text style={[sm.body]}>
+                              {e1.doneDate
+                                ? dayjs(e1.doneDate).format('DD/MM/YYYY')
+                                : '___/___/____'}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={[sm.row, { flexGrow: 1 }]}>
+                          {e2 && (
+                            <>
+                              <View style={[sm.row, { flexGrow: 1 }]}>
+                                <View style={[s.checkbox, { marginRight: 5 }]}>
+                                  <Text style={[sm.bodyBS]}>
+                                    {e2.doneDate && 'X'}
+                                  </Text>
+                                </View>
+                                <Text style={s.label}>
+                                  {e2.exam.name.slice(0, 48)}
+                                </Text>
+                              </View>
+                              <View style={[sm.row, { width: 80 }]}>
+                                <Text style={[sm.body, { marginRight: 5 }]}>
+                                  Data:
+                                </Text>
+                                <Text style={[sm.body]}>
+                                  {e2.doneDate
+                                    ? dayjs(e2.doneDate).format('DD/MM/YYYY')
+                                    : '___/___/____'}
+                                </Text>
+                              </View>
+                            </>
+                          )}
+                        </View>
+                      </View>
+                    );
+                  })}
+                </View>
+              </View>
+            </>
+          )}
+
           {/* 1 Conclusion */}
           <>
-            <View style={[sm.mb4, sm.mt12, s.tableBox]}>
+            <View style={[sm.mb4, sm.mt6, s.tableBox]}>
               <View style={[s.tableH, sm.attentionRow]}></View>
 
               <View

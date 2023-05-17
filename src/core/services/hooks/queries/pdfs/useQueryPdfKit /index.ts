@@ -41,6 +41,7 @@ export const queryGuide = async (
         employee: aso?.employee,
         risks: aso?.risks,
         sector: aso?.sector,
+        doneExams: aso?.doneExams,
         doctorResponsible: aso?.doctorResponsible,
       },
     };

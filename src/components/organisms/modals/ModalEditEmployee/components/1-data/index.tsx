@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Box, Divider } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SSelectedTag } from 'components/atoms/SSelectedTag/SSelectedTag';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
@@ -11,12 +12,14 @@ import { UnmountBox } from 'components/molecules/form/unmount-box';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { CboSelect } from 'components/organisms/inputSelect/CboSelect/CboSelect';
+import { CidInputSelect } from 'components/organisms/inputSelect/CidSelect/CidSelect';
 import { CompanyInputSelect } from 'components/organisms/inputSelect/CompanySelect/CompanyInputSelect';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import dayjs from 'dayjs';
 import { SexTypeEnum } from 'project/enum/sex.enums';
 
 import { IdsEnum } from 'core/enums/ids.enums';
+import { ICid } from 'core/interfaces/api/ICid';
 import { dateToDate } from 'core/utils/date/date-format';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
@@ -200,21 +203,66 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
               />
             </Box>
           </SFlex>
-          <SFlex mr={-6} mt={-3} justify="end">
+
+          <SFlex ml={6} mb={10} mt={10} justify="start">
             <SSwitch
               onChange={() => {
                 setData({
                   ...data,
-                  isComorbidity: !data.isComorbidity,
+                  isPCD: !data.isPCD,
                 });
               }}
-              checked={data.isComorbidity}
-              label="Possui comorbidade"
+              checked={data.isPCD}
+              label="é PCD"
               sx={{ mr: 4 }}
               color="text.light"
             />
           </SFlex>
 
+          {data.isPCD && (
+            <SFlex sx={{ maxWidth: 400 }} direction={'column'} gap={5} mb={10}>
+              <Box flex={5}>
+                <CidInputSelect
+                  onChange={(data) => {
+                    if (data)
+                      setData((d) => ({
+                        ...d,
+                        cids: [
+                          ...d.cids.filter((c) => c.cid !== data?.cid),
+                          data,
+                        ],
+                      }));
+                  }}
+                  inputProps={{
+                    labelPosition: 'top',
+                    placeholder: 'selecione...',
+                  }}
+                  unmountOnChangeDefault
+                  defaultValue={{} as any}
+                  name="cid"
+                  disabled={!data.isPCD}
+                  label="CID"
+                  control={control}
+                />
+              </Box>
+              {data.isPCD &&
+                data.cids.map((cid) => (
+                  <SSelectedTag
+                    key={cid.cid}
+                    onRemove={(tag) => {
+                      setData((d) => ({
+                        ...d,
+                        cids: d.cids.filter((c) => c.cid !== tag.value),
+                      }));
+                    }}
+                    tag={{
+                      name: `${cid.cid} - ${cid.description}`,
+                      value: cid.cid,
+                    }}
+                  />
+                ))}
+            </SFlex>
+          )}
           <SText color="text.label" fontSize={14} mb={5} mt={5}>
             Contato
           </SText>

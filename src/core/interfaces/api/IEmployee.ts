@@ -4,14 +4,15 @@ import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enu
 import { EmployeeHierarchyMotiveTypeEnum } from 'project/enum/employee-hierarchy-motive.enum';
 import { SexTypeEnum } from 'project/enum/sex.enums';
 import { StatusEnum } from 'project/enum/status.enum';
+import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
+import { StatusExamEnum } from 'project/enum/statusExam.enum';
 
+import { ICid } from './ICid';
 import { ICompany } from './ICompany';
 import { ClinicScheduleTypeEnum, IExam } from './IExam';
 import { IHierarchy } from './IHierarchy';
 import { IProfessional } from './IProfessional';
 import { IUser } from './IUser';
-import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
-import { StatusExamEnum } from 'project/enum/statusExam.enum';
 
 export type IEmployeeInfoExam = Record<
   number,
@@ -42,6 +43,7 @@ export interface IEmployee {
   phone: string;
   email: string;
   isComorbidity: boolean;
+  isPCD: boolean;
   sex: SexTypeEnum;
   cidId: string;
   shiftId: number;
@@ -54,6 +56,7 @@ export interface IEmployee {
   lastExam: Date;
   statusExam?: StatusExamEnum;
   statusStep?: StatusEmployeeStepEnum;
+  cids?: ICid[];
 
   company: ICompany;
   examsHistory?: IEmployeeExamsHistory[];

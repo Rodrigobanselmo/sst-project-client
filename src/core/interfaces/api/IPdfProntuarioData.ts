@@ -5,6 +5,7 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { ICompany } from './ICompany';
 import { IEmployee, IEmployeeExamsHistory } from './IEmployee';
+import { IExam } from './IExam';
 import { IProfessional } from './IProfessional';
 import { IRiskData } from './IRiskData';
 
@@ -26,6 +27,10 @@ export interface IPdfProntuarioData {
   clinicExam: IEmployeeExamsHistory;
   sector: IHierarchy;
   withDate?: boolean;
+  doneExams?: {
+    exam: IExam;
+    doneDate: Date;
+  }[];
   risks: {
     riskData: IRiskData;
     riskFactor: IRiskFactors;
