@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 
 import { Box } from '@mui/material';
-import { Document } from '@react-pdf/renderer';
+import { Document, Font } from '@react-pdf/renderer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -15,6 +15,27 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import PdfAsoPage from '../aso/components/asoPage.pdf';
 import PdfProntuarioPage from '../prontuario/components/prontuarioPage.pdf';
+
+Font.register({
+  family: 'Open Sans',
+  fonts: [
+    {
+      src: 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-regular.ttf',
+    },
+    {
+      src: 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-500.ttf',
+      fontWeight: 500, //medium
+    },
+    {
+      src: 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-600.ttf',
+      fontWeight: 600, //semibold
+    },
+    {
+      src: 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-700.ttf',
+      fontWeight: 700, //bold
+    },
+  ],
+});
 
 export default function PdfKitDocument({
   data,

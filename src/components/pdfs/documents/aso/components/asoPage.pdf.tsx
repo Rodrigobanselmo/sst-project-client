@@ -2,7 +2,7 @@
 /* eslint-disable jsx-a11y/alt-text */
 import React from 'react';
 
-import { Font, Image, Page, Text, View } from '@react-pdf/renderer';
+import { Image, Page, Text, View } from '@react-pdf/renderer';
 import dayjs from 'dayjs';
 import {
   asoExamTypeList,
@@ -26,27 +26,6 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { sm } from '../../../styles/main.pdf.styles';
 import { s } from '../styles';
-
-Font.register({
-  family: 'Open Sans',
-  fonts: [
-    {
-      src: 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-regular.ttf',
-    },
-    {
-      src: 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-500.ttf',
-      fontWeight: 500, //medium
-    },
-    {
-      src: 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-600.ttf',
-      fontWeight: 600, //semibold
-    },
-    {
-      src: 'https://cdn.jsdelivr.net/npm/open-sans-all@0.1.3/fonts/open-sans-700.ttf',
-      fontWeight: 700, //bold
-    },
-  ],
-});
 
 export default function PdfAsoPage({
   data,
