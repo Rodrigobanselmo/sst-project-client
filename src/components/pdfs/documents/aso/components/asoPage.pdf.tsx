@@ -24,8 +24,8 @@ import {
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
-import { sm } from '../../styles/main.pdf.styles';
-import { s } from './styles';
+import { sm } from '../../../styles/main.pdf.styles';
+import { s } from '../styles';
 
 Font.register({
   family: 'Open Sans',

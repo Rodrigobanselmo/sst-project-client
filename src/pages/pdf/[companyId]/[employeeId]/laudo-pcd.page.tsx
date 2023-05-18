@@ -55,9 +55,6 @@ export function ButtonSendEmail({ data }: { data: IPdfGuideData }) {
 }
 
 const Guide: NextPage = () => {
-  const { query } = useRouter();
-  const employeeId = query.employeeId as string;
-  const { data: guideData } = useQueryPdfGuide(employeeId);
   const dispatch = useAppDispatch();
 
   useEffect(() => {
@@ -66,20 +63,13 @@ const Guide: NextPage = () => {
 
   return (
     <>
-      <SHeaderTag hideInitial title={`PDF:Guia ${guideData?.name || ''}`} />
+      <SHeaderTag hideInitial title={'PDF: Laudo PCD'} />
       <Box sx={{ height: '100vh', position: 'relative', overflow: 'hidden' }}>
-        <>
-          {guideData && guideData?.company && !!Object.keys(guideData).length && (
-            <>
-              <PDFViewer showToolbar width="100%" height="100%">
-                <Document onRender={() => dispatch(setIsFetchingData(false))}>
-                  <PdfGuidePage data={guideData} />
-                </Document>
-              </PDFViewer>
-              <ButtonSendEmail data={guideData} />
-            </>
-          )}
-        </>
+        <PDFViewer showToolbar width="100%" height="100%">
+          <Document onRender={() => dispatch(setIsFetchingData(false))}>
+            {/* <PdfGuidePage data={guideData} /> */}
+          </Document>
+        </PDFViewer>
       </Box>
     </>
   );

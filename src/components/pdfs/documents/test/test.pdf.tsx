@@ -7,14 +7,22 @@ import { styles } from './styles';
 export default function PDFTest() {
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.section}>
-          <Text>Section #1</Text>
-        </View>
-        <View style={styles.section}>
-          <Text>Section #2</Text>
-        </View>
-      </Page>
+      {Array.from({ length: 1 }).map((_, i) => {
+        return (
+          <Page key={i} size="A4" style={styles.page}>
+            <View style={styles.section}>
+              <Text>Section #1</Text>
+            </View>
+            {Array.from({ length: 10 }).map((_, index) => {
+              return (
+                <View key={index} style={styles.section}>
+                  <Text>Section #2</Text>
+                </View>
+              );
+            })}
+          </Page>
+        );
+      })}
     </Document>
   );
 }

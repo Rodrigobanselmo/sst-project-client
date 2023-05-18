@@ -37,10 +37,10 @@ import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { sortString } from 'core/utils/sorts/string.sort';
 
-import { sm } from '../../styles/main.pdf.styles';
-import { PdfEmployeeComponent } from './components/employeeComponent.pdf';
-import { PdfQuestionsComponent } from './components/questionsComponent.pdf';
-import { s } from './styles';
+import { sm } from '../../../styles/main.pdf.styles';
+import { s } from '../styles';
+import { PdfEmployeeComponent } from './employeeComponent.pdf';
+import { PdfQuestionsComponent } from './questionsComponent.pdf';
 
 Font.register({
   family: 'Open Sans',

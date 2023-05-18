@@ -6,6 +6,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IPdfGuideData } from 'core/interfaces/api/IPdfGuideData';
 import { IPdfKitData, IPdfKitDataApi } from 'core/interfaces/api/IPdfKitData';
+import { setupAPIClient } from 'core/services/api';
 import { api } from 'core/services/apiClient';
 import { emptyArrayReturn, emptyMapReturn } from 'core/utils/helpers/emptyFunc';
 
@@ -17,13 +18,18 @@ export interface IQuery {
   scheduleMedicalVisitId?: number;
 }
 
-export const queryGuide = async (
+export const queryPdfKit = async (
   companyId: string,
   query?: IQuery,
+  ctx?: any,
 ): Promise<IPdfKitData[]> => {
   const queries = queryString.stringify(query || {});
 
-  const response = await api.get<IPdfKitDataApi[]>(
+  let apiClient = api;
+
+  if (ctx) apiClient = setupAPIClient(ctx);
+
+  const response = await apiClient.get<IPdfKitDataApi[]>(
     ApiRoutesEnum.PDF_KIT + `/${companyId}?${queries}`,
   );
 
@@ -56,7 +62,7 @@ export function useQueryPdfKit(queries?: IQuery, companyIdProp?: string) {
     [QueryEnum.PDF_KIT, companyIdSelected, queries],
     () =>
       companyIdSelected
-        ? queryGuide(companyIdSelected, queries)
+        ? queryPdfKit(companyIdSelected, queries)
         : <Promise<IPdfKitData[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
