@@ -3,15 +3,12 @@ import { useEffect } from 'react';
 import { Box } from '@mui/material';
 import { Document, PDFViewer } from '@react-pdf/renderer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
-import PdfAsoPage from 'components/pdfs/documents/aso/aso.pdf';
-import PdfProntuarioPage from 'components/pdfs/documents/prontuario/prontuario.pdf';
 import PdfVisitReportPage from 'components/pdfs/documents/visitReport/visitReport.pdf';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { setIsFetchingData } from 'store/reducers/routeLoad/routeLoadSlice';
 
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
-import { useQueryPdfKit } from 'core/services/hooks/queries/pdfs/useQueryPdfKit ';
 import { useQueryPdfVisitReport } from 'core/services/hooks/queries/pdfs/useQueryPdfVisitReport/useQueryPdfVisitReport';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { getCompanyName } from 'core/utils/helpers/companyName';
