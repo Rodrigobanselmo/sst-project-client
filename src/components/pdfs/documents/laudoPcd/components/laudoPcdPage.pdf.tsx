@@ -1,11 +1,16 @@
 /* eslint-disable react/jsx-key */
 /* eslint-disable jsx-a11y/alt-text */
 
+import { formatCPF } from '@brazilian-utils/brazilian-utils';
 import { Page, Text, View } from '@react-pdf/renderer';
 
 import { styles } from '../styles';
 
-export default function LaudoPcdPage() {
+export default function LaudoPcdPage({
+  data,
+}: {
+  data?: { name?: string; cpf?: string };
+}) {
   return (
     <Page style={styles.page}>
       <View style={styles.box}>
@@ -57,13 +62,19 @@ export default function LaudoPcdPage() {
                 marginBottom: 2,
               }}
             >
-              NOME:
+              NOME: <Text style={{ ...styles.textHidden }}>_</Text>
+              <Text style={{ fontSize: 10, fontWeight: 'normal' }}>
+                {data?.name || ''}
+              </Text>
             </Text>
           </View>
 
           <View style={{ flex: 35, paddingBottom: 10, ...styles.ph }}>
             <Text style={{ ...styles.textBold, fontSize: 10, marginBottom: 2 }}>
-              CPF:
+              CPF: <Text style={{ ...styles.textHidden }}>_</Text>
+              <Text style={{ fontSize: 10, fontWeight: 'normal' }}>
+                {data?.cpf ? formatCPF(data.cpf) : ''}
+              </Text>
             </Text>
           </View>
         </View>
@@ -429,7 +440,6 @@ export default function LaudoPcdPage() {
                 paddingBottom: 5,
                 ...styles.lineBottom,
                 ...styles.ph,
-                ...styles.lineRight,
               }}
             >
               <View
@@ -501,7 +511,6 @@ export default function LaudoPcdPage() {
                 paddingBottom: 5,
                 ...styles.ph,
                 ...styles.lineBottom,
-                ...styles.lineRight,
               }}
             >
               <View
@@ -548,7 +557,6 @@ export default function LaudoPcdPage() {
                 paddingBottom: 5,
                 ...styles.ph,
                 ...styles.lineBottom,
-                ...styles.lineRight,
               }}
             >
               <View

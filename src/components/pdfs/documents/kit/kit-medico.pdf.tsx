@@ -14,6 +14,8 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import PdfAsoPage from '../aso/components/asoPage.pdf';
+import LaudoPcdPage from '../laudoPcd/components/laudoPcdPage.pdf';
+import PdfLaudoPcdDocument from '../laudoPcd/laudoPcd.pdf';
 import PdfProntuarioPage from '../prontuario/components/prontuarioPage.pdf';
 
 Font.register({
@@ -37,6 +39,19 @@ Font.register({
   ],
 });
 
+export const getKitFileName = (data: IPdfKitData[]) => {
+  return `VIAS_KIT_MEDICO_${data?.[0]?.aso?.clinicExam?.id || ''}_${
+    data?.length == 1 ? data?.[0]?.aso?.employee?.name : 'VISITA'
+  }`;
+
+  return `VIAS_KIT_MEDICO_${getCompanyName(
+    data?.[0]?.aso?.consultantCompany,
+  ).slice(0, 20)}_${getCompanyName(data?.[0]?.aso?.actualCompany).slice(
+    0,
+    20,
+  )}_${data?.length == 1 ? data?.[0]?.aso?.employee?.name : 'VISITA'}`;
+};
+
 export default function PdfKitDocument({
   data,
   documentProps,
@@ -53,11 +68,7 @@ export default function PdfKitDocument({
       creator={'simpleSST'}
       producer={'simpleSST'}
       keywords={'Aso / prontuario'}
-      title={`VIAS_ASO_E_PRONTUARIO_${getCompanyName(
-        data?.[0]?.aso?.consultantCompany,
-      )}_${getCompanyName(data?.[0]?.aso?.actualCompany)}_${
-        data?.length == 1 ? data?.[0]?.aso?.employee?.name : 'VISITA'
-      }`}
+      title={getKitFileName(data)}
       {...documentProps}
     >
       {data?.map((data) => {
@@ -71,6 +82,9 @@ export default function PdfKitDocument({
                   ),
                 )}
                 <PdfProntuarioPage data={data.prontuario} withDate={withDate} />
+                {data.aso.employee.isPCD && (
+                  <LaudoPcdPage data={data.aso.employee} />
+                )}
               </>
             )}
           </>

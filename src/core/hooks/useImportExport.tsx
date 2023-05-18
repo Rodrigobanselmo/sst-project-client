@@ -50,7 +50,7 @@ export const useImportExport = () => {
         },
       } as Partial<typeof initialModalImportExport>);
     },
-    [onStackOpenModal, reportMutation, uploadMutation],
+    [onCloseModal, onStackOpenModal, reportMutation, uploadMutation],
   );
 
   return { handleUploadTable };

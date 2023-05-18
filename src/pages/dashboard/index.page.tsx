@@ -3,6 +3,7 @@ import { SContainer } from 'components/atoms/SContainer';
 import SPageTitle from 'components/atoms/SPageTitle';
 import { PieGraph } from 'components/molecules/graphs/pie/PieGraph';
 import { SAuthShow } from 'components/molecules/SAuthShow';
+import { ModalImportExport } from 'components/organisms/modals/ModalImportExport';
 import { EmployeesTable } from 'components/organisms/tables/EmployeesTable/EmployeesTable';
 import { HistoryScheduleExamClinicTable } from 'components/organisms/tables/HistoryScheduleExamClinicTable/HistoryScheduleExamClinicTable';
 import { NextPage } from 'next';
@@ -85,6 +86,7 @@ const Home: NextPage = () => {
           <EmployeesTable query={{ all: true }} />
         </Box>
       </SAuthShow>
+      <ModalImportExport />
     </SContainer>
   );
 };
