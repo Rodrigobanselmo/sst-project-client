@@ -46,7 +46,7 @@ export const ModalAddScheduleBlock = () => {
         sx={{ overflow: 'auto' }}
         center
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={scheduleblockData.id ? 'edit' : 'add'}

@@ -2,9 +2,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
+import {
+  IEmployeeSelectedExamTypeProps,
+  IEmployeeSelectedProps,
+} from 'components/organisms/tables/EmployeeScheduleMedicalVisitTable/EmployeeScheduleMedicalVisitTable';
+import { useSnackbar } from 'notistack';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
@@ -18,24 +24,18 @@ import {
 import { IUser } from 'core/interfaces/api/IUser';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
 import { useMutUpdateGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateGho';
-import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
-import { ghoSchema } from 'core/utils/schemas/gho.schema';
-import { useQueryScheduleMedicalVisitOne } from 'core/services/hooks/queries/useQueryScheduleMedicalVisitOne/useQueryScheduleMedicalVisitOne';
+import { ICreateEmployeeExamHistory } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutCreateEmployeeHisExam/useMutCreateEmployeeHisExam';
 import {
   ICreateScheduleMedicalExam,
   useMutCreateScheduleMedicalVisit,
 } from 'core/services/hooks/mutations/manager/scheduleMedicalVisit/useMutCreateScheduleMedicalVisit/useMutCreateScheduleMedicalVisit';
 import {
-  IEmployeeSelectedExamTypeProps,
-  IEmployeeSelectedProps,
-} from 'components/organisms/tables/EmployeeScheduleMedicalVisitTable/EmployeeScheduleMedicalVisitTable';
-import { ICreateEmployeeExamHistory } from 'core/services/hooks/mutations/manager/employee-history-exam/useMutCreateEmployeeHisExam/useMutCreateEmployeeHisExam';
-import { IdsEnum } from 'core/enums/ids.enums';
-import { useSnackbar } from 'notistack';
-import {
   IUpdateScheduleMedicalExam,
   useMutUpdateScheduleMedicalVisit,
 } from 'core/services/hooks/mutations/manager/scheduleMedicalVisit/useMutUpdateScheduleMedicalVisit/useMutUpdateScheduleMedicalVisit';
+import { useQueryScheduleMedicalVisitOne } from 'core/services/hooks/queries/useQueryScheduleMedicalVisitOne/useQueryScheduleMedicalVisitOne';
+import { cleanObjectNullValues } from 'core/utils/helpers/cleanObjectValues';
+import { ghoSchema } from 'core/utils/schemas/gho.schema';
 
 export const initialModalEditScheduleMedicalVisitState = {
   status: StatusEnum.PROCESSING,

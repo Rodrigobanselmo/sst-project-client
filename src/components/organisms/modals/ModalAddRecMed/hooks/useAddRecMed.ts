@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import { StatusEnum } from 'project/enum/status.enum';

@@ -40,7 +40,7 @@ export const ExamsComplementsTable: FC<
   BoxProps & {
     data?: IExamComplementsTable[];
     setData?: (data: Partial<IExamComplementsTable>) => void;
-    control: Control<FieldValues, object>;
+    control: Control<any, object>;
     setValue: UseFormSetValue<FieldValues>;
   }
 > = ({ data, setData, control, setValue }) => {

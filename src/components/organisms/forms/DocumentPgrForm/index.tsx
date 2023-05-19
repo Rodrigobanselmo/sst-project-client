@@ -26,6 +26,7 @@ export const DocumentPgrForm = ({
     control,
     uneditable,
     onEdit,
+    setValue,
   } = usePgrForm(riskGroupId, data);
 
   useFetchFeedback(!data);
@@ -38,6 +39,7 @@ export const DocumentPgrForm = ({
       {...props}
     >
       <InputForm
+        setValue={setValue}
         defaultValue={data?.name}
         uneditable={uneditable}
         multiline
@@ -59,6 +61,7 @@ export const DocumentPgrForm = ({
         }}
       >
         <InputForm
+          setValue={setValue}
           defaultValue={data?.source}
           uneditable={uneditable}
           label="Fonte"
@@ -69,6 +72,7 @@ export const DocumentPgrForm = ({
           smallPlaceholder
         />
         <InputForm
+          setValue={setValue}
           defaultValue={dateToString(data?.visitDate)}
           uneditable={uneditable}
           label="Data da visita"
@@ -90,6 +94,7 @@ export const DocumentPgrForm = ({
       >
         <InputForm
           defaultValue={data?.elaboratedBy}
+          setValue={setValue}
           uneditable={uneditable}
           label="Elabora por"
           control={control}
@@ -102,6 +107,7 @@ export const DocumentPgrForm = ({
           defaultValue={data?.revisionBy}
           uneditable={uneditable}
           label="Revisado por"
+          setValue={setValue}
           control={control}
           placeholder={' nome do resonsável pela revisão do documento...'}
           name="revisionBy"
@@ -112,6 +118,7 @@ export const DocumentPgrForm = ({
           defaultValue={data?.approvedBy}
           uneditable={uneditable}
           label="Aprovado por"
+          setValue={setValue}
           control={control}
           placeholder={'nome de quem aprovou o documento...'}
           name="approvedBy"

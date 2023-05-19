@@ -10,6 +10,7 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
@@ -56,7 +57,7 @@ export const UsersTable: FC<BoxProps> = () => {
 
   const data = [...invites, ...users];
 
-  const { handleSearchChange, results } = useTableSearch({
+  const { handleSearchChange, results, page, setPage } = useTableSearch({
     data,
     keys: ['name'],
   });
@@ -127,6 +128,7 @@ export const UsersTable: FC<BoxProps> = () => {
         </STableHeader>
         <STableBody<typeof data[0]>
           rowsData={results}
+          hideLoadMore
           renderRow={(row) => {
             return (
               <STableRow
@@ -193,6 +195,15 @@ export const UsersTable: FC<BoxProps> = () => {
           }}
         />
       </STable>
+      <STablePagination
+        mt={2}
+        registersPerPage={8}
+        totalCountOfRegisters={
+          isLoading || isLoadingInvites ? undefined : data.length
+        }
+        currentPage={page}
+        onPageChange={setPage}
+      />
     </>
   );
 };

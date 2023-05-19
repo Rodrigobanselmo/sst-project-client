@@ -6,7 +6,7 @@ import { IProtocol } from 'core/interfaces/api/IProtocol';
 
 export interface IProtocolSelectProps
   extends Omit<Partial<AutocompleteFormProps<IProtocol>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   onChange?: (value: IProtocol) => void;

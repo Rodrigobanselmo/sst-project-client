@@ -7,7 +7,7 @@ import { IQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 
 export interface IClinicSelectProps
   extends Omit<Partial<AutocompleteFormProps<ICompany>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   query?: IQueryCompanies;
   label: string;

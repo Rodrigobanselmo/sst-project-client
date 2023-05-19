@@ -52,7 +52,7 @@ export const ModalCharacterizationContent = (
     onAddArray,
     onDeleteArray,
     filterQuery: characterizationsQuery,
-    handlePhotoName,
+    handleEditPhoto,
     onAddProfile,
     manyProfiles,
     profiles,
@@ -133,6 +133,7 @@ export const ModalCharacterizationContent = (
         label="Nome"
         labelPosition="center"
         control={control}
+        setValue={setValue}
         sx={{ width: ['100%'] }}
         placeholder={'nome do ambiente / atividade...'}
         name="name"
@@ -255,6 +256,7 @@ export const ModalCharacterizationContent = (
           placeholder={'nome do perfil...'}
           name="profileName"
           size="small"
+          setValue={setValue}
           firstLetterCapitalize
           startAdornment={
             characterizationData.name?.slice(0, 30) +
@@ -275,6 +277,7 @@ export const ModalCharacterizationContent = (
         sx={{ width: ['100%'] }}
         placeholder={'descrição...'}
         name="description"
+          setValue={setValue}
         size="small"
         firstLetterCapitalize
       /> */}
@@ -436,6 +439,7 @@ export const ModalCharacterizationContent = (
                 />
               </SFlex>
               <ModalParametersContentBasic
+                setValue={setValue}
                 control={control}
                 data={characterizationData}
               />
@@ -490,7 +494,7 @@ export const ModalCharacterizationContent = (
                       </SIconButton>
                       <SIconButton
                         sx={{ maxWidth: 10, maxHeight: 10, mr: 2 }}
-                        onClick={() => handlePhotoName(index)}
+                        onClick={() => handleEditPhoto(index)}
                         loading={loadingDelete}
                         circularProps={{ size: 10 }}
                         disabled={manyProfiles && notPrincipalProfile}

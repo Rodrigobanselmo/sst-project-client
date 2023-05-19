@@ -2,7 +2,7 @@ import React, { FC, useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { isValidEmail } from '@brazilian-utils/brazilian-utils';
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { InputForm } from 'components/molecules/form/input';
 import SModal, {
   SModalButtons,
@@ -44,7 +44,7 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
 
-  const { handleSubmit, control, reset, setError } = useForm({
+  const { handleSubmit, control, reset, setError, setValue } = useForm({
     resolver: yupResolver(photoSchema),
   });
 
@@ -58,12 +58,13 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
 
     // eslint-disable-next-line prettier/prettier
     if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+      setValue('name', initialData.name);
       setData((oldData) => ({
         ...oldData,
         ...initialData,
       }));
     }
-  }, [getModalData]);
+  }, [getModalData, setValue]);
 
   const onClose = () => {
     onCloseModal(modalName);
@@ -103,7 +104,7 @@ export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
   return (
     <SModal {...registerModal(modalName)} keepMounted={false} onClose={onClose}>
       <SModalPaper
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
         component="form"
         center
         p={8}

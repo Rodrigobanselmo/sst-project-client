@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { useSnackbar } from 'notistack';
 import { RoleEnum } from 'project/enum/roles.enums';
 

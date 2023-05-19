@@ -7,7 +7,7 @@ import { IQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 
 export interface ICompanyInputSelect
   extends Omit<Partial<AutocompleteFormProps<ICompany>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   withDefaultCompany?: string | boolean;
   query?: IQueryCompanies;

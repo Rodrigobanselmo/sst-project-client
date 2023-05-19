@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -15,6 +15,7 @@ import {
   IExam,
   IExamToRisk,
 } from 'core/interfaces/api/IExam';
+import { useMutDeleteClinicExam } from 'core/services/hooks/mutations/checklist/exams/useMutDeleteClinicExam/useMutDeleteClinicExam';
 import {
   ICreateClinicExam,
   useMutUpsertClinicExam,
@@ -29,7 +30,6 @@ import {
 import { moneyConverter } from 'core/utils/helpers/money';
 
 import { clinicExamsSchema } from './../../../../../core/utils/schemas/clinicExams.schema';
-import { useMutDeleteClinicExam } from 'core/services/hooks/mutations/checklist/exams/useMutDeleteClinicExam/useMutDeleteClinicExam';
 
 export const initialClinicExamState = {
   id: 0,

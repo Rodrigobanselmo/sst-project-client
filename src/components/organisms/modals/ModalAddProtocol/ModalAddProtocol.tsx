@@ -43,7 +43,7 @@ export const ModalAddProtocol = () => {
         sx={{ overflow: 'auto' }}
         center
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={protocolData.id ? 'edit' : 'add'}

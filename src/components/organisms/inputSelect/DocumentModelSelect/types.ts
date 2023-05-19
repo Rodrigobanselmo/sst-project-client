@@ -7,7 +7,7 @@ import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocume
 
 export interface IDocumentModelSelectProps
   extends Omit<Partial<AutocompleteFormProps<IDocumentModel>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   query?: IQueryDocumentModels;

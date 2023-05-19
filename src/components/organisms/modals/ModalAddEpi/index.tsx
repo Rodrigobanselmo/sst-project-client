@@ -43,7 +43,11 @@ export const ModalAddEpi = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <SModalPaper p={8} component="form" onSubmit={handleSubmit(onSubmit)}>
+      <SModalPaper
+        p={8}
+        component="form"
+        onSubmit={(handleSubmit as any)(onSubmit)}
+      >
         <SModalHeader
           tag={epiData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}

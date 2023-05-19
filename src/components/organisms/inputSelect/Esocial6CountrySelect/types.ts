@@ -9,7 +9,7 @@ export interface IEsocialTable6SelectProps
     Partial<AutocompleteFormProps<IEsocialTable6Country>>,
     'onChange'
   > {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   onChange?: (value: IEsocialTable6Country) => void;

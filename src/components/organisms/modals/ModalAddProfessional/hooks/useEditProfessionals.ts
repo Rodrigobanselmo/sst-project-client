@@ -4,7 +4,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { isValidEmail } from '@brazilian-utils/brazilian-utils';
 import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import clone from 'clone';
 import { useSnackbar } from 'notistack';
 import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';

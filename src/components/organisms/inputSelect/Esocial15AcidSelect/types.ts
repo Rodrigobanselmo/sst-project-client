@@ -9,7 +9,7 @@ export interface IEsocialTable15SelectProps
     Partial<AutocompleteFormProps<IEsocialTable14And15Acid>>,
     'onChange'
   > {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   onChange?: (value: IEsocialTable14And15Acid) => void;

@@ -36,7 +36,7 @@ export interface IExamsScheduleTableProps extends BoxProps {
   data?: IExamsScheduleTable[];
   setData?: (data: Partial<IExamsScheduleTable>) => void;
   setClinicData?: (data: Partial<IExamsScheduleTable>) => void;
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   setValue: UseFormSetValue<FieldValues>;
   lastComplementaryDate?: dayjs.Dayjs;
   hideHeader?: boolean;

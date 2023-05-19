@@ -89,7 +89,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
     companyId?: string;
     query?: IQueryEmployeeHistHier;
     initialSelectedData?: IEmployeeSelectedProps;
-    control: Control<FieldValues, object>;
+    control: Control<any, object>;
     setValue: UseFormSetValue<FieldValues>;
     employeeExamsHistorySelected?: IEmployeeExamsHistory[];
   }

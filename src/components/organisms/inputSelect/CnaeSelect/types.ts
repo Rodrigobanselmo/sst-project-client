@@ -6,7 +6,7 @@ import { ICnae } from 'core/interfaces/api/ICompany';
 
 export interface ICnaeSelectProps
   extends Omit<Partial<AutocompleteFormProps<ICnae>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   data: ICnae;

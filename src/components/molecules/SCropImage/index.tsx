@@ -102,6 +102,7 @@ export default function SCropImage({
 
   const handleCropImage = () => {
     completedCrop && onSelect && onSelect(completedCrop);
+
     if (
       completedCrop?.width &&
       completedCrop?.height &&

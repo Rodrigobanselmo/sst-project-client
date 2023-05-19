@@ -54,7 +54,7 @@ export const ModalImportExport = () => {
         onClose={onClose}
       >
         <SModalPaper
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={(handleSubmit as any)(onSubmit)}
           component="form"
           center
           p={8}

@@ -53,7 +53,7 @@ export const ModalEditScheduleMedicalVisit = () => {
         p={8}
         semiFullScreen
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={isEdit ? 'edit' : 'add'}

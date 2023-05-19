@@ -9,7 +9,7 @@ export type AutocompleteFormProps<T> = Omit<
   'onChange'
 > & {
   name: string;
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   label?: string;
   defaultValue?: T | string | number;
   onChange?: (value: T) => void;

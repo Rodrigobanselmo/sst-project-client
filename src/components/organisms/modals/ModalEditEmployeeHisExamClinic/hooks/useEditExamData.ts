@@ -2,12 +2,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import clone from 'clone';
 import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { IExamComplementsClinicTable } from 'components/organisms/tables/ExamsComplementsClinicTable/ExamsComplementsClinicTable';
 import { useSnackbar } from 'notistack';
 import { ExamHistoryEvaluationEnum } from 'project/enum/employee-exam-history-evaluation.enum';
+import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -33,7 +34,6 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
 import { initialExamScheduleState } from '../../ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { SModalInitContactProps } from '../types';
-import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 
 export const onGetExamPdfRoute = ({
   isAvaliation,

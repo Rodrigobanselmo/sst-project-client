@@ -5,7 +5,7 @@ import { SInputProps } from '../../../atoms/SInput/types';
 
 export type InputFormProps = SInputProps & {
   name: string;
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   label?: ReactNode;
   defaultValue?: string;
   onChange?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;

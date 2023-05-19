@@ -6,7 +6,7 @@ import { ICities } from 'core/interfaces/api/IUFCities';
 
 export interface ICitiesSelectProps
   extends Omit<Partial<AutocompleteFormProps<ICities>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   addressCompany?: boolean;

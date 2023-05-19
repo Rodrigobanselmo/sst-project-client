@@ -12,7 +12,7 @@ export type InputFormProps = SRadioCheckboxProps & {
 export type InputFormBoxProps = BoxProps & {
   name: string;
   disabled?: boolean;
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   defaultValue?: string;
   label?: string;
   options: SRadioCheckboxProps['options'];

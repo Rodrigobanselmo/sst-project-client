@@ -74,7 +74,7 @@ export const ModalAddCompanyGroup = () => {
         sx={{
           width: 900,
         }}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={isEdit ? 'edit' : 'add'}

@@ -5,7 +5,7 @@ import { SSelectProps } from 'components/atoms/SSelect/types';
 
 export type SelectFormProps = Partial<SSelectProps> & {
   name: string;
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   label?: string;
   defaultValue?: string | number;
   unmountOnChangeDefault?: boolean;

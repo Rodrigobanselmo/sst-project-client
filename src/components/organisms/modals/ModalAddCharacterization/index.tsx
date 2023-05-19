@@ -76,7 +76,7 @@ export const ModalAddCharacterization = () => {
           p={8}
           center
           component="form"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={(handleSubmit as any)(onSubmit)}
           sx={{
             width: 1000,
             maxWidth: '95vw',

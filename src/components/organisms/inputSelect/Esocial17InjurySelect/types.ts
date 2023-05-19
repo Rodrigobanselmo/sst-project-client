@@ -9,7 +9,7 @@ export interface IEsocialTable17SelectProps
     Partial<AutocompleteFormProps<IEsocialTable17Injury>>,
     'onChange'
   > {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   onChange?: (value: IEsocialTable17Injury) => void;

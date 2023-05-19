@@ -43,7 +43,7 @@ export const ModalAddExam = () => {
         sx={{ overflow: 'auto' }}
         center
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={examData.id ? 'edit' : 'add'}

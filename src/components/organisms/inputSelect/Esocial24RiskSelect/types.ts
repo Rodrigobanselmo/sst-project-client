@@ -7,7 +7,7 @@ import { IEsocialTable24 } from 'core/interfaces/api/IEsocial';
 
 export interface IEsocialTable24SelectProps
   extends Omit<Partial<AutocompleteFormProps<IEsocialTable24>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   type?: RiskRecTypeEnum;
   label: string;

@@ -25,7 +25,7 @@ export type RadioInputProps<T> = FormControlProps & {
 export type InputFormBoxProps<T> = FormControlProps & {
   name: string;
   disabled?: boolean;
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   defaultValue?: string | number;
   label?: string;
   renderLabel?: (option: T) => string;

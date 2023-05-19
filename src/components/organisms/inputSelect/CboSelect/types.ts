@@ -6,7 +6,7 @@ import { ICbo } from 'core/interfaces/api/ICbo';
 
 export interface ICboSelectProps
   extends Omit<Partial<AutocompleteFormProps<ICbo>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   onChange?: (value: ICbo) => void;

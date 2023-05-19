@@ -7,7 +7,7 @@ import { IQueryCat } from 'core/services/hooks/queries/useQueryCat/useQueryCat';
 
 export interface ICatSelectProps
   extends Omit<Partial<AutocompleteFormProps<ICat>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   query?: IQueryCat;

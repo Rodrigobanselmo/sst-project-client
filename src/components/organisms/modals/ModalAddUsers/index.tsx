@@ -64,7 +64,7 @@ export const ModalAddUsers = () => {
         center
         p={8}
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={isEdit ? 'edit' : 'add'}

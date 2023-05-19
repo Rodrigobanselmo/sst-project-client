@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { Box } from '@mui/material';
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
@@ -51,6 +51,7 @@ import {
   cleanObjectValues,
 } from 'core/utils/helpers/cleanObjectValues';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
+import { urlToFile } from 'core/utils/helpers/urlToFile.utils';
 import { characterizationSchema } from 'core/utils/schemas/characterization.schema';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
@@ -248,8 +249,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     const afterObject = cleanObjectValues({
       ...characterizationData,
       ...cleanObjectValues({ name, description, type }),
+      photos: photos?.length,
     });
-    const beforeObject = cleanObjectValues(initialDataRef.current);
+    const beforeObject = cleanObjectValues({
+      ...initialDataRef.current,
+      photos: initialDataRef.current.photos?.length,
+    });
     if (preventUnwantedChanges(afterObject, beforeObject, onClose)) return;
     onClose();
   };
@@ -522,16 +527,30 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   };
 
   const handlePhotoName = async (index: number) => {
-    const photosCopy = [...characterizationData.photos];
-    const updatePhoto = photosCopy.splice(index, 1);
+    const updatePhoto = characterizationData.photos[index];
 
     onStackOpenModal(ModalEnum.SINGLE_INPUT, {
       onConfirm: (name) => handlePhotoUpdate(index, { name: name }),
       placeholder: 'nome da foto',
       title: 'Editar Photo',
       label: 'Nome',
-      name: updatePhoto[0].name,
+      name: updatePhoto.name,
     } as typeof initialInputModalState);
+  };
+
+  const handleEditPhoto = async (index: number) => {
+    const updatePhoto = characterizationData.photos[index];
+    const name = updatePhoto.name;
+
+    const file = await urlToFile({ url: updatePhoto.photoUrl, name });
+
+    onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
+      name: name || '',
+      files: [file],
+      onConfirm: async (photo) => {
+        handlePhotoUpdate(index, { name: photo.name, file: photo.file });
+      },
+    } as Partial<typeof initialPhotoState>);
   };
 
   const onAddHierarchy = () => {
@@ -781,6 +800,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     ),
     handleAddPhoto,
     handlePhotoName,
+    handleEditPhoto,
     handlePhotoRemove,
     handlePhotoUpdate,
     handleSubmit,

@@ -53,7 +53,7 @@ export const ModalAddQuantity = () => {
         sx={{
           maxWidth: ['95%', '95%', 1300],
         }}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={'add'}

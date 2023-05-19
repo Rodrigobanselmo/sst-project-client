@@ -5,6 +5,7 @@ import { Wizard } from 'react-use-wizard';
 import CircleIcon from '@mui/icons-material/Circle';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { Box } from '@mui/material';
+import { SDeleteButton } from 'components/molecules/SDeleteButton/SDeleteButton';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
 import { WorkspacesSelect } from 'components/organisms/tagSelects/WorkspacesSelect';
@@ -47,7 +48,6 @@ import { TypeSelect } from '../Selects/TypeSelect';
 import { ModalViewExamsData } from './components/ModalViewExamsData/ModalViewExamsData';
 import { ModalViewRiskData } from './components/ModalViewRiskData';
 import { useModalCard } from './hooks/useModalCard';
-import { SDeleteButton } from 'components/molecules/SDeleteButton/SDeleteButton';
 
 export const ModalEditCard = () => {
   const selectedNode = useAppSelector(selectHierarchyTreeSelectItem);
@@ -320,6 +320,7 @@ export const ModalEditCard = () => {
               multiple={false}
               editOnSelection
               large
+              addButton={false}
               filterByHierarchyId={String(selectedNode.id)}
               text={'funcionários'}
               actualHierarchy={selectedNode}

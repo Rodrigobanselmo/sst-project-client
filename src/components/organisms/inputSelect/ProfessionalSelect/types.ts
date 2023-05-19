@@ -9,7 +9,7 @@ import { IQueryProfessionals } from 'core/services/hooks/queries/useQueryProfess
 
 export interface IProfessionalSelectProps
   extends Omit<Partial<AutocompleteFormProps<IProfessional>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   query?: IQueryProfessionals;

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { initialPgrDocState } from 'components/organisms/modals/ModalAddDocVersion/hooks/usePGRHandleActions';
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 
@@ -26,9 +26,10 @@ interface ISubmit
 
 export const usePgrForm = (docId: string, data?: any) => {
   const { onOpenModal } = useModal();
-  const { handleSubmit, control, getValues, trigger, setFocus } = useForm({
-    resolver: yupResolver(documentDataSchema),
-  });
+  const { handleSubmit, control, getValues, setValue, trigger, setFocus } =
+    useForm({
+      resolver: yupResolver(documentDataSchema),
+    });
 
   const [uneditable, setUneditable] = useState(true);
 
@@ -133,6 +134,7 @@ export const usePgrForm = (docId: string, data?: any) => {
     uneditable,
     setUneditable,
     onEdit,
+    setValue,
   };
 };
 

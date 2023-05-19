@@ -55,6 +55,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           placeholder={'Digite seu nome completo'}
           name="name"
           size="small"
+          setValue={setValue}
         />
         <InputForm
           defaultValue={userData?.cpf}
@@ -65,6 +66,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
           name="cpf"
           mask={cpfMask.apply}
           size="small"
+          setValue={setValue}
         />
         <GoogleButton onClick={linkGoogle} text="Vincular conta Google" />
         <RadioForm

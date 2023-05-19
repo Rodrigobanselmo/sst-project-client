@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { GiConsoleController } from 'react-icons/gi';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import dayjs from 'dayjs';
 import { DateUnitEnum } from 'project/enum/DataUnit.enum';
 import { StatusEnum } from 'project/enum/status.enum';

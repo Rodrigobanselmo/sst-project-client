@@ -45,7 +45,7 @@ export const ModalEditProtocolRisk = () => {
         center
         width={['100%', 500]}
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={protocolData.id ? 'edit' : 'add'}

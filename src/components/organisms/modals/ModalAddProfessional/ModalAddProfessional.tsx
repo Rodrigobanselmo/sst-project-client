@@ -45,7 +45,7 @@ export const ModalAddProfessional = () => {
           p={8}
           center
           component="form"
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={(handleSubmit as any)(onSubmit)}
         >
           <SModalHeader
             tag={professionalData.id ? 'edit' : 'add'}

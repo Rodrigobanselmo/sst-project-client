@@ -2,7 +2,7 @@ import React, { FC, useMemo, useEffect, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { getStates } from '@brazilian-utils/brazilian-utils';
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
@@ -19,6 +19,11 @@ import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { councilSchema } from 'core/utils/schemas/council.schema';
 
+interface IForm {
+  councilUF: string;
+  councilType: string;
+}
+
 export const initialCouncilModalState = {
   title: '',
   councilId: '',
@@ -34,7 +39,7 @@ export const ModalAddCouncil: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
 
-  const { handleSubmit, setValue, control, reset } = useForm({
+  const { handleSubmit, setValue, control, reset } = useForm<IForm>({
     resolver: yupResolver(councilSchema),
   });
 
@@ -61,7 +66,7 @@ export const ModalAddCouncil: FC = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ councilUF: string }> = async (formData) => {
+  const onSubmit: SubmitHandler<IForm> = async (formData) => {
     data.onConfirm && (await data.onConfirm(formData));
     onClose();
   };
@@ -83,7 +88,7 @@ export const ModalAddCouncil: FC = () => {
   return (
     <SModal {...registerModal(modalName)} keepMounted={false} onClose={onClose}>
       <SModalPaper
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
         component="form"
         center
         p={8}

@@ -142,12 +142,16 @@ export const useEvaluationStep = ({
         }
       }
 
-      if (!data.isAttendance || !data.isSelected || !disableBlock) return;
+      if (
+        !data.isAttendance ||
+        !data.isSelected ||
+        (isToBlockDismissal && !disableBlock)
+      )
+        return;
       if (!data.clinic?.id) {
         setError(`clinic_${data.id}`, { message: 'Campo obrigatório' });
         isErrorFound = true;
       }
-
       if (!data.doneDate) {
         setError(`doneDate_${data.id}`, { message: 'Campo obrigatório' });
         isErrorFound = true;
@@ -195,6 +199,7 @@ export const useEvaluationStep = ({
   };
 
   const setComplementaryExam = async (exam: Partial<IExamsScheduleTable>) => {
+    clearErrors();
     let clinic: ICompany | undefined = undefined;
 
     if (isDismissalExam) {
@@ -253,6 +258,7 @@ export const useEvaluationStep = ({
     isDismissal,
     isToBlockDismissal,
     isComplementarySelected,
+    clearErrors,
     ...rest,
   };
 };

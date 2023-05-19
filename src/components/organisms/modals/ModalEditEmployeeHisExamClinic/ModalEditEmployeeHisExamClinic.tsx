@@ -2,6 +2,8 @@
 import React from 'react';
 
 import { Box, Divider, Icon } from '@mui/material';
+import { SBoxPaper } from 'components/atoms/SBoxPaper';
+import { SButton } from 'components/atoms/SButton';
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -35,7 +37,9 @@ import { employeeExamTypeList } from 'project/enum/employee-exam-history-type.en
 import { SexTypeEnum } from 'project/enum/sex.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
+import SCalendarIcon from 'assets/icons/SCalendarIcon';
 import { SCheckIcon } from 'assets/icons/SCheckIcon';
+import { SCloseIcon } from 'assets/icons/SCloseIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { SUploadFileIcon } from 'assets/icons/SUploadFileIcon';
 
@@ -52,10 +56,6 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 import { getSexLabel } from '../ModalAddExamSchedule/components/1-employee';
 import { onUserSchedule, useAddData } from './hooks/useEditExamData';
 import { STagNewButton } from './STagNewButton';
-import { SButton } from 'components/atoms/SButton';
-import SCalendarIcon from 'assets/icons/SCalendarIcon';
-import { SCloseIcon } from 'assets/icons/SCloseIcon';
-import { SBoxPaper } from 'components/atoms/SBoxPaper';
 
 export const ModalEditEmployeeHisExamClinic = () => {
   const {
@@ -115,7 +115,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
         }}
         p={8}
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={isEdit ? 'edit' : 'add'}

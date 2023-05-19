@@ -1,7 +1,9 @@
 import { FC } from 'react';
+import { useForm } from 'react-hook-form';
 
 import { Box, BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
+import SFlex from 'components/atoms/SFlex';
 import {
   STable,
   STableBody,
@@ -11,41 +13,24 @@ import {
 } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import STableSearch from 'components/atoms/STable/components/STableSearch';
-import SText from 'components/atoms/SText';
-import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
-import dayjs from 'dayjs';
-
-import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
-
-import { originRiskMap } from 'core/constants/maps/origin-risk';
-import { usePreventAction } from 'core/hooks/usePreventAction';
-import { useTableSearch } from 'core/hooks/useTableSearch';
-import { IHierarchyOnHomogeneous } from 'core/interfaces/api/IGho';
-import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { useMutDeleteHierarchyGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteHierarchyGho/useMutDeleteHierarchyGho';
-import { useMutUpdateHierarchyGho } from 'core/services/hooks/mutations/checklist/gho/useMutUpdateHierarchyGho/useMutUpdateHierarchyGho';
-import { dateToString } from 'core/utils/date/date-format';
-import { sortDate } from 'core/utils/sorts/data.sort';
-import { sortString } from 'core/utils/sorts/string.sort';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
-import SFlex from 'components/atoms/SFlex';
-import { ModalEnum } from 'core/enums/modal.enums';
-import { useModal } from 'core/hooks/useModal';
-import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
-import { SInput } from 'components/atoms/SInput';
+import STableSearch from 'components/atoms/STable/components/STableSearch';
 import { InputForm } from 'components/molecules/form/input';
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
-import { useForm } from 'react-hook-form';
-import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
-import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { initialBlankState } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import {
-  selectAllDocumentModelVariables,
   setDocumentModelAddVariable,
   setDocumentModelRemoveVariable,
 } from 'store/reducers/document/documentSlice';
-import { useAppSelector } from 'core/hooks/useAppSelector';
-import clone from 'clone';
+
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
+
+import { ModalEnum } from 'core/enums/modal.enums';
+import { useAppDispatch } from 'core/hooks/useAppDispatch';
+import { useModal } from 'core/hooks/useModal';
+import { usePreventAction } from 'core/hooks/usePreventAction';
+import { useTableSearch } from 'core/hooks/useTableSearch';
+import { IDocumentModelFull } from 'core/interfaces/api/IDocumentModel';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 export interface IVariableDocument {
   type: string;

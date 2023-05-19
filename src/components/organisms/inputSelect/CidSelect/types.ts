@@ -6,7 +6,7 @@ import { ICid } from 'core/interfaces/api/ICid';
 
 export interface ICidSelectProps
   extends Omit<Partial<AutocompleteFormProps<ICid>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   onChange?: (value: ICid) => void;

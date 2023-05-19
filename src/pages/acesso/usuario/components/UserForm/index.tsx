@@ -1,7 +1,7 @@
 import { FC } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { Box } from '@mui/material';
 
 import { useMutUpdateUser } from 'core/services/hooks/mutations/user/useMutUpdateUser';
@@ -25,7 +25,7 @@ export const UserForm: FC = () => {
   return (
     <Box
       component="form"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={(handleSubmit as any)(onSubmit)}
       sx={{
         display: 'flex',
         flexDirection: 'column',

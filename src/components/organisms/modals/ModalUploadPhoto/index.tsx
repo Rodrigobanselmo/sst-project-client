@@ -4,7 +4,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { SubmitHandler, useForm } from 'react-hook-form';
 import { PixelCrop } from 'react-image-crop';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import { InputForm } from 'components/molecules/form/input';
@@ -15,6 +15,7 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { useSnackbar } from 'notistack';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -61,14 +62,17 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { onCloseModal } = useModal();
+  const { enqueueSnackbar } = useSnackbar();
 
-  const { handleSubmit, control, reset } = useForm({
+  const { handleSubmit, control, reset, setValue } = useForm({
     resolver: yupResolver(photoSchema),
   });
 
   const [photoData, setPhotoData] = useState({
     ...initialPhotoState,
   });
+
+  const isPhotoSelected = !!photoData.files.length;
 
   useEffect(() => {
     const initialData =
@@ -101,7 +105,10 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
   }
 
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
-    if (!completedCrop) return CropImage();
+    if (!isPhotoSelected)
+      return enqueueSnackbar('Selecione uma imagem', { variant: 'error' });
+    if (!completedCrop) CropImage();
+    // if (!completedCrop) return CropImage();
 
     if (canvasRef.current)
       canvasRef.current.toBlob((blob) => {
@@ -259,10 +266,11 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
   const buttons = [
     {},
     {
-      text: completedCrop ? 'Selecionar' : 'Cortar Imagem',
+      text: completedCrop ? 'Salvar' : 'Cortar e Salvar',
       variant: 'contained',
       type: 'submit',
-      color: completedCrop ? 'primary' : 'success',
+      disabled: !isPhotoSelected,
+      color: 'primary',
       onClick: () => {},
     },
   ] as IModalButton[];
@@ -270,7 +278,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
   return (
     <SModal {...registerModal(modalName)} keepMounted={false} onClose={onClose}>
       <SModalPaper
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
         component="form"
         center
         p={8}
@@ -281,6 +289,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
         <InputForm
           autoFocus
           defaultValue={photoData.name}
+          setValue={setValue}
           label="Legenda"
           labelPosition="center"
           control={control}
@@ -290,7 +299,7 @@ export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
           size="small"
         />
         <DndProvider backend={HTML5Backend}>
-          {!photoData.files.length ? (
+          {!isPhotoSelected ? (
             <SFileDndUpload
               maxFiles={1}
               accept={photoData.accept}

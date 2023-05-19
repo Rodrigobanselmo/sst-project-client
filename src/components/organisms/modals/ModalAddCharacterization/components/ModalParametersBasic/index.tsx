@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
-import { Control, FieldValues } from 'react-hook-form';
+import { Control, FieldValues, UseFormSetValue } from 'react-hook-form';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -12,8 +12,10 @@ import { floatMask } from 'core/utils/masks/float.mask';
 export const ModalParametersContentBasic = ({
   control,
   data,
+  setValue,
 }: {
-  control: Control<FieldValues, object>;
+  setValue: UseFormSetValue<FieldValues>;
+  control: Control<any, object>;
   data: {
     noiseValue: string;
     temperature: string;
@@ -29,6 +31,7 @@ export const ModalParametersContentBasic = ({
       <SFlex gap={8} flexWrap="wrap">
         <Box flex={5}>
           <InputForm
+            setValue={setValue}
             defaultValue={data.temperature}
             label="Temperatura"
             sx={{ minWidth: [200] }}
@@ -43,6 +46,7 @@ export const ModalParametersContentBasic = ({
         </Box>
         <Box flex={5}>
           <InputForm
+            setValue={setValue}
             defaultValue={data.noiseValue}
             label="Ruído"
             sx={{ minWidth: [200] }}
@@ -57,6 +61,7 @@ export const ModalParametersContentBasic = ({
         </Box>
         <Box flex={5}>
           <InputForm
+            setValue={setValue}
             defaultValue={data.moisturePercentage}
             label="Humidade"
             sx={{ minWidth: [200] }}
@@ -71,6 +76,7 @@ export const ModalParametersContentBasic = ({
         </Box>
         <Box flex={5}>
           <InputForm
+            setValue={setValue}
             defaultValue={data.luminosity}
             label="Iluminância"
             sx={{ minWidth: [200] }}

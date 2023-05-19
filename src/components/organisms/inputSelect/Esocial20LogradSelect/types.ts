@@ -9,7 +9,7 @@ export interface IEsocialTable20SelectProps
     Partial<AutocompleteFormProps<IEsocialTable20Lograd>>,
     'onChange'
   > {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   label: string;
   onChange?: (value: IEsocialTable20Lograd) => void;

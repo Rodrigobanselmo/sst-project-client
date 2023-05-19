@@ -25,14 +25,7 @@ export function AutocompleteForm<T>({
 }: AutocompleteFormProps<T>) {
   const ref = useRef<any>(null);
   useEffect(() => {
-    if (
-      defaultValue !== undefined &&
-      defaultValue !== null &&
-      ref.current != defaultValue
-    ) {
-      setValue?.(String(defaultValue));
-      ref.current = defaultValue;
-    }
+    setValue?.(String(defaultValue));
   }, [freeSolo, defaultValue, setValue]);
 
   return (

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 
 import { QuantityTypeEnum } from 'core/constants/maps/quantity-risks';
 import { ModalEnum } from 'core/enums/modal.enums';

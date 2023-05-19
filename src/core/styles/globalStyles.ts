@@ -10,6 +10,9 @@ const globalStyles = css`
     height: 100%;
     margin: 0px;
   }
+  a {
+    text-decoration: none;
+  }
   .scroll-container {
     height: calc(100vh - 120px);
     overflow: auto;

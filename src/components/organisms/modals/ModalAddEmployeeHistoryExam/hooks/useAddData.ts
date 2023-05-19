@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { useAuthShow } from 'components/molecules/SAuthShow';
 import { IExamComplementsTable } from 'components/organisms/tables/ExamsComplementsTable/ExamsComplementsTable';
 import { ExamHistoryConclusionEnum } from 'project/enum/employee-exam-history-conclusion.enum';
@@ -20,6 +20,7 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { IExam } from 'core/interfaces/api/IExam';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
+import { IUser } from 'core/interfaces/api/IUser';
 import { useMutFindExamByHierarchy } from 'core/services/hooks/mutations/checklist/exams/useMutFindExamByHierarchy/useMutUpdateExamRisk';
 import {
   ICreateEmployeeExamHistory,
@@ -34,7 +35,6 @@ import { dateToDate } from 'core/utils/date/date-format';
 import { employeeHistoryExamSchema } from '../../../../../core/utils/schemas/employee.schema';
 import { SModalInitContactProps } from '../types';
 import { cleanObjectNullValues } from './../../../../../core/utils/helpers/cleanObjectValues';
-import { IUser } from 'core/interfaces/api/IUser';
 
 export const initialEmployeeHistoryExamState = {
   id: 0 as number | undefined,

@@ -45,7 +45,7 @@ export const ModalAddWorkspace = () => {
         p={8}
         center
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={companyData.id ? 'edit' : 'add'}

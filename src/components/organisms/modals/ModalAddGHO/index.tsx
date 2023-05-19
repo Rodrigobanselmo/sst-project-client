@@ -54,7 +54,7 @@ export const ModalAddGho = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <SModalPaper p={8} component="form" onSubmit={handleSubmit(onSubmit)}>
+      <SModalPaper p={8} component="form" onSubmit={(handleSubmit as any)(onSubmit)}>
         <SModalHeader
           tag={ghoData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}

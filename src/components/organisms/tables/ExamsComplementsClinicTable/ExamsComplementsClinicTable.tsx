@@ -43,7 +43,7 @@ export const ExamsComplementsClinicTable: FC<
     Partial<IUseTableSelect> & {
       data?: IExamComplementsClinicTable[];
       setData?: (data: Partial<IExamComplementsClinicTable>) => void;
-      control: Control<FieldValues, object>;
+      control: Control<any, object>;
       setValue: UseFormSetValue<FieldValues>;
       companyId?: string;
       isLoadingFile?: boolean;

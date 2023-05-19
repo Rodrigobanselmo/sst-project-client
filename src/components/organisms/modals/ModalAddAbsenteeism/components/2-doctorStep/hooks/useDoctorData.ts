@@ -4,7 +4,7 @@ import { SubmitHandler, useForm, useFormContext } from 'react-hook-form';
 import { GiConsoleController } from 'react-icons/gi';
 import { useWizard } from 'react-use-wizard';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import dayjs from 'dayjs';
 import { DateUnitEnum } from 'project/enum/DataUnit.enum';
 import { StatusEnum } from 'project/enum/status.enum';

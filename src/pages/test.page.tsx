@@ -1,9 +1,19 @@
 import React from 'react';
 
+import dynamic from 'next/dynamic';
+
+const CanvasEditor = dynamic(
+  () =>
+    import('components/molecules/SCanvasEditorTesting/SCanvasEditorTesting'),
+  {
+    ssr: false,
+  },
+);
+
 const Page = () => {
   return (
     <div>
-      <iframe src="/api/pdf/aso" width="100%" height="600px" />
+      <CanvasEditor />
     </div>
   );
 };

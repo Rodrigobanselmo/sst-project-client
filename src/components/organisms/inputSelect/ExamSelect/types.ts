@@ -7,7 +7,7 @@ import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryEx
 
 export interface IExamSelectProps
   extends Omit<Partial<AutocompleteFormProps<IExam>>, 'onChange'> {
-  control: Control<FieldValues, object>;
+  control: Control<any, object>;
   name: string;
   // clearErrors?: (
   //   name?: string | string[] | readonly string[] | undefined,

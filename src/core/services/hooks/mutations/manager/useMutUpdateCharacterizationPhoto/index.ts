@@ -2,6 +2,7 @@ import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
 
+import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -16,6 +17,7 @@ export interface IUpdateCharacterizationPhoto {
   workspaceId?: string;
   order?: number;
   name?: string;
+  file?: File;
 }
 
 export async function updateCharacterizationPhoto(
@@ -23,6 +25,16 @@ export async function updateCharacterizationPhoto(
   companyId: string,
   workspaceId: string,
 ) {
+  const formData = new FormData();
+
+  formData.append('id', String(data.id));
+  if (data.file) formData.append('file', data.file);
+  if (data.name) formData.append('name', data.name);
+  if (typeof data.order == 'number')
+    formData.append('name', String(data.order));
+
+  const { token } = await refreshToken();
+
   const path =
     ApiRoutesEnum.CHARACTERIZATIONS_PHOTO.replace(
       ':companyId',
@@ -31,7 +43,12 @@ export async function updateCharacterizationPhoto(
     '/' +
     data.id;
 
-  const response = await api.patch<ICharacterization>(path, data);
+  const response = await api.patch<ICharacterization>(path, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   return response.data;
 }

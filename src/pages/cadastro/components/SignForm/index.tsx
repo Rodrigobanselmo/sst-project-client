@@ -3,7 +3,7 @@ import ReCAPTCHA from 'react-google-recaptcha';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { isValidEmail } from '@brazilian-utils/brazilian-utils';
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { Box, Link, Typography } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import NextLink from 'next/link';
@@ -53,7 +53,7 @@ export const LoginForm: FC = () => {
   return (
     <Box
       component="form"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={(handleSubmit as any)(onSubmit)}
       sx={{
         display: 'flex',
         flexDirection: 'column',

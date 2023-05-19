@@ -3,7 +3,7 @@ import { Children, cloneElement, FC, isValidElement, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Wizard as ReactWizard } from 'react-use-wizard';
 
-import { yupResolver } from '@hookform/resolvers/yup/dist/yup';
+import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 
 import { mergeValidationSchemas } from 'core/utils/helpers/mergeValidationSchemas';
 

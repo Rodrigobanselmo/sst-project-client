@@ -47,7 +47,7 @@ export const ModalAddProbability = () => {
         sx={{
           maxWidth: ['95%', '95%', 1300],
         }}
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={probabilityData.id ? 'edit' : 'add'}

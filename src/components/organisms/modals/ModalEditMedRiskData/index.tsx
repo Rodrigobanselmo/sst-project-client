@@ -44,7 +44,7 @@ export const ModalEditEngRiskData = () => {
         p={8}
         center
         component="form"
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={engData.id ? 'edit' : 'add'}
