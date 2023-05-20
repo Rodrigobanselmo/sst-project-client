@@ -29,6 +29,8 @@ import { AuthProvider } from '../../../core/contexts/AuthContext';
 import { queryClient } from '../../../core/services/queryClient';
 import store, { persistor } from '../../../store';
 
+const QueryClientProviderComponent = QueryClientProvider as any;
+
 const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
   const notistackRef = React.createRef<SnackbarProvider>();
   const onClickDismiss = (key: SnackbarKey) => () => {
@@ -69,10 +71,10 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
                 style={{ maxWidth: '28rem', paddingRight: 40 }}
               >
                 <AuthProvider>
-                  <QueryClientProvider client={queryClient}>
+                  <QueryClientProviderComponent client={queryClient}>
                     {children}
                     <ReactQueryDevtools />
-                  </QueryClientProvider>
+                  </QueryClientProviderComponent>
                 </AuthProvider>
               </SnackbarProvider>
             </ThemeProvider>
