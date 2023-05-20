@@ -5,10 +5,10 @@ export const generateSourceSchema = {
   recName: Yup.string(),
   medName: Yup.string(),
   medType: Yup.string().when(['medName'], {
-    is: (medName: string) => medName,
+    is: (medName: string) => !!medName,
     then: Yup.string().required(
       'Campo obrigatório para cadastrar medida de controle',
-    ),
+    ) as any,
   }),
 };
 

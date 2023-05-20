@@ -12,12 +12,14 @@ import {
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
 import { getFontSize } from '../utils/getFontSize';
 
-export const StyledText: FC<{
-  inlineStyleRange: IInlineStyleRange[];
-  entityRange: IEntityRange[];
-  text: string;
-  variables: IDocVariablesAllType;
-}> = ({ inlineStyleRange, entityRange, text, variables }) => {
+export const StyledText: FC<
+  { children?: any } & {
+    inlineStyleRange: IInlineStyleRange[];
+    entityRange: IEntityRange[];
+    text: string;
+    variables: IDocVariablesAllType;
+  }
+> = ({ inlineStyleRange, entityRange, text, variables }) => {
   const getStyle = (range: IInlineStyleRange): React.CSSProperties => {
     const style: React.CSSProperties = {};
     switch (range.style) {
@@ -87,7 +89,7 @@ export const StyledText: FC<{
     });
 
   const renderText = () => {
-    const result = [];
+    const result = [] as any;
     let currentStyle: React.CSSProperties = {};
     let currentText = '';
 

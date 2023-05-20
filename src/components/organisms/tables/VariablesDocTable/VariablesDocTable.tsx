@@ -38,16 +38,16 @@ export interface IVariableDocument {
 }
 
 export const VariablesDocTable: FC<
-  BoxProps & {
-    data: IVariableDocument[];
-    rowsPerPage?: number;
-    onSelectData?: (company: IVariableDocument) => void;
-    selectedData?: IVariableDocument[];
-    onAdd?: () => void;
-    loading?: boolean;
-    onlyShow?: boolean;
-    variables?: IDocumentModelFull['variables'];
-  }
+  { children?: any } & BoxProps & {
+      data: IVariableDocument[];
+      rowsPerPage?: number;
+      onSelectData?: (company: IVariableDocument) => void;
+      selectedData?: IVariableDocument[];
+      onAdd?: () => void;
+      loading?: boolean;
+      onlyShow?: boolean;
+      variables?: IDocumentModelFull['variables'];
+    }
 > = ({
   rowsPerPage = 12,
   onAdd,

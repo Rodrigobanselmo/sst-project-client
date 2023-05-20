@@ -7,11 +7,9 @@ import { paragraphOptionsConstant } from 'core/constants/maps/paragraph-options.
 
 import { IParagraphSelectProps } from './types';
 
-export const ParagraphSelect: FC<IParagraphSelectProps> = ({
-  selected,
-  paragraphOptions,
-  ...props
-}) => {
+export const ParagraphSelect: FC<
+  { children?: any } & IParagraphSelectProps
+> = ({ selected, paragraphOptions, ...props }) => {
   return (
     <STagSelect
       options={paragraphOptions.map((key) => ({

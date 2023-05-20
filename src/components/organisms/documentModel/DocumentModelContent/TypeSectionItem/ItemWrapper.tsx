@@ -152,7 +152,7 @@ type Props = {
   sections: IDocumentModelFull['sections'];
 };
 
-export const ItemWrapper: React.FC<Props> = ({
+export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
   variables,
   item,
   elements,

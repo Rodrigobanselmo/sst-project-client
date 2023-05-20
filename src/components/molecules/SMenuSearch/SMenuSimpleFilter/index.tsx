@@ -6,7 +6,7 @@ import STooltip from 'components/atoms/STooltip';
 
 import { SMenuSimpleFilterSearchProps } from './types';
 
-const MenuFilter: FC<SMenuSimpleFilterSearchProps> = ({
+const MenuFilter: FC<{ children?: any } & SMenuSimpleFilterSearchProps> = ({
   options,
   activeFilters,
   onClickFilter,

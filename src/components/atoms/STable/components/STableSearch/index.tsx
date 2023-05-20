@@ -16,7 +16,7 @@ import { STableExport } from '../STableExport';
 import { STableFilterIcon } from '../STableFilter/STableFilterIcon/STableFilterIcon';
 import { STableButtonProps, STableSearchProps } from './types';
 
-export const STableAddButton: FC<STableSearchProps> = ({
+export const STableAddButton: FC<{ children?: any } & STableSearchProps> = ({
   onAddClick,
   addText,
   sm,
@@ -54,7 +54,7 @@ export const STableAddButton: FC<STableSearchProps> = ({
   );
 };
 
-const STableSearch: FC<STableSearchProps> = ({
+const STableSearch: FC<{ children?: any } & STableSearchProps> = ({
   onAddClick,
   onExportClick,
   onImportClick,

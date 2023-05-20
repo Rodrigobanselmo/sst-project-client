@@ -4,10 +4,12 @@ import { Box } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import STooltip from 'components/atoms/STooltip';
 
-export const TableCheckSelectAll: FC<{
-  onToggleAll: () => void;
-  isSelected: boolean;
-}> = ({ onToggleAll, isSelected }) => {
+export const TableCheckSelectAll: FC<
+  { children?: any } & {
+    onToggleAll: () => void;
+    isSelected: boolean;
+  }
+> = ({ onToggleAll, isSelected }) => {
   return (
     <Box my={-5}>
       <STooltip title="Selecionar todos" placement="right">
@@ -23,10 +25,12 @@ export const TableCheckSelectAll: FC<{
   );
 };
 
-export const TableCheckSelect: FC<{
-  onToggleSelected: () => void;
-  isSelected: boolean;
-}> = ({ onToggleSelected, isSelected }) => {
+export const TableCheckSelect: FC<
+  { children?: any } & {
+    onToggleSelected: () => void;
+    isSelected: boolean;
+  }
+> = ({ onToggleSelected, isSelected }) => {
   return (
     <SCheckBox
       label=""

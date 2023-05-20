@@ -4,7 +4,9 @@ import IndeterminateCheckBoxOutlinedIcon from '@mui/icons-material/Indeterminate
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SUncheckBoxIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SUncheckBoxIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <IndeterminateCheckBoxOutlinedIcon {...props} />;
 };
 

@@ -22,10 +22,9 @@ interface IEditGenerateSourceSelects {
   setGenerateSourceData: React.Dispatch<any>;
 }
 
-export const EditGenerateSourceSelects: FC<IEditGenerateSourceSelects> = ({
-  setGenerateSourceData,
-  generateSourceData,
-}) => {
+export const EditGenerateSourceSelects: FC<
+  { children?: any } & IEditGenerateSourceSelects
+> = ({ setGenerateSourceData, generateSourceData }) => {
   const { companyId } = useGetCompanyId();
 
   const [activeFilters, setActiveFilters] = useState<string[]>([]);

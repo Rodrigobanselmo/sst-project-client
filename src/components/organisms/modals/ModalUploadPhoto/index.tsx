@@ -56,7 +56,9 @@ export const initialPhotoState = {
 
 const modalName = ModalEnum.UPLOAD_PHOTO;
 
-export const ModalUploadPhoto: FC<SModalUploadPhoto> = () => {
+export const ModalUploadPhoto: FC<
+  { children?: any } & SModalUploadPhoto
+> = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [completedCrop, setCompletedCrop] = useState<PixelCrop>();

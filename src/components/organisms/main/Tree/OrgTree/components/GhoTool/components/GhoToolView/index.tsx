@@ -23,7 +23,7 @@ import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { GhoRow } from '../GhoRow';
 import { RiskToolRiskViewProps } from './types';
 
-export const GhoToolView: FC<RiskToolRiskViewProps> = ({
+export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
   handleDeleteGHO,
   handleEditGHO,
   handleSelectGHO,

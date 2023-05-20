@@ -4,7 +4,9 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SInfoIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SInfoIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <InfoOutlinedIcon {...props} />;
 };
 

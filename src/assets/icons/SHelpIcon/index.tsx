@@ -5,9 +5,9 @@ import { IconProps } from '@mui/material';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SHelpIcon: FC<IIconMuiProps & Partial<IconProps>> = ({
-  ...props
-}) => {
+export const SHelpIcon: FC<
+  { children?: any } & IIconMuiProps & Partial<IconProps>
+> = ({ ...props }) => {
   return <HelpOutlineIcon {...(props as any)} />;
 };
 

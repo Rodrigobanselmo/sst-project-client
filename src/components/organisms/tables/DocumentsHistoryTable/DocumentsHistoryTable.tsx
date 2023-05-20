@@ -29,13 +29,13 @@ import { dateToString } from 'core/utils/date/date-format';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const DocumentsHistoryTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IDocument) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    documents: IDocument[];
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IDocument) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      documents: IDocument[];
+    }
 > = ({ rowsPerPage = 8, documents, onSelectData, hideTitle, companyId }) => {
   const { handleSearchChange } = useTableSearchAsync();
 
@@ -102,7 +102,7 @@ export const DocumentsHistoryTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof documents[0]>
+        <STableBody<(typeof documents)[0]>
           rowsData={documents.sort((a, b) =>
             sortDate(
               b.endDate || new Date('3000-01-01T00:00:00.00Z'),

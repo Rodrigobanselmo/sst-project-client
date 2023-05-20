@@ -14,13 +14,9 @@ import { useColumnAction } from '../../../hooks/useColumnAction';
 import { RowColumns } from '../components/RowColumns';
 import { RiskToolSingleRiskRowProps } from './types';
 
-export const RiskToolSingleRiskRow: FC<RiskToolSingleRiskRowProps> = ({
-  risk,
-  riskData,
-  hide,
-  riskGroupId,
-  isRepresentAll,
-}) => {
+export const RiskToolSingleRiskRow: FC<
+  { children?: any } & RiskToolSingleRiskRowProps
+> = ({ risk, riskData, hide, riskGroupId, isRepresentAll }) => {
   const gho = useAppSelector((state) => state.gho.selected);
   const {
     onHandleSelectSave,

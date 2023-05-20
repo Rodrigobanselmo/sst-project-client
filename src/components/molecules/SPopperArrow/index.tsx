@@ -12,7 +12,7 @@ import defaultTheme from 'configs/theme';
 import { STArrowStyled } from './styles';
 import { IPopperProps } from './types';
 
-export const SPopperArrow: FC<IPopperProps> = ({
+export const SPopperArrow: FC<{ children?: any } & IPopperProps> = ({
   children,
   isOpen,
   close,

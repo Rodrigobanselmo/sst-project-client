@@ -10,7 +10,7 @@ import { IExam } from 'core/interfaces/api/IExam';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { EpiColumnProps } from './types';
 
-export const ExamColumn: FC<EpiColumnProps> = ({
+export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
   handleSelect,
   data,
   handleRemove,

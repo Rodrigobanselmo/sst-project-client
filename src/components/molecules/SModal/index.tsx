@@ -6,7 +6,7 @@ import { SModalPaper } from './components/SModalPaper';
 import { STModal } from './styles';
 import { SModalProps } from './types';
 
-const CModal: FC<SModalProps> = ({ ...props }) => {
+const CModal: FC<{ children?: any } & SModalProps> = ({ ...props }) => {
   return <STModal {...props} />;
 };
 

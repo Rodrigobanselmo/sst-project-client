@@ -7,7 +7,7 @@ import STooltip from 'components/atoms/STooltip';
 import { STBoxContainer, STBoxItem } from './styles';
 import { SSelectButtonProps } from './types';
 
-export const SSelectButton: FC<SSelectButtonProps> = ({
+export const SSelectButton: FC<{ children?: any } & SSelectButtonProps> = ({
   disabled,
   text,
   label,

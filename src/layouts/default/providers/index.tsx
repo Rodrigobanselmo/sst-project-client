@@ -29,7 +29,7 @@ import { AuthProvider } from '../../../core/contexts/AuthContext';
 import { queryClient } from '../../../core/services/queryClient';
 import store, { persistor } from '../../../store';
 
-const DefaultProviders: FC = ({ children }) => {
+const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
   const notistackRef = React.createRef<SnackbarProvider>();
   const onClickDismiss = (key: SnackbarKey) => () => {
     if (notistackRef.current) notistackRef.current?.closeSnackbar(key);

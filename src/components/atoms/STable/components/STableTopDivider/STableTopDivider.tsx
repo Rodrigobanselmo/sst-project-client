@@ -6,7 +6,7 @@ import SText from 'components/atoms/SText';
 
 import { STableTopDividerProps } from './types';
 
-const STableTopDivider: FC<STableTopDividerProps> = ({
+const STableTopDivider: FC<{ children?: any } & STableTopDividerProps> = ({
   icon,
   content,
   iconProps = {},

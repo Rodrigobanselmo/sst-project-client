@@ -17,7 +17,7 @@ import { useQueryExams } from 'core/services/hooks/queries/useQueryExams/useQuer
 import { AddButton } from '../components/AddButton';
 import { IExamSelectProps } from './types';
 
-export const ExamInputSelect: FC<IExamSelectProps> = ({
+export const ExamInputSelect: FC<{ children?: any } & IExamSelectProps> = ({
   onChange,
   inputProps,
   query,
@@ -42,7 +42,9 @@ export const ExamInputSelect: FC<IExamSelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.name || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.name) || ''
+      }
       options={exams}
       loading={loadExams}
       onInputChange={(e, v) => handleSearchChange(v)}

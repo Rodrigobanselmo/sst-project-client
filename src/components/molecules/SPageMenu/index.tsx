@@ -5,7 +5,7 @@ import { STagButton } from 'components/atoms/STagButton';
 
 import { SPageMenuProps } from './types';
 
-export const SPageMenu: FC<SPageMenuProps> = ({
+export const SPageMenu: FC<{ children?: any } & SPageMenuProps> = ({
   options,
   active,
   onChange,

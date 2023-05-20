@@ -6,7 +6,7 @@ import SFlex from 'components/atoms/SFlex';
 import { STable, STableHeader, STableHRow } from '../..';
 import { STableLoadingProps } from './types';
 
-const STableLoading: FC<STableLoadingProps> = ({
+const STableLoading: FC<{ children?: any } & STableLoadingProps> = ({
   rowsNumber = 5,
   ...props
 }) => (

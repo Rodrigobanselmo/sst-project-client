@@ -10,12 +10,9 @@ import { useQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocu
 
 import { IDocumentModelSelectProps } from './types';
 
-export const DocumentModelSelect: FC<IDocumentModelSelectProps> = ({
-  onChange,
-  inputProps,
-  query,
-  ...props
-}) => {
+export const DocumentModelSelect: FC<
+  { children?: any } & IDocumentModelSelectProps
+> = ({ onChange, inputProps, query, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -30,7 +27,9 @@ export const DocumentModelSelect: FC<IDocumentModelSelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => (option?.name ? `${option.name}` : '')}
+      getOptionLabel={(option) =>
+        typeof option != 'string' && option?.name ? `${option.name}` : ''
+      }
       options={tables}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}

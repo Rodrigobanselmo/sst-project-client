@@ -38,9 +38,9 @@ import { GhoSelectCard } from './Select/ghoSelect';
 import { STSelectBox } from './styles';
 import { INodeCardProps } from './types';
 
-const NodeLabel: FC<{ label: string; type: TreeTypeEnum; hide: boolean }> = ({
-  label,
-}) => {
+const NodeLabel: FC<
+  { children?: any } & { label: string; type: TreeTypeEnum; hide: boolean }
+> = ({ label }) => {
   return (
     <STooltip minLength={25} withWrapper enterDelay={600} title={label}>
       <SText
@@ -59,13 +59,15 @@ const NodeLabel: FC<{ label: string; type: TreeTypeEnum; hide: boolean }> = ({
   );
 };
 
-const SelectGho: FC<{
-  isSelectedGho: boolean;
-  isLoading: boolean;
-  hide: boolean;
-  handleAddGhoHierarchy: any;
-  node: ITreeMapObject;
-}> = ({ isSelectedGho, handleAddGhoHierarchy, node }) => {
+const SelectGho: FC<
+  { children?: any } & {
+    isSelectedGho: boolean;
+    isLoading: boolean;
+    hide: boolean;
+    handleAddGhoHierarchy: any;
+    node: ITreeMapObject;
+  }
+> = ({ isSelectedGho, handleAddGhoHierarchy, node }) => {
   // const [open, setOpen] = useState(false);
   const ref = useRef<HTMLElement>(null);
 
@@ -130,7 +132,7 @@ const SelectGho: FC<{
   // );
 };
 
-export const NodeCard: FC<INodeCardProps> = ({
+export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   handleClickCard,
   node,
   menuRef,
@@ -143,7 +145,7 @@ export const NodeCard: FC<INodeCardProps> = ({
     selectGhoHierarchy(getPathById(node.id) as string[]),
   );
   const GhoId = useAppSelector(selectGhoId);
-  const store = useStore();
+  const store = useStore<any>();
   // const dispatch = useAppDispatch();
   const { hide, ref } = useObserverHide();
 

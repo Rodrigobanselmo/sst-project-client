@@ -28,7 +28,9 @@ export const MotiveContent = (props: IUseMotiveData) => {
           name="motiveId"
           unmountOnChangeDefault
           control={control}
-          getOptionLabel={(option) => option?.desc || ''}
+          getOptionLabel={(option) =>
+            (typeof option != 'string' && option?.desc) || ''
+          }
           inputProps={{
             autoFocus: true,
             labelPosition: 'top',
@@ -56,7 +58,9 @@ export const MotiveContent = (props: IUseMotiveData) => {
         <AutocompleteForm
           name="esocial18Motive"
           control={control}
-          getOptionLabel={(option) => option?.description || ''}
+          getOptionLabel={(option) =>
+            (typeof option != 'string' && option?.description) || ''
+          }
           inputProps={{
             autoFocus: true,
             labelPosition: 'top',

@@ -21,7 +21,7 @@ import { IMenuSearchOption } from '../../../../../molecules/SMenuSearch/types';
 import { IAnchorEvent } from '../../../../../molecules/STagSelect/types';
 import { ISIconUpload } from './types';
 
-export const SDropIconEmployee: FC<ISIconUpload> = ({
+export const SDropIconEmployee: FC<{ children?: any } & ISIconUpload> = ({
   handleSelectMenu,
   disabled,
   isTag,

@@ -10,7 +10,7 @@ import STooltip from '../STooltip';
 import { SDisplayTextProps } from './types';
 
 //abandonado
-export const SHelp: FC<SDisplayTextProps> = ({
+export const SHelp: FC<{ children?: any } & SDisplayTextProps> = ({
   fontSize = 15,
   tooltip,
   color = 'grey.700',

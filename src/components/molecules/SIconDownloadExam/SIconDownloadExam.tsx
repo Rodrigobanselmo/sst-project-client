@@ -54,7 +54,7 @@ export const onDownloadPdf = (
   window.open(path, '_blank');
 };
 
-export const SIconDownloadExam: FC<ISIconUpload> = ({
+export const SIconDownloadExam: FC<{ children?: any } & ISIconUpload> = ({
   handleSelectMenu,
   disabled,
   isTag,

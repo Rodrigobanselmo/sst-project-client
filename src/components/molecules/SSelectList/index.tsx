@@ -9,7 +9,7 @@ import SCloseIcon from 'assets/icons/SCloseIcon';
 import { STBoxContainer, STBoxItem } from './styles';
 import { SSelectButtonProps } from './types';
 
-export const SSelectList: FC<SSelectButtonProps> = ({
+export const SSelectList: FC<{ children?: any } & SSelectButtonProps> = ({
   disabled,
   text,
   label,

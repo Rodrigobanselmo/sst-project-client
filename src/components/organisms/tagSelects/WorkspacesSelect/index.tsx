@@ -8,14 +8,9 @@ import { sortString } from 'core/utils/sorts/string.sort';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IWorkspaceSelectProps } from './types';
 
-export const WorkspacesSelect: FC<IWorkspaceSelectProps> = ({
-  large,
-  handleSelect,
-  text,
-  multiple = true,
-  selected,
-  ...props
-}) => {
+export const WorkspacesSelect: FC<
+  { children?: any } & IWorkspaceSelectProps
+> = ({ large, handleSelect, text, multiple = true, selected, ...props }) => {
   const { data: company, isLoading } = useQueryCompany();
 
   const workspaces = company ? company?.workspace || [] : [];

@@ -3,10 +3,9 @@ import React, { FC } from 'react';
 import { SelectedNumber } from '../../SelectedNumber';
 import { EpiColumnProps as ProbabilityColumnProps } from './types';
 
-export const ProbabilityAfterColumn: FC<ProbabilityColumnProps> = ({
-  handleSelect,
-  data,
-}) => {
+export const ProbabilityAfterColumn: FC<
+  { children?: any } & ProbabilityColumnProps
+> = ({ handleSelect, data }) => {
   let disabled = true;
 
   if (data && data.recs && data.recs.length) disabled = false;

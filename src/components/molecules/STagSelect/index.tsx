@@ -7,7 +7,7 @@ import { SMenu } from '../SMenu';
 import { IMenuSearchOption } from '../SMenuSearch/types';
 import { IAnchorEvent, ISTagSelectProps } from './types';
 
-export const STagSelect: FC<ISTagSelectProps> = ({
+export const STagSelect: FC<{ children?: any } & ISTagSelectProps> = ({
   options,
   text,
   large,

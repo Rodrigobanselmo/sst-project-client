@@ -18,7 +18,7 @@ import { IMenuSearchOption } from '../SMenuSearch/types';
 import { IAnchorEvent } from '../STagSelect/types';
 import { ISIconUpload } from './types';
 
-export const SIconUploadFile: FC<ISIconUpload> = ({
+export const SIconUploadFile: FC<{ children?: any } & ISIconUpload> = ({
   handleSelectMenu,
   disabled,
   disabledDownload,

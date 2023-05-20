@@ -12,10 +12,12 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
-export const CompanyTag: FC<{
-  company: ICompany;
-  handleRemoveCompany: (company: ICompany) => void;
-}> = ({ company, handleRemoveCompany }) => {
+export const CompanyTag: FC<
+  { children?: any } & {
+    company: ICompany;
+    handleRemoveCompany: (company: ICompany) => void;
+  }
+> = ({ company, handleRemoveCompany }) => {
   return (
     <SFlex
       border={'1px solid'}

@@ -17,7 +17,7 @@ import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 import { STBoxItemContainer } from './styles';
 import { SideItemsProps } from './types';
 
-export const SideRowGho: FC<SideItemsProps> = ({
+export const SideRowGho: FC<{ children?: any } & SideItemsProps> = ({
   data,
   isSelected,
   isDeleteLoading,

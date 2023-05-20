@@ -16,11 +16,9 @@ import { useQueryProtocols } from 'core/services/hooks/queries/useQueryProtocols
 import { AddButton } from '../components/AddButton';
 import { IProtocolSelectProps } from './types';
 
-export const ProtocolInputSelect: FC<IProtocolSelectProps> = ({
-  onChange,
-  inputProps,
-  ...props
-}) => {
+export const ProtocolInputSelect: FC<
+  { children?: any } & IProtocolSelectProps
+> = ({ onChange, inputProps, ...props }) => {
   const [search, setSearch] = useState('');
   const { onStackOpenModal } = useModal();
 
@@ -43,7 +41,9 @@ export const ProtocolInputSelect: FC<IProtocolSelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.name || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.name) || ''
+      }
       options={protocols}
       loading={loadProtocols}
       onInputChange={(e, v) => handleSearchChange(v)}

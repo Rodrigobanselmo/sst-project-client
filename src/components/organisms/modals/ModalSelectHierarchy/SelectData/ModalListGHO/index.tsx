@@ -15,7 +15,7 @@ interface IItem extends BoxProps {
   ghoQuery: IGho[];
 }
 
-export const ModalListGHO: FC<IItem> = ({ ghoQuery }) => {
+export const ModalListGHO: FC<{ children?: any } & IItem> = ({ ghoQuery }) => {
   const selected = useAppSelector((state) => state.hierarchy.modalSelectIds);
   const dispatch = useAppDispatch();
   return (

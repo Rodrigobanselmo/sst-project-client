@@ -4,7 +4,9 @@ import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SDownloadIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SDownloadIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <FileDownloadOutlinedIcon {...props} />;
 };
 

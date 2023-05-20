@@ -29,12 +29,12 @@ import { IContact } from 'core/interfaces/api/IContact';
 import { useQueryContacts } from 'core/services/hooks/queries/useQueryContacts/useQueryContacts';
 
 export const ContactsTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IContact) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IContact) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+    }
 > = ({ rowsPerPage = 8, onSelectData, hideTitle, companyId }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -100,7 +100,7 @@ export const ContactsTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof group[0]>
+        <STableBody<(typeof group)[0]>
           rowsData={group}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

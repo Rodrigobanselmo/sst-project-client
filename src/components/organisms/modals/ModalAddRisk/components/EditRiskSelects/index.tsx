@@ -31,7 +31,7 @@ interface IEditRiskSelects {
   id?: number;
 }
 
-export const EditRiskSelects: FC<IEditRiskSelects> = ({
+export const EditRiskSelects: FC<{ children?: any } & IEditRiskSelects> = ({
   setRiskData,
   riskData,
 }) => {

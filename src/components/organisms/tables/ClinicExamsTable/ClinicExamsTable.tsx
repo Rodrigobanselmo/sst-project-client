@@ -39,11 +39,11 @@ import { getText } from 'core/utils/helpers/getText';
 import { getExamPeriodic } from '../ExamsRiskTable/ExamsRiskTable';
 
 export const ClinicExamsTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (clinicExam: IExamToClinic) => void;
-    selectedData?: IExamToClinic[];
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (clinicExam: IExamToClinic) => void;
+      selectedData?: IExamToClinic[];
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -134,7 +134,7 @@ export const ClinicExamsTable: FC<
           <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof exams[0]>
+        <STableBody<(typeof exams)[0]>
           rowsData={exams}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

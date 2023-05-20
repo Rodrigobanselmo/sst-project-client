@@ -9,7 +9,7 @@ import SAddIcon from 'assets/icons/SAddIcon';
 
 import { STableSmallTitleProps } from './types';
 
-const STableSmallTitle: FC<STableSmallTitleProps> = ({
+const STableSmallTitle: FC<{ children?: any } & STableSmallTitleProps> = ({
   text,
   onAddClick,
   ...props

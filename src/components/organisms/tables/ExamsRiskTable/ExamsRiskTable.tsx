@@ -41,7 +41,7 @@ import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
 export const getExamPeriodic = (row: Partial<IExamToRisk>) => {
-  const periodic = [];
+  const periodic = [] as string[];
 
   if (row.isAdmission) periodic.push('Admissional');
   if (row.isPeriodic) periodic.push('Periódico');
@@ -64,12 +64,12 @@ export const getExamAge = (exam: Partial<IExamToRisk>) => {
 };
 
 export const ExamsRiskTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: IExamToRisk) => void;
-    selectedData?: IExamToRisk[];
-    query?: IQueryExam;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: IExamToRisk) => void;
+      selectedData?: IExamToRisk[];
+      query?: IQueryExam;
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -193,7 +193,7 @@ export const ExamsRiskTable: FC<
           {/* <STableHRow justifyContent="center">Status</STableHRow> */}
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof exams[0]>
+        <STableBody<(typeof exams)[0]>
           rowsData={exams}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

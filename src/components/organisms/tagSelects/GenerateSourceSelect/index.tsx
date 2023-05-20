@@ -22,7 +22,9 @@ import { sortString } from 'core/utils/sorts/string.sort';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IGenerateSourceSelectProps } from './types';
 
-export const GenerateSourceSelect: FC<IGenerateSourceSelectProps> = ({
+export const GenerateSourceSelect: FC<
+  { children?: any } & IGenerateSourceSelectProps
+> = ({
   large,
   handleSelect,
   riskIds,

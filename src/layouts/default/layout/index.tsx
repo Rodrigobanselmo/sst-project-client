@@ -26,13 +26,13 @@ import { setIsRouteLoading } from '../../../store/reducers/routeLoad/routeLoadSl
 import { DashboardLayout } from '../../dashboard';
 import DefaultModal from '../modal';
 
-const DefaultLayout: FC = ({ children }) => {
+const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
   useRedirectDetect();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
   // const { onCloseModal } = useModal();
-  // const store = useStore();
+  // const store = useStore<any>();
   // const lastPath = useRef('');
   // const currentPath = useRef('');
 

@@ -4,7 +4,9 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SClinicIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SClinicIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <LocalHospitalIcon {...props} />;
 };
 

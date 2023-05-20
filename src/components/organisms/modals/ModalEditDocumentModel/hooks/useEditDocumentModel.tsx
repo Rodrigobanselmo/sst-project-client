@@ -46,7 +46,7 @@ export const useEditDocumentModel = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const dispatch = useAppDispatch();
-  const store = useStore();
+  const store = useStore<any>();
   const initialDataRef = useRef(initialEditDocumentModelState);
   const { onStackOpenModal } = useModal();
   const { preventDelete } = usePreventAction();

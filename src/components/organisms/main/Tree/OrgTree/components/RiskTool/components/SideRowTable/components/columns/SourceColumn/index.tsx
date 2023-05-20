@@ -9,7 +9,7 @@ import { IGenerateSource } from 'core/interfaces/api/IRiskFactors';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { SourceColumnProps } from './types';
 
-export const SourceColumn: FC<SourceColumnProps> = ({
+export const SourceColumn: FC<{ children?: any } & SourceColumnProps> = ({
   handleSelect,
   handleRemove,
   data,

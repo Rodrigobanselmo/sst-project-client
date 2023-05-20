@@ -73,17 +73,15 @@ import { SideTableMultipleProps } from './types';
 
 const initialState: IRiskDataRow = { id: '' };
 
-export const SideRowTableMulti: FC<SideTableMultipleProps> = ({
-  viewDataType,
-  riskGroupId,
-  isRepresentAll,
-}) => {
+export const SideRowTableMulti: FC<
+  { children?: any } & SideTableMultipleProps
+> = ({ viewDataType, riskGroupId, isRepresentAll }) => {
   // const selectedRiskStore = useAppSelector(selectRisk);
   const selectedRisks = useAppSelector(selectRisks);
   const dispatch = useAppDispatch();
   const selectedRiskStore: IRiskFactors | null = selectedRisks[0];
 
-  const store = useStore();
+  const store = useStore<any>();
   const { companyId } = useGetCompanyId();
   const { query } = useRouter();
   const upsertManyMut = useMutUpsertManyRiskData();

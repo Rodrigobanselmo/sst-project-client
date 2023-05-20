@@ -24,7 +24,9 @@ import { sortString } from 'core/utils/sorts/string.sort';
 import { RiskToolGSEViewRow } from './Row';
 import { RiskToolGSEViewProps } from './types';
 
-export const RiskToolGSEView: FC<RiskToolGSEViewProps> = ({ riskGroupId }) => {
+export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
+  riskGroupId,
+}) => {
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const selectedGho = useAppSelector((state) => state.gho.selected);
   const { enqueueSnackbar } = useSnackbar();

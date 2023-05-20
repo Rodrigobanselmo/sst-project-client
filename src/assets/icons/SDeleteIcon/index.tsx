@@ -4,7 +4,9 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SDeleteIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SDeleteIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <DeleteOutlineIcon {...props} />;
 };
 

@@ -59,7 +59,9 @@ const GhoOrHierarchySelect = ({
   return <GhoSelect {...props} />;
 };
 
-export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
+export const RiskToolGhoHorizontal: FC<
+  { children?: any } & SideSelectViewContentProps
+> = ({
   handleAddGHO,
   ghoQuery,
   handleSelectGHO,
@@ -132,8 +134,8 @@ export const RiskToolGhoHorizontal: FC<SideSelectViewContentProps> = ({
   const getFilter = () => {
     if (isHierarchy) return undefined;
 
-    const filterOptions = [];
-    const defaultValue = [];
+    const filterOptions = [] as any;
+    const defaultValue = [] as any;
 
     if (viewDataType == ViewsDataEnum.ENVIRONMENT) {
       defaultValue.push(HomoTypeEnum.ENVIRONMENT);

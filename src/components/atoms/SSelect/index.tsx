@@ -22,7 +22,7 @@ const textDisableInfo = {
   },
 };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const SSelect: FC<SSelectProps> = ({
+const SSelect: FC<{ children?: any } & SSelectProps> = ({
   loading,
   circularProps,
   children,

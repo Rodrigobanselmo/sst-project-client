@@ -9,7 +9,7 @@ import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import TextIconRow from '../TextIconRow';
 import { TextCompanyRowProps } from './types';
 
-export const TextCompanyRow: FC<TextCompanyRowProps> = ({
+export const TextCompanyRow: FC<{ children?: any } & TextCompanyRowProps> = ({
   company,
   showCNPJ,
   fontSize = 11,

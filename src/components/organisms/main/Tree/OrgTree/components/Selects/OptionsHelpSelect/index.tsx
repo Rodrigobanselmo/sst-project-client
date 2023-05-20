@@ -14,13 +14,9 @@ import { IMenuOptionResponse } from '../../../../../../../molecules/SMenu/types'
 import { STagSelect } from '../../../../../../../molecules/STagSelect';
 import { IOptionsHelpSelectProps } from './types';
 
-export const OptionsHelpSelect: FC<IOptionsHelpSelectProps> = ({
-  large,
-  node,
-  menuRef,
-  onEdit,
-  ...props
-}) => {
+export const OptionsHelpSelect: FC<
+  { children?: any } & IOptionsHelpSelectProps
+> = ({ large, node, menuRef, onEdit, ...props }) => {
   const { onExpandAll, removeNodes } = useHierarchyTreeActions();
   const { preventDelete } = usePreventNode();
 

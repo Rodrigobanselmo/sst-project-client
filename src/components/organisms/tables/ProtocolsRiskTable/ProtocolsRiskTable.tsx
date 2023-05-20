@@ -39,12 +39,12 @@ import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
 export const ProtocolsRiskTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: IProtocolToRisk) => void;
-    selectedData?: IProtocolToRisk[];
-    query?: IQueryProtocol;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: IProtocolToRisk) => void;
+      selectedData?: IProtocolToRisk[];
+      query?: IQueryProtocol;
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -154,7 +154,7 @@ export const ProtocolsRiskTable: FC<
           <STableHRow>Risco</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof protocols[0]>
+        <STableBody<(typeof protocols)[0]>
           rowsData={protocols}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

@@ -13,7 +13,9 @@ interface EmptyProps {
   text?: string;
 }
 
-export const EmptyHierarchyData: FC<EmptyProps> = ({ text }) => {
+export const EmptyHierarchyData: FC<{ children?: any } & EmptyProps> = ({
+  text,
+}) => {
   const { onOpenModal, onCloseAllModals } = useModal();
   const { companyId, router } = useGetCompanyId();
 

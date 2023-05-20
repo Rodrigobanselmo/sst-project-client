@@ -2,7 +2,9 @@ import React, { useContext, useEffect, useState } from 'react';
 
 const OnlineStatusContext = React.createContext(true);
 
-export const OnlineStatusProvider: React.FC = ({ children }) => {
+export const OnlineStatusProvider: React.FC<React.PropsWithChildren<any>> = ({
+  children,
+}) => {
   const [onlineStatus, setOnlineStatus] = useState<boolean>(true);
 
   useEffect(() => {

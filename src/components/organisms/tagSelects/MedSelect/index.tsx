@@ -22,7 +22,7 @@ import { useQueryRecMed } from 'core/services/hooks/queries/useQueryRecMed/useQu
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IRecMedSelectProps } from './types';
 
-export const MedSelect: FC<IRecMedSelectProps> = ({
+export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   large,
   handleSelect,
   riskIds,

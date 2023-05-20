@@ -10,9 +10,9 @@ const initialState = {
   isLock: false,
 };
 
-export const DragControlProvider: React.FC<{ children: React.ReactNode }> = (
-  props,
-) => {
+export const DragControlProvider: React.FC<
+  { children?: any } & { children: React.ReactNode }
+> = (props) => {
   const [isLock, setIsLock] = useState(initialState.isLock);
 
   return (

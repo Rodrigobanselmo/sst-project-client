@@ -28,7 +28,7 @@ import { useTableSearch } from 'core/hooks/useTableSearch';
 import { useQueryChecklist } from 'core/services/hooks/queries/useQueryChecklist';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
-export const ChecklistTable: FC<BoxProps> = () => {
+export const ChecklistTable: FC<{ children?: any } & BoxProps> = () => {
   const { data, isLoading } = useQueryChecklist();
 
   const { onOpenModal } = useModal();
@@ -61,7 +61,7 @@ export const ChecklistTable: FC<BoxProps> = () => {
           <STableHRow justifyContent="center">Editar</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
         </STableHeader>
-        <STableBody<typeof data[0]>
+        <STableBody<(typeof data)[0]>
           rowsData={results}
           maxHeight={500}
           renderRow={(row) => {

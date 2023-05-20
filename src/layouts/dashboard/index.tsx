@@ -11,7 +11,9 @@ import globalStylesDashboard from '../../core/styles/globalStylesDashboard';
 import { DashboardLoadingFeedback } from './loading';
 import { STBoxContent, STBoxSidebar, STGridBox } from './styles';
 
-export const DashboardLayout: FC = ({ children }) => {
+export const DashboardLayout: FC<React.PropsWithChildren<any>> = ({
+  children,
+}) => {
   const { asPath } = useRouter();
 
   if (asPath.includes(RoutesEnum.ONBOARD))

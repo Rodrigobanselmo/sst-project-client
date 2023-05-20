@@ -246,43 +246,44 @@ export const ResumeStep = (props: IUseEditEmployee) => {
                           sx={{ mr: 4, ml: 6 }}
                           color="text.light"
                         /> */}
-                        {!skipHierarchySelect && !data.changeHierarchyWhenDone && (
-                          <Box mt={10}>
-                            <DatePickerForm
-                              label="Data para mudança de cargo"
-                              control={control}
-                              defaultValue={dateToDate(
-                                data.changeHierarchyDate,
-                              )}
-                              sx={{ maxWidth: 300, mb: 5 }}
-                              placeholderText="__/__/__"
-                              name="doneDate"
-                              labelPosition="top"
-                              unmountOnChangeDefault
-                              onChange={(date) => {
-                                setData({
-                                  ...data,
-                                  changeHierarchyDate:
-                                    date instanceof Date ? date : undefined,
-                                });
-                              }}
-                            />
-
-                            {!isDismissal && (
-                              <SCheckBox
-                                label="Ao fazer a admissão ou mudança de cargo do funcionário sem o exame clínico realizado, a sua empresa poderá receber multas do eSocial. Você deja mudar o cargo na data escolhida mesmo com o exame clínico não concluido sabendo das possíveis consequências descritas a cima?"
-                                checked={data.changeHierarchyAnyway}
-                                onChange={(e) => {
+                        {!skipHierarchySelect &&
+                          !data.changeHierarchyWhenDone && (
+                            <Box mt={10}>
+                              <DatePickerForm
+                                label="Data para mudança de cargo"
+                                control={control}
+                                defaultValue={dateToDate(
+                                  data.changeHierarchyDate,
+                                )}
+                                sx={{ maxWidth: 300, mb: 5 }}
+                                placeholderText="__/__/__"
+                                name="doneDate"
+                                labelPosition="top"
+                                unmountOnChangeDefault
+                                onChange={(date) => {
                                   setData({
                                     ...data,
-                                    changeHierarchyAnyway:
-                                      !data.changeHierarchyAnyway,
-                                  } as any);
+                                    changeHierarchyDate:
+                                      date instanceof Date ? date : undefined,
+                                  });
                                 }}
                               />
-                            )}
-                          </Box>
-                        )}
+
+                              {!isDismissal && (
+                                <SCheckBox
+                                  label="Ao fazer a admissão ou mudança de cargo do funcionário sem o exame clínico realizado, a sua empresa poderá receber multas do eSocial. Você deja mudar o cargo na data escolhida mesmo com o exame clínico não concluido sabendo das possíveis consequências descritas a cima?"
+                                  checked={data.changeHierarchyAnyway}
+                                  onChange={(e) => {
+                                    setData({
+                                      ...data,
+                                      changeHierarchyAnyway:
+                                        !data.changeHierarchyAnyway,
+                                    } as any);
+                                  }}
+                                />
+                              )}
+                            </Box>
+                          )}
                       </Box>
                     )}
                 </SFlex>

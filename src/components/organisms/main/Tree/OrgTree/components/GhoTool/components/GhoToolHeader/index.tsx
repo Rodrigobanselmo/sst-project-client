@@ -13,7 +13,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { GhoSearchInput } from '../GhoSearchInput';
 import { GhoHeaderProps } from './types';
 
-export const GhoToolHeader: FC<GhoHeaderProps> = ({
+export const GhoToolHeader: FC<{ children?: any } & GhoHeaderProps> = ({
   handleSelectGHO,
   handleEditGHO,
   handleAddGHO,

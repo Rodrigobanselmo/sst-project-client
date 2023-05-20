@@ -17,7 +17,7 @@ import { useModal } from 'core/hooks/useModal';
 import { STSInput } from './styles';
 import { GhoHeaderProps } from './types';
 
-export const HierarchyFilter: FC<GhoHeaderProps> = () => {
+export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
   const dispatch = useAppDispatch();
   const { onOpenModal } = useModal();
   const ref = useRef<HTMLInputElement>();

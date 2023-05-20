@@ -10,7 +10,7 @@ import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { AdmColumnProps } from './types';
 
-export const AdmColumn: FC<AdmColumnProps> = ({
+export const AdmColumn: FC<{ children?: any } & AdmColumnProps> = ({
   handleSelect,
   handleRemove,
   data,

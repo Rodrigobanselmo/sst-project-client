@@ -14,7 +14,7 @@ interface IItem extends BoxProps {
   activeRemove?: boolean;
 }
 
-export const ModalItemHierarchy: FC<IItem> = ({
+export const ModalItemHierarchy: FC<{ children?: any } & IItem> = ({
   data,
   active,
   activeRemove,

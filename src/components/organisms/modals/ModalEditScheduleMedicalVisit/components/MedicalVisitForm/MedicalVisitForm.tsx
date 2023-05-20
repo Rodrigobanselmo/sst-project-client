@@ -19,14 +19,9 @@ import {
   initialModalEditScheduleMedicalVisitState,
 } from '../../hooks/useModalEditScheduleMedicalVisit';
 
-export const MedicalVisitForm: FC<IUseModalEditScheduleMedicalVisit> = ({
-  setData,
-  data,
-  control,
-  isEdit,
-  tableRef,
-  setValue,
-}) => {
+export const MedicalVisitForm: FC<
+  { children?: any } & IUseModalEditScheduleMedicalVisit
+> = ({ setData, data, control, isEdit, tableRef, setValue }) => {
   return (
     <SFlex direction={'column'} gap={5}>
       <SFlex flexWrap="wrap" gap={5} mt={8}>

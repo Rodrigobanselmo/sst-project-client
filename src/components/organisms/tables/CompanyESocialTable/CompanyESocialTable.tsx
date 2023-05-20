@@ -42,12 +42,12 @@ import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { STTableEsocialBox } from './styles';
 
 export const CompanyESocialTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: ICompany) => void;
-    selectedData?: ICompany[];
-    query?: IQueryCompanies;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: ICompany) => void;
+      selectedData?: ICompany[];
+      query?: IQueryCompanies;
+    }
 > = ({ rowsPerPage = 8, query, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const [event, setEvent] = useState(EmployeeESocialEventTypeEnum.EXAM_2220);
@@ -178,7 +178,7 @@ export const CompanyESocialTable: FC<
               </STableHRow>
             ))}
           </STableHeader>
-          <STableBody<typeof companies[0]>
+          <STableBody<(typeof companies)[0]>
             rowsData={companies}
             hideLoadMore
             rowsInitialNumber={rowsPerPage}

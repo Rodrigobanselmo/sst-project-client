@@ -23,7 +23,9 @@ import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 import { AddButton } from '../components/AddButton';
 import { ICompanyInputSelect } from './types';
 
-export const CompanyInputSelect: FC<ICompanyInputSelect> = ({
+export const CompanyInputSelect: FC<
+  { children?: any } & ICompanyInputSelect
+> = ({
   onChange,
   inputProps,
   query,
@@ -70,7 +72,9 @@ export const CompanyInputSelect: FC<ICompanyInputSelect> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.fantasy || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.fantasy) || ''
+      }
       options={companies}
       loading={isLoading}
       onInputChange={(e, v) => handleSearchChange(v)}

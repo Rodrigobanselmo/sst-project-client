@@ -6,6 +6,7 @@ import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
 import { onDownloadPdf } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
 import { onDownloadOS } from 'components/organisms/forms/OsForm/hooks/useOSForm';
+import { onGetExamPdfRoute } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 import { useScheduleExam } from 'components/organisms/tables/HistoryScheduleExamCompanyTable/hooks/useScheduleExam';
 
 import { SCalendarIcon } from 'assets/icons/SCalendarIcon';
@@ -20,9 +21,8 @@ import { SMenu } from '../../../../molecules/SMenu';
 import { IMenuSearchOption } from '../../../../molecules/SMenuSearch/types';
 import { IAnchorEvent } from '../../../../molecules/STagSelect/types';
 import { ISIconUpload } from './types';
-import { onGetExamPdfRoute } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 
-export const SDropIconEmployee: FC<ISIconUpload> = ({
+export const SDropIconEmployee: FC<{ children?: any } & ISIconUpload> = ({
   handleSelectMenu,
   disabled,
   isTag,

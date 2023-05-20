@@ -17,7 +17,7 @@ interface IEditGhoSelects {
   setGhoData: React.Dispatch<any>;
 }
 
-export const EditGhoSelects: FC<IEditGhoSelects> = ({
+export const EditGhoSelects: FC<{ children?: any } & IEditGhoSelects> = ({
   setGhoData,
   ghoData,
   ghoQuery,

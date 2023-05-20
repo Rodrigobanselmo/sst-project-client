@@ -26,10 +26,10 @@ import { IAccessGroup } from 'core/interfaces/api/IAccessGroup';
 import { useQueryAccessGroups } from 'core/services/hooks/queries/useQueryAccessGroups';
 
 export const AccessGroupsTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IAccessGroup) => void;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IAccessGroup) => void;
+    }
 > = ({ rowsPerPage = 8, onSelectData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -83,7 +83,7 @@ export const AccessGroupsTable: FC<
           <STableHRow>Descrição</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof group[0]>
+        <STableBody<(typeof group)[0]>
           rowsData={group}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

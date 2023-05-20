@@ -11,7 +11,7 @@ import { ModalEditCard } from './components/ModalEditCard';
 import { MouseControl } from './components/MouseControl';
 import { IOrgTreeProps } from './interfaces';
 
-export const ChecklistTreeComponent: FC<IOrgTreeProps> = ({
+export const ChecklistTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
   collapsable = true,
   horizontal = false,
   ...props

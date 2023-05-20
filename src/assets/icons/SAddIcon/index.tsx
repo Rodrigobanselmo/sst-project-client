@@ -4,7 +4,9 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SAddIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SAddIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <AddIcon {...props} />;
 };
 

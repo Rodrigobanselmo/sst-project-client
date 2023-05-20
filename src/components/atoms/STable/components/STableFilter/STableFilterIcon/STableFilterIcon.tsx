@@ -14,7 +14,9 @@ import { STableButton } from '../../STableButton';
 import { STableFilterPopper } from '../STableFilterPopper/STableFilterPopper';
 import { IFilterIconProps } from './types';
 
-export const STableFilterIcon: React.FC<IFilterIconProps> = (filterProps) => {
+export const STableFilterIcon: React.FC<
+  { children?: any } & IFilterIconProps
+> = (filterProps) => {
   const { isOpen, toggle, close } = useDisclosure();
 
   const anchorEl = useRef<null | HTMLButtonElement>(null);

@@ -10,7 +10,7 @@ import { useRegisterModal } from './useRegisterModal';
 export const useLeavePrevent = () => {
   const router = useRouter();
   const { onCloseModal } = useModal();
-  const store = useStore();
+  const store = useStore<any>();
   // const {currentModal} = useRegisterModal();
 
   useEffect(() => {

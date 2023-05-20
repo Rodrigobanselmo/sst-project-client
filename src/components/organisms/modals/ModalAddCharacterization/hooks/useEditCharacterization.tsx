@@ -220,7 +220,10 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
     if (characterizationQuery.hierarchies) {
       return removeDuplicate(
-        [...characterizationQuery?.hierarchies, ...(isEdit ? [] : data)],
+        [
+          ...(characterizationQuery?.hierarchies || []),
+          ...(isEdit ? [] : data),
+        ],
         {
           removeById: 'id',
         },

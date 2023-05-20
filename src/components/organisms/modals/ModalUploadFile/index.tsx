@@ -18,7 +18,7 @@ import { api } from 'core/services/apiClient';
 import { SFileDndUpload } from '../../../molecules/SFileDndUpload';
 import { SModalUploadFile } from './types';
 
-export const ModalUploadFile: FC<SModalUploadFile> = ({
+export const ModalUploadFile: FC<{ children?: any } & SModalUploadFile> = ({
   loading,
   onConfirm,
   maxFiles,

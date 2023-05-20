@@ -217,7 +217,7 @@ export const LocationContent = (props: IUseLocationData) => {
               label={`UF${cityUfRequired ? '*' : ''}`}
               sx={{ minWidth: [100] }}
               options={ufs}
-              onChange={(e: typeof ufs[0]) =>
+              onChange={(e: (typeof ufs)[0]) =>
                 setCatData((old) => ({
                   ...old,
                   uf: e,

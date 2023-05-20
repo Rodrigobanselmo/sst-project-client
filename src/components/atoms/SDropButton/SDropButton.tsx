@@ -3,13 +3,13 @@ import { FC, MouseEvent, useState } from 'react';
 import { Box, Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import { STagButton } from 'components/atoms/STagButton';
-
 import { SMenu } from 'components/molecules/SMenu';
 import { IMenuSearchOption } from 'components/molecules/SMenuSearch/types';
 import { IAnchorEvent } from 'components/molecules/STagSelect/types';
+
 import { ISDropButton } from './types';
 
-export const SDropButton: FC<ISDropButton> = ({
+export const SDropButton: FC<{ children?: any } & ISDropButton> = ({
   onSelect,
   options,
   text,

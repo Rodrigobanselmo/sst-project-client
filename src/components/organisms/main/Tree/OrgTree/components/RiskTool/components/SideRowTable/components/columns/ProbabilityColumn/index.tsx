@@ -12,12 +12,9 @@ import { isQuantity } from 'core/utils/helpers/isQuantity';
 import { SelectedNumber } from '../../SelectedNumber';
 import { EpiColumnProps as ProbabilityColumnProps } from './types';
 
-export const ProbabilityColumn: FC<ProbabilityColumnProps> = ({
-  handleSelect,
-  data,
-  handleHelp,
-  risk,
-}) => {
+export const ProbabilityColumn: FC<
+  { children?: any } & ProbabilityColumnProps
+> = ({ handleSelect, data, handleHelp, risk }) => {
   const dataSelect = {} as Partial<IUpsertRiskData>;
   const { onStackOpenModal } = useModal();
 

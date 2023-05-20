@@ -4,7 +4,7 @@ import { STagButton } from 'components/atoms/STagButton';
 
 import { PaginationItemProps } from './types';
 
-const PaginationItem: FC<PaginationItemProps> = ({
+const PaginationItem: FC<{ children?: any } & PaginationItemProps> = ({
   isCurrent = false,
   pageNumber,
   onPageChange,

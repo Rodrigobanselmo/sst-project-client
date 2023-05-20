@@ -10,7 +10,7 @@ import {
 } from './SAutocompleteSelect.styles';
 import { AutocompleteSelectProps } from './SAutocompleteSelect.types';
 
-const SAutocompleteSelect: FC<AutocompleteSelectProps> = ({
+const SAutocompleteSelect: FC<{ children?: any } & AutocompleteSelectProps> = ({
   label,
   options,
   inputProps,

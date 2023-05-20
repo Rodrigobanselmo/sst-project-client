@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { FC, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
@@ -14,9 +15,11 @@ import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { RadioFormText } from 'components/molecules/form/radio-text';
 import { EsocialCitiesSelect } from 'components/organisms/inputSelect/EsocialCitiesSelect/EsocialCitiesSelect';
 import dayjs from 'dayjs';
+import { examAvaliationTypeList } from 'project/enum/employee-exam-history-avaliation.enum';
 import { employeeExamEvaluationTypeList } from 'project/enum/employee-exam-history-evaluation.enum';
 import { asoExamTypeList } from 'project/enum/employee-exam-history-type.enum';
 
+import { statusOptionsConstant } from 'core/constants/maps/status-options.constant';
 import { dateToString } from 'core/utils/date/date-format';
 
 import { SPopperArrow } from '../../../../../molecules/SPopperArrow';
@@ -26,10 +29,8 @@ import {
   reportDownloadtypeList,
 } from './constants/report-type.constants';
 import { IFilterBoxProps } from './types';
-import { statusOptionsConstant } from 'core/constants/maps/status-options.constant';
-import { examAvaliationTypeList } from 'project/enum/employee-exam-history-avaliation.enum';
 
-export const STableFilterBox: FC<IFilterBoxProps> = ({
+export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
   filterProps,
   closePopper,
   ...props
@@ -302,7 +303,7 @@ export const STableFilterBox: FC<IFilterBoxProps> = ({
               //   (filterProps as any).filter[FilterFieldEnum.UF]?.filters?.[0]
               //     ?.filterValue
               // }
-              onChange={(e, v: typeof ufs[0]) => {
+              onChange={(e, v: (typeof ufs)[0]) => {
                 if (v)
                   filterProps.addFilter(
                     FilterFieldEnum.UF,

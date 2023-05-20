@@ -51,15 +51,15 @@ import { dateToString } from 'core/utils/date/date-format';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const HistoryEmployeeExamTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IEmployeeExamsHistory) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    employeeId?: number;
-    employee?: IEmployee;
-    query?: IQueryEmployeeHistHier;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IEmployeeExamsHistory) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      employeeId?: number;
+      employee?: IEmployee;
+      query?: IQueryEmployeeHistHier;
+    }
 > = ({
   rowsPerPage = 8,
   onSelectData,
@@ -225,7 +225,7 @@ export const HistoryEmployeeExamTable: FC<
           <STableHRow>Finalizado por</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof history[0]>
+        <STableBody<(typeof history)[0]>
           rowsData={
             history
             // .sort((a, b) => sortDate(b.created_at, a.created_at))

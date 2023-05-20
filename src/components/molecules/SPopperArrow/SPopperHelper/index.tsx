@@ -6,7 +6,7 @@ import { ISPopperHelper } from './types';
 
 import { SPopperArrow } from '..';
 
-export const SPopperHelper: FC<ISPopperHelper> = ({
+export const SPopperHelper: FC<{ children?: any } & ISPopperHelper> = ({
   anchorEl,
   isOpen,
   close,

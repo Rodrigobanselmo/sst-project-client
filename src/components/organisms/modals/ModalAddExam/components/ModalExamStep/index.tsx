@@ -43,7 +43,11 @@ export const ModalExamStep = ({
             name="name"
             control={control}
             freeSolo
-            getOptionLabel={(option) => `${option.code} - ${option.name}`}
+            getOptionLabel={(option) =>
+              (typeof option != 'string' &&
+                `${option.code} - ${option.name}`) ||
+              ''
+            }
             inputProps={{
               autoFocus: true,
               labelPosition: 'top',

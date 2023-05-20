@@ -9,7 +9,7 @@ import { useQueryCbo } from 'core/services/hooks/queries/useQueryCbo/useQueryCbo
 
 import { ICboSelectProps } from './types';
 
-export const CboSelect: FC<ICboSelectProps> = ({
+export const CboSelect: FC<{ children?: any } & ICboSelectProps> = ({
   onChange,
   inputProps,
   ...props
@@ -29,7 +29,7 @@ export const CboSelect: FC<ICboSelectProps> = ({
   return (
     <AutocompleteForm
       getOptionLabel={(option) =>
-        option.code
+        typeof option != 'string' && option.code
           ? `${option.code.substring(0, 4)}-${option.code.substring(4, 6)}`
           : ''
       }

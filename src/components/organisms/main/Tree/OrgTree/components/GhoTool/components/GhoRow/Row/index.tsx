@@ -15,7 +15,7 @@ import SHierarchyIcon from 'assets/icons/SHierarchyIcon';
 import { STBoxItem } from './styles';
 import { RowItemsProps } from './types';
 
-export const Row: FC<RowItemsProps> = ({
+export const Row: FC<{ children?: any } & RowItemsProps> = ({
   data,
   isSelected,
   isDeleteLoading,

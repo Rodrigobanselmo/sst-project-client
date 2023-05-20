@@ -31,7 +31,7 @@ export function TabPanel(props: TabPanelProps) {
   );
 }
 
-export const STabs: FC<STabsProps> = ({
+export const STabs: FC<{ children?: any } & STabsProps> = ({
   options,
   mb = 10,
   mt = -5,

@@ -6,7 +6,10 @@ import STooltip from 'components/atoms/STooltip';
 
 import { ICameraSelectProps } from './types';
 
-export const CameraSelect: FC<ICameraSelectProps> = ({ large, ...props }) => {
+export const CameraSelect: FC<{ children?: any } & ICameraSelectProps> = ({
+  large,
+  ...props
+}) => {
   return (
     <STooltip withWrapper title={'Recomenda usuário a tirar uma fotografia'}>
       <STagButton

@@ -11,7 +11,10 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { SHeaderTagProps } from './types';
 
-export const SHeaderTag: FC<SHeaderTagProps> = ({ title, hideInitial }) => {
+export const SHeaderTag: FC<{ children?: any } & SHeaderTagProps> = ({
+  title,
+  hideInitial,
+}) => {
   const router = useRouter();
   const companyId = router.query.companyId as string;
 

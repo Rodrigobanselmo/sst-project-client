@@ -4,7 +4,9 @@ import ThumbUpOffAltIcon from '@mui/icons-material/ThumbUpOffAlt';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SRecommendationIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SRecommendationIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <ThumbUpOffAltIcon {...props} />;
 };
 

@@ -1,8 +1,8 @@
 import DescriptionIcon from '@mui/icons-material/Description';
 
-export const NodeIcon: React.FC<{ type: 'folder' | 'folder-open' | null }> = ({
-  type,
-}) => {
+export const NodeIcon: React.FC<
+  { children?: any } & { type: 'folder' | 'folder-open' | null }
+> = ({ type }) => {
   if (type === 'folder')
     return (
       <svg

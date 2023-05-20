@@ -45,7 +45,9 @@ import { SaveButton } from './SaveButton';
 import { TotalTag } from './TotalTag';
 import { SideSelectViewContentProps } from './types';
 
-export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
+export const SideSelectViewContent: FC<
+  { children?: any } & SideSelectViewContentProps
+> = ({
   handleAddGHO,
   handleSelectGHO,
   handleEditGHO,
@@ -57,7 +59,7 @@ export const SideSelectViewContent: FC<SideSelectViewContentProps> = ({
   const inputSelectedRef = useRef<HTMLInputElement>(null);
   const { hierarchyListData } = useListHierarchy();
   const [filter, setFilter] = useState<HierarchyEnum>(HierarchyEnum.OFFICE);
-  const store = useStore();
+  const store = useStore<any>();
 
   const dataList = useMemo<(IHierarchyTreeMapObject | IGho)[]>(() => {
     if (viewDataType === ViewsDataEnum.HIERARCHY) {

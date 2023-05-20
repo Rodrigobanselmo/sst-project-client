@@ -11,7 +11,9 @@ import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 import { useQueryExamsHierarchy } from 'core/services/hooks/queries/useQueryExamsHierarchy/useQueryExamsHierarchy';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 
-export const ExamsRiskTableList: FC<BoxProps> = ({ ...props }) => {
+export const ExamsRiskTableList: FC<{ children?: any } & BoxProps> = ({
+  ...props
+}) => {
   const { data: exams, isLoading: loadingExams } = useQueryExamsHierarchy(1);
   const { onOpenRiskToolSelected } = useOpenRiskTool();
   const { data: riskGroupData, isLoading: loadingRiskGroup } =

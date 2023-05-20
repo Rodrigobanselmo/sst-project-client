@@ -9,11 +9,9 @@ import { useQueryEsocial17Injury } from 'core/services/hooks/queries/useQueryEso
 
 import { IEsocialTable17SelectProps } from './types';
 
-export const Esocial17InjurySelect: FC<IEsocialTable17SelectProps> = ({
-  onChange,
-  inputProps,
-  ...props
-}) => {
+export const Esocial17InjurySelect: FC<
+  { children?: any } & IEsocialTable17SelectProps
+> = ({ onChange, inputProps, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -28,7 +26,9 @@ export const Esocial17InjurySelect: FC<IEsocialTable17SelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.desc || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.desc) || ''
+      }
       options={tables}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}

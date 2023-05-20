@@ -12,7 +12,7 @@ import { SInput } from '../SInput';
 import STooltip from '../STooltip';
 import { SInputEditProps } from './types';
 
-export const SInputEdit: FC<SInputEditProps> = ({
+export const SInputEdit: FC<{ children?: any } & SInputEditProps> = ({
   value,
   onBlur,
   onFocus,

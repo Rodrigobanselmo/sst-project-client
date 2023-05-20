@@ -31,7 +31,7 @@ export const useModalTree = () => {
   const [selectData, setSelectData] = useState(initialHierarchyTreeState);
   const dispatch = useAppDispatch();
   const updateSimpleManyMutation = useMutUpdateSimpleManyHierarchy();
-  const store = useStore();
+  const store = useStore<any>();
 
   const { data: actualHierarchy } = useQueryHierarchies(
     selectData.actualCompanyId || '-',

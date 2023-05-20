@@ -42,14 +42,14 @@ import {
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
 export const CompaniesTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: ICompany) => void;
-    selectedData?: ICompany[];
-    query?: IQueryCompanies;
-    hideTitle?: boolean;
-    type?: IQueryCompaniesTypes;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: ICompany) => void;
+      selectedData?: ICompany[];
+      query?: IQueryCompanies;
+      hideTitle?: boolean;
+      type?: IQueryCompaniesTypes;
+    }
 > = ({
   rowsPerPage = 8,
   onSelectData,
@@ -124,7 +124,7 @@ export const CompaniesTable: FC<
           {/* <STableHRow justifyContent="center">Baixar</STableHRow> //?download company */}
           {/* <STableHRow justifyContent="center">Enviar</STableHRow>  //?download company */}
         </STableHeader>
-        <STableBody<typeof companies[0]>
+        <STableBody<(typeof companies)[0]>
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           rowsData={companies}

@@ -22,7 +22,7 @@ import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { riskFilter } from './constants/filters';
 import { ITypeSelectProps } from './types';
 
-export const RiskSelect: FC<ITypeSelectProps> = ({
+export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
   large,
   handleSelect,
   selectedRiskIds,

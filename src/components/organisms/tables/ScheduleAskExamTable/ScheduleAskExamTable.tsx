@@ -46,14 +46,14 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const ScheduleAskExamTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IEmployeeExamsHistory) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    employeeId?: number;
-    employee?: IEmployee;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IEmployeeExamsHistory) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      employeeId?: number;
+      employee?: IEmployee;
+    }
 > = ({
   rowsPerPage = 15,
   onSelectData,
@@ -152,7 +152,7 @@ export const ScheduleAskExamTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof history[0]>
+        <STableBody<(typeof history)[0]>
           rowsData={history
             .sort((a, b) => sortDate(b.created_at, a.created_at))
             .sort((a, b) => sortDate(b.doneDate, a.doneDate))}

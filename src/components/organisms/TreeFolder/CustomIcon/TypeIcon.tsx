@@ -10,7 +10,7 @@ type Props = {
   fileType?: string;
 };
 
-export const TypeIcon: React.FC<Props> = (props) => {
+export const TypeIcon: React.FC<{ children?: any } & Props> = (props) => {
   if (props.droppable) {
     return <FolderIcon />;
   }

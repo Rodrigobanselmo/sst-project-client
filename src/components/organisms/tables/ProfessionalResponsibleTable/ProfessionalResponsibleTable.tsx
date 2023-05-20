@@ -31,12 +31,12 @@ import { useQueryProfessionalResponsible } from 'core/services/hooks/queries/use
 import { dateToString } from 'core/utils/date/date-format';
 
 export const ProfessionalResponsibleTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IProfessionalResponsible) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IProfessionalResponsible) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+    }
 > = ({ rowsPerPage = 8, onSelectData, hideTitle, companyId }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -96,7 +96,7 @@ export const ProfessionalResponsibleTable: FC<
           <STableHRow>A partir de</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof group[0]>
+        <STableBody<(typeof group)[0]>
           hideEmpty
           rowsData={group}
           hideLoadMore

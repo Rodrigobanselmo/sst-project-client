@@ -52,12 +52,14 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 import { getSexLabel } from '../ModalAddExamSchedule/components/1-employee';
 import { useAddData } from './hooks/useEditExamData';
 
-export const STagNewButton: React.FC<{
-  icon: React.ElementType<any>;
-  text: string;
-  borderColor: string;
-  backgroundColor: string;
-}> = ({
+export const STagNewButton: React.FC<
+  { children?: any } & {
+    icon: React.ElementType<any>;
+    text: string;
+    borderColor: string;
+    backgroundColor: string;
+  }
+> = ({
   icon = SCheckIcon,
   text,
   borderColor = 'success.main',

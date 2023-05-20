@@ -21,7 +21,7 @@ export type ISSelectedTagProps = {
   onRemove?: (tag: ISSelectedTag) => void;
 } & SFlexProps;
 
-export const SSelectedTag: FC<ISSelectedTagProps> = ({
+export const SSelectedTag: FC<{ children?: any } & ISSelectedTagProps> = ({
   tag,
   onRemove,
   maxWidth,

@@ -16,7 +16,7 @@ import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { GhoFilter } from './constants/filters';
 import { IGHOTypeSelectProps } from './types';
 
-export const GhoSelect: FC<IGHOTypeSelectProps> = ({
+export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
   large,
   handleSelect,
   text,

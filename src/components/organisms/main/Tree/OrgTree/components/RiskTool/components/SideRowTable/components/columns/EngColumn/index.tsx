@@ -11,7 +11,7 @@ import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { EngColumnProps } from './types';
 
-export const EngColumn: FC<EngColumnProps> = ({
+export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
   handleSelect,
   handleRemove,
   handleEdit,

@@ -16,7 +16,7 @@ import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMut
 
 import { STableExportProps } from './types';
 
-export const STableExport: FC<STableExportProps> = ({
+export const STableExport: FC<{ children?: any } & STableExportProps> = ({
   onExportClick,
   onInportClick,
   ...props

@@ -188,7 +188,7 @@ const STDraftBox = styled(Box)<{ document1?: number; document2?: number }>`
 const Editor = dynamic(
   async () => {
     const mod = await import('react-draft-wysiwyg');
-    return mod.Editor;
+    return mod.Editor as typeof Editor;
   },
   { ssr: false },
 );

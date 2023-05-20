@@ -11,16 +11,21 @@ import { NodeDocumentModel } from '../types/types';
 
 const TREE_X_OFFSET = 22;
 
-export const StructNode: React.FC<{
-  node: NodeDocumentModel;
-  depth: number;
-  isOpen: boolean;
-  isDropTarget: boolean;
-  treeData: NodeDocumentModel[];
-  onToggle: (id: NodeDocumentModel['id']) => void;
-  onSelect: (node: NodeDocumentModel) => void;
-  getPipeHeight: (id: string | number, treeData: NodeDocumentModel[]) => number;
-}> = ({
+export const StructNode: React.FC<
+  { children?: any } & {
+    node: NodeDocumentModel;
+    depth: number;
+    isOpen: boolean;
+    isDropTarget: boolean;
+    treeData: NodeDocumentModel[];
+    onToggle: (id: NodeDocumentModel['id']) => void;
+    onSelect: (node: NodeDocumentModel) => void;
+    getPipeHeight: (
+      id: string | number,
+      treeData: NodeDocumentModel[],
+    ) => number;
+  }
+> = ({
   node,
   depth,
   isOpen,

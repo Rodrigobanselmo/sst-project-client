@@ -6,7 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import STooltip from '../STooltip';
 import { SIconButtonProps } from './types';
 
-const SIconButton: FC<SIconButtonProps> = ({
+const SIconButton: FC<{ children?: any } & SIconButtonProps> = ({
   circularProps,
   loading,
   children,

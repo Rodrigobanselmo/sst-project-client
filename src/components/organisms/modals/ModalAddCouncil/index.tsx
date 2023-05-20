@@ -130,7 +130,7 @@ export const ModalAddCouncil: FC = () => {
               label="UF"
               sx={{ minWidth: [100] }}
               options={ufs}
-              onChange={(e: typeof ufs[0]) =>
+              onChange={(e: (typeof ufs)[0]) =>
                 setData((old) => ({
                   ...old,
                   councilUF: e,

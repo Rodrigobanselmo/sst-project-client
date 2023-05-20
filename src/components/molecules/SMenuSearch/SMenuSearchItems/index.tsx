@@ -13,7 +13,7 @@ import { SMenuItemsSearchProps } from './types';
 
 console.error = () => {};
 
-const MenuItems: FC<SMenuItemsSearchProps> = ({
+const MenuItems: FC<{ children?: any } & SMenuItemsSearchProps> = ({
   handleMenuSelect,
   icon,
   startAdornment,

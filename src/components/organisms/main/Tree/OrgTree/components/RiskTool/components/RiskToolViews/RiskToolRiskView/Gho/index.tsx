@@ -26,7 +26,9 @@ import { ViewsDataEnum } from '../../../../utils/view-data-type.constant';
 import { SideRow } from '../../../SideRow';
 import { RiskToolRiskViewProps } from './types';
 
-export const RiskToolRiskGhoView: FC<RiskToolRiskViewProps> = ({
+export const RiskToolRiskGhoView: FC<
+  { children?: any } & RiskToolRiskViewProps
+> = ({
   handleDeleteGHO,
   handleEditGHO,
   handleSelectGHO,

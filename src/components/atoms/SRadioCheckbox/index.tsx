@@ -11,7 +11,7 @@ import STooltip from '../STooltip';
 import { StyledGrid } from './styles';
 import { IInputCheckboxProps, SRadioCheckboxProps } from './types';
 
-const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
+const InputRadioCheckbox: FC<{ children?: any } & IInputCheckboxProps> = ({
   option,
   type,
   name = 'name',
@@ -130,7 +130,7 @@ const InputRadioCheckbox: FC<IInputCheckboxProps> = ({
   );
 };
 
-const SRadioCheckbox: FC<SRadioCheckboxProps> = ({
+const SRadioCheckbox: FC<{ children?: any } & SRadioCheckboxProps> = ({
   options,
   optionsFieldName,
   columns = 3,

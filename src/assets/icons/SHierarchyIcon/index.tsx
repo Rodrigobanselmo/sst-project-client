@@ -4,7 +4,9 @@ import AccountTreeIcon from '@mui/icons-material/AccountTree';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SHierarchyIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SHierarchyIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <AccountTreeIcon {...props} />;
 };
 

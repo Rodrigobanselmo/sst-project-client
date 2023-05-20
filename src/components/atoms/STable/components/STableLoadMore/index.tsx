@@ -6,7 +6,7 @@ import SText from 'components/atoms/SText';
 
 import { STableLoadMoreProps } from './types';
 
-const STableLoadMore: FC<STableLoadMoreProps> = ({
+const STableLoadMore: FC<{ children?: any } & STableLoadMoreProps> = ({
   actualRows,
   totalRows,
   onClick,

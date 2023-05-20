@@ -45,7 +45,7 @@ interface ISelectRolesSelects extends BoxProps {
   setData: (data: any) => void;
 }
 
-export const SelectRoles: FC<ISelectRolesSelects> = ({
+export const SelectRoles: FC<{ children?: any } & ISelectRolesSelects> = ({
   setData,
   data,
   ...props

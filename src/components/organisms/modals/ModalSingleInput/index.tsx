@@ -40,7 +40,9 @@ export const initialInputModalState = {
 
 const modalName = ModalEnum.SINGLE_INPUT;
 
-export const ModalSingleInput: FC<SModalUploadPhoto> = () => {
+export const ModalSingleInput: FC<
+  { children?: any } & SModalUploadPhoto
+> = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
 

@@ -8,12 +8,10 @@ import { IMenuOptionResponse } from '../../../../../../../molecules/SMenu/types'
 import { STagSelect } from '../../../../../../../molecules/STagSelect';
 import { IBlockedBySelectProps } from './types';
 
-export const BlockedBySelect: FC<IBlockedBySelectProps> = ({
-  large,
-  node,
-  ...props
-}) => {
-  const store = useStore();
+export const BlockedBySelect: FC<
+  { children?: any } & IBlockedBySelectProps
+> = ({ large, node, ...props }) => {
+  const store = useStore<any>();
   const nodeBlockedBySelect = node.blockedBy || [];
 
   const handleAction = ({ value }: IMenuOptionResponse) => {

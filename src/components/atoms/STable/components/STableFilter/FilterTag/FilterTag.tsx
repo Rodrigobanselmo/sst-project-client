@@ -18,7 +18,7 @@ export type IFilterTagProps = {
   onRemove: (tag: IFilterTag) => void;
 } & SFlexProps;
 
-export const FilterTag: FC<IFilterTagProps> = ({
+export const FilterTag: FC<{ children?: any } & IFilterTagProps> = ({
   tag,
   onRemove,
   maxWidth,

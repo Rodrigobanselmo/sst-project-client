@@ -57,11 +57,11 @@ import { getEmployeeRowExamData } from '../HistoryExpiredExamCompanyTable/Histor
 import { SDropIconEmployee } from './components/SDropIconEmployee/SDropIconEmployee';
 
 export const EmployeesTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    hideModal?: boolean;
-    query?: IQueryEmployee;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      hideModal?: boolean;
+      query?: IQueryEmployee;
+    }
 > = ({ rowsPerPage = 8, hideModal, query, ...props }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { data: company, isLoading: loadCompany } = useQueryCompany();
@@ -195,7 +195,7 @@ export const EmployeesTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof employees[0]>
+        <STableBody<(typeof employees)[0]>
           rowsData={employees}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

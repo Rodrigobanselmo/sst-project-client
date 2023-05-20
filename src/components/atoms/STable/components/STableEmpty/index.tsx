@@ -6,7 +6,7 @@ import SText from 'components/atoms/SText';
 
 import { STableEmptyProps } from './types';
 
-const STableEmpty: FC<STableEmptyProps> = ({
+const STableEmpty: FC<{ children?: any } & STableEmptyProps> = ({
   content = (
     <>
       Nenhum dado <br /> encontrado

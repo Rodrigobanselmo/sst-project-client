@@ -12,7 +12,7 @@ import { TreeTypeEnum } from '../../../enums/tree-type.enums';
 import { ITreeMapObject } from '../../../interfaces';
 import { ITypeSelectProps } from './types';
 
-export const TypeSelect: FC<ITypeSelectProps> = ({
+export const TypeSelect: FC<{ children?: any } & ITypeSelectProps> = ({
   large,
   parentId,
   handleSelect,

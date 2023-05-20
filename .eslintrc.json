@@ -34,31 +34,34 @@
     "prettier/prettier": "error",
     "no-empty": "off",
     "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-empty-function": "off",
+    "@typescript-eslint/import-helpers/order-imports": "off",
     "@typescript-eslint/no-empty-interface": "off",
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
     "react/prop-types": [0],
-    "import-helpers/order-imports": [
-      "warn",
-      {
-        "newlinesBetween": "always",
-        "groups": [
-          "/^react/",
-          "module",
-          "/^configs/",
-          "/^assets/",
-          "/^core/",
-          "/^app/",
-          ["parent", "sibling", "index"]
-        ],
-        "alphabetize": {
-          "order": "asc",
-          "ignoreCase": true
-        }
-      }
-    ]
+    "import-helpers/order-imports": "off"
+    // "import-helpers/order-imports": [
+    //   "warn",
+    //   {
+    //     "newlinesBetween": "always",
+    //     "groups": [
+    //       "/^react/",
+    //       "module",
+    //       "/^configs/",
+    //       "/^assets/",
+    //       "/^core/",
+    //       "/^app/",
+    //       ["parent", "sibling", "index"]
+    //     ],
+    //     "alphabetize": {
+    //       "order": "asc",
+    //       "ignoreCase": true
+    //     }
+    //   }
+    // ]
   },
   "settings": {
     "react": {

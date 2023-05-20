@@ -60,7 +60,7 @@ export function SRadio<T>({
 
           const disabledValue = isString
             ? false
-            : 'disabled' in option && optionData['disabled'];
+            : 'disabled' in (option as any) && optionData['disabled'];
 
           return (
             <FormControlLabel

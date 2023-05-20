@@ -4,7 +4,9 @@ import PendingActionsIcon from '@mui/icons-material/PendingActions';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SActionPlanIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SActionPlanIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <PendingActionsIcon {...props} />;
 };
 

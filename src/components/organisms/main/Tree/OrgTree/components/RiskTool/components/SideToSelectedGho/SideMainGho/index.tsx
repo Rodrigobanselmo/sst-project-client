@@ -13,7 +13,7 @@ import { ViewsDataEnum } from '../../../utils/view-data-type.constant';
 import { STBoxContainer, STBoxItem } from './styles';
 import { SideItemsProps } from './types';
 
-export const SideMainGho: FC<SideItemsProps> = ({
+export const SideMainGho: FC<{ children?: any } & SideItemsProps> = ({
   data,
   handleSelect,
   isSelected,

@@ -49,12 +49,12 @@ import {
 import { queryClient } from 'core/services/queryClient';
 
 export const DocTable: FC<
-  BoxProps & {
-    hideTitle?: boolean;
-    rowsPerPage?: number;
-    query?: Partial<IQueryDocVersion>;
-    type: DocumentTypeEnum;
-  }
+  { children?: any } & BoxProps & {
+      hideTitle?: boolean;
+      rowsPerPage?: number;
+      query?: Partial<IQueryDocVersion>;
+      type: DocumentTypeEnum;
+    }
 > = ({ rowsPerPage = 8, hideTitle, query, type }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const {
@@ -155,7 +155,7 @@ export const DocTable: FC<
           <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Download</STableHRow>
         </STableHeader>
-        <STableBody<typeof docs[0]>
+        <STableBody<(typeof docs)[0]>
           hideLoadMore
           rowsData={docs}
           renderRow={(row) => {

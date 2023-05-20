@@ -51,7 +51,9 @@ const AddButton = (props: any) => {
   );
 };
 
-export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
+export const ProfessionalInputSelect: FC<
+  { children?: any } & IProfessionalSelectProps
+> = ({
   onChange,
   type = [ProfessionalTypeEnum.DOCTOR],
   inputProps,
@@ -81,7 +83,9 @@ export const ProfessionalInputSelect: FC<IProfessionalSelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.name || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.name) || ''
+      }
       options={professionals}
       loading={loadProfessionals}
       onInputChange={(e, v) => handleSearchChange(v)}

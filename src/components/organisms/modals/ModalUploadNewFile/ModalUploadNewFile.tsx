@@ -43,7 +43,9 @@ export const initialFileUploadState = {
 
 const modalName = ModalEnum.UPLOAD_NEW_FILE;
 
-export const ModalUploadNewFile: FC<SModalUploadPhoto> = () => {
+export const ModalUploadNewFile: FC<
+  { children?: any } & SModalUploadPhoto
+> = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { onCloseModal } = useModal();

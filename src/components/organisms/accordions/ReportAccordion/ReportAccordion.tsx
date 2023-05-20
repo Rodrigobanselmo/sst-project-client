@@ -15,7 +15,9 @@ import { useModal } from 'core/hooks/useModal';
 import { IReportJson, reports } from './report.constants';
 import { IReportAccordionProps } from './types';
 
-export const ReportAccordion: FC<IReportAccordionProps> = ({ ...props }) => {
+export const ReportAccordion: FC<
+  { children?: any } & IReportAccordionProps
+> = ({ ...props }) => {
   const [search, setSearch] = useState('');
   const { onStackOpenModal } = useModal();
   const { isValidRoles, isValidPermissions, isToRemoveWithRoles } = useAccess();

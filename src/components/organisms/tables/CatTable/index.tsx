@@ -34,12 +34,12 @@ import { useQueryCats } from 'core/services/hooks/queries/useQueryCats/useQueryC
 import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
 
 export const CatsTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: ICat) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: ICat) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+    }
 > = ({ rowsPerPage = 8, onSelectData, hideTitle, companyId }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -102,7 +102,7 @@ export const CatsTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof group[0]>
+        <STableBody<(typeof group)[0]>
           rowsData={group}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

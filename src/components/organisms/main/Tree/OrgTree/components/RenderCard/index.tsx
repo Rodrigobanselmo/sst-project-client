@@ -18,7 +18,7 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
   const { drop, isDragging, drag } = useDnd(node);
   const { onOpenModal } = useModal();
   const menuRef = useRef<HTMLDivElement>(null);
-  // const store = useStore();
+  // const store = useStore<any>();
 
   const clx = ['org-tree-node-label-inner'];
 

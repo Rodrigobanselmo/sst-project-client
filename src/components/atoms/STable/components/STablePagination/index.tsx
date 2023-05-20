@@ -17,7 +17,7 @@ function generatePagesArray(from: number, to: number): number[] {
     .filter((page) => page > 0);
 }
 
-const STablePagination: FC<STablePaginationProps> = ({
+const STablePagination: FC<{ children?: any } & STablePaginationProps> = ({
   onPageChange,
   totalCountOfRegisters,
   currentPage = 1,

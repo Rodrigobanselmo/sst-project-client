@@ -3,7 +3,7 @@ import React, { FC } from 'react';
 import { STTypography } from './styles';
 import { STextProps } from './types';
 
-const SText: FC<STextProps> = ({
+const SText: FC<{ children?: any } & STextProps> = ({
   textAlign = 'start',
   lineNumber,
   noBreak,

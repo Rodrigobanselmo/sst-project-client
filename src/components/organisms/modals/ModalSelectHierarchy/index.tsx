@@ -52,7 +52,7 @@ export const ModalSelectHierarchy: FC = () => {
   const { onCloseModal } = useModal();
   const { data: company } = useQueryCompany();
   const [selectData, setSelectData] = useState(initialHierarchySelectState);
-  const store = useStore();
+  const store = useStore<any>();
   const dispatch = useAppDispatch();
 
   const { data } = useQueryHierarchies();

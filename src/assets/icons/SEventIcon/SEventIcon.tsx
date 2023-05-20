@@ -4,7 +4,9 @@ import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SEventIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SEventIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <ReceiptLongIcon {...props} />;
 };
 

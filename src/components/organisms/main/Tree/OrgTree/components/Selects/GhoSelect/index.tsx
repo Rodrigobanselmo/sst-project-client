@@ -16,7 +16,7 @@ export const getHomoGroupName = (homogeneousGroup: IGho) => {
   if (!homogeneousGroup.type) return `${homogeneousGroup.name}\n(GSE)`;
 };
 
-export const GhoSelect: FC<IGhoSelectProps> = ({
+export const GhoSelect: FC<{ children?: any } & IGhoSelectProps> = ({
   showAll,
   large,
   node,

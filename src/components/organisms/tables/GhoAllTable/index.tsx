@@ -23,11 +23,11 @@ import { IGho } from 'core/interfaces/api/IGho';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 
 export const GhoAllTable: FC<
-  BoxProps & {
-    companyId?: string;
-    onSelectData?: (company: IGho) => void;
-    selectedData?: IGho[];
-  }
+  { children?: any } & BoxProps & {
+      companyId?: string;
+      onSelectData?: (company: IGho) => void;
+      selectedData?: IGho[];
+    }
 > = ({ onSelectData, selectedData, companyId }) => {
   const { data, isLoading } = useQueryGHOAll(companyId);
   // const { onOpenModal } = useModal();
@@ -104,7 +104,7 @@ export const GhoAllTable: FC<
           <STableHRow justifyContent="center">Tipo</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
         </STableHeader>
-        <STableBody<typeof dataResult[0]>
+        <STableBody<(typeof dataResult)[0]>
           rowsData={results}
           renderRow={(row) => {
             return (

@@ -21,7 +21,9 @@ import { dateToString } from 'core/utils/date/date-format';
 import { ExamsScheduleClinicColumn } from './columns/ExamsScheduleClinic';
 import { IExamsScheduleTable, IExamsScheduleTableProps } from './types';
 
-export const ExamsScheduleTable: FC<IExamsScheduleTableProps> = (props) => {
+export const ExamsScheduleTable: FC<
+  { children?: any } & IExamsScheduleTableProps
+> = (props) => {
   const { data, hideHeader, setData, hideInstruct, disabled, isPendingExams } =
     props;
 

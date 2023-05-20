@@ -10,13 +10,9 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { SelectedTableItemProps } from './types';
 
-export const SelectedTableItem: FC<SelectedTableItemProps> = ({
-  name,
-  tooltip,
-  handleRemove,
-  isExpired,
-  handleEdit,
-}) => {
+export const SelectedTableItem: FC<
+  { children?: any } & SelectedTableItemProps
+> = ({ name, tooltip, handleRemove, isExpired, handleEdit }) => {
   return (
     <STooltip title={tooltip || name}>
       <SFlex

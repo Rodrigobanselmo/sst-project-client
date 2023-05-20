@@ -4,7 +4,9 @@ import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SArrowNextIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SArrowNextIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <ArrowForwardIosIcon {...props} />;
 };
 

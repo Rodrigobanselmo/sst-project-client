@@ -4,7 +4,9 @@ import EditIcon from '@mui/icons-material/Edit';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SEditIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SEditIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <EditIcon {...props} />;
 };
 

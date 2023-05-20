@@ -15,7 +15,7 @@ import SExamIcon from 'assets/icons/SExamIcon';
 import SFlex from '../SFlex';
 import { ISTagProps } from './types';
 
-export const STagAction: FC<ISTagProps> = ({
+export const STagAction: FC<{ children?: any } & ISTagProps> = ({
   text,
   action,
   icon: Icon,

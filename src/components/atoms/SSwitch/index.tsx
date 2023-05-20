@@ -5,7 +5,7 @@ import { FormControlLabel } from '@mui/material';
 import { STSwitch } from './styles';
 import { SSwitchProps } from './types';
 
-export const SSwitch: FC<SSwitchProps> = ({
+export const SSwitch: FC<{ children?: any } & SSwitchProps> = ({
   formControlProps = {},
   fontSize = '14px',
   label,

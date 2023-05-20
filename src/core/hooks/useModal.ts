@@ -13,7 +13,7 @@ import { useAppDispatch } from './useAppDispatch';
 
 export const useModal = () => {
   const dispatch = useAppDispatch();
-  const store = useStore();
+  const store = useStore<any>();
 
   const setCurrentModal = useCallback(
     (modalName: ICurrentModal[]) => {

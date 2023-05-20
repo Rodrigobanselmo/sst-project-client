@@ -32,12 +32,12 @@ import {
 } from 'core/services/hooks/queries/useQueryGhos/useQueryGhos';
 
 export const GhosTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: IGho) => void;
-    selectedData?: IGho[];
-    query?: IQueryGhos;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: IGho) => void;
+      selectedData?: IGho[];
+      query?: IQueryGhos;
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -100,7 +100,7 @@ export const GhosTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof risks[0]>
+        <STableBody<(typeof risks)[0]>
           rowsData={risks}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

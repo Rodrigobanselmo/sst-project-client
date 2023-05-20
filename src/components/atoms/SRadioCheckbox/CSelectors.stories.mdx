@@ -325,7 +325,7 @@ any grid template collumns are supported by passig the number of collumns.
 ## Structure
 
 ```tsx
-const SRadioCheckbox: FC<SRadioCheckboxType> = ({ inputProps, itemProps, gridItemsProps, ...props }) => {
+const SRadioCheckbox: FC<{ children?: any } & SRadioCheckboxType> = ({ inputProps, itemProps, gridItemsProps, ...props }) => {
   return (
     <Grid container {...props}>
       {options.map((option) => {

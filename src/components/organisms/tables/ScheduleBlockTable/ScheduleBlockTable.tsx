@@ -54,12 +54,12 @@ export const getScheduleRecurrence = (schedule: IScheduleBlock) => {
 };
 
 export const ScheduleBlockTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IScheduleBlock) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IScheduleBlock) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+    }
 > = ({ rowsPerPage = 8, onSelectData, hideTitle, companyId }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -123,7 +123,7 @@ export const ScheduleBlockTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof blocks[0]>
+        <STableBody<(typeof blocks)[0]>
           rowsData={blocks}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

@@ -8,7 +8,9 @@ import sortArray from 'sort-array';
 
 import { ISectionTypeModelSelectProps } from './types';
 
-export const SectionTypeModelSelect: FC<ISectionTypeModelSelectProps> = ({
+export const SectionTypeModelSelect: FC<
+  { children?: any } & ISectionTypeModelSelectProps
+> = ({
   selected,
   sections,
   large,

@@ -37,12 +37,12 @@ import { IQueryEvents } from 'core/services/hooks/queries/useQueryEvents/useQuer
 import { dateToString } from 'core/utils/date/date-format';
 
 export const ESocialBatchTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (event: IESocialBatch) => void;
-    selectedData?: IESocialBatch[];
-    query?: IQueryEvents;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (event: IESocialBatch) => void;
+      selectedData?: IESocialBatch[];
+      query?: IQueryEvents;
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { onStackOpenModal } = useModal();
@@ -133,7 +133,7 @@ export const ESocialBatchTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof eventBatch[0]>
+        <STableBody<(typeof eventBatch)[0]>
           rowsData={eventBatch}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

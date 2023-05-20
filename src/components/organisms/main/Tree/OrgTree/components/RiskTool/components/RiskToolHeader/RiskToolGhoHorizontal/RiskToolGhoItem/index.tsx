@@ -21,10 +21,10 @@ import { ViewsDataEnum } from '../../../../utils/view-data-type.constant';
 import { IHierarchyTreeMapObject } from '../../../RiskToolViews/RiskToolRiskView/types';
 
 export const RiskToolGhoItem: FC<
-  BoxProps & {
-    gho: IGho | IHierarchyTreeMapObject;
-    viewDataType: ViewsDataEnum;
-  }
+  { children?: any } & BoxProps & {
+      gho: IGho | IHierarchyTreeMapObject;
+      viewDataType: ViewsDataEnum;
+    }
 > = ({ gho, viewDataType, ...props }) => {
   const isSelected = useAppSelector(selectGhoIsSelected(gho.id));
   const searchSelected = useAppSelector(selectGhoSearch);

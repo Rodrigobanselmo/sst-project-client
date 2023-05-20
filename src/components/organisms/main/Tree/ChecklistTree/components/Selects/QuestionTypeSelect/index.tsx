@@ -12,13 +12,9 @@ import {
 } from './constants/question-options.constant';
 import { IQuestionTypeSelectSelectProps } from './types';
 
-export const QuestionTypeSelect: FC<IQuestionTypeSelectSelectProps> = ({
-  large,
-  handleSelect,
-  node,
-  keepOnlyPersonalized,
-  ...props
-}) => {
+export const QuestionTypeSelect: FC<
+  { children?: any } & IQuestionTypeSelectSelectProps
+> = ({ large, handleSelect, node, keepOnlyPersonalized, ...props }) => {
   const { preventMultipleTextOptions } = usePreventNode();
 
   const handleSelectOption = ({ name, value }: IMenuOptionResponse) => {

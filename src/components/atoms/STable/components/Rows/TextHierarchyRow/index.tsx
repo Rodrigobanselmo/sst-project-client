@@ -5,11 +5,9 @@ import SText from 'components/atoms/SText';
 import TextIconRow from '../TextIconRow';
 import { TextHierarchyRowProps } from './types';
 
-export const TextHierarchyRow: FC<TextHierarchyRowProps> = ({
-  office,
-  sector,
-  ...props
-}) => {
+export const TextHierarchyRow: FC<
+  { children?: any } & TextHierarchyRowProps
+> = ({ office, sector, ...props }) => {
   if (!office) return <div />;
 
   return (

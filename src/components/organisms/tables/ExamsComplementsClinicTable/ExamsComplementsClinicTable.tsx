@@ -17,6 +17,7 @@ import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker
 import { SelectForm } from 'components/molecules/form/select';
 import { SIconUploadFile } from 'components/molecules/SIconUploadFile/SIconUploadFile';
 import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
+import { onUserSchedule } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { employeeExamConclusionTypeList } from 'project/enum/employee-exam-history-conclusion.enum';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -34,12 +35,11 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { IEmployeeExamsHistory } from 'core/interfaces/api/IEmployee';
 import { dateToDate, dateToString } from 'core/utils/date/date-format';
 import { intMask } from 'core/utils/masks/int.mask';
-import { onUserSchedule } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/hooks/useEditExamData';
 
 export interface IExamComplementsClinicTable extends IEmployeeExamsHistory {}
 
 export const ExamsComplementsClinicTable: FC<
-  BoxProps &
+  { children?: any } & BoxProps &
     Partial<IUseTableSelect> & {
       data?: IExamComplementsClinicTable[];
       setData?: (data: Partial<IExamComplementsClinicTable>) => void;

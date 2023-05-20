@@ -55,7 +55,7 @@ export const ModalEditCard = () => {
   const { preventDelete } = usePreventNode();
   const { preventUnwantedChanges } = usePreventAction();
 
-  const store = useStore();
+  const store = useStore<any>();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const switchRef = useRef<HTMLInputElement>(null);
 

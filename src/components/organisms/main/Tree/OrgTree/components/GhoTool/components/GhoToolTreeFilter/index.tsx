@@ -10,7 +10,7 @@ import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 import { GhoSearchInput } from '../GhoSearchInput';
 import { GhoHeaderProps } from './types';
 
-export const GhoToolTreeFilter: FC<GhoHeaderProps> = ({
+export const GhoToolTreeFilter: FC<{ children?: any } & GhoHeaderProps> = ({
   isAddLoading,
   inputRef,
 }) => {

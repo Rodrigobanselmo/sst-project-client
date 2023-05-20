@@ -22,6 +22,8 @@ import {
 } from '../../../../core/utils/schemas/login.schema';
 import { STForgotButton } from './styles';
 
+const ReCAPTCHAComp = ReCAPTCHA as any;
+
 export const LoginForm: FC = () => {
   const { handleSubmit, control, watch } = useForm({
     resolver: yupResolver(Yup.object().shape({ ...loginSchema })),
@@ -87,7 +89,7 @@ export const LoginForm: FC = () => {
         Esqueceu sua senha ?
       </STForgotButton>
       <SFlex mt={10} center>
-        <ReCAPTCHA
+        <ReCAPTCHAComp
           sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
           onChange={onRecaptchaChange}
         />

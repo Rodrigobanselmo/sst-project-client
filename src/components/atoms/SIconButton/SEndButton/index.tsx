@@ -6,11 +6,11 @@ import SIconButton from 'components/atoms/SIconButton';
 import { SIconButtonProps } from 'components/atoms/SIconButton/types';
 
 export const SEndButton: FC<
-  SIconButtonProps & {
-    iconColor?: string;
-    icon?: ReactNode;
-    iconProps?: IconProps;
-  }
+  { children?: any } & SIconButtonProps & {
+      iconColor?: string;
+      icon?: ReactNode;
+      iconProps?: IconProps;
+    }
 > = ({
   iconColor = 'common.white',
   icon = AddIcon,

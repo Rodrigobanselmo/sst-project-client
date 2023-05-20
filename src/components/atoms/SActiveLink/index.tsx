@@ -28,7 +28,7 @@ export function SActiveLink({
         onClick={(e) => rest?.onClick?.(e)}
         sx={{ cursor: 'pointer' }}
         position={'relative'}
-        {...rest}
+        {...(rest as any)}
       >
         <Box marginLeft={-8}>{children}</Box>
         <Box position={'absolute'} right={16} top={5}>
@@ -48,7 +48,7 @@ export function SActiveLink({
       <Box
         onClick={(e) => rest?.onClick?.(e)}
         sx={{ cursor: 'pointer' }}
-        {...rest}
+        {...(rest as any)}
       >
         {children}
       </Box>
@@ -69,7 +69,7 @@ export function SActiveLink({
 
   return (
     <Link href={rest.href || ''} {...rest}>
-      {cloneElement(children, {
+      {cloneElement<any>(children, {
         is_active: isActive ? 1 : 0,
       })}
     </Link>

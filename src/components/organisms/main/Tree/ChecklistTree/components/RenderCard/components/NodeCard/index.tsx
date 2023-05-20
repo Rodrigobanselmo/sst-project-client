@@ -29,10 +29,9 @@ import { QuestionTypeSelect } from '../../../Selects/QuestionTypeSelect';
 import { TypeSelect } from '../../../Selects/TypeSelect';
 import { INodeCardProps } from './types';
 
-const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({
-  label,
-  type,
-}) => {
+const NodeLabel: FC<
+  { children?: any } & { label: string; type: TreeTypeEnum }
+> = ({ label, type }) => {
   const hasLabel = [TreeTypeEnum.OPTION, TreeTypeEnum.QUESTION].includes(type);
   return (
     <STooltip
@@ -56,7 +55,10 @@ const NodeLabel: FC<{ label: string; type: TreeTypeEnum }> = ({
   );
 };
 
-export const NodeCard: FC<INodeCardProps> = ({ node, menuRef }) => {
+export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
+  node,
+  menuRef,
+}) => {
   const { onOpenModal } = useModal();
   const { editNodes, createEmptyCard, reorderNodes, getAllParentRisksById } =
     useChecklistTreeActions();

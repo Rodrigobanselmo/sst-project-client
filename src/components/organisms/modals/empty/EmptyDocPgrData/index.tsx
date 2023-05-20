@@ -11,7 +11,9 @@ interface EmptyProps {
   text?: string;
 }
 
-export const EmptyDocPgrData: FC<EmptyProps> = ({ text }) => {
+export const EmptyDocPgrData: FC<{ children?: any } & EmptyProps> = ({
+  text,
+}) => {
   const { onOpenModal } = useModal();
 
   const handleAddMissingData = () => {

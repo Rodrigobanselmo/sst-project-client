@@ -16,7 +16,7 @@ import { STagSearchSelect } from '../../../../../../../molecules/STagSearchSelec
 import { blockFilter } from './constants/filters';
 import { ITypeSelectProps } from './types';
 
-export const BlockSelect: FC<ITypeSelectProps> = ({
+export const BlockSelect: FC<{ children?: any } & ITypeSelectProps> = ({
   large,
   handleSelect,
   node,
@@ -24,7 +24,7 @@ export const BlockSelect: FC<ITypeSelectProps> = ({
 }) => {
   const { getHigherLevelNodes, setBlockNode } = useChecklistTreeActions();
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const store = useStore();
+  const store = useStore<any>();
 
   const handleSelectBlock = (options: string[]) => {
     if (handleSelect) handleSelect(options);

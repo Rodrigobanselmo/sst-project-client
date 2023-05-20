@@ -15,7 +15,7 @@ import { SMenuSearchItems } from './SMenuSearchItems';
 import { STMenu, STSInput } from './styles';
 import { IMenuSearchOption, SMenuSearchProps } from './types';
 
-export const SMenuSearch: FC<SMenuSearchProps> = ({
+export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
   isOpen,
   close,
   anchorEl,
@@ -64,7 +64,7 @@ export const SMenuSearch: FC<SMenuSearchProps> = ({
     handleSelect(localSelected.current, e);
     setSearch('');
     close();
-    localSelected.current = [];
+    localSelected.current = [] as any;
   };
 
   const handleSearchChange = useDebouncedCallback((value: string) => {

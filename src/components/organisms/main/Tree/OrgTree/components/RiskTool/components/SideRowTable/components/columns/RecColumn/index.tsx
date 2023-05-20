@@ -9,7 +9,7 @@ import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { RecColumnProps } from './types';
 
-export const RecColumn: FC<RecColumnProps> = ({
+export const RecColumn: FC<{ children?: any } & RecColumnProps> = ({
   handleSelect,
   handleRemove,
   data,

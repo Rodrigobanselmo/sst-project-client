@@ -7,7 +7,7 @@ import STooltip from 'components/atoms/STooltip';
 
 import { TextIconRowProps } from './types';
 
-const TextIconRow: FC<TextIconRowProps> = ({
+const TextIconRow: FC<{ children?: any } & TextIconRowProps> = ({
   tooltipTitle,
   text,
   icon,

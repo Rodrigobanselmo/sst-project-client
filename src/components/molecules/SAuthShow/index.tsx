@@ -43,13 +43,9 @@ export const useAuthShow = () => {
 
 //<Acces
 //<SAcces
-export const SAuthShow: FC<ISAuthShow> = ({
-  roles,
-  permissions,
-  hideIf,
-  cruds,
-  children,
-}) => {
+export const SAuthShow: FC<
+  { children?: any } & { children?: any } & ISAuthShow
+> = ({ roles, permissions, hideIf, cruds, children }) => {
   const { isAuthSuccess } = useAuthShow();
 
   if (hideIf) return null;

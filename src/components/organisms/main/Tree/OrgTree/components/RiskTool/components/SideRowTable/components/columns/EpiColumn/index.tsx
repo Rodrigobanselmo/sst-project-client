@@ -10,7 +10,7 @@ import { IEpi } from 'core/interfaces/api/IEpi';
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { EpiColumnProps } from './types';
 
-export const EpiColumn: FC<EpiColumnProps> = ({
+export const EpiColumn: FC<{ children?: any } & EpiColumnProps> = ({
   handleSelect,
   data,
   handleRemove,

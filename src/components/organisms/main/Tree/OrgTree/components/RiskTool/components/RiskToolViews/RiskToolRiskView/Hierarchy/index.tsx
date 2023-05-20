@@ -17,7 +17,9 @@ import { useListHierarchy } from '../../../../hooks/useListHierarchy';
 import { SideRow } from '../../../SideRow';
 import { RiskToolRiskViewProps } from './types';
 
-export const RiskToolRiskHierarchyView: FC<RiskToolRiskViewProps> = ({
+export const RiskToolRiskHierarchyView: FC<
+  { children?: any } & RiskToolRiskViewProps
+> = ({
   handleDeleteGHO,
   handleEditGHO,
   handleSelectGHO,

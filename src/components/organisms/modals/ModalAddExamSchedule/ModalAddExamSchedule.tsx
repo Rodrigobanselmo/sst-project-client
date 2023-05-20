@@ -45,8 +45,11 @@ export const ModalAddExamSchedule = () => {
         />
         <Wizard schemas={[examScheduleSchema]}>
           <EmployeeStep {...props} />
-          {props.data.examType != 'EVAL' && <ExamStep {...props} />}
-          {props.data.examType == 'EVAL' && <EvalStep {...props} />}
+          {props.data.examType != 'EVAL' ? (
+            <ExamStep {...props} />
+          ) : (
+            <EvalStep {...props} />
+          )}
           <EvaluationStep {...props} />
           <ResumeStep {...props} />
         </Wizard>

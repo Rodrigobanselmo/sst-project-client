@@ -2,10 +2,9 @@ import React from 'react';
 
 import { NodeDocumentModel } from '../types/types';
 
-const Placeholder: React.FC<{ node: NodeDocumentModel; depth: number }> = ({
-  node,
-  depth,
-}) => {
+const Placeholder: React.FC<
+  { children?: any } & { node: NodeDocumentModel; depth: number }
+> = ({ node, depth }) => {
   return (
     <div
       style={{

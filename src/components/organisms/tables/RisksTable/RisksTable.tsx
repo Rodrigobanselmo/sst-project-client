@@ -43,12 +43,12 @@ import { queryClient } from 'core/services/queryClient';
 import { getRiskDoc } from '../RiskCompanyTable/RiskCompanyTable';
 
 export const RisksTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: IRiskFactors) => void;
-    selectedData?: IRiskFactors[];
-    query?: IQueryExam;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: IRiskFactors) => void;
+      selectedData?: IRiskFactors[];
+      query?: IQueryExam;
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -142,7 +142,7 @@ export const RisksTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof risks[0]>
+        <STableBody<(typeof risks)[0]>
           rowsData={risks}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

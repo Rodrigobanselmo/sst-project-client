@@ -7,7 +7,7 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 import TextIconRow from '../TextIconRow';
 import { TextEmployeeRowProps } from './types';
 
-export const TextEmployeeRow: FC<TextEmployeeRowProps> = ({
+export const TextEmployeeRow: FC<{ children?: any } & TextEmployeeRowProps> = ({
   employee,
   ...props
 }) => {

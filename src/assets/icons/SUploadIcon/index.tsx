@@ -5,7 +5,9 @@ import FileUploadOutlinedIcon from '@mui/icons-material/FileUploadOutlined';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SUploadIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SUploadIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <CloudUploadIcon {...props} />;
 };
 

@@ -6,7 +6,7 @@ import Button from '@mui/material/Button';
 
 import { SButtonProps } from '../../types';
 
-export const ButtonLoad: FC<SButtonProps> = ({
+export const ButtonLoad: FC<{ children?: any } & SButtonProps> = ({
   children,
   loading,
   ...props

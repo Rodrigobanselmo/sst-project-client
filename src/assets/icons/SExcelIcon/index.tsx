@@ -3,9 +3,9 @@ import React, { FC } from 'react';
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
 export const SExcelIcon: FC<
-  IIconMuiProps & {
-    fontSize?: string;
-  }
+  { children?: any } & IIconMuiProps & {
+      fontSize?: string;
+    }
 > = ({ fontSize = '1.5rem' }) => {
   return (
     <svg

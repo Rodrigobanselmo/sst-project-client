@@ -9,11 +9,9 @@ import { useQueryEsocial20Lograd } from 'core/services/hooks/queries/useQueryEso
 
 import { IEsocialTable20SelectProps } from './types';
 
-export const Esocial20LogradSelect: FC<IEsocialTable20SelectProps> = ({
-  onChange,
-  inputProps,
-  ...props
-}) => {
+export const Esocial20LogradSelect: FC<
+  { children?: any } & IEsocialTable20SelectProps
+> = ({ onChange, inputProps, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -28,7 +26,9 @@ export const Esocial20LogradSelect: FC<IEsocialTable20SelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.desc || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.desc) || ''
+      }
       options={tables}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}

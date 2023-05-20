@@ -16,7 +16,9 @@ import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { hierarchyFilter } from './constants/filters';
 import { IHierarchyTypeSelectProps } from './types';
 
-export const HierarchySelect: FC<IHierarchyTypeSelectProps> = ({
+export const HierarchySelect: FC<
+  { children?: any } & IHierarchyTypeSelectProps
+> = ({
   large,
   handleSelect,
   text,

@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
+import clone from 'clone';
 import SFlex from 'components/atoms/SFlex';
 import {
   STable,
@@ -16,6 +17,7 @@ import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmp
 import { TextExamResult } from 'components/atoms/STable/components/Rows/TextExamResult';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { FilterFieldEnum } from 'components/atoms/STable/components/STableFilter/constants/filter.map';
+import { doneExamsFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/doneExamsFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import {
   IFilterTableData,
@@ -56,21 +58,19 @@ import { dateToString } from 'core/utils/date/date-format';
 
 import { useScheduleExam } from './hooks/useScheduleExam';
 import { SDropIconEmployee } from './SDropIconEmployee/SDropIconEmployee';
-import { doneExamsFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/doneExamsFilterList';
-import clone from 'clone';
 
 export const HistoryScheduleExamCompanyTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IEmployeeExamsHistory) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    employeeId?: number;
-    employee?: IEmployee;
-    query?: IQueryEmployeeHistHier;
-    filter?: IFilterTableData;
-    setFilter?: (filter: IFilterTableData) => void;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IEmployeeExamsHistory) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      employeeId?: number;
+      employee?: IEmployee;
+      query?: IQueryEmployeeHistHier;
+      filter?: IFilterTableData;
+      setFilter?: (filter: IFilterTableData) => void;
+    }
 > = ({ rowsPerPage = 12, setFilter, filter, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
   const filterProps = useFilterTable(
@@ -240,7 +240,7 @@ export const HistoryScheduleExamCompanyTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof historyExam[0]>
+        <STableBody<(typeof historyExam)[0]>
           rowsData={historyExam}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

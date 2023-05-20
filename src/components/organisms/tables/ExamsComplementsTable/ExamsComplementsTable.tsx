@@ -37,12 +37,12 @@ export interface IExamComplementsTable {
 }
 
 export const ExamsComplementsTable: FC<
-  BoxProps & {
-    data?: IExamComplementsTable[];
-    setData?: (data: Partial<IExamComplementsTable>) => void;
-    control: Control<any, object>;
-    setValue: UseFormSetValue<FieldValues>;
-  }
+  { children?: any } & BoxProps & {
+      data?: IExamComplementsTable[];
+      setData?: (data: Partial<IExamComplementsTable>) => void;
+      control: Control<any, object>;
+      setValue: UseFormSetValue<FieldValues>;
+    }
 > = ({ data, setData, control, setValue }) => {
   const handleDebounceChange = useDebouncedCallback((value: any) => {
     setData?.(value);

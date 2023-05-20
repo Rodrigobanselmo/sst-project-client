@@ -1,13 +1,14 @@
 import { FC } from 'react';
 
+import { Box } from '@mui/material';
 import SText from 'components/atoms/SText';
 
-import { Box } from '@mui/material';
 import { getAddressCity, getAddressMain } from 'core/utils/helpers/getAddress';
+
 import TextIconRow from '../TextIconRow';
 import { TextCompanyRowProps } from './types';
 
-export const TextClinicRow: FC<TextCompanyRowProps> = ({
+export const TextClinicRow: FC<{ children?: any } & TextCompanyRowProps> = ({
   clinic,
   fontSize,
   ...props

@@ -10,12 +10,9 @@ import { FilterFieldEnum } from '../constants/filter.map';
 import { STableFilterBox } from '../STableFilterBox/STableFilterBox';
 import { IFilterPopperProps } from './types';
 
-export const STableFilterPopper: FC<IFilterPopperProps> = ({
-  anchorEl,
-  isOpen,
-  close,
-  filterProps,
-}) => {
+export const STableFilterPopper: FC<
+  { children?: any } & IFilterPopperProps
+> = ({ anchorEl, isOpen, close, filterProps }) => {
   return (
     <SPopperArrow
       anchorEl={anchorEl}

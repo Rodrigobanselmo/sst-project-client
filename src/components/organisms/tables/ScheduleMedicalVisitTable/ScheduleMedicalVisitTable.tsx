@@ -12,8 +12,8 @@ import {
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import { medicalVisitFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/medicalVisitFilterList';
 import { expiredExamFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/expiredExamFilterList';
+import { medicalVisitFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/medicalVisitFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
@@ -21,9 +21,11 @@ import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
+import { initialModalEditScheduleMedicalVisitState } from 'components/organisms/modals/ModalEditScheduleMedicalVisit/hooks/useModalEditScheduleMedicalVisit';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 
 import EditIcon from 'assets/icons/SEditIcon';
+
 import {
   statusOptionsConstantEmployee,
   statusOptionsConstantExam,
@@ -40,16 +42,15 @@ import {
 } from 'core/services/hooks/queries/useQueryScheduleMedicalVisit/useQueryScheduleMedicalVisit';
 import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
-import { initialModalEditScheduleMedicalVisitState } from 'components/organisms/modals/ModalEditScheduleMedicalVisit/hooks/useModalEditScheduleMedicalVisit';
 
 export const ScheduleMedicalVisitTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IScheduleMedicalVisit) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    query?: IQueryScheduleMedicalVisit;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IScheduleMedicalVisit) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      query?: IQueryScheduleMedicalVisit;
+    }
 > = ({ rowsPerPage = 8, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
   const filterProps = useFilterTable(undefined, {
@@ -134,7 +135,7 @@ export const ScheduleMedicalVisitTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof historyExam[0]>
+        <STableBody<(typeof historyExam)[0]>
           rowsData={historyExam}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

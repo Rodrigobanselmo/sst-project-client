@@ -8,7 +8,7 @@ export const signSchema = {
     .min(8, 'senha deve conter no mínimo 8 characteres')
     .required('Campo obrigatório'),
   passwordConfirmation: Yup.string().oneOf(
-    [Yup.ref('password'), null],
+    [Yup.ref('password'), null as unknown as any],
     'As senhas devem ser iguais',
   ),
 };

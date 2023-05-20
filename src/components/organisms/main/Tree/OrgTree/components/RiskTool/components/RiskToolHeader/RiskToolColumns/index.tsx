@@ -18,7 +18,9 @@ import { ViewTypeEnum } from '../../../utils/view-risk-type.constant';
 import { STGridHeader, StyledSArrowUpFilterIcon } from '../styles';
 import { SideHeaderProps as RiskToolProps } from '../types';
 
-export const RiskToolColumns: FC<Partial<RiskToolProps>> = ({ viewType }) => {
+export const RiskToolColumns: FC<
+  { children?: any } & Partial<RiskToolProps>
+> = ({ viewType }) => {
   const dispatch = useAppDispatch();
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const { columns } = useRowColumns();

@@ -5,7 +5,7 @@ import STooltip from 'components/atoms/STooltip';
 
 import { IIconButtonRowProps } from './types';
 
-const IconButtonRow: FC<IIconButtonRowProps> = ({
+const IconButtonRow: FC<{ children?: any } & IIconButtonRowProps> = ({
   icon,
   tooltipTitle,
   sx,

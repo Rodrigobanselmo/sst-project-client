@@ -18,7 +18,7 @@ import {
 } from './styles';
 import { STableProps, STableBodyProps } from './types';
 
-export const STable: FC<STableProps> = ({
+export const STable: FC<{ children?: any } & STableProps> = ({
   rowGap = '10px',
   columns,
   loading,
@@ -40,7 +40,10 @@ export const STable: FC<STableProps> = ({
   </Box>
 );
 
-export const STableHeader: FC<BoxProps> = ({ className, ...props }) => (
+export const STableHeader: FC<{ children?: any } & BoxProps> = ({
+  className,
+  ...props
+}) => (
   <STSTableHeader
     px={6}
     py={4}
@@ -76,7 +79,7 @@ export function STableBody<T>({
         {rows.map((row, index) => renderRow(row, index))}
       </STSTableBody>
       {!hideEmpty && rows.length === 0 && (
-        <STableEmpty content={contentEmpty} />
+        <STableEmpty content={contentEmpty as any} />
       )}
       {!hideLoadMore && (
         <STableLoadMore
@@ -99,10 +102,10 @@ export type ITableRowStatus =
   | undefined;
 
 export const STableRow: FC<
-  BoxProps & {
-    clickable?: boolean;
-    status?: ITableRowStatus;
-  }
+  { children?: any } & BoxProps & {
+      clickable?: boolean;
+      status?: ITableRowStatus;
+    }
 > = ({ className, clickable, ...props }) => (
   <STSTableRow
     clickable={clickable ? 1 : 0}
@@ -114,7 +117,7 @@ export const STableRow: FC<
   />
 );
 
-export const STableHRow: FC<BoxProps> = ({ ...props }) => (
+export const STableHRow: FC<{ children?: any } & BoxProps> = ({ ...props }) => (
   <STSTableHRow fontSize={13} {...props} />
 );
 {

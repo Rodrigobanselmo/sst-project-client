@@ -34,7 +34,7 @@ import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMut
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
-export const RiskGroupDataTable: FC<BoxProps> = () => {
+export const RiskGroupDataTable: FC<{ children?: any } & BoxProps> = () => {
   const { data, isLoading } = useQueryRiskGroupData();
   const { onOpenModal } = useModal();
   const downloadMutation = useMutDownloadFile();
@@ -98,7 +98,7 @@ export const RiskGroupDataTable: FC<BoxProps> = () => {
           <STableHRow justifyContent="center">Status</STableHRow>
           {/* <STableHRow justifyContent="center">Download</STableHRow> */}
         </STableHeader>
-        <STableBody<typeof data[0]>
+        <STableBody<(typeof data)[0]>
           rowsData={results}
           maxHeight={500}
           renderRow={(row) => {

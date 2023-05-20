@@ -9,7 +9,7 @@ import SHelpIcon from 'assets/icons/SHelpIcon';
 import STooltip from '../STooltip';
 import { SHelpProps } from './types';
 
-export const SHelp: FC<SHelpProps> = ({
+export const SHelp: FC<{ children?: any } & SHelpProps> = ({
   fontSize = 15,
   tooltip,
   color = 'grey.700',

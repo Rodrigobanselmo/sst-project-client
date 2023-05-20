@@ -82,12 +82,12 @@ export const getRiskDoc = (
 };
 
 export const RiskCompanyTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (risk: IRiskFactors) => void;
-    selectedData?: IRiskFactors[];
-    query?: IQueryExam;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (risk: IRiskFactors) => void;
+      selectedData?: IRiskFactors[];
+      query?: IQueryExam;
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const [showOrigins, setShowRiskExam] = useState(false);
   const [openId, setOpenId] = useState('');
@@ -200,7 +200,7 @@ export const RiskCompanyTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof risks[0]>
+        <STableBody<(typeof risks)[0]>
           rowsData={risks}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

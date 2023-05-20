@@ -12,7 +12,7 @@ interface IEditEpiSelects {
   setEpiData: React.Dispatch<any>;
 }
 
-export const EditEpiSelects: FC<IEditEpiSelects> = ({
+export const EditEpiSelects: FC<{ children?: any } & IEditEpiSelects> = ({
   setEpiData,
   epiData,
 }) => {

@@ -8,11 +8,11 @@ export const masked = {
     {
       mask: '(00) 0000-0000',
       phone: 'landline',
-    },
+    } as any,
     {
       mask: '(00) 00000-0000',
       phone: 'mobile',
-    },
+    } as any,
   ],
   dispatch: (appended: string, dynamicMasked: IMask.MaskedDynamic | any) => {
     const landlineMask = dynamicMasked.compiledMasks.find(

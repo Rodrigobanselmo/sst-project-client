@@ -29,9 +29,9 @@ import { usePushRoute } from 'core/hooks/usePushRoute';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
-export const WorkspaceTable: FC<BoxProps & { hideModal?: boolean }> = ({
-  hideModal,
-}) => {
+export const WorkspaceTable: FC<
+  { children?: any } & BoxProps & { hideModal?: boolean }
+> = ({ hideModal }) => {
   const { data, isLoading } = useQueryCompany();
   const { onOpenModal } = useModal();
   const { handleAddWorkspace } = usePushRoute();

@@ -20,7 +20,7 @@ import { useQueryExams } from 'core/services/hooks/queries/useQueryExams/useQuer
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IExamSelectProps } from './types';
 
-export const ExamSelect: FC<IExamSelectProps> = ({
+export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   large,
   handleSelect,
   text,

@@ -33,14 +33,14 @@ import { IEvent2220 } from 'core/interfaces/api/IEvent';
 import { dateToString } from 'core/utils/date/date-format';
 
 export const SendEvent2220ESocialTable: FC<
-  BoxProps & {
-    isLoading?: boolean;
-    rowsPerPage?: number;
-    onSelectData?: (company: IEvent2220) => void;
-    selectedData?: IEvent2220[];
-    events: IEvent2220[];
-    company?: ICompany;
-  }
+  { children?: any } & BoxProps & {
+      isLoading?: boolean;
+      rowsPerPage?: number;
+      onSelectData?: (company: IEvent2220) => void;
+      selectedData?: IEvent2220[];
+      events: IEvent2220[];
+      company?: ICompany;
+    }
 > = ({
   rowsPerPage = 8,
   company,
@@ -152,7 +152,7 @@ export const SendEvent2220ESocialTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof events[0]>
+        <STableBody<(typeof events)[0]>
           rowsData={results}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

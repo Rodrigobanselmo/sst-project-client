@@ -6,12 +6,9 @@ import { SPopperArrow } from '../../../../../../../molecules/SPopperArrow';
 import { NotificationTable } from '../notificationTable/notificationTable';
 import { INotificationsPopperProps } from './types';
 
-export const NotificationsPopper: FC<INotificationsPopperProps> = ({
-  anchorEl,
-  isOpen,
-  close,
-  data,
-}) => {
+export const NotificationsPopper: FC<
+  { children?: any } & INotificationsPopperProps
+> = ({ anchorEl, isOpen, close, data }) => {
   return (
     <SPopperArrow
       anchorEl={anchorEl}

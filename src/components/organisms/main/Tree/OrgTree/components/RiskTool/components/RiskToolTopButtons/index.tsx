@@ -47,7 +47,7 @@ import {
 import { RiskToolTopButtonsSelectRisk } from './SelectRisk';
 import { SideTopProps } from './types';
 
-export const RiskToolTopButtons: FC<SideTopProps> = ({
+export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
   riskInit,
   handleSelectGHO,
   onChangeView,

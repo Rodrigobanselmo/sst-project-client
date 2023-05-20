@@ -9,7 +9,7 @@ import STooltip from 'components/atoms/STooltip';
 import { STMenu, STMenuItem } from './styles';
 import { SMenuProps, IMenuOptionResponse } from './types';
 
-export const SMenu: FC<SMenuProps> = ({
+export const SMenu: FC<{ children?: any } & SMenuProps> = ({
   isOpen,
   close,
   anchorEl,

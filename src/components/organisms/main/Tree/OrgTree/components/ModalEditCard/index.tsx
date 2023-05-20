@@ -93,7 +93,7 @@ export const ModalEditCard = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { preventUnwantedChanges } = usePreventAction();
 
-  const store = useStore();
+  const store = useStore<any>();
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const switchRef = useRef<HTMLInputElement>(null);
   const [workspacesIds, setWorkspaces] = useState<string[]>([]);

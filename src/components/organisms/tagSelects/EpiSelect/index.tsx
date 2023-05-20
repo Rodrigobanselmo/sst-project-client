@@ -20,7 +20,7 @@ import { useQueryEpis } from 'core/services/hooks/queries/useQueryEpis';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IEpiSelectProps } from './types';
 
-export const EpiSelect: FC<IEpiSelectProps> = ({
+export const EpiSelect: FC<{ children?: any } & IEpiSelectProps> = ({
   large,
   handleSelect,
   text,

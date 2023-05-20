@@ -1,9 +1,13 @@
 import { FC } from 'react';
 
 import { Box } from '@mui/material';
+
 import { ISBoxPaperProps } from './types';
 
-export const SBoxPaper: FC<ISBoxPaperProps> = ({ children, ...props }) => {
+export const SBoxPaper: FC<{ children?: any } & ISBoxPaperProps> = ({
+  children,
+  ...props
+}) => {
   return (
     <Box
       {...props}

@@ -5,6 +5,7 @@ import SCheckBox from 'components/atoms/SCheckBox';
 import { STable, STableBody, STableRow } from 'components/atoms/STable';
 import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import SText from 'components/atoms/SText';
 import { useStartEndDate } from 'components/organisms/modals/ModalAddCharacterization/hooks/useStartEndDate';
@@ -22,18 +23,17 @@ import { useMutUpdateHierarchyGho } from 'core/services/hooks/mutations/checklis
 import { dateToString } from 'core/utils/date/date-format';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
-import STablePagination from 'components/atoms/STable/components/STablePagination';
 
 export const HierarchyHomoTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: IHierarchy) => void;
-    selectedData?: IHierarchy[];
-    // query?: IQueryExam;
-    onAdd?: () => void;
-    hierarchies: IHierarchy[];
-    loading: boolean;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: IHierarchy) => void;
+      selectedData?: IHierarchy[];
+      // query?: IQueryExam;
+      onAdd?: () => void;
+      hierarchies: IHierarchy[];
+      loading: boolean;
+    }
 > = ({
   rowsPerPage = 8,
   onAdd,

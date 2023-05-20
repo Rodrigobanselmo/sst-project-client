@@ -23,7 +23,7 @@ interface IEditRecMedSelects {
   setRecMedData: React.Dispatch<any>;
 }
 
-export const EditRecMedSelects: FC<IEditRecMedSelects> = ({
+export const EditRecMedSelects: FC<{ children?: any } & IEditRecMedSelects> = ({
   setRecMedData,
   recMedData,
 }) => {

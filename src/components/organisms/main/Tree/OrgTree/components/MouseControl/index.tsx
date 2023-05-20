@@ -5,9 +5,11 @@ import { useModal } from 'core/hooks/useModal';
 import { useKeypress } from '../../../../../../../core/hooks/useKeypress';
 import { STMouseControlBox } from './styles';
 
-export const MouseControl: FC<{
-  orgContainerRef: React.RefObject<HTMLDivElement>;
-}> = ({ orgContainerRef }) => {
+export const MouseControl: FC<
+  { children?: any } & {
+    orgContainerRef: React.RefObject<HTMLDivElement>;
+  }
+> = ({ orgContainerRef }) => {
   const { getStackModal } = useModal();
   const [controlKeyPress, setControlKeyPress] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);

@@ -66,18 +66,18 @@ export const getType = (row: IProfessional) => {
 };
 
 export const ProfessionalsTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    isClinic?: boolean;
-    showResponsible?: boolean;
-    loadingResponsible?: boolean;
-    onSelectData?: (company: IProfessional) => void;
-    onEditResponsible?: (row: IProfessional, selected: boolean) => void;
-    selectedData?: IProfessional[];
-    query?: IQueryProfessionals;
-    filterInitial?: ProfessionalFilterTypeEnum;
-    responsibleId?: number;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      isClinic?: boolean;
+      showResponsible?: boolean;
+      loadingResponsible?: boolean;
+      onSelectData?: (company: IProfessional) => void;
+      onEditResponsible?: (row: IProfessional, selected: boolean) => void;
+      selectedData?: IProfessional[];
+      query?: IQueryProfessionals;
+      filterInitial?: ProfessionalFilterTypeEnum;
+      responsibleId?: number;
+    }
 > = ({
   rowsPerPage = 8,
   onSelectData,
@@ -235,7 +235,7 @@ export const ProfessionalsTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof professionals[0]>
+        <STableBody<(typeof professionals)[0]>
           rowsData={professionals}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

@@ -4,7 +4,9 @@ import EngineeringIcon from '@mui/icons-material/Engineering';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SCharacterizationIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SCharacterizationIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <EngineeringIcon {...props} />;
 };
 

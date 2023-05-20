@@ -24,7 +24,7 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IEmployeeSelectProps } from './types';
 
-export const EmployeeSelect: FC<IEmployeeSelectProps> = ({
+export const EmployeeSelect: FC<{ children?: any } & IEmployeeSelectProps> = ({
   large,
   handleSelect,
   text,

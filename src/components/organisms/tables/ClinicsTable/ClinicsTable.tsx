@@ -39,14 +39,14 @@ import {
 import { cepMask } from 'core/utils/masks/cep.mask';
 
 export const ClinicsTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: ICompany) => void;
-    simpleShow?: boolean;
-    selectedData?: string[];
-    query?: IQueryCompanies;
-    type?: IQueryCompaniesTypes;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: ICompany) => void;
+      simpleShow?: boolean;
+      selectedData?: string[];
+      query?: IQueryCompanies;
+      type?: IQueryCompaniesTypes;
+    }
 > = ({
   rowsPerPage = 8,
   simpleShow,
@@ -128,7 +128,7 @@ export const ClinicsTable: FC<
           <STableHRow justifyContent="center">Editar</STableHRow>
           <STableHRow justifyContent="center">Status</STableHRow>
         </STableHeader>
-        <STableBody<typeof companies[0]>
+        <STableBody<(typeof companies)[0]>
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
           rowsData={companies}

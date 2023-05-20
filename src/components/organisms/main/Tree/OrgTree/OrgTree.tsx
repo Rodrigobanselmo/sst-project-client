@@ -24,7 +24,7 @@ import { RiskToolSlider } from './components/RiskTool';
 import { IOrgTreeProps } from './interfaces';
 import { OrgTree, OrgTreeContainer, STGhoBox } from './OrgTree.styles';
 
-export const OrgTreeComponent: FC<IOrgTreeProps> = ({
+export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
   collapsable = true,
   horizontal = false,
   showGHO = true,

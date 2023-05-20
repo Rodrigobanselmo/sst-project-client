@@ -18,7 +18,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-const AnimatedStep: React.FC<Props> = ({ children }) => {
+const AnimatedStep: React.FC<{ children?: any } & Props> = ({ children }) => {
   return <StyledDiv>{children}</StyledDiv>;
 };
 

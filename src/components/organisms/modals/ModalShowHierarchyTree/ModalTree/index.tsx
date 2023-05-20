@@ -7,13 +7,13 @@ import { useHierarchyTreeActions } from 'core/hooks/useHierarchyTreeActions';
 
 import { IUseModalTree } from '../hooks/useModalTree';
 
-export const ModalTree: FC<IUseModalTree> = ({
+export const ModalTree: FC<{ children?: any } & IUseModalTree> = ({
   actualHierarchy,
   copyFromHierarchy,
   company,
   selectData,
 }) => {
-  const store = useStore();
+  const store = useStore<any>();
   const { setTree, transformToTreeMap, searchFilterNodes } =
     useHierarchyTreeActions();
 

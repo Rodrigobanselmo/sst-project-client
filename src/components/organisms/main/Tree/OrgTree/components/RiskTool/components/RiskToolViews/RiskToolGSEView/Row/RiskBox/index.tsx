@@ -18,13 +18,9 @@ import { dateToString } from 'core/utils/date/date-format';
 import { STBoxItem } from './styles';
 import { RiskToolGSEViewRowRiskBoxProps } from './types';
 
-export const RiskToolGSEViewRowRiskBox: FC<RiskToolGSEViewRowRiskBoxProps> = ({
-  data,
-  hide,
-  riskData,
-  riskGroupId,
-  isRepresentAll,
-}) => {
+export const RiskToolGSEViewRowRiskBox: FC<
+  { children?: any } & RiskToolGSEViewRowRiskBoxProps
+> = ({ data, hide, riskData, riskGroupId, isRepresentAll }) => {
   const deleteMutation = useMutDeleteManyRiskData();
   const upsertMutation = useMutUpsertRiskData();
   const { selectStartEndDate } = useStartEndDate();

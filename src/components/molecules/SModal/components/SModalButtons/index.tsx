@@ -10,7 +10,7 @@ import { useModal } from 'core/hooks/useModal';
 import { SButton } from '../../../../atoms/SButton';
 import { IModalButton, SModalHeaderProps } from './types';
 
-export const SModalButtons: FC<SModalHeaderProps> = ({
+export const SModalButtons: FC<{ children?: any } & SModalHeaderProps> = ({
   buttons = [{} as IModalButton, {} as IModalButton],
   modalName,
   onClose: close,

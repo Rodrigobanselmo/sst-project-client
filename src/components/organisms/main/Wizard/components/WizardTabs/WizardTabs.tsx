@@ -7,7 +7,7 @@ import { useRouter } from 'next/router';
 
 type Props = STabsProps;
 
-const WizardTabs: React.FC<Props> = ({
+const WizardTabs: React.FC<{ children?: any } & Props> = ({
   onChangeTab,
   renderChildren,
   active,

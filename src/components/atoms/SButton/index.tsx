@@ -4,7 +4,7 @@ import React, { FC } from 'react';
 import { STButton } from './styles';
 import { SButtonProps } from './types';
 
-export const SButton: FC<SButtonProps> = ({
+export const SButton: FC<{ children?: any } & SButtonProps> = ({
   children,
   loading,
   variant = 'contained',

@@ -15,7 +15,7 @@ import { useColumnAction } from '../../../hooks/useColumnAction';
 import { RowColumns } from '../components/RowColumns';
 import { SideTableProps } from './types';
 
-export const SideRowTable: FC<SideTableProps> = ({
+export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
   gho,
   riskData,
   isSelected,

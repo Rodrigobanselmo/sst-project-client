@@ -18,6 +18,8 @@ import { SButton } from '../../../../components/atoms/SButton';
 import { InputForm } from '../../../../components/molecules/form/input';
 import { ILoginSchema } from '../../../../core/utils/schemas/login.schema';
 
+const ReCAPTCHAComp = ReCAPTCHA as any;
+
 export const LoginForm: FC = () => {
   const { handleSubmit, control, setValue, watch } = useForm({
     resolver: yupResolver(Yup.object().shape({ ...signSchema })),
@@ -50,6 +52,7 @@ export const LoginForm: FC = () => {
   function onRecaptchaChange(value: string | null) {
     setIsCaptchaVerified(!!value);
   }
+
   return (
     <Box
       component="form"
@@ -106,7 +109,7 @@ export const LoginForm: FC = () => {
         </NextLink>
       </Typography>
       <SFlex mt={10} center>
-        <ReCAPTCHA
+        <ReCAPTCHAComp
           sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
           onChange={onRecaptchaChange}
         />

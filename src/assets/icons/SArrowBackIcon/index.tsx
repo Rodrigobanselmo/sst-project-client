@@ -4,7 +4,9 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SArrowBackIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SArrowBackIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <ArrowBackIcon {...props} />;
 };
 

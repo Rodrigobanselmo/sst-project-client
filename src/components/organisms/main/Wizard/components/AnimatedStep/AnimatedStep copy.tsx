@@ -29,7 +29,7 @@ type Props = {
   children: React.ReactNode;
 };
 
-const AnimatedStep: React.FC<Props> = ({
+const AnimatedStep: React.FC<{ children?: any } & Props> = ({
   children,
   previousStep: previousStepIndex,
 }) => {

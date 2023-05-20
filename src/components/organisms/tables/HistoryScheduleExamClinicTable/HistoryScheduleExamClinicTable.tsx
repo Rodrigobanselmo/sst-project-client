@@ -49,15 +49,15 @@ import { sortNumber } from 'core/utils/sorts/number.sort';
 import { PersonalDatePicker } from './PersonalDatePicker';
 
 export const HistoryScheduleExamClinicTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IEmployeeExamsHistory) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    employeeId?: number;
-    employee?: IEmployee;
-    query?: IQueryClinicEmployeeHistHier;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IEmployeeExamsHistory) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      employeeId?: number;
+      employee?: IEmployee;
+      query?: IQueryClinicEmployeeHistHier;
+    }
 > = ({ rowsPerPage = 12, onSelectData, hideTitle, companyId, query }) => {
   const [actualDate, setActualDate] = useState(dayjs().toDate());
 
@@ -198,7 +198,7 @@ export const HistoryScheduleExamClinicTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof dayTableRows[0]>
+        <STableBody<(typeof dayTableRows)[0]>
           rowsData={results}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

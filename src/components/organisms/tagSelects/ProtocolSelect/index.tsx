@@ -19,7 +19,7 @@ import { useQueryProtocols } from 'core/services/hooks/queries/useQueryProtocols
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IProtocolSelectProps } from './types';
 
-export const ProtocolSelect: FC<IProtocolSelectProps> = ({
+export const ProtocolSelect: FC<{ children?: any } & IProtocolSelectProps> = ({
   large,
   handleSelect,
   text,

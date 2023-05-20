@@ -5,7 +5,9 @@ import StoreTwoToneIcon from '@mui/icons-material/StoreTwoTone';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SWorkspaceIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SWorkspaceIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <StoreTwoToneIcon {...props} />;
 };
 

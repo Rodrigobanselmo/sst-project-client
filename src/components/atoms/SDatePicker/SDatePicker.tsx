@@ -33,6 +33,8 @@ const months = [
   'Dezembro',
 ];
 
+const DatePickerInput = DatePicker as any;
+
 export function SDatePicker({
   label = '',
   uneditable,
@@ -45,7 +47,7 @@ export function SDatePicker({
   ...props
 }: SDatePickerProps) {
   return (
-    <DatePicker
+    <DatePickerInput
       locale="pt"
       onChange={onChange}
       selected={selected}

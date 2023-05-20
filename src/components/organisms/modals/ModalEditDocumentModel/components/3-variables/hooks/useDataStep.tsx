@@ -14,7 +14,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 
 export const useDataStep = (props: IUseDocumentModel) => {
   const { onClose, data } = props;
-  const store = useStore();
+  const store = useStore<any>();
 
   const { stepCount, goToStep, previousStep } = useWizard();
   const onCloseUnsaved = async () => {

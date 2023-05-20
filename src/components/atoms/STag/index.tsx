@@ -4,7 +4,7 @@ import SFlex from '../SFlex';
 import SText from '../SText';
 import { ISTagProps } from './types';
 
-export const STag: FC<ISTagProps> = ({
+export const STag: FC<{ children?: any } & ISTagProps> = ({
   text,
   action,
   icon: Icon,

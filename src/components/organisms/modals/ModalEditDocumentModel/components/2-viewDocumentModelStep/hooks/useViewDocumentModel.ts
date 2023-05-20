@@ -15,7 +15,7 @@ import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
 
 export const useViewDocumentModel = (props: IUseDocumentModel) => {
   const { onClose, data, dispatch, model } = props;
-  const store = useStore();
+  const store = useStore<any>();
   const downloadPreview = useMutPreviewDocumentModel();
 
   const onCloseUnsaved = async () => {

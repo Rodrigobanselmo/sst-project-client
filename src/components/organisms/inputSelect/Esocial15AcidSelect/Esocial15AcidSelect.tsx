@@ -9,11 +9,9 @@ import { useQueryEsocial15Acid } from 'core/services/hooks/queries/useQueryEsoci
 
 import { IEsocialTable15SelectProps } from './types';
 
-export const Esocial15AcidSelect: FC<IEsocialTable15SelectProps> = ({
-  onChange,
-  inputProps,
-  ...props
-}) => {
+export const Esocial15AcidSelect: FC<
+  { children?: any } & IEsocialTable15SelectProps
+> = ({ onChange, inputProps, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -28,7 +26,9 @@ export const Esocial15AcidSelect: FC<IEsocialTable15SelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.desc || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.desc) || ''
+      }
       options={tables}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}

@@ -6,7 +6,7 @@ import SText from 'components/atoms/SText';
 
 import { SPageTitleSectionProps } from './types';
 
-const SPageTitleSection: FC<SPageTitleSectionProps> = ({
+const SPageTitleSection: FC<{ children?: any } & SPageTitleSectionProps> = ({
   icon,
   iconSx = {},
   title,

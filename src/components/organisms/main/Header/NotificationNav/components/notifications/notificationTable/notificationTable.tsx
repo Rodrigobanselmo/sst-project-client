@@ -43,12 +43,12 @@ import {
 import { dateFromNow } from 'core/utils/date/date-format';
 
 export const NotificationTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (notification: INotification) => void;
-    selectedData?: INotification[];
-    query?: IQueryNotification;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (notification: INotification) => void;
+      selectedData?: INotification[];
+      query?: IQueryNotification;
+    }
 > = ({ rowsPerPage = 10, onSelectData, selectedData }) => {
   const { page, setPage } = useTableSearchAsync();
 
@@ -95,7 +95,7 @@ export const NotificationTable: FC<
         columns={`${selectedData ? '15px ' : ''}minmax(250px, 5fr) 40px`}
         maxHeight={'60vh'}
       >
-        <STableBody<typeof notifications[0]>
+        <STableBody<(typeof notifications)[0]>
           rowsData={notifications}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

@@ -16,7 +16,7 @@ import { RiskToolColumns } from './RiskToolColumns';
 import { RiskToolGhoHorizontal } from './RiskToolGhoHorizontal';
 import { SideHeaderProps as RiskToolProps } from './types';
 
-export const RiskToolHeader: FC<RiskToolProps> = ({
+export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
   handleSelectGHO,
   handleEditGHO,
   handleAddGHO,

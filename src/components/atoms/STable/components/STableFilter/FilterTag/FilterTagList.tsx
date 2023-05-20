@@ -10,7 +10,7 @@ import { FilterTag } from './FilterTag';
 
 export type IFilterTagProps = { filterProps: IUseFilterTableData } & SFlexProps;
 
-export const FilterTagList: FC<IFilterTagProps> = ({
+export const FilterTagList: FC<{ children?: any } & IFilterTagProps> = ({
   filterProps,
   ...props
 }) => {

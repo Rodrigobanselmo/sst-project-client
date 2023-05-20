@@ -11,7 +11,7 @@ import SCancelIcon from 'assets/icons/SCancelIcon';
 
 import { IStatusSelectProps } from './types';
 
-export const EvaluationSelect: FC<IStatusSelectProps> = ({
+export const EvaluationSelect: FC<{ children?: any } & IStatusSelectProps> = ({
   selected,
   ...props
 }) => {

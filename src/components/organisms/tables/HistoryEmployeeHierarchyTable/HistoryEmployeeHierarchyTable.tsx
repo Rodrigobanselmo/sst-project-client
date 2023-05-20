@@ -37,14 +37,14 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { sortDate } from 'core/utils/sorts/data.sort';
 
 export const HistoryEmployeeHierarchyTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IEmployeeHierarchyHistory) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    employeeId?: number;
-    employee?: IEmployee;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IEmployeeHierarchyHistory) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      employeeId?: number;
+      employee?: IEmployee;
+    }
 > = ({
   rowsPerPage = 8,
   onSelectData,
@@ -138,7 +138,7 @@ export const HistoryEmployeeHierarchyTable: FC<
           <STableHRow>Empresa</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof history[0]>
+        <STableBody<(typeof history)[0]>
           rowsData={history
             .sort((a, b) => sortDate(b.created_at, a.created_at))
             .sort((a, b) => sortDate(b.startDate, a.startDate))}

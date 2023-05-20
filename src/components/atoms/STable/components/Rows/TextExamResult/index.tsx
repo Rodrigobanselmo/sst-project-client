@@ -1,13 +1,13 @@
 import { FC } from 'react';
 
-import SText from 'components/atoms/SText';
-
 import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
 import { EvaluationSelect } from 'components/organisms/tagSelects/EvaluationSelect';
 import { employeeExamConclusionTypeMap } from 'project/enum/employee-exam-history-conclusion.enum';
+
 import { TextHierarchyRowProps } from './types';
 
-export const TextExamResult: FC<TextHierarchyRowProps> = ({
+export const TextExamResult: FC<{ children?: any } & TextHierarchyRowProps> = ({
   historyExam,
   onChangeEvaluation,
   employeeId,

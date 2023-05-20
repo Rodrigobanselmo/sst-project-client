@@ -4,8 +4,8 @@ import { NodeModel, useDragOver } from '@minoru/react-dnd-treeview';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import Typography from '@mui/material/Typography';
 
-import { CustomData } from '../types/types';
 import { TypeIcon } from '../CustomIcon/TypeIcon';
+import { CustomData } from '../types/types';
 import { STCustomNode } from './styles';
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
   onSelect: (node: NodeModel<CustomData>) => void;
 };
 
-export const CustomNode: React.FC<Props> = (props) => {
+export const CustomNode: React.FC<{ children?: any } & Props> = (props) => {
   const { id, droppable, data } = props.node;
   const indent = props.depth * 24;
 

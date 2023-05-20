@@ -9,11 +9,9 @@ import { useQueryEsocial6Country } from 'core/services/hooks/queries/useQueryEso
 
 import { IEsocialTable6SelectProps } from './types';
 
-export const Esocial6CountrySelect: FC<IEsocialTable6SelectProps> = ({
-  onChange,
-  inputProps,
-  ...props
-}) => {
+export const Esocial6CountrySelect: FC<
+  { children?: any } & IEsocialTable6SelectProps
+> = ({ onChange, inputProps, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -28,7 +26,9 @@ export const Esocial6CountrySelect: FC<IEsocialTable6SelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.name || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.name) || ''
+      }
       options={tables}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}

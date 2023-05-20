@@ -42,12 +42,12 @@ import {
 import { dateToString } from 'core/utils/date/date-format';
 
 export const ESocialEventTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (event: IESocialEvent) => void;
-    selectedData?: IESocialEvent[];
-    query?: IQueryEvents;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (event: IESocialEvent) => void;
+      selectedData?: IESocialEvent[];
+      query?: IQueryEvents;
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -164,7 +164,7 @@ export const ESocialEventTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof risks[0]>
+        <STableBody<(typeof risks)[0]>
           rowsData={risks}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

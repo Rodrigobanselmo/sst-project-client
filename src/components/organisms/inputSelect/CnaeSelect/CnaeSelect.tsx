@@ -11,7 +11,7 @@ import { cnaeMask } from 'core/utils/masks/cnae.mask';
 
 import { ICnaeSelectProps } from './types';
 
-export const CnaeInputSelect: FC<ICnaeSelectProps> = ({
+export const CnaeInputSelect: FC<{ children?: any } & ICnaeSelectProps> = ({
   onChange,
   control,
   data,
@@ -33,7 +33,9 @@ export const CnaeInputSelect: FC<ICnaeSelectProps> = ({
     <SFlex flexWrap="wrap" gap={5}>
       <Box height={100} flex={8}>
         <AutocompleteForm
-          getOptionLabel={(option) => option.name}
+          getOptionLabel={(option) =>
+            (typeof option != 'string' && option.name) || ''
+          }
           options={cnaes}
           loading={loadCnaes}
           filterOptions={(e) => e}

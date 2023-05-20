@@ -12,7 +12,7 @@ interface IEditUserSelects {
   setUserData: React.Dispatch<any>;
 }
 
-export const EditUserSelects: FC<IEditUserSelects> = ({
+export const EditUserSelects: FC<{ children?: any } & IEditUserSelects> = ({
   setUserData,
   userData,
 }) => {

@@ -19,12 +19,9 @@ import { STagSelect } from '../../../../../../../molecules/STagSelect';
 import { questionsTextTypesConstant } from '../../../constants/questions-text-types.constant';
 import { IOptionsHelpSelectProps } from './types';
 
-export const OptionsHelpSelect: FC<IOptionsHelpSelectProps> = ({
-  large,
-  node,
-  menuRef,
-  ...props
-}) => {
+export const OptionsHelpSelect: FC<
+  { children?: any } & IOptionsHelpSelectProps
+> = ({ large, node, menuRef, ...props }) => {
   const copyItem = useAppSelector(selectTreeCopyItem);
   const { setCopyItem, onExpandAll, setPasteItem, removeNodes } =
     useChecklistTreeActions();

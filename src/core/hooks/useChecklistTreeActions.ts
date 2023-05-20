@@ -37,7 +37,7 @@ export const useChecklistTreeActions = () => {
   const dispatch = useAppDispatch();
   const saveMutation = useMutUpdateChecklist();
   const router = useRouter();
-  const store = useStore();
+  const store = useStore<any>();
 
   const saveApi = useCallback(async () => {
     dispatch(setDocUnsaved({ docName: SaveEnum.CHECKLIST }));

@@ -14,7 +14,7 @@ export const useDnd = (node: ITreeMapObject) => {
   const { setDraggingItem, isChild, editNodes, removeNodes } =
     useChecklistTreeActions();
   const isMockAppend = useRef(false);
-  const store = useStore();
+  const store = useStore<any>();
 
   const onAppendMock = (id: number | string) => {
     const nodesMap = store.getState().tree.nodes as ITreeMap;

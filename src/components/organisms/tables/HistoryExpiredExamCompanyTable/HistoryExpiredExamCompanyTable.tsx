@@ -1,6 +1,7 @@
 import { FC, useMemo, useState } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
+import clone from 'clone';
 import SFlex from 'components/atoms/SFlex';
 import {
   ITableRowStatus,
@@ -24,10 +25,12 @@ import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
 import { SIconDownloadExam } from 'components/molecules/SIconDownloadExam/SIconDownloadExam';
 import { initialExamScheduleState } from 'components/organisms/modals/ModalAddExamSchedule/hooks/useEditExamEmployee';
+import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
 import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
 import { StatusEnum } from 'project/enum/status.enum';
+import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
 
 import SCalendarIcon from 'assets/icons/SCalendarIcon';
 
@@ -48,10 +51,8 @@ import { useQueryEmployees } from 'core/services/hooks/queries/useQueryEmployees
 import { IQueryEmployeeHistHier } from 'core/services/hooks/queries/useQueryHisExamEmployee/useQueryHisExamEmployee';
 import { queryClient } from 'core/services/queryClient';
 import { dateToString } from 'core/utils/date/date-format';
+
 import { SDropIconEmployee } from '../EmployeesTable/components/SDropIconEmployee/SDropIconEmployee';
-import { initialEditEmployeeState } from 'components/organisms/modals/ModalEditEmployee/hooks/useEditEmployee';
-import clone from 'clone';
-import { StatusEmployeeStepEnum } from 'project/enum/statusEmployeeStep.enum';
 
 export const getEmployeeRowStatus = (
   exam?: IEmployeeExamsHistory,
@@ -187,15 +188,15 @@ export const getEmployeeRowExamData = (row: IEmployee) => {
 };
 
 export const HistoryExpiredExamCompanyTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IEmployee) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    employeeId?: number;
-    employee?: IEmployee;
-    query?: IQueryEmployeeHistHier;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IEmployee) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      employeeId?: number;
+      employee?: IEmployee;
+      query?: IQueryEmployeeHistHier;
+    }
 > = ({ rowsPerPage = 8, hideTitle, companyId, query }) => {
   const { search, page, setPage, handleSearchChange } = useTableSearchAsync();
   const filterProps = useFilterTable(undefined, {
@@ -314,7 +315,7 @@ export const HistoryExpiredExamCompanyTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof historyExam[0]>
+        <STableBody<(typeof historyExam)[0]>
           rowsData={historyExam}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

@@ -8,7 +8,9 @@ import sortArray from 'sort-array';
 
 import { IElementTypeModelSelectProps } from './types';
 
-export const ElementTypeModelSelect: FC<IElementTypeModelSelectProps> = ({
+export const ElementTypeModelSelect: FC<
+  { children?: any } & IElementTypeModelSelectProps
+> = ({
   selected,
   elements,
   large,

@@ -19,7 +19,8 @@ export interface IOption extends Record<string, any> {
 export type SSelectProps = SelectProps & {
   iconColor?: string;
   inputRef?: React.Ref<any>;
-  options?: Array<string | number | IOption>;
+  // options?: Array<string | number | IOption>;
+  options?: Array<any>;
   optionsFieldName?: { valueField?: string; contentField?: string };
   helperText?: string | ReactNode;
   labelPosition?: 'top' | 'center';
@@ -38,7 +39,8 @@ export type SSelectProps = SelectProps & {
   circularProps?: CircularProgressProps;
   beforeItemStyles?: CSSProperties;
   renderMenuItemChildren?: (
-    option: IOption | string | number,
+    // option: IOption | string | number,
+    option: any,
     index: number,
   ) => ReactNode;
   renderEmptyItemChildren?: (emptyItem: ReactNode | string) => ReactNode;

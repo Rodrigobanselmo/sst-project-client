@@ -5,7 +5,10 @@ import SText from 'components/atoms/SText';
 import TextIconRow from '../TextIconRow';
 import { TextUserRowProps } from './types';
 
-const TextUserRow: FC<TextUserRowProps> = ({ user, ...props }) => {
+const TextUserRow: FC<{ children?: any } & TextUserRowProps> = ({
+  user,
+  ...props
+}) => {
   if (!user?.name || !user?.email) return <div />;
 
   return (

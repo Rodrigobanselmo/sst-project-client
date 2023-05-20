@@ -13,7 +13,7 @@ import { stringNormalize } from 'core/utils/strings/stringNormalize';
 import { SideMainGho } from '../SideMainGho';
 import { SideItemsProps } from './types';
 
-export const SideUnselectedGho: FC<SideItemsProps> = ({
+export const SideUnselectedGho: FC<{ children?: any } & SideItemsProps> = ({
   viewDataType,
   data,
 }) => {

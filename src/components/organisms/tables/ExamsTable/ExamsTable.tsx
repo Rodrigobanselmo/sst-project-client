@@ -31,12 +31,12 @@ import {
 } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
 
 export const ExamsTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (company: IExam) => void;
-    selectedData?: IExam[];
-    query?: IQueryExam;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (company: IExam) => void;
+      selectedData?: IExam[];
+      query?: IQueryExam;
+    }
 > = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -92,7 +92,7 @@ export const ExamsTable: FC<
           <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof exams[0]>
+        <STableBody<(typeof exams)[0]>
           rowsData={exams}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

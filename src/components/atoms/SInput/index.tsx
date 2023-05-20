@@ -28,7 +28,7 @@ const textDisableInfo = {
   },
 };
 
-export const SInput: FC<SInputProps> = ({
+export const SInput: FC<{ children?: any } & SInputProps> = ({
   InputProps,
   circularProps,
   startAdornment,

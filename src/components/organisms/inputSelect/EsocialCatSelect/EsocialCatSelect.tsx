@@ -11,7 +11,7 @@ import { dateToString } from 'core/utils/date/date-format';
 
 import { ICatSelectProps } from './types';
 
-export const EsocialCatSelect: FC<ICatSelectProps> = ({
+export const EsocialCatSelect: FC<{ children?: any } & ICatSelectProps> = ({
   onChange,
   inputProps,
   query,
@@ -32,7 +32,7 @@ export const EsocialCatSelect: FC<ICatSelectProps> = ({
   return (
     <AutocompleteForm
       getOptionLabel={(option) =>
-        option?.esocialSitGeradora?.desc
+        typeof option != 'string' && option?.esocialSitGeradora?.desc
           ? `${dateToString(option.dtAcid)} ${
               option?.esocialSitGeradora?.desc || '-'
             }`

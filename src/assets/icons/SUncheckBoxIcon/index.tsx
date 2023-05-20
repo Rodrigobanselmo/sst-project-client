@@ -4,7 +4,9 @@ import LibraryAddCheckOutlinedIcon from '@mui/icons-material/LibraryAddCheckOutl
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SCheckboxIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SCheckboxIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <LibraryAddCheckOutlinedIcon {...props} />;
 };
 

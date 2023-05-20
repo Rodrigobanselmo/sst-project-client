@@ -26,10 +26,9 @@ import { queryClient } from 'core/services/queryClient';
 import { ViewTypeEnum } from '../../../utils/view-risk-type.constant';
 import { SideTopProps } from '../types';
 
-export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
-  viewType,
-  riskGroupId,
-}) => {
+export const RiskToolTopButtonsSelectRisk: FC<
+  { children?: any } & Partial<SideTopProps>
+> = ({ viewType, riskGroupId }) => {
   const dispatch = useAppDispatch();
   const { companyId: userCompanyId } = useGetCompanyId(true);
   const selectedRisks = useAppSelector(selectRisks);
@@ -37,7 +36,7 @@ export const RiskToolTopButtonsSelectRisk: FC<Partial<SideTopProps>> = ({
   const selectedRiskStore = useAppSelector(selectRisk);
   const saveState = useAppSelector(selectRiskDataSave);
   const { preventWarn } = usePreventAction();
-  const store = useStore();
+  const store = useStore<any>();
   const upsertRiskData = useMutUpsertManyRiskData();
 
   const isHierarchy = selectedGho && 'childrenIds' in selectedGho;

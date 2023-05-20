@@ -4,7 +4,9 @@ import EventIcon from '@mui/icons-material/Event';
 
 import { IIconMuiProps } from 'core/interfaces/IIconMuiProps';
 
-export const SCalendarIcon: FC<IIconMuiProps> = ({ ...props }) => {
+export const SCalendarIcon: FC<{ children?: any } & IIconMuiProps> = ({
+  ...props
+}) => {
   return <EventIcon {...props} />;
 };
 

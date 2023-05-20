@@ -2,7 +2,10 @@ import { FC } from 'react';
 import { RiCloseFill } from 'react-icons/ri';
 
 import { Box, Icon } from '@mui/material';
+import { SButton } from 'components/atoms/SButton';
 import STooltip from 'components/atoms/STooltip';
+
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 
 import { useModal } from 'core/hooks/useModal';
 
@@ -11,11 +14,12 @@ import SIconButton from '../../../../atoms/SIconButton';
 import { STagAction } from '../../../../atoms/STagAction';
 import SText from '../../../../atoms/SText';
 import { SModalHeaderProps } from './types';
-import { SButton } from 'components/atoms/SButton';
-import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 
 export const SModalHeaderTitle: FC<
-  Pick<SModalHeaderProps, 'title' | 'subtitle' | 'tag' | 'tagTitle'>
+  { children?: any } & Pick<
+    SModalHeaderProps,
+    'title' | 'subtitle' | 'tag' | 'tagTitle'
+  >
 > = ({ title, tag, tagTitle }) => {
   if (tag && tag !== 'none' && title)
     return (
@@ -37,7 +41,7 @@ export const SModalHeaderTitle: FC<
   );
 };
 
-export const SModalHeader: FC<SModalHeaderProps> = ({
+export const SModalHeader: FC<{ children?: any } & SModalHeaderProps> = ({
   title,
   subtitle,
   modalName,

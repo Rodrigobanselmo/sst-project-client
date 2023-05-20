@@ -8,11 +8,9 @@ import { ViewsRiskEnum } from 'core/enums/views-risk.enum';
 
 import { IViewsRiskSelectProps } from './types';
 
-export const ViewsRiskSelect: FC<IViewsRiskSelectProps> = ({
-  handleSelectMenu,
-  viewType,
-  ...props
-}) => {
+export const ViewsRiskSelect: FC<
+  { children?: any } & IViewsRiskSelectProps
+> = ({ handleSelectMenu, viewType, ...props }) => {
   const selectedText = viewsRiskOptionsConstant[viewType]?.name || '';
 
   const onSelect = (

@@ -6,10 +6,12 @@ import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
+import { useAuthShow } from 'components/molecules/SAuthShow';
 import { ClinicInputSelect } from 'components/organisms/inputSelect/ClinicSelect/ClinicInputSelect';
 import { getIsBlockedTime } from 'components/organisms/modals/ModalAddExamSchedule/components/3-evaluation/hooks/useEvaluationStep';
 import dayjs from 'dayjs';
 import { employeeExamTypeMap } from 'project/enum/employee-exam-history-type.enum';
+import { PermissionEnum } from 'project/enum/permission.enum';
 
 import { clinicScheduleMap } from 'core/constants/maps/clinic-schedule-type.map';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
@@ -19,8 +21,6 @@ import { getTimeList } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IExamsScheduleTable, IExamsScheduleTableProps } from '../types';
-import { useAuthShow } from 'components/molecules/SAuthShow';
-import { PermissionEnum } from 'project/enum/permission.enum';
 
 export const availableScheduleDate = (
   date: Date,
@@ -121,7 +121,7 @@ export const notAvailableScheduleTime = (
 };
 
 export const ExamsScheduleClinicColumn: FC<
-  IExamsScheduleTableProps & { row: IExamsScheduleTable }
+  { children?: any } & IExamsScheduleTableProps & { row: IExamsScheduleTable }
 > = ({
   setData,
   control,

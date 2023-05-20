@@ -40,12 +40,14 @@ import { ModalItemHierarchy } from './ModalItemHierarchy';
 import { ModalListGHO } from './ModalListGHO';
 import { STGridBox } from './styles';
 
-export const ModalSelectHierarchyData: FC<{
-  company: ICompany;
-  selectedData: typeof initialHierarchySelectState;
-  handleSingleSelect: (hierarchy: IListHierarchyQuery) => void;
-  setSelectData: React.Dispatch<React.SetStateAction<any>>;
-}> = ({ company, selectedData, handleSingleSelect, setSelectData }) => {
+export const ModalSelectHierarchyData: FC<
+  { children?: any } & {
+    company: ICompany;
+    selectedData: typeof initialHierarchySelectState;
+    handleSingleSelect: (hierarchy: IListHierarchyQuery) => void;
+    setSelectData: React.Dispatch<React.SetStateAction<any>>;
+  }
+> = ({ company, selectedData, handleSingleSelect, setSelectData }) => {
   const { data: ghoQuery } = useQueryGHOAll();
 
   const dispatch = useAppDispatch();

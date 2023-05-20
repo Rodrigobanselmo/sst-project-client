@@ -8,7 +8,7 @@ import { dateToString } from 'core/utils/date/date-format';
 
 import { IStatusSelectProps } from './types';
 
-export const StatusSelect: FC<IStatusSelectProps> = ({
+export const StatusSelect: FC<{ children?: any } & IStatusSelectProps> = ({
   selected,
   statusOptions,
   expiresDate,

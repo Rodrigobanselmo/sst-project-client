@@ -8,7 +8,10 @@ import { brandNameConstant } from 'core/constants/brand.constant';
 
 import { SystemRowProps } from './types';
 
-const SystemRow: FC<SystemRowProps> = ({ system, ...props }) => (
+const SystemRow: FC<{ children?: any } & SystemRowProps> = ({
+  system,
+  ...props
+}) => (
   <STooltip
     title={
       system

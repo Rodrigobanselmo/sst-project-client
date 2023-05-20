@@ -16,6 +16,7 @@
     "isolatedModules": true,
     "rootDir": "src",
     "baseUrl": "src",
+    "noImplicitAny": false,
     "incremental": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],

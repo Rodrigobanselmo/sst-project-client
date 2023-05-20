@@ -7,10 +7,9 @@ import SText from 'components/atoms/SText';
 
 import SGoogleIcon from 'assets/icons/SGoogleIcon';
 
-export const GoogleButton: FC<SButtonProps & { text: string }> = ({
-  text,
-  ...props
-}) => {
+export const GoogleButton: FC<
+  { children?: any } & SButtonProps & { text: string }
+> = ({ text, ...props }) => {
   return (
     <SButton
       sx={{

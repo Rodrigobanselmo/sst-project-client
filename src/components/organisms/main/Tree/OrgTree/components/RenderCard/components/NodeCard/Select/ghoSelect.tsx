@@ -14,7 +14,9 @@ export interface GhoSelectCardProps extends BoxProps {
   node: ITreeMapObject;
 }
 
-export const GhoSelectCard: FC<GhoSelectCardProps> = ({ node }) => {
+export const GhoSelectCard: FC<{ children?: any } & GhoSelectCardProps> = ({
+  node,
+}) => {
   const isGhoOpen = useAppSelector(selectGhoOpen);
   const parentNodesTree = useAppSelector(
     selectAllParentTreeData(node.id || ''),

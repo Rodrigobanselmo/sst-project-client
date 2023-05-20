@@ -45,7 +45,7 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryInvites } from 'core/services/hooks/queries/useQueryInvites';
 import { useQueryUsers } from 'core/services/hooks/queries/useQueryUsers';
 
-export const UsersTable: FC<BoxProps> = () => {
+export const UsersTable: FC<{ children?: any } & BoxProps> = () => {
   const { data: users, isLoading } = useQueryUsers();
   const { data: invites, isLoading: isLoadingInvites } = useQueryInvites();
   const { data: company } = useQueryCompany();
@@ -126,7 +126,7 @@ export const UsersTable: FC<BoxProps> = () => {
           <STableHRow justifyContent="center">Status</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof data[0]>
+        <STableBody<(typeof data)[0]>
           rowsData={results}
           hideLoadMore
           renderRow={(row) => {

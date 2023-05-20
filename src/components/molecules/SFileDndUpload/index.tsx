@@ -36,7 +36,7 @@ const getFileName = (name: string) => {
   return end + '.' + ext;
 };
 
-export const SFileDndUpload: FC<ISFileDndUpload> = ({
+export const SFileDndUpload: FC<{ children?: any } & ISFileDndUpload> = ({
   accept,
   maxFiles,
   onChange,

@@ -16,7 +16,7 @@ import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
 
-export const RiskSharedContent: FC<IUseAddRisk> = ({
+export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
   riskData,
   setRiskData,
   control,

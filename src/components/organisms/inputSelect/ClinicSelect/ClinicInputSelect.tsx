@@ -17,7 +17,7 @@ import { cepMask } from 'core/utils/masks/cep.mask';
 import { AddButton } from '../components/AddButton';
 import { IClinicSelectProps } from './types';
 
-export const ClinicInputSelect: FC<IClinicSelectProps> = ({
+export const ClinicInputSelect: FC<{ children?: any } & IClinicSelectProps> = ({
   onChange,
   inputProps,
   query,
@@ -52,7 +52,9 @@ export const ClinicInputSelect: FC<IClinicSelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.fantasy || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.fantasy) || ''
+      }
       options={companies}
       loading={isLoading}
       onInputChange={(e, v) => handleSearchChange(v)}

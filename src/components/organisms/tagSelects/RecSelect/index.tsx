@@ -23,7 +23,7 @@ import { sortString } from 'core/utils/sorts/string.sort';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IRecMedSelectProps } from './types';
 
-export const RecSelect: FC<IRecMedSelectProps> = ({
+export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
   large,
   handleSelect,
   riskIds,

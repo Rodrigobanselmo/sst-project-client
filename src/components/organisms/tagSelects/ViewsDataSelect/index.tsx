@@ -9,11 +9,9 @@ import {
 
 import { IViewsRiskSelectProps } from './types';
 
-export const ViewsDataSelect: FC<IViewsRiskSelectProps> = ({
-  handleSelectMenu,
-  viewDataType,
-  ...props
-}) => {
+export const ViewsDataSelect: FC<
+  { children?: any } & IViewsRiskSelectProps
+> = ({ handleSelectMenu, viewDataType, ...props }) => {
   const selectedText = viewsDataOptionsConstant[viewDataType]?.name || '';
 
   const onSelect = (

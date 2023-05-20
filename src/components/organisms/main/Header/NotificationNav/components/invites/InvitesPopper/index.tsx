@@ -19,7 +19,7 @@ import { SPopperArrow } from '../../../../../../../molecules/SPopperArrow';
 import { StackStyled } from './styles';
 import { IInvitesPopperProps } from './types';
 
-export const InvitesPopper: FC<IInvitesPopperProps> = ({
+export const InvitesPopper: FC<{ children?: any } & IInvitesPopperProps> = ({
   anchorEl,
   isOpen,
   close,

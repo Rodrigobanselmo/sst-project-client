@@ -43,9 +43,9 @@ import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocume
 import { useQueryRiskDataPlan } from 'core/services/hooks/queries/useQueryRiskDataPlan';
 import { useQueryRiskGroupDataOne } from 'core/services/hooks/queries/useQueryRiskGroupDataOne';
 
-export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
-  rowsPerPage = 15,
-}) => {
+export const ActionPlanTable: FC<
+  { children?: any } & BoxProps & { rowsPerPage?: number }
+> = ({ rowsPerPage = 15 }) => {
   const { push, query } = useRouter();
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const [update, setUpdate] = useState(0);
@@ -159,7 +159,7 @@ export const ActionPlanTable: FC<BoxProps & { rowsPerPage?: number }> = ({
             Prazo
           </STableHRow>
         </STableHeader>
-        <STableBody<typeof employees[0]>
+        <STableBody<(typeof employees)[0]>
           rowsData={employees}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

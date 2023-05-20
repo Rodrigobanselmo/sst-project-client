@@ -13,7 +13,7 @@ export const useDnd = (node: ITreeMapObject) => {
   const { setDraggingItem, isChild, editNodes, removeNodes } =
     useHierarchyTreeActions();
   const isMockAppend = useRef(false);
-  const store = useStore();
+  const store = useStore<any>();
 
   const onAppendMock = (id: number | string) => {
     if (node.stopDrag) return;

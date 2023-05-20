@@ -4,7 +4,7 @@ import { Box, Tooltip } from '@mui/material';
 
 import { STooltipProps } from './types';
 
-const STooltip: FC<STooltipProps> = ({
+const STooltip: FC<{ children?: any } & STooltipProps> = ({
   title,
   children,
   withWrapper,

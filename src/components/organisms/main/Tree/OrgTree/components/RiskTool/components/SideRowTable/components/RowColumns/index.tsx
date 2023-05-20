@@ -29,7 +29,7 @@ import { RecColumn } from '../columns/RecColumn';
 import { SourceColumn } from '../columns/SourceColumn';
 import { RowColumnsProps } from './types';
 
-export const RowColumns: FC<RowColumnsProps> = ({
+export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   handleSelect,
   handleRemove,
   riskData,

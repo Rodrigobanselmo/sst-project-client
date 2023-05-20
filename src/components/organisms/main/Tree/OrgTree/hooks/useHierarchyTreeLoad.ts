@@ -10,7 +10,7 @@ export const useHierarchyTreeLoad = () => {
   const { data } = useQueryHierarchies();
   const { data: gho } = useQueryGHOAll();
   const { data: company } = useQueryCompany();
-  const store = useStore();
+  const store = useStore<any>();
 
   const { setTree, transformToTreeMap, searchFilterNodes } =
     useHierarchyTreeActions();

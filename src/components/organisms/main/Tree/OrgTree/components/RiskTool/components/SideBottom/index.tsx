@@ -14,7 +14,9 @@ import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
 import { SideBottomProps } from './types';
 
-export const SideBottom: FC<SideBottomProps> = ({ riskInit }) => {
+export const SideBottom: FC<{ children?: any } & SideBottomProps> = ({
+  riskInit,
+}) => {
   const dispatch = useAppDispatch();
   const selectedRisk = useAppSelector(selectRisk);
 

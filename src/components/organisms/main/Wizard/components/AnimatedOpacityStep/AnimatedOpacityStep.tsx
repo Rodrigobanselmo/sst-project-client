@@ -2,9 +2,9 @@ import * as React from 'react';
 
 import { motion } from 'framer-motion';
 
-const AnimatedOpacity: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const AnimatedOpacity: React.FC<
+  { children?: any } & { children: React.ReactNode }
+> = ({ children }) => {
   return (
     <motion.div
       exit={{ opacity: 0 }}

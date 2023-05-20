@@ -45,7 +45,7 @@ interface ITableProps extends BoxProps {
   workspaceId?: string;
 }
 
-export const CharacterizationTable: FC<ITableProps> = ({
+export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
   filterType,
   children,
   onSelectData,
@@ -173,7 +173,7 @@ export const CharacterizationTable: FC<ITableProps> = ({
           <STableHRow justifyContent="center">Posição</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
-        <STableBody<typeof data[0]>
+        <STableBody<(typeof data)[0]>
           rowsData={results}
           renderRow={(row) => {
             const text =

@@ -31,14 +31,14 @@ import {
 import { dateToString } from 'core/utils/date/date-format';
 
 export const DocumentModelTable: FC<
-  BoxProps & {
-    rowsPerPage?: number;
-    onSelectData?: (group: IDocumentModel) => void;
-    hideTitle?: boolean;
-    companyId?: string;
-    title?: string;
-    query?: IQueryDocumentModels;
-  }
+  { children?: any } & BoxProps & {
+      rowsPerPage?: number;
+      onSelectData?: (group: IDocumentModel) => void;
+      hideTitle?: boolean;
+      companyId?: string;
+      title?: string;
+      query?: IQueryDocumentModels;
+    }
 > = ({
   rowsPerPage = 12,
   title,
@@ -119,7 +119,7 @@ export const DocumentModelTable: FC<
             </STableHRow>
           ))}
         </STableHeader>
-        <STableBody<typeof documentModel[0]>
+        <STableBody<(typeof documentModel)[0]>
           rowsData={documentModel}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}

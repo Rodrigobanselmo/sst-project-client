@@ -14,7 +14,9 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 
 import { GhoToolTopProps } from './types';
 
-export const GhoToolTopButtons: FC<GhoToolTopProps> = ({ handleSelectGHO }) => {
+export const GhoToolTopButtons: FC<{ children?: any } & GhoToolTopProps> = ({
+  handleSelectGHO,
+}) => {
   const dispatch = useAppDispatch();
   const { asPath, push } = useRouter();
 

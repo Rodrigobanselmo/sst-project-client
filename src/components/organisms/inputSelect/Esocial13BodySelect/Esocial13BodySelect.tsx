@@ -9,11 +9,9 @@ import { useQueryEsocial13Body } from 'core/services/hooks/queries/useQueryEsoci
 
 import { IEsocialTable13SelectProps } from './types';
 
-export const Esocial13BodySelect: FC<IEsocialTable13SelectProps> = ({
-  onChange,
-  inputProps,
-  ...props
-}) => {
+export const Esocial13BodySelect: FC<
+  { children?: any } & IEsocialTable13SelectProps
+> = ({ onChange, inputProps, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -28,7 +26,9 @@ export const Esocial13BodySelect: FC<IEsocialTable13SelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.desc || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.desc) || ''
+      }
       options={tables}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}

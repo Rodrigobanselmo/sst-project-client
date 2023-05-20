@@ -97,7 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const user = useAppSelector(selectUser);
-  const store = useStore();
+  const store = useStore<any>();
   const redirect = useAppSelector(selectRedirectRoute);
   const { enqueueSnackbar } = useSnackbar();
   const isAuthenticated = !!user;

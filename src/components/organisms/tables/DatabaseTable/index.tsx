@@ -26,7 +26,7 @@ import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUp
 import { useQueryDatabaseTable } from 'core/services/hooks/queries/useQueryDatabaseTable';
 import { sortString } from 'core/utils/sorts/string.sort';
 
-export const DatabaseTable: FC<BoxProps> = () => {
+export const DatabaseTable: FC<{ children?: any } & BoxProps> = () => {
   const { data, isLoading } = useQueryDatabaseTable();
   const { onOpenModal } = useModal();
   const downloadMutation = useMutDownloadFile();
@@ -51,7 +51,7 @@ export const DatabaseTable: FC<BoxProps> = () => {
           <STableHRow justifyContent="center">Baixar</STableHRow>
           <STableHRow justifyContent="center">Enviar</STableHRow>
         </STableHeader>
-        <STableBody<typeof data[0]>
+        <STableBody<(typeof data)[0]>
           rowsData={results}
           renderRow={(row) => {
             return (

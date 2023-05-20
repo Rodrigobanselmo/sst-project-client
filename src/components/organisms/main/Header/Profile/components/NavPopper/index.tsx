@@ -18,7 +18,7 @@ import { navItems, NavItemsActionEnum } from '../../constants/navItems';
 import { StackStyled } from './styles';
 import { INavProfileProps } from './types';
 
-export const NavPopper: FC<INavProfileProps> = ({
+export const NavPopper: FC<{ children?: any } & INavProfileProps> = ({
   anchorEl,
   isOpen,
   close,

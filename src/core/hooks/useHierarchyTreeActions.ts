@@ -54,7 +54,7 @@ export const useHierarchyTreeActions = () => {
   const upsertManyMutation = useMutUpsertManyHierarchy();
   const { enqueueSnackbar } = useSnackbar();
   const router = useRouter();
-  const store = useStore();
+  const store = useStore<any>();
 
   const setTree = useCallback(
     (nodesMap: ITreeMap) => {

@@ -55,8 +55,8 @@ export const ModalEditDocumentModelData = () => {
           }
         >
           <DataStep {...props} />
-          {isEdit && <ViewDocumentModelStep {...props} />}
-          {isEdit && <VariablesStep {...props} />}
+          {isEdit ? <ViewDocumentModelStep {...props} /> : <div />}
+          {isEdit ? <VariablesStep {...props} /> : <div />}
         </Wizard>
       </SModalPaper>
     </SModal>

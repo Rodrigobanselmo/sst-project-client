@@ -11,7 +11,7 @@ import { IRiskDocInfo } from 'core/interfaces/api/IRiskFactors';
 import { UnmountBox } from '../form/unmount-box';
 import { ISCheckRiskDocInfo } from './types';
 
-export const SCheckRiskDocInfo: FC<ISCheckRiskDocInfo> = ({
+export const SCheckRiskDocInfo: FC<{ children?: any } & ISCheckRiskDocInfo> = ({
   riskDocInfo,
   onUnmount,
   onSelectCheck,

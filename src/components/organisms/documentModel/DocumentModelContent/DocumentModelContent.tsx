@@ -8,10 +8,12 @@ import { useContentDocumentModel } from './hooks/useContentDocumentModel';
 import { STStructContainer } from './styles';
 import { TypeSectionItem } from './TypeSectionItem/TypeSectionItem';
 
-export const DocumentModelContent: React.FC<{
-  model: IDocumentModelFull | undefined;
-  loading?: boolean;
-}> = ({ children, ...props }) => {
+export const DocumentModelContent: React.FC<
+  { children?: any } & {
+    model: IDocumentModelFull | undefined;
+    loading?: boolean;
+  }
+> = ({ children, ...props }) => {
   const { data, variables, elements, sections, handleDeleteActualItems } =
     useContentDocumentModel(props);
 

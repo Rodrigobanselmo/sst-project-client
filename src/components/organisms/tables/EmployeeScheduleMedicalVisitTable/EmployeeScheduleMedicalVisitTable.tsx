@@ -590,7 +590,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
             ))}
           </STableHeader>
 
-          <STableBody<typeof employees[0]>
+          <STableBody<(typeof employees)[0]>
             rowsData={results}
             maxHeight={'calc(100vh - 280px)'}
             hideLoadMore

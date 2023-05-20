@@ -19,7 +19,7 @@ import { useQueryCids } from 'core/services/hooks/queries/useQueryCids/useQueryC
 import { AddButton } from '../components/AddButton';
 import { ICidSelectProps } from './types';
 
-export const CidInputSelect: FC<ICidSelectProps> = ({
+export const CidInputSelect: FC<{ children?: any } & ICidSelectProps> = ({
   onChange,
   inputProps,
   ...props
@@ -49,7 +49,9 @@ export const CidInputSelect: FC<ICidSelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.description || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.description) || ''
+      }
       options={cids}
       loading={loadCids}
       onInputChange={(e, v) => handleSearchChange(v)}

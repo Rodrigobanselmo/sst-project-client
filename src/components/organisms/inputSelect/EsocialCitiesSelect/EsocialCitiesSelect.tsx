@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+// @ts-ignore
 import React, { FC, useState } from 'react';
 
 import { Box } from '@mui/material';
@@ -9,12 +11,9 @@ import { useQueryCities } from 'core/services/hooks/queries/useQueryCities/useQu
 
 import { ICitiesSelectProps } from './types';
 
-export const EsocialCitiesSelect: FC<ICitiesSelectProps> = ({
-  onChange,
-  inputProps,
-  addressCompany,
-  ...props
-}) => {
+export const EsocialCitiesSelect: FC<
+  { children?: any } & ICitiesSelectProps
+> = ({ onChange, inputProps, addressCompany, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
@@ -30,7 +29,7 @@ export const EsocialCitiesSelect: FC<ICitiesSelectProps> = ({
   return (
     <AutocompleteForm
       getOptionLabel={(option) =>
-        option?.name
+        typeof option != 'string'
           ? `${option.name} - ${option?.ufCode || option?.uf?.uf || ''}`
           : ''
       }

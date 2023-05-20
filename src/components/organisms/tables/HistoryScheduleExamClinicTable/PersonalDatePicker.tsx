@@ -10,7 +10,10 @@ import dayjs from 'dayjs';
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
 
 export const PersonalDatePicker: FC<
-  BoxProps & { actualDate: Date; onChangeDate: (date: Date) => void }
+  { children?: any } & BoxProps & {
+      actualDate: Date;
+      onChangeDate: (date: Date) => void;
+    }
 > = ({ actualDate, onChangeDate, ...props }) => {
   const [isOpen, setIsOpen] = useState(false);
 

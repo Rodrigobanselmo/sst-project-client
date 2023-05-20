@@ -9,7 +9,7 @@ type Props = {
   onHandleDeletion: (e: React.MouseEvent<HTMLDivElement> | undefined) => void;
 } & ISTagButtonProps;
 
-export const RemoveDoubleClickButton: React.FC<Props> = ({
+export const RemoveDoubleClickButton: React.FC<{ children?: any } & Props> = ({
   onHandleDeletion,
   ...props
 }) => {

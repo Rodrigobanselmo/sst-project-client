@@ -29,7 +29,9 @@ export const Esocial24RiskSelect: FC<IEsocialTable24SelectProps> = ({
 
   return (
     <AutocompleteForm
-      getOptionLabel={(option) => option.name || ''}
+      getOptionLabel={(option) =>
+        (typeof option != 'string' && option.name) || ''
+      }
       options={tables}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}

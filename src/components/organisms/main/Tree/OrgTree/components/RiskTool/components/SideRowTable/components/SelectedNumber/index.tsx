@@ -6,7 +6,7 @@ import STooltip from 'components/atoms/STooltip';
 import { STSFlex, STText } from './styles';
 import { SelectedNumberProps } from './types';
 
-export const SelectedNumber: FC<SelectedNumberProps> = ({
+export const SelectedNumber: FC<{ children?: any } & SelectedNumberProps> = ({
   handleSelect,
   selectedNumber,
   disabledGtEqual = 7,
