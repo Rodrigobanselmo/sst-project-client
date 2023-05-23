@@ -74,6 +74,7 @@ export const ModalAddUsers = () => {
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
             autoFocus
+            setValue={setValue}
             disabled={isEdit || !userData.sendEmail}
             defaultValue={userData.email}
             label={'Email'}
@@ -91,6 +92,7 @@ export const ModalAddUsers = () => {
           {userData.name && (
             <InputForm
               autoFocus
+              setValue={setValue}
               disabled={isEdit}
               defaultValue={userData.name}
               label="Nome"
