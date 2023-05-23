@@ -31,7 +31,7 @@ const DraftEditor = dynamic(
 );
 
 export const BankModalCompanyStep = (props: IUseAddCompany) => {
-  const { onSubmit, loading, onCloseUnsaved, previousStep, control } =
+  const { onSubmit, loading, onCloseUnsaved, previousStep, control, setValue } =
     useBankClinic(props);
   const { companyData, isEdit, setCompanyData } = props;
 
@@ -65,6 +65,7 @@ export const BankModalCompanyStep = (props: IUseAddCompany) => {
             placeholder="selecionar tipo de conbrança..."
             name="paymentType"
             label="Cobrança"
+            setValue={setValue}
             labelPosition="top"
             onChange={(e) => {
               if (e.target.value) {
@@ -82,6 +83,7 @@ export const BankModalCompanyStep = (props: IUseAddCompany) => {
             <InputForm
               defaultValue={String(companyData.paymentDay || '') || ''}
               mask={dateDayMask.apply}
+              setValue={setValue}
               label="Dia de Faturamento"
               labelPosition="top"
               sx={{ maxWidth: [100] }}

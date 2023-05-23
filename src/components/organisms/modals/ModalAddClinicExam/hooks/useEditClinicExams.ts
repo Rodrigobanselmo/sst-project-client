@@ -53,6 +53,7 @@ export const initialClinicExamState = {
   scheduleType: '' as ClinicScheduleTypeEnum,
   scheduleRange: undefined as Record<string, string> | undefined,
   price: undefined as number | undefined,
+  initialized: false,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   callback: (clinicExam: IExam | null) => {},
 };
@@ -86,6 +87,8 @@ export const useEditClinicExams = () => {
     ...initialClinicExamState,
   });
 
+  console.log('clinicExamData', clinicExamData);
+
   const { data: allClinicExams } = useQueryClinicExams(
     1,
     {
@@ -103,16 +106,16 @@ export const useEditClinicExams = () => {
     clinicExamData?.exam?.isAttendance || clinicExamData?.exam?.isAvaliation;
 
   const initializeModalDate = (initialData?: any) => {
-    if (!initialData) return;
+    if (!initialData || !Object.keys(initialData)?.length) return;
     if ((initialData as any).passBack) return;
 
     setClinicExamData((oldData) => {
       const newData = {
         ...oldData,
+        scheduleRange: null,
         ...cleanObjectNullValues(initialData),
       };
       initialDataRef.current = newData;
-
       return newData;
     });
   };

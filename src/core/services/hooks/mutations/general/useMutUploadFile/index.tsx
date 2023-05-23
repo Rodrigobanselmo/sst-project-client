@@ -33,7 +33,6 @@ export async function uploadFile(
   path: string,
   payload?: any,
 ) {
-  console.log(payload);
   const formData = new FormData();
 
   if (!Array.isArray(files)) formData.append('file', files);

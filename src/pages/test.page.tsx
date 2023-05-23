@@ -3,8 +3,7 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 
 const CanvasEditor = dynamic(
-  () =>
-    import('components/molecules/SCanvasEditorTesting/SCanvasEditorTesting'),
+  () => import('components/molecules/SCanvasEditor/SCanvasEditorTesting'),
   {
     ssr: false,
   },

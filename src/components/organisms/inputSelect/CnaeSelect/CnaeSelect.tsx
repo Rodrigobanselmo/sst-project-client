@@ -15,6 +15,7 @@ export const CnaeInputSelect: FC<{ children?: any } & ICnaeSelectProps> = ({
   onChange,
   control,
   data,
+  setValue,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -64,6 +65,7 @@ export const CnaeInputSelect: FC<{ children?: any } & ICnaeSelectProps> = ({
           label="Código"
           control={control}
           sx={{ minWidth: 120 }}
+          setValue={setValue}
           name="cnae_code"
           size="small"
           value={cnaeMask.mask(data?.code || '') || ''}
@@ -73,6 +75,7 @@ export const CnaeInputSelect: FC<{ children?: any } & ICnaeSelectProps> = ({
       <Box flex={1}>
         <InputForm
           label="Grau de risco"
+          setValue={setValue}
           control={control}
           sx={{ minWidth: 100 }}
           name="cnae_code"

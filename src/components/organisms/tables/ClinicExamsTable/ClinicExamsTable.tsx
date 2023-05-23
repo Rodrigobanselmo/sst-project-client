@@ -91,10 +91,9 @@ export const ClinicExamsTable: FC<
   };
 
   const onAddExam = () => {
-    onStackOpenModal(
-      ModalEnum.EXAMS_CLINIC_ADD,
-      {} as typeof initialClinicExamState,
-    );
+    onStackOpenModal(ModalEnum.EXAMS_CLINIC_ADD, {
+      initialized: true,
+    } as typeof initialClinicExamState);
   };
 
   const onEditExam = ({ startDate, ...exam }: IExamToClinic) => {

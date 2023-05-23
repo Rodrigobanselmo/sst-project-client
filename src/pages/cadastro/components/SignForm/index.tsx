@@ -67,6 +67,7 @@ export const LoginForm: FC = () => {
         label="E-mail"
         defaultValue={initEmail || ''}
         placeholder="exemplo@simplesst.com"
+        setValue={setValue}
         control={control}
         type="email"
         name="email"
@@ -76,6 +77,7 @@ export const LoginForm: FC = () => {
       <InputForm
         sx={{ mb: [8, 8] }}
         label="Senha"
+        setValue={setValue}
         placeholder="********"
         type="password"
         autoComplete="off"
@@ -88,6 +90,7 @@ export const LoginForm: FC = () => {
         placeholder="********"
         autoComplete="off"
         type="password"
+        setValue={setValue}
         control={control}
         name="passwordConfirmation"
         success={successConfirmationPass}

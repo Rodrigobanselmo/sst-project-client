@@ -16,7 +16,7 @@ export const useCompanyEdit = ({
   onSubmitData,
   ...rest
 }: IUseAddCompany) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, getValues, control, reset, setValue } = useFormContext();
   const { previousStep, nextStep } = useWizard();
   const { onStackOpenModal } = useModal();
   const addPhotoMutation = useMutAddCompanyPhoto();
@@ -60,11 +60,13 @@ export const useCompanyEdit = ({
           }));
         };
 
-        const company = await addPhotoMutation
-          .mutateAsync({ file: photo.file, companyId: companyData.id })
-          .catch(() => {});
+        if (photo.file) {
+          const company = await addPhotoMutation
+            .mutateAsync({ file: photo.file, companyId: companyData.id })
+            .catch(() => {});
 
-        if (company?.logoUrl) addLocalPhoto(company.logoUrl);
+          if (company?.logoUrl) addLocalPhoto(company.logoUrl);
+        }
       },
     } as Partial<typeof initialPhotoState>);
   };
@@ -76,5 +78,6 @@ export const useCompanyEdit = ({
     previousStep,
     onCloseUnsaved,
     handleAddPhoto,
+    setValue,
   };
 };

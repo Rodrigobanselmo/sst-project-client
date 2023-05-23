@@ -116,6 +116,7 @@ export const ModalSingleInput: FC<
         <SModalHeader onClose={onClose} title={data.title || 'Adicionar'} />
         <InputForm
           autoFocus
+          setValue={setValue}
           defaultValue={data.name}
           label={data.label || 'descrição'}
           labelPosition="center"

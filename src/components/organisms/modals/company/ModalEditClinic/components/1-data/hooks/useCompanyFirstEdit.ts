@@ -122,5 +122,6 @@ export const useCompanyEdit = ({
     onCloseUnsaved,
     lastStep,
     onChangeCnpj,
+    setValue,
   };
 };

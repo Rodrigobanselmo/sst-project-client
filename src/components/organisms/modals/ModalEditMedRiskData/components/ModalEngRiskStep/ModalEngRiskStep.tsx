@@ -13,6 +13,7 @@ export const ModalEngRiskStep = ({
   engData,
   onSelectCheck,
   control,
+  setValue,
 }: IUseEditEng) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -21,6 +22,7 @@ export const ModalEngRiskStep = ({
       </SText>
       <Box flex={5}>
         <InputForm
+          setValue={setValue}
           autoFocus
           defaultValue={engData.medName}
           label="EPC / ENG "

@@ -52,7 +52,7 @@ export const useAddData = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialEmployeeHistoryHierState);
 
-  const { handleSubmit, control, reset, getValues } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm({
     resolver: yupResolver(employeeHistoryHierarchySchema),
   });
 
@@ -145,7 +145,6 @@ export const useAddData = () => {
       ...dataForm,
       startDate: dayjs(data.startDate).format('DD/MM/YYYY'),
     };
-    console.log(submitData);
 
     try {
       if (!submitData.id) {
@@ -184,5 +183,6 @@ export const useAddData = () => {
     data,
     setData,
     companyId,
+    setValue,
   };
 };

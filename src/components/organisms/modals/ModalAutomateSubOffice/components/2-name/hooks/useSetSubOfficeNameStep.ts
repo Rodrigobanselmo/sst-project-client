@@ -9,7 +9,8 @@ export const useSetSubOfficeNameStep = ({
   data,
   ...rest
 }: IUseAutomateSubOffice) => {
-  const { trigger, getValues, control, reset, clearErrors } = useFormContext();
+  const { trigger, getValues, control, reset, clearErrors, setValue } =
+    useFormContext();
 
   const upsertSubOffice = useMutAutomateHierarchySubOffice();
 
@@ -49,5 +50,6 @@ export const useSetSubOfficeNameStep = ({
     control,
     onCloseUnsaved,
     clearErrors,
+    setValue,
   };
 };

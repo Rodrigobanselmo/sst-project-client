@@ -36,6 +36,7 @@ export const ModalAddGho = () => {
     onAddHierarchy,
     hierarchies,
     ghoQuery,
+    setValue,
   } = useAddGho();
 
   const buttons = [
@@ -68,6 +69,7 @@ export const ModalAddGho = () => {
         />
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
+            setValue={setValue}
             autoFocus
             defaultValue={ghoData.name}
             minRows={2}
@@ -83,6 +85,7 @@ export const ModalAddGho = () => {
             multiline
             defaultValue={ghoData.description || ghoQuery.description}
             minRows={2}
+            setValue={setValue}
             maxRows={4}
             label="Descrição"
             control={control}

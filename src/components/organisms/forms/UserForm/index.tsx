@@ -71,6 +71,7 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
         <GoogleButton onClick={linkGoogle} text="Vincular conta Google" />
         <RadioForm
           disabled={uneditable}
+          setValue={setValue}
           label="Profissão*"
           control={control}
           defaultValue={String(userData.type)}

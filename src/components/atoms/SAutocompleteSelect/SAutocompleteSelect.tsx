@@ -30,12 +30,12 @@ const SAutocompleteSelect: FC<{ children?: any } & AutocompleteSelectProps> = ({
         sx={{
           ...(!freeSolo && {
             '.MuiInputBase-input': {
-              mr: '50px',
+              mr: '0px',
             },
           }),
           ...(freeSolo && {
             '.MuiInputBase-input': {
-              mr: '25px',
+              mr: '0px',
             },
           }),
           ...inputProps?.sx,

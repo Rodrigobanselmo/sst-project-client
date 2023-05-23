@@ -42,10 +42,9 @@ export const useAddCompanyGroup = () => {
   const initialDataRef = useRef(initialCompanyGroupState);
   const { push } = useRouter();
 
-  const { handleSubmit, control, setError, reset, getValues, setValue } =
-    useForm({
-      resolver: yupResolver(accessGroupSchema),
-    });
+  const { handleSubmit, control, setValue, reset, getValues } = useForm({
+    resolver: yupResolver(accessGroupSchema),
+  });
 
   const upsertCompanyGroup = useMutUpsertCompanyGroup();
 
@@ -235,5 +234,6 @@ export const useAddCompanyGroup = () => {
     moreCompanies,
     handleOs,
     handleAlerts,
+    setValue,
   };
 };

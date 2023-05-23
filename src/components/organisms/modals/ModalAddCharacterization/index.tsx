@@ -31,6 +31,7 @@ export const ModalAddCharacterization = () => {
     onRemove,
     isRiskOpen,
     saveRef,
+    isLoading,
   } = props;
 
   const buttons = [
@@ -75,6 +76,7 @@ export const ModalAddCharacterization = () => {
         <SModalPaper
           p={8}
           center
+          loading={isLoading}
           component="form"
           onSubmit={(handleSubmit as any)(onSubmit)}
           sx={{

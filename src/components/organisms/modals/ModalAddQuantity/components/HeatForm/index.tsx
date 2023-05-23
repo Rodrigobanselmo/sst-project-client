@@ -14,7 +14,7 @@ import { floatMask } from 'core/utils/masks/float.mask';
 import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
 
 export const HeatForm = (props: IUseModalQuantity) => {
-  const { control, data, setData } = props;
+  const { control, data, setData, setValue } = props;
   return (
     <SFlex width={['100%', 600, 800]} direction="column" mt={8}>
       <SText mb={4} color="text.label" fontSize={14}>
@@ -33,6 +33,7 @@ export const HeatForm = (props: IUseModalQuantity) => {
           labelPosition="center"
           label="Taxa metabólica M[W]"
           control={control}
+          setValue={setValue}
           placeholder={'Valor da taxa metabólica'}
           name="mw"
           size="small"
@@ -42,6 +43,7 @@ export const HeatForm = (props: IUseModalQuantity) => {
         <InputForm
           defaultValue={data.ibtug.replace('.', ',')}
           label="IBUTG [°C]"
+          setValue={setValue}
           labelPosition="center"
           control={control}
           placeholder={'valor médio do IBUTG'}
@@ -50,7 +52,12 @@ export const HeatForm = (props: IUseModalQuantity) => {
           endAdornment={'°C'}
           mask={floatMask.apply({ negative: false, decimal: 2 })}
         />
-        <InputForm control={control} name="empty" sx={{ display: 'none' }} />
+        <InputForm
+          setValue={setValue}
+          control={control}
+          name="empty"
+          sx={{ display: 'none' }}
+        />
       </SFlex>
       <Box mb={10}>
         <SSwitch
@@ -68,6 +75,7 @@ export const HeatForm = (props: IUseModalQuantity) => {
       </Box>
       <Box mb={10}>
         <SelectForm
+          setValue={setValue}
           label="Tipo Vestimento"
           control={control}
           sx={{ minWidth: ['100%', 600] }}

@@ -32,6 +32,7 @@ export const ModalAddRecMed = () => {
     control,
     handleSubmit,
     onRemove,
+    setValue,
   } = useAddRecMed();
 
   const buttons = [
@@ -69,6 +70,7 @@ export const ModalAddRecMed = () => {
           {hasRec && (
             <Box position="relative">
               <InputForm
+                setValue={setValue}
                 autoFocus
                 multiline
                 fullWidth
@@ -124,6 +126,7 @@ export const ModalAddRecMed = () => {
               <InputForm
                 multiline
                 autoFocus={!hasRec}
+                setValue={setValue}
                 fullWidth
                 defaultValue={recMedData.medName}
                 minRows={3}

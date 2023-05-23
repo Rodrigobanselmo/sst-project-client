@@ -89,6 +89,7 @@ export const ModalExamStep = ({
           <InputForm
             defaultValue={String(examData.examRiskData.fromAge || '')}
             label="De"
+            setValue={setValue}
             fullWidth
             labelPosition="center"
             control={control}
@@ -101,6 +102,7 @@ export const ModalExamStep = ({
           <InputForm
             defaultValue={String(examData.examRiskData.toAge || '')}
             fullWidth
+            setValue={setValue}
             label="Até"
             labelPosition="center"
             control={control}
@@ -124,7 +126,7 @@ export const ModalExamStep = ({
               placeholder: 'meses...',
               name: 'validityInMonths',
             }}
-            setValue={(v) => setValue('validityInMonths', v)}
+            setValue={(v) => setValue('validityInMonths', String(v))}
             defaultValue={examData.examRiskData.validityInMonths || ''}
             mask={intMask.apply}
             label="Peridiocidade (meses)"
@@ -143,7 +145,7 @@ export const ModalExamStep = ({
               placeholder: 'meses...',
               name: 'lowValidityInMonths',
             }}
-            setValue={(v) => setValue('lowValidityInMonths', v)}
+            setValue={(v) => setValue('lowValidityInMonths', String(v))}
             defaultValue={examData.examRiskData.lowValidityInMonths || ''}
             mask={intMask.apply}
             label="Peridiocidade para comorbidades (meses)"
@@ -164,7 +166,7 @@ export const ModalExamStep = ({
           helpText:
             'Exemplo (considerando valor de 60 dias entre ocupacional): caso seja necessaria realizar o exame periódico, o sistema irá verificar se o exame coplementar está com validade superior a 60 dias, se sim, não será solicitado a realização do exame. No caso da validade ser inferior a 60 dias, um novo exame será solicitado',
         }}
-        setValue={(v) => setValue('considerBetweenDays', v)}
+        setValue={(v) => setValue('considerBetweenDays', String(v))}
         defaultValue={examData.examRiskData.considerBetweenDays || ''}
         mask={intMask.apply}
         label="Considerar (dias entre ocupacional)"

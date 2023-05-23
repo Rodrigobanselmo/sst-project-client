@@ -18,6 +18,7 @@ export const ModalEpiStep = ({
   onSelectAllChecked,
   isAllSelected,
   isExpired,
+  setValue,
 }: IUseEditEpi) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
@@ -27,6 +28,7 @@ export const ModalEpiStep = ({
       <SFlex minWidth={['100%', 600, 800]} flexWrap="wrap" gap={5}>
         <Box flex={5}>
           <InputForm
+            setValue={setValue}
             autoFocus
             defaultValue={epiData.equipment}
             label="Equipamento"
@@ -43,6 +45,7 @@ export const ModalEpiStep = ({
         </Box>
         <Box flex={1}>
           <InputForm
+            setValue={setValue}
             defaultValue={epiData.ca}
             fullWidth
             label="CA"
@@ -58,6 +61,7 @@ export const ModalEpiStep = ({
         <Box flex={4}>
           <InputForm
             autoFocus
+            setValue={setValue}
             defaultValue={epiData.report}
             label="Laudo"
             maxRows={3}
@@ -74,6 +78,7 @@ export const ModalEpiStep = ({
         {epiData.expiredDate && (
           <Box flex={1}>
             <InputForm
+              setValue={setValue}
               defaultValue={dateToString(epiData.expiredDate)}
               fullWidth
               label="Expira em"
@@ -90,6 +95,7 @@ export const ModalEpiStep = ({
       </SFlex>
       {epiData.restriction && (
         <InputForm
+          setValue={setValue}
           defaultValue={epiData.restriction}
           fullWidth
           label="Restrições"

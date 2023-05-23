@@ -10,7 +10,7 @@ export const useCompanyEdit = ({
   onSubmitData,
   ...rest
 }: IUseAddCompany) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, getValues, control, reset, setValue } = useFormContext();
   const { nextStep, stepCount, goToStep } = useWizard();
 
   const updateCompany = useMutUpdateCompany();
@@ -80,5 +80,6 @@ export const useCompanyEdit = ({
     control,
     onCloseUnsaved,
     lastStep,
+    setValue,
   };
 };

@@ -33,6 +33,7 @@ export const ModalAddGenerateSource = () => {
     onRemove,
     reset,
     showRecMed,
+    setValue,
   } = useAddGenerateSource();
 
   const buttons = [
@@ -75,6 +76,7 @@ export const ModalAddGenerateSource = () => {
             defaultValue={generateSourceData.name}
             multiline
             minRows={2}
+            setValue={setValue}
             maxRows={4}
             label="Fonte geradora"
             control={control}
@@ -90,6 +92,7 @@ export const ModalAddGenerateSource = () => {
                 multiline
                 minRows={2}
                 maxRows={4}
+                setValue={setValue}
                 label="Recomendação"
                 control={control}
                 placeholder={'descrição da recomendação...'}
@@ -102,6 +105,7 @@ export const ModalAddGenerateSource = () => {
                   multiline
                   minRows={3}
                   maxRows={3}
+                  setValue={setValue}
                   label="Medida de controle"
                   control={control}
                   placeholder={'descrição da medida de controle...'}

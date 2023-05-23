@@ -67,12 +67,13 @@ export const useCompanyContacts = ({
             logoUrl: src,
           }));
         };
+        if (photo.file) {
+          const company = await addPhotoMutation
+            .mutateAsync({ file: photo.file, companyId: companyData.id })
+            .catch(() => {});
 
-        const company = await addPhotoMutation
-          .mutateAsync({ file: photo.file, companyId: companyData.id })
-          .catch(() => {});
-
-        if (company?.logoUrl) addLocalPhoto(company.logoUrl);
+          if (company?.logoUrl) addLocalPhoto(company.logoUrl);
+        }
       },
     } as Partial<typeof initialPhotoState>);
   };

@@ -189,6 +189,7 @@ export default function SCropImage({
             justifyContent: 'center',
             backgroundColor: defaultTheme.palette.grey[200],
             marginBottom: '10px',
+            border: '1px solid #ddd',
           }}
         >
           <ReactCrop

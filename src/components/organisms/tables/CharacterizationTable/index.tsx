@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 
 import { BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -36,6 +36,7 @@ import { useQueryCharacterizations } from 'core/services/hooks/queries/useQueryC
 import { dateToString } from 'core/utils/date/date-format';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
+import STablePagination from 'components/atoms/STable/components/STablePagination';
 
 interface ITableProps extends BoxProps {
   filterType?: CharacterizationTypeEnum;
@@ -111,10 +112,15 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
     ];
   }, [data, filterType]);
 
-  const { handleSearchChange, results } = useTableSearch({
+  const { handleSearchChange, results, page, setPage } = useTableSearch({
     data: dataResult,
     keys: ['name'],
+    rowsPerPage: 8,
   });
+
+  useEffect(() => {
+    setPage(1);
+  }, [setPage, filterType]);
 
   const handleEdit = (data: ICharacterization) => {
     if (isSelect) {
@@ -175,6 +181,7 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
         </STableHeader>
         <STableBody<(typeof data)[0]>
           rowsData={results}
+          hideLoadMore
           renderRow={(row) => {
             const text =
               (characterizationMap[row.type]?.type
@@ -239,6 +246,13 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
           }}
         />
       </STable>
+      <STablePagination
+        mt={2}
+        registersPerPage={8}
+        totalCountOfRegisters={isLoading ? undefined : dataResult.length}
+        currentPage={page}
+        onPageChange={setPage}
+      />
     </>
   );
 };

@@ -479,7 +479,10 @@ export const ModalCharacterizationContent = (
                       gap: 5,
                     }}
                   >
-                    <StyledImage alt={photo.name} src={photo.photoUrl} />
+                    <StyledImage
+                      alt={photo.name}
+                      src={`${photo.photoUrl}?timestamp=${photo.updated_at}`}
+                    />
                     <div>
                       <SText noBreak>{photo.name}</SText>
                       <SIconButton

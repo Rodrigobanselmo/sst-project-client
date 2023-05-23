@@ -168,6 +168,7 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
             <InputForm
               defaultValue={data.clinicObs}
               label={'Observações do Pedido de Agenda (Exame Clínico)'}
+              setValue={setValue}
               multiline
               minRows={3}
               maxRows={5}

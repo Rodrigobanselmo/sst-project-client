@@ -46,6 +46,7 @@ export const ModalAddCompanyGroup = () => {
     moreCompanies,
     handleOs,
     handleAlerts,
+    setValue,
   } = useAddCompanyGroup();
 
   const { handleAddClinic } = usePushRoute();
@@ -83,6 +84,7 @@ export const ModalAddCompanyGroup = () => {
         />
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
+            setValue={setValue}
             autoFocus
             defaultValue={companyGroupData.name}
             label="Nome"
@@ -94,6 +96,7 @@ export const ModalAddCompanyGroup = () => {
           />
           <InputForm
             defaultValue={companyGroupData.description}
+            setValue={setValue}
             label="Descrição"
             control={control}
             sx={{ minWidth: ['100%', 600] }}
@@ -176,6 +179,7 @@ export const ModalAddCompanyGroup = () => {
               </Box>
               <Box flex={2}>
                 <SelectForm
+                  setValue={setValue}
                   defaultValue={
                     typeof companyGroupData.numAsos == 'number'
                       ? String(companyGroupData.numAsos)

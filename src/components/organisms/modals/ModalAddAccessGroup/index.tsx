@@ -27,6 +27,7 @@ export const ModalAddAccessGroup = () => {
     handleSubmit,
     submitType,
     isEdit,
+    setValue,
   } = useAddAccessGroup();
 
   const buttons = [
@@ -74,6 +75,7 @@ export const ModalAddAccessGroup = () => {
           <InputForm
             autoFocus
             defaultValue={accessGroupData.name}
+            setValue={setValue}
             label="Nome"
             control={control}
             sx={{ minWidth: ['100%', 600] }}
@@ -84,6 +86,7 @@ export const ModalAddAccessGroup = () => {
           <InputForm
             defaultValue={accessGroupData.description}
             label="Descrição"
+            setValue={setValue}
             control={control}
             sx={{ minWidth: ['100%', 600] }}
             placeholder={'breve descrição das permissões presentes do grupo...'}

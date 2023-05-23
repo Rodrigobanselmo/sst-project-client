@@ -24,6 +24,7 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
     setIsMajorVersion,
     isMajorVersion,
     clearErrors,
+    setValue,
   } = useSecondStep(props);
   const { previousStep } = useWizard();
   const { data } = props;
@@ -93,6 +94,7 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
           <SelectForm
+            setValue={setValue}
             renderMenuItemChildren={(item, index) => (
               <SFlex align="center">
                 {item}{' '}
@@ -125,6 +127,7 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
           />
           <InputForm
             label={`Nome ${isMajorVersion ? '*' : '(opcional)'}`}
+            setValue={setValue}
             control={control}
             placeholder={'nome para identificação do documento...'}
             name="doc_name"
@@ -134,6 +137,7 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
           <InputForm
             label={`Descrição ${isMajorVersion ? '' : '(opcional)'}`}
             minRows={2}
+            setValue={setValue}
             maxRows={4}
             control={control}
             placeholder={'Desrição das mudanças realizadas nessa versão...'}

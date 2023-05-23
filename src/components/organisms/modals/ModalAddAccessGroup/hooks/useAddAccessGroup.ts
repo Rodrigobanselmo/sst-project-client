@@ -41,7 +41,7 @@ export const useAddAccessGroup = () => {
   const submitType = useRef('');
   const { enqueueSnackbar } = useSnackbar();
 
-  const { handleSubmit, control, reset, getValues } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm({
     resolver: yupResolver(accessGroupSchema),
   });
 
@@ -140,5 +140,6 @@ export const useAddAccessGroup = () => {
     handleSubmit,
     submitType,
     isEdit: !!accessGroupData.id,
+    setValue,
   };
 };

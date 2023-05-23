@@ -37,6 +37,7 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
     onCloseUnsaved,
     handleAddPhoto,
     previousStep,
+    setValue,
   } = useCompanyEdit(props);
   const { companyData, isEdit } = props;
 
@@ -68,6 +69,7 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
             onClick={handleAddPhoto}
           />
           <InputForm
+            setValue={setValue}
             defaultValue={companyData.operationTime}
             label="Horário de Trabalho"
             control={control}
@@ -80,6 +82,7 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
           />
 
           <InputForm
+            setValue={setValue}
             multiline
             defaultValue={companyData.description}
             minRows={2}

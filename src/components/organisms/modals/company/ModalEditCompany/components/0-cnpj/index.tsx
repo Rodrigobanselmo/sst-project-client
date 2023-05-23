@@ -13,7 +13,8 @@ import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCheckCompany } from './hooks/useCheckCompany';
 
 export const ZeroModalCompanyStep = (props: IUseAddCompany) => {
-  const { onSubmit, control, onCloseUnsaved, loading } = useCheckCompany(props);
+  const { onSubmit, control, onCloseUnsaved, loading, setValue } =
+    useCheckCompany(props);
 
   const { companyData } = props;
   const buttons = [
@@ -30,6 +31,7 @@ export const ZeroModalCompanyStep = (props: IUseAddCompany) => {
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
           <InputForm
+            setValue={setValue}
             autoFocus
             defaultValue={companyData.cnpj}
             minRows={2}

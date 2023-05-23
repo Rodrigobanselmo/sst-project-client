@@ -25,6 +25,10 @@ import { photoSchema } from 'core/utils/schemas/photo.schema';
 
 import { SFileDndUpload } from '../../../molecules/SFileDndUpload';
 import { SModalUploadPhoto } from './types';
+import { calculateDimensionsWithMaxSize } from 'core/utils/helpers/calculateDimensionsWithMaxSize';
+import { ImageResizer } from './ImageResizer/ImageResizer';
+import dynamic from 'next/dynamic';
+import SFlex from 'components/atoms/SFlex';
 
 const StyledCanvas = styled('canvas')`
   border: 2px solid ${({ theme }) => theme.palette.grey[300]};
@@ -34,18 +38,27 @@ const StyledCanvas = styled('canvas')`
   object-fit: contain;
 `;
 
+const CanvasEditor = dynamic(
+  () => import('components/molecules/SCanvasEditor/SCanvasEditorMain'),
+  {
+    ssr: false,
+  },
+);
+
 export interface IUploadPhotoConfirm {
-  file: File;
+  file?: File;
   name?: string;
   src?: string;
   id?: string;
 }
 
 export const initialPhotoState = {
+  id: '' as string | number,
   title: '',
   subtitle: '',
   accept: 'image/*' as string | string[],
   files: [] as File[],
+  url: undefined as string | undefined,
   imageExtension: 'jpeg' as 'jpeg' | 'png' | 'jpg' | 'gif',
   name: '',
   freeAspect: false,
@@ -65,6 +78,7 @@ export const ModalUploadPhoto: FC<
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { onCloseModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
+  const [isEditing, setIsEditing] = useState(true);
 
   const { handleSubmit, control, reset, setValue } = useForm({
     resolver: yupResolver(photoSchema),
@@ -74,7 +88,7 @@ export const ModalUploadPhoto: FC<
     ...initialPhotoState,
   });
 
-  const isPhotoSelected = !!photoData.files.length;
+  const isPhotoSelected = !!photoData.files.length || !!photoData.url;
 
   useEffect(() => {
     const initialData =
@@ -82,6 +96,50 @@ export const ModalUploadPhoto: FC<
 
     // eslint-disable-next-line prettier/prettier
     if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+      if (initialData.id && (initialData?.files?.[0] || initialData.url)) {
+        setCompletedCrop({} as any);
+
+        if (initialData?.files?.[0]) {
+          const reader = new FileReader();
+
+          reader.onloadend = () => {
+            const img = new Image();
+            img.onload = () => {
+              const canvas = canvasRef.current;
+
+              if (canvas) {
+                const MAX_WIDTH = 700;
+                const MAX_HEIGHT = 400;
+
+                let width = img.width;
+                let height = img.height;
+
+                // Calculate new dimensions while maintaining aspect ratio
+                if (width > MAX_WIDTH) {
+                  height = Math.round((height * MAX_WIDTH) / width);
+                  width = MAX_WIDTH;
+                }
+
+                if (height > MAX_HEIGHT) {
+                  width = Math.round((width * MAX_HEIGHT) / height);
+                  height = MAX_HEIGHT;
+                }
+
+                // Resize image using canvas
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0, width, height);
+              }
+            };
+
+            img.src = reader.result as string;
+          };
+
+          reader.readAsDataURL(initialData?.files?.[0]);
+        }
+      }
+
       setPhotoData((oldData) => ({
         ...oldData,
         ...initialData,
@@ -90,6 +148,8 @@ export const ModalUploadPhoto: FC<
   }, [getModalData]);
 
   const onClose = () => {
+    setIsEditing(false);
+    setIsLoading(false);
     onCloseModal(ModalEnum.UPLOAD_PHOTO);
     setCompletedCrop(undefined);
     setPhotoData(initialPhotoState);
@@ -112,6 +172,15 @@ export const ModalUploadPhoto: FC<
     if (!completedCrop) CropImage();
     // if (!completedCrop) return CropImage();
 
+    if (photoData.id && photoData.url) {
+      setIsLoading(true);
+      await photoData.onConfirm({
+        name: data.name,
+      });
+      setIsLoading(false);
+      return;
+    }
+
     if (canvasRef.current)
       canvasRef.current.toBlob((blob) => {
         if (blob) {
@@ -131,11 +200,10 @@ export const ModalUploadPhoto: FC<
             imgElement.onload = async function (e: any) {
               const canvas = document.createElement('canvas');
 
-              const width = e.target.width > 1200 ? 1200 : e.target.width / 2;
-              const height =
-                e.target.height > 1200 ? 1200 : e.target.height / 2;
-              const MAX_WIDTH = width > 2000 ? 2000 : width;
-              const MAX_HEIGHT = height > 2000 ? 2000 : height;
+              const width = e.target.width;
+              const height = e.target.heigh;
+              const MAX_WIDTH = width > 1200 ? 1200 : width;
+              const MAX_HEIGHT = height > 1200 ? 1200 : height;
 
               if (e && e.target && e.target?.width) {
                 const isVertical = e.target.width < e.target.height;
@@ -164,7 +232,7 @@ export const ModalUploadPhoto: FC<
 
                   const dataUrl = canvas.toDataURL(
                     `image/${photoData.imageExtension}`,
-                    big ? 0.5 : med ? 0.7 : 0.9,
+                    photoData.id ? 1 : big ? 0.5 : med ? 0.7 : 0.9,
                   );
 
                   const fileFromUrl = new File(
@@ -191,69 +259,6 @@ export const ModalUploadPhoto: FC<
           onClose();
         }
       }, `image/${photoData.imageExtension}`);
-
-    if (canvasRef.current) {
-      return;
-      // const MAX_WIDTH = 500;
-
-      // const currentWidth = canvasRef.current.width;
-      // const currentHeight = canvasRef.current.height;
-
-      // let imageWidth = canvasRef.current.width;
-      // let imageHeight = canvasRef.current.height;
-
-      // const scaleSizeWidth = MAX_WIDTH / canvasRef.current.width;
-
-      // if (imageWidth > 800) {
-      //   imageWidth = 800;
-      //   imageHeight = currentHeight * (800 / currentWidth);
-      // }
-
-      // if (imageHeight > 800) {
-      //   imageHeight = 800;
-      //   imageWidth = currentWidth * (800 / currentHeight);
-      // }
-
-      // const dataUrl = canvasRef.current.toDataURL('image/jpeg', 0.5);
-      // const file = new File(
-      //   [await createBlob(dataUrl)],
-      //   `${data.name || 'imagem'}.jpeg`,
-      //   {
-      //     type: 'image/jpeg',
-      //   },
-      // );
-
-      // await photoData.onConfirm({
-      //   file: file,
-      //   name: data.name,
-      //   src: dataUrl,
-      // });
-
-      // return;
-
-      // canvasRef.current.toBlob((blob) => {
-      //   if (blob) {
-      //     const file = new File([blob], `${data.name || 'imagem'}.png`, {
-      //       type: 'image/png',
-      //     });
-      //     const reader = new FileReader();
-      //     reader.addEventListener('load', async () => {
-      //       setIsLoading(true);
-      //       if (reader.result)
-      //         await photoData.onConfirm({
-      //           file: file,
-      //           name: data.name,
-      //           src: reader.result.toString() || '',
-      //         });
-      //       setIsLoading(false);
-      //       onClose();
-      //     });
-      //     reader.readAsDataURL(file);
-      //   } else {
-      //     onClose();
-      //   }
-      // }, 'image/png');
-    }
   };
 
   const onSetFiles = async (files: File[]) => {
@@ -261,7 +266,7 @@ export const ModalUploadPhoto: FC<
   };
 
   const handleRemove = async () => {
-    setPhotoData((data) => ({ ...data, files: [] }));
+    setPhotoData((data) => ({ ...data, files: [], url: undefined }));
     setCompletedCrop(undefined);
   };
 
@@ -284,8 +289,14 @@ export const ModalUploadPhoto: FC<
         component="form"
         center
         p={8}
+        semiFullScreen={isEditing}
         width={'fit-content'}
         minWidth={600}
+        {...(isEditing && {
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+        })}
       >
         <SModalHeader onClose={onClose} title={'Adicionar foto'} />
         <InputForm
@@ -300,45 +311,73 @@ export const ModalUploadPhoto: FC<
           name="name"
           size="small"
         />
-        <DndProvider backend={HTML5Backend}>
-          {!isPhotoSelected ? (
-            <SFileDndUpload
-              maxFiles={1}
-              accept={photoData.accept}
-              onChange={onSetFiles}
-              text={'Arraste ou click aqui \n para adicionar uma foto'}
-            />
-          ) : (
-            !completedCrop && (
-              <>
-                <SCropImage
-                  freeAspect={photoData.freeAspect}
-                  canvasRef={canvasRef}
-                  onSelect={setCompletedCrop}
-                  files={photoData.files}
+        {isEditing && photoData.url ? (
+          <CanvasEditor imageUrl={photoData.url} />
+        ) : (
+          <DndProvider backend={HTML5Backend}>
+            {!isPhotoSelected ? (
+              <SFileDndUpload
+                maxFiles={1}
+                accept={photoData.accept}
+                onChange={onSetFiles}
+                text={'Arraste ou click aqui \n para adicionar uma foto'}
+              />
+            ) : (
+              !completedCrop && (
+                <>
+                  <SCropImage
+                    freeAspect={photoData.freeAspect}
+                    canvasRef={canvasRef}
+                    onSelect={setCompletedCrop}
+                    files={photoData.files}
+                  />
+                  <SButton onClick={handleRemove} xsmall color="error">
+                    Remover
+                  </SButton>
+                </>
+              )
+            )}
+            {photoData.url ? (
+              <ImageResizer
+                maxWidth={800}
+                maxHeight={400}
+                url={photoData.url}
+              />
+            ) : (
+              <div>
+                <StyledCanvas
+                  ref={canvasRef}
+                  style={{
+                    display: completedCrop ? 'inherit' : 'none',
+                    width: completedCrop?.width,
+                    height: completedCrop?.height,
+                  }}
                 />
-                <SButton onClick={handleRemove} xsmall color="error">
+              </div>
+            )}
+            {completedCrop && (
+              <>
+                <SButton
+                  sx={{ mr: 4 }}
+                  onClick={() => setIsEditing(true)}
+                  xsmall
+                  color="info"
+                >
+                  Editar
+                </SButton>
+                <SButton
+                  onClick={handleRemove}
+                  variant="outlined"
+                  xsmall
+                  color="error"
+                >
                   Remover
                 </SButton>
               </>
-            )
-          )}
-          <div>
-            <StyledCanvas
-              ref={canvasRef}
-              style={{
-                display: completedCrop ? 'inherit' : 'none',
-                width: completedCrop?.width,
-                height: completedCrop?.height,
-              }}
-            />
-          </div>
-          {completedCrop && (
-            <SButton onClick={handleRemove} xsmall color="error">
-              Remover
-            </SButton>
-          )}
-        </DndProvider>
+            )}
+          </DndProvider>
+        )}
+
         <SModalButtons
           loading={isLoading}
           onClose={onClose}

@@ -22,6 +22,7 @@ import { councilSchema } from 'core/utils/schemas/council.schema';
 interface IForm {
   councilUF: string;
   councilType: string;
+  councilId: string;
 }
 
 export const initialCouncilModalState = {
@@ -118,6 +119,7 @@ export const ModalAddCouncil: FC = () => {
           <Box flex={1}>
             <AutocompleteForm
               name="councilUF"
+              unmountOnChangeDefault
               inputProps={{
                 labelPosition: 'top',
                 placeholder: '__',
@@ -144,6 +146,7 @@ export const ModalAddCouncil: FC = () => {
               label="Identificação"
               labelPosition="top"
               sx={{ minWidth: [350] }}
+              setValue={setValue as any}
               control={control}
               placeholder={'identificação...'}
               name="councilId"

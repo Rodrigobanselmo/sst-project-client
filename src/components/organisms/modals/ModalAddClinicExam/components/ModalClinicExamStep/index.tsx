@@ -55,6 +55,7 @@ export const ModalClinicExamStep = ({
       </SText>
 
       <ExamInputSelect
+        unmountOnChangeDefault
         onChange={(exam) => {
           const isAvaliation = exam?.isAvaliation;
           setClinicExamData({
@@ -85,6 +86,8 @@ export const ModalClinicExamStep = ({
       <SFlex mt={10} flexWrap="wrap" gap={5}>
         <Box>
           <SelectForm
+            unmountOnChangeDefault
+            setValue={setValue}
             defaultValue={String(clinicExamData.scheduleType || '') || ''}
             label="Forma de Agendamento*"
             control={control}
@@ -108,7 +111,7 @@ export const ModalClinicExamStep = ({
               placeholder: 'em dias...',
               name: 'dueInDays',
             }}
-            setValue={(v) => setValue('dueInDays', v)}
+            setValue={(v) => setValue('dueInDays', String(v) || '')}
             defaultValue={clinicExamData.dueInDays}
             mask={intMask.apply}
             label="Prazo para resultado (dias)"
@@ -160,6 +163,7 @@ export const ModalClinicExamStep = ({
       <RadioForm
         sx={{ mt: 8 }}
         label="Selecione o tipo de atendimento*"
+        setValue={setValue}
         control={control}
         defaultValue={isEdit ? (clinicExamData.isScheduled ? 1 : 0) : undefined}
         name="type"
@@ -183,6 +187,7 @@ export const ModalClinicExamStep = ({
                 negative: false,
                 decimal: 0,
               })}
+              setValue={setValue}
               name="examMinDuration"
               sx={{ width: [250] }}
               size="small"
@@ -196,6 +201,7 @@ export const ModalClinicExamStep = ({
             defaultValue={getMoney(clinicExamData.price) || ''}
             placeholder={'0,00'}
             startAdornment={'R$'}
+            setValue={setValue}
             mask={floatMask.apply({
               negative: false,
               decimal: 2,
@@ -207,16 +213,19 @@ export const ModalClinicExamStep = ({
         </Box>
       </SFlex>
 
-      <ShiftTimeSelect
-        defaultSchedule={clinicExamData.scheduleRange}
-        onChange={(schedule) =>
-          setClinicExamData((old) => ({
-            ...old,
-            scheduleRange: schedule,
-          }))
-        }
-        mt={10}
-      />
+      {(clinicExamData.scheduleRange !== undefined ||
+        (clinicExamData.initialized && !isEdit)) && (
+        <ShiftTimeSelect
+          defaultSchedule={clinicExamData.scheduleRange}
+          onChange={(schedule) =>
+            setClinicExamData((old) => ({
+              ...old,
+              scheduleRange: schedule,
+            }))
+          }
+          mt={10}
+        />
+      )}
 
       {isEdit && (
         <DraftEditor

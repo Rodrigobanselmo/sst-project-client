@@ -71,6 +71,7 @@ export const ModalExamStep = ({
         <Box flex={2}>
           <InputForm
             defaultValue={examData.esocial27Code}
+            setValue={setValue}
             label="Cod. eSocial"
             labelPosition="top"
             control={control}
@@ -84,6 +85,7 @@ export const ModalExamStep = ({
       <SFlex mt={5} flexWrap="wrap" gap={5}>
         <Box flex={5}>
           <InputForm
+            setValue={setValue}
             defaultValue={examData.analyses}
             label="Análise"
             labelPosition="center"
@@ -97,6 +99,7 @@ export const ModalExamStep = ({
           <InputForm
             defaultValue={examData.material}
             label="Material"
+            setValue={setValue}
             labelPosition="center"
             control={control}
             placeholder={'ex: sangue, urina...'}
@@ -109,6 +112,7 @@ export const ModalExamStep = ({
       <RadioForm
         sx={{ mt: 8 }}
         label="Selecione o tipo de exame*"
+        setValue={setValue}
         control={control}
         defaultValue={String(examData?.type)}
         name="type"

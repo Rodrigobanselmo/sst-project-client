@@ -78,6 +78,7 @@ export const ModalProfessionalStep = ({
             sx={{ minWidth: [300, 500] }}
             label="Nome*"
             labelPosition="center"
+            setValue={setValue}
             control={control}
             placeholder={'nome completo do profissional...'}
             name="name"
@@ -98,6 +99,7 @@ export const ModalProfessionalStep = ({
             placeholder={'000.000.000-00'}
             name="cpf"
             mask={cpfMask.apply}
+            setValue={setValue}
             size="small"
           />
         </Box>
@@ -114,6 +116,7 @@ export const ModalProfessionalStep = ({
               labelPosition="center"
               control={control}
               placeholder={'email...'}
+              setValue={setValue}
               name="email"
               size="small"
             />
@@ -128,6 +131,7 @@ export const ModalProfessionalStep = ({
               placeholder={'(00) 00000-0000'}
               name="phone"
               mask={phoneMask.apply}
+              setValue={setValue}
               size="small"
             />
           </Box>
@@ -137,6 +141,7 @@ export const ModalProfessionalStep = ({
       <RadioForm
         name="type"
         label="Profissão*"
+        setValue={setValue}
         control={control}
         defaultValue={String(professionalData.type)}
         row
@@ -181,7 +186,7 @@ export const ModalProfessionalStep = ({
               name: 'councilType',
             }}
             onChange={() => handleDebounceChange()}
-            setValue={(v) => setValue('councilType', v)}
+            setValue={(v) => setValue('councilType', String(v))}
             defaultValue={professionalData.councilType || ''}
             sx={{ minWidth: [100] }}
             label=""

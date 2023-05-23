@@ -9,10 +9,11 @@ import { floatMask } from 'core/utils/masks/float.mask';
 import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
 
 export const NoiseForm = (props: IUseModalQuantity) => {
-  const { control, data } = props;
+  const { control, data, setValue } = props;
   return (
     <SFlex width={['100%', 600]} direction="column" gap={10} mt={8}>
       <InputForm
+        setValue={setValue}
         defaultValue={data.nr15q5.replace('.', ',')}
         label="NR 15 (q5 - laudo de insalubridade)"
         control={control}
@@ -23,6 +24,7 @@ export const NoiseForm = (props: IUseModalQuantity) => {
         mask={floatMask.apply({ negative: false, ltAccept: true })}
       />
       <InputForm
+        setValue={setValue}
         defaultValue={data.ltcatq3.replace('.', ',')}
         label="LTCAT (q3) / NHO01 (q3) (recomendado para gestão de risco)"
         control={control}
@@ -33,6 +35,7 @@ export const NoiseForm = (props: IUseModalQuantity) => {
         mask={floatMask.apply({ negative: false, ltAccept: true })}
       />
       <InputForm
+        setValue={setValue}
         defaultValue={data.ltcatq5.replace('.', ',')}
         label="LTCAT (q5)"
         control={control}

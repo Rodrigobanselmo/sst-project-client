@@ -12,17 +12,7 @@ import { IEsocialTable15SelectProps } from './types';
 export const Esocial14And15AcidSelect: FC<
   { children?: any } & IEsocialTable15SelectProps
 > = ({ onChange, inputProps, ...props }) => {
-  const [search, setSearch] = useState('');
-
-  const handleSearchChange = useDebouncedCallback((value: string) => {
-    setSearch(value);
-  }, 300);
-
-  const { data: tables, isLoading: loadTables } = useQueryEsocial14And15Acid(
-    1,
-    {},
-    20,
-  );
+  const { data: tables, isLoading: loadTables } = useQueryEsocial14And15Acid(1);
 
   return (
     <AutocompleteForm
@@ -31,16 +21,12 @@ export const Esocial14And15AcidSelect: FC<
       }
       options={tables}
       loading={loadTables}
-      onInputChange={(e, v) => handleSearchChange(v)}
       // filterOptions={(e) => e}
       inputProps={{
-        onFocus: () => setSearch(''),
-        onBlur: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {
         onChange?.(value);
-        setSearch('');
       }}
       {...props}
       noOptionsText={<SFlex gap={8}>Nenhuma opção</SFlex>}

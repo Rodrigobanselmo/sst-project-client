@@ -165,6 +165,7 @@ export const ModalWorkspaceStep = ({
           label="CNPJ"
           control={control}
           sx={{ minWidth: ['100%', 600] }}
+          setValue={setValue}
           placeholder={'cnpj do empresa...'}
           name="cnpj"
           size="small"

@@ -30,6 +30,7 @@ export const ModalAddContact = () => {
     isEdit,
     modalName,
     handleDelete,
+    setValue,
   } = useAddContact();
 
   const buttons = [
@@ -65,6 +66,7 @@ export const ModalAddContact = () => {
         <InputForm
           autoFocus
           defaultValue={contactData.name}
+          setValue={setValue}
           label={'Nome para identificação'}
           labelPosition="center"
           control={control}
@@ -79,6 +81,7 @@ export const ModalAddContact = () => {
               defaultValue={contactData.phone}
               label="Telefone Principal"
               sx={{ minWidth: [100] }}
+              setValue={setValue}
               control={control}
               placeholder={'(__) _____-____'}
               name="phone"
@@ -92,6 +95,7 @@ export const ModalAddContact = () => {
               defaultValue={contactData.phone_1}
               label="Telefone Secundário"
               control={control}
+              setValue={setValue}
               sx={{ minWidth: 200 }}
               placeholder={'(__) _____-____'}
               name="phone_1"
@@ -106,6 +110,7 @@ export const ModalAddContact = () => {
           label={'Email'}
           labelPosition="center"
           control={control}
+          setValue={setValue}
           sx={{ minWidth: ['100%', 600], mb: 10 }}
           placeholder={'email...'}
           name="email"
@@ -116,6 +121,7 @@ export const ModalAddContact = () => {
           label={'Observações'}
           multiline
           minRows={3}
+          setValue={setValue}
           maxRows={5}
           control={control}
           placeholder={'descreva sua observação...'}

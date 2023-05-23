@@ -89,5 +89,6 @@ export const useCompanyEdit = ({
     activeStep,
     onChangeCep,
     lastStep,
+    setValue,
   };
 };

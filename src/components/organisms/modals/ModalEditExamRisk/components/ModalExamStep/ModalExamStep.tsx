@@ -95,6 +95,7 @@ export const ModalExamStep = ({
           <InputForm
             defaultValue={String(examData.fromAge || '')}
             label="De"
+            setValue={setValue}
             fullWidth
             labelPosition="center"
             control={control}
@@ -107,6 +108,7 @@ export const ModalExamStep = ({
         <Box flex={1} maxWidth={150}>
           <InputForm
             defaultValue={String(examData.toAge || '')}
+            setValue={setValue}
             fullWidth
             label="Até"
             labelPosition="center"
@@ -132,7 +134,7 @@ export const ModalExamStep = ({
               placeholder: 'meses...',
               name: 'validityInMonths',
             }}
-            setValue={(v) => setValue('validityInMonths', v)}
+            setValue={(v) => setValue('validityInMonths', String(v))}
             defaultValue={examData.validityInMonths || ''}
             mask={intMask.apply}
             label="Peridiocidade (meses)"
@@ -151,7 +153,7 @@ export const ModalExamStep = ({
               placeholder: 'meses...',
               name: 'lowValidityInMonths',
             }}
-            setValue={(v) => setValue('lowValidityInMonths', v)}
+            setValue={(v) => setValue('lowValidityInMonths', String(v))}
             defaultValue={examData.lowValidityInMonths || ''}
             mask={intMask.apply}
             label="Peridiocidade para comorbidades (meses)"
@@ -174,7 +176,7 @@ export const ModalExamStep = ({
           helpText:
             'Exemplo (considerando valor de 60 dias entre ocupacional): caso seja necessaria realizar o exame periódico, o sistema irá verificar se o exame coplementar está com validade superior a 60 dias, se sim, não será solicitado a realização do exame. No caso da validade ser inferior a 60 dias, um novo exame será solicitado',
         }}
-        setValue={(v) => setValue('considerBetweenDays', v)}
+        setValue={(v) => setValue('considerBetweenDays', String(v))}
         defaultValue={examData.considerBetweenDays || ''}
         mask={intMask.apply}
         label="Considerar (dias entre ocupacional)"
@@ -245,6 +247,7 @@ export const ModalExamStep = ({
                 control={control}
                 placeholder="grau de risco..."
                 name="minRiskDegree"
+                setValue={setValue}
                 labelPosition="center"
                 size="small"
                 options={Object.values(matrixRiskMap)
@@ -262,6 +265,7 @@ export const ModalExamStep = ({
                   defaultValue={String(examData.minRiskDegreeQuantity || 1)}
                   label="Quantitativo"
                   control={control}
+                  setValue={setValue}
                   placeholder="grau de risco..."
                   name="minRiskDegreeQuantity"
                   labelPosition="center"

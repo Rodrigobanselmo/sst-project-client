@@ -11,7 +11,7 @@ import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
 import { DuoGridFLex } from '../../styles';
 
 export const RadiationForm = (props: IUseModalQuantity) => {
-  const { control, data } = props;
+  const { control, data, setValue } = props;
   return (
     <SFlex width={['100%', 600, 800]} direction="column" mt={8}>
       <SText mb={4} color="text.label" fontSize={14}>
@@ -19,6 +19,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
       </SText>
       <DuoGridFLex>
         <InputForm
+          setValue={setValue}
           defaultValue={data.doseFB.replace('.', ',')}
           label="Indivíduo Ocupacionalmente Exposto"
           control={control}
@@ -33,6 +34,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           })}
         />
         <InputForm
+          setValue={setValue}
           defaultValue={data.doseFBPublic.replace('.', ',')}
           label="Indivíduo do Público"
           control={control}
@@ -53,6 +55,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
       </SText>
       <DuoGridFLex>
         <InputForm
+          setValue={setValue}
           defaultValue={data.doseEye.replace('.', ',')}
           label="Indivíduo Ocupacionalmente Exposto"
           control={control}
@@ -70,6 +73,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           defaultValue={data.doseEyePublic.replace('.', ',')}
           label="Indivíduo do Público"
           control={control}
+          setValue={setValue}
           placeholder={'Valor da dose equivalente do cristalino'}
           name="doseEyePublic"
           size="small"
@@ -88,6 +92,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
       <DuoGridFLex>
         <InputForm
           defaultValue={data.doseSkin.replace('.', ',')}
+          setValue={setValue}
           label="Indivíduo Ocupacionalmente Exposto"
           control={control}
           placeholder={'Valor da dose equivalente da pele'}
@@ -104,6 +109,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
           defaultValue={data.doseSkinPublic.replace('.', ',')}
           label="Indivíduo do Público"
           control={control}
+          setValue={setValue}
           placeholder={'Valor da dose equivalente da pele'}
           name="doseSkinPublic"
           size="small"
@@ -122,6 +128,7 @@ export const RadiationForm = (props: IUseModalQuantity) => {
       <InputForm
         defaultValue={data.doseHand.replace('.', ',')}
         label="Indivíduo Ocupacionalmente Exposto"
+        setValue={setValue}
         control={control}
         placeholder={'Valor da dose equivalente das mãos e pés'}
         name="doseHand"

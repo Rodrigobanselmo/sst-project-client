@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Controller } from 'react-hook-form';
 
 import {
@@ -26,6 +26,7 @@ export function SRadio<T>({
   value,
   formControlProps,
   errorMessage,
+  inputRef,
   ...props
 }: RadioInputProps<T>) {
   return (
@@ -66,7 +67,7 @@ export function SRadio<T>({
             <FormControlLabel
               key={key}
               value={key}
-              control={<Radio />}
+              control={<Radio inputRef={inputRef} />}
               label={label}
               disabled={disabled || disabledValue}
               sx={{
@@ -115,10 +116,17 @@ export function RadioForm<T>({
   renderLabel,
   helperText,
   row,
-  unmountOnChangeDefault,
+  setValue,
+  unmountOnChangeDefault = true,
   boxProps,
   ...props
 }: InputFormBoxProps<T>) {
+  useEffect(() => {
+    defaultValue !== undefined &&
+      defaultValue !== null &&
+      setValue?.(name, defaultValue as any);
+  }, [defaultValue, name, setValue]);
+
   return (
     <UnmountBox
       unmountOnChangeDefault={unmountOnChangeDefault}
@@ -143,6 +151,7 @@ export function RadioForm<T>({
               helperText={helperText}
               valueField={valueField}
               labelField={labelField}
+              inputRef={rest.ref}
               disabled={disabled}
               formControlProps={rest}
               row={row}

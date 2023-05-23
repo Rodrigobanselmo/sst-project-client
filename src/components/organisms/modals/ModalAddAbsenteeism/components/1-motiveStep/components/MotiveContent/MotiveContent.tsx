@@ -95,6 +95,7 @@ export const MotiveContent = (props: IUseMotiveData) => {
       {isAbsTraffic(absenteeismData.esocial18Code) && (
         <Box maxWidth={400} mt={5} flex={5}>
           <SelectForm
+            setValue={setValue}
             unmountOnChangeDefault
             defaultValue={absenteeismData?.traffic || ''}
             control={control}

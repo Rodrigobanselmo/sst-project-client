@@ -66,7 +66,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
       onClick: () => onSubmit(),
     },
   ] as IModalButton[];
-  console.log(data);
+
   return (
     <SFlex direction="column" justify="space-between" flex={1}>
       <AnimatedStep>
@@ -89,6 +89,7 @@ export const ExamStep = (props: IUseEditEmployee) => {
           {hasExamsAskSchedule && (
             <InputForm
               defaultValue={data?.obs || ''}
+              setValue={setValue}
               label={'Observações do Pedido de Agenda'}
               multiline
               minRows={3}

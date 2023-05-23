@@ -20,7 +20,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
     onCloseUnsaved,
     previousStep,
     onChangeCep,
-    lastStep,
+    setValue,
   } = useCompanyEdit(props);
   const { companyData, loading, isEdit } = props;
 
@@ -48,6 +48,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
           </SText>
           <SFlex sx={{ display: 'grid', gridTemplateColumns: '150px 1fr' }}>
             <InputForm
+              setValue={setValue}
               defaultValue={cepMask.mask(companyData?.address?.cep || '') || ''}
               mask={cepMask.apply}
               label="Cep"
@@ -59,6 +60,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
               size="small"
             />
             <InputForm
+              setValue={setValue}
               defaultValue={companyData.address?.street || ''}
               label="Logradouro"
               labelPosition="center"
@@ -69,6 +71,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
           </SFlex>
           <InputForm
             defaultValue={companyData.address?.neighborhood || ''}
+            setValue={setValue}
             label="Bairro"
             labelPosition="center"
             control={control}
@@ -81,12 +84,14 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
               defaultValue={companyData.address?.city || ''}
               label="Cidade"
               labelPosition="center"
+              setValue={setValue}
               control={control}
               name="city"
               size="small"
             />
             <InputForm
               defaultValue={companyData.address?.state || ''}
+              setValue={setValue}
               label="Estado"
               labelPosition="center"
               control={control}
@@ -99,6 +104,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             <InputForm
               defaultValue={companyData.address?.complement || ''}
               label="Complemento"
+              setValue={setValue}
               labelPosition="center"
               control={control}
               name="complement"
@@ -107,6 +113,7 @@ export const SecondModalCompanyStep = (props: IUseAddCompany) => {
             <InputForm
               defaultValue={companyData.address?.number || ''}
               label="Número"
+              setValue={setValue}
               labelPosition="center"
               control={control}
               name="number"

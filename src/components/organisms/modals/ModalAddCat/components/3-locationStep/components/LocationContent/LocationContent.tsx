@@ -57,6 +57,7 @@ export const LocationContent = (props: IUseLocationData) => {
       <SFlex flexWrap="wrap" mb={5} gap={5}>
         <Box width={['100%', 500]}>
           <SelectForm
+            setValue={setValue}
             unmountOnChangeDefault
             defaultValue={catData?.tpLocal || ''}
             control={control}
@@ -132,6 +133,7 @@ export const LocationContent = (props: IUseLocationData) => {
               defaultValue={cepMask.mask(catData?.cep || '') || ''}
               mask={cepMask.apply}
               label={`CEP${cepRequired ? '*' : ''}`}
+              setValue={setValue}
               labelPosition="center"
               control={control}
               onChange={({ target: { value } }) => onChangeCep(value)}
@@ -166,6 +168,7 @@ export const LocationContent = (props: IUseLocationData) => {
                 defaultValue={catData.dscLograd || ''}
                 label="Logradouro"
                 labelPosition="center"
+                setValue={setValue}
                 control={control}
                 name="dscLograd"
                 size="small"
@@ -175,6 +178,7 @@ export const LocationContent = (props: IUseLocationData) => {
           <InputForm
             defaultValue={catData?.bairro || ''}
             label="Bairro"
+            setValue={setValue}
             labelPosition="center"
             control={control}
             sx={{ minWidth: ['100%', 600] }}
@@ -230,6 +234,7 @@ export const LocationContent = (props: IUseLocationData) => {
               defaultValue={catData?.complemento || ''}
               label="Complemento"
               labelPosition="center"
+              setValue={setValue}
               control={control}
               name="complemento"
               size="small"
@@ -237,6 +242,7 @@ export const LocationContent = (props: IUseLocationData) => {
             <InputForm
               defaultValue={catData?.nrLograd || ''}
               label="Número"
+              setValue={setValue}
               labelPosition="center"
               control={control}
               name="nrLograd"

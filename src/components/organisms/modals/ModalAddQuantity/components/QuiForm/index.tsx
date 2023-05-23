@@ -12,7 +12,7 @@ import { floatMask } from 'core/utils/masks/float.mask';
 import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
 
 export const QuiForm = (props: IUseModalQuantity) => {
-  const { control, data, setData } = props;
+  const { control, data, setData, setValue } = props;
   return (
     <SFlex width={['100%', 600, 800]} direction="column" mt={8}>
       <Box mb={4}>
@@ -48,6 +48,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
                 }}
               >
                 <InputForm
+                  setValue={setValue}
                   defaultValue={data.nr15ltValue.replace('.', ',')}
                   labelPosition="center"
                   label="Resultado"
@@ -59,6 +60,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
                   mask={floatMask.apply({ negative: false, ltAccept: true })}
                 />
                 <InputForm
+                  setValue={setValue}
                   defaultValue={(data.risk.nr15lt || '').replace('.', ',')}
                   label="LEO"
                   labelPosition="center"
@@ -96,6 +98,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
             <InputForm
               defaultValue={(data.twaValue || '').replace('.', ',')}
               labelPosition="center"
+              setValue={setValue}
               disabled={!!data.risk.stel && !!data.risk.stel.includes('C')}
               label={
                 data.risk.stel && data.risk.stel.includes('C')
@@ -117,6 +120,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
               ).replace('.', ',')}
               label="LEO"
               labelPosition="center"
+              setValue={setValue}
               disabled={!!data.risk.stel && !!data.risk.stel.includes('C')}
               control={control}
               placeholder={'valor do limite...'}
@@ -166,6 +170,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
               control={control}
               placeholder={`valor do resultado obtido (${data.risk.unit})...`}
               name="stelValue"
+              setValue={setValue}
               size="small"
               endAdornment={data.risk.unit}
               mask={floatMask.apply({ negative: false, ltAccept: true })}
@@ -175,6 +180,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
               label="LEO"
               labelPosition="center"
               control={control}
+              setValue={setValue}
               placeholder={'valor do limite...'}
               name="stel"
               size="small"
@@ -201,6 +207,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
               labelPosition="center"
               label="Resultado"
               control={control}
+              setValue={setValue}
               placeholder={`valor do resultado obtido (${data.risk.unit})...`}
               name="vmpValue"
               size="small"
@@ -215,6 +222,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
               label="LEO"
               labelPosition="center"
               control={control}
+              setValue={setValue}
               placeholder={'valor do limite...'}
               name="vmp"
               size="small"
@@ -231,6 +239,7 @@ export const QuiForm = (props: IUseModalQuantity) => {
           </SText>
           <InputForm
             label="Unidade"
+            setValue={setValue}
             labelPosition="center"
             control={control}
             placeholder={'Ex.: ppm'}

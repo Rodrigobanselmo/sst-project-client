@@ -50,9 +50,10 @@ export const useEditComments = () => {
   const initialDataRef = useRef(initialCommentState);
   const switchRef = useRef<HTMLInputElement>(null);
 
-  const { handleSubmit, control, reset, getValues, setError } = useForm({
-    resolver: yupResolver(commentSchema),
-  });
+  const { handleSubmit, control, reset, getValues, setError, setValue } =
+    useForm({
+      resolver: yupResolver(commentSchema),
+    });
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -147,6 +148,7 @@ export const useEditComments = () => {
     handleSubmit,
     setCommentData,
     switchRef,
+    setValue,
   };
 };
 

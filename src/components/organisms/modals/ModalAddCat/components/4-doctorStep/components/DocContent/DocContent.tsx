@@ -50,7 +50,7 @@ export const DocContent = (props: IUseDoctorData) => {
             unmountOnChangeDefault
             control={control}
             onChange={(e) => setCatData({ ...catData, hrAtendimento: e })}
-            setValue={(v) => setValue('hrAtendimento', v)}
+            setValue={(v) => setValue('hrAtendimento', String(v))}
             defaultValue={catData.hrAtendimento || ''}
             label="Hora*"
             get15TimeArray={[6, 0, 22, 0]}
@@ -60,6 +60,7 @@ export const DocContent = (props: IUseDoctorData) => {
         <Box minWidth={300}>
           <InputForm
             defaultValue={String(catData.durTrat || '') || ''}
+            setValue={setValue}
             name="durTrat"
             label="Duração estimada do tratamento*"
             labelPosition="top"
@@ -158,6 +159,7 @@ export const DocContent = (props: IUseDoctorData) => {
         name="dscCompLesao"
         label="Descrição complementar da lesão (opcional)"
         control={control}
+        setValue={setValue}
         placeholder={'descrição...'}
         size="small"
         minRows={2}
@@ -168,6 +170,7 @@ export const DocContent = (props: IUseDoctorData) => {
         defaultValue={catData?.diagProvavel}
         name="diagProvavel"
         label="Diagnóstico provável (opcional)"
+        setValue={setValue}
         control={control}
         placeholder={'descreva...'}
         size="small"
@@ -180,6 +183,7 @@ export const DocContent = (props: IUseDoctorData) => {
         name="observacao"
         label="Observação (opcional)"
         control={control}
+        setValue={setValue}
         placeholder={'observação...'}
         size="small"
         minRows={3}

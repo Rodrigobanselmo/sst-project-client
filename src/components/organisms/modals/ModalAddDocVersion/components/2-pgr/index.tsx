@@ -25,6 +25,7 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
     loading,
     onDeleteArray,
     onAddArray,
+    setValue,
   } = useStep(props);
 
   const { data } = props;
@@ -52,6 +53,7 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
             }}
           >
             <InputForm
+              setValue={setValue}
               defaultValue={data.json?.source}
               label="Forte (opcional)"
               control={control}
@@ -62,6 +64,7 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
               firstLetterCapitalize
             />
             <InputForm
+              setValue={setValue}
               defaultValue={dateToString(data.json?.visitDate)}
               label="Data da visita (opcional)"
               control={control}

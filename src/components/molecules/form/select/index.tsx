@@ -14,7 +14,7 @@ export const SelectForm = ({
   variant = 'outlined',
   onChange,
   options,
-  unmountOnChangeDefault,
+  unmountOnChangeDefault = true,
   boxProps,
   setValue,
   ...restSelect

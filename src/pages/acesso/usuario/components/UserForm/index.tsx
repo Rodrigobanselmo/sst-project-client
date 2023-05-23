@@ -12,7 +12,7 @@ import { InputForm } from '../../../../../components/molecules/form/input';
 import { ILoginSchema } from '../../../../../core/utils/schemas/login.schema';
 
 export const UserForm: FC = () => {
-  const { handleSubmit, control } = useForm({
+  const { handleSubmit, control, setValue } = useForm({
     resolver: yupResolver(userUpdateSchema),
   });
 
@@ -32,6 +32,7 @@ export const UserForm: FC = () => {
       }}
     >
       <InputForm
+        setValue={setValue}
         sx={{
           mb: [8, 12],
           input: {

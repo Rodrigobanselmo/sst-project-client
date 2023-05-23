@@ -158,6 +158,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
             </Box>
             <Box flex={1} minWidth="250px" maxWidth="150px">
               <RadioForm
+                setValue={setValue}
                 control={control}
                 defaultValue={data.sex}
                 unmountOnChangeDefault
@@ -381,7 +382,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
                       placeholder: '00:00',
                       name: 'time',
                     }}
-                    setValue={(v) => setValue('time', v)}
+                    setValue={(v) => setValue('time', String(v))}
                     defaultValue={clinicExam.time || ''}
                     mask={timeMask.apply}
                     label="Hora"
@@ -394,6 +395,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
                   <SelectForm
                     unmountOnChangeDefault
                     defaultValue={onGetExamType(clinicExam)}
+                    setValue={setValue}
                     label="Tipo de Exame"
                     endAdornment={
                       <SFlex
@@ -479,6 +481,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
                   <SelectForm
                     unmountOnChangeDefault
                     defaultValue={String(clinicExam.evaluationType || '') || ''}
+                    setValue={setValue}
                     label="Avaliação"
                     control={control}
                     placeholder="selecione..."

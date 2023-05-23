@@ -10,7 +10,7 @@ import { floatMask } from 'core/utils/masks/float.mask';
 import { IUseModalQuantity } from '../../hooks/useModalAddQuantity';
 
 export const VibrationForm = (props: IUseModalQuantity & { vl?: boolean }) => {
-  const { control, data } = props;
+  const { control, data, setValue } = props;
   return (
     <SFlex width={['100%', 600, 800]} direction="column" mt={8}>
       <SText mb={4} color="text.label" fontSize={14}>
@@ -26,6 +26,7 @@ export const VibrationForm = (props: IUseModalQuantity & { vl?: boolean }) => {
       >
         <InputForm
           defaultValue={data.aren.replace('.', ',')}
+          setValue={setValue}
           label="aren (Aceleração resultante de exposição normalizada)"
           control={control}
           placeholder={'Valor de aren'}
@@ -45,6 +46,7 @@ export const VibrationForm = (props: IUseModalQuantity & { vl?: boolean }) => {
             control={control}
             placeholder={'valor de VDVR'}
             name="vdvr"
+            setValue={setValue}
             size="small"
             endAdornment={
               <span>

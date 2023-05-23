@@ -12,8 +12,15 @@ export const useSecondStep = ({
   onClose,
   ...rest
 }: IUseMainActionsModal) => {
-  const { trigger, getValues, control, reset, setError, clearErrors } =
-    useFormContext();
+  const {
+    trigger,
+    getValues,
+    control,
+    reset,
+    setValue,
+    setError,
+    clearErrors,
+  } = useFormContext();
   const [isMajorVersion, setIsMajorVersion] = useState(false);
 
   // const createDoc = useMutUpsertRiskDocsPgr();
@@ -62,5 +69,6 @@ export const useSecondStep = ({
     setIsMajorVersion,
     isMajorVersion,
     clearErrors,
+    setValue,
   };
 };

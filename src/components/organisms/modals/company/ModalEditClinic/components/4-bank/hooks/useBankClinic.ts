@@ -10,7 +10,7 @@ export const useBankClinic = ({
   onSubmitData,
   ...rest
 }: IUseAddCompany) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, getValues, control, reset, setValue } = useFormContext();
   const { previousStep, nextStep } = useWizard();
 
   const updateCompany = useMutUpdateCompany();
@@ -46,5 +46,6 @@ export const useBankClinic = ({
     control,
     previousStep,
     onCloseUnsaved,
+    setValue,
   };
 };

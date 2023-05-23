@@ -12,17 +12,7 @@ import { IEsocialTable13SelectProps } from './types';
 export const Esocial13BodySelect: FC<
   { children?: any } & IEsocialTable13SelectProps
 > = ({ onChange, inputProps, ...props }) => {
-  const [search, setSearch] = useState('');
-
-  const handleSearchChange = useDebouncedCallback((value: string) => {
-    setSearch(value);
-  }, 300);
-
-  const { data: tables, isLoading: loadTables } = useQueryEsocial13Body(
-    1,
-    { search },
-    20,
-  );
+  const { data: tables, isLoading: loadTables } = useQueryEsocial13Body(1);
 
   return (
     <AutocompleteForm
@@ -31,16 +21,11 @@ export const Esocial13BodySelect: FC<
       }
       options={tables}
       loading={loadTables}
-      onInputChange={(e, v) => handleSearchChange(v)}
-      filterOptions={(e) => e}
       inputProps={{
-        onBlur: () => setSearch(''),
-        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {
         onChange?.(value);
-        setSearch('');
       }}
       {...props}
       noOptionsText={<SFlex gap={8}>Nenhuma opção</SFlex>}

@@ -28,6 +28,15 @@ export const useRegisterModal = () => {
 
   const getModalData = useCallback(
     <T>(name: string) => {
+      const actualModal = currentModal[currentModal.length - 1];
+      const isFromActualModal = actualModal?.name == name;
+      return isFromActualModal ? actualModal?.data : ({} as T);
+    },
+    [currentModal],
+  );
+
+  const findModalData = useCallback(
+    <T>(name: string) => {
       const copyCurrent = [...currentModal];
       return (
         (copyCurrent.reverse().find((modal) => modal.name === name)

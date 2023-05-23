@@ -134,6 +134,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
             </Box>
             <Box flex={3}>
               <RadioForm
+                setValue={setValue}
                 control={control}
                 defaultValue={data.sex}
                 required

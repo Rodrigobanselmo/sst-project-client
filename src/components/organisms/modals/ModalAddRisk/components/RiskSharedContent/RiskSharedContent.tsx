@@ -111,7 +111,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
               placeholder: 'exemplo: quantitativo, qualitativo...',
               name: 'unit',
             }}
-            setValue={(v) => setValue('unit', v)}
+            setValue={(v) => setValue('unit', String(v))}
             defaultValue={riskData.unit || ''}
             label="Unidade de Medida"
             options={UnMedList}
@@ -131,7 +131,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
               placeholder: 'exemplo: quantitativo, qualitativo...',
               name: 'method',
             }}
-            setValue={(v) => setValue('method', v)}
+            setValue={(v) => setValue('method', String(v))}
             defaultValue={riskData.method || ''}
             label="Método"
             options={['Quantitativo', 'Qualitativo']}

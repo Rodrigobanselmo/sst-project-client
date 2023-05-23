@@ -27,6 +27,7 @@ export const ModalProtocolStep = ({
   control,
   setProtocolData,
   companyId,
+  setValue,
 }: IUseEditProtocol) => {
   return (
     <SFlex direction="column" mt={8}>
@@ -99,6 +100,7 @@ export const ModalProtocolStep = ({
               label="Qualitativo"
               control={control}
               placeholder="grau de risco..."
+              setValue={setValue}
               name="minRiskDegree"
               labelPosition="center"
               size="small"
@@ -116,6 +118,7 @@ export const ModalProtocolStep = ({
                 fullWidth
                 defaultValue={String(protocolData.minRiskDegreeQuantity || 1)}
                 label="Quantitativo"
+                setValue={setValue}
                 control={control}
                 placeholder="grau de risco..."
                 name="minRiskDegreeQuantity"

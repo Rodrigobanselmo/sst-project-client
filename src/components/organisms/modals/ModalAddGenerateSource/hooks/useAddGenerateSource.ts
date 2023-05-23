@@ -42,7 +42,7 @@ export const useAddGenerateSource = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddGenerateSourceState);
 
-  const { handleSubmit, control, reset, getValues } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm({
     resolver: yupResolver(Yup.object().shape(generateSourceSchema)),
   });
 
@@ -175,5 +175,6 @@ export const useAddGenerateSource = () => {
     onRemove: () => preventDelete(onRemove),
     reset,
     showRecMed: generateSourceData.showRecMed,
+    setValue,
   };
 };

@@ -25,7 +25,7 @@ import { STForgotButton } from './styles';
 const ReCAPTCHAComp = ReCAPTCHA as any;
 
 export const LoginForm: FC = () => {
-  const { handleSubmit, control, watch } = useForm({
+  const { handleSubmit, control, watch, setValue } = useForm({
     resolver: yupResolver(Yup.object().shape({ ...loginSchema })),
   });
 
@@ -64,6 +64,7 @@ export const LoginForm: FC = () => {
       <InputForm
         // defaultValue="admin@simple.com"
         sx={{ mb: [8, 12] }}
+        setValue={setValue}
         label="E-mail"
         placeholder="email@gmail.com"
         control={control}
@@ -72,6 +73,7 @@ export const LoginForm: FC = () => {
         success={successEmail}
       />
       <InputForm
+        setValue={setValue}
         // defaultValue="aaaa0123"
         label="Senha"
         placeholder="********"

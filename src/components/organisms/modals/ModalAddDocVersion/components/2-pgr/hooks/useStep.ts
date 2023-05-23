@@ -10,7 +10,7 @@ import { IUpsertRiskGroupData } from 'core/services/hooks/mutations/checklist/ri
 import { IUsePGRHandleModal } from '../../../hooks/usePGRHandleActions';
 
 export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
-  const { control, trigger, getValues } = useFormContext();
+  const { control, trigger, getValues, setValue } = useFormContext();
   const { previousStep, goToStep, stepCount } = useWizard();
 
   const updateMutation = useMutUpsertPGRDocumentData();
@@ -87,5 +87,6 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
     onPrevStep,
     setData,
     data,
+    setValue,
   };
 };

@@ -12,7 +12,7 @@ import { IUseAutomateSubOffice } from '../../hooks/useHandleActions';
 import { useSetSubOfficeNameStep } from './hooks/useSetSubOfficeNameStep';
 
 export const SetSubOfficeNameStep = (props: IUseAutomateSubOffice) => {
-  const { control, onSubmit, loading, onCloseUnsaved } =
+  const { control, onSubmit, loading, onCloseUnsaved, setValue } =
     useSetSubOfficeNameStep(props);
   const { data } = props;
   const { previousStep } = useWizard();
@@ -39,6 +39,7 @@ export const SetSubOfficeNameStep = (props: IUseAutomateSubOffice) => {
 
           <InputForm
             label={'Nome do Cargo Desenvolvido'}
+            setValue={setValue}
             control={control}
             placeholder={'nome para identificação do cargo desenvolvido'}
             name="name"
@@ -59,6 +60,7 @@ export const SetSubOfficeNameStep = (props: IUseAutomateSubOffice) => {
           />
           <InputForm
             label={'Descrião das atividades extras ao Cargo Desenvolvido'}
+            setValue={setValue}
             control={control}
             placeholder={'descrião das atividades do cargo'}
             size="small"

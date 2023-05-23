@@ -12,17 +12,7 @@ import { IEsocialTable17SelectProps } from './types';
 export const Esocial17InjurySelect: FC<
   { children?: any } & IEsocialTable17SelectProps
 > = ({ onChange, inputProps, ...props }) => {
-  const [search, setSearch] = useState('');
-
-  const handleSearchChange = useDebouncedCallback((value: string) => {
-    setSearch(value);
-  }, 300);
-
-  const { data: tables, isLoading: loadTables } = useQueryEsocial17Injury(
-    1,
-    { search },
-    20,
-  );
+  const { data: tables, isLoading: loadTables } = useQueryEsocial17Injury(1);
 
   return (
     <AutocompleteForm
@@ -31,24 +21,16 @@ export const Esocial17InjurySelect: FC<
       }
       options={tables}
       loading={loadTables}
-      onInputChange={(e, v) => handleSearchChange(v)}
-      filterOptions={(e) => e}
       inputProps={{
-        onBlur: () => setSearch(''),
-        onFocus: () => setSearch(''),
         ...inputProps,
       }}
       onChange={(value) => {
         onChange?.(value);
-        setSearch('');
       }}
       {...props}
       noOptionsText={<SFlex gap={8}>Nenhuma opção</SFlex>}
       renderOption={(props, option) => (
         <Box component="li" {...props}>
-          {/* {((cids[0] && option.id == cids[0].id) || !cids[0]) && (
-            <AddButton onAdd={onAddCid} />
-          )} */}
           {`${option.desc}` || ''}
         </Box>
       )}

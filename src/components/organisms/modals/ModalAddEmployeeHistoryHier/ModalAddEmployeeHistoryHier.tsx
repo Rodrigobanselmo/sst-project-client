@@ -39,6 +39,7 @@ export const ModalAddEmployeeHistoryHier = () => {
     modalName,
     handleDelete,
     companyId,
+    setValue,
   } = useAddData();
 
   const buttons = [
@@ -94,6 +95,7 @@ export const ModalAddEmployeeHistoryHier = () => {
 
         <SelectForm
           defaultValue={String(data.motive || '') || ''}
+          setValue={setValue}
           label="Motivo"
           control={control}
           placeholder="Exemplo: Admissão"

@@ -15,7 +15,7 @@ export function DateTimeForm(
   },
 ) {
   return (
-    <Box maxWidth={props?.boxProps?.maxWidth ?? 100} {...props?.boxProps}>
+    <Box maxWidth={props?.boxProps?.maxWidth ?? 120} {...props?.boxProps}>
       <AutocompleteForm
         filterOptions={(x) => x}
         unmountOnChangeDefault
@@ -27,7 +27,7 @@ export function DateTimeForm(
           name: props.name,
         }}
         mask={timeMask.apply}
-        sx={{ width: [100] }}
+        sx={{ width: [120] }}
         options={getTimeList(...(props?.get15TimeArray || [0, 0, 23, 59]))}
         // label="Hora"
         // setValue={(v) => props?.setValue('startTime', v)}

@@ -28,7 +28,8 @@ import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanyFirstEdit';
 
 export const FirstModalCompanyStep = (props: IUseAddCompany) => {
-  const { control, onSubmit, loading, onCloseUnsaved } = useCompanyEdit(props);
+  const { control, onSubmit, loading, onCloseUnsaved, setValue } =
+    useCompanyEdit(props);
   const { isValidRoles } = useAccess();
   const { companyData, setCompanyData, isEdit, userCompany } = props;
 
@@ -57,6 +58,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 defaultValue={companyData.initials}
                 minRows={2}
                 maxRows={4}
+                setValue={setValue}
                 label="Sigla"
                 sx={{ minWidth: [100] }}
                 control={control}
@@ -70,6 +72,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
               <InputForm
                 defaultValue={companyData.unit}
                 label="Unidade"
+                setValue={setValue}
                 control={control}
                 sx={{ minWidth: 200 }}
                 placeholder={'unidade de identificação da empresa...'}
@@ -102,6 +105,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 maxRows={4}
                 label="Razão Social"
                 required
+                setValue={setValue}
                 sx={{ minWidth: [300, 600] }}
                 control={control}
                 placeholder={'razão Social da empresa...'}
@@ -113,6 +117,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
             <Box flex={1}>
               <InputForm
                 defaultValue={companyData.cnpj}
+                setValue={setValue}
                 minRows={2}
                 maxRows={4}
                 label="CNPJ*"
@@ -130,6 +135,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
           <InputForm
             defaultValue={companyData.fantasy}
             minRows={2}
+            setValue={setValue}
             maxRows={4}
             label="Nome fantasia"
             control={control}
@@ -144,6 +150,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
               <Box flex={5}>
                 <InputForm
                   defaultValue={phoneMask.mask(companyData.email)}
+                  setValue={setValue}
                   label="Email"
                   sx={{ minWidth: [300, 500] }}
                   control={control}
@@ -160,6 +167,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                   control={control}
                   sx={{ minWidth: 300 }}
                   placeholder={'telephome da empresa...'}
+                  setValue={setValue}
                   name="phone"
                   mask={phoneMask.apply}
                   size="small"
@@ -203,6 +211,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 control={control}
                 labelPosition="center"
                 placeholder={'Responsavel legal da empresa...'}
+                setValue={setValue}
                 name="responsibleName"
                 size="small"
               />
@@ -215,6 +224,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 labelPosition="center"
                 name="responsibleNit"
                 size="small"
+                setValue={setValue}
               />
             </Box>
             <Box flex={2}>
@@ -227,6 +237,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 placeholder={'000.000.000-00'}
                 name="responsibleCpf"
                 size="small"
+                setValue={setValue}
               />
             </Box>
           </SFlex>
@@ -239,6 +250,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
               });
             }}
             data={cnae}
+            setValue={setValue}
             defaultValue={cnae}
             name="primary_activity"
             label="CNAE"

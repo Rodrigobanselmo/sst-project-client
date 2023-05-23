@@ -43,7 +43,7 @@ export const useAddGho = () => {
   const { selectStartEndDate } = useStartEndDate();
   const initialDataRef = useRef(initialAddGhoState);
 
-  const { handleSubmit, control, reset, getValues } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm({
     resolver: yupResolver(ghoSchema),
   });
 
@@ -266,5 +266,6 @@ export const useAddGho = () => {
     onRemove: () => preventDelete(onRemove),
     onAddHierarchy,
     ghoQuery,
+    setValue,
   };
 };

@@ -14,7 +14,7 @@ import { isAbsTraffic } from 'core/interfaces/api/IAbsenteeism';
 import { IUseDoctorData } from '../../hooks/useDoctorData';
 
 export const DocContent = (props: IUseDoctorData) => {
-  const { control, setAbsenteeismData, absenteeismData } = props;
+  const { control, setAbsenteeismData, absenteeismData, setValue } = props;
   return (
     <SFlex flexDirection="column" flexWrap="wrap" gap={5}>
       <Box maxWidth={800}>
@@ -57,6 +57,7 @@ export const DocContent = (props: IUseDoctorData) => {
         defaultValue={absenteeismData?.local}
         label="Local"
         control={control}
+        setValue={setValue}
         sx={{ width: ['100%', 800] }}
         placeholder={'local...'}
         name="local"

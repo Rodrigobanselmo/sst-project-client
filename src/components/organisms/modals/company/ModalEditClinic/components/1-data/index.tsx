@@ -30,7 +30,7 @@ const DraftEditor = dynamic(
 );
 
 export const DataModalCompanyStep = (props: IUseAddCompany) => {
-  const { control, onSubmit, loading, onCloseUnsaved, onChangeCnpj } =
+  const { control, onSubmit, loading, onCloseUnsaved, onChangeCnpj, setValue } =
     useCompanyEdit(props);
   const { isValidRoles } = useAccess();
   const { companyData, setCompanyData, isEdit } = props;
@@ -53,6 +53,7 @@ export const DataModalCompanyStep = (props: IUseAddCompany) => {
         </SText>
         <Box flex={1}>
           <InputForm
+            setValue={setValue}
             defaultValue={companyData.cnpj}
             onChange={({ target: { value } }) => onChangeCnpj(value)}
             label="CNPJ"
@@ -69,6 +70,7 @@ export const DataModalCompanyStep = (props: IUseAddCompany) => {
           <SFlex flexWrap="wrap" gap={5}>
             <Box flex={1}>
               <InputForm
+                setValue={setValue}
                 defaultValue={companyData.initials}
                 minRows={2}
                 maxRows={4}
@@ -84,6 +86,7 @@ export const DataModalCompanyStep = (props: IUseAddCompany) => {
             <Box flex={5}>
               <InputForm
                 defaultValue={companyData.unit}
+                setValue={setValue}
                 label="Unidade"
                 control={control}
                 sx={{ minWidth: 200 }}
@@ -96,6 +99,7 @@ export const DataModalCompanyStep = (props: IUseAddCompany) => {
           </SFlex>
           <InputForm
             defaultValue={companyData.fantasy}
+            setValue={setValue}
             minRows={2}
             maxRows={4}
             label="Nome"
@@ -110,6 +114,7 @@ export const DataModalCompanyStep = (props: IUseAddCompany) => {
           <SFlex flexWrap="wrap" gap={5}>
             <Box flex={5}>
               <InputForm
+                setValue={setValue}
                 defaultValue={companyData.name}
                 minRows={2}
                 maxRows={4}
@@ -130,6 +135,7 @@ export const DataModalCompanyStep = (props: IUseAddCompany) => {
               <Box flex={5}>
                 <InputForm
                   defaultValue={phoneMask.mask(companyData.email)}
+                  setValue={setValue}
                   label="Email"
                   sx={{ minWidth: [300, 500] }}
                   control={control}
@@ -143,6 +149,7 @@ export const DataModalCompanyStep = (props: IUseAddCompany) => {
                 <InputForm
                   defaultValue={companyData.phone}
                   label="Telefone"
+                  setValue={setValue}
                   control={control}
                   sx={{ minWidth: 300 }}
                   placeholder={'telephome da clínica...'}

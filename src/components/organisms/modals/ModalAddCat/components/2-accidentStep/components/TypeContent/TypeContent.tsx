@@ -221,7 +221,7 @@ export const TypeContent = (props: IUseAccidentData) => {
             unmountOnChangeDefault
             control={control}
             onChange={(e) => setCatData({ ...catData, hrAcid: e })}
-            setValue={(v) => setValue('hrAcid', v)}
+            setValue={(v) => setValue('hrAcid', String(v))}
             defaultValue={catData.hrAcid || ''}
             label="Hora*"
             get15TimeArray={[6, 0, 22, 0]}
@@ -348,7 +348,7 @@ export const TypeContent = (props: IUseAccidentData) => {
         <Box flex={1} mt={5}>
           <SelectForm
             unmountOnChangeDefault
-            defaultValue={String(catData?.lateralidade || '') || ''}
+            defaultValue={String(catData?.lateralidade) || ''}
             setValue={setValue}
             control={control}
             sx={{ maxWidth: ['100%', 260] }}

@@ -43,7 +43,7 @@ export const useEditEpis = () => {
   const initialDataRef = useRef(initialEpiDataState);
   const switchRef = useRef<HTMLInputElement>(null);
 
-  const { handleSubmit, control, reset, getValues } = useForm();
+  const { handleSubmit, control, reset, getValues, setValue } = useForm();
 
   // const createMutation = useMutCreateEpi();
   // const updateMutation = useMutUpdateEpi();
@@ -184,6 +184,7 @@ export const useEditEpis = () => {
     onSelectAllChecked,
     isAllSelected,
     isExpired,
+    setValue,
   };
 };
 

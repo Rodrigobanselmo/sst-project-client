@@ -51,7 +51,7 @@ export const RadioInput = ({
 };
 
 export const ProbabilityForm = (props: IUseProbability) => {
-  const { control, probabilityData } = props;
+  const { control, probabilityData, setValue } = props;
 
   return (
     <SFlex gap={19} direction="column" mt={8}>
@@ -73,6 +73,7 @@ export const ProbabilityForm = (props: IUseProbability) => {
         >
           <InputForm
             sx={{ legend: { width: '250px' } }}
+            setValue={setValue}
             defaultValue={String(probabilityData.employeeCountTotal)}
             label="Número de funcionários do estabelecimento"
             labelPosition="center"
@@ -82,6 +83,7 @@ export const ProbabilityForm = (props: IUseProbability) => {
             size="small"
           />
           <InputForm
+            setValue={setValue}
             sx={{ legend: { width: '180px' } }}
             defaultValue={String(probabilityData.employeeCountGho)}
             label="Número de funcionários do GSE"
@@ -116,6 +118,7 @@ export const ProbabilityForm = (props: IUseProbability) => {
             label="Duração da jornada de trabalho (minutos)"
             labelPosition="center"
             control={control}
+            setValue={setValue}
             placeholder={'nome do estabelecimento de trabalho...'}
             name="minDurationJT"
             autoComplete="off"
@@ -126,6 +129,7 @@ export const ProbabilityForm = (props: IUseProbability) => {
             defaultValue={probabilityData.minDurationEO}
             label="Duração da exposição ocupacional (minutos)"
             labelPosition="center"
+            setValue={setValue}
             control={control}
             autoComplete="off"
             placeholder={'nome do estabelecimento de trabalho...'}

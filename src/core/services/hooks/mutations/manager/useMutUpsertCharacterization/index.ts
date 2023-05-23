@@ -19,6 +19,7 @@ export interface IAddCharacterizationPhoto {
   name?: string;
   id?: string;
   photoUrl: string;
+  updated_at?: Date;
 }
 
 export interface IUpsertCharacterization {

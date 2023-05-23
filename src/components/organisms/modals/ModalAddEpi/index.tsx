@@ -25,6 +25,7 @@ export const ModalAddEpi = () => {
     setEpiData,
     control,
     handleSubmit,
+    setValue,
   } = useAddEpi();
 
   const buttons = [
@@ -57,6 +58,7 @@ export const ModalAddEpi = () => {
           <InputForm
             autoFocus
             defaultValue={epiData.ca}
+            setValue={setValue}
             minRows={1}
             label="Número CA"
             control={control}
@@ -68,6 +70,7 @@ export const ModalAddEpi = () => {
           <InputForm
             multiline
             defaultValue={epiData.description}
+            setValue={setValue}
             minRows={2}
             maxRows={4}
             label="Equipamento"

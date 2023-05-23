@@ -1,5 +1,12 @@
 export async function urlToFile({ url, name }: { url: string; name?: string }) {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Cache-Control': 'no-cache',
+      Pragma: 'no-cache',
+    },
+    cache: 'no-store',
+  });
   const blob = await response.blob();
   const filename = name || getFilenameFromUrl(url);
 

@@ -39,7 +39,7 @@ export const useEditEngsRisk = () => {
   const initialDataRef = useRef(initialEngsRiskDataState);
   const switchRef = useRef<HTMLInputElement>(null);
 
-  const { handleSubmit, control, reset, getValues } = useForm();
+  const { handleSubmit, control, reset, getValues, setValue } = useForm();
 
   // const createMutation = useMutCreateEng();
   // const updateMutation = useMutUpdateEng();
@@ -162,6 +162,7 @@ export const useEditEngsRisk = () => {
     isEdit,
     onSelectCheck,
     onSelectAllChecked,
+    setValue,
   };
 };
 

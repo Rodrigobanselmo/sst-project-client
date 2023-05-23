@@ -109,6 +109,7 @@ const modalNameInit = ModalEnum.CHARACTERIZATION_ADD;
 
 export const useEditCharacterization = (modalName = modalNameInit) => {
   const { registerModal, getModalData } = useRegisterModal();
+  const [isLoading, setIsLoading] = useState(false);
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialCharacterizationState);
   const saveRef = useRef<boolean | string>(false);
@@ -448,7 +449,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
       name: values?.name || '',
       onConfirm: async (photo) => {
-        const addLocalPhoto = (src?: string) => {
+        const addLocalPhoto = (src?: string, data?: { id?: string }) => {
           setCharacterizationData((oldData) => ({
             ...oldData,
             photos: [
@@ -457,12 +458,15 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
                 photoUrl: src || photo.src || '',
                 file: photo.file,
                 name: photo.name,
+                ...data,
               },
             ],
           }));
         };
 
-        if (isEdit) {
+        if (isEdit && photo.file) {
+          setIsLoading(true);
+
           const characterization = await addPhotoMutation
             .mutateAsync({
               file: photo.file,
@@ -471,12 +475,13 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
             })
             .catch(() => {});
 
+          setIsLoading(false);
+
           if (characterization)
-            addLocalPhoto(
-              characterization.photos.sort((a, b) =>
-                sortDate(b, a, 'created_at'),
-              )[0].photoUrl,
-            );
+            setCharacterizationData((oldData) => ({
+              ...oldData,
+              photos: characterization.photos,
+            }));
         } else {
           addLocalPhoto();
         }
@@ -510,6 +515,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   ) => {
     const photosCopy = [...characterizationData.photos];
     const updatePhoto = photosCopy.splice(index, 1);
+    setIsLoading(true);
 
     if (isEdit && updatePhoto[0]?.id)
       await updatePhotoMutation
@@ -518,7 +524,8 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
     setCharacterizationData((oldData) => {
       const photosCopy = oldData.photos.map((photo, indexPhoto) => {
-        if (index === indexPhoto) return { ...photo, ...data };
+        if (index === indexPhoto)
+          return { ...photo, ...data, updated_at: new Date() };
         return photo;
       });
 
@@ -527,6 +534,8 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
         photos: photosCopy,
       };
     });
+
+    setIsLoading(false);
   };
 
   const handlePhotoName = async (index: number) => {
@@ -545,15 +554,20 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     const updatePhoto = characterizationData.photos[index];
     const name = updatePhoto.name;
 
+    setIsLoading(true);
     const file = await urlToFile({ url: updatePhoto.photoUrl, name });
 
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
       name: name || '',
-      files: [file],
+      id: updatePhoto.id,
+      // files: [file],
+      url: updatePhoto.photoUrl + `?timestamp=${updatePhoto.updated_at}`,
       onConfirm: async (photo) => {
         handlePhotoUpdate(index, { name: photo.name, file: photo.file });
       },
     } as Partial<typeof initialPhotoState>);
+
+    setIsLoading(false);
   };
 
   const onAddHierarchy = () => {
@@ -836,6 +850,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     setData: setCharacterizationData,
     setValue,
     handleCopy,
+    isLoading,
   };
 };
 

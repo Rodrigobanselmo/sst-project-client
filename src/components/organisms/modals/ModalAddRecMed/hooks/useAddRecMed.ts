@@ -40,7 +40,7 @@ export const useAddRecMed = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddRecMedState);
 
-  const { handleSubmit, control, reset, getValues } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm({
     resolver: yupResolver(recMedSchema),
   });
 
@@ -165,5 +165,6 @@ export const useAddRecMed = () => {
     control,
     handleSubmit,
     onRemove: () => preventDelete(onRemove),
+    setValue,
   };
 };

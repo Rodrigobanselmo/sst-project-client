@@ -35,7 +35,7 @@ export const useAddContact = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialContactState);
 
-  const { handleSubmit, control, reset, getValues } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm({
     resolver: yupResolver(contactSchema),
   });
 
@@ -129,5 +129,6 @@ export const useAddContact = () => {
     isEdit: !!contactData.id,
     modalName,
     handleDelete: () => preventDelete(handleDelete),
+    setValue,
   };
 };

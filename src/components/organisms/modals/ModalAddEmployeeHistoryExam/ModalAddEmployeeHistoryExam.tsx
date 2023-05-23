@@ -153,7 +153,7 @@ export const ModalAddEmployeeHistoryExam = () => {
                       placeholder: '00:00',
                       name: 'time',
                     }}
-                    setValue={(v) => setValue('time', v)}
+                    setValue={(v) => setValue('time', String(v))}
                     defaultValue={data.time || ''}
                     mask={timeMask.apply}
                     label="Hora"
@@ -164,6 +164,7 @@ export const ModalAddEmployeeHistoryExam = () => {
               )}
               <Box maxWidth={200}>
                 <InputForm
+                  setValue={setValue}
                   label="Peridiocidade"
                   control={control}
                   sx={{ minWidth: 100 }}
@@ -201,6 +202,7 @@ export const ModalAddEmployeeHistoryExam = () => {
             <SFlex flexWrap="wrap" gap={5} mt={8}>
               <Box flex={1}>
                 <SelectForm
+                  setValue={setValue}
                   unmountOnChangeDefault
                   defaultValue={String(data.examType || '') || ''}
                   label="Tipo de Exame"
@@ -269,6 +271,7 @@ export const ModalAddEmployeeHistoryExam = () => {
               {isAllFields && (
                 <Box flex={1}>
                   <SelectForm
+                    setValue={setValue}
                     unmountOnChangeDefault
                     defaultValue={String(data.evaluationType || '') || ''}
                     label="Avaliação"
@@ -290,6 +293,7 @@ export const ModalAddEmployeeHistoryExam = () => {
               )}
               <Box flex={1} maxWidth={isAllFields ? undefined : 400}>
                 <SelectForm
+                  setValue={setValue}
                   unmountOnChangeDefault
                   defaultValue={String(data.conclusion || '') || ''}
                   label="Conclusão"

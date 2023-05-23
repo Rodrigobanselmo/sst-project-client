@@ -150,6 +150,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                       defaultValue={employee?.name || ''}
                       control={control}
                       name="name"
+                      setValue={setValue}
                       label="Nome do funcionário"
                       size="small"
                       InputLabelProps={{ shrink: true }}
@@ -193,6 +194,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                       defaultValue={employee.sex}
                       unmountOnChangeDefault
                       name="sex"
+                      setValue={setValue}
                       row
                       options={[
                         { label: 'Feminino', value: SexTypeEnum.F },
@@ -207,6 +209,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                     <InputForm
                       defaultValue={employee?.email || ''}
                       control={control}
+                      setValue={setValue}
                       name="email"
                       label="Email"
                       size="small"
@@ -220,6 +223,7 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                   <Box flex={1} minWidth="150px" maxWidth="150px">
                     <InputForm
                       defaultValue={phoneMask.mask(employee?.phone) || ''}
+                      setValue={setValue}
                       control={control}
                       name="phone"
                       label="Telefone"
@@ -358,8 +362,8 @@ export const EmployeeStep = (props: IUseEditEmployee) => {
                   }}
                 >
                   <SelectForm
-                    unmountOnChangeDefault
                     setValue={setValue}
+                    unmountOnChangeDefault
                     defaultValue={String(data.examType || '') || ''}
                     label="Tipo de Exame"
                     disabled={isPendingExams}

@@ -188,6 +188,7 @@ export const CouncilShow = ({
                 name: 'councilUF',
               }}
               freeSolo
+              setValue={(v) => setValue('councilUF', v)}
               disabled={true}
               control={control}
               placeholder={'estado...'}
@@ -207,6 +208,7 @@ export const CouncilShow = ({
               placeholder={'identificação...'}
               name="councilId"
               size="small"
+              setValue={setValue}
             />
           </Box>
         </SFlex>

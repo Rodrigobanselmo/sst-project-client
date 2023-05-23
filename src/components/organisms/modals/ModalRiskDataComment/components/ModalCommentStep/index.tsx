@@ -15,7 +15,11 @@ import { dateMask, dateMonthMask } from 'core/utils/masks/date.mask';
 
 import { IUseEditComment } from '../../hooks/useEditComments';
 
-export const ModalCommentStep = ({ commentData, control }: IUseEditComment) => {
+export const ModalCommentStep = ({
+  commentData,
+  control,
+  setValue,
+}: IUseEditComment) => {
   return (
     <SFlex gap={8} direction="column" mt={8}>
       <InputForm
@@ -23,6 +27,7 @@ export const ModalCommentStep = ({ commentData, control }: IUseEditComment) => {
         minRows={3}
         maxRows={6}
         multiline
+        setValue={setValue}
         defaultValue={commentData.name}
         label="Motivo"
         control={control}
@@ -61,6 +66,7 @@ export const ModalCommentStep = ({ commentData, control }: IUseEditComment) => {
       />
       {commentData.type === RiskRecTypeEnum.POSTPONED && (
         <InputForm
+          setValue={setValue}
           label="Novo Prazo"
           defaultValue={String(commentData.endDate)}
           control={control}

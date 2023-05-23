@@ -20,6 +20,7 @@ export type RadioInputProps<T> = FormControlProps & {
   row?: boolean;
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   formControlProps?: Partial<FormControlLabelProps>;
+  inputRef?: (ref: HTMLInputElement) => void;
 };
 
 export type InputFormBoxProps<T> = FormControlProps & {
@@ -37,4 +38,5 @@ export type InputFormBoxProps<T> = FormControlProps & {
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;
   unmountOnChangeDefault?: boolean;
+  setValue: (name: string, value: string) => void;
 };

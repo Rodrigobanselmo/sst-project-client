@@ -67,6 +67,7 @@ export const SInput: FC<{ children?: any } & SInputProps> = ({
 
   const labelSplit = typeof label == 'string' ? label.split('*') : [label];
   const isLeft = labelPosition === 'left';
+
   return (
     <div>
       <Box

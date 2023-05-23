@@ -20,7 +20,7 @@ export const AddressModalCompanyStep = (props: IUseAddCompany) => {
     onCloseUnsaved,
     previousStep,
     onChangeCep,
-    lastStep,
+    setValue,
   } = useCompanyEdit(props);
   const { companyData, loading, isEdit } = props;
 
@@ -49,6 +49,7 @@ export const AddressModalCompanyStep = (props: IUseAddCompany) => {
           <SFlex sx={{ display: 'grid', gridTemplateColumns: '150px 1fr' }}>
             <InputForm
               defaultValue={cepMask.mask(companyData?.address?.cep || '') || ''}
+              setValue={setValue}
               mask={cepMask.apply}
               label="Cep"
               labelPosition="center"
@@ -61,6 +62,7 @@ export const AddressModalCompanyStep = (props: IUseAddCompany) => {
             <InputForm
               defaultValue={companyData.address?.street || ''}
               label="Logradouro"
+              setValue={setValue}
               labelPosition="center"
               control={control}
               name="street"
@@ -68,6 +70,7 @@ export const AddressModalCompanyStep = (props: IUseAddCompany) => {
             />
           </SFlex>
           <InputForm
+            setValue={setValue}
             defaultValue={companyData.address?.neighborhood || ''}
             label="Bairro"
             labelPosition="center"
@@ -79,6 +82,7 @@ export const AddressModalCompanyStep = (props: IUseAddCompany) => {
           <SFlex sx={{ display: 'grid', gridTemplateColumns: '1fr 150px ' }}>
             <InputForm
               defaultValue={companyData.address?.city || ''}
+              setValue={setValue}
               label="Cidade"
               labelPosition="center"
               control={control}
@@ -91,6 +95,7 @@ export const AddressModalCompanyStep = (props: IUseAddCompany) => {
               labelPosition="center"
               control={control}
               inputProps={{ sx: { textTransform: 'uppercase' } }}
+              setValue={setValue}
               name="state"
               size="small"
             />
@@ -101,6 +106,7 @@ export const AddressModalCompanyStep = (props: IUseAddCompany) => {
               label="Complemento"
               labelPosition="center"
               control={control}
+              setValue={setValue}
               name="complement"
               size="small"
             />
@@ -110,6 +116,7 @@ export const AddressModalCompanyStep = (props: IUseAddCompany) => {
               labelPosition="center"
               control={control}
               name="number"
+              setValue={setValue}
               size="small"
             />
           </SFlex>

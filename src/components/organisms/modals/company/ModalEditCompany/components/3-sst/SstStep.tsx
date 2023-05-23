@@ -22,8 +22,14 @@ import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanySecondEdit';
 
 export const SSTModalCompanyStep = (props: IUseAddCompany) => {
-  const { control, onSubmit, onCloseUnsaved, previousStep, onChangeCep } =
-    useCompanyEdit(props);
+  const {
+    control,
+    onSubmit,
+    onCloseUnsaved,
+    previousStep,
+    onChangeCep,
+    setValue,
+  } = useCompanyEdit(props);
   const { companyData, setCompanyData, loading, isEdit } = props;
 
   const buttons = [
@@ -126,6 +132,7 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
               <SelectForm
                 defaultValue={String(companyData.numAsos || '') || ''}
                 label="Nº vias Aso"
+                setValue={setValue}
                 control={control}
                 placeholder="número de vias..."
                 name="numAsos"

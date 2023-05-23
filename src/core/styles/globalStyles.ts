@@ -17,6 +17,9 @@ const globalStyles = css`
     height: calc(100vh - 120px);
     overflow: auto;
   }
+  .react-datepicker__aria-live {
+    display: none;
+  }
 
   .noSelect {
     -webkit-touch-callout: none; /* iOS Safari */

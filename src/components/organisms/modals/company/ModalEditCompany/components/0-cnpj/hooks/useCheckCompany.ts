@@ -14,7 +14,7 @@ export const useCheckCompany = ({
   setCompanyData,
   ...rest
 }: IUseAddCompany) => {
-  const { trigger, getValues, control, reset } = useFormContext();
+  const { trigger, getValues, control, reset, setValue } = useFormContext();
   const { nextStep } = useWizard();
 
   const cnpjMutation = useMutationCNPJ();
@@ -58,5 +58,6 @@ export const useCheckCompany = ({
     loading: cnpjMutation.isLoading,
     control,
     onCloseUnsaved,
+    setValue,
   };
 };
