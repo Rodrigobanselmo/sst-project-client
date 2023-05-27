@@ -88,6 +88,7 @@ export const ModalAddDocumentYear = () => {
         <SFlex flexWrap="wrap" mb={5} gap={5}>
           <Box flex={1}>
             <DatePickerForm
+              setValue={setValue}
               unmountOnChangeDefault
               label="Data de início"
               control={control}
@@ -103,6 +104,7 @@ export const ModalAddDocumentYear = () => {
           </Box>
           <Box flex={1}>
             <DatePickerForm
+              setValue={setValue}
               unmountOnChangeDefault
               label="Data de vencimento"
               control={control}

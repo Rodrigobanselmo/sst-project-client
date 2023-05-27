@@ -227,6 +227,7 @@ export const ModalAddCompanyGroup = () => {
             <SFlex mt={15} flexWrap="wrap" align="center" gap={5}>
               <Box>
                 <DatePickerForm
+                  setValue={setValue}
                   label="Início eSocial"
                   control={control}
                   defaultValue={dateToDate(companyGroupData?.esocialStart)}

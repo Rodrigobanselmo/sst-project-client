@@ -20,19 +20,25 @@ import { IdsEnum } from 'core/enums/ids.enums';
 
 import { canvasPreview } from './utils/canvasPreview';
 import { centerAspectCrop } from './utils/centerAspectCrop';
+import { useSnackbar } from 'notistack';
+import { simulateAwait } from 'core/utils/helpers/simulateAwait';
 
 interface SCropImageProps {
-  files?: File[];
+  file?: File;
   freeAspect?: boolean;
+  canCancel?: boolean;
   canvasRef: React.RefObject<HTMLCanvasElement>;
-  onSelect?: (crop: PixelCrop) => void;
+  onSelect?: (options: { dataUrl?: string; crop?: PixelCrop }) => void;
+  maxHeight?: number;
 }
 
 export default function SCropImage({
-  files,
+  file,
   freeAspect,
   onSelect,
+  maxHeight = 520,
   canvasRef,
+  canCancel,
 }: SCropImageProps) {
   const [imgSrc, setImgSrc] = useState('');
   const imgRef = useRef<HTMLImageElement>(null);
@@ -41,6 +47,7 @@ export default function SCropImage({
   const [scale, setScale] = useState(1);
   const [rotate, setRotate] = useState(0);
   const [aspect, setAspect] = useState<number | undefined>(16 / 9);
+  const { enqueueSnackbar } = useSnackbar();
 
   const readImageFile = (imageBlob: Blob) => {
     setCrop(undefined); // Makes crop preview update between images.
@@ -52,10 +59,10 @@ export default function SCropImage({
   };
 
   useEffect(() => {
-    if (files && files?.length > 0) {
-      readImageFile(files[0]);
+    if (file) {
+      readImageFile(file);
     }
-  }, [files]);
+  }, [file]);
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     let aspectRatio = aspect;
@@ -101,29 +108,48 @@ export default function SCropImage({
   }
 
   const handleCropImage = () => {
-    completedCrop && onSelect && onSelect(completedCrop);
+    const crop: typeof completedCrop = { ...completedCrop } as any;
+    const isCropToSmall =
+      !completedCrop?.height ||
+      !completedCrop?.width ||
+      completedCrop?.height < 50 ||
+      completedCrop?.width < 50;
 
-    if (
-      completedCrop?.width &&
-      completedCrop?.height &&
-      imgRef.current &&
-      canvasRef.current
-    ) {
-      // We use canvasPreview as it's much faster than imgPreview.
-      canvasPreview(
-        imgRef.current,
-        canvasRef.current,
-        completedCrop,
-        scale,
-        rotate,
-      );
+    if (isCropToSmall && crop) {
+      enqueueSnackbar('Selecione uma área maior para recortar a imagem.', {
+        variant: 'error',
+      });
+      return;
     }
+
+    if (crop?.width && crop?.height && imgRef.current && canvasRef.current) {
+      canvasPreview(imgRef.current, canvasRef.current, crop, scale, rotate);
+    }
+
+    onSelect?.({ dataUrl: canvasRef.current?.toDataURL(), crop });
+  };
+
+  const handleCancelCropImage = () => {
+    const crop: typeof completedCrop = { ...completedCrop } as any;
+
+    if (crop) {
+      crop.x = 0;
+      crop.y = 0;
+      crop.height = imgRef.current?.height || 0;
+      crop.width = imgRef.current?.width || 0;
+    }
+
+    if (crop?.width && crop?.height && imgRef.current && canvasRef.current) {
+      canvasPreview(imgRef.current, canvasRef.current, crop, scale, rotate);
+    }
+
+    onSelect?.({ crop });
   };
 
   return (
     <div className="App">
       <div className="Crop-Controls">
-        <SFlex mb={10}>
+        <SFlex mb={5}>
           <STagButton
             large
             icon={SZooInIcon}
@@ -160,16 +186,7 @@ export default function SCropImage({
             icon={SRotateRightIcon}
             iconProps={{ sx: { fontSize: 17 } }}
             onClick={() => setRotate(Number(rotate + 1))}
-          />
-          <STagButton
-            large
-            text="Cortar Imagem"
-            // icon={SDeleteIcon} //!
-            sx={{ '*': { color: 'white !important' }, ml: 'auto' }}
-            iconProps={{ sx: { fontSize: 15 } }}
-            bg="success.main"
-            onClick={handleCropImage}
-            id={IdsEnum.CROP_IMAGE_BUTTON}
+            mr={20}
           />
         </SFlex>
         {false && (
@@ -183,7 +200,7 @@ export default function SCropImage({
       {Boolean(imgSrc) && (
         <div
           style={{
-            maxHeight: 520,
+            maxHeight: maxHeight,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -201,7 +218,7 @@ export default function SCropImage({
               setCompletedCrop(c);
             }}
             aspect={aspect}
-            style={{ maxHeight: 520 }}
+            style={{ maxHeight: maxHeight }}
           >
             <img
               ref={imgRef}
@@ -213,6 +230,30 @@ export default function SCropImage({
           </ReactCrop>
         </div>
       )}
+      <SFlex ml="auto" justifyContent={'end'} mb={5}>
+        {canCancel && (
+          <STagButton
+            text="Cancelar"
+            sx={{
+              '*': { color: '#F44336 !important' },
+              // ml: 'auto'
+            }}
+            iconProps={{ sx: { fontSize: 15 } }}
+            error
+            outline
+            onClick={handleCancelCropImage}
+          />
+        )}
+        <STagButton
+          text="Cortar Imagem"
+          // icon={SDeleteIcon} //!
+          sx={{ '*': { color: 'white !important' } }}
+          iconProps={{ sx: { fontSize: 15 } }}
+          bg="success.main"
+          onClick={handleCropImage}
+          id={IdsEnum.CROP_IMAGE_BUTTON}
+        />
+      </SFlex>
     </div>
   );
 }

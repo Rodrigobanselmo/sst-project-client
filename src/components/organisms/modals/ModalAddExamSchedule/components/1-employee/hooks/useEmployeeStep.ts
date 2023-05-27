@@ -24,7 +24,10 @@ import {
 import { queryClient } from 'core/services/queryClient';
 import { isShouldDemissionBlock } from 'core/utils/helpers/demissionalBlockCalc';
 
-import { IUseEditEmployee } from '../../../hooks/useEditExamEmployee';
+import {
+  IUseEditEmployee,
+  initialExamScheduleState,
+} from '../../../hooks/useEditExamEmployee';
 
 export const useEmployeeStep = ({
   data,
@@ -39,6 +42,8 @@ export const useEmployeeStep = ({
   onStackOpenModal,
   skipHierarchySelect,
   company,
+  getModalData,
+  modalName,
   ...rest
 }: IUseEditEmployee) => {
   const { trigger, getValues, control, setError, reset, setValue, setFocus } =
@@ -51,11 +56,15 @@ export const useEmployeeStep = ({
   const { fetchHisScheduleExam } = useFetchQueryHisScheduleExam();
 
   useEffect(() => {
-    if (!data.employeeId) {
+    const initialData =
+      getModalData<Partial<typeof initialExamScheduleState>>(modalName);
+
+    const isNew = !initialData || !Object.keys(initialData)?.length;
+    if (isNew) {
       const button = document.getElementById(IdsEnum.EMPLOYEE_SELECT_ID);
       button?.click();
     }
-  }, [data]);
+  }, [data, getModalData, modalName]);
 
   const fields: string[] = ['examType'];
 

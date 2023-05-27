@@ -123,6 +123,7 @@ export const ModalAddEmployeeHistoryExam = () => {
             <SFlex flexWrap="wrap" gap={5}>
               <Box maxWidth={200}>
                 <DatePickerForm
+                  setValue={setValue}
                   label="Data do exame"
                   control={control}
                   defaultValue={dateToDate(data.doneDate)}

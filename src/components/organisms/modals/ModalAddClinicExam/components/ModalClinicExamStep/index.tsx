@@ -246,6 +246,7 @@ export const ModalClinicExamStep = ({
       <SFlex mt={10} flexWrap="wrap" gap={5}>
         <Box flex={1} maxWidth={200}>
           <DatePickerForm
+            setValue={setValue}
             label="Data de início"
             control={control}
             defaultValue={dateToDate(clinicExamData.startDate)}
@@ -262,6 +263,7 @@ export const ModalClinicExamStep = ({
         {clinicExamData.endDate && (
           <Box flex={1} maxWidth={200}>
             <DatePickerForm
+              setValue={setValue}
               label="Data fim"
               control={control}
               uneditable

@@ -131,7 +131,10 @@ export const useEditWorkspace = () => {
           'state',
         ];
 
-        reset.forEach((key) => setValue(key, ''));
+        Object.keys(data?.address || {})?.forEach((key) => {
+          if (reset.includes(key) && !data?.address?.[key]) setValue(key, '');
+        });
+
         setCompanyData((oldData) => {
           const newData = {
             ...oldData,

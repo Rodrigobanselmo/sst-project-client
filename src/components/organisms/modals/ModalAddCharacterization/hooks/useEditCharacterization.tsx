@@ -555,7 +555,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     const name = updatePhoto.name;
 
     setIsLoading(true);
-    const file = await urlToFile({ url: updatePhoto.photoUrl, name });
+    // const file = await urlToFile({ url: updatePhoto.photoUrl, name });
 
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
       name: name || '',

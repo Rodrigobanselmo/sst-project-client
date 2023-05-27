@@ -48,6 +48,7 @@ export const ModalScheduleBlockStep = ({
         <SFlex maxWidth={400} flex={1} flexWrap="wrap" gap={5}>
           <Box flex={1}>
             <DatePickerForm
+              setValue={setValue}
               unmountOnChangeDefault
               placeholderText={'__/__/__'}
               control={control}
@@ -89,6 +90,7 @@ export const ModalScheduleBlockStep = ({
         <SFlex maxWidth={400} flex={1} flexWrap="wrap" gap={5}>
           <Box flex={1}>
             <DatePickerForm
+              setValue={setValue}
               unmountOnChangeDefault
               placeholderText={'__/__/__'}
               control={control}

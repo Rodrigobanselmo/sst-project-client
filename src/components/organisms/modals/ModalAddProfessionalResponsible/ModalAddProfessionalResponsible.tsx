@@ -34,6 +34,7 @@ export const ModalAddProfessionalResponsible = () => {
     isEdit,
     modalName,
     handleDelete,
+    setValue,
   } = useAddProfessionalResponsible();
 
   const buttons = [
@@ -88,6 +89,7 @@ export const ModalAddProfessionalResponsible = () => {
 
         <Box mt={10} mb={150}>
           <DatePickerForm
+            setValue={setValue}
             placeholderText="__/__/__"
             label="Início da responsabilidade"
             labelPosition="top"

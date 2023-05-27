@@ -57,6 +57,7 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
                 Início eSocial
               </SText>
               <DatePickerForm
+                setValue={setValue}
                 placeholderText={'Início eSocial'}
                 control={control}
                 defaultValue={dateToDate(companyData.esocialStart)}

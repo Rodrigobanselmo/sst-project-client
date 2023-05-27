@@ -84,6 +84,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
             <Box flex={1}>
               <DatePickerForm
                 label="Inauguração"
+                setValue={setValue}
                 control={control}
                 defaultValue={dateToDate(companyData.activityStartDate)}
                 sx={{ minWidth: 200 }}

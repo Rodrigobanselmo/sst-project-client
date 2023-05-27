@@ -35,9 +35,10 @@ export const useAddProfessionalResponsible = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialProfessionalResponsibleState);
 
-  const { handleSubmit, control, reset, getValues, setError } = useForm({
-    resolver: yupResolver(professionalResponsibleSchema),
-  });
+  const { handleSubmit, control, reset, getValues, setError, setValue } =
+    useForm({
+      resolver: yupResolver(professionalResponsibleSchema),
+    });
 
   const createMutation = useMutCreateProfessionalResponsible();
   const updateMutation = useMutUpdateProfessionalResponsible();
@@ -141,5 +142,6 @@ export const useAddProfessionalResponsible = () => {
     isEdit: !!professionalResponsibleData.id,
     modalName,
     handleDelete: () => preventDelete(handleDelete),
+    setValue,
   };
 };

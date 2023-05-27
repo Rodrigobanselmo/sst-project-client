@@ -84,6 +84,7 @@ export const ExamsComplementsTable: FC<
                   checked={row.isSelected}
                 />
                 <DatePickerForm
+                  setValue={setValue}
                   label=""
                   control={control}
                   unmountOnChangeDefault

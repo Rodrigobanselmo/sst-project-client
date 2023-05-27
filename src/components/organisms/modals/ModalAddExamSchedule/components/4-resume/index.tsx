@@ -250,6 +250,7 @@ export const ResumeStep = (props: IUseEditEmployee) => {
                           !data.changeHierarchyWhenDone && (
                             <Box mt={10}>
                               <DatePickerForm
+                                setValue={setValue}
                                 label="Data para mudança de cargo"
                                 control={control}
                                 defaultValue={dateToDate(

@@ -55,7 +55,7 @@ export const ModalSelectHierarchy: FC = () => {
   const store = useStore<any>();
   const dispatch = useAppDispatch();
 
-  const { data } = useQueryHierarchies();
+  const { data, isLoading } = useQueryHierarchies();
 
   useEffect(() => {
     const initialData = getModalData(
@@ -138,6 +138,10 @@ export const ModalSelectHierarchy: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company, data, handleSelect]);
 
+  const workspaceSlected = company?.workspace?.find(
+    (workspace) => workspace.id === selectData.workspaceId,
+  );
+
   return (
     <SModal
       {...registerModal(modalName)}
@@ -146,12 +150,12 @@ export const ModalSelectHierarchy: FC = () => {
     >
       <SModalPaper semiFullScreen={hasWorkspace && hasHierarchy} center p={8}>
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
-
         <Box mt={8}>
-          {hasWorkspace && hasHierarchy && (
+          {hasWorkspace && hasHierarchy && !isLoading && workspaceSlected && (
             <ModalSelectHierarchyData
               selectedData={selectData}
               company={company}
+              initWorkspaceSelected={workspaceSlected}
               handleSingleSelect={handleSingleSelect}
               setSelectData={setSelectData}
             />

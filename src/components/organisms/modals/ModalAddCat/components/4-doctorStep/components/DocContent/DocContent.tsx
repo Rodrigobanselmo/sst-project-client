@@ -24,6 +24,7 @@ export const DocContent = (props: IUseDoctorData) => {
       <SFlex flexWrap="wrap" mb={5} gap={5}>
         <Box>
           <DatePickerForm
+            setValue={setValue}
             unmountOnChangeDefault
             placeholderText={'__/__/__'}
             control={control}

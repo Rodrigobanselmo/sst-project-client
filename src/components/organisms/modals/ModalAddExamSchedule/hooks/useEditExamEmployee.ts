@@ -235,6 +235,7 @@ export const useEditExamEmployee = () => {
     getIsToBlockDismissal,
     getIsToBlockDismissalExam,
     onStackOpenModal,
+    getModalData,
     skipHierarchySelect:
       employee?.hierarchyId &&
       employee.statusStep &&

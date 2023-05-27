@@ -1,3 +1,4 @@
+/* eslint-disable react/display-name */
 import React, { FC, useEffect, useRef, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -5,7 +6,7 @@ import { SubmitHandler, useForm } from 'react-hook-form';
 import { PixelCrop } from 'react-image-crop';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
-import { styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import { InputForm } from 'components/molecules/form/input';
 import SCropImage from 'components/molecules/SCropImage';
@@ -29,6 +30,11 @@ import { calculateDimensionsWithMaxSize } from 'core/utils/helpers/calculateDime
 import { ImageResizer } from './ImageResizer/ImageResizer';
 import dynamic from 'next/dynamic';
 import SFlex from 'components/atoms/SFlex';
+import {
+  imageBlobCompress,
+  ImageBlobCompressProps,
+} from 'core/utils/helpers/imageBlobCompress';
+import { IImageComponentProps } from 'components/molecules/SCanvasEditor/types/ICanvasMain.types';
 
 const StyledCanvas = styled('canvas')`
   border: 2px solid ${({ theme }) => theme.palette.grey[300]};
@@ -38,11 +44,13 @@ const StyledCanvas = styled('canvas')`
   object-fit: contain;
 `;
 
-const CanvasEditor = dynamic(
+const SCanvasEditorMainSSR = dynamic(
   () => import('components/molecules/SCanvasEditor/SCanvasEditorMain'),
-  {
-    ssr: false,
-  },
+  { ssr: false },
+);
+
+const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
+  (props, ref) => <SCanvasEditorMainSSR {...props} editorRef={ref} />,
 );
 
 export interface IUploadPhotoConfirm {
@@ -78,11 +86,19 @@ export const ModalUploadPhoto: FC<
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { onCloseModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
-  const [isEditing, setIsEditing] = useState(true);
 
   const { handleSubmit, control, reset, setValue } = useForm({
     resolver: yupResolver(photoSchema),
   });
+
+  const konvaRef = useRef<{
+    handleGetCanvas: (data?: {
+      compressProps?: Partial<ImageBlobCompressProps>;
+    }) => Promise<{
+      dataUrl: string;
+      file: File;
+    }>;
+  }>(null);
 
   const [photoData, setPhotoData] = useState({
     ...initialPhotoState,
@@ -148,7 +164,6 @@ export const ModalUploadPhoto: FC<
   }, [getModalData]);
 
   const onClose = () => {
-    setIsEditing(false);
     setIsLoading(false);
     onCloseModal(ModalEnum.UPLOAD_PHOTO);
     setCompletedCrop(undefined);
@@ -160,105 +175,51 @@ export const ModalUploadPhoto: FC<
     document.getElementById(IdsEnum.CROP_IMAGE_BUTTON)?.click();
   };
 
-  async function createBlob(base64: any) {
-    const res = await fetch(base64);
-    const myBlob = await res.blob();
-    return myBlob;
-  }
-
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
     if (!isPhotoSelected)
       return enqueueSnackbar('Selecione uma imagem', { variant: 'error' });
-    if (!completedCrop) CropImage();
-    // if (!completedCrop) return CropImage();
+    if (!completedCrop) {
+      CropImage();
 
-    if (photoData.id && photoData.url) {
+      if (canvasRef.current)
+        canvasRef.current.toBlob(async (blob) => {
+          if (blob) {
+            try {
+              const { file, dataUrl } = await imageBlobCompress({ blob });
+              await photoData.onConfirm({
+                file,
+                name: data.name,
+                src: dataUrl,
+              });
+              setIsLoading(false);
+              onClose();
+            } catch {
+              setIsLoading(false);
+            }
+          } else {
+            onClose();
+          }
+        }, `image/${photoData.imageExtension}`);
+    } else {
       setIsLoading(true);
-      await photoData.onConfirm({
-        name: data.name,
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    if (canvasRef.current)
-      canvasRef.current.toBlob((blob) => {
-        if (blob) {
-          const file = new File(
-            [blob],
-            `${data.name || 'imagem'}.${photoData.imageExtension}`,
-            {
-              type: `image/${photoData.imageExtension}`,
-            },
-          );
-          const reader = new FileReader();
-          reader.addEventListener('load', async (event) => {
-            const imgElement = document.createElement('img');
-            if (event.target?.result)
-              imgElement.src = event.target.result.toString();
-
-            imgElement.onload = async function (e: any) {
-              const canvas = document.createElement('canvas');
-
-              const width = e.target.width;
-              const height = e.target.heigh;
-              const MAX_WIDTH = width > 1200 ? 1200 : width;
-              const MAX_HEIGHT = height > 1200 ? 1200 : height;
-
-              if (e && e.target && e.target?.width) {
-                const isVertical = e.target.width < e.target.height;
-
-                canvas.width = e.target.width;
-                canvas.height = e.target.height;
-
-                if (!isVertical && e.target.width > MAX_WIDTH) {
-                  const scaleSize = MAX_WIDTH / e.target.width;
-                  canvas.width = MAX_WIDTH;
-                  canvas.height = e.target.height * scaleSize;
-                }
-
-                if (isVertical && e.target.height > MAX_HEIGHT) {
-                  const scaleSizeHeight = MAX_HEIGHT / e.target.height;
-                  canvas.height = MAX_HEIGHT;
-                  canvas.width = e.target.width * scaleSizeHeight;
-                }
-
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                  ctx.drawImage(e.target, 0, 0, canvas.width, canvas.height);
-
-                  const big = file.size > 5000000;
-                  const med = file.size > 2000000;
-
-                  const dataUrl = canvas.toDataURL(
-                    `image/${photoData.imageExtension}`,
-                    photoData.id ? 1 : big ? 0.5 : med ? 0.7 : 0.9,
-                  );
-
-                  const fileFromUrl = new File(
-                    [await createBlob(dataUrl)],
-                    `${data.name || 'imagem'}.${photoData.imageExtension}`,
-                    {
-                      type: `image/${photoData.imageExtension}`,
-                    },
-                  );
-                  setIsLoading(true);
-                  await photoData.onConfirm({
-                    file: fileFromUrl,
-                    name: data.name,
-                    src: dataUrl,
-                  });
-                  setIsLoading(false);
-                  onClose();
-                }
-              }
-            };
+      if (konvaRef.current?.handleGetCanvas) {
+        try {
+          const { dataUrl, file } = await konvaRef.current.handleGetCanvas({
+            compressProps: { imageExtension: photoData.imageExtension },
           });
-          reader.readAsDataURL(file);
-        } else {
-          onClose();
+
+          await photoData.onConfirm({
+            file,
+            name: data.name,
+            src: dataUrl,
+          });
+        } catch {
+          setIsLoading(false);
         }
-      }, `image/${photoData.imageExtension}`);
+        setIsLoading(false);
+        onClose();
+      }
+    }
   };
 
   const onSetFiles = async (files: File[]) => {
@@ -270,8 +231,44 @@ export const ModalUploadPhoto: FC<
     setCompletedCrop(undefined);
   };
 
+  const handleStartCrop = async (options: { dataUrl: string; file: File }) => {
+    setPhotoData((data) => ({
+      ...data,
+      files: [options.file],
+      url: options.dataUrl,
+    }));
+    setCompletedCrop(undefined);
+  };
+
+  const handleCrop = async ({
+    crop,
+    dataUrl,
+  }: {
+    dataUrl?: string;
+    crop?: PixelCrop;
+  }) => {
+    setPhotoData((data) => ({
+      ...data,
+      url: dataUrl,
+    }));
+    setCompletedCrop(crop || ({} as any));
+  };
+
   const buttons = [
-    {},
+    {
+      text: 'Substituir Foto',
+      variant: 'contained',
+      type: 'submit',
+      disabled: !isPhotoSelected,
+      color: 'error',
+      onClick: handleRemove,
+      sx: { mr: 'auto' },
+    },
+    {
+      text: 'Cancelar',
+      variant: 'outlined',
+      type: 'button',
+    },
     {
       text: completedCrop ? 'Salvar' : 'Cortar e Salvar',
       variant: 'contained',
@@ -282,6 +279,10 @@ export const ModalUploadPhoto: FC<
     },
   ] as IModalButton[];
 
+  const showFileUploader = !isPhotoSelected && !completedCrop;
+  const showCrop = isPhotoSelected && !completedCrop;
+  const showEditor = !!completedCrop;
+
   return (
     <SModal {...registerModal(modalName)} keepMounted={false} onClose={onClose}>
       <SModalPaper
@@ -289,10 +290,10 @@ export const ModalUploadPhoto: FC<
         component="form"
         center
         p={8}
-        semiFullScreen={isEditing}
+        semiFullScreen={isPhotoSelected}
         width={'fit-content'}
         minWidth={600}
-        {...(isEditing && {
+        {...(isPhotoSelected && {
           display: 'flex',
           flexDirection: 'column',
           flex: 1,
@@ -311,73 +312,54 @@ export const ModalUploadPhoto: FC<
           name="name"
           size="small"
         />
-        {isEditing && photoData.url ? (
-          <CanvasEditor imageUrl={photoData.url} />
-        ) : (
+        {showFileUploader && (
           <DndProvider backend={HTML5Backend}>
-            {!isPhotoSelected ? (
-              <SFileDndUpload
-                maxFiles={1}
-                accept={photoData.accept}
-                onChange={onSetFiles}
-                text={'Arraste ou click aqui \n para adicionar uma foto'}
-              />
-            ) : (
-              !completedCrop && (
-                <>
-                  <SCropImage
-                    freeAspect={photoData.freeAspect}
-                    canvasRef={canvasRef}
-                    onSelect={setCompletedCrop}
-                    files={photoData.files}
-                  />
-                  <SButton onClick={handleRemove} xsmall color="error">
-                    Remover
-                  </SButton>
-                </>
-              )
-            )}
-            {photoData.url ? (
-              <ImageResizer
-                maxWidth={800}
-                maxHeight={400}
-                url={photoData.url}
-              />
-            ) : (
-              <div>
-                <StyledCanvas
-                  ref={canvasRef}
-                  style={{
-                    display: completedCrop ? 'inherit' : 'none',
-                    width: completedCrop?.width,
-                    height: completedCrop?.height,
-                  }}
-                />
-              </div>
-            )}
-            {completedCrop && (
-              <>
-                <SButton
-                  sx={{ mr: 4 }}
-                  onClick={() => setIsEditing(true)}
-                  xsmall
-                  color="info"
-                >
-                  Editar
-                </SButton>
-                <SButton
-                  onClick={handleRemove}
-                  variant="outlined"
-                  xsmall
-                  color="error"
-                >
-                  Remover
-                </SButton>
-              </>
-            )}
+            <SFileDndUpload
+              maxFiles={1}
+              accept={photoData.accept}
+              onChange={onSetFiles}
+              text={'Arraste ou click aqui \n para adicionar uma foto'}
+            />
           </DndProvider>
         )}
 
+        {showCrop && (
+          <Box flex={1}>
+            <SCropImage
+              maxHeight={520}
+              canCancel={!!photoData.id}
+              freeAspect={photoData.freeAspect}
+              canvasRef={canvasRef}
+              onSelect={handleCrop}
+              file={photoData.files?.[0]}
+            />
+            {/* <SButton onClick={handleRemove} xsmall color="error">
+              Substituir
+            </SButton> */}
+          </Box>
+        )}
+
+        {showEditor && (
+          // <Box height={520} width={'100%'} sx={{ backgroundColor: 'red' }}>
+          <SCanvasEditorMain
+            minHeight={520}
+            ref={konvaRef}
+            onCrop={handleStartCrop}
+            imageUrl={photoData.url}
+            canvasRef={canvasRef}
+            // minWidth={1000}
+          />
+          // </Box>
+        )}
+
+        <StyledCanvas
+          ref={canvasRef}
+          style={{
+            display: completedCrop ? 'inherit' : 'none',
+            width: 0,
+            height: 0,
+          }}
+        />
         <SModalButtons
           loading={isLoading}
           onClose={onClose}

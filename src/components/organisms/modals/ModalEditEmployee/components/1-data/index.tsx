@@ -152,6 +152,7 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
           <SFlex flexWrap="wrap" gap={5} mt={6} mb={8}>
             <Box>
               <DatePickerForm
+                setValue={setValue}
                 label="Data de Nascimento"
                 placeholderText={'__/__/__'}
                 calendarProps={{

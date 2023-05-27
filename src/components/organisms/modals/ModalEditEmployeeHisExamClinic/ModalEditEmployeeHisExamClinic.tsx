@@ -205,6 +205,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
             </Box>
             <Box minWidth="200px" maxWidth="200px">
               <DatePickerForm
+                setValue={setValue}
                 label="data nascimento"
                 placeholderText={'__/__/__'}
                 calendarProps={{
@@ -356,6 +357,7 @@ export const ModalEditEmployeeHisExamClinic = () => {
               <SFlex flexWrap="wrap" gap={5}>
                 <Box maxWidth={200}>
                   <DatePickerForm
+                    setValue={setValue}
                     label="Data do exame"
                     control={control}
                     defaultValue={dateToDate(clinicExam.doneDate)}

@@ -66,6 +66,7 @@ export const MedicalVisitForm: FC<
         <Box>
           <Box maxWidth={200}>
             <DatePickerForm
+              setValue={setValue}
               label="Data da visita"
               control={control}
               defaultValue={dateToDate(data.doneClinicDate)}
@@ -135,6 +136,7 @@ export const MedicalVisitForm: FC<
         <Box>
           <Box maxWidth={200}>
             <DatePickerForm
+              setValue={setValue}
               label="Data complementares"
               control={control}
               defaultValue={dateToDate(data.doneLabDate)}

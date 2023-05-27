@@ -100,6 +100,7 @@ export const TypeContent = (props: IUseAccidentData) => {
           {isDeath && (
             <Box>
               <DatePickerForm
+                setValue={setValue}
                 unmountOnChangeDefault
                 placeholderText={'__/__/__'}
                 control={control}
@@ -196,6 +197,7 @@ export const TypeContent = (props: IUseAccidentData) => {
       <SFlex flexWrap="wrap" mb={5} gap={5}>
         <Box>
           <DatePickerForm
+            setValue={setValue}
             unmountOnChangeDefault
             placeholderText={'__/__/__'}
             control={control}
@@ -250,6 +252,7 @@ export const TypeContent = (props: IUseAccidentData) => {
       <SFlex flexWrap="wrap" mb={5} gap={5} align="end">
         <Box mr={30}>
           <DatePickerForm
+            setValue={setValue}
             unmountOnChangeDefault
             placeholderText={'__/__/__'}
             control={control}

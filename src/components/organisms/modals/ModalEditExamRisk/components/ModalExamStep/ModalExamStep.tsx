@@ -229,6 +229,14 @@ export const ModalExamStep = ({
                 error: { ...examData.error, exam: false },
                 exam: option,
                 examId: option.id,
+                ...(option.isAttendance && {
+                  minRiskDegree: 1,
+                  isAdmission: true,
+                  isPeriodic: true,
+                  isReturn: true,
+                  isChange: true,
+                  isDismissal: true,
+                }),
               })
             }
           />

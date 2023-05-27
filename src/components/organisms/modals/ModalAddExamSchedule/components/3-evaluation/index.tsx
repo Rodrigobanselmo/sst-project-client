@@ -112,6 +112,7 @@ export const EvaluationStep = (props: IUseEditEmployee) => {
           />
           {isDismissal && (
             <DatePickerForm
+              setValue={setValue}
               label="Data da demissão"
               control={control}
               defaultValue={dateToDate(data.changeHierarchyDate)}

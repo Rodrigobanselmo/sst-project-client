@@ -39,25 +39,46 @@ import { ModalInputHierarchy } from './ModalInputHierarchy';
 import { ModalItemHierarchy } from './ModalItemHierarchy';
 import { ModalListGHO } from './ModalListGHO';
 import { STGridBox } from './styles';
+import { IGho } from 'core/interfaces/api/IGho';
 
 export const ModalSelectHierarchyData: FC<
   { children?: any } & {
     company: ICompany;
+    initWorkspaceSelected: IWorkspace;
     selectedData: typeof initialHierarchySelectState;
     handleSingleSelect: (hierarchy: IListHierarchyQuery) => void;
     setSelectData: React.Dispatch<React.SetStateAction<any>>;
   }
-> = ({ company, selectedData, handleSingleSelect, setSelectData }) => {
-  const { data: ghoQuery } = useQueryGHOAll();
+> = ({
+  company,
+  initWorkspaceSelected,
+  selectedData,
+  handleSingleSelect,
+  setSelectData,
+}) => {
+  const { data: ghoQueryRaw } = useQueryGHOAll();
 
   const dispatch = useAppDispatch();
   const { onStackOpenModal } = useModal();
   const search = useAppSelector(selectHierarchySearch);
   const [workspaceSelected, setWorkspaceSelected] = useState(
-    company?.workspace?.find(
-      (workspace) => workspace.id === selectedData.workspaceId,
-    ),
+    initWorkspaceSelected,
   );
+
+  const ghoQuery = useMemo((): IGho[] => {
+    if (!workspaceSelected?.id) return [];
+
+    return ghoQueryRaw
+      .filter((i) => i.workspaces?.find((w) => w.id == workspaceSelected.id))
+      .map<IGho>((item) => ({
+        ...item,
+        hierarchies: item.hierarchies
+          ?.filter((i) =>
+            i.workspaces?.find((w) => w.id == workspaceSelected.id),
+          )
+          .map((i) => ({ ...i, workspaceId: workspaceSelected.id })),
+      }));
+  }, [ghoQueryRaw, workspaceSelected]);
 
   const showGho = selectedData.selectByGHO && ghoQuery.length;
 

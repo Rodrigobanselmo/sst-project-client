@@ -199,10 +199,10 @@ export const ExamsScheduleClinicColumn: FC<
           <SFlex mt={4}>
             <Box flex={1}>
               <DatePickerForm
+                setValue={setValue}
                 label=""
                 clearIfEmpty
                 control={control}
-                setValue={setValue}
                 unmountOnChangeDefault
                 name={'doneDate_' + String(row.id)}
                 defaultValue={dateToDate(row?.doneDate)}

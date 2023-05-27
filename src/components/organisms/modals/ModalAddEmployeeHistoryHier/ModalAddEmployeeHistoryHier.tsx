@@ -78,6 +78,7 @@ export const ModalAddEmployeeHistoryHier = () => {
           secondIconClick={handleDelete}
         />
         <DatePickerForm
+          setValue={setValue}
           label="Data de início"
           control={control}
           defaultValue={dateToDate(data.startDate)}
