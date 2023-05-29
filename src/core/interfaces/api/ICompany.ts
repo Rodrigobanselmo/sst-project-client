@@ -34,7 +34,7 @@ export interface ICompany {
   legal_nature: string;
   cadastral_situation: string;
   addressId: string;
-  activityStartDate: Date;
+  activity_start_date: Date;
   cadastral_situation_date: string;
   legal_nature_code: string;
   cadastral_situation_description: string;

@@ -39,7 +39,11 @@ export function useQueryEmployee(
   const companyId = getCompanyId(query);
 
   const { data, ...result } = useQuery(
-    [QueryEnum.EMPLOYEES, query.id, { ...query, companyId }],
+    [
+      QueryEnum.EMPLOYEES,
+      query.id,
+      { ...query, enabled: options.enabled, companyId },
+    ],
     () => queryEmployee({ ...query, companyId }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

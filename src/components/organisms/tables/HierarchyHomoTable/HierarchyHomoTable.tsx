@@ -33,6 +33,7 @@ export const HierarchyHomoTable: FC<
       onAdd?: () => void;
       hierarchies: IHierarchy[];
       loading: boolean;
+      isCreate: boolean;
     }
 > = ({
   rowsPerPage = 8,
@@ -41,6 +42,7 @@ export const HierarchyHomoTable: FC<
   onSelectData,
   loading,
   hierarchies,
+  isCreate,
 }) => {
   // const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
@@ -82,10 +84,13 @@ export const HierarchyHomoTable: FC<
   };
 
   const onDelete = (h: IHierarchy & IHierarchyOnHomogeneous) => {
-    deleteMutation.mutate({
-      ids: [h.id],
-      companyId: h.companyId,
-    });
+    if (isCreate) {
+    } else {
+      deleteMutation.mutate({
+        ids: [h.id],
+        companyId: h.companyId,
+      });
+    }
   };
 
   const onSelectRow = (hier: IHierarchy & IHierarchyOnHomogeneous) => {
@@ -193,15 +198,18 @@ export const HierarchyHomoTable: FC<
                   clickable
                   text={`fim: ${dateToString(row.endDate)}`}
                 />
-                <IconButtonRow
-                  icon={<SDeleteIcon />}
-                  tooltipTitle="deletar"
-                  sx={{ svg: { fontSize: 18 }, height: 20 }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    preventDelete(() => onDelete(row));
-                  }}
-                />
+                {!isCreate && (
+                  <IconButtonRow
+                    icon={<SDeleteIcon />}
+                    tooltipTitle="deletar"
+                    sx={{ svg: { fontSize: 18 }, height: 20 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (isCreate) return onDelete(row);
+                      preventDelete(() => onDelete(row));
+                    }}
+                  />
+                )}
               </STableRow>
             );
           }}

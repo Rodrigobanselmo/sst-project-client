@@ -56,7 +56,11 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
             <CompanyInputSelect
               onChange={(company) => {
                 company &&
-                  setData?.({ ...data, company, companyId: company?.id });
+                  setData?.((data) => ({
+                    ...data,
+                    company,
+                    companyId: company?.id,
+                  }));
               }}
               inputProps={{
                 placeholder: 'Empresa',
@@ -169,10 +173,10 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
                 defaultValue={dateToDate(data.birthday)}
                 name="birthday"
                 onChange={(date) => {
-                  setData({
+                  setData((data) => ({
                     ...data,
                     birthday: date instanceof Date ? date : undefined,
-                  });
+                  }));
                 }}
               />
             </Box>
@@ -209,10 +213,10 @@ export const DataModalCompanyStep = (props: IUseEditEmployee) => {
           <SFlex ml={6} mb={10} mt={10} justify="start">
             <SSwitch
               onChange={() => {
-                setData({
+                setData((data) => ({
                   ...data,
                   isPCD: !data.isPCD,
-                });
+                }));
               }}
               checked={data.isPCD}
               label="é PCD"

@@ -28,7 +28,7 @@ export interface IUpdateCompany
   phone?: string;
   legal_nature?: string;
   cadastral_situation?: string;
-  activityStartDate?: Date | null;
+  activity_start_date?: Date | null;
   cadastral_situation_date?: string;
   legal_nature_code?: string;
   cadastral_situation_description?: string;

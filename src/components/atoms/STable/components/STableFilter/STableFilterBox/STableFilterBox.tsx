@@ -54,7 +54,7 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
     return getStates().map((state) => state.code);
   }, []);
 
-  const { control } = useForm();
+  const { control, setValue } = useForm();
 
   return (
     <SFlex
@@ -401,6 +401,7 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
       {filters[FilterFieldEnum.DOWNLOAD_TYPE] && (
         <Box mt={10} overflow={'hidden'}>
           <RadioFormText
+            setValue={setValue}
             type="radio"
             optionsFieldName={{ valueField: 'value', contentField: 'name' }}
             control={control}

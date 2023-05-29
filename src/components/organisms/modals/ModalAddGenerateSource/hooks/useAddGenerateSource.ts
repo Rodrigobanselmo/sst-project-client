@@ -42,9 +42,10 @@ export const useAddGenerateSource = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddGenerateSourceState);
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
-    resolver: yupResolver(Yup.object().shape(generateSourceSchema)),
-  });
+  const { handleSubmit, control, reset, getValues, setValue, setError } =
+    useForm({
+      resolver: yupResolver(Yup.object().shape(generateSourceSchema)),
+    });
 
   const createGenerateSourceMut = useMutCreateGenerateSource();
   const updateGenerateSourceMut = useMutUpdateGenerateSource();
@@ -106,6 +107,9 @@ export const useAddGenerateSource = () => {
     medName: string;
     medType: string;
   }> = async ({ recName, medName, medType, ...formData }) => {
+    if (medName && !medType)
+      return setError('medType', { message: 'Campo obrigatório' });
+
     const data = {
       ...formData,
       recMeds: [{ recName, medName, medType }],

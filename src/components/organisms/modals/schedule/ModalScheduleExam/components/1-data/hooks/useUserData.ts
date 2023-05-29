@@ -57,7 +57,7 @@ export const useUserData = ({
             const newData = {
               ...oldData,
               ...data,
-              activityStartDate: data.activity_start_date
+              activity_start_date: data.activity_start_date
                 ? dayjs(data.activity_start_date).toDate() || undefined
                 : undefined,
             };

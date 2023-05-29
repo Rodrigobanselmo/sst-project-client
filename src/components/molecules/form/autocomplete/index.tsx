@@ -25,7 +25,10 @@ export function AutocompleteForm<T>({
 }: AutocompleteFormProps<T>) {
   const ref = useRef<any>(null);
   useEffect(() => {
-    defaultValue && setValue?.(defaultValue as any);
+    if (ref.current != defaultValue) {
+      defaultValue && setValue?.(defaultValue as any);
+      ref.current = defaultValue;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValue, name]);
 

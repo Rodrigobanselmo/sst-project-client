@@ -86,7 +86,7 @@ export const ModalAddGenerateSource = () => {
             firstLetterCapitalize
           />
 
-          {showRecMed && !generateSourceData.edit && (
+          {!showRecMed && showRecMed && !generateSourceData.edit && (
             <>
               <InputForm
                 multiline
@@ -139,6 +139,7 @@ export const ModalAddGenerateSource = () => {
                   position="absolute"
                   top={115}
                   width="100%"
+                  setValue={setValue}
                 />
               </Box>
             </>

@@ -56,7 +56,7 @@ export const ModalExamStep = ({
               value: examData.name,
             }}
             onGetValue={(option) => {
-              setValue('esocial27Code', option.code);
+              setValue('esocial27Code', option?.code);
               return option.name;
             }}
             setValue={(v: any) =>

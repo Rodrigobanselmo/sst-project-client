@@ -39,6 +39,7 @@ export const ModalCommentStep = ({
         Selecione uma justificativa abaixo
       </SText>
       <RadioFormText
+        setValue={setValue}
         type="radio"
         control={control}
         defaultValue={String(commentData.textType)}

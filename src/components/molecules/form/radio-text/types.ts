@@ -12,11 +12,13 @@ export type InputFormProps = SRadioCheckboxProps & {
 export type InputFormBoxProps = BoxProps & {
   name: string;
   disabled?: boolean;
+  unmountOnChangeDefault?: boolean;
   control: Control<any, object>;
   defaultValue?: string;
   label?: string;
   options: SRadioCheckboxProps['options'];
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
+  setValue: (name: string, value: string) => void;
   reset?: () => void;
   inputProps?: Partial<InputFormProps>;
   inputPropsFunc?: (option: any) => React.InputHTMLAttributes<HTMLInputElement>;

@@ -27,7 +27,12 @@ export const MedicalVisitForm: FC<
       <SFlex flexWrap="wrap" gap={5} mt={8}>
         <CompanyInputSelect
           onChange={(company) => {
-            company && setData?.({ ...data, company, companyId: company?.id });
+            company &&
+              setData?.((data) => ({
+                ...data,
+                company,
+                companyId: company?.id,
+              }));
             tableRef.current?.reset();
           }}
           inputProps={{

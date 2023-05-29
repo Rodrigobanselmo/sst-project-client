@@ -90,8 +90,9 @@ export const ModalAddRecMed = () => {
               />
               <RadioFormText
                 type="radio"
+                setValue={setValue}
                 control={control}
-                defaultValue={String(recMedData.recType)}
+                defaultValue={String(recMedData.recType || '')}
                 options={[
                   {
                     content: 'Administrativa',
@@ -144,8 +145,9 @@ export const ModalAddRecMed = () => {
               />
               <RadioFormText
                 type="radio"
+                setValue={setValue}
                 control={control}
-                defaultValue={String(recMedData.medType)}
+                defaultValue={String(recMedData.medType || '')}
                 options={[
                   {
                     content: 'Outras Medidas',

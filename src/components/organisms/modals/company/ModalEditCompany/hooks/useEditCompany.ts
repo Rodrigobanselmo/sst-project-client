@@ -46,7 +46,7 @@ export const initialCompanyState = {
   operationTime: '',
   legal_nature: '',
   cadastral_situation: '',
-  activityStartDate: undefined as Date | undefined,
+  activity_start_date: undefined as Date | undefined,
   cadastral_situation_date: '',
   legal_nature_code: '',
   cadastral_situation_description: '',

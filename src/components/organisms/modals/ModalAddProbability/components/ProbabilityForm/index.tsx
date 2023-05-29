@@ -34,6 +34,7 @@ export const RadioInput = ({
         {data.text}
       </SText>
       <RadioFormText
+        setValue={setValue}
         type="radio"
         control={control}
         defaultValue={defaultValue}

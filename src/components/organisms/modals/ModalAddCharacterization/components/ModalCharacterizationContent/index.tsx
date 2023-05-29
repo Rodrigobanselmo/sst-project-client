@@ -143,6 +143,7 @@ export const ModalCharacterizationContent = (
           notPrincipalProfile && { value: principalProfile.name })}
       />
       <RadioFormText
+        setValue={setValue}
         type="radio"
         control={control}
         onChange={(e) => {
@@ -332,6 +333,7 @@ export const ModalCharacterizationContent = (
         <>
           <RadioFormText
             type="radio"
+            setValue={setValue}
             control={control}
             onChange={(e) => {
               if (
@@ -481,7 +483,12 @@ export const ModalCharacterizationContent = (
                   >
                     <StyledImage
                       alt={photo.name}
-                      src={`${photo.photoUrl}?timestamp=${photo.updated_at}`}
+                      src={
+                        photo.photoUrl +
+                        (photo.photoUrl.startsWith('data:image')
+                          ? ''
+                          : `?timestamp=${photo.updated_at}`)
+                      }
                     />
                     <div>
                       <SText noBreak>{photo.name}</SText>

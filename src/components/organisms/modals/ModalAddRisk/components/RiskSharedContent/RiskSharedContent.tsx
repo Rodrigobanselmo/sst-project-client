@@ -42,6 +42,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           firstLetterCapitalize
         />
         <RadioFormText
+          setValue={setValue}
           type="radio"
           control={control}
           defaultValue={riskData.type}
@@ -52,6 +53,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
         />
         <RadioFormText
           type="radio"
+          setValue={setValue}
           label="Severidade"
           control={control}
           defaultValue={String(riskData.severity)}

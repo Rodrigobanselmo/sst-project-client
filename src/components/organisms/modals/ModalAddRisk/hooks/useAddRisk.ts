@@ -80,17 +80,14 @@ export const useAddRisk = () => {
   });
 
   useEffect(() => {
+    const initialDataProps = getModalData<any>(ModalEnum.RISK_ADD) || {};
     const {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       isAddRecMed,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       isAddGenerateSource,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       remove,
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       edit: editPass,
       ...initialData
-    } = getModalData<any>(ModalEnum.RISK_ADD);
+    } = initialDataProps;
 
     setRiskData((oldData) => {
       const newData = {
@@ -107,13 +104,15 @@ export const useAddRisk = () => {
   }, [risk]);
 
   useEffect(() => {
+    const initialDataProps = getModalData<any>(ModalEnum.RISK_ADD) || {};
+
     const {
       isAddRecMed,
       isAddGenerateSource,
       remove,
       edit: editPass,
       ...initialData
-    } = getModalData<any>(ModalEnum.RISK_ADD);
+    } = initialDataProps;
 
     const edit = !!initialData.id || editPass;
 

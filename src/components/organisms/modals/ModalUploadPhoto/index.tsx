@@ -207,7 +207,6 @@ export const ModalUploadPhoto: FC<
           const { dataUrl, file } = await konvaRef.current.handleGetCanvas({
             compressProps: { imageExtension: photoData.imageExtension },
           });
-
           await photoData.onConfirm({
             file,
             name: data.name,
@@ -355,7 +354,6 @@ export const ModalUploadPhoto: FC<
         <StyledCanvas
           ref={canvasRef}
           style={{
-            display: completedCrop ? 'inherit' : 'none',
             width: 0,
             height: 0,
           }}

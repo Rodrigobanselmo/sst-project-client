@@ -13,6 +13,7 @@ export const ModalAddHierarchyRisk = ({
   hierarchies,
   dataLoading: characterizationLoading,
   mt = 10,
+  isEdit,
 }: IUseEditCharacterization & { mt?: number | string }) => {
   return (
     <Box mt={mt}>
@@ -29,6 +30,7 @@ export const ModalAddHierarchyRisk = ({
             onAdd={onAddHierarchy}
             loading={characterizationLoading}
             hierarchies={hierarchies as any}
+            isCreate={!isEdit}
           />
         </Box>
         <Box sx={{ px: 5, pb: 10 }}>{/* <ExamsRiskTable /> */}</Box>

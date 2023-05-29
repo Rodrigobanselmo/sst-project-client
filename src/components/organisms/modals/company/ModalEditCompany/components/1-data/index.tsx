@@ -86,13 +86,14 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                 label="Inauguração"
                 setValue={setValue}
                 control={control}
-                defaultValue={dateToDate(companyData.activityStartDate)}
+                defaultValue={dateToDate(companyData.activity_start_date)}
                 sx={{ minWidth: 200 }}
-                name="activityStartDate"
+                name="activity_start_date"
                 onChange={(date) => {
                   setCompanyData({
                     ...companyData,
-                    activityStartDate: date instanceof Date ? date : undefined,
+                    activity_start_date:
+                      date instanceof Date ? date : undefined,
                   });
                 }}
               />
@@ -179,6 +180,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
           )}
           <RadioFormText
             type="radio"
+            setValue={setValue}
             control={control}
             defaultValue={String(companyData.type)}
             onChange={(e) =>

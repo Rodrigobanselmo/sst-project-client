@@ -40,9 +40,8 @@ export const useAddRecMed = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddRecMedState);
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
-    resolver: yupResolver(recMedSchema),
-  });
+  const { handleSubmit, control, reset, getValues, setValue, setError } =
+    useForm();
 
   const createRecMedMut = useMutCreateRecMed();
   const updateRecMedMut = useMutUpdateRecMed();
@@ -102,6 +101,29 @@ export const useAddRecMed = () => {
     medType: string;
     recType: string;
   }> = async (data) => {
+    let isError = false;
+    console.log(data);
+    if (data.recName && !data.recType) {
+      isError = true;
+      setError('recType', { message: 'Campo obrigatório' });
+    }
+    if (data.medName && !data.medType) {
+      isError = true;
+      setError('medType', { message: 'Campo obrigatório' });
+    }
+
+    if (data.medType && !data.medName) {
+      isError = true;
+      setError('medName', { message: 'Campo obrigatório' });
+    }
+
+    if (data.recType && !data.recName) {
+      isError = true;
+      setError('recName', { message: 'Campo obrigatório' });
+    }
+
+    if (isError) return;
+
     if (recMedData.passDataBack)
       return onClose({
         status: recMedData.status,

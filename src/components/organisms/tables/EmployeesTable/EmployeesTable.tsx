@@ -100,7 +100,7 @@ export const EmployeesTable: FC<
   };
 
   const onAddEmployee = () => {
-    onStackOpenModal(ModalEnum.EMPLOYEES_ADD, {});
+    onStackOpenModal(ModalEnum.EMPLOYEES_ADD);
   };
 
   const onExportClick = () => {
