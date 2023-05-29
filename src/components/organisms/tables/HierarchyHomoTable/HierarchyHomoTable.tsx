@@ -33,7 +33,7 @@ export const HierarchyHomoTable: FC<
       onAdd?: () => void;
       hierarchies: IHierarchy[];
       loading: boolean;
-      isCreate: boolean;
+      isCreate?: boolean;
     }
 > = ({
   rowsPerPage = 8,
