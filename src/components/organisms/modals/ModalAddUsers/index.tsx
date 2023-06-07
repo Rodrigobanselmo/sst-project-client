@@ -105,9 +105,10 @@ export const ModalAddUsers = () => {
           )}
         </SFlex>
 
-        <SFlex mt={5} gap={5}>
+        <SFlex mt={5} mb={10} gap={5}>
           <STagButton
             maxWidth="200px"
+            large
             text={
               !!userData?.group && !!userData.group?.name
                 ? userData.group.name
@@ -116,29 +117,9 @@ export const ModalAddUsers = () => {
             active={!!userData?.group && !!userData?.group?.name}
             onClick={handleOpenAccessSelect}
           />
-          {isConsulting && (
-            <STagButton
-              maxWidth="200px"
-              text={'Adicionar Empresas'}
-              onClick={() => handleOpenCompanySelect()}
-            />
-          )}
-          {isConsulting && (
-            <STagButton
-              maxWidth="200px"
-              text={'Adicionar Grupo'}
-              onClick={() => handleOpenCompanySelect({ isGroup: true })}
-            />
-          )}
-          {isConsulting && (
-            <STagButton
-              maxWidth="200px"
-              text={'Adicionar Clínica'}
-              onClick={() => handleOpenCompanySelect({ isClinic: true })}
-            />
-          )}
+
           {!isEdit && (
-            <Box mt={-2} ml={'auto'}>
+            <Box pl={10} mt={-2} ml={'auto'}>
               <SSwitch
                 onChange={() => {
                   setValue('email', '');
@@ -161,23 +142,55 @@ export const ModalAddUsers = () => {
           )}
         </SFlex>
         {isConsulting && (
-          <SFlex mt={5} mb={20} gap={5} flexWrap="wrap">
-            {userData.companies.map((company) => {
-              return (
-                <CompanyTag
-                  key={company.id}
-                  company={company}
-                  handleRemoveCompany={handleRemoveCompany}
+          <>
+            <SText fontSize={14} color={'text.label'}>
+              Acesso
+            </SText>
+            <SFlex mt={5} gap={5}>
+              {isConsulting && (
+                <STagButton
+                  maxWidth="200px"
+                  minWidth={180}
+                  text={'Empresas'}
+                  onClick={() => handleOpenCompanySelect()}
                 />
-              );
-            })}
-          </SFlex>
+              )}
+
+              {isConsulting && (
+                <STagButton
+                  maxWidth="200px"
+                  minWidth={180}
+                  text={'Grupos Empresariais'}
+                  onClick={() => handleOpenCompanySelect({ isGroup: true })}
+                />
+              )}
+              {isConsulting && (
+                <STagButton
+                  maxWidth="200px"
+                  minWidth={180}
+                  text={'Clínicas'}
+                  onClick={() => handleOpenCompanySelect({ isClinic: true })}
+                />
+              )}
+            </SFlex>
+            <SFlex mt={5} mb={20} gap={5} flexWrap="wrap">
+              {userData.companies.map((company) => {
+                return (
+                  <CompanyTag
+                    key={company.id}
+                    company={company}
+                    handleRemoveCompany={handleRemoveCompany}
+                  />
+                );
+              })}
+            </SFlex>
+          </>
         )}
-        <SelectRoles
+        {/* <SelectRoles
           mt={5}
           data={userData}
           setData={(data) => setUserData({ ...data, group: null })}
-        />
+        /> */}
         <SModalButtons
           loading={loading}
           onClose={onCloseUnsaved}

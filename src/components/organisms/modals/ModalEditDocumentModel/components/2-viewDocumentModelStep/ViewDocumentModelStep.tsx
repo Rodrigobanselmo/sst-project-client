@@ -42,7 +42,11 @@ export const ViewDocumentModelStep = (dataProps: IUseDocumentModel) => {
           </STRelativeBox>
           <STRelativeBox>
             <Box width={'100%'} position={'absolute'}>
-              <DocumentModelContent model={model} loading={loading}>
+              <DocumentModelContent
+                companyId={props?.data?.companyId}
+                model={model}
+                loading={loading}
+              >
                 <TopButtons {...props} />
               </DocumentModelContent>
             </Box>

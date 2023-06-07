@@ -18,7 +18,8 @@ export interface IUpdateUser {
   type?: ProfessionalTypeEnum;
   crea?: string;
   crm?: string;
-  googleExternalId?: string;
+  googleExternalId?: string | null;
+  googleUser?: string | null;
   formation?: string[];
   certifications?: string[];
   councils?: {

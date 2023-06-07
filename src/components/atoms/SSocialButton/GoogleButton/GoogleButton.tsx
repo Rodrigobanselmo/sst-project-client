@@ -12,6 +12,7 @@ export const GoogleButton: FC<
 > = ({ text, ...props }) => {
   return (
     <SButton
+      {...props}
       sx={{
         backgroundColor: 'white',
         boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
@@ -22,9 +23,8 @@ export const GoogleButton: FC<
           boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
           filter: 'brightness(0.97)',
         },
-        ...(props?.sx ? props.sx : {}),
+        ...props?.sx,
       }}
-      {...props}
     >
       <SFlex align="center" width="100%">
         <SGoogleIcon fontSize="1.3rem" />

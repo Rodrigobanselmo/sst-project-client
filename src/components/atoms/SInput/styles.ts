@@ -58,6 +58,23 @@ export const STTextField = styled(TextField)<{
     }
   }
 
+  // @media (max-width: ${(props) => props.theme.breakpoints.values.sm}px) {
+  //   &&& .MuiInputBase-root {
+  //     font-size: 14px;
+  //     max-height: 40px;
+  //     min-height: 40px;
+  //     padding: 1px 4px;
+  //   }
+
+  //   &&&.MuiFormControl-root.MuiTextField-root:after {
+  //     margin-top: -14px;
+  //   }
+
+  //   &&& .MuiInputBase-root {
+  //     margin-bottom: -5px;
+  //   }
+  // }
+
   ${(props) =>
     props.ssx &&
     css`
@@ -85,7 +102,7 @@ export const STTextField = styled(TextField)<{
         &:after {
           content: '';
           border-bottom: 2px solid ${props.theme.palette.success.main};
-          top: ${props.size === 'small' ? 22 : 44}px;
+          top: ${props.size === 'small' ? 30 : 44}px;
           position: absolute;
           width: 100%;
           height: 10px;

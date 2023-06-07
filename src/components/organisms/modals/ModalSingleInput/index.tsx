@@ -46,13 +46,16 @@ export const ModalSingleInput: FC<
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
 
-  const { handleSubmit, control, reset, setError, setValue } = useForm({
-    resolver: yupResolver(photoSchema),
-  });
+  const { handleSubmit, control, clearErrors, reset, setError, setValue } =
+    useForm({
+      resolver: yupResolver(photoSchema),
+    });
 
   const [data, setData] = useState({
     ...initialInputModalState,
   });
+
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const initialData =
@@ -61,6 +64,7 @@ export const ModalSingleInput: FC<
     // eslint-disable-next-line prettier/prettier
     if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setValue('name', initialData.name);
+      setLoading(false);
       setData((oldData) => ({
         ...oldData,
         ...initialData,
@@ -80,7 +84,12 @@ export const ModalSingleInput: FC<
         return setError('name', { message: 'Email inválido' });
     }
 
-    data.onConfirm && (await data.onConfirm(formData.name));
+    try {
+      setLoading(true);
+      data.onConfirm && (await data.onConfirm(formData.name));
+    } catch {}
+
+    setLoading(false);
     onClose();
   };
 
@@ -112,6 +121,7 @@ export const ModalSingleInput: FC<
         p={8}
         width={'fit-content'}
         minWidth={600}
+        loading={loading}
       >
         <SModalHeader onClose={onClose} title={data.title || 'Adicionar'} />
         <InputForm
@@ -125,6 +135,7 @@ export const ModalSingleInput: FC<
           placeholder={data.placeholder || 'descrição...'}
           name="name"
           size="small"
+          onChange={() => clearErrors()}
           {...inputProps()}
         />
         <SModalButtons onClose={onClose} buttons={buttons} />

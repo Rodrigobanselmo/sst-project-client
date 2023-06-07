@@ -12,36 +12,72 @@ import {
   useMutUpdateUser,
 } from 'core/services/hooks/mutations/user/useMutUpdateUser';
 import { userUpdateSchema } from 'core/utils/schemas/user-update.schema';
-
+import * as Yup from 'yup';
 import { IProfessionalCouncil } from './../../../../../core/interfaces/api/IProfessional';
+import { oldPassSchema, signSchema } from 'core/utils/schemas/sign.schema';
+import { useQueryUser } from 'core/services/hooks/queries/useQueryUser';
+import { useRouter } from 'next/router';
+import { queryClient } from 'core/services/queryClient';
+import { QueryEnum } from 'core/enums/query.enums';
+import { useMutUpdateUserAdmin } from 'core/services/hooks/mutations/user/useMutUpdateUserAdmin';
 
 interface ISubmit extends Partial<IUpdateUser> {}
 
-export const useUserForm = (onlyEdit?: boolean) => {
-  const { user, refreshUser, googleSignLink } = useAuth();
-  const { handleSubmit, control, setFocus, setValue } = useForm({
+export const useUserForm = () => {
+  const { user, refreshUser: refreshUserMain, googleSignLink } = useAuth();
+  const { query } = useRouter();
+
+  const { data: userFetch, isLoading } = useQueryUser({
+    companyId: query?.companyId as string | undefined,
+    userId: query?.userId ? Number(query?.userId) : undefined,
+  });
+
+  const formProps = useForm({
     resolver: yupResolver(userUpdateSchema),
   });
 
-  const [userData, setUserData] = useState({ ...createUser(user) });
-  const [uneditable, setUneditable] = useState(onlyEdit ? false : true);
+  const formPropsPass = useForm({
+    resolver: yupResolver(
+      Yup.object().shape({
+        password: signSchema.password,
+        passwordConfirmation: signSchema.passwordConfirmation,
+        oldPassword: oldPassSchema.oldPassword,
+      }),
+    ),
+  });
+
+  const { handleSubmit, control, setValue } = formProps;
+
+  const [userData, setUserData] = useState({} as ReturnType<typeof createUser>);
 
   useEffect(() => {
-    if (user) {
-      ['name', 'cpf', 'type'].forEach((key) => {
-        const keyValue = key as unknown as keyof typeof user;
-        if (!!user && user[keyValue]) setValue(key, user[keyValue]);
-      });
+    const userFrom = query?.userId ? userFetch : user;
 
+    if (userFrom) {
       setUserData({
         ...userData,
-        ...createUser(user),
+        ...createUser(userFrom),
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, userFetch, query?.userId]);
 
-  const updateMutation = useMutUpdateUser();
+  const updateUserMutation = useMutUpdateUser();
+  const updateUserAdminMutation = useMutUpdateUserAdmin();
+
+  const updateMutation = query?.userId
+    ? updateUserAdminMutation
+    : updateUserMutation;
+
+  const refreshUser = () => {
+    refreshUserMain();
+    if (query?.userId)
+      queryClient.invalidateQueries([
+        QueryEnum.USERS,
+        userFetch?.companyId,
+        userFetch?.id,
+      ]);
+  };
 
   const onSave: SubmitHandler<ISubmit> = async (data) => {
     await updateMutation
@@ -52,33 +88,14 @@ export const useUserForm = (onlyEdit?: boolean) => {
         type:
           (userData.type as ProfessionalTypeEnum) || ProfessionalTypeEnum.USER,
         ...data,
+        companyId: query?.companyId as string | undefined,
+        id: query?.userId ? Number(query?.userId) : undefined,
       })
       .then(() => {
-        setUneditable(true);
         refreshUser();
         return true;
       })
       .catch(() => {});
-  };
-
-  const onEdit = (bool?: boolean) => {
-    if (onlyEdit) return;
-    if (typeof bool == 'boolean') return setUneditable(bool);
-
-    if (uneditable) {
-      setUneditable(false);
-
-      setTimeout(() => {
-        setFocus('name');
-      }, 100);
-      return;
-    }
-
-    setUserData({
-      ...userData,
-      ...createUser(user),
-    });
-    setUneditable(true);
   };
 
   const onAddArray = (value: string, type: 'formation' | 'certifications') => {
@@ -138,7 +155,10 @@ export const useUserForm = (onlyEdit?: boolean) => {
     const result = await googleSignLink();
     if (result) {
       await updateMutation
-        .mutateAsync({ googleExternalId: result.user.uid })
+        .mutateAsync({
+          googleExternalId: result.user.uid,
+          googleUser: result.user.email || undefined,
+        })
         .then(() => {
           refreshUser();
           return true;
@@ -147,16 +167,48 @@ export const useUserForm = (onlyEdit?: boolean) => {
     }
   };
 
+  const handleDeleteGoogleAccount = async () => {
+    await updateMutation
+      .mutateAsync({
+        googleExternalId: null,
+        googleUser: null,
+      })
+      .then(() => {
+        refreshUser();
+        return true;
+      })
+      .catch(() => {});
+  };
+
+  const handleChangePass = async () => {
+    const isValid = await formPropsPass.trigger();
+    if (!isValid) return;
+
+    const password = formPropsPass.getValues('password');
+    const oldPassword = formPropsPass.getValues('oldPassword');
+
+    await updateMutation
+      .mutateAsync({
+        password,
+        oldPassword,
+        companyId: query?.companyId as string | undefined,
+        id: query?.userId ? Number(query?.userId) : undefined,
+      })
+      .then(() => {
+        refreshUser();
+        formPropsPass.reset();
+        return true;
+      })
+      .catch(() => {});
+  };
+
   return {
     loading: updateMutation.isLoading,
     control,
     handleSubmit,
     onSave,
-    uneditable,
-    setUneditable,
-    onEdit,
     userData,
-    user,
+    user: query?.userId ? userFetch : user,
     setUserData,
     onAddArray,
     onDeleteArray,
@@ -165,6 +217,11 @@ export const useUserForm = (onlyEdit?: boolean) => {
     onAddCouncil,
     onDeleteCouncil,
     onEditCouncil,
+    handleDeleteGoogleAccount,
+    formProps: formPropsPass,
+    handleChangePass,
+    loadingPage: isLoading,
+    isUserEditAdmin: !!query?.userId,
   };
 };
 
@@ -177,8 +234,8 @@ const createUser = (user: Partial<IUser> | null) => {
     councilType: user?.councilType || '',
     councilUF: user?.councilUF || '',
     councilId: user?.councilId || '',
-    formation: user?.formation || [''],
-    certifications: user?.certifications || [''],
+    formation: user?.formation || [],
+    certifications: user?.certifications || [],
     hasCouncil: user?.councils && user?.councils.length > 0,
     councils: user?.councils,
     hasFormation: false,
@@ -187,3 +244,6 @@ const createUser = (user: Partial<IUser> | null) => {
 };
 
 export type IUseEditWorkspace = ReturnType<typeof useUserForm>;
+function trigger() {
+  throw new Error('Function not implemented.');
+}

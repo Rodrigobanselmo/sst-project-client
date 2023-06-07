@@ -1,4 +1,6 @@
 export enum RoutesEnum {
+  PRIVACY_POLITICS = '/politicas-de-privacidade',
+  TERMS_OF_USE = '/termos-de-uso',
   ABSENTEEISM = '/dashboard/empresas/:companyId/absenteismo',
   OS = '/dashboard/empresas/:companyId/os',
   ALERTS = '/dashboard/empresas/:companyId/alertas',

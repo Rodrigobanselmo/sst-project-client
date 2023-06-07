@@ -17,28 +17,40 @@ import { signSchema } from 'core/utils/schemas/sign.schema';
 import { SButton } from '../../../../components/atoms/SButton';
 import { InputForm } from '../../../../components/molecules/form/input';
 import { ILoginSchema } from '../../../../core/utils/schemas/login.schema';
+import { useAuth } from 'core/contexts/AuthContext';
+import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
+import { PasswordInputs } from '../PasswordInputs/PasswordInputs';
+import { useSnackbar } from 'notistack';
 
 const ReCAPTCHAComp = ReCAPTCHA as any;
 
 export const LoginForm: FC = () => {
-  const { handleSubmit, control, setValue, watch } = useForm({
+  const formProps = useForm({
     resolver: yupResolver(Yup.object().shape({ ...signSchema })),
   });
 
+  const { handleSubmit, control, setValue, watch, setError } = formProps;
+
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
   const { mutate, isLoading } = useMutationSign();
+  const { googleSignUp } = useAuth();
   const router = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
 
-  const password = watch('password');
-  const passwordConfirmation = watch('passwordConfirmation');
   const email = watch('email');
 
   const successEmail = email && email.length > 3 && isValidEmail(email);
-  const successPass = password && password.length > 7;
-  const successConfirmationPass =
-    successPass && passwordConfirmation === password;
 
   const onSubmit: SubmitHandler<ILoginSchema> = async (data) => {
+    if (!isCaptchaVerified)
+      return enqueueSnackbar('Por favor, verifique o captcha', {
+        variant: 'error',
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'center',
+        },
+      });
+
     const token = router.query?.token as string | undefined;
     mutate({ ...data, token });
   };
@@ -52,6 +64,11 @@ export const LoginForm: FC = () => {
   function onRecaptchaChange(value: string | null) {
     setIsCaptchaVerified(!!value);
   }
+
+  const handleGoogleSignUp = () => {
+    const token = router.query?.token as string | undefined;
+    googleSignUp(token);
+  };
 
   return (
     <Box
@@ -74,29 +91,15 @@ export const LoginForm: FC = () => {
         success={successEmail}
       />
 
-      <InputForm
-        sx={{ mb: [8, 8] }}
-        label="Senha"
-        setValue={setValue}
-        placeholder="********"
-        type="password"
-        autoComplete="off"
-        control={control}
-        name="password"
-        success={successPass}
-      />
-      <InputForm
-        label="Confirmar senha"
-        placeholder="********"
-        autoComplete="off"
-        type="password"
-        setValue={setValue}
-        control={control}
-        name="passwordConfirmation"
-        success={successConfirmationPass}
-      />
+      <PasswordInputs {...formProps} />
+      <SFlex mt={10} center>
+        <ReCAPTCHAComp
+          sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
+          onChange={onRecaptchaChange}
+        />
+      </SFlex>
       <SButton
-        disabled={!isCaptchaVerified}
+        // disabled={!isCaptchaVerified}
         loading={isLoading}
         type="submit"
         sx={{ width: '100%', mt: 12 }}
@@ -111,10 +114,10 @@ export const LoginForm: FC = () => {
           </Link>
         </NextLink>
       </Typography>
-      <SFlex mt={10} center>
-        <ReCAPTCHAComp
-          sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
-          onChange={onRecaptchaChange}
+      <SFlex gap={5} mt={10} center width="100%">
+        <GoogleButton
+          onClick={handleGoogleSignUp}
+          text="Cadastrar com Google"
         />
       </SFlex>
     </Box>

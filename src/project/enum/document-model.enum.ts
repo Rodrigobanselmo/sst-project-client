@@ -28,6 +28,7 @@ export enum DocumentSectionChildrenTypeEnum {
   H5 = 'H5',
   H6 = 'H6',
   PARAGRAPH = 'PARAGRAPH',
+  IMAGE = 'IMAGE',
   BREAK = 'BREAK',
   BULLET = 'BULLET',
   BULLET_SPACE = 'BULLET_SPACE',

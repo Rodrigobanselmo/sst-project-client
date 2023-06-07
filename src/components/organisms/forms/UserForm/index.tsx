@@ -1,7 +1,7 @@
 import React from 'react';
 
-import { getStates } from '@brazilian-utils/brazilian-utils';
-import { Box, BoxProps } from '@mui/material';
+import { formatCPF, getStates } from '@brazilian-utils/brazilian-utils';
+import { Box, BoxProps, Icon } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
@@ -19,15 +19,19 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 import { CouncilShow } from './CouncilShow/CouncilShow';
 import { useUserForm } from './hooks/useUserForm';
 import { STBox } from './styles';
+import SText from 'components/atoms/SText';
+import SIconButton from 'components/atoms/SIconButton';
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
+import { PasswordInputs } from 'pages/cadastro/components/PasswordInputs/PasswordInputs';
 
-export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
+export const UserForm = (
+  props: BoxProps & { passChange?: boolean; firstEdit?: boolean },
+) => {
   const {
     onSave,
     loading,
     handleSubmit,
     control,
-    uneditable,
-    onEdit,
     user,
     userData,
     setUserData,
@@ -38,89 +42,202 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
     onAddCouncil,
     onDeleteCouncil,
     onEditCouncil,
-  } = useUserForm(props.onlyEdit);
+    handleDeleteGoogleAccount,
+    formProps,
+    handleChangePass,
+    isUserEditAdmin,
+  } = useUserForm();
 
   useFetchFeedback(!user);
 
   if (!user || !userData) return null;
 
+  const isGoogleAccount = !!user.googleExternalId;
+
   return (
     <STBox onSubmit={handleSubmit(onSave)} component={'form'} {...props}>
       <SFlex gap={8} direction="column">
-        <InputForm
-          defaultValue={userData?.name}
-          uneditable={uneditable}
-          label="Nome Completo"
-          control={control}
-          placeholder={'Digite seu nome completo'}
-          name="name"
-          size="small"
-          setValue={setValue}
-        />
-        <InputForm
-          defaultValue={userData?.cpf}
-          uneditable={uneditable}
-          label="CPF"
-          control={control}
-          placeholder={'000.000.000-00'}
-          name="cpf"
-          mask={cpfMask.apply}
-          size="small"
-          setValue={setValue}
-        />
-        <GoogleButton onClick={linkGoogle} text="Vincular conta Google" />
-        <RadioForm
-          disabled={uneditable}
-          setValue={setValue}
-          label="Profissão*"
-          control={control}
-          defaultValue={String(userData.type)}
-          onChange={(e) => {
-            const type = (e as any).target.value as ProfessionalTypeEnum;
-            if (type === ProfessionalTypeEnum.ENGINEER)
-              setValue('councilType', 'CREA');
-            else if (type === ProfessionalTypeEnum.NURSE)
-              setValue('councilType', 'COREN');
-            else if (type === ProfessionalTypeEnum.DOCTOR)
-              setValue('councilType', 'CRM');
-            // else if (type === ProfessionalTypeEnum.SPEECH_THERAPIST)
-            //   setValue('councilType', 'CFF');
-            else setValue('councilType', '');
-
-            setUserData((old) => {
-              return {
-                ...old,
-                type,
-                ...(type === ProfessionalTypeEnum.ENGINEER && {
-                  hasCouncil: true,
-                }),
-                ...(type === ProfessionalTypeEnum.DOCTOR && {
-                  hasCouncil: true,
-                }),
-              };
-            });
+        <SFlex
+          gap={8}
+          direction="column"
+          sx={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: ['16px', '16px', '16px'],
           }}
-          row
-          options={professionalsOptionsList.map((professionalType) => ({
-            label: professionalType.name,
-            value: professionalType.value,
-          }))}
-          name="type"
-        />
+        >
+          <InputForm
+            defaultValue={userData?.name}
+            label="Nome Completo"
+            control={control}
+            placeholder={'Digite seu nome completo'}
+            name="name"
+            size="small"
+            setValue={setValue}
+          />
+          <InputForm
+            defaultValue={formatCPF(userData?.cpf || '')}
+            label="CPF"
+            control={control}
+            placeholder={'000.000.000-00'}
+            name="cpf"
+            mask={cpfMask.apply}
+            size="small"
+            setValue={setValue}
+          />
+          <InputForm
+            defaultValue={userData?.email || ''}
+            disabled
+            label="E-mail"
+            control={control}
+            name="email"
+            size="small"
+            setValue={setValue}
+          />
+          {isGoogleAccount && (
+            <Box sx={{ mt: -4 }}>
+              <SFlex gap={5} align={'center'}>
+                <SText color="text.main" fontSize={12}>
+                  Conta google cadastrada:
+                  <SText
+                    color="info.dark"
+                    component="span"
+                    ml={3}
+                    fontSize={12}
+                  >
+                    {user.googleUser}
+                  </SText>
+                </SText>
 
-        {userData.hasCouncil && (
+                <SIconButton
+                  tooltip={'remover conta google'}
+                  sx={{ mt: -1, width: 20, height: 20 }}
+                  onClick={handleDeleteGoogleAccount}
+                  loading={loading}
+                >
+                  <Icon
+                    component={SDeleteIcon}
+                    sx={{ fontSize: 15, color: 'error.dark' }}
+                  />
+                </SIconButton>
+              </SFlex>
+            </Box>
+          )}
+          <SFlex
+            maxWidth={240}
+            gap={0}
+            direction={'column'}
+            align={'center'}
+            {...(props.firstEdit && { mb: 10 })}
+          >
+            <GoogleButton
+              sx={{ width: '100%', maxWidth: '100%', minWidth: 'fit-content' }}
+              onClick={linkGoogle}
+              text={
+                isGoogleAccount ? 'Trocar conta Gogle' : 'Vincular conta Google'
+              }
+            />
+          </SFlex>
+
+          {!props.firstEdit && (
+            <SFlex gap={5} mt={10} justifyContent="flex-end" width="100%">
+              <SButton
+                size="small"
+                variant={'contained'}
+                loading={loading}
+                type="submit"
+              >
+                Salvar
+              </SButton>
+            </SFlex>
+          )}
+        </SFlex>
+
+        {props.passChange && (
+          <SFlex
+            gap={8}
+            direction="column"
+            sx={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              padding: ['16px', '16px', '16px'],
+            }}
+          >
+            <PasswordInputs
+              resetPass
+              oldPassword={!isUserEditAdmin}
+              {...formProps}
+            />
+
+            <SFlex gap={5} mt={10} justifyContent="flex-end" width="100%">
+              <SButton
+                size="small"
+                variant={'contained'}
+                loading={loading}
+                type="button"
+                onClick={handleChangePass}
+              >
+                Salvar
+              </SButton>
+            </SFlex>
+          </SFlex>
+        )}
+
+        <SFlex
+          gap={8}
+          direction="column"
+          sx={{
+            backgroundColor: 'white',
+            borderRadius: '8px',
+            padding: ['16px', '16px', '16px'],
+          }}
+        >
+          <RadioForm
+            setValue={setValue}
+            label="Profissão"
+            control={control}
+            defaultValue={String(userData.type || ProfessionalTypeEnum.OTHER)}
+            onChange={(e) => {
+              const type = (e as any).target.value as ProfessionalTypeEnum;
+              if (type === ProfessionalTypeEnum.ENGINEER)
+                setValue('councilType', 'CREA');
+              else if (type === ProfessionalTypeEnum.NURSE)
+                setValue('councilType', 'COREN');
+              else if (type === ProfessionalTypeEnum.DOCTOR)
+                setValue('councilType', 'CRM');
+              // else if (type === ProfessionalTypeEnum.SPEECH_THERAPIST)
+              //   setValue('councilType', 'CFF');
+              else setValue('councilType', '');
+
+              setUserData((old) => {
+                return {
+                  ...old,
+                  type,
+                  ...(type === ProfessionalTypeEnum.ENGINEER && {
+                    hasCouncil: true,
+                  }),
+                  ...(type === ProfessionalTypeEnum.DOCTOR && {
+                    hasCouncil: true,
+                  }),
+                };
+              });
+            }}
+            row
+            options={professionalsOptionsList.map((professionalType) => ({
+              label: professionalType.name,
+              value: professionalType.value,
+            }))}
+            name="type"
+          />
+
           <CouncilShow
             data={userData.councils || []}
             onAdd={(v) => onAddCouncil(v)}
             onDelete={(v) => onDeleteCouncil(v)}
             onEdit={(v, i) => onEditCouncil(v, i)}
-            disabled={uneditable}
           />
-        )}
 
-        {userData.hasFormation && (
           <SDisplaySimpleArray
-            disabled={uneditable}
             values={userData.formation || []}
             onAdd={(value) => onAddArray(value, 'formation')}
             onDelete={(value) => onDeleteArray(value, 'formation')}
@@ -129,11 +246,8 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
             placeholder="ex.: Engenheiro de segurança"
             modalLabel={'Adicionar Formação'}
           />
-        )}
 
-        {userData.hasCertifications && (
           <SDisplaySimpleArray
-            disabled={uneditable}
             values={userData.certifications || []}
             onAdd={(value) => onAddArray(value, 'certifications')}
             onDelete={(value) => onDeleteArray(value, 'certifications')}
@@ -142,103 +256,18 @@ export const UserForm = (props: BoxProps & { onlyEdit?: boolean }) => {
             placeholder="ex.: Certificado HOC 0061"
             modalLabel={'Adicionar Certificado'}
           />
-        )}
 
-        <SFlex gap={5} mt={10} justifyContent="flex-end" width="100%">
-          {!props.onlyEdit && (
+          <SFlex gap={5} mt={10} justifyContent="flex-end" width="100%">
             <SButton
               size="small"
-              variant={uneditable ? 'contained' : 'outlined'}
+              variant={'contained'}
               loading={loading}
-              onClick={() => onEdit()}
+              type="submit"
             >
-              {uneditable ? 'Editar' : 'Cancelar'}
+              Salvar
             </SButton>
-          )}
-          <SButton
-            size="small"
-            variant={'contained'}
-            loading={loading}
-            type="submit"
-            disabled={uneditable}
-          >
-            {props.onlyEdit ? 'Prosseguir' : 'Salvar'}
-          </SButton>
+          </SFlex>
         </SFlex>
-      </SFlex>
-      <SFlex gap={8} direction="column" mt={15}>
-        {/* <SSwitch
-          onChange={() => {
-            setUserData({
-              ...userData,
-              crea: '',
-              hasCREA: !userData.hasCREA,
-            } as any);
-            onEdit(false);
-          }}
-          checked={userData.hasCREA}
-          label="Adicionar CREA"
-          sx={{ mr: 4 }}
-          color="text.light"
-        />
-        <SSwitch
-          onChange={() => {
-            setUserData({
-              ...userData,
-              crm: '',
-              hasCRM: !userData.hasCRM,
-            } as any);
-            onEdit(false);
-          }}
-          checked={userData.hasCRM}
-          label="Adicionar CRM"
-          sx={{ mr: 4 }}
-          color="text.light"
-        /> */}
-        <SSwitch
-          onChange={() => {
-            setUserData({
-              ...userData,
-              councilType: '',
-              councilUF: '',
-              councilId: '',
-              hasCouncil: !userData.hasCouncil,
-            } as any);
-            onEdit(false);
-          }}
-          checked={userData.hasCouncil}
-          label="Adicionar Conselho"
-          sx={{ mr: 4 }}
-          color="text.light"
-        />
-        <SSwitch
-          onChange={() => {
-            setUserData({
-              ...userData,
-              formation: [],
-              hasFormation: !userData.hasFormation,
-            } as any);
-            onEdit(false);
-          }}
-          checked={userData.hasFormation}
-          label="Formação acadêmica"
-          sx={{ mr: 4 }}
-          color="text.light"
-        />
-        <SSwitch
-          onChange={(e) => {
-            setUserData({
-              ...userData,
-              certifications: [],
-              hasCertifications: e.target.checked,
-            } as any);
-            onEdit(false);
-          }}
-          checked={!!userData.hasCertifications}
-          label="Certificações"
-          sx={{ mr: 4 }}
-          color="text.light"
-        />
       </SFlex>
     </STBox>
   );

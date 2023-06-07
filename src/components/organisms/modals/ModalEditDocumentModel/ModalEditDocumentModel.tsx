@@ -10,6 +10,7 @@ import { ViewDocumentModelStep } from './components/2-viewDocumentModelStep/View
 import { useEditDocumentModel } from './hooks/useEditDocumentModel';
 import { VariablesDocTable } from 'components/organisms/tables/VariablesDocTable/VariablesDocTable';
 import { VariablesStep } from './components/3-variables/VariablesStep';
+import { ImagesStep } from './components/4-images/ImagesStep';
 
 export const ModalEditDocumentModelData = () => {
   const props = useEditDocumentModel();
@@ -48,6 +49,7 @@ export const ModalEditDocumentModelData = () => {
                   ? [
                       { label: 'Documento', sx: { fontSize: 12 } },
                       { label: 'Variaveis', sx: { fontSize: 12 } },
+                      { label: 'Imagens', sx: { fontSize: 12 } },
                     ]
                   : []),
               ]}
@@ -57,6 +59,7 @@ export const ModalEditDocumentModelData = () => {
           <DataStep {...props} />
           {isEdit ? <ViewDocumentModelStep {...props} /> : <div />}
           {isEdit ? <VariablesStep {...props} /> : <div />}
+          {isEdit ? <ImagesStep {...props} /> : <div />}
         </Wizard>
       </SModalPaper>
     </SModal>

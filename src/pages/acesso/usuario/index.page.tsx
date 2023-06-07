@@ -43,7 +43,7 @@ const UserPage: NextPage = () => {
             </Typography>
           </Typography>
 
-          <UserForm onlyEdit />
+          <UserForm firstEdit />
         </STSectionBox>
         <ModalSingleInput />
         <ModalAddCouncil />

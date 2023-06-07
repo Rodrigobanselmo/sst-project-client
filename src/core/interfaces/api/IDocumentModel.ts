@@ -49,7 +49,9 @@ export type IDocumentModelElement = {
   id: string;
   type: string;
   text: string;
+  url?: string | null;
   level?: number;
+  width?: number;
   size?: number;
   color?: string;
   align?: DocModelAlignmentType;

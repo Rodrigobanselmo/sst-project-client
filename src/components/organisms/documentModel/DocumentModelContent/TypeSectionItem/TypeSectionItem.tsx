@@ -7,6 +7,7 @@ import {
   DocumentSectionTypeEnum,
 } from 'project/enum/document-model.enum';
 
+import { styled } from '@mui/material';
 import {
   IDocumentModelFull,
   IDocVariablesAllType,
@@ -37,13 +38,33 @@ type Props = {
   variables: IDocVariablesAllType;
   elements: IDocumentModelFull['elements'];
   sections: IDocumentModelFull['sections'];
+  companyId?: string;
 };
+
+const StyledImage = styled('img')`
+  height: 150px;
+  max-width: 300px;
+  border: 2px solid ${({ theme }) => theme.palette.grey[300]};
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 8px;
+  border-radius: 8px;
+  object-fit: contain;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+  &:active {
+    opacity: 0.5;
+  }
+`;
 
 export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
   variables,
   data,
   elements,
   sections,
+  companyId,
 }) => {
   const map = useMemo<Record<string, (item: any) => JSX.Element>>(
     () => ({
@@ -65,6 +86,19 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
           ))}
         </STParagraph>
       ),
+      // [DocumentSectionChildrenTypeEnum.IMAGE]: (item: IElement) => (
+      //   <STParagraph fontSize={getFontSize(10)} pb={getSpacing(160)}>
+      //     {item.text.split('\n').map((text, index) => (
+      //       <StyledText
+      //         inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
+      //         text={text}
+      //         entityRange={item.entityRangeBlock?.[index] || []}
+      //         variables={variables}
+      //         key={item.id + index}
+      //       />
+      //     ))}
+      //   </STParagraph>
+      // ),
       [DocumentSectionChildrenTypeEnum.LEGEND]: (item: IElement) => (
         <STParagraph fontSize={getFontSize(8)} pb={getSpacing(300)}>
           {item.text.split('\n').map((text, index) => (
@@ -79,7 +113,11 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
         </STParagraph>
       ),
       [DocumentSectionChildrenTypeEnum.PARAGRAPH_TABLE]: (item: IElement) => (
-        <STParagraph fontSize={getFontSize(8)} pb={getSpacing(70)}>
+        <STParagraph
+          display={'flex'}
+          fontSize={getFontSize(8)}
+          pb={getSpacing(70)}
+        >
           <SText component={'span'} fontSize={getFontSize(8)}>
             Tabela
           </SText>
@@ -95,7 +133,11 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
         </STParagraph>
       ),
       [DocumentSectionChildrenTypeEnum.PARAGRAPH_FIGURE]: (item: IElement) => (
-        <STParagraph fontSize={getFontSize(8)} pb={getSpacing(70)}>
+        <STParagraph
+          display={'flex'}
+          fontSize={getFontSize(8)}
+          pb={getSpacing(70)}
+        >
           <SText component={'span'} fontSize={getFontSize(8)}>
             Imagem
           </SText>
@@ -267,6 +309,12 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
       [DocumentSectionChildrenTypeEnum.BREAK]: (item: IElement) => (
         <STBreakPage>Quebra de Página</STBreakPage>
       ),
+      [DocumentSectionChildrenTypeEnum.IMAGE]: (item: IElement) => (
+        <StyledImage
+          alt={item.text || 'imagem'}
+          src={item.url || '/images/placeholder-image.png'}
+        />
+      ),
     }),
     [variables],
   );
@@ -280,6 +328,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
             item={item}
             elements={elements}
             sections={sections}
+            companyId={companyId}
             key={item.id}
           >
             {map[item.type]?.(item) || (

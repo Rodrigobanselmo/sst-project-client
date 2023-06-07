@@ -109,9 +109,36 @@ export function SDisplaySimpleArray({
       }}
     >
       {label && (
-        <SText color={'grey.500'} mb={3} fontSize={14}>
-          {label}
-        </SText>
+        <SFlex justify={'space-between'}>
+          <SText color={'grey.500'} mb={3} fontSize={14}>
+            {label}
+          </SText>
+          {!onRenderAddButton && (
+            <STagButton
+              disabled={disabled}
+              icon={AddIcon}
+              active
+              bg="success.main"
+              text={'Adicionar'}
+              iconProps={{ sx: { fontSize: 17 } }}
+              onClick={() => {
+                if (type === TypeInputModal.PROFESSIONAL) {
+                  return onSelectProfessionalUser();
+                }
+                // if (type === TypeInputModal.COUNCIL) {
+                //   return onSelectProfessionalUser();
+                // }
+
+                onStackOpenModal(ModalEnum.SINGLE_INPUT, {
+                  onConfirm: onAdd,
+                  placeholder,
+                  label: modalLabel,
+                  type,
+                } as typeof initialInputModalState);
+              }}
+            />
+          )}
+        </SFlex>
       )}
 
       <SFlex direction="column">
@@ -226,7 +253,7 @@ export function SDisplaySimpleArray({
             </SFlex>
           );
         })}
-        {!onRenderAddButton && (
+        {/* {!values.length && !onRenderAddButton && (
           <STagButton
             large
             disabled={disabled}
@@ -249,7 +276,7 @@ export function SDisplaySimpleArray({
               } as typeof initialInputModalState);
             }}
           />
-        )}
+        )} */}
         {onRenderAddButton &&
           onRenderAddButton(onAdd, values, { disabled, text: buttonLabel })}
       </SFlex>

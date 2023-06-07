@@ -33,6 +33,10 @@ export type IUser = {
   certifications: string[];
   phone: string;
   email: string;
+  facebookExternalId: string;
+  googleExternalId: string;
+  googleUser: string;
+  facebookuser: string;
   type: ProfessionalTypeEnum;
   password: string;
   created_at: Date;

@@ -11,9 +11,10 @@ import { TypeSectionItem } from './TypeSectionItem/TypeSectionItem';
 export const DocumentModelContent: React.FC<
   { children?: any } & {
     model: IDocumentModelFull | undefined;
+    companyId?: string;
     loading?: boolean;
   }
-> = ({ children, ...props }) => {
+> = ({ companyId, children, ...props }) => {
   const { data, variables, elements, sections, handleDeleteActualItems } =
     useContentDocumentModel(props);
 
@@ -29,6 +30,7 @@ export const DocumentModelContent: React.FC<
             variables={variables}
             elements={elements}
             sections={sections}
+            companyId={companyId}
           />
         )}
       </STStructContainer>

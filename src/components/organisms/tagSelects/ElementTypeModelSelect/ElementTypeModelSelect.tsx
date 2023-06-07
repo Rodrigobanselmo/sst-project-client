@@ -35,7 +35,7 @@ export const ElementTypeModelSelect: FC<
       options={options}
       multiple={multiple}
       text={text || elements[selected]?.label}
-      keys={['name']}
+      keys={['label']}
       large={large}
       sx={{ alignItems: 'start' }}
       handleSelectMenu={handleSelect}

@@ -2,12 +2,17 @@ import { Typography } from '@mui/material';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { NextPage } from 'next';
 
+import NextLink from 'next/link';
 import { withSSRGuest } from 'core/utils/auth/withSSRGuest';
 
 import { SLogo } from '../../components/atoms/SLogo';
 import { brandNameConstant } from '../../core/constants/brand.constant';
 import { LoginForm } from './components/LoginForm';
 import { STContainer, STSectionBox } from './index.styles';
+import SText from 'components/atoms/SText';
+import { RoutesEnum } from 'core/enums/routes.enums';
+import SLink from 'components/atoms/SLink/SLink';
+import { PrivacyAndTerms } from './components/PrivacyAndTerms';
 
 const Home: NextPage = () => {
   return (
@@ -27,10 +32,9 @@ const Home: NextPage = () => {
               {brandNameConstant}
             </Typography>
           </Typography>
-
           <LoginForm />
+          <PrivacyAndTerms />
         </STSectionBox>
-
         <STSectionBox
           component="section"
           display={['none', 'flex']}

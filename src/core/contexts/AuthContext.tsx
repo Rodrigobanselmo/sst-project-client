@@ -37,12 +37,15 @@ export type SignInCredentials = {
   email: string;
   password: string;
   token?: string;
-  google_token_id?: string;
+  googleToken?: string;
+  name?: string;
+  photoUrl?: string;
 };
 
 type AuthContextData = {
   signIn(credentials: SignInCredentials): Promise<void>;
   signUp(credentials: SignInCredentials): Promise<void>;
+  googleSignUp: (token?: string) => Promise<void | UserCredential>;
   googleSignIn: () => Promise<void | UserCredential>;
   googleSignLink: () => Promise<void | UserCredential>;
   signOut: () => void;
@@ -60,11 +63,13 @@ export const AuthContext = createContext({} as AuthContextData);
 let authChannel: BroadcastChannel;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-export function signOut(ctx?: any) {
+export async function signOut(ctx?: any) {
   destroyCookie(null, 'nextauth.token', { path: '/' });
 
   destroyCookie(null, 'nextauth.refreshToken', { path: '/' });
   if (authChannel) authChannel.postMessage('signOut');
+
+  await firebaseAuth.signOut();
 
   Router.push(RoutesEnum.LOGIN);
 }
@@ -104,7 +109,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOutFunc = useCallback(() => {
     dispatch(createUser(null));
-    signOut();
+    signOut().then(() => {
+      dispatch(setIsFetchingData(false));
+    });
   }, [dispatch]);
 
   const getMe = useCallback(async () => {
@@ -187,17 +194,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     authChannel.postMessage('signIn');
   };
 
-  async function signIn({
-    email,
-    password,
-    google_token_id,
-  }: SignInCredentials) {
-    const path = google_token_id
+  async function signIn({ email, password, googleToken }: SignInCredentials) {
+    const path = googleToken
       ? ApiRoutesEnum.SESSION_GOOGLE
       : ApiRoutesEnum.SESSION;
 
-    const payload = google_token_id
-      ? { token: google_token_id }
+    const payload = googleToken
+      ? { googleToken, email }
       : {
           email,
           password,
@@ -208,10 +211,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signToken(response.data, 'signIn');
   }
 
-  async function signUp({ email, password, token }: SignInCredentials) {
+  async function signUp({
+    email,
+    password,
+    googleToken,
+    name,
+    photoUrl,
+    token,
+  }: SignInCredentials) {
     const response = await api.post<ISession>(ApiRoutesEnum.USERS, {
       email,
       password,
+      googleToken,
+      name,
+      photoUrl,
       token,
     });
 
@@ -221,30 +234,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
   async function googleSignIn() {
     const result = await signInWithPopup(firebaseAuth, firebaseProvider).catch(
       (error) => {
-        // Handle Errors here.
-        // const errorCode = error.code;
-        // const errorMessage = error.message;
-        // The email of the user's account used.
-        // const email = error.customData.email;
-        // The AuthCredential type that was used.
-        // const credential = GoogleAuthProvider.credentialFromError(error);
+        enqueueSnackbar('Erro ao tentar fazer login com o Google', {
+          variant: 'error',
+        });
       },
     );
     if (result) {
-      // This gives you a Google Access Token. You can use it to access the Google API.
+      // This gives you a Google Access Token. You can use it to access the Googl e API.
       const credential = GoogleAuthProvider.credentialFromResult(result);
       if (credential) {
-        const token = credential.idToken;
+        const googleToken = credential.idToken;
 
         try {
           dispatch(setIsFetchingData(true));
-          await signIn({ email: '', password: '', google_token_id: token });
+          await signIn({
+            email: result.user.email || '',
+            password: '',
+            googleToken,
+          });
           dispatch(setIsFetchingData(false));
         } catch (error) {
           if ((error as any)?.response)
             enqueueSnackbar((error as any)?.response.data.message, {
               variant: 'error',
             });
+
+          await firebaseAuth.signOut();
           dispatch(setIsFetchingData(false));
         }
       }
@@ -253,10 +268,66 @@ export function AuthProvider({ children }: AuthProviderProps) {
     return result;
   }
 
+  async function googleSignUp(token?: string) {
+    const result = await signInWithPopup(firebaseAuth, firebaseProvider).catch(
+      (error) => {
+        enqueueSnackbar('Erro ao tentar fazer entrar com o Google', {
+          variant: 'error',
+        });
+      },
+    );
+
+    if (result) {
+      dispatch(setIsFetchingData(true));
+
+      if (!result.user.email) {
+        enqueueSnackbar('Você precisa permitir o acesso ao seu e-mail', {
+          variant: 'error',
+        });
+        await firebaseAuth.signOut();
+        dispatch(setIsFetchingData(false));
+        return;
+      }
+      // This gives you a Google Access Token. You can use it to access the Googl e API.
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      if (credential) {
+        const googleToken = credential.idToken;
+
+        try {
+          await signUp({
+            email: result.user.email,
+            password: '',
+            googleToken: googleToken,
+            token,
+            ...(result.user.displayName && {
+              name: result.user.displayName,
+            }),
+            ...(result.user.photoURL && {
+              photoUrl: result.user.photoURL,
+            }),
+          });
+        } catch (error) {
+          if ((error as any)?.response)
+            enqueueSnackbar((error as any)?.response.data.message, {
+              variant: 'error',
+            });
+
+          await firebaseAuth.signOut();
+        }
+      }
+
+      dispatch(setIsFetchingData(false));
+    }
+
+    return result;
+  }
+
   async function googleSignLink() {
     const result = await signInWithPopup(firebaseAuth, firebaseProvider).catch(
       () => {
-        // const errorMessage = error.message;
+        enqueueSnackbar('Erro ao tentar fazer login com o Google', {
+          variant: 'error',
+        });
       },
     );
 
@@ -280,6 +351,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         signUp,
         googleSignLink,
         googleSignIn,
+        googleSignUp,
       }}
     >
       {children}

@@ -21,6 +21,14 @@ import {
   loginSchema,
 } from '../../../../core/utils/schemas/login.schema';
 import { STForgotButton } from './styles';
+import { useMutResetPass } from 'core/services/hooks/mutations/user/useMutResetPass';
+import { useModal } from 'core/hooks/useModal';
+import { ModalEnum } from 'core/enums/modal.enums';
+import {
+  ModalSingleInput,
+  TypeInputModal,
+  initialInputModalState,
+} from 'components/organisms/modals/ModalSingleInput';
 
 const ReCAPTCHAComp = ReCAPTCHA as any;
 
@@ -30,7 +38,10 @@ export const LoginForm: FC = () => {
   });
 
   const { isLocal } = useOnlineStatus();
+  const { onStackOpenModal } = useModal();
+
   const { mutate, isLoading } = useMutationLogin();
+  const resetMutation = useMutResetPass();
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(isLocal || false);
 
   const password = watch('password');
@@ -52,70 +63,86 @@ export const LoginForm: FC = () => {
     googleSignIn();
   };
 
-  return (
-    <Box
-      component="form"
-      onSubmit={(handleSubmit as any)(onSubmit)}
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      <InputForm
-        // defaultValue="admin@simple.com"
-        sx={{ mb: [8, 12] }}
-        setValue={setValue}
-        label="E-mail"
-        placeholder="email@gmail.com"
-        control={control}
-        type="email"
-        name="email"
-        success={successEmail}
-      />
-      <InputForm
-        setValue={setValue}
-        // defaultValue="aaaa0123"
-        label="Senha"
-        placeholder="********"
-        type="password"
-        control={control}
-        name="password"
-        success={successPass}
-      />
-      <STForgotButton
-        type="button"
-        variant="text"
-        size="small"
-        disableTouchRipple
-      >
-        Esqueceu sua senha ?
-      </STForgotButton>
-      <SFlex mt={10} center>
-        <ReCAPTCHAComp
-          sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
-          onChange={onRecaptchaChange}
-        />
-      </SFlex>
-      <SButton
-        disabled={!isCaptchaVerified}
-        loading={isLoading}
-        type="submit"
-        sx={{ width: '100%', mt: 12 }}
-      >
-        ENTRAR
-      </SButton>
-      <Typography color="text.light" variant="caption" align="center" mt={4}>
-        Nào possui conta?
-        <NextLink href="/cadastro" passHref>
-          <Link pl={2} underline="hover">
-            Cadastre-se
-          </Link>
-        </NextLink>
-      </Typography>
+  const handleForgetPass = () => {
+    onStackOpenModal(ModalEnum.SINGLE_INPUT, {
+      onConfirm: async (newValue: string) => {
+        await resetMutation.mutateAsync({ email: newValue });
+      },
+      placeholder: 'email@simplesst.com',
+      label: 'Email',
+      type: TypeInputModal.EMAIL,
+      name: email,
+    } as typeof initialInputModalState);
+  };
 
-      <SFlex gap={5} mt={10} center width="100%">
-        <GoogleButton onClick={handleGoogleSignIn} text="Entrar com Google" />
-      </SFlex>
-    </Box>
+  return (
+    <>
+      <Box
+        component="form"
+        onSubmit={(handleSubmit as any)(onSubmit)}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        <InputForm
+          // defaultValue="admin@simple.com"
+          sx={{ mb: [8, 12] }}
+          setValue={setValue}
+          label="E-mail"
+          placeholder="email@gmail.com"
+          control={control}
+          type="email"
+          name="email"
+          success={successEmail}
+        />
+        <InputForm
+          setValue={setValue}
+          // defaultValue="aaaa0123"
+          label="Senha"
+          placeholder="********"
+          type="password"
+          control={control}
+          name="password"
+          success={successPass}
+        />
+        <STForgotButton
+          type="button"
+          variant="text"
+          size="small"
+          disableTouchRipple
+          onClick={() => handleForgetPass()}
+        >
+          Esqueceu sua senha ?
+        </STForgotButton>
+        <SFlex mt={10} center>
+          <ReCAPTCHAComp
+            sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
+            onChange={onRecaptchaChange}
+          />
+        </SFlex>
+        <SButton
+          disabled={!isCaptchaVerified}
+          loading={isLoading}
+          type="submit"
+          sx={{ width: '100%', mt: 12 }}
+        >
+          ENTRAR
+        </SButton>
+        <Typography color="text.light" variant="caption" align="center" mt={4}>
+          Nào possui conta?
+          <NextLink href="/cadastro" passHref>
+            <Link pl={2} underline="hover">
+              Cadastre-se
+            </Link>
+          </NextLink>
+        </Typography>
+
+        <SFlex gap={5} mt={10} center width="100%">
+          <GoogleButton onClick={handleGoogleSignIn} text="Entrar com Google" />
+        </SFlex>
+      </Box>
+      <ModalSingleInput />
+    </>
   );
 };

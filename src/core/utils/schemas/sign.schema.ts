@@ -12,5 +12,10 @@ export const signSchema = {
     'As senhas devem ser iguais',
   ),
 };
+export const oldPassSchema = {
+  oldPassword: Yup.string()
+    // .min(8, 'senha deve conter no mínimo 8 characteres')
+    .required('Campo obrigatório'),
+};
 
 export type ISignSchema = Record<keyof typeof signSchema, string>;

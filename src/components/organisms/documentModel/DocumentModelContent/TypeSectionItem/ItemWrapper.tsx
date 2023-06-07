@@ -43,6 +43,8 @@ import { transformArrayToObjectFunction } from '../../utils/transformArrayToObje
 import { ITypeDocumentModel } from '../types/types';
 import { RemoveDoubleClickButton } from './RemoveDoubleClickButton';
 import { STContainerItem } from './styles';
+import { ImageGalleryTable } from 'components/organisms/tables/ImageGalleryTable/ImageGalleryTable';
+import { ImagesTypeEnum } from 'project/enum/imageGallery.enum';
 
 const DraftEditor = dynamic(
   async () => {
@@ -63,9 +65,12 @@ const mapProps: Record<
     toolbar?: boolean;
     fontSize?: boolean;
     duplicate?: boolean;
-    paragraph?: boolean;
+    newParagraph?: boolean;
   }
 > = {
+  [DocumentSectionChildrenTypeEnum.IMAGE]: {
+    edit: true,
+  },
   [DocumentSectionChildrenTypeEnum.PARAGRAPH]: {
     edit: true,
     multiline: true,
@@ -111,37 +116,37 @@ const mapProps: Record<
   [DocumentSectionChildrenTypeEnum.TITLE]: {
     edit: true,
     draft: true,
-    paragraph: true,
+    newParagraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H1]: {
     edit: true,
     draft: true,
-    paragraph: true,
+    newParagraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H2]: {
     edit: true,
     draft: true,
-    paragraph: true,
+    newParagraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H3]: {
     edit: true,
     draft: true,
-    paragraph: true,
+    newParagraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H4]: {
     edit: true,
     draft: true,
-    paragraph: true,
+    newParagraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H5]: {
     edit: true,
     draft: true,
-    paragraph: true,
+    newParagraph: true,
   },
   [DocumentSectionChildrenTypeEnum.H6]: {
     edit: true,
     draft: true,
-    paragraph: true,
+    newParagraph: true,
   },
 };
 
@@ -150,6 +155,7 @@ type Props = {
   variables: IDocVariablesAllType;
   elements: IDocumentModelFull['elements'];
   sections: IDocumentModelFull['sections'];
+  companyId?: string;
 };
 
 export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
@@ -158,12 +164,16 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
   elements,
   sections,
   children,
+  companyId,
 }) => {
   const [open, setOpen] = useState(false);
   const dispatch = useAppDispatch();
 
   const isElement = 'element' in item;
   const isSection = 'section' in item;
+  const isDuplicate = (mapProps as any)[item.type]?.duplicate;
+  const isNewParagraph = (mapProps as any)[item.type]?.paragraph != false;
+  const isImage = DocumentSectionChildrenTypeEnum.IMAGE == item.type;
 
   const onOpen = () => {
     if (!open) {
@@ -234,9 +244,10 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
     if ('element' in data)
       onDuplicateChild({
         ...data,
-        ...(data.text && {
-          text: '[DUPLICADO] ' + data.text.slice(0, 10) + '...',
-        }),
+        ...(data.text &&
+          !isNewParagraph && {
+            text: '[DUPLICADO] ' + data.text.slice(0, 10) + '...',
+          }),
       });
   };
 
@@ -595,7 +606,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     borderActive="success"
                   />
                 )}
-                {isElement && (mapProps as any)[item.type]?.duplicate && (
+                {isElement && isDuplicate && (
                   <STagButton
                     maxWidth={'300px'}
                     onClick={() => handleDuplicate(item)}
@@ -608,7 +619,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     borderActive="success"
                   />
                 )}
-                {isElement && (mapProps as any)[item.type]?.paragraph && (
+                {isElement && !isDuplicate && isNewParagraph && (
                   <STagButton
                     maxWidth={'300px'}
                     onClick={() =>
@@ -684,6 +695,22 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
                     handleReturn,
                   })}
                 />
+              )}
+              {isImage && (
+                <Box pt={10}>
+                  <ImageGalleryTable
+                    types={[ImagesTypeEnum.DOCS]}
+                    companyId={companyId}
+                    hideTitle
+                    onSelectData={(image) =>
+                      onEditChild({
+                        url: (item as any).url == image.url ? null : image.url,
+                        id: item.id,
+                      })
+                    }
+                    selectedData={[item as any]}
+                  />
+                </Box>
               )}
             </Box>
           </ClickAwayListener>
