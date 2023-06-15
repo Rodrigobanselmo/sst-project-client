@@ -1,7 +1,7 @@
 export enum ApiRoutesEnum {
   ABSENTEEISMS = '/absenteeism/:companyId',
   OS = '/os/:companyId',
-  FORGOT_PASS = '/forgot-password',
+  FORGOT_PASS_EMAIL = '/forgot-password',
   ALERT = '/alert/:companyId',
   CATS = '/cat/:companyId',
   DOCUMENT_MODEL = '/document-model/:companyId',
@@ -64,6 +64,7 @@ export enum ApiRoutesEnum {
   UPLOAD_UNIQUE_EMPLOYEES = '/files/company/upload/unique',
   UPLOAD_COMPANY_STRUCTURE = '/files/company/company-structure/upload/:companyId',
   USERS = '/users',
+  USERS_RESET_PASS = '/users/reset-password',
   PDF_GUIDE = '/documents/pdf/guide',
   PDF_KIT = '/documents/pdf/kit',
   PDF_VISIT_REPORT = '/documents/pdf/visit-report',

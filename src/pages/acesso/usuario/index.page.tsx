@@ -28,7 +28,7 @@ const UserPage: NextPage = () => {
   return (
     <>
       <SHeaderTag hideInitial title={'Dados Perfil'} />
-      <STContainer sx={{ p: [10], gap: 10 }}>
+      <STContainer sx={{ p: [3, 6, 10], gap: 10 }}>
         <STSectionBox component="section">
           <SLogo mb={3} />
           <Typography

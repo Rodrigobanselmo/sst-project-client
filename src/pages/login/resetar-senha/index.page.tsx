@@ -13,6 +13,9 @@ import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { signSchema } from 'core/utils/schemas/sign.schema';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/router';
+import SFlex from 'components/atoms/SFlex';
+import { SButton } from 'components/atoms/SButton';
+import { useMutResetPass } from 'core/services/hooks/mutations/user/useMutResetPass';
 
 const Home: NextPage = () => {
   const formProps = useForm({
@@ -24,8 +27,20 @@ const Home: NextPage = () => {
     ),
   });
 
+  const mutate = useMutResetPass();
+
   const { query } = useRouter();
   const token = query.token as string;
+
+  const handleChangePass = async () => {
+    const isValid = await formProps.trigger();
+    if (!isValid) return;
+
+    mutate.mutateAsync({
+      tokenId: token,
+      password: formProps.getValues('password'),
+    });
+  };
 
   return (
     <>
@@ -47,6 +62,17 @@ const Home: NextPage = () => {
             </Typography>
           </Typography>
           <PasswordInputs resetPass {...formProps} />
+          <SFlex gap={5} mt={10} justifyContent="flex-end" width="100%">
+            <SButton
+              size="small"
+              variant={'contained'}
+              loading={mutate.isLoading}
+              type="button"
+              onClick={handleChangePass}
+            >
+              Salvar
+            </SButton>
+          </SFlex>
         </STSectionBox>
         <STSectionBox
           component="section"

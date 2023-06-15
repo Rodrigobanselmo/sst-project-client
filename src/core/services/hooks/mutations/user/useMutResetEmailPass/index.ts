@@ -14,36 +14,29 @@ import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { IErrorResp } from '../../../../errors/types';
 
-export interface IResetPassApi {
-  password: string;
-  tokenId: string;
-}
+export async function inviteUser(email?: string) {
+  if (!email) return null;
 
-export async function resetPass({ password, tokenId }: IResetPassApi) {
-  if (!password || !tokenId) return null;
-
-  await api.patch<void>(ApiRoutesEnum.USERS_RESET_PASS, {
-    tokenId,
-    password,
+  await api.post<void>(ApiRoutesEnum.FORGOT_PASS_EMAIL, {
+    email,
   });
-
-  return password;
 }
 
-export function useMutResetPass() {
+export function useMutResetEmailPass() {
   const { enqueueSnackbar } = useSnackbar();
 
-  return useMutation(async (data: IResetPassApi) => resetPass(data), {
-    onSuccess: async (password) => {
-      enqueueSnackbar('Senha refinida com sucesso', {
-        variant: 'success',
-      });
-
-      // return to login page
-      window.location.href = '/login';
+  return useMutation(
+    async ({ email }: { email?: string }) => inviteUser(email),
+    {
+      onSuccess: async (companyResp) => {
+        enqueueSnackbar('Email para redefinir senha enviado com sucesso', {
+          variant: 'success',
+        });
+        return companyResp;
+      },
+      onError: (error: IErrorResp) => {
+        enqueueSnackbar(error.response.data.message, { variant: 'error' });
+      },
     },
-    onError: (error: IErrorResp) => {
-      enqueueSnackbar(error.response.data.message, { variant: 'error' });
-    },
-  });
+  );
 }

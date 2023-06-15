@@ -21,7 +21,7 @@ import {
   loginSchema,
 } from '../../../../core/utils/schemas/login.schema';
 import { STForgotButton } from './styles';
-import { useMutResetPass } from 'core/services/hooks/mutations/user/useMutResetPass';
+import { useMutResetEmailPass } from 'core/services/hooks/mutations/user/useMutResetEmailPass';
 import { useModal } from 'core/hooks/useModal';
 import { ModalEnum } from 'core/enums/modal.enums';
 import {
@@ -41,7 +41,7 @@ export const LoginForm: FC = () => {
   const { onStackOpenModal } = useModal();
 
   const { mutate, isLoading } = useMutationLogin();
-  const resetMutation = useMutResetPass();
+  const resetMutation = useMutResetEmailPass();
   const [isCaptchaVerified, setIsCaptchaVerified] = useState(isLocal || false);
 
   const password = watch('password');

@@ -19,13 +19,15 @@ export const DashboardLayout: FC<React.PropsWithChildren<any>> = ({
   if (asPath.includes(RoutesEnum.ONBOARD))
     return (
       <>
-        <Global styles={globalStylesDashboard} />
-        <STGridBox p={2} pl={0}>
-          <div />
-          <STBoxContent borderRadius={3}>
-            <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
-          </STBoxContent>
-        </STGridBox>
+        <SidebarDrawerProvider>
+          <Global styles={globalStylesDashboard} />
+          <STGridBox p={2} pl={0}>
+            <div />
+            <STBoxContent borderRadius={3}>
+              <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
+            </STBoxContent>
+          </STGridBox>
+        </SidebarDrawerProvider>
       </>
     );
 

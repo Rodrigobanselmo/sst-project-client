@@ -13,13 +13,7 @@ export const STContainer = styled(Container)`
   align-items: center;
   justify-content: space-between;
   overflow: auto;
-
-  @media (min-height: 780px) {
-    margin-top: 50px;
-  }
-  @media (min-height: 850px) {
-    margin-top: 100px;
-  }
+  margin-top: 50px;
 `;
 
 export const STSectionBox = styled(Box)`
@@ -28,6 +22,14 @@ export const STSectionBox = styled(Box)`
   flex: 1;
   overflow: auto;
   padding: 0 50px;
+
+  @media (max-width: 1024px) {
+    padding: 0 20px;
+  }
+
+  @media (max-width: 768px) {
+    padding: 0 10px;
+  }
 `;
 
 const Database: NextPage = () => {

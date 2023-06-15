@@ -66,25 +66,33 @@ export const UserForm = (
             padding: ['16px', '16px', '16px'],
           }}
         >
-          <InputForm
-            defaultValue={userData?.name}
-            label="Nome Completo"
-            control={control}
-            placeholder={'Digite seu nome completo'}
-            name="name"
-            size="small"
-            setValue={setValue}
-          />
-          <InputForm
-            defaultValue={formatCPF(userData?.cpf || '')}
-            label="CPF"
-            control={control}
-            placeholder={'000.000.000-00'}
-            name="cpf"
-            mask={cpfMask.apply}
-            size="small"
-            setValue={setValue}
-          />
+          <SFlex flexWrap="wrap" gap={5}>
+            <Box minWidth={['100%', '100%', 400]}>
+              <InputForm
+                defaultValue={userData?.name}
+                label="Nome Completo"
+                control={control}
+                placeholder={'Digite seu nome completo'}
+                sx={{ minWidth: ['100%', '100%', 400] }}
+                name="name"
+                size="small"
+                setValue={setValue}
+              />
+            </Box>
+            <Box flex={1} minWidth={200}>
+              <InputForm
+                defaultValue={formatCPF(userData?.cpf || '')}
+                label="CPF"
+                control={control}
+                placeholder={'000.000.000-00'}
+                name="cpf"
+                sx={{ minWidth: ['100%', '100%', 200] }}
+                mask={cpfMask.apply}
+                size="small"
+                setValue={setValue}
+              />
+            </Box>
+          </SFlex>
           <InputForm
             defaultValue={userData?.email || ''}
             disabled
