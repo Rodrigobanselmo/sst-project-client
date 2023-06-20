@@ -12,6 +12,7 @@ import { UsersTable } from 'components/organisms/tables/UsersTable';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { UsersHistorysTable } from 'components/organisms/tables/UsersHistoryTable';
 
 const Team: NextPage = () => {
   return (
@@ -25,6 +26,7 @@ const Team: NextPage = () => {
               options={[
                 { label: 'Usuários' },
                 { label: 'Grupo de Permissões' },
+                { label: 'Histórico de login' },
               ]}
             />
           }
@@ -34,6 +36,9 @@ const Team: NextPage = () => {
           </SWizardBox>
           <SWizardBox sx={{ px: 5, py: 10 }}>
             <AccessGroupsTable />
+          </SWizardBox>
+          <SWizardBox sx={{ px: 5, py: 10 }}>
+            <UsersHistorysTable />
           </SWizardBox>
         </Wizard>
         <ModalAddUsers />

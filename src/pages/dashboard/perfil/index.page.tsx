@@ -38,7 +38,7 @@ const Database: NextPage = () => {
       <SHeaderTag title={'Perfil'} />
       <STContainer>
         <STSectionBox component="section">
-          <UserForm passChange />
+          <UserForm mb={20} passChange />
         </STSectionBox>
         <ModalSingleInput />
         <ModalAddCouncil />

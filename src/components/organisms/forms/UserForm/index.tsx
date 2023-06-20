@@ -23,6 +23,7 @@ import SText from 'components/atoms/SText';
 import SIconButton from 'components/atoms/SIconButton';
 import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 import { PasswordInputs } from 'pages/cadastro/components/PasswordInputs/PasswordInputs';
+import { UsersHistorysTable } from 'components/organisms/tables/UsersHistoryTable';
 
 export const UserForm = (
   props: BoxProps & { passChange?: boolean; firstEdit?: boolean },
@@ -276,6 +277,12 @@ export const UserForm = (
             </SButton>
           </SFlex>
         </SFlex>
+
+        <Box mt={10} mb={10}>
+          {!props.firstEdit && (
+            <UsersHistorysTable userId={user.id} hideSearch />
+          )}
+        </Box>
       </SFlex>
     </STBox>
   );

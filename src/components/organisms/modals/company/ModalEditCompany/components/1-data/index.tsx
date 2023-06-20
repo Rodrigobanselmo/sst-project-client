@@ -323,7 +323,7 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
                   { label: 'Acesso ao Absenteísmo', item: 'absenteeism' },
                 ].map(({ item, label }) => {
                   if (!(userCompany as any)[item]) return null;
-
+                  console.log('item', item, (userCompany as any)[item]);
                   return (
                     <SSwitch
                       key={item}

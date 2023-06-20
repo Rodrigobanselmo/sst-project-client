@@ -335,7 +335,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function refreshUser(companyId?: string) {
-    await refreshToken(companyId);
+    await refreshToken(companyId || user?.companyId);
 
     await getMe();
   }

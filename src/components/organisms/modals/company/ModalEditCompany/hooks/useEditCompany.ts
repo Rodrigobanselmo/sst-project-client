@@ -114,11 +114,13 @@ export const useEditCompany = () => {
         const newData = {
           ...oldData,
           ...cleanObjectNullValues(initialData),
-          isDocuments: true,
-          schedule: userCompany.schedule,
-          absenteeism: userCompany.absenteeism,
-          esocial: userCompany.esocial,
-          cat: userCompany.cat,
+          ...(!initialData.id && {
+            isDocuments: true,
+            schedule: userCompany.schedule,
+            absenteeism: userCompany.absenteeism,
+            esocial: userCompany.esocial,
+            cat: userCompany.cat,
+          }),
         };
 
         initialDataRef.current = newData;

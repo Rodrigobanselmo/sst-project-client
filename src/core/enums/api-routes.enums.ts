@@ -64,6 +64,7 @@ export enum ApiRoutesEnum {
   UPLOAD_UNIQUE_EMPLOYEES = '/files/company/upload/unique',
   UPLOAD_COMPANY_STRUCTURE = '/files/company/company-structure/upload/:companyId',
   USERS = '/users',
+  USERS_HISTORY = '/users/history',
   USERS_RESET_PASS = '/users/reset-password',
   PDF_GUIDE = '/documents/pdf/guide',
   PDF_KIT = '/documents/pdf/kit',
