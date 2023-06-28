@@ -64,11 +64,7 @@ export const initialCompanyState = {
   stateRegistration: '',
   isSavedCreation: false,
   contacts: [] as IContact[],
-  isDocuments: false,
-  schedule: false,
-  absenteeism: false,
-  esocial: false,
-  cat: false,
+  permissions: [] as string[],
   address: {
     neighborhood: '',
     number: '',
@@ -115,11 +111,7 @@ export const useEditCompany = () => {
           ...oldData,
           ...cleanObjectNullValues(initialData),
           ...(!initialData.id && {
-            isDocuments: true,
-            schedule: userCompany.schedule,
-            absenteeism: userCompany.absenteeism,
-            esocial: userCompany.esocial,
-            cat: userCompany.cat,
+            permissions: userCompany.permissions,
           }),
         };
 

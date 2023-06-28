@@ -26,6 +26,8 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 
 import { IUseAddCompany } from '../../hooks/useEditCompany';
 import { useCompanyEdit } from './hooks/useCompanyFirstEdit';
+import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
+import { CompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
 
 export const FirstModalCompanyStep = (props: IUseAddCompany) => {
   const { control, onSubmit, loading, onCloseUnsaved, setValue } =
@@ -309,40 +311,16 @@ export const FirstModalCompanyStep = (props: IUseAddCompany) => {
               />
             )}
           </SFlex>
-          <SFlex display={'grid'} gridTemplateColumns={'1fr 1fr 1fr'}>
-            {isValidRoles([RoleEnum.CONTRACTS, RoleEnum.MASTER]) && (
-              <>
-                {[
-                  {
-                    label: 'Acesso ao PGR, PCMSO, etc...',
-                    item: 'isDocuments',
-                  },
-                  { label: 'Acesso ao eSocial', item: 'esocial' },
-                  { label: 'Acesso ao Agendamento', item: 'schedule' },
-                  { label: 'Acesso à CAT', item: 'cat' },
-                  { label: 'Acesso ao Absenteísmo', item: 'absenteeism' },
-                ].map(({ item, label }) => {
-                  if (!(userCompany as any)[item]) return null;
-                  console.log('item', item, (userCompany as any)[item]);
-                  return (
-                    <SSwitch
-                      key={item}
-                      onChange={(e) => {
-                        setCompanyData({
-                          ...companyData,
-                          [item]: e.target.checked,
-                        } as any);
-                      }}
-                      checked={!!(companyData as any)[item]}
-                      label={label}
-                      sx={{ mr: 4 }}
-                      color="text.light"
-                    />
-                  );
-                })}
-              </>
-            )}
-          </SFlex>
+          <CompanyPermissions
+            permissions={companyData.permissions || []}
+            userCompany={userCompany}
+            setPermissions={(permissions) => {
+              setCompanyData({
+                ...companyData,
+                permissions,
+              });
+            }}
+          />
         </SFlex>
       </AnimatedStep>
       <SModalButtons

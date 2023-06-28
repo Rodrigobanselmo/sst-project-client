@@ -16,7 +16,7 @@ export const STBox = styled(Box)<IProps>`
   transition: all 0.2s ease;
   user-select: none;
   flex: 1;
-  max-width: 100%;
+  max-width: 400px;
   min-width: 240px;
   box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
 

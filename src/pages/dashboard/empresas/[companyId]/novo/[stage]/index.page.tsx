@@ -58,6 +58,7 @@ import { CharacterizationStage } from './components/CharacterizationStage/Charac
 import { CompanyStage } from './components/CompanyStage/CompanyStage';
 import { DocumentsStage } from './components/DocumentsStage /DocumentsStage ';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
+import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
 
 const CompanyPage: NextPage = () => {
   const props = useCompanyStep();

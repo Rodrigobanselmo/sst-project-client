@@ -32,51 +32,21 @@ import { useAccess } from '../useAccess';
 import { useAppSelector } from '../useAppSelector';
 import { useGetCompanyId } from '../useGetCompanyId';
 import { usePushRoute } from '../usePushRoute';
+import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 
 export const useClinicStep = () => {
-  const { isValidRoles, isValidPermissions } = useAccess();
-  const { userCompanyId } = useGetCompanyId();
-  const { data: userCompany } = useQueryCompany(userCompanyId);
+  const { onAccessFilterBase } = useAccess();
+  // const { userCompanyId } = useGetCompanyId();
+  // const { data: userCompany } = useQueryCompany(userCompanyId);
+  const { data: company, isLoading } = useQueryCompany();
 
   const onFilterBase = useCallback(
     (item: ISActionButtonProps) => {
-      if (!isValidRoles(item?.roles)) return false;
-      if (!isValidPermissions(item?.permissions)) return false;
-      if (item.showIf) {
-        let show = false;
-        // eslint-disable-next-line prettier/prettier
-      if (!show) show = !!(item.showIf.isClinic && userCompany.isClinic);
-        // eslint-disable-next-line prettier/prettier
-      if (!show)  show = !!(item.showIf.isConsulting && userCompany.isConsulting );
-        // eslint-disable-next-line prettier/prettier
-      if (!show) show = !!(item.showIf.isCompany && !userCompany.isConsulting && !userCompany.isClinic );
-
-        if (!show) show = !!(item.showIf.isAbs && userCompany.absenteeism);
-        if (!show) show = !!(item.showIf.isCat && userCompany.cat);
-        if (!show)
-          show = !!(item.showIf.isDocuments && userCompany.isDocuments);
-        if (!show) show = !!(item.showIf.isEsocial && userCompany.esocial);
-        if (!show) show = !!(item.showIf.isSchedule && userCompany.schedule);
-
-        if (!show) return false;
-      }
-
-      return true;
+      return onAccessFilterBase(item, company);
     },
-    [
-      isValidPermissions,
-      isValidRoles,
-      userCompany.absenteeism,
-      userCompany.cat,
-      userCompany.esocial,
-      userCompany.isClinic,
-      userCompany.isConsulting,
-      userCompany.isDocuments,
-      userCompany.schedule,
-    ],
+    [onAccessFilterBase, company],
   );
 
-  const { data: company, isLoading } = useQueryCompany();
   const { onOpenModal } = useModal();
   const dispatch = useAppDispatch();
   const stepLocal = useAppSelector(selectStep(company.id));

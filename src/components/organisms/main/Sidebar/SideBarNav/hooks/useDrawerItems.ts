@@ -29,6 +29,7 @@ import { useModal } from 'core/hooks/useModal';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { DrawerItemsEnum } from './drawer.enum';
+import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 
 export interface IDrawerBase {
   text: string;
@@ -67,7 +68,7 @@ export interface IDrawerSection {
 type IDrawerItemsMap = Record<DrawerItemsEnum, IDrawerItems>;
 
 export const useDrawerItems = () => {
-  const { isValidRoles, isValidPermissions, isToRemoveWithRoles } = useAccess();
+  const { onAccessFilterBase } = useAccess();
   const { userCompanyId } = useGetCompanyId();
   const { data: company } = useQueryCompany(userCompanyId);
   const { onStackOpenModal } = useModal();
@@ -293,30 +294,7 @@ export const useDrawerItems = () => {
     },
   };
 
-  const onFilterBase = (item: IDrawerBase) => {
-    if (!isValidRoles(item?.roles)) return false;
-    if (!isValidPermissions(item?.permissions)) return false;
-    if (isToRemoveWithRoles(item?.removeWithRoles)) return false;
-    if (item.showIf) {
-      let show = false;
-      // eslint-disable-next-line prettier/prettier
-      if (!show) show = !!(item.showIf.isClinic && company.isClinic);
-      // eslint-disable-next-line prettier/prettier
-      if (!show)  show = !!(item.showIf.isConsulting && company.isConsulting );
-      // eslint-disable-next-line prettier/prettier
-      if (!show) show = !!(item.showIf.isCompany && !company.isConsulting && !company.isClinic );
-
-      if (!show) show = !!(item.showIf.isAbs && company.absenteeism);
-      if (!show) show = !!(item.showIf.isCat && company.cat);
-      if (!show) show = !!(item.showIf.isDocuments && company.isDocuments);
-      if (!show) show = !!(item.showIf.isEsocial && company.esocial);
-      if (!show) show = !!(item.showIf.isSchedule && company.schedule);
-
-      if (!show) return false;
-    }
-
-    return true;
-  };
+  const onFilterBase = (item: IDrawerBase) => onAccessFilterBase(item, company);
 
   const onFilterSections = (sections: IDrawerSection[]) => {
     return sections

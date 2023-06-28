@@ -219,6 +219,7 @@ export const HistoryExpiredExamCompanyTable: FC<
       companyId,
       expiredExam: true,
       all: true,
+      isSchedule: true,
       ...query,
       ...filterProps.filtersQuery,
     },

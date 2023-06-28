@@ -2,27 +2,15 @@ import { useCallback, useMemo } from 'react';
 
 import { ISActionButtonProps } from 'components/atoms/SActionButton/types';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
-import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
-import { ViewTypeEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-risk-type.constant';
-import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { initialModalImportExport } from 'components/organisms/modals/ModalImportExport/hooks/useModalImportExport';
-import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
 import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
-import { initialFileUploadState } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CompanyStepEnum } from 'project/enum/company-step.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
-import {
-  setGhoOpen,
-  setGhoSearch,
-  setGhoSearchSelect,
-  setGhoState,
-} from 'store/reducers/hierarchy/ghoSlice';
+import { setGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 import { selectStep, setCompanyStep } from 'store/reducers/step/stepSlice';
-
-import palette from 'configs/theme/palette';
 
 import SAbsenteeismIcon from 'assets/icons/SAbsenteeismIcon';
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
@@ -46,12 +34,8 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
-import { useModal } from 'core/hooks/useModal';
-import { ICompany } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
-import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
-import { useMutSetClinicsCompany } from 'core/services/hooks/mutations/manager/company/useMutSetClinicsCompany';
 import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
 import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport/useMutReport';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
@@ -59,53 +43,21 @@ import { dateFromNow } from 'core/utils/date/date-format';
 
 import { useAccess } from '../useAccess';
 import { useAppSelector } from '../useAppSelector';
-import { useGetCompanyId } from '../useGetCompanyId';
 import { usePushRoute } from '../usePushRoute';
 
 export const useCompanyStep = () => {
-  const { isValidRoles, isValidPermissions } = useAccess();
-  const { userCompanyId } = useGetCompanyId();
-  const { data: userCompany } = useQueryCompany(userCompanyId);
+  const { onAccessFilterBase } = useAccess();
+  // const { userCompanyId } = useGetCompanyId();
+  // const { data: userCompany } = useQueryCompany(userCompanyId);
+  const { data: company, isLoading } = useQueryCompany();
 
   const onFilterBase = useCallback(
     (item: ISActionButtonProps) => {
-      if (!isValidRoles(item?.roles)) return false;
-      if (!isValidPermissions(item?.permissions)) return false;
-      if (item.showIf) {
-        let show = false;
-        // eslint-disable-next-line prettier/prettier
-      if (!show) show = !!(item.showIf.isClinic && userCompany.isClinic);
-        // eslint-disable-next-line prettier/prettier
-      if (!show)  show = !!(item.showIf.isConsulting && userCompany.isConsulting );
-        // eslint-disable-next-line prettier/prettier
-      if (!show) show = !!(item.showIf.isCompany && !userCompany.isConsulting && !userCompany.isClinic );
-
-        if (!show) show = !!(item.showIf.isAbs && userCompany.absenteeism);
-        if (!show) show = !!(item.showIf.isCat && userCompany.cat);
-        if (!show)
-          show = !!(item.showIf.isDocuments && userCompany.isDocuments);
-        if (!show) show = !!(item.showIf.isEsocial && userCompany.esocial);
-        if (!show) show = !!(item.showIf.isSchedule && userCompany.schedule);
-
-        if (!show) return false;
-      }
-
-      return true;
+      return onAccessFilterBase(item, company);
     },
-    [
-      isValidPermissions,
-      isValidRoles,
-      userCompany.absenteeism,
-      userCompany.cat,
-      userCompany.esocial,
-      userCompany.isClinic,
-      userCompany.isConsulting,
-      userCompany.isDocuments,
-      userCompany.schedule,
-    ],
+    [onAccessFilterBase, company],
   );
 
-  const { data: company, isLoading } = useQueryCompany();
   const { onStackOpenModal } = useOpenRiskTool();
   const { push, pathname, query } = useRouter();
   const dispatch = useAppDispatch();
@@ -747,6 +699,21 @@ export const useCompanyStep = () => {
     onFilterBase,
   ]);
 
+  const stepsActionsList = useMemo(() => {
+    return [
+      { ...actionsMapStepMemo[CompanyActionEnum.WORKSPACE], active: true },
+      actionsMapStepMemo[CompanyActionEnum.EMPLOYEE],
+      actionsMapStepMemo[CompanyActionEnum.HIERARCHY],
+      actionsMapStepMemo[CompanyActionEnum.EMPLOYEE],
+      actionsMapStepMemo[CompanyActionEnum.HIERARCHY],
+      actionsMapStepMemo[CompanyActionEnum.RISK_GROUP],
+      actionsMapStepMemo[CompanyActionEnum.USERS],
+      actionsMapStepMemo[CompanyActionEnum.CHARACTERIZATION],
+      actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP],
+      actionsMapStepMemo[CompanyActionEnum.RISKS_MODAL],
+    ].filter((action) => onFilterBase(action));
+  }, [actionsMapStepMemo, onFilterBase]);
+
   const nextStep = () => {
     const cantJump = [
       CompanyStepEnum.WORKSPACE,
@@ -771,6 +738,7 @@ export const useCompanyStep = () => {
   const stage =
     pageGroupMemo.find((group) => group.type == (query.stage as string))
       ?.type || pageGroupMemo[0].type;
+
   return {
     shortActionsStepMemo,
     modulesStepMemo,
@@ -790,6 +758,7 @@ export const useCompanyStep = () => {
     characterizationStepMemo,
     characterizationActionsStepMemo,
     stepsActions,
+    stepsActionsList,
   };
 };
 

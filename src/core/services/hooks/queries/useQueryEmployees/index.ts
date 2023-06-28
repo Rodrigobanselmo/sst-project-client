@@ -20,6 +20,7 @@ export interface IQueryEmployee {
   hierarchyId?: string;
   hierarchySubOfficeId?: string;
   all?: boolean;
+  isSchedule?: boolean;
   expiredExam?: boolean;
   getAllHierarchyIds?: boolean;
   getAllExams?: boolean;

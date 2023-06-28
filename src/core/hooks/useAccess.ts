@@ -7,6 +7,27 @@ import {
 } from 'store/reducers/user/userSlice';
 
 import { useAppSelector } from './useAppSelector';
+import { PermissionEnum } from 'project/enum/permission.enum';
+import { ICompany } from 'core/interfaces/api/ICompany';
+import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
+
+export interface IAccessFilterBase {
+  text: string;
+  search?: string;
+  roles?: RoleEnum[];
+  permissions?: PermissionEnum[];
+  removeWithRoles?: RoleEnum[];
+  showIf?: {
+    isClinic?: boolean;
+    isConsulting?: boolean;
+    isCompany?: boolean;
+    isDocuments?: boolean;
+    isSchedule?: boolean;
+    isAbs?: boolean;
+    isEsocial?: boolean;
+    isCat?: boolean;
+  };
+}
 
 export const useAccess = () => {
   const roles = useAppSelector(selectUserRoles);
@@ -65,5 +86,44 @@ export const useAccess = () => {
     [roles],
   );
 
-  return { isValidRoles, isValidPermissions, isToRemoveWithRoles };
+  const onAccessFilterBase = useCallback(
+    (item: IAccessFilterBase, company: ICompany) => {
+      if (!isValidRoles(item?.roles)) return false;
+      if (!isValidPermissions(item?.permissions)) return false;
+      if (isToRemoveWithRoles(item?.removeWithRoles)) return false;
+
+      if (item.showIf) {
+        let show = false;
+        // eslint-disable-next-line prettier/prettier
+        if (!show) show = !!(item.showIf.isClinic && company.isClinic);
+        // eslint-disable-next-line prettier/prettier
+        if (!show)  show = !!(item.showIf.isConsulting && company.isConsulting );
+        // eslint-disable-next-line prettier/prettier
+        if (!show) show = !!(item.showIf.isCompany && !company.isConsulting && !company.isClinic );
+
+        // eslint-disable-next-line prettier/prettier
+        if (!show) show = !!(item.showIf.isAbs && company.permissions?.includes(PermissionCompanyEnum.absenteeism));
+        // eslint-disable-next-line prettier/prettier
+        if (!show) show = !!(item.showIf.isCat && company.permissions?.includes(PermissionCompanyEnum.cat));
+        // eslint-disable-next-line prettier/prettier
+        if (!show) show = !!(item.showIf.isDocuments && company.permissions?.includes(PermissionCompanyEnum.document));
+        // eslint-disable-next-line prettier/prettier
+        if (!show) show = !!(item.showIf.isEsocial && company.permissions?.includes(PermissionCompanyEnum.esocial));
+        // eslint-disable-next-line prettier/prettier
+        if (!show) show = !!(item.showIf.isSchedule && company.permissions?.includes(PermissionCompanyEnum.schedule));
+
+        if (!show) return false;
+      }
+
+      return true;
+    },
+    [isToRemoveWithRoles, isValidPermissions, isValidRoles],
+  );
+
+  return {
+    onAccessFilterBase,
+    isValidRoles,
+    isValidPermissions,
+    isToRemoveWithRoles,
+  };
 };

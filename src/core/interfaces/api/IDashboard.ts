@@ -12,8 +12,8 @@ export interface IDailyCompanyReport {
     expired?: number;
     schedule?: number;
     all?: number;
-    expired30?: number;
-    expired90?: number;
+    expiredClose1?: number;
+    expiredClose2?: number;
   };
   esocial: {
     pending?: number;

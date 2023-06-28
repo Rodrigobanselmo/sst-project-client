@@ -19,6 +19,7 @@ export interface IUpdateCompany
     >
   > {
   id?: string;
+  permissions?: string[];
   status?: string;
   name?: string;
   cnpj?: string;

@@ -2,6 +2,7 @@ import { Box, BoxProps } from '@mui/material';
 import { SActionButton } from 'components/atoms/SActionButton';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
+import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
@@ -17,6 +18,8 @@ export const CompanyStage = ({ companyStepMemo, ...props }: ICompanyStage) => {
           <SActionButton key={props.text} {...props} />
         ))}
       </SFlex>
+      <SText mt={20}>Permissões de uso</SText>
+      <SCompanyPermissions mt={5} ml={6} mb={-10} />
 
       <WorkspaceTable hideModal />
     </Box>

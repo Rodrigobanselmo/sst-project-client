@@ -11,6 +11,7 @@ import { IDailyCompanyReport, IDashboard } from './IDashboard';
 import { IExamToClinic } from './IExam';
 import { IRiskDocument } from './IRiskData';
 import { IProfessional } from './IProfessional';
+import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 
 export interface ICompany {
   id: string;
@@ -86,11 +87,7 @@ export interface ICompany {
     companyId: string;
   }[];
 
-  isDocuments: boolean;
-  esocial: boolean;
-  schedule: boolean;
-  cat: boolean;
-  absenteeism: boolean;
+  permissions: PermissionCompanyEnum[];
 
   isGroup: boolean;
   isClinic: boolean;

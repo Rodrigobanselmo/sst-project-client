@@ -32,10 +32,22 @@ const Home: NextPage = () => {
         <PieGraph
           dataset={[
             {
-              borderColor: defaultTheme.palette.graph.blue,
-              color: defaultTheme.palette.graph.blueHover,
-              label: 'Agendados',
-              data: examReport?.schedule || 0,
+              borderColor: defaultTheme.palette.graph.red,
+              color: defaultTheme.palette.graph.redHover,
+              label: 'Vencidos',
+              data: examReport?.expired || 0,
+            },
+            {
+              borderColor: defaultTheme.palette.graph.orange,
+              color: defaultTheme.palette.graph.orangeHover,
+              label: 'Venc. < 45 dias',
+              data: examReport?.expiredClose1 || 0,
+            },
+            {
+              borderColor: defaultTheme.palette.graph.darkGreen,
+              color: defaultTheme.palette.graph.darkGreenHover,
+              label: 'Venc. < 3 meses',
+              data: examReport?.expiredClose2 || 0,
             },
             {
               borderColor: defaultTheme.palette.graph.green,
@@ -44,22 +56,10 @@ const Home: NextPage = () => {
               data: examReport?.good || 0,
             },
             {
-              borderColor: defaultTheme.palette.graph.darkGreen,
-              color: defaultTheme.palette.graph.darkGreenHover,
-              label: 'Vencimento < 3 meses',
-              data: examReport?.expired90 || 0,
-            },
-            {
-              borderColor: defaultTheme.palette.graph.orange,
-              color: defaultTheme.palette.graph.orangeHover,
-              label: 'Vencimento < 1 meses',
-              data: examReport?.expired30 || 0,
-            },
-            {
-              borderColor: defaultTheme.palette.graph.red,
-              color: defaultTheme.palette.graph.redHover,
-              label: 'Vencidos',
-              data: examReport?.expired || 0,
+              borderColor: defaultTheme.palette.graph.blue,
+              color: defaultTheme.palette.graph.blueHover,
+              label: 'Agendados',
+              data: examReport?.schedule || 0,
             },
           ]}
           // maxWidth={300}

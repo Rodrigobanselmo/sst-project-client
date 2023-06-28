@@ -55,6 +55,7 @@ import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { getEmployeeRowExamData } from '../HistoryExpiredExamCompanyTable/HistoryExpiredExamCompanyTable';
 import { SDropIconEmployee } from './components/SDropIconEmployee/SDropIconEmployee';
+import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 
 export const EmployeesTable: FC<
   { children?: any } & BoxProps & {
@@ -150,11 +151,15 @@ export const EmployeesTable: FC<
     } as typeof initialEditEmployeeState);
   };
 
+  const isSchedule = company.permissions?.includes(
+    PermissionCompanyEnum.schedule,
+  );
+
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Funcionário', column: 'minmax(200px, 5fr)' },
     ...(query?.all ? [{ text: 'Empresa', column: '150px' }] : []),
     { text: 'Cargo', column: 'minmax(190px, 1fr)' },
-    ...(company.schedule
+    ...(isSchedule
       ? [
           { text: 'Válidade', column: '180px' },
           { text: 'Ultimo Exame', column: '110px' },
@@ -225,7 +230,7 @@ export const EmployeesTable: FC<
                   mr={3}
                 />
 
-                {company.schedule && (
+                {isSchedule && (
                   <SFlex align="center">
                     <Box
                       sx={{
@@ -247,7 +252,7 @@ export const EmployeesTable: FC<
                     />
                   </SFlex>
                 )}
-                {company.schedule && <TextIconRow text={lastExam} />}
+                {isSchedule && <TextIconRow text={lastExam} />}
 
                 <StatusSelect
                   large={false}
