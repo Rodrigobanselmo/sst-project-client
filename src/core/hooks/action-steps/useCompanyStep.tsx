@@ -44,6 +44,8 @@ import { dateFromNow } from 'core/utils/date/date-format';
 import { useAccess } from '../useAccess';
 import { useAppSelector } from '../useAppSelector';
 import { usePushRoute } from '../usePushRoute';
+import { initialProtocolRiskState } from 'components/organisms/modals/ModalEditProtocolRisk/hooks/useEditProtocols';
+import SProtocolIcon from 'assets/icons/SProtocolIcon';
 
 export const useCompanyStep = () => {
   const { onAccessFilterBase } = useAccess();
@@ -96,6 +98,13 @@ export const useCompanyStep = () => {
   const handleEditCompany = useCallback(() => {
     onStackOpenModal(ModalEnum.COMPANY_EDIT, company);
   }, [company, onStackOpenModal]);
+
+  const handleAddProtocol = useCallback(() => {
+    onStackOpenModal(
+      ModalEnum.PROTOCOL_RISK,
+      {} as typeof initialProtocolRiskState,
+    );
+  }, [onStackOpenModal]);
 
   const handleUploadRisk = useCallback(() => {
     onStackOpenModal(ModalEnum.IMPORT_EXPORT_MODAL, {
@@ -237,6 +246,8 @@ export const useCompanyStep = () => {
     const actions: Record<CompanyActionEnum, ISActionButtonProps> = {
       [CompanyActionEnum.WORKSPACE]: {
         type: CompanyActionEnum.WORKSPACE,
+        count: company.workspace?.length,
+        nextStepLabel: 'Estabelecimentos',
         icon: SWorkspaceIcon,
         onClick: handleAddWorkspace,
         text: 'Cadastrar Estabelecimentos',
@@ -245,8 +256,10 @@ export const useCompanyStep = () => {
       },
       [CompanyActionEnum.EMPLOYEE]: {
         type: CompanyActionEnum.EMPLOYEE,
+        count: company.employeeCount,
         icon: SEmployeeIcon,
         onClick: handleAddEmployees,
+        nextStepLabel: 'Funcionários',
         text: 'Funcionários',
         tooltipText:
           'Cadastre os funcionários e seus respectivos cargos e setores através da importação de planilha excel ou pelo sistema diretamente ao organograma da empresa',
@@ -254,6 +267,8 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.USERS]: {
         type: CompanyActionEnum.USERS,
         icon: STeamIcon,
+        count: company.usersCount,
+        nextStepLabel: 'Usuários',
         onClick: handleAddTeam,
         text: 'Usuários',
         tooltipText:
@@ -276,29 +291,38 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.HIERARCHY]: {
         type: CompanyActionEnum.HIERARCHY,
         icon: SHierarchyIcon,
+        count: company.hierarchyCount,
         onClick: handleGoHierarchy,
+        nextStepLabel: 'Cargos e Setores',
         text: 'Cargos e Setores',
       },
       [CompanyActionEnum.HOMO_GROUP]: {
         type: CompanyActionEnum.HOMO_GROUP,
+        count: company.homogenousGroupCount,
         icon: SGhoIcon,
         onClick: handleGoGho,
+        nextStepLabel: 'Grupos (GSE/GHO)',
         text: 'Grupos Similares de Exposição',
       },
       [CompanyActionEnum.RISKS]: {
         type: CompanyActionEnum.RISKS,
+        count: company.riskCount,
         icon: SRiskFactorIcon,
         onClick: handleAddRisk,
+        nextStepLabel: 'Riscos, exames e EPIs',
         text: 'Vincular Riscos, exames e EPIs',
       },
       [CompanyActionEnum.RISKS_MODAL]: {
         type: CompanyActionEnum.RISKS_MODAL,
+        count: company.riskCount,
         icon: SRiskFactorIcon,
         onClick: handleOpenAddRiskModal,
+        nextStepLabel: 'Riscos, exames e EPIs',
         text: 'Vincular Riscos, exames e EPIs',
       },
       [CompanyActionEnum.RISK_GROUP]: {
         type: CompanyActionEnum.RISK_GROUP,
+        count: company.riskGroupCount,
         icon: SManagerSystemIcon,
         onClick: handleAddManagerSystem,
         text: 'Sistema de Gestão',
@@ -323,8 +347,10 @@ export const useCompanyStep = () => {
       },
       [CompanyActionEnum.CLINICS]: {
         type: CompanyActionEnum.CLINICS,
+        count: company.clinicsConnectedCount,
         icon: SClinicIcon,
         onClick: () => handleAddClinic(),
+        nextStepLabel: 'Clínicas para atendimento',
         text: 'Clínicas Vinculadas',
         tooltipText:
           'Cadastro de clínicas que prestarão serviços a esta empresa',
@@ -334,8 +360,10 @@ export const useCompanyStep = () => {
       },
       [CompanyActionEnum.EXAMS_RISK]: {
         type: CompanyActionEnum.EXAMS_RISK,
+        count: company.examsCount,
         icon: SExamIcon,
         onClick: handleAddExam,
+        nextStepLabel: 'Exames ao risco',
         text: 'Relação de Exames',
         tooltipText: 'Cadastro de exames aos seus respectivos riscos',
         showIf: {
@@ -345,6 +373,7 @@ export const useCompanyStep = () => {
       },
       [CompanyActionEnum.COMPANY_RISKS]: {
         type: CompanyActionEnum.COMPANY_RISKS,
+        count: company.riskCount,
         icon: SRiskFactorIcon,
         onClick: handleCompanyRisks,
         text: 'Riscos Identificados',
@@ -364,6 +393,9 @@ export const useCompanyStep = () => {
         onClick: handleOs,
         text: 'Editar Modelo (Ordem de Serviço)',
         tooltipText: 'Configuração e conteúdo da OS',
+        showIf: {
+          isDocuments: true,
+        },
       },
       [CompanyActionEnum.APPLY_SERVICE_COMPANY]: {
         type: CompanyActionEnum.APPLY_SERVICE_COMPANY,
@@ -372,6 +404,18 @@ export const useCompanyStep = () => {
         text: 'Quem Gerencia a Empresa?',
         tooltipText: 'Editar quem tem acesso a esta empresa',
         roles: [RoleEnum.MASTER],
+      },
+      [CompanyActionEnum.PROTOCOL]: {
+        type: CompanyActionEnum.PROTOCOL,
+        count: company.protocolsCount,
+        nextStepLabel: 'Protocolos (ASO)',
+        icon: SProtocolIcon,
+        onClick: () => handleAddProtocol(),
+        text: 'Protocolos (ASO)',
+        tooltipText: 'Adicionar protocolos para incluir ao ASO',
+        showIf: {
+          isDocuments: true,
+        },
       },
 
       [CompanyActionEnum.DOCUMENT_MODEL]: {
@@ -384,8 +428,10 @@ export const useCompanyStep = () => {
 
       [CompanyActionEnum.CHARACTERIZATION]: {
         type: CompanyActionEnum.CHARACTERIZATION,
+        count: company.characterizationCount,
         icon: SCharacterizationIcon,
         onClick: () => handleAddCharacterization(),
+        nextStepLabel: 'Ambientes e Atividades',
         text: 'Ambientes e Atividades',
         tooltipText: 'Caracterização do Ambiente e Atividades da empresa',
       },
@@ -468,17 +514,20 @@ export const useCompanyStep = () => {
     return actions;
   }, [
     company?.lastDocumentVersion,
+    company.workspace?.length,
     company.employeeCount,
-    company.employeeInactiveCount,
-    company.employeeAwayCount,
+    company.usersCount,
+    company.hierarchyCount,
+    company.homogenousGroupCount,
     company.riskCount,
+    company.riskGroupCount,
+    company.clinicsConnectedCount,
     company.examsCount,
     company.protocolsCount,
+    company.characterizationCount,
+    company.employeeInactiveCount,
+    company.employeeAwayCount,
     company.episCount,
-    company.homogenousGroupCount,
-    company.hierarchyCount,
-    company.workspace?.length,
-    company.clinicsConnectedCount,
     company.id,
     handleAddWorkspace,
     handleAddEmployees,
@@ -498,6 +547,7 @@ export const useCompanyStep = () => {
     handleOs,
     handleAddClinic,
     handleSetApplyServiceCompany,
+    handleAddProtocol,
     handleEditDocumentModel,
     handleAddCharacterization,
     handleChangeStage,
@@ -701,17 +751,52 @@ export const useCompanyStep = () => {
 
   const stepsActionsList = useMemo(() => {
     return [
-      { ...actionsMapStepMemo[CompanyActionEnum.WORKSPACE], active: true },
-      actionsMapStepMemo[CompanyActionEnum.EMPLOYEE],
-      actionsMapStepMemo[CompanyActionEnum.HIERARCHY],
-      actionsMapStepMemo[CompanyActionEnum.EMPLOYEE],
-      actionsMapStepMemo[CompanyActionEnum.HIERARCHY],
-      actionsMapStepMemo[CompanyActionEnum.RISK_GROUP],
-      actionsMapStepMemo[CompanyActionEnum.USERS],
-      actionsMapStepMemo[CompanyActionEnum.CHARACTERIZATION],
-      actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP],
-      actionsMapStepMemo[CompanyActionEnum.RISKS_MODAL],
-    ].filter((action) => onFilterBase(action));
+      {
+        group: 'Cadastro',
+        items: [
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.WORKSPACE],
+          },
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.EMPLOYEE],
+          },
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.HIERARCHY],
+          },
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.USERS],
+          },
+        ].filter((action) => onFilterBase(action)),
+      },
+      {
+        group: 'Segurança',
+        items: [
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.CHARACTERIZATION],
+          },
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP],
+          },
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.RISKS_MODAL],
+          },
+        ].filter((action) => onFilterBase(action)),
+      },
+      {
+        group: 'Medicina',
+        items: [
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.CLINICS],
+          },
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.EXAMS_RISK],
+          },
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.PROTOCOL],
+          },
+        ].filter((action) => onFilterBase(action)),
+      },
+    ];
   }, [actionsMapStepMemo, onFilterBase]);
 
   const nextStep = () => {

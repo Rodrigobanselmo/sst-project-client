@@ -6,6 +6,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { IEsocialTable24 } from './IEsocial';
 import { IHierarchy } from './IHierarchy';
 import { IRiskData } from './IRiskData';
+import { IExamToRisk } from './IExam';
 
 export interface IRecMed {
   id: string;
@@ -122,6 +123,7 @@ export interface IRiskFactors {
   isPCMSO: boolean;
   isPPP: boolean;
 
+  examToRisk?: IExamToRisk[];
   docInfo?: IRiskDocInfo[];
   riskFactorData?: IRiskData[];
 

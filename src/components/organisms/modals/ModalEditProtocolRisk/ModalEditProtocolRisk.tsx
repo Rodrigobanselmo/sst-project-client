@@ -43,14 +43,14 @@ export const ModalEditProtocolRisk = () => {
       <SModalPaper
         p={8}
         center
-        width={['100%', 500]}
+        width={['100%', '100%', 1200]}
         component="form"
         onSubmit={(handleSubmit as any)(onSubmit)}
       >
         <SModalHeader
           tag={protocolData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Adicionar Protocolo'}
+          title={'Protocolo'}
         />
 
         <ModalProtocolStep {...props} />

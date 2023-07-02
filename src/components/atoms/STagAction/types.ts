@@ -20,5 +20,5 @@ export type ITagAction =
 export interface ISTagProps extends BoxProps {
   text?: string | ReactNode;
   action?: ITagAction;
-  icon?: ElementType<any>;
+  icon?: any;
 }

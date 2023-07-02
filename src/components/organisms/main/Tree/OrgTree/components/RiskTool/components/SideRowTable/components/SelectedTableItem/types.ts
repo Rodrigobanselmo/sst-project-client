@@ -1,7 +1,7 @@
 export interface SelectedTableItemProps {
   name: string;
   tooltip?: string;
-  handleRemove: () => void;
+  handleRemove?: () => void;
   handleEdit?: () => void;
   isExpired?: boolean;
 }

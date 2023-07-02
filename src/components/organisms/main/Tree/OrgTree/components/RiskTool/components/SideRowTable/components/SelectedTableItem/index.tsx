@@ -18,25 +18,29 @@ export const SelectedTableItem: FC<
       <SFlex
         sx={{
           border: '1px solid',
-          borderColor: 'gray.300',
+          borderColor: 'gray.400',
+          backgroundColor: 'background.paper',
           borderStyle: 'dashed',
           borderRadius: 1,
           ...(isExpired ? { borderColor: 'error.main' } : {}),
           ...(handleEdit ? { cursor: 'pointer' } : {}),
+          ...(!handleRemove ? { pl: 5 } : {}),
         }}
         mt={4}
         align="center"
         onClick={() => handleEdit?.()}
       >
-        <SIconButton
-          sx={{ maxWidth: 10, maxHeight: 10 }}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleRemove();
-          }}
-        >
-          <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
-        </SIconButton>
+        {handleRemove && (
+          <SIconButton
+            sx={{ maxWidth: 10, maxHeight: 10 }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemove();
+            }}
+          >
+            <Icon component={SDeleteIcon} sx={{ fontSize: 14 }} />
+          </SIconButton>
+        )}
         <SText
           lineNumber={2}
           variant="body2"

@@ -25,7 +25,9 @@ export const SModalHeaderTitle: FC<
     return (
       <SFlex width="100%" mb={2} align="center">
         <STagAction text={tagTitle} action={tag} />
-        <SText width="70%">{title}</SText>
+        <SText width="70%" fontSize={[12, 15, 20]}>
+          {title}
+        </SText>
       </SFlex>
     );
 

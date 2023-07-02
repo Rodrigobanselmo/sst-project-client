@@ -11,26 +11,14 @@ import {
 export interface ISActionButtonProps extends Partial<BoxProps> {
   text: string;
   nextStepLabel?: string;
-  icon: any;
+  icon?: any;
   tooltipText?: string;
-  count?: number;
   active?: boolean;
-  primary?: boolean;
-  success?: boolean;
+  count?: number;
+  index?: number;
   disabled?: boolean;
   loading?: boolean;
   roles?: RoleEnum[];
   permissions?: PermissionEnum[];
-  infos?: { label: string; value: string | number }[];
   type?: CompanyActionEnum | ClinicActionEnum;
-  showIf?: {
-    isClinic?: boolean;
-    isConsulting?: boolean;
-    isCompany?: boolean;
-    isDocuments?: boolean;
-    isSchedule?: boolean;
-    isAbs?: boolean;
-    isEsocial?: boolean;
-    isCat?: boolean;
-  };
 }

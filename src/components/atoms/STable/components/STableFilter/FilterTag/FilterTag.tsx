@@ -15,7 +15,7 @@ import { IFilterTag } from '../hooks/useFilterTable';
 
 export type IFilterTagProps = {
   tag: IFilterTag;
-  onRemove: (tag: IFilterTag) => void;
+  onRemove?: (tag: IFilterTag) => void;
 } & SFlexProps;
 
 export const FilterTag: FC<{ children?: any } & IFilterTagProps> = ({
@@ -54,11 +54,13 @@ export const FilterTag: FC<{ children?: any } & IFilterTagProps> = ({
           </SText>
         </Box>
       </STooltip>
-      <STooltip withWrapper title={'Remover filtro'}>
-        <SIconButton onClick={() => onRemove(tag)} size="small">
-          <Icon component={SCloseIcon} sx={{ fontSize: '1rem' }} />
-        </SIconButton>
-      </STooltip>
+      {onRemove && (
+        <STooltip withWrapper title={'Remover filtro'}>
+          <SIconButton onClick={() => onRemove(tag)} size="small">
+            <Icon component={SCloseIcon} sx={{ fontSize: '1rem' }} />
+          </SIconButton>
+        </STooltip>
+      )}
     </SFlex>
   );
 };

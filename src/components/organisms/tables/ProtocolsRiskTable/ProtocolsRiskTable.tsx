@@ -37,6 +37,7 @@ import { IQueryProtocol } from 'core/services/hooks/queries/useQueryProtocols/us
 import { useQueryProtocolsRisk } from 'core/services/hooks/queries/useQueryProtocolsRisk/useQueryProtocolsRisk';
 import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
+import SProtocolIcon from 'assets/icons/SProtocolIcon';
 
 export const ProtocolsRiskTable: FC<
   { children?: any } & BoxProps & {
@@ -130,7 +131,7 @@ export const ProtocolsRiskTable: FC<
                 </SText>
               </>
             }
-            icon={SRiskFactorIcon}
+            icon={SProtocolIcon}
           >
             Relação de Protocolos
           </STableTitle>

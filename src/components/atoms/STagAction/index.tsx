@@ -27,7 +27,7 @@ export const STagAction: FC<{ children?: any } & ISTagProps> = ({
   const color = () => {
     switch (action) {
       case 'add':
-        return 'tag.add';
+        return 'success.dark';
       case 'schedule':
         return 'info.main';
       case 'version':
@@ -54,51 +54,68 @@ export const STagAction: FC<{ children?: any } & ISTagProps> = ({
     }
   };
 
+  // return (
+  //   <SFlex
+  //     sx={{
+  //       border: '3px solid',
+  //       borderColor: color(),
+  //       borderRadius: '100%',
+  //       height: '12px',
+  //       width: '12px',
+  //       mr: 2,
+  //       fontSize: '12px',
+  //       ...sx,
+  //     }}
+  //     align="center"
+  //     {...props}
+  //   ></SFlex>
+  // );
+
   return (
     <SFlex
       sx={{
-        backgroundColor: color(),
+        border: '1px solid',
+        borderColor: color(),
         borderRadius: '3px',
-        color: 'common.white',
+        color: color(),
         pr: 8,
         pl: action === 'add' ? 3 : 6,
         mr: 2,
+        fontSize: '12px',
         ...sx,
       }}
       align="center"
       {...props}
     >
       {(action === 'add' || action === 'version') && (
-        <AddIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <AddIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'edit' && (
-        <FeedIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <FeedIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'delete' && (
-        <DeleteIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <DeleteIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'info' && (
-        <HelpCenterIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <HelpCenterIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'success' && (
-        <CheckBoxIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <CheckBoxIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'schedule' && (
-        <SCalendarIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <SCalendarIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'select' && (
-        <CheckBoxIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <CheckBoxIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'warning' && (
-        <WarningIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <WarningIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'error' && (
-        <ReportIcon sx={{ fontSize: '18px', color: 'common.white' }} />
+        <ReportIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {action === 'upload' && (
-        <FileUploadOutlinedIcon
-          sx={{ fontSize: '16px', color: 'common.white' }}
-        />
+        <FileUploadOutlinedIcon sx={{ fontSize: '16px', color: color() }} />
       )}
       {!text && (
         <>

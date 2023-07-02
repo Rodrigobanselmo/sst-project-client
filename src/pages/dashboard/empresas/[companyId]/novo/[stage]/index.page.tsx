@@ -1,4 +1,4 @@
-import { Icon } from '@mui/material';
+import { Box, Icon } from '@mui/material';
 import { SActionGroupButton } from 'components/atoms/SActionGroupButton';
 import { SActionNextButton } from 'components/atoms/SActionNextButton';
 import { SContainer } from 'components/atoms/SContainer';
@@ -59,11 +59,19 @@ import { CompanyStage } from './components/CompanyStage/CompanyStage';
 import { DocumentsStage } from './components/DocumentsStage /DocumentsStage ';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
 import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
+import { SActionStepCheck } from 'components/atoms/SActionStepCheck';
 
 const CompanyPage: NextPage = () => {
   const props = useCompanyStep();
 
-  const { company, isLoading, pageGroupMemo, stage, stepsActions } = props;
+  const {
+    company,
+    isLoading,
+    pageGroupMemo,
+    stage,
+    stepsActions,
+    stepsActionsList,
+  } = props;
 
   useFetchFeedback(isLoading && !company?.id);
   const companyName = getCompanyName(company);
@@ -75,7 +83,7 @@ const CompanyPage: NextPage = () => {
       <SContainer>
         <SPageTitle icon={SClinicIcon}>{companyName}</SPageTitle>
 
-        {stepsActions.length != 0 && (
+        {/* {stepsActions.length != 0 && (
           <SFlex align={'center'} mt={5} gap={5} overflow="auto" mb={15}>
             {stepsActions.map(({ ...props }, index) => (
               <>
@@ -88,6 +96,25 @@ const CompanyPage: NextPage = () => {
                 />
                 <SActionNextButton key={props.text} {...props} />
               </>
+            ))}
+          </SFlex>
+        )} */}
+
+        {stepsActionsList.length != 0 && (
+          <SFlex mt={5} gap={5} overflow="auto" mb={15}>
+            {stepsActionsList.map(({ group, items }) => (
+              <Box key={group}>
+                <SText fontSize={12}>{group}</SText>
+                <Box mt={3} gap={2} display={'flex'} flexDirection={'column'}>
+                  {items.map(({ ...props }, index) => (
+                    <SActionStepCheck
+                      index={index}
+                      key={props.text}
+                      {...props}
+                    />
+                  ))}
+                </Box>
+              </Box>
             ))}
           </SFlex>
         )}
