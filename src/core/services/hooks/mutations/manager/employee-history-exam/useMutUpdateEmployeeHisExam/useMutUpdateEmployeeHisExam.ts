@@ -23,7 +23,7 @@ export interface IUpdateEmployeeExamHistory {
   time?: string;
   obs?: string;
   validityInMonths?: number;
-  doctorId?: number;
+  doctorId?: number | null;
   scheduleType?: ClinicScheduleTypeEnum;
   clinicId?: string;
   doneDate?: Date;

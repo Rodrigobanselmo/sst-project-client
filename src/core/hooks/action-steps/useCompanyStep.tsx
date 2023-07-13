@@ -46,6 +46,8 @@ import { useAppSelector } from '../useAppSelector';
 import { usePushRoute } from '../usePushRoute';
 import { initialProtocolRiskState } from 'components/organisms/modals/ModalEditProtocolRisk/hooks/useEditProtocols';
 import SProtocolIcon from 'assets/icons/SProtocolIcon';
+import { queryClient } from 'core/services/queryClient';
+import { QueryEnum } from 'core/enums/query.enums';
 
 export const useCompanyStep = () => {
   const { onAccessFilterBase } = useAccess();
@@ -100,11 +102,11 @@ export const useCompanyStep = () => {
   }, [company, onStackOpenModal]);
 
   const handleAddProtocol = useCallback(() => {
-    onStackOpenModal(
-      ModalEnum.PROTOCOL_RISK,
-      {} as typeof initialProtocolRiskState,
-    );
-  }, [onStackOpenModal]);
+    onStackOpenModal(ModalEnum.PROTOCOL_RISK, {
+      callback: () =>
+        queryClient.invalidateQueries([QueryEnum.COMPANY, company.id]),
+    } as Partial<typeof initialProtocolRiskState>);
+  }, [company.id, onStackOpenModal]);
 
   const handleUploadRisk = useCallback(() => {
     onStackOpenModal(ModalEnum.IMPORT_EXPORT_MODAL, {

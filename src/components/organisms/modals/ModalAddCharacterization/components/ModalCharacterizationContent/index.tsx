@@ -282,51 +282,6 @@ export const ModalCharacterizationContent = (
         size="small"
         firstLetterCapitalize
       /> */}
-      {characterizationData.type && (
-        <>
-          <SDisplaySimpleArray
-            values={characterizationData.paragraphs.map((paragraph) => ({
-              type: paragraph.split('{type}=')[1],
-              name: paragraph.split('{type}=')[0],
-            }))}
-            type={TypeInputModal.TEXT_AREA}
-            valueField="name"
-            onAdd={(value) => onAddArray(value, 'paragraphs')}
-            onDelete={(value) => onDeleteArray(value, 'paragraphs')}
-            onEdit={(v, values) =>
-              onEditArrayContent(values, 'paragraphs', ParagraphEnum.PARAGRAPH)
-            }
-            label={'Descrição'}
-            buttonLabel={'Adicionar Parágrafo de Descrição'}
-            placeholder="descreva..."
-            modalLabel="Adicionar Descrição"
-            onRenderStartElement={(value) => (
-              <ParagraphSelect
-                handleSelectMenu={(option) => {
-                  onEditArray((value as any).name, option.value, 'paragraphs');
-                }}
-                selected={
-                  (typeof value !== 'string' &&
-                    'type' in value &&
-                    (value as any).type) ||
-                  ParagraphEnum.PARAGRAPH
-                }
-                sx={{
-                  boxShadow: 'none',
-                  borderRightColor: 'grey.300',
-                  borderRadius: '4px 5px 5px 4px',
-                }}
-                paragraphOptions={[
-                  ParagraphEnum.PARAGRAPH,
-                  ParagraphEnum.BULLET_0,
-                  ParagraphEnum.BULLET_1,
-                  ParagraphEnum.BULLET_2,
-                ]}
-              />
-            )}
-          />
-        </>
-      )}
 
       {(!!characterizationData.characterizationType ||
         !!characterizationData.type) && (
@@ -357,6 +312,55 @@ export const ModalCharacterizationContent = (
 
           {characterizationData.type && (
             <>
+              <SDisplaySimpleArray
+                values={characterizationData.paragraphs.map((paragraph) => ({
+                  type: paragraph.split('{type}=')[1],
+                  name: paragraph.split('{type}=')[0],
+                }))}
+                type={TypeInputModal.TEXT_AREA}
+                valueField="name"
+                onAdd={(value) => onAddArray(value, 'paragraphs')}
+                onDelete={(value) => onDeleteArray(value, 'paragraphs')}
+                onEdit={(v, values) =>
+                  onEditArrayContent(
+                    values,
+                    'paragraphs',
+                    ParagraphEnum.PARAGRAPH,
+                  )
+                }
+                label={'Descrição'}
+                buttonLabel={'Adicionar Parágrafo de Descrição'}
+                placeholder="descreva..."
+                modalLabel="Adicionar Descrição"
+                onRenderStartElement={(value) => (
+                  <ParagraphSelect
+                    handleSelectMenu={(option) => {
+                      onEditArray(
+                        (value as any).name,
+                        option.value,
+                        'paragraphs',
+                      );
+                    }}
+                    selected={
+                      (typeof value !== 'string' &&
+                        'type' in value &&
+                        (value as any).type) ||
+                      ParagraphEnum.PARAGRAPH
+                    }
+                    sx={{
+                      boxShadow: 'none',
+                      borderRightColor: 'grey.300',
+                      borderRadius: '4px 5px 5px 4px',
+                    }}
+                    paragraphOptions={[
+                      ParagraphEnum.PARAGRAPH,
+                      ParagraphEnum.BULLET_0,
+                      ParagraphEnum.BULLET_1,
+                      ParagraphEnum.BULLET_2,
+                    ]}
+                  />
+                )}
+              />
               <SDisplaySimpleArray
                 values={characterizationData.activities.map((activity) => ({
                   type: activity.split('{type}=')[1],

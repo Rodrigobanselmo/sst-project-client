@@ -25,7 +25,14 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
     const isValid = await trigger(fields);
     if (!isValid) return;
 
-    const { visitDate, source } = getValues();
+    const {
+      visitDate,
+      source,
+      months_period_level_2,
+      months_period_level_3,
+      months_period_level_4,
+      months_period_level_5,
+    } = getValues();
 
     const submitData: IUpsertPGRDocumentData = {
       id: data.id,
@@ -38,6 +45,10 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
         source,
         isQ5: data.json?.isQ5,
         hasEmergencyPlan: data.json?.hasEmergencyPlan,
+        months_period_level_2: months_period_level_2,
+        months_period_level_3: months_period_level_3,
+        months_period_level_4: months_period_level_4,
+        months_period_level_5: months_period_level_5,
       },
     };
 

@@ -58,11 +58,17 @@ export default function PdfAsoPage({
       <View>
         {/* title */}
         <View style={{ marginBottom: 10 }}>
-          <View style={{ flexDirection: 'row' }}>
-            <Image
-              style={s.image}
-              src={consultant?.logoUrl + '?noCache=' + Math.random().toString()}
-            />
+          <View style={{ flexDirection: 'row', maxHeight: '50px' }}>
+            {consultant?.logoUrl ? (
+              <Image
+                style={{ ...s.image, objectFit: 'contain' }}
+                src={
+                  consultant?.logoUrl + '?noCache=' + Math.random().toString()
+                }
+              />
+            ) : (
+              <View style={[s.image]}></View>
+            )}
             <Text style={[s.header]}>
               A.S.O - ATESTADO DE SAÚDE OCUPACIONAL
             </Text>
@@ -77,7 +83,7 @@ export default function PdfAsoPage({
           </View>
           <View style={{ flexDirection: 'row' }}>
             <View style={{ flexGrow: 1, textAlign: 'center' }}>
-              <Text style={s.title}>{consultant?.name} </Text>
+              <Text style={s.title}>{consultant?.name}</Text>
               <View
                 style={{
                   display: 'flex',
@@ -266,7 +272,7 @@ export default function PdfAsoPage({
             <View style={sm.row}>
               <View style={[s.table1, { flexGrow: 1 }]}>
                 <Text style={s.label}>Nome</Text>
-                <Text style={s.tableBody}>{doctorResponsible.name}</Text>
+                <Text style={s.tableBody}>{doctorResponsible?.name}</Text>
               </View>
             </View>
 
@@ -274,7 +280,7 @@ export default function PdfAsoPage({
               <View style={[s.table2, { width: 150 }]}>
                 <Text style={s.label}>CRM:</Text>
                 <Text style={s.tableBody}>
-                  {doctorResponsible.councilId} {doctorResponsible.councilUF}
+                  {doctorResponsible?.councilId} {doctorResponsible?.councilUF}
                 </Text>
               </View>
             </View>

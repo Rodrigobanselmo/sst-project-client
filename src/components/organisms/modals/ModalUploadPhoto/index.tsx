@@ -207,6 +207,7 @@ export const ModalUploadPhoto: FC<
           const { dataUrl, file } = await konvaRef.current.handleGetCanvas({
             compressProps: { imageExtension: photoData.imageExtension },
           });
+
           await photoData.onConfirm({
             file,
             name: data.name,

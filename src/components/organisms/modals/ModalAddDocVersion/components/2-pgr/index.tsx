@@ -15,6 +15,8 @@ import { dateMask } from 'core/utils/masks/date.mask';
 
 import { IUsePGRHandleModal } from '../../hooks/usePGRHandleActions';
 import { useStep } from './hooks/useStep';
+import SText from 'components/atoms/SText';
+import { intMask } from 'core/utils/masks/int.mask';
 
 export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
   const {
@@ -102,7 +104,86 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
             />
           </SFlex>
 
-          <SFlex direction="column" mt={5} ml={6}>
+          <SFlex width={['100%']} gap={8} direction="column" mt={16}>
+            <SText fontSize={16} fontWeight="500">
+              Prazo das recomendações do Plano de Ação por Risco Ocupacional
+            </SText>
+            <Box
+              sx={{
+                gap: 10,
+                display: 'grid',
+                flexWrap: 'wrap',
+                gridTemplateColumns: [
+                  'minmax(200px, 1fr)',
+                  'minmax(200px, 1fr) minmax(200px, 1fr)',
+                  'minmax(200px, 1fr) minmax(200px, 1fr) minmax(200px, 1fr) minmax(200px, 1fr)',
+                ],
+              }}
+            >
+              <InputForm
+                defaultValue={
+                  String(data.json?.months_period_level_2 || '') || ''
+                }
+                startAdornment="Prazo de"
+                setValue={setValue}
+                name="months_period_level_2"
+                label="Risco Baixo"
+                labelPosition="top"
+                control={control}
+                endAdornment="meses"
+                placeholder="em meses"
+                size="small"
+                mask={intMask.apply}
+              />
+              <InputForm
+                defaultValue={
+                  String(data.json?.months_period_level_3 || '') || ''
+                }
+                setValue={setValue}
+                startAdornment="Prazo de"
+                name="months_period_level_3"
+                label="Risco Moderado"
+                labelPosition="top"
+                control={control}
+                endAdornment="meses"
+                placeholder="em meses"
+                size="small"
+                mask={intMask.apply}
+              />
+              <InputForm
+                defaultValue={
+                  String(data.json?.months_period_level_4 || '') || ''
+                }
+                setValue={setValue}
+                name="months_period_level_4"
+                label="Risco Alto"
+                labelPosition="top"
+                startAdornment="Prazo de"
+                control={control}
+                endAdornment="meses"
+                placeholder="em meses"
+                size="small"
+                mask={intMask.apply}
+              />
+              <InputForm
+                defaultValue={
+                  String(data.json?.months_period_level_5 || '') || ''
+                }
+                setValue={setValue}
+                name="months_period_level_5"
+                startAdornment="Prazo de"
+                label="Risco Muito Alto"
+                labelPosition="top"
+                control={control}
+                endAdornment="meses"
+                placeholder="em meses"
+                size="small"
+                mask={intMask.apply}
+              />
+            </Box>
+          </SFlex>
+
+          <SFlex direction="column" mt={12} ml={6}>
             <SSwitch
               onChange={() => {
                 setData({

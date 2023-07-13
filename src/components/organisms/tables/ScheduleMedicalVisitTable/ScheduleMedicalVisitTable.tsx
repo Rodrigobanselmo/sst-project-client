@@ -190,7 +190,6 @@ export const ScheduleMedicalVisitTable: FC<
         currentPage={page}
         onPageChange={setPage}
       />
-      <ModalEditEmployeeHisExamClinic />
     </>
   );
 };

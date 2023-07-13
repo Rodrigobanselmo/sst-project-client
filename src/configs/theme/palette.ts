@@ -100,6 +100,7 @@ const palette = {
     erg: '#9c9507',
     aci: '#3d62ba',
     outros: '#2D3748',
+    all: '#fff',
   },
   tree: {
     card: {

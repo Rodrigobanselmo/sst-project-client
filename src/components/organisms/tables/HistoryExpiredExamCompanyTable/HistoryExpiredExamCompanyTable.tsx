@@ -449,7 +449,6 @@ export const HistoryExpiredExamCompanyTable: FC<
         currentPage={page}
         onPageChange={setPage}
       />
-      <ModalEditEmployeeHisExamClinic />
     </>
   );
 };

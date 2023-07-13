@@ -15,6 +15,7 @@ export interface ICreateExamRisk {
   examId: number;
   riskId: string;
   companyId?: string;
+  realCompanyId?: string;
   isMale?: boolean;
   isFemale?: boolean;
   isPeriodic?: boolean;

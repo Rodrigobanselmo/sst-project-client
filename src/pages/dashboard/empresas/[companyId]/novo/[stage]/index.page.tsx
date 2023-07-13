@@ -139,7 +139,6 @@ const CompanyPage: NextPage = () => {
         {CompanyActionEnum.SST_GROUP_PAGE == stage && (
           <>
             <CharacterizationStage {...props} />
-            <StackModalRiskTool />
           </>
         )}
 
@@ -151,6 +150,7 @@ const CompanyPage: NextPage = () => {
           </>
         )}
 
+        <StackModalRiskTool />
         <ModalViewProfessional />
         <ModalSingleInput />
         <StackModalEditEmployee />

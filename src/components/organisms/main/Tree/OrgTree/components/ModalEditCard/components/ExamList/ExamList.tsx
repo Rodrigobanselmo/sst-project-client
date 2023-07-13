@@ -53,7 +53,7 @@ export const ExamList = ({
                       position: 'relative',
                     }}
                     direction="column"
-                    key={origin.origin}
+                    key={(origin.origin || '') + (data.exam?.id || '')}
                   >
                     <SFlex>
                       <SText

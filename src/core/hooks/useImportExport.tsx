@@ -21,11 +21,13 @@ export const useImportExport = () => {
       type,
       pathApi,
       payload,
+      onUpload,
     }: {
       companyId: string;
       type: ReportTypeEnum;
       pathApi: string;
       payload?: any;
+      onUpload?: () => void;
     }) => {
       onStackOpenModal(ModalEnum.IMPORT_EXPORT_MODAL, {
         onDownload: async () => {
@@ -45,6 +47,7 @@ export const useImportExport = () => {
             })
             .then(() => {
               onCloseModal(ModalEnum.IMPORT_EXPORT_MODAL);
+              onUpload?.();
             })
             .catch(() => null);
         },

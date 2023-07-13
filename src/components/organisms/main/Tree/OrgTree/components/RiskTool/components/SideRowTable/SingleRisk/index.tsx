@@ -13,6 +13,7 @@ import { IUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskDat
 import { useColumnAction } from '../../../hooks/useColumnAction';
 import { RowColumns } from '../components/RowColumns';
 import { RiskToolSingleRiskRowProps } from './types';
+import { EsocialCodeEnum } from 'core/enums/esocial-code.enum';
 
 export const RiskToolSingleRiskRow: FC<
   { children?: any } & RiskToolSingleRiskRowProps

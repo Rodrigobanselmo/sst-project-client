@@ -12,7 +12,6 @@ export const useAuthShow = () => {
       if (!user?.roles) return false;
       if (!roles.some((role) => user.roles?.includes(role))) return false;
     }
-
     if (permissions) {
       if (!user?.permissions) return false;
       if (

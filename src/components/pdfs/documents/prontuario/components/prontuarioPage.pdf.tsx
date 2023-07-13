@@ -362,9 +362,10 @@ export default function PdfProntuarioPage({
             </View>
             <View style={[s.doctorRespBox]}>
               <Text style={[s.signHeader]}>Médico do Trabalho Responsável</Text>
-              <Text style={[s.signText, sm.ta]}>{doctorResponsible.name}</Text>
+              <Text style={[s.signText, sm.ta]}>{doctorResponsible?.name}</Text>
               <Text style={[s.signText, sm.ta]}>
-                CRM: {doctorResponsible.councilId} {doctorResponsible.councilUF}
+                CRM: {doctorResponsible?.councilId}{' '}
+                {doctorResponsible?.councilUF}
               </Text>
             </View>
           </View>

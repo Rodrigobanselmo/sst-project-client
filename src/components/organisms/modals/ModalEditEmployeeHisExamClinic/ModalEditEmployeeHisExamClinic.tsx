@@ -56,6 +56,7 @@ import { phoneMask } from 'core/utils/masks/phone.mask';
 import { getSexLabel } from '../ModalAddExamSchedule/components/1-employee';
 import { onUserSchedule, useAddData } from './hooks/useEditExamData';
 import { STagNewButton } from './STagNewButton';
+import STooltip from 'components/atoms/STooltip';
 
 export const ModalEditEmployeeHisExamClinic = () => {
   const {
@@ -355,44 +356,48 @@ export const ModalEditEmployeeHisExamClinic = () => {
               </SFlex>
 
               <SFlex flexWrap="wrap" gap={5}>
-                <Box maxWidth={200}>
-                  <DatePickerForm
-                    setValue={setValue}
-                    label="Data do exame"
-                    control={control}
-                    defaultValue={dateToDate(clinicExam.doneDate)}
-                    sx={{ minWidth: 200 }}
-                    placeholderText="__/__/__"
-                    name="doneDate"
-                    labelPosition="top"
-                    unmountOnChangeDefault
-                    calendarProps={{
-                      disabled: true,
-                    }}
-                  />
-                </Box>
-                <Box mr={20} maxWidth={100}>
-                  <AutocompleteForm
-                    name="time"
-                    control={control}
-                    filterOptions={(x) => x}
-                    unmountOnChangeDefault
-                    freeSolo
-                    getOptionLabel={(option) => String(option)}
-                    inputProps={{
-                      labelPosition: 'top',
-                      placeholder: '00:00',
-                      name: 'time',
-                    }}
-                    setValue={(v) => setValue('time', String(v))}
-                    defaultValue={clinicExam.time || ''}
-                    mask={timeMask.apply}
-                    label="Hora"
-                    options={[]}
-                    sx={{ width: [100] }}
-                    disabled
-                  />
-                </Box>
+                <STooltip title="Para editar a data é necessario reagendar o exame">
+                  <Box maxWidth={200}>
+                    <DatePickerForm
+                      setValue={setValue}
+                      label="Data do exame"
+                      control={control}
+                      defaultValue={dateToDate(clinicExam.doneDate)}
+                      sx={{ minWidth: 200 }}
+                      placeholderText="__/__/__"
+                      name="doneDate"
+                      labelPosition="top"
+                      unmountOnChangeDefault
+                      calendarProps={{
+                        disabled: true,
+                      }}
+                    />
+                  </Box>
+                </STooltip>
+                <STooltip title="Para editar o horario é necessario reagendar o exame">
+                  <Box mr={20} maxWidth={100}>
+                    <AutocompleteForm
+                      name="time"
+                      control={control}
+                      filterOptions={(x) => x}
+                      unmountOnChangeDefault
+                      freeSolo
+                      getOptionLabel={(option) => String(option)}
+                      inputProps={{
+                        labelPosition: 'top',
+                        placeholder: '00:00',
+                        name: 'time',
+                      }}
+                      setValue={(v) => setValue('time', String(v))}
+                      defaultValue={clinicExam.time || ''}
+                      mask={timeMask.apply}
+                      label="Hora"
+                      options={[]}
+                      sx={{ width: [100] }}
+                      disabled
+                    />
+                  </Box>
+                </STooltip>
                 <Box flex={1}>
                   <SelectForm
                     unmountOnChangeDefault

@@ -132,7 +132,7 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
             <Box flex={2}>
               <SelectForm
                 defaultValue={String(companyData.numAsos || '') || ''}
-                label="Nº vias Aso"
+                label="Nº vias Aso (Impressão)"
                 setValue={setValue}
                 control={control}
                 placeholder="número de vias..."

@@ -22,6 +22,7 @@ import { canvasPreview } from './utils/canvasPreview';
 import { centerAspectCrop } from './utils/centerAspectCrop';
 import { useSnackbar } from 'notistack';
 import { simulateAwait } from 'core/utils/helpers/simulateAwait';
+import { useWindowSize } from 'core/hooks/useWindowSize';
 
 interface SCropImageProps {
   file?: File;
@@ -107,13 +108,19 @@ export default function SCropImage({
     }
   }
 
+  function getCompletedCrop(): PixelCrop {
+    const width = ((imgRef.current?.width || 0) * (crop?.width || 0)) / 100;
+    const height = ((imgRef.current?.height || 0) * (crop?.height || 0)) / 100;
+    const x = ((imgRef.current?.width || 0) * (crop?.x || 0)) / 100;
+    const y = ((imgRef.current?.height || 0) * (crop?.y || 0)) / 100;
+
+    return { width, height, x, y, unit: 'px' };
+  }
+
   const handleCropImage = () => {
-    const crop: typeof completedCrop = { ...completedCrop } as any;
+    const crop = getCompletedCrop();
     const isCropToSmall =
-      !completedCrop?.height ||
-      !completedCrop?.width ||
-      completedCrop?.height < 50 ||
-      completedCrop?.width < 50;
+      !crop?.height || !crop?.width || crop?.height < 50 || crop?.width < 50;
 
     if (isCropToSmall && crop) {
       enqueueSnackbar('Selecione uma área maior para recortar a imagem.', {
@@ -130,7 +137,7 @@ export default function SCropImage({
   };
 
   const handleCancelCropImage = () => {
-    const crop: typeof completedCrop = { ...completedCrop } as any;
+    const crop = getCompletedCrop();
 
     if (crop) {
       crop.x = 0;
@@ -211,7 +218,7 @@ export default function SCropImage({
         >
           <ReactCrop
             crop={crop}
-            onChange={(_, percentCrop) => {
+            onChange={(c, percentCrop) => {
               setCrop(percentCrop);
             }}
             onComplete={(c) => {

@@ -28,6 +28,7 @@ import { ProbabilityColumn } from '../columns/ProbabilityColumn';
 import { RecColumn } from '../columns/RecColumn';
 import { SourceColumn } from '../columns/SourceColumn';
 import { RowColumnsProps } from './types';
+import { EsocialCodeEnum } from 'core/enums/esocial-code.enum';
 
 export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
   handleSelect,
@@ -98,7 +99,7 @@ export const RowColumns: FC<{ children?: any } & RowColumnsProps> = ({
         selected={isSelected ? 1 : 0}
         {...props}
       >
-        {!hide && (
+        {!hide && EsocialCodeEnum.AUSENCIA_DE_RISCO != risk?.esocialCode && (
           <>
             {!isRepresentAll ? (
               <SourceColumn

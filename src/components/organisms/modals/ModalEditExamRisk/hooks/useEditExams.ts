@@ -17,6 +17,11 @@ import {
 import { useMutUpdateExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutUpdateExamRisk/useMutUpdateExamRisk';
 import { cleanObjectValues } from 'core/utils/helpers/cleanObjectValues';
 import { examRiskSchema } from 'core/utils/schemas/exam.schema';
+import { queryClient } from 'core/services/queryClient';
+import { QueryEnum } from 'core/enums/query.enums';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { RiskEnum } from 'project/enum/risk.enums';
+import { useSnackbar } from 'notistack';
 
 export const initialExamRiskState = {
   id: 0,
@@ -24,6 +29,7 @@ export const initialExamRiskState = {
   minRiskDegree: 0 as number,
   minRiskDegreeQuantity: 1 as number,
   riskId: '' as string,
+  isAll: false,
   isMale: true,
   isFemale: true,
   isPeriodic: true,
@@ -61,6 +67,8 @@ export const useEditExams = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialExamRiskState);
   const switchRef = useRef<HTMLInputElement>(null);
+  const { companyId, userCompanyId } = useGetCompanyId();
+  const { enqueueSnackbar } = useSnackbar();
 
   const { handleSubmit, control, setValue, reset, getValues } = useForm({
     resolver: yupResolver(examRiskSchema),
@@ -123,12 +131,36 @@ export const useEditExams = () => {
     minRiskDegreeQuantity,
     considerBetweenDays,
   }) => {
+    let riskId = examData.riskId;
     if (!examData.riskId) {
-      setExamData((oldData) => ({
-        ...oldData,
-        error: { ...oldData.error, risk: true },
-      }));
-      return;
+      if (!examData.isAll) {
+        setExamData((oldData) => ({
+          ...oldData,
+          error: { ...oldData.error, risk: true },
+        }));
+        return;
+      }
+
+      const risks =
+        queryClient.getQueryData<IRiskFactors[]>([
+          QueryEnum.RISK,
+          userCompanyId,
+        ]) ||
+        queryClient.getQueryData<IRiskFactors[]>([QueryEnum.RISK, companyId]) ||
+        [];
+
+      const riskAllId =
+        risks.find((risk) => risk.representAll && risk.type == RiskEnum.OUTROS)
+          ?.id || '';
+
+      if (!riskAllId) {
+        enqueueSnackbar('Não foi possível encontrar o risco', {
+          variant: 'error',
+        });
+        return;
+      }
+
+      riskId = riskAllId;
     }
 
     if (!examData.examId) {
@@ -141,6 +173,8 @@ export const useEditExams = () => {
 
     const submitData: ICreateExamRisk & { id?: number } = {
       ...examData,
+      riskId,
+      realCompanyId: companyId,
       fromAge: fromAge ? parseInt(fromAge, 10) : null,
       toAge: toAge ? parseInt(toAge, 10) : null,
       validityInMonths: validityInMonths

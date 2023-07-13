@@ -16,6 +16,7 @@ export interface IQueryExamHierarchy {
   companyId?: string;
   hierarchyId?: string;
   employeeId?: number;
+  skipAllExams?: boolean;
 }
 
 export const queryExams = async (

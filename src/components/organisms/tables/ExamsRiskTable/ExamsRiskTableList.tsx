@@ -14,7 +14,9 @@ import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskG
 export const ExamsRiskTableList: FC<{ children?: any } & BoxProps> = ({
   ...props
 }) => {
-  const { data: exams, isLoading: loadingExams } = useQueryExamsHierarchy(1);
+  const { data: exams, isLoading: loadingExams } = useQueryExamsHierarchy(1, {
+    skipAllExams: true,
+  });
   const { onOpenRiskToolSelected } = useOpenRiskTool();
   const { data: riskGroupData, isLoading: loadingRiskGroup } =
     useQueryRiskGroupData();

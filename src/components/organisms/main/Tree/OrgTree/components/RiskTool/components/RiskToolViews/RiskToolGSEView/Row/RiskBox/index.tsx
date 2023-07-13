@@ -67,6 +67,12 @@ export const RiskToolGSEViewRowRiskBox: FC<
             borderRadius: 3,
             fontSize: '12px',
             color: 'common.white',
+            ...(isRepresentAll && {
+              backgroundColor: 'risk.all',
+              border: '1px solid',
+              borderColor: `risk.${data?.type.toLowerCase()}`,
+              color: `risk.${data?.type.toLowerCase()}`,
+            }),
           }}
         >
           {!isRepresentAll ? data.type : 'PADRÃO'}

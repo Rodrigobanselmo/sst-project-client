@@ -117,13 +117,16 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
     }
 
     if (homoId) data.push(...representAllRiskData);
-
+    console.log(data);
     if (
       (!selectedGhoFilter.value && !selectedGhoFilter.key) ||
       selectedGhoFilter?.value == 'none'
     )
       return data
-        .sort(([, a], [, b]) => sortString(a, b, 'name'))
+        .sort(([, a], [, b]) => sortNumber(a, b, 'name'))
+        .sort(([, a], [, b]) =>
+          sortNumber(a.representAll ? -1 : 1, b.representAll ? -1 : 1),
+        )
         .sort(([, a], [, b]) =>
           sortNumber(RiskOrderEnum[a.type], RiskOrderEnum[b.type]),
         );

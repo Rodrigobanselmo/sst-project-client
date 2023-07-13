@@ -198,6 +198,9 @@ export const useAddData = () => {
         if (data.evaluationType) submit.evaluationType = data.evaluationType;
 
         submit.status = data.status;
+        submit.doctorId =
+          data.doctor?.id ||
+          (initialDataRef.current?.doctor ? null : undefined);
         // if (data.doctor?.id) {
         //   submit.doctorId = data.doctor.id;
         //   if (!data.status || data.status === StatusEnum.PROCESSING)

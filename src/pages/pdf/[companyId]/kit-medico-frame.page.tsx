@@ -25,6 +25,16 @@ const Kit: NextPage = () => {
           height: '100%',
         }}
       ></iframe>
+      <div
+        style={{
+          zIndex: 100000,
+          height: 200,
+          backgroundColor: 'red',
+          width: 100,
+        }}
+      >
+        djkendjknjk
+      </div>
     </>
   );
 };

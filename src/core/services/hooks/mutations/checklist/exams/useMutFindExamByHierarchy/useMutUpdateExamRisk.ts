@@ -55,13 +55,7 @@ export function useMutFindExamByHierarchy() {
         return { data: response.data, count: response.count };
       },
       onError: (error: IErrorResp) => {
-        if (error.response.status == 400)
-          enqueueSnackbar('Você não tem permissão para editar esse dado', {
-            variant: 'error',
-          });
-        else {
-          enqueueSnackbar(error.response.data.message, { variant: 'error' });
-        }
+        enqueueSnackbar(error.response.data.message, { variant: 'error' });
       },
     },
   );

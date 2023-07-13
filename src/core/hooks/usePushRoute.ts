@@ -24,6 +24,8 @@ import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutRepo
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocumentModels/useQueryDocumentModels';
 import { useImportExport } from './useImportExport';
+import { queryClient } from 'core/services/queryClient';
+import { QueryEnum } from 'core/enums/query.enums';
 
 export const usePushRoute = () => {
   const { data: company } = useQueryCompany();
@@ -42,6 +44,10 @@ export const usePushRoute = () => {
           ':companyId',
           company.id,
         ),
+        onUpload: () => {
+          queryClient.invalidateQueries([QueryEnum.COMPANY, company.id]);
+          queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+        },
         type: ReportTypeEnum.MODEL_EMPLOYEE,
         payload: {
           createEmployee: true,

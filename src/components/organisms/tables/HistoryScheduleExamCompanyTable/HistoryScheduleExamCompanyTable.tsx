@@ -388,7 +388,6 @@ export const HistoryScheduleExamCompanyTable: FC<
         currentPage={page}
         onPageChange={setPage}
       />
-      <ModalEditEmployeeHisExamClinic />
     </>
   );
 };

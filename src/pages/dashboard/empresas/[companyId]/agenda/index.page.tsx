@@ -23,6 +23,7 @@ import { useState } from 'react';
 import { IFilterTableData } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
 import { ScheduleMedicalVisitTable } from 'components/organisms/tables/ScheduleMedicalVisitTable/ScheduleMedicalVisitTable';
 import { ModalEditScheduleMedicalVisit } from 'components/organisms/modals/ModalEditScheduleMedicalVisit/ModalEditScheduleMedicalVisit';
+import { ModalEditEmployeeHisExamClinic } from 'components/organisms/modals/ModalEditEmployeeHisExamClinic/ModalEditEmployeeHisExamClinic';
 
 const Schedule: NextPage = () => {
   const { userCompanyId } = useGetCompanyId();
@@ -83,6 +84,7 @@ const Schedule: NextPage = () => {
           </Box>
         </Wizard>
       </SContainer>
+      <ModalEditEmployeeHisExamClinic />
       <StackModalAddExamSchedule />
       <StackHistoryScheduleExamTable />
       <ModalEditScheduleMedicalVisit />

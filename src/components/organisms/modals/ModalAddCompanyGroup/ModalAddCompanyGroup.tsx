@@ -185,7 +185,7 @@ export const ModalAddCompanyGroup = () => {
                       ? String(companyGroupData.numAsos)
                       : ''
                   }
-                  label="Nº vias Aso"
+                  label="Nº vias Aso (Impressão)"
                   control={control}
                   name="numAsos"
                   labelPosition="center"

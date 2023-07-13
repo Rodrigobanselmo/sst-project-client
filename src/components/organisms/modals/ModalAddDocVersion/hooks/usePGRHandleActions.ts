@@ -23,6 +23,10 @@ export const initialPgrDocState = {
     complementarySystems: [] as string[],
     isQ5: false,
     hasEmergencyPlan: false,
+    months_period_level_2: 24,
+    months_period_level_3: 12,
+    months_period_level_4: 6,
+    months_period_level_5: 3,
   },
 };
 

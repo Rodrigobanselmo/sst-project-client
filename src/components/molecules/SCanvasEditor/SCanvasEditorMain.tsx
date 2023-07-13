@@ -40,6 +40,7 @@ import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 import { SCanvasPath } from './components/SCanvasPath';
 import Konva from 'konva';
 import { simulateAwait } from 'core/utils/helpers/simulateAwait';
+import { useWindowSize } from 'core/hooks/useWindowSize';
 
 const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
   ({ imageUrl, minHeight, minWidth, canvasRef, onCrop }, ref) => {
@@ -60,6 +61,8 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
       handleLineDragMouse: (e: any) => void;
       handleStageClick: (e: any) => void;
     }>(null);
+
+    useWindowSize();
 
     const { height, width } = calculateDimensionsWithMaxSize({
       width: image?.width,
@@ -235,19 +238,28 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
       if (!image) return;
       if (!stageRef.current) return;
 
+      stageRef.current.scaleX(1);
+      stageRef.current.scaleY(1);
+      stageRef.current.width(width);
+      stageRef.current.height(height);
+
+      await simulateAwait(200);
+
       stageRef.current.width(canvasRealWidth);
       stageRef.current.height(canvasRealHeight);
       stageRef.current.scaleX(scaleX);
       stageRef.current.scaleY(scaleY);
 
       //simulate await to remove buttons of konva items
-      await simulateAwait(400);
 
       const blob = await stageRef.current.getStage().toBlob();
       const { dataUrl, file } = await imageBlobCompress({
         blob,
         ...data?.compressProps,
       });
+      console.log('size', file.size);
+
+      await simulateAwait(400);
 
       stageRef.current.scaleX(1);
       stageRef.current.scaleY(1);

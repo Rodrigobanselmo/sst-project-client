@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Switch } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
@@ -16,6 +16,7 @@ import { isQuantity } from 'core/utils/helpers/isQuantity';
 import { intMask } from 'core/utils/masks/int.mask';
 
 import { IUseEditExam } from '../../hooks/useEditExams';
+import { SSwitch } from 'components/atoms/SSwitch';
 
 export const ModalExamStep = ({
   examData,
@@ -184,31 +185,34 @@ export const ModalExamStep = ({
         options={[30, 60, 90, 120, 180, 240, 300]}
       />
 
-      <SFlex gap={5} mt={10} flexWrap="wrap">
-        <Box flex={1}>
-          <SText color="text.label" fontSize={14} mb={3}>
-            Fator de Risco
-          </SText>
-          <RiskSelect
-            sx={{ minWidth: '100%' }}
-            large
-            error={examData.error.risk}
-            tooltipTitle={examData.risk?.name || ''}
-            borderActive={examData.risk?.id ? 'info' : undefined}
-            handleSelect={(option: any) =>
-              option.id &&
-              setExamData({
-                ...examData,
-                error: { ...examData.error, risk: false },
-                risk: option,
-                riskId: option.id,
-              })
-            }
-            text={examData.risk?.name || 'selecione um risco'}
-            multiple={false}
-          />
-        </Box>
-        <Box flex={1}>
+      <SFlex gap={5} flexDirection={'column'} mt={10} flexWrap="wrap">
+        {!examData.isAll && (
+          <Box flex={1}>
+            <SText color="text.label" fontSize={14} mb={3}>
+              Fator de Risco
+            </SText>
+            <RiskSelect
+              sx={{ minWidth: 500 }}
+              large
+              error={examData.error.risk}
+              tooltipTitle={examData.risk?.name || ''}
+              borderActive={examData.risk?.id ? 'info' : undefined}
+              handleSelect={(option: any) =>
+                option.id &&
+                setExamData({
+                  ...examData,
+                  error: { ...examData.error, risk: false },
+                  risk: option,
+                  riskId: option.id,
+                })
+              }
+              text={examData.risk?.name || 'selecione um risco'}
+              multiple={false}
+            />
+          </Box>
+        )}
+
+        <Box flex={1} maxWidth={500}>
           <SText color="text.label" fontSize={14} mb={3}>
             Exame
           </SText>
@@ -239,6 +243,23 @@ export const ModalExamStep = ({
                 }),
               })
             }
+          />
+        </Box>
+
+        <Box ml={6}>
+          <SSwitch
+            onChange={() => {
+              setExamData({
+                ...examData,
+                isAll: !examData.isAll,
+                risk: {} as any,
+                riskId: '',
+              });
+            }}
+            checked={examData.isAll}
+            label="Aplicar exame a todos os funcionários"
+            sx={{ mr: 4 }}
+            color="text.light"
           />
         </Box>
       </SFlex>
