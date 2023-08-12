@@ -12,6 +12,7 @@ import { api } from 'core/services/apiClient';
 import { QueryEnum } from '../../../../enums/query.enums';
 import { ImagesTypeEnum } from 'project/enum/imageGallery.enum';
 import { IImageGallery } from 'core/interfaces/api/IImageGallery';
+import { convertAccent } from 'core/utils/helpers/convertAccent';
 
 interface IQueryImageGallery {
   search?: string | null;
@@ -28,6 +29,8 @@ export const queryImagesGallery = async (
 
   if ('search' in query && query.search === null) return { data: [], count: 0 };
   if (!companyId) return { data: [], count: 0 };
+  if ('search' in query && query.search)
+    query.search = convertAccent(query.search);
 
   const response = await api.get<IPaginationResult<IImageGallery[]>>(
     `${ApiRoutesEnum.IMAGE_GALLERY}?take=${take}&skip=${skip}&${queries}`.replace(

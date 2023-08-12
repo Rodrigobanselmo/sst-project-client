@@ -44,7 +44,7 @@ export enum QueryEnum {
   EXAMS = 'exams',
   EXAMS_RISK = 'exams-risk',
   EXAMS_RISK_DATA = 'exams-risk-data',
-  GENERATE_SOURCE = 'risk',
+  GENERATE_SOURCE = 'genrate-source',
   GHO = 'gho',
   HIERARCHY = 'hierarchy',
   INVITES = 'invites',
