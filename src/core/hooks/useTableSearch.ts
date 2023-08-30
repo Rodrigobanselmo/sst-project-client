@@ -52,8 +52,20 @@ export const useTableSearch = ({
         : []
       : data;
 
-    return resultSearch.slice((page - 1) * rowsPerPage, page * rowsPerPage);
-  }, [data, fuse, minLengthSearch, page, rowsPerPage, search, sort]);
+    if (rowsPerPage)
+      return resultSearch.slice((page - 1) * rowsPerPage, page * rowsPerPage);
+
+    return resultSearch;
+  }, [
+    data,
+    fuse,
+    minLengthSearch,
+    page,
+    rowsPerPage,
+    search,
+    sort,
+    transformSearchTextBefore,
+  ]);
 
   return { results, handleSearchChange, fuse, search, page, setPage };
 };

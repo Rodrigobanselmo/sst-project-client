@@ -57,11 +57,11 @@ export async function updateImageGallery(
 
 export function useMutUpdateImageGallery() {
   const { enqueueSnackbar } = useSnackbar();
-  const { companyId, workspaceId } = useGetCompanyId();
+  const { getCompanyId } = useGetCompanyId();
 
   return useMutation(
     async ({ ...data }: IUpdateImageGallery) =>
-      updateImageGallery(data, companyId || ''),
+      updateImageGallery(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
         if (resp) queryClient.invalidateQueries([QueryEnum.IMAGE_GALLERY]);
