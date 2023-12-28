@@ -14,8 +14,9 @@ import { queryClient } from 'core/services/queryClient';
 
 import { IProfessionalToDocumentData } from '../../../../../../interfaces/api/IProfessional';
 import { IErrorResp } from '../../../../../errors/types';
+import { getProfessionals } from '../useMutUpsertPGRDocumentData/useMutUpsertPGRDocumentData';
 
-export interface IUpsertPGRDocumentData {
+export interface IUpsertPCSMODocumentData {
   id?: string;
   name?: string;
   status?: StatusEnum;
@@ -35,44 +36,23 @@ export interface IUpsertPGRDocumentData {
   json?: {
     source?: string;
     visitDate?: Date;
-    isQ5?: boolean;
-    hasEmergencyPlan?: boolean;
     complementaryDocs?: string[];
     complementarySystems?: string[];
-    months_period_level_2?: number;
-    months_period_level_3?: number;
-    months_period_level_4?: number;
-    months_period_level_5?: number;
   };
 }
 
-export const getProfessionals = (
-  professionals: (IProfessional | IProfessionalToDocumentData)[],
-) => {
-  return professionals?.map((professional) => {
-    if ('isSigner' in professional) return professional;
-
-    return {
-      professionalId: professional.id,
-      isSigner: professional.professionalDocumentDataSignature?.isSigner,
-      isElaborator:
-        professional.professionalDocumentDataSignature?.isElaborator,
-    };
-  }) as any;
-};
-
 export async function upsertDocumentData(
-  data: IUpsertPGRDocumentData,
+  data: IUpsertPCSMODocumentData,
   companyId?: string,
 ) {
   if (!companyId) return null;
-  data.type = DocumentTypeEnum.PGR;
+  data.type = DocumentTypeEnum.PCSMO;
 
   if (data?.professionals)
     data.professionals = getProfessionals(data.professionals);
 
   const response = await api.post<IRiskGroupData>(
-    `${ApiRoutesEnum.DOCUMENT_DATA}/pgr`.replace(':companyId', companyId),
+    `${ApiRoutesEnum.DOCUMENT_DATA}/pcsmo`.replace(':companyId', companyId),
     {
       companyId,
       ...data,
@@ -82,12 +62,12 @@ export async function upsertDocumentData(
   return response.data;
 }
 
-export function useMutUpsertPGRDocumentData() {
+export function useMutUpsertPCSMODocumentData() {
   const { getCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: IUpsertPGRDocumentData) =>
+    async (data: IUpsertPCSMODocumentData) =>
       upsertDocumentData({ ...data }, getCompanyId(data)),
     {
       onSuccess: async (resp) => {

@@ -79,8 +79,8 @@ const PCMSO: NextPage = () => {
       /> */}
 
         <DocTable
-          query={{ type: DocumentTypeEnum.PGR }}
-          type={DocumentTypeEnum.PGR}
+          query={{ type: DocumentTypeEnum.PCSMO }}
+          type={DocumentTypeEnum.PCSMO}
         />
         <ModalViewProfessional />
         <ModalSingleInput />

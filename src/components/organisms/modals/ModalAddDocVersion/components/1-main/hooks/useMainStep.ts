@@ -13,6 +13,8 @@ import { dateFormat } from 'core/utils/date/date-format';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { IUseMainActionsModal } from '../../../hooks/useMainActions';
+import { useMutUpsertPCSMODocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertPCSMOODocumentData/useMutUpsertPCSMODocumentData';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 export const useMainStep = ({
   data,
@@ -26,6 +28,7 @@ export const useMainStep = ({
   const { goToStep, stepCount } = useWizard();
 
   const updateMutation = useMutUpsertPGRDocumentData();
+  const updatePcmsoMutation = useMutUpsertPCSMODocumentData();
 
   const fields = [
     'name',
@@ -93,7 +96,10 @@ export const useMainStep = ({
         coordinatorBy,
       };
 
-      await updateMutation
+      await (data.type == DocumentTypeEnum.PCSMO
+        ? updatePcmsoMutation
+        : updateMutation
+      )
         .mutateAsync(submitData)
         .then((response) => {
           setData((data) => {
@@ -210,7 +216,7 @@ export const useMainStep = ({
 
   return {
     onSubmit,
-    loading: updateMutation.isLoading,
+    loading: updateMutation.isLoading || updatePcmsoMutation.isLoading,
     control,
     onCloseUnsaved,
     onAddArray,

@@ -8,12 +8,15 @@ import {
 import { IUpsertRiskGroupData } from 'core/services/hooks/mutations/checklist/riskGroupData/useMutUpsertRiskGroupData';
 
 import { IUsePGRHandleModal } from '../../../hooks/usePGRHandleActions';
+import { useMutUpsertPCSMODocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertPCSMOODocumentData/useMutUpsertPCSMODocumentData';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
   const { control, trigger, getValues, setValue } = useFormContext();
   const { previousStep, goToStep, stepCount } = useWizard();
 
   const updateMutation = useMutUpsertPGRDocumentData();
+  const updatePcmsoMutation = useMutUpsertPCSMODocumentData();
 
   const fields = ['visitDate', 'source'];
 
@@ -53,7 +56,10 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
     };
 
     setData((data) => ({ ...data, ...submitData } as any));
-    await updateMutation
+    await (data.type == DocumentTypeEnum.PCSMO
+      ? updatePcmsoMutation
+      : updateMutation
+    )
       .mutateAsync(submitData)
       .then(() => {
         // goToStep(stepCount - 1);
@@ -91,7 +97,7 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
 
   return {
     onSubmit,
-    loading: updateMutation.isLoading,
+    loading: updateMutation.isLoading || updatePcmsoMutation.isLoading,
     control,
     onAddArray,
     onDeleteArray,
