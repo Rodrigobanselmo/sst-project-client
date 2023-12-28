@@ -95,10 +95,11 @@ export const useMainStep = ({
 
       await updateMutation
         .mutateAsync(submitData)
-        .then(() => {
+        .then((response) => {
           setData((data) => {
             const setDataObj = {
               ...data,
+              id: response?.id as string,
               validityStart: dateFormat(`01/${validityStart}`) || null,
               validityEnd: dateFormat(`01/${validityEnd}`) || null,
             };
