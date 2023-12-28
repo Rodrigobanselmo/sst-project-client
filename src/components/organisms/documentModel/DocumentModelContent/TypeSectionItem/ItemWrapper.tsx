@@ -699,7 +699,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
               {isImage && (
                 <Box pt={10}>
                   <ImageGalleryTable
-                    types={[ImagesTypeEnum.DOCS]}
+                    createTypes={[ImagesTypeEnum.DOCS]}
                     companyId={companyId}
                     hideTitle
                     onSelectData={(image) =>

@@ -39,6 +39,8 @@ import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryEx
 import { useQueryExamsRisk } from 'core/services/hooks/queries/useQueryExamsRisk/useQueryExamsRisk';
 import { queryClient } from 'core/services/queryClient';
 import { getCompanyName } from 'core/utils/helpers/companyName';
+import SFlex from 'components/atoms/SFlex';
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 
 export const getExamPeriodic = (row: Partial<IExamToRisk>) => {
   const periodic = [] as string[];
@@ -131,7 +133,7 @@ export const ExamsRiskTable: FC<
     } else onEditExam(exam);
   };
 
-  const onRefetchThrottle = useThrottle(() => {
+  const onRefetchThrottle = useThrottle((s?: string) => {
     refetch();
     // invalidate next or previous pages
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
@@ -191,7 +193,7 @@ export const ExamsRiskTable: FC<
           </STableHRow> */}
           <STableHRow justifyContent="center">Peridiocidade</STableHRow>
           {/* <STableHRow justifyContent="center">Status</STableHRow> */}
-          <STableHRow justifyContent="center">Editar</STableHRow>
+          <STableHRow justifyContent="center">Ações</STableHRow>
         </STableHeader>
         <STableBody<(typeof exams)[0]>
           rowsData={exams}
@@ -252,13 +254,21 @@ export const ExamsRiskTable: FC<
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                   disabled
                 /> */}
-                <IconButtonRow
-                  icon={<EditIcon />}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditExam(row);
-                  }}
-                />
+                <SFlex>
+                  <IconButtonRow
+                    icon={<EditIcon />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditExam(row);
+                    }}
+                  />
+                  {/* <IconButtonRow
+                    icon={<SDeleteIcon />}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                  /> */}
+                </SFlex>
               </STableRow>
             );
           }}

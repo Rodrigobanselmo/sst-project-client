@@ -25,10 +25,15 @@ const Database: NextPage = () => {
       // companyId: 'bff1cbc6-347a-4539-b677-43e415d50f7e', // Clinica Leandro
       // documentDataId: 'ebc15805-d3e6-4083-8cad-6bc15e43b4e5', // Clinica Leandro
 
-      riskGroupId: '9579bdb8-fa4f-4659-aa58-c11bf023ea6a', // JAN ARua DP
-      workspaceId: 'd2319c30-5c95-4284-bb9e-847957b72abb', // JAN ARua DP
-      companyId: '8bbaf541-6066-49e8-82b9-5cd4193f2b35', // JAN ARua DP
-      documentDataId: '57e03e59-43c7-4cee-8d62-1a25c6e11d63', // JAN ARua DP
+      // riskGroupId: '9579bdb8-fa4f-4659-aa58-c11bf023ea6a', // JAN ARua DP
+      // workspaceId: 'd2319c30-5c95-4284-bb9e-847957b72abb', // JAN ARua DP
+      // companyId: '8bbaf541-6066-49e8-82b9-5cd4193f2b35', // JAN ARua DP
+      // documentDataId: '57e03e59-43c7-4cee-8d62-1a25c6e11d63', // JAN ARua DP
+
+      riskGroupId: '9579bdb8-fa4f-4659-aa58-c11bf023ea6a', // DIDIO PCMSO
+      workspaceId: 'e7bda7a3-15a8-4276-8b5c-4dcbf3a8fee1', // DIDIO PCMSO
+      companyId: '9b078ac2-99f2-44d6-968e-8d8860df4d81', // DIDIO PCMSO
+      documentDataId: 'ab9484ef-d0a7-4b02-b56b-cb73b9617a38', // DIDIO PCMSO
 
       // riskGroupId: 'aa9cd6bc-a428-4595-a422-f994bc3a01ca', // marjan
       // workspaceId: '2387c37c-9676-4c99-9001-dda5da3b5d93', // marjan

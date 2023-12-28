@@ -46,7 +46,8 @@ export const ImageGalleryTable: FC<
       hideTitle?: boolean;
       freeAspect?: boolean;
       companyId?: string;
-      types?: ImagesTypeEnum[];
+      createTypes?: ImagesTypeEnum[];
+      searchTypes?: ImagesTypeEnum[];
       selectedData?: IImageGallery[];
     }
 > = ({
@@ -55,7 +56,8 @@ export const ImageGalleryTable: FC<
   hideTitle,
   companyId,
   freeAspect = true,
-  types,
+  createTypes,
+  searchTypes,
   selectedData,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
@@ -64,7 +66,12 @@ export const ImageGalleryTable: FC<
     data: images,
     isLoading: loadImages,
     count,
-  } = useQueryImagesGalleries(page, { search }, rowsPerPage, companyId);
+  } = useQueryImagesGalleries(
+    page,
+    { search, types: searchTypes },
+    rowsPerPage,
+    companyId,
+  );
 
   const isSelect = !!onSelectData;
 
@@ -85,7 +92,7 @@ export const ImageGalleryTable: FC<
               file: photo.file,
               name: photo.name,
               companyId,
-              types,
+              types: createTypes,
             })
             .catch(() => {});
         }
@@ -112,7 +119,7 @@ export const ImageGalleryTable: FC<
             file: photo.file,
             name: photo.name,
             companyId,
-            types,
+            types: createTypes,
           })
           .catch(() => {});
       },

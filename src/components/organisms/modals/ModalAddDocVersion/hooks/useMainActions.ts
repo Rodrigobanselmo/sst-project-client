@@ -99,6 +99,7 @@ export const useMainActions = <T>({
     doc,
     getModalData,
     initialState,
+    type,
   };
 };
 

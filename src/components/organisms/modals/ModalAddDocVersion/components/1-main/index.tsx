@@ -58,6 +58,9 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
                   model: data,
                 }));
               }}
+              query={{
+                type: props?.type,
+              }}
               inputProps={{
                 labelPosition: 'top',
                 placeholder: 'selecione...',

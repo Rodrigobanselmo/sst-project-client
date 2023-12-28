@@ -31,7 +31,7 @@ export const ImagesStep = (data: IUseDocumentModel) => {
     },
   ] as IModalButton[];
 
-  const types = [ImagesTypeEnum.DOCS];
+  const types = [ImagesTypeEnum.DOCS, ImagesTypeEnum.OTHERS];
   if (DocumentTypeEnum.PGR == props.data.type) types.push(ImagesTypeEnum.PGR);
   else if (DocumentTypeEnum.PCSMO == props.data.type)
     types.push(ImagesTypeEnum.PCMSO);
@@ -43,7 +43,8 @@ export const ImagesStep = (data: IUseDocumentModel) => {
       <AnimatedStep>
         <Box>
           <ImageGalleryTable
-            types={types}
+            searchTypes={types}
+            createTypes={[types.at(-1) as ImagesTypeEnum]}
             companyId={data.data?.companyId}
             hideTitle
           />

@@ -22,6 +22,7 @@ export const ModalEditExamRisk = () => {
     examData,
     loading,
     isEdit,
+    onRemove,
   } = props;
 
   const buttons = [
@@ -50,6 +51,7 @@ export const ModalEditExamRisk = () => {
           tag={examData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
           title={'Adicionar Exame'}
+          onDelete={onRemove}
         />
 
         <ModalExamStep {...props} />

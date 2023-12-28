@@ -161,29 +161,28 @@ export const ModalExamStep = ({
             sx={{ minWidth: [300] }}
             options={[3, 6, 9, 12, 18, 24]}
           /> */}
+          <AutocompleteForm
+            name="considerBetweenDays"
+            control={control}
+            filterOptions={(x) => x}
+            freeSolo
+            getOptionLabel={(option) => String(option)}
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'dias...',
+              name: 'considerBetweenDays',
+              helpText:
+                'Exemplo (considerando valor de 60 dias entre ocupacional): caso seja necessaria realizar o exame periódico, o sistema irá verificar se o exame coplementar está com validade superior a 60 dias, se sim, não será solicitado a realização do exame. No caso da validade ser inferior a 60 dias, um novo exame será solicitado',
+            }}
+            setValue={(v) => setValue('considerBetweenDays', String(v))}
+            defaultValue={examData.considerBetweenDays || ''}
+            mask={intMask.apply}
+            label="Considerar (dias entre ocupacional)"
+            sx={{ width: [300] }}
+            options={[30, 60, 90, 120, 180, 240, 300]}
+          />
         </Box>
       </SFlex>
-
-      <AutocompleteForm
-        name="considerBetweenDays"
-        control={control}
-        filterOptions={(x) => x}
-        freeSolo
-        getOptionLabel={(option) => String(option)}
-        inputProps={{
-          labelPosition: 'top',
-          placeholder: 'dias...',
-          name: 'considerBetweenDays',
-          helpText:
-            'Exemplo (considerando valor de 60 dias entre ocupacional): caso seja necessaria realizar o exame periódico, o sistema irá verificar se o exame coplementar está com validade superior a 60 dias, se sim, não será solicitado a realização do exame. No caso da validade ser inferior a 60 dias, um novo exame será solicitado',
-        }}
-        setValue={(v) => setValue('considerBetweenDays', String(v))}
-        defaultValue={examData.considerBetweenDays || ''}
-        mask={intMask.apply}
-        label="Considerar (dias entre ocupacional)"
-        sx={{ width: [300], mt: 10 }}
-        options={[30, 60, 90, 120, 180, 240, 300]}
-      />
 
       <SFlex gap={5} flexDirection={'column'} mt={10} flexWrap="wrap">
         {!examData.isAll && (

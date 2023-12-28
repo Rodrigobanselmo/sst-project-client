@@ -200,7 +200,7 @@ export const ModalCharacterizationContent = (
               return (
                 <STagButton
                   key={profile.id}
-                  text={`${profile.name}`}
+                  text={`${profile.profileName}`}
                   large
                   onClick={() => onChangeProfile(profile.id)}
                   minWidth={80}

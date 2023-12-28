@@ -1,6 +1,6 @@
 export enum EsocialCodeEnum {
   RADIACAO = '02.01.006',
-  CALOR = '02.01.002',
+  CALOR = '02.01.014',
   RUIDO = '02.01.001',
   VIBRACAO_LOCALIZADA = '02.01.002',
   VIBRACAO_CORPO = '02.01.004',

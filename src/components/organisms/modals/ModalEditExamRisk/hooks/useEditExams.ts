@@ -22,6 +22,7 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { RiskEnum } from 'project/enum/risk.enums';
 import { useSnackbar } from 'notistack';
+import { useMutDeleteExamRisk } from 'core/services/hooks/mutations/checklist/exams/useMutDeleteExamRisk/useMutDeleteExamRisk';
 
 export const initialExamRiskState = {
   id: 0,
@@ -74,7 +75,7 @@ export const useEditExams = () => {
     resolver: yupResolver(examRiskSchema),
   });
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const [examData, setExamData] = useState({
     ...initialExamRiskState,
@@ -82,6 +83,7 @@ export const useEditExams = () => {
 
   const createMutation = useMutCreateExamRisk();
   const updateMutation = useMutUpdateExamRisk();
+  const deleteMutation = useMutDeleteExamRisk();
 
   useEffect(() => {
     const initialData = getModalData<Partial<typeof initialExamRiskState>>(
@@ -221,6 +223,20 @@ export const useEditExams = () => {
     }));
   };
 
+  const onRemove = async () => {
+    const remove = async () => {
+      if (examData.id && companyId)
+        await deleteMutation.mutateAsync({
+          id: examData.id,
+          companyId: companyId,
+        });
+
+      onClose();
+    };
+
+    preventDelete(remove);
+  };
+
   const isEdit = !!examData?.id;
 
   return {
@@ -236,6 +252,7 @@ export const useEditExams = () => {
     switchRef,
     isEdit,
     onSelectCheck,
+    onRemove,
     setValue,
   };
 };

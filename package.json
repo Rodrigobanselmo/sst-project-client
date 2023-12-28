@@ -75,7 +75,7 @@
     "react-konva": "^18.2.8",
     "react-no-ssr": "^1.1.0",
     "react-pdf-html": "^1.1.10",
-    "react-query": "^3.34.0",
+    "react-query": "^3.39.3",
     "react-redux": "^8.0.5",
     "react-step-wizard": "^5.3.11",
     "react-use-measure": "^2.1.1",
