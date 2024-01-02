@@ -42,7 +42,6 @@ export const STSTableRow = styled(Box)<{
   clickable: number;
   status?: 'inactive' | 'warn' | 'info' | 'success' | 'fade' | 'none';
 }>`
-  flex-shrink: 0;
   -webkit-box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
   box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
   background-color: ${({ theme }) => theme.palette.background.paper};
@@ -54,10 +53,16 @@ export const STSTableRow = styled(Box)<{
     background-color: ${({ theme }) => theme.palette.background.paper};
   }
 
+  .table-row-box {
+    z-index: 1;
+    height: fit-content;
+  }
+
   ${(props) =>
     props.clickable &&
     css`
       .table-row-box {
+        height: fit-content;
         cursor: pointer;
       }
 
