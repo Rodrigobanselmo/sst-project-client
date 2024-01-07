@@ -45,19 +45,16 @@ export const usePCMSOHandleModal = () => {
     // eslint-disable-next-line prettier/prettier
     if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
       setData((oldData) => {
-        const documentPGR: Partial<IPGRDocumentData> =
-          doc?.type == DocumentTypeEnum.PGR ? doc : {};
-
         const newData = {
           ...initialState,
           ...oldData,
           ...initialData,
-          ...documentPGR,
+          ...doc,
           json: {
             ...initialState.json,
             ...oldData.json,
             ...initialData?.json,
-            ...documentPGR?.json,
+            ...doc?.json,
           },
           type: DocumentTypeEnum.PCSMO,
         };

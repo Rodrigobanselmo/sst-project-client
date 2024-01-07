@@ -60,7 +60,7 @@ export const DocumentsStage = ({
         <>
           <DocTable
             type={DocumentTypeEnum.PGR}
-            query={{ type: DocumentTypeEnum.PCSMO }}
+            query={{ type: DocumentTypeEnum.PGR }}
           />
           <ModalAddDocPGRVersion />
         </>

@@ -52,7 +52,7 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
             dateToString(data?.validityStart, 'MM/YYYY') ||
             dayjs().format('MM/YYYY')
           }
-          label="Início da vigência do PGR"
+          label="Início da vigência do documento"
           control={control}
           placeholder={'00/0000'}
           name="validityStart"
@@ -69,7 +69,7 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
               ? dayjs().add(3, 'years').format('MM/YYYY')
               : dayjs().add(2, 'years').format('MM/YYYY'))
           }
-          label="Expiração do PGR"
+          label="Expiração do documento"
           control={control}
           placeholder={'00/0000'}
           name="validityEnd"
@@ -97,7 +97,7 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
             professional?.professionalDocumentDataSignature?.isElaborator;
           return (
             <>
-              <STooltip withWrapper title="Assinar Documento PGR">
+              <STooltip withWrapper title="Assinar Documento">
                 <SIconButton
                   size="small"
                   onClick={() => {
@@ -113,7 +113,7 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
                   />
                 </SIconButton>
               </STooltip>
-              <STooltip withWrapper title="Elaborador Documento PGR">
+              <STooltip withWrapper title="Elaborador Documento">
                 <SIconButton
                   size="small"
                   onClick={() => {

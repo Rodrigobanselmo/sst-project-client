@@ -56,7 +56,7 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { SActionButton } from '../../../../../../components/atoms/SActionButton';
 import { CharacterizationStage } from './components/CharacterizationStage/CharacterizationStage';
 import { CompanyStage } from './components/CompanyStage/CompanyStage';
-import { DocumentsStage } from './components/DocumentsStage /DocumentsStage ';
+import { DocumentsStage } from './components/DocumentsStage /DocumentsStage';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
 import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
 import { SActionStepCheck } from 'components/atoms/SActionStepCheck';

@@ -102,13 +102,14 @@ export const DocTable: FC<
   const onGenerateVersion = async () => {
     const initialWorkspaceState = {
       title: 'Selecione o estabelecimento para o Sistema de Gestão SST',
-      onSelect: (work: IWorkspace) =>
+      onSelect: (work: IWorkspace) => {
         onOpenModal(ModalEnum.DOCUMENT_DATA_UPSERT, {
           workspaceId: work.id,
           workspaceName: work.name,
           companyId,
           type,
-        } as typeof initialMainDocState),
+        } as typeof initialMainDocState);
+      },
     } as typeof initialWorkspaceSelectState;
 
     onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);

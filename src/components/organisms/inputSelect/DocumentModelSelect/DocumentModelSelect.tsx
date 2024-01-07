@@ -1,6 +1,6 @@
 import React, { FC, useState } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { useDebouncedCallback } from 'use-debounce';
@@ -9,6 +9,7 @@ import { useQueryCities } from 'core/services/hooks/queries/useQueryCities/useQu
 import { useQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocumentModels/useQueryDocumentModels';
 
 import { IDocumentModelSelectProps } from './types';
+import SText from 'components/atoms/SText';
 
 export const DocumentModelSelect: FC<
   { children?: any } & IDocumentModelSelectProps
@@ -19,18 +20,28 @@ export const DocumentModelSelect: FC<
     setSearch(value);
   }, 300);
 
-  const { data: tables, isLoading: loadTables } = useQueryDocumentModels(
+  const { data: docModels, isLoading: loadTables } = useQueryDocumentModels(
     1,
     { search, ...query },
     20,
   );
+
+  if (!docModels?.length)
+    return (
+      <>
+        <SText fontSize={14} mb={5}>
+          Selecionar Modelo dodocumento
+        </SText>
+        <CircularProgress color="primary" size={18} />
+      </>
+    );
 
   return (
     <AutocompleteForm
       getOptionLabel={(option) =>
         typeof option != 'string' && option?.name ? `${option.name}` : ''
       }
-      options={tables}
+      options={docModels}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}
       filterOptions={(e) => e}
