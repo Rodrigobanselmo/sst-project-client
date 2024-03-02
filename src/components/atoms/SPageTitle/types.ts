@@ -9,4 +9,5 @@ export interface SPageTitleProps extends STextProps {
   icon?: ElementType<any>;
   iconSx?: SxProps<Theme>;
   subtitle?: ReactNode;
+  rightElement?: ReactNode;
 }

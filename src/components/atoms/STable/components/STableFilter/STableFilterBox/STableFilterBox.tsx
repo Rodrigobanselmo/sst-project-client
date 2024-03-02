@@ -353,12 +353,19 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
         ) && <Divider sx={{ mb: 2, mt: 2 }} />}
       </>
 
-      <SFlex gap={3} direction={'column'}>
+      <SFlex gap={10} direction={'column'}>
         {filters[FilterFieldEnum.COMPANIES] && (
-          <STagButtonLabelLeft text="Empresas">
-            <STagButton
-              width="60px"
-              text={'Filtrar'}
+          <STagButtonLabelLeft text="Empresas" width="100%">
+            <SInput
+              superSmall
+              fullWidth
+              sx={{ width: '385px' }}
+              placeholder="Empresa"
+              value=""
+              onChange={() => {
+                filterProps.onFilterCompanies();
+                closePopper?.();
+              }}
               onClick={() => {
                 filterProps.onFilterCompanies();
                 closePopper?.();
@@ -368,9 +375,16 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
         )}
         {filters[FilterFieldEnum.COMPANIES_GROUP] && (
           <STagButtonLabelLeft text="Grupos Empresariais">
-            <STagButton
-              width="60px"
-              text={'Filtrar'}
+            <SInput
+              fullWidth
+              superSmall
+              sx={{ width: '308px' }}
+              placeholder="Grupos Empresarial"
+              value=""
+              onChange={() => {
+                filterProps.onFilterCompanies({ isGroup: true });
+                closePopper?.();
+              }}
               onClick={() => {
                 filterProps.onFilterCompanies({ isGroup: true });
                 closePopper?.();
@@ -398,7 +412,7 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
         ].find((i) => filters[i]) && <Divider sx={{ mb: 2, mt: 2 }} />}
       </SFlex>
 
-      {filters[FilterFieldEnum.DOWNLOAD_TYPE] && (
+      {false && filters[FilterFieldEnum.DOWNLOAD_TYPE] && (
         <Box mt={10} overflow={'hidden'}>
           <RadioFormText
             setValue={setValue}

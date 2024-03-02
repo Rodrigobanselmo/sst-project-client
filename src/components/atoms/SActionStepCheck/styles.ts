@@ -9,10 +9,6 @@ interface IProps {
 }
 
 export const STBox = styled(Box)<IProps>`
-  // padding: ${(props) => props.theme.spacing(0, 4)};
-  // background-color: ${(props) => props.theme.palette.common.white};
-  // box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-  // border: 1px solid ${(props) => props.theme.palette.grey[500]};
   border-radius: ${(props) => props.theme.spacing(4)};
   gap: 10px;
   cursor: pointer;
@@ -20,7 +16,6 @@ export const STBox = styled(Box)<IProps>`
   display: flex;
   flex-direction: row;
   flex-wrap: nowrap;
-  min-width: 200px;
   align-items: center;
 
   &:hover {

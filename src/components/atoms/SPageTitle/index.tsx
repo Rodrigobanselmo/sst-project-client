@@ -13,6 +13,7 @@ const SPageTitle: FC<{ children?: any } & SPageTitleProps> = ({
   mb = 12,
   mt = 0,
   subtitle,
+  rightElement,
   ...props
 }) => (
   <Box mb={mb} mt={mt}>
@@ -30,6 +31,7 @@ const SPageTitle: FC<{ children?: any } & SPageTitleProps> = ({
       >
         {children}
       </SText>
+      {rightElement}
     </SFlex>
     {subtitle && typeof subtitle === 'string' && (
       <SText mt={2}>{subtitle}</SText>

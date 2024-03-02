@@ -20,7 +20,7 @@ export const SActionStepCheck = ({
   ...props
 }: ISActionButtonProps) => {
   return (
-    <STooltip title={tooltipText}>
+    <STooltip title={tooltipText} placement="right">
       <STBox
         active={count ? 1 : 0}
         disabled={disabled || loading ? 1 : 0}
