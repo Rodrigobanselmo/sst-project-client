@@ -60,8 +60,12 @@ import { DocumentsStage } from './components/DocumentsStage /DocumentsStage';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
 import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
 import { SActionStepCheck } from 'components/atoms/SActionStepCheck';
+import { SButton } from 'components/atoms/SButton';
+import { useModal } from 'core/hooks/useModal';
+import { ModalEnum } from 'core/enums/modal.enums';
 
 const CompanyPage: NextPage = () => {
+  const { onStackOpenModal } = useModal();
   const props = useCompanyStep();
 
   const {
@@ -81,29 +85,38 @@ const CompanyPage: NextPage = () => {
       <SHeaderTag hideInitial title={companyName} />
 
       <SContainer>
-        <SPageTitle icon={SClinicIcon}>{companyName}</SPageTitle>
-
-        {/* {stepsActions.length != 0 && (
-          <SFlex align={'center'} mt={5} gap={5} overflow="auto" mb={15}>
-            {stepsActions.map(({ ...props }, index) => (
-              <>
-                {index == 0 && <SText fontSize={12}>Proximos passos</SText>}
-                <Icon
-                  component={SArrowNextIcon}
-                  sx={{
-                    fontSize: '0.7rem',
-                  }}
-                />
-                <SActionNextButton key={props.text} {...props} />
-              </>
-            ))}
-          </SFlex>
-        )} */}
+        <SPageTitle
+          icon={SClinicIcon}
+          rightElement={
+            <Box ml="auto">
+              <SFlex gap={5}>
+                <SButton
+                  variant="outlined"
+                  size="small"
+                  color="secondary"
+                  onClick={() => console.log('upload')}
+                >
+                  Importar Planilha
+                </SButton>
+                <SButton
+                  variant="outlined"
+                  size="small"
+                  color="secondary"
+                  onClick={() => onStackOpenModal(ModalEnum.REPORT_SELECT)}
+                >
+                  Baixar Relatorios
+                </SButton>
+              </SFlex>
+            </Box>
+          }
+        >
+          {companyName}
+        </SPageTitle>
 
         {stepsActionsList.length != 0 && (
-          <SFlex mt={5} gap={5} overflow="auto" mb={15}>
+          <SFlex mt={5} gap={35} overflow="auto" mb={15}>
             {stepsActionsList.map(({ group, items }) => (
-              <Box key={group}>
+              <Box key={group} minWidth="fit-content">
                 <SText fontSize={12}>{group}</SText>
                 <Box mt={3} gap={2} display={'flex'} flexDirection={'column'}>
                   {items.map(({ ...props }, index) => (
