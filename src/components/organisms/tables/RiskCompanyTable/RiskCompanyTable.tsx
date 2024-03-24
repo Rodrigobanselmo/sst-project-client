@@ -25,7 +25,7 @@ import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/componen
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { QueryEnum } from 'core/enums/query.enums';
-import { usePushRoute } from 'core/hooks/usePushRoute';
+import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { useThrottle } from 'core/hooks/useThrottle';
 import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';

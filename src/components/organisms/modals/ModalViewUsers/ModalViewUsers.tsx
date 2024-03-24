@@ -16,6 +16,8 @@ import { UsersTable } from 'components/organisms/tables/UsersTable';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 
 export const initialUsersViewState = {
   title: 'Usuários',
@@ -26,6 +28,8 @@ export const ModalViewUsers: FC = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const [selectData, setSelectData] = useState(initialUsersViewState);
+  const { data: company } = useQueryCompany();
+  const companyName = getCompanyName(company);
 
   useEffect(() => {
     const initialData = getModalData(
@@ -67,7 +71,14 @@ export const ModalViewUsers: FC = () => {
         <SModalHeader tag={'select'} onClose={onCloseNoSelect} title=" " />
 
         <Box mt={8} mb={20}>
-          <UsersTable />
+          <UsersTable
+            title={
+              <>
+                Usuários{' '}
+                <span style={{ fontSize: 14 }}>{`(${companyName})`}</span>
+              </>
+            }
+          />
         </Box>
 
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

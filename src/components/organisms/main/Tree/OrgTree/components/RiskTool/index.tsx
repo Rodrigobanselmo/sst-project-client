@@ -30,7 +30,7 @@ import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
-import { usePushRoute } from 'core/hooks/usePushRoute';
+import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';

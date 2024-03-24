@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, ReactNode } from 'react';
 
 import { BoxProps } from '@mui/material';
 import {
@@ -45,7 +45,9 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryInvites } from 'core/services/hooks/queries/useQueryInvites';
 import { useQueryUsers } from 'core/services/hooks/queries/useQueryUsers';
 
-export const UsersTable: FC<{ children?: any } & BoxProps> = () => {
+export const UsersTable: FC<
+  { children?: any; title: ReactNode } & Omit<BoxProps, 'title'>
+> = ({ title = 'Usuários' }) => {
   const { data: users, isLoading } = useQueryUsers();
   const { data: invites, isLoading: isLoadingInvites } = useQueryInvites();
   const { data: company } = useQueryCompany();
@@ -102,7 +104,7 @@ export const UsersTable: FC<{ children?: any } & BoxProps> = () => {
           company.unit ? ` - ${company.unit}` : ''
         })`}{' '}
       </SText> */}
-      <STableTitle icon={STeamIcon}>Usuários</STableTitle>
+      <STableTitle icon={STeamIcon}>{title}</STableTitle>
 
       <STableSearch
         placeholder="Pesquisar pelo nome..."

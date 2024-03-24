@@ -2,6 +2,9 @@ import * as React from 'react';
 import Fuse from 'fuse.js';
 import { ActionImpl, Priority, useKBar } from 'kbar';
 import { useThrottledValue } from 'kbar/lib/utils';
+import { KBarResultListProps } from '../KBarResultList';
+import { useAuthShow } from 'components/molecules/SAuthShow';
+import { stringNormalize } from 'core/utils/strings/stringNormalize';
 
 export const NO_GROUP = {
   name: 'none',
@@ -15,6 +18,7 @@ function order(a, b) {
 type SectionName = string;
 
 export function useMatches() {
+  const { isAuthSuccess } = useAuthShow();
   const { search, actions, rootActionId } = useKBar((state) => ({
     search: state.searchQuery,
     actions: state.actions,
@@ -63,34 +67,17 @@ export function useMatches() {
   const emptySearch = !search;
 
   const filtered = React.useMemo(() => {
-    if (emptySearch) return rootResults;
-    return getDeepResults(rootResults);
-  }, [getDeepResults, rootResults, emptySearch]);
+    let results: KBarResultListProps[] = rootResults;
+    if (emptySearch) {
+      results = rootResults;
+    } else {
+      results = getDeepResults(rootResults);
+    }
 
-  const fuse = React.useMemo(
-    () =>
-      new Fuse(filtered, {
-        keys: [
-          {
-            name: 'name',
-            weight: 0.5,
-          },
-          {
-            name: 'keywords',
-            weight: 0.5,
-          },
-          'subtitle',
-        ],
-        ignoreLocation: true,
-        includeScore: true,
-        includeMatches: true,
-        threshold: 0.5,
-        minMatchCharLength: 1,
-      }),
-    [filtered],
-  );
+    return results.filter((action) => isAuthSuccess(action.authProps || {}));
+  }, [rootResults, emptySearch, getDeepResults, isAuthSuccess]);
 
-  const matches = useInternalMatches(filtered, search, fuse);
+  const matches = useInternalMatches(filtered, search);
 
   const results = React.useMemo(() => {
     const map: Record<SectionName, { priority: number; action: ActionImpl }[]> =
@@ -158,11 +145,7 @@ type Match = {
   score: number;
 };
 
-function useInternalMatches(
-  filtered: ActionImpl[],
-  search: string,
-  fuse: Fuse<ActionImpl>,
-) {
+function useInternalMatches(filtered: ActionImpl[], search: string) {
   const value = React.useMemo(
     () => ({
       filtered,
@@ -179,13 +162,24 @@ function useInternalMatches(
       return throttledFiltered.map((action) => ({ score: 0, action }));
     }
 
+    const keysArray = stringNormalize(throttledSearch)
+      .split(' ')
+      .filter(Boolean);
+
     let matches: Match[] = [];
-    const searchResults = fuse.search(throttledSearch);
-    matches = searchResults.map(({ item: action, score }) => ({
-      score: 1 / ((score ?? 0) + 1),
+
+    const filteredArray = throttledFiltered.filter((item) => {
+      const itemKeywords = item.keywords?.split(' ') || [];
+      return keysArray.every((key) =>
+        itemKeywords.some((keyword) => keyword.includes(key)),
+      );
+    });
+
+    matches = filteredArray.map((action) => ({
+      score: 0,
       action,
     }));
 
     return matches;
-  }, [throttledFiltered, throttledSearch, fuse]) as Match[];
+  }, [throttledFiltered, throttledSearch]) as Match[];
 }

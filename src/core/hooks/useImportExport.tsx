@@ -22,10 +22,12 @@ export const useImportExport = () => {
       pathApi,
       payload,
       onUpload,
+      title,
     }: {
       companyId: string;
       type: ReportTypeEnum;
       pathApi: string;
+      title?: string;
       payload?: any;
       onUpload?: () => void;
     }) => {
@@ -51,6 +53,7 @@ export const useImportExport = () => {
             })
             .catch(() => null);
         },
+        title,
       } as Partial<typeof initialModalImportExport>);
     },
     [onCloseModal, onStackOpenModal, reportMutation, uploadMutation],

@@ -11,51 +11,32 @@ import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSe
 import { initialDocumentModelsViewState } from 'components/organisms/modals/ModalViewDocumentModels/ModalViewDocumentModels';
 import { useRouter } from 'next/router';
 
-import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
-import { GetCompanyStructureResponse } from 'core/services/hooks/mutations/general/useMutUploadFile/types';
 import { useMutSetApplyServiceCompany } from 'core/services/hooks/mutations/manager/company/useMutSetApplyServiceCompany/useMutSetApplyServiceCompany';
 import { useMutSetClinicsCompany } from 'core/services/hooks/mutations/manager/company/useMutSetClinicsCompany';
-import { ReportTypeEnum } from 'core/services/hooks/mutations/reports/useMutReport/types';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocumentModels/useQueryDocumentModels';
-import { useImportExport } from './useImportExport';
-import { queryClient } from 'core/services/queryClient';
-import { QueryEnum } from 'core/enums/query.enums';
+import { useEmployeeActions } from './useEmployeeActions';
+import { useCompanyActions } from './useCompanyActions';
+import { useCharacterizationActions } from './useCharacterizationActions';
 
 export const usePushRoute = () => {
   const { data: company } = useQueryCompany();
   const { push, asPath } = useRouter();
   const { onOpenRiskToolSelected, onStackOpenModal } = useOpenRiskTool();
+  const { onImportEmployee } = useEmployeeActions();
+  const { onEditApplyServiceCompany, onAddWorspace } = useCompanyActions();
+  const { onViewCharacterization } = useCharacterizationActions();
 
   const setClinicsMutation = useMutSetClinicsCompany();
-  const setApplyCompanyMutation = useMutSetApplyServiceCompany();
-  const { handleUploadTable } = useImportExport();
 
   const handleAddEmployees = useCallback(() => {
     if (!company.employeeCount && !company.hierarchyCount) {
-      handleUploadTable({
-        companyId: company.id,
-        pathApi: ApiRoutesEnum.UPLOAD_COMPANY_STRUCTURE.replace(
-          ':companyId',
-          company.id,
-        ),
-        onUpload: () => {
-          queryClient.invalidateQueries([QueryEnum.COMPANY, company.id]);
-          queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
-        },
-        type: ReportTypeEnum.MODEL_EMPLOYEE,
-        payload: {
-          createEmployee: true,
-          createHierarchy: true,
-          createHomo: true,
-          createHierOnHomo: true,
-        } as GetCompanyStructureResponse,
-      });
+      onImportEmployee({ shouldPush: false });
     } else {
       push({
         pathname: RoutesEnum.EMPLOYEES.replace(':companyId', company.id),
@@ -65,49 +46,9 @@ export const usePushRoute = () => {
     company.employeeCount,
     company.hierarchyCount,
     company.id,
-    handleUploadTable,
+    onImportEmployee,
     push,
   ]);
-
-  const handleAddCharacterization = useCallback(() => {
-    const workspaceLength = company?.workspace?.length || 0;
-    const goToEnv = (workId: string) => {
-      push({
-        pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
-          ':companyId',
-          company.id,
-        ).replace(':workspaceId', workId)}/${CharacterizationEnum.ALL}`,
-      });
-    };
-
-    if (workspaceLength != 1) {
-      const initialWorkspaceState = {
-        title: 'Selecione para qual Estabelecimento deseja adicionar',
-        onSelect: (workspace: IWorkspace) => goToEnv(workspace.id),
-      } as typeof initialWorkspaceSelectState;
-
-      onStackOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
-    }
-
-    if (!company?.workspace) return;
-    if (workspaceLength == 1) goToEnv(company.workspace[0].id);
-  }, [company.id, company?.workspace, onStackOpenModal, push]);
-
-  const handleAddWorkspace = useCallback(() => {
-    const data: Partial<typeof initialWorkspaceState> = {
-      name: company.type,
-      cep: company?.address?.cep,
-      number: company?.address?.number,
-      city: company?.address?.city,
-      complement: company?.address?.complement,
-      state: company?.address?.state,
-      street: company?.address?.street,
-      neighborhood: company?.address?.neighborhood,
-    };
-
-    const isFirstWorkspace = company.workspace && company.workspace.length == 0;
-    onStackOpenModal(ModalEnum.WORKSPACE_ADD, isFirstWorkspace ? data : {});
-  }, [company, onStackOpenModal]);
 
   const handleAddClinic = useCallback(
     (_company?: ICompany) => {
@@ -133,34 +74,6 @@ export const usePushRoute = () => {
       } as Partial<typeof initialClinicSelectState>);
     },
     [company, onStackOpenModal, setClinicsMutation],
-  );
-
-  const handleSetApplyServiceCompany = useCallback(
-    (_company?: ICompany) => {
-      const __company = _company || company;
-
-      onStackOpenModal(ModalEnum.COMPANY_SELECT, {
-        title: 'Selecione as empresas que tem acesso aos seus dados',
-        ...(__company.receivingServiceContracts?.length && {
-          query: {
-            companiesIds: __company.receivingServiceContracts.map(
-              (rec) => rec.applyingServiceCompanyId,
-            ),
-          },
-        }),
-        selected:
-          __company?.receivingServiceContracts?.map((rec) => ({
-            id: rec.applyingServiceCompanyId,
-          })) || [],
-        onSelect: (company: ICompany[]) =>
-          setApplyCompanyMutation.mutate({
-            companyId: __company.id,
-            applyServiceIds: company.map(({ id }) => id),
-          }),
-        multiple: true,
-      } as Partial<typeof initialCompanySelectState>);
-    },
-    [company, onStackOpenModal, setApplyCompanyMutation],
   );
 
   const handleEditDocumentModel = (
@@ -206,11 +119,11 @@ export const usePushRoute = () => {
   }, [onOpenRiskToolSelected, onStackOpenModal]);
 
   return {
-    handleAddCharacterization,
+    handleAddCharacterization: () => onViewCharacterization({}),
     handleAddEmployees,
-    handleAddWorkspace,
+    handleAddWorkspace: onAddWorspace,
     handleAddClinic,
-    handleSetApplyServiceCompany,
+    handleSetApplyServiceCompany: onEditApplyServiceCompany,
     setClinicsMutation,
     handleEditDocumentModel,
     handleGoToRisk,

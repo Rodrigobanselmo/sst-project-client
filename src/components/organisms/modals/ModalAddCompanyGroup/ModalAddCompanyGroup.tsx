@@ -24,7 +24,7 @@ import { ProfessionalTypeEnum } from 'project/enum/professional-type.enum';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { usePushRoute } from 'core/hooks/usePushRoute';
+import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { dateToDate } from 'core/utils/date/date-format';
 
 import { CompanyTag } from '../ModalAddUsers/components/CompanyTag';

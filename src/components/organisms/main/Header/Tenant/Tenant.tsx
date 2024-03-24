@@ -20,9 +20,9 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { brandNameConstant } from '../../../../../core/constants/brand.constant';
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { useLocation } from './hooks/useTenant';
+import { IdsEnum } from 'core/enums/ids.enums';
 
 export const STBox = styled(Box)`
-  display: flex;
   align-items: center;
   padding: 3px 7px;
   padding-right: 10px;
@@ -44,22 +44,23 @@ export function Tenant(): JSX.Element {
   const { isTablet } = useSidebarDrawer();
   const { companyName, onDropSelect } = useLocation();
   return (
-    <>
-      {!isTablet && (
-        <STBox ml="auto" onClick={() => onDropSelect?.()}>
-          <SArrowUpFilterIcon
-            sx={{
-              fontSize: '23px',
-              mt: 0,
-              mr: 1,
-              transform: 'rotate(-180deg)',
-            }}
-          />
-          <SText maxWidth={200} minWidth={150} lineNumber={1} fontSize={11}>
-            {companyName}
-          </SText>
-        </STBox>
-      )}
-    </>
+    <STBox
+      ml="auto"
+      display={isTablet ? 'none' : 'flex'}
+      onClick={() => onDropSelect?.()}
+      id={IdsEnum.COMPANY_SELECT_NAVBAR}
+    >
+      <SArrowUpFilterIcon
+        sx={{
+          fontSize: '23px',
+          mt: 0,
+          mr: 1,
+          transform: 'rotate(-180deg)',
+        }}
+      />
+      <SText maxWidth={200} minWidth={150} lineNumber={1} fontSize={11}>
+        {companyName}
+      </SText>
+    </STBox>
   );
 }

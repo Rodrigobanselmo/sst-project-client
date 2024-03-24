@@ -10,6 +10,8 @@ import { RoutesEnum } from '../../core/enums/routes.enums';
 import globalStylesDashboard from '../../core/styles/globalStylesDashboard';
 import { DashboardLoadingFeedback } from './loading';
 import { STBoxContent, STBoxSidebar, STGridBox } from './styles';
+import { KBarProvider } from 'kbar';
+import { KBarRegisterDashboard } from 'layouts/default/KBar/KBarProvider';
 
 export const DashboardLayout: FC<React.PropsWithChildren<any>> = ({
   children,
@@ -35,16 +37,19 @@ export const DashboardLayout: FC<React.PropsWithChildren<any>> = ({
     return <LoadingFeedback>{children}</LoadingFeedback>;
 
   return (
-    <SidebarDrawerProvider>
-      <Global styles={globalStylesDashboard} />
-      <STGridBox p={2} pl={0}>
-        <STBoxSidebar>
-          <Sidebar />
-        </STBoxSidebar>
-        <STBoxContent borderRadius={3}>
-          <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
-        </STBoxContent>
-      </STGridBox>
-    </SidebarDrawerProvider>
+    <>
+      <KBarRegisterDashboard />
+      <SidebarDrawerProvider>
+        <Global styles={globalStylesDashboard} />
+        <STGridBox p={2} pl={0}>
+          <STBoxSidebar>
+            <Sidebar />
+          </STBoxSidebar>
+          <STBoxContent borderRadius={3}>
+            <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
+          </STBoxContent>
+        </STGridBox>
+      </SidebarDrawerProvider>
+    </>
   );
 };

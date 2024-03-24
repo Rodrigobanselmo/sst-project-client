@@ -7,6 +7,7 @@ import { Location } from './Location';
 import { NotificationNav } from './NotificationNav';
 import { Profile } from './Profile';
 import { Tenant } from './Tenant/Tenant';
+import { SearchBar } from './SearchBar/SearchBar';
 
 export function Header(): JSX.Element {
   const { open, isTablet } = useSidebarDrawer();
@@ -43,6 +44,7 @@ export function Header(): JSX.Element {
         }}
         ml="auto"
       >
+        <SearchBar />
         <Tenant />
         <NotificationNav />
         <Profile showProfileData={!isTablet} />

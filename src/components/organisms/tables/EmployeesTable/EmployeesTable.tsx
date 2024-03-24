@@ -101,7 +101,10 @@ export const EmployeesTable: FC<
   };
 
   const onAddEmployee = () => {
-    onStackOpenModal(ModalEnum.EMPLOYEES_ADD);
+    onStackOpenModal(ModalEnum.EMPLOYEES_ADD, {
+      companeId: company.id,
+      company,
+    });
   };
 
   const onExportClick = () => {
@@ -111,6 +114,10 @@ export const EmployeesTable: FC<
         ':companyId',
         company.id,
       ),
+      onUpload: () => {
+        queryClient.invalidateQueries([QueryEnum.COMPANY, company.id]);
+        queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
+      },
       type: ReportTypeEnum.MODEL_EMPLOYEE,
       payload: {
         createEmployee: true,

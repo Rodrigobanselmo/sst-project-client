@@ -31,7 +31,7 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useAccess } from '../useAccess';
 import { useAppSelector } from '../useAppSelector';
 import { useGetCompanyId } from '../useGetCompanyId';
-import { usePushRoute } from '../usePushRoute';
+import { usePushRoute } from '../actions-push/usePushRoute';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 
 export const useClinicStep = () => {

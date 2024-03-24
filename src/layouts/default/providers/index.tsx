@@ -16,11 +16,10 @@ import { Provider } from 'react-redux';
 
 import { ThemeProvider as EmotionProvider } from '@emotion/react';
 import { Icon, ThemeProvider } from '@mui/material';
+import SCloseIcon from 'assets/icons/SCloseIcon';
 import SIconButton from 'components/atoms/SIconButton';
 import { SnackbarKey, SnackbarProvider } from 'notistack';
 import { PersistGate } from 'redux-persist/integration/react';
-
-import SCloseIcon from 'assets/icons/SCloseIcon';
 
 import { OnlineStatusProvider } from 'core/hooks/useOnlineStatus';
 
@@ -28,6 +27,7 @@ import theme from '../../../configs/theme';
 import { AuthProvider } from '../../../core/contexts/AuthContext';
 import { queryClient } from '../../../core/services/queryClient';
 import store, { persistor } from '../../../store';
+import { KBarProvider } from '../KBar/KBarProvider';
 
 const QueryClientProviderComponent = QueryClientProvider as any;
 
@@ -72,7 +72,7 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
               >
                 <AuthProvider>
                   <QueryClientProviderComponent client={queryClient}>
-                    {children}
+                    <KBarProvider>{children}</KBarProvider>
                     <ReactQueryDevtools />
                   </QueryClientProviderComponent>
                 </AuthProvider>

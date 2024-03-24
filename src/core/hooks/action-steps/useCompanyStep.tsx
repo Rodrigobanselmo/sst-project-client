@@ -43,7 +43,7 @@ import { dateFromNow } from 'core/utils/date/date-format';
 
 import { useAccess } from '../useAccess';
 import { useAppSelector } from '../useAppSelector';
-import { usePushRoute } from '../usePushRoute';
+import { usePushRoute } from '../actions-push/usePushRoute';
 import { initialProtocolRiskState } from 'components/organisms/modals/ModalEditProtocolRisk/hooks/useEditProtocols';
 import SProtocolIcon from 'assets/icons/SProtocolIcon';
 import { queryClient } from 'core/services/queryClient';

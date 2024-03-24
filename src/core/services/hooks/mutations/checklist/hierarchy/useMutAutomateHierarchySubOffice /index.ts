@@ -49,19 +49,7 @@ export function useMutAutomateHierarchySubOffice() {
       automateHierarchySubOffice(data, data.companyId || companyId),
     {
       onSuccess: async (resp) => {
-        if (resp) {
-          const actualData = queryClient.getQueryData<
-            Record<string, IHierarchy>
-          >(
-            // eslint-disable-next-line prettier/prettier
-            [QueryEnum.HIERARCHY, resp.companyId]
-          );
-          if (actualData)
-            queryClient.setQueryData(
-              [QueryEnum.HIERARCHY, resp.companyId],
-              setMapHierarchies([...Object.values(actualData), resp]),
-            );
-        }
+        queryClient.invalidateQueries([QueryEnum.HIERARCHY]);
 
         enqueueSnackbar('Cargo desenvolvido criado com sucesso', {
           variant: 'success',

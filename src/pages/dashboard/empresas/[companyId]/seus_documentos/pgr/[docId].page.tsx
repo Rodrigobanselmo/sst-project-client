@@ -30,7 +30,7 @@ import SRiskFactorIcon from 'assets/icons/SRiskFactorIcon';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
-import { usePushRoute } from 'core/hooks/usePushRoute';
+import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 

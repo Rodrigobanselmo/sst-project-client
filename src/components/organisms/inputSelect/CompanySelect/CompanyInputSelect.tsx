@@ -73,7 +73,7 @@ export const CompanyInputSelect: FC<
   return (
     <AutocompleteForm
       getOptionLabel={(option) =>
-        (typeof option != 'string' && option.fantasy) || ''
+        (typeof option != 'string' && (option.fantasy || option.name)) || ''
       }
       options={companies}
       loading={isLoading}

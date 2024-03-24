@@ -92,7 +92,6 @@ export const useLocation = () => {
         '/' +
           pathname
             .replace(RoutesParamsEnum.COMPANY, company.id)
-            .replace(RoutesParamsEnum.COMPANY, company.id)
             .replace(RoutesParamsEnum.STAGE, query.stage as string)
             .replace(RoutesParamsEnum.WORKSPACE, workspace?.id || '')
             .replace(
