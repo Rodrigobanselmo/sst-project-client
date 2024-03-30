@@ -15,6 +15,7 @@ import defaultTheme from 'configs/theme';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryDashboard } from 'core/services/hooks/queries/useQueryDashboard';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { CompaniesWizard } from './empresas/index.page';
 
 const Home: NextPage = () => {
   const { data: company } = useQueryCompany();
@@ -75,13 +76,19 @@ const Home: NextPage = () => {
         />
       </SAuthShow>
 
+      <SAuthShow hideIf={!company.isConsulting}>
+        <Box mt={20}>
+          <CompaniesWizard />
+        </Box>
+      </SAuthShow>
+
       <SAuthShow hideIf={!company.isClinic}>
         <Box mt={20}>
           <HistoryScheduleExamClinicTable />
         </Box>
       </SAuthShow>
 
-      <SAuthShow hideIf={company.isClinic}>
+      <SAuthShow hideIf={company.isClinic || company.isConsulting}>
         <Box mt={20}>
           <EmployeesTable query={{ all: true }} />
         </Box>

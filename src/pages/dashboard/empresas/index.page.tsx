@@ -15,58 +15,62 @@ import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
 import { useRouter } from 'next/router';
 
-const Companies: NextPage = () => {
+export const CompaniesWizard = () => {
   const { query } = useRouter();
+  return (
+    <>
+      <Wizard
+        header={
+          <WizardTabs
+            shadow
+            onUrl
+            active={query.active ? Number(query.active) : 0}
+            renderChildren={(activeStep) => (
+              <>
+                {activeStep === 0 && (
+                  <STableTitle icon={BusinessTwoToneIcon}>Empresas</STableTitle>
+                )}
+                {activeStep === 1 && (
+                  <STableTitle icon={SCompanyGroupIcon}>
+                    Grupos Empresariais
+                  </STableTitle>
+                )}
+              </>
+            )}
+            options={[
+              {
+                label: 'Empresas',
+                // icon: <BusinessTwoToneIcon />,
+                // iconPosition: 'start',
+              },
+              {
+                label: 'Grupo Empresarial',
+                // icon: <SCompanyGroupIcon />,
+                // iconPosition: 'start',
+              },
+            ]}
+          />
+        }
+      >
+        <SWizardBox sx={{ px: 5, py: 10 }}>
+          <CompaniesTable hideTitle />
+        </SWizardBox>
+        <SWizardBox sx={{ px: 5, py: 10 }}>
+          <CompanyGroupsTable hideTitle />
+        </SWizardBox>
+      </Wizard>
+      <ModalAddCompanyGroup />
+    </>
+  );
+};
+
+const Companies: NextPage = () => {
   return (
     <>
       <SHeaderTag title={'Empresas'} />
       <SContainer>
-        <Wizard
-          header={
-            <WizardTabs
-              shadow
-              onUrl
-              active={query.active ? Number(query.active) : 0}
-              renderChildren={(activeStep) => (
-                <>
-                  {activeStep === 0 && (
-                    <STableTitle icon={BusinessTwoToneIcon}>
-                      Empresas
-                    </STableTitle>
-                  )}
-                  {activeStep === 1 && (
-                    <STableTitle icon={SCompanyGroupIcon}>
-                      Grupos Empresariais
-                    </STableTitle>
-                  )}
-                </>
-              )}
-              options={[
-                {
-                  label: 'Empresas',
-                  // icon: <BusinessTwoToneIcon />,
-                  // iconPosition: 'start',
-                },
-                {
-                  label: 'Grupo Empresarial',
-                  // icon: <SCompanyGroupIcon />,
-                  // iconPosition: 'start',
-                },
-              ]}
-            />
-          }
-        >
-          <SWizardBox sx={{ px: 5, py: 10 }}>
-            <CompaniesTable hideTitle />
-          </SWizardBox>
-          <SWizardBox sx={{ px: 5, py: 10 }}>
-            <CompanyGroupsTable hideTitle />
-          </SWizardBox>
-        </Wizard>
+        <CompaniesWizard />
       </SContainer>
-      <>
-        <ModalAddCompanyGroup />
-      </>
     </>
   );
 };
