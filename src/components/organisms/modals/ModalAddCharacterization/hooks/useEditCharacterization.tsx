@@ -25,7 +25,10 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { ICharacterization } from 'core/interfaces/api/ICharacterization';
+import {
+  ICharacterization,
+  ICharacterizationFile,
+} from 'core/interfaces/api/ICharacterization';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { IHierarchy, IHierarchyChildren } from 'core/interfaces/api/IHierarchy';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
@@ -92,6 +95,7 @@ export const initialCharacterizationState = {
   considerations: [] as string[],
   activities: [] as string[],
   characterizationType: '' as 'environment' | 'characterization',
+  files: [] as ICharacterizationFile[],
 };
 
 interface ISubmit {

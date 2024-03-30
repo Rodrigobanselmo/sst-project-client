@@ -25,6 +25,7 @@ export type ICharacterization = {
   paragraphs: string[];
   riskData?: IRiskData[];
   profiles: ICharacterization[];
+  files: ICharacterizationFile[];
   profileName: string;
   profileParentId: string;
   profileParent: ICharacterization;
@@ -38,4 +39,13 @@ export type ICharacterizationPhoto = {
   created_at: Date;
   deleted_at?: Date;
   updated_at: Date;
+};
+
+export type ICharacterizationFile = {
+  id: string;
+  url: string | null;
+  created_at: Date;
+  deleted_at: Date;
+  updated_at: Date;
+  companyCharacterizationId: string;
 };
