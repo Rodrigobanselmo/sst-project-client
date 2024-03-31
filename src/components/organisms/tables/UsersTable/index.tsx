@@ -46,7 +46,7 @@ import { useQueryInvites } from 'core/services/hooks/queries/useQueryInvites';
 import { useQueryUsers } from 'core/services/hooks/queries/useQueryUsers';
 
 export const UsersTable: FC<
-  { children?: any; title: ReactNode } & Omit<BoxProps, 'title'>
+  { children?: any; title?: ReactNode } & Omit<BoxProps, 'title'>
 > = ({ title = 'Usuários' }) => {
   const { data: users, isLoading } = useQueryUsers();
   const { data: invites, isLoading: isLoadingInvites } = useQueryInvites();
