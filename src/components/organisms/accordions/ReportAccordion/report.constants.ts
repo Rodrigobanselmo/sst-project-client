@@ -23,6 +23,18 @@ export interface IReportJson {
 
 export const reports: IReportJson[] = [
   {
+    name: 'Fatores de Risco',
+    roles: [RoleEnum.RISK],
+    permissions: [],
+    reports: [
+      {
+        name: 'Lista de Fatores de Risco',
+        ask: clinicFilterList,
+        type: ReportTypeEnum.RISK,
+      },
+    ],
+  },
+  {
     name: 'Clínicas',
     roles: [RoleEnum.CLINICS],
     permissions: [],

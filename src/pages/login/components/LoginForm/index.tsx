@@ -94,11 +94,17 @@ export const LoginForm: FC = () => {
           control={control}
           type="email"
           name="email"
+          inputProps={{
+            id: 'input_email',
+          }}
           success={successEmail}
         />
         <InputForm
           setValue={setValue}
           // defaultValue="aaaa0123"
+          inputProps={{
+            id: 'input_password',
+          }}
           label="Senha"
           placeholder="********"
           type="password"

@@ -26,6 +26,10 @@ const Database: NextPage = () => {
       // companyId: 'bff1cbc6-347a-4539-b677-43e415d50f7e', // Clinica Leandro
       // documentDataId: 'ebc15805-d3e6-4083-8cad-6bc15e43b4e5', // Clinica Leandro
 
+      workspaceId: 'bad1655c-b8eb-4924-ba32-260ecf6da769', // RBA
+      companyId: '96495589-43f4-493a-b065-e41fd2561153', // RBA
+      documentDataId: '74718c72-0501-4605-875c-98dec66fd11d', // RBA
+
       // riskGroupId: '9579bdb8-fa4f-4659-aa58-c11bf023ea6a', // JAN ARua DP
       // workspaceId: 'd2319c30-5c95-4284-bb9e-847957b72abb', // JAN ARua DP
       // companyId: '8bbaf541-6066-49e8-82b9-5cd4193f2b35', // JAN ARua DP
@@ -44,9 +48,9 @@ const Database: NextPage = () => {
       // workspaceId: '5c61f808-9b72-44bc-a4e0-f57e409c247c', //UNI DONTO PCMSO
       // documentDataId: '8ca2c7ed-365c-42d9-afc2-eeea56f39359', //UNI DONTO PCMSO
 
-      companyId: '6a90957b-ea2a-4dba-b88e-ee128562718a', //Resende PCMSO
-      workspaceId: 'cf7a27ed-476f-4b63-85ec-606e7575d5c1', //Resende PCMSO
-      documentDataId: '3537e817-ccdf-4d9e-bb36-93383d3e6c60', //Resende PCMSO
+      // companyId: '6a90957b-ea2a-4dba-b88e-ee128562718a', //Resende PCMSO
+      // workspaceId: 'cf7a27ed-476f-4b63-85ec-606e7575d5c1', //Resende PCMSO
+      // documentDataId: '3537e817-ccdf-4d9e-bb36-93383d3e6c60', //Resende PCMSO
 
       // riskGroupId: 'aa9cd6bc-a428-4595-a422-f994bc3a01ca', // marjan
       // workspaceId: '2387c37c-9676-4c99-9001-dda5da3b5d93', // marjan

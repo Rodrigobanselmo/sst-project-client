@@ -8,6 +8,7 @@ export enum ReportTypeEnum {
   COMPLEMENTARY_EXAM,
   DONE_EXAM,
   CLOSE_EXPIRED_EXAM,
+  RISK,
 
   MODEL_RISK,
   MODEL_EMPLOYEE,
@@ -47,6 +48,10 @@ export const reportTypeMap: IMap = {
   [ReportTypeEnum.CLOSE_EXPIRED_EXAM]: {
     value: ReportTypeEnum.CLOSE_EXPIRED_EXAM,
     route: ApiRoutesEnum.REPORT_EXPIRED_EXAM,
+  },
+  [ReportTypeEnum.RISK]: {
+    value: ReportTypeEnum.RISK,
+    route: ApiRoutesEnum.REPORT_RISK,
   },
   [ReportTypeEnum.DONE_EXAM]: {
     value: ReportTypeEnum.DONE_EXAM,
