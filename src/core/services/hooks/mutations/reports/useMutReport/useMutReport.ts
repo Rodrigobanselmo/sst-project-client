@@ -6,8 +6,9 @@ import { refreshToken } from 'core/contexts/AuthContext';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { api } from 'core/services/apiClient';
 import { downloadFile } from 'core/utils/helpers/downloadFile';
-import { handleBlobError } from 'core/utils/helpers/handleBlobError';
+import { handleBlobErrorModal } from 'core/utils/helpers/handleBlobError';
 
+import { useModal } from 'core/hooks/useModal';
 import { IErrorResp } from '../../../../errors/types';
 import { IReportBase, reportTypeMap } from './types';
 
@@ -42,6 +43,7 @@ export async function mutReport(
 
 export function useMutReport() {
   const { enqueueSnackbar } = useSnackbar();
+  const { onStackOpenModal } = useModal();
   const { getCompanyId } = useGetCompanyId(true);
 
   return useMutation(
@@ -56,7 +58,7 @@ export function useMutReport() {
         return resp;
       },
       onError: (error: IErrorResp) => {
-        handleBlobError(error, enqueueSnackbar);
+        handleBlobErrorModal(error, enqueueSnackbar, onStackOpenModal);
       },
     },
   );

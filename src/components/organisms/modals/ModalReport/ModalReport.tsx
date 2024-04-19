@@ -114,6 +114,9 @@ export const ModalReport: FC = () => {
     submitData.type = data.report?.type || ReportTypeEnum.CLINICS;
 
     const uniqueField = [
+      FilterFieldEnum.EXTERNAL_SYSTEM,
+      FilterFieldEnum.WORSKAPACE,
+      FilterFieldEnum.COMPANY,
       FilterFieldEnum.DOWNLOAD_TYPE,
       FilterFieldEnum.START_DATE,
       FilterFieldEnum.END_DATE,
@@ -130,7 +133,9 @@ export const ModalReport: FC = () => {
       .then(() => {
         onClose();
       })
-      .catch(() => null);
+      .catch((e) => {
+        console.log(e.message);
+      });
   };
 
   const buttons = [

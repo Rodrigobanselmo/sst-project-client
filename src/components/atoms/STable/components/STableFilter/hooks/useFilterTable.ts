@@ -11,7 +11,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import usePersistedState from 'core/hooks/usePersistState';
 import { usePersistTimeoutState } from 'core/hooks/usePersistTimeoutState';
-import { ICompany } from 'core/interfaces/api/ICompany';
+import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { IQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
@@ -38,6 +38,8 @@ export type IFilterAdd<T> = {
 };
 
 export type IFilterTableData = {
+  [FilterFieldEnum.COMPANY]?: IFilterTableType<ICompany[]>;
+  [FilterFieldEnum.WORSKAPACE]?: IFilterTableType<IWorkspace[]>;
   [FilterFieldEnum.COMPANIES]?: IFilterTableType<ICompany[]>;
   [FilterFieldEnum.START_DATE]?: IFilterTableType<Date[]>;
   [FilterFieldEnum.END_DATE]?: IFilterTableType<Date[]>;
@@ -185,9 +187,13 @@ export const useFilterTable = (
   );
 
   const onFilterCompanies = useCallback(
-    (query?: IQueryCompanies) => {
+    (query?: IQueryCompanies & { multiple?: boolean }) => {
+      const isMultiple = query?.multiple ?? true;
+
       const getFilterField = () => {
         if (query?.isGroup) return FilterFieldEnum.COMPANIES_GROUP;
+
+        if (!isMultiple) return FilterFieldEnum.COMPANY;
         return FilterFieldEnum.COMPANIES;
       };
       const filterField = getFilterField();
@@ -204,7 +210,7 @@ export const useFilterTable = (
       };
 
       onStackOpenModal(ModalEnum.COMPANY_SELECT, {
-        multiple: true,
+        multiple: isMultiple,
         onSelect,
         query,
         selected: (filter as any)[filterField]?.data || [],

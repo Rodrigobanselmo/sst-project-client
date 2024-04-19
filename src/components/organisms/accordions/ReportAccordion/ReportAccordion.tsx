@@ -41,17 +41,24 @@ export const ReportAccordion: FC<
     } as Partial<typeof initialReportState>);
   };
 
+  const filteredReports = reports.filter((group) => {
+    if (!isValidRoles(group?.roles)) return null;
+    if (!isValidPermissions(group?.permissions)) return null;
+
+    return true;
+  });
+
   return (
     <div>
-      {reports.map((group) => {
-        if (!isValidRoles(group?.roles)) return null;
-        if (!isValidPermissions(group?.permissions)) return null;
+      {filteredReports.map((group) => {
+        if (!isValidRoles(group?.roles)) return false;
+        if (!isValidPermissions(group?.permissions)) return false;
 
         return (
           <Accordion
             key={group.name}
             sx={{ px: 6 }}
-            expanded={expanded === group.name}
+            expanded={expanded === group.name || filteredReports.length <= 2}
             onChange={handleChange(group.name)}
           >
             <AccordionSummary

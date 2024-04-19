@@ -3,7 +3,7 @@ import { FC, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 
 import { getStates } from '@brazilian-utils/brazilian-utils';
-import { Box, Divider, Typography } from '@mui/material';
+import { Box, Divider } from '@mui/material';
 import AutocompleteSelect from 'components/atoms/SAutocompleteSelect';
 import SCheckBox from 'components/atoms/SCheckBox';
 import { SDatePicker } from 'components/atoms/SDatePicker/SDatePicker';
@@ -11,7 +11,6 @@ import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
 import { STagButton, STagButtonLabelLeft } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
-import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { RadioFormText } from 'components/molecules/form/radio-text';
 import { EsocialCitiesSelect } from 'components/organisms/inputSelect/EsocialCitiesSelect/EsocialCitiesSelect';
 import dayjs from 'dayjs';
@@ -22,13 +21,14 @@ import { asoExamTypeList } from 'project/enum/employee-exam-history-type.enum';
 import { statusOptionsConstant } from 'core/constants/maps/status-options.constant';
 import { dateToString } from 'core/utils/date/date-format';
 
-import { SPopperArrow } from '../../../../../molecules/SPopperArrow';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { FilterFieldEnum, filterFieldMap } from '../constants/filter.map';
 import {
   ReportDownloadtypeEnum,
   reportDownloadtypeList,
 } from './constants/report-type.constants';
 import { IFilterBoxProps } from './types';
+import { externalSystemEnumList } from 'project/enum/external-system.enum';
 
 export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
   filterProps,
@@ -54,7 +54,15 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
     return getStates().map((state) => state.code);
   }, []);
 
+  const companySelected = filterProps.filter?.[FilterFieldEnum.COMPANY]
+    ?.filters?.[0] as any;
+
+  if (companySelected)
+    companySelected.id =
+      filterProps.filter?.[FilterFieldEnum.COMPANY]?.data?.[0]?.id;
+
   const { control, setValue } = useForm();
+  const { data } = useQueryCompany(companySelected?.id);
 
   return (
     <SFlex
@@ -354,6 +362,60 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
       </>
 
       <SFlex gap={10} direction={'column'}>
+        {filters[FilterFieldEnum.COMPANY] && (
+          <STagButtonLabelLeft text="Empresa" width="100%">
+            <SInput
+              superSmall
+              fullWidth
+              sx={{ width: '385px' }}
+              placeholder="Empresa"
+              value={companySelected?.name || ''}
+              onChange={() => {
+                filterProps.onFilterCompanies({ multiple: false });
+                closePopper?.();
+              }}
+              onClick={() => {
+                filterProps.onFilterCompanies({ multiple: false });
+                closePopper?.();
+              }}
+            />
+          </STagButtonLabelLeft>
+        )}
+        {filters[FilterFieldEnum.WORSKAPACE] &&
+          !!companySelected &&
+          !!data?.workspace && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Filtrar por estabelecimento:
+              </SText>
+              <SFlex flexWrap={'wrap'}>
+                {data.workspace.map((workspace) => {
+                  return (
+                    <SCheckBox
+                      key={workspace.id}
+                      label={workspace.name}
+                      checked={
+                        !!filterProps.filter?.[
+                          FilterFieldEnum.WORSKAPACE
+                        ]?.data?.find((w) => w.id == workspace.id)
+                      }
+                      onChange={() => {
+                        filterProps.addFilter(
+                          FilterFieldEnum.WORSKAPACE,
+                          {
+                            data: workspace,
+                            getId: () => workspace.id,
+                            getName: () => workspace.name,
+                          },
+                          { removeIfEqual: true },
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </SFlex>
+            </Box>
+          )}
         {filters[FilterFieldEnum.COMPANIES] && (
           <STagButtonLabelLeft text="Empresas" width="100%">
             <SInput
@@ -406,6 +468,7 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
         )}
 
         {!![
+          FilterFieldEnum.COMPANY,
           FilterFieldEnum.COMPANIES,
           FilterFieldEnum.COMPANIES_GROUP,
           FilterFieldEnum.CLINICS,
@@ -438,6 +501,45 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
             {...((filterProps as any).filter[FilterFieldEnum.DOWNLOAD_TYPE]
               ?.filters?.length && { disabled: true })}
           />
+        </Box>
+      )}
+
+      {filters[FilterFieldEnum.EXTERNAL_SYSTEM] && (
+        <Box mb={5}>
+          <SText color="text.label" fontSize={14} mt={6} mb={3}>
+            Exportar para:
+          </SText>
+          <SFlex flexWrap={'wrap'}>
+            {externalSystemEnumList.map((evaluation, index) => {
+              const isDefault =
+                !filterProps.filter?.[FilterFieldEnum.EXTERNAL_SYSTEM]?.data
+                  ?.length && index == 0;
+
+              const isSelected =
+                !!filterProps.filter?.[
+                  FilterFieldEnum.EXTERNAL_SYSTEM
+                ]?.data?.includes(evaluation.value) || isDefault;
+
+              return (
+                <SCheckBox
+                  key={evaluation.value}
+                  label={evaluation.content}
+                  checked={isSelected}
+                  onChange={() => {
+                    filterProps.addFilter(
+                      FilterFieldEnum.EXTERNAL_SYSTEM,
+                      {
+                        data: evaluation.value,
+                        getId: () => evaluation.value,
+                        getName: () => evaluation.content,
+                      },
+                      { removeIfEqual: true },
+                    );
+                  }}
+                />
+              );
+            })}
+          </SFlex>
         </Box>
       )}
     </SFlex>

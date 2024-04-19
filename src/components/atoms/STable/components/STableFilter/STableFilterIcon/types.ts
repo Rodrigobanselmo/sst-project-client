@@ -8,6 +8,7 @@ export type IFilterIconProps = {
     | FilterFieldEnum[]
     | {
         fields: FilterFieldEnum[];
+        required?: FilterFieldEnum[];
         statusOptions?: StatusEnum[];
         statusSchema?: IStatusOptions;
       };

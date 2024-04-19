@@ -7,6 +7,7 @@ import { clinicFilterList } from 'components/atoms/STable/components/STableFilte
 import { expiredExamFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/expiredExamFilterList';
 import { doneExamsFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/doneExamsFilterList';
 import { complementaryFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/complementaryFilterList';
+import { riskFilterReport } from 'components/atoms/STable/components/STableFilter/constants/reports/riskFilterReport';
 
 export interface IReportJson {
   name: string;
@@ -29,7 +30,7 @@ export const reports: IReportJson[] = [
     reports: [
       {
         name: 'Lista de Fatores de Risco',
-        ask: clinicFilterList,
+        ask: riskFilterReport,
         type: ReportTypeEnum.RISK,
       },
     ],

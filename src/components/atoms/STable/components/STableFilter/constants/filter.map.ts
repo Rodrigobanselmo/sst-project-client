@@ -1,6 +1,9 @@
 import { statusEmployeeStepMap } from './../../../../../../core/constants/maps/status-employee-step.map';
 
 export enum FilterFieldEnum {
+  COMPANY = 'companyId',
+  WORSKAPACE = 'workspaceId',
+
   COMPANIES = 'companiesIds',
   CLINICS = 'clinicsIds',
   COMPANIES_GROUP = 'companiesGroupIds',
@@ -17,6 +20,7 @@ export enum FilterFieldEnum {
   EXAM_AVALIATION_EXAM = 'notInAvaliationType',
 
   //ALL
+  EXTERNAL_SYSTEM = 'externalSystem',
   DOWNLOAD_TYPE = 'downloadType',
 }
 
@@ -29,9 +33,17 @@ type IMap = Record<
 >;
 
 export const filterFieldMap: IMap = {
+  [FilterFieldEnum.COMPANY]: {
+    value: FilterFieldEnum.COMPANY,
+    name: 'Empresa',
+  },
+  [FilterFieldEnum.WORSKAPACE]: {
+    value: FilterFieldEnum.WORSKAPACE,
+    name: 'Estabelecimento',
+  },
   [FilterFieldEnum.COMPANIES]: {
     value: FilterFieldEnum.COMPANIES,
-    name: 'Empresa',
+    name: 'Empresas',
   },
   [FilterFieldEnum.CLINICS]: {
     value: FilterFieldEnum.CLINICS,
@@ -80,5 +92,9 @@ export const filterFieldMap: IMap = {
   [FilterFieldEnum.DOWNLOAD_TYPE]: {
     value: FilterFieldEnum.DOWNLOAD_TYPE,
     name: '',
+  },
+  [FilterFieldEnum.EXTERNAL_SYSTEM]: {
+    value: FilterFieldEnum.EXTERNAL_SYSTEM,
+    name: 'Exportar para',
   },
 };
