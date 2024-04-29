@@ -34,6 +34,7 @@ import {
 import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { ModalAddActivity } from 'components/organisms/modals/ModalAddActivity';
 
 const Companies: NextPage = () => {
   const router = useRouter();
@@ -103,6 +104,7 @@ const Companies: NextPage = () => {
         <ModalAddEpi />
         <ModalAddProbability />
         <ModalAddQuantity />
+        <ModalAddActivity />
         <ModalAddWorkspace />
         <ModalSingleInput />
         <ModalExcelHierarchies />

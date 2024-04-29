@@ -8,6 +8,13 @@ import { IHierarchy } from './IHierarchy';
 import { IRiskData } from './IRiskData';
 import { IExamToRisk } from './IExam';
 
+export type RiskFactorActivities = {
+  description: string;
+  subActivities?: {
+    description: string;
+  }[];
+};
+
 export interface IRecMed {
   id: string;
   recName: string;
@@ -117,6 +124,8 @@ export interface IRiskFactors {
   isEmergency?: boolean;
   carnogenicityACGIH?: string;
   carnogenicityLinach?: string;
+  activities?: RiskFactorActivities[];
+  nr16appendix?: string;
 
   isAso: boolean;
   isPGR: boolean;

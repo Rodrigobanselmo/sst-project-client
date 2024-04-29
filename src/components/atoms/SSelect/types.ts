@@ -14,6 +14,7 @@ import { CSSProperties } from '@mui/material/styles/createTypography';
 export interface IOption extends Record<string, any> {
   content?: string | number;
   value?: string | number;
+  isCategory?: boolean;
 }
 
 export type SSelectProps = SelectProps & {
@@ -43,5 +44,10 @@ export type SSelectProps = SelectProps & {
     option: any,
     index: number,
   ) => ReactNode;
+  renderMenu?: (
+    // option: IOption | string | number,
+    option: any,
+    index: number,
+  ) => ReactNode | ReactNode[];
   renderEmptyItemChildren?: (emptyItem: ReactNode | string) => ReactNode;
 };

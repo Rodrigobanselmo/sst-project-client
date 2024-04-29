@@ -47,6 +47,7 @@ const SSelect: FC<{ children?: any } & SSelectProps> = ({
   color,
   emptyItem,
   inputRef,
+  renderMenu,
   renderMenuItemChildren,
   renderEmptyItemChildren,
   disabled,
@@ -97,6 +98,8 @@ const SSelect: FC<{ children?: any } & SSelectProps> = ({
           ? option
           : option[contentField];
 
+      if (renderMenu) return renderMenu(option, index);
+
       return (
         <MenuItem key={valueKey} value={valueKey} {...menuItemProps}>
           {renderMenuItemChildren
@@ -105,7 +108,13 @@ const SSelect: FC<{ children?: any } & SSelectProps> = ({
         </MenuItem>
       );
     },
-    [renderMenuItemChildren, contentField, valueField, menuItemProps],
+    [
+      valueField,
+      contentField,
+      renderMenu,
+      menuItemProps,
+      renderMenuItemChildren,
+    ],
   );
 
   const labelSplit = typeof label == 'string' ? label.split('*') : [label];
@@ -211,7 +220,9 @@ const SSelect: FC<{ children?: any } & SSelectProps> = ({
         )}
 
         {options &&
-          options.map((option, index) => onRenderMenuItems(option, index))}
+          options
+            .map((option, index) => onRenderMenuItems(option, index))
+            .flat()}
       </StyledSelect>
       {helperText && (
         <FormHelperText

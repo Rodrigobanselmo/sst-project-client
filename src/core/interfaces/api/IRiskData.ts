@@ -12,6 +12,12 @@ import { IExam } from './IExam';
 import { IGho } from './IGho';
 import { IHierarchy } from './IHierarchy';
 import { IGenerateSource, IRecMed, IRiskFactors } from './IRiskFactors';
+import { ExposureTypeEnum } from 'core/enums/exposure.enum';
+
+export type IRiskDataActivities = {
+  activities: { description?: string; subActivity?: string }[];
+  realActivity?: string;
+};
 
 export interface IRiskData {
   id: string;
@@ -33,8 +39,10 @@ export interface IRiskData {
   epis?: IEpi[];
   exams?: IExam[];
   isQuantity?: boolean;
+  exposure?: ExposureTypeEnum;
   standardExams?: boolean;
   json?: IRiskDataJsonQui | IRiskDataJsonNoise;
+  activities?: IRiskDataActivities;
   riskFactor?: IRiskFactors;
   origin?: string;
   ro?: string;

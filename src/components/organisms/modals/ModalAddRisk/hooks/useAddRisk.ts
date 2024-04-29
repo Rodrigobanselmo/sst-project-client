@@ -15,6 +15,7 @@ import { IEsocialTable24 } from 'core/interfaces/api/IEsocial';
 import {
   IGenerateSourceCreate,
   IRecMedCreate,
+  RiskFactorActivities,
 } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpdateGenerateSource } from 'core/services/hooks/mutations/checklist/generate/useMutUpdateGenerateSource';
 import { useMutCreateRisk } from 'core/services/hooks/mutations/checklist/risk/useMutCreateRisk';
@@ -51,8 +52,11 @@ export const initialAddRiskState = {
   coments: undefined as undefined | string,
   fraction: undefined as undefined | string,
   tlv: undefined as undefined | string,
+  nr16appendix: undefined as undefined | string,
+  appendix: undefined as undefined | string,
   carnogenicityACGIH: undefined as undefined | string,
   carnogenicityLinach: undefined as undefined | string,
+  activities: [] as RiskFactorActivities[],
 };
 
 export const useAddRisk = () => {
@@ -100,6 +104,15 @@ export const useAddRisk = () => {
 
       return newData;
     });
+
+    setValue(
+      'activities',
+      risk?.activities ||
+        initialData.activities ||
+        initialAddRiskState.activities ||
+        [],
+    );
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [risk]);
 
@@ -246,8 +259,11 @@ export const useAddRisk = () => {
     coments,
     fraction,
     tlv,
+    appendix,
+    nr16appendix,
     carnogenicityACGIH,
     carnogenicityLinach,
+    activities,
   }) => {
     const {
       esocial,
@@ -261,6 +277,7 @@ export const useAddRisk = () => {
     const typeValue = type as RiskEnum;
 
     const risk = {
+      activities: activities?.filter((a) => a.description),
       id,
       companyId,
       recMed,
@@ -290,6 +307,8 @@ export const useAddRisk = () => {
       tlv,
       carnogenicityACGIH,
       carnogenicityLinach,
+      appendix,
+      nr16appendix,
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;

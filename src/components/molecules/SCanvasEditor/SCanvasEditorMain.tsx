@@ -257,7 +257,6 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
         blob,
         ...data?.compressProps,
       });
-      console.log('size', file.size);
 
       await simulateAwait(400);
 

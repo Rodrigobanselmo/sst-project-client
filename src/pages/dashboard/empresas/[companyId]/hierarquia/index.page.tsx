@@ -24,6 +24,7 @@ import { NextPage } from 'next';
 import { STFlexContainer } from 'pages/dashboard/checklist/index.styles';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { ModalAddActivity } from 'components/organisms/modals/ModalAddActivity';
 
 const Hierarchy: NextPage = () => {
   const { hierarchies, company } = useHierarchyTreeLoad();
@@ -44,6 +45,7 @@ const Hierarchy: NextPage = () => {
         <ModalAddEpi />
         <ModalAddProbability />
         <ModalAddQuantity />
+        <ModalAddActivity />
         <ModalExcelHierarchies />
 
         <ModalEditCard />

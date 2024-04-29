@@ -102,7 +102,6 @@ export const useAddRecMed = () => {
     recType: string;
   }> = async (data) => {
     let isError = false;
-    console.log(data);
     if (data.recName && !data.recType) {
       isError = true;
       setError('recType', { message: 'Campo obrigatório' });

@@ -5,7 +5,12 @@ export const riskFilterReport: IFilterIconProps['filters'] = {
   fields: [
     FilterFieldEnum.COMPANY,
     FilterFieldEnum.WORSKAPACE,
+    FilterFieldEnum.START_DATE,
     FilterFieldEnum.EXTERNAL_SYSTEM,
   ],
-  required: [FilterFieldEnum.COMPANY, FilterFieldEnum.WORSKAPACE],
+  required: [
+    FilterFieldEnum.COMPANY,
+    FilterFieldEnum.WORSKAPACE,
+    FilterFieldEnum.START_DATE,
+  ],
 };

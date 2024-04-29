@@ -117,7 +117,7 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
     }
 
     if (homoId) data.push(...representAllRiskData);
-    console.log(data);
+
     if (
       (!selectedGhoFilter.value && !selectedGhoFilter.key) ||
       selectedGhoFilter?.value == 'none'

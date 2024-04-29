@@ -87,8 +87,6 @@ export const useEditClinicExams = () => {
     ...initialClinicExamState,
   });
 
-  console.log('clinicExamData', clinicExamData);
-
   const { data: allClinicExams } = useQueryClinicExams(
     1,
     {

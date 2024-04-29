@@ -27,3 +27,11 @@ export const isQuantity = (risk?: IRiskFactors | null) => {
 
   return null;
 };
+
+export const isActivity = (risk?: IRiskFactors | null) => {
+  if (!risk) return;
+
+  if (risk.activities?.length) return true;
+
+  return null;
+};

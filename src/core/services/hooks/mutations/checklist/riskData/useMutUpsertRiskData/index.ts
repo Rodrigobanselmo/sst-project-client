@@ -15,6 +15,7 @@ import { sortRiskData } from 'core/services/hooks/queries/useQueryRiskData';
 import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
+import { ExposureTypeEnum } from 'core/enums/exposure.enum';
 
 export interface IUpsertRiskData {
   id?: string;
@@ -29,6 +30,7 @@ export interface IUpsertRiskData {
   probabilityAfter?: number;
   adms?: string[];
   recs?: string[];
+  exposure?: ExposureTypeEnum;
   type?: HomoTypeEnum;
   generateSources?: string[];
   workspaceId?: string;
@@ -37,6 +39,7 @@ export interface IUpsertRiskData {
   exams?: IExamRiskData[];
   keepEmpty?: boolean;
   json?: any;
+  activities?: any;
   startDate?: Date;
   endDate?: Date;
 }

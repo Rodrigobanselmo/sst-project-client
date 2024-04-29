@@ -32,6 +32,8 @@ import {
 import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport/useMutReport';
 import { dateToString } from 'core/utils/date/date-format';
 import clone from 'clone';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { getCompanyName } from 'core/utils/helpers/companyName';
 
 export const initialReportState = {
   title: 'Gerar Relatório',
@@ -47,6 +49,7 @@ export const ModalReport: FC = () => {
   const [data, setData] = useState(initialReportState);
   const { addFilter, ...filterProps } = useFilterTable();
   const reportMutation = useMutReport();
+  const { data: company } = useQueryCompany();
 
   const report = data.report;
 
@@ -94,9 +97,17 @@ export const ModalReport: FC = () => {
         });
       }
 
+      if (data.report?.type === ReportTypeEnum.RISK) {
+        addFilter(FilterFieldEnum.COMPANY, {
+          data: [company],
+          getId: (data) => data.id,
+          getName: (data) => getCompanyName(data),
+        });
+      }
+
       setData((dta) => ({ ...dta, isDefault: true }));
     }
-  }, [addFilter, data]);
+  }, [addFilter, company, data]);
 
   const onClose = () => {
     onCloseModal(ModalEnum.MODAL_REPORT);

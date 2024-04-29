@@ -15,14 +15,13 @@ import { getTimeList } from 'core/utils/helpers/times';
 import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
+import { RiskActivityContent } from '../RiskActivityContent/RiskActivityContent';
 
 export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
-  riskData,
-  setRiskData,
-  control,
-  setValue,
-  type,
+  ...props
 }) => {
+  const { riskData, setRiskData, control, setValue, type } = props;
+
   return (
     <>
       <Box mt={8}>
@@ -142,6 +141,30 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
         <Box mt={8}>
           <InputForm
             setValue={setValue}
+            defaultValue={riskData.appendix}
+            label="Anexo"
+            control={control}
+            sx={{ width: ['100%', 600] }}
+            placeholder={'exemplo: 1'}
+            name="appendix"
+            size="small"
+          />
+        </Box>
+        <Box mt={8}>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.nr16appendix}
+            label="Anexo (NR 16)"
+            control={control}
+            sx={{ width: ['100%', 600] }}
+            placeholder={'exemplo: 1'}
+            name="nr16appendix"
+            size="small"
+          />
+        </Box>
+        <Box mt={8}>
+          <InputForm
+            setValue={setValue}
             defaultValue={riskData.propagation}
             label="Meio de Propagação"
             control={control}
@@ -187,6 +210,9 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           label="Código eSocial"
           control={control}
         />
+      </Box>
+      <Box flex={1} mt={12}>
+        <RiskActivityContent {...props} />
       </Box>
     </>
   );

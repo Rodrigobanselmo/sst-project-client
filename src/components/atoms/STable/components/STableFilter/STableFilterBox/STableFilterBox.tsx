@@ -39,16 +39,31 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
     ? { statusOptions: [], statusSchema: undefined }
     : filterProps.filters;
 
-  const filters = useMemo(() => {
+  const filtersOptions = useMemo(() => {
     const filters = Array.isArray(filterProps.filters)
       ? filterProps.filters
       : filterProps.filters.fields;
 
-    return filters.reduce((acc, curr) => {
+    const fields = filters.reduce((acc, curr) => {
       acc[curr] = true;
       return acc;
     }, {} as Record<FilterFieldEnum, boolean>);
+
+    const options = {} as Record<FilterFieldEnum, { required?: boolean }>;
+
+    if (!Array.isArray(filterProps.filters)) {
+      filterProps.filters.required?.forEach((field) => {
+        if (!options[field]) options[field] = {};
+
+        options[field] = { ...options[field], required: true };
+      });
+    }
+
+    return { fields, options };
   }, [filterProps.filters]);
+
+  const filters = filtersOptions.fields;
+  const options = filtersOptions.options;
 
   const ufs = useMemo(() => {
     return getStates().map((state) => state.code);
@@ -87,19 +102,26 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
             ].map((field) => {
               if (!filters[field]) return null;
 
+              const value = filterProps.filter?.[field]?.data?.[0];
+
               return (
                 <Box key={field}>
                   <SDatePicker
                     inputProps={{
                       labelPosition: 'top',
                       superSmall: true,
+                      error: options[field]?.required && !value,
+                      helperText:
+                        options[field]?.required &&
+                        !value &&
+                        'Campo obrigatório',
                     }}
                     {...(field == FilterFieldEnum.LTE_EXPIRED_EXAM && {
                       filterDate: (date) =>
                         dayjs().isBefore(dayjs(date).add(1, 'day')),
                     })}
                     placeholderText="__/__/__"
-                    selected={(filterProps as any).filter?.[field]?.data?.[0]}
+                    selected={value}
                     label={filterFieldMap[field].name}
                     onChange={(date) => {
                       if (date)

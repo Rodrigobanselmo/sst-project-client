@@ -19,6 +19,7 @@ import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHie
 
 import { ModalAddQuantity } from '../ModalAddQuantity';
 import { useModalRiskTool } from './hooks/useModalRiskTool';
+import { ModalAddActivity } from '../ModalAddActivity';
 
 export const ModalRiskTool = () => {
   const { registerModal, onCloseUnsaved, modalName, data } = useModalRiskTool();
@@ -63,6 +64,7 @@ export const StackModalRiskTool = () => {
       <ModalAddEpi />
       <ModalAddProbability />
       <ModalAddQuantity />
+      <ModalAddActivity />
     </>
   );
 };

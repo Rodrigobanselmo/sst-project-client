@@ -43,6 +43,7 @@ export function useMutUpdateRisk() {
       onSuccess: async (resp) => {
         if (resp) {
           queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
+          queryClient.invalidateQueries([QueryEnum.RISK, resp.companyId]);
 
           const replace = (company: string) => {
             const actualData = queryClient.getQueryData(
