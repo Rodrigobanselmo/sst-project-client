@@ -41,6 +41,7 @@ export const ActivityForm = (props: IUseModalActivity) => {
             options={data.risk.activities || []}
             onChange={(e) => {
               const value = e.target.value as any;
+
               setValue(
                 'activities',
                 removeDuplicate([...(activities ? activities : []), value]),
@@ -53,7 +54,14 @@ export const ActivityForm = (props: IUseModalActivity) => {
 
               if (!subActivities.length)
                 return (
-                  <MenuItem value={option.description}>
+                  <MenuItem
+                    value={
+                      {
+                        id: option.description,
+                        description: option.description,
+                      } as any
+                    }
+                  >
                     {option.description}
                   </MenuItem>
                 );

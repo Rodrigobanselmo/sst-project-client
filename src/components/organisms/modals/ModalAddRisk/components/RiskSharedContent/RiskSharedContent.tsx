@@ -151,15 +151,30 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           />
         </Box>
         <Box mt={8}>
-          <InputForm
-            setValue={setValue}
-            defaultValue={riskData.nr16appendix}
-            label="Anexo (NR 16)"
+          <AutocompleteForm
+            name="otherAppendix"
             control={control}
-            sx={{ width: ['100%', 600] }}
-            placeholder={'exemplo: 1'}
-            name="nr16appendix"
-            size="small"
+            filterOptions={(x) => x}
+            unmountOnChangeDefault
+            freeSolo
+            fullWidth
+            getOptionLabel={(option) => String(option)}
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'exemplo: ACGH, NR 16 Anexo 1...',
+              name: 'otherAppendix',
+            }}
+            setValue={(v) => setValue('method', String(v))}
+            defaultValue={riskData.otherAppendix || ''}
+            label="Outros Normas"
+            options={[
+              'ACGH',
+              'NR 16 Anexo 1',
+              'NR 16 Anexo 2',
+              'NR 16 Anexo 3',
+              'NR 16 Anexo 4',
+              'NR 16 Anexo 5',
+            ]}
           />
         </Box>
         <Box mt={8}>

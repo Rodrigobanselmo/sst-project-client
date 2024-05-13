@@ -94,7 +94,6 @@ export const initialCharacterizationState = {
   paragraphs: [] as string[],
   considerations: [] as string[],
   activities: [] as string[],
-  characterizationType: '' as 'environment' | 'characterization',
   files: [] as ICharacterizationFile[],
 };
 
@@ -194,14 +193,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           profileParentId: '',
         };
 
-        const isEnvironment = getIsEnvironment(newData.type);
-
-        if (isEnvironment) {
-          newData.characterizationType = 'environment';
-        } else if (newData.type) {
-          newData.characterizationType = 'characterization';
-        }
-
         setValue('type', newData.type);
 
         initialDataRef.current = newData;
@@ -274,10 +265,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       ) || principalProfile;
 
     setValue(
-      'characterizationType',
-      characterizationData.characterizationType || '',
-    );
-    setValue(
       'moisturePercentage',
       characterizationQuery.moisturePercentage || '',
     );
@@ -291,7 +278,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
     return setCharacterizationData({
       ...(characterizationQuery as any),
-      characterizationType: characterizationData.characterizationType,
       activities: characterizationQuery.activities,
       considerations: characterizationQuery.considerations,
       paragraphs: characterizationQuery.paragraphs,
@@ -311,10 +297,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     if (notPrincipalProfile && !data.profileName) {
       setFocus('profileName');
       return setError('profileName', { message: 'Campo obrigatório' });
-    }
-
-    if (!characterizationData.characterizationType) {
-      return setError('characterizationType', { message: 'Campo obrigatório' });
     }
 
     if (!characterizationData.type) {
@@ -378,12 +360,9 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
             const name = isPrincipalNew
               ? characterization.name
               : principalProfile.name;
-            const characterizationType =
-              characterizationData.characterizationType;
 
             reset();
 
-            setValue('characterizationType', characterizationType);
             setValue('type', type);
             setValue('name', name);
 
@@ -392,7 +371,6 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
               name: data.name,
               workspaceId: characterizationData.workspaceId,
               companyId: characterizationData.companyId,
-              characterizationType: characterizationData.characterizationType,
               type: characterizationData.type,
               profileParentId: profileParentId,
               activities: characterizationData.activities,
@@ -739,10 +717,10 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
         push(asPath + '/?riskGroupId=' + docPgr.id, undefined, {
           shallow: true,
         });
-        const viewData =
-          characterizationData.characterizationType == 'environment'
-            ? ViewsDataEnum.ENVIRONMENT
-            : ViewsDataEnum.CHARACTERIZATION;
+        const isEnvironment = getIsEnvironment(characterizationData.type);
+        const viewData = isEnvironment
+          ? ViewsDataEnum.ENVIRONMENT
+          : ViewsDataEnum.CHARACTERIZATION;
 
         const foundGho = ghoQuery.find(
           (g) => g.id === characterizationQuery?.id,

@@ -23,6 +23,7 @@ import { useMutUpdateRisk } from 'core/services/hooks/mutations/checklist/risk/u
 import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk/useQueryRisk';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
+import { useMutDeleteRisk } from 'core/services/hooks/mutations/checklist/risk/useMutDeleteRisk';
 
 export const initialAddRiskState = {
   status: StatusEnum.ACTIVE,
@@ -52,7 +53,7 @@ export const initialAddRiskState = {
   coments: undefined as undefined | string,
   fraction: undefined as undefined | string,
   tlv: undefined as undefined | string,
-  nr16appendix: undefined as undefined | string,
+  otherAppendix: undefined as undefined | string,
   appendix: undefined as undefined | string,
   carnogenicityACGIH: undefined as undefined | string,
   carnogenicityLinach: undefined as undefined | string,
@@ -72,6 +73,7 @@ export const useAddRisk = () => {
 
   const createRiskMut = useMutCreateRisk();
   const updateRiskMut = useMutUpdateRisk();
+  const deleteRiskMut = useMutDeleteRisk();
   const updateGenerateSourceMut = useMutUpdateGenerateSource();
 
   const { preventUnwantedChanges } = usePreventAction();
@@ -260,7 +262,7 @@ export const useAddRisk = () => {
     fraction,
     tlv,
     appendix,
-    nr16appendix,
+    otherAppendix,
     carnogenicityACGIH,
     carnogenicityLinach,
     activities,
@@ -308,7 +310,7 @@ export const useAddRisk = () => {
       carnogenicityACGIH,
       carnogenicityLinach,
       appendix,
-      nr16appendix,
+      otherAppendix,
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;
@@ -343,7 +345,11 @@ export const useAddRisk = () => {
         }
       });
     } else {
-      await updateRiskMut.mutateAsync(risk).catch(() => {});
+      if (risk.status === StatusEnum.INACTIVE) {
+        await deleteRiskMut.mutateAsync(risk.id).catch(() => {});
+      } else {
+        await updateRiskMut.mutateAsync(risk).catch(() => {});
+      }
     }
 
     onClose();

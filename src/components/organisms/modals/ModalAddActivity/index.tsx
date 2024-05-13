@@ -51,7 +51,7 @@ export const ModalAddActivity = () => {
         <SModalHeader
           tag={'add'}
           onClose={onCloseUnsaved}
-          title={'Adicionar medição'}
+          title={'Adicionar atividade'}
         />
 
         <ActivityForm {...props} />

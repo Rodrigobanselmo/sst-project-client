@@ -846,6 +846,7 @@ export const useCompanyStep = () => {
     characterizationActionsStepMemo,
     stepsActions,
     stepsActionsList,
+    actionsMapStepMemo,
   };
 };
 

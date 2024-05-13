@@ -125,7 +125,7 @@ export interface IRiskFactors {
   carnogenicityACGIH?: string;
   carnogenicityLinach?: string;
   activities?: RiskFactorActivities[];
-  nr16appendix?: string;
+  otherAppendix?: string;
 
   isAso: boolean;
   isPGR: boolean;

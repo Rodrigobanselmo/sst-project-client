@@ -33,6 +33,7 @@ export const ProbabilityColumn: FC<
 
     return prob;
   };
+
   const hasQuality = isQuantity(risk);
   const hasActivity = isActivity(risk);
 

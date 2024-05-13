@@ -14,6 +14,7 @@ import { ProtocolsRiskTable } from 'components/organisms/tables/ProtocolsRiskTab
 import { RiskCompanyTable } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
 
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
+import { CompanyActionEnum } from 'core/enums/company-action.enum';
 
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
@@ -21,34 +22,55 @@ export const CharacterizationStage = ({
   characterizationStepMemo,
   characterizationActionsStepMemo,
   query,
+  actionsMapStepMemo,
   ...props
 }: ICompanyStage) => {
   useHierarchyTreeLoad();
 
   return (
     <Box {...props}>
-      <SText mt={20}>Caracterizar Riscos e Exames por:</SText>
-      <SFlex mt={5} gap={10} flexWrap="wrap" mb={20}>
-        {characterizationActionsStepMemo.map((props) => (
-          <SActionButton key={props.text} {...props} />
-        ))}
-      </SFlex>
-      <SText mt={20}>Caracterizar Riscos e Exames por:</SText>
+      {/* <SText mt={0}>Caracterizar Riscos e Exames por:</SText>
       <SFlex mt={5} gap={10} flexWrap="wrap" mb={20}>
         {characterizationStepMemo.map((props) => (
           <SActionButton key={props.text} {...props} />
         ))}
-      </SFlex>
+      </SFlex> */}
 
       <Wizard
         header={
           <WizardTabs
             shadow
             onUrl
-            active={query.active ? Number(query.active) : 0}
+            onChangeTab={(v, cb) => {
+              if (v == 1) {
+                actionsMapStepMemo[
+                  CompanyActionEnum.CHARACTERIZATION
+                ]?.onClick?.({} as any);
+              } else if (v == 2) {
+                actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP]?.onClick?.(
+                  {} as any,
+                );
+              } else {
+                cb(v);
+              }
+            }}
+            active={
+              query.active
+                ? query.active == '2' || query.active == '1'
+                  ? 0
+                  : Number(query.active)
+                : 0
+            }
             options={[
               {
                 label: 'Riscos',
+              },
+              {
+                label:
+                  actionsMapStepMemo[CompanyActionEnum.CHARACTERIZATION].text,
+              },
+              {
+                label: 'GSE',
               },
               {
                 label: 'Exames',
@@ -60,6 +82,12 @@ export const CharacterizationStage = ({
           />
         }
       >
+        <>
+          <RiskCompanyTable />
+        </>
+        <>
+          <RiskCompanyTable />
+        </>
         <>
           <RiskCompanyTable />
         </>
