@@ -164,9 +164,9 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
               placeholder: 'exemplo: ACGH, NR 16 Anexo 1...',
               name: 'otherAppendix',
             }}
-            setValue={(v) => setValue('method', String(v))}
+            setValue={(v) => setValue('otherAppendix', String(v))}
             defaultValue={riskData.otherAppendix || ''}
-            label="Outros Normas"
+            label="Outras Normas"
             options={[
               'ACGH',
               'NR 16 Anexo 1',

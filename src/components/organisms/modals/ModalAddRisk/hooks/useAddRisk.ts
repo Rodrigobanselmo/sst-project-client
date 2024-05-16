@@ -115,6 +115,8 @@ export const useAddRisk = () => {
         [],
     );
 
+    setValue('otherAppendix', risk?.otherAppendix);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [risk]);
 
