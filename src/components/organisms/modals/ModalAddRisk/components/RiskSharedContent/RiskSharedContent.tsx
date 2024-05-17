@@ -43,6 +43,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
         {!!riskData.synonymous?.length && (
           <Box mt={5} mb={10}>
             <InputForm
+              disabled
               defaultValue={riskData.synonymous?.join(', ')}
               autoFocus
               label="Sinônimos"
