@@ -29,6 +29,7 @@ export const initialAddRiskState = {
   status: StatusEnum.ACTIVE,
   severity: 0,
   name: '',
+  synonymous: [] as string[],
   type: '',
   recMed: [] as (IRecMedCreate & { generateSourceLocalId?: number })[],
   generateSource: [] as IGenerateSourceCreate[],

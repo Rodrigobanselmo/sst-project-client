@@ -40,6 +40,20 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           size="small"
           firstLetterCapitalize
         />
+        {!!riskData.synonymous?.length && (
+          <Box mt={5} mb={10}>
+            <InputForm
+              defaultValue={riskData.synonymous?.join(', ')}
+              autoFocus
+              label="Sinônimos"
+              control={control}
+              sx={{ width: ['100%', 600] }}
+              setValue={setValue}
+              name="synonymous"
+              size="small"
+            />
+          </Box>
+        )}
         <RadioFormText
           setValue={setValue}
           type="radio"
