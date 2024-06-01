@@ -94,7 +94,7 @@ export const LoginForm: FC = () => {
       <PasswordInputs {...formProps} />
       <SFlex mt={10} center>
         <ReCAPTCHAComp
-          sitekey="6Lew7PEgAAAAAOCJHR6jppNhmw8WEaoaEXWeGBEH"
+          sitekey="6Lc7Bu4pAAAAAKDIuEI3EWCamZ5p6GLEjihAMuPI"
           onChange={onRecaptchaChange}
         />
       </SFlex>
