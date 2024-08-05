@@ -52,6 +52,22 @@ export const ModalAddHierarchyRisk = ({
         </Box>
         <Box sx={{ px: 5, pb: 10 }}>{/* <ExamsRiskTable /> */}</Box>
         <Box sx={{ px: 5, pb: 10 }}>
+          {!!data.description && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                border: '1px solid #ccc',
+                borderRadius: 1,
+                p: 8,
+                mb: 2,
+              }}
+            >
+              <SText variant="body1" textAlign="center">
+                {data.description}
+              </SText>
+            </Box>
+          )}
           {!query?.files?.length && (
             <Box
               sx={{
