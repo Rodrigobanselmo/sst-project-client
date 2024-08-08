@@ -621,6 +621,22 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     value: string,
     type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
   ) => {
+    const values = value
+      ?.split('\n\n')
+      .flat()
+      .map((a) => a.split('\n'))
+      .flat()
+      .map((a) =>
+        a
+          .replace(/^-\s*/, '@!@')
+          .replace(/^\s\s\s\s-\s*/, '@!!@')
+          .replace(/^\s*-\s*/, '@!!!@')
+          .replace(/^\d+\.\s*/, '@!@')
+          .replace(/^\s\s\s\s\d+\.\s*/, '@!!@')
+          .replace(/^\s*\d+\.\s*/, '@!!!@')
+          .replace(/^(#+\s*)(.*)/, '**$2**'),
+      );
+
     if (characterizationData[type])
       setCharacterizationData({
         ...characterizationData,
@@ -628,11 +644,25 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           ...characterizationData[type].filter(
             (v) => v.split('{type}=')[0] !== value.split('{type}=')[0],
           ),
-          value +
-            '{type}=' +
-            (type === 'paragraphs'
-              ? ParagraphEnum.PARAGRAPH
-              : ParagraphEnum.BULLET_0),
+          ...values.map(
+            (value) =>
+              value
+                .replace('@!@', '')
+                .replace('@!!@', '')
+                .replace('@!!!@', '') +
+              '{type}=' +
+              (values.length > 1
+                ? value.includes('@!@')
+                  ? ParagraphEnum.BULLET_0
+                  : value.includes('@!!@')
+                  ? ParagraphEnum.BULLET_1
+                  : value.includes('@!!!@')
+                  ? ParagraphEnum.BULLET_2
+                  : ParagraphEnum.PARAGRAPH
+                : type === 'paragraphs'
+                ? ParagraphEnum.PARAGRAPH
+                : ParagraphEnum.BULLET_0),
+          ),
         ],
       });
   };
