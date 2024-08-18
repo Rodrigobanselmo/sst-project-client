@@ -20,7 +20,7 @@ import {
   CharacterizationTypeEnum,
   getIsEnvironment,
 } from 'project/enum/characterization-type.enum';
-
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
 import EditIcon from 'assets/icons/SEditIcon';
 import SOrderIcon from 'assets/icons/SOrderIcon';
@@ -37,6 +37,13 @@ import { dateToString } from 'core/utils/date/date-format';
 import { sortNumber } from 'core/utils/sorts/number.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
+import { stringNormalize } from 'core/utils/strings/stringNormalize';
+import CheckIcon from 'assets/icons/SCheckIcon';
+import {
+  CheckBox,
+  CheckBoxOutlined,
+  CheckBoxTwoTone,
+} from '@mui/icons-material';
 
 interface ITableProps extends BoxProps {
   filterType?: CharacterizationTypeEnum;
@@ -112,11 +119,16 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
     ];
   }, [data, filterType]);
 
-  const { handleSearchChange, results, page, setPage } = useTableSearch({
-    data: dataResult,
-    keys: ['name'],
-    rowsPerPage: 8,
-  });
+  const { handleSearchChange, results, page, search, setPage } = useTableSearch(
+    {
+      data: dataResult,
+      keys: ['name'],
+      rowsPerPage: 10000,
+      limit: 10000,
+      threshold: 1,
+      shouldSort: false,
+    },
+  );
 
   useEffect(() => {
     setPage(1);
@@ -139,6 +151,30 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
       .mutateAsync({ id, name, type, order, companyId, workspaceId })
       .catch(() => {});
   };
+
+  const handleEditDone = async ({
+    id,
+    name,
+    type,
+    done_at,
+  }: ICharacterization) => {
+    await upsertMutation
+      .mutateAsync({
+        id,
+        name,
+        type,
+        done_at: done_at ? '' : new Date(),
+        companyId,
+        workspaceId,
+      })
+      .catch(() => {});
+  };
+
+  const normalizedSearchValue = stringNormalize(search).toLowerCase();
+  const resultsFilter = results.filter((item) => {
+    const normalizedTitle = stringNormalize(item.name).toLowerCase();
+    return normalizedTitle.includes(normalizedSearchValue);
+  });
 
   const isEnvironment = getIsEnvironment(filterType);
 
@@ -167,7 +203,7 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
         loading={isLoading}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 110px 90px`}
+        }minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 110px 100px 90px`}
       >
         <STableHeader>
           {selectedData && <div />}
@@ -177,10 +213,11 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
           <STableHRow justifyContent="center">N.º Fotos</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
           <STableHRow justifyContent="center">Posição</STableHRow>
+          <STableHRow justifyContent="center">Finalizado</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<(typeof data)[0]>
-          rowsData={results}
+          rowsData={resultsFilter}
           hideLoadMore
           renderRow={(row) => {
             const text =
@@ -237,6 +274,19 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
                 <IconButtonRow
                   onClick={(e) => {
                     e.stopPropagation();
+                    handleEditDone(row);
+                  }}
+                  icon={
+                    row.done_at ? (
+                      <CheckBox color="success" />
+                    ) : (
+                      <CheckBoxOutlineBlankIcon />
+                    )
+                  }
+                />
+                <IconButtonRow
+                  onClick={(e) => {
+                    e.stopPropagation();
                     handleEdit(row);
                   }}
                   icon={<EditIcon />}
@@ -249,7 +299,7 @@ export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
       <STablePagination
         mt={2}
         registersPerPage={8}
-        totalCountOfRegisters={isLoading ? undefined : dataResult.length}
+        totalCountOfRegisters={isLoading ? undefined : resultsFilter.length}
         currentPage={page}
         onPageChange={setPage}
       />

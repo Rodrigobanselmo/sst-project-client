@@ -30,6 +30,7 @@ export interface IUpsertCharacterization {
   name?: string;
   description?: string;
   order?: number;
+  done_at?: Date | '';
   companyId?: string;
   noiseValue?: string;
   temperature?: string;

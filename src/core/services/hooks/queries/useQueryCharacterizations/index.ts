@@ -28,7 +28,7 @@ export const queryCharacterizations = async (
   );
 
   return response.data
-    ? response.data.sort((a, b) => sortDate(b, a, 'created_at'))
+    ? response.data.sort((a, b) => sortDate(b, a, 'updated_at'))
     : [];
 };
 

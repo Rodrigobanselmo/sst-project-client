@@ -9,6 +9,9 @@ interface IUseTableSearch {
   keys: Fuse.FuseOptionKey[];
   rowsPerPage?: number;
   minLengthSearch?: number;
+  threshold?: number;
+  limit?: number;
+  shouldSort?: boolean;
   sort?: (a: any, b: any) => number;
   transformSearchTextBefore?: (search: string) => string;
 }
@@ -18,6 +21,9 @@ export const useTableSearch = ({
   keys,
   sort,
   rowsPerPage = 10,
+  shouldSort = true,
+  limit = 20,
+  threshold,
   minLengthSearch,
   transformSearchTextBefore,
 }: IUseTableSearch) => {
@@ -30,8 +36,13 @@ export const useTableSearch = ({
   }, 300);
 
   const fuse = useMemo(() => {
-    return new Fuse(data, { keys, ignoreLocation: true });
-  }, [data, keys]);
+    return new Fuse(data, {
+      keys,
+      ignoreLocation: true,
+      threshold,
+      shouldSort,
+    });
+  }, [data, keys, threshold, shouldSort]);
 
   const results = useMemo(() => {
     let searchValue =
@@ -43,7 +54,7 @@ export const useTableSearch = ({
       searchValue = transformSearchTextBefore(searchValue);
     }
 
-    const fuseResults = fuse.search(searchValue, { limit: 20 });
+    const fuseResults = fuse.search(searchValue, { limit });
     const resultSearch = searchValue
       ? fuseResults.map((result) => result.item)
       : sort
@@ -59,6 +70,7 @@ export const useTableSearch = ({
   }, [
     data,
     fuse,
+    limit,
     minLengthSearch,
     page,
     rowsPerPage,
