@@ -45,7 +45,7 @@ import {
   CheckBoxTwoTone,
 } from '@mui/icons-material';
 
-interface ITableProps extends BoxProps {
+export interface ICharacterizationTableTableProps extends BoxProps {
   filterType?: CharacterizationTypeEnum;
   onSelectData?: (notification: ICharacterization) => void;
   selectedData?: ICharacterization[];
@@ -53,7 +53,9 @@ interface ITableProps extends BoxProps {
   workspaceId?: string;
 }
 
-export const CharacterizationTable: FC<{ children?: any } & ITableProps> = ({
+export const CharacterizationTable: FC<
+  { children?: any } & ICharacterizationTableTableProps
+> = ({
   filterType,
   children,
   onSelectData,

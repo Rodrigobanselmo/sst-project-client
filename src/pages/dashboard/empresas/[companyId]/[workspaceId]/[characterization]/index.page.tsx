@@ -3,27 +3,6 @@ import { useEffect, useMemo } from 'react';
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { SPageMenu } from 'components/molecules/SPageMenu';
-import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
-import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
-import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
-import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
-import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
-import { ModalAddQuantity } from 'components/organisms/modals/ModalAddQuantity';
-import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
-import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
-import { ModalAddWorkspace } from 'components/organisms/modals/ModalAddWorkspace';
-import { ModalAutomateSubOffice } from 'components/organisms/modals/ModalAutomateSubOffice';
-import { ModalEditEpiData } from 'components/organisms/modals/ModalEditEpiRiskData';
-import { ModalEditExamRiskData } from 'components/organisms/modals/ModalEditExamRiskData/ModalEditExamRiskData';
-import { ModalEditEngRiskData } from 'components/organisms/modals/ModalEditMedRiskData';
-import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
-import { ModalSelectCharacterization } from 'components/organisms/modals/ModalSelectCharacterization';
-import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
-import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
-import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
-import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
-import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
-import { CharacterizationTable } from 'components/organisms/tables/CharacterizationTable';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
@@ -34,7 +13,211 @@ import {
 import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
-import { ModalAddActivity } from 'components/organisms/modals/ModalAddActivity';
+import dynamic from 'next/dynamic';
+
+import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
+import { ModalEditExamRiskData } from 'components/organisms/modals/ModalEditExamRiskData/ModalEditExamRiskData';
+import { ICharacterizationTableTableProps } from 'components/organisms/tables/CharacterizationTable';
+
+const CharacterizationTable = dynamic(
+  () =>
+    import('components/organisms/tables/CharacterizationTable').then(
+      ({ CharacterizationTable }) => CharacterizationTable,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC<{ children?: any } & ICharacterizationTableTableProps>;
+
+const ModalAddCharacterization = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddCharacterization').then(
+      ({ ModalAddCharacterization }) => ModalAddCharacterization,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalSelectCharacterization = dynamic(
+  () =>
+    import('components/organisms/modals/ModalSelectCharacterization').then(
+      ({ ModalSelectCharacterization }) => ModalSelectCharacterization,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalSelectWorkspace = dynamic(
+  () =>
+    import('components/organisms/modals/ModalSelectWorkspace').then(
+      ({ ModalSelectWorkspace }) => ModalSelectWorkspace,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalSelectDocPgr = dynamic(
+  () =>
+    import('components/organisms/modals/ModalSelectDocPgr').then(
+      ({ ModalSelectDocPgr }) => ModalSelectDocPgr,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAddRisk = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddRisk').then(
+      ({ ModalAddRisk }) => ModalAddRisk,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAddGenerateSource = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddGenerateSource').then(
+      ({ ModalAddGenerateSource }) => ModalAddGenerateSource,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAddRecMed = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddRecMed').then(
+      ({ ModalAddRecMed }) => ModalAddRecMed,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAddEpi = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddEpi').then(
+      ({ ModalAddEpi }) => ModalAddEpi,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAddProbability = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddProbability').then(
+      ({ ModalAddProbability }) => ModalAddProbability,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAddQuantity = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddQuantity').then(
+      ({ ModalAddQuantity }) => ModalAddQuantity,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAddActivity = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddActivity').then(
+      ({ ModalAddActivity }) => ModalAddActivity,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAddWorkspace = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAddWorkspace').then(
+      ({ ModalAddWorkspace }) => ModalAddWorkspace,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalSingleInput = dynamic(
+  () =>
+    import('components/organisms/modals/ModalSingleInput').then(
+      ({ ModalSingleInput }) => ModalSingleInput,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalExcelHierarchies = dynamic(
+  () =>
+    import('components/organisms/modals/ModalExcelHierarchies').then(
+      ({ ModalExcelHierarchies }) => ModalExcelHierarchies,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalSelectHierarchy = dynamic(
+  () =>
+    import('components/organisms/modals/ModalSelectHierarchy').then(
+      ({ ModalSelectHierarchy }) => ModalSelectHierarchy,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalSelectGho = dynamic(
+  () =>
+    import('components/organisms/modals/ModalSelectGho').then(
+      ({ ModalSelectGho }) => ModalSelectGho,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalEditEpiData = dynamic(
+  () =>
+    import('components/organisms/modals/ModalEditEpiRiskData').then(
+      ({ ModalEditEpiData }) => ModalEditEpiData,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalEditEngRiskData = dynamic(
+  () =>
+    import('components/organisms/modals/ModalEditMedRiskData').then(
+      ({ ModalEditEngRiskData }) => ModalEditEngRiskData,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
+
+const ModalAutomateSubOffice = dynamic(
+  () =>
+    import('components/organisms/modals/ModalAutomateSubOffice').then(
+      ({ ModalAutomateSubOffice }) => ModalAutomateSubOffice,
+    ) as any,
+  {
+    ssr: false,
+  },
+) as React.FC;
 
 const Companies: NextPage = () => {
   const router = useRouter();
