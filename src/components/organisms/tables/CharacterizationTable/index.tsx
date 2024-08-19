@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 
 import { BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -121,11 +121,11 @@ export const CharacterizationTable: FC<
     ];
   }, [data, filterType]);
 
-  const { handleSearchChange, results, page, search, setPage } = useTableSearch(
+  const { handleSearchChange, results, search, setPage, page } = useTableSearch(
     {
       data: dataResult,
       keys: ['name'],
-      rowsPerPage: 10000,
+      rowsPerPage: 0,
       limit: 10000,
       threshold: 1,
       shouldSort: false,
@@ -219,7 +219,7 @@ export const CharacterizationTable: FC<
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<(typeof data)[0]>
-          rowsData={resultsFilter}
+          rowsData={resultsFilter.slice((page - 1) * 8, page * 8)}
           hideLoadMore
           renderRow={(row) => {
             const text =
