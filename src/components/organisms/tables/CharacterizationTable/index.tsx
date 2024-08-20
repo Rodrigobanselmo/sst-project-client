@@ -205,7 +205,7 @@ export const CharacterizationTable: FC<
         loading={isLoading}
         columns={`${
           selectedData ? '15px ' : ''
-        }minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 110px 100px 90px`}
+        }minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 100px 110px 100px 90px`}
       >
         <STableHeader>
           {selectedData && <div />}
@@ -214,6 +214,7 @@ export const CharacterizationTable: FC<
           <STableHRow justifyContent="center">Tipo</STableHRow>
           <STableHRow justifyContent="center">N.º Fotos</STableHRow>
           <STableHRow justifyContent="center">Criação</STableHRow>
+          <STableHRow justifyContent="center">Ult. Edição</STableHRow>
           <STableHRow justifyContent="center">Posição</STableHRow>
           <STableHRow justifyContent="center">Finalizado</STableHRow>
           <STableHRow justifyContent="center">Editar</STableHRow>
@@ -252,7 +253,12 @@ export const CharacterizationTable: FC<
                   clickable
                   text={dateToString(row.created_at)}
                   justifyContent="center"
-                />{' '}
+                />
+                <TextIconRow
+                  clickable
+                  text={dateToString(row.updated_at)}
+                  justifyContent="center"
+                />
                 <STagSelect
                   options={results.map((_, index) => ({
                     name: `posição ${index + 1}`,
