@@ -11,6 +11,10 @@ export interface ICanvasTextBox {
   text: string;
 }
 
+export interface ICanvasBlurBox {
+  id: string;
+}
+
 export interface ICanvasPath {
   id: string;
   initX: number;

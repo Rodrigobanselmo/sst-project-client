@@ -12,6 +12,7 @@ import {
   Circle,
 } from 'react-konva';
 import {
+  ICanvasBlurBox,
   ICanvasPath,
   ICanvasTextBox,
   IImageComponentProps,
@@ -32,6 +33,7 @@ import {
 } from 'core/utils/helpers/imageBlobCompress';
 import CropIcon from '@mui/icons-material/Crop';
 import RttIcon from '@mui/icons-material/Rtt';
+import BlurOnIcon from '@mui/icons-material/BlurOn';
 import { STagButton } from 'components/atoms/STagButton';
 import SFlex from 'components/atoms/SFlex';
 import { SInput } from 'components/atoms/SInput';
@@ -41,6 +43,7 @@ import { SCanvasPath } from './components/SCanvasPath';
 import Konva from 'konva';
 import { simulateAwait } from 'core/utils/helpers/simulateAwait';
 import { useWindowSize } from 'core/hooks/useWindowSize';
+import { SCanvasBlurBox } from './components/SCanvasBlurBox';
 
 const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
   ({ imageUrl, minHeight, minWidth, canvasRef, onCrop }, ref) => {
@@ -49,6 +52,7 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
     const [addPaths, setAddPaths] = React.useState(0);
     const [image, setImage] = useState<HTMLImageElement | null>(null);
 
+    const [blurBoxes, setBlurBoxes] = useState<ICanvasBlurBox[]>([]);
     const [textBoxes, setTextBoxes] = useState<ICanvasTextBox[]>([]);
     const [paths, setPaths] = useState<ICanvasPath[]>([]);
 
@@ -106,6 +110,14 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
       setText(e.target.value);
     };
 
+    const handleAddBlurBox = () => {
+      const newBox: ICanvasBlurBox = {
+        id: Date.now().toString(),
+      };
+
+      setBlurBoxes([...blurBoxes, newBox]);
+    };
+
     const handleAddTextBox = () => {
       if (!text) return inputRef.current?.focus();
 
@@ -133,6 +145,11 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
       setTextBoxes(updatedTextBoxes);
     };
 
+    const handleDeleteBlurBox = (id: string) => {
+      const updatedBlurBoxes = blurBoxes.filter((textBox) => textBox.id !== id);
+      setBlurBoxes(updatedBlurBoxes);
+    };
+
     const handleEditPath = (data: Partial<ICanvasPath>) => {
       setPaths((path) => {
         const updatedArray = path.map((item) => {
@@ -149,6 +166,19 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
     const handleEditTextBoxes = (data: Partial<ICanvasTextBox>) => {
       setTextBoxes((textBoxes) => {
         const updatedArray = textBoxes.map((item) => {
+          if (item.id === data.id) {
+            return { ...item, ...data };
+          }
+          return item;
+        });
+
+        return updatedArray;
+      });
+    };
+
+    const handleEditBlurBoxes = (data: Partial<ICanvasBlurBox>) => {
+      setBlurBoxes((blurBoxes) => {
+        const updatedArray = blurBoxes.map((item) => {
           if (item.id === data.id) {
             return { ...item, ...data };
           }
@@ -399,6 +429,12 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
             onClick={handleAddTextBox}
           />
           <STagButton
+            text={'Borrão'}
+            large
+            icon={BlurOnIcon}
+            onClick={handleAddBlurBox}
+          />
+          <STagButton
             large
             text={'Linhas'}
             icon={TimelineIcon}
@@ -494,6 +530,22 @@ const SCanvasEditorMain = React.forwardRef<any, IImageComponentProps>(
                         scale={Math.min(1.5, Math.max(1, 1 / scaleX))}
                         // scale={Math.min(1.5, Math.max(0.9, 1 / scaleX))}
                         // scale={1 / scaleX}
+                      />
+                    );
+                  })}
+                  {blurBoxes.map((blurBox, index) => {
+                    return (
+                      <SCanvasBlurBox
+                        key={blurBox.id}
+                        handleDeleteBlurBox={handleDeleteBlurBox}
+                        handleEditBlurBoxes={handleEditBlurBoxes}
+                        blurBox={blurBox}
+                        index={index}
+                        isSelected={blurBox.id === selectedItem}
+                        handleSelect={(item) =>
+                          setSelectedItem(item?.id || null)
+                        }
+                        scale={Math.min(1.5, Math.max(1, 1 / scaleX))}
                       />
                     );
                   })}
