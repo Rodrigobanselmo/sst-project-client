@@ -16,6 +16,7 @@ export interface IUpsertAddDocumentQueue {
   id?: string;
   name: string;
   documentDataId: string;
+  ghoIds?: string[];
   workspaceId: string;
   workspaceName: string;
   description?: string;

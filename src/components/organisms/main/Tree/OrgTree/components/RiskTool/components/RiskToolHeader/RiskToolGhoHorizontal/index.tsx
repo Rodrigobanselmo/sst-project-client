@@ -48,12 +48,73 @@ import { SideInput } from '../../SIdeInput';
 import { RiskToolColumns } from '../RiskToolColumns';
 import { SideSelectViewContentProps } from './types';
 
-const GhoOrHierarchySelect = ({
+export const getFilter = ({
+  viewDataType,
+}: {
+  viewDataType: ViewsDataEnum;
+}) => {
+  const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
+
+  if (isHierarchy) return undefined;
+
+  const filterOptions = [] as any;
+  const defaultValue = [] as any;
+
+  if (viewDataType == ViewsDataEnum.ENVIRONMENT) {
+    defaultValue.push(HomoTypeEnum.ENVIRONMENT);
+    filterOptions.push(HomoTypeEnum.ENVIRONMENT);
+  }
+
+  if (viewDataType == ViewsDataEnum.CHARACTERIZATION) {
+    defaultValue.push(HomoTypeEnum.ACTIVITIES);
+    filterOptions.push(
+      HomoTypeEnum.ACTIVITIES,
+      HomoTypeEnum.EQUIPMENT,
+      HomoTypeEnum.WORKSTATION,
+    );
+  }
+
+  if (viewDataType == ViewsDataEnum.GSE) filterOptions.push(HomoTypeEnum.GSE);
+
+  return { filterOptions, defaultFilter: defaultValue[0] };
+};
+
+export const getSelectedHierarchy = ({
+  viewDataType,
+  selected,
+}: {
+  viewDataType: ViewsDataEnum;
+  selected: IGho | IHierarchy | IHierarchyTreeMapObject | null;
+}) => {
+  if (selected && 'description' in selected && selected.description) {
+    const splitValues = selected.description.split('(//)');
+    if (splitValues[1]) {
+      return {
+        name: splitValues[0],
+        id: selected?.id,
+        type: originRiskMap[splitValues[1] as any]?.name || '',
+      };
+    }
+  }
+
+  if (viewDataType == ViewsDataEnum.HIERARCHY)
+    return {
+      name: selected?.name,
+      id: selected?.id,
+      type:
+        hierarchyConstant[(selected as any)?.type as HierarchyEnum]?.name || '',
+    };
+
+  return { name: selected?.name, id: selected?.id };
+};
+
+export const GhoOrHierarchySelect = ({
   isHierarchy,
   ...props
 }: IGHOTypeSelectProps &
   IHierarchyTypeSelectProps & {
     isHierarchy?: boolean;
+    multiple?: boolean;
   }) => {
   if (isHierarchy) return <HierarchySelect {...props} />;
   return <GhoSelect {...props} />;
@@ -104,57 +165,8 @@ export const RiskToolGhoHorizontal: FC<
     [inputRef, dispatch],
   );
 
-  const getSelectedHierarchy = () => {
-    if (selected && 'description' in selected && selected.description) {
-      const splitValues = selected.description.split('(//)');
-      if (splitValues[1]) {
-        return {
-          name: splitValues[0],
-          id: selected?.id,
-          type: originRiskMap[splitValues[1] as any]?.name || '',
-        };
-      }
-    }
-
-    if (viewDataType == ViewsDataEnum.HIERARCHY)
-      return {
-        name: selected?.name,
-        id: selected?.id,
-        type:
-          hierarchyConstant[(selected as any)?.type as HierarchyEnum]?.name ||
-          '',
-      };
-
-    return { name: selected?.name, id: selected?.id };
-  };
-
-  const { name, type } = getSelectedHierarchy();
+  const { name, type } = getSelectedHierarchy({ selected, viewDataType });
   const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
-
-  const getFilter = () => {
-    if (isHierarchy) return undefined;
-
-    const filterOptions = [] as any;
-    const defaultValue = [] as any;
-
-    if (viewDataType == ViewsDataEnum.ENVIRONMENT) {
-      defaultValue.push(HomoTypeEnum.ENVIRONMENT);
-      filterOptions.push(HomoTypeEnum.ENVIRONMENT);
-    }
-
-    if (viewDataType == ViewsDataEnum.CHARACTERIZATION) {
-      defaultValue.push(HomoTypeEnum.ACTIVITIES);
-      filterOptions.push(
-        HomoTypeEnum.ACTIVITIES,
-        HomoTypeEnum.EQUIPMENT,
-        HomoTypeEnum.WORKSTATION,
-      );
-    }
-
-    if (viewDataType == ViewsDataEnum.GSE) filterOptions.push(HomoTypeEnum.GSE);
-
-    return { filterOptions, defaultFilter: defaultValue[0] };
-  };
 
   return (
     <>
@@ -212,7 +224,7 @@ export const RiskToolGhoHorizontal: FC<
               }}
               active={false}
               bg={'background.paper'}
-              {...(getFilter() as any)}
+              {...(getFilter({ viewDataType }) as any)}
             />
           )}
           <SButton

@@ -19,6 +19,7 @@ import { IGHOTypeSelectProps } from './types';
 export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
   large,
   handleSelect,
+  multiple,
   text,
   companyId,
   selectedId,
@@ -42,11 +43,17 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
   }, [defaultFilter]);
 
   const handleSelectRisk = (options: IGho) => {
-    if (options && typeof options.id === 'string')
-      handleSelect?.(
-        ghoTree[options.id] || { id: '' },
-        (options as any).parents,
-      );
+    if (multiple) {
+      const ids = options as unknown as string[];
+      const selected = ids.map((id) => ghoTree[id]).filter(Boolean);
+      handleSelect?.(selected as IGho[]);
+    } else {
+      if (options && typeof options.id === 'string')
+        handleSelect?.(
+          ghoTree[options.id] || { id: '' },
+          (options as any).parents,
+        );
+    }
   };
 
   const getText = useCallback(
@@ -87,7 +94,10 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
       boolean
     >;
 
-    const list = ghoListData()
+    const listdata = ghoListData();
+    if (!listdata?.length) return [];
+
+    const list = listdata
       .map((gho) => {
         if (
           !filterOptions ||
@@ -124,6 +134,7 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
 
   return (
     <STagSearchSelect
+      multiple={multiple}
       options={options}
       icon={SHierarchyIcon}
       text={textField}

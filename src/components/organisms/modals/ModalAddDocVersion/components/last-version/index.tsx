@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useWizard } from 'react-use-wizard';
 
 import SFlex from 'components/atoms/SFlex';
@@ -14,6 +14,7 @@ import { queryDocVersions } from 'core/services/hooks/queries/useQueryDocVersion
 
 import { IUseMainActionsModal } from '../../hooks/useMainActions';
 import { useSecondStep } from './hooks/useSecondStep';
+import { SelectGroup } from './SelectGroup';
 
 export const VersionModalStep = (props: IUseMainActionsModal) => {
   const {
@@ -25,8 +26,10 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
     isMajorVersion,
     clearErrors,
     setValue,
+    groupsRef,
   } = useSecondStep(props);
   const { previousStep } = useWizard();
+
   const { data } = props;
 
   const [options, setOptions] = useState<string[]>([]);
@@ -147,6 +150,7 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
             multiline
           />
         </SFlex>
+        <SelectGroup compRef={groupsRef} />
       </AnimatedStep>
       <SModalButtons
         loading={loading}

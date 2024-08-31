@@ -6,9 +6,9 @@ import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 
 import { IGho } from './../../../../core/interfaces/api/IGho';
 
-export interface IGHOTypeSelectProps extends Partial<ISTagSearchSelectProps> {
+interface IGHOTypeSelectBaseProps
+  extends Partial<Omit<ISTagSearchSelectProps, 'multiple'>> {
   large?: boolean;
-  handleSelect?: (selected: IGho, parents: IGho[]) => void;
   text?: string;
   defaultFilter?: HomoTypeEnum;
   filterOptions?: HomoTypeEnum[];
@@ -20,3 +20,16 @@ export interface IGHOTypeSelectProps extends Partial<ISTagSearchSelectProps> {
   tooltipText?: (value: string) => ReactNode;
   borderActive?: 'error' | 'info' | 'warning' | 'success';
 }
+
+interface IGHOTypeSelectMultipleProps {
+  multiple: true;
+  handleSelect?: (selected: IGho[]) => void;
+}
+
+interface IGHOTypeSelectSingleProps {
+  multiple?: false;
+  handleSelect?: (selected: IGho, parents: IGho[]) => void;
+}
+
+export type IGHOTypeSelectProps = IGHOTypeSelectBaseProps &
+  (IGHOTypeSelectMultipleProps | IGHOTypeSelectSingleProps);

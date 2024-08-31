@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useFormContext } from 'react-hook-form';
 
 // import { useMutUpsertRiskDocsPgr } from 'core/services/hooks/mutations/checklist/docs/useMutCreateDocsPgr';
@@ -22,6 +22,7 @@ export const useSecondStep = ({
     clearErrors,
   } = useFormContext();
   const [isMajorVersion, setIsMajorVersion] = useState(false);
+  const groupsRef = useRef<{ selecteds: { id: string }[] }>();
 
   // const createDoc = useMutUpsertRiskDocsPgr();
   const createDoc = useMutAddQueueDocs();
@@ -55,6 +56,7 @@ export const useSecondStep = ({
             workspaceName: data.workspaceName,
             documentDataId: data.id,
             type: data.type,
+            ghoIds: groupsRef.current?.selecteds?.map((group) => group.id),
           })
           .catch(() => {});
       onClose();
@@ -70,5 +72,6 @@ export const useSecondStep = ({
     isMajorVersion,
     clearErrors,
     setValue,
+    groupsRef,
   };
 };

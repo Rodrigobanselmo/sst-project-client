@@ -29,6 +29,7 @@ export const HierarchySelect: FC<
   filterOptions,
   parentId,
   allFilters,
+  multiple,
   ...props
 }) => {
   const { hierarchyListData, hierarchyTree } = useListHierarchyQuery(
@@ -40,11 +41,17 @@ export const HierarchySelect: FC<
   >({} as Record<HierarchyEnum, boolean>);
 
   const handleSelectRisk = (options: IHierarchy) => {
-    if (options && typeof options.id === 'string')
-      handleSelect?.(
-        hierarchyTree[options.id] || { id: '' },
-        (options as any).parents,
-      );
+    if (multiple) {
+      const ids = options as unknown as string[];
+      const selected = ids.map((id) => hierarchyTree[id]).filter(Boolean);
+      handleSelect?.(selected as IHierarchy[]);
+    } else {
+      if (options && typeof options.id === 'string')
+        handleSelect?.(
+          hierarchyTree[options.id] || { id: '' },
+          (options as any).parents,
+        );
+    }
   };
 
   const getText = useCallback(
@@ -127,6 +134,7 @@ export const HierarchySelect: FC<
   return (
     <STagSearchSelect
       options={options}
+      multiple={multiple}
       icon={SHierarchyIcon}
       text={textField}
       bg={isNotSelected ? undefined : 'info.main'}

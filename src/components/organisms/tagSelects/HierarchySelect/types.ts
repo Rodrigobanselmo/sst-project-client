@@ -5,10 +5,9 @@ import { ISTagSearchSelectProps } from 'components/molecules/STagSearchSelect/ty
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 
-export interface IHierarchyTypeSelectProps
-  extends Partial<ISTagSearchSelectProps> {
+interface IHierarchyTypeSelectBaseProps
+  extends Partial<Omit<ISTagSearchSelectProps, 'multiple'>> {
   large?: boolean;
-  handleSelect?: (selected: IHierarchy, parents: IHierarchy[]) => void;
   text?: string;
   defaultFilter?: HierarchyEnum;
   filterOptions?: HierarchyEnum[];
@@ -21,3 +20,14 @@ export interface IHierarchyTypeSelectProps
   parentId?: string;
   borderActive?: 'error' | 'info' | 'warning' | 'success';
 }
+interface IHierarchyTypeSelectMultipleProps {
+  multiple: true;
+  handleSelect?: (selected: IHierarchy[]) => void;
+}
+
+interface IHierarchyTypeSelectSingleProps {
+  multiple?: false;
+  handleSelect?: (selected: IHierarchy, parents: IHierarchy[]) => void;
+}
+export type IHierarchyTypeSelectProps = IHierarchyTypeSelectBaseProps &
+  (IHierarchyTypeSelectMultipleProps | IHierarchyTypeSelectSingleProps);
