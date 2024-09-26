@@ -1,8 +1,19 @@
 import { BoxProps } from '@mui/material';
+import { ReactNode } from 'react';
 
-export interface STableProps extends BoxProps {
-  columns: string[];
+export interface STableProps<T> {
+  limit?: number;
+  isLoading?: boolean;
   rowGap?: string;
-  rowsNumber?: number;
-  loading?: boolean;
+  data: T[];
+  renderHeader: (header: ReactNode[]) => ReactNode;
+  renderBody: (props: {
+    data: T[];
+    rows: ((row: T) => ReactNode)[];
+  }) => ReactNode;
+  table: {
+    column: string;
+    header: React.ReactNode;
+    row: (row: any) => React.ReactNode;
+  }[];
 }

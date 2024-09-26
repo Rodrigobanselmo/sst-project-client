@@ -7,8 +7,12 @@ interface IPageCounter extends ButtonProps {
 export const PageCounter: React.FC<IPageCounter> = ({ count }) => {
   return (
     <Box display="flex" gap="4px">
-      <SText fontSize={14}>Total:&nbsp;</SText>
-      <SText fontSize={14}>{count}</SText>
+      <SText fontSize={12} color={'text.secondary'} ml={2}>
+        Total:&nbsp;
+      </SText>
+      <SText fontSize={12} color={'text.secondary'}>
+        {count}
+      </SText>
     </Box>
   );
 };

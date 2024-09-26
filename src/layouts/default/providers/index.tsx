@@ -10,9 +10,10 @@ import '@fontsource/poppins/800.css';
 import '@fontsource/poppins/900.css';
 
 import React, { FC } from 'react';
-import { QueryClientProvider } from 'react-query';
-import { ReactQueryDevtools } from 'react-query/devtools';
+import { QueryClientProvider as OldQueryClientProvider } from 'react-query';
+import { ReactQueryDevtools as OldReactQueryDevtools } from 'react-query/devtools';
 import { Provider } from 'react-redux';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 import { ThemeProvider as EmotionProvider } from '@emotion/react';
 import { Icon, ThemeProvider } from '@mui/material';
@@ -25,11 +26,14 @@ import { OnlineStatusProvider } from 'core/hooks/useOnlineStatus';
 
 import theme from '../../../configs/theme';
 import { AuthProvider } from '../../../core/contexts/AuthContext';
-import { queryClient } from '../../../core/services/queryClient';
+import { queryClient as oldQueryClient } from '../../../core/services/queryClient';
 import store, { persistor } from '../../../store';
 import { KBarProvider } from '../KBar/KBarProvider';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-const QueryClientProviderComponent = QueryClientProvider as any;
+const QueryClientProviderComponent = OldQueryClientProvider as any;
+
+export const queryClient = new QueryClient();
 
 const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
   const notistackRef = React.createRef<SnackbarProvider>();
@@ -71,10 +75,13 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
                 style={{ maxWidth: '28rem', paddingRight: 40 }}
               >
                 <AuthProvider>
-                  <QueryClientProviderComponent client={queryClient}>
-                    <KBarProvider>{children}</KBarProvider>
-                    <ReactQueryDevtools />
-                  </QueryClientProviderComponent>
+                  <QueryClientProvider client={queryClient}>
+                    <ReactQueryDevtools initialIsOpen={false} />
+                    <QueryClientProviderComponent client={oldQueryClient}>
+                      <KBarProvider>{children}</KBarProvider>
+                      <OldReactQueryDevtools />
+                    </QueryClientProviderComponent>
+                  </QueryClientProvider>
                 </AuthProvider>
               </SnackbarProvider>
             </ThemeProvider>

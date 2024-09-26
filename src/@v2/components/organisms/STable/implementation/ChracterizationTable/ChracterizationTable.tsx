@@ -1,37 +1,33 @@
-import { FC, useMemo } from 'react';
+import { FC } from 'react';
 
-import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
-import { BoxProps } from '@mui/material';
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
-import EditIcon from 'assets/icons/SEditIcon';
-import SOrderIcon from 'assets/icons/SOrderIcon';
-import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
-import { STagSelect } from 'components/molecules/STagSelect';
 
-import { CheckBox } from '@mui/icons-material';
-import { dateToString } from 'core/utils/date/date-format';
-
+import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
 import { STable } from '../../common/STable/STable';
 import { STableBody } from '../../common/STableBody/STableBody';
 import { STableHeader } from '../../common/STableHeader/STableHeader';
 import { STableHRow } from '../../common/STableHRow/STableHRow';
 import { STableRow } from '../../common/STableRow/STableRow';
-import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
-import { useTableColumns } from '../../hooks/useTableColumns';
 
-export interface ICharacterizationTableTableProps extends BoxProps {
+export interface ICharacterizationTableTableProps {
   data: any[];
   isLoading?: boolean;
+  pagination?: {
+    total: number;
+    limit: number;
+    page: number;
+  };
 }
 
 export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   data,
   isLoading,
+  pagination,
 }) => {
-  const { columns, headers, rows } = useTableColumns([
+  const table = [
     {
       column: 'minmax(200px, 2fr)',
       header: <STableHRow>Nome</STableHRow>,
@@ -40,12 +36,12 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     {
       column: 'minmax(200px, 2fr)',
       header: <STableHRow>Descrição</STableHRow>,
-      row: (row) => <TextIconRow clickable text={row.description || '--'} />,
+      row: (row) => <TextIconRow clickable text={'--'} />,
     },
     {
       column: '150px',
       header: <STableHRow justifyContent="center">Tipo</STableHRow>,
-      row: (row) => <TextIconRow clickable text={row.description || '--'} />,
+      row: (row) => <TextIconRow clickable text={row.type || '--'} />,
     },
     {
       column: '70px',
@@ -77,7 +73,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
       header: <STableHRow justifyContent="center">Editar</STableHRow>,
       row: (row) => null,
     },
-  ]);
+  ];
 
   return (
     <>
@@ -85,21 +81,31 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         Caracterização do Ambiente
       </STableTitle>
       <STableSearch onAddClick={() => null} onChange={(e) => e.target.value} />
-      <STable loading={isLoading} columns={columns}>
-        <STableHeader>{headers}</STableHeader>
-        <STableBody
-          rowsData={data}
-          hideLoadMore
-          renderRow={(rowData) => {
-            return (
-              <STableRow clickable onClick={() => null} key={rowData.id}>
-                {rows.map((row) => row(rowData))}
-              </STableRow>
-            );
-          }}
-        />
-      </STable>
-      <STablePagination total={1000} limit={20} page={1} setPage={setPage} />
+      <STable
+        isLoading={isLoading}
+        table={table}
+        data={data}
+        renderHeader={(headers) => <STableHeader>{headers}</STableHeader>}
+        renderBody={({ data, rows }) => (
+          <STableBody
+            rows={data}
+            renderRow={(row) => {
+              return (
+                <STableRow clickable onClick={() => null} key={row.id}>
+                  {rows.map((render) => render(row))}
+                </STableRow>
+              );
+            }}
+          />
+        )}
+      />
+      <STablePagination
+        isLoading={isLoading}
+        total={pagination?.total}
+        limit={pagination?.limit}
+        page={pagination?.page}
+        setPage={console.log}
+      />
     </>
   );
 };
