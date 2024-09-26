@@ -31,6 +31,8 @@
   ],
   "rules": {
     "indent": "off",
+    "react/display-name": "off",
+    "react/no-children-prop": "off",
     "prettier/prettier": "error",
     "no-empty": "off",
     "@typescript-eslint/no-explicit-any": "off",
