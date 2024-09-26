@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import { BoxProps } from '@mui/material';
@@ -19,8 +19,8 @@ import { STableBody } from '../../common/STableBody/STableBody';
 import { STableHeader } from '../../common/STableHeader/STableHeader';
 import { STableHRow } from '../../common/STableHRow/STableHRow';
 import { STableRow } from '../../common/STableRow/STableRow';
-import STablePagination from '../../addons/addons-table/STablePagination2/STablePagination';
-import CPagination from '../../addons/addons-table/STablePagination';
+import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
+import { useTableColumns } from '../../hooks/useTableColumns';
 
 export interface ICharacterizationTableTableProps extends BoxProps {
   data: any[];
@@ -31,105 +31,75 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   data,
   isLoading,
 }) => {
+  const { columns, headers, rows } = useTableColumns([
+    {
+      column: 'minmax(200px, 2fr)',
+      header: <STableHRow>Nome</STableHRow>,
+      row: (row) => <TextIconRow clickable text={row.name || '--'} />,
+    },
+    {
+      column: 'minmax(200px, 2fr)',
+      header: <STableHRow>Descrição</STableHRow>,
+      row: (row) => <TextIconRow clickable text={row.description || '--'} />,
+    },
+    {
+      column: '150px',
+      header: <STableHRow justifyContent="center">Tipo</STableHRow>,
+      row: (row) => <TextIconRow clickable text={row.description || '--'} />,
+    },
+    {
+      column: '70px',
+      header: <STableHRow justifyContent="center">N.º Fotos</STableHRow>,
+      row: (row) => null,
+    },
+    {
+      column: '100px',
+      header: <STableHRow justifyContent="center">Criação</STableHRow>,
+      row: (row) => null,
+    },
+    {
+      column: '100px',
+      header: <STableHRow justifyContent="center">Ult. Edição</STableHRow>,
+      row: (row) => null,
+    },
+    {
+      column: '110px',
+      header: <STableHRow justifyContent="center">Posição</STableHRow>,
+      row: (row) => null,
+    },
+    {
+      column: '100px',
+      header: <STableHRow justifyContent="center">Finalizado</STableHRow>,
+      row: (row) => null,
+    },
+    {
+      column: '90px',
+      header: <STableHRow justifyContent="center">Editar</STableHRow>,
+      row: (row) => null,
+    },
+  ]);
+
   return (
     <>
       <STableTitle icon={SCharacterizationIcon} iconSx={{ fontSize: 30 }}>
         Caracterização do Ambiente
       </STableTitle>
       <STableSearch onAddClick={() => null} onChange={(e) => e.target.value} />
-      <STable
-        loading={isLoading}
-        columns={
-          'minmax(200px, 2fr) minmax(200px, 2fr) 150px 70px 100px 100px 110px 100px 90px'
-        }
-      >
-        <STableHeader>
-          <STableHRow>Nome</STableHRow>
-          <STableHRow>Descrição</STableHRow>
-          <STableHRow justifyContent="center">Tipo</STableHRow>
-          <STableHRow justifyContent="center">N.º Fotos</STableHRow>
-          <STableHRow justifyContent="center">Criação</STableHRow>
-          <STableHRow justifyContent="center">Ult. Edição</STableHRow>
-          <STableHRow justifyContent="center">Posição</STableHRow>
-          <STableHRow justifyContent="center">Finalizado</STableHRow>
-          <STableHRow justifyContent="center">Editar</STableHRow>
-        </STableHeader>
+      <STable loading={isLoading} columns={columns}>
+        <STableHeader>{headers}</STableHeader>
         <STableBody
           rowsData={data}
           hideLoadMore
-          renderRow={(row) => {
+          renderRow={(rowData) => {
             return (
-              <STableRow clickable onClick={() => null} key={row.id}>
-                <TextIconRow clickable text={row.name || '--'} />
-                <TextIconRow clickable text={row.description || '--'} />
-                <TextIconRow
-                  clickable
-                  justifyContent="center"
-                  textAlign={'center'}
-                  text={row.text}
-                />
-                <TextIconRow
-                  clickable
-                  justifyContent="center"
-                  text={row?.photos?.length ? String(row?.photos?.length) : '0'}
-                />
-                <TextIconRow
-                  clickable
-                  text={dateToString(row.created_at)}
-                  justifyContent="center"
-                />
-                <TextIconRow
-                  clickable
-                  text={dateToString(row.updated_at)}
-                  justifyContent="center"
-                />
-                <STagSelect
-                  options={[]}
-                  tooltipTitle={
-                    'escolha a posição que o ambiente deve aparecer no documento'
-                  }
-                  text={`Posição ${!row?.order ? '-' : row?.order}`}
-                  maxWidth={120}
-                  handleSelectMenu={(option) => null}
-                  icon={SOrderIcon}
-                />
-                <IconButtonRow
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  icon={
-                    row.done_at ? (
-                      <CheckBox color="success" />
-                    ) : (
-                      <CheckBoxOutlineBlankIcon />
-                    )
-                  }
-                />
-                <IconButtonRow
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                  icon={<EditIcon />}
-                />
+              <STableRow clickable onClick={() => null} key={rowData.id}>
+                {rows.map((row) => row(rowData))}
               </STableRow>
             );
           }}
         />
       </STable>
-      {/* <STablePagination
-        registersPerPage={8}
-        totalCountOfRegisters={8}
-        currentPage={1}
-        onPageChange={() => null}
-      /> */}
-      <CPagination totalCount={1000} count={1000 / 20} />
-      {/* <STablePagination
-        mt={2}
-        registersPerPage={8}
-        totalCountOfRegisters={isLoading ? undefined : resultsFilter.length}
-        currentPage={page}
-        onPageChange={setPage}
-      /> */}
+      <STablePagination total={1000} limit={20} page={1} setPage={setPage} />
     </>
   );
 };

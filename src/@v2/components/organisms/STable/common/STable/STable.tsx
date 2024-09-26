@@ -15,7 +15,7 @@ export const STable: React.FC<React.PropsWithChildren<STableProps>> = ({
   <Box position="relative">
     <STSTable
       rowGap={rowGap}
-      columns={columns}
+      columns={columns.join(' ')}
       children={loading ? null : children}
       pb={5}
       {...props}
