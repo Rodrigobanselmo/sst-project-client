@@ -1,8 +1,8 @@
 import TravelExploreOutlinedIcon from '@mui/icons-material/TravelExploreOutlined';
-import SFlex from '@v2/components/atoms/SFlex/SFlex';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import React from 'react';
 import { STableEmptyProps } from './STableEmpty.types';
-import SText from '@v2/components/atoms/SText/SText';
+import { SText } from '@v2/components/atoms/SText/SText';
 
 export const STableEmpty: React.FC<STableEmptyProps> = ({
   children = (

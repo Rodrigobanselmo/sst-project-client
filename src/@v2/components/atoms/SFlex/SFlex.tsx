@@ -4,7 +4,7 @@ import { Box } from '@mui/material';
 
 import { SFlexProps } from './SFlex.types';
 
-const SFlex = React.forwardRef<any, SFlexProps>(
+export const SFlex = React.forwardRef<any, SFlexProps>(
   ({ direction = 'row', gap = 2, center, align, justify, ...props }, ref) => (
     <Box
       alignItems={center ? 'center' : align}
@@ -17,5 +17,3 @@ const SFlex = React.forwardRef<any, SFlexProps>(
     />
   ),
 );
-
-export default SFlex;

@@ -1,5 +1,5 @@
 import { Box, ButtonProps, Typography } from '@mui/material';
-import SText from '@v2/components/atoms/SText/SText';
+import { SText } from '@v2/components/atoms/SText/SText';
 
 interface IPageCounter extends ButtonProps {
   count: number;

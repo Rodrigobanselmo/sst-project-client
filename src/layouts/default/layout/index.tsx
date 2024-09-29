@@ -31,34 +31,17 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
-  // const { onCloseModal } = useModal();
-  // const store = useStore<any>();
-  // const lastPath = useRef('');
-  // const currentPath = useRef('');
 
   useEffect(() => {
     const handleStart = (nextPath: string) => {
-      // if (!lastPath.current) currentPath.current === nextPath;
+      const actualPath = window.location.pathname;
+      const isRouteLoading = nextPath.split('?')[0] !== actualPath;
 
-      // if (store.getState().modal.currentModal.length) {
-      //   onCloseModal();
-      //   router.events.emit('routeChangeError');
-      //   router.push({ pathname: currentPath.current }, undefined, {
-      //     shallow: true,
-      //   });
-
-      //   throw 'routeChange aborted.';
-      // } else {
-      //   lastPath.current = currentPath.current;
-      //   currentPath.current = nextPath;
-      // }
-      dispatch(setIsRouteLoading(true));
-      // console.log('start');
+      if (isRouteLoading) dispatch(setIsRouteLoading(true));
     };
 
     const handleStop = () => {
       dispatch(setIsRouteLoading(false));
-      // console.log('stop');
     };
 
     if (

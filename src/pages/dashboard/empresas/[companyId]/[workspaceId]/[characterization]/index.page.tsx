@@ -18,8 +18,11 @@ import dynamic from 'next/dynamic';
 import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
 import { ModalEditExamRiskData } from 'components/organisms/modals/ModalEditExamRiskData/ModalEditExamRiskData';
 import { ICharacterizationTableTableProps } from 'components/organisms/tables/CharacterizationTable';
+import { SCharacterizationTable } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable';
+import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/browse/hooks/useFetchBrowseCharacterization';
+import { CharacterizationTable } from '@v2/pages/companies/characterizations/components/CharacterizationTable/CharacterizationTable';
 
-const CharacterizationTable = dynamic(
+const OldCharacterizationTable = dynamic(
   () =>
     import('components/organisms/tables/CharacterizationTable').then(
       ({ CharacterizationTable }) => CharacterizationTable,
@@ -268,14 +271,15 @@ const Companies: NextPage = () => {
     <>
       <SHeaderTag title={'Ambientes'} />
       <SContainer>
-        <CharacterizationTable filterType={pageData.type || undefined}>
+        <CharacterizationTable />
+        <OldCharacterizationTable filterType={pageData.type || undefined}>
           <SPageMenu
             active={pageData.value}
             options={characterizationOptionsList}
             onChange={onChangeRoute}
             mb={10}
           />
-        </CharacterizationTable>
+        </OldCharacterizationTable>
         <ModalAddCharacterization />
         <ModalSelectCharacterization />
         <ModalSelectWorkspace />

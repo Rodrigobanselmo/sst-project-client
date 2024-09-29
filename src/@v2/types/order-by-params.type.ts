@@ -1,4 +1,6 @@
+export type IOrderDirection = 'asc' | 'desc' | 'none';
+
 export type IOrderByParams<T = string> = {
   field: T;
-  order: 'asc' | 'desc';
-}[];
+  order: IOrderDirection;
+};

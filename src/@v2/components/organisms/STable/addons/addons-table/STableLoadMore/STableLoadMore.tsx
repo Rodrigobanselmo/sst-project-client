@@ -2,8 +2,8 @@ import React, { FC } from 'react';
 
 import { Box } from '@mui/material';
 
-import SFlex from '@v2/components/atoms/SFlex/SFlex';
-import SText from '@v2/components/atoms/SText/SText';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SText } from '@v2/components/atoms/SText/SText';
 
 import { STableLoadMoreProps } from './STableLoadMore.types';
 

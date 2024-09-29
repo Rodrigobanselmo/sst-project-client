@@ -18,7 +18,7 @@ export function STableLoading({ limit, table }: STableLoadingProps) {
         <STableHeader>
           {header.map((item, index) => {
             return (
-              <STableHRow display="flex" key={index}>
+              <STableHRow boxProps={{ display: 'flex' }} key={index}>
                 <Skeleton
                   variant="rectangular"
                   width={'60%'}

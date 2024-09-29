@@ -1,70 +1,223 @@
+import React from 'react';
 import { FC } from 'react';
 
-import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
-import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import STableTitle from 'components/atoms/STable/components/STableTitle';
-
+import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
+import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse/service/browse-characterization.types';
+import { SCheckBoxRow } from '../../addons/addons-rows/SCheckBoxRow/SCheckBoxRow';
+import { STextRow } from '../../addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
-import { STableAddButton } from '../../addons/addons-table/STableSearch/components/STableSearchAddButton/STableSearchAddButton';
-import { STableSearch } from '../../addons/addons-table/STableSearch/STableSearch';
 import { STable } from '../../common/STable/STable';
+import { ITableData } from '../../common/STable/STable.types';
 import { STableBody } from '../../common/STableBody/STableBody';
 import { STableHeader } from '../../common/STableHeader/STableHeader';
-import { STableHRow } from '../../common/STableHRow/STableHRow';
 import { STableRow } from '../../common/STableRow/STableRow';
+import { mapOrderByTable } from '../../helpers/map-order-by-table.helper';
+import { CharacterizationHeaderRow } from './components/CharacterizationHeaderRow/CharacterizationHeaderRow';
+import { CharacterizationTypeMap } from './maps/characterization-type-map';
 import { ICharacterizationTableTableProps } from './SCharacterizationTable.types';
+import { HirarchyTypeMap } from './maps/hierarchy-type-map';
 
 export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   data = [],
   isLoading,
   pagination,
+  orderBy,
   setPage,
+  setOrderBy,
 }) => {
-  const table = [
+  const orderByMap = mapOrderByTable(orderBy);
+
+  const table: ITableData<CharacterizationBrowseResultModel>[] = [
     {
-      column: 'minmax(200px, 2fr)',
-      header: <STableHRow>Nome</STableHRow>,
-      row: (row) => <TextIconRow clickable text={row.name || '--'} />,
-    },
-    {
-      column: 'minmax(200px, 2fr)',
-      header: <STableHRow>Descrição</STableHRow>,
-      row: (row) => <TextIconRow clickable text={'--'} />,
+      column: 'minmax(200px, 1fr)',
+      header: (
+        <CharacterizationHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.NAME}
+          text="Nome"
+        />
+      ),
+      row: (row) => <STextRow text={row.name} />,
     },
     {
       column: '150px',
-      header: <STableHRow justifyContent="center">Tipo</STableHRow>,
-      row: (row) => <TextIconRow clickable text={row.type || '--'} />,
+      header: (
+        <CharacterizationHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.TYPE}
+          text="Tipo"
+        />
+      ),
+      row: (row) => (
+        <STextRow text={CharacterizationTypeMap[row.type].rowLabel} />
+      ),
     },
     {
       column: '70px',
-      header: <STableHRow justifyContent="center">N.º Fotos</STableHRow>,
-      row: (row) => null,
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.PHOTOS}
+          text="Fotos"
+        />
+      ),
+      row: (row) => (
+        <STextRow justify="center" text={String(row.photos.length)} />
+      ),
     },
     {
       column: '100px',
-      header: <STableHRow justifyContent="center">Criação</STableHRow>,
-      row: (row) => null,
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.CREATED_AT}
+          text="Criação"
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          justify="center"
+          text={row.formatedCreatedAt.date}
+          tooltipTitle={row.formatedCreatedAt.fullTime}
+        />
+      ),
     },
     {
       column: '100px',
-      header: <STableHRow justifyContent="center">Ult. Edição</STableHRow>,
-      row: (row) => null,
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.UPDATED_AT}
+          text="Ult. Edição"
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          justify="center"
+          text={row.formatedUpdatedAt.date}
+          tooltipTitle={row.formatedUpdatedAt.fullTime}
+        />
+      ),
     },
     {
-      column: '110px',
-      header: <STableHRow justifyContent="center">Posição</STableHRow>,
-      row: (row) => null,
+      column: '70px',
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.ORDER}
+          text="Posição"
+        />
+      ),
+      row: (row) => <STextRow justify="center" text={row.order} />,
     },
     {
-      column: '100px',
-      header: <STableHRow justifyContent="center">Finalizado</STableHRow>,
-      row: (row) => null,
+      column: '70px',
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.RISKS}
+          text="Riscos"
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          justify="center"
+          text={row.risks.length || '-'}
+          tooltipTitle={
+            <div>
+              {row.risks.map((risk) => (
+                <p key={risk.id}>{risk.name}</p>
+              ))}
+            </div>
+          }
+        />
+      ),
     },
     {
-      column: '90px',
-      header: <STableHRow justifyContent="center">Editar</STableHRow>,
-      row: (row) => null,
+      column: '70px',
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.PROFILES}
+          text="Perfis"
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          justify="center"
+          text={row.profiles.length || '-'}
+          tooltipTitle={
+            <div>
+              {row.profiles.map((profile) => (
+                <p key={profile.id}>{profile.name}</p>
+              ))}
+            </div>
+          }
+        />
+      ),
+    },
+    {
+      column: '70px',
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.HIERARCHY}
+          text="Cargos"
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          justify="center"
+          text={row.hierarchies.length || '-'}
+          tooltipTitle={
+            <div>
+              {row.hierarchies.map((hierarchy) => (
+                <p key={hierarchy.id}>
+                  ({HirarchyTypeMap[hierarchy.type].label}) {hierarchy.name}
+                </p>
+              ))}
+            </div>
+          }
+        />
+      ),
+    },
+    {
+      column: '70px',
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.DONE_AT}
+          text="Feito"
+        />
+      ),
+      row: (row) => (
+        <SCheckBoxRow
+          tooltip={row.formatedDoneAt}
+          checked={!!row.doneAt}
+          onClick={(e) => {
+            e.stopPropagation();
+            // handleEditDone(row);
+          }}
+        />
+      ),
     },
   ];
 

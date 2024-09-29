@@ -1,11 +1,20 @@
-import { CharacterizationBrowseResultModel } from './characterization-browse-result.model';
-import { CharacterizationBrowseFilterModel } from './characterization-browse-filter.model';
-import { PaginationModel } from '@v2/models/@shared/pagination.model';
+import {
+  IPaginationModelConstructor,
+  PaginationModel,
+} from '@v2/models/@shared/pagination.model';
+import {
+  CharacterizationBrowseFilterModel,
+  ICharacterizationBrowseFilterModel,
+} from './characterization-browse-filter.model';
+import {
+  CharacterizationBrowseResultModel,
+  ICharacterizationBrowseResultModel,
+} from './characterization-browse-result.model';
 
 export type ICharacterizationBrowseModel = {
-  results: CharacterizationBrowseResultModel[];
-  pagination: PaginationModel;
-  filters: CharacterizationBrowseFilterModel;
+  results: ICharacterizationBrowseResultModel[];
+  pagination: IPaginationModelConstructor;
+  filters: ICharacterizationBrowseFilterModel;
 };
 
 export class CharacterizationBrowseModel {
@@ -14,8 +23,10 @@ export class CharacterizationBrowseModel {
   filters: CharacterizationBrowseFilterModel;
 
   constructor(params: ICharacterizationBrowseModel) {
-    this.results = params.results;
-    this.pagination = params.pagination;
-    this.filters = params.filters;
+    this.results = params.results.map(
+      (result) => new CharacterizationBrowseResultModel(result),
+    );
+    this.pagination = new PaginationModel(params.pagination);
+    this.filters = new CharacterizationBrowseFilterModel(params.filters);
   }
 }

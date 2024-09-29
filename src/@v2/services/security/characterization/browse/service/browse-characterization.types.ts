@@ -10,6 +10,7 @@ export enum CharacterizationOrderByEnum {
   ORDER = 'ORDER',
   PHOTOS = 'PHOTOS',
   RISKS = 'RISKS',
+  HIERARCHY = 'HIERARCHY',
   PROFILES = 'PROFILES',
 }
 
@@ -17,7 +18,7 @@ export interface BrowseCharacterizationParams {
   companyId: string;
   workspaceId: string;
   pagination: IPaginationParams;
-  orderBy?: IOrderByParams<CharacterizationOrderByEnum>;
+  orderBy?: IOrderByParams<CharacterizationOrderByEnum>[];
   filters?: {
     search?: string;
   };

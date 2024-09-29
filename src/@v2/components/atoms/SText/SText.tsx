@@ -18,5 +18,3 @@ export const SText: React.FC<STextProps> = ({
     {...props}
   />
 );
-
-export default SText;

@@ -18,7 +18,7 @@ export async function browseCharacterization({
       path: 'v2/companies/:companyId/workspaces/:workspaceId/characterizations',
       pathParams: { companyId, workspaceId },
       queryParams: {
-        orderBy: orderBy,
+        orderBy: orderBy?.filter(({ order }) => order != 'none'),
         ...pagination,
         ...filters,
       },

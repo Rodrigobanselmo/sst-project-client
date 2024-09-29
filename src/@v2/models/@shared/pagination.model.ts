@@ -1,4 +1,4 @@
-export interface PaginationModelModelConstructor {
+export interface IPaginationModelConstructor {
   total: number;
   limit: number;
   page: number;
@@ -9,7 +9,7 @@ export class PaginationModel {
   limit: number;
   page: number;
 
-  constructor({ total, limit, page }: PaginationModelModelConstructor) {
+  constructor({ total, limit, page }: IPaginationModelConstructor) {
     this.total = total;
     this.limit = limit;
     this.page = page;

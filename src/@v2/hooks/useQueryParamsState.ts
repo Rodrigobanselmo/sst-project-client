@@ -4,7 +4,7 @@ import {
 } from '@v2/utils/object-to-query-params';
 import { queryParamsToObject } from '@v2/utils/query-params-to-object';
 import { useRouter } from 'next/router';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 
 export function useQueryParamsState<T = IObjectToQueryParamsProps>() {
   const router = useRouter();
@@ -15,28 +15,21 @@ export function useQueryParamsState<T = IObjectToQueryParamsProps>() {
   );
 
   const setQueryParams = useCallback(
-    (values: Record<string, any>) => {
+    (values: T) => {
       const queryString = window.location.search;
       const queryObject = queryParamsToObject(queryString);
 
-      Object.entries(values).forEach(([key, value]) => {
+      Object.entries(values as any).forEach(([key, value]) => {
         if (value === null) delete queryObject[key];
         if (value instanceof Date) queryObject[key] = value.toISOString();
-        else queryObject[key] = value;
+        else (queryObject as any)[key] = value;
       });
 
       const pathname = `${window.location.pathname}?${objectToQueryParams(
         queryObject,
       )}`;
 
-      router.replace(
-        {
-          pathname: window.location.pathname,
-          query: objectToQueryParams(queryObject),
-        },
-        undefined,
-        { shallow: true },
-      );
+      router.replace(pathname, undefined, { shallow: true });
     },
     [router],
   );
