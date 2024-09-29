@@ -2,30 +2,23 @@ import { FC } from 'react';
 
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
-import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 
 import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
+import { STableAddButton } from '../../addons/addons-table/STableSearch/components/STableSearchAddButton/STableSearchAddButton';
+import { STableSearch } from '../../addons/addons-table/STableSearch/STableSearch';
 import { STable } from '../../common/STable/STable';
 import { STableBody } from '../../common/STableBody/STableBody';
 import { STableHeader } from '../../common/STableHeader/STableHeader';
 import { STableHRow } from '../../common/STableHRow/STableHRow';
 import { STableRow } from '../../common/STableRow/STableRow';
-
-export interface ICharacterizationTableTableProps {
-  data: any[];
-  isLoading?: boolean;
-  pagination?: {
-    total: number;
-    limit: number;
-    page: number;
-  };
-}
+import { ICharacterizationTableTableProps } from './SCharacterizationTable.types';
 
 export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
-  data,
+  data = [],
   isLoading,
   pagination,
+  setPage,
 }) => {
   const table = [
     {
@@ -77,10 +70,6 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
 
   return (
     <>
-      <STableTitle icon={SCharacterizationIcon} iconSx={{ fontSize: 30 }}>
-        Caracterização do Ambiente
-      </STableTitle>
-      <STableSearch onAddClick={() => null} onChange={(e) => e.target.value} />
       <STable
         isLoading={isLoading}
         table={table}
@@ -104,7 +93,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         total={pagination?.total}
         limit={pagination?.limit}
         page={pagination?.page}
-        setPage={console.log}
+        setPage={setPage}
       />
     </>
   );
