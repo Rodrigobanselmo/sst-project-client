@@ -100,6 +100,7 @@ export enum ApiRoutesEnum {
   REPORT_COMPLEMENTARY_EXAM = '/files/report/complementary-exam/:companyId',
   REPORT_DONE_EXAM = '/files/report/done-exam/:companyId',
   REPORT_RISK = '/files/report/risk-structure/:companyId',
+  REPORT_CHARACTERIZATION = '/files/report/characterization/:companyId',
 
   MODEL_RISK_DOWNALOD = '/files/models/risk/:companyId',
   MODEL_EMPLOYEE_DOWNALOD = '/files/models/employee/:companyId',

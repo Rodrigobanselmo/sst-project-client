@@ -9,6 +9,7 @@ export enum ReportTypeEnum {
   DONE_EXAM,
   CLOSE_EXPIRED_EXAM,
   RISK,
+  CHARACTERIZATION,
 
   MODEL_RISK,
   MODEL_EMPLOYEE,
@@ -40,6 +41,10 @@ export const reportTypeMap: IMap = {
   [ReportTypeEnum.CLINICS]: {
     value: ReportTypeEnum.CLINICS,
     route: ApiRoutesEnum.REPORT_CLINIC,
+  },
+  [ReportTypeEnum.CHARACTERIZATION]: {
+    value: ReportTypeEnum.CHARACTERIZATION,
+    route: ApiRoutesEnum.REPORT_CHARACTERIZATION,
   },
   [ReportTypeEnum.EXPIRED_EXAM]: {
     value: ReportTypeEnum.EXPIRED_EXAM,

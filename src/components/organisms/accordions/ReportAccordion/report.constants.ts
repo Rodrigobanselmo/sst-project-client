@@ -48,6 +48,17 @@ export const reports: IReportJson[] = [
     ],
   },
   {
+    name: 'Caracterização',
+    permissions: [PermissionEnum.CHARACTERIZATION],
+    reports: [
+      {
+        name: 'Lista de Ambientes / Funções',
+        ask: riskFilterReport,
+        type: ReportTypeEnum.CHARACTERIZATION,
+      },
+    ],
+  },
+  {
     name: 'Exames',
     roles: [RoleEnum.SCHEDULE_EXAM],
     reports: [
