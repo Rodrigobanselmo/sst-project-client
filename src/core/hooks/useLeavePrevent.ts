@@ -27,5 +27,6 @@ export const useLeavePrevent = () => {
     return () => {
       router.events.off('routeChangeStart', handleStart);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 };

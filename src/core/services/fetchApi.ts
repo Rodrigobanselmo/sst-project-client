@@ -94,19 +94,28 @@ export function setupAPIClient(ctx = undefined) {
                       path: '/',
                     });
 
-                    setCookie(null, 'nextauth.refreshToken', (response as any).data.refresh_token, {
-                      maxAge: 60 * 60 * 25 * 30, // 30 days
-                      path: '/',
-                    });
+                    setCookie(
+                      null,
+                      'nextauth.refreshToken',
+                      (response as any).data.refresh_token,
+                      {
+                        maxAge: 60 * 60 * 25 * 30, // 30 days
+                        path: '/',
+                      },
+                    );
 
                     headers.common['Authorization'] = `Bearer ${token}`;
                     headers['Authorization'] = `Bearer ${token}`;
 
-                    failedRequestQueue.forEach((request) => request.onSuccess());
+                    failedRequestQueue.forEach((request) =>
+                      request.onSuccess(),
+                    );
                     failedRequestQueue = [];
                   })
                   .catch((err) => {
-                    failedRequestQueue.forEach((request) => request.onFailure(err));
+                    failedRequestQueue.forEach((request) =>
+                      request.onFailure(err),
+                    );
                     failedRequestQueue = [];
 
                     if (process.browser) {
@@ -125,7 +134,12 @@ export function setupAPIClient(ctx = undefined) {
               return new Promise((resolve, reject) => {
                 failedRequestQueue.push({
                   onSuccess: () => {
-                    resolve(fetchApi[originalConfig.method](originalConfig.url, originalConfig.body));
+                    resolve(
+                      fetchApi[originalConfig.method](
+                        originalConfig.url,
+                        originalConfig.body,
+                      ),
+                    );
                   },
                   onFailure: (err: any) => {
                     reject(err);

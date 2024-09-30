@@ -34,6 +34,7 @@ export const DatePickerForm = ({
   useEffect(() => {
     defaultValue !== undefined && setValue?.(name, defaultValue as any);
     clearIfEmpty && setValue?.(name, defaultValue as any);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValue, name, setValue]);
 
   return (

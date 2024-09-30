@@ -24,8 +24,7 @@ export const STableSearch: FC<PropsWithChildren<STableSearchProps>> = ({
     if (inputRef.current && search) {
       inputRef.current.value = search;
     }
-  }, [search])
-  
+  }, [search]);
 
   return (
     <SFlex mb={mb} align="center">

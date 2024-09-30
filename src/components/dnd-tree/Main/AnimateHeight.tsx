@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useMeasure from 'react-use-measure';
 
 import { ResizeObserver } from '@juggle/resize-observer';
@@ -56,6 +55,7 @@ export function AnimateHeight(props: AnimateHeightProps) {
     if (isVisibleChildren) {
       setIsVisibleContainer(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [height]);
 
   return (

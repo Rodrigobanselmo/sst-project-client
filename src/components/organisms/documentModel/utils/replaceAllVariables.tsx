@@ -59,6 +59,7 @@ export const replaceAllVariables = (
 
         actualLength = actualLength + transformedVariable.length;
         if (options?.addSpan)
+          // eslint-disable-next-line react/jsx-key
           return <span style={{ color: 'blue' }}>{transformedVariable}</span>;
 
         return transformedVariable;
@@ -66,6 +67,7 @@ export const replaceAllVariables = (
 
       actualLength = actualLength + variable.length;
 
+      // eslint-disable-next-line react/jsx-key
       if (options?.addSpan) return <span>{variable}</span>;
 
       return variable;

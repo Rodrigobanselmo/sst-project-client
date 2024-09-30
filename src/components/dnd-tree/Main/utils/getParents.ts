@@ -8,6 +8,7 @@ export function getParents<T = unknown>(
   const parents: NodeModel<T>[] = [];
   let node = treeData.find((el) => el.id === id);
   while (node) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     node = treeData.find((el) => el.id === node!.parent);
     if (node) parents.push(node);
   }

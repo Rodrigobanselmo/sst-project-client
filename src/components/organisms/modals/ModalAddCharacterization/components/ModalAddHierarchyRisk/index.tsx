@@ -113,13 +113,13 @@ export const ModalAddHierarchyRisk = ({
               mt: 5,
             }}
           >
-            {query.files?.map((file) => {
+            {query.files?.map((file, i) => {
               const url = String(file?.url);
               const isVideo = url && url.includes('.mp4');
 
               if (isVideo)
                 return (
-                  <Box>
+                  <Box key={i}>
                     <video
                       controls
                       key={file.id}

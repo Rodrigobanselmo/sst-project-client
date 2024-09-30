@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 
 import { Box } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -89,6 +89,7 @@ export const useCompanyTenant = () => {
         ),
       } as Partial<typeof initialBlankState>);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [fetchCompany, onStackOpenModal],
   );
 

@@ -708,6 +708,7 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
                   {sortedExams.map((exam) => {
                     const examFound = row.infoExams?.[exam.id];
 
+                    // eslint-disable-next-line react/jsx-key
                     if (!examFound) return <div />;
 
                     const examsHistory = row.examsHistory?.filter(

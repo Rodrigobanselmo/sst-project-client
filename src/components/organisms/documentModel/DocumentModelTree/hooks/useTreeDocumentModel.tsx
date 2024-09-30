@@ -133,6 +133,7 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
     );
 
     return treeArray;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

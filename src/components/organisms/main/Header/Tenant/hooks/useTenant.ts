@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
@@ -122,6 +122,7 @@ export const useLocation = () => {
         onChangeRoute({ company });
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     asPath,
     onSelectCompany,
