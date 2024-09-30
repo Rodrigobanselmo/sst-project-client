@@ -50,7 +50,7 @@ export const ModalUploadNewFile: FC<
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { onCloseModal } = useModal();
 
-  const { handleSubmit, reset } = useForm({
+  const { handleSubmit, reset } = useForm<any>({
     resolver: yupResolver(photoSchema),
   });
 

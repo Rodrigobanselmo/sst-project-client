@@ -27,7 +27,7 @@ interface ISubmit
 export const usePgrForm = (docId: string, data?: any) => {
   const { onOpenModal } = useModal();
   const { handleSubmit, control, getValues, setValue, trigger, setFocus } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(documentDataSchema),
     });
 

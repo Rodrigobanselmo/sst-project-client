@@ -54,7 +54,7 @@ export const useEditWorkspace = () => {
   const initialDataRef = useRef(initialWorkspaceState);
   const cnpjMutation = useMutationCNPJ();
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
     resolver: yupResolver(workspaceSchema),
   });
 

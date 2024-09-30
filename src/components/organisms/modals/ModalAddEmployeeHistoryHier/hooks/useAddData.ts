@@ -52,7 +52,7 @@ export const useAddData = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialEmployeeHistoryHierState);
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
     resolver: yupResolver(employeeHistoryHierarchySchema),
   });
 

@@ -87,7 +87,7 @@ export const ModalUploadPhoto: FC<
   const { onCloseModal } = useModal();
   const { enqueueSnackbar } = useSnackbar();
 
-  const { handleSubmit, control, reset, setValue } = useForm({
+  const { handleSubmit, control, reset, setValue } = useForm<any>({
     resolver: yupResolver(photoSchema),
   });
 

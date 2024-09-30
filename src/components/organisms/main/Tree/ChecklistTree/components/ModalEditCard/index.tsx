@@ -113,9 +113,10 @@ export const ModalEditCard = () => {
       }
     };
 
-    const beforeNode =
-      { action: selectedNode?.action, ...nodesMap[selectedNode?.id || ''] } ||
-      {};
+    const beforeNode = {
+      action: selectedNode?.action,
+      ...nodesMap[selectedNode?.id || ''],
+    };
 
     if (preventUnwantedChanges(selectedNode, beforeNode, close)) return;
     close();

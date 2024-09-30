@@ -37,11 +37,11 @@ export const originRiskMap: Record<string, { name: string; type: string }> = {
     name: 'Ambiente',
     type: 'Ambiente',
   },
-  [HomoTypeEnum.WORKSTATION]: {
+  [HomoTypeEnum.WORKSTATION as any]: {
     name: 'Posto de Trabalho',
     type: 'Mão de Obra',
   },
-  [HomoTypeEnum.ACTIVITIES]: {
+  [HomoTypeEnum.ACTIVITIES as any]: {
     name: 'Atividade',
     type: 'Mão de Obra',
   },
@@ -49,7 +49,7 @@ export const originRiskMap: Record<string, { name: string; type: string }> = {
     name: 'GSE',
     type: 'Grupo Similar de Exposição',
   },
-  [HomoTypeEnum.EQUIPMENT]: {
+  [HomoTypeEnum.EQUIPMENT as any]: {
     name: 'Equipamento',
     type: 'Mão de Obra',
   },

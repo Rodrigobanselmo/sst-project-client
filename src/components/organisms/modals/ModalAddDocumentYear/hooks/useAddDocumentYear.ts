@@ -44,7 +44,7 @@ export const useAddDocumentYear = () => {
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialDocumentState);
 
-  const { handleSubmit, setValue, control, reset, getValues } = useForm({
+  const { handleSubmit, setValue, control, reset, getValues } = useForm<any>({
     resolver: yupResolver(documentSchema),
   });
 

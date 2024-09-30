@@ -71,7 +71,7 @@ export const useEditExams = () => {
   const { companyId, userCompanyId } = useGetCompanyId();
   const { enqueueSnackbar } = useSnackbar();
 
-  const { handleSubmit, control, setValue, reset, getValues } = useForm({
+  const { handleSubmit, control, setValue, reset, getValues } = useForm<any>({
     resolver: yupResolver(examRiskSchema),
   });
 

@@ -19,7 +19,7 @@ interface ISubmit extends Partial<IUpdateUser> {}
 
 export const useUserFormOld = (onlyEdit?: boolean) => {
   const { user, refreshUser, googleSignLink } = useAuth();
-  const { handleSubmit, control, setFocus, setValue } = useForm({
+  const { handleSubmit, control, setFocus, setValue } = useForm<any>({
     resolver: yupResolver(userUpdateSchema),
   });
 

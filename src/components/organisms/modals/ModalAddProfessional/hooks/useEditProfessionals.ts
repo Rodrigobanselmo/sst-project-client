@@ -83,7 +83,7 @@ export const useEditProfessionals = () => {
   const { data: userCompany } = useQueryCompany(user?.companyId);
 
   const { handleSubmit, setValue, setError, control, reset, getValues } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(professionalSchema),
     });
 

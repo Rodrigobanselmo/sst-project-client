@@ -59,7 +59,7 @@ export const useAddScheduleBlock = () => {
   const { data: company } = useQueryCompany();
 
   const { handleSubmit, setValue, setError, control, reset, getValues } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(scheduleBlockSchema),
     });
 

@@ -35,7 +35,7 @@ export const useAddContact = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialContactState);
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
     resolver: yupResolver(contactSchema),
   });
 

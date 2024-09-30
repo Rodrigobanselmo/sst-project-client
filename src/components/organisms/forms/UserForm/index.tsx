@@ -56,7 +56,7 @@ export const UserForm = (
   const isGoogleAccount = !!user.googleExternalId;
 
   return (
-    <STBox onSubmit={handleSubmit(onSave)} component={'form'} {...props}>
+    <STBox onSubmit={handleSubmit(onSave as any)} component={'form'} {...props}>
       <SFlex gap={8} direction="column">
         <SFlex
           gap={8}
@@ -209,14 +209,14 @@ export const UserForm = (
             onChange={(e) => {
               const type = (e as any).target.value as ProfessionalTypeEnum;
               if (type === ProfessionalTypeEnum.ENGINEER)
-                setValue('councilType', 'CREA');
+                setValue('councilType' as any, 'CREA');
               else if (type === ProfessionalTypeEnum.NURSE)
-                setValue('councilType', 'COREN');
+                setValue('councilType' as any, 'COREN');
               else if (type === ProfessionalTypeEnum.DOCTOR)
-                setValue('councilType', 'CRM');
+                setValue('councilType' as any, 'CRM');
               // else if (type === ProfessionalTypeEnum.SPEECH_THERAPIST)
               //   setValue('councilType', 'CFF');
-              else setValue('councilType', '');
+              else setValue('councilType' as any, '');
 
               setUserData((old) => {
                 return {

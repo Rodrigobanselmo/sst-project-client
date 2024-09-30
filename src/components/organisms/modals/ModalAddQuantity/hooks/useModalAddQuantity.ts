@@ -107,7 +107,7 @@ export const useModalAddQuantity = () => {
     ...initialQuantityState,
   });
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
     resolver: yupResolver(heatSchema),
   });
 

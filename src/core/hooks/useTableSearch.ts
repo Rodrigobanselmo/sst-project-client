@@ -6,7 +6,7 @@ import { useDebouncedCallback } from 'use-debounce';
 
 interface IUseTableSearch {
   data: any[];
-  keys: Fuse.FuseOptionKey[];
+  keys: Fuse.FuseOptionKey<any>[];
   rowsPerPage?: number;
   minLengthSearch?: number;
   threshold?: number;

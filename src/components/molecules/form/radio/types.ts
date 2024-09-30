@@ -38,5 +38,5 @@ export type InputFormBoxProps<T> = FormControlProps & {
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;
   unmountOnChangeDefault?: boolean;
-  setValue: (name: string, value: string) => void;
+  setValue: (name: any, value: any) => void;
 };

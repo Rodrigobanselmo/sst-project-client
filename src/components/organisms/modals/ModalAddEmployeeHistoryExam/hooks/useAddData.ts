@@ -78,7 +78,7 @@ export const useAddData = () => {
   // const { isAuthSuccess } = useAuthShow();
 
   const { handleSubmit, setValue, control, reset, getValues, setError } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(employeeHistoryExamSchema),
     });
 

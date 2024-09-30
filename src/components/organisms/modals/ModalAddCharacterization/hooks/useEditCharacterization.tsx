@@ -131,7 +131,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     getValues,
     setValue,
     setError,
-  } = useForm({
+  } = useForm<any>({
     resolver: yupResolver(characterizationSchema),
   });
 

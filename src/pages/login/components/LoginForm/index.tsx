@@ -33,7 +33,7 @@ import {
 const ReCAPTCHAComp = ReCAPTCHA as any;
 
 export const LoginForm: FC = () => {
-  const { handleSubmit, control, watch, setValue } = useForm({
+  const { handleSubmit, control, watch, setValue } = useForm<any>({
     resolver: yupResolver(Yup.object().shape({ ...loginSchema })),
   });
 

@@ -25,7 +25,7 @@ import { useSnackbar } from 'notistack';
 const ReCAPTCHAComp = ReCAPTCHA as any;
 
 export const LoginForm: FC = () => {
-  const formProps = useForm({
+  const formProps = useForm<any>({
     resolver: yupResolver(Yup.object().shape({ ...signSchema })),
   });
 

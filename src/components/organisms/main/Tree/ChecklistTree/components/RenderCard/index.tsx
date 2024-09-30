@@ -36,12 +36,12 @@ export const RenderCard = ({ node, prop }: IRenderCard) => {
       key={`label_${node.id}`}
       horizontal={prop.horizontal ? 1 : 0}
       className={'org-tree-node-label'}
-      ref={drop}
+      ref={drop as any}
     >
       <STRenderLabel
         key={`label_inner_${node.id}`}
         id={`node_card_${node.id}`}
-        ref={drag}
+        ref={drag as any}
         type={node.type}
         isDragging={isDragging}
         className={clx.join(' ')}

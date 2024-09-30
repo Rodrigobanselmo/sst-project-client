@@ -74,7 +74,7 @@ export const useEditClinicExams = () => {
   const { data: company } = useQueryCompany();
 
   const { handleSubmit, setValue, setError, control, reset, getValues } =
-    useForm({ resolver: yupResolver(clinicExamsSchema) });
+    useForm<any>({ resolver: yupResolver(clinicExamsSchema) });
 
   const upsertMutation = useMutUpsertClinicExam();
   const deleteMutation = useMutDeleteClinicExam();

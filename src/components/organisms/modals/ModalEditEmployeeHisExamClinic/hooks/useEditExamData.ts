@@ -82,7 +82,7 @@ export const useAddData = () => {
     reset,
     getValues,
     setFocus,
-  } = useForm({
+  } = useForm<any>({
     resolver: yupResolver(employeeHistoryExamSchema),
   });
 

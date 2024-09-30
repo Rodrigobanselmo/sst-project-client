@@ -26,7 +26,7 @@ export const useAddEpi = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddEpiState);
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
     resolver: yupResolver(ghoSchema),
   });
 

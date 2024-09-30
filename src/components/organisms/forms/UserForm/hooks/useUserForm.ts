@@ -32,11 +32,11 @@ export const useUserForm = () => {
     userId: query?.userId ? Number(query?.userId) : undefined,
   });
 
-  const formProps = useForm({
+  const formProps = useForm<any>({
     resolver: yupResolver(userUpdateSchema),
   });
 
-  const formPropsPass = useForm({
+  const formPropsPass = useForm<any>({
     resolver: yupResolver(
       Yup.object().shape({
         password: signSchema.password,

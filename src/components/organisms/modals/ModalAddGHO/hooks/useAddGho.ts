@@ -43,7 +43,7 @@ export const useAddGho = () => {
   const { selectStartEndDate } = useStartEndDate();
   const initialDataRef = useRef(initialAddGhoState);
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
     resolver: yupResolver(ghoSchema),
   });
 

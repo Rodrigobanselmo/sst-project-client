@@ -42,7 +42,7 @@ export const useAddCompanyGroup = () => {
   const initialDataRef = useRef(initialCompanyGroupState);
   const { push } = useRouter();
 
-  const { handleSubmit, control, setValue, reset, getValues } = useForm({
+  const { handleSubmit, control, setValue, reset, getValues } = useForm<any>({
     resolver: yupResolver(accessGroupSchema),
   });
 

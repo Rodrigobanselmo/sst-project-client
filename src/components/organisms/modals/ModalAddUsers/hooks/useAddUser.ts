@@ -82,7 +82,7 @@ export const useAddUser = () => {
   const initialDataRef = useRef(initialUserState);
 
   const { handleSubmit, setError, control, setValue, reset, getValues } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(userManageSchema),
     });
 

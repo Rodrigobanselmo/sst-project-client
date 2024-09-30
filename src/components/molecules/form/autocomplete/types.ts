@@ -18,4 +18,5 @@ export type AutocompleteFormProps<T> = Omit<
   mask?: (e: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => void;
   boxProps?: Partial<Omit<BoxProps, 'defaultValue'>>;
   unmountOnChangeDefault?: boolean;
+  placeholder?: any;
 };

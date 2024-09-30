@@ -37,7 +37,7 @@ export const BlockedBySelect: FC<
     return nodeBlockedBySelect.map((nodeBlockId) => {
       const nodeBlocked = nodes[nodeBlockId];
 
-      const name = `${nodeBlockId} - ${nodeBlocked?.label}` ?? nodeBlockId;
+      const name = `${nodeBlockId} - ${nodeBlocked?.label}`;
 
       return {
         value: nodeBlockId,

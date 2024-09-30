@@ -41,7 +41,7 @@ export const useAddAccessGroup = () => {
   const submitType = useRef('');
   const { enqueueSnackbar } = useSnackbar();
 
-  const { handleSubmit, control, reset, getValues, setValue } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
     resolver: yupResolver(accessGroupSchema),
   });
 

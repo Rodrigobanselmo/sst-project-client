@@ -47,7 +47,7 @@ export const ModalSingleInput: FC<
   const { onCloseModal } = useModal();
 
   const { handleSubmit, control, clearErrors, reset, setError, setValue } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(photoSchema),
     });
 

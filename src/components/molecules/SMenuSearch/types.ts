@@ -17,7 +17,7 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   isOpen: boolean;
   isLoading?: boolean;
   width?: (string | number)[] | string | number;
-  keys?: Fuse.FuseOptionKey[];
+  keys?: Fuse.FuseOptionKey<any>[];
   close: () => void;
   handleSelect: (
     option: IMenuSearchOption | string[],

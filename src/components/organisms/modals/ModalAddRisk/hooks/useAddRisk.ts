@@ -66,7 +66,7 @@ export const useAddRisk = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddRiskState);
 
-  const { handleSubmit, control, reset, getValues, setValue, watch } = useForm({
+  const { handleSubmit, control, reset, getValues, setValue, watch } = useForm<any>({
     resolver: yupResolver(Yup.object().shape(riskSchema)),
   });
 

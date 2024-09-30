@@ -43,7 +43,7 @@ export const useAddGenerateSource = () => {
   const initialDataRef = useRef(initialAddGenerateSourceState);
 
   const { handleSubmit, control, reset, getValues, setValue, setError } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(Yup.object().shape(generateSourceSchema)),
     });
 

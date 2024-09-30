@@ -51,7 +51,7 @@ export const useEditComments = () => {
   const switchRef = useRef<HTMLInputElement>(null);
 
   const { handleSubmit, control, reset, getValues, setError, setValue } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(commentSchema),
     });
 

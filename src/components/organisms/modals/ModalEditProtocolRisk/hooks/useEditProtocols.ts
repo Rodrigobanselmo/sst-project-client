@@ -49,7 +49,7 @@ export const useEditProtocols = () => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialProtocolRiskState);
 
-  const { handleSubmit, control, setValue, reset, getValues } = useForm({
+  const { handleSubmit, control, setValue, reset, getValues } = useForm<any>({
     resolver: yupResolver(protocolRiskSchema),
   });
 

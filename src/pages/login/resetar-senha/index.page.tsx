@@ -18,7 +18,7 @@ import { SButton } from 'components/atoms/SButton';
 import { useMutResetPass } from 'core/services/hooks/mutations/user/useMutResetPass';
 
 const Home: NextPage = () => {
-  const formProps = useForm({
+  const formProps = useForm<any>({
     resolver: yupResolver(
       Yup.object().shape({
         password: signSchema.password,

@@ -45,7 +45,7 @@ export const useAddDocument = () => {
   const initialDataRef = useRef(initialDocumentState);
   const initialPopulate = useRef(false);
 
-  const { handleSubmit, setValue, control, reset, getValues } = useForm({
+  const { handleSubmit, setValue, control, reset, getValues } = useForm<any>({
     resolver: yupResolver(documentSchema),
   });
 

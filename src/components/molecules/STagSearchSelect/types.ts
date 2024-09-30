@@ -20,7 +20,7 @@ export interface ISTagSearchSelectProps
   large?: boolean;
   asyncLoad?: boolean;
   selected?: (string | number)[];
-  keys?: Fuse.FuseOptionKey[];
+  keys?: Fuse.FuseOptionKey<any>[];
   preventOpen?: boolean;
   handleSelectMenu?: (option: any, e: MouseEvent<HTMLLIElement>) => void;
   handleMultiSelectMenu?: (

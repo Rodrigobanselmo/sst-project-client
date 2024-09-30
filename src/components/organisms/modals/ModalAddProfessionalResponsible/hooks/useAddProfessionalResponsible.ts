@@ -36,7 +36,7 @@ export const useAddProfessionalResponsible = () => {
   const initialDataRef = useRef(initialProfessionalResponsibleState);
 
   const { handleSubmit, control, reset, getValues, setError, setValue } =
-    useForm({
+    useForm<any>({
       resolver: yupResolver(professionalResponsibleSchema),
     });
 
