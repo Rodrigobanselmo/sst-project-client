@@ -1,12 +1,11 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
-import { SIconSortArrowDown } from '@v2/assets/icons/SIconSortArrowDown/SIconSortArrowDown';
-import { SPopperMenuItem } from '@v2/components/organisms/SPopper/addons/SPopperMenuItem/SPopperMenuItem';
+import { MenuItemProps } from '@mui/material';
 import { SIconHideColumn } from '@v2/assets/icons/SIconHideColumn/SIconHideColumn';
+import { SPopperMenuItem } from '@v2/components/organisms/SPopper/addons/SPopperMenuItem/SPopperMenuItem';
 
 interface ISPopperMenuItemHideColumnProps {
-  onClick: BoxProps['onClick'];
+  onClick: MenuItemProps['onClick'];
 }
 
 export const SPopperMenuItemHideColumn: FC<ISPopperMenuItemHideColumnProps> = ({

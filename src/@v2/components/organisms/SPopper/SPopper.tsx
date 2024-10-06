@@ -62,7 +62,7 @@ export const SPopperArrow: FC<PropsWithChildren<IPopperProps>> = ({
           <Fade {...TransitionProps} timeout={250}>
             <Box
               sx={{
-                borderRadius: 1,
+                borderRadius: '4px',
                 boxShadow: 3,
                 backgroundColor: `background.${color}`,
                 color: 'gray.200',

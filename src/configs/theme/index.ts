@@ -29,6 +29,18 @@ const defaultTheme = createTheme({
         root: { verticalAlign: 'middle' },
       },
     },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          height: 24,
+        },
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {},
+      },
+    },
     MuiPaginationItem: {
       styleOverrides: {
         root: {

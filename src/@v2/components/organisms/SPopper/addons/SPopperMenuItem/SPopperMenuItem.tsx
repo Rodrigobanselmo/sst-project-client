@@ -1,22 +1,21 @@
 import { FC, ReactNode } from 'react';
 
-import { Box, BoxProps } from '@mui/material';
+import { MenuItem, MenuItemProps } from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SFlexProps } from '@v2/components/atoms/SFlex/SFlex.types';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { STextProps } from '@v2/components/atoms/SText/SText.types';
 
 interface ISPopperMenuItemProps {
-  boxProps?: SFlexProps;
+  itemProps?: MenuItemProps;
   text: string;
-  onClick: BoxProps['onClick'];
+  onClick: MenuItemProps['onClick'];
   textProps?: STextProps;
   disabled?: boolean;
   icon?: (args: { color: string }) => ReactNode;
 }
 
 export const SPopperMenuItem: FC<ISPopperMenuItemProps> = ({
-  boxProps,
+  itemProps,
   text,
   icon,
   onClick,
@@ -24,11 +23,8 @@ export const SPopperMenuItem: FC<ISPopperMenuItemProps> = ({
   textProps,
 }) => {
   return (
-    <SFlex
-      align="center"
-      px={4}
-      py={2}
-      {...boxProps}
+    <MenuItem
+      {...itemProps}
       onClick={onClick}
       sx={{
         cursor: 'pointer',
@@ -43,7 +39,7 @@ export const SPopperMenuItem: FC<ISPopperMenuItemProps> = ({
           pointerEvents: 'none',
           opacity: 0.5,
         }),
-        ...boxProps?.sx,
+        ...itemProps?.sx,
       }}
     >
       <SFlex center width={14}>
@@ -52,6 +48,6 @@ export const SPopperMenuItem: FC<ISPopperMenuItemProps> = ({
       <SText color="text.primary" fontSize={12} {...textProps}>
         {text}
       </SText>
-    </SFlex>
+    </MenuItem>
   );
 };

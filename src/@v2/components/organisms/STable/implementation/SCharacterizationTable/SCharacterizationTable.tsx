@@ -16,6 +16,8 @@ import { CharacterizationHeaderRow } from './components/CharacterizationHeaderRo
 import { CharacterizationTypeMap } from './maps/characterization-type-map';
 import { ICharacterizationTableTableProps } from './SCharacterizationTable.types';
 import { HirarchyTypeMap } from './maps/hierarchy-type-map';
+import { SSelectButtonRow } from '../../addons/addons-rows/SSelectButtonRow/SSelectButtonRow';
+import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
 
 export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   data = [],
@@ -118,7 +120,9 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           text="Posição"
         />
       ),
-      row: (row) => <STextRow justify="center" text={row.order} />,
+      row: (row) => (
+        <SInputNumberButtonRow label={row.order} onSelect={console.log} />
+      ),
     },
     {
       column: '70px',

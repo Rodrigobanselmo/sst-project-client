@@ -6,7 +6,7 @@ import {
 type IBindUrlParamsProps = {
   path: string;
   pathParams: Record<string, string | number>;
-  queryParams: IObjectToQueryParamsProps;
+  queryParams?: IObjectToQueryParamsProps;
 };
 
 export function bindUrlParams({
@@ -19,9 +19,12 @@ export function bindUrlParams({
     url = url.replace(`:${key}`, pathParams[key].toString());
   });
 
-  const query = objectToQueryParams(queryParams);
-  if (query) {
-    url += `?${query}`;
+  if (queryParams) {
+    const query = objectToQueryParams(queryParams);
+    if (query) {
+      url += `?${query}`;
+    }
   }
+
   return url;
 }

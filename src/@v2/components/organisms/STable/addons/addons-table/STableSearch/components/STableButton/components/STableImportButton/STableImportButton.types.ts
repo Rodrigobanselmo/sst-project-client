@@ -1,8 +1,7 @@
 import { BoxProps } from '@mui/material';
 import { SInputProps } from 'components/atoms/SInput/types';
 
-export type STableSearchAddButtonProps = {
+export type STableImportButtonProps = {
   onClick: () => void;
   text?: string;
-  isSmall?: boolean;
 };

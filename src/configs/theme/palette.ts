@@ -77,7 +77,7 @@ const palette = {
     orangeHover: '#d96c2f55',
   },
   success: {
-    dark: '#28a767',
+    dark: '#1f7e4d',
     main: '#3cbe7d',
   },
   scale: {

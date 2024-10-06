@@ -12,11 +12,11 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "noEmit": true,
-    "jsx": "preserve",
     "isolatedModules": true,
     "rootDir": "src",
     "baseUrl": "src",
     "noImplicitAny": false,
+    "jsx": "react-jsx",
     "incremental": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
