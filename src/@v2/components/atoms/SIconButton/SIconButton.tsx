@@ -14,6 +14,7 @@ export const SIconButton: FC<PropsWithChildren<SIconButtonProps>> = ({
   size,
   bg,
   tooltip,
+  onClick,
   iconButtonProps,
 }) => (
   <STooltip
@@ -22,6 +23,10 @@ export const SIconButton: FC<PropsWithChildren<SIconButtonProps>> = ({
     title={tooltip}
   >
     <IconButton
+      onClick={onClick}
+      disabled={loading || disabled}
+      size={size}
+      {...iconButtonProps}
       sx={{
         ...(bg && {
           backgroundColor: bg,
@@ -37,9 +42,6 @@ export const SIconButton: FC<PropsWithChildren<SIconButtonProps>> = ({
         ...(disabled && { opacity: 0.4 }),
         ...iconButtonProps?.sx,
       }}
-      disabled={loading || disabled}
-      size={size}
-      {...iconButtonProps}
     >
       {loading ? (
         <CircularProgress

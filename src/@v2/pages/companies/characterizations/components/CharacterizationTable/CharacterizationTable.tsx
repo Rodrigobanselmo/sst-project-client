@@ -23,6 +23,11 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { SInput } from '@v2/components/forms/SInput/SInput';
+import { useFetchBrowseStatus } from '@v2/services/security/status/browse/hooks/useFetchBrowseStatus';
+import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
+import { useMutateAddStatus } from '@v2/services/security/status/add/hooks/useMutateAddStatus';
+import { useMutateEditStatus } from '@v2/services/security/status/edit/hooks/useMutateEditStatus';
+import { useApiStatus } from '@v2/hooks/useApiStatus';
 
 export const CharacterizationTable = () => {
   const router = useRouter();
@@ -57,6 +62,17 @@ export const CharacterizationTable = () => {
       page: queryParams.page || 1,
       limit: queryParams.limit || 10,
     },
+  });
+
+  const {
+    onAddStatus,
+    onEditStatus,
+    onDeleteStatus,
+    statusOptions,
+    isLoadingStatusOptions,
+  } = useApiStatus({
+    companyId,
+    type: StatusTypeEnum.CHARACTERIZATION,
   });
 
   const onOrderBy = (order: IOrderByParams<CharacterizationOrderByEnum>) => {
@@ -96,6 +112,15 @@ export const CharacterizationTable = () => {
         orderBy={queryParams.orderBy}
         setPage={(page) => setQueryParams({ page })}
         setOrderBy={onOrderBy}
+        statusButtonProps={{
+          onSelect: () => null,
+          onAdd: ({ value }) => onAddStatus(value),
+          onDelete: (id) => onDeleteStatus(id),
+          onEdit: ({ color, value, id }) =>
+            onEditStatus({ id, color, name: value }),
+          options: statusOptions,
+          isLoading: isLoadingStatusOptions,
+        }}
       />
     </>
   );

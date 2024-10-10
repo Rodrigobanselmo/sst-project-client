@@ -11,10 +11,12 @@ export type SInputProps = Pick<
   | 'onFocus'
   | 'sx'
   | 'inputRef'
+  | 'fullWidth'
   | 'onBlur'
 > & {
   label?: string;
   labelShrink?: string;
   size?: 'sm' | 'md';
   inputProps?: TextFieldProps['InputProps'];
+  disableShadow?: boolean;
 };

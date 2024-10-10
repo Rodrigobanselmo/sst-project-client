@@ -18,6 +18,8 @@ import { ICharacterizationTableTableProps } from './SCharacterizationTable.types
 import { HirarchyTypeMap } from './maps/hierarchy-type-map';
 import { SSelectButtonRow } from '../../addons/addons-rows/SSelectButtonRow/SSelectButtonRow';
 import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
+import { SStatusButtonRow } from '../../addons/addons-rows/SStatusButtonRow/SStatusButtonRow';
+import { useFetchBrowseStatus } from '@v2/services/security/status/browse/hooks/useFetchBrowseStatus';
 
 export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   data = [],
@@ -26,6 +28,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   orderBy,
   setPage,
   setOrderBy,
+  statusButtonProps,
 }) => {
   const orderByMap = mapOrderByTable(orderBy);
 
@@ -200,6 +203,19 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           }
         />
       ),
+    },
+    {
+      column: '70px',
+      header: (
+        <CharacterizationHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          field={CharacterizationOrderByEnum.DONE_AT}
+          text="Feito"
+        />
+      ),
+      row: (row) => <SStatusButtonRow label="Status" {...statusButtonProps} />,
     },
     {
       column: '70px',

@@ -32,6 +32,7 @@ export const SInput: FC<SInputProps> = ({
   inputProps,
   placeholder,
   value,
+  disableShadow,
   size = 'md',
   onChange,
   ...props
@@ -86,7 +87,9 @@ export const SInput: FC<SInputProps> = ({
         },
 
         '& .MuiOutlinedInput-root': {
-          boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+          boxShadow: disableShadow
+            ? 'none'
+            : '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
           backgroundColor: 'background.paper',
         },
         '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':

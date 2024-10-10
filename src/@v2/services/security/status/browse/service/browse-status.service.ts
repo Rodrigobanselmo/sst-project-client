@@ -6,6 +6,7 @@ import {
 } from '@v2/models/security/models/status/status-browse.model';
 import { SecurityRoutes } from '@v2/constants/routes/security.routes';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
+import { simulateAwait } from 'core/utils/helpers/simulateAwait';
 
 export interface BrowseStatusParams {
   companyId: string;
@@ -13,6 +14,7 @@ export interface BrowseStatusParams {
 }
 
 export async function browseStatus({ type, companyId }: BrowseStatusParams) {
+  await simulateAwait(1000);
   const response = await api.get<IStatusBrowseModel>(
     bindUrlParams({
       path: SecurityRoutes.STATUS.BROWSE,

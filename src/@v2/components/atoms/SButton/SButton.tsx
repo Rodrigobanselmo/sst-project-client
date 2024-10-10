@@ -5,6 +5,13 @@ import STooltip from 'components/atoms/STooltip';
 import { SButtonProps } from './SButton.types';
 
 const colorMap = {
+  paper: {
+    colorSchema: undefined,
+    backgroundColor: 'white',
+    borderColor: 'grey.400',
+    color: 'grey.600',
+    textColor: 'grey.600',
+  },
   normal: {
     colorSchema: undefined,
     backgroundColor: '#2D374811',
@@ -42,6 +49,7 @@ export const SButton: FC<SButtonProps> = ({
   color = 'normal',
   variant = 'outlined',
   tooltip,
+  buttonProps,
 }) => {
   return (
     <STooltip title={tooltip || ''} withWrapper>
@@ -49,6 +57,7 @@ export const SButton: FC<SButtonProps> = ({
         onClick={onClick}
         variant={variant}
         color={colorMap[color].colorSchema}
+        {...buttonProps}
         sx={{
           height: [28, 28, 30],
           textTransform: 'none',
@@ -71,6 +80,7 @@ export const SButton: FC<SButtonProps> = ({
           m: 0,
           px: 3,
           gap: 1,
+          ...buttonProps?.sx,
         }}
       >
         {icon && (
