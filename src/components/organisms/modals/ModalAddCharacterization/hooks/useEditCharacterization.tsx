@@ -190,6 +190,8 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
         const newData = {
           ...oldData,
           ...cleanObjectNullValues(initialData),
+          ...(characterizationsQuery?.find((c) => c.id === initialData?.id) ||
+            {}),
           profileParentId: '',
         };
 
@@ -201,7 +203,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getModalData]);
+  }, [getModalData, characterizationsQuery]);
 
   useEffect(() => {
     queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);

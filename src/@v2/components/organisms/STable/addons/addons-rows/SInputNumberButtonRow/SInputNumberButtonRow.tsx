@@ -29,8 +29,13 @@ export function SInputNumberButtonRow({
   };
 
   return (
-    <>
-      <SEditButtonRow onClick={toggle} anchorEl={anchorEl} label={label} />
+    <Box onClick={(e) => e.stopPropagation()}>
+      <SEditButtonRow
+        onClick={toggle}
+        anchorEl={anchorEl}
+        boxProps={{ minWidth: '50px'}}
+        label={label}
+      />
       <SPopperArrow
         disabledArrow
         placement="bottom-start"
@@ -49,12 +54,16 @@ export function SInputNumberButtonRow({
             sx={{ width: '100px' }}
           />
           <SButton
-            onClick={() => handleSelect(inputRef.current.value)}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              handleSelect(inputRef.current.value);
+            }}
             text={'Salvar'}
             color="primary"
           />
         </SFlex>
       </SPopperArrow>
-    </>
+    </Box>
   );
 }

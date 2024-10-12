@@ -1,3 +1,7 @@
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export enum QueryEnum {
   ABSENTEEISMS = 'absenteeisms',
   CATS = 'cats',

@@ -9,9 +9,18 @@ export interface ICharacterizationTableTableProps {
   setPage: (page: number) => void;
   setOrderBy: (order: IOrderByParams<CharacterizationOrderByEnum>) => void;
   orderBy?: IOrderByParams<CharacterizationOrderByEnum>[];
+  onSelectRow: (row: CharacterizationBrowseResultModel) => void;
+  onEditStage: (
+    stageId: number | null,
+    row: CharacterizationBrowseResultModel,
+  ) => void;
+  onEditPosition: (
+    position: number | null,
+    row: CharacterizationBrowseResultModel,
+  ) => void;
   statusButtonProps: Pick<
     SStatusButtonRowProps,
-    'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'onSelect' | 'isLoading'
+    'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'isLoading'
   >;
   pagination?: {
     total: number;

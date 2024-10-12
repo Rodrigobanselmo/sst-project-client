@@ -1,30 +1,34 @@
 import { ArrowDropDown } from '@mui/icons-material';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-import { IconButton, Paper, TypographyProps } from '@mui/material';
+import { BoxProps, IconButton, Paper, TypographyProps } from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { MouseEvent as ReactMouseEvent } from 'react';
 
 export interface SEditButtonRowProps {
   label: string;
   anchorEl: React.RefObject<HTMLDivElement>;
-  onClick: () => void;
+  onClick: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => void;
+  boxProps?: BoxProps;
 }
 
 export const SEditButtonRow = ({
   label,
   onClick,
   anchorEl,
+  boxProps,
 }: SEditButtonRowProps) => {
   return (
     <SFlex
       ref={anchorEl}
       m="auto"
-      onClick={onClick}
+      onClick={(e) => onClick(e)}
       justify={'space-between'}
       align={'center'}
-      px={3}
+      px={4}
       width={'fit-content'}
       pr={2}
+      {...boxProps}
       sx={{
         borderRadius: '5px',
         borderColor: 'gray.400',
@@ -42,6 +46,7 @@ export const SEditButtonRow = ({
           borderColor: 'gray.600',
           backgroundColor: 'grey.400',
         },
+        ...boxProps?.sx,
       }}
     >
       <SText color={'text.medium'} fontSize={12} lineNumber={1}>

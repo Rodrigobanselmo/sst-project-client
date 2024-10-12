@@ -29,6 +29,8 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   setPage,
   setOrderBy,
   statusButtonProps,
+  onEditStage,
+  onSelectRow,
 }) => {
   const orderByMap = mapOrderByTable(orderBy);
 
@@ -215,7 +217,13 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
           text="Feito"
         />
       ),
-      row: (row) => <SStatusButtonRow label="Status" {...statusButtonProps} />,
+      row: (row) => (
+        <SStatusButtonRow
+          label={row.stage?.name || '-'}
+          onSelect={(id) => onEditStage(id, row)}
+          {...statusButtonProps}
+        />
+      ),
     },
     {
       column: '70px',
@@ -253,7 +261,11 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
             rows={data}
             renderRow={(row) => {
               return (
-                <STableRow clickable onClick={() => null} key={row.id}>
+                <STableRow
+                  clickable
+                  onClick={() => onSelectRow(row)}
+                  key={row.id}
+                >
                   {rows.map((render) => render(row))}
                 </STableRow>
               );

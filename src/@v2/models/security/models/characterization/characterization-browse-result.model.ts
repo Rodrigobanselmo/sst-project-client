@@ -8,12 +8,13 @@ export type ICharacterizationBrowseResultModel = {
   updatedAt: Date;
   name: string;
   type: CharacterizationTypeEnum;
-  doneAt: Date | null;
-  order: number | null;
+  doneAt?: Date;
+  order?: number;
   profiles: { id: string; name: string }[];
   hierarchies: { id: string; name: string; type: HirarchyTypeEnum }[];
   risks: { id: string; name: string }[];
   photos: { id: string; url: string }[];
+  stage?: { name: string; color?: string };
 };
 
 export class CharacterizationBrowseResultModel {
@@ -22,12 +23,13 @@ export class CharacterizationBrowseResultModel {
   updatedAt: Date;
   name: string;
   type: CharacterizationTypeEnum;
-  doneAt: Date | null;
+  doneAt?: Date;
   order: string;
   profiles: { id: string; name: string }[];
   hierarchies: { id: string; name: string; type: HirarchyTypeEnum }[];
   risks: { id: string; name: string }[];
   photos: { id: string; url: string }[];
+  stage?: { name: string; color?: string };
 
   constructor(params: ICharacterizationBrowseResultModel) {
     this.id = params.id;
@@ -42,6 +44,7 @@ export class CharacterizationBrowseResultModel {
     this.hierarchies = params.hierarchies;
     this.risks = params.risks;
     this.photos = params.photos;
+    this.stage = params.stage;
   }
 
   get formatedCreatedAt() {

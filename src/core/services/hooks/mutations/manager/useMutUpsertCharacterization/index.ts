@@ -5,14 +5,16 @@ import { CharacterizationTypeEnum } from 'project/enum/characterization-type.enu
 
 import { refreshToken } from 'core/contexts/AuthContext';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
-import { QueryEnum } from 'core/enums/query.enums';
+import { QueryEnum as DeQueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { api } from 'core/services/apiClient';
-import { queryClient } from 'core/services/queryClient';
+import { queryClient as OldQueryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
 import { StatusEnum } from './../../../../../../project/enum/status.enum';
+import { QueryKeyEnum } from '@v2/constants/enums/query-key.enum';
+import { queryClient } from 'layouts/default/providers';
 
 export interface IAddCharacterizationPhoto {
   file?: File;
@@ -29,7 +31,8 @@ export interface IUpsertCharacterization {
   paragraphs?: string[];
   name?: string;
   description?: string;
-  order?: number;
+  stageId?: number | null;
+  order?: number | null;
   done_at?: Date | '';
   companyId?: string;
   noiseValue?: string;
@@ -99,21 +102,24 @@ export function useMutUpsertCharacterization() {
     {
       onSuccess: async (resp) => {
         if (resp) {
-          queryClient.invalidateQueries([QueryEnum.GHO]);
+          OldQueryClient.invalidateQueries([DeQueryEnum.GHO]);
+          queryClient.invalidateQueries({
+            queryKey: [QueryKeyEnum.CHARACTERIZATIONS],
+          });
 
-          const actualData = queryClient.getQueryData(
+          const actualData = OldQueryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier
-            [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
+            [DeQueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
           );
           if (actualData) {
-            queryClient.invalidateQueries([
-              QueryEnum.CHARACTERIZATION,
+            OldQueryClient.invalidateQueries([
+              DeQueryEnum.CHARACTERIZATION,
               resp.companyId,
               resp.workspaceId,
               resp.profileParentId || resp.id,
             ]);
-            queryClient.setQueryData(
-              [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
+            OldQueryClient.setQueryData(
+              [DeQueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
               (oldData: ICharacterization[] | undefined) => {
                 if (oldData) {
                   const newData = [...oldData];

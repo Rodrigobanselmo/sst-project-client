@@ -270,14 +270,14 @@ const Companies: NextPage = () => {
       <SHeaderTag title={'Ambientes'} />
       <SContainer>
         <CharacterizationTable />
-        <OldCharacterizationTable filterType={pageData.type || undefined}>
+        {/* <OldCharacterizationTable filterType={pageData.type || undefined}>
           <SPageMenu
             active={pageData.value}
             options={characterizationOptionsList}
             onChange={onChangeRoute}
             mb={10}
-          />
-        </OldCharacterizationTable>
+          /> */}
+        {/* </OldCharacterizationTable> */}
         <ModalAddCharacterization />
         <ModalSelectCharacterization />
         <ModalSelectWorkspace />

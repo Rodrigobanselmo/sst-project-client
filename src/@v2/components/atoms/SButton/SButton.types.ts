@@ -1,7 +1,8 @@
 import { ButtonProps } from '@mui/material';
+import { MouseEventHandler } from 'react';
 
 export type SButtonProps = {
-  onClick: () => void;
+  onClick: MouseEventHandler<HTMLButtonElement> | undefined;
   text?: string;
   tooltip?: string;
   icon?: any;

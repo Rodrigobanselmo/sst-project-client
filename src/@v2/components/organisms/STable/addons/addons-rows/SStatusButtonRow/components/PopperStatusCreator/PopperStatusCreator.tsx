@@ -13,8 +13,14 @@ import { PopperColorPicker } from '../PopperColorPicker/PopperColorPicker';
 import { simulateAwait } from 'core/utils/helpers/simulateAwait';
 import KeyboardArrowLeftIcon from '@mui/icons-material/KeyboardArrowLeft';
 
+export interface PopperStatusOptionProps {
+  color?: string | null;
+  name: string;
+  id: number;
+}
+
 export interface PopperStatusCreatorProps {
-  options: { color?: string | null; name: string; id: number }[];
+  options: PopperStatusOptionProps[];
   isLoading?: boolean;
   isOpen: boolean;
   close: () => void;

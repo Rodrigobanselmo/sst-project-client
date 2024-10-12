@@ -28,6 +28,7 @@ import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { useMutateAddStatus } from '@v2/services/security/status/add/hooks/useMutateAddStatus';
 import { useMutateEditStatus } from '@v2/services/security/status/edit/hooks/useMutateEditStatus';
 import { useApiStatus } from '@v2/hooks/useApiStatus';
+import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
 
 export const CharacterizationTable = () => {
   const router = useRouter();
@@ -65,6 +66,13 @@ export const CharacterizationTable = () => {
   });
 
   const {
+    handleCharacterizationAdd,
+    handleCharacterizationEdit,
+    handleCharacterizationEditStage,
+    handleCharacterizationEditPosition,
+  } = useCharacterizationActions({ companyId, workspaceId });
+
+  const {
     onAddStatus,
     onEditStatus,
     onDeleteStatus,
@@ -87,7 +95,7 @@ export const CharacterizationTable = () => {
         onSearch={(search) => setQueryParams({ search })}
       >
         <STableSearchContent>
-          <STableAddButton onClick={() => null} />
+          <STableAddButton onClick={handleCharacterizationAdd} />
           <STableColumnsButton onClick={() => null} />
           <STableFilterButton onClick={() => null} />
           <STableButtonDivider />
@@ -106,6 +114,13 @@ export const CharacterizationTable = () => {
         ))}
       </STableFilterChipList>
       <SCharacterizationTable
+        onSelectRow={(row) => handleCharacterizationEdit(row)}
+        onEditStage={(stageId, row) =>
+          handleCharacterizationEditStage({ ...row, stageId })
+        }
+        onEditPosition={(order, row) =>
+          handleCharacterizationEditPosition({ ...row, order })
+        }
         data={characterizations?.results}
         isLoading={isLoading}
         pagination={characterizations?.pagination}
@@ -113,7 +128,6 @@ export const CharacterizationTable = () => {
         setPage={(page) => setQueryParams({ page })}
         setOrderBy={onOrderBy}
         statusButtonProps={{
-          onSelect: () => null,
           onAdd: ({ value }) => onAddStatus(value),
           onDelete: (id) => onDeleteStatus(id),
           onEdit: ({ color, value, id }) =>

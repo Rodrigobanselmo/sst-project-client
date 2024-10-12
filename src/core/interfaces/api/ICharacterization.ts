@@ -13,7 +13,8 @@ export type ICharacterization = {
   updated_at: Date;
   workspaceId: string;
   type: CharacterizationTypeEnum;
-  order: number;
+  stageId?: number | null;
+  order: number | null;
   companyId: string;
   photos: ICharacterizationPhoto[];
   hierarchies?: IHierarchy[];

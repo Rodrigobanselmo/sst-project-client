@@ -1,4 +1,4 @@
-import { Button, Input } from '@mui/material';
+import { Box, Button, Input } from '@mui/material';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
@@ -11,6 +11,7 @@ import { SEditButtonRow } from '../SEditButtonRow/SEditButtonRow';
 import {
   PopperStatusCreator,
   PopperStatusCreatorProps,
+  PopperStatusOptionProps,
 } from './components/PopperStatusCreator/PopperStatusCreator';
 import STooltip from '@v2/components/atoms/STooltip/STooltip';
 
@@ -43,10 +44,18 @@ export function SStatusButtonRow({
 
   const anchorEl = useRef<null | HTMLDivElement>(null);
 
+  const handleSelect = (id: number | null) => {
+    onSelect(id);
+    selectSate.close();
+  };
+
   return (
-    <>
+    <Box onClick={(e) => e.stopPropagation()}>
       <SEditButtonRow
-        onClick={selectSate.toggle}
+        onClick={(e) => {
+          e.stopPropagation();
+          selectSate.toggle();
+        }}
         anchorEl={anchorEl}
         label={label}
       />
@@ -106,18 +115,18 @@ export function SStatusButtonRow({
                   return (
                     <STooltip
                       key={item.id}
-                      title={item.name}
+                      title={isEmpty ? '' : item.name}
                       placement="left-start"
                     >
                       <SFlex
                         center
-                        onClick={() => onSelect(item.id)}
+                        onClick={() => handleSelect(item.id)}
                         sx={{
                           borderWidth: '1px',
                           borderStyle: 'solid',
                           borderColor: 'grey.300',
                           color: isEmpty ? 'text.light' : 'white',
-                          backgroundColor: item.color,
+                          backgroundColor: item.color || 'grey.100',
                           padding: '4px 8px',
                           fontSize: '13px',
                           fontWeight: 700,
@@ -190,6 +199,6 @@ export function SStatusButtonRow({
           options={options}
         />
       )}
-    </>
+    </Box>
   );
 }
