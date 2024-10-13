@@ -30,6 +30,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   setOrderBy,
   statusButtonProps,
   onEditStage,
+  onEditPosition,
   onSelectRow,
 }) => {
   const orderByMap = mapOrderByTable(orderBy);
@@ -126,7 +127,10 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <SInputNumberButtonRow label={row.order} onSelect={console.log} />
+        <SInputNumberButtonRow
+          label={row.order}
+          onSelect={(order) => onEditPosition(order, row)}
+        />
       ),
     },
     {
@@ -207,43 +211,22 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
       ),
     },
     {
-      column: '70px',
+      column: '150px',
       header: (
         <CharacterizationHeaderRow
           justify="center"
           setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          field={CharacterizationOrderByEnum.DONE_AT}
-          text="Feito"
+          field={CharacterizationOrderByEnum.STAGE}
+          text="Status"
         />
       ),
       row: (row) => (
         <SStatusButtonRow
           label={row.stage?.name || '-'}
+          color={row.stage?.color}
           onSelect={(id) => onEditStage(id, row)}
           {...statusButtonProps}
-        />
-      ),
-    },
-    {
-      column: '70px',
-      header: (
-        <CharacterizationHeaderRow
-          justify="center"
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          field={CharacterizationOrderByEnum.DONE_AT}
-          text="Feito"
-        />
-      ),
-      row: (row) => (
-        <SCheckBoxRow
-          tooltip={row.formatedDoneAt}
-          checked={!!row.doneAt}
-          onClick={(e) => {
-            e.stopPropagation();
-            // handleEditDone(row);
-          }}
         />
       ),
     },
@@ -265,6 +248,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
                   clickable
                   onClick={() => onSelectRow(row)}
                   key={row.id}
+                  minHeight={35}
                 >
                   {rows.map((render) => render(row))}
                 </STableRow>

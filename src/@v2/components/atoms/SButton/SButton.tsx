@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { Box, Button, Icon } from '@mui/material';
+import { Box, Button, CircularProgress, Icon } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
 import { SButtonProps } from './SButton.types';
 
@@ -49,12 +49,15 @@ export const SButton: FC<SButtonProps> = ({
   color = 'normal',
   variant = 'outlined',
   tooltip,
+  disabled,
+  loading,
   buttonProps,
 }) => {
   return (
     <STooltip title={tooltip || ''} withWrapper>
       <Button
         onClick={onClick}
+        disabled={disabled || loading}
         variant={variant}
         color={colorMap[color].colorSchema}
         {...buttonProps}
@@ -83,24 +86,39 @@ export const SButton: FC<SButtonProps> = ({
           ...buttonProps?.sx,
         }}
       >
-        {icon && (
-          <Icon
-            component={icon}
-            sx={{
-              fontSize: ['1rem', '1rem', '1.1rem'],
-              color: colorMap[color].textColor,
-            }}
-          />
-        )}
-        {text && (
-          <Box
-            mr={icon ? 2 : 0}
-            fontSize={12}
-            color={colorMap[color].textColor}
-          >
-            {text}
-          </Box>
-        )}
+        <>
+          {icon && (
+            <Icon
+              component={
+                loading
+                  ? () => (
+                      <Box width={20} height={20}>
+                        <CircularProgress
+                          size={9}
+                          sx={{
+                            color: colorMap[color].textColor,
+                          }}
+                        />
+                      </Box>
+                    )
+                  : icon
+              }
+              sx={{
+                fontSize: ['1rem', '1rem', '1.1rem'],
+                color: colorMap[color].textColor,
+              }}
+            />
+          )}
+          {text && (
+            <Box
+              mr={icon ? 2 : 0}
+              fontSize={12}
+              color={colorMap[color].textColor}
+            >
+              {text}
+            </Box>
+          )}
+        </>
       </Button>
     </STooltip>
   );

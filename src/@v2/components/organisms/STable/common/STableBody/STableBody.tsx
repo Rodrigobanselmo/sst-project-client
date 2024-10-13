@@ -11,7 +11,7 @@ export function STableBody<T>({
 }: STableBodyProps<T>) {
   return (
     <>
-      <STSTableBody gap={5} {...props}>
+      <STSTableBody gap={3} {...props}>
         {rows.map((row, index) => renderRow(row, index))}
       </STSTableBody>
       {!hideEmpty && rows.length === 0 && (

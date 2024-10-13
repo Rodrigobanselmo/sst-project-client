@@ -7,9 +7,11 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { api } from 'core/services/apiClient';
-import { queryClient } from 'core/services/queryClient';
+import { queryClient as OldQC } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
+import { queryClient } from 'layouts/default/providers';
+import { QueryKeyEnum } from '@v2/constants/enums/query-key.enum';
 
 export async function deleteCharacterization(
   id: string,
@@ -46,14 +48,17 @@ export function useMutDeleteCharacterization() {
         }
 
         if (resp) {
-          const actualData = queryClient.getQueryData([
+          const actualData = OldQC.getQueryData([
             QueryEnum.CHARACTERIZATIONS,
             resp.companyId,
             resp.workspaceId,
           ]);
 
           if (actualData) {
-            queryClient.setQueryData(
+            queryClient.invalidateQueries({
+              queryKey: [QueryKeyEnum.CHARACTERIZATIONS],
+            });
+            OldQC.setQueryData(
               [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],
               (oldData: ICharacterization[] | undefined) => {
                 if (!oldData) return [];
@@ -76,7 +81,7 @@ export function useMutDeleteCharacterization() {
               },
             );
 
-            queryClient.setQueryData(
+            OldQC.setQueryData(
               [QueryEnum.GHO, resp.companyId],
               (oldData: ICharacterization[] | undefined) => {
                 if (!oldData) return [];
@@ -93,7 +98,7 @@ export function useMutDeleteCharacterization() {
           }
 
           if (resp.profileParentId)
-            queryClient.invalidateQueries([
+            OldQC.invalidateQueries([
               QueryEnum.CHARACTERIZATION,
               resp.companyId,
               resp.workspaceId,

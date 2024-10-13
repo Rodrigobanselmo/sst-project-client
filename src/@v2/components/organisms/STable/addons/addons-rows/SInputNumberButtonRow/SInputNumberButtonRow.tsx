@@ -10,7 +10,7 @@ import { SButton } from '@v2/components/atoms/SButton/SButton';
 
 export interface SInputNumberButtonRowProps {
   label: string;
-  onSelect: (value: number) => void;
+  onSelect: (value: number | null) => void;
 }
 
 export function SInputNumberButtonRow({
@@ -24,7 +24,7 @@ export function SInputNumberButtonRow({
   const handleSelect = (value: string) => {
     const isNumber = value && !isNaN(Number(value));
 
-    if (isNumber) onSelect(Number(value));
+    onSelect(isNumber ? Number(value) : null);
     close();
   };
 
@@ -33,7 +33,7 @@ export function SInputNumberButtonRow({
       <SEditButtonRow
         onClick={toggle}
         anchorEl={anchorEl}
-        boxProps={{ minWidth: '50px'}}
+        boxProps={{ minWidth: '50px' }}
         label={label}
       />
       <SPopperArrow

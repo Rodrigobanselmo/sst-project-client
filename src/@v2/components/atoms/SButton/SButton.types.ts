@@ -9,4 +9,6 @@ export type SButtonProps = {
   color?: 'normal' | 'success' | 'info' | 'primary' | 'paper';
   variant?: 'text' | 'outlined' | 'contained';
   buttonProps?: ButtonProps;
+  loading?: boolean;
+  disabled?: boolean;
 };

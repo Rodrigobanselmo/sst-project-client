@@ -42,7 +42,7 @@ export const SPopperMenuItem: FC<ISPopperMenuItemProps> = ({
         ...itemProps?.sx,
       }}
     >
-      <SFlex center width={14}>
+      <SFlex center width={14} pr={6}>
         {icon?.({ color: 'text.primary' })}
       </SFlex>
       <SText color="text.primary" fontSize={12} {...textProps}>

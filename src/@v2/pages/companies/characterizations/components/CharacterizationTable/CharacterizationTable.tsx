@@ -1,34 +1,27 @@
 import { useRouter } from 'next/router';
 
+import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
+import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
 import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
+import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
+import { STableExportButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableExportButton/STableExportButton';
+import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
+import { STableButtonDivider } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButtonDivider/STableButtonDivider';
+import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { setOrderByTable } from '@v2/components/organisms/STable/helpers/set-order-by-table.helper';
 import { SCharacterizationTable } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable';
+import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
+import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
+import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
+import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/browse/hooks/useFetchBrowseCharacterization';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse/service/browse-characterization.types';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
-import { ICharacterizationFilterProps } from './CharacterizationTable.types';
-import { STableButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/STableButton';
-import AddIcon from '@mui/icons-material/Add';
-import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
-import { STableSortButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableSortButton/STableSortButton';
-import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
-import { Box } from '@mui/material';
-import { STableButtonDivider } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButtonDivider/STableButtonDivider';
-import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
-import { STableExportButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableExportButton/STableExportButton';
-import { STableImportButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableImportButton/STableImportButton';
-import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
-import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
-import { SInput } from '@v2/components/forms/SInput/SInput';
-import { useFetchBrowseStatus } from '@v2/services/security/status/browse/hooks/useFetchBrowseStatus';
-import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
-import { useMutateAddStatus } from '@v2/services/security/status/add/hooks/useMutateAddStatus';
-import { useMutateEditStatus } from '@v2/services/security/status/edit/hooks/useMutateEditStatus';
-import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
+import { ICharacterizationFilterProps } from './CharacterizationTable.types';
+import { useOrderBy } from '@v2/hooks/useOrderBy';
 
 export const CharacterizationTable = () => {
   const router = useRouter();
@@ -61,7 +54,7 @@ export const CharacterizationTable = () => {
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || 10,
+      limit: queryParams.limit || 15,
     },
   });
 
@@ -70,6 +63,7 @@ export const CharacterizationTable = () => {
     handleCharacterizationEdit,
     handleCharacterizationEditStage,
     handleCharacterizationEditPosition,
+    handleCharacterizationExport,
   } = useCharacterizationActions({ companyId, workspaceId });
 
   const {
@@ -83,9 +77,15 @@ export const CharacterizationTable = () => {
     type: StatusTypeEnum.CHARACTERIZATION,
   });
 
-  const onOrderBy = (order: IOrderByParams<CharacterizationOrderByEnum>) => {
-    const orderBy = setOrderByTable(order, queryParams.orderBy || []);
-    setQueryParams({ orderBy });
+  const { onOrderBy, orderChipList } = useOrderBy({
+    orderByList: queryParams.orderBy,
+    setOrderBy: (orderBy) => setQueryParams({ orderBy }),
+    getLabel: ({ order }) => ordenByTranslation[order],
+    getLeftLabel: ({ field }) => ordenByCharacterizationTranslation[field],
+  });
+
+  const onCleanQueryParams = () => {
+    setQueryParams({ search: '', orderBy: [] });
   };
 
   return (
@@ -99,17 +99,16 @@ export const CharacterizationTable = () => {
           <STableColumnsButton onClick={() => null} />
           <STableFilterButton onClick={() => null} />
           <STableButtonDivider />
-          <STableExportButton onClick={() => null} />
-          <STableImportButton onClick={() => null} />
+          <STableExportButton onClick={handleCharacterizationExport} />
         </STableSearchContent>
       </STableSearch>
-      <STableFilterChipList>
-        {[].map(() => (
+      <STableFilterChipList onClean={onCleanQueryParams}>
+        {orderChipList?.map((chip) => (
           <STableFilterChip
             key={1}
-            leftLabel="status"
-            label={'Ativo'}
-            onDelete={() => null}
+            leftLabel={chip.leftLabel}
+            label={chip.label}
+            onDelete={chip.onDelete}
           />
         ))}
       </STableFilterChipList>

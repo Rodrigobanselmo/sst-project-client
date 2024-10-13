@@ -73,7 +73,9 @@ export async function updateCharacterization(
       });
     }
 
-    if (value || value === '') formData.append(key, value);
+    if (key === 'order' || key === 'stageId') {
+      if (value !== undefined) formData.append(key, value);
+    } else if (value || value === '') formData.append(key, value);
   });
 
   const { token } = await refreshToken();

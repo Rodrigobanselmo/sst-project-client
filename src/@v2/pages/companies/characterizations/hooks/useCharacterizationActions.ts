@@ -1,5 +1,6 @@
 import { BoxProps } from '@mui/material';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
+import { useMutateExportCharacterization } from '@v2/services/export/characterization/hooks/useMutateExportCharacterization';
 import { initialCharacterizationState } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -16,6 +17,7 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
   const { onOpenModal } = useModal();
 
   const upsertMutation = useMutUpsertCharacterization();
+  const exportMutation = useMutateExportCharacterization();
 
   const handleCharacterizationAdd = async () => {
     onOpenModal(ModalEnum.CHARACTERIZATION_ADD, {
@@ -66,10 +68,17 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
       .catch(() => {});
   };
 
+  const handleCharacterizationExport = async () => {
+    await exportMutation
+      .mutateAsync({ companyId, workspaceId })
+      .catch(() => {});
+  };
+
   return {
     handleCharacterizationEditStage,
     handleCharacterizationEditPosition,
     handleCharacterizationEdit,
     handleCharacterizationAdd,
+    handleCharacterizationExport,
   };
 };

@@ -1,7 +1,7 @@
 import {
   IPaginationModelConstructor,
   PaginationModel,
-} from '@v2/models/@shared/pagination.model';
+} from '@v2/models/@shared/models/pagination.model';
 import {
   CharacterizationBrowseFilterModel,
   ICharacterizationBrowseFilterModel,

@@ -1,4 +1,4 @@
-import { Box, Button, Input } from '@mui/material';
+import { Box, BoxProps, Button, Input } from '@mui/material';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
@@ -21,6 +21,7 @@ export interface SStatusButtonRowProps
     'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'isLoading'
   > {
   label: string;
+  color?: string;
   onSelect: (id: number | null) => void;
 }
 
@@ -31,6 +32,7 @@ export function SStatusButtonRow({
   onDelete,
   onEdit,
   onSelect,
+  color,
   isLoading,
 }: SStatusButtonRowProps) {
   const selectSate = useDisclosure();
@@ -51,14 +53,31 @@ export function SStatusButtonRow({
 
   return (
     <Box onClick={(e) => e.stopPropagation()}>
-      <SEditButtonRow
-        onClick={(e) => {
-          e.stopPropagation();
-          selectSate.toggle();
-        }}
-        anchorEl={anchorEl}
-        label={label}
-      />
+      <STooltip title={label} placement="left" withWrapper minLength={15}>
+        <SEditButtonRow
+          onClick={(e) => {
+            e.stopPropagation();
+            selectSate.toggle();
+          }}
+          anchorEl={anchorEl}
+          label={label}
+          color={color}
+          textProps={{
+            sx: {
+              filter: 'brightness(0.5)',
+            },
+          }}
+          boxProps={{
+            width: '140px',
+            sx: {
+              ...(color && {
+                backgroundColor: color + '33',
+                borderColor: color,
+              }),
+            },
+          }}
+        />
+      </STooltip>
       {!editState.isOpen && (
         <SPopperArrow
           disabledArrow

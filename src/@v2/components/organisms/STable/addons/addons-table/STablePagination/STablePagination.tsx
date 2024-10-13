@@ -34,6 +34,8 @@ export const STablePagination = ({
               <PaginationItem
                 {...item}
                 sx={{
+                  maxWidth: '18px',
+                  minWidth: '18px',
                   '&&.MuiPaginationItem-root.Mui-selected': {
                     backgroundColor: 'grey.400',
                     color: 'text.primary',

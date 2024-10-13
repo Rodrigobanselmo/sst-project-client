@@ -3,6 +3,7 @@ import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import { BoxProps, IconButton, Paper, TypographyProps } from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { STextProps } from '@v2/components/atoms/SText/SText.types';
 import { MouseEvent as ReactMouseEvent } from 'react';
 
 export interface SEditButtonRowProps {
@@ -10,6 +11,8 @@ export interface SEditButtonRowProps {
   anchorEl: React.RefObject<HTMLDivElement>;
   onClick: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => void;
   boxProps?: BoxProps;
+  textProps?: STextProps;
+  color?: string;
 }
 
 export const SEditButtonRow = ({
@@ -17,6 +20,8 @@ export const SEditButtonRow = ({
   onClick,
   anchorEl,
   boxProps,
+  textProps,
+  color = 'text.main',
 }: SEditButtonRowProps) => {
   return (
     <SFlex
@@ -39,23 +44,23 @@ export const SEditButtonRow = ({
         userSelect: 'none',
         borderStyle: 'solid',
         ':hover': {
+          filter: 'brightness(0.95)',
           borderColor: 'gray.500',
-          backgroundColor: 'grey.300',
         },
         ':active': {
+          filter: 'brightness(0.9)',
           borderColor: 'gray.600',
-          backgroundColor: 'grey.400',
         },
         ...boxProps?.sx,
       }}
     >
-      <SText color={'text.medium'} fontSize={12} lineNumber={1}>
+      <SText color={color} fontSize={12} lineNumber={1} {...textProps}>
         {label}
       </SText>
       <ArrowDropDown
         sx={{
           fontSize: 15,
-          color: 'text.medium',
+          color: color,
         }}
       />
     </SFlex>
