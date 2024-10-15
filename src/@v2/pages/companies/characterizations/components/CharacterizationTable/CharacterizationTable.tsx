@@ -1,9 +1,8 @@
 import { useRouter } from 'next/router';
 
-import {
-  STableFilterChip,
-  STableFilterChipProps,
-} from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SSearchSelectMultiple } from '@v2/components/forms/SSearchSelect/SSearchSelectMultiple';
+import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
@@ -15,23 +14,15 @@ import { STableSearch } from '@v2/components/organisms/STable/addons/addons-tabl
 import { SCharacterizationTable } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable';
 import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
+import { useQueryParams } from '@v2/hooks/useQueryParams';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/browse/hooks/useFetchBrowseCharacterization';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse/service/browse-characterization.types';
-import { useRef, useState } from 'react';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
 import { ICharacterizationFilterProps } from './CharacterizationTable.types';
-import { SSelectMultiple } from '@v2/components/forms/SSelect/SSelectMultiple';
-import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SInput } from '@v2/components/forms/SInput/SInput';
-import { SAutocompleteSelect } from '@v2/components/forms/SAutocompleteSelect/SAutocompleteSelect';
-import { SSearchSelect } from '@v2/components/forms/SSearchSelect/SSearchSelect';
-import { SSearchSelectMultiple } from '@v2/components/forms/SSearchSelect/SSearchSelectMultiple';
-import { useCharacterizationQueryParams } from './hooks/useCharacterizationQueryParams';
-import { useQueryParams } from '@v2/hooks/useQueryParams';
 
 const limit = 15;
 
@@ -115,9 +106,6 @@ export const CharacterizationTable = () => {
               stageIds: queryParams.stageIds?.filter((id) => id !== value),
             }),
         }),
-        limit: null,
-        orderBy: null,
-        page: null,
         search: null,
       },
       cleanParams: {

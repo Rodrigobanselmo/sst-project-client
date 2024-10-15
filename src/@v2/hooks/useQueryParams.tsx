@@ -9,7 +9,7 @@ export function useQueryParams<T extends Record<string, any>>({
   queryParams,
   setQueryParams,
 }: {
-  chipMap: IParamsChipMap<T>;
+  chipMap: IParamsChipMap<Omit<T, 'limit' | 'orderBy' | 'page'>>;
   cleanParams: Required<T>;
   queryParams: T extends Record<string, any> ? T : never;
   setQueryParams: (values: T) => void;
