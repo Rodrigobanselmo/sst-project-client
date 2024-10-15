@@ -20,7 +20,15 @@ export function objectToQueryParams(
         str.push(objectToQueryParams(value as any, newPrefix));
       } else if (Array.isArray(value)) {
         value.forEach((item, index) => {
-          str.push(objectToQueryParams(item, `${newPrefix}[${index}]`));
+          if (typeof item === 'object') {
+            str.push(objectToQueryParams(item, `${newPrefix}[${index}]`));
+          } else {
+            str.push(
+              `${encodeURIComponent(
+                `${newPrefix}[${index}]`,
+              )}=${encodeURIComponent(item)}`,
+            );
+          }
         });
       } else if (value !== undefined) {
         str.push(

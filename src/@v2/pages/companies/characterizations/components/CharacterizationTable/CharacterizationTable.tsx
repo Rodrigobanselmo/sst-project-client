@@ -1,27 +1,39 @@
 import { useRouter } from 'next/router';
 
-import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
+import {
+  STableFilterChip,
+  STableFilterChipProps,
+} from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
-import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
 import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { STableExportButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableExportButton/STableExportButton';
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
 import { STableButtonDivider } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButtonDivider/STableButtonDivider';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
-import { setOrderByTable } from '@v2/components/organisms/STable/helpers/set-order-by-table.helper';
+import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
 import { SCharacterizationTable } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable';
 import { useApiStatus } from '@v2/hooks/useApiStatus';
+import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/browse/hooks/useFetchBrowseCharacterization';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse/service/browse-characterization.types';
-import { IOrderByParams } from '@v2/types/order-by-params.type';
+import { useRef, useState } from 'react';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
 import { ICharacterizationFilterProps } from './CharacterizationTable.types';
-import { useOrderBy } from '@v2/hooks/useOrderBy';
+import { SSelectMultiple } from '@v2/components/forms/SSelect/SSelectMultiple';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SInput } from '@v2/components/forms/SInput/SInput';
+import { SAutocompleteSelect } from '@v2/components/forms/SAutocompleteSelect/SAutocompleteSelect';
+import { SSearchSelect } from '@v2/components/forms/SSearchSelect/SSearchSelect';
+import { SSearchSelectMultiple } from '@v2/components/forms/SSearchSelect/SSearchSelectMultiple';
+import { useCharacterizationQueryParams } from './hooks/useCharacterizationQueryParams';
+import { useQueryParams } from '@v2/hooks/useQueryParams';
+
+const limit = 15;
 
 export const CharacterizationTable = () => {
   const router = useRouter();
@@ -37,6 +49,7 @@ export const CharacterizationTable = () => {
     workspaceId,
     filters: {
       search: queryParams.search,
+      stageIds: queryParams.stageIds,
     },
     orderBy: queryParams.orderBy || [
       {
@@ -54,7 +67,7 @@ export const CharacterizationTable = () => {
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || 15,
+      limit: queryParams.limit || limit,
     },
   });
 
@@ -84,26 +97,69 @@ export const CharacterizationTable = () => {
     getLeftLabel: ({ field }) => ordenByCharacterizationTranslation[field],
   });
 
-  const onCleanQueryParams = () => {
-    setQueryParams({ search: '', orderBy: [] });
-  };
+  const selectedStages =
+    characterizations?.filters?.stages?.filter((stage) =>
+      queryParams.stageIds?.includes(stage.id),
+    ) || [];
+
+  const { onCleanQueryParams, onFilterQueryParams, paramsChipList } =
+    useQueryParams({
+      queryParams,
+      setQueryParams,
+      chipMap: {
+        stageIds: (value) => ({
+          leftLabel: 'Status',
+          label: selectedStages.find((stage) => stage.id === value)?.name || '',
+          onDelete: () =>
+            setQueryParams({
+              stageIds: queryParams.stageIds?.filter((id) => id !== value),
+            }),
+        }),
+        limit: null,
+        orderBy: null,
+        page: null,
+        search: null,
+      },
+      cleanParams: {
+        search: '',
+        orderBy: [],
+        stageIds: [],
+        page: 1,
+        limit,
+      },
+    });
 
   return (
     <>
       <STableSearch
         search={queryParams.search}
-        onSearch={(search) => setQueryParams({ search })}
+        onSearch={(search) => onFilterQueryParams({ search })}
       >
         <STableSearchContent>
           <STableAddButton onClick={handleCharacterizationAdd} />
           <STableColumnsButton onClick={() => null} />
-          <STableFilterButton onClick={() => null} />
+          <STableFilterButton onClick={() => null}>
+            <SFlex direction="column" gap={4} width={300}>
+              <SSearchSelectMultiple
+                label="Status"
+                value={selectedStages}
+                getOptionLabel={(option) => option?.name}
+                getOptionValue={(option) => option?.id}
+                onChange={(option) =>
+                  onFilterQueryParams({ stageIds: option.map((o) => o.id) })
+                }
+                onInputChange={(value) => console.log(value)}
+                placeholder="selecione um ou mais status"
+                options={characterizations?.filters?.stages || []}
+              />
+            </SFlex>
+          </STableFilterButton>
           <STableButtonDivider />
           <STableExportButton onClick={handleCharacterizationExport} />
         </STableSearchContent>
       </STableSearch>
       <STableFilterChipList onClean={onCleanQueryParams}>
-        {orderChipList?.map((chip) => (
+        {[...orderChipList, ...paramsChipList]?.map((chip) => (
           <STableFilterChip
             key={1}
             leftLabel={chip.leftLabel}
@@ -124,7 +180,7 @@ export const CharacterizationTable = () => {
         isLoading={isLoading}
         pagination={characterizations?.pagination}
         orderBy={queryParams.orderBy}
-        setPage={(page) => setQueryParams({ page })}
+        setPage={(page) => onFilterQueryParams({ page })}
         setOrderBy={onOrderBy}
         statusButtonProps={{
           onAdd: ({ value }) => onAddStatus(value),

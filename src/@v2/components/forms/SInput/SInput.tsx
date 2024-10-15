@@ -1,4 +1,4 @@
-import { ChangeEvent, FC, useCallback, useState } from 'react';
+import { ChangeEvent, FC, useCallback, useRef, useState } from 'react';
 
 import TextField from '@mui/material/TextField';
 import { SInputProps } from './SInput.types';
@@ -7,15 +7,16 @@ const sizeMap = {
   sm: {
     size: 'small',
     inputBaseRoot: {
-      maxHeight: '30px',
-      minHeight: '30px',
+      maxHeight: '34px',
+      minHeight: '34px',
     },
     inputLabelRoot: {
       fontSize: '13px',
       lineHeight: '14px',
+      mt: '1px',
     },
     inputLabelRootTop: {
-      top: '4px',
+      top: '3px',
     },
   },
   md: {
@@ -31,10 +32,13 @@ export const SInput: FC<SInputProps> = ({
   labelShrink,
   inputProps,
   placeholder,
+  inputRef,
   value,
-  disableShadow,
+  shrink,
+  shadow,
   size = 'md',
   onChange,
+  textFieldProps,
   ...props
 }) => {
   const handleChange = (
@@ -42,37 +46,52 @@ export const SInput: FC<SInputProps> = ({
   ) => {
     onChange && onChange(e);
   };
+  const ref = useRef<HTMLInputElement>(null);
+  const [isShrink, setIsShrink] = useState(false);
 
-  const [isShrink, setIsShrink] = useState(true);
+  const currentValue =
+    value ||
+    inputProps?.value ||
+    textFieldProps?.value ||
+    textFieldProps?.InputProps?.value ||
+    textFieldProps?.inputProps?.value;
 
-  const togglePlaceholder = useCallback(() => {
-    if (value) setIsShrink(false);
-    setIsShrink(!isShrink);
-  }, [isShrink, value]);
+  const isShrinkLabel = isShrink || !!currentValue || shrink;
 
   const getLabel = () => {
-    if (isShrink && !value) {
+    if (!isShrinkLabel && !value) {
       return labelShrink ?? label;
     } else {
       return label ?? labelShrink;
     }
   };
 
+  if (!currentValue && ref.current) ref.current.value = currentValue || '';
+  if (!currentValue && inputRef?.current)
+    inputRef.current.value = currentValue || '';
+
   return (
     <TextField
+      {...textFieldProps}
+      {...props}
+      inputRef={inputRef || ref}
       onChange={handleChange}
       InputProps={inputProps}
       placeholder={placeholder}
+      InputLabelProps={{
+        shrink: isShrinkLabel,
+        ...textFieldProps?.InputLabelProps,
+      }}
       label={getLabel()}
       size={sizeMap[size].size}
       variant="outlined"
-      {...props}
+      value={value}
       onFocus={(e) => {
-        togglePlaceholder();
+        setIsShrink(true);
         props?.onFocus?.(e);
       }}
       onBlur={(e) => {
-        togglePlaceholder();
+        setIsShrink(false);
         props?.onBlur?.(e);
       }}
       sx={{
@@ -83,13 +102,11 @@ export const SInput: FC<SInputProps> = ({
         '& .MuiInputLabel-root': {
           color: 'text.light',
           ...sizeMap[size].inputLabelRoot,
-          ...(!isShrink && sizeMap[size].inputLabelRootTop),
+          ...(isShrinkLabel && sizeMap[size].inputLabelRootTop),
         },
 
         '& .MuiOutlinedInput-root': {
-          boxShadow: disableShadow
-            ? 'none'
-            : '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
+          boxShadow: !shadow ? 'none' : '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
           backgroundColor: 'background.paper',
         },
         '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':

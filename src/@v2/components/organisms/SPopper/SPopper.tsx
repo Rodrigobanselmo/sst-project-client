@@ -58,7 +58,7 @@ export const SPopperArrow: FC<PropsWithChildren<IPopperProps>> = ({
       {...popperProps}
     >
       {({ TransitionProps }) => (
-        <ClickAwayListener onClickAway={handleClickAway}>
+        <ClickAwayListener onClickAway={handleClickAway} mouseEvent="onMouseUp">
           <Fade {...TransitionProps} timeout={250}>
             <Box
               sx={{

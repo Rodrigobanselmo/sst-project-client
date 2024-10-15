@@ -4,6 +4,7 @@ export type SInputProps = Pick<
   TextFieldProps,
   | 'onChange'
   | 'value'
+  | 'error'
   | 'helperText'
   | 'placeholder'
   | 'type'
@@ -15,8 +16,11 @@ export type SInputProps = Pick<
   | 'onBlur'
 > & {
   label?: string;
+  inputRef?: { current: HTMLInputElement | null };
   labelShrink?: string;
   size?: 'sm' | 'md';
+  shrink?: boolean;
   inputProps?: TextFieldProps['InputProps'];
-  disableShadow?: boolean;
+  shadow?: boolean;
+  textFieldProps?: TextFieldProps;
 };

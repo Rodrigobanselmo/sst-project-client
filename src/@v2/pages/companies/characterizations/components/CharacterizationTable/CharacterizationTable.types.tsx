@@ -3,6 +3,7 @@ import { IOrderByParams } from '@v2/types/order-by-params.type';
 
 export interface ICharacterizationFilterProps {
   search?: string;
+  stageIds?: number[];
   page?: number;
   limit?: number;
   orderBy?: IOrderByParams<CharacterizationOrderByEnum>[];

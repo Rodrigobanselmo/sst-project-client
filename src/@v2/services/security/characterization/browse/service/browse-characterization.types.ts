@@ -22,5 +22,6 @@ export interface BrowseCharacterizationParams {
   orderBy?: IOrderByParams<CharacterizationOrderByEnum>[];
   filters?: {
     search?: string;
+    stageIds?: number[];
   };
 }

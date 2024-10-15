@@ -24,21 +24,37 @@ const defaultTheme = createTheme({
         },
       },
     },
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          height: 24,
+          backgroundColor: 'transparent',
+          color: 'primary.main',
+          border: '1px solid',
+          borderColor: 'primary.main',
+        },
+        deleteIcon: {
+          width: 16,
+          height: 16,
+        },
+      },
+    },
     MuiSvgIcon: {
       styleOverrides: {
         root: { verticalAlign: 'middle' },
       },
     },
-    MuiChip: {
-      styleOverrides: {
-        root: {
-          height: 24,
-        },
-      },
-    },
     MuiInputBase: {
       styleOverrides: {
-        root: {},
+        root: {
+          '&:hover': {
+            '& .MuiOutlinedInput-notchedOutline': {
+              border: '2px solid',
+              borderColor: colors.primary.main + ' !important',
+              outline: 'none',
+            },
+          },
+        },
       },
     },
     MuiPaginationItem: {
@@ -69,6 +85,20 @@ const defaultTheme = createTheme({
               backgroundColor: '#00000022',
             },
           },
+        },
+      },
+    },
+    MuiMenuItem: {
+      styleOverrides: {
+        root: {
+          variants: [
+            {
+              props: { selected: true },
+              style: {
+                color: colors.primary.main,
+              },
+            },
+          ],
         },
       },
     },

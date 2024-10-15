@@ -4,11 +4,11 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { ReactNode } from 'react';
 
-export interface STableFilterChipProps {
+export interface STableCleanChipProps {
   onClick?: () => void;
 }
 
-export const STableCleanChip = ({ onClick }: STableFilterChipProps) => {
+export const STableCleanChip = ({ onClick }: STableCleanChipProps) => {
   return (
     <SFlex
       center
