@@ -14,7 +14,7 @@ import { STableSearch } from '@v2/components/organisms/STable/addons/addons-tabl
 import { SCharacterizationTable } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable';
 import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
-import { useQueryParams } from '@v2/hooks/useQueryParams';
+import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
@@ -93,35 +93,34 @@ export const CharacterizationTable = () => {
       queryParams.stageIds?.includes(stage.id),
     ) || [];
 
-  const { onCleanQueryParams, onFilterQueryParams, paramsChipList } =
-    useQueryParams({
-      queryParams,
-      setQueryParams,
-      chipMap: {
-        stageIds: (value) => ({
-          leftLabel: 'Status',
-          label: selectedStages.find((stage) => stage.id === value)?.name || '',
-          onDelete: () =>
-            setQueryParams({
-              stageIds: queryParams.stageIds?.filter((id) => id !== value),
-            }),
-        }),
-        search: null,
-      },
-      cleanParams: {
-        search: '',
-        orderBy: [],
-        stageIds: [],
-        page: 1,
-        limit,
-      },
-    });
+  const { onCleanData, onFilterData, paramsChipList } = useTableState({
+    data: queryParams,
+    setData: setQueryParams,
+    chipMap: {
+      stageIds: (value) => ({
+        leftLabel: 'Status',
+        label: selectedStages.find((stage) => stage.id === value)?.name || '',
+        onDelete: () =>
+          setQueryParams({
+            stageIds: queryParams.stageIds?.filter((id) => id !== value),
+          }),
+      }),
+      search: null,
+    },
+    cleanData: {
+      search: '',
+      orderBy: [],
+      stageIds: [],
+      page: 1,
+      limit,
+    },
+  });
 
   return (
     <>
       <STableSearch
         search={queryParams.search}
-        onSearch={(search) => onFilterQueryParams({ search })}
+        onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
           <STableAddButton onClick={handleCharacterizationAdd} />
@@ -134,7 +133,7 @@ export const CharacterizationTable = () => {
                 getOptionLabel={(option) => option?.name}
                 getOptionValue={(option) => option?.id}
                 onChange={(option) =>
-                  onFilterQueryParams({ stageIds: option.map((o) => o.id) })
+                  onFilterData({ stageIds: option.map((o) => o.id) })
                 }
                 onInputChange={(value) => console.log(value)}
                 placeholder="selecione um ou mais status"
@@ -146,7 +145,7 @@ export const CharacterizationTable = () => {
           <STableExportButton onClick={handleCharacterizationExport} />
         </STableSearchContent>
       </STableSearch>
-      <STableFilterChipList onClean={onCleanQueryParams}>
+      <STableFilterChipList onClean={onCleanData}>
         {[...orderChipList, ...paramsChipList]?.map((chip) => (
           <STableFilterChip
             key={1}
@@ -168,7 +167,7 @@ export const CharacterizationTable = () => {
         isLoading={isLoading}
         pagination={characterizations?.pagination}
         orderBy={queryParams.orderBy}
-        setPage={(page) => onFilterQueryParams({ page })}
+        setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
         statusButtonProps={{
           onAdd: ({ value }) => onAddStatus(value),

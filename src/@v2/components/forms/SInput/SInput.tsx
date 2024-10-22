@@ -66,9 +66,8 @@ export const SInput: FC<SInputProps> = ({
     }
   };
 
-  if (!currentValue && ref.current) ref.current.value = currentValue || '';
-  if (!currentValue && inputRef?.current)
-    inputRef.current.value = currentValue || '';
+  // if (!currentValue && ref.current) ref.current.value = currentValue || '';
+  // if (!currentValue && inputRef?.current) inputRef.current.value = currentValue || '';
 
   return (
     <TextField
