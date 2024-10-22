@@ -22,11 +22,9 @@ export const useOpenIdsHelper = (
     handleClose: CloseHandler;
   },
 ] => {
-  let initialOpenIds: NodeModel['id'][] = useMemo(() => {
+  const initialOpenIds: NodeModel['id'][] = useMemo(() => {
     if (initialOpen === true) {
-      return (initialOpenIds = tree
-        .filter((node) => node.droppable)
-        .map((node) => node.id));
+      return tree.filter((node) => node.droppable).map((node) => node.id);
     } else if (Array.isArray(initialOpen)) {
       return initialOpen;
     }
