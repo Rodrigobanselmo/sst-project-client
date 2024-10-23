@@ -97,6 +97,7 @@ export const CharacterizationTable = () => {
     data: queryParams,
     setData: setQueryParams,
     chipMap: {
+      search: null,
       stageIds: (value) => ({
         leftLabel: 'Status',
         label: selectedStages.find((stage) => stage.id === value)?.name || '',
@@ -105,7 +106,6 @@ export const CharacterizationTable = () => {
             stageIds: queryParams.stageIds?.filter((id) => id !== value),
           }),
       }),
-      search: null,
     },
     cleanData: {
       search: '',
