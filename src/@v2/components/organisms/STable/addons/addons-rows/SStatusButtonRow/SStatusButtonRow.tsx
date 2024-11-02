@@ -1,7 +1,8 @@
-import { Box, BoxProps, Button, Input } from '@mui/material';
+import { Box, Button, Input } from '@mui/material';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import STooltip from '@v2/components/atoms/STooltip/STooltip';
 import { SPopperArrow } from '@v2/components/organisms/SPopper/SPopper';
 import { useDisclosure } from '@v2/hooks/useDisclosure';
 import { useSearch } from '@v2/hooks/useSearch';
@@ -11,9 +12,7 @@ import { SEditButtonRow } from '../SEditButtonRow/SEditButtonRow';
 import {
   PopperStatusCreator,
   PopperStatusCreatorProps,
-  PopperStatusOptionProps,
 } from './components/PopperStatusCreator/PopperStatusCreator';
-import STooltip from '@v2/components/atoms/STooltip/STooltip';
 
 export interface SStatusButtonRowProps
   extends Pick<
@@ -68,7 +67,7 @@ export function SStatusButtonRow({
             },
           }}
           boxProps={{
-            width: '140px',
+            width: '100%',
             sx: {
               ...(color && {
                 backgroundColor: color + '33',

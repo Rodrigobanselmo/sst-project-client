@@ -1,5 +1,6 @@
 import { IOrderByParams } from '@v2/types/order-by-params.type';
 import { setOrderByTable } from '@v2/components/organisms/STable/helpers/set-order-by-table.helper';
+import { STableFilterChipProps } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 
 export function useOrderBy<T>({
   orderByList = [],
@@ -17,7 +18,7 @@ export function useOrderBy<T>({
     setOrderBy(orderBy);
   };
 
-  const orderChipList = orderByList?.map((order) => ({
+  const orderChipList = orderByList?.map<STableFilterChipProps>((order) => ({
     label: getLabel(order),
     leftLabel: `ordenação por ${getLeftLabel(order)}:`,
     onDelete: () => {

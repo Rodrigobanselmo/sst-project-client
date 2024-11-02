@@ -239,9 +239,8 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       onCloseModal(modalName, data);
       setCharacterizationData(initialCharacterizationState);
       reset();
-      push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
     },
-    [asPath, modalName, onCloseModal, push, reset],
+    [modalName, onCloseModal, reset],
   );
 
   const onCloseUnsaved = () => {

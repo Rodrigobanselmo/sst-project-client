@@ -3,6 +3,7 @@ import { ReactNode } from 'react';
 
 export interface ITableData<T> {
   column: string;
+  hidden?: boolean;
   header: React.ReactNode;
   row: (row: T) => React.ReactNode;
 }
@@ -10,6 +11,7 @@ export interface ITableData<T> {
 export interface STableProps<T> {
   limit?: number;
   isLoading?: boolean;
+  isLoadingMore?: boolean;
   rowGap?: string;
   data: T[];
   renderHeader: (header: ReactNode[]) => ReactNode;

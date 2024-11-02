@@ -1,6 +1,10 @@
 import { useRouter } from 'next/router';
 
+import { SIconStatus } from '@v2/assets/icons/SIconStatus/SIconStatus';
+import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SSearchSelectRenderOptionStatusRenderOptionStatus } from '@v2/components/forms/SSearchSelect/addons/render-option/RenderOptionStatus/RenderOptionStatus';
+import { SSearchSelect } from '@v2/components/forms/SSearchSelect/SSearchSelect';
 import { SSearchSelectMultiple } from '@v2/components/forms/SSearchSelect/SSearchSelectMultiple';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
@@ -11,26 +15,50 @@ import { STableFilterButton } from '@v2/components/organisms/STable/addons/addon
 import { STableButtonDivider } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButtonDivider/STableButtonDivider';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { STableSelection } from '@v2/components/organisms/STable/addons/addons-table/STableSelectionUpdate/STableSelectionUpdate';
+import {
+  TablesSelectEnum,
+  useTableSelect,
+} from '@v2/components/organisms/STable/hooks/useTableSelect';
+import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
+import { CharacterizationColumnsEnum } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/enums/characterization-columns.enum';
+import { characterizationColumns } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/maps/characterization-column-map';
 import { SCharacterizationTable } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable';
+import { ICharacterizationTableTableProps } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable.types';
 import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
-import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
+import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/browse/hooks/useFetchBrowseCharacterization';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse/service/browse-characterization.types';
+import { useEffect, useState } from 'react';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
 import { ICharacterizationFilterProps } from './CharacterizationTable.types';
+import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
+import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
+import { CharacterizationTableFilter } from './components/CharacterizationTableFilter/CharacterizationTableFilter';
+import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
+import { Box } from '@mui/material';
 
 const limit = 15;
+const table = TablesSelectEnum.CHARACTERIZATION;
 
 export const CharacterizationTable = () => {
   const router = useRouter();
 
   const companyId = router.query.companyId as string;
   const workspaceId = router.query.workspaceId as string;
+
+  const [hiddenColumns, setHiddenColumns] = usePersistedState<
+    Record<CharacterizationColumnsEnum, boolean>
+  >(persistKeys.COLUMNS_CHARACTERIZATION, {} as any);
+
+  const [multipleUpdateData, setMultipleUpdateData] = useState<{
+    stageId?: number | null;
+  }>({});
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<ICharacterizationFilterProps>();
@@ -88,10 +116,9 @@ export const CharacterizationTable = () => {
     getLeftLabel: ({ field }) => ordenByCharacterizationTranslation[field],
   });
 
+  const stages = characterizations?.filters?.stages || [];
   const selectedStages =
-    characterizations?.filters?.stages?.filter((stage) =>
-      queryParams.stageIds?.includes(stage.id),
-    ) || [];
+    stages.filter((stage) => queryParams.stageIds?.includes(stage.id)) || [];
 
   const { onCleanData, onFilterData, paramsChipList } = useTableState({
     data: queryParams,
@@ -124,38 +151,52 @@ export const CharacterizationTable = () => {
       >
         <STableSearchContent>
           <STableAddButton onClick={handleCharacterizationAdd} />
-          <STableColumnsButton onClick={() => null} />
-          <STableFilterButton onClick={() => null}>
-            <SFlex direction="column" gap={4} width={300}>
-              <SSearchSelectMultiple
-                label="Status"
-                value={selectedStages}
-                getOptionLabel={(option) => option?.name}
-                getOptionValue={(option) => option?.id}
-                onChange={(option) =>
-                  onFilterData({ stageIds: option.map((o) => o.id) })
-                }
-                onInputChange={(value) => console.log(value)}
-                placeholder="selecione um ou mais status"
-                options={characterizations?.filters?.stages || []}
-              />
-            </SFlex>
+          <STableColumnsButton
+            hiddenColumns={hiddenColumns}
+            setHiddenColumns={setHiddenColumns}
+            columns={characterizationColumns}
+          />
+          <STableFilterButton>
+            <CharacterizationTableFilter
+              onFilterData={onFilterData}
+              selectedStages={selectedStages}
+              stages={stages}
+            />
           </STableFilterButton>
           <STableButtonDivider />
           <STableExportButton onClick={handleCharacterizationExport} />
         </STableSearchContent>
       </STableSearch>
-      <STableFilterChipList onClean={onCleanData}>
-        {[...orderChipList, ...paramsChipList]?.map((chip) => (
-          <STableFilterChip
-            key={1}
-            leftLabel={chip.leftLabel}
-            label={chip.label}
-            onDelete={chip.onDelete}
-          />
-        ))}
-      </STableFilterChipList>
+      <STableInfoSection>
+        <STableFilterChipList onClean={onCleanData}>
+          {[...orderChipList, ...paramsChipList]?.map((chip) => (
+            <STableFilterChip
+              key={1}
+              leftLabel={chip.leftLabel}
+              label={chip.label}
+              onDelete={chip.onDelete}
+            />
+          ))}
+        </STableFilterChipList>
+        <CharacterizationTableSelection table={table} stages={stages} />
+      </STableInfoSection>
       <SCharacterizationTable
+        table={table}
+        filterColumns={{
+          [CharacterizationColumnsEnum.STAGE]: (
+            <Box mx={4} mt={2} mb={2} width={250}>
+              <CharacterizationTableFilterStage
+                selectedStages={selectedStages}
+                stages={stages}
+                onFilterData={onFilterData}
+              />
+            </Box>
+          ),
+        }}
+        filters={queryParams}
+        setFilters={onFilterData}
+        setHiddenColumns={setHiddenColumns}
+        hiddenColumns={hiddenColumns}
         onSelectRow={(row) => handleCharacterizationEdit(row)}
         onEditStage={(stageId, row) =>
           handleCharacterizationEditStage({ ...row, stageId })
@@ -166,7 +207,6 @@ export const CharacterizationTable = () => {
         data={characterizations?.results}
         isLoading={isLoading}
         pagination={characterizations?.pagination}
-        orderBy={queryParams.orderBy}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
         statusButtonProps={{

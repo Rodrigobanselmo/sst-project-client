@@ -4,6 +4,10 @@ import React, { FC } from 'react';
 import { STButton } from './styles';
 import { SButtonProps } from './types';
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const SButton: FC<{ children?: any } & SButtonProps> = ({
   children,
   loading,

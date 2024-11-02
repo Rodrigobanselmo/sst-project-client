@@ -6,6 +6,10 @@ import { Box } from '@mui/material';
 
 import { SFlexProps } from './types';
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 const SFlex = React.forwardRef<any, SFlexProps>(
   ({ direction = 'row', gap = 2, center, align, justify, ...props }, ref) => (
     <Box

@@ -6,14 +6,16 @@ import { SPopperMenuItem } from '@v2/components/organisms/SPopper/addons/SPopper
 
 interface ISPopperMenuItemHideColumnProps {
   onClick: MenuItemProps['onClick'];
+  disabled?: boolean;
 }
 
 export const SPopperMenuItemHideColumn: FC<ISPopperMenuItemHideColumnProps> = ({
   onClick,
+  disabled,
 }) => {
   return (
     <SPopperMenuItem
-      disabled
+      disabled={disabled}
       text="Ocultar Coluna"
       icon={(props) => <SIconHideColumn {...props} fontSize="12px" />}
       onClick={onClick}

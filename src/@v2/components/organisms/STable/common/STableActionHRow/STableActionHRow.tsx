@@ -8,10 +8,12 @@ import { SPopperArrow } from '@v2/components/organisms/SPopper/SPopper';
 import { useDisclosure } from '@v2/hooks/useDisclosure';
 import { IOrderDirection } from '@v2/types/order-by-params.type';
 import { STableHRow } from '../STableHRow/STableHRow';
+import { SIconFilter } from '@v2/assets/icons/SIconFilter/SIconFilter';
 
 interface ISTableActionHRowProps extends PropsWithChildren {
   boxProps?: BoxProps;
   direction?: IOrderDirection;
+  isFiltered?: boolean;
   menu: (props: { close: () => void }) => ReactNode;
 }
 
@@ -19,6 +21,7 @@ export const STableActionHRow: FC<ISTableActionHRowProps> = ({
   children,
   boxProps,
   direction,
+  isFiltered,
   menu,
 }) => {
   const anchorEl = useRef<null | HTMLDivElement>(null);
@@ -33,8 +36,9 @@ export const STableActionHRow: FC<ISTableActionHRowProps> = ({
       >
         {children}
         {(!direction || direction == 'none') && <SIconUnfolderMore />}
-        {direction == 'desc' && <SIconSortArrowUp />}
-        {direction == 'asc' && <SIconSortArrowDown />}
+        {direction == 'desc' && <SIconSortArrowUp color="primary.main" />}
+        {direction == 'asc' && <SIconSortArrowDown color="primary.main" />}
+        {isFiltered && <SIconFilter color="primary.main" fontSize={12} />}
       </STableHRow>
       <SPopperArrow
         disabledArrow

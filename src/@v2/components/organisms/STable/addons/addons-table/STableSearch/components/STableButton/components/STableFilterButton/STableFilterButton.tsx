@@ -10,6 +10,7 @@ import { useDisclosure } from '@v2/hooks/useDisclosure';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
+import { SIconFilter } from '@v2/assets/icons/SIconFilter/SIconFilter';
 
 export const STableFilterButton: FC<STableFilterButtonProps> = ({
   onClick,
@@ -22,7 +23,7 @@ export const STableFilterButton: FC<STableFilterButtonProps> = ({
 
   const handleSelect = () => {
     toggle();
-    onClick();
+    onClick?.();
   };
 
   return (
@@ -31,7 +32,7 @@ export const STableFilterButton: FC<STableFilterButtonProps> = ({
         <STableButton
           onClick={handleSelect}
           text={text ?? 'Fitros'}
-          icon={FilterAltOutlinedIcon}
+          icon={SIconFilter}
         />
       </Box>
       <SPopperArrow
@@ -44,9 +45,7 @@ export const STableFilterButton: FC<STableFilterButtonProps> = ({
       >
         {popperTile && (
           <SFlex align="center" mb={3} px={5} pt={5}>
-            <FilterAltOutlinedIcon
-              sx={{ color: 'text.light', fontSize: '18px' }}
-            />
+            <SIconFilter color="text.light" fontSize="18px" />
             <SText color={'text.light'}>{popperTile}</SText>
           </SFlex>
         )}

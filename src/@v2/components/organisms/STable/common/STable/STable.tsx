@@ -8,16 +8,19 @@ import { useMemo } from 'react';
 export function STable<T>({
   rowGap = '10px',
   isLoading,
+  isLoadingMore,
   data,
   table,
   renderHeader,
   renderBody,
 }: React.PropsWithChildren<STableProps<T>>) {
   const { columns, headers, rows } = useMemo(() => {
+    const tables = table.filter(({ hidden }) => !hidden);
+
     return {
-      columns: table.map(({ column }) => column),
-      headers: table.map(({ header }) => header),
-      rows: table.map(({ row }) => row),
+      columns: tables.map(({ column }) => column),
+      headers: tables.map(({ header }) => header),
+      rows: tables.map(({ row }) => row),
     };
   }, [table]);
 
@@ -26,10 +29,12 @@ export function STable<T>({
       {!isLoading && (
         <STSTable rowGap={rowGap} columns={columns.join(' ')}>
           {renderHeader(headers)}
-          {renderBody({ data, rows })}
+          {!isLoadingMore && renderBody({ data, rows })}
         </STSTable>
       )}
-      {isLoading && <STableLoading table={table} rowGap={rowGap} />}
+      {(isLoading || isLoadingMore) && (
+        <STableLoading onlyRows={isLoadingMore} table={table} rowGap={rowGap} />
+      )}
     </Box>
   );
 }

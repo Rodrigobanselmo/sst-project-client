@@ -10,7 +10,7 @@ export const SPopperMenu: FC<ISPopperMenuProps> = ({ children, ...props }) => {
       {...props}
       autoFocus={true}
       sx={{
-        width: '15rem',
+        minWidth: '15rem',
         px: 0,
         py: 2,
         '&:focus': {

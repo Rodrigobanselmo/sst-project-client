@@ -1,7 +1,13 @@
-import { BoxProps } from '@mui/material';
-import { SInputProps } from 'components/atoms/SInput/types';
+export type STableColumnsProps = {
+  label: string;
+  value: string;
+};
 
-export type STableColumnsButtonProps = {
-  onClick: () => void;
+export type STableColumnsButtonProps<T extends string> = {
+  onClick?: () => void;
   text?: string;
+  popperTile?: string;
+  columns: STableColumnsProps[];
+  setHiddenColumns: (hiddenColumns: Record<T, boolean>) => void;
+  hiddenColumns: Record<T, boolean>;
 };

@@ -46,12 +46,14 @@ export const SButton: FC<SButtonProps> = ({
   onClick,
   text,
   icon,
+  rightIcon,
   color = 'normal',
   variant = 'outlined',
   tooltip,
   disabled,
   loading,
   buttonProps,
+  textProps,
 }) => {
   return (
     <STooltip title={tooltip || ''} withWrapper>
@@ -114,9 +116,32 @@ export const SButton: FC<SButtonProps> = ({
               mr={icon ? 2 : 0}
               fontSize={12}
               color={colorMap[color].textColor}
+              {...textProps}
             >
               {text}
             </Box>
+          )}
+          {rightIcon && (
+            <Icon
+              component={
+                loading && !icon
+                  ? () => (
+                      <Box width={20} height={20}>
+                        <CircularProgress
+                          size={9}
+                          sx={{
+                            color: colorMap[color].textColor,
+                          }}
+                        />
+                      </Box>
+                    )
+                  : rightIcon
+              }
+              sx={{
+                fontSize: ['1rem', '1rem', '1.1rem'],
+                color: colorMap[color].textColor,
+              }}
+            />
           )}
         </>
       </Button>

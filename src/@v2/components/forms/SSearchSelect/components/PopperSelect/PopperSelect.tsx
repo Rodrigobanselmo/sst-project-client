@@ -13,7 +13,13 @@ interface PopperSelectBaseProps<Value> {
   children: ReactNode;
   getOptionLabel: (option: Value) => string;
   getOptionValue: (option: Value) => string | number | boolean;
-  onClean: (event: React.SyntheticEvent) => void;
+  renderOption?: (args: {
+    option: Value;
+    label: string;
+    isSelected: boolean;
+    handleSelect: (e: any) => void;
+  }) => ReactNode;
+  onClean?: (event: React.SyntheticEvent) => void;
   onClose?: () => void;
   selected: Value[];
   closeOnSelect?: boolean;
@@ -42,6 +48,7 @@ export function PopperSelect<T>({
   getOptionValue,
   getOptionLabel,
   onClose,
+  renderOption,
 }: PopperSelectProps<T>) {
   const selectSate = useDisclosure();
   const anchorEl = useRef<null | HTMLDivElement>(null);
@@ -56,6 +63,7 @@ export function PopperSelect<T>({
   const handleClose = () => {
     onClose?.();
     selectSate.close();
+    onSearch('');
   };
 
   const handleSelect = (value: T, e: any) => {
@@ -64,7 +72,7 @@ export function PopperSelect<T>({
   };
 
   const handleClean = (e: any) => {
-    onClean(e);
+    onClean?.(e);
     handleClose();
   };
 
@@ -154,7 +162,8 @@ export function PopperSelect<T>({
           <SFlex
             mt={4}
             pb={4}
-            px={4}
+            px={renderOption ? 0 : 4}
+            gap={renderOption ? 0 : 2}
             direction="column"
             maxHeight={400}
             overflow="auto"
@@ -163,6 +172,15 @@ export function PopperSelect<T>({
               const isSelected = selected.some(
                 (value) => getOptionValue(value) === getOptionValue(option),
               );
+
+              if (renderOption) {
+                return renderOption({
+                  option,
+                  label,
+                  isSelected,
+                  handleSelect: (e) => handleSelect(option, e),
+                });
+              }
 
               return (
                 <SFlex
@@ -203,25 +221,27 @@ export function PopperSelect<T>({
                 </SFlex>
               );
             })}
-            <SText
-              color={'text.secondary'}
-              onClick={(e) => handleClean(e)}
-              sx={{
-                fontSize: '10px',
-                fontWeight: 400,
-                ml: 'auto',
-                pt: 1,
-                cursor: 'pointer',
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
-                '&:active': {
-                  filter: 'brightness(0.9)',
-                },
-              }}
-            >
-              Limpar
-            </SText>
+            {onClean && (
+              <SText
+                color={'text.secondary'}
+                onClick={(e) => handleClean(e)}
+                sx={{
+                  fontSize: '10px',
+                  fontWeight: 400,
+                  ml: 'auto',
+                  pt: 1,
+                  cursor: 'pointer',
+                  '&:hover': {
+                    textDecoration: 'underline',
+                  },
+                  '&:active': {
+                    filter: 'brightness(0.9)',
+                  },
+                }}
+              >
+                Limpar
+              </SText>
+            )}
           </SFlex>
         </SFlex>
       </SPopperArrow>
