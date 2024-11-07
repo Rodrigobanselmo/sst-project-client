@@ -1,11 +1,18 @@
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
-import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse/service/browse-characterization.types';
+import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization-browse/service/browse-characterization.types';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
 import { SStatusButtonRowProps } from '../../addons/addons-rows/SStatusButtonRow/SStatusButtonRow';
-import { ICharacterizationFilterProps } from '@v2/pages/companies/characterizations/components/CharacterizationTable/CharacterizationTable.types';
 import { CharacterizationColumnsEnum } from './enums/characterization-columns.enum';
 import { TablesSelectEnum } from '../../hooks/useTableSelect';
 import { ReactNode } from 'react';
+
+export interface ICharacterizationFilterProps {
+  search?: string;
+  stageIds?: number[];
+  page?: number;
+  limit?: number;
+  orderBy?: IOrderByParams<CharacterizationOrderByEnum>[];
+}
 
 export interface ICharacterizationTableTableProps {
   data?: CharacterizationBrowseResultModel[];

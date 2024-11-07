@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 export enum TablesSelectEnum {
   CHARACTERIZATION = 'CHARACTERIZATION',
+  ACTION_PLAN = 'ACTION_PLAN',
 }
 
 interface SelectState {

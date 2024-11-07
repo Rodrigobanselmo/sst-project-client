@@ -6,7 +6,7 @@ import { STableSelection } from '@v2/components/organisms/STable/addons/addons-t
 import { TablesSelectEnum } from '@v2/components/organisms/STable/hooks/useTableSelect';
 
 interface CharacterizationTableSelectionProps {
-  table: TablesSelectEnum.CHARACTERIZATION;
+  table: TablesSelectEnum;
   stages: {
     id: number;
     name: string;

@@ -1,4 +1,4 @@
-export enum HirarchyTypeEnum {
+export enum HierarchyTypeEnum {
   DIRECTORY = 'DIRECTORY',
   MANAGEMENT = 'MANAGEMENT',
   SECTOR = 'SECTOR',

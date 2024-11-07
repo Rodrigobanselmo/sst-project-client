@@ -1,4 +1,4 @@
-import { HirarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
+import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 import { CharacterizationColumnsEnum } from '../enums/characterization-columns.enum';
 import { STableColumnsProps } from '../../../addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton.types';
 

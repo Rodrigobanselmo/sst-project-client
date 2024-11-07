@@ -2,6 +2,7 @@ import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 
 export enum persistKeys {
   COLUMNS_CHARACTERIZATION = 'COLUMNS_CHARACTERIZATION',
+  COLUMNS_ACTION_PLAN = 'COLUMNS_ACTION_PLAN',
 }
 
 type Response<T> = [T, Dispatch<SetStateAction<T>>];

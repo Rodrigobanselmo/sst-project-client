@@ -4,10 +4,13 @@ import { STextRowProps } from './STextRow.types';
 import STooltip from '@v2/components/atoms/STooltip/STooltip';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { Box } from '@mui/material';
 
 export const STextRow: FC<STextRowProps> = ({
   tooltipTitle,
   text,
+  bottomText,
+  bottomTextProps,
   fontSize = 12,
   lineNumber = 2,
   textProps = {},
@@ -15,29 +18,45 @@ export const STextRow: FC<STextRowProps> = ({
   color,
   justify,
   boxProps,
+  startAddon,
 }) => {
   return (
     <STooltip title={tooltipTitle ?? text} minLength={tooltipTitle ? 0 : 100}>
-      <SFlex
-        sx={{
-          height: '100%',
-        }}
-        justify={justify}
-        className="table-row-box"
-        align="center"
-        {...boxProps}
-      >
-        <SText
-          textAlign={textAlign}
-          fontSize={fontSize}
-          lineNumber={lineNumber}
-          className="table-row-text"
-          color={color}
-          {...textProps}
-          sx={{ whiteSpace: 'pre-line', ...textProps?.sx }}
+      <SFlex align="center" gap={4} justify={justify}>
+        {startAddon}
+        <SFlex
+          sx={{
+            height: '100%',
+          }}
+          justify={'center'}
+          className="table-row-box"
+          align={justify}
+          flexDirection={'column'}
+          {...boxProps}
         >
-          {text}
-        </SText>
+          <SText
+            textAlign={textAlign}
+            fontSize={fontSize}
+            lineNumber={lineNumber}
+            className="table-row-text"
+            color={color}
+            {...textProps}
+            sx={{ whiteSpace: 'pre-line', ...textProps?.sx }}
+          >
+            {text}
+          </SText>
+          <SText
+            textAlign={textAlign}
+            fontSize={10}
+            lineNumber={1}
+            color={'text.light'}
+            mt={-2}
+            {...bottomTextProps}
+            sx={{ whiteSpace: 'pre-line', ...bottomTextProps?.sx }}
+          >
+            {bottomText}
+          </SText>
+        </SFlex>
       </SFlex>
     </STooltip>
   );

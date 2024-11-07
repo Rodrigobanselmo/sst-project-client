@@ -1,6 +1,6 @@
 import { dateUtils } from '@v2/utils/date-utils';
 import { CharacterizationTypeEnum } from '../../enums/characterization-type.enum';
-import { HirarchyTypeEnum } from '../../enums/hierarchy-type.enum';
+import { HierarchyTypeEnum } from '../../enums/hierarchy-type.enum';
 
 export type ICharacterizationBrowseResultModel = {
   id: string;
@@ -11,7 +11,7 @@ export type ICharacterizationBrowseResultModel = {
   doneAt?: Date;
   order?: number;
   profiles: { id: string; name: string }[];
-  hierarchies: { id: string; name: string; type: HirarchyTypeEnum }[];
+  hierarchies: { id: string; name: string; type: HierarchyTypeEnum }[];
   risks: { id: string; name: string }[];
   photos: { id: string; url: string }[];
   stage?: { name: string; color?: string };
@@ -26,7 +26,7 @@ export class CharacterizationBrowseResultModel {
   doneAt?: Date;
   order: string;
   profiles: { id: string; name: string }[];
-  hierarchies: { id: string; name: string; type: HirarchyTypeEnum }[];
+  hierarchies: { id: string; name: string; type: HierarchyTypeEnum }[];
   risks: { id: string; name: string }[];
   photos: { id: string; url: string }[];
   stage?: { name: string; color?: string };

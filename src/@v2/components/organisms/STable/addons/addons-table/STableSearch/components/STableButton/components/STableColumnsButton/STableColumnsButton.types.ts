@@ -1,6 +1,7 @@
 export type STableColumnsProps = {
   label: string;
   value: string;
+  startHidden?: boolean;
 };
 
 export type STableColumnsButtonProps<T extends string> = {

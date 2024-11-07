@@ -55,7 +55,6 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
     name,
     type,
   }: Pick<ICharacterization, 'id' | 'stageId' | 'name' | 'type'>) => {
-    console.log({ id, stageId, companyId, workspaceId });
     await upsertMutation
       .mutateAsync({
         id,

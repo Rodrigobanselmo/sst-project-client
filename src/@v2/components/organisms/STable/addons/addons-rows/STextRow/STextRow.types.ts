@@ -4,12 +4,16 @@ import { ReactNode } from 'react';
 
 export type STextRowProps = {
   text: ReactNode;
+  bottomText?: ReactNode;
+  startAddon?: ReactNode;
   justify?: 'flex-start' | 'center' | 'flex-end';
   color?: string;
   fontSize?: number;
   textAlign?: 'left' | 'center' | 'right';
   lineNumber?: number;
   tooltipTitle?: ReactNode;
-  textProps?: STextProps;
   boxProps?: SFlexProps;
+
+  textProps?: STextProps;
+  bottomTextProps?: STextProps;
 };

@@ -1,6 +1,5 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SSearchSelectMultiple } from '@v2/components/forms/SSearchSelect/SSearchSelectMultiple';
-import { ICharacterizationFilterProps } from '../../CharacterizationTable.types';
+import { ICharacterizationFilterProps } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable.types';
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilterStage';
 
 interface CharacterizationTableFilterProps {

@@ -1,13 +1,9 @@
 import { useRouter } from 'next/router';
 
-import { SIconStatus } from '@v2/assets/icons/SIconStatus/SIconStatus';
-import { SButton } from '@v2/components/atoms/SButton/SButton';
-import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SSearchSelectRenderOptionStatusRenderOptionStatus } from '@v2/components/forms/SSearchSelect/addons/render-option/RenderOptionStatus/RenderOptionStatus';
-import { SSearchSelect } from '@v2/components/forms/SSearchSelect/SSearchSelect';
-import { SSearchSelectMultiple } from '@v2/components/forms/SSearchSelect/SSearchSelectMultiple';
+import { Box } from '@mui/material';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
+import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
 import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { STableExportButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableExportButton/STableExportButton';
@@ -15,16 +11,12 @@ import { STableFilterButton } from '@v2/components/organisms/STable/addons/addon
 import { STableButtonDivider } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButtonDivider/STableButtonDivider';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
-import { STableSelection } from '@v2/components/organisms/STable/addons/addons-table/STableSelectionUpdate/STableSelectionUpdate';
-import {
-  TablesSelectEnum,
-  useTableSelect,
-} from '@v2/components/organisms/STable/hooks/useTableSelect';
+import { TablesSelectEnum } from '@v2/components/organisms/STable/hooks/useTableSelect';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
 import { CharacterizationColumnsEnum } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/enums/characterization-columns.enum';
 import { characterizationColumns } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/maps/characterization-column-map';
 import { SCharacterizationTable } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable';
-import { ICharacterizationTableTableProps } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable.types';
+import { ICharacterizationFilterProps } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable.types';
 import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
@@ -32,16 +24,12 @@ import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
-import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/browse/hooks/useFetchBrowseCharacterization';
-import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse/service/browse-characterization.types';
-import { useEffect, useState } from 'react';
+import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/characterization-browse/hooks/useFetchBrowseCharacterization';
+import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization-browse/service/browse-characterization.types';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
-import { ICharacterizationFilterProps } from './CharacterizationTable.types';
-import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
-import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
 import { CharacterizationTableFilter } from './components/CharacterizationTableFilter/CharacterizationTableFilter';
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
-import { Box } from '@mui/material';
+import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
 
 const limit = 15;
 const table = TablesSelectEnum.CHARACTERIZATION;
@@ -55,10 +43,6 @@ export const CharacterizationTable = () => {
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<CharacterizationColumnsEnum, boolean>
   >(persistKeys.COLUMNS_CHARACTERIZATION, {} as any);
-
-  const [multipleUpdateData, setMultipleUpdateData] = useState<{
-    stageId?: number | null;
-  }>({});
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<ICharacterizationFilterProps>();

@@ -30,10 +30,10 @@ export function STableColumnsButton<T extends string>({
     onClick?.();
   };
 
-  const handleSelect = ({ value }: STableColumnsProps) => {
+  const handleSelect = ({ value }: STableColumnsProps, checked: boolean) => {
     setHiddenColumns({
       ...hiddenColumns,
-      [value]: !hiddenColumns[value],
+      [value]: checked,
     });
   };
 
@@ -69,12 +69,16 @@ export function STableColumnsButton<T extends string>({
           minHeight={200}
         >
           {columns.map((column) => {
+            const checked =
+              column.value in hiddenColumns
+                ? !hiddenColumns[column.value]
+                : !column.startHidden;
             return (
               <SCheckBox
                 label={column.label}
-                checked={!hiddenColumns[column.value]}
+                checked={checked}
                 key={column.value}
-                onChange={() => handleSelect(column)}
+                onChange={() => handleSelect(column, checked)}
               />
             );
           })}
