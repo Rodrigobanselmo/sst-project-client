@@ -28,18 +28,14 @@ export interface IActionPlanTableTableProps {
   setPage: (page: number) => void;
   setOrderBy: (order: IOrderByParams<ActionPlanOrderByEnum>) => void;
   onSelectRow: (row: ActionPlanBrowseResultModel) => void;
-  onEditStage: (
-    stageId: number | null,
+  onEditStatus: (
+    status: string | null,
     row: ActionPlanBrowseResultModel,
   ) => void;
   onEditPosition: (
     position: number | null,
     row: ActionPlanBrowseResultModel,
   ) => void;
-  statusButtonProps: Pick<
-    SStatusButtonRowProps,
-    'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'isLoading'
-  >;
   pagination?: {
     total: number;
     limit: number;

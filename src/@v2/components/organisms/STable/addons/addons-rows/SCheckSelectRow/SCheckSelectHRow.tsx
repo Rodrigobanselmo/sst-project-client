@@ -1,11 +1,12 @@
 import { Box, Checkbox } from '@mui/material';
 import { FC } from 'react';
 import { useTableSelect } from '../../../hooks/useTableSelect';
-import { SSelectRowProps } from './SSelectRow.types';
+import { SSelectHRowProps } from './SCheckSelectRow.types';
 
-export const SSelectRow: FC<SSelectRowProps> = ({ id, table, ...props }) => {
-  const stateSelect = useTableSelect((state) => state.select)(table);
-  const selected = useTableSelect((state) => state.has(table)(id));
+export const SSelectHRow: FC<SSelectHRowProps> = ({ ids, table, ...props }) => {
+  const add = useTableSelect((state) => state.add)(table);
+  const remove = useTableSelect((state) => state.remove)(table);
+  const selected = useTableSelect((state) => state.has(table)(ids));
 
   return (
     <Box
@@ -15,6 +16,7 @@ export const SSelectRow: FC<SSelectRowProps> = ({ id, table, ...props }) => {
       height={14}
     >
       <Checkbox
+        onChange={() => (selected ? remove(ids) : add(ids))}
         sx={{
           position: 'absolute',
           left: -10,
@@ -28,7 +30,6 @@ export const SSelectRow: FC<SSelectRowProps> = ({ id, table, ...props }) => {
           },
         }}
         checked={selected}
-        onChange={() => stateSelect(id)}
         {...props}
       />
     </Box>

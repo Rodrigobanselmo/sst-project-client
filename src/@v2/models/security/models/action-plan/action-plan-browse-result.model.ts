@@ -34,7 +34,7 @@ export class ActionPlanBrowseResultModel {
   doneDate: Date | null;
   canceledDate: Date | null;
   validDate: Date | null;
-  ocupationalRisk: IRiskLevelValues | null;
+  ocupationalRisk: IRiskLevelValues;
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSource: { id: string; name: string }[];
   risk: { id: string; name: string; type: RiskTypeEnum };
@@ -50,7 +50,7 @@ export class ActionPlanBrowseResultModel {
     this.startDate = params.startDate;
     this.doneDate = params.doneDate;
     this.canceledDate = params.canceledDate;
-    this.ocupationalRisk = params.ocupationalRisk;
+    this.ocupationalRisk = params.ocupationalRisk || 0;
     this.status = params.status;
     this.validDate = params.validDate;
     this.generateSource = params.generateSources;

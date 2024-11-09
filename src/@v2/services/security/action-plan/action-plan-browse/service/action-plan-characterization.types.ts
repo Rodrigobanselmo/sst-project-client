@@ -15,6 +15,7 @@ export enum ActionPlanOrderByEnum {
   DONE_DATE = 'DONE_DATE',
   CANCEL_DATE = 'CANCEL_DATE',
   VALID_DATE = 'VALID_DATE',
+  RESPONSIBLE = 'RESPONSIBLE',
 }
 
 export interface BrowseActionPlanParams {

@@ -1,7 +1,6 @@
 import { FC, ReactNode } from 'react';
 
 import { MenuItem, MenuItemProps } from '@mui/material';
-import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { STextProps } from '@v2/components/atoms/SText/SText.types';
 
@@ -11,6 +10,7 @@ interface ISPopperSelectItemProps {
   onClick: MenuItemProps['onClick'];
   textProps?: STextProps;
   disabled?: boolean;
+  startAddon?: ReactNode;
 }
 
 export const SPopperSelectItem: FC<ISPopperSelectItemProps> = ({
@@ -19,6 +19,7 @@ export const SPopperSelectItem: FC<ISPopperSelectItemProps> = ({
   onClick,
   disabled,
   textProps,
+  startAddon,
 }) => {
   return (
     <MenuItem
@@ -28,7 +29,7 @@ export const SPopperSelectItem: FC<ISPopperSelectItemProps> = ({
       sx={{
         cursor: 'pointer',
         userSelect: 'none',
-        height: 30,
+        height: 35,
         '&:hover': {
           backgroundColor: 'grey.200',
         },
@@ -42,7 +43,8 @@ export const SPopperSelectItem: FC<ISPopperSelectItemProps> = ({
         ...itemProps?.sx,
       }}
     >
-      <SText color="text.primary" fontSize={12} {...textProps}>
+      {startAddon}
+      <SText color="text.primary" fontSize={14} {...textProps}>
         {text}
       </SText>
     </MenuItem>

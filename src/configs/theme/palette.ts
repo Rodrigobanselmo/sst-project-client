@@ -86,6 +86,7 @@ const palette = {
     medium: '#d9d10b',
     mediumHigh: '#d96c2f',
     high: '#F44336',
+    veryHigh: '#000',
   },
   error: {
     main: '#F44336',
@@ -100,6 +101,12 @@ const palette = {
     erg: '#9c9507',
     aci: '#3d62ba',
     outros: '#2D3748',
+    fisFade: '#1ca84611',
+    bioFade: '#933d1511',
+    quiFade: '#fa021511',
+    ergFade: '#9c950711',
+    aciFade: '#3d62ba11',
+    outrosFade: '#2D374811',
     all: '#fff',
   },
   tree: {

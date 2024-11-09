@@ -11,18 +11,14 @@ export const SPopperSelect: FC<ISPopperMenuProps> = ({
   return (
     <MenuList
       {...props}
-      autoFocus={true}
+      autoFocus
       sx={{
-        px: 2,
         py: 2,
         minWidth: '10rem',
-        '& > .menu-item': {
-          borderBottom: '1px solid',
-          borderColor: 'rgba(0, 0, 0, 0.2)',
-        },
-        '& > .menu-item:last-child': {
-          borderBottom: 'none',
-        },
+        // '& > .menu-item': {
+        //   borderBottom: '1px solid',
+        //   borderColor: 'rgba(0, 0, 0, 0.2)',
+        // },
         '&:focus': {
           outline: 'none',
           borderColor: 'transparent',

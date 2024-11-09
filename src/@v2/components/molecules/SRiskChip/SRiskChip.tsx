@@ -10,28 +10,28 @@ import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 
 const colorMap: Record<RiskTypeEnum, any> = {
   [RiskTypeEnum.ACI]: {
-    backgroundColor: 'risk.aci',
-    color: '#fff',
+    color: 'risk.aci',
+    bgcolor: 'risk.aciFade',
   },
   [RiskTypeEnum.BIO]: {
-    backgroundColor: 'risk.bio',
-    color: '#fff',
+    color: 'risk.bio',
+    bgcolor: 'risk.bioFade',
   },
   [RiskTypeEnum.ERG]: {
-    backgroundColor: 'risk.erg',
-    color: '#fff',
+    color: 'risk.erg',
+    bgcolor: 'risk.ergFade',
   },
   [RiskTypeEnum.FIS]: {
-    backgroundColor: 'risk.fis',
-    color: '#fff',
+    color: 'risk.fis',
+    bgcolor: 'risk.fisFade',
   },
   [RiskTypeEnum.QUI]: {
-    backgroundColor: 'risk.qui',
-    color: '#fff',
+    color: 'risk.qui',
+    bgcolor: 'risk.quiFade',
   },
   [RiskTypeEnum.OUTROS]: {
-    backgroundColor: 'risk.outros',
-    color: '#fff',
+    color: 'risk.outros',
+    bgcolor: 'risk.outrosFade',
   },
 };
 
@@ -49,8 +49,11 @@ export const SRiskChip = ({ type, size = 'md' }: SRiskChipProps) => {
       borderRadius={1}
       center
       minWidth={sizeMap[size].width}
+      width={sizeMap[size].width}
+      bgcolor={colorMap[type].bgcolor}
       p={sizeMap[size].padding}
-      bgcolor={colorMap[type].backgroundColor}
+      border={'1px solid'}
+      borderColor={colorMap[type].color}
     >
       <SText
         fontWeight="500"

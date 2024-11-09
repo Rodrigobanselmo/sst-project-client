@@ -1,8 +1,8 @@
 import { FC } from 'react';
 
 import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
-import { SSelectHRow } from '../../addons/addons-rows/SSelectRow/SSelectHRow';
-import { SSelectRow } from '../../addons/addons-rows/SSelectRow/SSelectRow';
+import { SSelectHRow } from '../../addons/addons-rows/SCheckSelectRow/SCheckSelectHRow';
+import { SSelectRow } from '../../addons/addons-rows/SCheckSelectRow/SCheckSelectRow';
 import { SStatusButtonRow } from '../../addons/addons-rows/SStatusButtonRow/SStatusButtonRow';
 import { STextRow } from '../../addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
@@ -21,6 +21,14 @@ import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-p
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan-browse/service/action-plan-characterization.types';
 import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
 import { getHiddenColumn } from './helpers/get-hidden-column';
+import { SOcupationalRiskTag } from '@v2/components/molecules/SOcupationalRiskTag/SOcupationalRiskTag';
+import { SSelectButtonRow } from '../../addons/addons-rows/SSelectButtonRow/SSelectButtonRow';
+import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
+import {
+  ActionPlanStatusTypeList,
+  ActionPlanStatusTypeMap,
+} from './maps/action-plan-status-type-map';
+import { SUserButtonRow } from '../../addons/addons-rows/SUserButtonRow/SUserButtonRow';
 
 export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   data = [],
@@ -31,8 +39,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   pagination,
   setPage,
   setOrderBy,
-  statusButtonProps,
-  onEditStage,
+  onEditStatus,
   onEditPosition,
   onSelectRow,
   hiddenColumns,
@@ -116,7 +123,68 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
           text={columnMap[columnsEnum.LEVEL].label}
         />
       ),
-      row: (row) => <STextRow justify="center" text={row.formatedCreatedAt} />,
+      row: (row) => <SOcupationalRiskTag level={row.ocupationalRisk} />,
+    },
+    {
+      column: 'minmax(230px, 1fr)',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.RECOMMENDATION),
+      header: (
+        <ActionPlanHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          onHidden={() =>
+            setHiddenColumns({ [columnsEnum.RECOMMENDATION]: true })
+          }
+          field={ActionPlanOrderByEnum.RECOMMENDATION}
+          text={columnMap[columnsEnum.RECOMMENDATION].label}
+        />
+      ),
+      row: (row) => (
+        <STextRow fontSize={13} lineNumber={2} text={row.recommendation.name} />
+      ),
+    },
+    {
+      column: '100px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.STATUS),
+      header: (
+        <ActionPlanHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          onHidden={() => setHiddenColumns({ [columnsEnum.STATUS]: true })}
+          field={ActionPlanOrderByEnum.STATUS}
+          text={columnMap[columnsEnum.STATUS].label}
+        />
+      ),
+      row: (row) => (
+        <SSelectButtonRow
+          label={ActionPlanStatusTypeMap[row.status].label}
+          options={ActionPlanStatusTypeList}
+          schema={ActionPlanStatusTypeMap[row.status].schema}
+          onSelect={(value) => onEditStatus(value, row)}
+        />
+      ),
+    },
+    {
+      column: '150px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.RESPONSIBLE),
+      header: (
+        <ActionPlanHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          onHidden={() => setHiddenColumns({ [columnsEnum.RESPONSIBLE]: true })}
+          field={ActionPlanOrderByEnum.RESPONSIBLE}
+          text={columnMap[columnsEnum.RESPONSIBLE].label}
+        />
+      ),
+      row: (row) => (
+        <SUserButtonRow
+          label={row.responsible?.name || '-'}
+          options={[]}
+          onSelect={(value) => onEditStatus(null, row)}
+        />
+      ),
     },
     {
       column: '100px',
@@ -126,12 +194,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
           justify="center"
           setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          onHidden={() =>
-            setHiddenColumns({
-              ...hiddenColumns,
-              [columnsEnum.CREATED_AT]: true,
-            })
-          }
+          onHidden={() => setHiddenColumns({ [columnsEnum.CREATED_AT]: true })}
           field={ActionPlanOrderByEnum.CREATED_AT}
           text={columnMap[columnsEnum.CREATED_AT].label}
         />
@@ -153,148 +216,6 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <STextRow justify="center" text={row.formatedUpdatedAt} />,
     },
-
-    // {
-    //   column: '70px',
-    //   hidden: hiddenColumns[columnsEnum.ORDER],
-    //   header: (
-    //     <ActionPlanHeaderRow
-    //       justify="center"
-    //       setOrderBy={setOrderBy}
-    //       orderByMap={orderByMap}
-    //       onHidden={() =>
-    //         setHiddenColumns({ ...hiddenColumns, [columnsEnum.ORDER]: true })
-    //       }
-    //       field={ActionPlanOrderByEnum.ORDER}
-    //       text={columnMap[columnsEnum.ORDER].label}
-    //     />
-    //   ),
-    //   row: (row) => (
-    //     <SInputNumberButtonRow
-    //       label={row.order}
-    //       onSelect={(order) => onEditPosition(order, row)}
-    //     />
-    //   ),
-    // },
-    // {
-    //   column: '70px',
-    //   hidden: hiddenColumns[columnsEnum.RISKS],
-    //   header: (
-    //     <ActionPlanHeaderRow
-    //       justify="center"
-    //       setOrderBy={setOrderBy}
-    //       orderByMap={orderByMap}
-    //       onHidden={() =>
-    //         setHiddenColumns({ ...hiddenColumns, [columnsEnum.RISKS]: true })
-    //       }
-    //       field={ActionPlanOrderByEnum.RISKS}
-    //       text={columnMap[columnsEnum.RISKS].label}
-    //     />
-    //   ),
-    //   row: (row) => (
-    //     <STextRow
-    //       justify="center"
-    //       text={row.risks.length || '-'}
-    //       tooltipTitle={
-    //         <div>
-    //           {row.risks.map((risk) => (
-    //             <p key={risk.id}>{risk.name}</p>
-    //           ))}
-    //         </div>
-    //       }
-    //     />
-    //   ),
-    // },
-    // {
-    //   column: '70px',
-    //   hidden: hiddenColumns[columnsEnum.PROFILES],
-    //   header: (
-    //     <ActionPlanHeaderRow
-    //       justify="center"
-    //       setOrderBy={setOrderBy}
-    //       orderByMap={orderByMap}
-    //       onHidden={() =>
-    //         setHiddenColumns({ ...hiddenColumns, [columnsEnum.PROFILES]: true })
-    //       }
-    //       field={ActionPlanOrderByEnum.PROFILES}
-    //       text={columnMap[columnsEnum.PROFILES].label}
-    //     />
-    //   ),
-    //   row: (row) => (
-    //     <STextRow
-    //       justify="center"
-    //       text={row.profiles.length || '-'}
-    //       tooltipTitle={
-    //         <div>
-    //           {row.profiles.map((profile) => (
-    //             <p key={profile.id}>{profile.name}</p>
-    //           ))}
-    //         </div>
-    //       }
-    //     />
-    //   ),
-    // },
-    // {
-    //   column: '70px',
-    //   hidden: hiddenColumns[columnsEnum.HIERARCHY],
-    //   header: (
-    //     <ActionPlanHeaderRow
-    //       justify="center"
-    //       setOrderBy={setOrderBy}
-    //       orderByMap={orderByMap}
-    //       onHidden={() =>
-    //         setHiddenColumns({
-    //           ...hiddenColumns,
-    //           [columnsEnum.HIERARCHY]: true,
-    //         })
-    //       }
-    //       field={ActionPlanOrderByEnum.HIERARCHY}
-    //       text={columnMap[columnsEnum.HIERARCHY].label}
-    //     />
-    //   ),
-    //   row: (row) => (
-    //     <STextRow
-    //       justify="center"
-    //       text={row.hierarchies.length || '-'}
-    //       tooltipTitle={
-    //         <div>
-    //           {row.hierarchies.map((hierarchy) => (
-    //             <p key={hierarchy.id}>
-    //               ({HirarchyTypeMap[hierarchy.type].label}) {hierarchy.name}
-    //             </p>
-    //           ))}
-    //         </div>
-    //       }
-    //     />
-    //   ),
-    // },
-    // {
-    //   column: '180px',
-    //   hidden: hiddenColumns[columnsEnum.STAGE],
-    //   header: (
-    //     <ActionPlanHeaderRow
-    //       justify="center"
-    //       isFiltered={!!filters.stageIds?.length}
-    //       onClean={() => setFilters({ ...filters, stageIds: [] })}
-    //       setOrderBy={setOrderBy}
-    //       orderByMap={orderByMap}
-    //       onHidden={() =>
-    //         setHiddenColumns({ ...hiddenColumns, [columnsEnum.STAGE]: true })
-    //       }
-    //       filters={filterColumns[columnsEnum.STAGE]}
-    //       field={ActionPlanOrderByEnum.STAGE}
-    //       text={columnMap[columnsEnum.STAGE].label}
-    //     />
-    //   ),
-    //   row: (row) => (
-    //     <SStatusButtonRow
-    //       label={row.stage?.name || '-'}
-    //       color={row.stage?.color}
-    //       onSelect={(id) => onEditStage(id, row)}
-    //       {...statusButtonProps}
-    //     />
-    //   ),
-    // },
   ];
 
   return (

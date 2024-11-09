@@ -173,7 +173,7 @@ export const ActionPlanTable = () => {
         }
         hiddenColumns={hiddenColumns}
         onSelectRow={(row) => console.log(row)}
-        onEditStage={(stageId, row) =>
+        onEditStatus={(stageId, row) =>
           handleActionPlanEditStage({ ...row, stageId })
         }
         onEditPosition={(order, row) => console.log({ ...row, order })}
@@ -182,14 +182,6 @@ export const ActionPlanTable = () => {
         pagination={data?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
-        statusButtonProps={{
-          onAdd: ({ value }) => onAddStatus(value),
-          onDelete: (id) => onDeleteStatus(id),
-          onEdit: ({ color, value, id }) =>
-            onEditStatus({ id, color, name: value }),
-          options: statusOptions,
-          isLoading: isLoadingStatusOptions,
-        }}
       />
     </>
   );
