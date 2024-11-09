@@ -17,11 +17,15 @@ import { SPopperMenuItem } from '@v2/components/organisms/SPopper/addons/SPopper
 import { SPopperMenu } from '@v2/components/organisms/SPopper/addons/SPopperMenu/SPopperMenu';
 import { SPopperSelect } from '@v2/components/organisms/SPopper/addons/SPopperSelect/SPopperSelect';
 import { SPopperSelectItem } from '@v2/components/organisms/SPopper/addons/SPopperSelectItem/SPopperSelectItem';
-
+import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
+import { SStartAddonCircle } from './addons/start-addons/SStartAddonCircle';
+import { SStartAddonIcon } from './addons/start-addons/SStartAddonIcon';
+import DoDisturbAltIcon from '@mui/icons-material/DoDisturbAlt';
 export interface SSelectButtonRowProps<T> {
   label: string;
   options: { label: string; value: T; startAddon?: ReactNode }[];
   onSelect: (value: T) => void;
+  onClear?: () => void;
   schema?: SSelectButtonProps['schema'];
 }
 
@@ -30,6 +34,7 @@ export function SSelectButtonRow<T>({
   options,
   label,
   schema,
+  onClear,
 }: SSelectButtonRowProps<T>) {
   const anchorEl = useRef<null | HTMLDivElement>(null);
   const { isOpen, toggle, close } = useDisclosure();
@@ -64,6 +69,20 @@ export function SSelectButtonRow<T>({
               onClick={() => handleSelect(option.value)}
             />
           ))}
+          {onClear && (
+            <>
+              <SDivider />
+              <SPopperSelectItem
+                startAddon={
+                  <SStartAddonIcon
+                    item={<DoDisturbAltIcon sx={{ fontSize: 14 }} />}
+                  />
+                }
+                text={'Limpar'}
+                onClick={() => onClear()}
+              />
+            </>
+          )}
         </SPopperSelect>
       </SPopperArrow>
     </>

@@ -1,8 +1,11 @@
 import CloseIcon from '@mui/icons-material/Close';
 import { Box, IconButton, Input, InputAdornment } from '@mui/material';
+import { SIconSearch } from '@v2/assets/icons/SIconSearch/SIconSearch';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { SPopperSelect } from '@v2/components/organisms/SPopper/addons/SPopperSelect/SPopperSelect';
+import { SPopperSelectItem } from '@v2/components/organisms/SPopper/addons/SPopperSelectItem/SPopperSelectItem';
 import { SPopperArrow } from '@v2/components/organisms/SPopper/SPopper';
 import { useDisclosure } from '@v2/hooks/useDisclosure';
 import { useSearch } from '@v2/hooks/useSearch';
@@ -103,7 +106,7 @@ export function PopperSelect<T>({
             },
           },
           fieldset: {
-            border: '2px solid',
+            border: '1px solid',
             borderColor: 'primary.main',
           },
         }),
@@ -122,127 +125,135 @@ export function PopperSelect<T>({
       >
         <SFlex
           direction="column"
-          minWidth={200}
+          minWidth={'fit-content'}
           width={anchorEl.current?.offsetWidth}
           gap={0}
           pt={2}
         >
-          <Input
-            autoFocus
-            inputRef={inputRef}
-            disableUnderline
-            fullWidth
-            onChange={(e) => onSearch(e.target.value)}
-            placeholder="pesquisar..."
-            endAdornment={
-              search ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    sx={{ width: 16, height: 16 }}
-                    onClick={(e) => {
-                      if (inputRef.current) inputRef.current.value = '';
-                      onSearch('');
-                    }}
-                  >
-                    <CloseIcon sx={{ color: 'text.light', fontSize: 12 }} />
-                  </IconButton>
-                </InputAdornment>
-              ) : null
-            }
-            sx={{
-              border: 'none',
-              outline: 'none',
-              fontSize: '11px',
-              lineHeight: '11px',
-              padding: '0px 8px 0px 12px',
-              marginBottom: '4px',
-            }}
-          />
-          <SDivider />
           <SFlex
-            mt={4}
-            pb={4}
-            px={renderOption ? 0 : 4}
-            gap={renderOption ? 0 : 2}
+            pb={2}
+            px={0}
+            gap={0}
             direction="column"
             maxHeight={400}
+            minWidth={200}
             overflow="auto"
           >
-            {results.map(({ option, label }) => {
-              const isSelected = selected.some(
-                (value) => getOptionValue(value) === getOptionValue(option),
-              );
-
-              if (renderOption) {
-                return renderOption({
-                  option,
-                  label,
-                  isSelected,
-                  handleSelect: (e) => handleSelect(option, e),
-                });
-              }
-
-              return (
-                <SFlex
-                  center
-                  key={label}
-                  onClick={(e) => handleSelect(option, e)}
+            <SPopperSelect autoFocus={false}>
+              <Box
+                onKeyDown={(e) => {
+                  if (e.key == 'ArrowUp') {
+                    inputRef.current?.focus();
+                    e.stopPropagation();
+                  }
+                }}
+                sx={{
+                  bgcolor: 'white',
+                  zIndex: 1,
+                  mt: -2,
+                  outline: 'none',
+                  width: '100%',
+                  position: 'fixed',
+                  ':focus': { hr: { borderColor: 'secondary.main' } },
+                }}
+              >
+                <Input
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') handleClose();
+                    if (e.key !== 'ArrowDown') e.stopPropagation();
+                  }}
+                  inputRef={inputRef}
+                  disableUnderline
+                  fullWidth
+                  onChange={(e) => onSearch(e.target.value)}
+                  placeholder="pesquisar..."
+                  endAdornment={
+                    search ? (
+                      <InputAdornment position="end">
+                        <IconButton
+                          sx={{ width: 16, height: 16 }}
+                          onClick={(e) => {
+                            if (inputRef.current) inputRef.current.value = '';
+                            onSearch('');
+                          }}
+                        >
+                          <CloseIcon
+                            sx={{ color: 'text.light', fontSize: 12 }}
+                          />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null
+                  }
+                  startAdornment={
+                    <InputAdornment position="start">
+                      <SIconSearch color="text.light" fontSize={16} />
+                    </InputAdornment>
+                  }
                   sx={{
-                    borderWidth: '1px',
-                    borderStyle: 'solid',
-                    borderColor: 'grey.300',
-                    color: 'white',
-                    backgroundColor: isSelected ? 'mainBlur.10' : 'grey.100',
-                    padding: '4px 8px',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    width: '100%',
-                    position: 'relative',
+                    border: 'none',
+                    outline: 'none',
+                    fontSize: '14px',
+                    lineHeight: '16px',
+                    mt: 1,
+                    padding: '1px 10px 1px 12px',
+                    marginBottom: '4px',
+                  }}
+                />
+                <SDivider />
+              </Box>
+              <Box height={44} />
+              {results.map(({ option, label }) => {
+                const isSelected = selected.some(
+                  (value) => getOptionValue(value) === getOptionValue(option),
+                );
+
+                if (renderOption) {
+                  return renderOption({
+                    option,
+                    label,
+                    isSelected,
+                    handleSelect: (e) => handleSelect(option, e),
+                  });
+                }
+
+                return (
+                  <SPopperSelectItem
+                    key={label}
+                    text={label}
+                    selected={isSelected}
+                    onClick={(e) => handleSelect(option, e)}
+                  />
+                );
+              })}
+            </SPopperSelect>
+          </SFlex>
+          {onClean && (
+            <>
+              <SDivider sx={{ mb: 3 }} />
+              <SFlex px={4} pb={4}>
+                <SText
+                  color={'text.secondary'}
+                  onClick={(e) => handleClean(e)}
+                  sx={{
+                    fontSize: '12px',
+                    fontWeight: 400,
+                    ml: 'auto',
+                    pt: 1,
                     cursor: 'pointer',
                     '&:hover': {
-                      filter: 'brightness(0.95)',
+                      textDecoration: 'underline',
                     },
                     '&:active': {
                       filter: 'brightness(0.9)',
                     },
                   }}
                 >
-                  <SText
-                    lineNumber={1}
-                    textAlign={'center'}
-                    sx={{
-                      fontSize: '13px',
-                      fontWeight: 400,
-                      color: isSelected ? 'primary.dark' : 'text.primary',
-                    }}
-                  >
-                    {label}
-                  </SText>
-                </SFlex>
-              );
-            })}
-            {onClean && (
-              <SText
-                color={'text.secondary'}
-                onClick={(e) => handleClean(e)}
-                sx={{
-                  fontSize: '10px',
-                  fontWeight: 400,
-                  ml: 'auto',
-                  pt: 1,
-                  cursor: 'pointer',
-                  '&:hover': {
-                    textDecoration: 'underline',
-                  },
-                  '&:active': {
-                    filter: 'brightness(0.9)',
-                  },
-                }}
-              >
-                Limpar
-              </SText>
-            )}
-          </SFlex>
+                  Limpar
+                </SText>
+              </SFlex>
+            </>
+          )}
         </SFlex>
       </SPopperArrow>
     </Box>

@@ -33,6 +33,8 @@ export const ActionPlanColumnMap: Record<
     label: 'Cargo Desenvolvido',
     startHidden: true,
   },
+  [ActionPlanColumnsEnum.VALID_DATE]: {label: 'Prazo',
+  }
 };
 
 export const actionPlanColumns = Object.entries(ActionPlanColumnMap)

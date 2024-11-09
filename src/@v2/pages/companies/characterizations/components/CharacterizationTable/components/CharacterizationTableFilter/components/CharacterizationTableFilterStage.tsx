@@ -21,15 +21,19 @@ export const CharacterizationTableFilterStage = ({
   onFilterData,
 }: CharacterizationTableFilterStageProps) => {
   return (
-    <SSearchSelectMultiple
-      label="Status"
-      value={selectedStages}
-      getOptionLabel={(option) => option?.name}
-      getOptionValue={(option) => option?.id}
-      onChange={(option) => onFilterData({ stageIds: option.map((o) => o.id) })}
-      onInputChange={(value) => console.log(value)}
-      placeholder="selecione um ou mais status"
-      options={stages}
-    />
+    <>
+      <SSearchSelectMultiple
+        label="Status"
+        value={selectedStages}
+        getOptionLabel={(option) => option?.name}
+        getOptionValue={(option) => option?.id}
+        onChange={(option) =>
+          onFilterData({ stageIds: option.map((o) => o.id) })
+        }
+        onInputChange={(value) => console.log(value)}
+        placeholder="selecione um ou mais status"
+        options={stages}
+      />
+    </>
   );
 };

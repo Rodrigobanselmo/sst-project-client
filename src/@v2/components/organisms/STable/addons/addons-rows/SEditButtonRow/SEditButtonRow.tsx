@@ -8,11 +8,12 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 
 export interface SEditButtonRowProps {
   label: string;
-  anchorEl: React.RefObject<HTMLDivElement>;
+  anchorEl?: React.RefObject<HTMLDivElement>;
   onClick: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => void;
   boxProps?: BoxProps;
   textProps?: STextProps;
   color?: string;
+  icon?: React.ReactNode;
 }
 
 export const SEditButtonRow = ({
@@ -22,6 +23,14 @@ export const SEditButtonRow = ({
   boxProps,
   textProps,
   color = 'text.main',
+  icon = (
+    <ArrowDropDown
+      sx={{
+        fontSize: 15,
+        color: color,
+      }}
+    />
+  ),
 }: SEditButtonRowProps) => {
   return (
     <SFlex
@@ -57,12 +66,7 @@ export const SEditButtonRow = ({
       <SText color={color} fontSize={12} lineNumber={1} {...textProps}>
         {label}
       </SText>
-      <ArrowDropDown
-        sx={{
-          fontSize: 15,
-          color: color,
-        }}
-      />
+      {icon}
     </SFlex>
   );
 };

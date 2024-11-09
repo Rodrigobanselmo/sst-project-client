@@ -113,6 +113,7 @@ export function SSearchSelectMultiple<T>({
               <InputEndAdormentSelect
                 loading={loading}
                 onClear={(e) => {
+                  e.stopPropagation();
                   onInputChange?.('', e);
                   onChange([], e);
                 }}

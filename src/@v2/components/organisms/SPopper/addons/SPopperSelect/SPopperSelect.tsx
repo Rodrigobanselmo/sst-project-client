@@ -6,12 +6,13 @@ interface ISPopperMenuProps extends MenuListProps {}
 
 export const SPopperSelect: FC<ISPopperMenuProps> = ({
   children,
+  autoFocus = true,
   ...props
 }) => {
   return (
     <MenuList
       {...props}
-      autoFocus
+      autoFocus={autoFocus}
       sx={{
         py: 2,
         minWidth: '10rem',

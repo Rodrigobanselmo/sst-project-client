@@ -1,8 +1,8 @@
 import { FC } from 'react';
 
 import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
-import { SSelectHRow } from '../../addons/addons-rows/SCheckSelectRow/SCheckSelectHRow';
-import { SSelectRow } from '../../addons/addons-rows/SCheckSelectRow/SCheckSelectRow';
+import { SSelectHRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectHRow';
+import { SSelectRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectRow';
 import { SStatusButtonRow } from '../../addons/addons-rows/SStatusButtonRow/SStatusButtonRow';
 import { STextRow } from '../../addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
@@ -29,6 +29,7 @@ import {
   ActionPlanStatusTypeMap,
 } from './maps/action-plan-status-type-map';
 import { SUserButtonRow } from '../../addons/addons-rows/SUserButtonRow/SUserButtonRow';
+import { SDatePickerRow } from '../../addons/addons-rows/SDatePickerRow/SDatePickerRow';
 
 export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   data = [],
@@ -80,7 +81,6 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.RISK),
       header: (
         <ActionPlanHeaderRow
-          justify="center"
           setOrderBy={setOrderBy}
           orderByMap={orderByMap}
           onHidden={() => setHiddenColumns({ [columnsEnum.RISK]: true })}
@@ -181,7 +181,11 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       row: (row) => (
         <SUserButtonRow
           label={row.responsible?.name || '-'}
-          options={[]}
+          options={[
+            { name: 'Rodrigo Barbosa Anselmo', id: 1 },
+            { name: 'Alex Abreu Marins', id: 2 },
+            { name: 'Leticia Winer MArins', id: 3 },
+          ]}
           onSelect={(value) => onEditStatus(null, row)}
         />
       ),
@@ -215,6 +219,27 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => <STextRow justify="center" text={row.formatedUpdatedAt} />,
+    },
+    {
+      column: '170px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.VALID_DATE),
+      header: (
+        <ActionPlanHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          onHidden={() => setHiddenColumns({ [columnsEnum.VALID_DATE]: true })}
+          field={ActionPlanOrderByEnum.VALID_DATE}
+          text={columnMap[columnsEnum.VALID_DATE].label}
+        />
+      ),
+      row: (row) => (
+        <SDatePickerRow
+          emptyDate="SEM PRAZO"
+          date={row.validDate}
+          onChange={() => null}
+        />
+      ),
     },
   ];
 

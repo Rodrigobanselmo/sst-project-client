@@ -52,7 +52,7 @@ export class ActionPlanBrowseResultModel {
     this.canceledDate = params.canceledDate;
     this.ocupationalRisk = params.ocupationalRisk || 0;
     this.status = params.status;
-    this.validDate = params.validDate;
+    this.validDate = params.validDate ? new Date(params.validDate) : null;
     this.generateSource = params.generateSources;
     this.recommendation = params.recommendation;
     this.risk = params.risk;

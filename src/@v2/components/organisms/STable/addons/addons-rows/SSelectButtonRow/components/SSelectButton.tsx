@@ -29,8 +29,6 @@ export const SSelectButton = ({
     backgroundColor: theme.palette.grey[200],
   },
 }: SSelectButtonProps) => {
-  // const theme = useTheme();
-
   return (
     <SFlex
       ref={anchorEl}

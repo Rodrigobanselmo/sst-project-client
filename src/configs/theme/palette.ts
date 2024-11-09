@@ -54,6 +54,18 @@ const palette = {
     100: '#EDF2F7',
     50: '#F7FAFC',
   },
+  grey: {
+    50: '#fafafa',
+    100: '#f5f5f5',
+    200: '#eeeeee',
+    300: '#e0e0e0',
+    400: '#bdbdbd',
+    500: '#9e9e9e',
+    600: '#757575',
+    700: '#616161',
+    800: '#424242',
+    900: '#212121',
+  },
   tag: {
     edit: '#718096',
     add: '#3cbe7d',
@@ -139,6 +151,16 @@ const palette = {
     light: '#808080',
     lightest: '#c4c4c4',
     label: '#808080',
+  },
+  schema: {
+    green: '#64c6a2',
+    greenFade: '#64c6a211',
+    red: '#b13a41',
+    redFade: '#b13a4111',
+    yellow: '#cf940a',
+    yellowFade: '#cf940a11',
+    blue: '#4466ff',
+    blueFade: '#4466ff11',
   },
 };
 

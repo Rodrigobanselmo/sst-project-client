@@ -76,6 +76,7 @@ export function SSearchSelect<T>({
               <InputEndAdormentSelect
                 loading={loading}
                 onClear={(e) => {
+                  e.stopPropagation();
                   onInputChange?.('', e);
                   onChange(null, e);
                 }}

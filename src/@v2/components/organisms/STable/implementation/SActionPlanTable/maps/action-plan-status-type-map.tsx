@@ -1,7 +1,13 @@
 import { SStartAddonCircle } from '../../../addons/addons-rows/SSelectButtonRow/addons/start-addons/SStartAddonCircle';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
+import palette from 'configs/theme/palette';
 import { ReactNode } from 'react';
+import DataUsageIcon from '@mui/icons-material/DataUsage';
+import { SStartAddonIcon } from '../../../addons/addons-rows/SSelectButtonRow/addons/start-addons/SStartAddonIcon';
+import DonutLargeIcon from '@mui/icons-material/DonutLarge';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
+import NotInterestedIcon from '@mui/icons-material/NotInterested';
 
 type ActionPlanStatusEnumTypeMapValue = {
   label: string;
@@ -18,44 +24,67 @@ export const ActionPlanStatusTypeMap: Record<
   ActionPlanStatusEnum,
   ActionPlanStatusEnumTypeMapValue
 > = {
+  [ActionPlanStatusEnum.PENDING]: {
+    label: 'Pendente',
+    startAddon: (
+      <SStartAddonIcon
+        item={<DataUsageIcon sx={{ fontSize: 15, color: palette.grey[500] }} />}
+      />
+    ),
+    schema: {
+      color: palette.grey[600],
+      borderColor: palette.grey[600],
+      iconColor: palette.grey[500],
+      backgroundColor: palette.grey[500] + '11',
+    },
+  },
   [ActionPlanStatusEnum.PROGRESS]: {
     label: 'Inciado',
-    startAddon: <SStartAddonCircle color="#4559c9" />,
+    startAddon: (
+      <SStartAddonIcon
+        item={
+          <DataUsageIcon sx={{ fontSize: 15, color: palette.schema.blue }} />
+        }
+      />
+    ),
     schema: {
-      color: '#4559c9',
-      borderColor: '#4559c9',
-      iconColor: '#4559c9',
-      backgroundColor: '#4559c911',
+      color: palette.schema.blue,
+      borderColor: palette.schema.blue,
+      iconColor: palette.schema.blue,
+      backgroundColor: palette.schema.blueFade,
     },
   },
   [ActionPlanStatusEnum.DONE]: {
     label: 'Concluído',
-    startAddon: <SStartAddonCircle color="#3cbe7d" />,
+    startAddon: (
+      <SStartAddonIcon
+        item={
+          <DonutLargeIcon sx={{ fontSize: 15, color: palette.schema.green }} />
+        }
+      />
+    ),
     schema: {
-      color: '#3cbe7d',
-      borderColor: '#3cbe7d',
-      iconColor: '#3cbe7d',
-      backgroundColor: '#3cbe7d11',
+      color: palette.schema.green,
+      borderColor: palette.schema.green,
+      iconColor: palette.schema.green,
+      backgroundColor: palette.schema.greenFade,
     },
   },
-  [ActionPlanStatusEnum.PENDING]: {
-    label: 'Pendente',
-    startAddon: <SStartAddonCircle color="#cac109" />,
-    schema: {
-      color: '#cac109',
-      borderColor: '#cac109',
-      iconColor: '#cac109',
-      backgroundColor: '#cac10911',
-    },
-  },
+
   [ActionPlanStatusEnum.CANCELED]: {
     label: 'Cancelado',
-    startAddon: <SStartAddonCircle color="#F44336" />,
+    startAddon: (
+      <SStartAddonIcon
+        item={
+          <NotInterestedIcon sx={{ fontSize: 15, color: palette.schema.red }} />
+        }
+      />
+    ),
     schema: {
-      color: '#F44336',
-      borderColor: '#F44336',
-      iconColor: '#F44336',
-      backgroundColor: '#F4433611',
+      color: palette.schema.red,
+      borderColor: palette.schema.red,
+      iconColor: palette.schema.red,
+      backgroundColor: palette.schema.redFade,
     },
   },
 };
