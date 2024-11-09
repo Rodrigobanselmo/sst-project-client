@@ -642,9 +642,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       setCharacterizationData({
         ...characterizationData,
         [type]: [
-          ...characterizationData[type].filter(
-            (v) => v.split('{type}=')[0] !== value.split('{type}=')[0],
-          ),
+          ...characterizationData[type],
           ...values.map(
             (value) =>
               value
@@ -671,13 +669,15 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   const onDeleteArray = (
     value: string,
     type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    index?: number,
   ) => {
     if (characterizationData[type])
       setCharacterizationData({
         ...characterizationData,
         [type]: [
           ...characterizationData[type].filter(
-            (item: string) =>
+            (item: string, i: number) =>
+              i !== index ||
               item.split('{type}=')[0] !== value.split('{type}=')[0],
           ),
         ],
@@ -688,13 +688,15 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     value: string,
     paragraphType: ParagraphEnum,
     type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    i: number,
   ) => {
     if (characterizationData[type])
       setCharacterizationData({
         ...characterizationData,
         [type]: [
-          ...characterizationData[type].map((item: string) => {
-            return item.split('{type}=')[0] !== value.split('{type}=')[0]
+          ...characterizationData[type].map((item: string, index?: number) => {
+            return i != index ||
+              item.split('{type}=')[0] !== value.split('{type}=')[0]
               ? item
               : item.split('{type}=')[0] + '{type}=' + paragraphType;
           }),

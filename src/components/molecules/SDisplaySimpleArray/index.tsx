@@ -56,7 +56,7 @@ interface ISDisplaySimpleArrayProps {
   values: any[];
   label?: string;
   onAdd: (value: string, data?: any) => void;
-  onDelete: (value: string, data?: any) => void;
+  onDelete: (value: string, data?: any, index?: number) => void;
   onEdit?: (value: string, values: any[], data?: any) => void;
   renderText?: (data?: any) => ReactNode;
   disabled?: boolean;
@@ -66,7 +66,7 @@ interface ISDisplaySimpleArrayProps {
   type?: TypeInputModal;
   valueField?: string;
   paragraphSelect?: boolean;
-  onRenderStartElement?: (value: any | string) => JSX.Element;
+  onRenderStartElement?: (value: any | string, index: number) => JSX.Element;
   onRenderEndElement?: (value: any | string) => JSX.Element;
   onRenderAddButton?: (
     onAdd: (value: string, data?: any) => void,
@@ -166,7 +166,7 @@ export function SDisplaySimpleArray({
               key={value + index}
               align="center"
             >
-              {onRenderStartElement && onRenderStartElement(v)}
+              {onRenderStartElement && onRenderStartElement(v, index)}
               {typeof displayText === 'string' ? (
                 <SText ml={5} fontSize={14} mr={'auto'} color={'grey.600'}>
                   {displayText}
@@ -216,7 +216,7 @@ export function SDisplaySimpleArray({
                 <STooltip withWrapper title="remover" placement="left">
                   <SIconButton
                     disabled={disabled}
-                    onClick={() => onDelete(value, v)}
+                    onClick={() => onDelete(value, v, index)}
                     size="small"
                   >
                     <Icon component={SDeleteIcon} sx={{ fontSize: '1.2rem' }} />
