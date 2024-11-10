@@ -21,6 +21,7 @@ export function STableColumnsButton<T extends string>({
   columns,
   setHiddenColumns,
   hiddenColumns,
+  showLabel,
 }: STableColumnsButtonProps<T>) {
   const anchorEl = useRef<null | HTMLDivElement>(null);
   const { isOpen, toggle, close } = useDisclosure();
@@ -43,7 +44,8 @@ export function STableColumnsButton<T extends string>({
         <STableButton
           onClick={handleClick}
           tooltip={text ?? 'Colunas'}
-          icon={SIconColumn}
+          icon={<SIconColumn fontSize={16} />}
+          text={showLabel ? 'Colunas' : undefined}
         />
       </Box>
       <SPopperArrow

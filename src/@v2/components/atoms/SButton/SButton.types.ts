@@ -5,7 +5,7 @@ export type SButtonProps = {
   onClick?: MouseEventHandler<HTMLButtonElement>;
   text?: string;
   tooltip?: string;
-  icon?: any;
+  icon?: ReactNode;
   rightIcon?: (() => JSX.Element) | React.ElementType;
   color?: 'normal' | 'success' | 'info' | 'primary' | 'paper';
   variant?: 'text' | 'outlined' | 'contained';

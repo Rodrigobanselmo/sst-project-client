@@ -122,7 +122,9 @@ export const ActionPlanTable = () => {
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
+          {null}
           <STableColumnsButton
+            showLabel
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
             columns={actionPlanColumns}

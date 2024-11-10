@@ -13,7 +13,7 @@ export const STableAddButton: FC<STableAddButtonProps> = ({
     <STableButton
       onClick={onClick}
       text={text ?? 'Adicionar'}
-      icon={AddIcon}
+      icon={<AddIcon sx={{ fontSize: 16 }} />}
       color="success"
     />
   );

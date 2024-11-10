@@ -8,6 +8,7 @@ import { STableExportButtonProps } from './STableExportButton.types';
 export const STableExportButton: FC<STableExportButtonProps> = ({
   onClick,
   text,
+  disabled,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
 
@@ -19,10 +20,11 @@ export const STableExportButton: FC<STableExportButtonProps> = ({
           setIsLoading(false);
         });
       }}
+      disabled={disabled}
       loading={isLoading}
       color="info"
       text={text ?? 'Exportar'}
-      icon={FileDownloadOutlinedIcon}
+      icon={<FileDownloadOutlinedIcon sx={{ fontSize: 16 }} />}
     />
   );
 };

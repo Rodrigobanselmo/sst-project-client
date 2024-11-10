@@ -12,6 +12,13 @@ const colorMap = {
     color: 'grey.600',
     textColor: 'grey.600',
   },
+  disabled: {
+    colorSchema: undefined,
+    backgroundColor: '#2D374811',
+    borderColor: 'grey.500',
+    color: 'grey.200',
+    textColor: 'grey.500',
+  },
   normal: {
     colorSchema: undefined,
     backgroundColor: '#2D374811',
@@ -85,7 +92,18 @@ export const SButton: FC<SButtonProps> = ({
           m: 0,
           px: 3,
           gap: 1,
+          '&.Mui-disabled': {
+            borderColor: colorMap[color].borderColor,
+          },
           ...buttonProps?.sx,
+          ...(disabled && {
+            '&.Mui-disabled': {
+              borderColor: colorMap.disabled.borderColor,
+            },
+            borderColor: colorMap.disabled.borderColor,
+            backgroundColor: colorMap.disabled.backgroundColor,
+            color: colorMap.disabled.color,
+          }),
         }}
       >
         <>
@@ -98,16 +116,24 @@ export const SButton: FC<SButtonProps> = ({
                         <CircularProgress
                           size={9}
                           sx={{
-                            color: colorMap[color].textColor,
+                            color: disabled
+                              ? colorMap.disabled.textColor
+                              : colorMap[color].textColor,
                           }}
                         />
                       </Box>
                     )
-                  : icon
+                  : () => (
+                      <Box width={20} height={20}>
+                        {icon}
+                      </Box>
+                    )
               }
               sx={{
                 fontSize: ['1rem', '1rem', '1.1rem'],
-                color: colorMap[color].textColor,
+                color: disabled
+                  ? colorMap.disabled.textColor
+                  : colorMap[color].textColor,
               }}
             />
           )}
@@ -115,7 +141,11 @@ export const SButton: FC<SButtonProps> = ({
             <Box
               mr={icon ? 2 : 0}
               fontSize={12}
-              color={colorMap[color].textColor}
+              color={
+                disabled
+                  ? colorMap.disabled.textColor
+                  : colorMap[color].textColor
+              }
               {...textProps}
             >
               {text}
@@ -130,7 +160,9 @@ export const SButton: FC<SButtonProps> = ({
                         <CircularProgress
                           size={9}
                           sx={{
-                            color: colorMap[color].textColor,
+                            color: disabled
+                              ? colorMap.disabled.textColor
+                              : colorMap[color].textColor,
                           }}
                         />
                       </Box>
@@ -139,7 +171,9 @@ export const SButton: FC<SButtonProps> = ({
               }
               sx={{
                 fontSize: ['1rem', '1rem', '1.1rem'],
-                color: colorMap[color].textColor,
+                color: disabled
+                  ? colorMap.disabled.textColor
+                  : colorMap[color].textColor,
               }}
             />
           )}

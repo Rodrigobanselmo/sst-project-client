@@ -11,4 +11,5 @@ export type STableColumnsButtonProps<T extends string> = {
   columns: STableColumnsProps[];
   setHiddenColumns: (hiddenColumns: Record<T, boolean>) => void;
   hiddenColumns: Record<T, boolean>;
+  showLabel?: boolean;
 };

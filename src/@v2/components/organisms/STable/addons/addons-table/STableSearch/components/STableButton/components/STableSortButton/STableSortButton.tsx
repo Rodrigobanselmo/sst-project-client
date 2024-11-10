@@ -13,7 +13,7 @@ export const STableSortButton: FC<STableSortButtonProps> = ({
     <STableButton
       onClick={onClick}
       tooltip={text ?? 'Ordenação'}
-      icon={SortOutlinedIcon}
+      icon={<SortOutlinedIcon sx={{ fontSize: 16 }} />}
     />
   );
 };

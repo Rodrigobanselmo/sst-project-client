@@ -6,4 +6,5 @@ export type STableExportButtonProps = {
     e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
   ) => Promise<void>;
   text?: string;
+  disabled?: boolean;
 };

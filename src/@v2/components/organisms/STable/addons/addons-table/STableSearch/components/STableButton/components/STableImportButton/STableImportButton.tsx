@@ -12,7 +12,7 @@ export const STableImportButton: FC<STableImportButtonProps> = ({
     <STableButton
       onClick={onClick}
       tooltip={text ?? 'Importar'}
-      icon={FileUploadOutlinedIcon}
+      icon={<FileUploadOutlinedIcon sx={{ fontSize: 16 }} />}
       color="info"
     />
   );

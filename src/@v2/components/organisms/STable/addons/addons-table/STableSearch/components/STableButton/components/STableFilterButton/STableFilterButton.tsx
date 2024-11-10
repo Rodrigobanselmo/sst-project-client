@@ -32,7 +32,7 @@ export const STableFilterButton: FC<STableFilterButtonProps> = ({
         <STableButton
           onClick={handleSelect}
           text={text ?? 'Fitros'}
-          icon={SIconFilter}
+          icon={<SIconFilter fontSize={16} />}
         />
       </Box>
       <SPopperArrow
