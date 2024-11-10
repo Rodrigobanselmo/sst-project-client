@@ -50,12 +50,14 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   const orderByMap = mapOrderByTable(filters.orderBy);
 
   const tableRows: ITableData<ActionPlanBrowseResultModel>[] = [
+    // CHECK_BOX
     {
       column: '20px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.CHECK_BOX),
       header: <SSelectHRow table={table} ids={data.map((row) => row.id)} />,
       row: (row) => <SSelectRow table={table} id={row.id} />,
     },
+    // ORIGIN
     {
       column: 'minmax(200px, 1fr)',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.ORIGIN),
@@ -70,12 +72,122 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       row: (row) => (
         <STextRow
           fontSize={13}
+          tooltipMinLength={20}
           lineNumber={1}
           text={row.origin.name}
           bottomText={row.originType}
         />
       ),
     },
+    // DIRECTORY
+    {
+      column: '120px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.DIRECTORY),
+      header: (
+        <ActionPlanHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.DIRECTORY].label}
+        />
+      ),
+      row: (row) => {
+        const hierarchy = row.directories.map((h) => h.name).join(', ');
+        return (
+          <STextRow tooltipMinLength={20} fontSize={13} text={hierarchy} />
+        );
+      },
+    },
+    // MANAGEMENT
+    {
+      column: '120px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.MANAGEMENT),
+      header: (
+        <ActionPlanHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.MANAGEMENT].label}
+        />
+      ),
+      row: (row) => {
+        const hierarchy = row.managers.map((h) => h.name).join(', ');
+        return (
+          <STextRow tooltipMinLength={20} fontSize={13} text={hierarchy} />
+        );
+      },
+    },
+    // SECTOR
+    {
+      column: '120px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.SECTOR),
+      header: (
+        <ActionPlanHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.SECTOR].label}
+        />
+      ),
+      row: (row) => {
+        const hierarchy = row.sectors.map((h) => h.name).join(', ');
+        return (
+          <STextRow tooltipMinLength={20} fontSize={13} text={hierarchy} />
+        );
+      },
+    },
+    // SUB SECTOR
+    {
+      column: '120px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.SUB_SECTOR),
+      header: (
+        <ActionPlanHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.SUB_SECTOR].label}
+        />
+      ),
+      row: (row) => {
+        const hierarchy = row.subSectors.map((h) => h.name).join(', ');
+        return (
+          <STextRow tooltipMinLength={20} fontSize={13} text={hierarchy} />
+        );
+      },
+    },
+    // OFFICE
+    {
+      column: '120px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.OFFICE),
+      header: (
+        <ActionPlanHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.OFFICE].label}
+        />
+      ),
+      row: (row) => {
+        const hierarchy = row.offices.map((office) => office.name).join(', ');
+        return (
+          <STextRow tooltipMinLength={20} fontSize={13} text={hierarchy} />
+        );
+      },
+    },
+    // SUB OFFICE
+    {
+      column: '150px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.SUB_OFFICE),
+      header: (
+        <ActionPlanHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.SUB_OFFICE].label}
+        />
+      ),
+      row: (row) => {
+        const hierarchy = row.subOffices.map((h) => h.name).join(', ');
+        return (
+          <STextRow tooltipMinLength={25} fontSize={13} text={hierarchy} />
+        );
+      },
+    },
+    // RISK
     {
       column: 'minmax(200px, 1fr)',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.RISK),
@@ -91,10 +203,12 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       row: (row) => (
         <STextRow
           text={row.risk.name}
+          tooltipMinLength={20}
           startAddon={<SRiskChip type={row.risk.type} />}
         />
       ),
     },
+    // GENERATE_SOURCE
     {
       column: '200px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.GENERATE_SOURCE),
@@ -110,6 +224,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <STextRow text={row.generateSourceNames} />,
     },
+    // LEVEL
     {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.LEVEL),
@@ -125,6 +240,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <SOcupationalRiskTag level={row.ocupationalRisk} />,
     },
+    // RECOMMENDATION
     {
       column: 'minmax(230px, 1fr)',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.RECOMMENDATION),
@@ -140,9 +256,15 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <STextRow fontSize={13} lineNumber={2} text={row.recommendation.name} />
+        <STextRow
+          fontSize={13}
+          tooltipMinLength={30}
+          lineNumber={2}
+          text={row.recommendation.name}
+        />
       ),
     },
+    // STATUS
     {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.STATUS),
@@ -165,6 +287,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
     },
+    // RESPONSIBLE
     {
       column: '150px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.RESPONSIBLE),
@@ -190,6 +313,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
     },
+    // CREATED_AT
     {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.CREATED_AT),
@@ -205,6 +329,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <STextRow justify="center" text={row.formatedCreatedAt} />,
     },
+    // UPDATED_AT
     {
       column: '100px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.UPDATED_AT),
@@ -220,6 +345,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => <STextRow justify="center" text={row.formatedUpdatedAt} />,
     },
+    // VALID_DATE
     {
       column: '170px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.VALID_DATE),

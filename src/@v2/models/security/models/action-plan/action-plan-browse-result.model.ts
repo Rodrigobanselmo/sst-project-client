@@ -43,6 +43,13 @@ export class ActionPlanBrowseResultModel {
   hierarchies: { name: string; type: HierarchyTypeEnum }[];
   responsible: { id: string; name: string } | null;
 
+  directories: { name: string; type: HierarchyTypeEnum }[] = [];
+  managers: { name: string; type: HierarchyTypeEnum }[] = [];
+  sectors: { name: string; type: HierarchyTypeEnum }[] = [];
+  subSectors: { name: string; type: HierarchyTypeEnum }[] = [];
+  offices: { name: string; type: HierarchyTypeEnum }[] = [];
+  subOffices: { name: string; type: HierarchyTypeEnum }[] = [];
+
   constructor(params: IActionPlanBrowseResultModel) {
     this.uuid = params.uuid;
     this.createdAt = params.createdAt;
@@ -59,6 +66,35 @@ export class ActionPlanBrowseResultModel {
     this.responsible = params.responsible;
     this.hierarchies = params.hierarchies;
     this.origin = params.origin;
+
+    this.hierarchies.forEach((hierarchy) => {
+      switch (hierarchy.type) {
+        case HierarchyTypeEnum.DIRECTORY:
+          this.directories = this.directories || [];
+          this.directories.push(hierarchy);
+          break;
+        case HierarchyTypeEnum.MANAGEMENT:
+          this.managers = this.managers || [];
+          this.managers.push(hierarchy);
+          break;
+        case HierarchyTypeEnum.SECTOR:
+          this.sectors = this.sectors || [];
+          this.sectors.push(hierarchy);
+          break;
+        case HierarchyTypeEnum.SUB_SECTOR:
+          this.subSectors = this.subSectors || [];
+          this.subSectors.push(hierarchy);
+          break;
+        case HierarchyTypeEnum.OFFICE:
+          this.offices = this.offices || [];
+          this.offices.push(hierarchy);
+          break;
+        case HierarchyTypeEnum.SUB_OFFICE:
+          this.subOffices = this.subOffices || [];
+          this.subOffices.push(hierarchy);
+          break;
+      }
+    });
   }
 
   get formatedDoneAt() {

@@ -13,6 +13,7 @@ export type STextRowProps = {
   lineNumber?: number;
   tooltipTitle?: ReactNode;
   boxProps?: SFlexProps;
+  tooltipMinLength?: number;
 
   textProps?: STextProps;
   bottomTextProps?: STextProps;
