@@ -71,8 +71,11 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
     : selectedRiskStore;
 
   const handleCloseRisk = () => {
-    if (asPath?.split('?')?.[1]?.includes?.('riskGroupId'))
-      push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
+    if (asPath?.split('?')?.[1]?.includes?.('riskGroupId')) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('riskGroupId');
+      push(url.pathname + url.search, undefined, { shallow: true });
+    }
     dispatch(setGhoOpen(false));
     handleSelectGHO(null, []);
     onCloseModal(ModalEnum.RISK_TOOL);

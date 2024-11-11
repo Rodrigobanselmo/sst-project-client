@@ -239,9 +239,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       onCloseModal(modalName, data);
       setCharacterizationData(initialCharacterizationState);
       reset();
-      push({ pathname: asPath.split('?')[0] }, undefined, { shallow: true });
+      const url = new URL(window.location.href);
+      url.searchParams.delete('riskGroupId');
+
+      push(url.pathname + url.search, undefined, { shallow: true });
     },
-    [asPath, modalName, onCloseModal, push, reset],
+    [modalName, onCloseModal, push, reset],
   );
 
   const onCloseUnsaved = () => {
@@ -748,9 +751,10 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       title:
         'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
       onSelect: (docPgr: IRiskGroupData) => {
-        push(asPath + '/?riskGroupId=' + docPgr.id, undefined, {
-          shallow: true,
-        });
+        const url = new URL(window.location.href);
+        url.searchParams.set('riskGroupId', docPgr.id);
+
+        push(url.pathname + url.search, undefined, { shallow: true });
         const isEnvironment = getIsEnvironment(characterizationData.type);
         const viewData = isEnvironment
           ? ViewsDataEnum.ENVIRONMENT
