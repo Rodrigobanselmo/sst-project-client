@@ -239,8 +239,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       onCloseModal(modalName, data);
       setCharacterizationData(initialCharacterizationState);
       reset();
+      const url = new URL(window.location.href);
+      url.searchParams.delete('riskGroupId');
+
+      push(url.pathname + url.search, undefined, { shallow: true });
     },
-    [modalName, onCloseModal, reset],
+    [modalName, onCloseModal, push, reset],
   );
 
   const onCloseUnsaved = () => {
@@ -642,9 +646,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       setCharacterizationData({
         ...characterizationData,
         [type]: [
-          ...characterizationData[type].filter(
-            (v) => v.split('{type}=')[0] !== value.split('{type}=')[0],
-          ),
+          ...characterizationData[type],
           ...values.map(
             (value) =>
               value
@@ -671,13 +673,15 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   const onDeleteArray = (
     value: string,
     type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    index?: number,
   ) => {
     if (characterizationData[type])
       setCharacterizationData({
         ...characterizationData,
         [type]: [
           ...characterizationData[type].filter(
-            (item: string) =>
+            (item: string, i: number) =>
+              i !== index ||
               item.split('{type}=')[0] !== value.split('{type}=')[0],
           ),
         ],
@@ -688,13 +692,15 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
     value: string,
     paragraphType: ParagraphEnum,
     type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    i: number,
   ) => {
     if (characterizationData[type])
       setCharacterizationData({
         ...characterizationData,
         [type]: [
-          ...characterizationData[type].map((item: string) => {
-            return item.split('{type}=')[0] !== value.split('{type}=')[0]
+          ...characterizationData[type].map((item: string, index?: number) => {
+            return i != index ||
+              item.split('{type}=')[0] !== value.split('{type}=')[0]
               ? item
               : item.split('{type}=')[0] + '{type}=' + paragraphType;
           }),
@@ -745,9 +751,10 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       title:
         'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
       onSelect: (docPgr: IRiskGroupData) => {
-        push(asPath + '/?riskGroupId=' + docPgr.id, undefined, {
-          shallow: true,
-        });
+        const url = new URL(window.location.href);
+        url.searchParams.set('riskGroupId', docPgr.id);
+
+        push(url.pathname + url.search, undefined, { shallow: true });
         const isEnvironment = getIsEnvironment(characterizationData.type);
         const viewData = isEnvironment
           ? ViewsDataEnum.ENVIRONMENT

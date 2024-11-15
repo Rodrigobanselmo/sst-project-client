@@ -254,7 +254,9 @@ export const ModalCharacterizationContent = (
               type={TypeInputModal.TEXT_AREA}
               valueField="name"
               onAdd={(value) => onAddArray(value, 'paragraphs')}
-              onDelete={(value) => onDeleteArray(value, 'paragraphs')}
+              onDelete={(value, _, index) =>
+                onDeleteArray(value, 'paragraphs', index)
+              }
               onEdit={(v, values) =>
                 onEditArrayContent(
                   values,
@@ -266,13 +268,14 @@ export const ModalCharacterizationContent = (
               buttonLabel={'Adicionar Parágrafo de Descrição'}
               placeholder="descreva..."
               modalLabel="Adicionar Descrição"
-              onRenderStartElement={(value) => (
+              onRenderStartElement={(value, index) => (
                 <ParagraphSelect
                   handleSelectMenu={(option) => {
                     onEditArray(
                       (value as any).name,
                       option.value,
                       'paragraphs',
+                      index,
                     );
                   }}
                   selected={
@@ -306,18 +309,21 @@ export const ModalCharacterizationContent = (
                 onEditArrayContent(values, 'activities', ParagraphEnum.BULLET_0)
               }
               onAdd={(value) => onAddArray(value, 'activities')}
-              onDelete={(value) => onDeleteArray(value, 'activities')}
+              onDelete={(value, _, index) =>
+                onDeleteArray(value, 'activities', index)
+              }
               label={'Atividades ou tarefas realizadas'}
               buttonLabel={'Adicionar Atividade'}
               placeholder="descreva a atividade..."
               modalLabel="Adicionar Atividade"
-              onRenderStartElement={(value) => (
+              onRenderStartElement={(value, index) => (
                 <ParagraphSelect
                   handleSelectMenu={(option) => {
                     onEditArray(
                       (value as any).name,
                       option.value,
                       'activities',
+                      index,
                     );
                   }}
                   selected={
@@ -466,18 +472,21 @@ export const ModalCharacterizationContent = (
                 )
               }
               onAdd={(value) => onAddArray(value, 'considerations')}
-              onDelete={(value) => onDeleteArray(value, 'considerations')}
+              onDelete={(value, _, index) =>
+                onDeleteArray(value, 'considerations', index)
+              }
               label={'Considerações'}
               buttonLabel={'Adicionar Consideração'}
               placeholder="descreva sua consideração..."
               modalLabel={'Adicionar Consideração'}
-              onRenderStartElement={(value) => (
+              onRenderStartElement={(value, index) => (
                 <ParagraphSelect
                   handleSelectMenu={(option) => {
                     onEditArray(
                       (value as any).name,
                       option.value,
                       'considerations',
+                      index,
                     );
                   }}
                   selected={
