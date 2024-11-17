@@ -3,51 +3,7 @@ import { FC } from 'react';
 import { Box, Button, CircularProgress, Icon } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
 import { SButtonProps } from './SButton.types';
-
-const colorMap = {
-  paper: {
-    colorSchema: undefined,
-    backgroundColor: 'white',
-    borderColor: 'grey.400',
-    color: 'grey.600',
-    textColor: 'grey.600',
-  },
-  disabled: {
-    colorSchema: undefined,
-    backgroundColor: '#2D374811',
-    borderColor: 'grey.500',
-    color: 'grey.200',
-    textColor: 'grey.500',
-  },
-  normal: {
-    colorSchema: undefined,
-    backgroundColor: '#2D374811',
-    borderColor: 'grey.600',
-    color: 'grey.700',
-    textColor: 'grey.800',
-  },
-  success: {
-    colorSchema: 'success',
-    backgroundColor: '#3cbe7d11',
-    borderColor: 'success.dark',
-    color: 'success.dark',
-    textColor: 'success.dark',
-  },
-  info: {
-    colorSchema: 'info',
-    backgroundColor: '#2153b711',
-    borderColor: 'info.dark',
-    color: 'info.dark',
-    textColor: 'info.dark',
-  },
-  primary: {
-    colorSchema: 'info',
-    backgroundColor: '#F2732911',
-    borderColor: 'primary.dark',
-    color: 'primary.dark',
-    textColor: 'primary.dark',
-  },
-} as const;
+import { variantMap } from './SButton.constant';
 
 export const SButton: FC<SButtonProps> = ({
   onClick,
@@ -55,25 +11,30 @@ export const SButton: FC<SButtonProps> = ({
   icon,
   rightIcon,
   color = 'normal',
-  variant = 'outlined',
+  variant = 'shade',
   tooltip,
   disabled,
   loading,
   buttonProps,
   textProps,
+  size = 'm',
+  minWidth,
 }) => {
+  const colorMap = variantMap[variant].color;
+  const sizeMap = variantMap[variant].size;
+
   return (
     <STooltip title={tooltip || ''} withWrapper>
       <Button
         onClick={onClick}
         disabled={disabled || loading}
-        variant={variant}
+        variant="outlined"
         color={colorMap[color].colorSchema}
         {...buttonProps}
         sx={{
-          height: [28, 28, 30],
+          height: sizeMap[size].height,
           textTransform: 'none',
-          minWidth: [28, 28, 30],
+          minWidth: minWidth || sizeMap[size].minWidth,
           boxShadow: 'none',
           borderColor: colorMap[color].borderColor,
           backgroundColor: colorMap[color].backgroundColor,
@@ -90,7 +51,7 @@ export const SButton: FC<SButtonProps> = ({
           },
           borderRadius: 1,
           m: 0,
-          px: 3,
+          px: sizeMap[size].px,
           gap: 1,
           '&.Mui-disabled': {
             borderColor: colorMap[color].borderColor,
@@ -107,7 +68,7 @@ export const SButton: FC<SButtonProps> = ({
         }}
       >
         <>
-          {icon && (
+          {(icon || loading) && (
             <Icon
               component={
                 loading
@@ -140,7 +101,7 @@ export const SButton: FC<SButtonProps> = ({
           {text && (
             <Box
               mr={icon ? 2 : 0}
-              fontSize={12}
+              fontSize={sizeMap[size].fontSize}
               color={
                 disabled
                   ? colorMap.disabled.textColor

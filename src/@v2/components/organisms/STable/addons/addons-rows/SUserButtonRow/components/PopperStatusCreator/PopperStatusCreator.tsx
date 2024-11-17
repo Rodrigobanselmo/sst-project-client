@@ -278,7 +278,7 @@ export function PopperStatusCreator({
           buttonProps={{ sx: { height: 25, width: 100 } }}
           text={'Adicionar'}
           color="paper"
-          icon={() => <SIconAdd fontSize={18} />}
+          icon={<SIconAdd fontSize={18} />}
         />
         {/* <SButton
               // buttonProps={{ sx: { mt: 4, width: 100, ml: 'auto' } }}

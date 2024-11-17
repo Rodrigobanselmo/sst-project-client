@@ -18,7 +18,7 @@ import { ActionPlanColumnMap as columnMap } from './maps/action-plan-column-map'
 import { HirarchyTypeMap } from './maps/hierarchy-type-map';
 import { IActionPlanTableTableProps } from './SActionPlanTable.types';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan-browse/service/action-plan-characterization.types';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { SOcupationalRiskTag } from '@v2/components/molecules/SOcupationalRiskTag/SOcupationalRiskTag';

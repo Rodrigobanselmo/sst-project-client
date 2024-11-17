@@ -40,6 +40,7 @@ const sizeMap = {
     fontSize: 9,
     padding: '1px 4px',
     width: '30px',
+    minWidth: 'fit-content',
   },
 };
 
@@ -48,7 +49,7 @@ export const SRiskChip = ({ type, size = 'md' }: SRiskChipProps) => {
     <SFlex
       borderRadius={1}
       center
-      minWidth={sizeMap[size].width}
+      minWidth={sizeMap[size].minWidth}
       width={sizeMap[size].width}
       bgcolor={colorMap[type].bgcolor}
       p={sizeMap[size].padding}

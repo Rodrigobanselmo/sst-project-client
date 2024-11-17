@@ -25,6 +25,7 @@ import globalStyles from '../../../core/styles/globalStyles';
 import { setIsRouteLoading } from '../../../store/reducers/routeLoad/routeLoadSlice';
 import { DashboardLayout } from '../../dashboard';
 import DefaultModal from '../modal';
+import { SModal } from '@v2/components/organisms/SModal/SModal';
 
 const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
   useRedirectDetect();
@@ -67,6 +68,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
     <main>
       <Global styles={globalStyles} />
       <DashboardLayout>{children}</DashboardLayout>
+      <SModal />
       <DefaultModal />
       <ModalSelectCompany />
       <ModalSelectClinic />

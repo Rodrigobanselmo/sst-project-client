@@ -9,7 +9,7 @@ import { useSearch } from '@v2/hooks/useSearch';
 import { contrastColor } from 'contrast-color';
 import { useRef } from 'react';
 import { SEditButtonRow } from '../SEditButtonRow/SEditButtonRow';
-import { SSearchSelect } from '@v2/components/forms/SSearchSelect/SSearchSelect';
+import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 
 export interface SUserButtonRowProps {
   options: { name: string; id: number }[];

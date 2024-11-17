@@ -35,6 +35,10 @@ const months = [
 
 const DatePickerInput = DatePicker as any;
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export function SDatePicker({
   label = '',
   uneditable,

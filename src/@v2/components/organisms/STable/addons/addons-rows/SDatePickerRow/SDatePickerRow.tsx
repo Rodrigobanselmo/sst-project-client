@@ -1,24 +1,11 @@
 import { FC } from 'react';
 
-import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SDatePicker } from '@v2/components/forms/SDatePicker/SDatePicker';
-import { SDatePickerRowProps } from './SDatePickerRow.types';
-import { dateUtils } from '@v2/utils/date-utils';
-import { SText } from '@v2/components/atoms/SText/SText';
-import { SEditButtonRow } from '../SEditButtonRow/SEditButtonRow';
-import { SIconAdd } from '@v2/assets/icons/SIconAdd/SIconAdd';
 import { SIconDate } from '@v2/assets/icons/SIconDate/SIconAdd';
-
-{
-  /* <SFlex center>
-{date && (
-  <SText>
-    {date ? dateUtils(date).format('DD [de] MMMM YYYY') : emptyDate}
-  </SText>
-)}
-{!date && <SText>{emptyDate || '-'}</SText>}
-</SFlex> */
-}
+import { SDatePicker } from '@v2/components/forms/fields/SDatePicker/SDatePicker';
+import { dateUtils } from '@v2/utils/date-utils';
+import { SEditButtonRow } from '../SEditButtonRow/SEditButtonRow';
+import { SDatePickerRowProps } from './SDatePickerRow.types';
+import { SDatePickerPopper } from '@v2/components/forms/fields/SDatePicker/SDatePickerPopper';
 
 export const SDatePickerRow: FC<SDatePickerRowProps> = ({
   date,
@@ -27,31 +14,29 @@ export const SDatePickerRow: FC<SDatePickerRowProps> = ({
   emptyDate,
 }) => {
   return (
-    <SDatePicker
-      selected={date || undefined}
+    <SDatePickerPopper
+      value={date || undefined}
       onClear={onClear}
       onChange={(date) => {
+        console.log(99, date);
         if (date) onChange(date);
       }}
-      customInput={
-        <SEditButtonRow
-          onClick={(e) => {}}
-          label={
-            date
-              ? dateUtils(date).format('DD [de] MMMM YYYY')
-              : emptyDate || '-'
-          }
-          textProps={{
-            sx: {
-              filter: 'brightness(0.5)',
-            },
-          }}
-          boxProps={{
-            width: '100%',
-          }}
-          icon={<SIconDate fontSize={12} color={'text.main'} />}
-        />
-      }
-    />
+    >
+      <SEditButtonRow
+        onClick={() => null}
+        label={
+          date ? dateUtils(date).format('DD [de] MMMM YYYY') : emptyDate || '-'
+        }
+        textProps={{
+          sx: {
+            filter: 'brightness(0.5)',
+          },
+        }}
+        boxProps={{
+          width: '100%',
+        }}
+        icon={<SIconDate fontSize={12} color={'text.main'} />}
+      />
+    </SDatePickerPopper>
   );
 };

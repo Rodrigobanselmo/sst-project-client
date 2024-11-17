@@ -30,6 +30,8 @@ import { queryClient as oldQueryClient } from '../../../core/services/queryClien
 import store, { persistor } from '../../../store';
 import { KBarProvider } from '../KBar/KBarProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { LocalizationProvider } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 const QueryClientProviderComponent = OldQueryClientProvider as any;
 
@@ -43,51 +45,53 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
 
   return (
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <OnlineStatusProvider>
-          <EmotionProvider theme={theme}>
-            <ThemeProvider theme={theme}>
-              <SnackbarProvider
-                ref={notistackRef}
-                maxSnack={3}
-                preventDuplicate
-                action={(key) => (
-                  <SIconButton
-                    onClick={onClickDismiss(key)}
-                    sx={{
-                      width: '2rem',
-                      height: '2rem',
-                      position: 'absolute',
-                      right: '8px',
-                      top: '8px',
-                    }}
-                  >
-                    <Icon
-                      sx={{ color: 'common.white', fontSize: '18px' }}
-                      component={SCloseIcon}
-                    />
-                  </SIconButton>
-                )}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'right',
-                }}
-                style={{ maxWidth: '28rem', paddingRight: 40 }}
-              >
-                <AuthProvider>
-                  <QueryClientProvider client={queryClient}>
-                    <ReactQueryDevtools initialIsOpen={false} />
-                    <QueryClientProviderComponent client={oldQueryClient}>
-                      <KBarProvider>{children}</KBarProvider>
-                      <OldReactQueryDevtools />
-                    </QueryClientProviderComponent>
-                  </QueryClientProvider>
-                </AuthProvider>
-              </SnackbarProvider>
-            </ThemeProvider>
-          </EmotionProvider>
-        </OnlineStatusProvider>
-      </PersistGate>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
+        <PersistGate loading={null} persistor={persistor}>
+          <OnlineStatusProvider>
+            <EmotionProvider theme={theme}>
+              <ThemeProvider theme={theme}>
+                <SnackbarProvider
+                  ref={notistackRef}
+                  maxSnack={3}
+                  preventDuplicate
+                  action={(key) => (
+                    <SIconButton
+                      onClick={onClickDismiss(key)}
+                      sx={{
+                        width: '2rem',
+                        height: '2rem',
+                        position: 'absolute',
+                        right: '8px',
+                        top: '8px',
+                      }}
+                    >
+                      <Icon
+                        sx={{ color: 'common.white', fontSize: '18px' }}
+                        component={SCloseIcon}
+                      />
+                    </SIconButton>
+                  )}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  style={{ maxWidth: '28rem', paddingRight: 40 }}
+                >
+                  <AuthProvider>
+                    <QueryClientProvider client={queryClient}>
+                      <ReactQueryDevtools initialIsOpen={false} />
+                      <QueryClientProviderComponent client={oldQueryClient}>
+                        <KBarProvider>{children}</KBarProvider>
+                        <OldReactQueryDevtools />
+                      </QueryClientProviderComponent>
+                    </QueryClientProvider>
+                  </AuthProvider>
+                </SnackbarProvider>
+              </ThemeProvider>
+            </EmotionProvider>
+          </OnlineStatusProvider>
+        </PersistGate>
+      </LocalizationProvider>
     </Provider>
   );
 };

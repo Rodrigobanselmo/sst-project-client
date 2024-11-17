@@ -12,7 +12,7 @@ import {
   STableColumnsButtonProps,
   STableColumnsProps,
 } from './STableColumnsButton.types';
-import { SCheckBox } from '@v2/components/forms/SCheckBox/SCheckBox';
+import { SCheckBox } from '@v2/components/forms/fields/SCheckBox/SCheckBox';
 
 export function STableColumnsButton<T extends string>({
   onClick,

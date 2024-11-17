@@ -4,7 +4,7 @@ import { TablesSelectEnum } from '../../hooks/useTableSelect';
 import { ReactNode } from 'react';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
 import { ActionPlanColumnsEnum } from './enums/action-plan-columns.enum';
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan-browse/service/action-plan-characterization.types';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/browse-action-plan/service/browse-action-plan.types';
 
 export interface IActionPlanFilterProps {
   search?: string;

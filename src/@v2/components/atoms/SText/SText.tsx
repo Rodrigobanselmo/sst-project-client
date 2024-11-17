@@ -8,6 +8,7 @@ export const SText: React.FC<STextProps> = ({
   lineNumber,
   noBreak,
   color = 'text.main',
+  ft,
   ...props
 }) => (
   <STTypography
@@ -15,6 +16,7 @@ export const SText: React.FC<STextProps> = ({
     textAlign={textAlign}
     line_number={lineNumber}
     no_break={noBreak ? 1 : 0}
+    fontSize={ft}
     {...props}
   />
 );

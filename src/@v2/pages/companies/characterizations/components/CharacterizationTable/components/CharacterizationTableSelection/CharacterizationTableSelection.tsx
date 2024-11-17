@@ -1,7 +1,7 @@
 import { SIconStatus } from '@v2/assets/icons/SIconStatus/SIconStatus';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
-import { SSearchSelectRenderOptionStatusRenderOptionStatus } from '@v2/components/forms/SSearchSelect/addons/render-option/RenderOptionStatus/RenderOptionStatus';
-import { SSearchSelect } from '@v2/components/forms/SSearchSelect/SSearchSelect';
+import { SSearchSelectRenderOptionStatusRenderOptionStatus } from '@v2/components/forms/fields/SSearchSelect/addons/render-option/RenderOptionStatus/RenderOptionStatus';
+import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import { STableSelection } from '@v2/components/organisms/STable/addons/addons-table/STableSelectionUpdate/STableSelectionUpdate';
 import { TablesSelectEnum } from '@v2/components/organisms/STable/hooks/useTableSelect';
 
@@ -24,13 +24,13 @@ export const CharacterizationTableSelection = ({
         inputProps={{ sx: { width: 300 } }}
         component={() => (
           <SButton
-            icon={SIconStatus}
+            icon={<SIconStatus />}
             color="paper"
             variant="outlined"
             text="Atualizar Status"
           />
         )}
-        renderOption={SSearchSelectRenderOptionStatusRenderOptionStatus}
+        renderFullOption={SSearchSelectRenderOptionStatusRenderOptionStatus}
         label="Status"
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option?.id}

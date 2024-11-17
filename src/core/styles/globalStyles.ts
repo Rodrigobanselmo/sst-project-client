@@ -48,6 +48,18 @@ const globalStyles = css`
     justify-content: center;
     align-items: center;
   }
+
+  .staticDatePickerToolbarRoot {
+    span {
+      font-size: 10px !important;
+    }
+  }
+
+  .staticDatePickerToolbar {
+    font-size: 24px !important;
+    margin-bottom: -15px !important;
+    font-weight: 500 !important;
+  }
 `;
 
 export default globalStyles;

@@ -11,6 +11,10 @@ import {
 } from '../../store/reducers/modal/modalSlice';
 import { useAppDispatch } from './useAppDispatch';
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const useModal = () => {
   const dispatch = useAppDispatch();
   const store = useStore<any>();

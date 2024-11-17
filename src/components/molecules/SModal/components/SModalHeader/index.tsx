@@ -43,6 +43,10 @@ export const SModalHeaderTitle: FC<
   );
 };
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const SModalHeader: FC<{ children?: any } & SModalHeaderProps> = ({
   title,
   subtitle,

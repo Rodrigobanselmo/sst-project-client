@@ -1,5 +1,5 @@
 import { Box } from '@mui/material';
-import { SInput } from '@v2/components/forms/SInput/SInput';
+import { SInput } from '@v2/components/forms/fields/SInput/SInput';
 import { SPopperArrow } from '@v2/components/organisms/SPopper/SPopper';
 import { useDisclosure } from '@v2/hooks/useDisclosure';
 import { useRef } from 'react';

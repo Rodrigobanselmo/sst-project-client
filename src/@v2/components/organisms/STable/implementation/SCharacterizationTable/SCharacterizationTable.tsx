@@ -1,7 +1,7 @@
 import { FC } from 'react';
 
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
-import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization-browse/service/browse-characterization.types';
+import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse-characterization/service/browse-characterization.types';
 import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
 import { SSelectHRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectHRow';
 import { SSelectRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectRow';

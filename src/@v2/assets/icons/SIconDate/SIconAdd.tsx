@@ -7,7 +7,7 @@ export const SIconDate: FC<IIconProps> = ({ color, fontSize }) => {
   return (
     <EventIcon
       sx={{
-        fontSize: fontSize || '12px',
+        fontSize: fontSize || 'inherit',
         color: color || 'inherit',
       }}
     />

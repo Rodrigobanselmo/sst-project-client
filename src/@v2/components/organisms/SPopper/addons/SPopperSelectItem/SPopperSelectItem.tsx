@@ -4,24 +4,26 @@ import { MenuItem, MenuItemProps } from '@mui/material';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { STextProps } from '@v2/components/atoms/SText/SText.types';
 
-interface ISPopperSelectItemProps {
+type ISPopperSelectItemProps = {
   itemProps?: MenuItemProps;
-  text: string;
   onClick: MenuItemProps['onClick'];
   textProps?: STextProps;
   disabled?: boolean;
   selected?: boolean;
+  text?: string;
   startAddon?: ReactNode;
-}
+  compoent?: ReactNode;
+};
 
 export const SPopperSelectItem: FC<ISPopperSelectItemProps> = ({
   itemProps,
-  text,
   onClick,
   disabled,
   selected,
   textProps,
   startAddon,
+  text,
+  compoent,
 }) => {
   return (
     <MenuItem
@@ -32,7 +34,7 @@ export const SPopperSelectItem: FC<ISPopperSelectItemProps> = ({
         cursor: 'pointer',
         mb: 1,
         userSelect: 'none',
-        height: 35,
+        minHeight: 35,
         '&:hover': {
           backgroundColor: 'grey.200',
         },
@@ -54,9 +56,12 @@ export const SPopperSelectItem: FC<ISPopperSelectItemProps> = ({
       }}
     >
       {!!startAddon && <>{startAddon}</>}
-      <SText pl={6} color="text.primary" fontSize={14} {...textProps}>
-        {text}
-      </SText>
+      {compoent}
+      {!!text && (
+        <SText pl={6} color="text.primary" fontSize={14} {...textProps}>
+          {text}
+        </SText>
+      )}
     </MenuItem>
   );
 };

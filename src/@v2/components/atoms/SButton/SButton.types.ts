@@ -8,9 +8,11 @@ export type SButtonProps = {
   icon?: ReactNode;
   rightIcon?: (() => JSX.Element) | React.ElementType;
   color?: 'normal' | 'success' | 'info' | 'primary' | 'paper';
-  variant?: 'text' | 'outlined' | 'contained';
+  variant?: 'text' | 'shade' | 'contained' | 'outlined';
   buttonProps?: ButtonProps;
   loading?: boolean;
   disabled?: boolean;
   textProps?: BoxProps;
+  size?: 's' | 'm' | 'l';
+  minWidth?: (string | number)[] | string | number;
 };

@@ -1,8 +1,0 @@
-export enum HierarchyTypeEnum {
-  DIRECTORY = 'DIRECTORY',
-  MANAGEMENT = 'MANAGEMENT',
-  SECTOR = 'SECTOR',
-  SUB_SECTOR = 'SUB_SECTOR',
-  OFFICE = 'OFFICE',
-  SUB_OFFICE = 'SUB_OFFICE',
-}

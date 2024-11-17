@@ -1,4 +1,4 @@
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan-browse/service/action-plan-characterization.types';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/browse-action-plan/service/browse-action-plan.types';
 
 type OrderByTranslationMap = Record<ActionPlanOrderByEnum, string>;
 
@@ -15,4 +15,5 @@ export const ordenByActionPlanTranslation: OrderByTranslationMap = {
   [ActionPlanOrderByEnum.DONE_DATE]: 'data de conclusão',
   [ActionPlanOrderByEnum.CANCEL_DATE]: 'data de cancelamento',
   [ActionPlanOrderByEnum.VALID_DATE]: 'data válida',
+  [ActionPlanOrderByEnum.RESPONSIBLE]: 'responsável',
 };

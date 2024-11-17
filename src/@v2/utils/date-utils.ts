@@ -9,7 +9,7 @@ class DateUtils extends Date {
     return new DateUtils(date);
   }
 
-  format(template: string) {
+  format(template = 'DD/MM/YYYY') {
     return dayjs(this).format(template);
   }
 }

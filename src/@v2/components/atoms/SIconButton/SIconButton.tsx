@@ -40,6 +40,7 @@ export const SIconButton: FC<PropsWithChildren<SIconButtonProps>> = ({
           },
         }),
         ...(disabled && { opacity: 0.4 }),
+        width: size === 'small' ? 32 : 40,
         ...iconButtonProps?.sx,
       }}
     >

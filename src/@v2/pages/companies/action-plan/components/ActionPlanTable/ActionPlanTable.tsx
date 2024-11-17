@@ -1,6 +1,5 @@
 import { useRouter } from 'next/router';
 
-import { Box } from '@mui/material';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
@@ -16,18 +15,15 @@ import { ActionPlanColumnsEnum } from '@v2/components/organisms/STable/implement
 import { actionPlanColumns } from '@v2/components/organisms/STable/implementation/SActionPlanTable/maps/action-plan-column-map';
 import { SActionPlanTable } from '@v2/components/organisms/STable/implementation/SActionPlanTable/SActionPlanTable';
 import { IActionPlanFilterProps } from '@v2/components/organisms/STable/implementation/SActionPlanTable/SActionPlanTable.types';
-import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
-import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByActionPlanTranslation } from '@v2/models/security/translations/orden-by-action-plan.translation';
-import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/action-plan-browse/hooks/useFetchBrowseActionPlan';
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan-browse/service/action-plan-characterization.types';
+import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/browse-action-plan/hooks/useFetchBrowseActionPlan';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { useActionPlanActions } from '../../hooks/useActionPlanActions';
 import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/ActionPlanTableFilter';
-import { ActionPlanTableFilterStage } from './components/ActionPlanTableFilter/components/ActionPlanTableFilterStage';
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
 
 const limit = 15;
@@ -69,17 +65,6 @@ export const ActionPlanTable = () => {
 
   const { handleActionPlanEditStage, handleActionPlanExport } =
     useActionPlanActions({ companyId });
-
-  const {
-    onAddStatus,
-    onEditStatus,
-    onDeleteStatus,
-    statusOptions,
-    isLoadingStatusOptions,
-  } = useApiStatus({
-    companyId,
-    type: StatusTypeEnum.ACTION_PLAN,
-  });
 
   const { onOrderBy, orderChipList } = useOrderBy({
     orderByList: queryParams.orderBy,
@@ -174,7 +159,8 @@ export const ActionPlanTable = () => {
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }
         hiddenColumns={hiddenColumns}
-        onSelectRow={(row) => console.log(row)}
+        // onSelectRow={(row) => console.log(row)}
+        onSelectRow={(row) => null}
         onEditStatus={(stageId, row) =>
           handleActionPlanEditStage({ ...row, stageId })
         }
