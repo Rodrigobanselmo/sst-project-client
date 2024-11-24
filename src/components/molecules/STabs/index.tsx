@@ -31,6 +31,10 @@ export function TabPanel(props: TabPanelProps) {
   );
 }
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const STabs: FC<{ children?: any } & STabsProps> = ({
   options,
   mb = 10,
@@ -40,13 +44,7 @@ export const STabs: FC<{ children?: any } & STabsProps> = ({
 }) => {
   return (
     <Box
-      sx={{
-        borderBottom: shadow ? 0 : 1,
-        borderColor: 'divider',
-        // backgroundColor: 'sidebar.background',
-        // borderTopLeftRadius: 10,
-        // borderTopRightRadius: 10,
-      }}
+      sx={{ borderBottom: shadow ? 0 : 1, borderColor: 'divider' }}
       mt={mt}
       mb={mb}
       {...(!!props.height && {

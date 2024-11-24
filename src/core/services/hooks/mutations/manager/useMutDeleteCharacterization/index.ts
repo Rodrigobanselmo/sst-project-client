@@ -11,7 +11,8 @@ import { queryClient as OldQC } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
 import { queryClient } from 'layouts/default/providers';
-import { QueryKeyEnum } from '@v2/constants/enums/query-key.enum';
+import { QueryKeyActionPlanEnum } from '@v2/constants/enums/action-plan-query-key.enum';
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
 
 export async function deleteCharacterization(
   id: string,
@@ -56,7 +57,7 @@ export function useMutDeleteCharacterization() {
 
           if (actualData) {
             queryClient.invalidateQueries({
-              queryKey: [QueryKeyEnum.CHARACTERIZATIONS],
+              queryKey: [QueryKeyCharacterizationEnum.CHARACTERIZATIONS],
             });
             OldQC.setQueryData(
               [QueryEnum.CHARACTERIZATIONS, resp.companyId, resp.workspaceId],

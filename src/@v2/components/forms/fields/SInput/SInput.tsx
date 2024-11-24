@@ -2,6 +2,9 @@ import { ChangeEvent, FC, useCallback, useRef, useState } from 'react';
 
 import TextField from '@mui/material/TextField';
 import { SInputProps } from './SInput.types';
+import { stringTransformations } from '@v2/utils/string-transformation';
+import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
+import { maskOnlyNumber } from '@v2/utils/@masks/only-number.mask';
 
 const sizeMap = {
   sm: {
@@ -41,12 +44,25 @@ export const SInput: FC<SInputProps> = ({
   textFieldProps,
   startAdornment,
   endAdornment,
+  transformation,
   ...props
 }) => {
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
-    onChange && onChange(e);
+    onChange &&
+      onChange({
+        ...e,
+        target: {
+          ...e.target,
+          value: transformation
+            ? stringTransformations(
+                String(e.target.value) || '',
+                transformation,
+              )
+            : e.target.value,
+        },
+      });
   };
   const ref = useRef<HTMLInputElement>(null);
   const [isShrink, setIsShrink] = useState(false);
@@ -75,8 +91,13 @@ export const SInput: FC<SInputProps> = ({
     <TextField
       {...textFieldProps}
       {...props}
-      inputRef={inputRef || ref}
+      value={
+        transformation
+          ? stringTransformations(String(value) || '', transformation)
+          : value
+      }
       onChange={handleChange}
+      inputRef={inputRef || ref}
       InputProps={{ ...inputProps, startAdornment, endAdornment }}
       placeholder={placeholder}
       InputLabelProps={{
@@ -86,7 +107,6 @@ export const SInput: FC<SInputProps> = ({
       label={getLabel()}
       size={sizeMap[size].size}
       variant="outlined"
-      value={value}
       onFocus={(e) => {
         setIsShrink(true);
         props?.onFocus?.(e);

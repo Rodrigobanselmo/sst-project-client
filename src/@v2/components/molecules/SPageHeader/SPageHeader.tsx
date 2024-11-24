@@ -8,10 +8,10 @@ import { SText } from '@v2/components/atoms/SText/SText';
 import { useRouter } from 'next/router';
 import { SPageHeaderProps } from './types';
 
-export const SPageHeader: FC<SPageHeaderProps> = ({ title }) => {
+export const SPageHeader: FC<SPageHeaderProps> = ({ mb = 12, title }) => {
   const router = useRouter();
   return (
-    <Box mb={12} mt={0}>
+    <Box mb={mb} mt={0}>
       <SFlex align="center">
         <SIconButton onClick={() => router.back()}>
           <SIconArrowBack

@@ -1,4 +1,4 @@
-import { QueryKeyEnum } from '@v2/constants/enums/query-key.enum';
+import { QueryKeyActionPlanEnum } from '@v2/constants/enums/action-plan-query-key.enum';
 import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
 import { exportCharacterization } from '../service/export-characterization.service';

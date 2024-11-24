@@ -1,6 +1,6 @@
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
 import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
-import { QueryKeyEnum } from '@v2/constants/enums/query-key.enum';
 import { editStatus } from '../service/edit-status.service';
 
 export const useMutateEditStatus = () => {
@@ -9,7 +9,7 @@ export const useMutateEditStatus = () => {
   const mutate = useMutate({
     mutationFn: editStatus,
     invalidateQueryKey: (_, variables) => [
-      QueryKeyEnum.STATUS,
+      QueryKeyCharacterizationEnum.STATUS,
       variables.companyId,
     ],
     onSuccess: () => onSuccessMessage('Status editado com sucesso'),

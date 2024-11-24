@@ -1,7 +1,7 @@
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
 import { useFetch } from '@v2/hooks/api/useFetch';
-import { BrowseCharacterizationParams } from '../service/browse-characterization.types';
 import { browseCharacterization } from '../service/browse-characterization.service';
-import { QueryKeyEnum } from '@v2/constants/enums/query-key.enum';
+import { BrowseCharacterizationParams } from '../service/browse-characterization.types';
 
 export const useFetchBrowseCharaterizations = (
   params: BrowseCharacterizationParams,
@@ -11,7 +11,7 @@ export const useFetchBrowseCharaterizations = (
       return browseCharacterization(params);
     },
     queryKey: [
-      QueryKeyEnum.CHARACTERIZATIONS,
+      QueryKeyCharacterizationEnum.CHARACTERIZATIONS,
       params.companyId,
       params.workspaceId,
       params,

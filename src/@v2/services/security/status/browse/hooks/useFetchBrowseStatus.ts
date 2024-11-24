@@ -1,12 +1,12 @@
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
 import { useFetch } from '@v2/hooks/api/useFetch';
 import {
   browseStatus,
   BrowseStatusParams,
 } from '../service/browse-status.service';
-import { QueryKeyEnum } from '@v2/constants/enums/query-key.enum';
 
 export const getKeyBrowseStatus = (params: BrowseStatusParams) => {
-  return [QueryKeyEnum.STATUS, params.companyId, params];
+  return [QueryKeyCharacterizationEnum.STATUS, params.companyId, params];
 };
 
 export const useFetchBrowseStatus = (params: BrowseStatusParams) => {

@@ -1,4 +1,5 @@
 import { TextFieldProps } from '@mui/material/TextField';
+import { IStringTransformationsType } from '@v2/utils/string-transformation';
 
 export type SInputProps = Pick<
   TextFieldProps,
@@ -25,4 +26,5 @@ export type SInputProps = Pick<
   textFieldProps?: TextFieldProps;
   startAdornment?: React.ReactNode;
   endAdornment?: React.ReactNode;
+  transformation?: IStringTransformationsType;
 };

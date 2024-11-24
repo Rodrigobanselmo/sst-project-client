@@ -3,6 +3,7 @@ import { SInput } from '../SInput/SInput';
 import { SInputProps } from '../SInput/SInput.types';
 import { InputEndAdormentSelect } from './components/InputEndAdormentSelect/InputEndAdormentSelect';
 import { PopperSelect } from './components/PopperSelect/PopperSelect';
+import { Box, BoxProps } from '@mui/material';
 
 export interface SSearchSelectProps<Value> {
   options: Value[];
@@ -18,6 +19,7 @@ export interface SSearchSelectProps<Value> {
   onScrollEnd?: () => void;
   onInputChange?: (value: string, event: React.SyntheticEvent) => void;
   component?: (() => JSX.Element) | React.ElementType;
+  boxProps?: BoxProps;
   renderFullOption?: (args: {
     option: Value;
     label: string;
@@ -48,6 +50,7 @@ export function SSearchSelect<T>({
   component: Component,
   renderFullOption,
   onScrollEnd,
+  boxProps,
 }: SSearchSelectProps<T>) {
   const [shrink, setShrink] = useState(false);
 
@@ -56,53 +59,55 @@ export function SSearchSelect<T>({
   };
 
   return (
-    <PopperSelect
-      loading={loading}
-      renderItem={renderItem}
-      renderFullOption={renderFullOption}
-      getOptionLabel={getOptionLabel}
-      onChange={handleSelect}
-      getOptionValue={(option) => getOptionValue(option)}
-      onClose={() => setShrink(false)}
-      selected={value ? [value] : []}
-      onScrollEnd={onScrollEnd}
-      options={options}
-    >
-      {Component && <Component />}
-      {!Component && (
-        <SInput
-          fullWidth
-          {...inputProps}
-          error={!!errorMessage}
-          value={value ? getOptionLabel(value) : ''}
-          onFocus={() => setShrink(true)}
-          shrink={shrink}
-          onChange={(e) => {
-            onInputChange?.(e.target.value, e);
-          }}
-          helperText={errorMessage}
-          placeholder={placeholder}
-          label={label}
-          inputProps={{
-            endAdornment: (
-              <InputEndAdormentSelect
-                loading={loading}
-                onClear={(e) => {
-                  e.stopPropagation();
-                  onInputChange?.('', e);
-                  onChange(null, e);
-                }}
-              />
-            ),
-          }}
-          sx={{
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            ...inputProps?.sx,
-          }}
-        />
-      )}
-    </PopperSelect>
+    <Box {...boxProps}>
+      <PopperSelect
+        loading={loading}
+        renderItem={renderItem}
+        renderFullOption={renderFullOption}
+        getOptionLabel={getOptionLabel}
+        onChange={handleSelect}
+        getOptionValue={(option) => getOptionValue(option)}
+        onClose={() => setShrink(false)}
+        selected={value ? [value] : []}
+        onScrollEnd={onScrollEnd}
+        options={options}
+      >
+        {Component && <Component />}
+        {!Component && (
+          <SInput
+            fullWidth
+            {...inputProps}
+            error={!!errorMessage}
+            value={value ? getOptionLabel(value) : ''}
+            onFocus={() => setShrink(true)}
+            shrink={shrink}
+            onChange={(e) => {
+              onInputChange?.(e.target.value, e);
+            }}
+            helperText={errorMessage}
+            placeholder={placeholder}
+            label={label}
+            inputProps={{
+              endAdornment: (
+                <InputEndAdormentSelect
+                  loading={loading}
+                  onClear={(e) => {
+                    e.stopPropagation();
+                    onInputChange?.('', e);
+                    onChange(null, e);
+                  }}
+                />
+              ),
+            }}
+            sx={{
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              ...inputProps?.sx,
+            }}
+          />
+        )}
+      </PopperSelect>
+    </Box>
   );
 }
 

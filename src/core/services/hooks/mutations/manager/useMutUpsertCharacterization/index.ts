@@ -13,8 +13,9 @@ import { queryClient as OldQueryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
 import { StatusEnum } from './../../../../../../project/enum/status.enum';
-import { QueryKeyEnum } from '@v2/constants/enums/query-key.enum';
+import { QueryKeyActionPlanEnum } from '@v2/constants/enums/action-plan-query-key.enum';
 import { queryClient } from 'layouts/default/providers';
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
 
 export interface IAddCharacterizationPhoto {
   file?: File;
@@ -106,7 +107,7 @@ export function useMutUpsertCharacterization() {
         if (resp) {
           OldQueryClient.invalidateQueries([DeQueryEnum.GHO]);
           queryClient.invalidateQueries({
-            queryKey: [QueryKeyEnum.CHARACTERIZATIONS],
+            queryKey: [QueryKeyCharacterizationEnum.CHARACTERIZATIONS],
           });
 
           const actualData = OldQueryClient.getQueryData(

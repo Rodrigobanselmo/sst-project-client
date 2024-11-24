@@ -29,7 +29,7 @@ import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/
 const limit = 15;
 const table = TablesSelectEnum.ACTION_PLAN;
 
-export const ActionPlanTable = () => {
+export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
   const router = useRouter();
 
   const companyId = router.query.companyId as string;
@@ -45,7 +45,7 @@ export const ActionPlanTable = () => {
     companyId,
     filters: {
       search: queryParams.search,
-      workspaceIds: [],
+      workspaceIds: workspaceId ? [workspaceId] : undefined,
     },
     orderBy: queryParams.orderBy || [
       {
@@ -63,8 +63,7 @@ export const ActionPlanTable = () => {
     },
   });
 
-  const { handleActionPlanEditStage, handleActionPlanExport } =
-    useActionPlanActions({ companyId });
+  const { handleActionPlanEditStage } = useActionPlanActions({ companyId });
 
   const { onOrderBy, orderChipList } = useOrderBy({
     orderByList: queryParams.orderBy,
@@ -122,7 +121,11 @@ export const ActionPlanTable = () => {
             />
           </STableFilterButton>
           <STableButtonDivider />
-          <STableExportButton onClick={handleActionPlanExport} />
+          <STableExportButton
+            onClick={async () => {
+              //
+            }}
+          />
         </STableSearchContent>
       </STableSearch>
       <STableInfoSection>
@@ -161,9 +164,7 @@ export const ActionPlanTable = () => {
         hiddenColumns={hiddenColumns}
         // onSelectRow={(row) => console.log(row)}
         onSelectRow={(row) => null}
-        onEditStatus={(stageId, row) =>
-          handleActionPlanEditStage({ ...row, stageId })
-        }
+        onEditStatus={(status, row) => handleActionPlanEditStage(row)}
         onEditPosition={(order, row) => console.log({ ...row, order })}
         data={data?.results}
         isLoading={isLoading}

@@ -1,59 +1,41 @@
-import { useRouter } from 'next/router';
-
 import { SIconEdit } from '@v2/assets/icons/SIconEdit/SIconEdit';
 import { SIconUser } from '@v2/assets/icons/SIconUser/SIconUser';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
-import { IActionPlanFilterProps } from '@v2/components/organisms/STable/implementation/SActionPlanTable/SActionPlanTable.types';
-import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
-import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { useFetchReadActionPlanInfo } from '@v2/services/security/action-plan/read-action-plan-info/hooks/useFetchReadActionPlanInfo';
-import dynamic from 'next/dynamic';
-import { useState } from 'react';
 import { useActionPlanActions } from '../../hooks/useActionPlanActions';
 import { InfoCardAvatar } from './components/InfoCardAvatar';
 import { InfoCardSection } from './components/InfoCardSection';
 import { InfoCardText } from './components/InfoCardText';
+import { Skeleton } from '@mui/material';
+import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 
-const ActionPlanInfoFormDynamic = dynamic(
-  async () => {
-    const mod = await import(
-      '../ActionPlanForms/ActionPlanInfoForm/ActionPlanInfoForm'
-    );
-    return mod.ActionPlanInfoForm;
-  },
-  { ssr: false },
-);
-
-export const ActionPlanInfo = ({ mb }: { mb: number[] }) => {
-  const router = useRouter();
-  const { openModal, closeModal } = useModal();
-
-  const companyId = router.query.companyId as string;
-
-  const { queryParams, setQueryParams } =
-    useQueryParamsState<IActionPlanFilterProps>();
-
+export const ActionPlanInfo = ({
+  mb,
+  companyId,
+  workspaceId,
+}: {
+  mb: number[];
+  companyId: string;
+  workspaceId?: string;
+}) => {
   const { data, isLoading } = useFetchReadActionPlanInfo({
     companyId,
-    workspaceId: 'f588207b-ac7b-4b63-9d85-cd5753f9b288',
+    workspaceId: workspaceId || '',
   });
 
-  const handleEdit = () => {
-    openModal(
-      ModalKeyEnum.EDIT_ACTION_PLAN_INFO,
-      <ActionPlanInfoFormDynamic />,
-    );
-  };
+  const { handleEditActionPlanInfo } = useActionPlanActions({
+    companyId,
+    workspaceId,
+  });
 
-  const { handleActionPlanEditStage, handleActionPlanExport } =
-    useActionPlanActions({ companyId });
+  if (isLoading) {
+    return <SSkeleton height={200} sx={{ mb: 10 }} />;
+  }
 
-  const [nums, setNums] = useState();
-
-  if (!data || isLoading) {
+  if (!data || !workspaceId) {
     return null;
   }
 
@@ -69,7 +51,7 @@ export const ActionPlanInfo = ({ mb }: { mb: number[] }) => {
               text={data?.coordinatorName}
             />
           </SFlex>
-          <SIconButton onClick={handleEdit}>
+          <SIconButton onClick={handleEditActionPlanInfo}>
             <SIconEdit fontSize={22} color="grey.600" />
           </SIconButton>
         </InfoCardSection>
