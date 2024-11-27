@@ -10,11 +10,9 @@ export interface SSearchSelectRenderOptionStatusRenderOptionStatusProps {
   };
   label: string;
   isSelected: boolean;
-  handleSelect: (e: any) => void;
 }
 
 export function SSearchSelectRenderOptionStatusRenderOptionStatus({
-  handleSelect,
   isSelected,
   option,
   label,
@@ -22,14 +20,11 @@ export function SSearchSelectRenderOptionStatusRenderOptionStatus({
   return (
     <SFlex
       gap={5}
-      mb={2}
       align="center"
-      onClick={handleSelect}
       sx={{
         cursor: 'pointer',
         mx: 3,
         borderRadius: 1,
-        py: 2,
         px: 5,
         '&:hover': {
           backgroundColor: 'grey.100',

@@ -30,7 +30,7 @@ export const CharacterizationTableSelection = ({
             text="Atualizar Status"
           />
         )}
-        renderFullOption={SSearchSelectRenderOptionStatusRenderOptionStatus}
+        renderItem={SSearchSelectRenderOptionStatusRenderOptionStatus}
         label="Status"
         getOptionLabel={(option) => option.name}
         getOptionValue={(option) => option?.id}

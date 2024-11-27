@@ -1,7 +1,13 @@
 import { ArrowDropDown } from '@mui/icons-material';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import chroma from 'chroma-js';
-import { IconButton, Paper, TypographyProps, useTheme } from '@mui/material';
+import {
+  CircularProgress,
+  IconButton,
+  Paper,
+  TypographyProps,
+  useTheme,
+} from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import theme from 'configs/theme';
@@ -11,6 +17,7 @@ export interface SSelectButtonProps {
   anchorEl: React.RefObject<HTMLDivElement>;
   onClick: () => void;
   minWidth?: number | number[];
+  loading?: boolean;
   schema?: {
     color: string;
     borderColor: string;
@@ -24,6 +31,7 @@ export const SSelectButton = ({
   onClick,
   anchorEl,
   minWidth,
+  loading,
   schema = {
     color: theme.palette.text.medium,
     borderColor: theme.palette.grey[400],
@@ -35,17 +43,19 @@ export const SSelectButton = ({
     <SFlex
       ref={anchorEl}
       m="auto"
-      onClick={onClick}
+      onClick={loading ? undefined : onClick}
       justify={'space-between'}
       align={'center'}
       px={3}
       width={'fit-content'}
       minWidth={minWidth}
       pr={2}
+      color={schema.color}
       sx={{
+        opacity: loading ? 0.5 : 1,
         borderRadius: '5px',
         borderColor: schema.borderColor,
-        cursor: 'pointer',
+        cursor: loading ? 'not-allowed' : 'pointer',
         backgroundColor: schema.backgroundColor,
         borderWidth: '1px',
         position: 'relative',
@@ -64,12 +74,16 @@ export const SSelectButton = ({
       <SText color={schema.color} fontSize={12} lineNumber={1}>
         {label}
       </SText>
-      <ArrowDropDown
-        sx={{
-          fontSize: 15,
-          color: schema.iconColor,
-        }}
-      />
+      {!loading ? (
+        <ArrowDropDown
+          sx={{
+            fontSize: 15,
+            color: schema.iconColor,
+          }}
+        />
+      ) : (
+        <CircularProgress size={10} sx={{ mr: 2 }} color="inherit" />
+      )}
     </SFlex>
   );
 };

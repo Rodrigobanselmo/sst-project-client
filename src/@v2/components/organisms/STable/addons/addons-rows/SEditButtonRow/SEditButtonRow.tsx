@@ -1,6 +1,12 @@
 import { ArrowDropDown } from '@mui/icons-material';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
-import { BoxProps, IconButton, Paper, TypographyProps } from '@mui/material';
+import {
+  BoxProps,
+  CircularProgress,
+  IconButton,
+  Paper,
+  TypographyProps,
+} from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { STextProps } from '@v2/components/atoms/SText/SText.types';
@@ -14,6 +20,7 @@ export interface SEditButtonRowProps {
   textProps?: STextProps;
   color?: string;
   icon?: React.ReactNode;
+  loading?: boolean;
 }
 
 export const SEditButtonRow = ({
@@ -23,6 +30,7 @@ export const SEditButtonRow = ({
   boxProps,
   textProps,
   color = 'text.main',
+  loading,
   icon = (
     <ArrowDropDown
       sx={{
@@ -42,6 +50,7 @@ export const SEditButtonRow = ({
       px={4}
       width={'fit-content'}
       pr={2}
+      color={color}
       {...boxProps}
       sx={{
         borderRadius: '5px',
@@ -60,13 +69,18 @@ export const SEditButtonRow = ({
           filter: 'brightness(0.9)',
           borderColor: 'gray.600',
         },
+        opacity: loading ? 0.5 : 1,
         ...boxProps?.sx,
       }}
     >
       <SText color={color} fontSize={12} lineNumber={1} {...textProps}>
         {label}
       </SText>
-      {icon}
+      {loading ? (
+        <CircularProgress size={10} sx={{ mr: 2 }} color="inherit" />
+      ) : (
+        icon
+      )}
     </SFlex>
   );
 };

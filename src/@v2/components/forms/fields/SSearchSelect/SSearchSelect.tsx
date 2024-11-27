@@ -66,7 +66,7 @@ export function SSearchSelect<T>({
   };
 
   return (
-    <Box flex={1} {...boxProps}>
+    <Box {...boxProps}>
       <PopperSelect
         loading={loading}
         renderItem={renderItem}

@@ -21,7 +21,6 @@ export interface SSelectProps<T>
   placeholder?: string;
   error?: any;
 }
-
 //! tem que ver pq não ta funcionando
 export function SSelect<T>({
   value,

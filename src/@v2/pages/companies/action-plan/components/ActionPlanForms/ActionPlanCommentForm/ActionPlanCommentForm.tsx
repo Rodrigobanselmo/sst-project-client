@@ -35,6 +35,7 @@ export const ActionPlanCommentForm = ({
   return (
     <SModalWrapper
       modalKey={ModalKeyEnum.ACTION_PLAN_COMMENT}
+      minWidthDesk={600}
       title="Justificativa"
       onSubmit={form.handleSubmit(onSubmit)}
     >

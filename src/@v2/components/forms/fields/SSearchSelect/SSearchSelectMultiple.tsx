@@ -119,38 +119,38 @@ export function SSearchSelectMultiple<T>({
                 }}
               />
             ),
-            startAdornment: (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, my: 3 }}>
-                {values?.map((option) => (
-                  <SFlex
-                    center
-                    key={getOptionLabel(option)}
-                    py={1}
-                    px={4}
-                    border="1px solid"
-                    borderColor={'primary.main'}
-                    borderRadius={'4px'}
-                  >
-                    <SText color="primary.main" fontSize={12}>
-                      {getOptionLabel(option) || ''}
-                    </SText>
-                    <IconButton
-                      sx={{ height: 16, width: 16 }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        handleSelect(option, e);
-                      }}
-                    >
-                      <CancelOutlinedIcon
-                        sx={{ fontSize: 16, color: 'primary.main' }}
-                      />
-                    </IconButton>
-                  </SFlex>
-                ))}
-              </Box>
-            ),
           }}
+          startAdornment={
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, my: 3 }}>
+              {values?.map((option) => (
+                <SFlex
+                  center
+                  key={getOptionLabel(option)}
+                  py={1}
+                  px={4}
+                  border="1px solid"
+                  borderColor={'primary.main'}
+                  borderRadius={'4px'}
+                >
+                  <SText color="primary.main" fontSize={12}>
+                    {getOptionLabel(option) || ''}
+                  </SText>
+                  <IconButton
+                    sx={{ height: 16, width: 16 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      e.preventDefault();
+                      handleSelect(option, e);
+                    }}
+                  >
+                    <CancelOutlinedIcon
+                      sx={{ fontSize: 16, color: 'primary.main' }}
+                    />
+                  </IconButton>
+                </SFlex>
+              ))}
+            </Box>
+          }
           sx={{
             whiteSpace: 'nowrap',
             textOverflow: 'ellipsis',

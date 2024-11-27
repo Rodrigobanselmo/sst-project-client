@@ -43,6 +43,7 @@ export function SSearchSelectButtonRow<T>({
           <STooltip title={label} placement="left" withWrapper minLength={15}>
             <SEditButtonRow
               onClick={(e) => {}}
+              loading={loading}
               label={label}
               textProps={{
                 sx: {

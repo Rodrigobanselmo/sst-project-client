@@ -12,17 +12,18 @@ export const SDatePickerRow: FC<SDatePickerRowProps> = ({
   onChange,
   onClear,
   emptyDate,
+  loading,
 }) => {
   return (
     <SDatePickerPopper
       value={date || undefined}
       onClear={onClear}
       onChange={(date) => {
-        console.log(99, date);
         if (date) onChange(date);
       }}
     >
       <SEditButtonRow
+        loading={loading}
         onClick={() => null}
         label={
           date ? dateUtils(date).format('DD [de] MMMM YYYY') : emptyDate || '-'

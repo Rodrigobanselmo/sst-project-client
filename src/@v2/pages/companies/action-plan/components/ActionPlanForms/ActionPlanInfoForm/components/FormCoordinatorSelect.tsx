@@ -19,6 +19,7 @@ export const FormCoordinatorSelect = ({ companyId }: { companyId: string }) => {
 
   return (
     <SSearchSelectForm
+      boxProps={{ flex: 1 }}
       name="coordinator"
       loading={!coordinators?.results || isLoading}
       getOptionValue={(option) => option.id}
@@ -36,7 +37,6 @@ export const FormCoordinatorSelect = ({ companyId }: { companyId: string }) => {
       onInputChange={(value) => console.log(value)}
       placeholder="Selecionar Coordenador"
       options={coordinators?.results || []}
-      boxProps={{ flex: 1 }}
     />
   );
 };

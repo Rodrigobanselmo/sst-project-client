@@ -11,6 +11,7 @@ export const FormActionPlanComment = () => {
       <SFormSection>
         <SFormRow>
           <SSearchSelectForm
+            boxProps={{ flex: 1 }}
             label="Motivo"
             name="textType"
             options={CommnetTextTypeMapList}

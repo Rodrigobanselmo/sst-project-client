@@ -1,9 +1,11 @@
 import { FC } from 'react';
 
-import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
+import { SOcupationalRiskTag } from '@v2/components/molecules/SOcupationalRiskTag/SOcupationalRiskTag';
+import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
+import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { SSelectHRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectHRow';
 import { SSelectRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectRow';
-import { SStatusButtonRow } from '../../addons/addons-rows/SStatusButtonRow/SStatusButtonRow';
 import { STextRow } from '../../addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
 import { STable } from '../../common/STable/STable';
@@ -13,24 +15,13 @@ import { STableHeader } from '../../common/STableHeader/STableHeader';
 import { STableRow } from '../../common/STableRow/STableRow';
 import { mapOrderByTable } from '../../helpers/map-order-by-table.helper';
 import { ActionPlanHeaderRow } from './components/ActionPlanHeaderRow/ActionPlanHeaderRow';
-import { ActionPlanColumnsEnum as columnsEnum } from './enums/action-plan-columns.enum';
-import { ActionPlanColumnMap as columnMap } from './maps/action-plan-column-map';
-import { HirarchyTypeMap } from './maps/hierarchy-type-map';
-import { IActionPlanTableTableProps } from './SActionPlanTable.types';
-import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
-import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
-import { getHiddenColumn } from './helpers/get-hidden-column';
-import { SOcupationalRiskTag } from '@v2/components/molecules/SOcupationalRiskTag/SOcupationalRiskTag';
-import { SSelectButtonRow } from '../../addons/addons-rows/SSelectButtonRow/SSelectButtonRow';
-import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
-import {
-  ActionPlanStatusTypeList,
-  ActionPlanStatusTypeMap,
-} from './maps/action-plan-status-type-map';
-import { SSearchSelectButtonRow } from '../../addons/addons-rows/SSearchSelectButtonRow/SSearchSelectButtonRow';
-import { SDatePickerRow } from '../../addons/addons-rows/SDatePickerRow/SDatePickerRow';
 import { ActionPlanResponsibleSelect } from './components/ActionPlanResponsibleSelect/ActionPlanResponsibleSelect';
+import { ActionPlanStatusSelect } from './components/ActionPlanStatusSelect/ActionPlanStatusSelect';
+import { ActionPlanValidDateSelect } from './components/ActionPlanValidDateSelect/ActionPlanValidDateSelect';
+import { ActionPlanColumnsEnum as columnsEnum } from './enums/action-plan-columns.enum';
+import { getHiddenColumn } from './helpers/get-hidden-column';
+import { ActionPlanColumnMap as columnMap } from './maps/action-plan-column-map';
+import { IActionPlanTableTableProps } from './SActionPlanTable.types';
 
 export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   companyId,
@@ -42,9 +33,6 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   pagination,
   setPage,
   setOrderBy,
-  onEditStatus,
-  onEditResponsible,
-  onEditValidy,
   onSelectRow,
   hiddenColumns,
   filterColumns,
@@ -281,15 +269,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
           text={columnMap[columnsEnum.STATUS].label}
         />
       ),
-      row: (row) => (
-        <SSelectButtonRow
-          label={ActionPlanStatusTypeMap[row.status].label}
-          options={ActionPlanStatusTypeList}
-          schema={ActionPlanStatusTypeMap[row.status].schema}
-          onSelect={(value) => onEditStatus(value, row)}
-          minWidth={95}
-        />
-      ),
+      row: (row) => <ActionPlanStatusSelect companyId={companyId} row={row} />,
     },
     // RESPONSIBLE
     {
@@ -306,11 +286,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <ActionPlanResponsibleSelect
-          companyId={companyId}
-          responsibleLabel={row.responsible?.name || '-'}
-          onEditResponsible={(value) => onEditResponsible(value, row)}
-        />
+        <ActionPlanResponsibleSelect companyId={companyId} row={row} />
       ),
     },
     // CREATED_AT
@@ -360,11 +336,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <SDatePickerRow
-          emptyDate="SEM PRAZO"
-          date={row.validDate}
-          onChange={(date) => onEditValidy(date, row)}
-        />
+        <ActionPlanValidDateSelect row={row} companyId={companyId} />
       ),
     },
   ];

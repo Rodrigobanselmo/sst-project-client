@@ -114,9 +114,7 @@ export class ActionPlanBrowseResultModel {
   }
 
   get id() {
-    return (
-      this.uuid.riskDataId + this.uuid.recommendationId + this.uuid.workspaceId
-    );
+    return `${this.uuid.riskDataId}--${this.uuid.recommendationId}--${this.uuid.workspaceId}`;
   }
 
   get originType() {
@@ -125,5 +123,14 @@ export class ActionPlanBrowseResultModel {
 
   get generateSourceNames() {
     return this.generateSource.map((source) => source.name).join(', ');
+  }
+
+  static fromId(id: string) {
+    const [riskDataId, recommendationId, workspaceId] = id.split('--');
+    return {
+      riskDataId,
+      recommendationId,
+      workspaceId,
+    };
   }
 }

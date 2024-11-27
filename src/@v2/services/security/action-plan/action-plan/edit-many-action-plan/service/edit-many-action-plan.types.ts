@@ -13,7 +13,7 @@ export interface EditManyActionPlanParams {
   validDate?: Date | null;
   status?: ActionPlanStatusEnum;
   comment?: {
-    text: string;
-    textType: CommentTextTypeEnum;
+    text?: string;
+    textType?: CommentTextTypeEnum;
   };
 }

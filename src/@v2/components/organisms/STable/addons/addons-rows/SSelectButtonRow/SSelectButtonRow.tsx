@@ -28,6 +28,7 @@ export interface SSelectButtonRowProps<T> {
   onClear?: () => void;
   schema?: SSelectButtonProps['schema'];
   minWidth?: number | number[];
+  loading?: boolean;
 }
 
 export function SSelectButtonRow<T>({
@@ -37,6 +38,7 @@ export function SSelectButtonRow<T>({
   schema,
   onClear,
   minWidth,
+  loading,
 }: SSelectButtonRowProps<T>) {
   const anchorEl = useRef<null | HTMLDivElement>(null);
   const { isOpen, toggle, close } = useDisclosure();
@@ -49,6 +51,7 @@ export function SSelectButtonRow<T>({
   return (
     <>
       <SSelectButton
+        loading={loading}
         schema={schema}
         minWidth={minWidth}
         onClick={toggle}

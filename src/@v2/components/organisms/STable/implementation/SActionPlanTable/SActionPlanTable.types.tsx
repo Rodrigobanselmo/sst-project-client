@@ -30,15 +30,6 @@ export interface IActionPlanTableTableProps {
   setPage: (page: number) => void;
   setOrderBy: (order: IOrderByParams<ActionPlanOrderByEnum>) => void;
   onSelectRow: (row: ActionPlanBrowseResultModel) => void;
-  onEditStatus: (
-    status: ActionPlanStatusEnum,
-    row: ActionPlanBrowseResultModel,
-  ) => void;
-  onEditResponsible: (
-    responsibleId: number | null,
-    row: ActionPlanBrowseResultModel,
-  ) => void;
-  onEditValidy: (date: Date | null, row: ActionPlanBrowseResultModel) => void;
   pagination?: {
     total: number;
     limit: number;

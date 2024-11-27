@@ -5,4 +5,5 @@ export type SDatePickerRowProps = {
   onClear?: () => void;
   date: Date | null;
   emptyDate?: string;
+  loading?: boolean;
 };

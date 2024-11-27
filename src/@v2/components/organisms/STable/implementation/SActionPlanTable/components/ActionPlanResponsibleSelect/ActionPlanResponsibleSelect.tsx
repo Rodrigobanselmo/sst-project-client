@@ -4,20 +4,24 @@ import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelect
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import { SSearchSelectButtonRow } from '@v2/components/organisms/STable/addons/addons-rows/SSearchSelectButtonRow/SSearchSelectButtonRow';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
+import { useActionPlanResponsiblesActions } from '@v2/pages/companies/action-plan/hooks/useActionPlanActionsResponisble';
 import { useFetchBrowseCoordinator } from '@v2/services/security/action-plan/user/browse-coordinators/hooks/useFetchBrowseCoordinators';
 import { useFetchBrowseResponsibles } from '@v2/services/security/action-plan/user/browse-responsibles/hooks/useFetchBrowseResponsibles';
 import { useState } from 'react';
 
 export const ActionPlanResponsibleSelect = ({
   companyId,
-  responsibleLabel,
-  onEditResponsible,
+  row,
 }: {
-  responsibleLabel: string;
+  row: ActionPlanBrowseResultModel;
   companyId: string;
-  onEditResponsible: (responsibleId: number | null) => void;
 }) => {
   const [search, setSearch] = useState('');
+  const { onEditActionPlanResponsible, isLoading: isLoadingEdit } =
+    useActionPlanResponsiblesActions({
+      companyId,
+    });
+
   const { responsibles, isLoading } = useFetchBrowseResponsibles({
     companyId,
     filters: {
@@ -31,11 +35,16 @@ export const ActionPlanResponsibleSelect = ({
 
   return (
     <SSearchSelectButtonRow
-      loading={isLoading}
+      loading={isLoading || isLoadingEdit}
       onSearch={setSearch}
-      label={responsibleLabel}
+      label={row.responsible?.name || '-'}
       options={responsibles?.results || []}
-      onSelect={(resp) => onEditResponsible(resp?.id || null)}
+      onSelect={(resp) =>
+        onEditActionPlanResponsible({
+          uuid: row.uuid,
+          responsibleId: resp?.id || null,
+        })
+      }
       getOptionLabel={(resp) => resp.name}
       getOptionValue={(resp) => resp.id}
     />

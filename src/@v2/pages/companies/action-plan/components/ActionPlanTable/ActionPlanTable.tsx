@@ -22,7 +22,6 @@ import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.tra
 import { ordenByActionPlanTranslation } from '@v2/models/security/translations/orden-by-action-plan.translation';
 import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/action-plan/browse-action-plan/hooks/useFetchBrowseActionPlan';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
-import { useActionPlanActions } from '../../hooks/useActionPlanActions';
 import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/ActionPlanTableFilter';
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
 
@@ -61,14 +60,6 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
       page: queryParams.page || 1,
       limit: queryParams.limit || limit,
     },
-  });
-
-  const {
-    onEditActionPlanResponsible,
-    onEditActionPlanValidy,
-    onEditActionPlanStatus,
-  } = useActionPlanActions({
-    companyId,
   });
 
   const { onOrderBy, orderChipList } = useOrderBy({
@@ -145,7 +136,7 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
             />
           ))}
         </STableFilterChipList>
-        <ActionPlanTableSelection table={table} stages={stages} />
+        <ActionPlanTableSelection table={table} companyId={companyId} />
       </STableInfoSection>
       <SActionPlanTable
         companyId={companyId}
@@ -170,15 +161,6 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
         }
         hiddenColumns={hiddenColumns}
         onSelectRow={(row) => null}
-        onEditStatus={(status, row) =>
-          onEditActionPlanStatus({ uuid: row.uuid, status })
-        }
-        onEditValidy={(date, row) =>
-          onEditActionPlanValidy({ uuid: row.uuid, valdityEndDate: date })
-        }
-        onEditResponsible={(responsibleId, row) =>
-          onEditActionPlanResponsible({ uuid: row.uuid, responsibleId })
-        }
         data={data?.results}
         isLoading={isLoading}
         pagination={data?.pagination}
