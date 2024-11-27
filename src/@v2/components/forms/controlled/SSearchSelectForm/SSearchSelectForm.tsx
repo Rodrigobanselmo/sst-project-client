@@ -1,4 +1,4 @@
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import {
   SSearchSelect,
   SSearchSelectProps,
@@ -14,7 +14,7 @@ export function SSearchSelectForm<T>({
   name,
   ...inputProps
 }: SSearchSelectFormProps<T>) {
-  const { setValue, formState, watch } = useFormContext();
+  const { setValue, formState, control } = useFormContext();
 
   const error = formState?.errors[name];
 
@@ -22,7 +22,7 @@ export function SSearchSelectForm<T>({
     ? findFirstNestedKeyValue(error, 'message')
     : undefined;
 
-  const value = watch(name);
+  const value = useWatch({ name, control });
 
   return (
     <SSearchSelect

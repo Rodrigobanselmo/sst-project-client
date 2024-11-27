@@ -10,7 +10,7 @@ export async function editActionPlanInfo({
 }: EditActionPlanInfoParams) {
   await api.post(
     bindUrlParams({
-      path: ActionPlanRoutes.ACTION_PLAN_INFO.GET,
+      path: ActionPlanRoutes.ACTION_PLAN_INFO.EDIT,
       pathParams: { companyId, workspaceId },
     }),
     body,

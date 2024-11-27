@@ -8,6 +8,7 @@ import { SStartAddonIcon } from '../../../addons/addons-rows/SSelectButtonRow/ad
 import DonutLargeIcon from '@mui/icons-material/DonutLarge';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import NotInterestedIcon from '@mui/icons-material/NotInterested';
+import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
 
 type ActionPlanStatusEnumTypeMapValue = {
   label: string;
@@ -25,7 +26,7 @@ export const ActionPlanStatusTypeMap: Record<
   ActionPlanStatusEnumTypeMapValue
 > = {
   [ActionPlanStatusEnum.PENDING]: {
-    label: 'Pendente',
+    label: ActionPlanStatusTypeTranslate[ActionPlanStatusEnum.PENDING],
     startAddon: (
       <SStartAddonIcon
         item={<DataUsageIcon sx={{ fontSize: 15, color: palette.grey[500] }} />}
@@ -39,7 +40,7 @@ export const ActionPlanStatusTypeMap: Record<
     },
   },
   [ActionPlanStatusEnum.PROGRESS]: {
-    label: 'Inciado',
+    label: ActionPlanStatusTypeTranslate[ActionPlanStatusEnum.PROGRESS],
     startAddon: (
       <SStartAddonIcon
         item={
@@ -55,7 +56,7 @@ export const ActionPlanStatusTypeMap: Record<
     },
   },
   [ActionPlanStatusEnum.DONE]: {
-    label: 'Concluído',
+    label: ActionPlanStatusTypeTranslate[ActionPlanStatusEnum.DONE],
     startAddon: (
       <SStartAddonIcon
         item={
@@ -72,7 +73,7 @@ export const ActionPlanStatusTypeMap: Record<
   },
 
   [ActionPlanStatusEnum.CANCELED]: {
-    label: 'Cancelado',
+    label: ActionPlanStatusTypeTranslate[ActionPlanStatusEnum.CANCELED],
     startAddon: (
       <SStartAddonIcon
         item={
@@ -92,7 +93,7 @@ export const ActionPlanStatusTypeMap: Record<
 export const ActionPlanStatusTypeList = Object.entries(
   ActionPlanStatusTypeMap,
 ).map(([value, { label, startAddon }]) => ({
-  value,
+  value: value as ActionPlanStatusEnum,
   startAddon,
   label,
 }));

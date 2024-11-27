@@ -18,7 +18,7 @@ import { ActionPlanColumnMap as columnMap } from './maps/action-plan-column-map'
 import { HirarchyTypeMap } from './maps/hierarchy-type-map';
 import { IActionPlanTableTableProps } from './SActionPlanTable.types';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/browse-action-plan/service/browse-action-plan.types';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { SOcupationalRiskTag } from '@v2/components/molecules/SOcupationalRiskTag/SOcupationalRiskTag';
@@ -28,10 +28,12 @@ import {
   ActionPlanStatusTypeList,
   ActionPlanStatusTypeMap,
 } from './maps/action-plan-status-type-map';
-import { SUserButtonRow } from '../../addons/addons-rows/SUserButtonRow/SUserButtonRow';
+import { SSearchSelectButtonRow } from '../../addons/addons-rows/SSearchSelectButtonRow/SSearchSelectButtonRow';
 import { SDatePickerRow } from '../../addons/addons-rows/SDatePickerRow/SDatePickerRow';
+import { ActionPlanResponsibleSelect } from './components/ActionPlanResponsibleSelect/ActionPlanResponsibleSelect';
 
 export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
+  companyId,
   data = [],
   table,
   filters,
@@ -41,7 +43,8 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   setPage,
   setOrderBy,
   onEditStatus,
-  onEditPosition,
+  onEditResponsible,
+  onEditValidy,
   onSelectRow,
   hiddenColumns,
   filterColumns,
@@ -284,6 +287,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
           options={ActionPlanStatusTypeList}
           schema={ActionPlanStatusTypeMap[row.status].schema}
           onSelect={(value) => onEditStatus(value, row)}
+          minWidth={95}
         />
       ),
     },
@@ -302,14 +306,10 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <SUserButtonRow
-          label={row.responsible?.name || '-'}
-          options={[
-            { name: 'Rodrigo Barbosa Anselmo', id: 1 },
-            { name: 'Alex Abreu Marins', id: 2 },
-            { name: 'Leticia Winer MArins', id: 3 },
-          ]}
-          onSelect={(value) => onEditStatus(null, row)}
+        <ActionPlanResponsibleSelect
+          companyId={companyId}
+          responsibleLabel={row.responsible?.name || '-'}
+          onEditResponsible={(value) => onEditResponsible(value, row)}
         />
       ),
     },
@@ -363,7 +363,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         <SDatePickerRow
           emptyDate="SEM PRAZO"
           date={row.validDate}
-          onChange={() => null}
+          onChange={(date) => onEditValidy(date, row)}
         />
       ),
     },

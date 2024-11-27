@@ -4,7 +4,7 @@ export interface IActionPlanInfoFormFormFields {
   coordinator?: {
     id: number;
     name: string;
-  };
+  } | null;
   validityStart?: Date;
   validityEnd?: Date;
   monthsLevel_2?: number;
@@ -28,7 +28,7 @@ export const schemaActionPlanInfoForm = yup.object({
   monthsLevel_3: yup.number().optional(),
   monthsLevel_4: yup.number().optional(),
   monthsLevel_5: yup.number().optional(),
-});
+}) as any;
 
 export const actionPlanInfoFormInitialValues =
   {} as IActionPlanInfoFormFormFields;

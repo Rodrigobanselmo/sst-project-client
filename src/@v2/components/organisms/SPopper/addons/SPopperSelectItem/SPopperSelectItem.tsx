@@ -10,7 +10,7 @@ type ISPopperSelectItemProps = {
   textProps?: STextProps;
   disabled?: boolean;
   selected?: boolean;
-  text?: string;
+  text?: ReactNode;
   startAddon?: ReactNode;
   compoent?: ReactNode;
 };

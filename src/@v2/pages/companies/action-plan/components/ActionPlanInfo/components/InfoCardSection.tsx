@@ -32,8 +32,8 @@ export const InfoCardSection = ({
     <SFlex
       gap={4}
       align={'center'}
-      sx={{ px: '16px' }}
-      height={'65px'}
+      sx={{ px: '16px', py: 4 }}
+      minHeight={'65px'}
       flexWrap={'wrap'}
       display="grid"
       gridTemplateColumns={gridColumns}

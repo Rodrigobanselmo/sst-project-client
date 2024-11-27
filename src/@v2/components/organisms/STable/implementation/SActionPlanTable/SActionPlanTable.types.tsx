@@ -4,7 +4,8 @@ import { TablesSelectEnum } from '../../hooks/useTableSelect';
 import { ReactNode } from 'react';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
 import { ActionPlanColumnsEnum } from './enums/action-plan-columns.enum';
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/browse-action-plan/service/browse-action-plan.types';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
+import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 
 export interface IActionPlanFilterProps {
   search?: string;
@@ -15,6 +16,7 @@ export interface IActionPlanFilterProps {
 }
 
 export interface IActionPlanTableTableProps {
+  companyId: string;
   data?: ActionPlanBrowseResultModel[];
   table: TablesSelectEnum;
   hiddenColumns: Record<ActionPlanColumnsEnum, boolean>;
@@ -29,13 +31,14 @@ export interface IActionPlanTableTableProps {
   setOrderBy: (order: IOrderByParams<ActionPlanOrderByEnum>) => void;
   onSelectRow: (row: ActionPlanBrowseResultModel) => void;
   onEditStatus: (
-    status: string | null,
+    status: ActionPlanStatusEnum,
     row: ActionPlanBrowseResultModel,
   ) => void;
-  onEditPosition: (
-    position: number | null,
+  onEditResponsible: (
+    responsibleId: number | null,
     row: ActionPlanBrowseResultModel,
   ) => void;
+  onEditValidy: (date: Date | null, row: ActionPlanBrowseResultModel) => void;
   pagination?: {
     total: number;
     limit: number;

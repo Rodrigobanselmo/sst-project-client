@@ -1,4 +1,4 @@
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/browse-action-plan/service/browse-action-plan.types';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 
 type OrderByTranslationMap = Record<ActionPlanOrderByEnum, string>;
 

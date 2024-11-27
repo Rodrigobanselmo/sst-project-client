@@ -12,11 +12,12 @@ import { useRouter } from 'next/router';
 
 const ActionPlanPage: NextPage = () => {
   const router = useRouter();
-  const companyId = router.query.companyId as string;
-
   const { queryParams, setQueryParams } = useQueryParamsState<{
     tabWorkspaceId?: string;
   }>();
+
+  const companyId = router.query.companyId as string;
+  const workspaceId = queryParams.tabWorkspaceId;
 
   return (
     <>
@@ -28,11 +29,13 @@ const ActionPlanPage: NextPage = () => {
           workspaceId={queryParams.tabWorkspaceId}
           companyId={companyId}
         >
-          <ActionPlanInfo
-            mb={[14]}
-            companyId={companyId}
-            workspaceId={queryParams.tabWorkspaceId}
-          />
+          {workspaceId && (
+            <ActionPlanInfo
+              mb={[14]}
+              companyId={companyId}
+              workspaceId={workspaceId}
+            />
+          )}
           <ActionPlanTable workspaceId={queryParams.tabWorkspaceId} />
         </STabsAllWorkspace>
       </SContainer>

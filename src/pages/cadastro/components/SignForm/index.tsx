@@ -21,6 +21,7 @@ import { useAuth } from 'core/contexts/AuthContext';
 import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import { PasswordInputs } from '../PasswordInputs/PasswordInputs';
 import { useSnackbar } from 'notistack';
+import { useOnlineStatus } from 'core/hooks/useOnlineStatus';
 
 const ReCAPTCHAComp = ReCAPTCHA as any;
 
@@ -31,7 +32,8 @@ export const LoginForm: FC = () => {
 
   const { handleSubmit, control, setValue, watch, setError } = formProps;
 
-  const [isCaptchaVerified, setIsCaptchaVerified] = useState(false);
+  const { isLocal } = useOnlineStatus();
+  const [isCaptchaVerified, setIsCaptchaVerified] = useState(isLocal || false);
   const { mutate, isLoading } = useMutationSign();
   const { googleSignUp } = useAuth();
   const router = useRouter();

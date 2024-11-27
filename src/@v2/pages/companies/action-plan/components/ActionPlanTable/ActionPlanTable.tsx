@@ -20,8 +20,8 @@ import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
 import { ordenByActionPlanTranslation } from '@v2/models/security/translations/orden-by-action-plan.translation';
-import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/browse-action-plan/hooks/useFetchBrowseActionPlan';
-import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/browse-action-plan/service/browse-action-plan.types';
+import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/action-plan/browse-action-plan/hooks/useFetchBrowseActionPlan';
+import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { useActionPlanActions } from '../../hooks/useActionPlanActions';
 import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/ActionPlanTableFilter';
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
@@ -63,7 +63,13 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
     },
   });
 
-  const { handleActionPlanEditStage } = useActionPlanActions({ companyId });
+  const {
+    onEditActionPlanResponsible,
+    onEditActionPlanValidy,
+    onEditActionPlanStatus,
+  } = useActionPlanActions({
+    companyId,
+  });
 
   const { onOrderBy, orderChipList } = useOrderBy({
     orderByList: queryParams.orderBy,
@@ -142,6 +148,7 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
         <ActionPlanTableSelection table={table} stages={stages} />
       </STableInfoSection>
       <SActionPlanTable
+        companyId={companyId}
         table={table}
         filterColumns={
           {
@@ -162,10 +169,16 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }
         hiddenColumns={hiddenColumns}
-        // onSelectRow={(row) => console.log(row)}
         onSelectRow={(row) => null}
-        onEditStatus={(status, row) => handleActionPlanEditStage(row)}
-        onEditPosition={(order, row) => console.log({ ...row, order })}
+        onEditStatus={(status, row) =>
+          onEditActionPlanStatus({ uuid: row.uuid, status })
+        }
+        onEditValidy={(date, row) =>
+          onEditActionPlanValidy({ uuid: row.uuid, valdityEndDate: date })
+        }
+        onEditResponsible={(responsibleId, row) =>
+          onEditActionPlanResponsible({ uuid: row.uuid, responsibleId })
+        }
         data={data?.results}
         isLoading={isLoading}
         pagination={data?.pagination}

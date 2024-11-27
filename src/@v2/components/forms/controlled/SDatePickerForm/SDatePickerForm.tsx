@@ -1,5 +1,5 @@
 import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
-import { useFormContext } from 'react-hook-form';
+import { useFormContext, useWatch } from 'react-hook-form';
 import {
   SDatePicker,
   SDatePickerProps,
@@ -11,7 +11,7 @@ interface SDatePickerFormProps
 }
 
 export function SDatePickerForm({ name, ...props }: SDatePickerFormProps) {
-  const { setValue, formState, watch } = useFormContext();
+  const { setValue, formState, control } = useFormContext();
 
   const error = formState?.errors[name];
 
@@ -19,7 +19,7 @@ export function SDatePickerForm({ name, ...props }: SDatePickerFormProps) {
     ? findFirstNestedKeyValue(error, 'message')
     : undefined;
 
-  const value = watch(name);
+  const value = useWatch({ name, control });
 
   return (
     <SDatePicker

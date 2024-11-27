@@ -78,9 +78,9 @@ export const SInput: FC<SInputProps> = ({
 
   const getLabel = () => {
     if (!isShrinkLabel && !value) {
-      return labelShrink ?? label;
-    } else {
       return label ?? labelShrink;
+    } else {
+      return labelShrink ?? label;
     }
   };
 

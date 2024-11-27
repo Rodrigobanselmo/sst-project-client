@@ -4,13 +4,13 @@ import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
-import { useFetchReadActionPlanInfo } from '@v2/services/security/action-plan/read-action-plan-info/hooks/useFetchReadActionPlanInfo';
-import { useActionPlanActions } from '../../hooks/useActionPlanActions';
+import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
+import { useFetchReadActionPlanInfo } from '@v2/services/security/action-plan/action-plan-info/read-action-plan-info/hooks/useFetchReadActionPlanInfo';
+import { useActionPlanInfoActions } from '../../hooks/useActionPlanInfoActions';
 import { InfoCardAvatar } from './components/InfoCardAvatar';
 import { InfoCardSection } from './components/InfoCardSection';
 import { InfoCardText } from './components/InfoCardText';
-import { Skeleton } from '@mui/material';
-import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
+import { SInputMultiline } from '@v2/components/forms/fields/SInputMultiline/SInputMultiline';
 
 export const ActionPlanInfo = ({
   mb,
@@ -19,14 +19,14 @@ export const ActionPlanInfo = ({
 }: {
   mb: number[];
   companyId: string;
-  workspaceId?: string;
+  workspaceId: string;
 }) => {
   const { data, isLoading } = useFetchReadActionPlanInfo({
     companyId,
-    workspaceId: workspaceId || '',
+    workspaceId: workspaceId,
   });
 
-  const { handleEditActionPlanInfo } = useActionPlanActions({
+  const { onAddActionPlanInfo } = useActionPlanInfoActions({
     companyId,
     workspaceId,
   });
@@ -46,12 +46,12 @@ export const ActionPlanInfo = ({
           <SFlex gap={6}>
             <InfoCardAvatar icon={<SIconUser />} />
             <InfoCardText
-              schema="error"
+              schema={data.coordinator ? 'normal' : 'error'}
               label="Coordenador"
               text={data?.coordinatorName}
             />
           </SFlex>
-          <SIconButton onClick={handleEditActionPlanInfo}>
+          <SIconButton onClick={onAddActionPlanInfo}>
             <SIconEdit fontSize={22} color="grey.600" />
           </SIconButton>
         </InfoCardSection>

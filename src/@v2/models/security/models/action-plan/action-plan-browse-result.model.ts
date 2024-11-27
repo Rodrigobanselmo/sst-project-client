@@ -9,7 +9,7 @@ import { ActionPlanStatusEnum } from '../../enums/action-plan-status.enum';
 import { originTypeTranslation } from '../../translations/origin-type.translation';
 
 export type IActionPlanBrowseResultModel = {
-  uuid: { riskDataId: string; recommendationId: string };
+  uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
   createdAt: Date;
   updatedAt: Date | null;
   startDate: Date | null;
@@ -27,7 +27,7 @@ export type IActionPlanBrowseResultModel = {
 };
 
 export class ActionPlanBrowseResultModel {
-  uuid: { riskDataId: string; recommendationId: string };
+  uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
   createdAt: Date;
   updatedAt: Date | null;
   startDate: Date | null;
@@ -114,7 +114,9 @@ export class ActionPlanBrowseResultModel {
   }
 
   get id() {
-    return this.uuid.riskDataId + this.uuid.recommendationId;
+    return (
+      this.uuid.riskDataId + this.uuid.recommendationId + this.uuid.workspaceId
+    );
   }
 
   get originType() {

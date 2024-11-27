@@ -2,9 +2,9 @@ import { ReactNode } from 'react';
 import { create } from 'zustand';
 
 export enum ModalKeyEnum {
-  TEST = 'TEST',
   // ACTION PLAN
-  EDIT_ACTION_PLAN_INFO = 'EDIT_ACTION_PLAN_INFO',
+  ACTION_PLAN_INFO_EDIT = 'ACTION_PLAN_INFO_EDIT',
+  ACTION_PLAN_COMMENT = 'ACTION_PLAN_COMMENT',
 }
 
 interface SelectState {

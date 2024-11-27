@@ -1,9 +1,5 @@
 import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
-import { useFormContext } from 'react-hook-form';
-import {
-  SDatePicker,
-  SDatePickerProps,
-} from '../../fields/SDatePicker/SDatePicker';
+import { useFormContext, useWatch } from 'react-hook-form';
 import { SAutocompleteFreeSolo } from '../../fields/SAutocompleteFreeSolo/SAutocompleteFreeSolo';
 import { SAutocompleteFreeSoloProps } from '../../fields/SAutocompleteFreeSolo/SAutocompleteFreeSolo.types';
 
@@ -25,7 +21,7 @@ export function SAutocompleteFreeSoloForm<
   D extends boolean | undefined,
   F extends boolean | undefined,
 >({ name, ...props }: SAutocompleteFreeSoloFormProps<T, M, D, F>) {
-  const { setValue, formState, watch } = useFormContext();
+  const { setValue, formState, control } = useFormContext();
 
   const error = formState?.errors[name];
 
@@ -33,7 +29,7 @@ export function SAutocompleteFreeSoloForm<
     ? findFirstNestedKeyValue(error, 'message')
     : undefined;
 
-  const value = watch(name);
+  const value = useWatch({ name, control });
 
   return (
     <SAutocompleteFreeSolo

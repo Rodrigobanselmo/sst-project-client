@@ -10,6 +10,7 @@ export interface SSelectButtonProps {
   label: string;
   anchorEl: React.RefObject<HTMLDivElement>;
   onClick: () => void;
+  minWidth?: number | number[];
   schema?: {
     color: string;
     borderColor: string;
@@ -22,6 +23,7 @@ export const SSelectButton = ({
   label,
   onClick,
   anchorEl,
+  minWidth,
   schema = {
     color: theme.palette.text.medium,
     borderColor: theme.palette.grey[400],
@@ -38,6 +40,7 @@ export const SSelectButton = ({
       align={'center'}
       px={3}
       width={'fit-content'}
+      minWidth={minWidth}
       pr={2}
       sx={{
         borderRadius: '5px',

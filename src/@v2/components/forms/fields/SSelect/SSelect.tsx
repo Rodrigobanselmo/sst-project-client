@@ -22,19 +22,7 @@ export interface SSelectProps<T>
   error?: any;
 }
 
-// <SSelect
-// label="selecione"
-// getOptionLabel={(option) => option.label}
-// getOptionValue={(option) => option?.label}
-// onChange={(value) => setValueSelect(value)}
-// options={[
-//   { label: 'Rodrigo', value: 1 },
-//   { label: 'Barbosa', value: 2 },
-//   { label: 'Anselmo', value: 3 },
-// ]}
-// value={valueSelect}
-// />
-
+//! tem que ver pq não ta funcionando
 export function SSelect<T>({
   value,
   labelShrink,
@@ -123,3 +111,16 @@ export function SSelect<T>({
     </SelectFormControl>
   );
 }
+
+// <SSelect
+// label="selecione"
+// getOptionLabel={(option) => option.label}
+// getOptionValue={(option) => option?.label}
+// onChange={(value) => setValueSelect(value)}
+// options={[
+//   { label: 'Rodrigo', value: 1 },
+//   { label: 'Barbosa', value: 2 },
+//   { label: 'Anselmo', value: 3 },
+// ]}
+// value={valueSelect}
+// />

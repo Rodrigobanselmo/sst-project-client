@@ -15,7 +15,7 @@ export function InputEndAdormentSelect({
       <InputAdornment
         className="close-icon"
         position="end"
-        sx={{ cursor: 'pointer ', mr: 8 }}
+        sx={{ cursor: 'pointer ', mr: 0 }}
         onClick={(e) => {
           onClear?.(e);
         }}

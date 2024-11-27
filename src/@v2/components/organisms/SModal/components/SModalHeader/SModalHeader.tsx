@@ -18,7 +18,7 @@ export const SModalHeader: FC<SModalHeaderProps> = ({ title, onClose }) => {
       width="100%"
       justifyContent="space-between"
       alignItems="flex-start"
-      mb={5}
+      mb={16}
     >
       {typeof title === 'string' && (
         <SText width="70%" fontWeight="500" fontSize={[12, 15, 20]}>

@@ -2,8 +2,8 @@ import { ReactNode, useState } from 'react';
 import { SInput } from '../SInput/SInput';
 import { SInputProps } from '../SInput/SInput.types';
 import { InputEndAdormentSelect } from './components/InputEndAdormentSelect/InputEndAdormentSelect';
-import { PopperSelect } from './components/PopperSelect/PopperSelect';
 import { Box, BoxProps } from '@mui/material';
+import { PopperSelect } from './components/PopperSelect/PopperSelect';
 
 export interface SSearchSelectProps<Value> {
   options: Value[];
@@ -26,7 +26,7 @@ export interface SSearchSelectProps<Value> {
     isSelected: boolean;
     handleSelect: (e: any) => void;
   }) => ReactNode;
-
+  onSearch?: (value: string) => void;
   renderItem?: (args: {
     option: Value;
     label: string;
@@ -51,6 +51,7 @@ export function SSearchSelect<T>({
   renderFullOption,
   onScrollEnd,
   boxProps,
+  onSearch,
 }: SSearchSelectProps<T>) {
   const [shrink, setShrink] = useState(false);
 
@@ -58,8 +59,14 @@ export function SSearchSelect<T>({
     onChange(value, e);
   };
 
+  const handleClean = (event: React.SyntheticEvent) => {
+    event.stopPropagation();
+    onInputChange?.('', event);
+    onChange(null, event);
+  };
+
   return (
-    <Box {...boxProps}>
+    <Box flex={1} {...boxProps}>
       <PopperSelect
         loading={loading}
         renderItem={renderItem}
@@ -71,6 +78,8 @@ export function SSearchSelect<T>({
         selected={value ? [value] : []}
         onScrollEnd={onScrollEnd}
         options={options}
+        onClean={handleClean}
+        onSearchFunc={onSearch}
       >
         {Component && <Component />}
         {!Component && (
@@ -87,18 +96,16 @@ export function SSearchSelect<T>({
             helperText={errorMessage}
             placeholder={placeholder}
             label={label}
-            inputProps={{
-              endAdornment: (
-                <InputEndAdormentSelect
-                  loading={loading}
-                  onClear={(e) => {
-                    e.stopPropagation();
-                    onInputChange?.('', e);
-                    onChange(null, e);
-                  }}
-                />
-              ),
-            }}
+            endAdornment={
+              <InputEndAdormentSelect
+                loading={loading}
+                onClear={(e) => {
+                  e.stopPropagation();
+                  onInputChange?.('', e);
+                  onChange(null, e);
+                }}
+              />
+            }
             sx={{
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',

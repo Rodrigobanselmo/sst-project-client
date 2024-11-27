@@ -11,26 +11,32 @@ import { useRef } from 'react';
 import { SEditButtonRow } from '../SEditButtonRow/SEditButtonRow';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 
-export interface SUserButtonRowProps {
-  options: { name: string; id: number }[];
+export interface SSearchSelectButtonRowProps<T> {
+  options: T[];
+  loading?: boolean;
   label: string;
-  onSelect: (id: number | null) => void;
+  onSelect: (option: T | null) => void;
+  getOptionLabel: (option: T) => string;
+  getOptionValue: (option: T) => string | number | boolean;
+  onSearch?: (value: string) => void;
 }
 
-export function SUserButtonRow({
+export function SSearchSelectButtonRow<T>({
   options,
   label,
+  getOptionLabel,
+  getOptionValue,
   onSelect,
-}: SUserButtonRowProps) {
+  loading,
+  onSearch,
+}: SSearchSelectButtonRowProps<T>) {
   return (
     <SSearchSelect
-      label="Status"
-      value={{ id: 1, name: 'Rodrigo Barbosa Anselmo' }}
-      getOptionLabel={(option) => option?.name}
-      getOptionValue={(option) => option?.id}
-      onChange={(option) => console.log(option)}
-      onInputChange={(value) => console.log(value)}
-      placeholder="selecione um ou mais status"
+      loading={loading}
+      getOptionLabel={getOptionLabel}
+      getOptionValue={getOptionValue}
+      onSearch={onSearch}
+      onChange={(option) => onSelect(option)}
       options={options}
       component={() => (
         <Box>
