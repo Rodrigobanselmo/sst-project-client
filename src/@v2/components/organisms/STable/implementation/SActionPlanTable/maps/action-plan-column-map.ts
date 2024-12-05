@@ -27,15 +27,6 @@ export const ActionPlanColumnMap: Record<
     label: 'Atualizado',
     startHidden: true,
   },
-  [ActionPlanColumnsEnum.DIRECTORY]: { label: 'Diretório', startHidden: true },
-  [ActionPlanColumnsEnum.MANAGEMENT]: { label: 'Gerência', startHidden: true },
-  [ActionPlanColumnsEnum.SECTOR]: { label: 'Setor', startHidden: true },
-  [ActionPlanColumnsEnum.SUB_SECTOR]: { label: 'Subsetor', startHidden: true },
-  [ActionPlanColumnsEnum.OFFICE]: { label: 'Cargo', startHidden: true },
-  [ActionPlanColumnsEnum.SUB_OFFICE]: {
-    label: 'Cargo Desenvolvido',
-    startHidden: true,
-  },
   [ActionPlanColumnsEnum.VALID_DATE]: { label: 'Prazo' },
 };
 
