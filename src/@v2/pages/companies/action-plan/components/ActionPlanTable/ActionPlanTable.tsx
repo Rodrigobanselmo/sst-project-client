@@ -24,6 +24,8 @@ import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/acti
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/ActionPlanTableFilter';
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
+import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
+import { OcupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
 
 const limit = 15;
 const table = TablesSelectEnum.ACTION_PLAN;
@@ -44,9 +46,18 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
     companyId,
     filters: {
       search: queryParams.search,
+      ocupationalRisks: queryParams.ocupationalRisks,
+      status: queryParams.status,
+      isExpired: queryParams.isExpired || undefined,
+      responisbleIds: queryParams.responsibles?.map((resp) => resp.id),
       workspaceIds: workspaceId ? [workspaceId] : undefined,
+      hierarchyIds: queryParams.hierarchies?.map((hierarchy) => hierarchy.id),
     },
     orderBy: queryParams.orderBy || [
+      {
+        field: ActionPlanOrderByEnum.STATUS,
+        order: 'asc',
+      },
       {
         field: ActionPlanOrderByEnum.LEVEL,
         order: 'desc',
@@ -69,28 +80,71 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
     getLeftLabel: ({ field }) => ordenByActionPlanTranslation[field],
   });
 
-  const stages = data?.filters?.stages || [];
-  const selectedStages =
-    stages.filter((stage) => queryParams.stageIds?.includes(stage.id)) || [];
-
   const { onCleanData, onFilterData, paramsChipList } = useTableState({
     data: queryParams,
     setData: setQueryParams,
     chipMap: {
       search: null,
-      stageIds: (value) => ({
-        leftLabel: 'Status',
-        label: selectedStages.find((stage) => stage.id === value)?.name || '',
+      isExpired: (value) => ({
+        leftLabel: 'Responsável',
+        label: value ? 'Expirado' : 'Não Expirado',
         onDelete: () =>
           setQueryParams({
-            stageIds: queryParams.stageIds?.filter((id) => id !== value),
+            page: 1,
+            isExpired: value,
+          }),
+      }),
+      responsibles: (value) => ({
+        leftLabel: 'Responsável',
+        label: value.name,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            responsibles: queryParams.responsibles?.filter(
+              (responsible) => responsible.id !== value.id,
+            ),
+          }),
+      }),
+      hierarchies: (value) => ({
+        leftLabel: 'Hierarquia',
+        label: value.name,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            hierarchies: queryParams.hierarchies?.filter(
+              (h) => h.id !== value.id,
+            ),
+          }),
+      }),
+      status: (value) => ({
+        leftLabel: 'Status',
+        label: ActionPlanStatusTypeTranslate[value],
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            status: queryParams.status?.filter((id) => id !== value),
+          }),
+      }),
+      ocupationalRisks: (value) => ({
+        leftLabel: 'Nível',
+        label: OcupationalRiskLevelTranslation[value],
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            ocupationalRisks: queryParams.ocupationalRisks?.filter(
+              (id) => id !== value,
+            ),
           }),
       }),
     },
     cleanData: {
       search: '',
+      isExpired: null,
       orderBy: [],
-      stageIds: [],
+      status: [],
+      ocupationalRisks: [],
+      responsibles: [],
+      hierarchies: [],
       page: 1,
       limit,
     },
@@ -113,8 +167,9 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
           <STableFilterButton>
             <ActionPlanTableFilter
               onFilterData={onFilterData}
-              selectedStages={selectedStages}
-              stages={stages}
+              filters={queryParams}
+              companyId={companyId}
+              workspaceId={workspaceId}
             />
           </STableFilterButton>
           <STableButtonDivider />

@@ -27,6 +27,7 @@ export interface SSearchSelectProps<Value> {
     handleSelect: (e: any) => void;
   }) => ReactNode;
   onSearch?: (value: string) => void;
+  popperStartCompoent?: React.ReactNode;
   renderItem?: (args: {
     option: Value;
     label: string;
@@ -52,6 +53,7 @@ export function SSearchSelect<T>({
   onScrollEnd,
   boxProps,
   onSearch,
+  popperStartCompoent,
 }: SSearchSelectProps<T>) {
   const [shrink, setShrink] = useState(false);
 
@@ -68,6 +70,7 @@ export function SSearchSelect<T>({
   return (
     <Box {...boxProps}>
       <PopperSelect
+        startCompoent={popperStartCompoent}
         loading={loading}
         renderItem={renderItem}
         renderFullOption={renderFullOption}

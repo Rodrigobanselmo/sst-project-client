@@ -18,4 +18,7 @@ export const ActionPlanRoutes = {
   COORDINATOR: {
     BROWSE: 'v2/companies/:companyId/action-plans/condinators',
   },
+  HIERARCHY: {
+    BROWSE: 'v2/companies/:companyId/action-plans/hierarchies',
+  },
 } as const;

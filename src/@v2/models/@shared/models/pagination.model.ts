@@ -14,4 +14,12 @@ export class PaginationModel {
     this.limit = limit;
     this.page = page;
   }
+
+  get nextPage() {
+    if (this.page * this.limit >= this.total) {
+      return null;
+    }
+
+    return this.page + 1;
+  }
 }

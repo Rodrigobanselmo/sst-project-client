@@ -1,4 +1,4 @@
-import { QueryKeyWorkspaceEnum } from '@v2/constants/enums/company-query-key.enum';
+import { QueryKeyCompanyEnum } from '@v2/constants/enums/company-query-key.enum';
 import { useFetch } from '@v2/hooks/api/useFetch';
 import { browseAllWorkspaces } from '../service/browse-all-workspaces.service';
 import { BrowseAllWorkspacesParams } from '../service/browse-all-workspaces.types';
@@ -11,9 +11,9 @@ export const useFetchBrowseAllWorkspaces = (
       return browseAllWorkspaces(params);
     },
     queryKey: [
-      QueryKeyWorkspaceEnum.WORKSPACE,
+      QueryKeyCompanyEnum.COMPANY_WORKSPACE,
       params.companyId,
-      QueryKeyWorkspaceEnum.WORKSPACE_ALL,
+      QueryKeyCompanyEnum.COMPANY_WORKSPACE_ALL,
       params,
     ],
   });

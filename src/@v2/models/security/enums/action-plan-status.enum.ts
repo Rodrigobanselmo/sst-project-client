@@ -2,6 +2,6 @@ export enum ActionPlanStatusEnum {
   PENDING = 'PENDING',
   PROGRESS = 'PROGRESS',
   CANCELED = 'CANCELED',
-  // EXPIRED = 'EXPIRED',
+  REJECTED = 'REJECTED',
   DONE = 'DONE',
 }

@@ -9,7 +9,7 @@ export const useMutateEditStatus = () => {
   const mutate = useMutate({
     mutationFn: editStatus,
     invalidateQueryKey: (_, variables) => [
-      QueryKeyCharacterizationEnum.STATUS,
+      QueryKeyCharacterizationEnum.CHARACTERIZATIONS_STATUS,
       variables.companyId,
     ],
     onSuccess: () => onSuccessMessage('Status editado com sucesso'),

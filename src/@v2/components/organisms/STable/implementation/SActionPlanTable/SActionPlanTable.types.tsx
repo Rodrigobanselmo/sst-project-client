@@ -6,10 +6,21 @@ import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-p
 import { ActionPlanColumnsEnum } from './enums/action-plan-columns.enum';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
+import { IRiskLevelValues } from '@v2/models/security/types/risk-level-values.type';
 
 export interface IActionPlanFilterProps {
   search?: string;
-  stageIds?: number[];
+  status?: ActionPlanStatusEnum[];
+  isExpired?: boolean | null;
+  ocupationalRisks?: IRiskLevelValues[];
+  hierarchies?: {
+    id: string;
+    name: string;
+  }[];
+  responsibles?: {
+    id: number;
+    name: string;
+  }[];
   page?: number;
   limit?: number;
   orderBy?: IOrderByParams<ActionPlanOrderByEnum>[];

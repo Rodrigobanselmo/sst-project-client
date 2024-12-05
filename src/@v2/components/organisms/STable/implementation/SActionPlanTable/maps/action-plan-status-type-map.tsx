@@ -88,12 +88,32 @@ export const ActionPlanStatusTypeMap: Record<
       backgroundColor: palette.schema.redFade,
     },
   },
+  [ActionPlanStatusEnum.REJECTED]: {
+    label: ActionPlanStatusTypeTranslate[ActionPlanStatusEnum.REJECTED],
+    startAddon: (
+      <SStartAddonIcon
+        item={
+          <NotInterestedIcon sx={{ fontSize: 15, color: palette.schema.red }} />
+        }
+      />
+    ),
+    schema: {
+      color: palette.schema.red,
+      borderColor: palette.schema.red,
+      iconColor: palette.schema.red,
+      backgroundColor: palette.schema.redFade,
+    },
+  },
 };
 
-export const ActionPlanStatusTypeList = Object.entries(
+export const ActionPlanStatusTypeFilterList = Object.entries(
   ActionPlanStatusTypeMap,
 ).map(([value, { label, startAddon }]) => ({
   value: value as ActionPlanStatusEnum,
   startAddon,
   label,
 }));
+
+export const ActionPlanStatusTypeList = ActionPlanStatusTypeFilterList.filter(
+  (option) => option.value !== ActionPlanStatusEnum.REJECTED,
+);

@@ -40,7 +40,7 @@ export const ActionPlanTableResponsibleSelection = ({
       options={responsibles?.results || []}
       onSearch={setSearch}
       loading={isLoading || isLoadingEdit}
-      label="Status"
+      label="Responsável"
       getOptionLabel={(option) => option.name}
       getOptionValue={(option) => option.id}
       onChange={(option) => {

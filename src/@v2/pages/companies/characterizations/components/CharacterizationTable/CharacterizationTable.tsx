@@ -114,6 +114,7 @@ export const CharacterizationTable = () => {
         label: selectedStages.find((stage) => stage.id === value)?.name || '',
         onDelete: () =>
           setQueryParams({
+            page: 1,
             stageIds: queryParams.stageIds?.filter((id) => id !== value),
           }),
       }),

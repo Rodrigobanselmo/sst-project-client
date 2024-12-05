@@ -8,4 +8,5 @@ export const ActionPlanStatusTypeTranslate: Record<
   [ActionPlanStatusEnum.PROGRESS]: 'Inciado',
   [ActionPlanStatusEnum.DONE]: 'Concluído',
   [ActionPlanStatusEnum.CANCELED]: 'Cancelado',
+  [ActionPlanStatusEnum.REJECTED]: 'Rejeitado',
 };

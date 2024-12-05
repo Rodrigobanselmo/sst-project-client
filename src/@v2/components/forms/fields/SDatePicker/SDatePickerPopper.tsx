@@ -41,7 +41,6 @@ export function SDatePickerPopper({
   };
 
   const handleAccpet = (date: Date | null) => {
-    console.log(9999);
     onChange?.(date);
     handleClose();
   };

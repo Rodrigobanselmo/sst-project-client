@@ -9,7 +9,7 @@ export const useMutateDeleteStatus = () => {
   const mutate = useMutate({
     mutationFn: deleteStatus,
     invalidateQueryKey: (_, variables) => [
-      QueryKeyCharacterizationEnum.STATUS,
+      QueryKeyCharacterizationEnum.CHARACTERIZATIONS_STATUS,
       variables.companyId,
     ],
     onSuccess: () => onSuccessMessage('Status deleteado com sucesso'),

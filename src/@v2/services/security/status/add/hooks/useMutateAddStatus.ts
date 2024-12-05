@@ -10,7 +10,7 @@ export const useMutateAddStatus = () => {
   const mutate = useMutate({
     mutationFn: addStatus,
     invalidateQueryKey: (_, variables) => [
-      QueryKeyCharacterizationEnum.STATUS,
+      QueryKeyCharacterizationEnum.CHARACTERIZATIONS_STATUS,
       variables.companyId,
     ],
     onSuccess: () => onSuccessMessage('Status adicionado com sucesso'),

@@ -1,5 +1,11 @@
 import CloseIcon from '@mui/icons-material/Close';
-import { Box, IconButton, Input, InputAdornment } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  Input,
+  InputAdornment,
+  MenuItemProps,
+} from '@mui/material';
 import { SIconSearch } from '@v2/assets/icons/SIconSearch/SIconSearch';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -9,10 +15,11 @@ import { SPopperSelect } from '@v2/components/organisms/SPopper/addons/SPopperSe
 import { SPopperSelectItem } from '@v2/components/organisms/SPopper/addons/SPopperSelectItem/SPopperSelectItem';
 import { SPopperArrow } from '@v2/components/organisms/SPopper/SPopper';
 import { useDisclosure } from '@v2/hooks/useDisclosure';
-import { ReactNode, useRef } from 'react';
+import { memo, ReactNode, useEffect, useRef } from 'react';
 
 export interface PopperSelectBaseProps<Value> {
   children: ReactNode;
+  startCompoent?: ReactNode;
   getOptionLabel: (option: Value) => string;
   getOptionValue: (option: Value) => string | number | boolean;
   renderItem?: (args: {
@@ -32,6 +39,7 @@ export interface PopperSelectBaseProps<Value> {
   selected: Value[];
   closeOnSelect?: boolean;
   loading?: boolean;
+  popperItemProps?: MenuItemProps;
 }
 
 interface PopperSelectSearchProps {
@@ -74,6 +82,8 @@ export function PopperSelectComponent<T>({
   renderFullOption,
   loading,
   onScrollEnd,
+  startCompoent,
+  popperItemProps,
 }: PopperSelectProps<T>) {
   const selectSate = useDisclosure();
   const anchorEl = useRef<null | HTMLDivElement>(null);
@@ -102,7 +112,7 @@ export function PopperSelectComponent<T>({
     if (scrollableDiv) {
       const { scrollTop, scrollHeight, clientHeight } = scrollableDiv;
 
-      if (scrollTop + clientHeight >= scrollHeight) {
+      if (Math.ceil(scrollTop + clientHeight) >= scrollHeight) {
         onScrollEnd?.();
       }
     }
@@ -151,7 +161,9 @@ export function PopperSelectComponent<T>({
         isOpen={selectSate.isOpen}
         close={handleClose}
         color="paper"
+        position="relative"
       >
+        {startCompoent}
         <SFlex
           direction="column"
           minWidth={'fit-content'}
@@ -203,14 +215,14 @@ export function PopperSelectComponent<T>({
                     search ? (
                       <InputAdornment position="end">
                         <IconButton
-                          sx={{ width: 16, height: 16 }}
+                          sx={{ width: 20, height: 20 }}
                           onClick={(e) => {
                             if (inputRef.current) inputRef.current.value = '';
                             onSearch('');
                           }}
                         >
                           <CloseIcon
-                            sx={{ color: 'text.light', fontSize: 12 }}
+                            sx={{ color: 'text.light', fontSize: 15 }}
                           />
                         </IconButton>
                       </InputAdornment>
@@ -235,8 +247,10 @@ export function PopperSelectComponent<T>({
               </Box>
               <Box height={44} />
               {options.map(({ option, label }) => {
+                const optionValue = getOptionValue(option);
+
                 const isSelected = selected.some(
-                  (value) => getOptionValue(value) === getOptionValue(option),
+                  (value) => getOptionValue(value) === optionValue,
                 );
 
                 if (renderFullOption) {
@@ -250,11 +264,13 @@ export function PopperSelectComponent<T>({
 
                 return (
                   <SPopperSelectItem
-                    key={label}
+                    rerender={selected.length + (isSelected ? 1 : 0)}
+                    key={String(optionValue)}
                     text={renderItem ? undefined : label}
                     selected={isSelected}
                     onClick={(e) => handleSelect(option, e)}
                     compoent={renderItem?.({ option, label, isSelected })}
+                    itemProps={popperItemProps}
                   />
                 );
               })}
@@ -264,29 +280,52 @@ export function PopperSelectComponent<T>({
                 ))}
             </SPopperSelect>
           </SFlex>
-          {onClean && (
+          {(onClean || closeOnSelect) && (
             <>
               <SDivider sx={{ mb: 3 }} />
               <SFlex px={4} pb={4}>
-                <SText
-                  color={'text.secondary'}
-                  onClick={(e) => handleClean(e)}
-                  sx={{
-                    fontSize: '12px',
-                    fontWeight: 400,
-                    ml: 'auto',
-                    pt: 1,
-                    cursor: 'pointer',
-                    '&:hover': {
-                      textDecoration: 'underline',
-                    },
-                    '&:active': {
-                      filter: 'brightness(0.9)',
-                    },
-                  }}
-                >
-                  Limpar
-                </SText>
+                {onClean && (
+                  <SText
+                    color={'text.secondary'}
+                    onClick={(e) => handleClean(e)}
+                    sx={{
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      ml: 'auto',
+                      pt: 1,
+                      cursor: 'pointer',
+                      '&:hover': {
+                        textDecoration: 'underline',
+                      },
+                      '&:active': {
+                        filter: 'brightness(0.9)',
+                      },
+                    }}
+                  >
+                    Limpar
+                  </SText>
+                )}
+                {!closeOnSelect && (
+                  <SText
+                    color={'primary.main'}
+                    onClick={() => handleClose()}
+                    sx={{
+                      fontSize: '12px',
+                      fontWeight: 400,
+                      ml: onClean ? '16px' : 'auto',
+                      pt: 1,
+                      cursor: 'pointer',
+                      '&:hover': {
+                        textDecoration: 'underline',
+                      },
+                      '&:active': {
+                        filter: 'brightness(0.9)',
+                      },
+                    }}
+                  >
+                    Confirmar
+                  </SText>
+                )}
               </SFlex>
             </>
           )}
@@ -295,3 +334,11 @@ export function PopperSelectComponent<T>({
     </Box>
   );
 }
+
+// const genericMemo: <T>(component: T, any) => T = memo;
+// export const PopperSelectComponent = genericMemo(
+//   SPopperSelectComponent,
+//   (prevProps, nextProps) => {
+//     return true;
+//   },
+// );
