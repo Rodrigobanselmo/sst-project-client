@@ -43,6 +43,8 @@ export const STabsAllWorkspace = ({
       </SFlex>
     );
 
+  if (workspaceId && workspaces?.results.length === 1) return children;
+
   return (
     <>
       <STabs

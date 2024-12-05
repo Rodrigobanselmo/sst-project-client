@@ -49,7 +49,7 @@ export function STabs<T>({
         {!loading &&
           options.map((options) => (
             <Tab
-              sx={{ fontSize: [10, 10, 14] }}
+              sx={{ fontSize: [10, 10, 14], textTransform: 'none' }}
               value={options.value}
               label={options.label}
               key={options.label}

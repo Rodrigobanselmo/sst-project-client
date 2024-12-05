@@ -9,6 +9,7 @@ import { ActionPlanInfo } from '@v2/pages/companies/action-plan/components/Actio
 import { ActionPlanTable } from '@v2/pages/companies/action-plan/components/ActionPlanTable/ActionPlanTable';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { useRouter } from 'next/router';
+import { STabs } from '@v2/components/organisms/STabs/STabs';
 
 const ActionPlanPage: NextPage = () => {
   const router = useRouter();
@@ -36,6 +37,16 @@ const ActionPlanPage: NextPage = () => {
               workspaceId={workspaceId}
             />
           )}
+          <STabs
+            value={1}
+            onChange={(_, value) => console.log(value)}
+            shadow
+            boxProps={{ mb: 10 }}
+            options={[
+              { label: 'Plano de ação', value: 1 },
+              { label: 'Comentários', value: 2 },
+            ]}
+          />
           <ActionPlanTable workspaceId={queryParams.tabWorkspaceId} />
         </STabsAllWorkspace>
       </SContainer>
