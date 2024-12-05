@@ -88,7 +88,7 @@ const Companies: NextPage = () => {
             active
             icon={SPhotoIcon}
             onClick={handleAddCharacterization}
-            text={'Caracterização do Ambiente'}
+            text={'Caracterização'}
             tooltipText={
               'Cadastro de ambientes de trabalho, atividades e posto de trabalh (adicionar fotografia)'
             }

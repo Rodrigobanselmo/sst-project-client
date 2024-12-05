@@ -183,7 +183,7 @@ export const CharacterizationTable: FC<
   return (
     <>
       <STableTitle icon={SCharacterizationIcon} iconSx={{ fontSize: 30 }}>
-        Caracterização do Ambiente
+        Caracterização
       </STableTitle>
       <STableSearch
         onAddClick={() =>
