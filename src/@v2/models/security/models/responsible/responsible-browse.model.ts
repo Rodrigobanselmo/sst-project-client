@@ -14,8 +14,10 @@ export class ResponsibleBrowseModel {
   filters: ResponsibleBrowseFilterModel;
 
   constructor(params: IResponsibleBrowseModel) {
-    this.results = params.results;
-    this.pagination = params.pagination;
-    this.filters = params.filters;
+    this.results = params.results.map(
+      (result) => new ResponsibleBrowseResultModel(result),
+    );
+    this.pagination = new PaginationModel(params.pagination);
+    this.filters = new ResponsibleBrowseFilterModel(params.filters);
   }
 }

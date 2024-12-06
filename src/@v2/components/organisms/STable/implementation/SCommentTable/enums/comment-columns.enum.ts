@@ -1,0 +1,13 @@
+export enum CommentColumnsEnum {
+  CHECK_BOX = 'CHECK_BOX',
+  TEXT = 'TEXT',
+  TYPE = 'TYPE',
+  TEXT_TYPE = 'TEXT_TYPE',
+  APPROVED = 'APPROVED',
+  CHANGES = 'CHANGES',
+  APPROVED_BY = 'APPROVED_BY',
+  CREATED_BY = 'CREATED_BY',
+
+  CREATED_AT = 'CREATED_AT',
+  UPDATED_AT = 'UPDATED_AT',
+}

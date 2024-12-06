@@ -11,7 +11,9 @@ export class WorkspaceBrowseModel {
   filters: WorkspaceBrowseFilterModel;
 
   constructor(params: WorkspaceBrowseModel) {
-    this.results = params.results;
-    this.filters = params.filters;
+    this.results = params.results.map(
+      (result) => new WorkspaceBrowseResultModel(result),
+    );
+    this.filters = new WorkspaceBrowseFilterModel(params.filters);
   }
 }

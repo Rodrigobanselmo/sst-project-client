@@ -14,8 +14,10 @@ export class CoordinatorBrowseModel {
   filters: CoordinatorBrowseFilterModel;
 
   constructor(params: ICoordinatorBrowseModel) {
-    this.results = params.results;
-    this.pagination = params.pagination;
-    this.filters = params.filters;
+    this.results = params.results.map(
+      (result) => new CoordinatorBrowseResultModel(result),
+    );
+    this.pagination = new PaginationModel(params.pagination);
+    this.filters = new CoordinatorBrowseFilterModel(params.filters);
   }
 }

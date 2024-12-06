@@ -1,4 +1,4 @@
-type IQueryParamsValue = string | number | boolean | undefined | object;
+type IQueryParamsValue = string | number | boolean | null | undefined | object;
 
 export type IObjectToQueryParamsProps = Record<
   string,
