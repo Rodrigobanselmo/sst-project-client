@@ -633,6 +633,9 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       .flat()
       .map((a) =>
         a
+          .replace(/^>>>\s*/, '@!!!@')
+          .replace(/^>>\s*/, '@!!@')
+          .replace(/^>\s*/, '@!@')
           .replace(/^-\s*/, '@!@')
           .replace(/^\s\s\s\s-\s*/, '@!!@')
           .replace(/^\s*-\s*/, '@!!!@')
