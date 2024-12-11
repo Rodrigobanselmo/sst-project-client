@@ -28,6 +28,26 @@ export enum TypeInputModal {
   EMPLOYEE = 'EMPLOYEE',
 }
 
+type Tag =
+  | 'p'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'li'
+  | 'ul'
+  | 'strong';
+type ParsedArray = {
+  tags: Tag[];
+  text: string | ParsedArray;
+}[];
+
+const breakLinesTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'] as Tag[];
+const boldTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong'] as Tag[];
+const bulletTags = ['li'] as Tag[];
+
 export const initialInputModalState = {
   title: '',
   placeholder: '',
@@ -62,7 +82,11 @@ export const ModalSingleInput: FC<
       getModalData<Partial<typeof initialInputModalState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setValue('name', initialData.name);
       setLoading(false);
       setData((oldData) => ({
@@ -182,6 +206,72 @@ export const ModalSingleInput: FC<
     return output.trim();
   };
 
+  function parseHtmlToArray(htmlString) {
+    // Create a DOM parser
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlString, 'text/html');
+
+    // Recursive function to traverse DOM elements
+    function traverse(node) {
+      const result = [] as any[];
+
+      node.childNodes.forEach((child) => {
+        // If the child is an element node
+        if (child.nodeType === Node.ELEMENT_NODE) {
+          const childResult = {
+            tags: [child.tagName.toLowerCase()],
+            text: [] as any[],
+          };
+
+          // Recursively traverse the child nodes
+          const childTextResults = traverse(child) as any[];
+          childResult.text.push(...childTextResults);
+
+          result.push(childResult);
+        }
+
+        // If the child is a text node
+        else if (
+          child.nodeType === Node.TEXT_NODE &&
+          child.textContent.trim()
+        ) {
+          result.push({
+            text: child.textContent.trim(),
+            tags: [],
+          });
+        }
+      });
+
+      return result;
+    }
+
+    // Start traversal from the body of the parsed HTML
+    return traverse(doc.body) as ParsedArray;
+  }
+
+  function generateStringFromParsedArray(parsedArray: ParsedArray, level = 0) {
+    let result = '';
+
+    parsedArray.forEach((main) => {
+      const bullet = !!main.tags.find((tag) => bulletTags.includes(tag));
+
+      let text = Array.isArray(main.text)
+        ? generateStringFromParsedArray(main.text, level + (bullet ? 1 : 0))
+        : main.text + ' ';
+
+      const bold = !!main.tags.find((tag) => boldTags.includes(tag));
+      const breakLine = !!main.tags.find((tag) => breakLinesTags.includes(tag));
+
+      if (bold && !text.includes('**')) text = '**' + text + '**';
+      if (bullet) text = '\n>' + '>'.repeat(level) + text;
+      if (breakLine) text = text + '\n';
+
+      result += text;
+    });
+
+    return result;
+  }
+
   // Example usage in your handlePaste function
   const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -190,12 +280,13 @@ export const ModalSingleInput: FC<
     const htmlData = clipboardData.getData('text/html');
 
     if (htmlData) {
-      console.log('HTML content:', htmlData);
-      const formattedOutput = parseHTMLToNestedFormat(htmlData);
+      // console.log('HTML content:', htmlData);
+      const formattedOutput = parseHtmlToArray(htmlData);
+      console.log(formattedOutput);
+      // console.log(generateStringFromParsedArray(formattedOutput));
 
       // Update the desired field or state with the formatted output
-      setValue('name', formattedOutput); // Assuming you're using React Hook Form
-      console.log('Formatted output:', formattedOutput);
+      setValue('name', generateStringFromParsedArray(formattedOutput)); // Assuming you're using React Hook Form
     } else {
       console.log('No HTML content available in clipboard.');
     }
