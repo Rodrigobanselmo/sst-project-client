@@ -14,8 +14,7 @@ type ISPopperSelectItemProps = {
   text?: ReactNode;
   startAddon?: ReactNode;
   compoent?: ReactNode;
-
-  rerender: number;
+  rerender?: number;
 };
 
 export const SPopperSelectItem = React.memo<ISPopperSelectItemProps>(

@@ -1,6 +1,8 @@
+import { dateUtils } from '@v2/utils/date-utils';
 import { ActionPlanStatusEnum } from '../../enums/action-plan-status.enum';
 import { CommentTextTypeEnum } from '../../enums/comment-text-type.enum';
 import { CommentTypeEnum } from '../../enums/comment-type.enum';
+import { CommentApprovedStatusEnum } from '../../enums/comment-approved-status.enum';
 
 export type ICommentBrowseResultModel = {
   id: string;
@@ -61,5 +63,22 @@ export class CommentBrowseResultModel {
     this.changes = params.changes;
     this.approvedBy = params.approvedBy;
     this.createdBy = params.createdBy;
+  }
+
+  get approvedStatus() {
+    if (this.isApproved === null) return CommentApprovedStatusEnum.NONE;
+    return this.isApproved
+      ? CommentApprovedStatusEnum.APPROVED
+      : CommentApprovedStatusEnum.REJECTED;
+  }
+
+  get formatedCreatedAt() {
+    return dateUtils(this.createdAt).format('DD/MM/YYYY');
+  }
+
+  get formatedUpdatedAt() {
+    return this.updatedAt
+      ? dateUtils(this.updatedAt).format('DD/MM/YYYY')
+      : this.formatedCreatedAt;
   }
 }

@@ -1,17 +1,17 @@
 import { SSelectButtonRow } from '@v2/components/organisms/STable/addons/addons-rows/SSelectButtonRow/SSelectButtonRow';
-import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
+import { CommentBrowseResultModel } from '@v2/models/security/models/comment/comment-browse-result.model';
 import { useActionPlanStatusActions } from '@v2/pages/companies/action-plan/hooks/useActionPlanStatusActions';
 import {
-  ActionPlanStatusTypeList,
-  ActionPlanStatusTypeMap,
-} from '../../maps/action-plan-status-type-map';
+  CommentApprovedMap,
+  CommentMapList,
+} from '../../maps/comment-approved-status-map';
 
-export const ActionPlanStatusSelect = ({
+export const CommentApproveSelect = ({
   companyId,
   row,
 }: {
   companyId: string;
-  row: ActionPlanBrowseResultModel;
+  row: CommentBrowseResultModel;
 }) => {
   const { onEditActionPlanStatus, isLoading } = useActionPlanStatusActions({
     companyId,
@@ -20,9 +20,9 @@ export const ActionPlanStatusSelect = ({
   return (
     <SSelectButtonRow
       loading={isLoading}
-      label={ActionPlanStatusTypeMap[row.status].label}
-      options={ActionPlanStatusTypeList}
-      schema={ActionPlanStatusTypeMap[row.status].schema}
+      label={CommentApprovedMap[row.approvedStatus].label}
+      options={CommentMapList}
+      schema={CommentApprovedMap[row.approvedStatus].schema}
       onSelect={(status) => onEditActionPlanStatus({ uuid: row.uuid, status })}
       minWidth={95}
     />

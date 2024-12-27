@@ -10,7 +10,7 @@ export interface IActionPlanTableTableProps extends BoxProps {
 const ActionPlanInfoFormDynamic = dynamic(
   async () => {
     const mod = await import(
-      '../components/ActionPlanForms/ActionPlanInfoForm/ActionPlanInfoForm'
+      '../components/CommentForms/ActionPlanInfoForm/ActionPlanInfoForm'
     );
     return mod.ActionPlanInfoForm;
   },

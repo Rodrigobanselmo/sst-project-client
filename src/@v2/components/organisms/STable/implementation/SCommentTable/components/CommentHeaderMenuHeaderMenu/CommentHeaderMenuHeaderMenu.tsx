@@ -5,16 +5,12 @@ import { SPopperMenu } from '@v2/components/organisms/SPopper/addons/SPopperMenu
 import { SPopperMenuItemAscending } from '@v2/components/organisms/SPopper/addons/SPopperMenuItem/components/SPopperMenuItemAscending';
 import { SPopperMenuItemDesceding } from '@v2/components/organisms/SPopper/addons/SPopperMenuItem/components/SPopperMenuItemDesceding';
 import { SPopperMenuItemHideColumn } from '@v2/components/organisms/SPopper/addons/SPopperMenuItem/components/SPopperMenuItemHideColumn';
-import { IActionPlanHeaderMenuProps } from './ActionPlanHeaderMenu.types';
 import { SPopperMenuItemClean } from '@v2/components/organisms/SPopper/addons/SPopperMenuItem/components/SPopperMenuItemClean';
+import { ICommentHeaderMenuHeaderMenuProps } from './CommentHeaderMenuHeaderMenu.types';
 
-export const ActionPlanHeaderMenu: FC<IActionPlanHeaderMenuProps> = ({
-  close,
-  setOrderBy,
-  onClean,
-  onHidden,
-  filters,
-}) => {
+export const CommentHeaderMenuHeaderMenu: FC<
+  ICommentHeaderMenuHeaderMenuProps
+> = ({ close, setOrderBy, onClean, onHidden, filters }) => {
   return (
     <SPopperMenu>
       {filters}

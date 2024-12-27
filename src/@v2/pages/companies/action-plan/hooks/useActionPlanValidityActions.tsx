@@ -25,7 +25,7 @@ export interface IEditManyActionPlanValidityParams {
 const ActionPlanCommentFormDynamic = dynamic(
   async () => {
     const mod = await import(
-      '../components/ActionPlanForms/ActionPlanCommentForm/ActionPlanCommentForm'
+      '../components/CommentForms/ActionPlanCommentForm/ActionPlanCommentForm'
     );
     return mod.ActionPlanCommentForm;
   },

@@ -8,11 +8,13 @@ import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ActionPlanInfo } from '@v2/pages/companies/action-plan/components/ActionPlanInfo/ActionPlanInfo';
 import { ActionPlanTable } from '@v2/pages/companies/action-plan/components/ActionPlanTable/ActionPlanTable';
 import { useRouter } from 'next/router';
+import { CommentsTable } from './components/CommentsTable/CommentsTable';
 
 export const ActionPlanPage = () => {
   const router = useRouter();
   const { queryParams, setQueryParams } = useQueryParamsState<{
     tabWorkspaceId?: string;
+    tabTableIndex?: number;
   }>();
 
   const companyId = router.query.companyId as string;
@@ -36,8 +38,8 @@ export const ActionPlanPage = () => {
             />
           )}
           <STabs
-            value={1}
-            onChange={(_, value) => console.log(value)}
+            value={queryParams.tabTableIndex || 1}
+            onChange={(_, value) => setQueryParams({ tabTableIndex: value })}
             shadow
             boxProps={{ mb: 10 }}
             options={[
@@ -45,7 +47,12 @@ export const ActionPlanPage = () => {
               { label: 'Revisão e Aprovação', value: 2 },
             ]}
           />
-          <ActionPlanTable workspaceId={queryParams.tabWorkspaceId} />
+          {queryParams.tabTableIndex === 1 && (
+            <ActionPlanTable workspaceId={queryParams.tabWorkspaceId} />
+          )}
+          {queryParams.tabTableIndex === 2 && (
+            <CommentsTable workspaceId={queryParams.tabWorkspaceId} />
+          )}
         </STabsAllWorkspace>
       </SContainer>
     </>

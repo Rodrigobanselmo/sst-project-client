@@ -8,9 +8,9 @@ export const useMutateEditManyActionPlan = () => {
 
   const mutate = useMutate({
     mutationFn: editManyActionPlan,
-    invalidateQueryKey: (_, variables) => [
-      QueryKeyActionPlanEnum.ACTION_PLAN,
-      variables.companyId,
+    invalidateManyQueryKeys: (_, variables) => [
+      [QueryKeyActionPlanEnum.ACTION_PLAN, variables.companyId],
+      [QueryKeyActionPlanEnum.ACTION_PLAN_COMMENT, variables.companyId],
     ],
     onSuccess: () => onSuccessMessage('Dados editados com sucesso'),
     onError: onErrorMessage,

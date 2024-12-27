@@ -16,7 +16,9 @@ import { CommentColumnsEnum as columnsEnum } from './enums/comment-columns.enum'
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { ICommentTableTableProps } from './SCommentTable.types';
 import { CommentBrowseResultModel } from '@v2/models/security/models/comment/comment-browse-result.model';
-// import { CommentColumnMap as columnMap } from './maps/action-plan-column-map';
+import { CommentColumnMap as columnMap } from './maps/comment-column-map';
+import { CommentOrderByEnum } from '@v2/services/security/action-plan/comment/browse-comments/service/browse-action-plan.types';
+import { CommentHeaderRow } from './components/CommentHeaderRow/CommentHeaderRow';
 
 export const SCommentTable: FC<ICommentTableTableProps> = ({
   companyId,
@@ -33,6 +35,7 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
   filterColumns,
   setHiddenColumns,
 }) => {
+  console.log(11, { data });
   const orderByMap = mapOrderByTable(filters.orderBy);
 
   const tableRows: ITableData<CommentBrowseResultModel>[] = [
@@ -43,138 +46,33 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
       header: <SSelectHRow table={table} ids={data.map((row) => row.id)} />,
       row: (row) => <SSelectRow table={table} id={row.id} />,
     },
-    // ORIGIN
-    {
-      column: 'minmax(200px, 1fr)',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.ORIGIN),
-      header: (
-        <CommentHeaderRow
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          field={CommentOrderByEnum.ORIGIN}
-          text={columnMap[columnsEnum.ORIGIN].label}
-        />
-      ),
-      row: (row) => (
-        <STextRow
-          fontSize={13}
-          tooltipMinLength={20}
-          lineNumber={1}
-          text={row.origin.name}
-          bottomText={row.originType}
-        />
-      ),
-    },
-    // RISK
-    {
-      column: 'minmax(200px, 1fr)',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.RISK),
-      header: (
-        <CommentHeaderRow
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.RISK]: true })}
-          field={CommentOrderByEnum.RISK}
-          text={columnMap[columnsEnum.RISK].label}
-        />
-      ),
-      row: (row) => (
-        <STextRow
-          text={row.risk.name}
-          tooltipMinLength={20}
-          startAddon={<SRiskChip type={row.risk.type} />}
-        />
-      ),
-    },
-    // GENERATE_SOURCE
-    {
-      column: '200px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.GENERATE_SOURCE),
-      header: (
-        <CommentHeaderRow
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          onHidden={() =>
-            setHiddenColumns({ [columnsEnum.GENERATE_SOURCE]: true })
-          }
-          text={columnMap[columnsEnum.GENERATE_SOURCE].label}
-        />
-      ),
-      row: (row) => <STextRow text={row.generateSourceNames} />,
-    },
-    // LEVEL
+    // APPROVED
     {
       column: '100px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.LEVEL),
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.APPROVED),
+
       header: (
         <CommentHeaderRow
-          justify="center"
-          setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.LEVEL]: true })}
-          field={CommentOrderByEnum.LEVEL}
-          text={columnMap[columnsEnum.LEVEL].label}
+          field={CommentOrderByEnum.CREATED_AT}
+          onHidden={() => setHiddenColumns({ [columnsEnum.APPROVED]: true })}
+          text={columnMap[columnsEnum.APPROVED].label}
         />
       ),
-      row: (row) => <SOcupationalRiskTag level={row.ocupationalRisk} />,
+      row: (row) => <STextRow lineNumber={2} text={row.text} />,
     },
-    // RECOMMENDATION
+    // TEXT
     {
-      column: 'minmax(230px, 1fr)',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.RECOMMENDATION),
+      column: '1fr',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.TEXT),
       header: (
         <CommentHeaderRow
-          setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          onHidden={() =>
-            setHiddenColumns({ [columnsEnum.RECOMMENDATION]: true })
-          }
-          field={CommentOrderByEnum.RECOMMENDATION}
-          text={columnMap[columnsEnum.RECOMMENDATION].label}
+          onHidden={() => setHiddenColumns({ [columnsEnum.TEXT]: true })}
+          text={columnMap[columnsEnum.TEXT].label}
         />
       ),
-      row: (row) => (
-        <STextRow
-          fontSize={13}
-          tooltipMinLength={30}
-          lineNumber={2}
-          text={row.recommendation.name}
-        />
-      ),
-    },
-    // STATUS
-    {
-      column: '100px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.STATUS),
-      header: (
-        <CommentHeaderRow
-          justify="center"
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.STATUS]: true })}
-          field={CommentOrderByEnum.STATUS}
-          text={columnMap[columnsEnum.STATUS].label}
-        />
-      ),
-      row: (row) => <CommentStatusSelect companyId={companyId} row={row} />,
-    },
-    // RESPONSIBLE
-    {
-      column: '150px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.RESPONSIBLE),
-      header: (
-        <CommentHeaderRow
-          justify="center"
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.RESPONSIBLE]: true })}
-          field={CommentOrderByEnum.RESPONSIBLE}
-          text={columnMap[columnsEnum.RESPONSIBLE].label}
-        />
-      ),
-      row: (row) => (
-        <CommentResponsibleSelect companyId={companyId} row={row} />
-      ),
+      row: (row) => <STextRow lineNumber={2} text={row.text} />,
     },
     // CREATED_AT
     {
@@ -185,8 +83,8 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
           justify="center"
           setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.CREATED_AT]: true })}
           field={CommentOrderByEnum.CREATED_AT}
+          onHidden={() => setHiddenColumns({ [columnsEnum.CREATED_AT]: true })}
           text={columnMap[columnsEnum.CREATED_AT].label}
         />
       ),
@@ -207,22 +105,6 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
         />
       ),
       row: (row) => <STextRow justify="center" text={row.formatedUpdatedAt} />,
-    },
-    // VALID_DATE
-    {
-      column: '170px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.VALID_DATE),
-      header: (
-        <CommentHeaderRow
-          justify="center"
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.VALID_DATE]: true })}
-          field={CommentOrderByEnum.VALID_DATE}
-          text={columnMap[columnsEnum.VALID_DATE].label}
-        />
-      ),
-      row: (row) => <CommentValidDateSelect row={row} companyId={companyId} />,
     },
   ];
 

@@ -1,10 +1,10 @@
 import { FC } from 'react';
 
 import { STableActionHRow } from '@v2/components/organisms/STable/common/STableActionHRow/STableActionHRow';
-import { ActionPlanHeaderMenu } from '../ActionPlanTableHeaderMenu/ActionPlanHeaderMenu';
-import { IActionPlanHeaderRowrops } from './ActionPlanHeaderRow.types';
+import { CommentHeaderMenuHeaderMenu } from '../CommentHeaderMenuHeaderMenu/CommentHeaderMenuHeaderMenu';
+import { ICommentHeaderRowrops } from './CommentHeaderRow.types';
 
-export const ActionPlanHeaderRow: FC<IActionPlanHeaderRowrops> = ({
+export const CommentHeaderRow: FC<ICommentHeaderRowrops> = ({
   orderByMap,
   setOrderBy,
   field,
@@ -21,7 +21,7 @@ export const ActionPlanHeaderRow: FC<IActionPlanHeaderRowrops> = ({
       boxProps={{ justifyContent: justify }}
       direction={field ? orderByMap[field] : undefined}
       menu={({ close }) => (
-        <ActionPlanHeaderMenu
+        <CommentHeaderMenuHeaderMenu
           filters={filters}
           close={close}
           onHidden={onHidden}

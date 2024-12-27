@@ -1,5 +1,5 @@
-import { ActionPlanColumnsEnum as columnsEnum } from '../enums/comment-columns.enum';
-import { ActionPlanColumnMap as columnMap } from '../maps/action-plan-column-map';
+import { CommentColumnsEnum as columnsEnum } from '../enums/comment-columns.enum';
+import { CommentColumnMap as columnMap } from '../maps/comment-column-map';
 
 export const getHiddenColumn = (
   hiddenColumns: Record<columnsEnum, boolean>,
