@@ -15,9 +15,11 @@ export function useQueryParamsState<T = IObjectToQueryParamsProps>() {
   );
 
   const setQueryParams = useCallback(
-    (values: T) => {
+    (values: T, options?: { reset?: boolean }) => {
       const queryString = window.location.search;
-      const queryObject = queryParamsToObject(queryString);
+      const queryObject = options?.reset
+        ? {}
+        : queryParamsToObject(queryString);
 
       Object.entries(values as any).forEach(([key, value]) => {
         if (value === null) delete queryObject[key];

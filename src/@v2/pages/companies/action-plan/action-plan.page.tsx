@@ -19,6 +19,7 @@ export const ActionPlanPage = () => {
 
   const companyId = router.query.companyId as string;
   const workspaceId = queryParams.tabWorkspaceId;
+  const tabTableIndex = queryParams.tabTableIndex || 1;
 
   return (
     <>
@@ -38,8 +39,13 @@ export const ActionPlanPage = () => {
             />
           )}
           <STabs
-            value={queryParams.tabTableIndex || 1}
-            onChange={(_, value) => setQueryParams({ tabTableIndex: value })}
+            value={tabTableIndex}
+            onChange={(_, value) =>
+              setQueryParams(
+                { tabTableIndex: value, tabWorkspaceId: workspaceId },
+                { reset: true },
+              )
+            }
             shadow
             boxProps={{ mb: 10 }}
             options={[
@@ -47,10 +53,10 @@ export const ActionPlanPage = () => {
               { label: 'Revisão e Aprovação', value: 2 },
             ]}
           />
-          {queryParams.tabTableIndex === 1 && (
+          {tabTableIndex === 1 && (
             <ActionPlanTable workspaceId={queryParams.tabWorkspaceId} />
           )}
-          {queryParams.tabTableIndex === 2 && (
+          {tabTableIndex === 2 && (
             <CommentsTable workspaceId={queryParams.tabWorkspaceId} />
           )}
         </STabsAllWorkspace>

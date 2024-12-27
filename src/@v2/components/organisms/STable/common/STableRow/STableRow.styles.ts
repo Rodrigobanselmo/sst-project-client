@@ -12,6 +12,8 @@ export const STSTableRow = styled(Box)<{
   border-radius: 0.25rem;
   align-items: center;
   width: 100%;
+  padding-top: 8px;
+  padding-bottom: 8px;
 
   .table-row-checkbox {
     background-color: ${({ theme }) => theme.palette.background.paper};

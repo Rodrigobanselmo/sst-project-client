@@ -23,22 +23,8 @@ export const CommentApprovedMap: Record<
   CommentApprovedStatusEnum,
   CommentApprovedMapValue
 > = {
-  [CommentApprovedStatusEnum.NONE]: {
-    label: '-',
-    startAddon: (
-      <SStartAddonIcon
-        item={<DataUsageIcon sx={{ fontSize: 15, color: palette.grey[500] }} />}
-      />
-    ),
-    schema: {
-      color: palette.grey[600],
-      borderColor: palette.grey[600],
-      iconColor: palette.grey[500],
-      backgroundColor: palette.grey[500] + '11',
-    },
-  },
   [CommentApprovedStatusEnum.APPROVED]: {
-    label: ActionPlanStatusTypeTranslate[ActionPlanStatusEnum.DONE],
+    label: 'Aprovado',
     startAddon: (
       <SStartAddonIcon
         item={
@@ -67,6 +53,20 @@ export const CommentApprovedMap: Record<
       borderColor: palette.schema.red,
       iconColor: palette.schema.red,
       backgroundColor: palette.schema.redFade,
+    },
+  },
+  [CommentApprovedStatusEnum.NONE]: {
+    label: 'Sem resposta',
+    startAddon: (
+      <SStartAddonIcon
+        item={<DataUsageIcon sx={{ fontSize: 15, color: palette.grey[500] }} />}
+      />
+    ),
+    schema: {
+      color: palette.grey[600],
+      borderColor: palette.grey[600],
+      iconColor: palette.grey[500],
+      backgroundColor: palette.grey[500] + '11',
     },
   },
 };

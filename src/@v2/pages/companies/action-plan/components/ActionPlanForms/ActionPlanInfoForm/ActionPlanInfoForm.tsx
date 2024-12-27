@@ -15,7 +15,6 @@ import {
   schemaActionPlanInfoForm,
 } from './ActionPlanInfoForm.schema';
 import { FormActionPlanInfo } from './components/FormActionPlanInfo';
-import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
 
 export const ActionPlanInfoForm = ({
   companyId,

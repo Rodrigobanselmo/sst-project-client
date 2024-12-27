@@ -1,8 +1,11 @@
 import { dateUtils } from '@v2/utils/date-utils';
 import { ActionPlanStatusEnum } from '../../enums/action-plan-status.enum';
+import { CommentApprovedStatusEnum } from '../../enums/comment-approved-status.enum';
 import { CommentTextTypeEnum } from '../../enums/comment-text-type.enum';
 import { CommentTypeEnum } from '../../enums/comment-type.enum';
-import { CommentApprovedStatusEnum } from '../../enums/comment-approved-status.enum';
+import { OriginTypeEnum } from '../../enums/origin-type.enum';
+import { ActionPlanStatusTypeTranslate } from '../../translations/action-plan-status-type.translaton';
+import { originTypeTranslation } from '../../translations/origin-type.translation';
 
 export type ICommentBrowseResultModel = {
   id: string;
@@ -22,6 +25,16 @@ export type ICommentBrowseResultModel = {
     validDate: Date | undefined;
     previousValidDate: Date | undefined;
   };
+
+  origin: {
+    name: string;
+    type: OriginTypeEnum;
+  };
+
+  recommendation: {
+    name: string;
+  };
+
   approvedBy: { id: number; name: string; email: string } | null;
   createdBy: { id: number; name: string; email: string } | null;
 };
@@ -45,6 +58,15 @@ export class CommentBrowseResultModel {
     previousValidDate: Date | undefined;
   };
 
+  origin: {
+    name: string;
+    type: OriginTypeEnum;
+  };
+
+  recommendation: {
+    name: string;
+  };
+
   approvedBy: { id: number; name: string; email: string } | null;
   createdBy: { id: number; name: string; email: string } | null;
 
@@ -59,6 +81,8 @@ export class CommentBrowseResultModel {
     this.isApproved = params.isApproved;
     this.approvedAt = params.approvedAt;
     this.approvedComment = params.approvedComment;
+    this.origin = params.origin;
+    this.recommendation = params.recommendation;
 
     this.changes = params.changes;
     this.approvedBy = params.approvedBy;
@@ -70,6 +94,46 @@ export class CommentBrowseResultModel {
     return this.isApproved
       ? CommentApprovedStatusEnum.APPROVED
       : CommentApprovedStatusEnum.REJECTED;
+  }
+
+  get originType() {
+    return originTypeTranslation[this.origin.type];
+  }
+
+  get isCanceled() {
+    return this.type === CommentTypeEnum.CANCELED;
+  }
+
+  get isDone() {
+    return this.type === CommentTypeEnum.DONE;
+  }
+
+  get isPostponed() {
+    return this.type === CommentTypeEnum.POSTPONED;
+  }
+
+  get formatedChanges() {
+    const isChangeStatus = this.isCanceled || this.isDone;
+
+    if (isChangeStatus) {
+      return `${
+        this.changes.previousStatus
+          ? ActionPlanStatusTypeTranslate[this.changes.previousStatus]
+          : ''
+      } -> ${
+        this.changes.status
+          ? ActionPlanStatusTypeTranslate[this.changes.status]
+          : '-'
+      }`;
+    }
+
+    if (this.isPostponed) {
+      return `Adiado para ${dateUtils(this.changes.validDate).format(
+        'DD/MM/YYYY',
+      )}`;
+    }
+
+    return '';
   }
 
   get formatedCreatedAt() {

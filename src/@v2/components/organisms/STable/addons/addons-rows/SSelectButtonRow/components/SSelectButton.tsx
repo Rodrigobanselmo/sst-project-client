@@ -16,7 +16,7 @@ export interface SSelectButtonProps {
   label: string;
   anchorEl: React.RefObject<HTMLDivElement>;
   onClick: () => void;
-  minWidth?: number | number[];
+  minWidth?: number | number[] | string | string[];
   loading?: boolean;
   schema?: {
     color: string;
@@ -46,10 +46,11 @@ export const SSelectButton = ({
       onClick={loading ? undefined : onClick}
       justify={'space-between'}
       align={'center'}
-      px={3}
+      px={4}
       width={'fit-content'}
       minWidth={minWidth}
       pr={2}
+      py={1}
       color={schema.color}
       sx={{
         opacity: loading ? 0.5 : 1,

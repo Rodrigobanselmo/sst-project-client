@@ -50,6 +50,7 @@ export const SEditButtonRow = ({
       px={4}
       width={'fit-content'}
       pr={2}
+      py={1}
       color={color}
       {...boxProps}
       sx={{

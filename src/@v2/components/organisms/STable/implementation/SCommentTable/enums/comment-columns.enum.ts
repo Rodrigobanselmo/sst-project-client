@@ -1,5 +1,7 @@
 export enum CommentColumnsEnum {
   CHECK_BOX = 'CHECK_BOX',
+  ORIGIN = 'ORIGIN',
+  RECCOMENDATION = 'RECCOMENDATION',
   TEXT = 'TEXT',
   TYPE = 'TYPE',
   TEXT_TYPE = 'TEXT_TYPE',

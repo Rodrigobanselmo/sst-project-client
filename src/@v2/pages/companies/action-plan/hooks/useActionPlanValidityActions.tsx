@@ -1,5 +1,4 @@
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
-import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 import { CommentTextTypeEnum } from '@v2/models/security/enums/comment-text-type.enum';
 import { useMutateEditActionPlan } from '@v2/services/security/action-plan/action-plan/edit-action-plan/hooks/useMutateEditActionPlan';
 import { useMutateEditManyActionPlan } from '@v2/services/security/action-plan/action-plan/edit-many-action-plan/hooks/useMutateEditManyActionPlan';
@@ -25,7 +24,7 @@ export interface IEditManyActionPlanValidityParams {
 const ActionPlanCommentFormDynamic = dynamic(
   async () => {
     const mod = await import(
-      '../components/CommentForms/ActionPlanCommentForm/ActionPlanCommentForm'
+      '../components/ActionPlanForms/ActionPlanCommentForm/ActionPlanCommentForm'
     );
     return mod.ActionPlanCommentForm;
   },
