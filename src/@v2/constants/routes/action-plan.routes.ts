@@ -11,6 +11,9 @@ export const ActionPlanRoutes = {
   COMMENT: {
     BROWSE: 'v2/companies/:companyId/action-plans/comments',
     EDIT_MANY: 'v2/companies/:companyId/action-plans/comments/many',
+    CREATOR: {
+      BROWSE: 'v2/companies/:companyId/action-plans/comments/creators',
+    },
   },
   RESPONSIBLE: {
     BROWSE: 'v2/companies/:companyId/action-plans/responsibles',

@@ -12,9 +12,11 @@ import { useState } from 'react';
 export const ActionPlanResponsibleSelect = ({
   companyId,
   row,
+  disabled,
 }: {
   row: ActionPlanBrowseResultModel;
   companyId: string;
+  disabled?: boolean;
 }) => {
   const [search, setSearch] = useState('');
   const { onEditActionPlanResponsible, isLoading: isLoadingEdit } =
@@ -35,6 +37,7 @@ export const ActionPlanResponsibleSelect = ({
 
   return (
     <SSearchSelectButtonRow
+      disabled={disabled}
       loading={isLoading || isLoadingEdit}
       onSearch={setSearch}
       label={row.responsible?.name || '-'}

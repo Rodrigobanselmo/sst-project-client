@@ -3,6 +3,7 @@ import {
   TablesSelectEnum,
   useTableSelect,
 } from '@v2/components/organisms/STable/hooks/useTableSelect';
+import { CommentTableStatusSelection } from './components/CommentTableStatusSelection';
 
 interface CommentTableSelectionProps {
   table: TablesSelectEnum;
@@ -16,5 +17,9 @@ export const CommentTableSelection = ({
   useTableSelect((state) => state.versions[table]);
   const selectedIds = useTableSelect((state) => state.getIds)(table)();
 
-  return <STableSelection table={table}>{null}</STableSelection>;
+  return (
+    <STableSelection table={table}>
+      <CommentTableStatusSelection ids={selectedIds} companyId={companyId} />
+    </STableSelection>
+  );
 };

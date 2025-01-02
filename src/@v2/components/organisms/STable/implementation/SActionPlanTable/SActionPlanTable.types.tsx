@@ -40,6 +40,7 @@ export interface IActionPlanTableTableProps {
   setFilters: (values: IActionPlanFilterProps) => void;
   setPage: (page: number) => void;
   setOrderBy: (order: IOrderByParams<ActionPlanOrderByEnum>) => void;
+  disabledResponisble?: boolean;
   onSelectRow: (row: ActionPlanBrowseResultModel) => void;
   pagination?: {
     total: number;

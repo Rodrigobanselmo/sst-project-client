@@ -37,6 +37,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   hiddenColumns,
   filterColumns,
   setHiddenColumns,
+  disabledResponisble,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -178,7 +179,11 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => (
-        <ActionPlanResponsibleSelect companyId={companyId} row={row} />
+        <ActionPlanResponsibleSelect
+          disabled={disabledResponisble}
+          companyId={companyId}
+          row={row}
+        />
       ),
     },
     // CREATED_AT

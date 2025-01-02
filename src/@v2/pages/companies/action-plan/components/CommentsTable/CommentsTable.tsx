@@ -29,10 +29,14 @@ import { CommentTableSelection } from './components/CommentTableSelection/Commen
 const limit = 15;
 const table = TablesSelectEnum.COMMENTS;
 
-export const CommentsTable = ({ workspaceId }: { workspaceId?: string }) => {
+export const CommentsTable = ({
+  workspaceId,
+  companyId,
+}: {
+  workspaceId?: string;
+  companyId: string;
+}) => {
   const router = useRouter();
-
-  const companyId = router.query.companyId as string;
 
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<CommentColumnsEnum, boolean>
@@ -46,6 +50,7 @@ export const CommentsTable = ({ workspaceId }: { workspaceId?: string }) => {
     filters: {
       search: queryParams.search,
       workspaceIds: workspaceId ? [workspaceId] : undefined,
+      creatorsIds: queryParams.creators?.map((creator) => creator.id),
     },
     orderBy: queryParams.orderBy || [
       {
@@ -71,9 +76,21 @@ export const CommentsTable = ({ workspaceId }: { workspaceId?: string }) => {
     setData: setQueryParams,
     chipMap: {
       search: null,
+      creators: (value) => ({
+        leftLabel: 'Criado por',
+        label: value.name,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            creators: queryParams.creators?.filter(
+              (user) => user.id !== value.id,
+            ),
+          }),
+      }),
     },
     cleanData: {
       search: '',
+      creators: [],
       orderBy: [],
       page: 1,
       limit,
@@ -87,6 +104,7 @@ export const CommentsTable = ({ workspaceId }: { workspaceId?: string }) => {
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
+          {null}
           <STableColumnsButton
             showLabel
             hiddenColumns={hiddenColumns}
@@ -101,12 +119,6 @@ export const CommentsTable = ({ workspaceId }: { workspaceId?: string }) => {
               workspaceId={workspaceId}
             />
           </STableFilterButton>
-          <STableButtonDivider />
-          <STableExportButton
-            onClick={async () => {
-              //
-            }}
-          />
         </STableSearchContent>
       </STableSearch>
       <STableInfoSection>

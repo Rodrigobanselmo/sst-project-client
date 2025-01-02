@@ -13,6 +13,7 @@ export interface SSearchSelectProps<Value> {
   label?: string;
   loading?: boolean;
   placeholder?: string;
+  disabled?: boolean;
   getOptionLabel: (option: Value) => string;
   getOptionValue: (option: Value) => string | number | boolean;
   onChange: (value: Value | null, event: React.SyntheticEvent) => void;
@@ -54,6 +55,7 @@ export function SSearchSelect<T>({
   boxProps,
   onSearch,
   popperStartCompoent,
+  disabled,
 }: SSearchSelectProps<T>) {
   const [shrink, setShrink] = useState(false);
 
@@ -70,6 +72,7 @@ export function SSearchSelect<T>({
   return (
     <Box {...boxProps}>
       <PopperSelect
+        disabled={disabled}
         startCompoent={popperStartCompoent}
         loading={loading}
         renderItem={renderItem}

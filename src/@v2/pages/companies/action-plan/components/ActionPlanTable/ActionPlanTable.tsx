@@ -30,10 +30,18 @@ import { OcupationalRiskLevelTranslation } from '@v2/models/security/translation
 const limit = 15;
 const table = TablesSelectEnum.ACTION_PLAN;
 
-export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
+export const ActionPlanTable = ({
+  workspaceId,
+  companyId,
+  userId,
+  disabledResponisble,
+}: {
+  workspaceId?: string;
+  companyId: string;
+  userId?: number;
+  disabledResponisble?: boolean;
+}) => {
   const router = useRouter();
-
-  const companyId = router.query.companyId as string;
 
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<ActionPlanColumnsEnum, boolean>
@@ -49,7 +57,9 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
       ocupationalRisks: queryParams.ocupationalRisks,
       status: queryParams.status,
       isExpired: queryParams.isExpired || undefined,
-      responisbleIds: queryParams.responsibles?.map((resp) => resp.id),
+      responisbleIds: userId
+        ? [userId]
+        : queryParams.responsibles?.map((resp) => resp.id),
       workspaceIds: workspaceId ? [workspaceId] : undefined,
       hierarchyIds: queryParams.hierarchies?.map((hierarchy) => hierarchy.id),
     },
@@ -174,6 +184,7 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
           </STableFilterButton>
           <STableButtonDivider />
           <STableExportButton
+            disabled
             onClick={async () => {
               //
             }}
@@ -214,6 +225,7 @@ export const ActionPlanTable = ({ workspaceId }: { workspaceId?: string }) => {
         setHiddenColumns={(hidden) =>
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }
+        disabledResponisble={disabledResponisble}
         hiddenColumns={hiddenColumns}
         onSelectRow={(row) => null}
         data={data?.results}

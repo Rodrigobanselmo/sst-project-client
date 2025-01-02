@@ -19,6 +19,7 @@ import { memo, ReactNode, useEffect, useRef } from 'react';
 
 export interface PopperSelectBaseProps<Value> {
   children: ReactNode;
+  disabled?: boolean;
   startCompoent?: ReactNode;
   getOptionLabel: (option: Value) => string;
   getOptionValue: (option: Value) => string | number | boolean;
@@ -84,6 +85,7 @@ export function PopperSelectComponent<T>({
   onScrollEnd,
   startCompoent,
   popperItemProps,
+  disabled,
 }: PopperSelectProps<T>) {
   const selectSate = useDisclosure();
   const anchorEl = useRef<null | HTMLDivElement>(null);
@@ -151,7 +153,10 @@ export function PopperSelectComponent<T>({
         }),
       }}
     >
-      <div ref={anchorEl} onClick={(e) => selectSate.open()}>
+      <div
+        ref={anchorEl}
+        onClick={(e) => (disabled ? null : selectSate.open())}
+      >
         {children}
       </div>
       <SPopperArrow

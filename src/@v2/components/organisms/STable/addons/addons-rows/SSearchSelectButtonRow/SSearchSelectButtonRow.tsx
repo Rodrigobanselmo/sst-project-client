@@ -19,6 +19,7 @@ export interface SSearchSelectButtonRowProps<T> {
   getOptionLabel: (option: T) => string;
   getOptionValue: (option: T) => string | number | boolean;
   onSearch?: (value: string) => void;
+  disabled?: boolean;
 }
 
 export function SSearchSelectButtonRow<T>({
@@ -29,9 +30,11 @@ export function SSearchSelectButtonRow<T>({
   onSelect,
   loading,
   onSearch,
+  disabled,
 }: SSearchSelectButtonRowProps<T>) {
   return (
     <SSearchSelect
+      disabled={disabled}
       loading={loading}
       getOptionLabel={getOptionLabel}
       getOptionValue={getOptionValue}
@@ -43,6 +46,7 @@ export function SSearchSelectButtonRow<T>({
           <STooltip title={label} placement="left" withWrapper minLength={15}>
             <SEditButtonRow
               onClick={(e) => {}}
+              disabled={disabled}
               loading={loading}
               label={label}
               textProps={{

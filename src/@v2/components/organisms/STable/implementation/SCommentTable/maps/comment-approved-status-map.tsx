@@ -71,7 +71,7 @@ export const CommentApprovedMap: Record<
   },
 };
 
-export const CommentMapList = Object.entries(CommentApprovedMap).map(
+export const CommentApprovedMapList = Object.entries(CommentApprovedMap).map(
   ([value, { label, startAddon }]) => ({
     value: value as CommentApprovedStatusEnum,
     startAddon,

@@ -21,6 +21,7 @@ export interface SEditButtonRowProps {
   color?: string;
   icon?: React.ReactNode;
   loading?: boolean;
+  disabled?: boolean;
 }
 
 export const SEditButtonRow = ({
@@ -31,6 +32,7 @@ export const SEditButtonRow = ({
   textProps,
   color = 'text.main',
   loading,
+  disabled = true,
   icon = (
     <ArrowDropDown
       sx={{
@@ -44,7 +46,7 @@ export const SEditButtonRow = ({
     <SFlex
       ref={anchorEl}
       m="auto"
-      onClick={(e) => onClick(e)}
+      onClick={(e) => (disabled ? null : onClick(e))}
       justify={'space-between'}
       align={'center'}
       px={4}
@@ -56,20 +58,22 @@ export const SEditButtonRow = ({
       sx={{
         borderRadius: '5px',
         borderColor: 'gray.400',
-        cursor: 'pointer',
         backgroundColor: 'grey.50',
         borderWidth: '1px',
         position: 'relative',
         userSelect: 'none',
         borderStyle: 'solid',
-        ':hover': {
-          filter: 'brightness(0.95)',
-          borderColor: 'gray.500',
-        },
-        ':active': {
-          filter: 'brightness(0.9)',
-          borderColor: 'gray.600',
-        },
+        ...(!disabled && {
+          cursor: 'pointer',
+          ':hover': {
+            filter: 'brightness(0.95)',
+            borderColor: 'gray.500',
+          },
+          ':active': {
+            filter: 'brightness(0.9)',
+            borderColor: 'gray.600',
+          },
+        }),
         opacity: loading ? 0.5 : 1,
         ...boxProps?.sx,
       }}

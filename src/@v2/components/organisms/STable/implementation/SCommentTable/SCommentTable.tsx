@@ -23,6 +23,7 @@ import { STagRow } from '../../addons/addons-rows/STagRow/STagRow';
 import { commentTypeTranslation } from '@v2/models/security/translations/comment-type.translation';
 import { Box } from '@mui/material';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 
 export const SCommentTable: FC<ICommentTableTableProps> = ({
   companyId,
@@ -49,36 +50,6 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
       header: <SSelectHRow table={table} ids={data.map((row) => row.id)} />,
       row: (row) => <SSelectRow table={table} id={row.id} />,
     },
-    // TYPE CHANGES
-    {
-      column: '180px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.CHANGES),
-      header: (
-        <CommentHeaderRow
-          orderByMap={orderByMap}
-          setOrderBy={setOrderBy}
-          justify="center"
-          field={CommentOrderByEnum.TYPE}
-          onHidden={() => setHiddenColumns({ [columnsEnum.CHANGES]: true })}
-          text={columnMap[columnsEnum.CHANGES].label}
-        />
-      ),
-      row: (row) => {
-        const color = row.isCanceled
-          ? 'error.dark'
-          : row.isDone
-          ? 'success.dark'
-          : 'warning.dark';
-
-        return (
-          <STagRow
-            borderColor={color}
-            color={color}
-            text={row.formatedChanges}
-          />
-        );
-      },
-    },
     // CREATED BY
     {
       column: '150px',
@@ -87,7 +58,6 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
         <CommentHeaderRow
           orderByMap={orderByMap}
           setOrderBy={setOrderBy}
-          justify="center"
           field={CommentOrderByEnum.CREATOR}
           onHidden={() => setHiddenColumns({ [columnsEnum.CREATED_BY]: true })}
           text={columnMap[columnsEnum.CREATED_BY].label}
@@ -95,7 +65,6 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
       ),
       row: (row) => (
         <STextRow
-          justify="center"
           text={row.createdBy?.name}
           // bottomText={row.createdBy?.email}
           tooltipMinLength={20}
@@ -155,6 +124,36 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
       ),
       row: (row) => <STextRow lineNumber={3} text={row.recommendation.name} />,
     },
+    // TYPE CHANGES
+    {
+      column: '180px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.CHANGES),
+      header: (
+        <CommentHeaderRow
+          orderByMap={orderByMap}
+          setOrderBy={setOrderBy}
+          justify="center"
+          field={CommentOrderByEnum.TYPE}
+          onHidden={() => setHiddenColumns({ [columnsEnum.CHANGES]: true })}
+          text={columnMap[columnsEnum.CHANGES].label}
+        />
+      ),
+      row: (row) => {
+        const color = row.isCanceled
+          ? 'error.dark'
+          : row.isDone
+          ? 'success.dark'
+          : 'warning.dark';
+
+        return (
+          <STagRow
+            borderColor={color}
+            color={color}
+            text={row.formatedChanges}
+          />
+        );
+      },
+    },
     // TEXT
     {
       column: '1fr',
@@ -162,12 +161,22 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
       header: (
         <CommentHeaderRow
           orderByMap={orderByMap}
+          setOrderBy={setOrderBy}
+          field={CommentOrderByEnum.TEXT_TYPE}
           onHidden={() => setHiddenColumns({ [columnsEnum.TEXT]: true })}
           text={columnMap[columnsEnum.TEXT].label}
         />
       ),
-      row: (row) => <STextRow lineNumber={3} text={row.text} />,
+      row: (row) => (
+        <STextRow
+          lineNumber={3}
+          text={`${
+            row.textType ? `(${commentTextTypeTranslation[row.textType]}) ` : ''
+          }${row.text}`}
+        />
+      ),
     },
+
     // APPROVED
     {
       column: '150px',
@@ -237,35 +246,6 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
                   minHeight={35}
                 >
                   {rows.map((render) => render(row))}
-                  <Box
-                    gridColumn="1/-1"
-                    display="flex"
-                    gap={2}
-                    borderTop={1}
-                    borderColor="grey.500"
-                    px={4}
-                    ml={14}
-                    py={1}
-                    mb={-7}
-                  >
-                    <SText fontSize={12}>Origem:</SText>
-                    <SText fontSize={12} color="text.light">
-                      {row.origin.name} ({row.originType})
-                    </SText>
-                  </Box>
-                  <Box
-                    gridColumn="1/-1"
-                    display="flex"
-                    gap={2}
-                    px={4}
-                    ml={14}
-                    py={1}
-                  >
-                    <SText fontSize={12}>Recomendação:</SText>
-                    <SText fontSize={12} color="text.light">
-                      {row.recommendation.name}
-                    </SText>
-                  </Box>
                 </STableRow>
               );
             }}

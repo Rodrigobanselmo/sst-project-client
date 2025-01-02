@@ -3,7 +3,7 @@ import { CommentBrowseResultModel } from '@v2/models/security/models/comment/com
 import { useCommentActions } from '@v2/pages/companies/action-plan/hooks/useCommentActions';
 import {
   CommentApprovedMap,
-  CommentMapList,
+  CommentApprovedMapList,
 } from '../../maps/comment-approved-status-map';
 
 export const CommentApproveSelect = ({
@@ -21,7 +21,7 @@ export const CommentApproveSelect = ({
     <SSelectButtonRow
       loading={isLoading}
       label={CommentApprovedMap[row.approvedStatus].label}
-      options={CommentMapList}
+      options={CommentApprovedMapList}
       schema={CommentApprovedMap[row.approvedStatus].schema}
       onSelect={(status) => onEditManyComments({ ids: [row.id], status })}
       minWidth={'100%'}
