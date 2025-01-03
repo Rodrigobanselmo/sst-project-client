@@ -32,7 +32,7 @@ export const SEditButtonRow = ({
   textProps,
   color = 'text.main',
   loading,
-  disabled = true,
+  disabled,
   icon = (
     <ArrowDropDown
       sx={{
