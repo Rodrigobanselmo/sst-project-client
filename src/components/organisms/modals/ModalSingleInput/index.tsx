@@ -38,13 +38,24 @@ type Tag =
   | 'h6'
   | 'li'
   | 'ul'
+  | 'ol'
   | 'strong';
 type ParsedArray = {
   tags: Tag[];
   text: string | ParsedArray;
 }[];
 
-const breakLinesTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'] as Tag[];
+const breakLinesTags = [
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'p',
+  'ol',
+  'ul',
+] as Tag[];
 const boldTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'strong'] as Tag[];
 const bulletTags = ['li'] as Tag[];
 
@@ -137,75 +148,6 @@ export const ModalSingleInput: FC<
       };
   };
 
-  const parseHTMLToNestedFormat = (html: string): string => {
-    // Create a temporary container to parse the HTML string
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = html;
-
-    // Function to parse headings and paragraph tags
-    const parseTextContent = (element: HTMLElement): string => {
-      let output = '';
-      const elements = Array.from(
-        element.querySelectorAll('p, h1, h2, h3, h4, h5, h6'),
-      );
-
-      elements.forEach((el) => {
-        const tag = el.tagName.toLowerCase();
-        const prefix = tag === 'p' ? '' : ''.repeat(parseInt(tag[1], 10)); // Generate heading levels
-        output +=
-          `${prefix.trim()} ${el.textContent?.trim() || ''}`.trim() + '\n';
-      });
-
-      return output;
-    };
-
-    // Recursively parse the HTML list structure
-    const parseList = (element: HTMLElement, level = 1): string => {
-      let output = '';
-      const items = Array.from(element.children);
-
-      for (const item of items) {
-        if (item.tagName === 'LI') {
-          const prefix = '>'.repeat(level); // Indentation based on level
-          const content = Array.from(item.childNodes)
-            .filter(
-              (node) =>
-                node.nodeType === Node.TEXT_NODE || node.nodeName === 'STRONG',
-            )
-            .map((node) => {
-              if (node.nodeName === 'STRONG') {
-                return `**${node.textContent?.trim()}**`; // Add bold formatting
-              }
-              return node.textContent?.trim();
-            })
-            .join(' ');
-
-          // Add the current item to the output
-          output += `${prefix.trim()} ${content}`.trim() + '\n';
-
-          // Check for nested lists directly inside this <li>
-          const nestedList = item.querySelector(':scope > ul, :scope > ol');
-          if (nestedList) {
-            output += parseList(nestedList as HTMLElement, level + 1);
-          }
-        }
-      }
-
-      return output;
-    };
-
-    // Combine headings, paragraphs, and lists
-    let output = parseTextContent(tempDiv);
-
-    // Parse the main <ul> or <ol> element
-    const mainList = tempDiv.querySelector('ul') || tempDiv.querySelector('ol');
-    if (mainList) {
-      output += parseList(mainList as HTMLElement);
-    }
-
-    return output.trim();
-  };
-
   function parseHtmlToArray(htmlString) {
     // Create a DOM parser
     const parser = new DOMParser();
@@ -255,9 +197,11 @@ export const ModalSingleInput: FC<
     parsedArray.forEach((main) => {
       const bullet = !!main.tags.find((tag) => bulletTags.includes(tag));
 
-      let text = Array.isArray(main.text)
-        ? generateStringFromParsedArray(main.text, level + (bullet ? 1 : 0))
-        : main.text + ' ';
+      let text = (
+        Array.isArray(main.text)
+          ? generateStringFromParsedArray(main.text, level + (bullet ? 1 : 0))
+          : main.text
+      ).trim();
 
       const bold = !!main.tags.find((tag) => boldTags.includes(tag));
       const breakLine = !!main.tags.find((tag) => breakLinesTags.includes(tag));
@@ -266,10 +210,11 @@ export const ModalSingleInput: FC<
       if (bullet) text = '\n>' + '>'.repeat(level) + text;
       if (breakLine) text = text + '\n';
 
-      result += text;
+      const middleSpace = result.length && text.length ? ' ' : '';
+      result = result + middleSpace + text;
     });
 
-    return result;
+    return result.replaceAll('\n ', '\n');
   }
 
   // Example usage in your handlePaste function
