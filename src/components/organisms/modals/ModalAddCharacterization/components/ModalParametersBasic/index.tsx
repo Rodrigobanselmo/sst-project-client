@@ -63,11 +63,11 @@ export const ModalParametersContentBasic = ({
           <InputForm
             setValue={setValue}
             defaultValue={data.moisturePercentage}
-            label="Humidade"
+            label="Umidade"
             sx={{ minWidth: [200] }}
             labelPosition="center"
             control={control}
-            placeholder={'humidade do ar'}
+            placeholder={'Umidade do ar'}
             name="moisturePercentage"
             size="small"
             endAdornment="%"

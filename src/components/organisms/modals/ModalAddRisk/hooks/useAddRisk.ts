@@ -297,7 +297,7 @@ export const useAddRisk = () => {
       isEmergency,
       ...(esocial?.id && { esocialCode: esocial?.id }),
       method,
-      propagation,
+      propagation: propagation?.split(', ') || [],
       esocial,
       unit,
       cas,

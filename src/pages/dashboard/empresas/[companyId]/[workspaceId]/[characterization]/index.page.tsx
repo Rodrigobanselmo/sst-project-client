@@ -19,6 +19,8 @@ import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
 import { ModalEditExamRiskData } from 'components/organisms/modals/ModalEditExamRiskData/ModalEditExamRiskData';
 import { ICharacterizationTableTableProps } from 'components/organisms/tables/CharacterizationTable';
 import { CharacterizationTable } from '@v2/pages/companies/characterizations/components/CharacterizationTable/CharacterizationTable';
+import SPageTitle from 'components/atoms/SPageTitle';
+import { SCharacterizationIcon } from 'assets/icons/SCharacterizationIcon';
 
 const OldCharacterizationTable = dynamic(
   () =>
@@ -269,6 +271,9 @@ const Companies: NextPage = () => {
     <>
       <SHeaderTag title={'Ambientes'} />
       <SContainer>
+        <SPageTitle mb={15} icon={SCharacterizationIcon}>
+          Caracterização
+        </SPageTitle>
         <CharacterizationTable />
         {/* <OldCharacterizationTable filterType={pageData.type || undefined}>
           <SPageMenu
