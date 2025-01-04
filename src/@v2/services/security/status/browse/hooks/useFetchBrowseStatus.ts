@@ -6,7 +6,11 @@ import {
 } from '../service/browse-status.service';
 
 export const getKeyBrowseStatus = (params: BrowseStatusParams) => {
-  return [QueryKeyCharacterizationEnum.CHARACTERIZATIONS_STATUS, params.companyId, params];
+  return [
+    QueryKeyCharacterizationEnum.CHARACTERIZATIONS_STATUS,
+    params.companyId,
+    params,
+  ];
 };
 
 export const useFetchBrowseStatus = (params: BrowseStatusParams) => {
