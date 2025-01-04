@@ -126,7 +126,7 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
 
   const fuseResults = asyncLoad
     ? null
-    : fuse.search(diacritics.remove(search), { limit: 20 });
+    : fuse.search(diacritics.remove(search), { limit: 20 + 40 * scroll });
   const results = asyncLoad
     ? optionsMemoized
     : search

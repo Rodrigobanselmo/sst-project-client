@@ -1,6 +1,7 @@
 import { dateUtils } from '@v2/utils/date-utils';
 import { CharacterizationTypeEnum } from '../../enums/characterization-type.enum';
 import { HierarchyTypeEnum } from '../../enums/hierarchy-type.enum';
+import { CharacterizationStatusEnum } from '../../enums/characterization-status.enum';
 
 export type ICharacterizationBrowseResultModel = {
   id: string;
@@ -10,6 +11,7 @@ export type ICharacterizationBrowseResultModel = {
   type: CharacterizationTypeEnum;
   doneAt?: Date;
   order?: number;
+  status: CharacterizationStatusEnum;
   profiles: { id: string; name: string }[];
   hierarchies: { id: string; name: string; type: HierarchyTypeEnum }[];
   risks: { id: string; name: string }[];
@@ -25,6 +27,7 @@ export class CharacterizationBrowseResultModel {
   type: CharacterizationTypeEnum;
   doneAt?: Date;
   order: string;
+  status: CharacterizationStatusEnum;
   profiles: { id: string; name: string }[];
   hierarchies: { id: string; name: string; type: HierarchyTypeEnum }[];
   risks: { id: string; name: string }[];
@@ -39,6 +42,7 @@ export class CharacterizationBrowseResultModel {
     this.type = params.type;
     this.doneAt = params.doneAt;
     this.order = String(params.order || '-');
+    this.status = params.status;
 
     this.profiles = params.profiles;
     this.hierarchies = params.hierarchies;
@@ -63,5 +67,9 @@ export class CharacterizationBrowseResultModel {
 
   get formatedDoneAt() {
     return this.doneAt ? dateUtils(this.doneAt).format('DD/MM/YYYY HH:MM') : '';
+  }
+
+  get isInactive() {
+    return this.status === CharacterizationStatusEnum.INACTIVE;
   }
 }

@@ -305,6 +305,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
             renderRow={(row) => {
               return (
                 <STableRow
+                  status={row.isInactive ? 'inactive' : 'none'}
                   clickable
                   onClick={() => onSelectRow(row)}
                   key={row.id}
