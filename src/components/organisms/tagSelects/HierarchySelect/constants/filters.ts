@@ -4,12 +4,12 @@ import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 
 export const hierarchyFilter = [
   {
-    label: 'diretoria',
+    label: 'superintendência',
     filter: HierarchyEnum.DIRECTORY,
     activeColor: 'primary.main',
   },
   {
-    label: 'gerência',
+    label: 'diretoria',
     filter: HierarchyEnum.MANAGEMENT,
     activeColor: 'primary.main',
   },

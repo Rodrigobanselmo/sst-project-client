@@ -53,8 +53,11 @@ export const originRiskMap: Record<string, { name: string; type: string }> = {
     name: 'Equipamento',
     type: 'Mão de Obra',
   },
-  [HierarchyEnum.DIRECTORY]: { name: 'Diretoria', type: 'Nível Hierarquico' },
-  [HierarchyEnum.MANAGEMENT]: { name: 'Gerência', type: 'Nível Hierarquico' },
+  [HierarchyEnum.DIRECTORY]: {
+    name: 'Superintendência',
+    type: 'Nível Hierarquico',
+  },
+  [HierarchyEnum.MANAGEMENT]: { name: 'Diretoria', type: 'Nível Hierarquico' },
   [HierarchyEnum.SECTOR]: { name: 'Setor', type: 'Nível Hierarquico' },
   [HierarchyEnum.SUB_SECTOR]: { name: 'Sub Setor', type: 'Nível Hierarquico' },
   [HierarchyEnum.OFFICE]: { name: 'Cargo', type: 'Nível Hierarquico' },

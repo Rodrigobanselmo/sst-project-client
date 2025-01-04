@@ -11,7 +11,7 @@ export const keywords = {
     company: 'empresas',
     workspace: 'estabelecimentos ambientes',
     hierarchy:
-      'cargos setores departamentos gerencias diretorias sub organograma funcoes',
+      'cargos setores departamentos gerencias diretorias sub organograma funcoes superintendência',
     gse: 'gse gho grupos similidares de exposicao exposição',
     risk: 'fatores de riscos perigos acidentes agentes quimicos fisicos biologicos ergonomicos',
     user: 'usuarios email acesso',
