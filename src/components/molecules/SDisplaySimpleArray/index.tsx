@@ -11,7 +11,7 @@ import {
   TypeInputModal,
 } from 'components/organisms/modals/ModalSingleInput';
 
-import AddIcon from 'assets/icons/SAddIcon';
+import AddIcon, { SAddIcon } from 'assets/icons/SAddIcon';
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { SEditIcon } from 'assets/icons/SEditIcon';
@@ -55,7 +55,7 @@ function editElement(
 interface ISDisplaySimpleArrayProps {
   values: any[];
   label?: string;
-  onAdd: (value: string, data?: any) => void;
+  onAdd: (value: string, data?: any, index?: number) => void;
   onDelete: (value: string, data?: any, index?: number) => void;
   onEdit?: (value: string, values: any[], data?: any) => void;
   renderText?: (data?: any) => ReactNode;
@@ -223,6 +223,28 @@ export function SDisplaySimpleArray({
                   </SIconButton>
                 </STooltip>
 
+                {!!onAdd && (
+                  <STooltip withWrapper title="adicionar" placement="left">
+                    <SIconButton
+                      disabled={disabled}
+                      size="small"
+                      onClick={() => {
+                        onStackOpenModal(ModalEnum.SINGLE_INPUT, {
+                          onConfirm: (newValue: string) => {
+                            onAdd(newValue, v, index);
+                          },
+                          placeholder,
+                          label: modalLabel,
+                          type,
+                          name: '',
+                        } as typeof initialInputModalState);
+                      }}
+                    >
+                      <Icon component={SAddIcon} sx={{ fontSize: '1.2rem' }} />
+                    </SIconButton>
+                  </STooltip>
+                )}
+
                 {onEdit && (
                   <STooltip withWrapper title="editar" placement="left">
                     <SIconButton
@@ -248,6 +270,7 @@ export function SDisplaySimpleArray({
                     </SIconButton>
                   </STooltip>
                 )}
+
                 {onRenderEndElement && onRenderEndElement(v)}
               </SFlex>
             </SFlex>

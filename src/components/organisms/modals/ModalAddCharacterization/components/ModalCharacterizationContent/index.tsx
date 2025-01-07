@@ -253,7 +253,9 @@ export const ModalCharacterizationContent = (
               }))}
               type={TypeInputModal.TEXT_AREA}
               valueField="name"
-              onAdd={(value) => onAddArray(value, 'paragraphs')}
+              onAdd={(value, _, index) =>
+                onAddArray(value, 'paragraphs', index)
+              }
               onDelete={(value, _, index) =>
                 onDeleteArray(value, 'paragraphs', index)
               }
@@ -308,7 +310,9 @@ export const ModalCharacterizationContent = (
               onEdit={(v, values) =>
                 onEditArrayContent(values, 'activities', ParagraphEnum.BULLET_0)
               }
-              onAdd={(value) => onAddArray(value, 'activities')}
+              onAdd={(value, _, index) =>
+                onAddArray(value, 'activities', index)
+              }
               onDelete={(value, _, index) =>
                 onDeleteArray(value, 'activities', index)
               }
@@ -471,7 +475,9 @@ export const ModalCharacterizationContent = (
                   ParagraphEnum.BULLET_0,
                 )
               }
-              onAdd={(value) => onAddArray(value, 'considerations')}
+              onAdd={(value, _, index) =>
+                onAddArray(value, 'considerations', index)
+              }
               onDelete={(value, _, index) =>
                 onDeleteArray(value, 'considerations', index)
               }

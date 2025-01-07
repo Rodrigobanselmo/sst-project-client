@@ -625,7 +625,10 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
   const onAddArray = (
     value: string,
     type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    index?: number,
   ) => {
+    const hasIndex = index !== undefined;
+
     const values = value
       ?.split('\n\n')
       .flat()
@@ -649,7 +652,10 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       setCharacterizationData({
         ...characterizationData,
         [type]: [
-          ...characterizationData[type],
+          ...characterizationData[type].slice(
+            0,
+            hasIndex ? index + 1 : undefined,
+          ),
           ...values.map(
             (value) =>
               value
@@ -669,6 +675,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
                 ? ParagraphEnum.PARAGRAPH
                 : ParagraphEnum.BULLET_0),
           ),
+          ...(hasIndex
+            ? characterizationData[type].slice(
+                index + 1,
+                characterizationData[type].length,
+              )
+            : []),
         ],
       });
   };
