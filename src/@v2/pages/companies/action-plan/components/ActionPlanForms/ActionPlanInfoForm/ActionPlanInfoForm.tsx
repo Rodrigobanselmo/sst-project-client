@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
-import { CForm } from '@v2/components/forms/providers/SFormProvide';
+import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { SModalButtons } from '@v2/components/organisms/SModal/components/SModalButtons/SModalButtons';
 import { SModalHeader } from '@v2/components/organisms/SModal/components/SModalHeader/SModalHeader';
 import { SModalPaper } from '@v2/components/organisms/SModal/components/SModalPaper/SModalPaper';
@@ -73,9 +73,9 @@ export const ActionPlanInfoForm = ({
         title="Editar Plano de Ação"
         onClose={() => closeModal(ModalKeyEnum.ACTION_PLAN_INFO_EDIT)}
       />
-      <CForm form={form}>
+      <SForm form={form}>
         <FormActionPlanInfo companyId={companyId} />
-      </CForm>
+      </SForm>
       <SModalButtons>
         <SButton
           onClick={() => closeModal()}

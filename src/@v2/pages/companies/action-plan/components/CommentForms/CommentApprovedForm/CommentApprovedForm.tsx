@@ -1,5 +1,5 @@
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
-import { CForm } from '@v2/components/forms/providers/SFormProvide';
+import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { SModalWrapper } from '@v2/components/organisms/SModal/components/SModalWrapper/SModalWrapper';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import { useForm } from 'react-hook-form';
@@ -34,9 +34,9 @@ export const CommentApprovedForm = ({
       minWidthDesk={600}
       onSubmit={form.handleSubmit(onSubmit)}
     >
-      <CForm form={form}>
+      <SForm form={form}>
         <FormCommentApproved />
-      </CForm>
+      </SForm>
     </SModalWrapper>
   );
 };

@@ -5,7 +5,7 @@ interface IForm {
   form: UseFormReturn<any, any>;
   children: React.ReactNode;
 }
-export const CForm: React.FC<IForm> = (props) => {
+export const SForm: React.FC<IForm> = (props) => {
   const { form } = props;
 
   return (

@@ -1,6 +1,6 @@
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { SText } from '@v2/components/atoms/SText/SText';
-import { CForm } from '@v2/components/forms/providers/SFormProvide';
+import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { SModalWrapper } from '@v2/components/organisms/SModal/components/SModalWrapper/SModalWrapper';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import palette from 'configs/theme/palette';
@@ -39,7 +39,7 @@ export const ActionPlanCommentForm = ({
       title="Justificativa"
       onSubmit={form.handleSubmit(onSubmit)}
     >
-      <CForm form={form}>
+      <SForm form={form}>
         <SText
           mb={8}
           fontSize={16}
@@ -51,7 +51,7 @@ export const ActionPlanCommentForm = ({
           {text}
         </SText>
         <FormActionPlanComment />
-      </CForm>
+      </SForm>
     </SModalWrapper>
   );
 };
