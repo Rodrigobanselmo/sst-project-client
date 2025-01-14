@@ -1,9 +1,8 @@
 export const CharacterizationRoutes = {
   CHARACTERIZATION: {
     BROWSE: 'v2/companies/:companyId/workspaces/:workspaceId/characterizations',
-  },
-  ACTION_PLAN: {
-    BROWSE: 'v2/companies/:companyId/action-plans',
+    EDIT_MANY:
+      'v2/companies/:companyId/workspaces/:workspaceId/characterizations/many',
   },
   STATUS: {
     ADD: 'v2/companies/:companyId/status',

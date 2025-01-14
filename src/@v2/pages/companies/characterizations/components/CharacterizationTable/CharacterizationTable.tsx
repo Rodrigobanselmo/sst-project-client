@@ -80,6 +80,7 @@ export const CharacterizationTable = () => {
     handleCharacterizationEditStage,
     handleCharacterizationEditPosition,
     handleCharacterizationExport,
+    handleCharacterizationEditMany,
   } = useCharacterizationActions({ companyId, workspaceId });
 
   const {
@@ -163,7 +164,11 @@ export const CharacterizationTable = () => {
             />
           ))}
         </STableFilterChipList>
-        <CharacterizationTableSelection table={table} stages={stages} />
+        <CharacterizationTableSelection
+          onEditMany={handleCharacterizationEditMany}
+          table={table}
+          stages={statusOptions}
+        />
       </STableInfoSection>
       <SCharacterizationTable
         table={table}

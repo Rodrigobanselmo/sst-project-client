@@ -1,13 +1,10 @@
 import { Box } from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { StatusBrowseResultModel } from '@v2/models/security/models/status/status-browse-result.model';
 
 export interface SSearchSelectRenderOptionStatusRenderOptionStatusProps {
-  option: {
-    id: number;
-    name: string;
-    color?: string;
-  };
+  option: StatusBrowseResultModel;
   label: string;
   isSelected: boolean;
 }

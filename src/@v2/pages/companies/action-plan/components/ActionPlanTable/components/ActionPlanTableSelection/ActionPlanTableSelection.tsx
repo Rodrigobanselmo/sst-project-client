@@ -17,7 +17,7 @@ export const ActionPlanTableSelection = ({
   table,
   companyId,
 }: ActionPlanTableSelectionProps) => {
-  useTableSelect((state) => state.versions[table]);
+  useTableSelect((state) => state.versions[table]); // used to rerender page on id change
   const selectedIds = useTableSelect((state) => state.getIds)(table)();
 
   const getIds = () => {
