@@ -70,7 +70,11 @@ export const useAddDocument = () => {
       getModalData<Partial<typeof initialDocumentState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setDocumentData((oldData) => {
         const newData = {
           ...oldData,
@@ -157,6 +161,7 @@ export const useAddDocument = () => {
 
   const onAddDocumentFile = () => {
     onStackOpenModal(ModalEnum.UPLOAD_NEW_FILE, {
+      accept: '',
       onConfirm: ({ files }) => {
         if (files && files[0]) {
           setDocumentData((data) => ({ ...data, file: files[0] }));
