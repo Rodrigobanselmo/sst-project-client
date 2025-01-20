@@ -137,6 +137,7 @@ export const useAddDocumentYear = () => {
 
   const onAddDocumentFile = () => {
     onStackOpenModal(ModalEnum.UPLOAD_NEW_FILE, {
+      accept: '',
       onConfirm: ({ files }) => {
         if (files && files[0]) {
           setDocumentData((data) => ({ ...data, file: files[0] }));
