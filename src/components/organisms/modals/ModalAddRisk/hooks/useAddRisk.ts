@@ -229,7 +229,11 @@ export const useAddRisk = () => {
     }
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setRiskData((oldData) => {
         const newData = {
           ...oldData,
@@ -281,7 +285,7 @@ export const useAddRisk = () => {
       isEmergency,
     } = riskData;
     const typeValue = type as RiskEnum;
-
+    console.log({ propagation });
     const risk = {
       activities: activities?.filter((a) => a.description),
       id,
@@ -297,7 +301,9 @@ export const useAddRisk = () => {
       isEmergency,
       ...(esocial?.id && { esocialCode: esocial?.id }),
       method,
-      propagation: propagation?.split(', ') || [],
+      propagation: Array.isArray(propagation)
+        ? propagation
+        : propagation?.split(', ') || [],
       esocial,
       unit,
       cas,
