@@ -30,6 +30,7 @@ export type IUser = {
   crea: string;
   crm: string;
   formation: string[];
+  token: string;
   certifications: string[];
   phone: string;
   email: string;
@@ -39,6 +40,7 @@ export type IUser = {
   facebookuser: string;
   type: ProfessionalTypeEnum;
   password: string;
+  hasAccess: boolean;
   created_at: Date;
   updated_at: Date;
   companies: IUserCompany[];

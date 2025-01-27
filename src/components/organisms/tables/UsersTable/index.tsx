@@ -141,21 +141,29 @@ export const UsersTable: FC<
                 key={row.id}
               >
                 <TextIconRow clickable text={'name' in row ? row.name : '--'} />
-                {'expires_date' in row &&
-                dayjs(row.expires_date).isAfter(dayjs()) ? (
+                {'token' in row && row.token && !row.hasAccess ? (
                   <STagButton
                     tooltipTitle={'copiar'}
                     icon={SCopyIcon}
-                    onClick={() =>
+                    onClick={(e) => {
+                      e.stopPropagation();
                       handleCopy(
-                        `${baseUrl}${RoutesEnum.SIGN_UP}/?token=${row.id}`,
-                      )
-                    }
+                        `${baseUrl}${RoutesEnum.SIGN_UP}/?token=${
+                          row.token
+                        }&email=${row.email || ''}`,
+                      );
+                    }}
                     sx={{ mr: 10 }}
                     text={'Copiar link de convite'}
                   />
                 ) : (
-                  <TextIconRow text="-" ml={5} />
+                  <STagButton
+                    onClick={(e) => {}}
+                    sx={{ mr: 10 }}
+                    active
+                    bg={'success.main'}
+                    text={'Já cadastrado'}
+                  />
                 )}
                 <TextIconRow clickable text={row.email} />
                 <StatusSelect

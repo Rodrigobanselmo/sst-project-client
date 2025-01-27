@@ -25,7 +25,7 @@ import { RoutesEnum } from '../../../../../../../core/enums/routes.enums';
 import { IDrawerLinksItems } from '../../types';
 
 const dashboard: IDrawerLinksItems = {
-  text: 'Home',
+  text: 'Plano de ação',
   Icon: MdDashboard,
   description: 'HOME',
   id: 'oRH0CjLLpN',

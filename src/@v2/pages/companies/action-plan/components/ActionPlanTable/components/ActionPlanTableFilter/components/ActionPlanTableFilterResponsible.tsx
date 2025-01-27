@@ -27,7 +27,11 @@ export const ActionPlanTableFilterResponsible = ({
     },
   });
 
-  const options = [...(responsibles?.results || [])];
+  const options = [...(responsibles?.results || [])].map((user) => ({
+    id: user.userId || -1,
+    name: user.name,
+    email: user.email,
+  }));
   if (!search) options.unshift({ id: 0, name: 'Sem Responsável', email: '-' });
 
   return (

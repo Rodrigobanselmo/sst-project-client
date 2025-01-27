@@ -42,10 +42,12 @@ export const ActionPlanTableResponsibleSelection = ({
       loading={isLoading || isLoadingEdit}
       label="Responsável"
       getOptionLabel={(option) => option.name}
-      getOptionValue={(option) => option.id}
+      getOptionValue={(option) => option._id}
       onChange={(option) => {
         onEditManyActionPlanResponsible({
-          responsibleId: option?.id || null,
+          data: option,
+          responsibleId: option?.userId || null,
+          employeeId: option?.employeeId || null,
           uuids: getIds(),
         });
       }}

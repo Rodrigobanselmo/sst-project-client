@@ -1,17 +1,24 @@
 export type IResponsibleBrowseResultModel = {
-  id: number;
+  userId?: number;
+  employeeId?: number;
   name: string;
   email: string;
 };
 
 export class ResponsibleBrowseResultModel {
-  id: number;
+  userId?: number;
+  employeeId?: number;
   name: string;
   email: string;
 
   constructor(params: IResponsibleBrowseResultModel) {
-    this.id = params.id;
+    this.userId = params.userId;
+    this.employeeId = params.employeeId;
     this.name = params.name;
     this.email = params.email;
+  }
+
+  get _id() {
+    return `${this.userId}-${this.employeeId}`;
   }
 }

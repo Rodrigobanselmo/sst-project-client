@@ -48,7 +48,8 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
     if (
       router.pathname != RoutesEnum.ONBOARD_USER &&
       user &&
-      (!user.name || !user.cpf)
+      // (!user.name || !user.cpf)
+      !user.name
     ) {
       router.replace(RoutesEnum.ONBOARD_USER);
     }

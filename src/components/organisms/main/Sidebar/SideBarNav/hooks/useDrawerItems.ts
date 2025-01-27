@@ -75,7 +75,7 @@ export const useDrawerItems = () => {
 
   const items: IDrawerItemsMap = {
     [DrawerItemsEnum.dashboard]: {
-      text: 'Home',
+      text: 'Plano de ação',
       description: 'HOME',
       Icon: MdDashboard,
       href: RoutesEnum.DASHBOARD,

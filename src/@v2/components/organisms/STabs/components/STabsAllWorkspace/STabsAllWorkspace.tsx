@@ -33,7 +33,7 @@ export const STabsAllWorkspace = ({
     if (!value && initId) onChange(initId);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workspaces]);
+  }, [workspaces, workspaceId]);
 
   const fallBack = !isLoadingAllWorkspaces && !workspaces?.results.length;
   if (fallBack)

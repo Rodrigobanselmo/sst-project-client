@@ -11,8 +11,8 @@ export const useApiResponseHandler = () => {
     });
   };
 
-  const onErrorMessage = (error: IErrorResp) => {
-    const message = extractApiError(error);
+  const onErrorMessage = (error: IErrorResp | string) => {
+    const message = typeof error == 'string' ? error : extractApiError(error);
 
     showSnackBar(message, {
       type: 'error',

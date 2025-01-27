@@ -54,8 +54,8 @@ export function SActiveLink({
       </Box>
     );
   }
-
-  if (shouldMatchExactHref && (asPath === rest.href || asPath === rest.as)) {
+  const path = asPath.split('?')[0];
+  if (shouldMatchExactHref && (path === rest.href || path === rest.as)) {
     isActive = true;
   }
 
@@ -68,7 +68,7 @@ export function SActiveLink({
   }
 
   return (
-    <Link href={rest.href || ''} {...rest}>
+    <Link {...rest} href={isActive ? asPath : rest.href || ''}>
       {cloneElement<any>(children, {
         is_active: isActive ? 1 : 0,
       })}

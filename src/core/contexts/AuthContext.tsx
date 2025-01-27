@@ -32,6 +32,9 @@ import { useMutUpdateUser } from 'core/services/hooks/mutations/user/useMutUpdat
 import { RoutesEnum } from '../enums/routes.enums';
 import { IUser } from '../interfaces/api/IUser';
 import { api } from '../services/apiClient';
+import { signInService } from '@v2/services/auth/session/sign-in/service/sign-in.service';
+import { useMutateSignIn } from '@v2/services/auth/session/sign-in/hooks/useMutateSignIn';
+import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 
 export type SignInCredentials = {
   email: string;
@@ -105,6 +108,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const store = useStore<any>();
   const redirect = useAppSelector(selectRedirectRoute);
   const { enqueueSnackbar } = useSnackbar();
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
   const isAuthenticated = !!user;
 
   const signOutFunc = useCallback(() => {
@@ -219,16 +223,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     photoUrl,
     token,
   }: SignInCredentials) {
-    const response = await api.post<ISession>(ApiRoutesEnum.USERS, {
+    await signInService({
+      token: token || '',
       email,
       password,
       googleToken,
-      name,
-      photoUrl,
-      token,
     });
 
-    signToken(response.data, 'signUp');
+    await signIn({ email, password, googleToken });
   }
 
   async function googleSignIn() {

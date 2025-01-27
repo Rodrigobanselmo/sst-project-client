@@ -39,12 +39,14 @@ export const ActionPlanResponsibleSelect = ({
       options={responsibles?.results || []}
       onSelect={(resp) =>
         onEditActionPlanResponsible({
+          data: resp,
           uuid: row.uuid,
-          responsibleId: resp?.id || null,
+          responsibleId: resp?.userId || null,
+          employeeId: resp?.employeeId || null,
         })
       }
       getOptionLabel={(resp) => resp.name}
-      getOptionValue={(resp) => resp.id}
+      getOptionValue={(resp) => resp._id}
     />
   );
 };

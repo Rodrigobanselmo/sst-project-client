@@ -25,6 +25,7 @@ import { userManageSchema } from 'core/utils/schemas/user-manage.schema';
 
 import { initialAccessGroupsSelectState } from '../../ModalSelectAccessGroup';
 import { initialCompanySelectState } from '../../ModalSelectCompany';
+import { useMutateAddUser } from '@v2/services/auth/user/add/hooks/useMutateAddUser';
 
 export type IPermissionMap = Partial<Record<RoleEnum, string[]>>;
 
@@ -74,12 +75,15 @@ export const initialUserState = {
   name: '',
   group: null as IAccessGroup | null,
   id: 0,
+  employeeId: undefined as number | undefined,
+  onSubmit: (data: { id: number }) => {},
 };
 
 export const useAddUser = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialUserState);
+  const [missingGroup, setMissingGroup] = useState(false);
 
   const { handleSubmit, setError, control, setValue, reset, getValues } =
     useForm<any>({
@@ -87,6 +91,7 @@ export const useAddUser = () => {
     });
 
   const inviteUserMut = useMutInviteUser();
+  const addUserMut = useMutateAddUser();
   const updateUserMut = useMutUpdateUserCompany();
 
   const { preventUnwantedChanges } = usePreventAction();
@@ -109,7 +114,11 @@ export const useAddUser = () => {
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setUserData((oldData) => {
         const newData = {
           ...oldData,
@@ -143,9 +152,15 @@ export const useAddUser = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ email: string }> = async (data) => {
+  const onSubmit: SubmitHandler<{ email?: string; name: string }> = async (
+    data,
+  ) => {
     if (!data?.email && userData.sendEmail) {
       return setError('email', { message: 'E-mail é obrigatório' });
+    }
+
+    if (!userData?.group?.id) {
+      return setMissingGroup(true);
     }
 
     if (userData.roles.length === 0)
@@ -173,7 +188,17 @@ export const useAddUser = () => {
     };
 
     if (userData.id == 0) {
-      await inviteUserMut.mutateAsync(submitData).catch(() => {});
+      const data = await addUserMut
+        .mutateAsync({
+          companyId: userData.company?.id as string,
+          groupId: submitData.groupId as number,
+          name: submitData.name,
+          email: submitData.email,
+          employeeId: userData.employeeId,
+        })
+        .catch(() => {});
+
+      if (data) userData.onSubmit(data);
     } else {
       await updateUserMut
         .mutateAsync({
@@ -207,6 +232,8 @@ export const useAddUser = () => {
         permissions: convertToPermissionsMap(group.roles, group.permissions),
         group,
       });
+
+      setMissingGroup(false);
     };
 
     onStackOpenModal(ModalEnum.ACCESS_GROUP_SELECT, {
@@ -253,5 +280,8 @@ export const useAddUser = () => {
     handleRemoveCompany,
     isConsulting,
     setValue,
+    missingGroup,
   };
 };
+
+export type IUseAddUser = ReturnType<typeof useAddUser>;

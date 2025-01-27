@@ -10,6 +10,7 @@ import { IPaginationResult } from 'core/interfaces/IReactQuery';
 import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
+import { RoleEnum } from 'project/enum/roles.enums';
 
 interface IQueryAccessGroup {
   cpf?: string;
@@ -58,10 +59,18 @@ export function useQueryAccessGroups(
     },
   );
 
+  const isMaster = user?.roles?.includes(RoleEnum.MASTER);
+
   const response = {
     data: data?.data || ([] as IAccessGroup[]),
     count: data?.count || 0,
   };
+
+  if (!isMaster) {
+    response.data = response.data.filter(
+      (group) => !group.name.includes('Administrado'),
+    );
+  }
 
   return { ...result, data: response.data, count: response.count };
 }
