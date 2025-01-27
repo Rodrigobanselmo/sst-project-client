@@ -9,7 +9,7 @@ export const useSystemSnackbar = () => {
   ) => {
     enqueueSnackbar(message, {
       variant: options.type,
-      autoHideDuration: 1500,
+      autoHideDuration: 5000,
     });
   };
 

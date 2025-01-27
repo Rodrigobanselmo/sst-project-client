@@ -77,10 +77,17 @@ export const ModalSingleInput: FC<
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
 
-  const { handleSubmit, control, clearErrors, reset, setError, setValue } =
-    useForm<any>({
-      resolver: yupResolver(photoSchema),
-    });
+  const {
+    handleSubmit,
+    control,
+    clearErrors,
+    reset,
+    setError,
+    setValue,
+    getValues,
+  } = useForm<any>({
+    resolver: yupResolver(photoSchema),
+  });
 
   const [data, setData] = useState({
     ...initialInputModalState,
@@ -143,7 +150,7 @@ export const ModalSingleInput: FC<
     if (data.type == TypeInputModal.TEXT_AREA)
       return {
         multiline: true,
-        maxRows: 5,
+        maxRows: 5000,
         minRows: 3,
       };
   };
@@ -219,6 +226,9 @@ export const ModalSingleInput: FC<
 
   // Example usage in your handlePaste function
   const handlePaste = (event: React.ClipboardEvent<HTMLDivElement>) => {
+    const name = getValues('name');
+    if (name) return;
+
     event.preventDefault();
 
     const clipboardData = event.clipboardData;
@@ -245,7 +255,7 @@ export const ModalSingleInput: FC<
         center
         p={8}
         width={'fit-content'}
-        minWidth={600}
+        semiFullScreen
         loading={loading}
       >
         <SModalHeader onClose={onClose} title={data.title || 'Adicionar'} />

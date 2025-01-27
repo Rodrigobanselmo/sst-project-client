@@ -41,7 +41,7 @@ export const useCommentActions = ({ companyId }: { companyId: string }) => {
 
   const onEditManyComments = (data: IEditManyActionPlanStatusParams) => {
     const isApproved =
-      data.status === null
+      data.status === CommentApprovedStatusEnum.NONE
         ? null
         : data.status === CommentApprovedStatusEnum.APPROVED
         ? true
