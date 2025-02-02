@@ -52,6 +52,9 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
         months_period_level_3: months_period_level_3,
         months_period_level_4: months_period_level_4,
         months_period_level_5: months_period_level_5,
+        isHideCA: data.json?.isHideCA,
+        isHideOriginColumn: data.json?.isHideOriginColumn,
+        aprTypeSeparation: data.json?.aprTypeSeparation,
       },
     };
 

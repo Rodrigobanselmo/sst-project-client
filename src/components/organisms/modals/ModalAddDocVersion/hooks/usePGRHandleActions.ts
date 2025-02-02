@@ -14,6 +14,7 @@ import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocume
 
 import { IPGRDocumentData } from './../../../../../core/interfaces/api/IDocumentData';
 import { IUseMainActionsModal, useMainActions } from './useMainActions';
+import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 
 export const initialPgrDocState = {
   json: {
@@ -22,6 +23,9 @@ export const initialPgrDocState = {
     complementaryDocs: [] as string[],
     complementarySystems: [] as string[],
     isQ5: false,
+    isHideCA: false,
+    isHideOriginColumn: false,
+    aprTypeSeparation: null as HierarchyTypeEnum | null,
     hasEmergencyPlan: false,
     months_period_level_2: 24,
     months_period_level_3: 12,
@@ -54,7 +58,11 @@ export const usePGRHandleModal = () => {
     const initialData = getModalData<Partial<typeof initialState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const documentPGR: Partial<IPGRDocumentData> =
           doc?.type == DocumentTypeEnum.PGR ? doc : {};

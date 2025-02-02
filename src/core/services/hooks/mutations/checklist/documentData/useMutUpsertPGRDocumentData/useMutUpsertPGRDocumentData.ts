@@ -43,6 +43,9 @@ export interface IUpsertPGRDocumentData {
     months_period_level_3?: number;
     months_period_level_4?: number;
     months_period_level_5?: number;
+    isHideCA: boolean;
+    isHideOriginColumn: boolean;
+    aprTypeSeparation: string | null;
   };
 }
 

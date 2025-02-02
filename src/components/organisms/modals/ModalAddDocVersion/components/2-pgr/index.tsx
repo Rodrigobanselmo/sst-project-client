@@ -17,6 +17,9 @@ import { IUsePGRHandleModal } from '../../hooks/usePGRHandleActions';
 import { useStep } from './hooks/useStep';
 import SText from 'components/atoms/SText';
 import { intMask } from 'core/utils/masks/int.mask';
+import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
+import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
+import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 
 export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
   const {
@@ -41,6 +44,26 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
       onClick: () => onSubmit(),
     },
   ] as IModalButton[];
+
+  const allValue = 'all';
+
+  const optionsAPR = [
+    allValue,
+    HierarchyTypeEnum.DIRECTORY,
+    HierarchyTypeEnum.MANAGEMENT,
+    HierarchyTypeEnum.SECTOR,
+  ].map((type) => {
+    if (type === allValue)
+      return {
+        label: 'Gerar uma única APR para todos os cargos',
+        value: type,
+      };
+
+    return {
+      label: `Gerar uma APR por ${hierarchyTypeTranslation[type]}`,
+      value: type,
+    };
+  });
 
   return (
     <div>
@@ -183,7 +206,68 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
             </Box>
           </SFlex>
 
+          <SFlex direction="column" mt={12}>
+            <SText fontSize={16} fontWeight="500" mb={8}>
+              Gerar APR&apos;s com base em:
+            </SText>
+            <SSearchSelect
+              getOptionValue={(option) => option.value}
+              label=""
+              value={optionsAPR.find(
+                (option) =>
+                  option.value === (data.json?.aprTypeSeparation || allValue),
+              )}
+              getOptionLabel={(option) => option.label}
+              renderItem={({ option }) => (
+                <Box>
+                  <SText>{option.label}</SText>
+                </Box>
+              )}
+              onChange={(option) => {
+                const isAll = option?.value === allValue;
+                setData({
+                  ...data,
+                  json: {
+                    ...data.json,
+                    aprTypeSeparation: !isAll ? option?.value : null,
+                  },
+                } as any);
+              }}
+              placeholder="Selecione..."
+              options={optionsAPR}
+            />
+          </SFlex>
           <SFlex direction="column" mt={12} ml={6}>
+            <SSwitch
+              onChange={() => {
+                setData({
+                  ...data,
+                  json: {
+                    ...data.json,
+                    isHideCA: !data.json?.isHideCA,
+                  },
+                } as any);
+              }}
+              checked={data.json?.isHideCA}
+              label="Não mostrar coluna de origem nas APR's"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+            <SSwitch
+              onChange={() => {
+                setData({
+                  ...data,
+                  json: {
+                    ...data.json,
+                    isHideOriginColumn: !data.json?.isHideOriginColumn,
+                  },
+                } as any);
+              }}
+              checked={data.json?.isHideOriginColumn}
+              label="Não mostrar CA's de EPI's"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
             <SSwitch
               onChange={() => {
                 setData({
