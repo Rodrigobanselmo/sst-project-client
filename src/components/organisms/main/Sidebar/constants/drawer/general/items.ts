@@ -23,6 +23,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 
 import { RoutesEnum } from '../../../../../../../core/enums/routes.enums';
 import { IDrawerLinksItems } from '../../types';
+import SDocumentIcon from 'assets/icons/SDocumentIcon';
 
 const dashboard: IDrawerLinksItems = {
   text: 'Plano de ação',
@@ -31,6 +32,16 @@ const dashboard: IDrawerLinksItems = {
   id: 'oRH0CjLLpN',
   href: RoutesEnum.DASHBOARD,
   shouldMatchExactHref: true,
+};
+
+const documentControl: IDrawerLinksItems = {
+  text: 'Documentos',
+  Icon: SDocumentIcon,
+  description: 'Documentos',
+  id: 'qweqqd3dewqewef',
+  href: RoutesEnum.DOCUMENTS,
+  shouldMatchExactHref: false,
+  roles: [RoleEnum.DOCUMENTS],
 };
 
 const profile: IDrawerLinksItems = {
@@ -238,6 +249,7 @@ const report: IDrawerLinksItems = {
 export const generalArray = [
   dashboard,
   profile,
+  documentControl,
   team,
   schedule,
   block,

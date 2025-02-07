@@ -30,6 +30,7 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 import { DrawerItemsEnum } from './drawer.enum';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
+import SDocumentIcon from 'assets/icons/SDocumentIcon';
 
 export interface IDrawerBase {
   text: string;
@@ -80,6 +81,14 @@ export const useDrawerItems = () => {
       Icon: MdDashboard,
       href: RoutesEnum.DASHBOARD,
       shouldMatchExactHref: true,
+    },
+    [DrawerItemsEnum.documents]: {
+      text: 'Documentos',
+      Icon: SDocumentIcon,
+      description: 'Documentos',
+      href: RoutesEnum.DOCUMENTS,
+      shouldMatchExactHref: false,
+      roles: [RoleEnum.DOCUMENTS],
     },
     [DrawerItemsEnum.profile]: {
       text: 'Perfil',
@@ -315,6 +324,7 @@ export const useDrawerItems = () => {
     },
     items: [
       items[DrawerItemsEnum.dashboard],
+      items[DrawerItemsEnum.documents],
       items[DrawerItemsEnum.team],
       items[DrawerItemsEnum.schedule],
       items[DrawerItemsEnum.companiesData],

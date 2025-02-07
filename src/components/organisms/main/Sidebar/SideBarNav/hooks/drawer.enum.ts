@@ -1,6 +1,7 @@
 export enum DrawerItemsEnum {
   dashboard = 'dashboard',
   profile = 'profile',
+  documents = 'documents',
   team = 'team',
   accessGroups = 'accessGroups',
   companyGroups = 'companyGroups',
