@@ -12,7 +12,7 @@ export const useMutateDeleteStatus = () => {
       QueryKeyCharacterizationEnum.CHARACTERIZATIONS_STATUS,
       variables.companyId,
     ],
-    onSuccess: () => onSuccessMessage('Status deleteado com sucesso'),
+    onSuccess: () => onSuccessMessage('Status deletedo com sucesso'),
     onError: onErrorMessage,
   });
 

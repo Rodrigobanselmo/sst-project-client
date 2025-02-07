@@ -14,7 +14,6 @@ export interface BrowseStatusParams {
 }
 
 export async function browseStatus({ type, companyId }: BrowseStatusParams) {
-  await simulateAwait(1000);
   const response = await api.get<IStatusBrowseModel>(
     bindUrlParams({
       path: CharacterizationRoutes.STATUS.BROWSE,

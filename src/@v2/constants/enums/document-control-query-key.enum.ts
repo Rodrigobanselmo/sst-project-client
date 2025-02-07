@@ -1,0 +1,4 @@
+export enum QueryKeyDocumentControlEnum {
+  DOCUMENT_CONTROL = 'V2_DOCUMENT_CONTROL',
+  DOCUMENT_CONTROL_FILE = 'V2_DOCUMENT_CONTROL_FILE',
+}
