@@ -1,31 +1,33 @@
 import { SSearchSelectMultiple } from '@v2/components/forms/fields/SSearchSelect/SSearchSelectMultiple';
-import { ICommentFilterProps } from '@v2/components/organisms/STable/implementation/SCommentTable/SCommentTable.types';
-import { useFetchBrowseCommentCreators } from '@v2/services/security/action-plan/user/browse-comment-creators/hooks/useFetchBrowseCommentCreators';
+import { IDocumentControlFilterProps } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/SDocumentControlTable.types';
 import { useState } from 'react';
 
-interface CommentTableFilterCommentCreatorProps {
+interface DocumentControlTableFilterTypeProps {
   companyId: string;
-  onFilterData: (props: ICommentFilterProps) => void;
-  filters: ICommentFilterProps;
+  onFilterData: (props: IDocumentControlFilterProps) => void;
+  filters: IDocumentControlFilterProps;
 }
 
-export const CommentTableFilterCommentCreator = ({
+export const DocumentControlTableFilterType = ({
   onFilterData,
   filters,
   companyId,
-}: CommentTableFilterCommentCreatorProps) => {
+}: DocumentControlTableFilterTypeProps) => {
   const [search, setSearch] = useState('');
 
-  const { creators, isLoading } = useFetchBrowseCommentCreators({
-    companyId,
-    filters: {
-      search: search,
-    },
-    pagination: {
-      page: 1,
-      limit: 10,
-    },
-  });
+  // const { creators, isLoading } = useFetchBrowseDocumentControlCreators({
+  //   companyId,
+  //   filters: {
+  //     search: search,
+  //   },
+  //   pagination: {
+  //     page: 1,
+  //     limit: 10,
+  //   },
+  // });
+
+  const creators = { results: [] };
+  const isLoading = false;
 
   const options = [...(creators?.results || [])];
 

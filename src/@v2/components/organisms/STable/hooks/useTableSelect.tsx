@@ -4,6 +4,7 @@ export enum TablesSelectEnum {
   CHARACTERIZATION = 'CHARACTERIZATION',
   ACTION_PLAN = 'ACTION_PLAN',
   COMMENTS = 'COMMENTS',
+  DOCUMENT_CONTROL = 'DOCUMENT_CONTROL',
 }
 
 interface SelectState {

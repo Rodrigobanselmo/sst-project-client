@@ -1,5 +1,4 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
 import { ICommentFilterProps } from '@v2/components/organisms/STable/implementation/SCommentTable/SCommentTable.types';
 import { CommentTableFilterCommentCreator } from './components/CommentTableFilterResponsible';
 

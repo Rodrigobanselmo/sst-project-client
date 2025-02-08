@@ -1,6 +1,6 @@
 import { STabsAllWorkspace } from '@v2/components/organisms/STabs/components/STabsAllWorkspace/STabsAllWorkspace';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
-import { CommentsTable } from '../CommentsTable/CommentsTable';
+import { DocumentControlTable } from '../DocumentControlTable/DocumentControlTable';
 
 export const DocumentsContent = ({ companyId }: { companyId: string }) => {
   const { queryParams, setQueryParams } = useQueryParamsState<{
@@ -15,10 +15,12 @@ export const DocumentsContent = ({ companyId }: { companyId: string }) => {
         workspaceId={queryParams.tabWorkspaceId}
         companyId={companyId}
       >
-        <CommentsTable
-          companyId={companyId}
-          workspaceId={queryParams.tabWorkspaceId}
-        />
+        {!!queryParams.tabWorkspaceId && (
+          <DocumentControlTable
+            companyId={companyId}
+            workspaceId={queryParams.tabWorkspaceId}
+          />
+        )}
       </STabsAllWorkspace>
     </>
   );

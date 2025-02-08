@@ -1,60 +1,51 @@
-import { useRouter } from 'next/router';
-
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
-import { STableExportButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableExportButton/STableExportButton';
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
-import { STableButtonDivider } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButtonDivider/STableButtonDivider';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
 import { TablesSelectEnum } from '@v2/components/organisms/STable/hooks/useTableSelect';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
-import { SCommentTable } from '@v2/components/organisms/STable/implementation/SCommentTable/SCommentTable';
-import { ICommentFilterProps } from '@v2/components/organisms/STable/implementation/SCommentTable/SCommentTable.types';
+import { DocumentControlColumnsEnum } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/enums/document-control-columns.enum';
+import { commentColumns } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/maps/document-control-column-map';
+import { SDocumentControlTable } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/SDocumentControlTable';
+import { IDocumentControlFilterProps } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/SDocumentControlTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
-import { OcupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
-import { useFetchBrowseComments } from '@v2/services/security/action-plan/comment/browse-comments/hooks/useFetchBrowseComments';
-import { CommentColumnsEnum } from '@v2/components/organisms/STable/implementation/SCommentTable/enums/comment-columns.enum';
-import { CommentOrderByEnum } from '@v2/services/security/action-plan/comment/browse-comments/service/browse-action-plan.types';
-import { ordenByCommentTranslation } from '@v2/models/security/translations/orden-by-comment.translation';
-import { commentColumns } from '@v2/components/organisms/STable/implementation/SCommentTable/maps/comment-column-map';
-import { CommentTableFilter } from './components/CommentTableFilter/CommentTableFilter';
-import { CommentTableSelection } from './components/CommentTableSelection/CommentTableSelection';
+import { ordenByDocumentControlTranslation } from '@v2/models/security/translations/orden-by-document-control.translation';
+import { useFetchBrowseDocumentControl } from '@v2/services/enterprise/document-control/document-control/browse-document-control/hooks/useFetchBrowseDocumentControl';
+import { DocumentControlOrderByEnum } from '@v2/services/enterprise/document-control/document-control/browse-document-control/service/browse-document-control.types';
+import { DocumentControlTableFilter } from './components/DocumentControlTableFilter/DocumentControlTableFilter';
 
 const limit = 15;
-const table = TablesSelectEnum.COMMENTS;
+const table = TablesSelectEnum.DOCUMENT_CONTROL;
 
-export const CommentsTable = ({
+export const DocumentControlTable = ({
   workspaceId,
   companyId,
 }: {
-  workspaceId?: string;
+  workspaceId: string;
   companyId: string;
 }) => {
-  const router = useRouter();
-
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
-    Record<CommentColumnsEnum, boolean>
-  >(persistKeys.COLUMNS_ACTION_PLAN, {} as any);
+    Record<DocumentControlColumnsEnum, boolean>
+  >(persistKeys.COLUMNS_DOCUMENT_CONTROL, {} as any);
 
   const { queryParams, setQueryParams } =
-    useQueryParamsState<ICommentFilterProps>();
+    useQueryParamsState<IDocumentControlFilterProps>();
 
-  const { data, isLoading } = useFetchBrowseComments({
+  const { documentControl, isLoading } = useFetchBrowseDocumentControl({
     companyId,
+    workspaceId,
     filters: {
       search: queryParams.search,
-      workspaceIds: workspaceId ? [workspaceId] : undefined,
-      creatorsIds: queryParams.creators?.map((creator) => creator.id),
     },
     orderBy: queryParams.orderBy || [
       {
-        field: CommentOrderByEnum.CREATED_AT,
+        field: DocumentControlOrderByEnum.NAME,
         order: 'desc',
       },
     ],
@@ -68,7 +59,7 @@ export const CommentsTable = ({
     orderByList: queryParams.orderBy,
     setOrderBy: (orderBy) => setQueryParams({ orderBy }),
     getLabel: ({ order }) => ordenByTranslation[order],
-    getLeftLabel: ({ field }) => ordenByCommentTranslation[field],
+    getLeftLabel: ({ field }) => ordenByDocumentControlTranslation[field],
   });
 
   const { onCleanData, onFilterData, paramsChipList } = useTableState({
@@ -112,7 +103,7 @@ export const CommentsTable = ({
             columns={commentColumns}
           />
           <STableFilterButton>
-            <CommentTableFilter
+            <DocumentControlTableFilter
               onFilterData={onFilterData}
               filters={queryParams}
               companyId={companyId}
@@ -132,16 +123,15 @@ export const CommentsTable = ({
             />
           ))}
         </STableFilterChipList>
-        <CommentTableSelection table={table} companyId={companyId} />
       </STableInfoSection>
-      <SCommentTable
+      <SDocumentControlTable
         companyId={companyId}
         table={table}
         filterColumns={
           {
-            // [CommentColumnsEnum.STAGE]: (
+            // [DocumentControlColumnsEnum.STAGE]: (
             //   <Box mx={4} mt={2} mb={2} width={250}>
-            //     <CommentTableFilterStage
+            //     <DocumentControlTableFilterStage
             //       selectedStages={selectedStages}
             //       stages={stages}
             //       onFilterData={onFilterData}
@@ -157,9 +147,9 @@ export const CommentsTable = ({
         }
         hiddenColumns={hiddenColumns}
         onSelectRow={(row) => null}
-        data={data?.results}
+        data={documentControl?.results}
         isLoading={isLoading}
-        pagination={data?.pagination}
+        pagination={documentControl?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
       />

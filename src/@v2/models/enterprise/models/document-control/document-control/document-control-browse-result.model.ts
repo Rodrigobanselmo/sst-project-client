@@ -1,4 +1,5 @@
 import { FileModel } from '@v2/models/@shared/models/file.model';
+import { dateUtils } from '@v2/utils/date-utils';
 
 export type IDocumentControlBrowseResultModel = {
   id: string;
@@ -33,5 +34,13 @@ export class DocumentControlBrowseResultModel {
     this.file = params.file;
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
+  }
+
+  get formatedCreatedAt() {
+    return dateUtils(this.createdAt).format('DD/MM/YYYY');
+  }
+
+  get formatedUpdatedAt() {
+    return dateUtils(this.updatedAt).format('DD/MM/YYYY');
   }
 }

@@ -3,7 +3,7 @@ import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { useRouter } from 'next/router';
-import { DocumentsContent } from './components/ActionPlanContent/ActionPlanContent';
+import { DocumentsContent } from './components/DocumentControlContent/DocumentControlContent';
 
 export const DocumentsPage = () => {
   const router = useRouter();
