@@ -10,7 +10,7 @@ export interface IDocumentControlHeaderRowrops {
   onHidden?: () => void;
   justify?: 'flex-start' | 'center' | 'flex-end';
   field?: DocumentControlOrderByEnum;
-  orderByMap: Record<DocumentControlOrderByEnum, IOrderDirection>;
+  orderByMap?: Record<DocumentControlOrderByEnum, IOrderDirection>;
   setOrderBy?: (order: IOrderByParams<DocumentControlOrderByEnum>) => void;
   isFiltered?: boolean;
   onClean?: () => void;

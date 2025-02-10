@@ -19,9 +19,10 @@ import { ordenByDocumentControlTranslation } from '@v2/models/security/translati
 import { useFetchBrowseDocumentControl } from '@v2/services/enterprise/document-control/document-control/browse-document-control/hooks/useFetchBrowseDocumentControl';
 import { DocumentControlOrderByEnum } from '@v2/services/enterprise/document-control/document-control/browse-document-control/service/browse-document-control.types';
 import { DocumentControlTableFilter } from './components/DocumentControlTableFilter/DocumentControlTableFilter';
+import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
+import { useCommentActions } from '../../hooks/useDocumentControlActions';
 
 const limit = 15;
-const table = TablesSelectEnum.DOCUMENT_CONTROL;
 
 export const DocumentControlTable = ({
   workspaceId,
@@ -34,6 +35,11 @@ export const DocumentControlTable = ({
     Record<DocumentControlColumnsEnum, boolean>
   >(persistKeys.COLUMNS_DOCUMENT_CONTROL, {} as any);
 
+  const { onDocumentControlAdd } = useCommentActions({
+    companyId,
+    workspaceId,
+  });
+
   const { queryParams, setQueryParams } =
     useQueryParamsState<IDocumentControlFilterProps>();
 
@@ -42,6 +48,7 @@ export const DocumentControlTable = ({
     workspaceId,
     filters: {
       search: queryParams.search,
+      types: queryParams.types,
     },
     orderBy: queryParams.orderBy || [
       {
@@ -67,21 +74,19 @@ export const DocumentControlTable = ({
     setData: setQueryParams,
     chipMap: {
       search: null,
-      creators: (value) => ({
-        leftLabel: 'Criado por',
-        label: value.name,
+      types: (value) => ({
+        leftLabel: 'Tipo',
+        label: value,
         onDelete: () =>
           setQueryParams({
             page: 1,
-            creators: queryParams.creators?.filter(
-              (user) => user.id !== value.id,
-            ),
+            types: queryParams.types?.filter((type) => type !== value),
           }),
       }),
     },
     cleanData: {
       search: '',
-      creators: [],
+      types: [],
       orderBy: [],
       page: 1,
       limit,
@@ -95,7 +100,7 @@ export const DocumentControlTable = ({
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
-          {null}
+          <STableAddButton onClick={onDocumentControlAdd} />
           <STableColumnsButton
             showLabel
             hiddenColumns={hiddenColumns}
@@ -104,6 +109,7 @@ export const DocumentControlTable = ({
           />
           <STableFilterButton>
             <DocumentControlTableFilter
+              data={documentControl?.filters}
               onFilterData={onFilterData}
               filters={queryParams}
               companyId={companyId}
@@ -125,23 +131,9 @@ export const DocumentControlTable = ({
         </STableFilterChipList>
       </STableInfoSection>
       <SDocumentControlTable
-        companyId={companyId}
-        table={table}
-        filterColumns={
-          {
-            // [DocumentControlColumnsEnum.STAGE]: (
-            //   <Box mx={4} mt={2} mb={2} width={250}>
-            //     <DocumentControlTableFilterStage
-            //       selectedStages={selectedStages}
-            //       stages={stages}
-            //       onFilterData={onFilterData}
-            //     />
-            //   </Box>
-            // ),
-          }
-        }
         filters={queryParams}
         setFilters={onFilterData}
+        filterColumns={{}}
         setHiddenColumns={(hidden) =>
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }

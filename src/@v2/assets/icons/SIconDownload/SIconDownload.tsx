@@ -1,15 +1,14 @@
 import { FC } from 'react';
 
-import ErrorIcon from '@mui/icons-material/Error';
 import { IIconProps } from '@v2/types/icon-props.types';
+import FileDownloadOutlinedIcon from '@mui/icons-material/FileDownloadOutlined';
 
-export const SIconError: FC<IIconProps> = ({ color, fontSize, ...props }) => {
+export const SIconDownload: FC<IIconProps> = ({ color, fontSize }) => {
   return (
-    <ErrorIcon
+    <FileDownloadOutlinedIcon
       sx={{
         fontSize: fontSize || 'inherit',
         color: color || 'inherit',
-        ...props,
       }}
     />
   );

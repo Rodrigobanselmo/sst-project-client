@@ -1,23 +1,14 @@
 import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
 import { useFormContext, useWatch } from 'react-hook-form';
-import {
-  SDatePicker,
-  SDatePickerProps,
-} from '../../fields/SDatePicker/SDatePicker';
-import { SInputMultiline } from '../../fields/SInputMultiline/SInputMultiline';
+import { SInput } from '../../fields/SInput/SInput';
 import { SInputMultilineProps } from '../../fields/SInputMultiline/SInput.types';
-import { SIconError } from '@v2/assets/icons/SIconError/SIconError';
-import { useEffect, useState } from 'react';
 
-interface SInputMultilineFormProps
+interface SInputFormProps
   extends Omit<SInputMultilineProps, 'onChange' | 'value'> {
   name: string;
 }
 
-export function SInputMultilineForm({
-  name,
-  ...props
-}: SInputMultilineFormProps) {
+export function SInputForm({ name, ...props }: SInputFormProps) {
   const { setValue, formState, control } = useFormContext();
 
   const error = formState?.errors[name];
@@ -29,7 +20,7 @@ export function SInputMultilineForm({
   const value = useWatch({ name, control });
 
   return (
-    <SInputMultiline
+    <SInput
       {...props}
       helperText={errorMessage}
       error={!!error}

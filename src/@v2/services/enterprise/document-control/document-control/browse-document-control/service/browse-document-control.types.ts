@@ -18,5 +18,6 @@ export interface BrowseDocumentControlParams {
   orderBy?: IOrderByParams<DocumentControlOrderByEnum>[];
   filters?: {
     search?: string;
+    types?: string[];
   };
 }

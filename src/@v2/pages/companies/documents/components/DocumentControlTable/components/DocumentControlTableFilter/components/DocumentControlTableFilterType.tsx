@@ -3,50 +3,30 @@ import { IDocumentControlFilterProps } from '@v2/components/organisms/STable/imp
 import { useState } from 'react';
 
 interface DocumentControlTableFilterTypeProps {
-  companyId: string;
   onFilterData: (props: IDocumentControlFilterProps) => void;
   filters: IDocumentControlFilterProps;
+  types: string[];
 }
 
 export const DocumentControlTableFilterType = ({
   onFilterData,
   filters,
-  companyId,
+  types,
 }: DocumentControlTableFilterTypeProps) => {
-  const [search, setSearch] = useState('');
-
-  // const { creators, isLoading } = useFetchBrowseDocumentControlCreators({
-  //   companyId,
-  //   filters: {
-  //     search: search,
-  //   },
-  //   pagination: {
-  //     page: 1,
-  //     limit: 10,
-  //   },
-  // });
-
-  const creators = { results: [] };
   const isLoading = false;
-
-  const options = [...(creators?.results || [])];
 
   return (
     <SSearchSelectMultiple
-      value={filters.creators || []}
+      value={filters.types || []}
       boxProps={{ flex: 1 }}
-      options={options}
-      onSearch={setSearch}
+      options={types}
       loading={isLoading}
-      label="Responsável"
-      getOptionLabel={(option) => option.name}
-      getOptionValue={(option) => option.id}
+      label="Tipos"
+      getOptionLabel={(option) => option}
+      getOptionValue={(option) => option}
       onChange={(option) =>
         onFilterData({
-          creators: option.map((res) => ({
-            id: res.id,
-            name: res.name,
-          })),
+          types: option,
         })
       }
     />

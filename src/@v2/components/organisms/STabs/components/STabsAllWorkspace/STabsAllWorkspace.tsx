@@ -10,8 +10,10 @@ export const STabsAllWorkspace = ({
   onChange,
   workspaceId,
   children,
+  mb = 5,
 }: {
   companyId: string;
+  mb?: number;
   onChange: (id: string) => void;
   workspaceId?: string;
   children: React.ReactNode;
@@ -52,7 +54,7 @@ export const STabsAllWorkspace = ({
         value={value?.value || options[0]?.value}
         onChange={(_, value) => onChange(value)}
         shadow
-        boxProps={{ mb: 5 }}
+        boxProps={{ mb: mb }}
         options={options}
       />
       {value && children}

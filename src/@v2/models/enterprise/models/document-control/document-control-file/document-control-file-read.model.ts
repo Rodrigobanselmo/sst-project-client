@@ -23,6 +23,6 @@ export class DocumentControlFileReadModel {
     this.description = params.description;
     this.endDate = params.endDate;
     this.startDate = params.startDate;
-    this.file = params.file;
+    this.file = new FileModel(params.file);
   }
 }

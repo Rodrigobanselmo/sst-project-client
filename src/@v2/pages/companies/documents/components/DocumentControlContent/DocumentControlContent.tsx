@@ -14,6 +14,7 @@ export const DocumentsContent = ({ companyId }: { companyId: string }) => {
         onChange={(id) => setQueryParams({ tabWorkspaceId: id })}
         workspaceId={queryParams.tabWorkspaceId}
         companyId={companyId}
+        mb={10}
       >
         {!!queryParams.tabWorkspaceId && (
           <DocumentControlTable

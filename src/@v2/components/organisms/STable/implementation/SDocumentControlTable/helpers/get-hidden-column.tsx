@@ -6,6 +6,6 @@ export const getHiddenColumn = (
   columnsEnum: columnsEnum,
 ) => {
   return columnsEnum in hiddenColumns
-    ? hiddenColumns[columnsEnum]
+    ? hiddenColumns[columnsEnum] && !columnMap[columnsEnum].alwaysVisible
     : columnMap[columnsEnum].startHidden;
 };

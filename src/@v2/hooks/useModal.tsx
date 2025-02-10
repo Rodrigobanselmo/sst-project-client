@@ -7,20 +7,30 @@ export enum ModalKeyEnum {
   ACTION_PLAN_COMMENT = 'ACTION_PLAN_COMMENT',
   ACTION_PLAN_COMMENT_APPROVE = 'ACTION_PLAN_COMMENT_APPROVE',
   ACTION_PLAN_ADD_USER_RESPONSIBLE = 'ACTION_PLAN_ADD_USER_RESPONSIBLE',
+
+  // DOCUMENT CONTROL
+  DOCUMENT_CONTROL_ADD = 'DOCUMENT_CONTROL_ADD',
+}
+
+interface Modal {
+  key: ModalKeyEnum;
+  loading?: boolean;
+  content: ReactNode;
+}
+
+interface SetModal {
+  key?: ModalKeyEnum;
+  modal: Partial<Modal>;
 }
 
 interface SelectState {
-  modals: {
-    key: ModalKeyEnum;
-    content: ReactNode;
-    // options?: {
-    //   beforeClose?: (onClose: SelectState['closeModal']) => void;
-    // };
-  }[];
+  modals: Modal[];
+  editModal: ({ key, modal }: SetModal) => void;
   openModal: (key: ModalKeyEnum, content: ReactNode) => void;
   closeModal: (key?: ModalKeyEnum) => void;
   clearAllModals: () => void;
-  setModals: (modals: { key: ModalKeyEnum; content: ReactNode }[]) => void;
+  setModals: (modals: Modal[]) => void;
+  getModal: (key: ModalKeyEnum) => Modal | undefined;
 }
 
 export const useModalState = create<SelectState>((set) => ({
@@ -36,12 +46,37 @@ export const useModalState = create<SelectState>((set) => ({
       const newModals = state.modals.filter((modal) => modal.key !== key);
       return { modals: newModals };
     }),
+  editModal: ({ key, modal }: SetModal) =>
+    set((state) => {
+      let newModals = state.modals;
+      if (key) {
+        newModals = state.modals.map((m) => {
+          if (m.key === key) {
+            return { ...m, ...modal };
+          }
+          return m;
+        });
+      }
+
+      if (!key) {
+        newModals[newModals.length - 1] = {
+          ...newModals[newModals.length - 1],
+          ...modal,
+        };
+      }
+
+      return { modals: newModals };
+    }),
   openModal: (key: ModalKeyEnum, content: ReactNode) =>
     set((state) => {
       return { modals: [...state.modals, { key, content }] };
     }),
   clearAllModals: () => set(() => ({ modals: [] })),
   setModals: (modals) => set(() => ({ modals })),
+  getModal: (key: ModalKeyEnum): Modal | undefined => {
+    const modal = useModalState.getState().modals.find((m) => m.key === key);
+    return modal as Modal | undefined;
+  },
 }));
 
 export const useModal = () => {
@@ -49,6 +84,15 @@ export const useModal = () => {
   const closeModal = useModalState((state) => state.closeModal);
   const openModal = useModalState((state) => state.openModal);
   const setModals = useModalState((state) => state.setModals);
+  const editModal = useModalState((state) => state.editModal);
+  const getModal = useModalState((state) => state.getModal);
 
-  return { openModal, closeModal, clearAllModals, setModals };
+  return {
+    openModal,
+    closeModal,
+    clearAllModals,
+    setModals,
+    editModal,
+    getModal,
+  };
 };

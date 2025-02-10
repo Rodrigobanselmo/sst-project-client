@@ -14,8 +14,10 @@ export class DocumentControlBrowseModel {
   filters: DocumentControlBrowseFilterModel;
 
   constructor(params: IDocumentControlBrowseModel) {
-    this.results = params.results;
-    this.pagination = params.pagination;
-    this.filters = params.filters;
+    this.pagination = new PaginationModel(params.pagination);
+    this.filters = new DocumentControlBrowseFilterModel(params.filters);
+    this.results = params.results.map(
+      (result) => new DocumentControlBrowseResultModel(result),
+    );
   }
 }

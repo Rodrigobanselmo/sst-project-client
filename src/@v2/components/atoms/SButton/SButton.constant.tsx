@@ -14,7 +14,7 @@ export const colorMap = {
   },
   disabled: {
     colorSchema: undefined,
-    backgroundColor: '#2D374811',
+    backgroundColor: 'grey.400',
     borderColor: 'grey.500',
     color: 'grey.200',
     textColor: 'grey.500',
@@ -139,8 +139,6 @@ export const colorContainedMap = {
   },
   disabled: {
     ...colorMap.disabled,
-    backgroundColor: '#2D3748',
-    borderColor: 'transparent',
     textColor: 'white',
   },
   normal: {

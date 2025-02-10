@@ -12,13 +12,14 @@ import { DocumentControlRoutes } from '@v2/constants/routes/document-controlrout
 export async function browseDocumentControl({
   workspaceId,
   companyId,
+  filters,
   ...query
 }: BrowseDocumentControlParams) {
   const response = await api.get<IDocumentControlBrowseModel>(
     bindUrlParams({
       path: DocumentControlRoutes.DOCUMENT_CONTROL.PATH,
       pathParams: { companyId, workspaceId },
-      queryParams: query,
+      queryParams: { ...query, ...filters },
     }),
   );
 

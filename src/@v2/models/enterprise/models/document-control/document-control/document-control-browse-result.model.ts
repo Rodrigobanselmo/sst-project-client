@@ -43,4 +43,16 @@ export class DocumentControlBrowseResultModel {
   get formatedUpdatedAt() {
     return dateUtils(this.updatedAt).format('DD/MM/YYYY');
   }
+
+  get formatedStartDate() {
+    return this.startDate ? dateUtils(this.startDate).format('MM/YYYY') : null;
+  }
+
+  get formatedEndDate() {
+    return this.endDate ? dateUtils(this.endDate).format('MM/YYYY') : null;
+  }
+
+  get isExpired() {
+    return this.endDate ? dateUtils(this.endDate).isBefore(new Date()) : false;
+  }
 }

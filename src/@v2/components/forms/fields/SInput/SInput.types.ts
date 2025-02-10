@@ -3,6 +3,7 @@ import { IStringTransformationsType } from '@v2/utils/string-transformation';
 
 export type SInputProps = Pick<
   TextFieldProps,
+  | 'onClick'
   | 'onChange'
   | 'value'
   | 'error'
@@ -11,6 +12,7 @@ export type SInputProps = Pick<
   | 'type'
   | 'autoFocus'
   | 'onFocus'
+  | 'disabled'
   | 'sx'
   | 'inputRef'
   | 'fullWidth'
@@ -22,6 +24,7 @@ export type SInputProps = Pick<
   size?: 'sm' | 'md';
   shrink?: boolean;
   inputProps?: TextFieldProps['InputProps'];
+  loading?: boolean;
   shadow?: boolean;
   textFieldProps?: TextFieldProps;
   startAdornment?: React.ReactNode;

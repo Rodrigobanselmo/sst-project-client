@@ -12,6 +12,10 @@ class DateUtils extends Date {
   format(template = 'DD/MM/YYYY') {
     return dayjs(this).format(template);
   }
+
+  isBefore(date: Date) {
+    return dayjs(this).isBefore(date);
+  }
 }
 
 export const dateUtils = (date?: Date) => {

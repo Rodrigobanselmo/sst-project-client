@@ -12,10 +12,7 @@ export const DocumentControlColumnMap: Record<
   DocumentControlTypeMapValue
 > = {
   [DocumentControlColumnsEnum.NAME]: { label: 'nome', alwaysVisible: true },
-  [DocumentControlColumnsEnum.DESCRIPTION]: {
-    label: 'Descrição',
-    alwaysVisible: true,
-  },
+  [DocumentControlColumnsEnum.DESCRIPTION]: { label: 'Descrição' },
   [DocumentControlColumnsEnum.END_DATE]: {
     label: 'Vencimento',
     alwaysVisible: true,

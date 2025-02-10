@@ -11,6 +11,7 @@ export const SModalWrapper = ({
   minWidthDesk = 900,
   title,
   modalKey,
+  loading,
 }: SModalWrapperProps) => {
   const { closeModal } = useModal();
 
@@ -31,6 +32,7 @@ export const SModalWrapper = ({
           onClick={onSubmit}
           minWidth={100}
           color="primary"
+          loading={loading}
           variant="contained"
           size="l"
           text="Salvar"

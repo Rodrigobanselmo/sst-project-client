@@ -4,6 +4,7 @@ import { Box, Button, CircularProgress, Icon } from '@mui/material';
 import STooltip from 'components/atoms/STooltip';
 import { SButtonProps } from './SButton.types';
 import { variantMap } from './SButton.constant';
+import { SFlex } from '../SFlex/SFlex';
 
 export const SButton: FC<SButtonProps> = ({
   onClick,
@@ -22,12 +23,12 @@ export const SButton: FC<SButtonProps> = ({
 }) => {
   const colorMap = variantMap[variant].color;
   const sizeMap = variantMap[variant].size;
-
+  const disabledButton = disabled || loading;
   return (
     <STooltip title={tooltip || ''} withWrapper>
       <Button
         onClick={onClick}
-        disabled={disabled || loading}
+        disabled={disabledButton}
         variant="outlined"
         color={colorMap[color].colorSchema}
         {...buttonProps}
@@ -53,14 +54,8 @@ export const SButton: FC<SButtonProps> = ({
           m: 0,
           px: sizeMap[size].px,
           gap: 1,
-          '&.Mui-disabled': {
-            borderColor: colorMap[color].borderColor,
-          },
           ...buttonProps?.sx,
-          ...(disabled && {
-            '&.Mui-disabled': {
-              borderColor: colorMap.disabled.borderColor,
-            },
+          ...(disabledButton && {
             borderColor: colorMap.disabled.borderColor,
             backgroundColor: colorMap.disabled.backgroundColor,
             color: colorMap.disabled.color,
@@ -73,16 +68,16 @@ export const SButton: FC<SButtonProps> = ({
               component={
                 loading
                   ? () => (
-                      <Box width={20} height={20}>
+                      <SFlex width={20} height={20} center ml={-5}>
                         <CircularProgress
-                          size={9}
+                          size={12}
                           sx={{
                             color: disabled
                               ? colorMap.disabled.textColor
                               : colorMap[color].textColor,
                           }}
                         />
-                      </Box>
+                      </SFlex>
                     )
                   : () => (
                       <Box width={20} height={20}>

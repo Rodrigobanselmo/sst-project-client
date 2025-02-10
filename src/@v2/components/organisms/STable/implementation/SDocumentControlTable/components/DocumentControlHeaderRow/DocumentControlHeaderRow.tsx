@@ -19,7 +19,13 @@ export const DocumentControlHeaderRow: FC<IDocumentControlHeaderRowrops> = ({
     <STableActionHRow
       isFiltered={isFiltered}
       boxProps={{ justifyContent: justify }}
-      direction={field ? orderByMap[field] : undefined}
+      direction={
+        field && orderByMap
+          ? orderByMap[field]
+          : orderByMap
+          ? undefined
+          : 'hide'
+      }
       menu={({ close }) => (
         <DocumentControlHeaderMenu
           filters={filters}

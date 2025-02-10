@@ -11,6 +11,7 @@ export interface SSearchSelectProps<Value> {
   inputProps?: Partial<SInputProps>;
   errorMessage?: string;
   label?: string;
+  labelShrink?: string;
   loading?: boolean;
   placeholder?: string;
   disabled?: boolean;
@@ -40,6 +41,7 @@ export function SSearchSelect<T>({
   inputProps,
   errorMessage,
   label,
+  labelShrink,
   options,
   loading,
   placeholder,
@@ -102,6 +104,7 @@ export function SSearchSelect<T>({
             helperText={errorMessage}
             placeholder={placeholder}
             label={label}
+            labelShrink={labelShrink}
             endAdornment={
               <InputEndAdormentSelect
                 loading={loading}

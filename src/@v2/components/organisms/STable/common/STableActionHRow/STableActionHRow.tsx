@@ -12,7 +12,7 @@ import { SIconFilter } from '@v2/assets/icons/SIconFilter/SIconFilter';
 
 interface ISTableActionHRowProps extends PropsWithChildren {
   boxProps?: BoxProps;
-  direction?: IOrderDirection;
+  direction?: IOrderDirection | 'hide';
   isFiltered?: boolean;
   menu: (props: { close: () => void }) => ReactNode;
 }

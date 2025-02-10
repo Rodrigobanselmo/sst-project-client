@@ -5,5 +5,6 @@ export interface SModalWrapperProps {
   children: React.ReactNode;
   minWidthDesk?: string | number;
   title: string;
+  loading?: boolean;
   modalKey: ModalKeyEnum;
 }
