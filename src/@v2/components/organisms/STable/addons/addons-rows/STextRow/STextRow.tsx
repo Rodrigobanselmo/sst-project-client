@@ -21,32 +21,36 @@ export const STextRow: FC<STextRowProps> = ({
   boxProps,
   startAddon,
 }) => {
+  const oneLine = lineNumber === 1;
   return (
     <STooltip
       title={tooltipTitle ?? text}
       placement="right"
-      minLength={tooltipTitle ? 0 : tooltipMinLength || 50}
+      minLength={tooltipTitle ? 0 : tooltipMinLength || 30 * lineNumber}
     >
       <SFlex align="center" gap={4} justify={justify}>
         {startAddon}
         <SFlex
-          sx={{
-            height: '100%',
-          }}
           justify={'center'}
           className="table-row-box"
           align={justify}
+          overflow="hidden"
+          height={'100%'}
           flexDirection={'column'}
           {...boxProps}
         >
           <SText
             textAlign={textAlign}
             fontSize={fontSize}
-            lineNumber={lineNumber}
+            lineNumber={oneLine ? undefined : lineNumber}
             className="table-row-text"
+            noBreak={oneLine}
             color={color}
             {...textProps}
-            sx={{ whiteSpace: 'pre-line', ...textProps?.sx }}
+            sx={{
+              whiteSpace: oneLine ? 'nowrap' : 'pre-line',
+              ...textProps?.sx,
+            }}
           >
             {text}
           </SText>

@@ -6,8 +6,13 @@ import { Box, Icon } from '@mui/material';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { SModalHeaderProps } from './SModalHeader.types';
+import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 
-export const SModalHeader: FC<SModalHeaderProps> = ({ title, onClose }) => {
+export const SModalHeader: FC<SModalHeaderProps> = ({
+  title,
+  loading,
+  onClose,
+}) => {
   const onCloseAction = () => {
     onClose();
   };
@@ -20,26 +25,32 @@ export const SModalHeader: FC<SModalHeaderProps> = ({ title, onClose }) => {
       alignItems="flex-start"
       mb={16}
     >
-      {typeof title === 'string' && (
-        <SText width="70%" fontWeight="500" fontSize={[12, 15, 20]}>
-          {title}
-        </SText>
+      {loading ? (
+        <SSkeleton height={30} width={300} />
+      ) : (
+        <>
+          {typeof title === 'string' && (
+            <SText width="70%" fontWeight="500" fontSize={[12, 15, 20]}>
+              {title}
+            </SText>
+          )}
+
+          {!(typeof title === 'string') && title}
+
+          <SIconButton
+            onClick={onCloseAction}
+            iconButtonProps={{
+              sx: {
+                position: 'absolute',
+                right: 10,
+                top: 10,
+              },
+            }}
+          >
+            <Icon sx={{ fontSize: 25 }} component={RiCloseFill} />
+          </SIconButton>
+        </>
       )}
-
-      {!(typeof title === 'string') && title}
-
-      <SIconButton
-        onClick={onCloseAction}
-        iconButtonProps={{
-          sx: {
-            position: 'absolute',
-            right: 10,
-            top: 10,
-          },
-        }}
-      >
-        <Icon sx={{ fontSize: 25 }} component={RiCloseFill} />
-      </SIconButton>
     </Box>
   );
 };

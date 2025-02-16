@@ -1,4 +1,8 @@
 import { FileModel } from '@v2/models/@shared/models/file.model';
+import {
+  DocumentControlFileBrowseResultModel,
+  IDocumentControlFileBrowseResultModel,
+} from '../document-control-file/document-control-file-browse-result.model';
 
 export type IDocumentControlReadModel = {
   id: string;
@@ -8,12 +12,7 @@ export type IDocumentControlReadModel = {
   createdAt: Date;
   updatedAt: Date;
 
-  files: {
-    name: string;
-    endDate: Date | undefined;
-    startDate: Date | undefined;
-    file: FileModel;
-  }[];
+  files: IDocumentControlFileBrowseResultModel[];
 };
 
 export class DocumentControlReadModel {
@@ -24,12 +23,7 @@ export class DocumentControlReadModel {
   createdAt: Date;
   updatedAt: Date;
 
-  files: {
-    name: string;
-    endDate: Date | undefined;
-    startDate: Date | undefined;
-    file: FileModel;
-  }[];
+  files: DocumentControlFileBrowseResultModel[];
 
   constructor(params: IDocumentControlReadModel) {
     this.id = params.id;
@@ -39,6 +33,8 @@ export class DocumentControlReadModel {
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
 
-    this.files = params.files;
+    this.files = params.files.map(
+      (file) => new DocumentControlFileBrowseResultModel(file),
+    );
   }
 }

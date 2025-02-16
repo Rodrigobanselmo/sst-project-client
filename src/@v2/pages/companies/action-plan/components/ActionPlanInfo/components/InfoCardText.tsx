@@ -25,7 +25,7 @@ export const InfoCardText = ({
 }) => {
   return (
     <SFlex direction="column" gap={0} flex={1} minWidth={minWidth}>
-      <SText ft={12} color={schemaMap[schema].colorLabel}>
+      <SText ft={12} color={schemaMap[schema].colorLabel} mb={2}>
         {label}
       </SText>
       <SText color={schemaMap[schema].color}>{text}</SText>

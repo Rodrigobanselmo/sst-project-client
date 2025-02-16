@@ -20,7 +20,7 @@ import { useFetchBrowseDocumentControl } from '@v2/services/enterprise/document-
 import { DocumentControlOrderByEnum } from '@v2/services/enterprise/document-control/document-control/browse-document-control/service/browse-document-control.types';
 import { DocumentControlTableFilter } from './components/DocumentControlTableFilter/DocumentControlTableFilter';
 import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
-import { useCommentActions } from '../../hooks/useDocumentControlActions';
+import { useDocumentControlActions } from '../../hooks/useDocumentControlActions';
 
 const limit = 15;
 
@@ -35,10 +35,11 @@ export const DocumentControlTable = ({
     Record<DocumentControlColumnsEnum, boolean>
   >(persistKeys.COLUMNS_DOCUMENT_CONTROL, {} as any);
 
-  const { onDocumentControlAdd } = useCommentActions({
-    companyId,
-    workspaceId,
-  });
+  const { onDocumentControlAdd, onDocumentControlClick } =
+    useDocumentControlActions({
+      companyId,
+      workspaceId,
+    });
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<IDocumentControlFilterProps>();
@@ -53,7 +54,7 @@ export const DocumentControlTable = ({
     orderBy: queryParams.orderBy || [
       {
         field: DocumentControlOrderByEnum.NAME,
-        order: 'desc',
+        order: 'asc',
       },
     ],
     pagination: {
@@ -138,7 +139,7 @@ export const DocumentControlTable = ({
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }
         hiddenColumns={hiddenColumns}
-        onSelectRow={(row) => null}
+        onSelectRow={(row) => onDocumentControlClick(row.id)}
         data={documentControl?.results}
         isLoading={isLoading}
         pagination={documentControl?.pagination}

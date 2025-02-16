@@ -56,9 +56,10 @@ export const SButton: FC<SButtonProps> = ({
           gap: 1,
           ...buttonProps?.sx,
           ...(disabledButton && {
-            borderColor: colorMap.disabled.borderColor,
-            backgroundColor: colorMap.disabled.backgroundColor,
-            color: colorMap.disabled.color,
+            ...colorMap.disabled,
+            '&:disabled': {
+              ...colorMap.disabled,
+            },
           }),
         }}
       >
@@ -72,7 +73,7 @@ export const SButton: FC<SButtonProps> = ({
                         <CircularProgress
                           size={12}
                           sx={{
-                            color: disabled
+                            color: disabledButton
                               ? colorMap.disabled.textColor
                               : colorMap[color].textColor,
                           }}
@@ -87,7 +88,7 @@ export const SButton: FC<SButtonProps> = ({
               }
               sx={{
                 fontSize: ['1rem', '1rem', '1.1rem'],
-                color: disabled
+                color: disabledButton
                   ? colorMap.disabled.textColor
                   : colorMap[color].textColor,
               }}
@@ -98,7 +99,7 @@ export const SButton: FC<SButtonProps> = ({
               mr={icon ? 2 : 0}
               fontSize={sizeMap[size].fontSize}
               color={
-                disabled
+                disabledButton
                   ? colorMap.disabled.textColor
                   : colorMap[color].textColor
               }
@@ -116,7 +117,7 @@ export const SButton: FC<SButtonProps> = ({
                         <CircularProgress
                           size={9}
                           sx={{
-                            color: disabled
+                            color: disabledButton
                               ? colorMap.disabled.textColor
                               : colorMap[color].textColor,
                           }}
@@ -127,7 +128,7 @@ export const SButton: FC<SButtonProps> = ({
               }
               sx={{
                 fontSize: ['1rem', '1rem', '1.1rem'],
-                color: disabled
+                color: disabledButton
                   ? colorMap.disabled.textColor
                   : colorMap[color].textColor,
               }}

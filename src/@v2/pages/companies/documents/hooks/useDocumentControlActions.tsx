@@ -1,6 +1,16 @@
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import dynamic from 'next/dynamic';
 
+const DocumentControlViewDynamic = dynamic(
+  async () => {
+    const mod = await import(
+      '../pages/document-view/components/DocumentControlView/DocumentControlView'
+    );
+    return mod.DocumentControlView;
+  },
+  { ssr: false },
+);
+
 const FormDynamic = dynamic(
   async () => {
     const mod = await import(
@@ -11,7 +21,7 @@ const FormDynamic = dynamic(
   { ssr: false },
 );
 
-export const useCommentActions = ({
+export const useDocumentControlActions = ({
   companyId,
   workspaceId,
 }: {
@@ -27,7 +37,18 @@ export const useCommentActions = ({
     );
   };
 
+  const onDocumentControlClick = (id: number) => {
+    openModal(
+      ModalKeyEnum.DOCUMENT_CONTROL_ADD,
+      <DocumentControlViewDynamic
+        companyId={companyId}
+        documentControlId={id}
+      />,
+    );
+  };
+
   return {
     onDocumentControlAdd,
+    onDocumentControlClick,
   };
 };

@@ -14,10 +14,11 @@ export const colorMap = {
   },
   disabled: {
     colorSchema: undefined,
-    backgroundColor: 'grey.400',
-    borderColor: 'grey.500',
-    color: 'grey.200',
-    textColor: 'grey.500',
+    backgroundColor: 'grey.300',
+    borderColor: 'grey.300',
+    color: 'grey.700',
+    textColor: 'grey.700',
+    fontWeight: 'normal',
   },
   normal: {
     colorSchema: undefined,
@@ -110,6 +111,7 @@ export const colorOutlineMap = {
   },
   disabled: {
     ...colorMap.disabled,
+    borderColor: 'grey.500',
     backgroundColor: 'transparent',
   },
   normal: {
@@ -139,7 +141,6 @@ export const colorContainedMap = {
   },
   disabled: {
     ...colorMap.disabled,
-    textColor: 'white',
   },
   normal: {
     ...colorMap.normal,

@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 export interface SModalHeaderProps {
   title?: string | ReactNode;
   onClose: () => void;
+  loading?: boolean;
   // icon?: ReactNode;
   // modalName?: string;
   // tagTitle?: string | ReactNode;

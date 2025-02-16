@@ -17,14 +17,18 @@ export const SModalWrapper = ({
 
   return (
     <SModalPaper minWidthDesk={minWidthDesk} center={false}>
-      <SModalHeader title={title} onClose={() => closeModal(modalKey)} />
+      <SModalHeader
+        title={title}
+        loading={loading}
+        onClose={() => closeModal(modalKey)}
+      />
       {children}
       <SModalButtons>
         <SButton
           onClick={() => closeModal(modalKey)}
           minWidth={100}
-          color="primary"
-          variant="outlined"
+          color={loading ? 'paper' : 'primary'}
+          variant={'outlined'}
           size="l"
           text="Cancelar"
         />
