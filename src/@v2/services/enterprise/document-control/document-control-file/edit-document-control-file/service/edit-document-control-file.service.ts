@@ -6,11 +6,11 @@ import { api } from 'core/services/apiClient';
 export interface EditDocumentControlFileParams {
   documentControlFileId: number;
   companyId: string;
-  fileId: string;
+  fileId?: string;
   name?: string;
-  endDate?: Date;
-  startDate?: Date;
-  description?: string;
+  endDate?: Date | null;
+  startDate?: Date | null;
+  description?: string | null;
 }
 
 export async function editDocumentControlFile({

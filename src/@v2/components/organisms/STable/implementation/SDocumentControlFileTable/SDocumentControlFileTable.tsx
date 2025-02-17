@@ -22,7 +22,7 @@ export const SDocumentControlFileTable: FC<ISDocumentControlFileTableProps> = ({
   const tableRows: ITableData<DocumentControlFileBrowseResultModel>[] = [
     // NAME
     {
-      column: '250px',
+      column: '350px',
       header: (
         <DocumentControlFileHeaderRow
           text={columnMap[columnsEnum.NAME].label}

@@ -8,9 +8,9 @@ export const useMutateAddDocumentControlFile = () => {
 
   const mutate = useMutate({
     mutationFn: addDocumentControlFile,
-    invalidateQueryKey: (_, variables) => [
-      QueryKeyDocumentControlEnum.DOCUMENT_CONTROL_FILE,
-      variables.companyId,
+    invalidateManyQueryKeys: (_, variables) => [
+      [QueryKeyDocumentControlEnum.DOCUMENT_CONTROL_FILE, variables.companyId],
+      [QueryKeyDocumentControlEnum.DOCUMENT_CONTROL, variables.companyId],
     ],
     onSuccess: () => onSuccessMessage('Documento adicionado com sucesso'),
     onError: onErrorMessage,

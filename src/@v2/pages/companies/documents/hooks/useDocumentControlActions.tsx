@@ -1,22 +1,14 @@
+import { AuthPageRoutes } from '@v2/constants/pages/auth.routes';
+import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import dynamic from 'next/dynamic';
-
-const DocumentControlViewDynamic = dynamic(
-  async () => {
-    const mod = await import(
-      '../pages/document-view/components/DocumentControlView/DocumentControlView'
-    );
-    return mod.DocumentControlView;
-  },
-  { ssr: false },
-);
 
 const FormDynamic = dynamic(
   async () => {
     const mod = await import(
-      '../components/DocumentControlForms/DocumentControlForms/DocumentControlForms'
+      '../components/DocumentControlForms/implementations/AddDocumentControlForms/AddDocumentControlForms'
     );
-    return mod.DocumentControlForm;
+    return mod.AddDocumentControlForms;
   },
   { ssr: false },
 );
@@ -29,6 +21,7 @@ export const useDocumentControlActions = ({
   workspaceId: string;
 }) => {
   const { openModal } = useModal();
+  const router = useAppRouter();
 
   const onDocumentControlAdd = () => {
     openModal(
@@ -38,13 +31,9 @@ export const useDocumentControlActions = ({
   };
 
   const onDocumentControlClick = (id: number) => {
-    openModal(
-      ModalKeyEnum.DOCUMENT_CONTROL_ADD,
-      <DocumentControlViewDynamic
-        companyId={companyId}
-        documentControlId={id}
-      />,
-    );
+    router.push(AuthPageRoutes.DOCUMENTS.VIEW, {
+      pathParams: { companyId, id },
+    });
   };
 
   return {

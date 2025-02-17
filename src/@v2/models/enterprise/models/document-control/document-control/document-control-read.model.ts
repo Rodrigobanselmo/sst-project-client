@@ -5,7 +5,8 @@ import {
 } from '../document-control-file/document-control-file-browse-result.model';
 
 export type IDocumentControlReadModel = {
-  id: string;
+  id: number;
+  companyId: string;
   name: string;
   type: string;
   description: string | undefined;
@@ -16,7 +17,8 @@ export type IDocumentControlReadModel = {
 };
 
 export class DocumentControlReadModel {
-  id: string;
+  id: number;
+  companyId: string;
   name: string;
   type: string;
   description: string | undefined;
@@ -26,6 +28,7 @@ export class DocumentControlReadModel {
   files: DocumentControlFileBrowseResultModel[];
 
   constructor(params: IDocumentControlReadModel) {
+    this.companyId = params.companyId;
     this.id = params.id;
     this.name = params.name;
     this.type = params.type;
@@ -36,5 +39,9 @@ export class DocumentControlReadModel {
     this.files = params.files.map(
       (file) => new DocumentControlFileBrowseResultModel(file),
     );
+  }
+
+  get url() {
+    return this.files[0]?.file.url;
   }
 }

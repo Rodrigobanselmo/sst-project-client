@@ -17,7 +17,8 @@ export function queryParamsToObject(
 
     keys.forEach((k, i) => {
       if (i === keys.length - 1) {
-        const isNumber = value && !isNaN(Number(value));
+        const isNumberString = value.at(0) == '0' && value.length > 1;
+        const isNumber = value && !isNaN(Number(value)) && !isNumberString;
         if (isNumber) return (current[k] = Number(value));
 
         const valueLower = value.toLocaleLowerCase();

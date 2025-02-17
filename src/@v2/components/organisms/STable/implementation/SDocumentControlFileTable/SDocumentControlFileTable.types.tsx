@@ -1,5 +1,9 @@
 import { DocumentControlFileBrowseResultModel } from '@v2/models/enterprise/models/document-control/document-control-file/document-control-file-browse-result.model';
 
+export interface IDocumentControlFileFilterProps {
+  search?: string;
+}
+
 export interface ISDocumentControlFileTableProps {
   data?: DocumentControlFileBrowseResultModel[];
   isLoading?: boolean;

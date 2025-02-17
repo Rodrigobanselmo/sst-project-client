@@ -8,9 +8,9 @@ export const useMutateEditDocumentControlFile = () => {
 
   const mutate = useMutate({
     mutationFn: editDocumentControlFile,
-    invalidateQueryKey: (_, variables) => [
-      QueryKeyDocumentControlEnum.DOCUMENT_CONTROL_FILE,
-      variables.companyId,
+    invalidateManyQueryKeys: (_, variables) => [
+      [QueryKeyDocumentControlEnum.DOCUMENT_CONTROL, variables.companyId],
+      [QueryKeyDocumentControlEnum.DOCUMENT_CONTROL_FILE, variables.companyId],
     ],
     onSuccess: () => onSuccessMessage('Documento editado com sucesso'),
     onError: onErrorMessage,

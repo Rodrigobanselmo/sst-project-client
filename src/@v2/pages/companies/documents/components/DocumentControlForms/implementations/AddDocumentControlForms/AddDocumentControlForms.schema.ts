@@ -1,8 +1,8 @@
 import { FileAsync } from '@v2/types/file-async';
 import * as yup from 'yup';
-import { DocumentControlTypeEnum } from './constants/document-type.map';
+import { DocumentControlTypeEnum } from '../../constants/document-type.map';
 
-export interface IDocumentControlFormFields {
+export interface IAddDocumentControlFormFields {
   name: string;
   type: { value: string };
   typeText?: string;
@@ -12,7 +12,7 @@ export interface IDocumentControlFormFields {
   file: FileAsync;
 }
 
-export const schemaDocumentControlForm = yup.object({
+export const schemaAddDocumentControlForm = yup.object({
   name: yup.string().required('Nome é obrigatório'),
   description: yup.string().optional(),
   type: yup
@@ -35,8 +35,8 @@ export const schemaDocumentControlForm = yup.object({
   file: yup.mixed().required('Arquivo é obrigatório'),
 }) as any;
 
-export const documentControlFormInitialValues = {
+export const addDocumentControlFormInitialValues = {
   file: null as unknown as FileAsync,
   startDate: null,
   endDate: null,
-} as IDocumentControlFormFields;
+} as IAddDocumentControlFormFields;

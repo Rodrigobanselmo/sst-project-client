@@ -3,6 +3,7 @@ import { dateUtils } from '@v2/utils/date-utils';
 
 export type IDocumentControlFileBrowseResultModel = {
   id: number;
+  companyId: string;
   name: string;
   description?: string;
   endDate: Date | undefined;
@@ -12,6 +13,7 @@ export type IDocumentControlFileBrowseResultModel = {
 
 export class DocumentControlFileBrowseResultModel {
   id: number;
+  companyId: string;
   name: string;
   description?: string;
   endDate: Date | undefined;
@@ -20,6 +22,7 @@ export class DocumentControlFileBrowseResultModel {
 
   constructor(params: IDocumentControlFileBrowseResultModel) {
     this.id = params.id;
+    this.companyId = params.companyId;
     this.name = params.name;
     this.description = params.description;
     this.endDate = params.endDate;

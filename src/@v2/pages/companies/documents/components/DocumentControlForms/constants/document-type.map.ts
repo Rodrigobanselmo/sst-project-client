@@ -31,3 +31,9 @@ export const documentControlTypeList = [
   documentControlTypeMap[DocumentControlTypeEnum.PCSMO],
   documentControlTypeMap[DocumentControlTypeEnum.OTHER],
 ];
+
+export const getDocumentControlType = (
+  type: string,
+): IDocumentControlTypeOption => {
+  return documentControlTypeMap[type] || documentControlTypeMap.OTHER;
+};

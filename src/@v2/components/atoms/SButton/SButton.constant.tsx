@@ -52,7 +52,7 @@ export const colorMap = {
 
 export const sizeMap = {
   s: {
-    height: [28, 28, 30],
+    height: [24, 24, 26],
     minWidth: [28, 28, 30],
     fontSize: 12,
     px: 3,
@@ -164,6 +164,7 @@ export const colorContainedMap = {
     ...colorMap.primary,
     backgroundColor: '#F27329',
     borderColor: 'transparent',
+    color: 'white',
     textColor: 'white',
   },
 } as const;

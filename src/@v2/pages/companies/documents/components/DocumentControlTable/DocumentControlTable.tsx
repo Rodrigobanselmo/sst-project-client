@@ -1,11 +1,11 @@
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
+import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
-import { TablesSelectEnum } from '@v2/components/organisms/STable/hooks/useTableSelect';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
 import { DocumentControlColumnsEnum } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/enums/document-control-columns.enum';
 import { commentColumns } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/maps/document-control-column-map';
@@ -18,9 +18,8 @@ import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.tra
 import { ordenByDocumentControlTranslation } from '@v2/models/security/translations/orden-by-document-control.translation';
 import { useFetchBrowseDocumentControl } from '@v2/services/enterprise/document-control/document-control/browse-document-control/hooks/useFetchBrowseDocumentControl';
 import { DocumentControlOrderByEnum } from '@v2/services/enterprise/document-control/document-control/browse-document-control/service/browse-document-control.types';
-import { DocumentControlTableFilter } from './components/DocumentControlTableFilter/DocumentControlTableFilter';
-import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 import { useDocumentControlActions } from '../../hooks/useDocumentControlActions';
+import { DocumentControlTableFilter } from './components/DocumentControlTableFilter/DocumentControlTableFilter';
 
 const limit = 15;
 

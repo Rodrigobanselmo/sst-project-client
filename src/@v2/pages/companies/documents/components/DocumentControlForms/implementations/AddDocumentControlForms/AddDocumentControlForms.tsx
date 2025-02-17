@@ -2,18 +2,18 @@ import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { SModalWrapper } from '@v2/components/organisms/SModal/components/SModalWrapper/SModalWrapper';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
-import { useForm } from 'react-hook-form';
-import { FormDocumentControl } from './components/FormDocumentControl';
-import {
-  documentControlFormInitialValues,
-  IDocumentControlFormFields,
-  schemaDocumentControlForm,
-} from './DocumentControlForms.schema';
 import { useMutateAddDocumentControlSystemFile } from '@v2/services/enterprise/document-control/document-control-file/add-document-control-system-file/hooks/useMutateAddDocumentControlSystemFile';
 import { useMutateAddDocumentControl } from '@v2/services/enterprise/document-control/document-control/add-document-control/hooks/useMutateAddDocumentControl';
-import { DocumentControlTypeEnum } from './constants/document-type.map';
+import { useForm } from 'react-hook-form';
+import { DocumentControlTypeEnum } from '../../constants/document-type.map';
+import {
+  addDocumentControlFormInitialValues,
+  IAddDocumentControlFormFields,
+  schemaAddDocumentControlForm,
+} from './AddDocumentControlForms.schema';
+import { FormAddDocumentControl } from './components/FormAddDocumentControl';
 
-export const DocumentControlForm = ({
+export const AddDocumentControlForms = ({
   companyId,
   workspaceId,
 }: {
@@ -25,11 +25,11 @@ export const DocumentControlForm = ({
   const { closeModal } = useModal();
 
   const form = useForm({
-    resolver: yupResolver(schemaDocumentControlForm),
-    defaultValues: documentControlFormInitialValues,
+    resolver: yupResolver(schemaAddDocumentControlForm),
+    defaultValues: addDocumentControlFormInitialValues,
   });
 
-  const onSubmit = async (data: IDocumentControlFormFields) => {
+  const onSubmit = async (data: IAddDocumentControlFormFields) => {
     await addMutate.mutateAsync({
       companyId,
       workspaceId,
@@ -63,7 +63,7 @@ export const DocumentControlForm = ({
       onSubmit={form.handleSubmit(onSubmit)}
     >
       <SForm form={form}>
-        <FormDocumentControl onUpload={onUpload} />
+        <FormAddDocumentControl onUpload={onUpload} />
       </SForm>
     </SModalWrapper>
   );
