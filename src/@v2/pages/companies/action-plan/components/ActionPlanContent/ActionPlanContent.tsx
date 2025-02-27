@@ -17,10 +17,9 @@ export const ActionPlanContent = ({ companyId }: { companyId: string }) => {
 
   return (
     <>
-      {/* -//! remove */}
+      {/* -//! remove need to change to new format, refactor users table */}
       <StackModalViewUsers />
       {/* -//! remove */}
-
       <STabsAllWorkspace
         onChange={(id) => setQueryParams({ tabWorkspaceId: id })}
         workspaceId={queryParams.tabWorkspaceId}

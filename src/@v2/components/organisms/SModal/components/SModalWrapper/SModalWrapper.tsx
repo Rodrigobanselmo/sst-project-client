@@ -12,6 +12,7 @@ export const SModalWrapper = ({
   title,
   modalKey,
   loading,
+  closeButtonOptions,
 }: SModalWrapperProps) => {
   const { closeModal } = useModal();
 
@@ -30,17 +31,19 @@ export const SModalWrapper = ({
           color={loading ? 'paper' : 'primary'}
           variant={'outlined'}
           size="l"
-          text="Cancelar"
+          text={closeButtonOptions?.text || 'Cancelar'}
         />
-        <SButton
-          onClick={onSubmit}
-          minWidth={100}
-          color="primary"
-          loading={loading}
-          variant="contained"
-          size="l"
-          text="Salvar"
-        />
+        {onSubmit && (
+          <SButton
+            onClick={onSubmit}
+            minWidth={100}
+            color="primary"
+            loading={loading}
+            variant="contained"
+            size="l"
+            text="Salvar"
+          />
+        )}
       </SModalButtons>
     </SModalPaper>
   );

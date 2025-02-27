@@ -1,10 +1,13 @@
 import { ModalKeyEnum } from '@v2/hooks/useModal';
 
 export interface SModalWrapperProps {
-  onSubmit: () => void;
+  onSubmit?: () => void;
   children: React.ReactNode;
   minWidthDesk?: string | number;
   title: string;
   loading?: boolean;
   modalKey: ModalKeyEnum;
+  closeButtonOptions?: {
+    text?: string;
+  };
 }

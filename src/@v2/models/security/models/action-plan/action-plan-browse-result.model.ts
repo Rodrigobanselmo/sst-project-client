@@ -1,12 +1,14 @@
 import { dateUtils } from '@v2/utils/date-utils';
-import { CharacterizationTypeEnum } from '../../enums/characterization-type.enum';
-import { HierarchyTypeEnum } from '../../enums/hierarchy-type.enum';
-import { IRiskLevelValues } from '../../types/risk-level-values.type';
+import { ActionPlanStatusEnum } from '../../enums/action-plan-status.enum';
+import { OriginTypeEnum } from '../../enums/origin-type.enum';
 import { RecommendationTypeEnum } from '../../enums/recommendation-type.enum';
 import { RiskTypeEnum } from '../../enums/risk-type.enum';
-import { OriginTypeEnum } from '../../enums/origin-type.enum';
-import { ActionPlanStatusEnum } from '../../enums/action-plan-status.enum';
 import { originTypeTranslation } from '../../translations/origin-type.translation';
+import { IRiskLevelValues } from '../../types/risk-level-values.type';
+import {
+  ActionPlanBrowseCommentResultModel,
+  IActionPlanBrowseCommentResultModel,
+} from './action-plan-browse-comment-result.model';
 
 export type IActionPlanBrowseResultModel = {
   uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
@@ -23,6 +25,7 @@ export type IActionPlanBrowseResultModel = {
   origin: { name: string; type: OriginTypeEnum };
   status: ActionPlanStatusEnum;
   responsible: { id: string; name: string } | null;
+  comments: IActionPlanBrowseCommentResultModel[];
 };
 
 export class ActionPlanBrowseResultModel {
@@ -40,6 +43,7 @@ export class ActionPlanBrowseResultModel {
   origin: { name: string; type: OriginTypeEnum };
   status: ActionPlanStatusEnum;
   responsible: { id: string; name: string } | null;
+  comments: ActionPlanBrowseCommentResultModel[];
 
   constructor(params: IActionPlanBrowseResultModel) {
     this.uuid = params.uuid;
@@ -56,6 +60,9 @@ export class ActionPlanBrowseResultModel {
     this.risk = params.risk;
     this.responsible = params.responsible;
     this.origin = params.origin;
+    this.comments = params.comments.map(
+      (comment) => new ActionPlanBrowseCommentResultModel(comment),
+    );
   }
 
   get formatedDoneAt() {

@@ -28,6 +28,7 @@ export const ActionPlanColumnMap: Record<
     startHidden: true,
   },
   [ActionPlanColumnsEnum.VALID_DATE]: { label: 'Prazo' },
+  [ActionPlanColumnsEnum.COMMENT]: { label: 'Comentários' },
 };
 
 export const actionPlanColumns = Object.entries(ActionPlanColumnMap)

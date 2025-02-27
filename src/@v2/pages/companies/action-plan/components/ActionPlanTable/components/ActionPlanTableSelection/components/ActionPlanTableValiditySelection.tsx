@@ -1,4 +1,4 @@
-import { SIconDate } from '@v2/assets/icons/SIconDate/SIconAdd';
+import { SIconDate } from '@v2/assets/icons/SIconDate/SIconDate';
 import { SIconStatus } from '@v2/assets/icons/SIconStatus/SIconStatus';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SDatePickerPopper } from '@v2/components/forms/fields/SDatePicker/SDatePickerPopper';

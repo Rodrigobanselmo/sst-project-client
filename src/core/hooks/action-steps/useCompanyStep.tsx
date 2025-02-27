@@ -217,6 +217,12 @@ export const useCompanyStep = () => {
     });
   }, [company.id, push]);
 
+  const handleGoActionPlan = useCallback(() => {
+    push({
+      pathname: RoutesEnum.ACTION_PLAN.replace(':companyId', company.id),
+    });
+  }, [company.id, push]);
+
   const handleChangeStage = useCallback(
     (stage: string) => {
       push(
@@ -303,6 +309,14 @@ export const useCompanyStep = () => {
         count: company.homogenousGroupCount,
         icon: SGhoIcon,
         onClick: handleGoGho,
+        nextStepLabel: 'Grupos (GSE/GHO)',
+        text: 'Grupos Similares de Exposição',
+      },
+      [CompanyActionEnum.ACTION_PLAN]: {
+        type: CompanyActionEnum.ACTION_PLAN,
+        count: 0,
+        icon: SGhoIcon,
+        onClick: handleGoActionPlan,
         nextStepLabel: 'Grupos (GSE/GHO)',
         text: 'Grupos Similares de Exposição',
       },
@@ -538,6 +552,7 @@ export const useCompanyStep = () => {
     handleEditCompany,
     handleGoHierarchy,
     handleGoGho,
+    handleGoActionPlan,
     handleAddRisk,
     handleOpenAddRiskModal,
     handleAddManagerSystem,

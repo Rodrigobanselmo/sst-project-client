@@ -172,7 +172,7 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
           lineNumber={3}
           text={`${
             row.textType ? `(${commentTextTypeTranslation[row.textType]}) ` : ''
-          }${row.text}`}
+          }${row.text || '-'}`}
         />
       ),
     },

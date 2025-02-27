@@ -22,6 +22,11 @@ import { ActionPlanColumnsEnum as columnsEnum } from './enums/action-plan-column
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { ActionPlanColumnMap as columnMap } from './maps/action-plan-column-map';
 import { IActionPlanTableTableProps } from './SActionPlanTable.types';
+import { SIconButtonRow } from '../../addons/addons-rows/SIconButtonRow/SIconButtonRow';
+import { SIconComments } from '@v2/assets/icons';
+import { useActionPlanActions } from './hooks/useActionPlanActions';
+import { Badge } from '@mui/material';
+import { SIconButtonBadgeRow } from '../../addons/addons-rows/SIconButtonRow/addons/SIconButtonBadgeRow/SIconButtonBadgeRow';
 
 export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   companyId,
@@ -40,6 +45,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   disabledResponisble,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
+  const { onViewComment } = useActionPlanActions();
 
   const tableRows: ITableData<ActionPlanBrowseResultModel>[] = [
     // CHECK_BOX
@@ -234,6 +240,28 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       ),
       row: (row) => (
         <ActionPlanValidDateSelect row={row} companyId={companyId} />
+      ),
+    },
+    // COMMENT
+    {
+      column: '100px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.COMMENT),
+      header: (
+        <ActionPlanHeaderRow
+          orderByMap={orderByMap}
+          onHidden={() => setHiddenColumns({ [columnsEnum.COMMENT]: true })}
+          text={columnMap[columnsEnum.COMMENT].label}
+        />
+      ),
+      row: (row) => (
+        <SIconButtonRow
+          disabled={!row.comments.length}
+          onClick={() => onViewComment(row)}
+        >
+          <SIconButtonBadgeRow content={row.comments.length}>
+            <SIconComments />
+          </SIconButtonBadgeRow>
+        </SIconButtonRow>
       ),
     },
   ];

@@ -70,8 +70,10 @@ export const useActionPlanStatusActions = ({
     }) => Promise<void>,
   ) => {
     const isCancel = status === ActionPlanStatusEnum.CANCELED;
-    const isDone = status === ActionPlanStatusEnum.DONE;
-    const isCommentNecessary = isCancel || isDone;
+    const isDoneOrInProgress =
+      status === ActionPlanStatusEnum.DONE ||
+      status === ActionPlanStatusEnum.PROGRESS;
+    const isCommentNecessary = isCancel || isDoneOrInProgress;
 
     if (!isCommentNecessary) {
       onEdit();
@@ -97,7 +99,7 @@ export const useActionPlanStatusActions = ({
       );
     }
 
-    if (isDone) {
+    if (isDoneOrInProgress) {
       openModal(
         ModalKeyEnum.ACTION_PLAN_COMMENT,
         <ActionPlanCommentDoneFormDynamic

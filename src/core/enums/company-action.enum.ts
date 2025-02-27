@@ -6,6 +6,7 @@ export enum CompanyActionEnum {
   EDIT = 'EDIT',
   HIERARCHY = 'HIERARCHY',
   HOMO_GROUP = 'HOMO_GROUP',
+  ACTION_PLAN = 'ACTION_PLAN',
   RISKS = 'RISKS',
   RISKS_MODAL = 'RISKS_MODAL',
   RISK_GROUP = 'RISK_GROUP',

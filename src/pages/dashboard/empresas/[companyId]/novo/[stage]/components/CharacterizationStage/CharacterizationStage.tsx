@@ -50,6 +50,10 @@ export const CharacterizationStage = ({
                 actionsMapStepMemo[CompanyActionEnum.HOMO_GROUP]?.onClick?.(
                   {} as any,
                 );
+              } else if (v == 3) {
+                actionsMapStepMemo[CompanyActionEnum.ACTION_PLAN]?.onClick?.(
+                  {} as any,
+                );
               } else {
                 cb(v);
               }
@@ -73,6 +77,9 @@ export const CharacterizationStage = ({
                 label: 'GSE',
               },
               {
+                label: 'Plano de ação',
+              },
+              {
                 label: 'Exames',
               },
               {
@@ -82,6 +89,9 @@ export const CharacterizationStage = ({
           />
         }
       >
+        <>
+          <RiskCompanyTable />
+        </>
         <>
           <RiskCompanyTable />
         </>

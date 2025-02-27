@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { SIconDate } from '@v2/assets/icons/SIconDate/SIconAdd';
+import { SIconDate } from '@v2/assets/icons/SIconDate/SIconDate';
 import { SDatePicker } from '@v2/components/forms/fields/SDatePicker/SDatePicker';
 import { dateUtils } from '@v2/utils/date-utils';
 import { SEditButtonRow } from '../SEditButtonRow/SEditButtonRow';

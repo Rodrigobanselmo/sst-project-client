@@ -2,7 +2,7 @@ import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { FC } from 'react';
 import { SIconButtonRowProps } from './SIconButtonRow.types';
 
-export const IconButtonRow: FC<SIconButtonRowProps> = ({
+export const SIconButtonRow: FC<SIconButtonRowProps> = ({
   disabled,
   children,
   iconButtonProps,

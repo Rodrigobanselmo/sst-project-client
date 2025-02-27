@@ -10,4 +10,5 @@ export enum ActionPlanColumnsEnum {
   RESPONSIBLE = 'RESPONSIBLE',
   CREATED_AT = 'CREATED_AT',
   UPDATED_AT = 'UPDATED_AT',
+  COMMENT = 'COMMENT',
 }
