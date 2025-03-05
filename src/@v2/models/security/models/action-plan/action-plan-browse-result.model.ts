@@ -22,7 +22,7 @@ export type IActionPlanBrowseResultModel = {
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSources: { id: string; name: string }[];
   risk: { id: string; name: string; type: RiskTypeEnum };
-  origin: { name: string; type: OriginTypeEnum };
+  origin: { id: string; name: string; type: OriginTypeEnum };
   status: ActionPlanStatusEnum;
   responsible: { id: string; name: string } | null;
   comments: IActionPlanBrowseCommentResultModel[];
@@ -40,7 +40,7 @@ export class ActionPlanBrowseResultModel {
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSource: { id: string; name: string }[];
   risk: { id: string; name: string; type: RiskTypeEnum };
-  origin: { name: string; type: OriginTypeEnum };
+  origin: { id: string; name: string; type: OriginTypeEnum };
   status: ActionPlanStatusEnum;
   responsible: { id: string; name: string } | null;
   comments: ActionPlanBrowseCommentResultModel[];
