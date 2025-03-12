@@ -7,7 +7,7 @@ const ActionPlanViewModalDynamic = dynamic(
     const mod = await import(
       '../components/ActionPlanViewModal/ActionPlanViewModal'
     );
-    return mod.ActionPlanComments;
+    return mod.ActionPlanViewModal;
   },
   { ssr: false },
 );
