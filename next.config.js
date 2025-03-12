@@ -33,6 +33,12 @@ const nextConfig = {
     NEXT_PUBLIC_BASE_URL_API: process.env.NEXT_PUBLIC_BASE_URL_API,
     NEXT_PUBLIC_MEASUREMENT_ID: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
   },
+  images: {
+    domains: [
+      'simplesst.s3.amazonaws.com',
+      'simplesst.s3.sa-east-1.amazonaws.com',
+    ],
+  },
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/i,

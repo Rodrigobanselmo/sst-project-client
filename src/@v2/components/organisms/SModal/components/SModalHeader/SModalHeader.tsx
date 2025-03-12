@@ -21,6 +21,7 @@ export const SModalHeader: FC<SModalHeaderProps> = ({
     <Box
       display="flex"
       width="100%"
+      flex={0}
       justifyContent="space-between"
       alignItems="flex-start"
       mb={16}

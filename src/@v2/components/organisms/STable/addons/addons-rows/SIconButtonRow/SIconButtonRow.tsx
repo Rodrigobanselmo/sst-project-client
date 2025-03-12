@@ -6,10 +6,15 @@ export const SIconButtonRow: FC<SIconButtonRowProps> = ({
   disabled,
   children,
   iconButtonProps,
+  onClick,
   ...props
 }) => (
   <SIconButton
     disabled={disabled}
+    onClick={(e) => {
+      e.stopPropagation();
+      onClick?.(e);
+    }}
     iconButtonProps={{
       sx: {
         width: 36,

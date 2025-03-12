@@ -13,11 +13,20 @@ export const SModalWrapper = ({
   modalKey,
   loading,
   closeButtonOptions,
+  semiFullScreen,
 }: SModalWrapperProps) => {
   const { closeModal } = useModal();
 
   return (
-    <SModalPaper minWidthDesk={minWidthDesk} center={false}>
+    <SModalPaper
+      minWidthDesk={minWidthDesk}
+      center={false}
+      semiFullScreen={semiFullScreen}
+      sx={{
+        flexDirection: 'column',
+        display: 'flex',
+      }}
+    >
       <SModalHeader
         title={title}
         loading={loading}

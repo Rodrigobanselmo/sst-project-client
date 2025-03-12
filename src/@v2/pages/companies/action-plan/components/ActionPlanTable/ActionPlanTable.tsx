@@ -26,6 +26,7 @@ import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/Action
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
 import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
 import { OcupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
+import { useActionPlanTableActions } from './hooks/useActionPlanActions';
 
 const limit = 15;
 const table = TablesSelectEnum.ACTION_PLAN;
@@ -160,6 +161,8 @@ export const ActionPlanTable = ({
     },
   });
 
+  const { onSelectRow } = useActionPlanTableActions({ companyId });
+
   return (
     <>
       <STableSearch
@@ -227,7 +230,7 @@ export const ActionPlanTable = ({
         }
         disabledResponisble={disabledResponisble}
         hiddenColumns={hiddenColumns}
-        onSelectRow={(row) => null}
+        onSelectRow={(row) => onSelectRow(row)}
         data={data?.results}
         isLoading={isLoading}
         pagination={data?.pagination}
