@@ -66,7 +66,7 @@ export const ActionPlanViewModal = ({
       ) : (
         <Box display="flex" flex={1} flexDirection="column">
           <Box mb={16}>
-            <SText fontSize={18} mb={2}>
+            <SText fontSize={18} mb={8}>
               Fotos da implementação da recomendação
             </SText>
             {actionPlan?.recommendationPhotos?.length > 0 ? (
@@ -79,7 +79,7 @@ export const ActionPlanViewModal = ({
           </Box>
 
           <Box>
-            <SText fontSize={18} mb={2}>
+            <SText fontSize={18} mb={8}>
               Fotos da caracterização do risco
             </SText>
             {actionPlan?.characterizationPhotos?.length > 0 ? (

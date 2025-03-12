@@ -39,58 +39,64 @@ export const ActionPlanSliderPhotos = ({
   };
 
   return (
-    <Slider {...sliderSettings}>
-      {photos.map((photo, index) => (
-        <Box
-          key={index}
-          sx={{
-            position: 'relative',
-            width: '100% !important',
-            height: ['300px', '300px', '400px'], // Responsive height
-            borderRadius: 2,
-            overflow: 'hidden',
-          }}
-        >
-          {/* Blurred Background Image */}
-          <Image
-            src={photo.url}
-            alt={`Blurred background for characterization photo ${index + 1}`}
-            fill
-            style={{
-              objectFit: 'cover',
-              filter: 'blur(10px)',
+    <ScrollContainer horizontal={true} vertical={false} hideScrollbars={true}>
+      <Box sx={{ display: 'flex', flexDirection: 'row' }}>
+        {photos.map((photo, index) => (
+          <Box
+            key={index}
+            sx={{
+              position: 'relative',
+              minWidth:
+                photos.length <= 1
+                  ? ['100%', '100%', '400px']
+                  : ['90%', '90%', '400px'],
+              height: '225px',
+              marginRight: '10px',
               borderRadius: 2,
-            }}
-            priority={index === 0}
-          />
-          {/* Foreground Image */}
-          <Image
-            src={photo.url}
-            alt={`Characterization photo ${index + 1}`}
-            fill
-            style={{ objectFit: 'contain' }}
-            priority={index === 0}
-          />
-          {/* Expand Button */}
-          <SIconButton
-            onClick={() => handleImageClick(photo)}
-            iconButtonProps={{
-              sx: {
-                position: 'absolute',
-                top: 12,
-                right: 12,
-                bgcolor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-                color: 'white',
-                '&:hover': {
-                  bgcolor: 'rgba(0, 0, 0, 0.7)',
-                },
-              },
+              overflow: 'hidden',
             }}
           >
-            <ExpandIcon />
-          </SIconButton>
-        </Box>
-      ))}
-    </Slider>
+            {/* Blurred Background Image */}
+            <Image
+              src={photo.url}
+              alt={`Blurred background for characterization photo ${index + 1}`}
+              fill
+              style={{
+                objectFit: 'cover',
+                filter: 'blur(10px)',
+                borderRadius: 2,
+              }}
+              priority={index === 0}
+            />
+            {/* Foreground Image */}
+            <Image
+              src={photo.url}
+              alt={`Characterization photo ${index + 1}`}
+              fill
+              style={{ objectFit: 'contain' }}
+              priority={index === 0}
+            />
+            {/* Expand Button */}
+            <SIconButton
+              onClick={() => handleImageClick(photo)}
+              iconButtonProps={{
+                sx: {
+                  position: 'absolute',
+                  top: 12,
+                  right: 12,
+                  bgcolor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+                  color: 'white',
+                  '&:hover': {
+                    bgcolor: 'rgba(0, 0, 0, 0.7)',
+                  },
+                },
+              }}
+            >
+              <ExpandIcon />
+            </SIconButton>
+          </Box>
+        ))}
+      </Box>
+    </ScrollContainer>
   );
 };
