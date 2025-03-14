@@ -15,29 +15,33 @@ export const SDatePickerRow: FC<SDatePickerRowProps> = ({
   loading,
 }) => {
   return (
-    <SDatePickerPopper
-      value={date || undefined}
-      onClear={onClear}
-      onChange={(date) => {
-        if (date) onChange(date);
-      }}
-    >
-      <SEditButtonRow
-        loading={loading}
-        onClick={() => null}
-        label={
-          date ? dateUtils(date).format('DD [de] MMMM YYYY') : emptyDate || '-'
-        }
-        textProps={{
-          sx: {
-            filter: 'brightness(0.5)',
-          },
+    <div onClick={(e) => e.stopPropagation()}>
+      <SDatePickerPopper
+        value={date || undefined}
+        onClear={onClear}
+        onChange={(date) => {
+          if (date) onChange(date);
         }}
-        boxProps={{
-          width: '100%',
-        }}
-        icon={<SIconDate fontSize={12} color={'text.main'} />}
-      />
-    </SDatePickerPopper>
+      >
+        <SEditButtonRow
+          loading={loading}
+          onClick={() => null}
+          label={
+            date
+              ? dateUtils(date).format('DD [de] MMMM YYYY')
+              : emptyDate || '-'
+          }
+          textProps={{
+            sx: {
+              filter: 'brightness(0.5)',
+            },
+          }}
+          boxProps={{
+            width: '100%',
+          }}
+          icon={<SIconDate fontSize={12} color={'text.main'} />}
+        />
+      </SDatePickerPopper>
+    </div>
   );
 };

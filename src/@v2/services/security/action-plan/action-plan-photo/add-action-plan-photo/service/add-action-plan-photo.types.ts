@@ -3,4 +3,5 @@ export interface AddActionPlanPhotoParams {
   workspaceId: string;
   recommendationId: string;
   riskDataId: string;
+  file: File;
 }

@@ -12,7 +12,7 @@ export const SCheckBoxRow: FC<SCheckBoxRowProps> = ({
   checked,
   ...props
 }) => (
-  <SFlex center>
+  <SFlex center onClick={(e) => e.stopPropagation()}>
     <SIconButton {...props}>
       {checked ? (
         <SIconCheckBox color="success.main" />

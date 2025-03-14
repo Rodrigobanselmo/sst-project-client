@@ -34,6 +34,7 @@ export function SSearchSelectButtonRow<T>({
 }: SSearchSelectButtonRowProps<T>) {
   return (
     <SSearchSelect
+      boxProps={{ onClick: (e) => e.stopPropagation() }}
       disabled={disabled}
       loading={loading}
       getOptionLabel={getOptionLabel}

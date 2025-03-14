@@ -35,7 +35,7 @@ export function SSelectButtonRow<T>({
   };
 
   return (
-    <>
+    <div onClick={(e) => e.stopPropagation()}>
       <SSelectButton
         loading={loading}
         schema={schema}
@@ -77,6 +77,6 @@ export function SSelectButtonRow<T>({
           )}
         </SPopperSelect>
       </SPopperArrow>
-    </>
+    </div>
   );
 }

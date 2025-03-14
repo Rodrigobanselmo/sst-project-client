@@ -18,7 +18,7 @@ export const SDownloadRow: FC<SDownloadRowProps> = ({
   }
 
   return (
-    <SFlex center>
+    <SFlex center onClick={(e) => e.stopPropagation()}>
       <SIconButton
         {...props}
         onClick={handleClick}

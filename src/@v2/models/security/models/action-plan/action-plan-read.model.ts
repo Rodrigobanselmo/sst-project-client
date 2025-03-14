@@ -8,8 +8,11 @@ export type IActionPlanReadModel = {
   name: string;
   type: OriginTypeEnum;
 
-  recommendationPhotos: ActionPlanReadPhotoModel[];
   characterizationPhotos: ActionPlanReadPhotoModel[];
+  recommendation: {
+    name: string;
+    photos: ActionPlanReadPhotoModel[];
+  };
 };
 
 export class ActionPlanReadModel {
@@ -18,8 +21,11 @@ export class ActionPlanReadModel {
   name: string;
   type: OriginTypeEnum;
 
-  recommendationPhotos: ActionPlanReadPhotoModel[];
   characterizationPhotos: ActionPlanReadPhotoModel[];
+  recommendation: {
+    name: string;
+    photos: ActionPlanReadPhotoModel[];
+  };
 
   constructor(params: IActionPlanReadModel) {
     this.id = params.id;
@@ -27,11 +33,15 @@ export class ActionPlanReadModel {
     this.type = params.type;
     this.companyId = params.companyId;
 
-    this.recommendationPhotos = params.recommendationPhotos;
+    this.recommendation = params.recommendation;
     this.characterizationPhotos = params.characterizationPhotos;
   }
 
   get originType() {
     return originTypeTranslation[this.type];
+  }
+
+  get recommendationPhotos() {
+    return this.recommendation.photos;
   }
 }

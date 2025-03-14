@@ -7,11 +7,23 @@ export async function addActionPlanPhoto({
   companyId,
   ...body
 }: AddActionPlanPhotoParams) {
+  const formData = new FormData();
+
+  formData.append('file', body.file);
+  formData.append('workspaceId', body.workspaceId);
+  formData.append('recommendationId', body.recommendationId);
+  formData.append('riskDataId', body.riskDataId);
+
   await api.post(
     bindUrlParams({
       path: ActionPlanRoutes.ACTION_PLAN.PHOTO.ADD,
       pathParams: { companyId },
     }),
-    body,
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    },
   );
 }

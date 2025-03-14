@@ -1,3 +1,4 @@
 export enum QueryKeyEnum {
-  INFINITI = 'INFINITI',
+  INFINITE = 'INFINITE',
+  READ = 'READ',
 }

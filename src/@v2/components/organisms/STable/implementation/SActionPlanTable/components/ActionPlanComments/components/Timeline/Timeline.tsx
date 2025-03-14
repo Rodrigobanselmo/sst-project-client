@@ -17,8 +17,8 @@ export const Timeline: React.FC<TimelineProps> = ({ comments }) => {
   return (
     <div
       style={{
-        maxWidth: '800px',
         margin: '0 auto',
+        width: '100%',
       }}
     >
       {sortedComments.map((comment) => (
