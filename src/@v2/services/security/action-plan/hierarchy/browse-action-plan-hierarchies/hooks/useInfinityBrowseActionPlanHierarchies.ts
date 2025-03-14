@@ -16,7 +16,7 @@ export const useInfinityBrowseActionPlanHierarchies = (
       return lastPage.pagination.nextPage;
     },
     queryKey: [
-      QueryKeyEnum.INFINITI,
+      QueryKeyEnum.INFINITE,
       QueryKeyActionPlanEnum.ACTION_PLAN_HIERARCHIES,
       params.companyId,
       params,
