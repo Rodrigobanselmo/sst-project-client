@@ -58,7 +58,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
     },
     // ID
     {
-      column: '50px',
+      column: '35px',
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.ID),
       header: (
         <ActionPlanHeaderRow
