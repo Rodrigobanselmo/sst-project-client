@@ -1,5 +1,6 @@
 export enum ActionPlanColumnsEnum {
   CHECK_BOX = 'CHECK_BOX',
+  ID = 'ID',
   ORIGIN = 'ORIGIN',
   RISK = 'RISK',
   GENERATE_SOURCE = 'GENERATE_SOURCE',

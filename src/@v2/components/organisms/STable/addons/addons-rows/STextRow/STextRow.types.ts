@@ -1,5 +1,6 @@
 import { SFlexProps } from '@v2/components/atoms/SFlex/SFlex.types';
 import { STextProps } from '@v2/components/atoms/SText/SText.types';
+import { STooltipProps } from '@v2/components/atoms/STooltip/STooltip.types';
 import { ReactNode } from 'react';
 
 export type STextRowProps = {
@@ -15,6 +16,8 @@ export type STextRowProps = {
   boxProps?: SFlexProps;
   tooltipMinLength?: number;
 
-  textProps?: STextProps;
-  bottomTextProps?: STextProps;
+  tooltipProps?: Partial<STooltipProps>;
+  textProps?: Partial<STextProps>;
+  bottomTextProps?: Partial<STextProps>;
+  containerProps?: Partial<SFlexProps>;
 };

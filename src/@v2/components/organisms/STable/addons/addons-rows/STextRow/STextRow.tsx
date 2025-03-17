@@ -10,8 +10,10 @@ export const STextRow: FC<STextRowProps> = ({
   tooltipTitle,
   text,
   bottomText,
-  tooltipMinLength,
+  tooltipMinLength = 30,
   bottomTextProps,
+  containerProps,
+  tooltipProps,
   fontSize = 12,
   lineNumber = 2,
   textProps = {},
@@ -26,9 +28,10 @@ export const STextRow: FC<STextRowProps> = ({
     <STooltip
       title={tooltipTitle ?? text}
       placement="right"
-      minLength={tooltipTitle ? 0 : tooltipMinLength || 30 * lineNumber}
+      minLength={tooltipMinLength || 30}
+      {...tooltipProps}
     >
-      <SFlex align="center" gap={4} justify={justify}>
+      <SFlex align="center" gap={4} justify={justify} {...containerProps}>
         {startAddon}
         <SFlex
           justify={'center'}

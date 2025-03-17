@@ -12,6 +12,7 @@ export const ActionPlanColumnMap: Record<
   ActionPlanTypeMapValue
 > = {
   [ActionPlanColumnsEnum.CHECK_BOX]: { label: '', alwaysVisible: true },
+  [ActionPlanColumnsEnum.ID]: { label: 'ID', alwaysVisible: true },
   [ActionPlanColumnsEnum.ORIGIN]: { label: 'Origem', alwaysVisible: true },
   [ActionPlanColumnsEnum.RISK]: { label: 'Risco' },
   [ActionPlanColumnsEnum.GENERATE_SOURCE]: {

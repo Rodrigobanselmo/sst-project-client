@@ -12,6 +12,7 @@ import {
 
 export type IActionPlanBrowseResultModel = {
   uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
+  sequentialId: number;
   createdAt: Date;
   updatedAt: Date | null;
   startDate: Date | null;
@@ -30,6 +31,7 @@ export type IActionPlanBrowseResultModel = {
 
 export class ActionPlanBrowseResultModel {
   uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
+  sequentialId: number;
   createdAt: Date;
   updatedAt: Date | null;
   startDate: Date | null;
@@ -47,6 +49,7 @@ export class ActionPlanBrowseResultModel {
 
   constructor(params: IActionPlanBrowseResultModel) {
     this.uuid = params.uuid;
+    this.sequentialId = params.sequentialId;
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
     this.startDate = params.startDate;

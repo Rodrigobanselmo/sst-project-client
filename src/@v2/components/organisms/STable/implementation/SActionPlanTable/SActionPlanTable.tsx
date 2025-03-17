@@ -27,6 +27,7 @@ import { SIconComments } from '@v2/assets/icons';
 import { useActionPlanActions } from './hooks/useActionPlanActions';
 import { Badge } from '@mui/material';
 import { SIconButtonBadgeRow } from '../../addons/addons-rows/SIconButtonRow/addons/SIconButtonBadgeRow/SIconButtonBadgeRow';
+import { STextCopyRow } from '../../addons/addons-rows/STextCopyRow/STextCopyRow';
 
 export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   companyId,
@@ -54,6 +55,24 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
       hidden: getHiddenColumn(hiddenColumns, columnsEnum.CHECK_BOX),
       header: <SSelectHRow table={table} ids={data.map((row) => row.id)} />,
       row: (row) => <SSelectRow table={table} id={row.id} />,
+    },
+    // ID
+    {
+      column: '50px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.ID),
+      header: (
+        <ActionPlanHeaderRow
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.ID].label}
+        />
+      ),
+      row: (row) => (
+        <STextCopyRow
+          fontSize={13}
+          lineNumber={1}
+          text={String(row.sequentialId)}
+        />
+      ),
     },
     // ORIGIN
     {
