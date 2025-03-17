@@ -4,7 +4,6 @@ import { CommentTextTypeEnum } from '@v2/models/security/enums/comment-text-type
 import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
 import { useMutateEditActionPlan } from '@v2/services/security/action-plan/action-plan/edit-action-plan/hooks/useMutateEditActionPlan';
 import { useMutateEditManyActionPlan } from '@v2/services/security/action-plan/action-plan/edit-many-action-plan/hooks/useMutateEditManyActionPlan';
-import { dateUtils } from '@v2/utils/date-utils';
 import dynamic from 'next/dynamic';
 
 export interface IActionPlanUUIDParams {
@@ -68,12 +67,12 @@ export const useActionPlanStatusActions = ({
       text?: string;
       textType?: CommentTextTypeEnum;
     }) => Promise<void>,
+    uuid?: IActionPlanUUIDParams,
   ) => {
     const isCancel = status === ActionPlanStatusEnum.CANCELED;
-    const isDoneOrInProgress =
-      status === ActionPlanStatusEnum.DONE ||
-      status === ActionPlanStatusEnum.PROGRESS;
-    const isCommentNecessary = isCancel || isDoneOrInProgress;
+    const isDone = status === ActionPlanStatusEnum.DONE;
+    const isInProgress = status === ActionPlanStatusEnum.PROGRESS;
+    const isCommentNecessary = isCancel || isDone || isInProgress;
 
     if (!isCommentNecessary) {
       onEdit();
@@ -99,7 +98,17 @@ export const useActionPlanStatusActions = ({
       );
     }
 
-    if (isDoneOrInProgress) {
+    if (isDone) {
+      openModal(
+        ModalKeyEnum.ACTION_PLAN_COMMENT,
+        <ActionPlanCommentDoneFormDynamic
+          onEdit={({ text }) => onEdit({ text })}
+          uuid={uuid ? { ...uuid, companyId } : undefined}
+        />,
+      );
+    }
+
+    if (isInProgress) {
       openModal(
         ModalKeyEnum.ACTION_PLAN_COMMENT,
         <ActionPlanCommentDoneFormDynamic
@@ -110,15 +119,18 @@ export const useActionPlanStatusActions = ({
   };
 
   const onEditActionPlanStatus = (data: IEditActionPlanStatusParams) => {
-    onEditStatus(data.status, (comment) =>
-      editActionPlan.mutateAsync({
-        companyId,
-        workspaceId: data.uuid.workspaceId,
-        recommendationId: data.uuid.recommendationId,
-        riskDataId: data.uuid.riskDataId,
-        status: data.status,
-        comment: comment ? comment : undefined,
-      }),
+    onEditStatus(
+      data.status,
+      (comment) =>
+        editActionPlan.mutateAsync({
+          companyId,
+          workspaceId: data.uuid.workspaceId,
+          recommendationId: data.uuid.recommendationId,
+          riskDataId: data.uuid.riskDataId,
+          status: data.status,
+          comment: comment ? comment : undefined,
+        }),
+      data.uuid,
     );
   };
 

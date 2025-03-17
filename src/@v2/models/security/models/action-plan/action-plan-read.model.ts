@@ -3,7 +3,7 @@ import { originTypeTranslation } from '../../translations/origin-type.translatio
 import { ActionPlanReadPhotoModel } from './action-plan-read-photo.model';
 
 export type IActionPlanReadModel = {
-  id: string;
+  uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
   companyId: string;
   name: string;
   type: OriginTypeEnum;
@@ -16,7 +16,7 @@ export type IActionPlanReadModel = {
 };
 
 export class ActionPlanReadModel {
-  id: string;
+  uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
   companyId: string;
   name: string;
   type: OriginTypeEnum;
@@ -28,7 +28,7 @@ export class ActionPlanReadModel {
   };
 
   constructor(params: IActionPlanReadModel) {
-    this.id = params.id;
+    this.uuid = params.uuid;
     this.name = params.name;
     this.type = params.type;
     this.companyId = params.companyId;
