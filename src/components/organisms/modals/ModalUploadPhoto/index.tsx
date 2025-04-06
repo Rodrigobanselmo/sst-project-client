@@ -111,7 +111,11 @@ export const ModalUploadPhoto: FC<
       getModalData<Partial<typeof initialPhotoState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       if (initialData.id && (initialData?.files?.[0] || initialData.url)) {
         setCompletedCrop({} as any);
 
@@ -165,8 +169,18 @@ export const ModalUploadPhoto: FC<
 
   const onClose = () => {
     setIsLoading(false);
-    onCloseModal(ModalEnum.UPLOAD_PHOTO);
     setCompletedCrop(undefined);
+
+    if (photoData.files.length > 1) {
+      setPhotoData((data) => ({
+        ...data,
+        files: data.files.slice(1),
+      }));
+
+      return;
+    }
+
+    onCloseModal(ModalEnum.UPLOAD_PHOTO);
     setPhotoData(initialPhotoState);
     reset();
   };
@@ -315,7 +329,7 @@ export const ModalUploadPhoto: FC<
         {showFileUploader && (
           <DndProvider backend={HTML5Backend}>
             <SFileDndUpload
-              maxFiles={1}
+              maxFiles={15}
               accept={photoData.accept}
               onChange={onSetFiles}
               text={'Arraste ou click aqui \n para adicionar uma foto'}
