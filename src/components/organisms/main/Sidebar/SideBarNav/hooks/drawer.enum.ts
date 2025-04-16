@@ -24,4 +24,5 @@ export enum DrawerItemsEnum {
   employee = 'employee',
   registers = 'registers',
   actions = 'acrions',
+  forms = 'forms',
 }
