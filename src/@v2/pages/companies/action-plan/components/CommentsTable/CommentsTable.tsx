@@ -16,7 +16,7 @@ import { ICommentFilterProps } from '@v2/components/organisms/STable/implementat
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
-import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
+import { orderByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
 import { ordenByCommentTranslation } from '@v2/models/security/translations/orden-by-comment.translation';
 import { useFetchBrowseComments } from '@v2/services/security/action-plan/comment/browse-comments/hooks/useFetchBrowseComments';
 import { CommentOrderByEnum } from '@v2/services/security/action-plan/comment/browse-comments/service/browse-action-plan.types';
@@ -64,7 +64,7 @@ export const CommentsTable = ({
   const { onOrderBy, orderChipList } = useOrderBy({
     orderByList: queryParams.orderBy,
     setOrderBy: (orderBy) => setQueryParams({ orderBy }),
-    getLabel: ({ order }) => ordenByTranslation[order],
+    getLabel: ({ order }) => orderByTranslation[order],
     getLeftLabel: ({ field }) => ordenByCommentTranslation[field],
   });
 

@@ -18,6 +18,7 @@ export const STagRow: FC<STagRowProps> = ({
   color = 'text.label',
   border = '1px solid',
   borderColor = 'grey.400',
+  backgroundColor = 'grey.100',
   justify,
   boxProps,
   startAddon,
@@ -32,7 +33,7 @@ export const STagRow: FC<STagRowProps> = ({
         align="center"
         gap={4}
         justify={justify}
-        bgcolor="grey.100"
+        bgcolor={backgroundColor}
         border={border}
         borderColor={borderColor}
         justifyContent={'center'}

@@ -7,53 +7,49 @@ import { STableFilterButton } from '@v2/components/organisms/STable/addons/addon
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
-import { DocumentControlColumnsEnum } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/enums/document-control-columns.enum';
-import { commentColumns } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/maps/document-control-column-map';
-import { SDocumentControlTable } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/SDocumentControlTable';
-import { IDocumentControlFilterProps } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/SDocumentControlTable.types';
+import { FormApplicationColumnsEnum } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/enums/form-application-columns.enum';
+import { commentColumns } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/maps/fomr-application-column-map';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
-import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
-import { ordenByDocumentControlTranslation } from '@v2/models/security/translations/orden-by-document-control.translation';
-import { useFetchBrowseDocumentControl } from '@v2/services/enterprise/document-control/document-control/browse-document-control/hooks/useFetchBrowseDocumentControl';
-import { DocumentControlOrderByEnum } from '@v2/services/enterprise/document-control/document-control/browse-document-control/service/browse-document-control.types';
-import { useDocumentControlActions } from '../../hooks/useFormApplicationActions';
-import { DocumentControlTableFilter } from './components/FormApplicationTableFilter/FormApplicationTableFilter';
+import { orderByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
+import { useFormApplicationActions } from './hooks/useFormApplicationActions';
+import { FormApplicationTableFilter } from './components/FormApplicationTableFilter/FormApplicationTableFilter';
+import { IFormApplicationFilterProps } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/SFormApplicationTable.types';
+import { FormApplicationOrderByEnum } from '@v2/services/forms/form-application/browse-form-application/service/browse-form-application.types';
+import { useFetchBrowseFormApplication } from '@v2/services/forms/form-application/browse-form-application/hooks/useFetchBrowseFormApplication';
+import { orderByFormApplicationTranslation } from '@v2/models/form/translations/orden-by-form-application.translation';
+import { SFormApplicationTable } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/SFormApplicationTable';
 
 const limit = 15;
 
-export const DocumentControlTable = ({
-  workspaceId,
-  companyId,
-}: {
-  workspaceId: string;
-  companyId: string;
-}) => {
+export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
-    Record<DocumentControlColumnsEnum, boolean>
-  >(persistKeys.COLUMNS_DOCUMENT_CONTROL, {} as any);
+    Record<FormApplicationColumnsEnum, boolean>
+  >(persistKeys.COLUMNS_FORMS_APPLICATION, {} as any);
 
-  const { onDocumentControlAdd, onDocumentControlClick } =
-    useDocumentControlActions({
+  const { onFormApplicationAdd, onFormApplicationClick } =
+    useFormApplicationActions({
       companyId,
-      workspaceId,
     });
 
   const { queryParams, setQueryParams } =
-    useQueryParamsState<IDocumentControlFilterProps>();
+    useQueryParamsState<IFormApplicationFilterProps>();
 
-  const { documentControl, isLoading } = useFetchBrowseDocumentControl({
+  const { formApplication, isLoading } = useFetchBrowseFormApplication({
     companyId,
-    workspaceId,
     filters: {
       search: queryParams.search,
-      types: queryParams.types,
+      status: queryParams.status,
     },
     orderBy: queryParams.orderBy || [
       {
-        field: DocumentControlOrderByEnum.NAME,
-        order: 'asc',
+        field: FormApplicationOrderByEnum.STATUS,
+        order: 'desc',
+      },
+      {
+        field: FormApplicationOrderByEnum.CREATED_AT,
+        order: 'desc',
       },
     ],
     pagination: {
@@ -65,8 +61,8 @@ export const DocumentControlTable = ({
   const { onOrderBy, orderChipList } = useOrderBy({
     orderByList: queryParams.orderBy,
     setOrderBy: (orderBy) => setQueryParams({ orderBy }),
-    getLabel: ({ order }) => ordenByTranslation[order],
-    getLeftLabel: ({ field }) => ordenByDocumentControlTranslation[field],
+    getLabel: ({ order }) => orderByTranslation[order],
+    getLeftLabel: ({ field }) => orderByFormApplicationTranslation[field],
   });
 
   const { onCleanData, onFilterData, paramsChipList } = useTableState({
@@ -74,19 +70,19 @@ export const DocumentControlTable = ({
     setData: setQueryParams,
     chipMap: {
       search: null,
-      types: (value) => ({
-        leftLabel: 'Tipo',
+      status: (value) => ({
+        leftLabel: 'Status',
         label: value,
         onDelete: () =>
           setQueryParams({
             page: 1,
-            types: queryParams.types?.filter((type) => type !== value),
+            status: queryParams.status?.filter((type) => type !== value),
           }),
       }),
     },
     cleanData: {
       search: '',
-      types: [],
+      status: [],
       orderBy: [],
       page: 1,
       limit,
@@ -100,7 +96,7 @@ export const DocumentControlTable = ({
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
-          <STableAddButton onClick={onDocumentControlAdd} />
+          <STableAddButton onClick={onFormApplicationAdd} />
           <STableColumnsButton
             showLabel
             hiddenColumns={hiddenColumns}
@@ -108,12 +104,11 @@ export const DocumentControlTable = ({
             columns={commentColumns}
           />
           <STableFilterButton>
-            <DocumentControlTableFilter
-              data={documentControl?.filters}
+            <FormApplicationTableFilter
+              data={formApplication?.filters}
               onFilterData={onFilterData}
               filters={queryParams}
               companyId={companyId}
-              workspaceId={workspaceId}
             />
           </STableFilterButton>
         </STableSearchContent>
@@ -130,7 +125,7 @@ export const DocumentControlTable = ({
           ))}
         </STableFilterChipList>
       </STableInfoSection>
-      <SDocumentControlTable
+      <SFormApplicationTable
         filters={queryParams}
         setFilters={onFilterData}
         filterColumns={{}}
@@ -138,10 +133,10 @@ export const DocumentControlTable = ({
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }
         hiddenColumns={hiddenColumns}
-        onSelectRow={(row) => onDocumentControlClick(row.id)}
-        data={documentControl?.results}
+        onSelectRow={(row) => onFormApplicationClick(row.id)}
+        data={formApplication?.results}
         isLoading={isLoading}
-        pagination={documentControl?.pagination}
+        pagination={formApplication?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
       />

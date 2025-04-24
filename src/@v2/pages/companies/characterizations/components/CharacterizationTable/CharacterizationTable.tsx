@@ -21,7 +21,7 @@ import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
-import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
+import { orderByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/browse-characterization/hooks/useFetchBrowseCharacterization';
@@ -97,7 +97,7 @@ export const CharacterizationTable = () => {
   const { onOrderBy, orderChipList } = useOrderBy({
     orderByList: queryParams.orderBy,
     setOrderBy: (orderBy) => setQueryParams({ orderBy }),
-    getLabel: ({ order }) => ordenByTranslation[order],
+    getLabel: ({ order }) => orderByTranslation[order],
     getLeftLabel: ({ field }) => ordenByCharacterizationTranslation[field],
   });
 

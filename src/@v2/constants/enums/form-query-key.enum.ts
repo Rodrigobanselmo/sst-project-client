@@ -1,0 +1,4 @@
+export enum QueryKeyFormEnum {
+  FORM_APPLICATION = 'V2_FORM_APPLICATION',
+  FORM_MODEL = 'V2_FORM_MODEL',
+}

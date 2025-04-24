@@ -1,0 +1,12 @@
+export enum FormApplicationColumnsEnum {
+  NAME = 'NAME',
+  DESCRIPTION = 'DESCRIPTION',
+  END_DATE = 'END_DATE',
+  START_DATE = 'START_DATE',
+  STATUS = 'STATUS',
+  FORM = 'FORM',
+  TOTAL_ANSWERS = 'TOTAL_ANSWERS',
+
+  CREATED_AT = 'CREATED_AT',
+  UPDATED_AT = 'UPDATED_AT',
+}

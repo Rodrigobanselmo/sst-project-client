@@ -1,8 +1,8 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { QueryKey, useInfiniteQuery } from '@tanstack/react-query';
 
 export interface IUseFetchProps<T> {
   queryKey: any[];
-  queryFn: () => Promise<T>;
+  queryFn: (data: { page: number }) => Promise<T>;
   getNextPageParam: (lastPage: T) => number | null;
   refetchInterval?: number;
   refetchOnWindowFocus?: boolean;
@@ -13,7 +13,9 @@ export interface IUseFetchProps<T> {
 export const useInfiniteFetch = <T>(params: IUseFetchProps<T>) => {
   const query = useInfiniteQuery<T>({
     getNextPageParam: (lastPage) => params.getNextPageParam(lastPage),
-    queryFn: params.queryFn,
+    queryFn: (data) => {
+      return params.queryFn({ page: Number(data.pageParam) || 1 });
+    },
     initialPageParam: 0,
     queryKey: params.queryKey,
     refetchInterval: Infinity,

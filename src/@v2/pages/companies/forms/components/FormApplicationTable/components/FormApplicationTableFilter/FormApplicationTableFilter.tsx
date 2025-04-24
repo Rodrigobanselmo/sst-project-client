@@ -1,28 +1,27 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { IDocumentControlFilterProps } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/SDocumentControlTable.types';
-import { DocumentControlBrowseFilterModel } from '@v2/models/enterprise/models/document-control/document-control/document-control-browse-filter.model';
-import { DocumentControlTableFilterType } from './components/FormApplicationTableFilterType';
+import { IFormApplicationFilterProps } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/SFormApplicationTable.types';
+import { FormApplicationBrowseFilterModel } from '@v2/models/form/models/form-application/form-application-browse-filter.model';
+import { FormApplicationTableFilterType } from './components/FormApplicationTableFilterType';
 
-interface DocumentControlTableFilterProps {
-  onFilterData: (props: IDocumentControlFilterProps) => void;
-  filters: IDocumentControlFilterProps;
+interface FormApplicationTableFilterProps {
+  onFilterData: (props: IFormApplicationFilterProps) => void;
+  filters: IFormApplicationFilterProps;
   companyId: string;
-  workspaceId?: string;
-  data?: DocumentControlBrowseFilterModel;
+  data?: FormApplicationBrowseFilterModel;
 }
 
-export const DocumentControlTableFilter = ({
+export const FormApplicationTableFilter = ({
   onFilterData,
   filters,
   data,
-}: DocumentControlTableFilterProps) => {
+}: FormApplicationTableFilterProps) => {
   return (
     <SFlex direction="column" gap={4} width={400} pb={10}>
-      {data?.types && (
-        <DocumentControlTableFilterType
+      {data?.status && (
+        <FormApplicationTableFilterType
           filters={filters}
           onFilterData={onFilterData}
-          types={data.types}
+          status={data.status}
         />
       )}
     </SFlex>

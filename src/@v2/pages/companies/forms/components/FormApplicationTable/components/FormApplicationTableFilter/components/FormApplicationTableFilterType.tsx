@@ -1,32 +1,32 @@
 import { SSearchSelectMultiple } from '@v2/components/forms/fields/SSearchSelect/SSearchSelectMultiple';
-import { IDocumentControlFilterProps } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/SDocumentControlTable.types';
-import { useState } from 'react';
+import { IFormApplicationFilterProps } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/SFormApplicationTable.types';
+import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 
-interface DocumentControlTableFilterTypeProps {
-  onFilterData: (props: IDocumentControlFilterProps) => void;
-  filters: IDocumentControlFilterProps;
-  types: string[];
+interface FormApplicationTableFilterTypeProps {
+  onFilterData: (props: IFormApplicationFilterProps) => void;
+  filters: IFormApplicationFilterProps;
+  status: FormApplicationStatusEnum[];
 }
 
-export const DocumentControlTableFilterType = ({
+export const FormApplicationTableFilterType = ({
   onFilterData,
   filters,
-  types,
-}: DocumentControlTableFilterTypeProps) => {
+  status: types,
+}: FormApplicationTableFilterTypeProps) => {
   const isLoading = false;
 
   return (
     <SSearchSelectMultiple
-      value={filters.types || []}
+      value={filters.status || []}
       boxProps={{ flex: 1 }}
       options={types}
       loading={isLoading}
-      label="Tipos"
+      label="Status"
       getOptionLabel={(option) => option}
       getOptionValue={(option) => option}
       onChange={(option) =>
         onFilterData({
-          types: option,
+          status: option,
         })
       }
     />
