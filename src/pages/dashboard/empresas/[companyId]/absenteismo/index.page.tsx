@@ -1,12 +1,10 @@
-import React from 'react';
-
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
-import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { ModalAddAbsenteeism } from 'components/organisms/modals/ModalAddAbsenteeism/ModalAddAbsenteeism';
 import { AbsenteeismsTable } from 'components/organisms/tables/AbsenteeismTable';
 import { NextPage } from 'next';
 
+import { ModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Page: NextPage = () => {
@@ -17,6 +15,7 @@ const Page: NextPage = () => {
         <AbsenteeismsTable />
       </SContainer>
       <ModalAddAbsenteeism />
+      <ModalEditEmployee />
     </>
   );
 };
