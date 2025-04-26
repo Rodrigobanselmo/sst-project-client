@@ -31,6 +31,7 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { DrawerItemsEnum } from './drawer.enum';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
+import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
 
 export interface IDrawerBase {
   text: string;
@@ -69,6 +70,7 @@ export interface IDrawerSection {
 type IDrawerItemsMap = Record<DrawerItemsEnum, IDrawerItems>;
 
 export const useDrawerItems = () => {
+  const { isMasterAdmin } = usePermissionsAccess();
   const { onAccessFilterBase } = useAccess();
   const { userCompanyId } = useGetCompanyId();
   const { data: company } = useQueryCompany(userCompanyId);
@@ -76,7 +78,7 @@ export const useDrawerItems = () => {
 
   const items: IDrawerItemsMap = {
     [DrawerItemsEnum.dashboard]: {
-      text: 'Plano de ação',
+      text: isMasterAdmin ? 'Home' : 'Plano de ação',
       description: 'HOME',
       Icon: MdDashboard,
       href: RoutesEnum.DASHBOARD,

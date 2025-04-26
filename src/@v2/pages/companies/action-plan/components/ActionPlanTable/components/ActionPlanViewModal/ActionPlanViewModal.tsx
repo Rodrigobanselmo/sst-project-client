@@ -5,8 +5,8 @@ import { SText } from '@v2/components/atoms/SText/SText';
 import { SModalWrapper } from '@v2/components/organisms/SModal/components/SModalWrapper/SModalWrapper';
 import { ModalKeyEnum } from '@v2/hooks/useModal';
 import { useFetchReadActionPlan } from '@v2/services/security/action-plan/action-plan/read-action-plan/hooks/useFetchReadActionPlan';
+import { ActionPlanCharacterizationPhotos } from '../../../ActionPlanCharacterizationPhotos/ActionPlanCharacterizationPhotos';
 import { ActionPlanRecommendationsPhotos } from '../../../ActionPlanRecommendationsPhotos/ActionPlanRecommendationsPhotos';
-import { ActionPlanSliderPhotos } from './components/ActionPlanSliderPhotos';
 
 export const ActionPlanViewModal = ({
   companyId,
@@ -34,6 +34,7 @@ export const ActionPlanViewModal = ({
     <SModalWrapper
       modalKey={ModalKeyEnum.ACTION_PLAN_VIEW}
       title={title}
+      semiFullScreen
       closeButtonOptions={{
         text: 'Fechar',
       }}
@@ -50,20 +51,7 @@ export const ActionPlanViewModal = ({
             {actionPlan.recommendation.name}
           </SText>
           <ActionPlanRecommendationsPhotos actionPlan={actionPlan} />
-
-          <Box>
-            <SText color="grey.600" fontSize={18}>
-              Fotos da caracterização do risco
-            </SText>
-            <SDivider sx={{ mt: 3, mb: 8 }} />
-            {actionPlan?.characterizationPhotos?.length > 0 ? (
-              <ActionPlanSliderPhotos
-                photos={actionPlan.characterizationPhotos}
-              />
-            ) : (
-              <SText>Nenhuma foto disponível</SText>
-            )}
-          </Box>
+          <ActionPlanCharacterizationPhotos actionPlan={actionPlan} />
         </Box>
       )}
     </SModalWrapper>

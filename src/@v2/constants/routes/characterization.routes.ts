@@ -4,6 +4,9 @@ export const CharacterizationRoutes = {
     EDIT_MANY:
       'v2/companies/:companyId/workspaces/:workspaceId/characterizations/many',
   },
+  PHOTO_RECOMMENDATION: {
+    EDIT_MANY: 'v2/companies/:companyId/photo-recommendations/many',
+  },
   STATUS: {
     ADD: 'v2/companies/:companyId/status',
     BROWSE: 'v2/companies/:companyId/status',

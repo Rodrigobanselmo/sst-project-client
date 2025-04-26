@@ -1,4 +1,4 @@
-import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse-characterization/service/browse-characterization.types';
+import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import {
   IOrderByParams,
   IOrderDirection,

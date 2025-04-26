@@ -7,6 +7,8 @@ import ScrollContainer from 'react-indiana-drag-scroll';
 import DeleteOutlineIcon from 'assets/icons/SDeleteIcon';
 import dynamic from 'next/dynamic';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 
 const ActionPlanGalleryModalDynamic = dynamic(
   async () => {
@@ -19,18 +21,28 @@ const ActionPlanGalleryModalDynamic = dynamic(
 export const ActionPlanSliderPhotos = ({
   photos,
   onDelete,
+  onChangeVisibility,
   isLoadingDelete,
   isFullScreen,
+  isLoadingChangeVisibility,
+  showInvisible,
 }: {
   photos: ActionPlanReadPhotoModel[];
   isFullScreen?: boolean;
+  showInvisible?: boolean;
   onDelete?: (photo: ActionPlanReadPhotoModel) => void;
+  onChangeVisibility?: (photo: ActionPlanReadPhotoModel) => void;
   isLoadingDelete?: boolean;
+  isLoadingChangeVisibility?: boolean;
 }) => {
   const { openModal } = useModal();
 
   const handleDelete = (photo: ActionPlanReadPhotoModel) => {
     onDelete?.(photo);
+  };
+
+  const handleChangeVisibility = (photo: ActionPlanReadPhotoModel) => {
+    onChangeVisibility?.(photo);
   };
 
   const handleOpenGallery = async (photo: ActionPlanReadPhotoModel) => {
@@ -44,6 +56,10 @@ export const ActionPlanSliderPhotos = ({
     <ScrollContainer horizontal={true} vertical={false} hideScrollbars={true}>
       <Box sx={{ display: 'flex', flexDirection: 'row' }}>
         {photos.map((photo, index) => {
+          if (!showInvisible && !photo.isVisible) {
+            return null;
+          }
+
           let photoWidth =
             photos.length <= 1
               ? ['100%', '100%', '400px']
@@ -124,6 +140,34 @@ export const ActionPlanSliderPhotos = ({
                   }}
                 >
                   <DeleteOutlineIcon />
+                </SIconButton>
+              )}
+              {!!onChangeVisibility && (
+                <SIconButton
+                  onClick={() => handleChangeVisibility(photo)}
+                  loading={isLoadingChangeVisibility}
+                  iconButtonProps={{
+                    sx: {
+                      position: 'absolute',
+                      bottom: 12,
+                      right: 12,
+                      bgcolor: photo.isVisible
+                        ? 'rgba(32, 109, 22, 0.621)'
+                        : 'rgba(130, 13, 13, 0.621)',
+                      color: 'white',
+                      '&:hover': {
+                        bgcolor: photo.isVisible
+                          ? 'rgba(23, 119, 35, 0.621)'
+                          : 'rgba(203, 23, 23, 0.732)',
+                      },
+                    },
+                  }}
+                >
+                  {photo.isVisible ? (
+                    <VisibilityOutlinedIcon />
+                  ) : (
+                    <VisibilityOffOutlinedIcon />
+                  )}
                 </SIconButton>
               )}
             </Box>
