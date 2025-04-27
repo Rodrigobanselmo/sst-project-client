@@ -4,7 +4,6 @@ import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { useRouter } from 'next/router';
 import { ActionPlanContent } from './components/ActionPlanContent/ActionPlanContent';
-import { StackModalViewUsers } from 'components/organisms/modals/ModalPdfView/ModalPdfView';
 
 export const ActionPlanPage = () => {
   const router = useRouter();
