@@ -26,6 +26,7 @@ export const ActionPlanSliderPhotos = ({
   isFullScreen,
   isLoadingChangeVisibility,
   showInvisible,
+  isNoCache,
 }: {
   photos: ActionPlanReadPhotoModel[];
   isFullScreen?: boolean;
@@ -34,6 +35,7 @@ export const ActionPlanSliderPhotos = ({
   onChangeVisibility?: (photo: ActionPlanReadPhotoModel) => void;
   isLoadingDelete?: boolean;
   isLoadingChangeVisibility?: boolean;
+  isNoCache?: boolean;
 }) => {
   const { openModal } = useModal();
 
@@ -84,7 +86,11 @@ export const ActionPlanSliderPhotos = ({
             >
               {/* Blurred Background Image */}
               <Image
-                src={photo.url}
+                src={
+                  photo.url + isNoCache
+                    ? '?noCache=' + Math.random().toString()
+                    : ''
+                }
                 alt={`Blurred background for characterization photo ${
                   index + 1
                 }`}
@@ -98,7 +104,11 @@ export const ActionPlanSliderPhotos = ({
               />
               {/* Foreground Image */}
               <Image
-                src={photo.url}
+                src={
+                  photo.url + isNoCache
+                    ? '?noCache=' + Math.random().toString()
+                    : ''
+                }
                 alt={`Characterization photo ${index + 1}`}
                 fill
                 style={{ objectFit: 'contain' }}
