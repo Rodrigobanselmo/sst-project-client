@@ -58,6 +58,7 @@ export const ActionPlanSliderPhotos = ({
     <ScrollContainer horizontal={true} vertical={false} hideScrollbars={true}>
       <Box sx={{ display: 'flex', flexDirection: 'row' }}>
         {photos.map((photo, index) => {
+          const random = Math.random().toString();
           if (!showInvisible && !photo.isVisible) {
             return null;
           }
@@ -86,11 +87,7 @@ export const ActionPlanSliderPhotos = ({
             >
               {/* Blurred Background Image */}
               <Image
-                src={
-                  photo.url + isNoCache
-                    ? '?noCache=' + Math.random().toString()
-                    : ''
-                }
+                src={photo.url + (isNoCache ? '?noCache=' + random : '')}
                 alt={`Blurred background for characterization photo ${
                   index + 1
                 }`}
@@ -104,11 +101,7 @@ export const ActionPlanSliderPhotos = ({
               />
               {/* Foreground Image */}
               <Image
-                src={
-                  photo.url + isNoCache
-                    ? '?noCache=' + Math.random().toString()
-                    : ''
-                }
+                src={photo.url + (isNoCache ? '?noCache=' + random : '')}
                 alt={`Characterization photo ${index + 1}`}
                 fill
                 style={{ objectFit: 'contain' }}
