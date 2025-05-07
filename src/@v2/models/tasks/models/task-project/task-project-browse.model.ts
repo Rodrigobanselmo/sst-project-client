@@ -1,4 +1,4 @@
-import { PaginationModel } from '@v2/models/@shared/models/pagination.model';
+import { PaginationModel } from '@v2/models/.shared/models/pagination.model';
 import { TaskProjectBrowseFilterModel } from './task-project-browse-filter.model';
 import { TaskProjectBrowseResultModel } from './task-project-browse-result.model';
 

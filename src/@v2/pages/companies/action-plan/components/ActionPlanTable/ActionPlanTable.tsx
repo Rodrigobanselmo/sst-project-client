@@ -18,14 +18,14 @@ import { IActionPlanFilterProps } from '@v2/components/organisms/STable/implemen
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
-import { ordenByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
+import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { ordenByActionPlanTranslation } from '@v2/models/security/translations/orden-by-action-plan.translation';
 import { useFetchBrowseActionPlan } from '@v2/services/security/action-plan/action-plan/browse-action-plan/hooks/useFetchBrowseActionPlan';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/ActionPlanTableFilter';
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
 import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
-import { OcupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
+import { OccupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
 import { useActionPlanTableActions } from './hooks/useActionPlanActions';
 
 const limit = 15;
@@ -35,12 +35,12 @@ export const ActionPlanTable = ({
   workspaceId,
   companyId,
   userId,
-  disabledResponisble,
+  disabledResponsible,
 }: {
   workspaceId?: string;
   companyId: string;
   userId?: number;
-  disabledResponisble?: boolean;
+  disabledResponsible?: boolean;
 }) => {
   const router = useRouter();
 
@@ -87,7 +87,7 @@ export const ActionPlanTable = ({
   const { onOrderBy, orderChipList } = useOrderBy({
     orderByList: queryParams.orderBy,
     setOrderBy: (orderBy) => setQueryParams({ orderBy }),
-    getLabel: ({ order }) => ordenByTranslation[order],
+    getLabel: ({ order }) => orderByTranslation[order],
     getLeftLabel: ({ field }) => ordenByActionPlanTranslation[field],
   });
 
@@ -97,12 +97,11 @@ export const ActionPlanTable = ({
     chipMap: {
       search: null,
       isExpired: (value) => ({
-        leftLabel: 'Responsável',
         label: value ? 'Expirado' : 'Não Expirado',
         onDelete: () =>
           setQueryParams({
             page: 1,
-            isExpired: value,
+            isExpired: null,
           }),
       }),
       responsibles: (value) => ({
@@ -138,7 +137,7 @@ export const ActionPlanTable = ({
       }),
       ocupationalRisks: (value) => ({
         leftLabel: 'Nível',
-        label: OcupationalRiskLevelTranslation[value],
+        label: OccupationalRiskLevelTranslation[value],
         onDelete: () =>
           setQueryParams({
             page: 1,
@@ -228,7 +227,7 @@ export const ActionPlanTable = ({
         setHiddenColumns={(hidden) =>
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }
-        disabledResponisble={disabledResponisble}
+        disabledResponisble={disabledResponsible}
         hiddenColumns={hiddenColumns}
         onSelectRow={(row) => onSelectRow(row)}
         data={data?.results}

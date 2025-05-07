@@ -106,14 +106,18 @@ export function SSearchSelect<T>({
             label={label}
             labelShrink={labelShrink}
             endAdornment={
-              <InputEndAdormentSelect
-                loading={loading}
-                onClear={(e) => {
-                  e.stopPropagation();
-                  onInputChange?.('', e);
-                  onChange(null, e);
-                }}
-              />
+              <>
+                <InputEndAdormentSelect
+                  loading={loading}
+                  mr={!!inputProps?.endAdornment ? 4 : 0}
+                  onClear={(e) => {
+                    e.stopPropagation();
+                    onInputChange?.('', e);
+                    onChange(null, e);
+                  }}
+                />
+                {inputProps?.endAdornment}
+              </>
             }
             sx={{
               whiteSpace: 'nowrap',

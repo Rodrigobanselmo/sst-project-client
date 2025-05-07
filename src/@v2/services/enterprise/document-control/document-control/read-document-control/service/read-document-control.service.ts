@@ -1,4 +1,4 @@
-import { DocumentControlRoutes } from '@v2/constants/routes/document-controlroutes';
+import { DocumentControlRoutes } from '@v2/constants/routes/document-control.routes';
 import {
   DocumentControlReadModel,
   IDocumentControlReadModel,

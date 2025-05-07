@@ -1,17 +1,24 @@
 import CloseIcon from '@mui/icons-material/Close';
-import { CircularProgress, IconButton, InputAdornment } from '@mui/material';
+import {
+  Box,
+  CircularProgress,
+  IconButton,
+  InputAdornment,
+} from '@mui/material';
 
 export interface InputEndAdormentSelectProps {
   loading?: boolean;
   onClear: (event: React.SyntheticEvent) => void;
+  mr?: number;
 }
 
 export function InputEndAdormentSelect({
   onClear,
   loading,
+  mr,
 }: InputEndAdormentSelectProps) {
   return (
-    <>
+    <Box width={28} mr={mr}>
       <InputAdornment
         className="close-icon"
         position="end"
@@ -29,6 +36,6 @@ export function InputEndAdormentSelect({
           <CircularProgress color="inherit" size={20} />
         </InputAdornment>
       )}
-    </>
+    </Box>
   );
 }

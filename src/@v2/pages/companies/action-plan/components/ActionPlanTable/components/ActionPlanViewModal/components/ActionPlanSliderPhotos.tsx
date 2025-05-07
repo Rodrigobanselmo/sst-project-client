@@ -10,10 +10,12 @@ import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 
-const ActionPlanGalleryModalDynamic = dynamic(
+const ImageGalleryModalDynamic = dynamic(
   async () => {
-    const mod = await import('./ActionPlanGalleryModal');
-    return mod.ActionPlanGalleryModal;
+    const mod = await import(
+      '../../../../../../../../components/organisms/SModal/implementations/ImageGalleryModal/ImageGalleryModal'
+    );
+    return mod.ImageGalleryModal;
   },
   { ssr: false },
 );
@@ -50,7 +52,7 @@ export const ActionPlanSliderPhotos = ({
   const handleOpenGallery = async (photo: ActionPlanReadPhotoModel) => {
     openModal(
       ModalKeyEnum.ACTION_PLAN_VIEW_PHOTO_GALLERY,
-      <ActionPlanGalleryModalDynamic startPhotoId={photo.id} photos={photos} />,
+      <ImageGalleryModalDynamic startImageId={photo.id} images={photos} />,
     );
   };
 
@@ -88,9 +90,7 @@ export const ActionPlanSliderPhotos = ({
               {/* Blurred Background Image */}
               <Image
                 src={photo.url + (isNoCache ? '?noCache=' + random : '')}
-                alt={`Blurred background for characterization photo ${
-                  index + 1
-                }`}
+                alt={`Blurred background for image ${index + 1}`}
                 fill
                 style={{
                   objectFit: 'cover',
@@ -102,7 +102,7 @@ export const ActionPlanSliderPhotos = ({
               {/* Foreground Image */}
               <Image
                 src={photo.url + (isNoCache ? '?noCache=' + random : '')}
-                alt={`Characterization photo ${index + 1}`}
+                alt={`Image ${index + 1}`}
                 fill
                 style={{ objectFit: 'contain' }}
                 priority={index === 0}

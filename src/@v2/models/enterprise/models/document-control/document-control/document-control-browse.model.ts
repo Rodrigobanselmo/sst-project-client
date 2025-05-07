@@ -1,4 +1,4 @@
-import { PaginationModel } from '@v2/models/@shared/models/pagination.model';
+import { PaginationModel } from '@v2/models/.shared/models/pagination.model';
 import { DocumentControlBrowseFilterModel } from './document-control-browse-filter.model';
 import { DocumentControlBrowseResultModel } from './document-control-browse-result.model';
 

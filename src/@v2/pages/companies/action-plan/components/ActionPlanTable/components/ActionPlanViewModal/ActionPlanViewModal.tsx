@@ -7,6 +7,7 @@ import { ModalKeyEnum } from '@v2/hooks/useModal';
 import { useFetchReadActionPlan } from '@v2/services/security/action-plan/action-plan/read-action-plan/hooks/useFetchReadActionPlan';
 import { ActionPlanCharacterizationPhotos } from '../../../ActionPlanCharacterizationPhotos/ActionPlanCharacterizationPhotos';
 import { ActionPlanRecommendationsPhotos } from '../../../ActionPlanRecommendationsPhotos/ActionPlanRecommendationsPhotos';
+import { ActionPlanSubTasks } from './components/ActionPlanSubTasks';
 
 export const ActionPlanViewModal = ({
   companyId,
@@ -50,6 +51,10 @@ export const ActionPlanViewModal = ({
           <SText mb={10} fontSize={16}>
             {actionPlan.recommendation.name}
           </SText>
+          <ActionPlanSubTasks
+            actionPlan={actionPlan}
+            boxProps={{ mt: 4, mb: 20 }}
+          />
           <ActionPlanRecommendationsPhotos actionPlan={actionPlan} />
           <ActionPlanCharacterizationPhotos actionPlan={actionPlan} />
         </Box>

@@ -11,4 +11,8 @@ export interface SModalWrapperProps {
   closeButtonOptions?: {
     text?: string;
   };
+  dangerButtonOptions?: {
+    text?: string;
+    onClick: () => void;
+  };
 }

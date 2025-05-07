@@ -1,4 +1,4 @@
-import { OcupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
+import { OccupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
 import { IRiskLevelValues } from '@v2/models/security/types/risk-level-values.type';
 
 type IActionPlanLevelMapValue = {
@@ -10,25 +10,25 @@ export const ActionPlanLevelMap: Record<
   IActionPlanLevelMapValue
 > = {
   [0]: {
-    label: OcupationalRiskLevelTranslation[0],
+    label: OccupationalRiskLevelTranslation[0],
   },
   [1]: {
-    label: OcupationalRiskLevelTranslation[1],
+    label: OccupationalRiskLevelTranslation[1],
   },
   [2]: {
-    label: OcupationalRiskLevelTranslation[2],
+    label: OccupationalRiskLevelTranslation[2],
   },
   [3]: {
-    label: OcupationalRiskLevelTranslation[3],
+    label: OccupationalRiskLevelTranslation[3],
   },
   [4]: {
-    label: OcupationalRiskLevelTranslation[4],
+    label: OccupationalRiskLevelTranslation[4],
   },
   [5]: {
-    label: OcupationalRiskLevelTranslation[5],
+    label: OccupationalRiskLevelTranslation[5],
   },
   [6]: {
-    label: OcupationalRiskLevelTranslation[6],
+    label: OccupationalRiskLevelTranslation[6],
   },
 };
 

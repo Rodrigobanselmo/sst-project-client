@@ -285,8 +285,10 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         <SStatusButtonRow
           label={row.stage?.name || '-'}
           color={row.stage?.color}
-          onSelect={(id) => onEditStage(id, row)}
-          {...statusButtonProps}
+          popperStatusProps={{
+            ...statusButtonProps,
+            onSelect: (id) => onEditStage(id, row),
+          }}
         />
       ),
     },

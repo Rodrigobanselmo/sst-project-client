@@ -12,8 +12,9 @@ export const SModalWrapper = ({
   title,
   modalKey,
   loading,
-  closeButtonOptions,
   semiFullScreen,
+  closeButtonOptions,
+  dangerButtonOptions,
 }: SModalWrapperProps) => {
   const { closeModal } = useModal();
 
@@ -34,6 +35,17 @@ export const SModalWrapper = ({
       />
       {children}
       <SModalButtons>
+        {dangerButtonOptions && (
+          <SButton
+            onClick={dangerButtonOptions.onClick}
+            color="danger"
+            loading={loading}
+            variant="text"
+            size="l"
+            text={dangerButtonOptions.text || 'Deletar'}
+            buttonProps={{ sx: { mr: 'auto' } }}
+          />
+        )}
         <SButton
           onClick={() => closeModal(modalKey)}
           minWidth={100}

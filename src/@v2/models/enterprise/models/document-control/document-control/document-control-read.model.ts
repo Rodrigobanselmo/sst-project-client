@@ -1,4 +1,4 @@
-import { FileModel } from '@v2/models/@shared/models/file.model';
+import { FileModel } from '@v2/models/.shared/models/file.model';
 import {
   DocumentControlFileBrowseResultModel,
   IDocumentControlFileBrowseResultModel,

@@ -1,4 +1,6 @@
 export enum QueryKeyTaskEnum {
   TASK = 'V2_TASK',
   TASK_PROJECT = 'V2_TASK_PROJECT',
+
+  TASK_RESPONSIBLE = 'V2_TASK_RESPONSIBLE',
 }

@@ -1,4 +1,4 @@
-import { PaginationModel } from '@v2/models/@shared/models/pagination.model';
+import { PaginationModel } from '@v2/models/.shared/models/pagination.model';
 import { CommentCreatorBrowseFilterModel } from './comment-creators-browse-filter.model';
 import { CommentCreatorBrowseResultModel } from './comment-creators-browse-result.model';
 

@@ -23,9 +23,12 @@ import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocume
 import { useEmployeeActions } from './useEmployeeActions';
 import { useCompanyActions } from './useCompanyActions';
 import { useCharacterizationActions } from './useCharacterizationActions';
+import { AuthPageRoutes } from '@v2/constants/pages/auth.routes';
+import { useAppRouter } from '@v2/hooks/useAppRouter';
 
 export const usePushRoute = () => {
   const { data: company } = useQueryCompany();
+  const router = useAppRouter();
   const { push, asPath } = useRouter();
   const { onOpenRiskToolSelected, onStackOpenModal } = useOpenRiskTool();
   const { onImportEmployee } = useEmployeeActions();
@@ -118,6 +121,12 @@ export const usePushRoute = () => {
     } as Partial<typeof initialDocPgrSelectState>);
   }, [onOpenRiskToolSelected, onStackOpenModal]);
 
+  const handleDocumentControl = useCallback(() => {
+    router.push(AuthPageRoutes.DOCUMENTS.TABLE, {
+      pathParams: { companyId: company.id },
+    });
+  }, [company]);
+
   return {
     handleAddCharacterization: () => onViewCharacterization({}),
     handleAddEmployees,
@@ -128,5 +137,6 @@ export const usePushRoute = () => {
     handleEditDocumentModel,
     handleGoToRisk,
     handleOpenAddRiskModal,
+    handleDocumentControl,
   };
 };

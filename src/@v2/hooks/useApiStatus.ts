@@ -17,11 +17,7 @@ export function useApiStatus({ companyId, type }: IApiStatusProps) {
   const deleteStatusMutation = useMutateDeleteStatus();
 
   const onAddStatus = (name: string) => {
-    return addStatusMutation.mutateAsync({
-      companyId,
-      type: StatusTypeEnum.CHARACTERIZATION,
-      name,
-    });
+    return addStatusMutation.mutateAsync({ companyId, type, name });
   };
 
   const onEditStatus = ({
@@ -33,18 +29,10 @@ export function useApiStatus({ companyId, type }: IApiStatusProps) {
     name?: string;
     color?: string | null;
   }) => {
-    return editStatusMutation.mutateAsync({
-      id,
-      companyId,
-      color,
-      name,
-    });
+    return editStatusMutation.mutateAsync({ id, companyId, color, name });
   };
   const onDeleteStatus = (id: number) => {
-    return deleteStatusMutation.mutateAsync({
-      id,
-      companyId,
-    });
+    return deleteStatusMutation.mutateAsync({ id, companyId });
   };
 
   return {

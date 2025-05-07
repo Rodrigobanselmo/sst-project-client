@@ -2,6 +2,11 @@ import { ReactNode } from 'react';
 import { create } from 'zustand';
 
 export enum ModalKeyEnum {
+  // TASK
+  TASK_ADD = 'TASK_ADD',
+  TASK_EDIT = 'TASK_EDIT',
+  TASK_VIEW = 'TASK_VIEW',
+
   // ACTION PLAN
   ACTION_PLAN_INFO_EDIT = 'ACTION_PLAN_INFO_EDIT',
   ACTION_PLAN_COMMENT = 'ACTION_PLAN_COMMENT',

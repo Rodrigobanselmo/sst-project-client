@@ -1,4 +1,4 @@
-import { PaginationModel } from '@v2/models/@shared/models/pagination.model';
+import { PaginationModel } from '@v2/models/.shared/models/pagination.model';
 import { CoordinatorBrowseFilterModel } from './coordinator-browse-filter.model';
 import { CoordinatorBrowseResultModel } from './coordinator-browse-result.model';
 

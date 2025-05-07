@@ -24,7 +24,7 @@ export interface IEditManyActionPlanResponsibleParams {
   data: ResponsibleBrowseResultModel | null;
 }
 
-export const useActionPlanResponsiblesActions = ({
+export const useActionPlanResponsibleActions = ({
   companyId,
 }: {
   companyId: string;

@@ -7,11 +7,10 @@ export const SModal = () => {
 
   if (modals.length === 0) return null;
 
-  const { key, content } = modals[modals.length - 1];
-
   return (
     <>
       {modals.map((modal) => {
+        const { key, content } = modal;
         return (
           <Modal
             key={modal.key}

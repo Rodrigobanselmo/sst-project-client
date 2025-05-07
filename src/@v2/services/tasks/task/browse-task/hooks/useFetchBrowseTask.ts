@@ -16,6 +16,6 @@ export const useFetchBrowseTask = (params: BrowseTaskParams) => {
 
   return {
     ...response,
-    task: data,
+    tasks: data,
   };
 };

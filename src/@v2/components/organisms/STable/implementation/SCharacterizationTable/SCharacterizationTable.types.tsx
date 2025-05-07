@@ -5,6 +5,7 @@ import { SStatusButtonRowProps } from '../../addons/addons-rows/SStatusButtonRow
 import { CharacterizationColumnsEnum } from './enums/characterization-columns.enum';
 import { TablesSelectEnum } from '../../hooks/useTableSelect';
 import { ReactNode } from 'react';
+import { SPopperStatusProps } from '@v2/components/organisms/SPopper/addons/SPopperStatus/SPopperStatus';
 
 export interface ICharacterizationFilterProps {
   search?: string;
@@ -37,7 +38,7 @@ export interface ICharacterizationTableTableProps {
     row: CharacterizationBrowseResultModel,
   ) => void;
   statusButtonProps: Pick<
-    SStatusButtonRowProps,
+    SPopperStatusProps,
     'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'isLoading'
   >;
   pagination?: {

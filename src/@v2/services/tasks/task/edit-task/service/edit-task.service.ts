@@ -23,13 +23,14 @@ export interface EditTaskParams {
   id: number;
   companyId: string;
   description?: string;
-  endDate?: Date;
+  endDate?: Date | null;
   doneDate?: Date;
-  statusId?: number;
   projectId?: number;
   responsible?: ResponsiblePayload[];
   photos?: PhotoPayload[];
   actionPlan?: ActionPlanPayload;
+  statusId?: number | null;
+  priority?: number;
 }
 
 export async function editTask({ companyId, id, ...body }: EditTaskParams) {

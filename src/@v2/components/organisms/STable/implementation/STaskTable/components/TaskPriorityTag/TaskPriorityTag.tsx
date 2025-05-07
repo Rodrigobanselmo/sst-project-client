@@ -1,36 +1,27 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
-import { OcupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
-import { IRiskLevelValues } from '@v2/models/security/types/risk-level-values.type';
-import { SOcupationalRiskTagProps } from './SOcupationalRiskTag.types';
+import { TaskPriorityTranslation } from '@v2/models/tasks/translations/priority.translation';
+import { TaskPriorityTagProps } from './TaskPriorityTag.types';
 
-const colorMap: Record<IRiskLevelValues, any> = {
+const colorMap: Record<number, any> = {
   [0]: {
     bgcolor: 'transparent',
     borderColor: 'grey.300',
     color: 'text.main',
   },
-  [1]: {
+  [4]: {
     bgcolor: 'scale.low',
-    color: 'white',
-  },
-  [2]: {
-    bgcolor: 'scale.mediumLow',
     color: 'white',
   },
   [3]: {
     bgcolor: 'scale.medium',
     color: 'white',
   },
-  [4]: {
-    bgcolor: 'scale.mediumHigh',
-    color: 'white',
-  },
-  [5]: {
+  [2]: {
     bgcolor: 'scale.high',
     color: 'white',
   },
-  [6]: {
+  [1]: {
     bgcolor: 'scale.veryHigh',
     color: 'white',
   },
@@ -43,25 +34,25 @@ const sizeMap = {
   },
 };
 
-export const SOcupationalRiskTag = ({
-  level,
+export const TaskPriorityTag = ({
+  priority,
   size = 'md',
-}: SOcupationalRiskTagProps) => {
+}: TaskPriorityTagProps) => {
   return (
     <SFlex
       borderRadius={'4px'}
       center
-      bgcolor={colorMap[level].bgcolor}
+      bgcolor={colorMap[priority].bgcolor}
       p={sizeMap[size].padding}
       border={'1px solid'}
-      borderColor={colorMap[level].borderColor || colorMap[level].bgcolor}
+      borderColor={colorMap[priority].borderColor || colorMap[priority].bgcolor}
     >
       <SText
         fontWeight="500"
-        color={colorMap[level].color}
+        color={colorMap[priority].color}
         fontSize={sizeMap[size].fontSize}
       >
-        {OcupationalRiskLevelTranslation[level]}
+        {TaskPriorityTranslation[priority]}
       </SText>
     </SFlex>
   );

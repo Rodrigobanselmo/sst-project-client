@@ -3,7 +3,12 @@ import { originTypeTranslation } from '../../translations/origin-type.translatio
 import { ActionPlanReadPhotoModel } from './action-plan-read-photo.model';
 
 export type IActionPlanReadModel = {
-  uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
+  uuid: {
+    id?: string;
+    riskDataId: string;
+    recommendationId: string;
+    workspaceId: string;
+  };
   companyId: string;
   name: string;
   type: OriginTypeEnum;
@@ -16,7 +21,12 @@ export type IActionPlanReadModel = {
 };
 
 export class ActionPlanReadModel {
-  uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
+  uuid: {
+    id?: string;
+    riskDataId: string;
+    recommendationId: string;
+    workspaceId: string;
+  };
   companyId: string;
   name: string;
   type: OriginTypeEnum;

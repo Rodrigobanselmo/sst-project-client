@@ -19,13 +19,14 @@ interface ActionPlanPayload {
 export interface AddTaskParams {
   companyId: string;
   description: string;
-  endDate?: Date;
+  endDate?: Date | null;
   doneDate?: Date;
-  statusId?: number;
+  statusId?: number | null;
   projectId?: number;
   responsible: ResponsiblePayload[];
   photos: PhotoPayload[];
   actionPlan?: ActionPlanPayload;
+  priority?: number;
 }
 
 export async function addTask({ companyId, ...body }: AddTaskParams) {

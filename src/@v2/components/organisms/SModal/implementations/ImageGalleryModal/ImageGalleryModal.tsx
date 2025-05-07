@@ -1,27 +1,30 @@
 import { Box } from '@mui/material';
 import { SModalWrapper } from '@v2/components/organisms/SModal/components/SModalWrapper/SModalWrapper';
 import { ModalKeyEnum } from '@v2/hooks/useModal';
-import { ActionPlanReadPhotoModel } from '@v2/models/security/models/action-plan/action-plan-read-photo.model';
 import Image from 'next/image';
 import { useEffect, useRef } from 'react';
 
-export const ActionPlanGalleryModal = ({
-  photos,
-  startPhotoId,
-}: {
-  photos: ActionPlanReadPhotoModel[];
-  startPhotoId?: string;
-}) => {
-  const title = 'Galeria de Fotos';
+interface Props {
+  images: { id: string | number; url: string }[];
+  startImageId?: string | number;
+  title?: string;
+}
+
+export const ImageGalleryModal = ({
+  images,
+  startImageId,
+  title = 'Galeria de Fotos',
+}: Props) => {
+  const scrollImageId = startImageId + '-image-id';
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const handleImageClick = (photo: ActionPlanReadPhotoModel) => {
+  const handleImageClick = (photo: Props['images'][0]) => {
     window.open(photo.url, '_blank');
   };
 
   useEffect(() => {
-    if (startPhotoId) {
-      const element = document.getElementById(startPhotoId);
+    if (scrollImageId) {
+      const element = document.getElementById(scrollImageId);
       if (element && containerRef.current) {
         containerRef.current.scrollTo({
           top: element.offsetTop - containerRef.current.offsetTop - 35,
@@ -30,7 +33,7 @@ export const ActionPlanGalleryModal = ({
         element.scrollIntoView({ behavior: 'smooth' });
       }
     }
-  }, [startPhotoId]);
+  }, [startImageId]);
 
   return (
     <SModalWrapper
@@ -42,11 +45,11 @@ export const ActionPlanGalleryModal = ({
       }}
     >
       <Box sx={{ overflow: 'scroll' }} ref={containerRef}>
-        {photos.map((photo, index) => (
+        {images.map((image, index) => (
           <Box
-            onClick={() => handleImageClick(photo)}
-            key={photo.id}
-            id={photo.id}
+            onClick={() => handleImageClick(image)}
+            key={image.id.toString()}
+            id={image.id.toString() + '-image-id'}
             sx={{
               position: 'relative',
               minWidth: '100%',
@@ -60,8 +63,8 @@ export const ActionPlanGalleryModal = ({
           >
             {/* Blurred Background Image */}
             <Image
-              src={photo.url}
-              alt={`Blurred background for characterization photo ${index + 1}`}
+              src={image.url}
+              alt={`Blurred background for Image ${index + 1}`}
               fill
               style={{
                 objectFit: 'cover',
@@ -72,8 +75,8 @@ export const ActionPlanGalleryModal = ({
             />
             {/* Foreground Image */}
             <Image
-              src={photo.url}
-              alt={`Characterization photo ${index + 1}`}
+              src={image.url}
+              alt={`Image ${index + 1}`}
               fill
               style={{ objectFit: 'contain' }}
               priority={index === 0}

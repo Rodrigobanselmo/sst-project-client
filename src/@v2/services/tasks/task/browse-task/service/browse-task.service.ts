@@ -18,6 +18,7 @@ export enum TaskOrderByEnum {
   CREATOR = 'CREATOR',
   CREATED_AT = 'CREATED_AT',
   UPDATED_AT = 'UPDATED_AT',
+  PRIORITY = 'PRIORITY',
 }
 
 export interface BrowseTaskParams {
@@ -40,7 +41,9 @@ export async function browseTask({ companyId, ...query }: BrowseTaskParams) {
       path: TaskRoutes.TASK.BROWSE,
       pathParams: { companyId },
       queryParams: {
-        ...query,
+        ...query.filters,
+        ...query.pagination,
+        orderBy: query.orderBy,
       },
     }),
   );

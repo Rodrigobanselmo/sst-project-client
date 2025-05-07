@@ -1,8 +1,8 @@
 import { IRiskLevelValues } from '../types/risk-level-values.type';
 
-type OcupationalRiskLevelTranslationMap = Record<IRiskLevelValues, string>;
+type OccupationalRiskLevelTranslationMap = Record<IRiskLevelValues, string>;
 
-export const OcupationalRiskLevelTranslation: OcupationalRiskLevelTranslationMap =
+export const OccupationalRiskLevelTranslation: OccupationalRiskLevelTranslationMap =
   {
     [0]: '-',
     [1]: 'Muito Baixo',

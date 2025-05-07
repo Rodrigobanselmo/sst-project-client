@@ -1,4 +1,4 @@
-import { PaginationModel } from '@v2/models/@shared/models/pagination.model';
+import { PaginationModel } from '@v2/models/.shared/models/pagination.model';
 import { ResponsibleBrowseFilterModel } from './responsible-browse-filter.model';
 import { ResponsibleBrowseResultModel } from './responsible-browse-result.model';
 

@@ -15,7 +15,7 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 export interface SEditButtonRowProps {
   label: string;
   anchorEl?: React.RefObject<HTMLDivElement>;
-  onClick: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => void;
+  onClick?: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => void;
   boxProps?: BoxProps;
   textProps?: STextProps;
   color?: string;
@@ -46,7 +46,7 @@ export const SEditButtonRow = ({
     <SFlex
       ref={anchorEl}
       m="auto"
-      onClick={(e) => (disabled ? null : onClick(e))}
+      onClick={(e) => (disabled ? null : onClick?.(e))}
       justify={'space-between'}
       align={'center'}
       px={4}

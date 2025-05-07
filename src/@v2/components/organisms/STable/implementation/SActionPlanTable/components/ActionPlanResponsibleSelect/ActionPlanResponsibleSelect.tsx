@@ -1,7 +1,7 @@
 import { SSearchSelectButtonRow } from '@v2/components/organisms/STable/addons/addons-rows/SSearchSelectButtonRow/SSearchSelectButtonRow';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
-import { useActionPlanResponsiblesActions } from '@v2/pages/companies/action-plan/hooks/useActionPlanActionsResponisble';
-import { useFetchBrowseResponsibles } from '@v2/services/security/action-plan/user/browse-responsibles/hooks/useFetchBrowseResponsibles';
+import { useActionPlanResponsibleActions } from '@v2/pages/companies/action-plan/hooks/useActionPlanActionsResponisble';
+import { useFetchBrowseResponsible } from '@v2/services/security/action-plan/user/browse-responsibles/hooks/useFetchBrowseResponsibles';
 import { useState } from 'react';
 
 export const ActionPlanResponsibleSelect = ({
@@ -15,11 +15,11 @@ export const ActionPlanResponsibleSelect = ({
 }) => {
   const [search, setSearch] = useState('');
   const { onEditActionPlanResponsible, isLoading: isLoadingEdit } =
-    useActionPlanResponsiblesActions({
+    useActionPlanResponsibleActions({
       companyId,
     });
 
-  const { responsibles, isLoading } = useFetchBrowseResponsibles({
+  const { responsible: responsibles, isLoading } = useFetchBrowseResponsible({
     companyId,
     filters: {
       search: search,

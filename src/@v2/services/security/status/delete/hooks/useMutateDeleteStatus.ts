@@ -1,4 +1,4 @@
-import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
+import { QueryKeyStatusEnum } from '@v2/constants/enums/status-query-key.enum';
 import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
 import { useMutate } from '@v2/hooks/api/useMutate';
 import { deleteStatus } from '../service/delete-status.service';
@@ -9,7 +9,7 @@ export const useMutateDeleteStatus = () => {
   const mutate = useMutate({
     mutationFn: deleteStatus,
     invalidateQueryKey: (_, variables) => [
-      QueryKeyCharacterizationEnum.CHARACTERIZATIONS_STATUS,
+      QueryKeyStatusEnum.STATUS,
       variables.companyId,
     ],
     onSuccess: () => onSuccessMessage('Status deletedo com sucesso'),
