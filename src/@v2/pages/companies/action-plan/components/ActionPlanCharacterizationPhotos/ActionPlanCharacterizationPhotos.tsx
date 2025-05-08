@@ -98,7 +98,6 @@ export const ActionPlanCharacterizationPhotos = ({
       {hasPhotos ? (
         <ActionPlanSliderPhotos
           photos={actionPlan.characterizationPhotos}
-          isNoCache
           showInvisible={canEditVisibility}
           {...(canEditVisibility && {
             onChangeVisibility: handleEditSinglePhotoVisibility,
