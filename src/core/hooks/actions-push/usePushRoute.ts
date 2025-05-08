@@ -3,28 +3,23 @@ import { useCallback } from 'react';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { ViewTypeEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-risk-type.constant';
-import { initialWorkspaceState } from 'components/organisms/modals/ModalAddWorkspace/hooks/useEditWorkspace';
 import { initialClinicSelectState } from 'components/organisms/modals/ModalSelectClinics';
-import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
-import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { initialDocumentModelsViewState } from 'components/organisms/modals/ModalViewDocumentModels/ModalViewDocumentModels';
 import { useRouter } from 'next/router';
 
-import { CharacterizationEnum } from 'core/enums/characterization.enums';
+import { AuthPageRoutes } from '@v2/constants/pages/auth.routes';
+import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
-import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
+import { ICompany } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
-import { useMutSetApplyServiceCompany } from 'core/services/hooks/mutations/manager/company/useMutSetApplyServiceCompany/useMutSetApplyServiceCompany';
 import { useMutSetClinicsCompany } from 'core/services/hooks/mutations/manager/company/useMutSetClinicsCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocumentModels/useQueryDocumentModels';
-import { useEmployeeActions } from './useEmployeeActions';
-import { useCompanyActions } from './useCompanyActions';
 import { useCharacterizationActions } from './useCharacterizationActions';
-import { AuthPageRoutes } from '@v2/constants/pages/auth.routes';
-import { useAppRouter } from '@v2/hooks/useAppRouter';
+import { useCompanyActions } from './useCompanyActions';
+import { useEmployeeActions } from './useEmployeeActions';
 
 export const usePushRoute = () => {
   const { data: company } = useQueryCompany();
@@ -125,7 +120,7 @@ export const usePushRoute = () => {
     router.push(AuthPageRoutes.DOCUMENTS.TABLE, {
       pathParams: { companyId: company.id },
     });
-  }, [company]);
+  }, [company.id, router]);
 
   return {
     handleAddCharacterization: () => onViewCharacterization({}),

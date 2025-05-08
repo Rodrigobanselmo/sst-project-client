@@ -49,7 +49,7 @@ export const TaskSliderPhotos = ({
     <ScrollContainer horizontal={true} vertical={false} hideScrollbars={true}>
       <Box sx={{ display: 'flex', flexDirection: 'row' }}>
         {task.photos.map((photo, index) => {
-          let photoWidth =
+          const photoWidth =
             task.photos.length <= 1
               ? ['100%', '100%', '400px']
               : ['90%', '90%', '400px'];

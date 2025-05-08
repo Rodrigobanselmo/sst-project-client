@@ -43,5 +43,10 @@ type ITaskHistoryChangesPhoto = {
 };
 
 export type ITaskHistoryChanges = Partial<
-  ITaskHistoryChangesDescription & ITaskHistoryChangesStatus & ITaskHistoryChangesResponsible & ITaskHistoryChangesEndDate & ITaskHistoryChangesDoneDate & ITaskHistoryChangesPhoto
+  ITaskHistoryChangesDescription &
+    ITaskHistoryChangesStatus &
+    ITaskHistoryChangesResponsible &
+    ITaskHistoryChangesEndDate &
+    ITaskHistoryChangesDoneDate &
+    ITaskHistoryChangesPhoto
 >;

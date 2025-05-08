@@ -1,4 +1,6 @@
-export type ITaskProjectBrowseFilterModel = {};
+export type ITaskProjectBrowseFilterModel = {
+  //
+};
 
 export class TaskProjectBrowseFilterModel {
   constructor() {}

@@ -33,6 +33,7 @@ export const ImageGalleryModal = ({
         element.scrollIntoView({ behavior: 'smooth' });
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startImageId]);
 
   return (

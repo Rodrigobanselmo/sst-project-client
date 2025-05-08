@@ -109,7 +109,7 @@ export function SSearchSelect<T>({
               <>
                 <InputEndAdormentSelect
                   loading={loading}
-                  mr={!!inputProps?.endAdornment ? 4 : 0}
+                  mr={inputProps?.endAdornment ? 4 : 0}
                   onClear={(e) => {
                     e.stopPropagation();
                     onInputChange?.('', e);
