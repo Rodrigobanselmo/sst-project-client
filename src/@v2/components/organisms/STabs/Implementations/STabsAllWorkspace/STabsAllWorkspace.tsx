@@ -54,7 +54,7 @@ export const STabsAllWorkspace = ({
         value={value?.value || options[0]?.value}
         onChange={(_, value) => onChange(value)}
         shadow
-        boxProps={{ mb: mb }}
+        containerProps={{ mb: mb }}
         options={options}
       />
       {value && children}

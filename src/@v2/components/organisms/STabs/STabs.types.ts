@@ -1,7 +1,9 @@
 import { BoxProps, TabProps, TabsProps } from '@mui/material';
+import { ReactNode } from 'react';
 
 export interface STabOption<T> {
   tabProps?: TabProps;
+  component?: ReactNode;
   label: string;
   value: T;
 }
@@ -11,7 +13,8 @@ export interface STabsProps<T> {
   onChange: (event: React.SyntheticEvent, value: T) => void;
   value: T;
   tabsProps?: TabsProps;
-  boxProps?: BoxProps;
+  componentProps?: BoxProps;
+  containerProps?: BoxProps;
   height?: number;
   shadow?: boolean;
   loading?: boolean;

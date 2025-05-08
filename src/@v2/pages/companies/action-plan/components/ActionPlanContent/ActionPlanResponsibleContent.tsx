@@ -1,4 +1,4 @@
-import { STabsAllWorkspace } from '@v2/components/organisms/STabs/components/STabsAllWorkspace/STabsAllWorkspace';
+import { STabsAllWorkspace } from '@v2/components/organisms/STabs/Implementations/STabsAllWorkspace/STabsAllWorkspace';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ActionPlanTable } from '../ActionPlanTable/ActionPlanTable';
 import { useAuth } from 'core/contexts/AuthContext';
