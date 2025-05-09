@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Box } from '@mui/material';
 import { ActionPlanReadPhotoModel } from '@v2/models/security/models/action-plan/action-plan-read-photo.model';
 import Image from 'next/image';
@@ -86,24 +87,33 @@ export const ActionPlanSliderPhotos = ({
               }}
             >
               {/* Blurred Background Image */}
-              <Image
+              <img
                 src={photo.url + `?timestamp=${photo.updatedAt}`}
                 alt={`Blurred background for image ${index + 1}`}
-                fill
                 style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
                   objectFit: 'cover',
                   filter: 'blur(10px)',
-                  borderRadius: 2,
                 }}
-                priority={index === 0}
+                loading={index === 0 ? 'eager' : 'lazy'}
               />
               {/* Foreground Image */}
-              <Image
+              <img
                 src={photo.url + `?timestamp=${photo.updatedAt}`}
                 alt={`Image ${index + 1}`}
-                fill
-                style={{ objectFit: 'contain' }}
-                priority={index === 0}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  objectFit: 'contain',
+                }}
+                loading={index === 0 ? 'eager' : 'lazy'}
               />
               {/* Expand Button */}
               <SIconButton
