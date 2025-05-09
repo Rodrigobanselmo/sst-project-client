@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Box } from '@mui/material';
 import { SModalWrapper } from '@v2/components/organisms/SModal/components/SModalWrapper/SModalWrapper';
 import { ModalKeyEnum } from '@v2/hooks/useModal';
@@ -63,24 +64,34 @@ export const ImageGalleryModal = ({
             }}
           >
             {/* Blurred Background Image */}
-            <Image
+            <img
               src={image.url}
-              alt={`Blurred background for Image ${index + 1}`}
-              fill
+              alt={`Blurred background for image ${index + 1}`}
               style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                top: 0,
+                left: 0,
                 objectFit: 'cover',
-                filter: 'blur(100px)',
-                borderRadius: 2,
+                filter: 'blur(10px)',
               }}
-              priority={index === 0}
+              loading={index === 0 ? 'eager' : 'lazy'}
             />
+
             {/* Foreground Image */}
-            <Image
+            <img
               src={image.url}
               alt={`Image ${index + 1}`}
-              fill
-              style={{ objectFit: 'contain' }}
-              priority={index === 0}
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                top: 0,
+                left: 0,
+                objectFit: 'contain',
+              }}
+              loading={index === 0 ? 'eager' : 'lazy'}
             />
           </Box>
         ))}
