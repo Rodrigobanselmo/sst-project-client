@@ -34,10 +34,11 @@ const nextConfig = {
     NEXT_PUBLIC_MEASUREMENT_ID: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
   },
   images: {
+    unoptimized: false,
     domains: [
       'simplesst.s3.amazonaws.com',
       'simplesst.s3.sa-east-1.amazonaws.com',
-      'prod-simplesst-docs.s3.amazonaws.com'
+      'prod-simplesst-docs.s3.amazonaws.com',
     ],
   },
   webpack(config) {
