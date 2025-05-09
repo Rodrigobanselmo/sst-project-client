@@ -87,7 +87,7 @@ export const ActionPlanSliderPhotos = ({
             >
               {/* Blurred Background Image */}
               <Image
-                src={photo.url}
+                src={photo.url + `?timestamp=${photo.updatedAt}`}
                 alt={`Blurred background for image ${index + 1}`}
                 fill
                 style={{
@@ -99,7 +99,7 @@ export const ActionPlanSliderPhotos = ({
               />
               {/* Foreground Image */}
               <Image
-                src={photo.url}
+                src={photo.url + `?timestamp=${photo.updatedAt}`}
                 alt={`Image ${index + 1}`}
                 fill
                 style={{ objectFit: 'contain' }}
