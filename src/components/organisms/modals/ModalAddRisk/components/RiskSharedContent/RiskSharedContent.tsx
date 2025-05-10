@@ -16,11 +16,22 @@ import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
 import { RiskActivityContent } from '../RiskActivityContent/RiskActivityContent';
+import { useFetchBrowseRiskSubType } from '@v2/services/security/risk/sub-type/browse-sub-type/hooks/useFetchBrowseSubType';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
   ...props
 }) => {
   const { riskData, setRiskData, control, setValue, type } = props;
+  const { companyId } = useGetCompanyId();
+
+  const { subTypes } = useFetchBrowseRiskSubType({
+    companyId: companyId || riskData.companyId,
+    filters: {},
+    pagination: {
+      page: 1,
+    },
+  });
 
   return (
     <>
@@ -65,6 +76,23 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           mt={3}
           columns={5}
         />
+        {!!subTypes?.results.length && (
+          <RadioFormText
+            setValue={setValue}
+            type="radio"
+            label="Subtipo"
+            defaultValue={riskData.subType}
+            control={control}
+            optionsFieldName={{
+              contentField: 'name',
+              valueField: 'id',
+            }}
+            options={[{ id: null, name: '-' }, ...subTypes.results]}
+            name="subType"
+            mt={6}
+            columns={5}
+          />
+        )}
         <RadioFormText
           type="radio"
           setValue={setValue}
