@@ -4,13 +4,10 @@ import {
   browseStatus,
   BrowseStatusParams,
 } from '../service/browse-status.service';
+import { QueryKeyStatusEnum } from '@v2/constants/enums/status-query-key.enum';
 
 export const getKeyBrowseStatus = (params: BrowseStatusParams) => {
-  return [
-    QueryKeyCharacterizationEnum.CHARACTERIZATIONS_STATUS,
-    params.companyId,
-    params,
-  ];
+  return [QueryKeyStatusEnum.STATUS, params.companyId, params];
 };
 
 export const useFetchBrowseStatus = (params: BrowseStatusParams) => {

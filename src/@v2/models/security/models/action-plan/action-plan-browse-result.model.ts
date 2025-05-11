@@ -11,7 +11,12 @@ import {
 } from './action-plan-browse-comment-result.model';
 
 export type IActionPlanBrowseResultModel = {
-  uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
+  uuid: {
+    id?: string;
+    riskDataId: string;
+    recommendationId: string;
+    workspaceId: string;
+  };
   sequentialId: number;
   createdAt: Date;
   updatedAt: Date | null;
@@ -30,7 +35,12 @@ export type IActionPlanBrowseResultModel = {
 };
 
 export class ActionPlanBrowseResultModel {
-  uuid: { riskDataId: string; recommendationId: string; workspaceId: string };
+  uuid: {
+    id?: string;
+    riskDataId: string;
+    recommendationId: string;
+    workspaceId: string;
+  };
   sequentialId: number;
   createdAt: Date;
   updatedAt: Date | null;

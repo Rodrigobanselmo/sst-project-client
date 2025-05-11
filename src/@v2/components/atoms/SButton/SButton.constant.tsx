@@ -48,6 +48,13 @@ export const colorMap = {
     color: 'primary.dark',
     textColor: 'primary.dark',
   },
+  danger: {
+    colorSchema: 'error',
+    backgroundColor: '#F4433611',
+    borderColor: 'error.dark',
+    color: 'error.dark',
+    textColor: 'error.dark',
+  },
 } as const;
 
 export const sizeMap = {
@@ -102,6 +109,11 @@ export const colorTextMap = {
     backgroundColor: 'transparent',
     borderColor: 'transparent',
   },
+  danger: {
+    ...colorMap.danger,
+    backgroundColor: 'transparent',
+    borderColor: 'transparent',
+  },
 } as const;
 
 export const colorOutlineMap = {
@@ -128,6 +140,10 @@ export const colorOutlineMap = {
   },
   primary: {
     ...colorMap.primary,
+    backgroundColor: 'transparent',
+  },
+  danger: {
+    ...colorMap.danger,
     backgroundColor: 'transparent',
   },
 } as const;
@@ -165,6 +181,12 @@ export const colorContainedMap = {
     backgroundColor: '#F27329',
     borderColor: 'transparent',
     color: 'white',
+    textColor: 'white',
+  },
+  danger: {
+    ...colorMap.danger,
+    backgroundColor: '#F44336',
+    borderColor: 'transparent',
     textColor: 'white',
   },
 } as const;

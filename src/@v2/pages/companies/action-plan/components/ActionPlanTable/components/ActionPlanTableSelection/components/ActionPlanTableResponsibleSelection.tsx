@@ -3,9 +3,9 @@ import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import {
   IActionPlanUUIDParams,
-  useActionPlanResponsiblesActions,
+  useActionPlanResponsibleActions,
 } from '@v2/pages/companies/action-plan/hooks/useActionPlanActionsResponisble';
-import { useFetchBrowseResponsibles } from '@v2/services/security/action-plan/user/browse-responsibles/hooks/useFetchBrowseResponsibles';
+import { useFetchBrowseResponsible } from '@v2/services/security/action-plan/user/browse-responsibles/hooks/useFetchBrowseResponsibles';
 import { useState } from 'react';
 
 interface ActionPlanTableSelectionProps {
@@ -19,11 +19,11 @@ export const ActionPlanTableResponsibleSelection = ({
 }: ActionPlanTableSelectionProps) => {
   const [search, setSearch] = useState('');
   const { onEditManyActionPlanResponsible, isLoading: isLoadingEdit } =
-    useActionPlanResponsiblesActions({
+    useActionPlanResponsibleActions({
       companyId,
     });
 
-  const { responsibles, isLoading } = useFetchBrowseResponsibles({
+  const { responsible: responsibles, isLoading } = useFetchBrowseResponsible({
     companyId,
     filters: {
       search: search,

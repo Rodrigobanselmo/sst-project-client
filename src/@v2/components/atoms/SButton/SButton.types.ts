@@ -7,7 +7,7 @@ export type SButtonProps = {
   tooltip?: string;
   icon?: ReactNode;
   rightIcon?: (() => JSX.Element) | React.ElementType;
-  color?: 'normal' | 'success' | 'info' | 'primary' | 'paper';
+  color?: 'normal' | 'success' | 'info' | 'primary' | 'paper' | 'danger';
   variant?: 'text' | 'shade' | 'contained' | 'outlined';
   buttonProps?: ButtonProps;
   loading?: boolean;

@@ -75,6 +75,7 @@ export const useCompanyStep = () => {
     handleEditDocumentModel,
     handleAddCharacterization,
     handleOpenAddRiskModal,
+    handleDocumentControl,
   } = usePushRoute();
 
   const uploadMutation = useMutUploadFile();
@@ -127,10 +128,6 @@ export const useCompanyStep = () => {
       },
     } as Partial<typeof initialModalImportExport>);
   }, [company.id, onStackOpenModal, reportMutation, uploadMutation]);
-
-  const handleEditDocuments = useCallback(() => {
-    onStackOpenModal(ModalEnum.DOCUMENTS_VIEW, company);
-  }, [company, onStackOpenModal]);
 
   const handleAddManagerSystem = useCallback(() => {
     if (company.riskGroupCount) {
@@ -285,7 +282,7 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.DOCUMENTS]: {
         type: CompanyActionEnum.DOCUMENTS,
         icon: SDocumentIcon,
-        onClick: handleEditDocuments,
+        onClick: handleDocumentControl,
         text: 'Documentos',
         tooltipText:
           'Centralização dos documentos da empresa e gerenciamento de vencimentos',
@@ -548,7 +545,7 @@ export const useCompanyStep = () => {
     handleAddWorkspace,
     handleAddEmployees,
     handleAddTeam,
-    handleEditDocuments,
+    handleDocumentControl,
     handleEditCompany,
     handleGoHierarchy,
     handleGoGho,

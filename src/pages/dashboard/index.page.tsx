@@ -8,12 +8,24 @@ import { ActionPlanResponsibleContent } from '@v2/pages/companies/action-plan/co
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { CompaniesWizard } from './empresas/index.page';
 
 const Home: NextPage = () => {
-  const { isActionPlanResponsible } = usePermissionsAccess();
+  const { isActionPlanResponsible, isMasterAdmin } = usePermissionsAccess();
   const { data: company } = useQueryCompany();
 
   if (!company.id) return null;
+
+  if (isMasterAdmin) {
+    return (
+      <>
+        <SHeaderTag title={'Empresas'} />
+        <SContainer>
+          <CompaniesWizard />
+        </SContainer>
+      </>
+    );
+  }
 
   if (isActionPlanResponsible)
     return (

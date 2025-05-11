@@ -1,4 +1,4 @@
-import { PaginationModel } from '@v2/models/@shared/models/pagination.model';
+import { PaginationModel } from '@v2/models/.shared/models/pagination.model';
 import { ActionPlanHierarchyBrowseResultModel } from './action-plan-hierarchy-browse-result.model';
 
 export type IActionPlanHierarchyBrowseModel = {

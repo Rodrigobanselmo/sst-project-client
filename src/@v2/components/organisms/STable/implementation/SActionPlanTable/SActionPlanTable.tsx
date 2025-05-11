@@ -1,11 +1,15 @@
 import { FC } from 'react';
 
-import { SOcupationalRiskTag } from '@v2/components/molecules/SOcupationalRiskTag/SOcupationalRiskTag';
+import { SIconComments } from '@v2/assets/icons';
 import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
+import { OccupationalRiskTag } from '@v2/components/organisms/STable/implementation/SActionPlanTable/components/OccupationalRiskTag/OccupationalRiskTag';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { SSelectHRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectHRow';
 import { SSelectRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectRow';
+import { SIconButtonBadgeRow } from '../../addons/addons-rows/SIconButtonRow/addons/SIconButtonBadgeRow/SIconButtonBadgeRow';
+import { SIconButtonRow } from '../../addons/addons-rows/SIconButtonRow/SIconButtonRow';
+import { STextCopyRow } from '../../addons/addons-rows/STextCopyRow/STextCopyRow';
 import { STextRow } from '../../addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
 import { STable } from '../../common/STable/STable';
@@ -20,14 +24,12 @@ import { ActionPlanStatusSelect } from './components/ActionPlanStatusSelect/Acti
 import { ActionPlanValidDateSelect } from './components/ActionPlanValidDateSelect/ActionPlanValidDateSelect';
 import { ActionPlanColumnsEnum as columnsEnum } from './enums/action-plan-columns.enum';
 import { getHiddenColumn } from './helpers/get-hidden-column';
+import { useActionPlanActions } from './hooks/useActionPlanActions';
 import { ActionPlanColumnMap as columnMap } from './maps/action-plan-column-map';
 import { IActionPlanTableTableProps } from './SActionPlanTable.types';
-import { SIconButtonRow } from '../../addons/addons-rows/SIconButtonRow/SIconButtonRow';
-import { SIconComments } from '@v2/assets/icons';
-import { useActionPlanActions } from './hooks/useActionPlanActions';
-import { Badge } from '@mui/material';
-import { SIconButtonBadgeRow } from '../../addons/addons-rows/SIconButtonRow/addons/SIconButtonBadgeRow/SIconButtonBadgeRow';
-import { STextCopyRow } from '../../addons/addons-rows/STextCopyRow/STextCopyRow';
+import { Box } from '@mui/material';
+import { TasksActionPlanTable } from '../STaskTable/implementation/TaskTable/TasksActionPlanTable';
+import { TasksSubActionPlanTable } from '../STaskTable/implementation/TaskTable/TasksSubActionPlanTable';
 
 export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   companyId,
@@ -147,7 +149,7 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
           text={columnMap[columnsEnum.LEVEL].label}
         />
       ),
-      row: (row) => <SOcupationalRiskTag level={row.ocupationalRisk} />,
+      row: (row) => <OccupationalRiskTag level={row.ocupationalRisk} />,
     },
     // RECOMMENDATION
     {
@@ -297,14 +299,23 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
             rows={data}
             renderRow={(row) => {
               return (
-                <STableRow
-                  clickable
-                  onClick={() => onSelectRow(row)}
-                  key={row.id}
-                  minHeight={35}
-                >
-                  {rows.map((render) => render(row))}
-                </STableRow>
+                <Box key={row.id}>
+                  <STableRow
+                    clickable
+                    onClick={() => onSelectRow(row)}
+                    minHeight={35}
+                  >
+                    {rows.map((render) => render(row))}
+                  </STableRow>
+                  {row.uuid.id && (
+                    <Box mx={-1}>
+                      <TasksSubActionPlanTable
+                        companyId={companyId}
+                        actionPlanId={row.uuid.id}
+                      />
+                    </Box>
+                  )}
+                </Box>
               );
             }}
           />

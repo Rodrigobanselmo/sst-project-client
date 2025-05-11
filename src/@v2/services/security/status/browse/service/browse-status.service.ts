@@ -1,12 +1,11 @@
-import { bindUrlParams } from '@v2/utils/bind-ul-params';
-import { api } from 'core/services/apiClient';
+import { CharacterizationRoutes } from '@v2/constants/routes/characterization.routes';
+import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import {
   IStatusBrowseModel,
   StatusBrowseModel,
 } from '@v2/models/security/models/status/status-browse.model';
-import { CharacterizationRoutes } from '@v2/constants/routes/characterization.routes';
-import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
-import { simulateAwait } from 'core/utils/helpers/simulateAwait';
+import { bindUrlParams } from '@v2/utils/bind-ul-params';
+import { api } from 'core/services/apiClient';
 
 export interface BrowseStatusParams {
   companyId: string;

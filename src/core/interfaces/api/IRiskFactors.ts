@@ -136,6 +136,12 @@ export interface IRiskFactors {
   examToRisk?: IExamToRisk[];
   docInfo?: IRiskDocInfo[];
   riskFactorData?: IRiskData[];
+  subTypes: {
+    sub_type: {
+      id: string;
+      name: string;
+    };
+  }[];
 
   esocialCode: string;
   esocial?: IEsocialTable24;

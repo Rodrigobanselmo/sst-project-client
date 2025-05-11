@@ -1,10 +1,11 @@
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
-import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/browse-characterization/service/browse-characterization.types';
+import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
 import { SStatusButtonRowProps } from '../../addons/addons-rows/SStatusButtonRow/SStatusButtonRow';
 import { CharacterizationColumnsEnum } from './enums/characterization-columns.enum';
 import { TablesSelectEnum } from '../../hooks/useTableSelect';
 import { ReactNode } from 'react';
+import { SPopperStatusProps } from '@v2/components/organisms/SPopper/addons/SPopperStatus/SPopperStatus';
 
 export interface ICharacterizationFilterProps {
   search?: string;
@@ -37,7 +38,7 @@ export interface ICharacterizationTableTableProps {
     row: CharacterizationBrowseResultModel,
   ) => void;
   statusButtonProps: Pick<
-    SStatusButtonRowProps,
+    SPopperStatusProps,
     'onDelete' | 'onEdit' | 'onAdd' | 'options' | 'isLoading'
   >;
   pagination?: {

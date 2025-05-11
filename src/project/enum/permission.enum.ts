@@ -51,5 +51,6 @@ export enum PermissionEnum {
   CLINIC_COMPANY_LINK = '21',
   SCHEDULE_MEDICAL_VISIT = '22',
   IMAGE_GALLERY = '23',
-  FORM = '24',
+  TASK = '24',
+  FORM = '25',
 }

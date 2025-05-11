@@ -8,4 +8,6 @@ export const riskSchema = {
   symptoms: Yup.string(),
 };
 
-export type IRiskSchema = Record<keyof typeof riskSchema, string>;
+export type IRiskSchema = Record<keyof typeof riskSchema, string> & {
+  subType?: { id: string | ''; name: string };
+};

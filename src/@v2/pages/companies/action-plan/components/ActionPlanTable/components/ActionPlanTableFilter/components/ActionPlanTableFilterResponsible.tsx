@@ -1,6 +1,6 @@
 import { SSearchSelectMultiple } from '@v2/components/forms/fields/SSearchSelect/SSearchSelectMultiple';
 import { IActionPlanFilterProps } from '@v2/components/organisms/STable/implementation/SActionPlanTable/SActionPlanTable.types';
-import { useFetchBrowseResponsibles } from '@v2/services/security/action-plan/user/browse-responsibles/hooks/useFetchBrowseResponsibles';
+import { useFetchBrowseResponsible } from '@v2/services/security/action-plan/user/browse-responsibles/hooks/useFetchBrowseResponsibles';
 import { useState } from 'react';
 
 interface ActionPlanTableFilterResponsibleProps {
@@ -16,7 +16,7 @@ export const ActionPlanTableFilterResponsible = ({
 }: ActionPlanTableFilterResponsibleProps) => {
   const [search, setSearch] = useState('');
 
-  const { responsibles, isLoading } = useFetchBrowseResponsibles({
+  const { responsible: responsibles, isLoading } = useFetchBrowseResponsible({
     companyId,
     filters: {
       search: search,

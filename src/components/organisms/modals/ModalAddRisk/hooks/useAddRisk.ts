@@ -59,6 +59,7 @@ export const initialAddRiskState = {
   carnogenicityACGIH: undefined as undefined | string,
   carnogenicityLinach: undefined as undefined | string,
   activities: [] as RiskFactorActivities[],
+  subType: undefined as string | undefined,
 };
 
 export const useAddRisk = () => {
@@ -88,6 +89,7 @@ export const useAddRisk = () => {
   });
 
   useEffect(() => {
+    const subTypeId = risk?.subTypes[0]?.sub_type?.id;
     const initialDataProps = getModalData<any>(ModalEnum.RISK_ADD) || {};
     const {
       isAddRecMed,
@@ -102,6 +104,7 @@ export const useAddRisk = () => {
         ...oldData,
         ...(initialData && initialData),
         ...risk,
+        subType: subTypeId,
       };
 
       initialDataRef.current = newData;
@@ -118,6 +121,8 @@ export const useAddRisk = () => {
     );
 
     setValue('otherAppendix', risk?.otherAppendix);
+
+    setValue('subType', subTypeId);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [risk]);
@@ -274,6 +279,7 @@ export const useAddRisk = () => {
     carnogenicityACGIH,
     carnogenicityLinach,
     activities,
+    subType,
   }) => {
     const {
       esocial,
@@ -285,7 +291,6 @@ export const useAddRisk = () => {
       isEmergency,
     } = riskData;
     const typeValue = type as RiskEnum;
-    console.log({ propagation });
     const risk = {
       activities: activities?.filter((a) => a.description),
       id,
@@ -298,6 +303,7 @@ export const useAddRisk = () => {
       severity,
       risk: riskHealth,
       symptoms,
+      subTypesIds: [subType].filter(Boolean),
       isEmergency,
       ...(esocial?.id && { esocialCode: esocial?.id }),
       method,
@@ -324,7 +330,6 @@ export const useAddRisk = () => {
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;
-
     //  add risk then connect generate source with recMed
     if (risk.id == '') {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

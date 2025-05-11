@@ -119,8 +119,19 @@ export const rolesConstantMap = {
     value: RoleEnum.ACTION_PLAN,
     label: 'Plano de Ação',
     info: 'Somente gerenciamento do Plano de Ação',
-    permissions: [PermissionEnum.COMPANY, PermissionEnum.ACTION_PLAN],
+    permissions: [
+      PermissionEnum.COMPANY,
+      PermissionEnum.ACTION_PLAN,
+      PermissionEnum.TASK,
+    ],
     order: 3,
+  },
+  [RoleEnum.TASK]: {
+    value: RoleEnum.TASK,
+    label: 'Projetos e Tarefas',
+    info: 'Gerenciamento dos projetos e tarefas da empresa',
+    permissions: [PermissionEnum.TASK],
+    order: 4,
   },
   [RoleEnum.DATABASE]: {
     value: RoleEnum.DATABASE,

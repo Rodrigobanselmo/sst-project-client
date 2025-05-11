@@ -1,6 +1,6 @@
 import { FC, useState } from 'react';
 import { useCallback } from 'react';
-import { useDropzone, FileRejection } from 'react-dropzone';
+import { useDropzone, FileRejection, Accept } from 'react-dropzone';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -74,7 +74,13 @@ export const SFileDndUpload: FC<{ children?: any } & ISFileDndUpload> = ({
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept,
+    accept:
+      typeof accept === 'string'
+        ? { [accept]: [] }
+        : accept?.reduce((acc, value) => {
+            acc[value] = [];
+            return acc;
+          }, {}),
     maxFiles,
     onDropRejected,
   });

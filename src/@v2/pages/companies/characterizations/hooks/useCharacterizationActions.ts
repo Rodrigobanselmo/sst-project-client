@@ -1,7 +1,7 @@
 import { BoxProps } from '@mui/material';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { useMutateExportCharacterization } from '@v2/services/export/characterization/hooks/useMutateExportCharacterization';
-import { useMutateEditManyCharacterization } from '@v2/services/security/characterization/edit-many-characterization/hooks/useMutateEditManyActionPlan';
+import { useMutateEditManyCharacterization } from '@v2/services/security/characterization/characterization/edit-many-characterization/hooks/useMutateEditManyActionPlan';
 import { initialCharacterizationState } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 
 import { ModalEnum } from 'core/enums/modal.enums';

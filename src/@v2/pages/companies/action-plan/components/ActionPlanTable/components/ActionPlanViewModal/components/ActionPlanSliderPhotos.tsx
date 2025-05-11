@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import { Box } from '@mui/material';
 import { ActionPlanReadPhotoModel } from '@v2/models/security/models/action-plan/action-plan-read-photo.model';
 import Image from 'next/image';
@@ -7,11 +8,15 @@ import ScrollContainer from 'react-indiana-drag-scroll';
 import DeleteOutlineIcon from 'assets/icons/SDeleteIcon';
 import dynamic from 'next/dynamic';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
+import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
+import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 
-const ActionPlanGalleryModalDynamic = dynamic(
+const ImageGalleryModalDynamic = dynamic(
   async () => {
-    const mod = await import('./ActionPlanGalleryModal');
-    return mod.ActionPlanGalleryModal;
+    const mod = await import(
+      '../../../../../../../../components/organisms/SModal/implementations/ImageGalleryModal/ImageGalleryModal'
+    );
+    return mod.ImageGalleryModal;
   },
   { ssr: false },
 );
@@ -19,13 +24,19 @@ const ActionPlanGalleryModalDynamic = dynamic(
 export const ActionPlanSliderPhotos = ({
   photos,
   onDelete,
+  onChangeVisibility,
   isLoadingDelete,
   isFullScreen,
+  isLoadingChangeVisibility,
+  showInvisible,
 }: {
   photos: ActionPlanReadPhotoModel[];
   isFullScreen?: boolean;
+  showInvisible?: boolean;
   onDelete?: (photo: ActionPlanReadPhotoModel) => void;
+  onChangeVisibility?: (photo: ActionPlanReadPhotoModel) => void;
   isLoadingDelete?: boolean;
+  isLoadingChangeVisibility?: boolean;
 }) => {
   const { openModal } = useModal();
 
@@ -33,10 +44,14 @@ export const ActionPlanSliderPhotos = ({
     onDelete?.(photo);
   };
 
+  const handleChangeVisibility = (photo: ActionPlanReadPhotoModel) => {
+    onChangeVisibility?.(photo);
+  };
+
   const handleOpenGallery = async (photo: ActionPlanReadPhotoModel) => {
     openModal(
       ModalKeyEnum.ACTION_PLAN_VIEW_PHOTO_GALLERY,
-      <ActionPlanGalleryModalDynamic startPhotoId={photo.id} photos={photos} />,
+      <ImageGalleryModalDynamic startImageId={photo.id} images={photos} />,
     );
   };
 
@@ -44,6 +59,11 @@ export const ActionPlanSliderPhotos = ({
     <ScrollContainer horizontal={true} vertical={false} hideScrollbars={true}>
       <Box sx={{ display: 'flex', flexDirection: 'row' }}>
         {photos.map((photo, index) => {
+          const random = Math.random().toString();
+          if (!showInvisible && !photo.isVisible) {
+            return null;
+          }
+
           let photoWidth =
             photos.length <= 1
               ? ['100%', '100%', '400px']
@@ -67,26 +87,33 @@ export const ActionPlanSliderPhotos = ({
               }}
             >
               {/* Blurred Background Image */}
-              <Image
-                src={photo.url}
-                alt={`Blurred background for characterization photo ${
-                  index + 1
-                }`}
-                fill
+              <img
+                src={photo.url + `?timestamp=${photo.updatedAt}`}
+                alt={`Blurred background for image ${index + 1}`}
                 style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
                   objectFit: 'cover',
                   filter: 'blur(10px)',
-                  borderRadius: 2,
                 }}
-                priority={index === 0}
+                loading={index === 0 ? 'eager' : 'lazy'}
               />
               {/* Foreground Image */}
-              <Image
-                src={photo.url}
-                alt={`Characterization photo ${index + 1}`}
-                fill
-                style={{ objectFit: 'contain' }}
-                priority={index === 0}
+              <img
+                src={photo.url + `?timestamp=${photo.updatedAt}`}
+                alt={`Image ${index + 1}`}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  top: 0,
+                  left: 0,
+                  objectFit: 'contain',
+                }}
+                loading={index === 0 ? 'eager' : 'lazy'}
               />
               {/* Expand Button */}
               <SIconButton
@@ -124,6 +151,34 @@ export const ActionPlanSliderPhotos = ({
                   }}
                 >
                   <DeleteOutlineIcon />
+                </SIconButton>
+              )}
+              {!!onChangeVisibility && (
+                <SIconButton
+                  onClick={() => handleChangeVisibility(photo)}
+                  loading={isLoadingChangeVisibility}
+                  iconButtonProps={{
+                    sx: {
+                      position: 'absolute',
+                      bottom: 12,
+                      right: 12,
+                      bgcolor: photo.isVisible
+                        ? 'rgba(32, 109, 22, 0.621)'
+                        : 'rgba(130, 13, 13, 0.621)',
+                      color: 'white',
+                      '&:hover': {
+                        bgcolor: photo.isVisible
+                          ? 'rgba(23, 119, 35, 0.621)'
+                          : 'rgba(203, 23, 23, 0.732)',
+                      },
+                    },
+                  }}
+                >
+                  {photo.isVisible ? (
+                    <VisibilityOutlinedIcon />
+                  ) : (
+                    <VisibilityOffOutlinedIcon />
+                  )}
                 </SIconButton>
               )}
             </Box>

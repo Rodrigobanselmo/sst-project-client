@@ -112,6 +112,14 @@ export const AbsenteeismsTable: FC<
             const company = employee?.company;
             const isDay = row.timeUnit == DateUnitEnum.DAY;
 
+            const startTime = dateToTimeString(row.startDate);
+
+            const endTime = dateToTimeString(row.endDate);
+
+            const formatStartDate =
+              startTime != '00:00' ? ` - ${startTime} até ` : ' até \n';
+            const formatEndDate = endTime != '00:00' ? ` - ${endTime}` : '';
+
             return (
               <STableRow
                 onClick={() => onSelectRow(row)}
@@ -122,14 +130,15 @@ export const AbsenteeismsTable: FC<
                 <TextCompanyRow company={company} />
                 <TextIconRow
                   clickable
-                  text={row.esocial18?.description || '-'}
+                  text={row.motive?.desc || row.esocial18?.description || '-'}
                 />
                 <TextIconRow
-                  text={`${dateToString(row.startDate)} - ${dateToTimeString(
+                  fontFamily={'monospace'}
+                  text={`${dateToString(
                     row.startDate,
-                  )} até ${dateToString(row.endDate)} - ${dateToTimeString(
+                  )} ${formatStartDate}${dateToString(
                     row.endDate,
-                  )}`}
+                  )}${formatEndDate}`}
                 />
                 <TextIconRow
                   justifyContent={'center'}

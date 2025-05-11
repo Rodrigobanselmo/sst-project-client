@@ -100,6 +100,12 @@ export const permissionsConstantMap = {
     info: 'Somente o gerenciamento do plano de ação da empresa',
     crud: ['r', 'cu'],
   },
+  [PermissionEnum.TASK]: {
+    value: PermissionEnum.TASK,
+    label: 'Projetos e tarefas',
+    info: 'Gerenciamento dos projetos e tarefas da empresa',
+    crud: ['r', 'cud'],
+  },
   [PermissionEnum.CHARACTERIZATION]: {
     value: PermissionEnum.CHARACTERIZATION,
     label: 'Caracterização do Ambiente',
