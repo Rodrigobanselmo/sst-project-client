@@ -102,6 +102,34 @@ const defaultTheme = createTheme({
         },
       },
     },
+    MuiAccordion: {
+      styleOverrides: {
+        root: {
+          padding: '8px 16px',
+          border: '2px solid var(--mui-palette-grey-200)',
+          borderRadius: '8px !important',
+          boxShadow: 'unset !important',
+          '& .MuiAccordionSummary-root': {
+            padding: ' 4px 0px !important',
+          },
+          '&.Mui-expanded': {
+            margin: '0px !important',
+          },
+        },
+      },
+    },
+    MuiAccordionSummary: {
+      styleOverrides: {
+        root: {
+          minHeight: 'unset !important',
+          margin: '0 !important',
+          '& .MuiAccordionSummary-content': {
+            alignItems: 'center !important',
+            margin: '0 !important',
+          },
+        },
+      },
+    },
   },
 });
 

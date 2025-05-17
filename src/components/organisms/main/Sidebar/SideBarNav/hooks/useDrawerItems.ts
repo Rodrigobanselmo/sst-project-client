@@ -33,6 +33,7 @@ import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
 import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
+import { PageRoutes } from '@v2/constants/pages/routes';
 
 export interface IDrawerBase {
   text: string;
@@ -57,7 +58,7 @@ export interface IDrawerItems extends IDrawerBase {
   Icon?: any;
   image?: string;
   imageType?: 'cat' | 'esocial';
-  href?: RoutesEnum;
+  href?: string;
   shouldMatchExactHref?: boolean;
   onClick?: () => void;
   items?: IDrawerItems[];
@@ -308,7 +309,10 @@ export const useDrawerItems = () => {
       text: 'Formulários',
       description: 'Gerenciamento de formulários e questionários',
       Icon: SIconForm,
-      href: RoutesEnum.FORMS,
+      href: PageRoutes.FORMS.FORMS_APPLICATION.LIST.replace(
+        '[companyId]',
+        ':companyId',
+      ),
       permissions: [PermissionEnum.FORM],
       shouldMatchExactHref: false,
     },

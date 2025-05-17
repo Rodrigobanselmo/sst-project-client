@@ -52,5 +52,4 @@ export enum RoutesEnum {
   PDF_CAT = '/pdf/:companyId/:employeeId/cat',
   ESOCIAL = '/dashboard/empresas/:companyId/esocial',
   DOCUMENTS = '/dashboard/empresas/:companyId/documentos',
-  FORMS = '/dashboard/empresas/:companyId/formularios',
 }

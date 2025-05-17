@@ -82,7 +82,7 @@ export function STabs<T>({
       </Box>
 
       {!!component && (
-        <Box pt={6} {...componentProps}>
+        <Box pt={10} {...componentProps}>
           {component}
         </Box>
       )}

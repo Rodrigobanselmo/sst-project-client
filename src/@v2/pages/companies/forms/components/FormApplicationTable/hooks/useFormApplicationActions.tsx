@@ -1,4 +1,4 @@
-import { AuthPageRoutes } from '@v2/constants/pages/auth.routes';
+import { PageRoutes } from '@v2/constants/pages/routes';
 import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import dynamic from 'next/dynamic';
@@ -29,7 +29,7 @@ export const useFormApplicationActions = ({
   };
 
   const onFormApplicationClick = (id: number) => {
-    router.push(AuthPageRoutes.FORMS.FORMS_APPLICATION.VIEW, {
+    router.push(PageRoutes.FORMS.FORMS_APPLICATION.VIEW, {
       pathParams: { companyId, id },
     });
   };

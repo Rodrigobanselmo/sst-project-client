@@ -1,4 +1,4 @@
-import { PaginationModel } from '@v2/models/@shared/models/pagination.model';
+import { PaginationModel } from '@v2/models/.shared/models/pagination.model';
 import { FormApplicationBrowseFilterModel } from './form-application-browse-filter.model';
 import { FormApplicationBrowseResultModel } from './form-application-browse-result.model';
 

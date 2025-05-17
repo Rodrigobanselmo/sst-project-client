@@ -17,6 +17,6 @@ export const useFetchBrowseFormModel = (params: BrowseFormModelParams) => {
 
   return {
     ...response,
-    form: data,
+    formModel: data,
   };
 };

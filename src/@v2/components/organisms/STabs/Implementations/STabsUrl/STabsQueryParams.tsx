@@ -5,14 +5,15 @@ import { STabs } from '../../STabs';
 import { STabsProps } from '../../STabs.types';
 import { TabSkeleton } from './components/TabSkeleton';
 
-interface STabsUrlProps<T> extends Omit<STabsProps<T>, 'value' | 'onChange'> {
+interface STabsQueryParamsProps<T>
+  extends Omit<STabsProps<T>, 'value' | 'onChange'> {
   uniqueName: string;
   startValue?: T;
   isLoading?: boolean;
   onChangeTab?: (value: T) => void;
 }
 
-export function STabsUrl<T>({
+export function STabsQueryParams<T>({
   tabsProps,
   uniqueName,
   startValue,
@@ -21,7 +22,7 @@ export function STabsUrl<T>({
   onChangeTab,
   containerProps,
   ...props
-}: STabsUrlProps<T>) {
+}: STabsQueryParamsProps<T>) {
   const { queryParams, setQueryParams } = useQueryParamsState<{
     tabs?: { name: string; value: T }[];
   }>();
@@ -49,6 +50,8 @@ export function STabsUrl<T>({
         <TabSkeleton repeat={4} />
       </Box>
     );
+
+  if (options.length === 1) return options[0].component;
 
   return (
     <STabs {...props} options={options} value={value} onChange={onChange} />

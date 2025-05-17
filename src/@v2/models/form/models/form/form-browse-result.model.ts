@@ -1,3 +1,4 @@
+import { dateUtils } from '@v2/utils/date-utils';
 import { FormTypeEnum } from '../../enums/form-type.enum';
 
 export type IFormBrowseResultModel = {
@@ -36,5 +37,13 @@ export class FormBrowseResultModel {
     this.description = params.description;
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
+  }
+
+  get formattedCreatedAt() {
+    return dateUtils(this.createdAt).format('DD/MM/YYYY');
+  }
+
+  get formattedUpdatedAt() {
+    return dateUtils(this.updatedAt).format('DD/MM/YYYY');
   }
 }

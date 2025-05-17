@@ -12,7 +12,7 @@ import { commentColumns } from '@v2/components/organisms/STable/implementation/S
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
-import { orderByTranslation } from '@v2/models/@shared/translations/orden-by.translation';
+import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { useFormApplicationActions } from './hooks/useFormApplicationActions';
 import { FormApplicationTableFilter } from './components/FormApplicationTableFilter/FormApplicationTableFilter';
 import { IFormApplicationFilterProps } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/SFormApplicationTable.types';

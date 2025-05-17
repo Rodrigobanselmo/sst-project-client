@@ -1,3 +1,3 @@
 export enum TabUniqueName {
-  FORM_APPLICATIONS = 'formApplications',
+  FORM_APPLICATIONS = 'formTab',
 }
