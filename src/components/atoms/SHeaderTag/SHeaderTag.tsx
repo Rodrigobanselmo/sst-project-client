@@ -11,6 +11,10 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { SHeaderTagProps } from './types';
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const SHeaderTag: FC<{ children?: any } & SHeaderTagProps> = ({
   title,
   hideInitial,

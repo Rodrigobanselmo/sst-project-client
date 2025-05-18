@@ -1,23 +1,10 @@
-import { SContainer } from 'components/atoms/SContainer';
-import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
-import { ModalAddAbsenteeism } from 'components/organisms/modals/ModalAddAbsenteeism/ModalAddAbsenteeism';
-import { AbsenteeismsTable } from 'components/organisms/tables/AbsenteeismTable';
 import { NextPage } from 'next';
 
-import { ModalEditEmployee } from 'components/organisms/modals/ModalEditEmployee/ModalEditEmployee';
+import { AbsenteeismsPage } from '@v2/pages/companies/absenteeisms/absenteeisms.page';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Page: NextPage = () => {
-  return (
-    <>
-      <SHeaderTag title={'Absenteismo'} />
-      <SContainer>
-        <AbsenteeismsTable />
-      </SContainer>
-      <ModalAddAbsenteeism />
-      <ModalEditEmployee />
-    </>
-  );
+  return <AbsenteeismsPage />;
 };
 
 export default Page;

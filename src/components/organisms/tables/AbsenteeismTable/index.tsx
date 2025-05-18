@@ -32,7 +32,10 @@ import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IAbsenteeism } from 'core/interfaces/api/IAbsenteeism';
 import { useQueryAbsenteeisms } from 'core/services/hooks/queries/useQueryAbsenteeisms/useQueryAbsenteeisms';
 import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
-
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const AbsenteeismsTable: FC<
   { children?: any } & BoxProps & {
       rowsPerPage?: number;
@@ -85,7 +88,6 @@ export const AbsenteeismsTable: FC<
   return (
     <>
       <>
-        {!hideTitle && <STableTitle>Absenteísmo</STableTitle>}
         <STableSearch
           onAddClick={onAddAbsenteeism}
           onChange={(e) => handleSearchChange(e.target.value)}
