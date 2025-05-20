@@ -106,6 +106,12 @@ export const permissionsConstantMap = {
     info: 'Gerenciamento dos projetos e tarefas da empresa',
     crud: ['r', 'cud'],
   },
+  [PermissionEnum.ACTION_PLAN_PHOTOS]: {
+    value: PermissionEnum.ACTION_PLAN_PHOTOS,
+    label: 'Fotos do plano de ação',
+    info: 'Gerenciamento das fotos do plano de ação da empresa',
+    crud: ['r', 'cud'],
+  },
   [PermissionEnum.CHARACTERIZATION]: {
     value: PermissionEnum.CHARACTERIZATION,
     label: 'Caracterização do Ambiente',

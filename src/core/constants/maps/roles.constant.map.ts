@@ -65,6 +65,7 @@ export const rolesConstantMap = {
       PermissionEnum.PGR,
       PermissionEnum.ACTION_PLAN,
       PermissionEnum.CHARACTERIZATION,
+      PermissionEnum.ACTION_PLAN_PHOTOS,
     ],
     order: 2,
   },

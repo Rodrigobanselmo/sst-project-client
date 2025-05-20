@@ -17,8 +17,8 @@ export const usePermissionsAccess = () => {
 
   const isCharacterizationManager =
     isAuthSuccess({
-      roles: [RoleEnum.COMPANY],
-      permissions: [PermissionEnum.CHARACTERIZATION],
+      roles: [RoleEnum.SECURITY],
+      permissions: [PermissionEnum.ACTION_PLAN_PHOTOS],
       cruds: 'u',
     }) || isMasterAdmin;
 
