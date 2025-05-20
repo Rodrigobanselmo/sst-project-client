@@ -1,0 +1,3 @@
+export enum QueryKeyAbsenteeismEnum {
+  ABSENTEEISM_EMPLOYEE_TOTAL = 'ABSENTEEISM_EMPLOYEE_TOTAL',
+}
