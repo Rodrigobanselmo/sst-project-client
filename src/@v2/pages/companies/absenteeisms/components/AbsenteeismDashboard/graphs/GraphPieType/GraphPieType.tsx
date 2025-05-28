@@ -2,51 +2,8 @@ import { Box } from '@mui/material';
 import { ResponsivePie } from '@nivo/pie';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { PieLegends } from '../components/PieLegends/PieLegends';
+import { useFetchReadAbsenteeismTypeCount } from '@v2/services/absenteeism/dashboard/read-absenteeism-type-count/hooks/useFetchReadAbsenteeismTypeCount';
 
-const data = [
-  {
-    id: 'make',
-    label: 'make make',
-    value: 540,
-  },
-  {
-    id: 'ruby',
-    label: 'ruby',
-    value: 239,
-  },
-  {
-    id: 'eli5xir',
-    label: 'elixir',
-    value: 174,
-  },
-  {
-    id: 'ph4p',
-    label: 'php',
-    value: 230,
-  },
-  {
-    id: 'mak3e',
-    label: 'make make',
-    value: 540,
-  },
-  {
-    id: 'rub1ty',
-    label: 'ruby',
-    value: 239,
-  },
-  {
-    id: 'rub1ry',
-    label: 'ruby',
-    value: 239,
-  },
-  {
-    id: 'rub1yy',
-    label: 'ruby',
-    value: 239,
-  },
-];
-
-// Define your custom colors
 const color1 = '#7fc97f';
 const color2 = '#beaed4';
 const color3 = '#fdc086';
@@ -56,7 +13,6 @@ const color6 = '#f0027f';
 const color7 = '#bf5b17';
 const color8 = '#666666';
 
-// Create an array of these colors
 const customPieColors = [
   color1,
   color2,
@@ -69,10 +25,15 @@ const customPieColors = [
 ];
 
 export const GraphPieType = ({ companyId }: { companyId: string }) => {
-  const dataWithColorsForLegend = data.map((item, index) => ({
-    ...item,
-    color: customPieColors[index % customPieColors.length],
-  }));
+  const { data, isLoading } = useFetchReadAbsenteeismTypeCount({
+    companyId,
+  });
+
+  const dataWithColorsForLegend =
+    data?.results.map((item, index) => ({
+      ...item,
+      color: customPieColors[index % customPieColors.length],
+    })) || [];
 
   return (
     <Box width={'100%'}>
@@ -80,7 +41,7 @@ export const GraphPieType = ({ companyId }: { companyId: string }) => {
         <Box height={400} maxWidth={900} mx="auto">
           <ResponsivePie
             data={dataWithColorsForLegend}
-            margin={{ top: 40, right: 80, bottom: 20, left: 80 }}
+            margin={{ top: 40, right: 100, bottom: 20, left: 100 }}
             innerRadius={0.5}
             padAngle={1}
             cornerRadius={10}

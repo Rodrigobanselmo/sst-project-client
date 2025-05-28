@@ -12,6 +12,7 @@ export const STableSearch: FC<PropsWithChildren<STableSearchProps>> = ({
   inputProps,
   onSearch,
   search,
+  autoFocus = true,
   mb = 8,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,7 +42,7 @@ export const STableSearch: FC<PropsWithChildren<STableSearchProps>> = ({
         }}
         placeholder={'Pesquisar...'}
         subVariant="search"
-        autoFocus
+        autoFocus={autoFocus}
         fullWidth
         inputRef={inputRef}
         onChange={(e) => handleDebounceChange(e.target.value)}

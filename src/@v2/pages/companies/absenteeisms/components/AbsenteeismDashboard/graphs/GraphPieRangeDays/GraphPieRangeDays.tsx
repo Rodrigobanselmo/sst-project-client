@@ -1,36 +1,11 @@
 import { Box } from '@mui/material';
 import { ResponsivePie } from '@nivo/pie';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
-import { PieLegends } from '../components/PieLegends/PieLegends';
+import { useFetchReadAbsenteeismDaysCount } from '@v2/services/absenteeism/dashboard/read-absenteeism-days-count/hooks/useFetchReadAbsenteeismDaysCount';
 import { GraphTitle } from '../components/GraphTitle/GraphTitle';
-
-const data = [
-  {
-    id: '0-1',
-    label: '0-1',
-    value: 540,
-  },
-  {
-    id: '1-4',
-    label: '1-4',
-    value: 239,
-  },
-  {
-    id: '5-10',
-    label: '5-10',
-    value: 230,
-  },
-  {
-    id: '11-15',
-    label: '11-15',
-    value: 57,
-  },
-  {
-    id: '15+',
-    label: '15+',
-    value: 127,
-  },
-];
+import { PieLegends } from '../components/PieLegends/PieLegends';
+import { GraphLoading } from '../components/GraphLoading/GraphLoading';
+import { GraphEmpty } from '../components/GraphEmpty/GraphEmpty';
 
 const color1 = '#7fc97f';
 const color2 = '#beaed4';
@@ -41,7 +16,6 @@ const color6 = '#f0027f';
 const color7 = '#bf5b17';
 const color8 = '#666666';
 
-// Create an array of these colors
 const customPieColors = [
   color1,
   color2,
@@ -54,28 +28,37 @@ const customPieColors = [
 ];
 
 export const GraphPieRangeDays = ({ companyId }: { companyId: string }) => {
-  const dataWithColorsForLegend = data.map((item, index) => ({
-    ...item,
-    color: customPieColors[index % customPieColors.length],
-  }));
+  const { data, isLoading } = useFetchReadAbsenteeismDaysCount({
+    companyId,
+  });
+
+  const dataWithColorsForLegend =
+    data?.results.map((item, index) => ({
+      ...item,
+      color: customPieColors[index % customPieColors.length],
+    })) || [];
 
   return (
     <Box width={'100%'}>
       <SPaper sx={{ p: 10 }}>
         <GraphTitle title="Dias de afastamento" />
         <Box height={350} maxWidth={600}>
-          <ResponsivePie
-            data={dataWithColorsForLegend}
-            margin={{ top: 40, right: 80, bottom: 20, left: 80 }}
-            activeOuterRadiusOffset={8}
-            arcLinkLabelsSkipAngle={10}
-            arcLinkLabelsTextColor="#333333"
-            arcLinkLabelsThickness={2}
-            arcLinkLabelsColor={{ from: 'color' }}
-            colors={customPieColors}
-            arcLabelsSkipAngle={10}
-            arcLabelsTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
-          />
+          {data?.results && !isLoading && (
+            <ResponsivePie
+              data={dataWithColorsForLegend}
+              margin={{ top: 40, right: 80, bottom: 20, left: 80 }}
+              activeOuterRadiusOffset={8}
+              arcLinkLabelsSkipAngle={10}
+              arcLinkLabelsTextColor="#333333"
+              arcLinkLabelsThickness={2}
+              arcLinkLabelsColor={{ from: 'color' }}
+              colors={customPieColors}
+              arcLabelsSkipAngle={10}
+              arcLabelsTextColor={{ from: 'color', modifiers: [['darker', 2]] }}
+            />
+          )}
+          {!data?.results && !isLoading && <GraphEmpty />}
+          {isLoading && <GraphLoading />}
         </Box>
         <PieLegends data={dataWithColorsForLegend} />
       </SPaper>

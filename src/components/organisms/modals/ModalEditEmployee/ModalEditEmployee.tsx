@@ -75,7 +75,10 @@ export const ModalEditEmployee = () => {
     </SModal>
   );
 };
-
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const StackModalEditEmployee = () => {
   return (
     <>

@@ -12,7 +12,6 @@ import { STableRow } from '../../../common/STableRow/STableRow';
 import { mapOrderByTable } from '../../../helpers/map-order-by-table.helper';
 import { AbsenteeismHeaderRow } from './components/AbsenteeismHeaderRow/AbsenteeismHeaderRow';
 import { AbsenteeismColumnsEnum as columnsEnum } from './enums/absenteeism-columns.enum';
-import { getHiddenColumn } from './helpers/get-hidden-column';
 import { AbsenteeismColumnMap as columnMap } from './maps/absenteeism-column-map';
 import { IAbsenteeismTableProps } from './SAbsenteeismEmployeeTotalTable.types';
 
@@ -36,10 +35,10 @@ export const SAbsenteeismEmployeeTotalTable: FC<IAbsenteeismTableProps> = ({
       column: 'minmax(200px, 1fr)',
       header: (
         <AbsenteeismHeaderRow
-          setOrderBy={setOrderBy}
           orderByMap={orderByMap}
           field={AbsenteeismEmployeeTotalOrderByEnum.NAME}
           text={columnMap[columnsEnum.NAME].label}
+          setOrderBy={setOrderBy}
         />
       ),
       row: (row) => (
@@ -48,6 +47,47 @@ export const SAbsenteeismEmployeeTotalTable: FC<IAbsenteeismTableProps> = ({
           tooltipMinLength={40}
           lineNumber={2}
           text={row.name}
+        />
+      ),
+    },
+    // TOTAL DAYS
+    {
+      column: '150px',
+      header: (
+        <AbsenteeismHeaderRow
+          justify="center"
+          orderByMap={orderByMap}
+          field={AbsenteeismEmployeeTotalOrderByEnum.TOTAL_DAYS}
+          text={columnMap[columnsEnum.TOTAL_DAYS].label}
+          setOrderBy={setOrderBy}
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          justify="center"
+          fontSize={13}
+          lineNumber={2}
+          text={String(row.totalDays)}
+        />
+      ),
+    },
+    // TOTAL
+    {
+      column: '150px',
+      header: (
+        <AbsenteeismHeaderRow
+          orderByMap={orderByMap}
+          justify="center"
+          field={AbsenteeismEmployeeTotalOrderByEnum.TOTAL}
+          text={columnMap[columnsEnum.TOTAL].label}
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          justify="center"
+          fontSize={13}
+          lineNumber={2}
+          text={String(row.total)}
         />
       ),
     },

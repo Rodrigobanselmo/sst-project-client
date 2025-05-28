@@ -1,11 +1,7 @@
-import { useFormContext, useWatch } from 'react-hook-form';
-import {
-  SSearchSelect,
-  SSearchSelectProps,
-} from '../../fields/SSearchSelect/SSearchSelect';
 import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
-import { SSwitch } from '../../fields/SSwitch/SSwitch';
 import { SSwitchProps } from 'components/atoms/SSwitch/types';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { SSwitch } from '../../fields/SSwitch/SSwitch';
 
 interface SSwitchFormProps extends Omit<SSwitchProps, 'onChange' | 'value'> {
   name: string;

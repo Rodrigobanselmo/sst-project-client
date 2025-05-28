@@ -2,16 +2,14 @@ import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { SModalWrapper } from '@v2/components/organisms/SModal/components/SModalWrapper/SModalWrapper';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
+import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
+import { useMutateEditFormApplication } from '@v2/services/forms/form-application/edit-form-application/hooks/useMutateEditFormApplication';
 import { useForm } from 'react-hook-form';
-import { formIdentifierTypeMap } from '../../constants/form-Identifier-type.map';
 import {
   IEditFormApplicationFormFields,
   schemaEditFormApplicationForm,
 } from './EditFormApplicationForms.schema';
 import { FormEditFormApplication } from './components/FormEditFormApplication';
-import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
-import { useMutateEditFormApplication } from '@v2/services/forms/form-application/edit-form-application/hooks/useMutateEditFormApplication';
-import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
 
 export const EditFormApplicationForms = ({
   formApplication,
@@ -52,7 +50,7 @@ export const EditFormApplicationForms = ({
       onSubmit={form.handleSubmit(onSubmit)}
     >
       <SForm form={form}>
-        <FormEditFormApplication />
+        <FormEditFormApplication companyId={''} />
       </SForm>
     </SModalWrapper>
   );

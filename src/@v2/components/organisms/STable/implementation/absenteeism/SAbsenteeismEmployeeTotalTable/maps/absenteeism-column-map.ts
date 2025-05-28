@@ -12,7 +12,10 @@ export const AbsenteeismColumnMap: Record<
   AbsenteeismTypeMapValue
 > = {
   [AbsenteeismColumnsEnum.NAME]: { label: 'Nome', alwaysVisible: true },
-  [AbsenteeismColumnsEnum.TOTAL]: { label: 'Total', alwaysVisible: true },
+  [AbsenteeismColumnsEnum.TOTAL]: {
+    label: 'Total de Atestados',
+    alwaysVisible: true,
+  },
   [AbsenteeismColumnsEnum.TOTAL_DAYS]: {
     label: 'Total de Dias',
     alwaysVisible: true,

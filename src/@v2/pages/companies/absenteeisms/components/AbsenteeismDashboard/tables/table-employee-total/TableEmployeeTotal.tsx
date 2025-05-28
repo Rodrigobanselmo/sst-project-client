@@ -1,10 +1,9 @@
-import { Box } from '@mui/material';
-import { ResponsivePie } from '@nivo/pie';
+import { SButtonGroup } from '@v2/components/atoms/SButtonGroup/SButtonGroup';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
-import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
 import { TablesSelectEnum } from '@v2/components/organisms/STable/hooks/useTableSelect';
@@ -19,42 +18,45 @@ import { orderByAbsenteeismEmployeeTotalTranslation } from '@v2/models/absenteei
 import { useFetchBrowseAbsenteeismEmployeeTotal } from '@v2/services/absenteeism/dashboard/browse-absenteeism-employee/hooks/useFetchBrowseAbsenteeismEmployee';
 import { AbsenteeismEmployeeTotalOrderByEnum } from '@v2/services/absenteeism/dashboard/browse-absenteeism-employee/service/browse-absenteeism-employee.service';
 import { GraphTitle } from '../../graphs/components/GraphTitle/GraphTitle';
+import { useState } from 'react';
 
-const limit = 5;
+const limit = 6;
 const table = TablesSelectEnum.ABSENTEEISM_DASH_EMPLOYEE;
 
 export const TableEmployeeTotal = ({ companyId }: { companyId: string }) => {
-  const { queryParams, setQueryParams } =
-    useQueryParamsState<IAbsenteeismFilterProps>();
+  const [params, setParams] = useState<IAbsenteeismFilterProps>({});
+  const setParamsPrev = (newParams: IAbsenteeismFilterProps) => {
+    setParams((prev) => ({ ...prev, ...newParams }));
+  };
 
   const { data, isLoading } = useFetchBrowseAbsenteeismEmployeeTotal({
     companyId,
     filters: {
-      search: queryParams.search,
+      search: params.search,
     },
-    orderBy: queryParams.orderBy || [
+    orderBy: params.orderBy || [
       {
         field: AbsenteeismEmployeeTotalOrderByEnum.TOTAL,
         order: 'desc',
       },
     ],
     pagination: {
-      page: queryParams.page || 1,
-      limit: queryParams.limit || limit,
+      page: params.page || 1,
+      limit: params.limit || limit,
     },
   });
 
   const { onOrderBy, orderChipList } = useOrderBy({
-    orderByList: queryParams.orderBy,
-    setOrderBy: (orderBy) => setQueryParams({ orderBy }),
+    orderByList: params.orderBy,
+    setOrderBy: (orderBy) => setParamsPrev({ orderBy }),
     getLabel: ({ order }) => orderByTranslation[order],
     getLeftLabel: ({ field }) =>
       orderByAbsenteeismEmployeeTotalTranslation[field],
   });
 
   const { onCleanData, onFilterData, paramsChipList } = useTableState({
-    data: queryParams,
-    setData: setQueryParams,
+    data: params,
+    setData: setParamsPrev,
     chipMap: {
       search: null,
       hierarchiesIds: null,
@@ -72,16 +74,52 @@ export const TableEmployeeTotal = ({ companyId }: { companyId: string }) => {
     console.log('Selected row:', second);
   };
 
+  const onChangeOrder = (value: AbsenteeismEmployeeTotalOrderByEnum) => {
+    setParamsPrev({
+      orderBy: [
+        {
+          field: value,
+          order: 'desc',
+        },
+      ],
+    });
+  };
+
   return (
     <SPaper sx={{ p: 10 }}>
-      <GraphTitle
-        title="Funcionários com mais atestados"
-        textProps={{
-          mb: 10,
-        }}
-      />
+      <SFlex justify="space-between">
+        <GraphTitle
+          title="Funcionários com mais atestados"
+          textProps={{
+            mb: 10,
+          }}
+        />
+        <SButtonGroup
+          onChange={(option) => onChangeOrder(option.value)}
+          value={
+            params.orderBy?.[0]?.field ||
+            AbsenteeismEmployeeTotalOrderByEnum.TOTAL
+          }
+          buttonProps={{
+            sx: {
+              minWidth: 150,
+            },
+          }}
+          options={[
+            {
+              label: 'Total de Atestados',
+              value: AbsenteeismEmployeeTotalOrderByEnum.TOTAL,
+            },
+            {
+              label: 'Dias Perdidos',
+              value: AbsenteeismEmployeeTotalOrderByEnum.TOTAL_DAYS,
+            },
+          ]}
+        />
+      </SFlex>
       <STableSearch
-        search={queryParams.search}
+        autoFocus={false}
+        search={params.search}
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>{null}</STableSearchContent>
@@ -101,7 +139,7 @@ export const TableEmployeeTotal = ({ companyId }: { companyId: string }) => {
       <SAbsenteeismEmployeeTotalTable
         table={table}
         filterColumns={{}}
-        filters={queryParams}
+        filters={params}
         setFilters={onFilterData}
         onSelectRow={(row) => onSelectRow(row)}
         data={data?.results}

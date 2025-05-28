@@ -44,11 +44,13 @@ export const SButton: FC<SButtonProps> = ({
             boxShadow: 'none',
             borderColor: colorMap[color].borderColor,
             backgroundColor: colorMap[color].backgroundColor,
+            ...buttonProps?.sx?.['&:hover'],
           },
           '&:active': {
             boxShadow: 'none',
             borderColor: colorMap[color].borderColor,
             backgroundColor: colorMap[color].backgroundColor,
+            ...buttonProps?.sx?.['&:active'],
           },
           borderRadius: 1,
           m: 0,
