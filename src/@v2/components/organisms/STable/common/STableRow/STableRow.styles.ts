@@ -5,6 +5,7 @@ import { Box, styled } from '@mui/material';
 export const STSTableRow = styled(Box)<{
   clickable: number;
   status?: 'inactive' | 'warn' | 'info' | 'success' | 'fade' | 'none';
+  schema?: 'normal' | 'grey';
 }>`
   -webkit-box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
   box-shadow: 1px 1px 2px 1px rgba(0, 0, 0, 0.2);
@@ -83,5 +84,15 @@ export const STSTableRow = styled(Box)<{
     css`
       background-color: ${props.theme.palette.grey[200]};
       opacity: 0.8;
+    `};
+
+    ${(props) =>
+    props.schema == 'grey' &&
+    css`
+      background-color: ${props.theme.palette.grey[50]};
+      border: 1px solid ${props.theme.palette.grey[200]};
+      .table-row-text {
+        color: ${props.theme.palette.text.main};
+      }
     `};
 `;

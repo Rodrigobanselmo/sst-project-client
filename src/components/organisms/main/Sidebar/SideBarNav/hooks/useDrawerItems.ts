@@ -31,7 +31,9 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { DrawerItemsEnum } from './drawer.enum';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
+import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
 import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
+import { PageRoutes } from '@v2/constants/pages/routes';
 
 export interface IDrawerBase {
   text: string;
@@ -56,7 +58,7 @@ export interface IDrawerItems extends IDrawerBase {
   Icon?: any;
   image?: string;
   imageType?: 'cat' | 'esocial';
-  href?: RoutesEnum;
+  href?: string;
   shouldMatchExactHref?: boolean;
   onClick?: () => void;
   items?: IDrawerItems[];
@@ -303,6 +305,17 @@ export const useDrawerItems = () => {
       removeWithRoles: [RoleEnum.CONTRACTS],
       shouldMatchExactHref: true,
     },
+    [DrawerItemsEnum.forms]: {
+      text: 'Formulários',
+      description: 'Gerenciamento de formulários e questionários',
+      Icon: SIconForm,
+      href: PageRoutes.FORMS.FORMS_APPLICATION.LIST.replace(
+        '[companyId]',
+        ':companyId',
+      ),
+      permissions: [PermissionEnum.FORM],
+      shouldMatchExactHref: false,
+    },
   };
 
   const onFilterBase = (item: IDrawerBase) => onAccessFilterBase(item, company);
@@ -336,6 +349,7 @@ export const useDrawerItems = () => {
       items[DrawerItemsEnum.allClinicsData],
       items[DrawerItemsEnum.employee],
       items[DrawerItemsEnum.importExportData],
+      items[DrawerItemsEnum.forms],
     ],
   };
 

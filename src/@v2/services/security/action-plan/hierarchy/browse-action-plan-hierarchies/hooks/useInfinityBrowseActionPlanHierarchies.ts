@@ -9,17 +9,23 @@ export const useInfinityBrowseActionPlanHierarchies = (
   params: BrowseActionPlanHierarchiesParams,
 ) => {
   const { data, ...response } = useInfiniteFetch({
-    queryFn: async () => {
-      return browseActionPlanHierarchies(params);
+    queryFn: async ({ page }) => {
+      return browseActionPlanHierarchies({
+        ...params,
+        pagination: {
+          ...params.pagination,
+          page: page,
+        },
+      });
     },
     getNextPageParam: (lastPage) => {
       return lastPage.pagination.nextPage;
     },
     queryKey: [
-      QueryKeyEnum.INFINITE,
       QueryKeyActionPlanEnum.ACTION_PLAN_HIERARCHIES,
       params.companyId,
       params,
+      QueryKeyEnum.INFINITE,
     ],
   });
 

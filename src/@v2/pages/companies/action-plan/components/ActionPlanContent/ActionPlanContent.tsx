@@ -1,4 +1,4 @@
-import { STabsAllWorkspace } from '@v2/components/organisms/STabs/components/STabsAllWorkspace/STabsAllWorkspace';
+import { STabsAllWorkspace } from '@v2/components/organisms/STabs/Implementations/STabsAllWorkspace/STabsAllWorkspace';
 import { STabs } from '@v2/components/organisms/STabs/STabs';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { ActionPlanInfo } from '@v2/pages/companies/action-plan/components/ActionPlanInfo/ActionPlanInfo';
@@ -41,24 +41,29 @@ export const ActionPlanContent = ({ companyId }: { companyId: string }) => {
             )
           }
           shadow
-          boxProps={{ mb: 10 }}
           options={[
-            { label: 'Plano de ação', value: 1 },
-            { label: 'Revisão e Aprovação', value: 2 },
+            {
+              label: 'Plano de ação',
+              value: 1,
+              component: (
+                <ActionPlanTable
+                  companyId={companyId}
+                  workspaceId={queryParams.tabWorkspaceId}
+                />
+              ),
+            },
+            {
+              label: 'Revisão e Aprovação',
+              value: 2,
+              component: (
+                <CommentsTable
+                  companyId={companyId}
+                  workspaceId={queryParams.tabWorkspaceId}
+                />
+              ),
+            },
           ]}
         />
-        {tabTableIndex === 1 && (
-          <ActionPlanTable
-            companyId={companyId}
-            workspaceId={queryParams.tabWorkspaceId}
-          />
-        )}
-        {tabTableIndex === 2 && (
-          <CommentsTable
-            companyId={companyId}
-            workspaceId={queryParams.tabWorkspaceId}
-          />
-        )}
       </STabsAllWorkspace>
     </>
   );

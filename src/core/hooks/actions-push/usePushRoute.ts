@@ -8,7 +8,6 @@ import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelec
 import { initialDocumentModelsViewState } from 'components/organisms/modals/ModalViewDocumentModels/ModalViewDocumentModels';
 import { useRouter } from 'next/router';
 
-import { AuthPageRoutes } from '@v2/constants/pages/auth.routes';
 import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
@@ -20,6 +19,7 @@ import { IQueryDocumentModels } from 'core/services/hooks/queries/useQueryDocume
 import { useCharacterizationActions } from './useCharacterizationActions';
 import { useCompanyActions } from './useCompanyActions';
 import { useEmployeeActions } from './useEmployeeActions';
+import { PageRoutes } from '@v2/constants/pages/routes';
 
 export const usePushRoute = () => {
   const { data: company } = useQueryCompany();
@@ -117,7 +117,7 @@ export const usePushRoute = () => {
   }, [onOpenRiskToolSelected, onStackOpenModal]);
 
   const handleDocumentControl = useCallback(() => {
-    router.push(AuthPageRoutes.DOCUMENTS.TABLE, {
+    router.push(PageRoutes.DOCUMENTS.LIST, {
       pathParams: { companyId: company.id },
     });
   }, [company.id, router]);

@@ -35,6 +35,7 @@ export const SPopperSelectItem = React.memo<ISPopperSelectItemProps>(
         className="menu-item"
         sx={{
           cursor: 'pointer',
+          position: 'sticky',
           mb: 1,
           userSelect: 'none',
           minHeight: 35,

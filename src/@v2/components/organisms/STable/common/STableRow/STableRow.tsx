@@ -10,6 +10,7 @@ export const STableRow: FC<
   { children?: any } & BoxProps & {
       clickable?: boolean;
       status?: ITableRowStatus;
+      schema?: 'normal' | 'grey';
     }
 > = ({ className, clickable, ...props }) => (
   <STSTableRow

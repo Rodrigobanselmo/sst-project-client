@@ -16,6 +16,10 @@ import { HierarchyHistoryStep } from './components/2-hierarchy';
 import { ExamHistoryStep } from './components/3-exam';
 import { useEditEmployee } from './hooks/useEditEmployee';
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const ModalEditEmployee = () => {
   const props = useEditEmployee();
   const isEdit = props.isEdit;
@@ -71,7 +75,10 @@ export const ModalEditEmployee = () => {
     </SModal>
   );
 };
-
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const StackModalEditEmployee = () => {
   return (
     <>

@@ -22,6 +22,10 @@ import { MotiveStep } from './components/1-motiveStep/MotiveStep';
 import { DoctorStep } from './components/2-doctorStep/DoctorStep';
 import { useAddAbsenteeism } from './hooks/useAddAbsenteeism';
 
+/**
+ * @deprecated
+ * This method is deprecated and has been replaced by newMethod()
+ */
 export const ModalAddAbsenteeism = () => {
   const props = useAddAbsenteeism();
 

@@ -43,7 +43,7 @@ export const colorMap = {
   },
   primary: {
     colorSchema: 'primary',
-    backgroundColor: '#F2732911',
+    backgroundColor: '#F2732922',
     borderColor: 'primary.dark',
     color: 'primary.dark',
     textColor: 'primary.dark',

@@ -55,8 +55,6 @@ export const ActionPlanTableFilterHierarchy = ({
       return [...acc, ...page.results];
     }, [] as ActionPlanHierarchyBrowseResultModel[]) || [];
 
-  console.log({ hierarchies: filters.hierarchies });
-
   return (
     <>
       <SSearchSelectMultiple

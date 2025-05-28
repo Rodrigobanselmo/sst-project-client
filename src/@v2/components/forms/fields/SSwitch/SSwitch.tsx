@@ -13,6 +13,7 @@ export const SSwitch: FC<{ children?: any } & SSwitchProps> = ({
   switchProps,
   value,
   onChange,
+  errorMessage,
 }) => {
   const { sx: formSx, ...formProps } = formControlProps;
   return (

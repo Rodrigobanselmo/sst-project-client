@@ -53,4 +53,5 @@ export enum PermissionEnum {
   SCHEDULE_MEDICAL_VISIT = '22',
   IMAGE_GALLERY = '23',
   TASK = '24',
+  FORM = '25',
 }

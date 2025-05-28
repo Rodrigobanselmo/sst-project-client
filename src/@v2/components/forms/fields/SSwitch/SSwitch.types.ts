@@ -11,4 +11,5 @@ export interface SSwitchProps {
     checked: boolean,
   ) => void;
   switchProps?: SwitchProps;
+  errorMessage?: string;
 }

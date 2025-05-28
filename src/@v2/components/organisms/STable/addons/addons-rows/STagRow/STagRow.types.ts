@@ -9,6 +9,7 @@ export type STagRowProps = {
   justify?: 'flex-start' | 'center' | 'flex-end';
   color?: string;
   border?: string;
+  backgroundColor?: string;
   borderColor?: string;
   fontSize?: number;
   textAlign?: 'left' | 'center' | 'right';

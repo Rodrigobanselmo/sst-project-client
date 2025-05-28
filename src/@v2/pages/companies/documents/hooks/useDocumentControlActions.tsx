@@ -1,4 +1,4 @@
-import { AuthPageRoutes } from '@v2/constants/pages/auth.routes';
+import { PageRoutes } from '@v2/constants/pages/routes';
 import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import dynamic from 'next/dynamic';
@@ -31,7 +31,7 @@ export const useDocumentControlActions = ({
   };
 
   const onDocumentControlClick = (id: number) => {
-    router.push(AuthPageRoutes.DOCUMENTS.VIEW, {
+    router.push(PageRoutes.DOCUMENTS.VIEW, {
       pathParams: { companyId, id },
     });
   };
