@@ -20,10 +20,15 @@ import { AbsenteeismEmployeeTotalOrderByEnum } from '@v2/services/absenteeism/da
 import { GraphTitle } from '../../graphs/components/GraphTitle/GraphTitle';
 import { useState } from 'react';
 
+interface Props {
+  companyId: string;
+  workspacesIds?: string[];
+}
+
 const limit = 6;
 const table = TablesSelectEnum.ABSENTEEISM_DASH_EMPLOYEE;
 
-export const TableEmployeeTotal = ({ companyId }: { companyId: string }) => {
+export const TableEmployeeTotal = ({ companyId, workspacesIds }: Props) => {
   const [params, setParams] = useState<IAbsenteeismFilterProps>({});
   const setParamsPrev = (newParams: IAbsenteeismFilterProps) => {
     setParams((prev) => ({ ...prev, ...newParams }));
@@ -33,6 +38,7 @@ export const TableEmployeeTotal = ({ companyId }: { companyId: string }) => {
     companyId,
     filters: {
       search: params.search,
+      workspacesIds: workspacesIds,
     },
     orderBy: params.orderBy || [
       {

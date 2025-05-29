@@ -25,10 +25,15 @@ import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearch
 import { AbsenteeismHierarchyTypeTranslation } from '@v2/models/absenteeism/translations/absenteeism-hierarchy-type.translatio';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 
+interface Props {
+  companyId: string;
+  workspacesIds?: string[];
+}
+
 const limit = 6;
 const table = TablesSelectEnum.ABSENTEEISM_DASH_HIERARCHY;
 
-export const TableHierarchyTotal = ({ companyId }: { companyId: string }) => {
+export const TableHierarchyTotal = ({ companyId, workspacesIds }: Props) => {
   const [params, setParams] = useState<IAbsenteeismFilterProps>({});
   const setParamsPrev = (newParams: IAbsenteeismFilterProps) => {
     setParams((prev) => ({ ...prev, ...newParams }));
@@ -39,6 +44,7 @@ export const TableHierarchyTotal = ({ companyId }: { companyId: string }) => {
     filters: {
       search: params.search,
       type: params.type || AbsenteeismHierarchyTypeEnum.SECTOR,
+      workspacesIds: workspacesIds,
     },
     orderBy: params.orderBy || [
       {

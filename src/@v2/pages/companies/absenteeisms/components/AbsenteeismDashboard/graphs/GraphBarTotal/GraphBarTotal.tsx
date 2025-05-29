@@ -11,9 +11,15 @@ import { GraphLoading } from '../components/GraphLoading/GraphLoading';
 const color1 = 'rgb(127, 201, 127)';
 const color2 = 'rgb(190, 174, 212)';
 
-export const GraphBarTotal = ({ companyId }: { companyId: string }) => {
+interface Props {
+  companyId: string;
+  workspacesIds?: string[];
+}
+
+export const GraphBarTotal = ({ companyId, workspacesIds }: Props) => {
   const { data, isLoading } = useFetchReadAbsenteeismTimelineTotal({
     companyId,
+    workspacesIds,
   });
 
   return (

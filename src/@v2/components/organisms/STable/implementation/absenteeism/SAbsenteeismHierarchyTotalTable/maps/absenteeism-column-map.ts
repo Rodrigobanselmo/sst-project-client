@@ -12,7 +12,7 @@ export const AbsenteeismColumnMap: Record<
   AbsenteeismTypeMapValue
 > = {
   [AbsenteeismColumnsEnum.AVARAGE_DAYS]: {
-    label: 'Taxa',
+    label: 'Taxa dia',
     alwaysVisible: true,
   },
   [AbsenteeismColumnsEnum.TOTAL]: {

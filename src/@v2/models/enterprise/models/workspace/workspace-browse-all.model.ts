@@ -16,4 +16,11 @@ export class WorkspaceBrowseModel {
     );
     this.filters = new WorkspaceBrowseFilterModel(params.filters);
   }
+
+  get shortResults() {
+    return this.results.map((result) => ({
+      id: result.id,
+      name: result.name,
+    }));
+  }
 }

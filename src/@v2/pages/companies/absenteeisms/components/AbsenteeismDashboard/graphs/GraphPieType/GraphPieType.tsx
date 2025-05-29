@@ -23,10 +23,15 @@ const customPieColors = [
   color7,
   color8,
 ];
+interface Props {
+  companyId: string;
+  workspacesIds?: string[];
+}
 
-export const GraphPieType = ({ companyId }: { companyId: string }) => {
+export const GraphPieType = ({ companyId, workspacesIds }: Props) => {
   const { data, isLoading } = useFetchReadAbsenteeismTypeCount({
     companyId,
+    workspacesIds,
   });
 
   const dataWithColorsForLegend =

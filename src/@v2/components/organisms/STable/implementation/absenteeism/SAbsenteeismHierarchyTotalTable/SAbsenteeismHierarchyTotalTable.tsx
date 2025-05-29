@@ -35,7 +35,7 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
   const tableRows: ITableData<AbsenteeismTotalHierarchyResultBrowseModel>[] = [
     // TAXA
     {
-      column: '60px',
+      column: '80px',
       header: (
         <AbsenteeismHeaderRow
           orderByMap={orderByMap}
