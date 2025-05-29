@@ -10,7 +10,7 @@ export class WorkspaceBrowseModel {
   results: WorkspaceBrowseResultModel[];
   filters: WorkspaceBrowseFilterModel;
 
-  constructor(params: WorkspaceBrowseModel) {
+  constructor(params: IWorkspaceBrowseModel) {
     this.results = params.results.map(
       (result) => new WorkspaceBrowseResultModel(result),
     );
