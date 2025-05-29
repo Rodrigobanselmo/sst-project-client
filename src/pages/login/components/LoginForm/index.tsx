@@ -72,6 +72,8 @@ export const LoginForm: FC = () => {
       label: 'Email',
       type: TypeInputModal.EMAIL,
       name: email,
+      title: 'Recuperar senha',
+      semiFullScreen: false,
     } as typeof initialInputModalState);
   };
 

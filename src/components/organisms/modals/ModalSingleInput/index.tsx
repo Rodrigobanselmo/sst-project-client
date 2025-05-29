@@ -65,6 +65,7 @@ export const initialInputModalState = {
   label: '',
   name: '',
   type: TypeInputModal.TEXT,
+  semiFullScreen: true,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onConfirm: async (value: string) => {},
 };
@@ -255,7 +256,7 @@ export const ModalSingleInput: FC<
         center
         p={8}
         width={'fit-content'}
-        semiFullScreen
+        semiFullScreen={data.semiFullScreen}
         loading={loading}
       >
         <SModalHeader onClose={onClose} title={data.title || 'Adicionar'} />
