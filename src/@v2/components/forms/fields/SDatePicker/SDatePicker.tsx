@@ -46,7 +46,9 @@ export const SDatePicker = ({
       <DatePicker
         {...props}
         label={label}
-        value={value ? dayjs(value) : dayJSRef.current}
+        value={
+          value ? dayjs(value) : value === undefined ? null : dayJSRef.current
+        }
         onChange={handleChange}
         localeText={{
           fieldDayPlaceholder: () => '__',

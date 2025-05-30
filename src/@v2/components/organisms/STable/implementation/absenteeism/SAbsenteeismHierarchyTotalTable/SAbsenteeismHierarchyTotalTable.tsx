@@ -198,6 +198,26 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
     });
   }
 
+  if (data?.typeMap?.HOMOGENEOUS_GROUP) {
+    tableRows.unshift({
+      column: 'minmax(120px, 1fr)',
+      header: (
+        <AbsenteeismHeaderRow
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.HOMOGENEOUS_GROUP].label}
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          fontSize={13}
+          tooltipMinLength={20}
+          lineNumber={2}
+          text={row.HOMOGENEOUS_GROUP?.name || 'Sem Grupo'}
+        />
+      ),
+    });
+  }
+
   const hidePagination =
     !showPagination && results.length <= (pagination?.limit || 0);
 

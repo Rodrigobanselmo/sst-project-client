@@ -24,16 +24,18 @@ import { GraphTitle } from '../../graphs/components/GraphTitle/GraphTitle';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import { AbsenteeismHierarchyTypeTranslation } from '@v2/models/absenteeism/translations/absenteeism-hierarchy-type.translatio';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
+import { useCompareState } from '../../../store/compare.store';
+import { STableButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/STableButton';
+import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 
-interface Props {
+interface Props extends FilterTypesProps {
   companyId: string;
-  workspacesIds?: string[];
 }
 
 const limit = 6;
 const table = TablesSelectEnum.ABSENTEEISM_DASH_HIERARCHY;
 
-export const TableHierarchyTotal = ({ companyId, workspacesIds }: Props) => {
+export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
   const [params, setParams] = useState<IAbsenteeismFilterProps>({});
   const setParamsPrev = (newParams: IAbsenteeismFilterProps) => {
     setParams((prev) => ({ ...prev, ...newParams }));
@@ -44,7 +46,7 @@ export const TableHierarchyTotal = ({ companyId, workspacesIds }: Props) => {
     filters: {
       search: params.search,
       type: params.type || AbsenteeismHierarchyTypeEnum.SECTOR,
-      workspacesIds: workspacesIds,
+      ...props,
     },
     orderBy: params.orderBy || [
       {
@@ -97,6 +99,33 @@ export const TableHierarchyTotal = ({ companyId, workspacesIds }: Props) => {
         },
       ],
     });
+  };
+
+  const setGraph1 = useCompareState((state) => state.setGraph1);
+  const setGraph2 = useCompareState((state) => state.setGraph2);
+  const setGraph3 = useCompareState((state) => state.setGraph3);
+
+  const onCompare = () => {
+    setGraph3(
+      data?.results.map((item) => ({
+        label: item.availableList.at(-1)?.name || '',
+        value: item.total,
+      })) || [],
+    );
+
+    setGraph2(
+      data?.results.map((item) => ({
+        label: item.availableList.at(-1)?.name || '',
+        value: item.totalDays,
+      })) || [],
+    );
+
+    setGraph1(
+      data?.results.map((item) => ({
+        label: item.availableList.at(-1)?.name || '',
+        value: Math.round(item.averageDays * 100),
+      })) || [],
+    );
   };
 
   return (
@@ -167,7 +196,15 @@ export const TableHierarchyTotal = ({ companyId, workspacesIds }: Props) => {
         search={params.search}
         onSearch={(search) => onFilterData({ search })}
       >
-        <STableSearchContent>{null}</STableSearchContent>
+        <STableSearchContent>
+          <STableButton
+            onClick={onCompare}
+            color="info"
+            text={'Gerar Gráficos'}
+            loading={isLoading}
+            icon={<AutoGraphIcon sx={{ fontSize: 16 }} />}
+          />
+        </STableSearchContent>
       </STableSearch>
       <STableInfoSection>
         <STableFilterChipList onClean={onCleanData}>

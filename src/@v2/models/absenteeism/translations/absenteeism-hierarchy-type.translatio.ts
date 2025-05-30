@@ -10,4 +10,5 @@ export const AbsenteeismHierarchyTypeTranslation: OrderByTranslationMap = {
   [AbsenteeismHierarchyTypeEnum.SUB_SECTOR]: 'Sub setor',
   [AbsenteeismHierarchyTypeEnum.OFFICE]: 'Cargo',
   [AbsenteeismHierarchyTypeEnum.SUB_OFFICE]: 'Sub cargo',
+  [AbsenteeismHierarchyTypeEnum.HOMOGENEOUS_GROUP]: 'Grupo homogêneo',
 };

@@ -35,7 +35,18 @@ export class AbsenteeismTotalHierarchyBrowseModel {
 
   get typeMap(): Record<AbsenteeismHierarchyTypeEnum, boolean> {
     const result = this.results.reduce((acc, item) => {
-      acc = { ...acc, ...item };
+      acc = new AbsenteeismTotalHierarchyResultBrowseModel({
+        ...acc,
+        ...item,
+        WORKSPACE: item.WORKSPACE || acc.WORKSPACE,
+        DIRECTORY: item.DIRECTORY || acc.DIRECTORY,
+        MANAGEMENT: item.MANAGEMENT || acc.MANAGEMENT,
+        SECTOR: item.SECTOR || acc.SECTOR,
+        SUB_SECTOR: item.SUB_SECTOR || acc.SUB_SECTOR,
+        OFFICE: item.OFFICE || acc.OFFICE,
+        SUB_OFFICE: item.SUB_OFFICE || acc.SUB_OFFICE,
+        HOMOGENEOUS_GROUP: item.HOMOGENEOUS_GROUP || acc.HOMOGENEOUS_GROUP,
+      });
       return acc;
     }, {} as AbsenteeismTotalHierarchyResultBrowseModel);
 
@@ -43,10 +54,11 @@ export class AbsenteeismTotalHierarchyBrowseModel {
       WORKSPACE: !!result?.WORKSPACE,
       DIRECTORY: !!result?.DIRECTORY,
       MANAGEMENT: !!result?.MANAGEMENT,
-      OFFICE: !!result?.OFFICE,
       SECTOR: !!result?.SECTOR,
-      SUB_OFFICE: !!result?.SUB_OFFICE,
       SUB_SECTOR: !!result?.SUB_SECTOR,
+      OFFICE: !!result?.OFFICE,
+      SUB_OFFICE: !!result?.SUB_OFFICE,
+      HOMOGENEOUS_GROUP: !!result?.HOMOGENEOUS_GROUP,
     };
   }
 

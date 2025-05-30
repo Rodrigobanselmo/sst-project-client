@@ -11,24 +11,22 @@ import { useTableState } from '@v2/components/organisms/STable/hooks/useTableSta
 import { SAbsenteeismEmployeeTotalTable } from '@v2/components/organisms/STable/implementation/absenteeism/SAbsenteeismEmployeeTotalTable/SAbsenteeismEmployeeTotalTable';
 import { IAbsenteeismFilterProps } from '@v2/components/organisms/STable/implementation/absenteeism/SAbsenteeismEmployeeTotalTable/SAbsenteeismEmployeeTotalTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
-import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { AbsenteeismTotalEmployeeResultBrowseModel } from '@v2/models/absenteeism/models/absenteeism-total-employee/absenteeism-total-employee-browse-result.model';
 import { orderByAbsenteeismEmployeeTotalTranslation } from '@v2/models/absenteeism/translations/orden-by-absenteeism-employee-total.translation';
 import { useFetchBrowseAbsenteeismEmployeeTotal } from '@v2/services/absenteeism/dashboard/browse-absenteeism-employee/hooks/useFetchBrowseAbsenteeismEmployee';
 import { AbsenteeismEmployeeTotalOrderByEnum } from '@v2/services/absenteeism/dashboard/browse-absenteeism-employee/service/browse-absenteeism-employee.service';
-import { GraphTitle } from '../../graphs/components/GraphTitle/GraphTitle';
 import { useState } from 'react';
+import { GraphTitle } from '../../graphs/components/GraphTitle/GraphTitle';
 
-interface Props {
+interface Props extends FilterTypesProps {
   companyId: string;
-  workspacesIds?: string[];
 }
 
 const limit = 6;
 const table = TablesSelectEnum.ABSENTEEISM_DASH_EMPLOYEE;
 
-export const TableEmployeeTotal = ({ companyId, workspacesIds }: Props) => {
+export const TableEmployeeTotal = ({ companyId, ...props }: Props) => {
   const [params, setParams] = useState<IAbsenteeismFilterProps>({});
   const setParamsPrev = (newParams: IAbsenteeismFilterProps) => {
     setParams((prev) => ({ ...prev, ...newParams }));
@@ -38,7 +36,7 @@ export const TableEmployeeTotal = ({ companyId, workspacesIds }: Props) => {
     companyId,
     filters: {
       search: params.search,
-      workspacesIds: workspacesIds,
+      ...props,
     },
     orderBy: params.orderBy || [
       {

@@ -23,6 +23,10 @@ export const AbsenteeismColumnMap: Record<
     label: 'Dias',
     alwaysVisible: true,
   },
+  [AbsenteeismColumnsEnum.HOMOGENEOUS_GROUP]: {
+    label: 'Grupo homogêneo',
+    alwaysVisible: true,
+  },
   [AbsenteeismColumnsEnum.WORKSPACE]: {
     label: 'Estabelecimento',
     alwaysVisible: true,

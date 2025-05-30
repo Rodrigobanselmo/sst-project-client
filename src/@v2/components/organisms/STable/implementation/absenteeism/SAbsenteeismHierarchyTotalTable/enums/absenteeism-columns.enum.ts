@@ -9,4 +9,5 @@ export enum AbsenteeismColumnsEnum {
   TOTAL = 'TOTAL',
   TOTAL_DAYS = 'TOTAL_DAYS',
   AVARAGE_DAYS = 'AVARAGE_DAYS',
+  HOMOGENEOUS_GROUP = 'HOMOGENEOUS_GROUP',
 }

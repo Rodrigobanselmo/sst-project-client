@@ -10,6 +10,7 @@ import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { api } from 'core/services/apiClient';
 
 export enum AbsenteeismHierarchyTypeEnum {
+  HOMOGENEOUS_GROUP = 'HOMOGENEOUS_GROUP',
   WORKSPACE = 'WORKSPACE',
   DIRECTORY = 'DIRECTORY',
   MANAGEMENT = 'MANAGEMENT',

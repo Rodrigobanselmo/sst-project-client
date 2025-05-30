@@ -26,15 +26,14 @@ const customPieColors = [
   color7,
   color8,
 ];
-interface Props {
+interface Props extends FilterTypesProps {
   companyId: string;
-  workspacesIds?: string[];
 }
 
-export const GraphPieRangeDays = ({ companyId, workspacesIds }: Props) => {
+export const GraphPieRangeDays = ({ companyId, ...props }: Props) => {
   const { data, isLoading } = useFetchReadAbsenteeismDaysCount({
     companyId,
-    workspacesIds,
+    ...props,
   });
 
   const dataWithColorsForLegend =
