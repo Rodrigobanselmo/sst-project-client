@@ -60,7 +60,7 @@ export const ActionPlanTable = ({
       isExpired: queryParams.isExpired || undefined,
       responisbleIds: userId
         ? [userId]
-        : queryParams.responsibles?.map((resp) => resp.id),
+        : queryParams.responsibles?.map((resp) => Number(resp.id)),
       workspaceIds: workspaceId ? [workspaceId] : undefined,
       hierarchyIds: queryParams.hierarchies?.map((hierarchy) => hierarchy.id),
     },

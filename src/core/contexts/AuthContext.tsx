@@ -101,6 +101,21 @@ export async function refreshToken(companyId?: string) {
   return { token, refresh, api };
 }
 
+export function extractUrlTokens() {
+  const url = new URL(window.location.href);
+  const accessToken = url.searchParams.get('accessToken') || undefined;
+  const refreshToken = url.searchParams.get('refreshToken') || undefined;
+
+  return { accessToken, refreshToken };
+}
+
+export function removeUrlTokens() {
+  const url = new URL(window.location.href);
+  url.searchParams.delete('accessToken');
+  url.searchParams.delete('refreshToken');
+  Router.replace(url.pathname + url.search, undefined, { shallow: true });
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
@@ -141,6 +156,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   useEffect(() => {
     const { 'nextauth.token': token } = parseCookies();
+    // const { accessToken, refreshToken } = extractUrlTokens();
+    // if (accessToken) removeUrlTokens();
 
     if (token) getMe();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -270,7 +270,7 @@ export function PopperSelectComponent<T>({
                 return (
                   <SPopperSelectItem
                     rerender={selected.length + (isSelected ? 1 : 0)}
-                    key={String(optionValue)}
+                    key={`${label}-${optionValue}`}
                     text={renderItem ? undefined : label}
                     selected={isSelected}
                     onClick={(e) => handleSelect(option, e)}

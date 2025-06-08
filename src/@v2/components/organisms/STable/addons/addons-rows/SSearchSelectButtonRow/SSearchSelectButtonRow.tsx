@@ -12,6 +12,7 @@ export interface SSearchSelectButtonRowProps<T> {
   getOptionValue: (option: T) => string | number | boolean;
   onSearch?: (value: string) => void;
   disabled?: boolean;
+  onScrollEnd?: () => void;
 }
 
 export function SSearchSelectButtonRow<T>({
@@ -23,9 +24,11 @@ export function SSearchSelectButtonRow<T>({
   loading,
   onSearch,
   disabled,
+  onScrollEnd,
 }: SSearchSelectButtonRowProps<T>) {
   return (
     <SSearchSelect
+      onScrollEnd={onScrollEnd}
       boxProps={{ onClick: (e) => e.stopPropagation() }}
       disabled={disabled}
       loading={loading}

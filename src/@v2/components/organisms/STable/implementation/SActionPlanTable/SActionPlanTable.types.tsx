@@ -18,7 +18,7 @@ export interface IActionPlanFilterProps {
     name: string;
   }[];
   responsibles?: {
-    id: number;
+    id: string;
     name: string;
   }[];
   page?: number;
