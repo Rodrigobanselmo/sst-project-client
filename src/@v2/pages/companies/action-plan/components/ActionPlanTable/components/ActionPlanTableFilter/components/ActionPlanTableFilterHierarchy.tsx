@@ -75,12 +75,11 @@ export const ActionPlanTableFilterHierarchy = ({
         renderItem={({ option }) => {
           const type = (option as any).type;
           const isOffice = type === HierarchyTypeEnum.OFFICE;
-          const index = types.findIndex((type) => type === type);
           const fontSize = isOffice ? 14 : 11;
           return (
             <SFlex sx={{ position: 'sticky', alignItems: 'center' }}>
               <SText fontSize={11} color="grey.600">
-                {hierarchyTypeLevel[index]}
+                {hierarchyTypeLevel[0]}
               </SText>
               <SText fontSize={11} color="grey.600">
                 {hierarchyTypeTranslation[type]}:{' '}

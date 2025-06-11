@@ -77,8 +77,9 @@ export const AbsenteeismDashboard = ({ companyId }: { companyId: string }) => {
           boxProps={{ width: '180px' }}
           value={
             queryParams.startDate === ''
-              ? undefined
-              : queryParams.startDate || null
+              ? new Date(new Date().setFullYear(new Date().getFullYear() - 1))
+              : queryParams.startDate ||
+                new Date(new Date().setFullYear(new Date().getFullYear() - 1))
           }
           onChange={(date) => setQueryParams({ startDate: date })}
         />
@@ -86,7 +87,9 @@ export const AbsenteeismDashboard = ({ companyId }: { companyId: string }) => {
           label="Data Final"
           boxProps={{ width: '180px' }}
           value={
-            queryParams.endDate === '' ? undefined : queryParams.endDate || null
+            queryParams.endDate === ''
+              ? new Date()
+              : queryParams.endDate || new Date()
           }
           onChange={(date) => setQueryParams({ endDate: date })}
         />
