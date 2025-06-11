@@ -34,6 +34,7 @@ export const ActionPlanContent = ({ companyId }: { companyId: string }) => {
         )}
         <STabs
           value={tabTableIndex}
+          loading={!queryParams.tabWorkspaceId}
           onChange={(_, value) =>
             setQueryParams(
               { tabTableIndex: value, tabWorkspaceId: workspaceId },
@@ -45,12 +46,12 @@ export const ActionPlanContent = ({ companyId }: { companyId: string }) => {
             {
               label: 'Plano de ação',
               value: 1,
-              component: (
+              component: queryParams.tabWorkspaceId ? (
                 <ActionPlanTable
                   companyId={companyId}
                   workspaceId={queryParams.tabWorkspaceId}
                 />
-              ),
+              ) : null,
             },
             {
               label: 'Revisão e Aprovação',

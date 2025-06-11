@@ -16,20 +16,19 @@ export const ActionPlanResponsibleContent = ({
 
   return (
     <>
-      {/* -//! remove need to change to new format, refactor users table */}
-      {/* <StackModalViewUsers /> */}
-      {/* -//! remove */}
       <STabsAllWorkspace
         onChange={(id) => setQueryParams({ tabWorkspaceId: id })}
         workspaceId={queryParams.tabWorkspaceId}
         companyId={companyId}
       >
-        <ActionPlanTable
-          companyId={companyId}
-          userId={user?.id}
-          disabledResponsible={true}
-          workspaceId={queryParams.tabWorkspaceId}
-        />
+        {queryParams.tabWorkspaceId && (
+          <ActionPlanTable
+            companyId={companyId}
+            userId={user?.id}
+            disabledResponsible={true}
+            workspaceId={queryParams.tabWorkspaceId}
+          />
+        )}
       </STabsAllWorkspace>
     </>
   );

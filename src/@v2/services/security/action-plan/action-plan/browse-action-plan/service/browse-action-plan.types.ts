@@ -20,6 +20,7 @@ export enum ActionPlanOrderByEnum {
 
 export interface BrowseActionPlanParams {
   companyId: string;
+  workspaceId: string;
   pagination: IPaginationParams;
   orderBy?: IOrderByParams<ActionPlanOrderByEnum>[];
   filters?: {

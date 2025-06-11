@@ -37,7 +37,7 @@ export const ActionPlanTable = ({
   userId,
   disabledResponsible,
 }: {
-  workspaceId?: string;
+  workspaceId: string;
   companyId: string;
   userId?: number;
   disabledResponsible?: boolean;
@@ -53,6 +53,7 @@ export const ActionPlanTable = ({
 
   const { data, isLoading } = useFetchBrowseActionPlan({
     companyId,
+    workspaceId,
     filters: {
       search: queryParams.search,
       ocupationalRisks: queryParams.ocupationalRisks,
@@ -61,7 +62,7 @@ export const ActionPlanTable = ({
       responisbleIds: userId
         ? [userId]
         : queryParams.responsibles?.map((resp) => Number(resp.id)),
-      workspaceIds: workspaceId ? [workspaceId] : undefined,
+      workspaceIds: undefined,
       hierarchyIds: queryParams.hierarchies?.map((hierarchy) => hierarchy.id),
     },
     orderBy: queryParams.orderBy || [
