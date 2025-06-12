@@ -12,7 +12,7 @@ export const ActionPlanTableFilterLevel = ({
   filters,
 }: ActionPlanTableFilterLevelProps) => {
   const values =
-    filters.ocupationalRisks
+    filters.occupationalRisks
       ?.map(
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         (v) => ActionPlanLevelList.find((option) => option.value == v)!,
@@ -26,7 +26,7 @@ export const ActionPlanTableFilterLevel = ({
       getOptionLabel={(option) => option.label}
       getOptionValue={(option) => option.value}
       onChange={(option) =>
-        onFilterData({ ocupationalRisks: option.map((o) => o.value) })
+        onFilterData({ occupationalRisks: option.map((o) => o.value) })
       }
       boxProps={{ flex: 1 }}
       onInputChange={(value) => console.log(value)}

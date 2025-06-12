@@ -56,10 +56,12 @@ export const ActionPlanTable = ({
     workspaceId,
     filters: {
       search: queryParams.search,
-      ocupationalRisks: queryParams.ocupationalRisks,
+      occupationalRisks: queryParams.occupationalRisks,
       status: queryParams.status,
       isExpired: queryParams.isExpired || undefined,
-      responisbleIds: userId
+      riskTypes: queryParams.riskTypes,
+      riskSubTypes: queryParams.riskSubTypes?.map((subType) => subType.id),
+      responsibleIds: userId
         ? [userId]
         : queryParams.responsibles?.map((resp) => Number(resp.id)),
       workspaceIds: undefined,
@@ -136,15 +138,35 @@ export const ActionPlanTable = ({
             status: queryParams.status?.filter((id) => id !== value),
           }),
       }),
-      ocupationalRisks: (value) => ({
+      occupationalRisks: (value) => ({
         leftLabel: 'Nível',
         label: OccupationalRiskLevelTranslation[value],
         onDelete: () =>
           setQueryParams({
             page: 1,
-            ocupationalRisks: queryParams.ocupationalRisks?.filter(
+            occupationalRisks: queryParams.occupationalRisks?.filter(
               (id) => id !== value,
             ),
+          }),
+      }),
+      riskSubTypes: (value) => ({
+        leftLabel: 'Subtipo de Risco',
+        label: value.name,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            riskSubTypes: queryParams.riskSubTypes?.filter(
+              (subType) => subType.id !== value.id,
+            ),
+          }),
+      }),
+      riskTypes: (value) => ({
+        leftLabel: 'Tipo de Risco',
+        label: value,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            riskTypes: queryParams.riskTypes?.filter((type) => type !== value),
           }),
       }),
     },
@@ -153,9 +175,11 @@ export const ActionPlanTable = ({
       isExpired: null,
       orderBy: [],
       status: [],
-      ocupationalRisks: [],
+      occupationalRisks: [],
       responsibles: [],
       hierarchies: [],
+      riskSubTypes: [],
+      riskTypes: [],
       page: 1,
       limit,
     },
@@ -179,6 +203,7 @@ export const ActionPlanTable = ({
           />
           <STableFilterButton>
             <ActionPlanTableFilter
+              modelFilters={data?.filters}
               onFilterData={onFilterData}
               filters={queryParams}
               companyId={companyId}

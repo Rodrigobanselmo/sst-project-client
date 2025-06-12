@@ -7,12 +7,18 @@ import { ActionPlanColumnsEnum } from './enums/action-plan-columns.enum';
 import { ActionPlanOrderByEnum } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.types';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 import { IRiskLevelValues } from '@v2/models/security/types/risk-level-values.type';
+import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 
 export interface IActionPlanFilterProps {
   search?: string;
   status?: ActionPlanStatusEnum[];
   isExpired?: boolean | null;
-  ocupationalRisks?: IRiskLevelValues[];
+  occupationalRisks?: IRiskLevelValues[];
+  riskTypes?: RiskTypeEnum[];
+  riskSubTypes?: {
+    id: number;
+    name: string;
+  }[];
   hierarchies?: {
     id: string;
     name: string;

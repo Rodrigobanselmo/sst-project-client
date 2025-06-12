@@ -5,10 +5,13 @@ import { ActionPlanTableFilterHierarchy } from './components/ActionPlanTableFilt
 import { ActionPlanTableFilterLevel } from './components/ActionPlanTableFilterLevel';
 import { ActionPlanTableFilterResponsible } from './components/ActionPlanTableFilterResponsible';
 import { ActionPlanTableFilterStatus } from './components/ActionPlanTableFilterStatus';
+import { ActionPlanBrowseFilterModel } from '@v2/models/security/models/action-plan/action-plan-browse-filter.model';
+import { ActionPlanTableFilterRiskTypes } from './components/ActionPlanTableFilterRiskTypes';
 
 interface ActionPlanTableFilterProps {
   onFilterData: (props: IActionPlanFilterProps) => void;
   filters: IActionPlanFilterProps;
+  modelFilters?: ActionPlanBrowseFilterModel;
   companyId: string;
   workspaceId?: string;
 }
@@ -18,6 +21,7 @@ export const ActionPlanTableFilter = ({
   filters,
   companyId,
   workspaceId,
+  modelFilters,
 }: ActionPlanTableFilterProps) => {
   return (
     <SFlex direction="column" gap={4} width={400} pb={10}>
@@ -25,6 +29,13 @@ export const ActionPlanTableFilter = ({
         filters={filters}
         onFilterData={onFilterData}
       />
+      {modelFilters && (
+        <ActionPlanTableFilterRiskTypes
+          filters={filters}
+          onFilterData={onFilterData}
+          modelFilters={modelFilters}
+        />
+      )}
       <ActionPlanTableFilterResponsible
         filters={filters}
         onFilterData={onFilterData}
@@ -46,25 +57,6 @@ export const ActionPlanTableFilter = ({
         formControlProps={{ sx: { mx: 1, mt: 2 } }}
         onChange={(e) => onFilterData({ isExpired: e.target.checked })}
       />
-      {/* <SFlex gap={2}>
-        <FormControlLabel
-          label={'Somente Expirados'}
-          sx={{ '.MuiFormControlLabel-label': { fontSize: 14 } }}
-          control={
-            <Checkbox
-              sx={{
-                'svg[data-testid="CheckBoxOutlineBlankIcon"]': {
-                  color: 'grey.400',
-                  fontSize: '1.0rem',
-                },
-                '.MuiSvgIcon-root': {
-                  fontSize: '1.1rem',
-                },
-              }}
-            />
-          }
-        />
-      </SFlex> */}
     </SFlex>
   );
 };
