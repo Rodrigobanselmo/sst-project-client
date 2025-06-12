@@ -22,6 +22,8 @@ import { useFetchBrowseComments } from '@v2/services/security/action-plan/commen
 import { CommentOrderByEnum } from '@v2/services/security/action-plan/comment/browse-comments/service/browse-action-plan.types';
 import { CommentTableFilter } from './components/CommentTableFilter/CommentTableFilter';
 import { CommentTableSelection } from './components/CommentTableSelection/CommentTableSelection';
+import { useActionPlanTableActions } from '../ActionPlanTable/hooks/useActionPlanActions';
+import { useCommentsActions } from './hooks/useCommentsActions';
 
 const limit = 15;
 const table = TablesSelectEnum.COMMENTS;
@@ -94,6 +96,8 @@ export const CommentsTable = ({
     },
   });
 
+  const { onSelectRow } = useCommentsActions({ companyId });
+
   return (
     <>
       <STableSearch
@@ -153,9 +157,9 @@ export const CommentsTable = ({
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }
         hiddenColumns={hiddenColumns}
-        onSelectRow={(row) => null}
         data={data?.results}
         isLoading={isLoading}
+        onSelectRow={(row) => onSelectRow(row)}
         pagination={data?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}

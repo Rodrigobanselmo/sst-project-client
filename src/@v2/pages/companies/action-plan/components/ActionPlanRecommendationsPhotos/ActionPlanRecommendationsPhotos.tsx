@@ -10,8 +10,8 @@ import { useMutateDeleteActionPlanPhoto } from '@v2/services/security/action-pla
 import { initialPhotoState } from 'components/organisms/modals/ModalUploadPhoto';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal as useOldModal } from 'core/hooks/useModal';
-import { ActionPlanEmptyPhotos } from '../ActionPlanTable/components/ActionPlanViewModal/components/ActionPlanEmptyPhotos';
-import { ActionPlanSliderPhotos } from '../ActionPlanTable/components/ActionPlanViewModal/components/ActionPlanSliderPhotos';
+import { ActionPlanSliderPhotos } from '../ActionPlanSliderPhotos/ActionPlanSliderPhotos';
+import { ActionPlanEmptyPhotos } from './components/ActionPlanEmptyPhotos';
 
 export const ActionPlanRecommendationsPhotos = ({
   actionPlan,

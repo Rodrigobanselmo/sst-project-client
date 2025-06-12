@@ -4,13 +4,13 @@ import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { ActionPlanReadModel } from '@v2/models/security/models/action-plan/action-plan-read.model';
-import { ActionPlanSliderPhotos } from '../ActionPlanTable/components/ActionPlanViewModal/components/ActionPlanSliderPhotos';
 import { useMutateEditManyPhotoRecommendation } from '@v2/services/security/characterization/photo-recommendation/edit-many-photo-recommendation/hooks/useMutateEditManyPhotoRecommendation';
 import { useCallback } from 'react';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import { ActionPlanReadPhotoModel } from '@v2/models/security/models/action-plan/action-plan-read-photo.model';
 import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
+import { ActionPlanSliderPhotos } from '../ActionPlanSliderPhotos/ActionPlanSliderPhotos';
 export const ActionPlanCharacterizationPhotos = ({
   actionPlan,
 }: {

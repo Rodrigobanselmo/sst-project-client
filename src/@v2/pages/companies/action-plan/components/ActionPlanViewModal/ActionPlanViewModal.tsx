@@ -5,9 +5,9 @@ import { SText } from '@v2/components/atoms/SText/SText';
 import { SModalWrapper } from '@v2/components/organisms/SModal/components/SModalWrapper/SModalWrapper';
 import { ModalKeyEnum } from '@v2/hooks/useModal';
 import { useFetchReadActionPlan } from '@v2/services/security/action-plan/action-plan/read-action-plan/hooks/useFetchReadActionPlan';
-import { ActionPlanCharacterizationPhotos } from '../../../ActionPlanCharacterizationPhotos/ActionPlanCharacterizationPhotos';
-import { ActionPlanRecommendationsPhotos } from '../../../ActionPlanRecommendationsPhotos/ActionPlanRecommendationsPhotos';
 import { ActionPlanSubTasks } from './components/ActionPlanSubTasks';
+import { ActionPlanRecommendationsPhotos } from '../ActionPlanRecommendationsPhotos/ActionPlanRecommendationsPhotos';
+import { ActionPlanCharacterizationPhotos } from '../ActionPlanCharacterizationPhotos/ActionPlanCharacterizationPhotos';
 
 export const ActionPlanViewModal = ({
   companyId,

@@ -9,6 +9,8 @@ import { originTypeTranslation } from '../../translations/origin-type.translatio
 
 export type ICommentBrowseResultModel = {
   id: string;
+  workspaceId: string;
+  riskDataId: string;
   createdAt: Date;
   updatedAt: Date | null;
 
@@ -33,6 +35,7 @@ export type ICommentBrowseResultModel = {
 
   recommendation: {
     name: string;
+    id: string;
   };
 
   approvedBy: { id: number; name: string; email: string } | null;
@@ -41,6 +44,8 @@ export type ICommentBrowseResultModel = {
 
 export class CommentBrowseResultModel {
   id: string;
+  workspaceId: string;
+  riskDataId: string;
   createdAt: Date;
   updatedAt: Date | null;
 
@@ -65,6 +70,7 @@ export class CommentBrowseResultModel {
 
   recommendation: {
     name: string;
+    id: string;
   };
 
   approvedBy: { id: number; name: string; email: string } | null;
@@ -74,6 +80,8 @@ export class CommentBrowseResultModel {
     this.id = params.id;
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
+    this.workspaceId = params.workspaceId;
+    this.riskDataId = params.riskDataId;
 
     this.text = params.text;
     this.type = params.type;

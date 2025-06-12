@@ -1,5 +1,6 @@
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import { ActionPlanBrowseResultModel } from '@v2/models/security/models/action-plan/action-plan-browse-result.model';
+import { CommentBrowseResultModel } from '@v2/models/security/models/comment/comment-browse-result.model';
 import dynamic from 'next/dynamic';
 
 const ActionPlanViewModalDynamic = dynamic(
@@ -10,21 +11,17 @@ const ActionPlanViewModalDynamic = dynamic(
   { ssr: false },
 );
 
-export const useActionPlanTableActions = ({
-  companyId,
-}: {
-  companyId: string;
-}) => {
+export const useCommentsActions = ({ companyId }: { companyId: string }) => {
   const { openModal } = useModal();
 
-  const onSelectRow = (actionPlan: ActionPlanBrowseResultModel) => {
+  const onSelectRow = (actionPlan: CommentBrowseResultModel) => {
     openModal(
       ModalKeyEnum.ACTION_PLAN_VIEW,
       <ActionPlanViewModalDynamic
         companyId={companyId}
-        recommendationId={actionPlan.uuid.recommendationId}
-        riskDataId={actionPlan.uuid.riskDataId}
-        workspaceId={actionPlan.uuid.workspaceId}
+        recommendationId={actionPlan.recommendation.id}
+        riskDataId={actionPlan.riskDataId}
+        workspaceId={actionPlan.workspaceId}
       />,
     );
   };

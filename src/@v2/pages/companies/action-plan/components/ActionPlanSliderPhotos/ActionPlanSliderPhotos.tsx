@@ -14,7 +14,7 @@ import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined
 const ImageGalleryModalDynamic = dynamic(
   async () => {
     const mod = await import(
-      '../../../../../../../../components/organisms/SModal/implementations/ImageGalleryModal/ImageGalleryModal'
+      '@v2/components/organisms/SModal/implementations/ImageGalleryModal/ImageGalleryModal'
     );
     return mod.ImageGalleryModal;
   },
