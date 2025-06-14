@@ -30,7 +30,11 @@ export interface IAbsenteeismTableProps {
   setOrderBy: (
     order: IOrderByParams<AbsenteeismHierarchyTotalOrderByEnum>,
   ) => void;
-  onSelectRow: (row: AbsenteeismTotalHierarchyResultBrowseModel) => void;
+  // onSelectRow: (row: AbsenteeismTotalHierarchyResultBrowseModel) => void;
+  onSelectColumn: (params: {
+    id: string;
+    type: AbsenteeismHierarchyTypeEnum;
+  }) => void;
   pagination?: {
     total: number;
     limit: number;

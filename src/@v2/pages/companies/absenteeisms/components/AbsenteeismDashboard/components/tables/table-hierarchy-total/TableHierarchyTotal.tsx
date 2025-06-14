@@ -19,7 +19,7 @@ import {
   AbsenteeismHierarchyTotalOrderByEnum,
   AbsenteeismHierarchyTypeEnum,
 } from '@v2/services/absenteeism/dashboard/browse-absenteeism-hierarchy/service/browse-absenteeism-hierarchy.service';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { GraphTitle } from '../../graphs/components/GraphTitle/GraphTitle';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import { AbsenteeismHierarchyTypeTranslation } from '@v2/models/absenteeism/translations/absenteeism-hierarchy-type.translatio';
@@ -36,7 +36,15 @@ const limit = 6;
 const table = TablesSelectEnum.ABSENTEEISM_DASH_HIERARCHY;
 
 export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
-  const [params, setParams] = useState<IAbsenteeismFilterProps>({});
+  const [params, setParams] = useState<IAbsenteeismFilterProps>({
+    orderBy: [
+      {
+        field: AbsenteeismHierarchyTotalOrderByEnum.AVERAGE_DAYS,
+        order: 'desc',
+      },
+    ],
+  });
+  const [showGraphs, setShowGraphs] = useState(false);
   const setParamsPrev = (newParams: IAbsenteeismFilterProps) => {
     setParams((prev) => ({ ...prev, ...newParams }));
   };
@@ -50,7 +58,7 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
     },
     orderBy: params.orderBy || [
       {
-        field: AbsenteeismHierarchyTotalOrderByEnum.TOTAL,
+        field: AbsenteeismHierarchyTotalOrderByEnum.AVERAGE_DAYS,
         order: 'desc',
       },
     ],
@@ -86,10 +94,6 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
     },
   });
 
-  const onSelectRow = (second: AbsenteeismTotalHierarchyResultBrowseModel) => {
-    console.log('Selected row:', second);
-  };
-
   const onChangeOrder = (field: AbsenteeismHierarchyTotalOrderByEnum) => {
     setParamsPrev({
       orderBy: [
@@ -104,8 +108,9 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
   const setGraph1 = useCompareState((state) => state.setGraph1);
   const setGraph2 = useCompareState((state) => state.setGraph2);
   const setGraph3 = useCompareState((state) => state.setGraph3);
+  const setCompare = useCompareState((state) => state.setCompare);
 
-  const onCompare = () => {
+  const onCreateGraphs = () => {
     setGraph3(
       data?.results.map((item) => ({
         label: item.availableList.at(-1)?.name || '',
@@ -126,7 +131,21 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
         value: Math.round(item.averageDays * 100),
       })) || [],
     );
+
+    setShowGraphs(true);
   };
+
+  const onSelectColumn = (params: {
+    id: string;
+    type: AbsenteeismHierarchyTypeEnum;
+  }) => {
+    setCompare(params);
+  };
+
+  useEffect(() => {
+    if (showGraphs) onCreateGraphs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
 
   return (
     <SPaper sx={{ p: 10, overflow: 'scroll' }}>
@@ -167,7 +186,7 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
             onChange={(option) => onChangeOrder(option.value)}
             value={
               params.orderBy?.[0]?.field ||
-              AbsenteeismHierarchyTotalOrderByEnum.TOTAL
+              AbsenteeismHierarchyTotalOrderByEnum.AVERAGE_DAYS
             }
             buttonProps={{
               sx: {
@@ -176,16 +195,16 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
             }}
             options={[
               {
-                label: 'Total de Atestados',
-                value: AbsenteeismHierarchyTotalOrderByEnum.TOTAL,
+                label: 'Taxa de Absenteísmo',
+                value: AbsenteeismHierarchyTotalOrderByEnum.AVERAGE_DAYS,
               },
               {
                 label: 'Dias Perdidos',
                 value: AbsenteeismHierarchyTotalOrderByEnum.TOTAL_DAYS,
               },
               {
-                label: 'Taxa de Absenteísmo',
-                value: AbsenteeismHierarchyTotalOrderByEnum.AVERAGE_DAYS,
+                label: 'Total de Atestados',
+                value: AbsenteeismHierarchyTotalOrderByEnum.TOTAL,
               },
             ]}
           />
@@ -198,7 +217,7 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
       >
         <STableSearchContent>
           <STableButton
-            onClick={onCompare}
+            onClick={onCreateGraphs}
             color="info"
             text={'Gerar Gráficos'}
             loading={isLoading}
@@ -223,8 +242,8 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
         filterColumns={{}}
         filters={params}
         setFilters={onFilterData}
-        onSelectRow={(row) => onSelectRow(row)}
         data={data}
+        onSelectColumn={onSelectColumn}
         isLoading={isLoading}
         pagination={data?.pagination}
         setPage={(page) => onFilterData({ page })}

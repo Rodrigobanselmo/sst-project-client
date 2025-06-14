@@ -1,7 +1,10 @@
 import { FC } from 'react';
 
 import { AbsenteeismTotalHierarchyResultBrowseModel } from '@v2/models/absenteeism/models/absenteeism-total-hierarchy/absenteeism-total-hierarchy-browse-result.model';
-import { AbsenteeismHierarchyTotalOrderByEnum } from '@v2/services/absenteeism/dashboard/browse-absenteeism-hierarchy/service/browse-absenteeism-hierarchy.service';
+import {
+  AbsenteeismHierarchyTotalOrderByEnum,
+  AbsenteeismHierarchyTypeEnum,
+} from '@v2/services/absenteeism/dashboard/browse-absenteeism-hierarchy/service/browse-absenteeism-hierarchy.service';
 import { STableHeader } from 'components/atoms/STable';
 import { STextRow } from '../../../addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '../../../addons/addons-table/STablePagination/STablePagination';
@@ -15,6 +18,7 @@ import { AbsenteeismColumnsEnum as columnsEnum } from './enums/absenteeism-colum
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { AbsenteeismColumnMap as columnMap } from './maps/absenteeism-column-map';
 import { IAbsenteeismTableProps } from './SAbsenteeismHierarchyTotalTable.types';
+import { STextClickRow } from '../../../addons/addons-rows/STextClickRow/STextClickRow';
 
 export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
   data,
@@ -24,7 +28,7 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
   pagination,
   setPage,
   setOrderBy,
-  onSelectRow,
+  onSelectColumn,
   filterColumns,
   showPagination = true,
 }) => {
@@ -108,8 +112,14 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
         />
       ),
       row: (row) => (
-        <STextRow
+        <STextClickRow
           fontSize={13}
+          onClick={() =>
+            onSelectColumn({
+              id: row.OFFICE!.id,
+              type: AbsenteeismHierarchyTypeEnum.OFFICE,
+            })
+          }
           tooltipMinLength={40}
           lineNumber={2}
           text={row.OFFICE?.name}
@@ -128,8 +138,14 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
         />
       ),
       row: (row) => (
-        <STextRow
+        <STextClickRow
           fontSize={13}
+          onClick={() =>
+            onSelectColumn({
+              id: row.SECTOR!.id,
+              type: AbsenteeismHierarchyTypeEnum.SECTOR,
+            })
+          }
           tooltipMinLength={40}
           lineNumber={2}
           text={row.SECTOR?.name}
@@ -147,14 +163,23 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
           text={columnMap[columnsEnum.MANAGEMENT].label}
         />
       ),
-      row: (row) => (
-        <STextRow
-          fontSize={13}
-          tooltipMinLength={20}
-          lineNumber={2}
-          text={row.MANAGEMENT?.name}
-        />
-      ),
+      row: (row) =>
+        row.MANAGEMENT ? (
+          <STextClickRow
+            fontSize={13}
+            onClick={() =>
+              onSelectColumn({
+                id: row.MANAGEMENT!.id,
+                type: AbsenteeismHierarchyTypeEnum.MANAGEMENT,
+              })
+            }
+            tooltipMinLength={20}
+            lineNumber={2}
+            text={row.MANAGEMENT.name}
+          />
+        ) : (
+          <div />
+        ),
     });
   }
 
@@ -167,14 +192,23 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
           text={columnMap[columnsEnum.DIRECTORY].label}
         />
       ),
-      row: (row) => (
-        <STextRow
-          fontSize={13}
-          tooltipMinLength={20}
-          lineNumber={2}
-          text={row.DIRECTORY?.name}
-        />
-      ),
+      row: (row) =>
+        row.DIRECTORY ? (
+          <STextClickRow
+            fontSize={13}
+            onClick={() =>
+              onSelectColumn({
+                id: row.DIRECTORY!.id,
+                type: AbsenteeismHierarchyTypeEnum.DIRECTORY,
+              })
+            }
+            tooltipMinLength={20}
+            lineNumber={2}
+            text={row.DIRECTORY?.name}
+          />
+        ) : (
+          <div />
+        ),
     });
   }
 
@@ -188,8 +222,14 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
         />
       ),
       row: (row) => (
-        <STextRow
+        <STextClickRow
           fontSize={13}
+          onClick={() =>
+            onSelectColumn({
+              id: row.WORKSPACE!.id,
+              type: AbsenteeismHierarchyTypeEnum.WORKSPACE,
+            })
+          }
           tooltipMinLength={20}
           lineNumber={2}
           text={row.WORKSPACE?.name}
@@ -208,8 +248,14 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
         />
       ),
       row: (row) => (
-        <STextRow
+        <STextClickRow
           fontSize={13}
+          onClick={() =>
+            onSelectColumn({
+              id: row.HOMOGENEOUS_GROUP!.id,
+              type: AbsenteeismHierarchyTypeEnum.HOMOGENEOUS_GROUP,
+            })
+          }
           tooltipMinLength={20}
           lineNumber={2}
           text={row.HOMOGENEOUS_GROUP?.name || 'Sem Grupo'}
@@ -233,13 +279,7 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
             rows={data}
             renderRow={(row, index) => {
               return (
-                <STableRow
-                  clickable
-                  schema="grey"
-                  onClick={() => onSelectRow(row)}
-                  key={index}
-                  minHeight={35}
-                >
+                <STableRow schema="grey" key={index} minHeight={35}>
                   {rows.map((render) => render(row))}
                 </STableRow>
               );

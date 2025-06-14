@@ -12,6 +12,7 @@ import { PopperSidebar } from '@v2/components/forms/fields/SSearchSelect/compone
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { SDatePicker } from '@v2/components/forms/fields/SDatePicker/SDatePicker';
 import { GraphPieCompare } from './components/graphs/GraphPieCompare/GraphPieCompare';
+import { GraphBarTimeCompare } from './components/graphs/GraphBarTimeCompare/GraphBarTimeCompare';
 
 export const AbsenteeismDashboard = ({ companyId }: { companyId: string }) => {
   const { queryParams, setQueryParams } = useQueryParamsState<{
@@ -26,6 +27,7 @@ export const AbsenteeismDashboard = ({ companyId }: { companyId: string }) => {
 
   return (
     <Box width={'100%'}>
+      <GraphBarTimeCompare companyId={companyId} />
       <SFlex gap={6} pb={8}>
         <SSearchSelect
           label="Ano"

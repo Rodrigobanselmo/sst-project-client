@@ -1,10 +1,9 @@
 import { FC } from 'react';
 
-import { STextRowProps } from './STextRow.types';
-import STooltip from '@v2/components/atoms/STooltip/STooltip';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
-import { Box } from '@mui/material';
+import STooltip from '@v2/components/atoms/STooltip/STooltip';
+import { STextRowProps } from './STextRow.types';
 
 export const STextRow: FC<STextRowProps> = ({
   tooltipTitle,
