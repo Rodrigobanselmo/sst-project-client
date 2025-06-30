@@ -26,7 +26,7 @@ export const FormModelInfo = (props: Props) => {
         label="Descrição"
         placeholder="descrição"
         fullWidth
-        inputProps={{ minRows: 3, autoFocus: true }}
+        inputProps={{ minRows: 3 }}
         name="description"
       />
       <SFlex>
