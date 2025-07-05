@@ -30,6 +30,9 @@ export interface SSearchSelectProps<Value> {
   }) => ReactNode;
   onSearch?: (value: string) => void;
   popperStartCompoent?: React.ReactNode;
+  renderStartAdornment?: (args: {
+    option: Value | null | undefined;
+  }) => ReactNode;
   renderItem?: (args: {
     option: Value;
     label: string;
@@ -58,6 +61,7 @@ export function SSearchSelect<T>({
   onSearch,
   popperStartCompoent,
   disabled,
+  renderStartAdornment,
 }: SSearchSelectProps<T>) {
   const [shrink, setShrink] = useState(false);
 
@@ -101,6 +105,7 @@ export function SSearchSelect<T>({
             onChange={(e) => {
               onInputChange?.(e.target.value, e);
             }}
+            startAdornment={renderStartAdornment?.({ option: value })}
             helperText={errorMessage}
             placeholder={placeholder}
             label={label}

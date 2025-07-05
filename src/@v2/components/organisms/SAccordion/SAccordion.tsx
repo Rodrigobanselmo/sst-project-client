@@ -24,6 +24,7 @@ export interface SAccordionProps {
   expanded?: AccordionProps['expanded'];
   defaultExpanded?: AccordionProps['defaultExpanded'];
   onChange?: AccordionProps['onChange'];
+  expandIcon?: React.ReactNode;
 }
 
 export const SAccordion = ({
@@ -35,11 +36,12 @@ export const SAccordion = ({
   subtitle,
   children,
   withDivider = false,
+  expandIcon = <ExpandMoreIcon />,
   ...rest
 }: SAccordionProps) => {
   return (
     <Accordion {...rest}>
-      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+      <AccordionSummary expandIcon={expandIcon}>
         {icon && <IconContainer>{icon}</IconContainer>}
         <SAccordionTextWrapper>
           {typeof title === 'string' ? (

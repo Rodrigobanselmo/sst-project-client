@@ -1,85 +1,111 @@
-import { Box } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import { Box, Divider, IconButton, InputAdornment, Stack } from '@mui/material';
+import { SIconDelete } from '@v2/assets/icons';
+import { SIconCopy } from '@v2/assets/icons/SIconCopy/SIconCopy';
+import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
+import { SEditorForm } from '@v2/components/forms/controlled/SEditorForm/SEditorForm';
+import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
+import { SSwitchForm } from '@v2/components/forms/controlled/SSwitchForm/SSwitchForm';
 import { SAccordionBody } from '@v2/components/organisms/SAccordion/components/SAccordionBody/SAccordionBody';
-import { SAccordionList } from '@v2/components/organisms/SAccordion/components/SAccordionList/SAccordionList';
 import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
-import dynamic from 'next/dynamic';
-
-const DraftEditor = dynamic(
-  async () => {
-    const mod = await import(
-      'components/molecules/form/draft-editor/DraftEditor'
-    );
-    return mod.DraftEditor;
-  },
-  { ssr: false },
-);
+import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { FormQuestionTypeMapList } from '../../maps/form-question-type-map';
+import { getFormModelInitialValues } from '../FormModelAddContent/FormModelAddContent.schema';
 
 export const FormModelGroup = ({ companyId }: { companyId: string }) => {
+  const { control, setValue } = useFormContext();
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'items',
+  });
+
+  // Gather all type values for the items
+  const typeValues =
+    useWatch({ name: 'items', control })?.map((item: any) => item?.type) || [];
+
+  const handleAdd = () => {
+    append(getFormModelInitialValues());
+  };
+
   return (
     <Box>
-      <SAccordionList
-        options={[1, 2, 3, 4, 5]}
-        renderItem={(value) => {
-          const title = 'Medicamento ' + value;
-
+      <Stack direction="row" justifyContent="flex-end" mb={2}>
+        <IconButton onClick={handleAdd} color="primary">
+          <AddIcon />
+        </IconButton>
+      </Stack>
+      <Stack gap={8}>
+        {fields.map((field, idx) => {
           return (
-            <>
-              <SAccordion
-                expanded={value == 2}
-                onChange={(e) => console.log(e)}
-                title={title}
-              >
-                <SAccordionBody>
-                  <Box mt={2}>ok</Box>
-                  <Box mt={2}>ok</Box>
-                  <DraftEditor
-                    size="model"
-                    handlePastedText={handlePastedText}
-                    mt={5}
-                    isJson
-                    document_model
-                    textProps={{ color: 'grey.700' }}
-                    label={''}
-                    placeholder="descrição..."
-                    defaultValue={parseToEditor(item) as any}
-                    onChange={(value) =>
-                      handleEdit(
-                        parseFromEditorToElement(
-                          (value ? JSON.parse(value) : null) as any,
-                        ),
-                      )
-                    }
-                    toolbarOpen
-                    mention={{
-                      separator: ' ',
-                      trigger: '{',
-                      suggestions,
+            <SAccordion
+              key={field.id}
+              expandIcon={null}
+              expanded={true}
+              onChange={() => {}}
+              endComponent={
+                <SSearchSelectForm
+                  boxProps={{
+                    sx: {
+                      ml: 'auto',
+                    },
+                  }}
+                  name={`items.${idx}.type`}
+                  renderStartAdornment={({ option }) =>
+                    option ? (
+                      <InputAdornment position="start">
+                        {option?.icon}
+                      </InputAdornment>
+                    ) : null
+                  }
+                  placeholder="Tipo"
+                  renderItem={(option) => (
+                    <SFlex alignItems="center" gap={2}>
+                      {option.option.icon}
+                      <span>{option.label}</span>
+                    </SFlex>
+                  )}
+                  options={FormQuestionTypeMapList}
+                  getOptionLabel={(option) => option.label}
+                  getOptionValue={(option) => option.value}
+                />
+              }
+              title={`Pergunta ${idx + 1}`}
+            >
+              <SAccordionBody>
+                <SFlex mt={8} flexDirection="column" gap={5}>
+                  <SEditorForm
+                    name={`items.${idx}.content`}
+                    editorContainerProps={{
+                      sx: {},
                     }}
-                    toolbarProps={{
-                      options: [
-                        'inline',
-                        ...((mapProps as any)[item.type]?.fontSize
-                          ? ['fontSize']
-                          : []),
-                        'textAlign',
-                        'colorPicker',
-                        'link',
-                      ],
-                    }}
-                    {...(!mapProps[item.type]?.toolbar && {
-                      toolbarOpen: false,
-                    })}
-                    {...(!(mapProps as any)[item.type]?.multiline && {
-                      handleReturn,
-                    })}
                   />
-                </SAccordionBody>
-              </SAccordion>
-              <Box mt={2}>ok</Box>
-            </>
+                  <Divider sx={{ mt: 4, mb: 2 }} />
+                  <SFlex alignItems="center" justifyContent="flex-end" gap={2}>
+                    <SIconButton>
+                      <SIconCopy color="grey.600" fontSize={20} />
+                    </SIconButton>
+                    <SIconButton>
+                      <SIconDelete color="grey.600" fontSize={22} />
+                    </SIconButton>
+                    <SDivider
+                      orientation="vertical"
+                      sx={{ mx: 4, ml: 2, height: 28 }}
+                    />
+
+                    <SSwitchForm
+                      name={`items.${idx}.required`}
+                      label="Obrigatória"
+                      fontSize="14px"
+                    />
+                  </SFlex>
+                </SFlex>
+              </SAccordionBody>
+            </SAccordion>
           );
-        }}
-      />
+        })}
+      </Stack>
     </Box>
   );
 };
