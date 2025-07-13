@@ -16,11 +16,13 @@ export const SIconButton: FC<PropsWithChildren<SIconButtonProps>> = ({
   tooltip,
   onClick,
   iconButtonProps,
+  tooltipProps,
 }) => (
   <STooltip
     withWrapper
     boxProps={{ sx: { display: 'inline' } }}
     title={tooltip}
+    {...tooltipProps}
   >
     <IconButton
       onClick={onClick}

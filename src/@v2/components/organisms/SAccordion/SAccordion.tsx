@@ -20,7 +20,7 @@ export interface SAccordionProps {
   subtitle?: JSX.Element | string;
   withDivider?: boolean;
   children?: React.ReactNode;
-  accordionProps?: AccordionProps;
+  accordionProps?: Partial<AccordionProps>;
   expanded?: AccordionProps['expanded'];
   defaultExpanded?: AccordionProps['defaultExpanded'];
   onChange?: AccordionProps['onChange'];
@@ -37,10 +37,11 @@ export const SAccordion = ({
   children,
   withDivider = false,
   expandIcon = <ExpandMoreIcon />,
+  accordionProps,
   ...rest
 }: SAccordionProps) => {
   return (
-    <Accordion {...rest}>
+    <Accordion {...rest} {...accordionProps}>
       <AccordionSummary expandIcon={expandIcon}>
         {icon && <IconContainer>{icon}</IconContainer>}
         <SAccordionTextWrapper>

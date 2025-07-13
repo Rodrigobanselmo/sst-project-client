@@ -10,11 +10,18 @@ export interface IFormModelItem {
   type: FormQuestionTypeEnum;
 }
 
+export interface IFormModelSection {
+  id: string;
+  title: string;
+  description?: string;
+  items: IFormModelItem[];
+}
+
 export interface IAddFormModelFormsFields {
   title: string;
   description: string;
   type: FormTypeEnum;
-  items: IFormModelItem[];
+  sections: IFormModelSection[];
 }
 
 export const schemaAddFormModelForms = yup.object({
@@ -24,20 +31,30 @@ export const schemaAddFormModelForms = yup.object({
     .mixed<FormTypeEnum>()
     .oneOf(Object.values(FormTypeEnum))
     .required('Campo é obrigatório'),
-  items: yup
+  sections: yup
     .array()
     .of(
       yup.object({
         id: yup.string().required(),
-        content: yup.string().required('Conteúdo é obrigatório'),
-        required: yup.boolean().default(false),
-        type: yup
-          .mixed<FormQuestionTypeEnum>()
-          .oneOf(Object.values(FormQuestionTypeEnum))
-          .default(FormQuestionTypeEnum.TEXT),
+        title: yup.string().required('Título da seção é obrigatório'),
+        description: yup.string().optional(),
+        items: yup
+          .array()
+          .of(
+            yup.object({
+              id: yup.string().required(),
+              content: yup.string().required('Conteúdo é obrigatório'),
+              required: yup.boolean().default(false),
+              type: yup
+                .mixed<FormQuestionTypeEnum>()
+                .oneOf(Object.values(FormQuestionTypeEnum))
+                .default(FormQuestionTypeEnum.TEXT),
+            }),
+          )
+          .min(1, 'Adicione pelo menos um item'),
       }),
     )
-    .min(1, 'Adicione pelo menos um item'),
+    .min(1, 'Adicione pelo menos uma seção'),
 }) as any;
 
 export const getFormModelInitialValues = () => ({
@@ -47,9 +64,16 @@ export const getFormModelInitialValues = () => ({
   type: FormQuestionTypeEnum.TEXT,
 });
 
+export const getFormSectionInitialValues = (): IFormModelSection => ({
+  id: v4(),
+  title: '',
+  description: '',
+  items: [getFormModelInitialValues()],
+});
+
 export const addFormModelFormsInitialValues: IAddFormModelFormsFields = {
   title: '',
   description: '',
   type: undefined as any,
-  items: [getFormModelInitialValues()],
+  sections: [getFormSectionInitialValues()],
 };

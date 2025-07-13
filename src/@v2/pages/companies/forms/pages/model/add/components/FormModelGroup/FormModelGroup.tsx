@@ -1,108 +1,88 @@
-import AddIcon from '@mui/icons-material/Add';
-import { Box, Divider, IconButton, InputAdornment, Stack } from '@mui/material';
-import { SIconDelete } from '@v2/assets/icons';
-import { SIconCopy } from '@v2/assets/icons/SIconCopy/SIconCopy';
-import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
-import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
-import { SEditorForm } from '@v2/components/forms/controlled/SEditorForm/SEditorForm';
-import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
-import { SSwitchForm } from '@v2/components/forms/controlled/SSwitchForm/SSwitchForm';
-import { SAccordionBody } from '@v2/components/organisms/SAccordion/components/SAccordionBody/SAccordionBody';
-import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
-import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
-import { FormQuestionTypeMapList } from '../../maps/form-question-type-map';
-import { getFormModelInitialValues } from '../FormModelAddContent/FormModelAddContent.schema';
+import { Box, Stack } from '@mui/material';
+import { useFieldArray, useFormContext } from 'react-hook-form';
+import { useState } from 'react';
+import {
+  getFormSectionInitialValues,
+  getFormModelInitialValues,
+} from '../FormModelAddContent/FormModelAddContent.schema';
+import { SFormSection } from './components/SFormSection/SFormSection';
 
 export const FormModelGroup = ({ companyId }: { companyId: string }) => {
-  const { control, setValue } = useFormContext();
-  const { fields, append, remove } = useFieldArray({
+  const { control, getValues, setValue, trigger } = useFormContext();
+  const [minimizedSections, setMinimizedSections] = useState<Set<number>>(
+    new Set(),
+  );
+  const { fields, append, remove, insert, move, replace } = useFieldArray({
     control,
-    name: 'items',
+    name: 'sections',
   });
 
-  // Gather all type values for the items
-  const typeValues =
-    useWatch({ name: 'items', control })?.map((item: any) => item?.type) || [];
+  const handleDeleteSection = (index: number) => {
+    if (fields.length === 1) {
+      return;
+    }
+    remove(index);
+  };
 
-  const handleAdd = () => {
-    append(getFormModelInitialValues());
+  const handleAddNewSectionFromQuestion = (
+    currentSectionIndex: number,
+    questionIndex: number,
+  ) => {
+    const currentValues = getValues();
+    const currentSection = currentValues.sections[currentSectionIndex];
+
+    if (!currentSection || !currentSection.items) {
+      return;
+    }
+
+    const newSection = getFormSectionInitialValues();
+
+    const questionsToMove = currentSection.items.slice(questionIndex + 1);
+
+    const updatedSections = [...currentValues.sections];
+
+    updatedSections[currentSectionIndex] = {
+      ...currentSection,
+      items: currentSection.items.slice(0, questionIndex + 1),
+    };
+
+    const newSectionWithQuestions = {
+      ...newSection,
+      items: questionsToMove,
+    };
+    updatedSections.splice(currentSectionIndex + 1, 0, newSectionWithQuestions);
+
+    replace(updatedSections);
+  };
+
+  const handleMinimizeSection = (sectionIndex: number) => {
+    setMinimizedSections((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(sectionIndex)) {
+        newSet.delete(sectionIndex);
+      } else {
+        newSet.add(sectionIndex);
+      }
+      return newSet;
+    });
   };
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="flex-end" mb={2}>
-        <IconButton onClick={handleAdd} color="primary">
-          <AddIcon />
-        </IconButton>
-      </Stack>
-      <Stack gap={8}>
+      <Stack gap={16}>
         {fields.map((field, idx) => {
           return (
-            <SAccordion
+            <SFormSection
               key={field.id}
-              expandIcon={null}
-              expanded={true}
-              onChange={() => {}}
-              endComponent={
-                <SSearchSelectForm
-                  boxProps={{
-                    sx: {
-                      ml: 'auto',
-                    },
-                  }}
-                  name={`items.${idx}.type`}
-                  renderStartAdornment={({ option }) =>
-                    option ? (
-                      <InputAdornment position="start">
-                        {option?.icon}
-                      </InputAdornment>
-                    ) : null
-                  }
-                  placeholder="Tipo"
-                  renderItem={(option) => (
-                    <SFlex alignItems="center" gap={2}>
-                      {option.option.icon}
-                      <span>{option.label}</span>
-                    </SFlex>
-                  )}
-                  options={FormQuestionTypeMapList}
-                  getOptionLabel={(option) => option.label}
-                  getOptionValue={(option) => option.value}
-                />
+              sectionIndex={idx}
+              sectionNumber={idx + 1}
+              onDeleteSection={() => handleDeleteSection(idx)}
+              onAddNewSection={(questionIndex) =>
+                handleAddNewSectionFromQuestion(idx, questionIndex)
               }
-              title={`Pergunta ${idx + 1}`}
-            >
-              <SAccordionBody>
-                <SFlex mt={8} flexDirection="column" gap={5}>
-                  <SEditorForm
-                    name={`items.${idx}.content`}
-                    editorContainerProps={{
-                      sx: {},
-                    }}
-                  />
-                  <Divider sx={{ mt: 4, mb: 2 }} />
-                  <SFlex alignItems="center" justifyContent="flex-end" gap={2}>
-                    <SIconButton>
-                      <SIconCopy color="grey.600" fontSize={20} />
-                    </SIconButton>
-                    <SIconButton>
-                      <SIconDelete color="grey.600" fontSize={22} />
-                    </SIconButton>
-                    <SDivider
-                      orientation="vertical"
-                      sx={{ mx: 4, ml: 2, height: 28 }}
-                    />
-
-                    <SSwitchForm
-                      name={`items.${idx}.required`}
-                      label="Obrigatória"
-                      fontSize="14px"
-                    />
-                  </SFlex>
-                </SFlex>
-              </SAccordionBody>
-            </SAccordion>
+              onMinimizeSection={() => handleMinimizeSection(idx)}
+              isMinimized={minimizedSections.has(idx)}
+            />
           );
         })}
       </Stack>
