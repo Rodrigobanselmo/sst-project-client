@@ -7,6 +7,7 @@ export type SInputProps = Pick<
   | 'onChange'
   | 'value'
   | 'error'
+  | 'variant'
   | 'helperText'
   | 'placeholder'
   | 'type'
@@ -21,7 +22,8 @@ export type SInputProps = Pick<
   label?: string;
   inputRef?: { current: HTMLInputElement | null };
   labelShrink?: string;
-  size?: 'sm' | 'md';
+  variant?: 'outlined' | 'standard';
+  size?: 'sm' | 'md' | 'lg';
   shrink?: boolean;
   inputProps?: TextFieldProps['InputProps'];
   loading?: boolean;
@@ -30,4 +32,5 @@ export type SInputProps = Pick<
   startAdornment?: React.ReactNode;
   endAdornment?: React.ReactNode;
   transformation?: IStringTransformationsType;
+  color?: 'normal' | 'success' | 'info' | 'primary' | 'paper' | 'danger';
 };

@@ -58,8 +58,6 @@ export const SFormQuestionAccordionBody = ({
           fontSize="14px"
         />
       </SFlex>
-
-      <Divider sx={{ mt: 4, mb: 2 }} />
     </SFlex>
   );
 };

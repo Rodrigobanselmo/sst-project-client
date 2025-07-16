@@ -5,30 +5,7 @@ import TextField from '@mui/material/TextField';
 import { SIconError } from '@v2/assets/icons/SIconError/SIconError';
 import { stringTransformations } from '@v2/utils/string-transformation';
 import { SInputProps } from './SInput.types';
-
-const sizeMap = {
-  sm: {
-    size: 'small',
-    inputBaseRoot: {
-      maxHeight: '34px',
-      minHeight: '34px',
-    },
-    inputLabelRoot: {
-      fontSize: '13px',
-      lineHeight: '14px',
-      mt: '1px',
-    },
-    inputLabelRootTop: {
-      top: '3px',
-    },
-  },
-  md: {
-    size: 'small',
-    inputBaseRoot: {},
-    inputLabelRoot: {},
-    inputLabelRootTop: {},
-  },
-} as const;
+import { colorMap, sizeMap } from './SInput.constant';
 
 export const SInput: FC<SInputProps> = ({
   label,
@@ -41,12 +18,14 @@ export const SInput: FC<SInputProps> = ({
   shadow,
   loading,
   size = 'md',
+  color = 'normal',
   onChange,
   textFieldProps,
   startAdornment,
   endAdornment,
   transformation,
   sx,
+  variant = 'outlined',
   ...props
 }) => {
   const handleChange = (
@@ -120,7 +99,7 @@ export const SInput: FC<SInputProps> = ({
       }}
       label={getLabel()}
       size={sizeMap[size].size}
-      variant="outlined"
+      variant={variant}
       onFocus={(e) => {
         setIsShrink(true);
         props?.onFocus?.(e);
@@ -135,27 +114,52 @@ export const SInput: FC<SInputProps> = ({
           ...sizeMap[size].inputBaseRoot,
         },
         '& .MuiInputLabel-root': {
-          color: 'text.light',
+          color: props.error ? 'error.main' : colorMap[color].labelColor,
           ...sizeMap[size].inputLabelRoot,
           ...(isShrinkLabel && sizeMap[size].inputLabelRootTop),
-          ...(props.error && { color: 'error.main' }),
+        },
+        '& .MuiInputLabel-root.Mui-focused': {
+          color: props.error
+            ? 'error.main'
+            : colorMap[color].focusedBorderColor,
+        },
+        // Standard variant focused label
+        '& .MuiInput-root.Mui-focused .MuiInputLabel-root': {
+          color: props.error
+            ? 'error.main'
+            : colorMap[color].focusedBorderColor,
         },
         '& .MuiOutlinedInput-root': {
           boxShadow: !shadow ? 'none' : '1px 1px 2px 1px rgba(0, 0, 0, 0.2)',
           backgroundColor: 'background.paper',
         },
+        '& .MuiOutlinedInput-notchedOutline': {
+          borderColor: props.error ? 'error.main' : colorMap[color].borderColor,
+        },
         '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
           {
-            borderColor: 'primary.main',
+            borderColor: props.error
+              ? 'error.main'
+              : colorMap[color].focusedBorderColor,
           },
+        // Standard variant underline
+        '& .MuiInput-root:after': {
+          borderColor: props.error
+            ? 'error.main'
+            : colorMap[color].focusedBorderColor,
+        },
         '&:hover': {
           '& .MuiOutlinedInput-notchedOutline': {
-            borderColor: 'background.default',
+            borderColor: props.error
+              ? 'error.main'
+              : colorMap[color].borderColor,
             borderWidth: 2,
           },
           '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline':
             {
-              borderColor: 'primary.main',
+              borderColor: props.error
+                ? 'error.main'
+                : colorMap[color].focusedBorderColor,
               opacity: 1,
             },
         },

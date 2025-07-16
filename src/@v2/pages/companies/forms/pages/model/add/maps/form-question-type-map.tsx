@@ -75,9 +75,9 @@ export const FormQuestionTypeMap: Record<
 };
 
 export const FormQuestionTypeMapList = [
+  FormQuestionTypeMap[FormQuestionTypeEnum.RADIO],
   FormQuestionTypeMap[FormQuestionTypeEnum.CHECKBOX],
   FormQuestionTypeMap[FormQuestionTypeEnum.SELECT],
-  FormQuestionTypeMap[FormQuestionTypeEnum.RADIO],
   FormQuestionTypeMap[FormQuestionTypeEnum.SHORT_TEXT],
   FormQuestionTypeMap[FormQuestionTypeEnum.LONG_TEXT],
   FormQuestionTypeMap[FormQuestionTypeEnum.FREQUENCY],

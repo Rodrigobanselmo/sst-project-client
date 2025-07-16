@@ -9,7 +9,7 @@ export interface IFormModelItem {
   content: string;
   required: boolean;
   type: { value: FormQuestionTypeEnum };
-  options?: { value: string }[];
+  options?: { value: string; label: string }[];
   placeholder?: string;
   minValue?: number;
   maxValue?: number;
@@ -27,7 +27,10 @@ export interface IFormModelSection {
 export interface IAddFormModelFormsFields {
   title: string;
   description: string;
-  type: FormTypeEnum;
+  type: {
+    label: string;
+    value: FormTypeEnum;
+  };
   sections: IFormModelSection[];
 }
 
@@ -35,9 +38,14 @@ export const schemaAddFormModelForms = yup.object({
   title: yup.string().required('Campo é obrigatório'),
   description: yup.string().required('Campo é obrigatório'),
   type: yup
-    .mixed<FormTypeEnum>()
-    .oneOf(Object.values(FormTypeEnum))
-    .required('Campo é obrigatório'),
+    .object({
+      label: yup.string().required(),
+      value: yup
+        .mixed<FormTypeEnum>()
+        .oneOf(Object.values(FormTypeEnum))
+        .required('Campo Obrigatório'),
+    })
+    .required('Campo obrigatório'),
   sections: yup
     .array()
     .of(
