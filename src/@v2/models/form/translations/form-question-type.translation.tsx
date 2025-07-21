@@ -10,8 +10,6 @@ export const FormQuestionTypeEnumTranslate: Record<
   [FormQuestionTypeEnum.SELECT]: 'Lista suspensa',
   [FormQuestionTypeEnum.RADIO]: 'Múltipla escolha',
   [FormQuestionTypeEnum.CHECKBOX]: 'Caixas de seleção',
-  [FormQuestionTypeEnum.FREQUENCY]: 'Frequência',
-  [FormQuestionTypeEnum.INTENSITY]: 'Intensidade',
   [FormQuestionTypeEnum.DATE]: 'Data',
   [FormQuestionTypeEnum.NUMBER]: 'Número',
 };

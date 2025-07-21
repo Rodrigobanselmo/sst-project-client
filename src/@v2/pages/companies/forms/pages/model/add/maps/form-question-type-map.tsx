@@ -1,7 +1,6 @@
 import CheckBoxOutlinedIcon from '@mui/icons-material/CheckBoxOutlined';
 import CheckCircleOutlineOutlinedIcon from '@mui/icons-material/CheckCircleOutlineOutlined';
 import EventIcon from '@mui/icons-material/Event';
-import LabelOutlinedIcon from '@mui/icons-material/LabelOutlined';
 import ListOutlinedIcon from '@mui/icons-material/ListOutlined';
 import NotesIcon from '@mui/icons-material/Notes';
 import NotesOutlinedIcon from '@mui/icons-material/NotesOutlined';
@@ -31,16 +30,6 @@ export const FormQuestionTypeMap: Record<
     value: FormQuestionTypeEnum.LONG_TEXT,
     label: FormQuestionTypeEnumTranslate[FormQuestionTypeEnum.LONG_TEXT],
     icon: <NotesOutlinedIcon sx={defaultSx} />,
-  },
-  [FormQuestionTypeEnum.FREQUENCY]: {
-    value: FormQuestionTypeEnum.FREQUENCY,
-    label: FormQuestionTypeEnumTranslate[FormQuestionTypeEnum.FREQUENCY],
-    icon: <LabelOutlinedIcon sx={defaultSx} />,
-  },
-  [FormQuestionTypeEnum.INTENSITY]: {
-    value: FormQuestionTypeEnum.INTENSITY,
-    label: FormQuestionTypeEnumTranslate[FormQuestionTypeEnum.INTENSITY],
-    icon: <LabelOutlinedIcon sx={defaultSx} />,
   },
   [FormQuestionTypeEnum.TEXT]: {
     value: FormQuestionTypeEnum.TEXT,
@@ -80,8 +69,6 @@ export const FormQuestionTypeMapList = [
   FormQuestionTypeMap[FormQuestionTypeEnum.SELECT],
   FormQuestionTypeMap[FormQuestionTypeEnum.SHORT_TEXT],
   FormQuestionTypeMap[FormQuestionTypeEnum.LONG_TEXT],
-  FormQuestionTypeMap[FormQuestionTypeEnum.FREQUENCY],
-  FormQuestionTypeMap[FormQuestionTypeEnum.INTENSITY],
   FormQuestionTypeMap[FormQuestionTypeEnum.DATE],
   FormQuestionTypeMap[FormQuestionTypeEnum.NUMBER],
 ];

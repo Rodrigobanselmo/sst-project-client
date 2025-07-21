@@ -15,6 +15,7 @@ import {
 } from '../../fields/SInputFileDropZone/components/SInputFileDropZoneFilesView';
 import { FileDropZoneErrorCodeMap } from '../../fields/SInputFileDropZone/maps/error-code.map';
 import { getSizeInMbOrKb } from '@v2/utils/get-file-size';
+import { getNestedError } from '../get-nested-error';
 
 // export const Example = () => {
 //   const uploadMutate = useMutateAddDocumentControlSystemFile();
@@ -69,7 +70,7 @@ export const SInputFileDropZoneAsyncForm = ({
 
   const value = useWatch({ name, control }) as FileDropZoneView[];
 
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
 
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')

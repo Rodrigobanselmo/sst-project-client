@@ -4,6 +4,7 @@ import {
   SDatePicker,
   SDatePickerProps,
 } from '../../fields/SDatePicker/SDatePicker';
+import { getNestedError } from '../get-nested-error';
 
 interface SDatePickerFormProps
   extends Omit<SDatePickerProps, 'onChange' | 'value'> {
@@ -13,7 +14,7 @@ interface SDatePickerFormProps
 export function SDatePickerForm({ name, ...props }: SDatePickerFormProps) {
   const { setValue, formState, control } = useFormContext();
 
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
 
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')

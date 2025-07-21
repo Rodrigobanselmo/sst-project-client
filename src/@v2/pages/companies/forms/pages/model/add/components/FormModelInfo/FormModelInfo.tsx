@@ -36,6 +36,7 @@ export const FormModelInfo = (props: Props) => {
           name="type"
           options={FormModelTypesFilterList}
           getOptionLabel={(option) => option.label}
+          disabled
           getOptionValue={(option) => option.value}
         />
         <SSwitchForm label="Anônimo" name="anonymous" />

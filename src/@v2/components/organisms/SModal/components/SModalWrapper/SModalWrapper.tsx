@@ -9,18 +9,30 @@ export const SModalWrapper = ({
   onSubmit,
   children,
   minWidthDesk = 900,
+  maxWidthDesk = 900,
   title,
   modalKey,
   loading,
   semiFullScreen,
   closeButtonOptions,
   dangerButtonOptions,
+  submitButtonOptions,
 }: SModalWrapperProps) => {
   const { closeModal } = useModal();
+
+  const handleClose = () => {
+    if (closeButtonOptions?.onClick) {
+      closeButtonOptions.onClick();
+      closeModal(modalKey);
+    }
+
+    closeModal(modalKey);
+  };
 
   return (
     <SModalPaper
       minWidthDesk={minWidthDesk}
+      maxWidthDesk={maxWidthDesk}
       center={false}
       semiFullScreen={semiFullScreen}
       sx={{
@@ -47,7 +59,7 @@ export const SModalWrapper = ({
           />
         )}
         <SButton
-          onClick={() => closeModal(modalKey)}
+          onClick={handleClose}
           minWidth={100}
           color={loading ? 'paper' : 'primary'}
           variant={'outlined'}
@@ -62,7 +74,7 @@ export const SModalWrapper = ({
             loading={loading}
             variant="contained"
             size="l"
-            text="Salvar"
+            text={submitButtonOptions?.text || 'Salvar'}
           />
         )}
       </SModalButtons>

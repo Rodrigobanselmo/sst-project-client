@@ -6,4 +6,5 @@ export interface SModalPaperProps extends BoxProps {
   semiFullScreen?: boolean;
   loading?: boolean;
   minWidthDesk?: string | number;
+  maxWidthDesk?: string | number;
 }

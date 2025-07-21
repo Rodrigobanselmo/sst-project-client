@@ -7,9 +7,17 @@ interface DateFormProps {
 
 export const DateForm = ({ sectionIndex, questionIndex }: DateFormProps) => {
   return (
-    <SDatePickerForm
-      name={`sections.${sectionIndex}.items.${questionIndex}.defaultValue`}
-      label="Data padrão (opcional)"
-    />
+    <div style={{ maxWidth: '200px' }}>
+      <SDatePickerForm
+        name={`sections.${sectionIndex}.items.${questionIndex}.defaultValue`}
+        label=""
+        disabled={true}
+        textFieldProps={{
+          placeholder: 'dd/mm/aaaa',
+          variant: 'standard',
+          size: 'medium',
+        }}
+      />
+    </div>
   );
 };

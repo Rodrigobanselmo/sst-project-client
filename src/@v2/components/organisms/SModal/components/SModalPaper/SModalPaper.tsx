@@ -14,6 +14,7 @@ export const SModalPaper = React.forwardRef<any, SModalPaperProps>(
       fullScreen,
       sx,
       minWidthDesk = 400,
+      maxWidthDesk = 900,
       ...props
     },
     ref,
@@ -26,7 +27,7 @@ export const SModalPaper = React.forwardRef<any, SModalPaperProps>(
           sx={{
             // transform: ['', '', `translateY(${center ? 0 : -150}px)`],
             minWidth: ['95vw', '95vw', minWidthDesk],
-            maxWidth: ['95vw', '95vw', 900],
+            maxWidth: ['95vw', '95vw', maxWidthDesk],
             overflowX: 'hidden',
             position: 'relative',
             maxHeight: '95vh',

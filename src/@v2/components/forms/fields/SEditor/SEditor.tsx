@@ -78,6 +78,7 @@ export interface SEditorProps {
   placeholder?: string;
   containerProps?: BoxProps;
   editorContainerProps?: BoxProps;
+  error?: boolean;
 }
 
 export function SEditor({
@@ -86,6 +87,7 @@ export function SEditor({
   placeholder,
   containerProps,
   editorContainerProps,
+  error = false,
 }: SEditorProps) {
   const [isFocused, setIsFocused] = React.useState(false);
   const [showToolbar, setShowToolbar] = React.useState(false);
@@ -197,7 +199,7 @@ export function SEditor({
       {...containerProps}
       sx={{
         border: '1px solid',
-        borderColor: '#bfbfbf',
+        borderColor: error ? 'error.main' : '#bfbfbf',
         borderRadius: 1,
         p: 2,
         minHeight: showToolbar ? 20 : 2,

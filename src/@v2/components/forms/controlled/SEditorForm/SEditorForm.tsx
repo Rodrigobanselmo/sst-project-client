@@ -1,6 +1,7 @@
 import { useFormContext, useWatch } from 'react-hook-form';
 import { SEditor, SEditorProps } from '../../fields/SEditor/SEditor';
 import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
+import { getNestedError } from '../get-nested-error';
 
 interface SEditorFormProps extends SEditorProps {
   name: string;
@@ -8,10 +9,12 @@ interface SEditorFormProps extends SEditorProps {
 
 export function SEditorForm({ name, ...props }: SEditorFormProps) {
   const { setValue, formState, control } = useFormContext();
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
+
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')
     : undefined;
+
   const value = useWatch({ name, control }) || '';
 
   return (
@@ -19,6 +22,7 @@ export function SEditorForm({ name, ...props }: SEditorFormProps) {
       <SEditor
         {...props}
         value={value}
+        error={!!error}
         onChange={(val: string) => setValue(name, val)}
       />
       {errorMessage && (

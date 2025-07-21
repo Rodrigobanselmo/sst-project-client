@@ -92,6 +92,7 @@ const SCustomDateInput = (props: any) => {
       autoFocus={props.autoFocus}
       onFocus={props.onFocus}
       onBlur={props.onBlur}
+      variant={props.variant}
     />
   );
 };

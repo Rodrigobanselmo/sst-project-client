@@ -6,7 +6,6 @@ import { DateForm } from './components/DateForm';
 import { LongTextForm } from './components/LongTextForm';
 import { NumberForm } from './components/NumberForm';
 import { OptionsForm } from './components/OptionsForm';
-import { ScaleForm } from './components/ScaleForm';
 import { ShortTextForm } from './components/ShortTextForm';
 
 interface QuestionTypeFormContentProps {
@@ -32,8 +31,6 @@ export const QuestionTypeFormContent = ({
     [FormQuestionTypeEnum.LONG_TEXT]: LongTextForm,
     [FormQuestionTypeEnum.NUMBER]: NumberForm,
     [FormQuestionTypeEnum.DATE]: DateForm,
-    [FormQuestionTypeEnum.FREQUENCY]: ScaleForm,
-    [FormQuestionTypeEnum.INTENSITY]: ScaleForm,
     [FormQuestionTypeEnum.RADIO]: OptionsForm,
     [FormQuestionTypeEnum.CHECKBOX]: OptionsForm,
     [FormQuestionTypeEnum.SELECT]: OptionsForm,

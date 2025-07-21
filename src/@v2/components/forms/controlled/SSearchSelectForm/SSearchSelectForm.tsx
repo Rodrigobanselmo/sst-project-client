@@ -4,6 +4,7 @@ import {
   SSearchSelectProps,
 } from '../../fields/SSearchSelect/SSearchSelect';
 import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
+import { getNestedError } from '../get-nested-error';
 
 interface SSearchSelectFormProps<T>
   extends Omit<SSearchSelectProps<T>, 'onChange' | 'value'> {
@@ -16,7 +17,7 @@ export function SSearchSelectForm<T>({
 }: SSearchSelectFormProps<T>) {
   const { setValue, formState, control } = useFormContext();
 
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
 
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')

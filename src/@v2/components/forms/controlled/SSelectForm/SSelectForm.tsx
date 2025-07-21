@@ -5,6 +5,7 @@ import {
   SDatePickerProps,
 } from '../../fields/SDatePicker/SDatePicker';
 import { SSelect, SSelectProps } from '../../fields/SSelect/SSelect';
+import { getNestedError } from '../get-nested-error';
 
 interface SSelectFormProps<T>
   extends Omit<SSelectProps<T>, 'onChange' | 'value'> {
@@ -15,7 +16,7 @@ interface SSelectFormProps<T>
 export function SSelectForm<T>({ name, ...props }: SSelectFormProps<T>) {
   const { setValue, formState, control } = useFormContext();
 
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
 
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')

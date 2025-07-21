@@ -5,6 +5,7 @@ import { SModalButtons } from '@v2/components/organisms/SModal/components/SModal
 import { SModalHeader } from '@v2/components/organisms/SModal/components/SModalHeader/SModalHeader';
 import { SModalPaper } from '@v2/components/organisms/SModal/components/SModalPaper/SModalPaper';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
+import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { useMutateEditActionPlanInfo } from '@v2/services/security/action-plan/action-plan-info/edit-action-plan-info/hooks/useMutateEditActionPlanInfo';
 import { useFetchReadActionPlanInfo } from '@v2/services/security/action-plan/action-plan-info/read-action-plan-info/hooks/useFetchReadActionPlanInfo';
 import { useEffect } from 'react';
@@ -24,6 +25,7 @@ export const ActionPlanInfoForm = ({
   workspaceId: string;
 }) => {
   const { closeModal } = useModal();
+  const { showConfirmation } = useConfirmationModal();
 
   const editActionPlanInfo = useMutateEditActionPlanInfo();
 

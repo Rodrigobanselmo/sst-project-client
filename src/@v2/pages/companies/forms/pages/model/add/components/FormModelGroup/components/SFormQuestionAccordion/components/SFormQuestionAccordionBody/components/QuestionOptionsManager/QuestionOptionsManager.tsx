@@ -7,8 +7,8 @@ import { SInputForm } from '@v2/components/forms/controlled/SInputForm/SInputFor
 import { IAddFormModelFormsFields } from '../../../../../../../FormModelAddContent/FormModelAddContent.schema';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { SRadio } from 'components/molecules/form/radio';
-import { RadioBox } from './components/QuestionOptionsManager';
-import { useEffect } from 'react';
+import { QuestionTypeIcon } from './components/QuestionTypeIcon';
+import { useEffect, useRef } from 'react';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 
 interface QuestionOptionsManagerProps {
@@ -21,6 +21,7 @@ export const QuestionOptionsManager = ({
   questionIndex,
 }: QuestionOptionsManagerProps) => {
   const { control } = useFormContext<IAddFormModelFormsFields>();
+  const addOptionRef = useRef<HTMLDivElement>(null);
 
   const formType = useWatch({
     control,
@@ -47,12 +48,34 @@ export const QuestionOptionsManager = ({
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent, currentIndex: number) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+
+      const nextIndex = currentIndex + 1;
+
+      // If there's a next input, focus on it
+      if (nextIndex < fields.length) {
+        const nextInput = document.querySelector(
+          `input[id="sections.${sectionIndex}.items.${questionIndex}.options.${nextIndex}.label"]`,
+        ) as HTMLInputElement;
+        console.log('nextInput', nextInput);
+        if (nextInput) {
+          nextInput.focus();
+        }
+      } else {
+        // If it's the last input, focus on the "Adicionar opção" button
+        addOptionRef.current?.focus();
+      }
+    }
+  };
+
   useEffect(() => {
     const selectedType = questionType?.value;
 
-    console.log('questionType', questionType, fields);
     if (
       selectedType === FormQuestionTypeEnum.RADIO ||
+      selectedType === FormQuestionTypeEnum.SELECT ||
       selectedType === FormQuestionTypeEnum.CHECKBOX
     ) {
       // Check if options array is empty or doesn't exist
@@ -79,25 +102,33 @@ export const QuestionOptionsManager = ({
 
       {fields.map((field, index) => (
         <SFlex key={field.id} alignItems="center" gap={2}>
-          <RadioBox />
+          <QuestionTypeIcon type={questionType?.value} />
           <SInputForm
             name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.label`}
+            id={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.label`}
             placeholder={`Opção ${index + 1}`}
             variant="standard"
             color="info"
             sx={{ flex: 1 }}
+            textFieldProps={{
+              onKeyDown: (e) => handleKeyDown(e, index),
+            }}
           />
           {showValueForm && (
             <SInputForm
               name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
               placeholder={`Valor ${index + 1}`}
               sx={{ flex: 1 }}
+              textFieldProps={{
+                onKeyDown: (e) => handleKeyDown(e, index),
+              }}
             />
           )}
           <IconButton
             size="small"
             onClick={() => handleRemoveOption(index)}
             disabled={fields.length <= 1}
+            tabIndex={-1}
           >
             <DeleteIcon fontSize="small" />
           </IconButton>
@@ -105,9 +136,16 @@ export const QuestionOptionsManager = ({
       ))}
 
       <SFlex alignItems="center" gap={2} mt={2}>
-        <RadioBox />
+        <QuestionTypeIcon type={questionType?.value} />
         <Box
+          ref={addOptionRef}
           onClick={handleAddOption}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleAddOption();
+            }
+          }}
+          tabIndex={0}
           sx={{
             fontSize: '12px',
             fontWeight: 500,
@@ -115,6 +153,10 @@ export const QuestionOptionsManager = ({
             cursor: 'pointer',
             '&:hover': {
               color: '#000',
+            },
+            '&:focus': {
+              outline: '2px solid #1976d2',
+              outlineOffset: '2px',
             },
           }}
         >

@@ -102,6 +102,7 @@ export function SSearchSelect<T>({
             value={value ? getOptionLabel(value) : ''}
             onFocus={() => setShrink(true)}
             shrink={shrink}
+            disabled={disabled}
             onChange={(e) => {
               onInputChange?.(e.target.value, e);
             }}

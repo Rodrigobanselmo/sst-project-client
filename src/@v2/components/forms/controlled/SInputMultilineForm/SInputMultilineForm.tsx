@@ -8,6 +8,7 @@ import { SInputMultiline } from '../../fields/SInputMultiline/SInputMultiline';
 import { SInputMultilineProps } from '../../fields/SInputMultiline/SInput.types';
 import { SIconError } from '@v2/assets/icons/SIconError/SIconError';
 import { useEffect, useState } from 'react';
+import { getNestedError } from '../get-nested-error';
 
 interface SInputMultilineFormProps
   extends Omit<SInputMultilineProps, 'onChange' | 'value'> {
@@ -20,7 +21,7 @@ export function SInputMultilineForm({
 }: SInputMultilineFormProps) {
   const { setValue, formState, control } = useFormContext();
 
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
 
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')

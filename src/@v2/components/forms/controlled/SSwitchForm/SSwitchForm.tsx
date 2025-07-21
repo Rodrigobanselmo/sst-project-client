@@ -1,4 +1,5 @@
 import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
+import { getNestedError } from '../get-nested-error';
 import { SSwitchProps } from 'components/atoms/SSwitch/types';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { SSwitch } from '../../fields/SSwitch/SSwitch';
@@ -10,7 +11,7 @@ interface SSwitchFormProps extends Omit<SSwitchProps, 'onChange' | 'value'> {
 export function SSwitchForm({ name, ...props }: SSwitchFormProps) {
   const { setValue, formState, control } = useFormContext();
 
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
 
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')

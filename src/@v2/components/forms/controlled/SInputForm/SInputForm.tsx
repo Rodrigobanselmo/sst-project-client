@@ -2,16 +2,18 @@ import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { SInput } from '../../fields/SInput/SInput';
 import { SInputMultilineProps } from '../../fields/SInputMultiline/SInput.types';
+import { getNestedError } from '../get-nested-error';
 
 interface SInputFormProps
   extends Omit<SInputMultilineProps, 'onChange' | 'value'> {
   name: string;
+  id?: string;
 }
 
 export function SInputForm({ name, ...props }: SInputFormProps) {
   const { setValue, formState, control } = useFormContext();
 
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
 
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')

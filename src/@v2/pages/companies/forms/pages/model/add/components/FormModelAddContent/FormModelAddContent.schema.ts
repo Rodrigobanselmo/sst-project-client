@@ -3,18 +3,16 @@ import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.e
 import * as yup from 'yup';
 import { v4 } from 'uuid';
 import { FormQuestionTypeEnumTranslate } from '@v2/models/form/translations/form-question-type.translation';
+import { FormTypeTranslate } from '@v2/models/form/translations/form-type.translation';
 
 export interface IFormModelItem {
   id: string;
   content: string;
   required: boolean;
-  type: { value: FormQuestionTypeEnum };
+  type: { value: FormQuestionTypeEnum; label: string };
   options?: { value: string; label: string }[];
-  placeholder?: string;
   minValue?: number;
   maxValue?: number;
-  defaultValue?: Date;
-  scale?: string;
 }
 
 export interface IFormModelSection {
@@ -39,7 +37,7 @@ export const schemaAddFormModelForms = yup.object({
   description: yup.string().required('Campo é obrigatório'),
   type: yup
     .object({
-      label: yup.string().required(),
+      label: yup.string().required('Campo Obrigatório'),
       value: yup
         .mixed<FormTypeEnum>()
         .oneOf(Object.values(FormTypeEnum))
@@ -50,19 +48,19 @@ export const schemaAddFormModelForms = yup.object({
     .array()
     .of(
       yup.object({
-        id: yup.string().required(),
+        id: yup.string().required('Campo Obrigatório'),
         title: yup.string().required('Título da seção é obrigatório'),
         description: yup.string().optional(),
         items: yup
           .array()
           .of(
             yup.object({
-              id: yup.string().required(),
+              id: yup.string().required('Campo Obrigatório'),
               content: yup.string().required('Conteúdo é obrigatório'),
               required: yup.boolean().default(false),
               type: yup
                 .object({
-                  label: yup.string().required(),
+                  label: yup.string().required('Campo Obrigatório'),
                   value: yup
                     .mixed<FormQuestionTypeEnum>()
                     .oneOf(Object.values(FormQuestionTypeEnum))
@@ -73,16 +71,13 @@ export const schemaAddFormModelForms = yup.object({
                 .array()
                 .of(
                   yup.object({
-                    value: yup.string().required(),
-                    label: yup.string().required(),
+                    value: yup.string().optional(),
+                    label: yup.string().optional(),
                   }),
                 )
                 .optional(),
-              placeholder: yup.string().optional(),
               minValue: yup.number().optional(),
               maxValue: yup.number().optional(),
-              defaultValue: yup.date().optional(),
-              scale: yup.string().optional(),
             }),
           )
           .min(1, 'Adicione pelo menos um item'),
@@ -100,11 +95,8 @@ export const getFormModelInitialValues = () => ({
     label: FormQuestionTypeEnumTranslate[FormQuestionTypeEnum.RADIO],
   },
   options: [],
-  placeholder: '',
   minValue: undefined,
   maxValue: undefined,
-  defaultValue: undefined,
-  scale: undefined,
 });
 
 export const getFormSectionInitialValues = (): IFormModelSection => ({
@@ -117,6 +109,9 @@ export const getFormSectionInitialValues = (): IFormModelSection => ({
 export const addFormModelFormsInitialValues: IAddFormModelFormsFields = {
   title: '',
   description: '',
-  type: undefined as any,
+  type: {
+    value: FormTypeEnum.NORMAL,
+    label: FormTypeTranslate[FormTypeEnum.NORMAL],
+  },
   sections: [getFormSectionInitialValues()],
 };

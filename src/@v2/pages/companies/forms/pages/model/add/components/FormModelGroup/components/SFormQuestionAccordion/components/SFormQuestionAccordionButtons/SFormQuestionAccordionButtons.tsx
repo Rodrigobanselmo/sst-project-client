@@ -31,14 +31,16 @@ export const SFormQuestionAccordionButtons = ({
     >
       <SIconButton
         tooltip="Adicionar pergunta"
+        onClick={onAddNewQuestion}
         tooltipProps={{
           placement: 'right',
         }}
       >
-        <AddCircleOutlineIcon onClick={onAddNewQuestion} />
+        <AddCircleOutlineIcon />
       </SIconButton>
       <SIconButton
         tooltip="Adicionar seção"
+        onClick={onAddNewSection}
         tooltipProps={{
           placement: 'right',
         }}
@@ -47,7 +49,6 @@ export const SFormQuestionAccordionButtons = ({
           alignItems="center"
           justifyContent="center"
           direction="column"
-          onClick={onAddNewSection}
           gap={1}
         >
           {Array.from({ length: 2 }).map((_, index) => (

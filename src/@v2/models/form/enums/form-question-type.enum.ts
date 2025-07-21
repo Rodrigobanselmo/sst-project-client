@@ -5,8 +5,6 @@ export enum FormQuestionTypeEnum {
   SELECT = 'SELECT',
   SHORT_TEXT = 'SHORT_TEXT',
   LONG_TEXT = 'LONG_TEXT',
-  FREQUENCY = 'FREQUENCY',
-  INTENSITY = 'INTENSITY',
   DATE = 'DATE',
   NUMBER = 'NUMBER',
 }

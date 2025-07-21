@@ -1,18 +1,15 @@
 import { Box, Stack } from '@mui/material';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 import { useState } from 'react';
-import {
-  getFormSectionInitialValues,
-  getFormModelInitialValues,
-} from '../FormModelAddContent/FormModelAddContent.schema';
+import { useFieldArray, useFormContext } from 'react-hook-form';
+import { getFormSectionInitialValues } from '../FormModelAddContent/FormModelAddContent.schema';
 import { SFormSection } from './components/SFormSection/SFormSection';
 
 export const FormModelGroup = ({ companyId }: { companyId: string }) => {
-  const { control, getValues, setValue, trigger } = useFormContext();
+  const { control, getValues } = useFormContext();
   const [minimizedSections, setMinimizedSections] = useState<Set<number>>(
     new Set(),
   );
-  const { fields, append, remove, insert, move, replace } = useFieldArray({
+  const { fields, remove, replace } = useFieldArray({
     control,
     name: 'sections',
   });
@@ -28,6 +25,8 @@ export const FormModelGroup = ({ companyId }: { companyId: string }) => {
     currentSectionIndex: number,
     questionIndex: number,
   ) => {
+    const scrollPosition = window.scrollY;
+
     const currentValues = getValues();
     const currentSection = currentValues.sections[currentSectionIndex];
 
@@ -53,6 +52,10 @@ export const FormModelGroup = ({ companyId }: { companyId: string }) => {
     updatedSections.splice(currentSectionIndex + 1, 0, newSectionWithQuestions);
 
     replace(updatedSections);
+
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollPosition);
+    });
   };
 
   const handleMinimizeSection = (sectionIndex: number) => {

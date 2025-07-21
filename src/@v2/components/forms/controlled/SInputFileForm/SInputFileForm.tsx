@@ -3,6 +3,7 @@ import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { SInputFile } from '../../fields/SInputFile/SInputFile';
 import { SInputFileProps } from '../../fields/SInputFile/SInputFile.types';
+import { getNestedError } from '../get-nested-error';
 
 interface SInputFileFormProps
   extends Omit<SInputFileProps, 'onChange' | 'value'> {
@@ -12,7 +13,7 @@ interface SInputFileFormProps
 export function SInputFileForm({ name, ...props }: SInputFileFormProps) {
   const { setValue, formState, control } = useFormContext();
 
-  const error = formState?.errors[name];
+  const error = getNestedError(formState?.errors, name);
 
   const errorMessage = error
     ? findFirstNestedKeyValue(error, 'message')

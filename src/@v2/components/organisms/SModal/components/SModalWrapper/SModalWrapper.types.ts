@@ -4,15 +4,20 @@ export interface SModalWrapperProps {
   onSubmit?: () => void;
   children: React.ReactNode;
   minWidthDesk?: string | number;
+  maxWidthDesk?: string | number;
   title: string;
   loading?: boolean;
   modalKey: ModalKeyEnum;
   semiFullScreen?: boolean;
   closeButtonOptions?: {
     text?: string;
+    onClick?: () => void;
   };
   dangerButtonOptions?: {
     text?: string;
     onClick: () => void;
+  };
+  submitButtonOptions?: {
+    text?: string;
   };
 }

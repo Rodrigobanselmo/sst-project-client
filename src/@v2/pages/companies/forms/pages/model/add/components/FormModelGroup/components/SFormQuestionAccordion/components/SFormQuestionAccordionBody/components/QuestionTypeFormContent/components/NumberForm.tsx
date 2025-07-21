@@ -14,10 +14,12 @@ export const NumberForm = ({
     <SFlex flexDirection="column" gap={3}>
       <SInputForm
         name={`sections.${sectionIndex}.items.${questionIndex}.placeholder`}
-        label="Placeholder"
+        label="Número"
+        variant="standard"
+        disabled
         placeholder="Digite o placeholder da pergunta..."
       />
-      <SFlex gap={3}>
+      <SFlex gap={3} mt={5}>
         <SInputForm
           name={`sections.${sectionIndex}.items.${questionIndex}.minValue`}
           label="Valor mínimo"
