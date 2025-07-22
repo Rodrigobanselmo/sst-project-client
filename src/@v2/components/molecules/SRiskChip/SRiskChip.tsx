@@ -8,7 +8,7 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 
-const colorMap: Record<RiskTypeEnum, any> = {
+const colorMap: Record<RiskTypeEnum | 'PSIC', any> = {
   [RiskTypeEnum.ACI]: {
     color: 'risk.aci',
     bgcolor: 'risk.aciFade',
@@ -33,6 +33,11 @@ const colorMap: Record<RiskTypeEnum, any> = {
     color: 'risk.outros',
     bgcolor: 'risk.outrosFade',
   },
+  PSIC: {
+    color: 'risk.erg',
+    borderColor: 'risk.psic',
+    bgcolor: 'risk.psicFade',
+  },
 };
 
 const sizeMap = {
@@ -44,24 +49,30 @@ const sizeMap = {
   },
 };
 
-export const SRiskChip = ({ type, size = 'md' }: SRiskChipProps) => {
+export const SRiskChip = ({ type, size = 'md', subTypes }: SRiskChipProps) => {
+  const isPsicologico = subTypes?.some(
+    (subType) => subType.name === 'Psicossociais',
+  );
+
+  const typeName = isPsicologico ? 'PSIC' : type;
+
   return (
     <SFlex
       borderRadius={1}
       center
       minWidth={sizeMap[size].minWidth}
       width={sizeMap[size].width}
-      bgcolor={colorMap[type].bgcolor}
+      bgcolor={colorMap[typeName].bgcolor}
       p={sizeMap[size].padding}
       border={'1px solid'}
-      borderColor={colorMap[type].color}
+      borderColor={colorMap[typeName].borderColor || colorMap[typeName].color}
     >
       <SText
         fontWeight="500"
-        color={colorMap[type].color}
+        color={colorMap[typeName].color}
         fontSize={sizeMap[size].fontSize}
       >
-        {type}
+        {typeName}
       </SText>
     </SFlex>
   );

@@ -120,6 +120,8 @@ const palette = {
     aciFade: '#3d62ba11',
     outrosFade: '#2D374811',
     all: '#fff',
+    psic: '#ebe300',
+    psicFade: '#fff94711',
   },
   tree: {
     card: {

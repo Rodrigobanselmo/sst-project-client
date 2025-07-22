@@ -115,7 +115,9 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         <STextRow
           text={row.risk.name}
           tooltipMinLength={20}
-          startAddon={<SRiskChip type={row.risk.type} />}
+          startAddon={
+            <SRiskChip type={row.risk.type} subTypes={row.risk.subTypes} />
+          }
         />
       ),
     },
