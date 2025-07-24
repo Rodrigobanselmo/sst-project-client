@@ -9,7 +9,7 @@ export interface IFormQuestionOption {
   value?: number;
 }
 
-export interface IFormQuestionData {
+export interface IFormQuestionDetails {
   text: string;
   type: FormQuestionTypeEnum;
   acceptOther?: boolean;
@@ -17,7 +17,7 @@ export interface IFormQuestionData {
 
 export interface IFormQuestion {
   required?: boolean;
-  data: IFormQuestionData;
+  details: IFormQuestionDetails;
   options?: IFormQuestionOption[];
 }
 

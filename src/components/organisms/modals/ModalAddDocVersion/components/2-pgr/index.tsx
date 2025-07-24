@@ -80,7 +80,7 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
             <InputForm
               setValue={setValue}
               defaultValue={data.json?.source}
-              label="Forte (opcional)"
+              label="Fonte de levantamento do inventário (opcional)"
               control={control}
               placeholder={'local onde os dados foram obtidos...'}
               name="source"

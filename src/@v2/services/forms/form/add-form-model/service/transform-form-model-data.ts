@@ -3,7 +3,7 @@ import {
   AddFormParams,
   IFormQuestionGroup,
   IFormQuestion,
-  IFormQuestionData,
+  IFormQuestionDetails,
   IFormQuestionOption,
 } from './add-form-model.service';
 
@@ -13,14 +13,14 @@ export function transformFormDataToApiFormat(
 ): AddFormParams {
   const questionGroups: IFormQuestionGroup[] = data.sections.map((section) => {
     const questions: IFormQuestion[] = section.items.map((item) => {
-      const questionData: IFormQuestionData = {
+      const questionData: IFormQuestionDetails = {
         text: item.content,
         type: item.type.value,
       };
 
       const question: IFormQuestion = {
         required: item.required,
-        data: questionData,
+        details: questionData,
       };
 
       // Add options if the question type requires them
