@@ -11,6 +11,7 @@ export const PageRoutes = {
     FORMS_MODEL: {
       LIST: '/dashboard/empresas/[companyId]/formularios/modelos',
       ADD: '/dashboard/empresas/[companyId]/formularios/modelos/add',
+      EDIT: '/dashboard/empresas/[companyId]/formularios/modelos/[id]',
       VIEW: '/dashboard/empresas/[companyId]/formularios/modelos/[id]',
     },
   },

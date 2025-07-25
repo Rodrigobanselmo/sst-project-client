@@ -6,7 +6,7 @@ export interface AddFormApplicationParams {
   name: string;
   description?: string;
   companyId: string;
-  formId: number;
+  formId: string;
   workspaceIds: string[];
   hierarchyIds: string[];
   identifier?: {
@@ -15,7 +15,7 @@ export interface AddFormApplicationParams {
     questions: {
       required: boolean;
       order: number;
-      questionDataId: number;
+      questionDataId: string;
     }[];
   };
 }

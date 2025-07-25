@@ -9,7 +9,7 @@ import { api } from 'core/services/apiClient';
 
 export interface ReadFormParams {
   companyId: string;
-  formId: number;
+  formId: string;
 }
 
 export async function readForm({ formId, companyId }: ReadFormParams) {

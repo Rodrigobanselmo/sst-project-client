@@ -4,7 +4,7 @@ import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { api } from 'core/services/apiClient';
 
 export interface EditFormApplicationParams {
-  applicationId: number;
+  applicationId: string;
   companyId: string;
   name?: string;
   description?: string | null;

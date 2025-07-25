@@ -27,8 +27,8 @@ export const useFormModelActions = ({ companyId }: { companyId: string }) => {
     // );
   };
 
-  const onFormModelClick = (id: number) => {
-    router.push(PageRoutes.FORMS.FORMS_APPLICATION.VIEW, {
+  const onFormModelClick = (id: string) => {
+    router.push(PageRoutes.FORMS.FORMS_MODEL.EDIT, {
       pathParams: { companyId, id },
     });
   };

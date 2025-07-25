@@ -1,22 +1,20 @@
 import { dateUtils } from '@v2/utils/date-utils';
-import { FormTypeEnum } from '../../enums/form-type.enum';
-import { FormQuestionGroupReadModel } from './components/form-question-group-read.model';
+import { FormTypeEnum } from '../../../enums/form-type.enum';
 
-export type IFormReadModel = {
+export type IFormBrowseResultModel = {
   id: string;
   name: string;
   description: string | undefined;
   companyId: string;
   type: FormTypeEnum;
-  system: boolean;
   anonymous: boolean;
-  shareable_link: boolean;
-  createdAt: Date;
+  system: boolean;
+  shareableLink: boolean;
   updatedAt: Date;
-  questionGroups: FormQuestionGroupReadModel[];
+  createdAt: Date;
 };
 
-export class FormReadModel {
+export class FormBrowseResultModel {
   id: string;
   name: string;
   description: string | undefined;
@@ -24,25 +22,21 @@ export class FormReadModel {
   type: FormTypeEnum;
   anonymous: boolean;
   system: boolean;
-  shareable_link: boolean;
-  createdAt: Date;
+  shareableLink: boolean;
   updatedAt: Date;
-  questionGroups: FormQuestionGroupReadModel[];
+  createdAt: Date;
 
-  constructor(params: IFormReadModel) {
+  constructor(params: IFormBrowseResultModel) {
     this.id = params.id;
     this.companyId = params.companyId;
     this.name = params.name;
     this.type = params.type;
     this.anonymous = params.anonymous;
     this.system = params.system;
-    this.shareable_link = params.shareable_link;
+    this.shareableLink = params.shareableLink;
     this.description = params.description;
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
-    this.questionGroups = params.questionGroups.map(
-      (group) => new FormQuestionGroupReadModel(group),
-    );
   }
 
   get formattedCreatedAt() {

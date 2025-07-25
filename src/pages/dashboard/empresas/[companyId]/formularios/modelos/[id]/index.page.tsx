@@ -1,10 +1,10 @@
 import { NextPage } from 'next';
 
-import { FormModelAddPage } from '@v2/pages/companies/forms/pages/model/pages/add/form-model-add.page';
+import { FormModelEditPage } from '@v2/pages/companies/forms/pages/model/pages/edit/form-model-edit.page';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Page: NextPage = () => {
-  return <FormModelAddPage />;
+  return <FormModelEditPage />;
 };
 
 export default Page;

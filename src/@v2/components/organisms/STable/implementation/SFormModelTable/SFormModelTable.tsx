@@ -1,6 +1,6 @@
 import { FC } from 'react';
 
-import { FormBrowseResultModel } from '@v2/models/form/models/form/form-browse-result.model';
+import { FormBrowseResultModel } from '@v2/models/form/models/form/components/form-browse-result.model';
 import { FormModelOrderByEnum } from '@v2/services/forms/form/browse-form-model/service/browse-form-model.types';
 import { STagRow } from '../../addons/addons-rows/STagRow/STagRow';
 import { STextRow } from '../../addons/addons-rows/STextRow/STextRow';

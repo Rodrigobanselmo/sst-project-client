@@ -1,7 +1,7 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
-import { FormBrowseResultModel } from '@v2/models/form/models/form/form-browse-result.model';
+import { FormBrowseResultModel } from '@v2/models/form/models/form/components/form-browse-result.model';
 import { FormTypeTranslate } from '@v2/models/form/translations/form-type.translation';
 import { useInfinityBrowseFormModel } from '@v2/services/forms/form/browse-form-model/hooks/useInfinityBrowseFormModel';
 import { useState } from 'react';
