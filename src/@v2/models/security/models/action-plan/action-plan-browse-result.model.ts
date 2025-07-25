@@ -27,7 +27,12 @@ export type IActionPlanBrowseResultModel = {
   ocupationalRisk: IRiskLevelValues | null;
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSources: { id: string; name: string }[];
-  risk: { id: string; name: string; type: RiskTypeEnum };
+  risk: {
+    id: string;
+    name: string;
+    type: RiskTypeEnum;
+    subTypes?: { id: number; name: string }[];
+  };
   origin: { id: string; name: string; type: OriginTypeEnum };
   status: ActionPlanStatusEnum;
   responsible: { id: string; name: string } | null;
@@ -51,7 +56,12 @@ export class ActionPlanBrowseResultModel {
   ocupationalRisk: IRiskLevelValues;
   recommendation: { name: string; type: RecommendationTypeEnum };
   generateSource: { id: string; name: string }[];
-  risk: { id: string; name: string; type: RiskTypeEnum };
+  risk: {
+    id: string;
+    name: string;
+    type: RiskTypeEnum;
+    subTypes?: { id: number; name: string }[];
+  };
   origin: { id: string; name: string; type: OriginTypeEnum };
   status: ActionPlanStatusEnum;
   responsible: { id: string; name: string } | null;

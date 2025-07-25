@@ -75,6 +75,7 @@ const CompanyPage: NextPage = () => {
     stage,
     stepsActions,
     stepsActionsList,
+    handleUploadRisk,
   } = props;
 
   useFetchFeedback(isLoading && !company?.id);
@@ -94,7 +95,7 @@ const CompanyPage: NextPage = () => {
                   variant="outlined"
                   size="small"
                   color="secondary"
-                  onClick={() => console.log('upload')}
+                  onClick={handleUploadRisk}
                 >
                   Importar Planilha
                 </SButton>

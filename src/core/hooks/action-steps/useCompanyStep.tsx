@@ -120,6 +120,9 @@ export const useCompanyStep = () => {
       onConfirm: async ({ files }) => {
         await uploadMutation.mutateAsync({
           file: files[0],
+          payload: {
+            createRisk: true,
+          },
           path: ApiRoutesEnum.UPLOAD_COMPANY_STRUCTURE.replace(
             ':companyId',
             company.id,

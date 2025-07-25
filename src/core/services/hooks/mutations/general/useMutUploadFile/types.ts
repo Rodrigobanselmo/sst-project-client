@@ -10,6 +10,7 @@ export interface GetCompanyStructureResponse {
   createHomo?: boolean;
   createEmployee?: boolean;
   createHierOnHomo?: boolean;
+  createRisk?: boolean;
   stopFirstError?: boolean;
   companyId?: string;
 }
