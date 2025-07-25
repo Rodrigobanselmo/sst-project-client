@@ -16,7 +16,7 @@ export const schemaAddFormApplicationForm = yup.object({
   description: yup.string().optional(),
   form: yup
     .object({
-      id: yup.number().required('Campo obrigatório'),
+      id: yup.string().required('Campo obrigatório'),
       name: yup.string().required('Campo obrigatório'),
     })
     .required('Campo obrigatório'),
@@ -25,14 +25,6 @@ export const schemaAddFormApplicationForm = yup.object({
     message: 'Campo obrigatório',
     exclusive: true,
     test: function (value) {
-      console.log({
-        tets:
-          !this.parent.form?.value?.shareableLink &&
-          (!value || value.length === 0),
-        ok: this.parent.form,
-        value,
-      });
-
       if (!this.parent.form?.shareableLink && (!value || value.length === 0))
         return false;
       return true;
