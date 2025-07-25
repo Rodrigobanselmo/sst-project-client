@@ -39,7 +39,7 @@ export const AddFormApplicationForms = ({
   return (
     <SModalWrapper
       modalKey={ModalKeyEnum.FORM_APPLICATION_ADD}
-      title="Documento"
+      title="Criar Aplicação de Formulário"
       minWidthDesk={600}
       onSubmit={form.handleSubmit(onSubmit)}
     >
