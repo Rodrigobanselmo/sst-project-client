@@ -1,7 +1,7 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { useFetchReadFormApplication } from '@v2/services/forms/form-application/read-form-application/hooks/useFetchReadFormApplication';
 import { useFormApplicationViewActions } from '../../hooks/useFormApplicationViewActions';
+import { FormApplicationInfo } from './components/FormApplicationInfo';
 
 export const FormApplicationView = ({
   companyId,
@@ -22,9 +22,13 @@ export const FormApplicationView = ({
 
   return (
     <>
-      {isLoading || !formApplication ? (
-        <SSkeleton height={200} />
-      ) : (
+      <FormApplicationInfo
+        mb={[20]}
+        formApplication={formApplication}
+        isLoading={isLoading}
+        onEdit={handleEdit}
+      />
+      {!isLoading && formApplication && (
         <SFlex direction="column" gap={20}>
           {/* <FormApplicationCard
             formApplication={formApplication}

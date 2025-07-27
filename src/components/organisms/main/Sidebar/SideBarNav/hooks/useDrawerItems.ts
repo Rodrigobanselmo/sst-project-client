@@ -33,7 +33,7 @@ import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
 import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
-import { PageRoutes } from '@v2/constants/pages/routes';
+import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 
 export interface IDrawerBase {
   text: string;
@@ -312,7 +312,7 @@ export const useDrawerItems = () => {
       href: PageRoutes.FORMS.FORMS_APPLICATION.LIST.replace(
         '[companyId]',
         ':companyId',
-      ),
+      ).replace('[formTab]', FORM_TAB_ENUM.APPLIED),
       permissions: [PermissionEnum.FORM],
       shouldMatchExactHref: false,
     },

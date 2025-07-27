@@ -1,3 +1,8 @@
+export const FORM_TAB_ENUM = {
+  APPLIED: 'aplicados',
+  MODEL: 'modelos',
+};
+
 export const PageRoutes = {
   DOCUMENTS: {
     LIST: '/dashboard/empresas/[companyId]/documentos',
@@ -5,8 +10,8 @@ export const PageRoutes = {
   },
   FORMS: {
     FORMS_APPLICATION: {
-      LIST: '/dashboard/empresas/[companyId]/formularios/aplicacao',
-      VIEW: '/dashboard/empresas/[companyId]/formularios/aplicacao/[id]',
+      LIST: '/dashboard/empresas/[companyId]/formularios/[formTab]',
+      VIEW: '/dashboard/empresas/[companyId]/formularios/aplicados/[id]',
     },
     FORMS_MODEL: {
       LIST: '/dashboard/empresas/[companyId]/formularios/modelos',

@@ -1,5 +1,4 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SText } from '@v2/components/atoms/SText/SText';
 
 export const InfoCardSection = ({
   children,

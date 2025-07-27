@@ -10,7 +10,7 @@ type IFormResultModel = {
 };
 
 export type IFormApplicationBrowseResultModel = {
-  id: number;
+  id: string;
   name: string;
   description: string | undefined;
   status: FormApplicationStatusEnum;
@@ -25,7 +25,7 @@ export type IFormApplicationBrowseResultModel = {
 };
 
 export class FormApplicationBrowseResultModel {
-  id: number;
+  id: string;
   name: string;
   description: string | undefined;
   status: FormApplicationStatusEnum;

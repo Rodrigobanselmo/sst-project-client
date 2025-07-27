@@ -5,8 +5,8 @@ import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { DocumentControlReadModel } from '@v2/models/enterprise/models/document-control/document-control/document-control-read.model';
-import { InfoCardSection } from '@v2/pages/companies/action-plan/components/ActionPlanInfo/components/InfoCardSection';
-import { InfoCardText } from '@v2/pages/companies/action-plan/components/ActionPlanInfo/components/InfoCardText';
+import { InfoCardSection } from '@v2/components/organisms/SInfoCard/components/InfoCardSection/InfoCardSection';
+import { InfoCardText } from '@v2/components/organisms/SInfoCard/components/InfoCardText/InfoCardText';
 import { donwloadPublicUrl } from '@v2/utils/download-public-url';
 
 export const DocumentControlCard = ({

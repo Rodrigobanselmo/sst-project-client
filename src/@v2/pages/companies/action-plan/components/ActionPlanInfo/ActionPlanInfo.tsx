@@ -7,10 +7,9 @@ import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { useFetchReadActionPlanInfo } from '@v2/services/security/action-plan/action-plan-info/read-action-plan-info/hooks/useFetchReadActionPlanInfo';
 import { useActionPlanInfoActions } from '../../hooks/useActionPlanInfoActions';
-import { InfoCardAvatar } from './components/InfoCardAvatar';
-import { InfoCardSection } from './components/InfoCardSection';
-import { InfoCardText } from './components/InfoCardText';
-import { SInputMultiline } from '@v2/components/forms/fields/SInputMultiline/SInputMultiline';
+import { InfoCardSection } from '@v2/components/organisms/SInfoCard/components/InfoCardSection/InfoCardSection';
+import { InfoCardText } from '@v2/components/organisms/SInfoCard/components/InfoCardText/InfoCardText';
+import { InfoCardAvatar } from '@v2/components/organisms/SInfoCard/components/InfoCardAvatar/InfoCardAvatar';
 
 export const ActionPlanInfo = ({
   mb,

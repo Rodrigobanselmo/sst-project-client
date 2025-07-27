@@ -1,9 +1,8 @@
-import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
-import { FormApplicationTable } from '../FormApplicationTable/FormApplicationTable';
-import { STabsQueryParams } from '@v2/components/organisms/STabs/Implementations/STabsUrl/STabsQueryParams';
 import { TabUniqueName } from '@v2/components/organisms/STabs/Implementations/STabsUrl/enums/tab-unique-name.enum';
 import { STabsParams } from '@v2/components/organisms/STabs/Implementations/STabsUrl/STabsParams';
+import { FormApplicationTable } from '../FormApplicationTable/FormApplicationTable';
 import { FormModelTable } from '../FormModelTable/FormModelTable';
+import { FORM_TAB_ENUM } from '@v2/constants/pages/routes';
 
 export const FormApplicationsContent = ({
   companyId,
@@ -17,12 +16,12 @@ export const FormApplicationsContent = ({
         options={[
           {
             label: 'Formulários Aplicados',
-            value: 'aplicacao',
+            value: FORM_TAB_ENUM.APPLIED,
             component: <FormApplicationTable companyId={companyId} />,
           },
           {
             label: 'Modelos de Formulário',
-            value: 'modelos',
+            value: FORM_TAB_ENUM.MODEL,
             component: <FormModelTable companyId={companyId} />,
           },
         ]}

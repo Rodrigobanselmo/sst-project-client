@@ -3,7 +3,11 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import palette from 'configs/theme/palette';
 import { ReactNode } from 'react';
 
-export const InfoCardAvatar = ({ icon }: { icon: ReactNode }) => {
+export const InfoCardAvatar = ({
+  icon = <SIconUser />,
+}: {
+  icon?: ReactNode;
+}) => {
   return (
     <SFlex
       center
@@ -17,7 +21,7 @@ export const InfoCardAvatar = ({ icon }: { icon: ReactNode }) => {
         borderRadius: '100px',
       }}
     >
-      <SIconUser />
+      {icon}
     </SFlex>
   );
 };

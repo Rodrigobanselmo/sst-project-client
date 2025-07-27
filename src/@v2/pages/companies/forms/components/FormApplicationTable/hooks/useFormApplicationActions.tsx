@@ -28,7 +28,7 @@ export const useFormApplicationActions = ({
     );
   };
 
-  const onFormApplicationClick = (id: number) => {
+  const onFormApplicationClick = (id: string) => {
     router.push(PageRoutes.FORMS.FORMS_APPLICATION.VIEW, {
       pathParams: { companyId, id },
     });
