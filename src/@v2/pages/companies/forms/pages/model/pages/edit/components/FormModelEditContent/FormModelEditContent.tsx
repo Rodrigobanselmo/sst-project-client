@@ -3,8 +3,6 @@ import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { validateFormOptions } from '@v2/pages/companies/forms/utils/validate-form-options';
 import { useMutateEditFormModel } from '@v2/services/forms/form/edit-form-model/hooks/useMutateEditFormModel';
 import { useForm } from 'react-hook-form';
-import { FormModelInfo } from '../../../../components/FormModelInfo/FormModelInfo';
-import { FormModelButtons } from '../../../../components/FormModelButtons/FormModelButtons';
 import {
   IFormModelForms,
   schemaFormModelForms,
@@ -15,8 +13,10 @@ import { FormTypeTranslate } from '@v2/models/form/translations/form-type.transl
 import { FormQuestionTypeEnumTranslate } from '@v2/models/form/translations/form-question-type.translation';
 import { v4 } from 'uuid';
 import { FormReadModel } from '@v2/models/form/models/form/form-read.model';
-import { FormModelGroup } from '../../../../components/FormModelGroup/FormModelGroup';
 import { transformFormDataToApiFormat } from '../../../../helpers/transform-form-model-data';
+import { FormModelInfo } from '@v2/pages/companies/forms/pages/model/components/FormModelInfo/FormModelInfo';
+import { FormModelGroup } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelGroup/FormModelGroup';
+import { FormModelButtons } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelButtons/FormModelButtons';
 
 export const FormModelEditContent = ({
   companyId,
@@ -88,12 +88,19 @@ export const FormModelEditContent = ({
 
   const handleSubmit = formHook.handleSubmit(onSubmit);
 
+  const onCancel = () => {
+    router.push(PageRoutes.FORMS.FORMS_MODEL.LIST, {
+      pathParams: { companyId },
+    });
+  };
+
   return (
     <SForm form={formHook}>
       <FormModelInfo containerProps={{ mb: 16 }} />
       <FormModelGroup companyId={companyId} />
 
       <FormModelButtons
+        onCancel={onCancel}
         onSubmit={handleSubmit}
         errors={formHook.formState.errors}
         loading={editFormMutation.isPending}

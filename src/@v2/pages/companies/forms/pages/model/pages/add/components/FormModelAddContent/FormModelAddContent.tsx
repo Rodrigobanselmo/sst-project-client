@@ -5,7 +5,7 @@ import { validateFormOptions } from '@v2/pages/companies/forms/utils/validate-fo
 import { useAddFormModel } from '@v2/services/forms/form/add-form-model/hooks/useAddFormModel';
 import { useForm } from 'react-hook-form';
 import { FormModelInfo } from '../../../../components/FormModelInfo/FormModelInfo';
-import { FormModelButtons } from '../../../../components/FormModelButtons/FormModelButtons';
+import { FormModelButtons } from '../../../../../../components/FormModelQuestions/FormModelButtons/FormModelButtons';
 import {
   formModelFormsInitialValues,
   IFormModelForms,
@@ -13,7 +13,7 @@ import {
 } from '../../../../schemas/form-model.schema';
 import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { PageRoutes } from '@v2/constants/pages/routes';
-import { FormModelGroup } from '../../../../components/FormModelGroup/FormModelGroup';
+import { FormModelGroup } from '../../../../../../components/FormModelQuestions/FormModelGroup/FormModelGroup';
 import { transformFormDataToApiFormat } from '../../../../helpers/transform-form-model-data';
 
 export const FormModelAddContent = ({ companyId }: { companyId: string }) => {
@@ -42,12 +42,19 @@ export const FormModelAddContent = ({ companyId }: { companyId: string }) => {
 
   const handleSubmit = form.handleSubmit(onSubmit);
 
+  const onCancel = () => {
+    router.push(PageRoutes.FORMS.FORMS_MODEL.LIST, {
+      pathParams: { companyId },
+    });
+  };
+
   return (
     <SForm form={form}>
       <FormModelInfo containerProps={{ mb: 16 }} />
       <FormModelGroup companyId={companyId} />
 
       <FormModelButtons
+        onCancel={onCancel}
         onSubmit={handleSubmit}
         errors={form.formState.errors}
         loading={addFormMutation.isPending}

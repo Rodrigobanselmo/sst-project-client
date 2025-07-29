@@ -3,9 +3,9 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { useState } from 'react';
 import { SFormQuestionAccordion } from '../SFormQuestionAccordion/SFormQuestionAccordion';
 import { SFormSectionHeader } from './components/SFormSectionHeader/SFormSectionHeader';
-import { getFormModelInitialValues } from '../../../../schemas/form-model.schema';
-import { FormQuestionTypeMapList } from '../../../../constants/form-question-type-map';
+import { getFormModelInitialValues } from '../../../../../pages/model/schemas/form-model.schema';
 import { v4 } from 'uuid';
+import { FormQuestionOption } from '../SFormQuestionAccordion/components/SFormQuestionAccordionBody/SFormQuestionAccordionBody';
 
 interface SFormSectionProps {
   sectionIndex: number;
@@ -14,6 +14,11 @@ interface SFormSectionProps {
   onAddNewSection?: (questionIndex: number) => void;
   onMinimizeSection?: () => void;
   isMinimized?: boolean;
+  questionTypeOptions: FormQuestionOption[];
+  title?: (index: number) => string;
+  hideInputTitle?: boolean;
+  descriptionPlaceholder?: string;
+  initialValues: any;
 }
 
 export const SFormSection = ({
@@ -23,6 +28,11 @@ export const SFormSection = ({
   onAddNewSection,
   onMinimizeSection,
   isMinimized = false,
+  questionTypeOptions,
+  title = (index) => `Seção ${index + 1}`,
+  hideInputTitle = false,
+  descriptionPlaceholder = 'Descrição da seção',
+  initialValues,
 }: SFormSectionProps) => {
   const { control, getValues } = useFormContext();
   const [focusedQuestionIndex, setFocusedQuestionIndex] = useState<
@@ -39,11 +49,11 @@ export const SFormSection = ({
   };
 
   const handleAddNewQuestion = () => {
-    append(getFormModelInitialValues());
+    append(initialValues);
   };
 
   const handleInsertNewQuestionFromQuestion = (index: number) => {
-    insert(index + 1, getFormModelInitialValues());
+    insert(index + 1, initialValues);
   };
 
   const handleCopyQuestion = (questionIndex: number) => {
@@ -86,6 +96,9 @@ export const SFormSection = ({
       onAddNewQuestion={handleAddNewQuestion}
       onMinimizeSection={onMinimizeSection}
       isMinimized={isMinimized}
+      title={title}
+      hideInputTitle={hideInputTitle}
+      descriptionPlaceholder={descriptionPlaceholder}
     >
       <Box>
         <Stack gap={4}>
@@ -119,7 +132,7 @@ export const SFormSection = ({
                   sectionIndex={sectionIndex}
                   questionIndex={questionIndex}
                   questionNumber={questionIndex + 1}
-                  typeOptions={FormQuestionTypeMapList}
+                  typeOptions={questionTypeOptions}
                   isFocused={focusedQuestionIndex === questionIndex}
                   onCopy={() => handleCopyQuestion(questionIndex)}
                   onDelete={() => handleDeleteQuestion(questionIndex)}

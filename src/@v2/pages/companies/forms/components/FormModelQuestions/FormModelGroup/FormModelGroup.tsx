@@ -2,7 +2,11 @@ import { Box, Stack } from '@mui/material';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { SFormSection } from './components/SFormSection/SFormSection';
-import { getFormSectionInitialValues } from '../../schemas/form-model.schema';
+import {
+  getFormModelInitialValues,
+  getFormSectionInitialValues,
+} from '../../../pages/model/schemas/form-model.schema';
+import { FormQuestionTypeMapList } from '../../../pages/model/constants/form-question-type-map';
 
 export const FormModelGroup = ({ companyId }: { companyId: string }) => {
   const { control, getValues } = useFormContext();
@@ -77,6 +81,8 @@ export const FormModelGroup = ({ companyId }: { companyId: string }) => {
           return (
             <SFormSection
               key={field.id}
+              initialValues={getFormModelInitialValues()}
+              questionTypeOptions={FormQuestionTypeMapList}
               sectionIndex={idx}
               sectionNumber={idx + 1}
               onDeleteSection={() => handleDeleteSection(idx)}

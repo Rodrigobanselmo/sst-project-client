@@ -70,27 +70,8 @@ export const QuestionOptionsManager = ({
     }
   };
 
-  useEffect(() => {
-    const selectedType = questionType?.value;
-
-    if (
-      selectedType === FormQuestionTypeEnum.RADIO ||
-      selectedType === FormQuestionTypeEnum.SELECT ||
-      selectedType === FormQuestionTypeEnum.CHECKBOX
-    ) {
-      // Check if options array is empty or doesn't exist
-      if (!fields || fields.length === 0) {
-        // Add 4 empty options
-        const emptyOptions = Array.from({ length: 4 }, () => ({
-          label: '',
-          value: '',
-        }));
-        replace(emptyOptions);
-      }
-    }
-  }, [questionType, fields, replace]);
-
-  const showValueForm = formType?.value !== FormTypeEnum.NORMAL;
+  const showValueForm =
+    formType?.value && formType?.value !== FormTypeEnum.NORMAL;
 
   return (
     <SFlex flexDirection="column" gap={5}>

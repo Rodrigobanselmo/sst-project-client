@@ -108,7 +108,10 @@ export const getFormModelInitialValues = () => ({
     value: FormQuestionTypeEnum.RADIO,
     label: FormQuestionTypeEnumTranslate[FormQuestionTypeEnum.RADIO],
   },
-  options: [],
+  options: Array.from({ length: 4 }, () => ({
+    label: '',
+    value: '',
+  })),
   minValue: undefined,
   maxValue: undefined,
 });

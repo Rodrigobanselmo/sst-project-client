@@ -20,7 +20,10 @@ interface SFormSectionProps {
   onDeleteSection?: () => void;
   onAddNewQuestion?: () => void;
   onMinimizeSection?: () => void;
+  title: (index: number) => string;
   isMinimized?: boolean;
+  hideInputTitle?: boolean;
+  descriptionPlaceholder?: string;
 }
 
 export const SFormSectionHeader = ({
@@ -31,6 +34,9 @@ export const SFormSectionHeader = ({
   onMinimizeSection,
   isMinimized = false,
   children,
+  title,
+  hideInputTitle = false,
+  descriptionPlaceholder = 'Descrição da seção',
 }: SFormSectionProps) => {
   const [isPopperOpen, setIsPopperOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
@@ -63,7 +69,7 @@ export const SFormSectionHeader = ({
             borderColor: 'grey.500',
           },
         }}
-        title={`Seção ${sectionNumber}`}
+        title={title(sectionIndex)}
         expandIcon={null}
         expanded={true}
         onChange={() => {}}
@@ -82,13 +88,16 @@ export const SFormSectionHeader = ({
       >
         <SAccordionBody>
           <Stack gap={4} my={8}>
-            <SInputForm
-              placeholder="Título da seção"
-              name={`sections.${sectionIndex}.title`}
-            />
+            {hideInputTitle ? null : (
+              <SInputForm
+                placeholder="Título da seção"
+                name={`sections.${sectionIndex}.title`}
+              />
+            )}
             {isMinimized ? null : (
               <SEditorForm
                 name={`sections.${sectionIndex}.description`}
+                placeholder={descriptionPlaceholder}
                 editorContainerProps={{
                   sx: {},
                 }}
@@ -109,23 +118,29 @@ export const SFormSectionHeader = ({
         placement="bottom-end"
       >
         <SPopperMenu>
-          <SPopperMenuItem
-            text="Adicionar pergunta"
-            onClick={onAddNewQuestion}
-            icon={({ color }) => <SIconAdd color={color} fontSize={16} />}
-          />
-          <SPopperMenuItem
-            text={isMinimized ? 'Expandir seção' : 'Minimizar seção'}
-            onClick={handleMinimizeSection}
-            icon={({ color }) => (
-              <SIconUnfolderMore color={color} fontSize={16} />
-            )}
-          />
-          <SPopperMenuItem
-            text="Excluir seção"
-            onClick={handleDeleteSection}
-            icon={({ color }) => <SIconDelete color={color} fontSize={16} />}
-          />
+          {onAddNewQuestion && (
+            <SPopperMenuItem
+              text="Adicionar pergunta"
+              onClick={onAddNewQuestion}
+              icon={({ color }) => <SIconAdd color={color} fontSize={16} />}
+            />
+          )}
+          {onMinimizeSection && (
+            <SPopperMenuItem
+              text={isMinimized ? 'Expandir seção' : 'Minimizar seção'}
+              onClick={handleMinimizeSection}
+              icon={({ color }) => (
+                <SIconUnfolderMore color={color} fontSize={16} />
+              )}
+            />
+          )}
+          {onDeleteSection && (
+            <SPopperMenuItem
+              text="Excluir seção"
+              onClick={handleDeleteSection}
+              icon={({ color }) => <SIconDelete color={color} fontSize={16} />}
+            />
+          )}
         </SPopperMenu>
       </SPopperArrow>
     </Stack>

@@ -1,4 +1,3 @@
-import { Box, BoxProps } from '@mui/material';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SFlexProps } from '@v2/components/atoms/SFlex/SFlex.types';
 import { SFormSection } from '@v2/components/forms/components/SFormSection/SFormSection';

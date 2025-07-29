@@ -12,6 +12,7 @@ export const PageRoutes = {
     FORMS_APPLICATION: {
       LIST: '/dashboard/empresas/[companyId]/formularios/[formTab]',
       VIEW: '/dashboard/empresas/[companyId]/formularios/aplicados/[id]',
+      ADD: '/dashboard/empresas/[companyId]/formularios/aplicados/add',
     },
     FORMS_MODEL: {
       LIST: '/dashboard/empresas/[companyId]/formularios/modelos',

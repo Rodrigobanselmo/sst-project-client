@@ -7,17 +7,29 @@ import { NumberForm } from './components/NumberForm';
 import { OptionsForm } from './components/OptionsForm';
 import { ShortTextForm } from './components/ShortTextForm';
 import { IFormModelForms } from '@v2/pages/companies/forms/pages/model/schemas/form-model.schema';
+import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
 
 interface QuestionTypeFormContentProps {
   sectionIndex: number;
   questionIndex: number;
 }
 
+interface IForm {
+  sections: {
+    items: {
+      type: {
+        value: FormQuestionTypeEnum | FormIdentifierTypeEnum;
+        label: string;
+      };
+    }[];
+  }[];
+}
+
 export const QuestionTypeFormContent = ({
   sectionIndex,
   questionIndex,
 }: QuestionTypeFormContentProps) => {
-  const { control } = useFormContext<IFormModelForms>();
+  const { control } = useFormContext<IForm>();
 
   const questionTypeValue = useWatch({
     control,
@@ -35,6 +47,7 @@ export const QuestionTypeFormContent = ({
     [FormQuestionTypeEnum.CHECKBOX]: OptionsForm,
     [FormQuestionTypeEnum.SELECT]: OptionsForm,
     [FormQuestionTypeEnum.TEXT]: LongTextForm,
+    [FormIdentifierTypeEnum.CUSTOM]: OptionsForm,
   };
 
   const renderFormContent = () => {
