@@ -17,7 +17,7 @@ interface SFormQuestionAccordionProps {
   isFocused?: boolean;
   onCopy?: () => void;
   onDelete?: () => void;
-  onAddNewSection: () => void;
+  onAddNewSection?: () => void;
   onAddNewQuestion: () => void;
 }
 

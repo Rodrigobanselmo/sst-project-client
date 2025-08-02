@@ -21,7 +21,7 @@ interface SFormSectionProps {
   initialValues: any;
 }
 
-export const SFormSection = ({
+export const SFormQuestionSection = ({
   sectionIndex,
   sectionNumber,
   onDeleteSection,
@@ -136,7 +136,11 @@ export const SFormSection = ({
                   isFocused={focusedQuestionIndex === questionIndex}
                   onCopy={() => handleCopyQuestion(questionIndex)}
                   onDelete={() => handleDeleteQuestion(questionIndex)}
-                  onAddNewSection={() => handleAddNewSection(questionIndex)}
+                  onAddNewSection={
+                    onAddNewSection
+                      ? () => onAddNewSection(questionIndex)
+                      : undefined
+                  }
                   onAddNewQuestion={() =>
                     handleInsertNewQuestionFromQuestion(questionIndex)
                   }

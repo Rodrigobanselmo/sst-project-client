@@ -1,7 +1,7 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { IFormModelFilterProps } from '@v2/components/organisms/STable/implementation/SFormModelTable/SFormModelTable.types';
-import { FormBrowseFilterModel } from '@v2/models/form/models/form/components/form-browse-filter.model';
 import { FormModelTableFilterType } from './components/FormApplicationTableFilterType';
+import { FormBrowseFilterModel } from '@v2/models/form/models/form/form-browse-filter.model';
 
 interface FormModelTableFilterProps {
   onFilterData: (props: IFormModelFilterProps) => void;

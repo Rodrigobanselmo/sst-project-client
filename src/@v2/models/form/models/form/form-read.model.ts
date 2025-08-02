@@ -1,6 +1,6 @@
 import { dateUtils } from '@v2/utils/date-utils';
 import { FormTypeEnum } from '../../enums/form-type.enum';
-import { FormQuestionGroupReadModel } from './components/form-question-group-read.model';
+import { FormQuestionGroupReadModel } from '../shared/form-question-group-read.model';
 
 export type IFormReadModel = {
   id: string;

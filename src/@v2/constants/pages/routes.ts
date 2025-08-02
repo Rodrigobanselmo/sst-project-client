@@ -13,12 +13,16 @@ export const PageRoutes = {
       LIST: '/dashboard/empresas/[companyId]/formularios/[formTab]',
       VIEW: '/dashboard/empresas/[companyId]/formularios/aplicados/[id]',
       ADD: '/dashboard/empresas/[companyId]/formularios/aplicados/add',
+      EDIT: '/dashboard/empresas/[companyId]/formularios/aplicados/[id]/edit',
     },
     FORMS_MODEL: {
       LIST: '/dashboard/empresas/[companyId]/formularios/modelos',
       ADD: '/dashboard/empresas/[companyId]/formularios/modelos/add',
       EDIT: '/dashboard/empresas/[companyId]/formularios/modelos/[id]',
       VIEW: '/dashboard/empresas/[companyId]/formularios/modelos/[id]',
+    },
+    PUBLIC_FORM_ANSWER: {
+      PATH: '/formulario/[id]',
     },
   },
 } as const;

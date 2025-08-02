@@ -1,7 +1,9 @@
 import { FC } from 'react';
 
-import { FormBrowseResultModel } from '@v2/models/form/models/form/components/form-browse-result.model';
+import { FormBrowseResultModel } from '@v2/models/form/models/form/form-browse-result.model';
 import { FormModelOrderByEnum } from '@v2/services/forms/form/browse-form-model/service/browse-form-model.types';
+import { FormModelTypesMap } from '../../../../../models/form/maps/form-model-type-map';
+import { SBooleanRow } from '../../addons/addons-rows/SBooleanRow/SBooleanRow';
 import { STagRow } from '../../addons/addons-rows/STagRow/STagRow';
 import { STextRow } from '../../addons/addons-rows/STextRow/STextRow';
 import { STablePagination } from '../../addons/addons-table/STablePagination/STablePagination';
@@ -15,10 +17,7 @@ import { FormModelHeaderRow } from './components/FormModelHeaderRow/FormModelHea
 import { FormModelColumnsEnum as columnsEnum } from './enums/form-model-columns.enum';
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { FormModelColumnMap as columnMap } from './maps/fomr-model-column-map';
-import { FormModelTypesMap } from '../../../../../models/form/maps/form-model-type-map';
 import { IFormModelTableTableProps } from './SFormModelTable.types';
-import { SCheckBoxRow } from '../../addons/addons-rows/SCheckBoxRow/SCheckBoxRow';
-import { SBooleanRow } from '../../addons/addons-rows/SBooleanRow/SBooleanRow';
 
 export const SFormModelTable: FC<IFormModelTableTableProps> = ({
   data = [],

@@ -1,6 +1,6 @@
 import { NextPage } from 'next';
 
-import { FormApplicationAddPage } from '@v2/pages/companies/forms/pages/application/add/form-application-add.page';
+import { FormApplicationAddPage } from '@v2/pages/companies/forms/pages/application/pages/add/form-application-add.page';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const Page: NextPage = () => {

@@ -46,6 +46,100 @@ import StarterKit from '@tiptap/starter-kit';
 import Highlight from '@tiptap/extension-highlight';
 import React from 'react';
 
+// Shared styles for HTML content rendering
+export const SEDITOR_HTML_STYLES = {
+  fontSize: '1rem',
+  color: '#232326',
+  '& p': {
+    margin: 0,
+    marginBottom: 1,
+    '&:last-child': { marginBottom: 0 },
+  },
+  '& h1, & h2, & h3, & h4': {
+    margin: 0,
+    marginBottom: 1,
+    fontWeight: 600,
+    '&:last-child': { marginBottom: 0 },
+  },
+  '& h1': { fontSize: '1.5rem' },
+  '& h2': { fontSize: '1.25rem' },
+  '& h3': { fontSize: '1.125rem' },
+  '& h4': { fontSize: '1rem' },
+  '& ul, & ol': {
+    marginTop: 5,
+    marginBottom: 1,
+    paddingLeft: 20,
+    '&:last-child': { marginBottom: 0 },
+  },
+  '& li': {
+    marginBottom: 0.5,
+    '&:last-child': { marginBottom: 0 },
+  },
+  '& code': {
+    background: 'rgba(242, 115, 41, 0.2)',
+    borderRadius: '4px',
+    fontFamily: 'monospace',
+    fontSize: '0.95em',
+    padding: '2px 6px',
+    color: '#F27329',
+  },
+  '& img': {
+    maxWidth: '100%',
+    height: 'auto',
+    display: 'block',
+    margin: '16px auto',
+    borderRadius: '8px',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+  },
+  '& mark': {
+    background: '#ffe066',
+    color: '#232326',
+    borderRadius: '2px',
+    padding: '1px 4px',
+  },
+  '& a': {
+    color: '#7c3aed',
+    textDecoration: 'none',
+    '&:hover': {
+      textDecoration: 'underline',
+    },
+  },
+  '& blockquote': {
+    borderLeft: '4px solid #e5e7eb',
+    margin: 0,
+    marginBottom: 1,
+    paddingLeft: 1,
+    fontStyle: 'italic',
+    color: '#6b7280',
+    '&:last-child': { marginBottom: 0 },
+  },
+  '& hr': {
+    border: 'none',
+    borderTop: '1px solid #e5e7eb',
+    margin: '16px 0',
+  },
+  '& strong': {
+    fontWeight: 600,
+  },
+  '& em': {
+    fontStyle: 'italic',
+  },
+  '& s': {
+    textDecoration: 'line-through',
+  },
+  '& u': {
+    textDecoration: 'underline',
+  },
+  '& sub': {
+    verticalAlign: 'sub',
+    fontSize: '0.75em',
+  },
+  '& sup': {
+    verticalAlign: 'super',
+    fontSize: '0.75em',
+  },
+} as const;
+
 const headingOptions = [
   { label: 'Título 1', short: 'H₁', level: 1 },
   { label: 'Título 2', short: 'H₂', level: 2 },
@@ -555,13 +649,12 @@ export function SEditor({
             outline: 'none',
             boxShadow: 'none',
             border: 'none',
-            fontSize: '1rem',
             minHeight: '1.5em',
-            color: '#232326',
             p: 5,
-            pb: showToolbar ? 1 : 1,
+            pb: showToolbar ? 4 : 4,
             pt: showToolbar ? 1 : 1,
-            mt: showToolbar ? 0 : -5,
+            mt: showToolbar ? 3 : 3,
+            ...SEDITOR_HTML_STYLES,
           },
           '& .ProseMirror p.is-editor-empty:first-child::before': {
             content: 'attr(data-placeholder)',
@@ -573,28 +666,6 @@ export function SEditor({
             top: showToolbar ? 18 : 18,
             left: showToolbar ? 12 : 8,
             zIndex: 10,
-          },
-          '& .ProseMirror code': {
-            background: 'rgba(242, 115, 41, 0.2)', // use yellow
-            borderRadius: '4px',
-            fontFamily: 'monospace',
-            fontSize: '0.95em',
-            padding: '2px 6px',
-            color: '#F27329',
-          },
-          '& .ProseMirror img': {
-            maxWidth: '100%',
-            height: 'auto',
-            display: 'block',
-            margin: '16px auto',
-            borderRadius: '8px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          },
-          '& .ProseMirror mark': {
-            background: '#ffe066',
-            color: '#232326',
-            borderRadius: '2px',
-            padding: '1px 4px',
           },
           ...editorContainerProps?.sx,
         }}

@@ -59,7 +59,7 @@ export const useSecondStep = ({
             ghoIds: groupsRef.current?.selecteds?.map((group) => group.id),
           })
           .catch(() => {});
-      onClose();
+      // onClose();
     }
   };
 

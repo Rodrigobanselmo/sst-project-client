@@ -3,7 +3,7 @@ import { FormModelOrderByEnum } from '@v2/services/forms/form/browse-form-model/
 import { IOrderByParams } from '@v2/types/order-by-params.type';
 import { ReactNode } from 'react';
 import { FormModelColumnsEnum } from './enums/form-model-columns.enum';
-import { FormBrowseResultModel } from '@v2/models/form/models/form/components/form-browse-result.model';
+import { FormBrowseResultModel } from '@v2/models/form/models/form/form-browse-result.model';
 
 export interface IFormModelFilterProps {
   search?: string;

@@ -1,7 +1,7 @@
 import { Box, Stack } from '@mui/material';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
-import { SFormSection } from './components/SFormSection/SFormSection';
+import { SFormQuestionSection } from './components/SFormSection/SFormSection';
 import {
   getFormModelInitialValues,
   getFormSectionInitialValues,
@@ -79,7 +79,7 @@ export const FormModelGroup = ({ companyId }: { companyId: string }) => {
       <Stack gap={16}>
         {fields.map((field, idx) => {
           return (
-            <SFormSection
+            <SFormQuestionSection
               key={field.id}
               initialValues={getFormModelInitialValues()}
               questionTypeOptions={FormQuestionTypeMapList}

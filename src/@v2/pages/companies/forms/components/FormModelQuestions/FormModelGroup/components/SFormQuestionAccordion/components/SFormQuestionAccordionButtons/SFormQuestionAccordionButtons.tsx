@@ -3,7 +3,7 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 
 interface SFormQuestionAccordionButtonsProps {
-  onAddNewSection: () => void;
+  onAddNewSection?: () => void;
   onAddNewQuestion: () => void;
 }
 
@@ -38,32 +38,34 @@ export const SFormQuestionAccordionButtons = ({
       >
         <AddCircleOutlineIcon />
       </SIconButton>
-      <SIconButton
-        tooltip="Adicionar seção"
-        onClick={onAddNewSection}
-        tooltipProps={{
-          placement: 'right',
-        }}
-      >
-        <SFlex
-          alignItems="center"
-          justifyContent="center"
-          direction="column"
-          gap={1}
+      {onAddNewSection && (
+        <SIconButton
+          tooltip="Adicionar seção"
+          onClick={onAddNewSection}
+          tooltipProps={{
+            placement: 'right',
+          }}
         >
-          {Array.from({ length: 2 }).map((_, index) => (
-            <div
-              key={index}
-              style={{
-                width: 20,
-                height: 7,
-                border: '2px solid',
-                color: 'text.main',
-              }}
-            />
-          ))}
-        </SFlex>
-      </SIconButton>
+          <SFlex
+            alignItems="center"
+            justifyContent="center"
+            direction="column"
+            gap={1}
+          >
+            {Array.from({ length: 2 }).map((_, index) => (
+              <div
+                key={index}
+                style={{
+                  width: 20,
+                  height: 7,
+                  border: '2px solid',
+                  color: 'text.main',
+                }}
+              />
+            ))}
+          </SFlex>
+        </SIconButton>
+      )}
     </SFlex>
   );
 };

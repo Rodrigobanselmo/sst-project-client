@@ -1,0 +1,1 @@
+export { FormApplicationEditContent } from './FormApplicationEditContent';
