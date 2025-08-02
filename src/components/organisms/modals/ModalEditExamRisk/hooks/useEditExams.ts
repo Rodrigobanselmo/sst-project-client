@@ -91,7 +91,11 @@ export const useEditExams = () => {
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setExamData((oldData) => {
         const newData = {
           ...oldData,
@@ -191,13 +195,13 @@ export const useEditExams = () => {
       minRiskDegree: examData.exam.isAttendance
         ? 0
         : minRiskDegree
-        ? parseInt(minRiskDegree, 10)
-        : 1,
+          ? parseInt(minRiskDegree, 10)
+          : 1,
       minRiskDegreeQuantity: examData.exam.isAttendance
         ? 0
         : minRiskDegreeQuantity
-        ? parseInt(minRiskDegreeQuantity, 10)
-        : 1,
+          ? parseInt(minRiskDegreeQuantity, 10)
+          : 1,
     };
 
     try {

@@ -23,7 +23,7 @@ export const isShouldDemissionBlock = (
     : dayjs(expiredDate).add(-(validityInMonths || 0), 'months');
   const riskDegreeDays = getRiskDegreeBlockDays(company);
   const diff = doneDate
-    ? Math.abs(doneDate.diff(dayjs(), 'day')) ?? 1000
+    ? (Math.abs(doneDate.diff(dayjs(), 'day')) ?? 1000)
     : 1000;
 
   if (diff > riskDegreeDays) {

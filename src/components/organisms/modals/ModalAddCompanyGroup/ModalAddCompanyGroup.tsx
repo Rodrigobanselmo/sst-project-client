@@ -247,8 +247,8 @@ export const ModalAddCompanyGroup = () => {
                     companyGroupData.esocialSend == undefined
                       ? undefined
                       : companyGroupData.esocialSend
-                      ? 1
-                      : 2
+                        ? 1
+                        : 2
                   }
                   valueField="value"
                   row

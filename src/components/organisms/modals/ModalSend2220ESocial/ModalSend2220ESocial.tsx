@@ -60,7 +60,11 @@ export const ModalSend2220ESocial: FC = () => {
     ) as typeof initialSendESocialState;
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const newData = {
           ...oldData,

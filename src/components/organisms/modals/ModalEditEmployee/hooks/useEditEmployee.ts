@@ -88,7 +88,11 @@ export const useEditEmployee = () => {
     const initialData =
       getModalData<Partial<typeof initialEditEmployeeState>>(modalName);
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const replaceData = {} as any;
 

@@ -89,7 +89,11 @@ export const useAddScheduleBlock = () => {
     >(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setScheduleblockData((oldData) => {
         const newData = {
           ...oldData,

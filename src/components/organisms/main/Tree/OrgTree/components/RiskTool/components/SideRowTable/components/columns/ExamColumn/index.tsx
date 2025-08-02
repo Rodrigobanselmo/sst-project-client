@@ -102,8 +102,8 @@ export const ExamColumn: FC<{ children?: any } & EpiColumnProps> = ({
               data?.standardExams
                 ? 'Padrão Ativo'
                 : data?.standardExams === undefined
-                ? 'Nenhum'
-                : 'Padrão Inativo'
+                  ? 'Nenhum'
+                  : 'Padrão Inativo'
             }
             mt={4}
             sx={{

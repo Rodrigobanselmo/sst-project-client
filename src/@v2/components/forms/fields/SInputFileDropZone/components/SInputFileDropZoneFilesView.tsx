@@ -33,8 +33,8 @@ export const SInputFileDropZoneFilesView = ({
         const message = isError
           ? `${file.error}`
           : isComplete
-          ? 'Completo'
-          : 'Carregando...';
+            ? 'Completo'
+            : 'Carregando...';
 
         return (
           <Box

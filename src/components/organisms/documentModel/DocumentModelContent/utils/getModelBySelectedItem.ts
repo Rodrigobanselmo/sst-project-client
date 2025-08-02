@@ -47,13 +47,20 @@ export const getModelSectionsBySelectedItem = (
             const deep = itemLevelMap[element.type]?.level;
 
             // eslint-disable-next-line prettier/prettier
-              if (isElement && elementId != selectedItem.id && !startToAdd)  return false;
+            if (isElement && elementId != selectedItem.id && !startToAdd)
+              return false;
             if (isElement && elementId == selectedItem.id) {
               startToAdd = true;
               actualDeep = deep;
             }
             // eslint-disable-next-line prettier/prettier
-              if (isElement && elementId !== selectedItem.id && deep &&deep <= actualDeep && startToAdd) {
+            if (
+              isElement &&
+              elementId !== selectedItem.id &&
+              deep &&
+              deep <= actualDeep &&
+              startToAdd
+            ) {
               stopToAdd = true;
               return false;
             }

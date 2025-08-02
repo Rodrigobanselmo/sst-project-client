@@ -96,9 +96,10 @@ export const useMainStep = ({
         coordinatorBy,
       };
 
-      await (data.type == DocumentTypeEnum.PCSMO
-        ? updatePcmsoMutation
-        : updateMutation
+      await (
+        data.type == DocumentTypeEnum.PCSMO
+          ? updatePcmsoMutation
+          : updateMutation
       )
         .mutateAsync(submitData)
         .then((response) => {

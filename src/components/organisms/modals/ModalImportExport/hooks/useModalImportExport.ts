@@ -49,7 +49,11 @@ export const useModalImportExport = () => {
       getModalData<Partial<typeof initialModalImportExport>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setFileData((oldData) => ({
         ...oldData,
         ...initialData,

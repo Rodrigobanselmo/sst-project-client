@@ -33,12 +33,15 @@ export class ActionPlanBrowseFilterModel {
   }
 
   get listRiskSubTypes() {
-    return this.listRiskTypes.reduce((acc, { type, subTypes }) => {
-      acc.push({ id: type, name: type });
-      subTypes.forEach((subType) => {
-        acc.push({ id: subType.id, name: subType.name });
-      });
-      return acc;
-    }, [] as { id: RiskTypeEnum | number; name: string }[]);
+    return this.listRiskTypes.reduce(
+      (acc, { type, subTypes }) => {
+        acc.push({ id: type, name: type });
+        subTypes.forEach((subType) => {
+          acc.push({ id: subType.id, name: subType.name });
+        });
+        return acc;
+      },
+      [] as { id: RiskTypeEnum | number; name: string }[],
+    );
   }
 }

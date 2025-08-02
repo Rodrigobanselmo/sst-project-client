@@ -26,7 +26,11 @@ export const useEditHierarchies = () => {
       getModalData<Partial<typeof initialEmployState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setHierarchyData((oldData) => {
         const newData = {
           ...oldData,

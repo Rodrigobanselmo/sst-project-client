@@ -70,7 +70,11 @@ export const useAddCompanyGroup = () => {
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setCompanyGroupData((oldData) => {
         const newData = {
           ...oldData,
@@ -109,9 +113,10 @@ export const useAddCompanyGroup = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ description: string; name: string }> = async (
-    data,
-  ) => {
+  const onSubmit: SubmitHandler<{
+    description: string;
+    name: string;
+  }> = async (data) => {
     // if (!companyGroupData?.doctorResponsible?.id) {
     //   setError('doctorResponsible', { message: 'O campo é obrigatório' });
     //   return;

@@ -87,7 +87,11 @@ export const useAddGho = () => {
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setGhoData((oldData) => {
         const newData = {
           ...oldData,
@@ -117,9 +121,10 @@ export const useAddGho = () => {
       .catch(() => null);
   };
 
-  const onSubmit: SubmitHandler<{ name: string; description: string }> = async (
-    data,
-  ) => {
+  const onSubmit: SubmitHandler<{
+    name: string;
+    description: string;
+  }> = async (data) => {
     const submitData = {
       status: ghoData.status,
       ...data,
@@ -134,17 +139,20 @@ export const useAddGho = () => {
           ...(ghoData.workspaceIds.length && {
             workspaceIds: ghoData.workspaceIds,
           }),
-          hierarchies: ghoData.hierarchies.reduce((acc, hierarchy) => {
-            acc = [
-              ...acc,
-              ...hierarchy.workspaceIds.map((workspaceId) => ({
-                id: hierarchy.id,
-                workspaceId,
-              })),
-            ];
+          hierarchies: ghoData.hierarchies.reduce(
+            (acc, hierarchy) => {
+              acc = [
+                ...acc,
+                ...hierarchy.workspaceIds.map((workspaceId) => ({
+                  id: hierarchy.id,
+                  workspaceId,
+                })),
+              ];
 
-            return acc;
-          }, [] as { id: string; workspaceId: string }[]),
+              return acc;
+            },
+            [] as { id: string; workspaceId: string }[],
+          ),
         })
         .then(() => {
           onClose();
@@ -192,17 +200,20 @@ export const useAddGho = () => {
           id: ghoData.id,
           startDate,
           endDate,
-          hierarchies: hierarchies.reduce((acc, hierarchy) => {
-            acc = [
-              ...acc,
-              ...hierarchy.workspaceIds.map((workspaceId) => ({
-                id: hierarchy.id,
-                workspaceId,
-              })),
-            ];
+          hierarchies: hierarchies.reduce(
+            (acc, hierarchy) => {
+              acc = [
+                ...acc,
+                ...hierarchy.workspaceIds.map((workspaceId) => ({
+                  id: hierarchy.id,
+                  workspaceId,
+                })),
+              ];
 
-            return acc;
-          }, [] as { id: string; workspaceId: string }[]),
+              return acc;
+            },
+            [] as { id: string; workspaceId: string }[],
+          ),
         };
 
         updateGhoMut

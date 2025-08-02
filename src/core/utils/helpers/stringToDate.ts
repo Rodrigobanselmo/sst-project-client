@@ -1,6 +1,5 @@
 import clone from 'clone';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export const cleanObjectValues = (obj: Object) => {
   const copy = clone(obj) as any;
   Object.keys(copy).forEach((key) => {

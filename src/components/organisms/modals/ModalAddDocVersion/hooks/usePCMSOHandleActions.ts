@@ -43,7 +43,11 @@ export const usePCMSOHandleModal = () => {
     const initialData = getModalData<Partial<typeof initialState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const newData = {
           ...initialState,

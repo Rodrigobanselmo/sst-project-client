@@ -36,8 +36,8 @@ export class AbsenteeismTotalHierarchyTimeCompareModel {
           type === AbsenteeismHierarchyTotalOrderByEnum.TOTAL
             ? item.total
             : type === AbsenteeismHierarchyTotalOrderByEnum.TOTAL_DAYS
-            ? item.totalDays
-            : (item.averageDays * 100).toFixed(0);
+              ? item.totalDays
+              : (item.averageDays * 100).toFixed(0);
 
         data[item.rangeString] = {
           ...data[item.rangeString],

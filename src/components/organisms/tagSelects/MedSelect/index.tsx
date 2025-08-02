@@ -88,8 +88,8 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
         onlyInput == 'adm'
           ? MedTypeEnum.ADM
           : onlyInput == 'eng'
-          ? MedTypeEnum.ENG
-          : '',
+            ? MedTypeEnum.ENG
+            : '',
     } as Partial<typeof initialAddRecMedState>;
 
     if (risk) passModalData.risk = risk;
@@ -120,8 +120,8 @@ export const MedSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
           onlyInput == 'adm'
             ? MedTypeEnum.ADM
             : onlyInput == 'eng'
-            ? MedTypeEnum.ENG
-            : '',
+              ? MedTypeEnum.ENG
+              : '',
       },
     );
   };

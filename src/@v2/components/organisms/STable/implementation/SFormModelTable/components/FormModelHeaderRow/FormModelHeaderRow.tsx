@@ -23,8 +23,8 @@ export const FormModelHeaderRow: FC<IFormModelHeaderRowProps> = ({
         field && orderByMap
           ? orderByMap[field]
           : orderByMap
-          ? undefined
-          : 'hide'
+            ? undefined
+            : 'hide'
       }
       menu={({ close }) => (
         <FormModelHeaderMenu

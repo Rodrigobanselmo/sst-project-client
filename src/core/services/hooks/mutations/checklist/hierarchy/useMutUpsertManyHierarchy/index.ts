@@ -71,8 +71,8 @@ export function useMutUpsertManyHierarchy() {
             hierarchy.parentId === null
               ? null
               : hierarchy.parentId
-              ? hierarchy.parentId
-              : undefined,
+                ? hierarchy.parentId
+                : undefined,
         };
       });
 

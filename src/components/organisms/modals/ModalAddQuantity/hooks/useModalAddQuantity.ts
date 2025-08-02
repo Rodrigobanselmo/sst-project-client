@@ -116,7 +116,11 @@ export const useModalAddQuantity = () => {
       getModalData<Partial<typeof initialQuantityState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const newData = {
           ...oldData,
@@ -159,13 +163,21 @@ export const useModalAddQuantity = () => {
     if (data.type == QuantityTypeEnum.QUI)
       submit = {
         // eslint-disable-next-line prettier/prettier
-        stelValue: (dataFrom.stelValue || '').replaceAll('.', '').replace(',', '.'),
+        stelValue: (dataFrom.stelValue || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
-        twaValue: (dataFrom.twaValue || '').replaceAll('.', '').replace(',', '.'),
+        twaValue: (dataFrom.twaValue || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
-        nr15ltValue: (dataFrom.nr15ltValue || '').replaceAll('.', '').replace(',', '.'),
+        nr15ltValue: (dataFrom.nr15ltValue || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
-        vmpValue: (dataFrom.vmpValue || '').replaceAll('.', '').replace(',', '.'),
+        vmpValue: (dataFrom.vmpValue || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         stel: (dataFrom.stel || '').replaceAll('.', '').replace(',', '.'),
         twa: (dataFrom.twa || '').replaceAll('.', '').replace(',', '.'),
         nr15lt: (dataFrom.nr15lt || '').replaceAll('.', '').replace(',', '.'),
@@ -209,17 +221,27 @@ export const useModalAddQuantity = () => {
       submit = {
         doseFB: (dataFrom.doseFB || '').replaceAll('.', '').replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
-        doseFBPublic: (dataFrom.doseFBPublic || '').replaceAll('.', '').replace(',', '.'),
+        doseFBPublic: (dataFrom.doseFBPublic || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
         doseEye: (dataFrom.doseEye || '').replaceAll('.', '').replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
-        doseEyePublic: (dataFrom.doseEyePublic || '').replaceAll('.', '').replace(',', '.'),
+        doseEyePublic: (dataFrom.doseEyePublic || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
-        doseSkin: (dataFrom.doseSkin || '').replaceAll('.', '').replace(',', '.'),
+        doseSkin: (dataFrom.doseSkin || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
-        doseSkinPublic: (dataFrom.doseSkinPublic || '').replaceAll('.', '').replace(',', '.'),
+        doseSkinPublic: (dataFrom.doseSkinPublic || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         // eslint-disable-next-line prettier/prettier
-        doseHand: (dataFrom.doseHand || '').replaceAll('.', '').replace(',', '.'),
+        doseHand: (dataFrom.doseHand || '')
+          .replaceAll('.', '')
+          .replace(',', '.'),
         type: QuantityTypeEnum.RADIATION,
       };
 

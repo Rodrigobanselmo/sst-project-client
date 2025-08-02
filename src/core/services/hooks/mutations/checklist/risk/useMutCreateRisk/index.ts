@@ -48,7 +48,7 @@ export function useMutCreateRisk() {
 
           const actualData = queryClient.getQueryData(
             // eslint-disable-next-line prettier/prettier
-              [QueryEnum.RISK, resp.companyId],
+            [QueryEnum.RISK, resp.companyId],
           );
           if (actualData)
             queryClient.setQueryData(

@@ -97,20 +97,45 @@ export const useAccess = () => {
         // eslint-disable-next-line prettier/prettier
         if (!show) show = !!(item.showIf.isClinic && company.isClinic);
         // eslint-disable-next-line prettier/prettier
-        if (!show)  show = !!(item.showIf.isConsulting && company.isConsulting );
+        if (!show) show = !!(item.showIf.isConsulting && company.isConsulting);
         // eslint-disable-next-line prettier/prettier
-        if (!show) show = !!(item.showIf.isCompany && !company.isConsulting && !company.isClinic );
+        if (!show)
+          show = !!(
+            item.showIf.isCompany &&
+            !company.isConsulting &&
+            !company.isClinic
+          );
 
         // eslint-disable-next-line prettier/prettier
-        if (!show) show = !!(item.showIf.isAbs && company.permissions?.includes(PermissionCompanyEnum.absenteeism));
+        if (!show)
+          show = !!(
+            item.showIf.isAbs &&
+            company.permissions?.includes(PermissionCompanyEnum.absenteeism)
+          );
         // eslint-disable-next-line prettier/prettier
-        if (!show) show = !!(item.showIf.isCat && company.permissions?.includes(PermissionCompanyEnum.cat));
+        if (!show)
+          show = !!(
+            item.showIf.isCat &&
+            company.permissions?.includes(PermissionCompanyEnum.cat)
+          );
         // eslint-disable-next-line prettier/prettier
-        if (!show) show = !!(item.showIf.isDocuments && company.permissions?.includes(PermissionCompanyEnum.document));
+        if (!show)
+          show = !!(
+            item.showIf.isDocuments &&
+            company.permissions?.includes(PermissionCompanyEnum.document)
+          );
         // eslint-disable-next-line prettier/prettier
-        if (!show) show = !!(item.showIf.isEsocial && company.permissions?.includes(PermissionCompanyEnum.esocial));
+        if (!show)
+          show = !!(
+            item.showIf.isEsocial &&
+            company.permissions?.includes(PermissionCompanyEnum.esocial)
+          );
         // eslint-disable-next-line prettier/prettier
-        if (!show) show = !!(item.showIf.isSchedule && company.permissions?.includes(PermissionCompanyEnum.schedule));
+        if (!show)
+          show = !!(
+            item.showIf.isSchedule &&
+            company.permissions?.includes(PermissionCompanyEnum.schedule)
+          );
 
         if (!show) return false;
       }

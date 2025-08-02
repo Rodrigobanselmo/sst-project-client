@@ -667,13 +667,13 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
                 ? value.includes('@!@')
                   ? ParagraphEnum.BULLET_0
                   : value.includes('@!!@')
-                  ? ParagraphEnum.BULLET_1
-                  : value.includes('@!!!@')
-                  ? ParagraphEnum.BULLET_2
-                  : ParagraphEnum.PARAGRAPH
+                    ? ParagraphEnum.BULLET_1
+                    : value.includes('@!!!@')
+                      ? ParagraphEnum.BULLET_2
+                      : ParagraphEnum.PARAGRAPH
                 : type === 'paragraphs'
-                ? ParagraphEnum.PARAGRAPH
-                : ParagraphEnum.BULLET_0),
+                  ? ParagraphEnum.PARAGRAPH
+                  : ParagraphEnum.BULLET_0),
           ),
           ...(hasIndex
             ? characterizationData[type].slice(

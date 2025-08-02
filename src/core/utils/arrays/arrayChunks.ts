@@ -8,17 +8,20 @@ export function arrayChunks<T = any>(
   perChunk: number,
   options?: IChuckOptions,
 ): Array<T[]> {
-  const chuckArray = array.reduce((acc, item, index) => {
-    const chunkIndex = Math.floor(index / perChunk);
+  const chuckArray = array.reduce(
+    (acc, item, index) => {
+      const chunkIndex = Math.floor(index / perChunk);
 
-    if (!acc[chunkIndex]) {
-      acc[chunkIndex] = []; // start a new chunk
-    }
+      if (!acc[chunkIndex]) {
+        acc[chunkIndex] = []; // start a new chunk
+      }
 
-    acc[chunkIndex].push(item);
+      acc[chunkIndex].push(item);
 
-    return acc;
-  }, [] as Array<T[]>);
+      return acc;
+    },
+    [] as Array<T[]>,
+  );
 
   if (options?.balanced) {
     const chunkLength = chuckArray.length;

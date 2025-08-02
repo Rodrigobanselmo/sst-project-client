@@ -63,7 +63,11 @@ export const useAddGenerateSource = () => {
     >(ModalEnum.GENERATE_SOURCE_ADD);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setGenerateSourceData((oldData) => {
         const newData = {
           ...oldData,

@@ -4,7 +4,6 @@ import { Control, FieldValues } from 'react-hook-form';
 import { BoxProps } from '@mui/material';
 import { SRadioCheckboxProps } from 'components/atoms/SRadioCheckbox/types';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type InputFormProps = SRadioCheckboxProps & {
   checked: boolean;
 };

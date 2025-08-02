@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { ReactNode } from 'react';
 
 import { BoxProps } from '@mui/material';

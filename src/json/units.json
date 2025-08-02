@@ -1,158 +1,158 @@
 [
- {
-  "code": "1",
-  "unit": "dose diária de ruído",
-  "name": "dose diária de ruído"
- }, 
- {
-  "code": "2",
-  "unit": "dB (linear)",
-  "name": "decibel linear (dB (linear))"
- },
- {
-  "code": "3",
-  "unit": "dB (C)",
-  "name": "decibel (C) (dB(C))"
- },
- {
-  "code": "4",
-  "unit": "dB (A)",
-  "name": "decibel (A) (dB(A))"
- },
+  {
+    "code": "1",
+    "unit": "dose diária de ruído",
+    "name": "dose diária de ruído"
+  },
+  {
+    "code": "2",
+    "unit": "dB (linear)",
+    "name": "decibel linear (dB (linear))"
+  },
+  {
+    "code": "3",
+    "unit": "dB (C)",
+    "name": "decibel (C) (dB(C))"
+  },
+  {
+    "code": "4",
+    "unit": "dB (A)",
+    "name": "decibel (A) (dB(A))"
+  },
 
- {
-  "code": "5",
-  "unit": "m/s2",
-  "name": "metro por segundo ao quadrado (m/s2)"
- },
- {
-  "code": "6",
-  "unit": "VDVR (m/s1,75)",
-  "name": "metro por segundo elevado a 1,75 (m/s1,75)"
- },
- {
-  "code": "7",
-  "unit": "ppm",
-  "name": "parte de vapor ou gás por milhão de partes de ar contaminado (ppm)"
- },
- {
-  "code": "8",
-  "unit": "mg/m3",
-  "name": "miligrama por metro cúbico de ar (mg/m3)"
- },
- {
-  "code": "9",
-  "unit": "f/cm3",
-  "name": "fibra por centímetro cúbico (f/cm3)"
- },
- {
-  "code": "10",
-  "unit": "ºC",
-  "name": "grau Celsius (ºC)"
- },
- {
-  "code": "10",
-  "unit": "IBUTG [°C]",
-  "name": "IBUTG [°C]"
- },
- {
-  "code": "11",
-  "unit": "m/s",
-  "name": "metro por segundo (m/s)"
- },
- {
-  "code": "12",
-  "unit": "%",
-  "name": "porcentual (%)"
- },
- {
-  "code": "13",
-  "unit": "lux",
-  "name": "lux (lx)"
- },
- {
-  "code": "14",
-  "unit": "ufc/m3",
-  "name": "unidade formadora de colônias por metro cúbico (ufc/m3)"
- },
- {
-  "code": "15",
-  "unit": "dose diária",
-  "name": "dose diária"
- },
- {
-  "code": "16",
-  "unit": "dose mensal",
-  "name": "dose mensal"
- },
- {
-  "code": "17",
-  "unit": "dose trimestral",
-  "name": "dose trimestral"
- },
- {
-  "code": "18",
-  "unit": "dose anual",
-  "name": "dose anual"
- },
- {
-  "code": "19",
-  "unit": "W/m2",
-  "name": "watt por metro quadrado (W/m2)"
- },
- {
-  "code": "20",
-  "unit": "A/m",
-  "name": "ampère por metro (A/m)"
- },
- {
-  "code": "21",
-  "unit": "mT",
-  "name": "militesla (mT)"
- },
- {
-  "code": "22",
-  "unit": "μT",
-  "name": "microtesla (μT)"
- },
- {
-  "code": "23",
-  "unit": "mA",
-  "name": "miliampère (mA)"
- },
- {
-  "code": "24",
-  "unit": "kV/m",
-  "name": "quilovolt por metro (kV/m)"
- },
- {
-  "code": "25",
-  "unit": "V/m",
-  "name": "volt por metro (V/m)"
- },
- {
-  "code": "26",
-  "unit": "J/m2",
-  "name": "joule por metro quadrado (J/m2)"
- },
- {
-  "code": "27",
-  "unit": "mJ/cm2",
-  "name": "milijoule por centímetro quadrado (mJ/cm2)"
- },
- {
-  "code": "28",
-  "unit": "mSv",
-  "name": "milisievert (mSv)"
- },
- {
-  "code": "29",
-  "unit": "mppdc",
-  "name": "milhão de partículas por decímetro cúbico (mppdc)"
- },
- {
-  "code": "30",
-  "unit": "UR (%)",
-  "name": "umidade relativa do ar (UR (%))"
- }
+  {
+    "code": "5",
+    "unit": "m/s2",
+    "name": "metro por segundo ao quadrado (m/s2)"
+  },
+  {
+    "code": "6",
+    "unit": "VDVR (m/s1,75)",
+    "name": "metro por segundo elevado a 1,75 (m/s1,75)"
+  },
+  {
+    "code": "7",
+    "unit": "ppm",
+    "name": "parte de vapor ou gás por milhão de partes de ar contaminado (ppm)"
+  },
+  {
+    "code": "8",
+    "unit": "mg/m3",
+    "name": "miligrama por metro cúbico de ar (mg/m3)"
+  },
+  {
+    "code": "9",
+    "unit": "f/cm3",
+    "name": "fibra por centímetro cúbico (f/cm3)"
+  },
+  {
+    "code": "10",
+    "unit": "ºC",
+    "name": "grau Celsius (ºC)"
+  },
+  {
+    "code": "10",
+    "unit": "IBUTG [°C]",
+    "name": "IBUTG [°C]"
+  },
+  {
+    "code": "11",
+    "unit": "m/s",
+    "name": "metro por segundo (m/s)"
+  },
+  {
+    "code": "12",
+    "unit": "%",
+    "name": "porcentual (%)"
+  },
+  {
+    "code": "13",
+    "unit": "lux",
+    "name": "lux (lx)"
+  },
+  {
+    "code": "14",
+    "unit": "ufc/m3",
+    "name": "unidade formadora de colônias por metro cúbico (ufc/m3)"
+  },
+  {
+    "code": "15",
+    "unit": "dose diária",
+    "name": "dose diária"
+  },
+  {
+    "code": "16",
+    "unit": "dose mensal",
+    "name": "dose mensal"
+  },
+  {
+    "code": "17",
+    "unit": "dose trimestral",
+    "name": "dose trimestral"
+  },
+  {
+    "code": "18",
+    "unit": "dose anual",
+    "name": "dose anual"
+  },
+  {
+    "code": "19",
+    "unit": "W/m2",
+    "name": "watt por metro quadrado (W/m2)"
+  },
+  {
+    "code": "20",
+    "unit": "A/m",
+    "name": "ampère por metro (A/m)"
+  },
+  {
+    "code": "21",
+    "unit": "mT",
+    "name": "militesla (mT)"
+  },
+  {
+    "code": "22",
+    "unit": "μT",
+    "name": "microtesla (μT)"
+  },
+  {
+    "code": "23",
+    "unit": "mA",
+    "name": "miliampère (mA)"
+  },
+  {
+    "code": "24",
+    "unit": "kV/m",
+    "name": "quilovolt por metro (kV/m)"
+  },
+  {
+    "code": "25",
+    "unit": "V/m",
+    "name": "volt por metro (V/m)"
+  },
+  {
+    "code": "26",
+    "unit": "J/m2",
+    "name": "joule por metro quadrado (J/m2)"
+  },
+  {
+    "code": "27",
+    "unit": "mJ/cm2",
+    "name": "milijoule por centímetro quadrado (mJ/cm2)"
+  },
+  {
+    "code": "28",
+    "unit": "mSv",
+    "name": "milisievert (mSv)"
+  },
+  {
+    "code": "29",
+    "unit": "mppdc",
+    "name": "milhão de partículas por decímetro cúbico (mppdc)"
+  },
+  {
+    "code": "30",
+    "unit": "UR (%)",
+    "name": "umidade relativa do ar (UR (%))"
+  }
 ]

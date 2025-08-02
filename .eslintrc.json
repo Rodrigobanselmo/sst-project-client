@@ -10,9 +10,7 @@
     "plugin:react/recommended",
     "plugin:@typescript-eslint/recommended",
     "next/core-web-vitals",
-    "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended"
+    "prettier"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
@@ -38,32 +36,17 @@
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-unused-vars": "off",
     "@typescript-eslint/no-empty-function": "off",
-    "@typescript-eslint/import-helpers/order-imports": "off",
     "@typescript-eslint/no-empty-interface": "off",
+    "@typescript-eslint/no-empty-object-type": "off",
+    "@typescript-eslint/no-unused-expressions": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-duplicate-enum-values": "off",
+    "@typescript-eslint/no-wrapper-object-types": "off",
     "linebreak-style": ["error", "unix"],
     "quotes": ["error", "single"],
     "semi": ["error", "always"],
     "react/prop-types": [0],
     "import-helpers/order-imports": "off"
-    // "import-helpers/order-imports": [
-    //   "warn",
-    //   {
-    //     "newlinesBetween": "always",
-    //     "groups": [
-    //       "/^react/",
-    //       "module",
-    //       "/^configs/",
-    //       "/^assets/",
-    //       "/^core/",
-    //       "/^app/",
-    //       ["parent", "sibling", "index"]
-    //     ],
-    //     "alphabetize": {
-    //       "order": "asc",
-    //       "ignoreCase": true
-    //     }
-    //   }
-    // ]
   },
   "settings": {
     "react": {

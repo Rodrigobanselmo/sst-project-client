@@ -115,7 +115,11 @@ export const useEditProfessionals = () => {
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setProfessionalData((oldData) => {
         const newData = {
           ...oldData,

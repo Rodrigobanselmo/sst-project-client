@@ -45,7 +45,11 @@ export const useHandleModal = () => {
       getModalData<Partial<typeof initialAutomateSubOfficeState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setData((oldData) => {
         const newData = {
           ...initialAutomateSubOfficeState,

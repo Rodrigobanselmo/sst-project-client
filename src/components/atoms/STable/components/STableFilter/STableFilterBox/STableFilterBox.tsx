@@ -44,10 +44,13 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
       ? filterProps.filters
       : filterProps.filters.fields;
 
-    const fields = filters.reduce((acc, curr) => {
-      acc[curr] = true;
-      return acc;
-    }, {} as Record<FilterFieldEnum, boolean>);
+    const fields = filters.reduce(
+      (acc, curr) => {
+        acc[curr] = true;
+        return acc;
+      },
+      {} as Record<FilterFieldEnum, boolean>,
+    );
 
     const options = {} as Record<FilterFieldEnum, { required?: boolean }>;
 

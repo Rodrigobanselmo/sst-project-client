@@ -56,8 +56,8 @@ export function SRadio<T>({
           const label = isString
             ? option
             : renderLabel
-            ? renderLabel(option)
-            : optionData?.[labelField];
+              ? renderLabel(option)
+              : optionData?.[labelField];
 
           const disabledValue = isString
             ? false

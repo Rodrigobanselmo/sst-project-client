@@ -33,7 +33,11 @@ export const useModalViewDocDownload = () => {
       getModalData<Partial<typeof initialViewDocDownloadState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setDoc((oldData) => {
         const newData = {
           ...oldData,

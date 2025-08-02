@@ -52,10 +52,10 @@ export function useSearch<T>({
     const resultSearch = searchValue
       ? fuseResults.map((result) => result.item)
       : sort
-      ? Array.isArray(data)
-        ? data.sort(sort)
-        : []
-      : data;
+        ? Array.isArray(data)
+          ? data.sort(sort)
+          : []
+        : data;
 
     return resultSearch;
   }, [data, fuse, limit, search, sort]);

@@ -50,7 +50,9 @@ export const RiskToolGSEViewRowRiskBox: FC<
           }),
         {
           // eslint-disable-next-line prettier/prettier
-          startDate: riskData.startDate ? new Date(riskData.startDate) : undefined,
+          startDate: riskData.startDate
+            ? new Date(riskData.startDate)
+            : undefined,
           endDate: riskData.endDate ? new Date(riskData.endDate) : undefined,
         },
       );

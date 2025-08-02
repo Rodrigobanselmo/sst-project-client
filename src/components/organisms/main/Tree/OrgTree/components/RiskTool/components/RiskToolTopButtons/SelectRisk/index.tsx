@@ -141,8 +141,8 @@ export const RiskToolTopButtonsSelectRisk: FC<
         isViewTypeGroup
           ? 'Adicionar riscos'
           : selectedRisk
-          ? textRisk
-          : 'selecione um risco'
+            ? textRisk
+            : 'selecione um risco'
       }
       multiple={isViewTypeSelect || isViewTypeGroup ? true : false}
     />

@@ -58,7 +58,10 @@ export function useMutAddChecklist() {
 
         if (resp) {
           // eslint-disable-next-line prettier/prettier
-          const actualData = queryClient.getQueryData([QueryEnum.CHECKLIST, resp.companyId]);
+          const actualData = queryClient.getQueryData([
+            QueryEnum.CHECKLIST,
+            resp.companyId,
+          ]);
           if (actualData)
             queryClient.setQueryData(
               [QueryEnum.CHECKLIST, resp.companyId],

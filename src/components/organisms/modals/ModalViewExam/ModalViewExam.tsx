@@ -55,7 +55,11 @@ export const ModalViewExam: FC = () => {
     ) as typeof initialProfessionalViewState;
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setSelectData((oldData) => {
         const newData = {
           ...oldData,

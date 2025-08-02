@@ -142,8 +142,8 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
         const color = row.isCanceled
           ? 'error.dark'
           : row.isDone
-          ? 'success.dark'
-          : 'warning.dark';
+            ? 'success.dark'
+            : 'warning.dark';
 
         return (
           <STagRow

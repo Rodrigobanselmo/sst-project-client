@@ -110,9 +110,13 @@ export const ModalSelectHierarchyData: FC<
       .filter((hierarchy) => {
         (typesSelected as any)[hierarchy.type] = true;
         // eslint-disable-next-line prettier/prettier
-      const isWorkspace = workspaceSelected && hierarchy.workspaceIds.includes(workspaceSelected?.id);
+        const isWorkspace =
+          workspaceSelected &&
+          hierarchy.workspaceIds.includes(workspaceSelected?.id);
         // eslint-disable-next-line prettier/prettier
-      const isToFilter = search && !stringNormalize(hierarchy.name).includes(stringNormalize(search));
+        const isToFilter =
+          search &&
+          !stringNormalize(hierarchy.name).includes(stringNormalize(search));
 
         if (filter === 'GHO') return !isToFilter && isWorkspace;
         return (hierarchy as any).type === filter && !isToFilter && isWorkspace;

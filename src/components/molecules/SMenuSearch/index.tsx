@@ -130,10 +130,10 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
   const results = asyncLoad
     ? optionsMemoized
     : search
-    ? fuseResults.map((result: any) => result.item)
-    : optionsMemoized
-        .filter((option) => !(option?.hideWithoutSearch && !option?.checked))
-        .slice(0, 20 + 200 * scroll);
+      ? fuseResults.map((result: any) => result.item)
+      : optionsMemoized
+          .filter((option) => !(option?.hideWithoutSearch && !option?.checked))
+          .slice(0, 20 + 200 * scroll);
 
   return (
     <STMenu
@@ -253,8 +253,8 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
               top: renderFilter
                 ? '18px'
                 : results.length === 0
-                ? '10px'
-                : '10px',
+                  ? '10px'
+                  : '10px',
               bottom: renderFilter ? 10 : '',
               right: results.length === 0 ? '10px' : '10px',
               height: '30px',

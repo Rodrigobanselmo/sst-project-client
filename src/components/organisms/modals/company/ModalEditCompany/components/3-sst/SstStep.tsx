@@ -78,8 +78,8 @@ export const SSTModalCompanyStep = (props: IUseAddCompany) => {
                   companyData.esocialSend == undefined
                     ? undefined
                     : companyData.esocialSend
-                    ? 1
-                    : 2
+                      ? 1
+                      : 2
                 }
                 valueField="value"
                 row

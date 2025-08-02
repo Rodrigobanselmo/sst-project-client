@@ -2,7 +2,6 @@ import { onlyNumbers } from '@brazilian-utils/brazilian-utils';
 import clone from 'clone';
 import dayjs from 'dayjs';
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export const cleanObjectValues = (obj: Object) => {
   const copy = clone(obj) as any;
   Object.keys(copy).forEach((key) => {
@@ -28,7 +27,6 @@ export const cleanObjectValues = (obj: Object) => {
   return copy;
 };
 
-// eslint-disable-next-line @typescript-eslint/ban-types
 export const cleanObjectNullValues = (obj: Object) => {
   const copy = clone(obj) as any;
   Object.keys(copy).forEach((key) => {

@@ -85,7 +85,11 @@ export const useProbability = () => {
       getModalData<Partial<typeof initialProbState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setProbabilityData((oldData) => {
         const newData = {
           ...oldData,
@@ -138,11 +142,20 @@ export const useProbability = () => {
     minDurationJT,
   }) => {
     // eslint-disable-next-line prettier/prettier
-    const probabilities = [frequency, history, chancesOfHappening, medsImplemented];
+    const probabilities = [
+      frequency,
+      history,
+      chancesOfHappening,
+      medsImplemented,
+    ];
 
     if (probabilityData.employeeCountGho && probabilityData.employeeCountTotal)
       // eslint-disable-next-line prettier/prettier
-      probabilities.push(percentageCheck(probabilityData.employeeCountGho, probabilityData.employeeCountTotal),
+      probabilities.push(
+        percentageCheck(
+          probabilityData.employeeCountGho,
+          probabilityData.employeeCountTotal,
+        ),
       );
 
     if (minDurationEO && minDurationJT)

@@ -40,8 +40,8 @@ export const WorkspacesSelect: FC<
         text
           ? text
           : workspaceLength === '0'
-          ? 'estabelecimentos'
-          : 'estabelecimentos ' + workspaceLength
+            ? 'estabelecimentos'
+            : 'estabelecimentos ' + workspaceLength
       }
       keys={['ca']}
       placeholder="pesquisar por CA"

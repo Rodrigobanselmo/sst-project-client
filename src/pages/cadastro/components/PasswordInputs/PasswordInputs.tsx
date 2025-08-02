@@ -22,7 +22,8 @@ export const PasswordInputs: FC<
 
   const successPass = password && password.length > 7;
   // eslint-disable-next-line prettier/prettier
-  const successConfirmationPass = successPass && passwordConfirmation === password;
+  const successConfirmationPass =
+    successPass && passwordConfirmation === password;
 
   const getPassError = () => {
     return null;

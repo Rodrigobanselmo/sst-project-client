@@ -152,9 +152,10 @@ export const useAddUser = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ email?: string; name: string }> = async (
-    data,
-  ) => {
+  const onSubmit: SubmitHandler<{
+    email?: string;
+    name: string;
+  }> = async (data) => {
     if (!data?.email && userData.sendEmail) {
       return setError('email', { message: 'E-mail é obrigatório' });
     }

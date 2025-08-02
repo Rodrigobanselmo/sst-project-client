@@ -48,7 +48,10 @@ export function useMutCreateGho() {
           });
 
           // eslint-disable-next-line prettier/prettier
-          const actualData = queryClient.getQueryData<IGho[]>([QueryEnum.GHO, resp.companyId]);
+          const actualData = queryClient.getQueryData<IGho[]>([
+            QueryEnum.GHO,
+            resp.companyId,
+          ]);
           if (actualData) {
             if (!actualData.length)
               queryClient.invalidateQueries([

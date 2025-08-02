@@ -59,7 +59,11 @@ export const useAddAccessGroup = () => {
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setAccessGroupData((oldData) => {
         const newData = {
           ...oldData,
@@ -78,9 +82,10 @@ export const useAddAccessGroup = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ description: string; name: string }> = async (
-    data,
-  ) => {
+  const onSubmit: SubmitHandler<{
+    description: string;
+    name: string;
+  }> = async (data) => {
     const isCopy = submitType.current == 'copy';
     if (isCopy && data.name === initialDataRef?.current?.name) {
       return enqueueSnackbar('A cópia não pode ter o mesmo nome do original', {

@@ -41,7 +41,7 @@ div.react-js-cron-select.react-js-cron-custom-select.ant-select
 .react-js-cron-read-only
   div.react-js-cron-select.react-js-cron-custom-select.ant-select
   div.ant-select-selector {
-    padding-right: 11px;
+  padding-right: 11px;
 }
 div.react-js-cron-custom-select .ant-select-selection-search {
   width: 0 !important;
@@ -58,11 +58,11 @@ div.react-js-cron-custom-select .ant-select-selection-placeholder {
   color: inherit;
 }
 .react-js-cron-week-days-placeholder
-.react-js-cron-custom-select
-.ant-select-selection-placeholder,
+  .react-js-cron-custom-select
+  .ant-select-selection-placeholder,
 .react-js-cron-month-days-placeholder
-.react-js-cron-custom-select
-.ant-select-selection-placeholder {
+  .react-js-cron-custom-select
+  .ant-select-selection-placeholder {
   opacity: 0.4;
 }
 .react-js-cron-custom-select-dropdown {
@@ -77,8 +77,8 @@ div.react-js-cron-custom-select .ant-select-selection-placeholder {
   grid-template-columns: repeat(4, 1fr);
 }
 .react-js-cron-custom-select-dropdown-grid
-.rc-virtual-list-holder-inner
-.ant-select-item-option-content {
+  .rc-virtual-list-holder-inner
+  .ant-select-item-option-content {
   text-align: center;
 }
 .react-js-cron-custom-select-dropdown-hours-twelve-hour-clock {
@@ -89,10 +89,10 @@ div.react-js-cron-custom-select .ant-select-selection-placeholder {
 }
 .react-js-cron-custom-select-dropdown-minutes-large
   .rc-virtual-list-holder-inner {
-    grid-template-columns: repeat(7, 1fr);
-  }
-  .react-js-cron-custom-select-dropdown-minutes-medium {
-    width: 215px !important;
+  grid-template-columns: repeat(7, 1fr);
+}
+.react-js-cron-custom-select-dropdown-minutes-medium {
+  width: 215px !important;
 }
 .react-js-cron-custom-select-dropdown-minutes-medium
   .rc-virtual-list-holder-inner {
@@ -104,8 +104,8 @@ div.react-js-cron-custom-select .ant-select-selection-placeholder {
 .react-js-cron-period
   .react-js-cron-select.ant-select-single.ant-select-open
   .ant-select-selection-item {
-    opacity: 1;
-  }
+  opacity: 1;
+}
 .react-js-cron-select-dropdown-period {
   min-width: 0 !important;
   width: auto !important;
@@ -149,8 +149,8 @@ div.react-js-cron-month-days-placeholder {
   top: 0;
   left: 6px;
   opacity: 1;
-  color:#000;
-  content: "horas";
+  color: #000;
+  content: 'horas';
   font-size: 15px;
   width: 10px;
   height: 20px;

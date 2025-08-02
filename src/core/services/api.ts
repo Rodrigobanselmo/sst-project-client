@@ -73,13 +73,11 @@ export function setupAPIClient(ctx = undefined) {
                   },
                 );
 
-                api.defaults.headers.common[
-                  'Authorization'
-                ] = `Bearer ${token}`;
+                api.defaults.headers.common['Authorization'] =
+                  `Bearer ${token}`;
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (api.defaults.headers as any)[
-                  'Authorization'
-                ] = `Bearer ${token}`;
+                (api.defaults.headers as any)['Authorization'] =
+                  `Bearer ${token}`;
 
                 failedRequestQueue.forEach((request) =>
                   request.onSuccess(token),

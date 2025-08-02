@@ -243,14 +243,14 @@ export const ActionPlanTable: FC<
                     const dueText = due
                       ? due.format('D [de] MMMM YYYY')
                       : level === 6
-                      ? 'ação imediata'
-                      : 'sem prazo';
+                        ? 'ação imediata'
+                        : 'sem prazo';
 
                     const dueEdit = due
                       ? due.format('DD/MM/YYYY')
                       : level === 6
-                      ? 'ação imediata'
-                      : 'sem prazo';
+                        ? 'ação imediata'
+                        : 'sem prazo';
 
                     return (
                       <SFlex

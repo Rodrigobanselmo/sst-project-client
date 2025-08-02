@@ -64,7 +64,11 @@ export const useAddDocumentYear = () => {
       getModalData<Partial<typeof initialDocumentState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setDocumentData((oldData) => {
         const newData = {
           ...oldData,

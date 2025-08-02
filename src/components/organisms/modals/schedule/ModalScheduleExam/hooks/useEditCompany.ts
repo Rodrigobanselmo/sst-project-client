@@ -45,7 +45,11 @@ export const useEditCompany = () => {
       getModalData<Partial<typeof initialScheduleExamState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setCompanyData((oldData) => {
         const replaceData = {} as any;
 

@@ -51,7 +51,7 @@ export function useMutCreateHierarchy() {
             Record<string, IHierarchy>
           >(
             // eslint-disable-next-line prettier/prettier
-            [QueryEnum.HIERARCHY, resp.companyId]
+            [QueryEnum.HIERARCHY, resp.companyId],
           );
 
           if (actualData)

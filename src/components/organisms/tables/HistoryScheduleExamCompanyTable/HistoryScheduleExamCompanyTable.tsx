@@ -304,8 +304,8 @@ export const HistoryScheduleExamCompanyTable: FC<
                     row.exam?.isAttendance
                       ? 'Clínico'
                       : row.exam?.isAvaliation
-                      ? 'Cons. Méd.'
-                      : 'Compl.'
+                        ? 'Cons. Méd.'
+                        : 'Compl.'
                   }
                 />
 

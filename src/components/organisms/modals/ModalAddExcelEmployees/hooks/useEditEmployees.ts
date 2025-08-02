@@ -25,7 +25,11 @@ export const useEditEmployees = () => {
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setEmployee((oldData) => {
         const newData = {
           ...oldData,

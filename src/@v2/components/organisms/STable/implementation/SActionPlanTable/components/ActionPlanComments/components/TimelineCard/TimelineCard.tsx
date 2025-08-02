@@ -52,8 +52,8 @@ export const TimelineCard: React.FC<TimelineProps> = ({ comment }) => {
             comment.isApproved === null
               ? '#fff'
               : comment.isApproved
-              ? '#fff'
-              : '#b13a4115',
+                ? '#fff'
+                : '#b13a4115',
           padding: '10px 20px',
           borderRadius: '8px',
           flex: 1,
@@ -119,16 +119,16 @@ export const TimelineCard: React.FC<TimelineProps> = ({ comment }) => {
                   comment.isApproved === null
                     ? '#666'
                     : comment.isApproved
-                    ? '#64c6a2'
-                    : '#b13a41',
+                      ? '#64c6a2'
+                      : '#b13a41',
               }}
             >
               Status:{' '}
               {comment.isApproved === null
                 ? 'Pendente'
                 : comment.isApproved
-                ? 'Aprovado'
-                : 'Reprovado'}
+                  ? 'Aprovado'
+                  : 'Reprovado'}
               {comment.approvedComment && (
                 <p
                   style={{

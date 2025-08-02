@@ -185,9 +185,14 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     let newHierarchyIds = [...ghoState.hierarchies];
 
     // eslint-disable-next-line prettier/prettier
-    const isToRemove = ghoState.hierarchies.some((hierarchyId) => hierarchyId === node.id);
+    const isToRemove = ghoState.hierarchies.some(
+      (hierarchyId) => hierarchyId === node.id,
+    );
     // eslint-disable-next-line prettier/prettier
-    if (isToRemove) newHierarchyIds = newHierarchyIds.filter((hierarchyId) => hierarchyId !== node.id);
+    if (isToRemove)
+      newHierarchyIds = newHierarchyIds.filter(
+        (hierarchyId) => hierarchyId !== node.id,
+      );
     if (!isToRemove) newHierarchyIds.push(node.id as string);
 
     let selectedParent: string | number = '';

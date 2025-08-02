@@ -23,8 +23,8 @@ export const DocumentControlHeaderRow: FC<IDocumentControlHeaderRowrops> = ({
         field && orderByMap
           ? orderByMap[field]
           : orderByMap
-          ? undefined
-          : 'hide'
+            ? undefined
+            : 'hide'
       }
       menu={({ close }) => (
         <DocumentControlHeaderMenu

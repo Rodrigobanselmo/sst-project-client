@@ -44,8 +44,8 @@ export const useCommentActions = ({ companyId }: { companyId: string }) => {
       data.status === CommentApprovedStatusEnum.NONE
         ? null
         : data.status === CommentApprovedStatusEnum.APPROVED
-        ? true
-        : false;
+          ? true
+          : false;
 
     onEditApproved(data.status, (comment) =>
       editManyComments.mutateAsync({

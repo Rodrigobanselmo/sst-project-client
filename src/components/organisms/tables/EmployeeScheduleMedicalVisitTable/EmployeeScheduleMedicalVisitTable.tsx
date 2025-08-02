@@ -164,12 +164,15 @@ export const EmployeeScheduleMedicalVisitTable = React.forwardRef<
 
     const employeeExamsSelect = useMemo(
       () =>
-        employeeExamsHistorySelected?.reduce((acc, curr) => {
-          if (!acc[curr.employeeId]) acc[curr.employeeId] = {};
-          acc[curr.employeeId][curr.examId] = curr;
+        employeeExamsHistorySelected?.reduce(
+          (acc, curr) => {
+            if (!acc[curr.employeeId]) acc[curr.employeeId] = {};
+            acc[curr.employeeId][curr.examId] = curr;
 
-          return acc;
-        }, {} as Record<number, Record<number, IEmployeeExamsHistory>>),
+            return acc;
+          },
+          {} as Record<number, Record<number, IEmployeeExamsHistory>>,
+        ),
       [employeeExamsHistorySelected],
     );
 

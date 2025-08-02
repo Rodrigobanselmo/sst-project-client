@@ -58,10 +58,9 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
       },
     };
 
-    setData((data) => ({ ...data, ...submitData } as any));
-    await (data.type == DocumentTypeEnum.PCSMO
-      ? updatePcmsoMutation
-      : updateMutation
+    setData((data) => ({ ...data, ...submitData }) as any);
+    await (
+      data.type == DocumentTypeEnum.PCSMO ? updatePcmsoMutation : updateMutation
     )
       .mutateAsync(submitData)
       .then(() => {

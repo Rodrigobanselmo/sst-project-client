@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { ReactNode } from 'react';
 
 import { SButtonProps } from 'components/atoms/SButton/types';

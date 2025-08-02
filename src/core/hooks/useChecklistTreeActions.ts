@@ -153,10 +153,13 @@ export const useChecklistTreeActions = () => {
   const getAllParentRisksById = useCallback(
     (id: number | string) => {
       const nodes = store.getState().tree.nodes as ITreeMap;
-      return getPathById(id).reduce((acc, nodeId) => {
-        const risks = nodes[nodeId].risks || [];
-        return [...acc, ...risks];
-      }, [] as (string | number)[]);
+      return getPathById(id).reduce(
+        (acc, nodeId) => {
+          const risks = nodes[nodeId].risks || [];
+          return [...acc, ...risks];
+        },
+        [] as (string | number)[],
+      );
     },
     [getPathById, store],
   );

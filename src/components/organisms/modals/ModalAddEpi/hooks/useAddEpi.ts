@@ -45,7 +45,11 @@ export const useAddEpi = () => {
     );
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setEpiData((oldData) => {
         const newData = {
           ...oldData,
@@ -65,9 +69,10 @@ export const useAddEpi = () => {
     reset();
   };
 
-  const onSubmit: SubmitHandler<{ ca: string; description: string }> = async (
-    data,
-  ) => {
+  const onSubmit: SubmitHandler<{
+    ca: string;
+    description: string;
+  }> = async (data) => {
     const submitData = {
       status: epiData.status,
       ...data,

@@ -58,10 +58,10 @@ export const useTableSearch = ({
     const resultSearch = searchValue
       ? fuseResults.map((result) => result.item)
       : sort
-      ? Array.isArray(data)
-        ? data.sort(sort)
-        : []
-      : data;
+        ? Array.isArray(data)
+          ? data.sort(sort)
+          : []
+        : data;
 
     if (rowsPerPage)
       return resultSearch.slice((page - 1) * rowsPerPage, page * rowsPerPage);

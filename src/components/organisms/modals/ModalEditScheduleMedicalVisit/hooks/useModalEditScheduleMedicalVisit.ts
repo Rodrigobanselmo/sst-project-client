@@ -144,10 +144,13 @@ export const useModalEditScheduleMedicalVisit = () => {
 
     const exams: ICreateEmployeeExamHistory[] = [];
 
-    const examsMap = medicalVisit?.exams?.reduce((acc, curr) => {
-      acc[`${curr.employeeId}${curr.examId}`] = curr;
-      return acc;
-    }, {} as Record<string, IEmployeeExamsHistory>);
+    const examsMap = medicalVisit?.exams?.reduce(
+      (acc, curr) => {
+        acc[`${curr.employeeId}${curr.examId}`] = curr;
+        return acc;
+      },
+      {} as Record<string, IEmployeeExamsHistory>,
+    );
 
     Object.entries(tableData.data).forEach(([employeeId, recordExam]) => {
       Object.entries(recordExam).forEach(([examId, dataExam]) => {

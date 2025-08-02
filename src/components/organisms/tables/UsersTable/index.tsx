@@ -177,8 +177,8 @@ export const UsersTable: FC<
                     'companies' in row
                       ? row.companies[0]?.status
                       : dayjs(row.expires_date).isAfter(dayjs())
-                      ? StatusEnum.PENDING
-                      : StatusEnum.EXPIRED
+                        ? StatusEnum.PENDING
+                        : StatusEnum.EXPIRED
                   }
                   statusOptions={[]}
                 />

@@ -85,7 +85,11 @@ export const useEditExams = () => {
       getModalData<Partial<typeof initialExamState>>(modalName);
 
     // eslint-disable-next-line prettier/prettier
-    if (initialData && Object.keys(initialData)?.length && !(initialData as any).passBack) {
+    if (
+      initialData &&
+      Object.keys(initialData)?.length &&
+      !(initialData as any).passBack
+    ) {
       setExamData((oldData) => {
         const newData = {
           ...oldData,
