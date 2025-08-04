@@ -15,7 +15,9 @@ export interface SSearchSelectProps<Value> {
   loading?: boolean;
   placeholder?: string;
   disabled?: boolean;
+  hideSearchInput?: boolean;
   getOptionLabel: (option: Value) => string;
+  getOptionIsDisabled?: (option: Value) => boolean;
   getOptionValue: (option: Value) => string | number | boolean;
   onChange: (value: Value | null, event: React.SyntheticEvent) => void;
   onScrollEnd?: () => void;
@@ -62,6 +64,8 @@ export function SSearchSelect<T>({
   popperStartCompoent,
   disabled,
   renderStartAdornment,
+  hideSearchInput,
+  getOptionIsDisabled,
 }: SSearchSelectProps<T>) {
   const [shrink, setShrink] = useState(false);
 
@@ -91,7 +95,9 @@ export function SSearchSelect<T>({
         onScrollEnd={onScrollEnd}
         options={options}
         onClean={handleClean}
-        onSearchFunc={onSearch}
+        onSearchFunc={onSearch || (() => {})}
+        hideSearchInput={hideSearchInput}
+        getOptionIsDisabled={getOptionIsDisabled}
       >
         {Component && <Component />}
         {!Component && (
@@ -154,6 +160,7 @@ export function SSearchSelect<T>({
           }}
           onInputChange={(value) => console.log(value)}
           placeholder="Estado (UF)"
+          hideSearchInput={true} // Add this prop to hide the search input
           options={[1, 2, 3, 4, 5, 6, 7, 8].map((num) => ({
             label: `Rodrigo ${num}`,
           }))}

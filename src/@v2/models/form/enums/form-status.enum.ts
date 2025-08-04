@@ -4,4 +4,5 @@ export enum FormApplicationStatusEnum {
   PENDING = 'PENDING',
   DONE = 'DONE',
   CANCELED = 'CANCELED',
+  TESTING = 'TESTING',
 }

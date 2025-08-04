@@ -1,6 +1,8 @@
 import { dateUtils } from '@v2/utils/date-utils';
 import { FormQuestionGroupReadModel } from '../shared/form-question-group-read.model';
 import { FormApplicationStatusEnum } from '../../enums/form-status.enum';
+import { getPathname } from '@v2/hooks/useAppRouter';
+import { PageRoutes } from '@v2/constants/pages/routes';
 
 export type IFormApplicationReadModel = {
   id: string;
@@ -76,5 +78,20 @@ export class FormApplicationReadModel {
 
   get formatEndedAt() {
     return this.endedAt ? dateUtils(this.endedAt).format('DD/MM/YYYY') : null;
+  }
+
+  get isTesting() {
+    return this.status === FormApplicationStatusEnum.TESTING;
+  }
+
+  get publicUrl() {
+    return getPathname(
+      this.isTesting
+        ? PageRoutes.FORMS.PUBLIC_FORM_ANSWER.TESTING
+        : PageRoutes.FORMS.PUBLIC_FORM_ANSWER.NORMAL,
+      {
+        pathParams: { id: this.id },
+      },
+    );
   }
 }

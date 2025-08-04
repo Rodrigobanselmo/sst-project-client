@@ -15,6 +15,7 @@ type ISPopperSelectItemProps = {
   startAddon?: ReactNode;
   compoent?: ReactNode;
   rerender?: number;
+  autoFocus?: boolean;
 };
 
 export const SPopperSelectItem = React.memo<ISPopperSelectItemProps>(
@@ -27,12 +28,14 @@ export const SPopperSelectItem = React.memo<ISPopperSelectItemProps>(
     startAddon,
     text,
     compoent,
+    autoFocus = false,
   }) => {
     return (
       <MenuItem
         {...itemProps}
         onClick={onClick}
         className="menu-item"
+        autoFocus={autoFocus}
         sx={{
           cursor: 'pointer',
           position: 'sticky',

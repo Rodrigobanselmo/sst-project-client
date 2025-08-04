@@ -13,44 +13,36 @@ import { PageRoutes } from '@v2/constants/pages/routes';
 import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import SIconDocument from 'assets/icons/SDocumentIcon';
 import SIconLink from 'assets/icons/SLinkIcon';
+import SIconShare from 'assets/icons/SLinkIcon';
 import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import { getPathname } from '@v2/hooks/useAppRouter';
+import { useModal, ModalKeyEnum } from '@v2/hooks/useModal';
+import { FormApplicationShareModal } from './FormApplicationShareModal';
+import { FormApplicationStatusChange } from './FormApplicationStatusChange';
 
 export const FormApplicationInfo = ({
   mb,
   formApplication,
   onEdit,
+  companyId,
 }: {
   mb: number[];
   formApplication: FormApplicationReadModel | null | undefined;
   onEdit: () => void;
+  companyId: string;
 }) => {
-  const { showSnackBar } = useSystemSnackbar();
+  const { openModal, closeModal } = useModal();
 
-  const handleCopyPublicUrl = () => {
+  const handleOpenShareModal = () => {
     if (!formApplication) return;
 
-    const publicUrl = getPathname(PageRoutes.FORMS.PUBLIC_FORM_ANSWER.PATH, {
-      pathParams: { id: formApplication.id },
-    });
-
-    const fullUrl = `${window.location.origin}${publicUrl}`;
-
-    navigator.clipboard
-      .writeText(fullUrl)
-      .then(() => {
-        showSnackBar(
-          'Link do formulário copiado para a área de transferência!',
-          {
-            type: 'success',
-          },
-        );
-      })
-      .catch(() => {
-        showSnackBar('Erro ao copiar o link. Tente novamente.', {
-          type: 'error',
-        });
-      });
+    openModal(
+      ModalKeyEnum.FORM_APPLICATION_SHARE,
+      <FormApplicationShareModal
+        formApplication={formApplication}
+        onClose={() => closeModal(ModalKeyEnum.FORM_APPLICATION_SHARE)}
+      />,
+    );
   };
 
   if (!formApplication) {
@@ -71,16 +63,6 @@ export const FormApplicationInfo = ({
               />
             </SFlex>
             <SFlex gap={1} alignItems="center">
-              {formApplication.isShareableLink && (
-                <SButton
-                  text="Link Público"
-                  icon={<SIconLink sx={{ fontSize: 16 }} />}
-                  onClick={handleCopyPublicUrl}
-                  size="s"
-                  variant="outlined"
-                  color="info"
-                />
-              )}
               <SIconButton onClick={onEdit}>
                 <SIconEdit fontSize={22} color="grey.600" />
               </SIconButton>
@@ -149,6 +131,26 @@ export const FormApplicationInfo = ({
             </InfoCardSection>
           </>
         )}
+
+        {/* Action Buttons Section */}
+        <SDivider />
+        <InfoCardSection>
+          <SFlex gap={4} justifyContent="flex-start" flexWrap="wrap">
+            {formApplication.isShareableLink && (
+              <SButton
+                text="Compartilhar"
+                icon={<SIconShare sx={{ fontSize: 16 }} />}
+                onClick={handleOpenShareModal}
+                variant="outlined"
+                color="info"
+              />
+            )}
+            <FormApplicationStatusChange
+              formApplication={formApplication}
+              companyId={companyId}
+            />
+          </SFlex>
+        </InfoCardSection>
       </SPaper>
     </>
   );

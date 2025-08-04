@@ -10,7 +10,7 @@ interface SRadioFormProps<T = any>
 }
 
 export function SRadioForm<T>({ name, ...props }: SRadioFormProps<T>) {
-  const { setValue, formState, control } = useFormContext();
+  const { setValue, formState, control, clearErrors } = useFormContext();
 
   const error = getNestedError(formState?.errors, name);
 
@@ -24,7 +24,12 @@ export function SRadioForm<T>({ name, ...props }: SRadioFormProps<T>) {
     <SRadio
       {...props}
       value={value}
-      onChange={(selectedOption) => setValue(name, selectedOption)}
+      onChange={(selectedOption) => {
+        setValue(name, selectedOption);
+        if (error) {
+          clearErrors(name);
+        }
+      }}
       error={!!error}
       errorMessage={errorMessage}
     />

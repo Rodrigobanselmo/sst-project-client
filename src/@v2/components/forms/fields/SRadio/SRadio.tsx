@@ -7,6 +7,7 @@ import {
   FormLabel,
   FormHelperText,
 } from '@mui/material';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 
 import { SRadioProps } from './SRadio.types';
 
@@ -68,7 +69,17 @@ export function SRadio<T>({
         ))}
       </RadioGroup>
       {error && (
-        <FormHelperText sx={{ color: 'error.main', fontSize: 12, mt: 0.5 }}>
+        <FormHelperText
+          sx={{
+            color: 'error.main',
+            fontSize: 12,
+            mt: 2,
+            ml: -1,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <ErrorOutlineIcon sx={{ fontSize: 20, mr: 3, color: 'error.main' }} />
           {errorMessage || error}
         </FormHelperText>
       )}

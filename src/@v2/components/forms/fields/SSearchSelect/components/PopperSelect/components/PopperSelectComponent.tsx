@@ -21,8 +21,10 @@ export interface PopperSelectBaseProps<Value> {
   children: ReactNode;
   disabled?: boolean;
   startCompoent?: ReactNode;
+  hideSearchInput?: boolean;
   getOptionLabel: (option: Value) => string;
   getOptionValue: (option: Value) => string | number | boolean;
+  getOptionIsDisabled?: (option: Value) => boolean;
   renderItem?: (args: {
     option: Value;
     label: string;
@@ -86,6 +88,8 @@ export function PopperSelectComponent<T>({
   startCompoent,
   popperItemProps,
   disabled,
+  hideSearchInput,
+  getOptionIsDisabled,
 }: PopperSelectProps<T>) {
   const selectSate = useDisclosure();
   const anchorEl = useRef<null | HTMLDivElement>(null);
@@ -188,75 +192,79 @@ export function PopperSelectComponent<T>({
             onScroll={onScrollEnd ? handleScroll : undefined}
           >
             <SPopperSelect autoFocus={false}>
-              <Box
-                onKeyDown={(e) => {
-                  if (e.key == 'ArrowUp') {
-                    inputRef.current?.focus();
-                    e.stopPropagation();
-                  }
-                }}
-                sx={{
-                  bgcolor: 'white',
-                  zIndex: 1,
-                  mt: -2,
-                  outline: 'none',
-                  width: '100%',
-                  position: 'fixed',
-                  ':focus': { hr: { borderColor: 'secondary.main' } },
-                }}
-              >
-                <Input
-                  autoFocus
+              {!hideSearchInput && (
+                <Box
                   onKeyDown={(e) => {
-                    if (e.key === 'Escape') handleClose();
-                    if (e.key !== 'ArrowDown') e.stopPropagation();
+                    if (e.key == 'ArrowUp') {
+                      inputRef.current?.focus();
+                      e.stopPropagation();
+                    }
                   }}
-                  inputRef={inputRef}
-                  disableUnderline
-                  fullWidth
-                  onChange={(e) => onSearch(e.target.value)}
-                  placeholder="pesquisar..."
-                  endAdornment={
-                    search ? (
-                      <InputAdornment position="end">
-                        <IconButton
-                          sx={{ width: 20, height: 20 }}
-                          onClick={(e) => {
-                            if (inputRef.current) inputRef.current.value = '';
-                            onSearch('');
-                          }}
-                        >
-                          <CloseIcon
-                            sx={{ color: 'text.light', fontSize: 15 }}
-                          />
-                        </IconButton>
-                      </InputAdornment>
-                    ) : null
-                  }
-                  startAdornment={
-                    <InputAdornment position="start">
-                      <SIconSearch color="text.light" fontSize={16} />
-                    </InputAdornment>
-                  }
                   sx={{
-                    border: 'none',
+                    bgcolor: 'white',
+                    zIndex: 1,
+                    mt: -2,
                     outline: 'none',
-                    fontSize: '14px',
-                    lineHeight: '16px',
-                    mt: 1,
-                    padding: '1px 10px 1px 12px',
-                    marginBottom: '4px',
+                    width: '100%',
+                    position: 'fixed',
+                    ':focus': { hr: { borderColor: 'secondary.main' } },
                   }}
-                />
-                <SDivider />
-              </Box>
-              <Box height={44} />
-              {options.map(({ option, label }) => {
+                >
+                  <Input
+                    autoFocus
+                    onKeyDown={(e) => {
+                      if (e.key === 'Escape') handleClose();
+                      if (e.key !== 'ArrowDown') e.stopPropagation();
+                    }}
+                    inputRef={inputRef}
+                    disableUnderline
+                    fullWidth
+                    onChange={(e) => onSearch(e.target.value)}
+                    placeholder="pesquisar..."
+                    endAdornment={
+                      search ? (
+                        <InputAdornment position="end">
+                          <IconButton
+                            sx={{ width: 20, height: 20 }}
+                            onClick={(e) => {
+                              if (inputRef.current) inputRef.current.value = '';
+                              onSearch('');
+                            }}
+                          >
+                            <CloseIcon
+                              sx={{ color: 'text.light', fontSize: 15 }}
+                            />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : null
+                    }
+                    startAdornment={
+                      <InputAdornment position="start">
+                        <SIconSearch color="text.light" fontSize={16} />
+                      </InputAdornment>
+                    }
+                    sx={{
+                      border: 'none',
+                      outline: 'none',
+                      fontSize: '14px',
+                      lineHeight: '16px',
+                      mt: 1,
+                      padding: '1px 10px 1px 12px',
+                      marginBottom: '4px',
+                    }}
+                  />
+                  <SDivider />
+                </Box>
+              )}
+              {!hideSearchInput && <Box height={44} />}
+              {options.map(({ option, label }, index) => {
                 const optionValue = getOptionValue(option);
 
                 const isSelected = selected.some(
                   (value) => getOptionValue(value) === optionValue,
                 );
+
+                const isDisabled = getOptionIsDisabled?.(option);
 
                 if (renderFullOption) {
                   return renderFullOption({
@@ -269,6 +277,7 @@ export function PopperSelectComponent<T>({
 
                 return (
                   <SPopperSelectItem
+                    autoFocus={hideSearchInput}
                     rerender={selected.length + (isSelected ? 1 : 0)}
                     key={`${label}-${optionValue}`}
                     text={renderItem ? undefined : label}
@@ -276,6 +285,7 @@ export function PopperSelectComponent<T>({
                     onClick={(e) => handleSelect(option, e)}
                     compoent={renderItem?.({ option, label, isSelected })}
                     itemProps={popperItemProps}
+                    disabled={isDisabled}
                   />
                 );
               })}

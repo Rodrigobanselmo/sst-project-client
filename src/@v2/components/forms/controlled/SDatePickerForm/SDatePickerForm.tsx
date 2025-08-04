@@ -12,7 +12,7 @@ interface SDatePickerFormProps
 }
 
 export function SDatePickerForm({ name, ...props }: SDatePickerFormProps) {
-  const { setValue, formState, control } = useFormContext();
+  const { setValue, formState, control, clearErrors } = useFormContext();
 
   const error = getNestedError(formState?.errors, name);
 
@@ -27,7 +27,13 @@ export function SDatePickerForm({ name, ...props }: SDatePickerFormProps) {
       {...props}
       errorMessage={errorMessage}
       value={value}
-      onChange={(date) => setValue(name, date)}
+      onChange={(date) => {
+        setValue(name, date);
+        // Clear error when user selects a date
+        if (formState.errors[name]) {
+          clearErrors(name);
+        }
+      }}
     />
   );
 }

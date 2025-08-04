@@ -13,7 +13,7 @@ export function SRadioCheckboxForm<T>({
   name,
   ...props
 }: SRadioCheckboxFormProps<T>) {
-  const { setValue, formState, control } = useFormContext();
+  const { setValue, formState, control, clearErrors } = useFormContext();
 
   const error = getNestedError(formState?.errors, name);
 
@@ -27,7 +27,12 @@ export function SRadioCheckboxForm<T>({
     <SRadioCheckbox
       {...props}
       value={value || []}
-      onChange={(selectedOptions) => setValue(name, selectedOptions)}
+      onChange={(selectedOptions) => {
+        setValue(name, selectedOptions);
+        if (error) {
+          clearErrors(name);
+        }
+      }}
       error={!!error}
       errorMessage={errorMessage}
     />

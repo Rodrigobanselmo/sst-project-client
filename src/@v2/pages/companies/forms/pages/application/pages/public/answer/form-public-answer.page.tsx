@@ -1,28 +1,38 @@
 import { Box, Typography } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SText } from '@v2/components/atoms/SText/SText';
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { FormQuestionReadModel } from '@v2/models/form/models/shared/form-question-read.model';
 import { FormAnswerFieldControlled } from '@v2/pages/companies/forms/pages/application/pages/public/answer/components/FormAnswerField/FormAnswerFieldControlled';
 import { useMutateSubmitFormAnswer } from '@v2/services/forms/form-answer/submit-form-answer/hooks/useMutateSubmitFormAnswer';
 import { useFetchPublicFormApplication } from '@v2/services/forms/form-application/public-form-application/hooks/useFetchPublicFormApplication';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { HtmlContentRenderer } from './components/HtmlContentRenderer/FormAnswerFieldControlled';
+import { STBoxLoading, STLoadLogoSimpleIcon } from 'layouts/default/loading/styles';
+import { FormAccessDenied } from './components/FormAccessDenied/FormAccessDenied';
 
 interface FormAnswers {
   [questionId: string]: any;
 }
 
-export const PublicFormAnswerPage = () => {
+export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean }) => {
   const router = useRouter();
   const applicationId = router.query.id as string;
   const [currentStep, setCurrentStep] = useState(0);
 
-  const { publicFormApplication, isPublic, isLoading } = useFetchPublicFormApplication({
+  const { publicFormApplication, isPublic, isTesting, isLoading } = useFetchPublicFormApplication({
     applicationId: applicationId,
   });
+
+  const getCanAccess =   () => {
+    if (testingOnly) {
+      return isTesting;
+    }
+    return isPublic;
+  }
 
   const submitMutation = useMutateSubmitFormAnswer();
 
@@ -30,8 +40,10 @@ export const PublicFormAnswerPage = () => {
     defaultValues: {},
   });
 
+
   const totalSteps = publicFormApplication?.groups?.length || 0;
   const currentGroup = publicFormApplication?.groups?.[currentStep];
+  const canAccess = getCanAccess();
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
@@ -108,18 +120,16 @@ export const PublicFormAnswerPage = () => {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        Carregando formulário...
-      </div>
+      <Box sx={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <STBoxLoading>
+          <STLoadLogoSimpleIcon />
+        </STBoxLoading>
+      </Box>
     );
   }
 
-  if (!isPublic) {
-    return (
-      <div style={{ padding: '20px', textAlign: 'center' }}>
-        Formulário não está disponível para responder
-      </div>
-    );
+  if (!canAccess) {
+    return <FormAccessDenied />;
   }
 
   if (!publicFormApplication) {
@@ -138,15 +148,6 @@ export const PublicFormAnswerPage = () => {
   return (
     <Box sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
       <Box style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            marginBottom: 3,
-            gap: 1,
-          }}
-        ></Box>
-
         <SForm form={form}>
           <SFlex direction="column" gap={10}>
             {currentGroup && (
@@ -159,7 +160,26 @@ export const PublicFormAnswerPage = () => {
                   borderTop: '4px solid #1976d2',
                 }}
               >
-                <Typography
+                {isTesting && (
+                  <Box
+                    sx={{
+                      backgroundColor: '#fff3cd',
+                      border: '1px solid #ffeaa7',
+                      borderRadius: 1,
+                      padding: 4,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <SText
+                      color="warning.main"
+                      fontSize={14}
+                      sx={{ fontWeight: 600 }}
+                    >
+                      🧪 Modo de Teste - Este formulário está em modo de teste
+                    </SText>
+                  </Box>
+                )}
+                <SText
                   variant="h1"
                   fontSize={24}
                   sx={{
@@ -169,7 +189,7 @@ export const PublicFormAnswerPage = () => {
                   }}
                 >
                   {sectionTitle}
-                </Typography>
+                </SText>
                 {currentGroup.description && (
                   <HtmlContentRenderer
                     content={currentGroup.description}
@@ -179,29 +199,38 @@ export const PublicFormAnswerPage = () => {
               </Box>
             )}
 
-            {/* Current group questions */}
-            {currentGroup?.questions.map((question: FormQuestionReadModel) => (
-              <Box
-                key={question.id}
-                sx={{
-                  backgroundColor: '#ffffff',
-                  padding: 12,
-                  borderRadius: 2,
-                }}
-              >
-                <HtmlContentRenderer content={question.details.text} />
-                <FormAnswerFieldControlled question={question} name={question.id} />
-                {question.required && (
-                  <Typography
-                    color="text.secondary"
-                    fontSize={12}
-                    sx={{ mt: 0.5, fontStyle: 'italic' }}
-                  >
-                    * Campo obrigatório
-                  </Typography>
-                )}
-              </Box>
-            ))}
+            {currentGroup?.questions.map((question: FormQuestionReadModel) => {
+              const fieldError = form.formState.errors[question.id];
+              
+              return (
+                <Box
+                  key={question.id}
+                  sx={{
+                    backgroundColor: '#ffffff',
+                    padding: 12,
+                    borderRadius: 2,
+                    position: 'relative',
+                    border: fieldError ? '1px solid' : 'none',
+                    borderColor: fieldError ? 'error.main' : 'transparent',
+                  }}
+                >
+                      {question.required && (
+                    <SText
+                      color="error.main"
+                      fontSize={18}
+                      sx={{position: 'absolute', top: 15, right: 15}}
+                    >
+                      * 
+                    </SText>
+                  )}
+                  <HtmlContentRenderer content={question.details.text} mb={6} />
+                  <FormAnswerFieldControlled 
+                    question={question} 
+                    name={question.id} 
+                  />
+                </Box>
+              );
+            })}
 
             {/* Navigation buttons */}
             <Box

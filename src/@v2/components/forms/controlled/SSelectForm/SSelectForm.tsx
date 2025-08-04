@@ -14,7 +14,7 @@ interface SSelectFormProps<T>
 
 //! tem que ver pq não ta funcionando
 export function SSelectForm<T>({ name, ...props }: SSelectFormProps<T>) {
-  const { setValue, formState, control } = useFormContext();
+  const { setValue, formState, control, clearErrors } = useFormContext();
 
   const error = getNestedError(formState?.errors, name);
 
@@ -29,7 +29,13 @@ export function SSelectForm<T>({ name, ...props }: SSelectFormProps<T>) {
       {...props}
       errorMessage={errorMessage}
       value={value}
-      onChange={(value) => setValue(name, value)}
+      onChange={(value) => {
+        setValue(name, value);
+        // Clear error when user makes a selection
+        if (formState.errors[name]) {
+          clearErrors(name);
+        }
+      }}
     />
   );
 }

@@ -22,7 +22,8 @@ export const PageRoutes = {
       VIEW: '/dashboard/empresas/[companyId]/formularios/modelos/[id]',
     },
     PUBLIC_FORM_ANSWER: {
-      PATH: '/formulario/[id]',
+      NORMAL: '/formulario/[id]',
+      TESTING: '/formulario/[id]/teste',
     },
   },
 } as const;

@@ -15,4 +15,10 @@ export type SButtonProps = {
   textProps?: BoxProps;
   size?: 's' | 'm' | 'l';
   minWidth?: (string | number)[] | string | number;
+  schema?: {
+    color: string;
+    borderColor: string;
+    iconColor: string;
+    backgroundColor: string;
+  };
 };

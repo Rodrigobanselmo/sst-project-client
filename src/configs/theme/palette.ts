@@ -155,6 +155,8 @@ const palette = {
     label: '#808080',
   },
   schema: {
+    gray: '#718096',
+    grayFade: '#71809611',
     green: '#64c6a2',
     greenFade: '#64c6a211',
     red: '#b13a41',

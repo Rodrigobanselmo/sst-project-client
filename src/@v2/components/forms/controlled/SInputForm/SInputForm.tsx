@@ -11,7 +11,7 @@ interface SInputFormProps
 }
 
 export function SInputForm({ name, ...props }: SInputFormProps) {
-  const { setValue, formState, control } = useFormContext();
+  const { setValue, formState, control, clearErrors } = useFormContext();
 
   const error = getNestedError(formState?.errors, name);
 
@@ -27,7 +27,13 @@ export function SInputForm({ name, ...props }: SInputFormProps) {
       helperText={errorMessage}
       error={!!error}
       value={value}
-      onChange={(e) => setValue(name, e.target.value)}
+      onChange={(e) => {
+        setValue(name, e.target.value);
+        // Clear error when user types
+        if (error) {
+          clearErrors(name);
+        }
+      }}
     />
   );
 }

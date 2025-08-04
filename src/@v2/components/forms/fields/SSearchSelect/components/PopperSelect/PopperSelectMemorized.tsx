@@ -2,10 +2,13 @@ import { useSearch } from '@v2/hooks/useSearch';
 import { PopperSelectComponent } from './components/PopperSelectComponent';
 import { PopperSelectProps } from './types';
 
-export type PopperSelectMemorizedProps<Value> = PopperSelectProps<Value>;
+export type PopperSelectMemorizedProps<Value> = PopperSelectProps<Value> & {
+  hideSearchInput?: boolean;
+};
 
 export function PopperSelectMemorized<T>({
   options,
+  hideSearchInput,
   ...props
 }: PopperSelectMemorizedProps<T>) {
   const { results, onSearch, search } = useSearch({
@@ -20,6 +23,7 @@ export function PopperSelectMemorized<T>({
   return (
     <PopperSelectComponent
       {...props}
+      hideSearchInput={hideSearchInput}
       onSearch={onSearch}
       options={results}
       search={search}

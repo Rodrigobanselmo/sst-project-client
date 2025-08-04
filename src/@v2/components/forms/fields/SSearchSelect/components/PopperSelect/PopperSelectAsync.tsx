@@ -4,6 +4,7 @@ import { PopperSelectProps } from './types';
 
 interface PopperSelectSearchProps {
   onSearchFunc: (value: string) => void;
+  hideSearchInput?: boolean;
 }
 
 export type PopperSelectAsyncProps<Value> = PopperSelectProps<Value> &
@@ -12,6 +13,7 @@ export type PopperSelectAsyncProps<Value> = PopperSelectProps<Value> &
 export function PopperSelectAsync<T>({
   options,
   onSearchFunc,
+  hideSearchInput,
   ...props
 }: PopperSelectAsyncProps<T>) {
   const { onSearch, search } = useSearchAsync({
@@ -21,6 +23,7 @@ export function PopperSelectAsync<T>({
   return (
     <PopperSelectComponent
       {...props}
+      hideSearchInput={hideSearchInput}
       onSearch={onSearch}
       options={options.map((option) => ({
         label: props.getOptionLabel(option),

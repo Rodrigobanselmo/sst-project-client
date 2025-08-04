@@ -26,6 +26,7 @@ export const FormApplicationView = ({
         mb={[20]}
         formApplication={formApplication}
         onEdit={handleEdit}
+        companyId={companyId}
       />
       {!isLoading && formApplication && (
         <SFlex direction="column" gap={20}>

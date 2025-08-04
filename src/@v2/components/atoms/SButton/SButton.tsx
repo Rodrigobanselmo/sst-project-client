@@ -20,6 +20,7 @@ export const SButton: FC<SButtonProps> = ({
   textProps,
   size = 'm',
   minWidth,
+  schema,
 }) => {
   const colorMap = variantMap[variant].color;
   const sizeMap = variantMap[variant].size;
@@ -37,19 +38,22 @@ export const SButton: FC<SButtonProps> = ({
           textTransform: 'none',
           minWidth: minWidth || sizeMap[size].minWidth,
           boxShadow: 'none',
-          borderColor: colorMap[color].borderColor,
-          backgroundColor: colorMap[color].backgroundColor,
-          color: colorMap[color].color,
+          borderColor: schema?.borderColor || colorMap[color].borderColor,
+          backgroundColor:
+            schema?.backgroundColor || colorMap[color].backgroundColor,
+          color: schema?.color || colorMap[color].color,
           '&:hover': {
             boxShadow: 'none',
-            borderColor: colorMap[color].borderColor,
-            backgroundColor: colorMap[color].backgroundColor,
+            borderColor: schema?.borderColor || colorMap[color].borderColor,
+            backgroundColor:
+              schema?.backgroundColor || colorMap[color].backgroundColor,
             ...buttonProps?.sx?.['&:hover'],
           },
           '&:active': {
             boxShadow: 'none',
-            borderColor: colorMap[color].borderColor,
-            backgroundColor: colorMap[color].backgroundColor,
+            borderColor: schema?.borderColor || colorMap[color].borderColor,
+            backgroundColor:
+              schema?.backgroundColor || colorMap[color].backgroundColor,
             ...buttonProps?.sx?.['&:active'],
           },
           borderRadius: 1,

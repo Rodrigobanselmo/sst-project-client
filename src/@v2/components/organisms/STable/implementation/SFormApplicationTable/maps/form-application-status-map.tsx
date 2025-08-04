@@ -6,8 +6,12 @@ import { FormApplicationStatusTranslate } from '@v2/models/form/translations/for
 import palette from 'configs/theme/palette';
 import { ReactNode } from 'react';
 import { SStartAddonIcon } from '../../../addons/addons-rows/SSelectButtonRow/addons/start-addons/SStartAddonIcon';
+import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
+import PanToolOutlinedIcon from '@mui/icons-material/PanToolOutlined';
+import SecurityUpdateGoodOutlinedIcon from '@mui/icons-material/SecurityUpdateGoodOutlined';
 
 type FormApplicationStatusEnumTypeMapValue = {
+  value: FormApplicationStatusEnum;
   label: string;
   startAddon?: ReactNode;
   schema: {
@@ -23,6 +27,7 @@ export const FormApplicationStatusMap: Record<
   FormApplicationStatusEnumTypeMapValue
 > = {
   [FormApplicationStatusEnum.PENDING]: {
+    value: FormApplicationStatusEnum.PENDING,
     label: FormApplicationStatusTranslate[FormApplicationStatusEnum.PENDING],
     startAddon: (
       <SStartAddonIcon
@@ -30,18 +35,38 @@ export const FormApplicationStatusMap: Record<
       />
     ),
     schema: {
-      color: palette.schema.yellow,
-      borderColor: palette.schema.yellow,
-      iconColor: palette.schema.yellow,
-      backgroundColor: palette.schema.yellowFade,
+      color: palette.schema.gray,
+      borderColor: palette.schema.gray,
+      iconColor: palette.schema.gray,
+      backgroundColor: palette.schema.grayFade,
     },
   },
   [FormApplicationStatusEnum.PROGRESS]: {
+    value: FormApplicationStatusEnum.PROGRESS,
     label: FormApplicationStatusTranslate[FormApplicationStatusEnum.PROGRESS],
     startAddon: (
       <SStartAddonIcon
         item={
-          <DataUsageIcon sx={{ fontSize: 15, color: palette.schema.blue }} />
+          <SecurityUpdateGoodOutlinedIcon
+            sx={{ fontSize: 15, color: palette.schema.blue }}
+          />
+        }
+      />
+    ),
+    schema: {
+      color: palette.schema.blue,
+      borderColor: palette.schema.blue,
+      iconColor: palette.schema.blue,
+      backgroundColor: palette.schema.blueFade,
+    },
+  },
+  [FormApplicationStatusEnum.DONE]: {
+    value: FormApplicationStatusEnum.DONE,
+    label: FormApplicationStatusTranslate[FormApplicationStatusEnum.DONE],
+    startAddon: (
+      <SStartAddonIcon
+        item={
+          <DonutLargeIcon sx={{ fontSize: 15, color: palette.schema.green }} />
         }
       />
     ),
@@ -52,23 +77,8 @@ export const FormApplicationStatusMap: Record<
       backgroundColor: palette.schema.greenFade,
     },
   },
-  [FormApplicationStatusEnum.DONE]: {
-    label: FormApplicationStatusTranslate[FormApplicationStatusEnum.DONE],
-    startAddon: (
-      <SStartAddonIcon
-        item={
-          <DonutLargeIcon sx={{ fontSize: 15, color: palette.schema.green }} />
-        }
-      />
-    ),
-    schema: {
-      color: palette.grey[600],
-      borderColor: palette.grey[600],
-      iconColor: palette.grey[500],
-      backgroundColor: palette.grey[500] + '11',
-    },
-  },
   [FormApplicationStatusEnum.CANCELED]: {
+    value: FormApplicationStatusEnum.CANCELED,
     label: FormApplicationStatusTranslate[FormApplicationStatusEnum.CANCELED],
     startAddon: (
       <SStartAddonIcon
@@ -85,11 +95,33 @@ export const FormApplicationStatusMap: Record<
     },
   },
   [FormApplicationStatusEnum.INACTIVE]: {
+    value: FormApplicationStatusEnum.INACTIVE,
     label: FormApplicationStatusTranslate[FormApplicationStatusEnum.INACTIVE],
     startAddon: (
       <SStartAddonIcon
         item={
-          <NotInterestedIcon sx={{ fontSize: 15, color: palette.schema.red }} />
+          <PanToolOutlinedIcon
+            sx={{ fontSize: 15, color: palette.schema.red }}
+          />
+        }
+      />
+    ),
+    schema: {
+      color: palette.schema.yellow,
+      borderColor: palette.schema.yellow,
+      iconColor: palette.schema.yellow,
+      backgroundColor: palette.schema.yellowFade,
+    },
+  },
+  [FormApplicationStatusEnum.TESTING]: {
+    value: FormApplicationStatusEnum.TESTING,
+    label: FormApplicationStatusTranslate[FormApplicationStatusEnum.TESTING],
+    startAddon: (
+      <SStartAddonIcon
+        item={
+          <ScienceOutlinedIcon
+            sx={{ fontSize: 15, color: palette.schema.yellow }}
+          />
         }
       />
     ),
@@ -102,14 +134,17 @@ export const FormApplicationStatusMap: Record<
   },
 };
 
-export const FormApplicationStatusFilterList = Object.entries(
-  FormApplicationStatusMap,
-).map(([value, { label, startAddon }]) => ({
-  value: value as FormApplicationStatusEnum,
-  startAddon,
-  label,
-}));
+export const FormApplicationStatusFilterList = [
+  FormApplicationStatusMap[FormApplicationStatusEnum.PENDING],
+  FormApplicationStatusMap[FormApplicationStatusEnum.TESTING],
+  FormApplicationStatusMap[FormApplicationStatusEnum.PROGRESS],
+  FormApplicationStatusMap[FormApplicationStatusEnum.INACTIVE],
+  FormApplicationStatusMap[FormApplicationStatusEnum.DONE],
+  FormApplicationStatusMap[FormApplicationStatusEnum.CANCELED],
+];
 
 export const FormApplicationStatusList = FormApplicationStatusFilterList.filter(
-  (option) => option.value !== FormApplicationStatusEnum.PENDING,
+  (option) =>
+    option.label !==
+    FormApplicationStatusTranslate[FormApplicationStatusEnum.PENDING],
 );
