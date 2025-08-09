@@ -5,7 +5,7 @@ import { validateFormOptions } from '@v2/pages/companies/forms/utils/validate-fo
 import { useAddFormModel } from '@v2/services/forms/form/add-form-model/hooks/useAddFormModel';
 import { useForm } from 'react-hook-form';
 import { FormModelInfo } from '../../../../components/FormModelInfo/FormModelInfo';
-import { FormModelButtons } from '../../../../../../components/FormModelQuestions/FormModelButtons/FormModelButtons';
+import { FormQuestionsButtons } from '../../../../../../components/FormQuestionsButtons/FormQuestionsButtons';
 import {
   formModelFormsInitialValues,
   IFormModelForms,
@@ -53,7 +53,7 @@ export const FormModelAddContent = ({ companyId }: { companyId: string }) => {
       <FormModelInfo containerProps={{ mb: 16 }} />
       <FormModelGroup companyId={companyId} />
 
-      <FormModelButtons
+      <FormQuestionsButtons
         onCancel={onCancel}
         onSubmit={handleSubmit}
         errors={form.formState.errors}

@@ -75,7 +75,7 @@ export const SButton: FC<SButtonProps> = ({
               component={
                 loading
                   ? () => (
-                      <SFlex width={20} height={20} center ml={-5}>
+                      <SFlex width={20} height={20} center ml={0}>
                         <CircularProgress
                           size={12}
                           sx={{

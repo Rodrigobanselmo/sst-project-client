@@ -88,6 +88,7 @@ export const FormAccessDenied = ({
               backgroundColor: '#f9fafb',
               borderRadius: 2,
               padding: 3,
+              px: 8,
               marginTop: 2,
               border: '1px solid #e5e7eb',
             }}
@@ -97,6 +98,7 @@ export const FormAccessDenied = ({
               sx={{
                 color: '#6b7280',
                 maxWidth: 320,
+                textAlign: 'center',
                 lineHeight: 1.4,
               }}
             >

@@ -3,9 +3,9 @@ import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { FieldErrors } from 'react-hook-form';
-import { IFormModelForms } from '../../../pages/model/schemas/form-model.schema';
+import { IFormModelForms } from '../../pages/model/schemas/form-model.schema';
 
-export const FormModelButtons = ({
+export const FormQuestionsButtons = ({
   onSubmit,
   onCancel,
   errors,

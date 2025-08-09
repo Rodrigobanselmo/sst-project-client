@@ -9,5 +9,5 @@ export const FormApplicationStatusTranslate: Record<
   [FormApplicationStatusEnum.PROGRESS]: 'Aceitando Respostas',
   [FormApplicationStatusEnum.INACTIVE]: 'Pausado',
   [FormApplicationStatusEnum.CANCELED]: 'Cancelado',
-  [FormApplicationStatusEnum.TESTING]: 'Testando',
+  [FormApplicationStatusEnum.TESTING]: 'Teste Interno',
 };

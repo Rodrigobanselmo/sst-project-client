@@ -1,21 +1,21 @@
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
+import { SFormSection } from '@v2/components/forms/components/SFormSection/SFormSection';
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { FormFormApplication } from '@v2/pages/companies/forms/components/FormApplicationForms/components/FormFormApplication';
 import { FormIdentifierTypeList } from '@v2/pages/companies/forms/components/FormApplicationForms/constants/form-Identifier-type.map';
-import { FormModelButtons } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelButtons/FormModelButtons';
 import { SFormQuestionSection } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelGroup/components/SFormSection/SFormSection';
+import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
 import { useMutateAddFormApplication } from '@v2/services/forms/form-application/add-form-application/hooks/useMutateAddFormApplication';
 import { useForm } from 'react-hook-form';
-import { getFormModelInitialValues } from '../../../../../model/schemas/form-model.schema';
+import { transformFormApplicationDataToApiFormat } from '../../../../helpers/transform-form-application-data';
 import {
   formApplicationFormInitialValues,
+  getFormApplicationInitialValues,
   IFormApplicationFormFields,
   schemaFormApplicationForm,
 } from '../../../../schema/form-application.schema';
-import { SFormSection } from '@v2/components/forms/components/SFormSection/SFormSection';
-import { transformFormApplicationDataToApiFormat } from '../../../../helpers/transform-form-application-data';
 
 export const FormApplicationAddContent = ({
   companyId,
@@ -79,10 +79,10 @@ export const FormApplicationAddContent = ({
         hideInputTitle={true}
         title={() => 'Dados Gerais'}
         descriptionPlaceholder="Instruções do questionário (opcional)"
-        initialValues={getFormModelInitialValues()}
+        initialValues={getFormApplicationInitialValues()}
       />
 
-      <FormModelButtons
+      <FormQuestionsButtons
         onSubmit={handleSubmit}
         onCancel={onCancel}
         errors={form.formState.errors}

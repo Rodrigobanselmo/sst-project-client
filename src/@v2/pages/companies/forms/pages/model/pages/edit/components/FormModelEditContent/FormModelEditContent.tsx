@@ -16,7 +16,7 @@ import { FormReadModel } from '@v2/models/form/models/form/form-read.model';
 import { transformFormDataToApiFormat } from '../../../../helpers/transform-form-model-data';
 import { FormModelInfo } from '@v2/pages/companies/forms/pages/model/components/FormModelInfo/FormModelInfo';
 import { FormModelGroup } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelGroup/FormModelGroup';
-import { FormModelButtons } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelButtons/FormModelButtons';
+import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
 
 export const FormModelEditContent = ({
   companyId,
@@ -99,7 +99,7 @@ export const FormModelEditContent = ({
       <FormModelInfo containerProps={{ mb: 16 }} />
       <FormModelGroup companyId={companyId} />
 
-      <FormModelButtons
+      <FormQuestionsButtons
         onCancel={onCancel}
         onSubmit={handleSubmit}
         errors={formHook.formState.errors}

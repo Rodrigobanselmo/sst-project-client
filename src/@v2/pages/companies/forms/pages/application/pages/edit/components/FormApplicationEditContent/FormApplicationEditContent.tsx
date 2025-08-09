@@ -7,7 +7,7 @@ import { FormApplicationReadModel } from '@v2/models/form/models/form-applicatio
 import { FormIdentifierTypeTranslate } from '@v2/models/form/translations/form-identifier-type.translation';
 import { FormFormApplication } from '@v2/pages/companies/forms/components/FormApplicationForms/components/FormFormApplication';
 import { FormIdentifierTypeList } from '@v2/pages/companies/forms/components/FormApplicationForms/constants/form-Identifier-type.map';
-import { FormModelButtons } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelButtons/FormModelButtons';
+import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
 import { SFormQuestionSection } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelGroup/components/SFormSection/SFormSection';
 import { useMutateEditFormApplication } from '@v2/services/forms/form-application/edit-form-application/hooks/useMutateEditFormApplication';
 import { useForm } from 'react-hook-form';
@@ -131,7 +131,7 @@ export const FormApplicationEditContent = ({
         initialValues={getFormModelInitialValues()}
       />
 
-      <FormModelButtons
+      <FormQuestionsButtons
         onSubmit={handleSubmit}
         onCancel={onCancel}
         errors={form.formState.errors}

@@ -7,12 +7,12 @@ import { FormQuestionReadModel } from '@v2/models/form/models/shared/form-questi
 import { FormAnswerFieldControlled } from '@v2/pages/companies/forms/pages/application/pages/public/answer/components/FormAnswerField/FormAnswerFieldControlled';
 import { useMutateSubmitFormAnswer } from '@v2/services/forms/form-answer/submit-form-answer/hooks/useMutateSubmitFormAnswer';
 import { useFetchPublicFormApplication } from '@v2/services/forms/form-application/public-form-application/hooks/useFetchPublicFormApplication';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { HtmlContentRenderer } from './components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { STBoxLoading, STLoadLogoSimpleIcon } from 'layouts/default/loading/styles';
+import { useRouter } from 'next/router';
+import { useRef, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { FormAccessDenied } from './components/FormAccessDenied/FormAccessDenied';
+import { HtmlContentRenderer } from './components/HtmlContentRenderer/FormAnswerFieldControlled';
 
 interface FormAnswers {
   [questionId: string]: any;
@@ -22,6 +22,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const router = useRouter();
   const applicationId = router.query.id as string;
   const [currentStep, setCurrentStep] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const { publicFormApplication, isPublic, isTesting, isLoading } = useFetchPublicFormApplication({
     applicationId: applicationId,
@@ -48,6 +49,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
+      scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -146,7 +148,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
       : publicFormApplication.name;
 
   return (
-    <Box sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
+    <Box ref={scrollContainerRef} sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
       <Box style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
         <SForm form={form}>
           <SFlex direction="column" gap={10}>
