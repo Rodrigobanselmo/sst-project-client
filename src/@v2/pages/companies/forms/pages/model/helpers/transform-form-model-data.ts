@@ -30,7 +30,7 @@ export function transformFormDataToApiFormat(
           .map((option, index) => ({
             id: option.apiId,
             text: option.label,
-            value: index + 1, // Sequential numbering starting from 1
+            value: option.value?.value,
           }));
 
         if (options.length > 0) {

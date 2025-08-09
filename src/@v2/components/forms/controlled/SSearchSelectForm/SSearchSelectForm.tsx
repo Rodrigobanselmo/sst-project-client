@@ -7,12 +7,14 @@ import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
 import { getNestedError } from '../get-nested-error';
 
 interface SSearchSelectFormProps<T>
-  extends Omit<SSearchSelectProps<T>, 'onChange' | 'value'> {
+  extends Omit<SSearchSelectProps<T>, 'onChange' | 'value' | 'component'> {
+  component?: (args: { option?: T }) => React.ReactNode;
   name: string;
 }
 
 export function SSearchSelectForm<T>({
   name,
+  component,
   ...inputProps
 }: SSearchSelectFormProps<T>) {
   const { setValue, formState, control } = useFormContext();
@@ -31,6 +33,7 @@ export function SSearchSelectForm<T>({
       value={value}
       onChange={(value, e) => setValue(name, value)}
       errorMessage={errorMessage}
+      component={component ? () => component({ option: value }) : undefined}
     />
   );
 }

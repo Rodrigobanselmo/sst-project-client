@@ -29,17 +29,7 @@ export const FormApplicationView = ({
         companyId={companyId}
       />
       {!isLoading && formApplication && (
-        <SFlex direction="column" gap={20}>
-          {/* <FormApplicationCard
-            formApplication={formApplication}
-            onEdit={handleEdit}
-          />
-          <FormApplicationFileTable
-            onAdd={() => onFormApplicationFileAdd(formApplication)}
-            onEdit={onFormApplicationFileEdit}
-            files={formApplication.files}
-          /> */}
-        </SFlex>
+        <SFlex direction="column" gap={20}></SFlex>
       )}
     </>
   );

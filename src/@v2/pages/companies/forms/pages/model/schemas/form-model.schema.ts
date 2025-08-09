@@ -11,7 +11,11 @@ export interface IFormModelItem {
   content: string;
   required: boolean;
   type: { value: FormQuestionTypeEnum; label: string };
-  options?: { apiId?: string; value: string; label: string }[];
+  options?: {
+    apiId?: string;
+    value?: { label: string; value: number; color: string };
+    label: string;
+  }[];
   minValue?: number;
   maxValue?: number;
 }
@@ -85,7 +89,12 @@ export const schemaFormModelForms = yup.object({
                 .of(
                   yup.object({
                     apiId: yup.string().optional(),
-                    value: yup.string().optional(),
+                    value: yup
+                      .object({
+                        label: yup.string().optional(),
+                        value: yup.number().optional(),
+                      })
+                      .optional(),
                     label: yup.string().optional(),
                   }),
                 )
@@ -110,7 +119,6 @@ export const getFormModelInitialValues = () => ({
   },
   options: Array.from({ length: 4 }, () => ({
     label: '',
-    value: '',
   })),
   minValue: undefined,
   maxValue: undefined,

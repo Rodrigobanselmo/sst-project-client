@@ -3,7 +3,7 @@ import { useFieldArray, useFormContext } from 'react-hook-form';
 import { useState } from 'react';
 import { SFormQuestionAccordion } from '../SFormQuestionAccordion/SFormQuestionAccordion';
 import { SFormSectionHeader } from './components/SFormSectionHeader/SFormSectionHeader';
-import { getFormModelInitialValues } from '../../../../../pages/model/schemas/form-model.schema';
+import { getFormModelInitialValues } from '../../pages/model/schemas/form-model.schema';
 import { v4 } from 'uuid';
 import { FormQuestionOption } from '../SFormQuestionAccordion/components/SFormQuestionAccordionBody/SFormQuestionAccordionBody';
 
@@ -43,10 +43,6 @@ export const SFormQuestionSection = ({
     control,
     name: `sections.${sectionIndex}.items`,
   });
-
-  const handleAddNewSection = (questionIndex: number) => {
-    onAddNewSection?.(questionIndex);
-  };
 
   const handleAddNewQuestion = () => {
     append(initialValues);

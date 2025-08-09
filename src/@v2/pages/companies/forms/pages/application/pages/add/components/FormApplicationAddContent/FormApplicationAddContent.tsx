@@ -3,9 +3,7 @@ import { SFormSection } from '@v2/components/forms/components/SFormSection/SForm
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 import { useAppRouter } from '@v2/hooks/useAppRouter';
-import { FormFormApplication } from '@v2/pages/companies/forms/components/FormApplicationForms/components/FormFormApplication';
-import { FormIdentifierTypeList } from '@v2/pages/companies/forms/components/FormApplicationForms/constants/form-Identifier-type.map';
-import { SFormQuestionSection } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelGroup/components/SFormSection/SFormSection';
+import { SFormQuestionSection } from '@v2/pages/companies/forms/components/SFormSection/SFormSection';
 import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
 import { useMutateAddFormApplication } from '@v2/services/forms/form-application/add-form-application/hooks/useMutateAddFormApplication';
 import { useForm } from 'react-hook-form';
@@ -16,6 +14,8 @@ import {
   IFormApplicationFormFields,
   schemaFormApplicationForm,
 } from '../../../../schema/form-application.schema';
+import { FormIdentifierTypeList } from '../../../../components/FormApplicationForms/constants/form-Identifier-type.map';
+import { FormFormApplication } from '../../../../components/FormApplicationForms/components/FormFormApplication';
 
 export const FormApplicationAddContent = ({
   companyId,

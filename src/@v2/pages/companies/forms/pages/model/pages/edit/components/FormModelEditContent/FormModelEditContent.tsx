@@ -15,8 +15,9 @@ import { v4 } from 'uuid';
 import { FormReadModel } from '@v2/models/form/models/form/form-read.model';
 import { transformFormDataToApiFormat } from '../../../../helpers/transform-form-model-data';
 import { FormModelInfo } from '@v2/pages/companies/forms/pages/model/components/FormModelInfo/FormModelInfo';
-import { FormModelGroup } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelGroup/FormModelGroup';
+import { FormModelGroup } from '@v2/pages/companies/forms/pages/model/components/FormModelGroup/FormModelGroup';
 import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
+import { questionsIndicatorMapOptions } from '@v2/pages/companies/forms/components/SFormQuestionAccordion/components/SFormQuestionAccordionBody/components/QuestionOptionsManager/QuestionOptionsManager';
 
 export const FormModelEditContent = ({
   companyId,
@@ -56,7 +57,13 @@ export const FormModelEditContent = ({
             question.options?.map((option) => ({
               id: v4(),
               apiId: option.id,
-              value: option.value?.toString() || '',
+              value:
+                typeof option.value === 'number'
+                  ? {
+                      value: option.value,
+                      ...questionsIndicatorMapOptions[option.value],
+                    }
+                  : undefined,
               label: option.text,
             })) || [],
           minValue: undefined,

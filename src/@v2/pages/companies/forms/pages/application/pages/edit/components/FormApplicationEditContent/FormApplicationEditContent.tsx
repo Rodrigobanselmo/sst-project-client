@@ -5,10 +5,8 @@ import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import { FormIdentifierTypeTranslate } from '@v2/models/form/translations/form-identifier-type.translation';
-import { FormFormApplication } from '@v2/pages/companies/forms/components/FormApplicationForms/components/FormFormApplication';
-import { FormIdentifierTypeList } from '@v2/pages/companies/forms/components/FormApplicationForms/constants/form-Identifier-type.map';
 import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
-import { SFormQuestionSection } from '@v2/pages/companies/forms/components/FormModelQuestions/FormModelGroup/components/SFormSection/SFormSection';
+import { SFormQuestionSection } from '@v2/pages/companies/forms/components/SFormSection/SFormSection';
 import { useMutateEditFormApplication } from '@v2/services/forms/form-application/edit-form-application/hooks/useMutateEditFormApplication';
 import { useForm } from 'react-hook-form';
 import { getFormModelInitialValues } from '../../../../../model/schemas/form-model.schema';
@@ -18,6 +16,8 @@ import {
   IFormApplicationFormFields,
   schemaFormApplicationForm,
 } from '../../../../schema/form-application.schema';
+import { FormIdentifierTypeList } from '../../../../components/FormApplicationForms/constants/form-Identifier-type.map';
+import { FormFormApplication } from '../../../../components/FormApplicationForms/components/FormFormApplication';
 
 export const FormApplicationEditContent = ({
   companyId,

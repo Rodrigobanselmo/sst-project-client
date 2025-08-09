@@ -1,15 +1,26 @@
-import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Delete as DeleteIcon } from '@mui/icons-material';
 import { Box, IconButton } from '@mui/material';
 import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SInputForm } from '@v2/components/forms/controlled/SInputForm/SInputForm';
+import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
+import { SText } from '@v2/components/atoms/SText/SText';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
-import { SRadio } from 'components/molecules/form/radio';
 import { QuestionTypeIcon } from './components/QuestionTypeIcon';
-import { useEffect, useRef } from 'react';
-import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
+import { useRef } from 'react';
 import { IFormModelForms } from '@v2/pages/companies/forms/pages/model/schemas/form-model.schema';
+
+export const questionsIndicatorMapOptions: Record<
+  number,
+  { label: string; color: string }
+> = {
+  5: { label: 'Muito Positivo', color: '#3cbe7d' },
+  4: { label: 'Positivo', color: '#8fa728' },
+  3: { label: 'Neutro', color: '#d9d10b' },
+  2: { label: 'Negativo', color: '#d96c2f' },
+  1: { label: 'Muito Negativo', color: '#F44336' },
+  0: { label: 'Não contabilizar', color: '#eeeeee' },
+};
 
 interface QuestionOptionsManagerProps {
   sectionIndex: number;
@@ -33,13 +44,13 @@ export const QuestionOptionsManager = ({
     name: `sections.${sectionIndex}.items.${questionIndex}.type`,
   });
 
-  const { fields, replace, append, remove } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: `sections.${sectionIndex}.items.${questionIndex}.options`,
   });
 
   const handleAddOption = () => {
-    append({ label: '', value: '' });
+    append({ label: '' });
   };
 
   const handleRemoveOption = (index: number) => {
@@ -70,7 +81,7 @@ export const QuestionOptionsManager = ({
     }
   };
 
-  const showValueForm =
+  const riskValueForm =
     formType?.value && formType?.value !== FormTypeEnum.NORMAL;
 
   return (
@@ -95,7 +106,7 @@ export const QuestionOptionsManager = ({
               onKeyDown: (e) => handleKeyDown(e, index),
             }}
           />
-          {showValueForm && (
+          {riskValueForm && (
             <SInputForm
               name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
               placeholder={`Valor ${index + 1}`}
@@ -103,6 +114,68 @@ export const QuestionOptionsManager = ({
               textFieldProps={{
                 onKeyDown: (e) => handleKeyDown(e, index),
               }}
+            />
+          )}
+          {!riskValueForm && (
+            <SSearchSelectForm
+              name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
+              placeholder={`Valor ${index + 1}`}
+              hideSearchInput={true}
+              options={[
+                { value: 5, ...questionsIndicatorMapOptions[5] },
+                { value: 4, ...questionsIndicatorMapOptions[4] },
+                { value: 3, ...questionsIndicatorMapOptions[3] },
+                { value: 2, ...questionsIndicatorMapOptions[2] },
+                { value: 1, ...questionsIndicatorMapOptions[1] },
+                { value: 0, ...questionsIndicatorMapOptions[0] },
+              ]}
+              getOptionLabel={(option) => option.label}
+              component={({ option }) => (
+                <SFlex
+                  alignItems="center"
+                  justifyContent="center"
+                  p={3}
+                  sx={{
+                    cursor: 'pointer',
+                    mb: 2,
+                    borderRadius: 1,
+                    border: '1px solid',
+                    width: '150px',
+                    borderColor: 'text.label',
+                    mx: 5,
+                    '&:hover': {
+                      filter: 'brightness(0.8)',
+                    },
+                    backgroundColor: option?.color
+                      ? option.color + '99'
+                      : '#eeeeee99',
+                  }}
+                >
+                  <SText>{option?.label || 'Não contabilizar'}</SText>
+                </SFlex>
+              )}
+              getOptionValue={(option) => option.value}
+              renderFullOption={({ option, label, handleSelect }) => (
+                <SFlex
+                  alignItems="center"
+                  onClick={() => handleSelect(option)}
+                  justifyContent="center"
+                  p={3}
+                  flex={1}
+                  sx={{
+                    cursor: 'pointer',
+                    mb: 2,
+                    borderRadius: 1,
+                    mx: 5,
+                    '&:hover': {
+                      filter: 'brightness(0.8)',
+                    },
+                    backgroundColor: option.color + '99',
+                  }}
+                >
+                  <SText>{label}</SText>
+                </SFlex>
+              )}
             />
           )}
           <IconButton

@@ -13,7 +13,7 @@ import {
 } from '../../../../schemas/form-model.schema';
 import { useAppRouter } from '@v2/hooks/useAppRouter';
 import { PageRoutes } from '@v2/constants/pages/routes';
-import { FormModelGroup } from '../../../../../../components/FormModelQuestions/FormModelGroup/FormModelGroup';
+import { FormModelGroup } from '../../../../components/FormModelGroup/FormModelGroup';
 import { transformFormDataToApiFormat } from '../../../../helpers/transform-form-model-data';
 
 export const FormModelAddContent = ({ companyId }: { companyId: string }) => {

@@ -4,7 +4,8 @@ import { api } from 'core/services/apiClient';
 
 export interface FormAnswerData {
   questionId: string;
-  value: string | string[] | number | Date;
+  value?: string;
+  optionIds?: string[];
 }
 
 export interface SubmitFormAnswerParams {

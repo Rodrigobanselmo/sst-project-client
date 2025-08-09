@@ -2,16 +2,19 @@ import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-ty
 import { FormIdentifierTypeTranslate } from '@v2/models/form/translations/form-identifier-type.translation';
 import { v4 } from 'uuid';
 import * as yup from 'yup';
-import { IFormModelSection } from '../../model/schemas/form-model.schema';
-import { InputFormModelSelectOptionProps } from '../../../components/FormApplicationForms/inputs/InputFormModelSelect/InputFormModelSelect';
-import { InputWorkspaceSelectMultipleOptionProps } from '../../../components/FormApplicationForms/inputs/InputWorkspaceSelect/InputWorkspaceSelectMultiple';
+import { InputFormModelSelectOptionProps } from '../components/FormApplicationForms/inputs/InputFormModelSelect/InputFormModelSelect';
+import { InputWorkspaceSelectMultipleOptionProps } from '../components/FormApplicationForms/inputs/InputWorkspaceSelect/InputWorkspaceSelectMultiple';
 export interface IFormIdentifierItem {
   id?: string;
   apiId?: string;
   content: string;
   required: boolean;
   type: { value: FormIdentifierTypeEnum; label: string };
-  options?: { apiId?: string; value: string; label: string }[];
+  options?: {
+    apiId?: string;
+    label: string;
+    // value: string;
+  }[];
 }
 
 export interface IFormIdentifierSection {
@@ -81,8 +84,8 @@ export const schemaFormApplicationForm = yup.object({
                 .of(
                   yup.object({
                     apiId: yup.string().optional(),
-                    value: yup.string().optional(),
                     label: yup.string().optional(),
+                    // value: yup.string().optional(),
                   }),
                 )
                 .optional(),
@@ -106,7 +109,7 @@ export const getFormApplicationInitialValues = () => ({
   },
   options: Array.from({ length: 4 }, () => ({
     label: '',
-    value: '',
+    // value: '',
   })),
 });
 

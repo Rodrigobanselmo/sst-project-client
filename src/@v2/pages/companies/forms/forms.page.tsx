@@ -3,7 +3,7 @@ import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { useRouter } from 'next/router';
-import { FormApplicationsContent } from './components/FormApplicationContent/FormApplicationContent';
+import { FormContent } from './components/FormContent/FormContent';
 
 export const FormsPage = () => {
   const router = useRouter();
@@ -14,7 +14,7 @@ export const FormsPage = () => {
       <SHeaderTag title={'Formulários'} />
       <SContainer>
         <SPageHeader mb={8} title="Formulários" />
-        <FormApplicationsContent companyId={companyId} />
+        <FormContent companyId={companyId} />
       </SContainer>
     </>
   );

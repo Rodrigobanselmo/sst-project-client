@@ -9,13 +9,15 @@ import { useMutateSubmitFormAnswer } from '@v2/services/forms/form-answer/submit
 import { useFetchPublicFormApplication } from '@v2/services/forms/form-application/public-form-application/hooks/useFetchPublicFormApplication';
 import { STBoxLoading, STLoadLogoSimpleIcon } from 'layouts/default/loading/styles';
 import { useRouter } from 'next/router';
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { FormAccessDenied } from './components/FormAccessDenied/FormAccessDenied';
 import { HtmlContentRenderer } from './components/HtmlContentRenderer/FormAnswerFieldControlled';
+import { FormQuestionOptionReadModel } from '@v2/models/form/models/shared/form-question-option-read.model';
+import { FormAnswerData } from '@v2/services/forms/form-answer/submit-form-answer/service/submit-form-answer.service';
 
 interface FormAnswers {
-  [questionId: string]: any;
+  [questionId: string]: FormQuestionOptionReadModel;
 }
 
 export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean }) => {
@@ -47,6 +49,27 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const currentGroup = publicFormApplication?.groups?.[currentStep];
   const canAccess = getCanAccess();
 
+  const scrollToFirstError = useCallback(() => {
+    // Get the first error field
+    const errors = form.formState.errors;
+    const firstErrorField = Object.keys(errors).find(key => key !== 'root');
+
+    if (firstErrorField) {
+      // Find the element with the error field ID
+      const errorElement = document.getElementById(`question-${firstErrorField}`);
+      if (errorElement && scrollContainerRef.current) {
+        // Calculate the position to scroll to (with some offset for better visibility)
+        const elementTop = errorElement.offsetTop;
+        const offset = 100; // Offset from top for better visibility
+
+        scrollContainerRef.current.scrollTo({
+          top: elementTop - offset,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, [form.formState.errors]);
+
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
@@ -56,6 +79,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
   const handlePrevious = () => {
     if (currentStep > 0) {
+      form.clearErrors();
       setCurrentStep(currentStep - 1);
     }
   };
@@ -72,12 +96,10 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     const missingRequiredFields: string[] = [];
 
     requiredQuestions.forEach((question) => {
-      const value = data[question.id];
-      if (
-        !value ||
-        (Array.isArray(value) && value.length === 0) ||
-        (typeof value === 'string' && value.trim() === '')
-      ) {
+      const fieldValue = data[question.id];
+
+      const isError = !fieldValue || !fieldValue.id;
+      if (isError) {
         missingRequiredFields.push(question.details.text || question.id);
         form.setError(question.id, {
           message: 'Este campo é obrigatório',
@@ -89,14 +111,20 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
       form.setError('root', {
         message: `Campos obrigatórios não preenchidos: ${missingRequiredFields.join(', ')}`,
       });
+
+      // Scroll to the first error field after a short delay to ensure errors are set
+      setTimeout(() => {
+        scrollToFirstError();
+      }, 100);
+
       return;
     }
 
     // If this is the last step, submit the form
     if (currentStep === totalSteps - 1) {
-      const answersArray = Object.entries(data).map(([questionId, value]) => ({
+      const answersArray = Object.entries(data).map<FormAnswerData>(([questionId, value]) => ({
         questionId,
-        value,
+        optionIds: value.id ? [value.id] : undefined,
       }));
 
       try {
@@ -113,6 +141,9 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         form.setError('root', {
           message: 'Erro ao enviar formulário. Tente novamente.',
         });
+
+        // Scroll to top to show the error message
+        scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } else {
       // Move to next step
@@ -268,10 +299,11 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
             {currentGroup?.questions.map((question: FormQuestionReadModel) => {
               const fieldError = form.formState.errors[question.id];
-              
+
               return (
                 <Box
                   key={question.id}
+                  id={`question-${question.id}`}
                   sx={{
                     backgroundColor: '#ffffff',
                     padding: 12,
@@ -298,6 +330,27 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
                 </Box>
               );
             })}
+
+            {/* Error message display */}
+            {form.formState.errors.root && (
+              <Box
+                sx={{
+                  backgroundColor: '#ffebee',
+                  border: '1px solid #f44336',
+                  borderRadius: 1,
+                  padding: 3,
+                  marginTop: 2,
+                }}
+              >
+                <SText
+                  color="error.main"
+                  fontSize={14}
+                  sx={{ fontWeight: 600 }}
+                >
+                  Campos obrigatórios não preenchidos ou preenchidos incorretamente.
+                </SText>
+              </Box>
+            )}
 
             {/* Navigation buttons */}
             <Box

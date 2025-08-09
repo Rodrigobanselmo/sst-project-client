@@ -30,10 +30,9 @@ export function transformFormApplicationDataToApiFormat(
         acceptOther: false,
       },
       options:
-        item.options?.map((option, optionIndex) => ({
+        item.options?.map((option) => ({
           id: option.apiId,
           text: option.label,
-          value: optionIndex + 1,
         })) || [],
     })),
   };
