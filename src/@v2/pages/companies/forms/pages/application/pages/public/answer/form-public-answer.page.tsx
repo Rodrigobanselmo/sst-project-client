@@ -22,6 +22,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const router = useRouter();
   const applicationId = router.query.id as string;
   const [currentStep, setCurrentStep] = useState(0);
+  const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const { publicFormApplication, isPublic, isTesting, isLoading } = useFetchPublicFormApplication({
@@ -104,8 +105,9 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
           answers: answersArray,
         });
 
-        // Redirect to success page or show success message
-        alert('Formulário enviado com sucesso!');
+        // Show thank you page
+        setIsFormSubmitted(true);
+        scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
       } catch (error) {
         console.error('Error submitting form:', error);
         form.setError('root', {
@@ -139,6 +141,69 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
       <div style={{ padding: '20px', textAlign: 'center' }}>
         Formulário não encontrado
       </div>
+    );
+  }
+
+  // Show thank you page after successful submission
+  if (isFormSubmitted) {
+    return (
+      <Box sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
+        <Box style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+          <Box
+            sx={{
+              backgroundColor: '#ffffff',
+              padding: 12,
+              borderRadius: 1,
+              marginBottom: 2,
+              borderTop: '4px solid #4caf50',
+              textAlign: 'center',
+            }}
+          >
+            <Box sx={{ marginBottom: 8 }}>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontSize: 48,
+                  color: '#4caf50',
+                  marginBottom: 4,
+                }}
+              >
+                ✓
+              </Typography>
+              <SText
+                variant="h1"
+                fontSize={28}
+                sx={{
+                  color: '#333',
+                  fontWeight: 600,
+                  marginBottom: 8,
+                }}
+              >
+                Obrigado!
+              </SText>
+              <SText
+                fontSize={16}
+                sx={{
+                  color: '#666',
+                  marginBottom: 12,
+                  lineHeight: 1.6,
+                }}
+              >
+                Seu formulário foi enviado com sucesso. Agradecemos por dedicar seu tempo para responder às nossas perguntas.
+              </SText>
+              <SText
+                fontSize={14}
+                sx={{
+                  color: '#888',
+                  fontStyle: 'italic',
+                }}
+              >
+                Você pode fechar esta página agora.
+              </SText>
+            </Box>
+          </Box>
+        </Box>
+      </Box>
     );
   }
 
