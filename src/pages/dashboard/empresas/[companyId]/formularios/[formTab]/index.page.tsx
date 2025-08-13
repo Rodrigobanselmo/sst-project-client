@@ -1,10 +1,10 @@
 import { NextPage } from 'next';
 
-import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
-import { FormsPage } from '@v2/pages/companies/forms/forms.page';
-import { useAppRouter } from '@v2/hooks/useAppRouter';
-import { useEffect } from 'react';
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
+import { useAppRouter } from '@v2/hooks/useAppRouter';
+import { FormsPage } from '@v2/pages/companies/forms/forms.page';
+import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { useEffect } from 'react';
 
 const Page: NextPage = () => {
   const router = useAppRouter();

@@ -1,17 +1,14 @@
 import { Box, Typography } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
-import { SModal } from '@v2/components/organisms/SModal/SModal';
-import { SModalPaper } from '@v2/components/organisms/SModal/components/SModalPaper/SModalPaper';
 import { SModalHeader } from '@v2/components/organisms/SModal/components/SModalHeader/SModalHeader';
-import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
-import { PageRoutes } from '@v2/constants/pages/routes';
-import { getPathname } from '@v2/hooks/useAppRouter';
+import { SModalPaper } from '@v2/components/organisms/SModal/components/SModalPaper/SModalPaper';
 import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
-import SIconLink from 'assets/icons/SLinkIcon';
+import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import SIconCopy from 'assets/icons/SCopyIcon';
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
+import SIconLink from 'assets/icons/SLinkIcon';
 import dynamic from 'next/dynamic';
-import { useMemo, useRef, useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 // Dynamic import for QR code to avoid SSR issues
 const QRCode = dynamic(

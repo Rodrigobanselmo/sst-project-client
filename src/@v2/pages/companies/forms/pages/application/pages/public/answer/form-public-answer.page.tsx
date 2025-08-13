@@ -36,7 +36,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
       return isTesting;
     }
     return isPublic;
-  }
+  };
 
   const submitMutation = useMutateSubmitFormAnswer();
 
