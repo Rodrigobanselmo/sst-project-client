@@ -32,7 +32,7 @@ interface Props extends FilterTypesProps {
   companyId: string;
 }
 
-const limit = 12;
+const limit = 10;
 const table = TablesSelectEnum.ABSENTEEISM_DASH_HIERARCHY;
 
 export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
