@@ -21,6 +21,8 @@ export type IFormApplicationReadModel = {
     hierarchies: { id: string; name: string }[];
     workspaces: { id: string; name: string }[];
   };
+  totalParticipants: number;
+  totalAnswers: number;
   questionIdentifierGroup: FormQuestionGroupReadModel;
 };
 
@@ -37,6 +39,8 @@ export class FormApplicationReadModel {
   form: { id: string; name: string };
   isShareableLink: boolean;
   isAnonymous: boolean;
+  totalParticipants: number;
+  totalAnswers: number;
   participants: {
     hierarchies: { id: string; name: string }[];
     workspaces: { id: string; name: string }[];
@@ -57,6 +61,8 @@ export class FormApplicationReadModel {
     this.participants = params.participants;
     this.isShareableLink = params.isShareableLink;
     this.isAnonymous = params.isAnonymous;
+    this.totalParticipants = params.totalParticipants;
+    this.totalAnswers = params.totalAnswers;
     this.questionIdentifierGroup = new FormQuestionGroupReadModel(
       params.questionIdentifierGroup,
     );

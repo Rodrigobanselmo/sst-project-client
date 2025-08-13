@@ -1,18 +1,17 @@
 import { Box } from '@mui/material';
-import { GraphBarTotal } from './components/graphs/GraphBarTotal/GraphBarTotal';
-import { GraphPieType } from './components/graphs/GraphPieType/GraphPieType';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { GraphPieRangeDays } from './components/graphs/GraphPieRangeDays/GraphPieRangeDays';
-import { TableEmployeeTotal } from './components/tables/table-employee-total/TableEmployeeTotal';
-import { TableHierarchyTotal } from './components/tables/table-hierarchy-total/TableHierarchyTotal';
-import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
+import { SDatePicker } from '@v2/components/forms/fields/SDatePicker/SDatePicker';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import { SSearchSelectMultiple } from '@v2/components/forms/fields/SSearchSelect/SSearchSelectMultiple';
-import { PopperSidebar } from '@v2/components/forms/fields/SSearchSelect/components/PopperSelect/addons/PopperSidebar';
+import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
-import { SDatePicker } from '@v2/components/forms/fields/SDatePicker/SDatePicker';
-import { GraphPieCompare } from './components/graphs/GraphPieCompare/GraphPieCompare';
 import { GraphBarTimeCompare } from './components/graphs/GraphBarTimeCompare/GraphBarTimeCompare';
+import { GraphBarTotal } from './components/graphs/GraphBarTotal/GraphBarTotal';
+import { GraphPieCompare } from './components/graphs/GraphPieCompare/GraphPieCompare';
+import { GraphPieRangeDays } from './components/graphs/GraphPieRangeDays/GraphPieRangeDays';
+import { GraphPieType } from './components/graphs/GraphPieType/GraphPieType';
+import { TableEmployeeTotal } from './components/tables/table-employee-total/TableEmployeeTotal';
+import { TableHierarchyTotal } from './components/tables/table-hierarchy-total/TableHierarchyTotal';
 
 export const AbsenteeismDashboard = ({ companyId }: { companyId: string }) => {
   const { queryParams, setQueryParams } = useQueryParamsState<{

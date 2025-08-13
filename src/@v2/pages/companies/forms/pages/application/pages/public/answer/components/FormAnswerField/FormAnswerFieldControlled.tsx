@@ -66,7 +66,7 @@ export const FormAnswerFieldControlled: React.FC<FormAnswerFieldControlledProps>
             name={name}
             options={question.options}
             getOptionLabel={(option) => option.text}
-            getOptionValue={(option) => option.value?.toString() || option.text}
+            getOptionValue={(option) => option.id}
           />
         );
 
