@@ -2,14 +2,15 @@ import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import PersonIcon from '@mui/icons-material/Person';
-import { Box, Button, Chip, Typography } from '@mui/material';
-import { useCallback, useMemo, useState } from 'react';
+import { Box, Button, Chip, Typography, LinearProgress } from '@mui/material';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
+import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import { FormAnswerBrowseModel } from '@v2/models/form/models/form-questions-answers/form-answer-browse.model';
@@ -18,6 +19,14 @@ import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-que
 import { HtmlContentRenderer } from '../../../../../public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { FormQuestionPieChart } from './components/FormQuestionPieChart/FormQuestionPieChart';
 import { SectionHeader } from './components/SectionHeader/SectionHeader';
+import {
+  STabsQueryParams,
+  STabsQueryParamsRef,
+} from '@v2/components/organisms/STabs/Implementations/STabsUrl/STabsQueryParams';
+import { useAppRouter } from '@v2/hooks/useAppRouter';
+import { useRouter } from 'next/router';
+import { STabs } from '@v2/components/organisms/STabs/STabs';
+import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -50,19 +59,331 @@ interface FormGroupWithQuestions {
   questions: QuestionWithParticipantGroups[];
 }
 
+// Group-Level Dashboard Indicator Component
+interface GroupDashboardIndicatorProps {
+  groupData: FormGroupWithQuestions;
+  selectedGroupingQuestion?: string | null;
+}
+
+// Component for individual participant group indicator
+interface ParticipantGroupIndicatorProps {
+  groupData: FormGroupWithQuestions;
+  participantGroupId: string;
+  participantGroupName: string;
+}
+
+const ParticipantGroupIndicator = ({
+  groupData,
+  participantGroupId,
+  participantGroupName,
+}: ParticipantGroupIndicatorProps) => {
+  // Calculate indicator value for specific participant group across all questions in this form group
+  const calculateParticipantGroupIndicator = () => {
+    let totalValue = 0;
+    let totalAnswers = 0;
+
+    // Sum across all questions in this group for the specific participant group
+    groupData.questions.forEach((questionData) => {
+      const participantData = questionData.participantGroupData.find(
+        (pg) => pg.groupId === participantGroupId,
+      );
+
+      if (participantData) {
+        participantData.question.answers.forEach((answer) => {
+          answer.selectedOptionsIds.forEach((optionId) => {
+            const option = questionData.options.find(
+              (opt) => opt.id === optionId,
+            );
+            if (option && option.value !== undefined && option.value > 0) {
+              totalValue += option.value;
+              totalAnswers += 1;
+            }
+          });
+        });
+      }
+    });
+
+    if (totalAnswers === 0) return 0;
+
+    // Normalize by dividing by (number of answers × 5)
+    const maxPossibleValue = totalAnswers * 5;
+    return totalValue / maxPossibleValue;
+  };
+
+  const indicatorValue = calculateParticipantGroupIndicator();
+  const percentage = Math.round(indicatorValue * 100);
+
+  // Check if there are any valid answers for this participant group
+  const hasValidAnswers = groupData.questions.some((questionData) => {
+    const participantData = questionData.participantGroupData.find(
+      (pg) => pg.groupId === participantGroupId,
+    );
+
+    return participantData?.question.answers.some((answer) =>
+      answer.selectedOptionsIds.some((optionId) => {
+        const option = questionData.options.find((opt) => opt.id === optionId);
+        return option && option.value !== undefined && option.value > 0;
+      }),
+    );
+  });
+
+  // Get color based on indicator value
+  const getIndicatorColor = (value: number): string => {
+    if (value >= 0.8) return '#3cbe7d'; // Green for high scores
+    if (value >= 0.6) return '#8fa728'; // Light green
+    if (value >= 0.4) return '#d9d10b'; // Yellow
+    if (value >= 0.2) return '#d96c2f'; // Orange
+    return '#F44336'; // Red for low scores
+  };
+
+  return (
+    <Box
+      sx={{
+        p: 2,
+        px: 10,
+        mb: 2,
+        backgroundColor: 'secondary.50',
+        borderRadius: 1,
+        border: '1px solid',
+        borderColor: 'secondary.200',
+      }}
+    >
+      <Typography variant="h6" textAlign="center" mb={1} color="secondary.main">
+        {participantGroupName}
+      </Typography>
+
+      <Box
+        height={100}
+        maxWidth={500}
+        mx="auto"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+      >
+        {!hasValidAnswers ? (
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            mt={-20}
+            height="100%"
+            color="text.secondary"
+          >
+            <Typography variant="body2">No questions</Typography>
+          </Box>
+        ) : (
+          <Box width="100%" mb={1}>
+            <LinearProgress
+              variant="determinate"
+              value={percentage}
+              sx={{
+                height: 12,
+                borderRadius: 6,
+                backgroundColor: '#e0e0e0',
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: getIndicatorColor(indicatorValue),
+                  borderRadius: 6,
+                },
+              }}
+            />
+            <Typography
+              variant="h4"
+              textAlign="center"
+              mt={1}
+              color={getIndicatorColor(indicatorValue)}
+            >
+              {percentage}%
+            </Typography>
+            <Typography
+              variant="body2"
+              textAlign="center"
+              color="text.secondary"
+            >
+              Score: {indicatorValue.toFixed(3)}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+};
+
+const GroupDashboardIndicator = ({
+  groupData,
+  selectedGroupingQuestion,
+}: GroupDashboardIndicatorProps) => {
+  // Check if demographic grouping is active
+  const hasMultipleParticipantGroups =
+    groupData.questions.length > 0 &&
+    groupData.questions[0].participantGroupData.length > 1;
+
+  // If demographic grouping is active, show separate indicators for each participant group
+  if (selectedGroupingQuestion && hasMultipleParticipantGroups) {
+    // Get unique participant groups from the first question (they should be the same across all questions)
+    const participantGroups = groupData.questions[0].participantGroupData;
+
+    return (
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h5" textAlign="center" mb={3} color="primary.main">
+          Indicadores do Grupo: {groupData.groupName}
+        </Typography>
+
+        {/* Show indicators side by side for each participant group */}
+        <SFlex
+          gap={3}
+          display="grid"
+          px={10}
+          gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+        >
+          {participantGroups.map((participantGroup) => (
+            <ParticipantGroupIndicator
+              key={participantGroup.groupId}
+              groupData={groupData}
+              participantGroupId={participantGroup.groupId}
+              participantGroupName={participantGroup.groupName}
+            />
+          ))}
+        </SFlex>
+      </Box>
+    );
+  }
+
+  // Default: show combined indicator for all participants
+  const calculateGroupIndicator = () => {
+    let totalValue = 0;
+    let totalAnswers = 0;
+
+    // Sum across all questions in this group and all their participant groups
+    groupData.questions.forEach((questionData) => {
+      questionData.participantGroupData.forEach((participantData) => {
+        participantData.question.answers.forEach((answer) => {
+          answer.selectedOptionsIds.forEach((optionId) => {
+            const option = questionData.options.find(
+              (opt) => opt.id === optionId,
+            );
+            if (option && option.value !== undefined && option.value > 0) {
+              totalValue += option.value;
+              totalAnswers += 1;
+            }
+          });
+        });
+      });
+    });
+
+    if (totalAnswers === 0) return 0;
+
+    // Normalize by dividing by (number of answers × 5)
+    const maxPossibleValue = totalAnswers * 5;
+    return totalValue / maxPossibleValue;
+  };
+
+  const indicatorValue = calculateGroupIndicator();
+  const percentage = Math.round(indicatorValue * 100);
+
+  // Check if there are any valid answers (value > 0) across all questions in this group
+  const hasValidAnswers = groupData.questions.some((questionData) =>
+    questionData.participantGroupData.some((participantData) =>
+      participantData.question.answers.some((answer) =>
+        answer.selectedOptionsIds.some((optionId) => {
+          const option = questionData.options.find(
+            (opt) => opt.id === optionId,
+          );
+          return option && option.value !== undefined && option.value > 0;
+        }),
+      ),
+    ),
+  );
+
+  // Get color based on indicator value
+  const getIndicatorColor = (value: number): string => {
+    if (value >= 0.8) return '#3cbe7d'; // Green for high scores
+    if (value >= 0.6) return '#8fa728'; // Light green
+    if (value >= 0.4) return '#d9d10b'; // Yellow
+    if (value >= 0.2) return '#d96c2f'; // Orange
+    return '#F44336'; // Red for low scores
+  };
+
+  return (
+    <Box
+      sx={{
+        p: 3,
+        mb: 4,
+        backgroundColor: 'primary.50',
+        borderRadius: 2,
+        border: '2px solid',
+        borderColor: 'primary.200',
+      }}
+    >
+      <Typography variant="h5" textAlign="center" mb={2} color="primary.main">
+        Indicador do Grupo: {groupData.groupName}
+      </Typography>
+
+      <Box
+        height={140}
+        maxWidth={700}
+        mx="auto"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Box width="100%" mb={2}>
+          <LinearProgress
+            variant="determinate"
+            value={percentage}
+            sx={{
+              height: 20,
+              borderRadius: 10,
+              backgroundColor: '#e0e0e0',
+              '& .MuiLinearProgress-bar': {
+                backgroundColor: getIndicatorColor(indicatorValue),
+                borderRadius: 10,
+              },
+            }}
+          />
+          <Typography
+            variant="h2"
+            textAlign="center"
+            mt={2}
+            color={getIndicatorColor(indicatorValue)}
+          >
+            {percentage}%
+          </Typography>
+          <Typography
+            variant="body1"
+            textAlign="center"
+            color="text.secondary"
+            mt={1}
+          >
+            Score: {indicatorValue.toFixed(3)} | {groupData.questions.length}{' '}
+            perguntas
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
 interface FormQuestionsDashboardProps {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel | null | undefined;
   formApplication: FormApplicationReadModel;
 }
 
+const uniqueName = 'form-questions-dashboard';
+
 export const FormQuestionsDashboard = ({
   formQuestionsAnswers,
   formApplication,
 }: FormQuestionsDashboardProps) => {
+  const [tabTableIndex, setTabTableIndex] = useState<number>(1);
   // State for managing selected identifier question for grouping
   const [selectedGroupingQuestion, setSelectedGroupingQuestion] = useState<
     string | null
   >(null);
+  // State for controlling whether to show only group indicators or individual questions too
+  const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] =
+    useState<boolean>(false);
 
   // Separate first group (identifier) from the rest (general questions)
   const [identifierGroup, ...generalGroups] = formQuestionsAnswers?.results || [
@@ -269,6 +590,8 @@ export const FormQuestionsDashboard = ({
     );
   }
 
+  const isIndicatorTab = tabTableIndex === 2;
+
   return (
     <SFlex direction="column" gap={16}>
       {/* Identifier Section */}
@@ -334,21 +657,6 @@ export const FormQuestionsDashboard = ({
                     options={availableGroupingQuestions}
                     placeholder="selecione uma pergunta de identificação..."
                   />
-                  {/* <Autocomplete
-                    options={availableGroupingQuestions}
-                    getOptionLabel={(option) => option.textWithoutHtml}
-                    onChange={(_, value) => {
-                      setSelectedGroupingQuestion(value?.id || null);
-                    }}
-                    value={
-                      availableGroupingQuestions.find(
-                        (q) => q.id === selectedGroupingQuestion,
-                      ) || null
-                    }
-                    isOptionEqualToValue={(option, value) =>
-                      option.id === value.id
-                    }
-                  /> */}
                 </Box>
 
                 {/* Selected Grouping Info */}
@@ -387,6 +695,29 @@ export const FormQuestionsDashboard = ({
                       : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
                   </Typography>
                 </Box>
+
+                {/* Switch to toggle between showing individual questions and only group indicators */}
+                {isIndicatorTab && (
+                  <Box sx={{ mb: 2, display: 'flex' }}>
+                    <SSwitch
+                      label="Mostrar apenas indicadores de grupo"
+                      value={showOnlyGroupIndicators}
+                      onChange={(_, checked) =>
+                        setShowOnlyGroupIndicators(checked)
+                      }
+                      formControlProps={{
+                        sx: {
+                          px: 2,
+                          mt: 10,
+                          py: 1,
+                          borderRadius: 1,
+                          border: '1px solid',
+                          borderColor: 'grey.200',
+                        },
+                      }}
+                    />
+                  </Box>
+                )}
               </SFlex>
             </SPaper>
           </Box>
@@ -399,6 +730,23 @@ export const FormQuestionsDashboard = ({
             icon={<InsertChartIcon sx={{ fontSize: 30 }} />}
             title="Perguntas Gerais"
           />
+          <STabs
+            options={[
+              {
+                label: 'Gráficos',
+                value: 1,
+              },
+              {
+                label: 'Indicadores',
+                value: 2,
+              },
+            ]}
+            value={tabTableIndex}
+            onChange={(_, value) => {
+              setTabTableIndex(value);
+            }}
+          />
+
           <SPaper>
             <SFlex direction="column" gap={24} color="background.paper">
               {/* Create a structure grouped by questions first, then by participant groups */}
@@ -469,36 +817,47 @@ export const FormQuestionsDashboard = ({
                           {typedGroupData.groupName}
                         </SText>
 
-                        {/* Render each question with all its participant group variations side by side */}
-                        {typedGroupData.questions.map(
-                          (questionData: QuestionWithParticipantGroups) => (
-                            <Box key={questionData.id} mb={6} px={8}>
-                              <HtmlContentRenderer
-                                content={questionData.details.text}
-                              />
-
-                              {/* Show all participant groups for this question side by side */}
-                              <SFlex
-                                gap={4}
-                                display="grid"
-                                gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
-                              >
-                                {questionData.participantGroupData.map(
-                                  (participantData: ParticipantGroupData) => (
-                                    <Box key={participantData.groupId} p={4}>
-                                      <FormQuestionPieChart
-                                        hideQuestionText
-                                        groupName={participantData.groupName}
-                                        question={participantData.question}
-                                        colorScheme="general"
-                                      />
-                                    </Box>
-                                  ),
-                                )}
-                              </SFlex>
-                            </Box>
-                          ),
+                        {/* Group-Level Indicator - shows combined indicator for all questions in this group */}
+                        {isIndicatorTab && (
+                          <GroupDashboardIndicator
+                            groupData={typedGroupData}
+                            selectedGroupingQuestion={selectedGroupingQuestion}
+                          />
                         )}
+
+                        {/* Render each question with all its participant group variations side by side */}
+                        {!showOnlyGroupIndicators &&
+                          typedGroupData.questions.map(
+                            (questionData: QuestionWithParticipantGroups) => (
+                              <Box key={questionData.id} mb={6} px={8}>
+                                <HtmlContentRenderer
+                                  content={questionData.details.text}
+                                />
+                                <SDivider sx={{ mt: 8, mb: 4 }} />
+
+                                {/* Show all participant groups for this question side by side */}
+                                <SFlex
+                                  gap={4}
+                                  display="grid"
+                                  gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
+                                >
+                                  {questionData.participantGroupData.map(
+                                    (participantData: ParticipantGroupData) => (
+                                      <Box key={participantData.groupId} p={4}>
+                                        <FormQuestionPieChart
+                                          hideQuestionText
+                                          groupName={participantData.groupName}
+                                          question={participantData.question}
+                                          colorScheme="general"
+                                          indicators={isIndicatorTab}
+                                        />
+                                      </Box>
+                                    ),
+                                  )}
+                                </SFlex>
+                              </Box>
+                            ),
+                          )}
                       </Box>
                     );
                   },

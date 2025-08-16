@@ -1,4 +1,10 @@
-import { Box, IconButton, Tooltip } from '@mui/material';
+import {
+  Box,
+  IconButton,
+  Tooltip,
+  LinearProgress,
+  Typography,
+} from '@mui/material';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import { ResponsivePie } from '@nivo/pie';
 import { FormQuestionWithAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-question-with-answers-browse.model';
@@ -47,6 +53,139 @@ const colorSchemes = {
   ],
 };
 
+// Indicator component for displaying calculated score
+interface IndicatorComponentProps {
+  question: Omit<FormQuestionWithAnswersBrowseModel, 'textWithoutHtml'> & {
+    groupName: string;
+    groupId: string;
+  };
+  groupName?: string;
+  hideQuestionText?: boolean;
+  onCreateGroupAnalysis?: (questionId: string) => void;
+}
+
+const IndicatorComponent = ({
+  question,
+  groupName,
+}: IndicatorComponentProps) => {
+  // Calculate indicator value
+  const calculateIndicator = () => {
+    let totalValue = 0;
+    let totalAnswers = 0;
+
+    question.answers.forEach((answer) => {
+      answer.selectedOptionsIds.forEach((optionId) => {
+        const option = question.options.find((opt) => opt.id === optionId);
+        if (option && option.value !== undefined && option.value > 0) {
+          totalValue += option.value;
+          totalAnswers += 1;
+        }
+      });
+    });
+
+    if (totalAnswers === 0) return 0;
+
+    // Normalize by dividing by (number of answers × 5)
+    const maxPossibleValue = totalAnswers * 5;
+    return totalValue / maxPossibleValue;
+  };
+
+  const indicatorValue = calculateIndicator();
+  const percentage = Math.round(indicatorValue * 100);
+
+  // Check if there are any answers with value > 0
+  const hasValidAnswers = question.answers.some((answer) =>
+    answer.selectedOptionsIds.some((optionId) => {
+      const option = question.options.find((opt) => opt.id === optionId);
+      return option && option.value !== undefined && option.value > 0;
+    }),
+  );
+
+  // Get color based on indicator value
+  const getIndicatorColor = (value: number): string => {
+    if (value >= 0.8) return '#3cbe7d'; // Green for high scores
+    if (value >= 0.6) return '#8fa728'; // Light green
+    if (value >= 0.4) return '#d9d10b'; // Yellow
+    if (value >= 0.2) return '#d96c2f'; // Orange
+    return '#F44336'; // Red for low scores
+  };
+
+  return (
+    <Box>
+      <SFlex justifyContent="space-between" alignItems="center" mb={8}>
+        {groupName && (
+          <SText
+            textAlign={'center'}
+            width="100%"
+            fontWeight="bold"
+            fontSize={16}
+          >
+            {groupName}
+          </SText>
+        )}
+      </SFlex>
+
+      <Box
+        maxWidth={400}
+        mx="auto"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+        alignItems="center"
+      >
+        {!hasValidAnswers ? (
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            height="100%"
+            color="text.secondary"
+            mt={10}
+          >
+            <Typography variant="h6">
+              Nenhuma resposta encontrada ou sem relevância
+            </Typography>
+          </Box>
+        ) : (
+          <Box width="100%" mb={2}>
+            <Typography variant="h6" textAlign="center" mb={1}>
+              Indicador de Qualidade
+            </Typography>
+            <LinearProgress
+              variant="determinate"
+              value={percentage}
+              sx={{
+                height: 20,
+                borderRadius: 10,
+                backgroundColor: '#e0e0e0',
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: getIndicatorColor(indicatorValue),
+                  borderRadius: 10,
+                },
+              }}
+            />
+            <Typography
+              variant="h4"
+              textAlign="center"
+              mt={2}
+              color={getIndicatorColor(indicatorValue)}
+            >
+              {percentage}%
+            </Typography>
+            <Typography
+              variant="body2"
+              textAlign="center"
+              color="text.secondary"
+            >
+              Score: {indicatorValue.toFixed(3)}
+            </Typography>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  );
+};
+
 interface FormQuestionPieChartProps {
   question: Omit<FormQuestionWithAnswersBrowseModel, 'textWithoutHtml'> & {
     groupName: string;
@@ -56,6 +195,7 @@ interface FormQuestionPieChartProps {
   colorScheme?: 'identifier' | 'general';
   hideQuestionText?: boolean;
   onCreateGroupAnalysis?: (questionId: string) => void;
+  indicators?: boolean;
 }
 
 export const FormQuestionPieChart = ({
@@ -63,6 +203,7 @@ export const FormQuestionPieChart = ({
   groupName,
   colorScheme = 'general',
   hideQuestionText = false,
+  indicators = false,
   onCreateGroupAnalysis,
 }: FormQuestionPieChartProps) => {
   // Get the appropriate color palette for identifier questions
@@ -109,6 +250,11 @@ export const FormQuestionPieChart = ({
   const handleCreateGroupAnalysis = () => {
     onCreateGroupAnalysis?.(question.id);
   };
+
+  // If indicators is true, use the IndicatorComponent
+  if (indicators) {
+    return <IndicatorComponent question={question} groupName={groupName} />;
+  }
 
   // If no data, show a message
   if (pieData.length === 0) {

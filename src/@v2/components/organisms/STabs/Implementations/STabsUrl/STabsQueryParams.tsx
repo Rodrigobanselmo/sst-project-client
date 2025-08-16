@@ -1,3 +1,4 @@
+import React, { forwardRef, useImperativeHandle } from 'react';
 import { Box } from '@mui/material';
 
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
@@ -13,22 +14,38 @@ interface STabsQueryParamsProps<T>
   onChangeTab?: (value: T) => void;
 }
 
-export function STabsQueryParams<T>({
-  tabsProps,
-  uniqueName,
-  startValue,
-  isLoading,
-  options,
-  onChangeTab,
-  containerProps,
-  ...props
-}: STabsQueryParamsProps<T>) {
+// Type for the imperative ref
+export interface STabsQueryParamsRef<T> {
+  getValue: () => T;
+}
+
+export const STabsQueryParams = forwardRef(function STabsQueryParams<T>(
+  {
+    tabsProps,
+    uniqueName,
+    startValue,
+    isLoading,
+    options,
+    onChangeTab,
+    containerProps,
+    ...props
+  }: STabsQueryParamsProps<T>,
+  ref: React.Ref<STabsQueryParamsRef<T>>,
+) {
   const { queryParams, setQueryParams } = useQueryParamsState<{
     tabs?: { name: string; value: T }[];
   }>();
 
   const tabUrl = queryParams.tabs?.find((tab) => tab.name === uniqueName);
   const value = tabUrl?.value || startValue || options[0]?.value;
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getValue: () => value,
+    }),
+    [value],
+  );
 
   const onChange = (_: React.SyntheticEvent, value: T) => {
     const newTabs = [...(queryParams.tabs || [])];
@@ -56,4 +73,4 @@ export function STabsQueryParams<T>({
   return (
     <STabs {...props} options={options} value={value} onChange={onChange} />
   );
-}
+});
