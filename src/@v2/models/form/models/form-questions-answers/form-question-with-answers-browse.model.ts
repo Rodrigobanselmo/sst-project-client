@@ -46,4 +46,8 @@ export class FormQuestionWithAnswersBrowseModel {
       (answer) => new FormAnswerBrowseModel(answer),
     );
   }
+
+  get textWithoutHtml() {
+    return this.details.text.replace(/<[^>]*>?/g, '');
+  }
 }

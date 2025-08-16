@@ -28,12 +28,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
           overflow: 'hidden',
         }}
       >
-        <SFlex
-          direction="row"
-          gap={2}
-          align="center"
-          sx={{ p: 3, px: 5, backgroundColor: 'mainBlur.10' }}
-        >
+        <SFlex direction="row" gap={2} align="center" sx={{ p: 3, px: 5 }}>
           <InsertChartIcon sx={{ fontSize: 32, color: 'primary.main' }} />
           <SText sx={{ fontSize: 24, fontWeight: 600, color: 'primary.main' }}>
             {totalAnswers}
@@ -45,7 +40,6 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
       <SPaper
         sx={{
           p: 3,
-          bgcolor: '#e3f2fd',
           borderRadius: 2,
           minWidth: 200,
           textAlign: 'center',

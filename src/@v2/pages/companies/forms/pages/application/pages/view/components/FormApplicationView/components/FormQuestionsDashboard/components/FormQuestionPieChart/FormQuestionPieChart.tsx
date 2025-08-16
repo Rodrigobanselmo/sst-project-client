@@ -1,8 +1,11 @@
-import { Box } from '@mui/material';
+import { Box, IconButton, Tooltip } from '@mui/material';
+import AnalyticsIcon from '@mui/icons-material/Analytics';
 import { ResponsivePie } from '@nivo/pie';
 import { FormQuestionWithAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-question-with-answers-browse.model';
 import { PieLegends } from './components/PieLegends/PieLegends';
 import { HtmlContentRenderer } from '@v2/pages/companies/forms/pages/application/pages/public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SText } from '@v2/components/atoms/SText/SText';
 
 // Color mapping based on option values
 const getColorByValue = (value?: number): string => {
@@ -45,16 +48,22 @@ const colorSchemes = {
 };
 
 interface FormQuestionPieChartProps {
-  question: FormQuestionWithAnswersBrowseModel & {
+  question: Omit<FormQuestionWithAnswersBrowseModel, 'textWithoutHtml'> & {
     groupName: string;
     groupId: string;
   };
+  groupName?: string;
   colorScheme?: 'identifier' | 'general';
+  hideQuestionText?: boolean;
+  onCreateGroupAnalysis?: (questionId: string) => void;
 }
 
 export const FormQuestionPieChart = ({
   question,
+  groupName,
   colorScheme = 'general',
+  hideQuestionText = false,
+  onCreateGroupAnalysis,
 }: FormQuestionPieChartProps) => {
   // Get the appropriate color palette for identifier questions
   const identifierColors = colorSchemes.identifier;
@@ -96,15 +105,25 @@ export const FormQuestionPieChart = ({
           : getColorByValue(item.optionValue),
     }));
 
+  // Function to create group analysis by each option
+  const handleCreateGroupAnalysis = () => {
+    onCreateGroupAnalysis?.(question.id);
+  };
+
   // If no data, show a message
   if (pieData.length === 0) {
     return (
       <Box>
-        <Box mb={2}>
-          <h3 style={{ margin: 0, fontSize: '16px', color: '#333' }}>
-            {question.details.text}
-          </h3>
-        </Box>
+        {groupName && (
+          <SText textAlign="center" fontWeight="bold" fontSize={16}>
+            {groupName}
+          </SText>
+        )}
+        {!hideQuestionText && (
+          <Box mb={2}>
+            <HtmlContentRenderer content={question.details.text} />
+          </Box>
+        )}
         <Box
           display="flex"
           alignItems="center"
@@ -122,9 +141,42 @@ export const FormQuestionPieChart = ({
 
   return (
     <Box>
-      <Box mb={8}>
-        <HtmlContentRenderer content={question.details.text} />
-      </Box>
+      <SFlex justifyContent="space-between" alignItems="center" mb={8}>
+        {groupName && (
+          <SText
+            textAlign={'center'}
+            width="100%"
+            fontWeight="bold"
+            fontSize={16}
+          >
+            {groupName}
+          </SText>
+        )}
+        {onCreateGroupAnalysis && (
+          <Tooltip title="Criar análise por grupos desta pergunta">
+            <IconButton
+              onClick={handleCreateGroupAnalysis}
+              size="small"
+              sx={{
+                ml: 2,
+                mt: -2,
+                color: 'primary.main',
+                '&:hover': {
+                  backgroundColor: 'primary.light',
+                  color: 'white',
+                },
+              }}
+            >
+              <AnalyticsIcon />
+            </IconButton>
+          </Tooltip>
+        )}
+        {!hideQuestionText && (
+          <Box flex={1}>
+            <HtmlContentRenderer content={question.details.text} />
+          </Box>
+        )}
+      </SFlex>
       <Box height={200} maxWidth={400} mx="auto">
         <ResponsivePie
           data={pieData}
