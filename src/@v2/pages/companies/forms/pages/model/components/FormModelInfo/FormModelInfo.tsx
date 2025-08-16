@@ -38,8 +38,12 @@ export const FormModelInfo = (props: Props) => {
           disabled
           getOptionValue={(option) => option.value}
         />
-        <SSwitchForm label="Anônimo" name="anonymous" />
-        <SSwitchForm label="Link compartilhável" name="shareableLink" />
+        <SSwitchForm label="Anônimo" name="anonymous" disabled />
+        <SSwitchForm
+          label="Link compartilhável"
+          name="shareableLink"
+          disabled
+        />
       </SFlex>
     </SFormSection>
   );

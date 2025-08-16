@@ -12,4 +12,5 @@ export interface SSwitchProps {
   ) => void;
   switchProps?: SwitchProps;
   errorMessage?: string;
+  disabled?: boolean;
 }

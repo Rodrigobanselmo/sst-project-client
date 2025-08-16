@@ -44,8 +44,8 @@ export interface IFormModelForms {
 export const schemaFormModelForms = yup.object({
   title: yup.string().required('Título é obrigatório'),
   description: yup.string().required('Descrição é obrigatória'),
-  anonymous: yup.boolean().default(false),
-  shareableLink: yup.boolean().default(false),
+  anonymous: yup.boolean().default(true),
+  shareableLink: yup.boolean().default(true),
   type: yup
     .object({
       label: yup.string().required('Tipo é obrigatório'),
@@ -134,8 +134,8 @@ export const getFormSectionInitialValues = (): IFormModelSection => ({
 export const formModelFormsInitialValues: IFormModelForms = {
   title: '',
   description: '',
-  anonymous: false,
-  shareableLink: false,
+  anonymous: true,
+  shareableLink: true,
   type: {
     value: FormTypeEnum.NORMAL,
     label: FormTypeTranslate[FormTypeEnum.NORMAL],

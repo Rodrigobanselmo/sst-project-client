@@ -13,14 +13,16 @@ export const SSwitch: FC<{ children?: any } & SSwitchProps> = ({
   switchProps,
   value,
   onChange,
-  errorMessage,
+  disabled = false,
 }) => {
   const { sx: formSx, ...formProps } = formControlProps;
   return (
     <FormControlLabel
       sx={{ '& .MuiFormControlLabel-label': { fontSize, color }, ...formSx }}
+      disabled={disabled}
       control={
         <STSwitch
+          disabled={disabled}
           checked={value}
           onChange={onChange}
           sx={{ mr: 2, ...switchProps?.sx }}
