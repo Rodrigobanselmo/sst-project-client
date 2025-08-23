@@ -59,7 +59,6 @@ export function SSearchSelectMultiple<T>({
   onScrollEnd,
 }: SSearchSelectMultipleProps<T>) {
   const [shrink, setShrink] = React.useState(false);
-  console.log({ values });
 
   const handleSelect = (value: T, e: any) => {
     const index = values?.findIndex(

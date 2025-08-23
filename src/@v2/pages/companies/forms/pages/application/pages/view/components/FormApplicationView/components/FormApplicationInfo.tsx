@@ -1,22 +1,17 @@
 import { SIconEdit } from '@v2/assets/icons/SIconEdit/SIconEdit';
+import { SIconShare } from '@v2/assets/icons/SIconShare/SIconShare';
+import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
-import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { InfoCardAvatar } from '@v2/components/organisms/SInfoCard/components/InfoCardAvatar/InfoCardAvatar';
 import { InfoCardSection } from '@v2/components/organisms/SInfoCard/components/InfoCardSection/InfoCardSection';
 import { InfoCardText } from '@v2/components/organisms/SInfoCard/components/InfoCardText/InfoCardText';
+import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
-import { PageRoutes } from '@v2/constants/pages/routes';
-import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import SIconDocument from 'assets/icons/SDocumentIcon';
-import SIconLink from 'assets/icons/SLinkIcon';
-import SIconShare from 'assets/icons/SLinkIcon';
-import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
-import { getPathname } from '@v2/hooks/useAppRouter';
-import { useModal, ModalKeyEnum } from '@v2/hooks/useModal';
 import { FormApplicationShareModal } from './FormApplicationShareModal';
 import { FormApplicationStatusChange } from './FormApplicationStatusChange';
 
@@ -63,6 +58,9 @@ export const FormApplicationInfo = ({
               />
             </SFlex>
             <SFlex gap={1} alignItems="center">
+              <SIconButton onClick={handleOpenShareModal}>
+                <SIconShare fontSize={22} color="grey.600" />
+              </SIconButton>
               <SIconButton onClick={onEdit}>
                 <SIconEdit fontSize={22} color="grey.600" />
               </SIconButton>
@@ -139,7 +137,7 @@ export const FormApplicationInfo = ({
             {formApplication.isShareableLink && (
               <SButton
                 text="Compartilhar"
-                icon={<SIconShare sx={{ fontSize: 16 }} />}
+                icon={<SIconShare fontSize={18} />}
                 onClick={handleOpenShareModal}
                 variant="outlined"
                 color="info"

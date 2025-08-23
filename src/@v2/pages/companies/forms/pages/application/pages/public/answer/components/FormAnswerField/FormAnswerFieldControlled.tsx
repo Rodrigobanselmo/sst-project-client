@@ -24,6 +24,8 @@ export const FormAnswerFieldControlled: React.FC<FormAnswerFieldControlledProps>
         return (
           <SInputForm
             name={name}
+            fullWidth
+            placeholder="Digite a resposta..."
           />
         );
 
@@ -31,6 +33,8 @@ export const FormAnswerFieldControlled: React.FC<FormAnswerFieldControlledProps>
         return (
           <SInputForm
             name={name}
+            fullWidth
+            placeholder="Digite a resposta..."
             textFieldProps={{ multiline: true, rows: 4 }}
           />
         );

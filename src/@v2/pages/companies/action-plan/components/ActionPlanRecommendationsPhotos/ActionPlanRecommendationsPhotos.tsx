@@ -41,7 +41,6 @@ export const ActionPlanRecommendationsPhotos = ({
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
       name: 'Andamento da Recomendação',
       onConfirm: async (photo) => {
-        console.log('photo', photo);
         if (photo.file) {
           await addPhoto.mutateAsync({
             file: photo.file,

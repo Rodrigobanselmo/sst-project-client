@@ -6,7 +6,7 @@ import { ISAuthShow } from './types';
 
 export const useAuthShow = () => {
   const { user } = useAuth();
-  console.log({ user });
+
   const isAuthSuccess = useCallback(
     ({ roles, permissions, cruds, hideIf }: ISAuthShow) => {
       if (roles) {

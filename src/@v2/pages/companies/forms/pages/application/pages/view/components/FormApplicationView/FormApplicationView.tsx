@@ -41,6 +41,7 @@ export const FormApplicationView = ({
           <FormStatisticsCard
             totalAnswers={formApplication.totalAnswers}
             totalParticipants={formApplication.totalParticipants}
+            averageTimeSpent={formApplication.averageTimeSpent}
           />
           <FormQuestionsDashboard
             formQuestionsAnswers={formQuestionsAnswers}

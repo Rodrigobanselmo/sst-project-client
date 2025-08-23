@@ -2,8 +2,8 @@ import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import PersonIcon from '@mui/icons-material/Person';
-import { Box, Button, Chip, Typography, LinearProgress } from '@mui/material';
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { Box, Button, Chip, LinearProgress, Typography } from '@mui/material';
+import { useCallback, useMemo, useState } from 'react';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
@@ -18,15 +18,11 @@ import { FormQuestionGroupWithAnswersBrowseModel } from '@v2/models/form/models/
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { HtmlContentRenderer } from '../../../../../public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { FormQuestionPieChart } from './components/FormQuestionPieChart/FormQuestionPieChart';
+import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
 import { SectionHeader } from './components/SectionHeader/SectionHeader';
-import {
-  STabsQueryParams,
-  STabsQueryParamsRef,
-} from '@v2/components/organisms/STabs/Implementations/STabsUrl/STabsQueryParams';
-import { useAppRouter } from '@v2/hooks/useAppRouter';
-import { useRouter } from 'next/router';
-import { STabs } from '@v2/components/organisms/STabs/STabs';
+
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
+import { STabs } from '@v2/components/organisms/STabs/STabs';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -367,14 +363,11 @@ const GroupDashboardIndicator = ({
 
 interface FormQuestionsDashboardProps {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel | null | undefined;
-  formApplication: FormApplicationReadModel;
+  formApplication?: FormApplicationReadModel;
 }
-
-const uniqueName = 'form-questions-dashboard';
 
 export const FormQuestionsDashboard = ({
   formQuestionsAnswers,
-  formApplication,
 }: FormQuestionsDashboardProps) => {
   const [tabTableIndex, setTabTableIndex] = useState<number>(1);
   // State for managing selected identifier question for grouping
@@ -386,9 +379,8 @@ export const FormQuestionsDashboard = ({
     useState<boolean>(false);
 
   // Separate first group (identifier) from the rest (general questions)
-  const [identifierGroup, ...generalGroups] = formQuestionsAnswers?.results || [
-    undefined,
-  ];
+  const [identifierGroup, ...generalGroups] = formQuestionsAnswers!
+    .results! as FormQuestionGroupWithAnswersBrowseModel[];
 
   // Get the selected grouping question
   const groupingQuestion = useMemo(() => {
@@ -495,9 +487,7 @@ export const FormQuestionsDashboard = ({
   const generalQuestionsArrays = useMemo(() => {
     return participantGroups.map((group) => {
       const questionsForGroup = filterQuestionsWithOptions(
-        generalGroups.filter(
-          Boolean,
-        ) as FormQuestionGroupWithAnswersBrowseModel[],
+        generalGroups,
         group.participantIds,
       );
       return {
@@ -591,6 +581,7 @@ export const FormQuestionsDashboard = ({
   }
 
   const isIndicatorTab = tabTableIndex === 2;
+  const isTextAnswersTab = tabTableIndex === 3;
 
   return (
     <SFlex direction="column" gap={16}>
@@ -740,6 +731,10 @@ export const FormQuestionsDashboard = ({
                 label: 'Indicadores',
                 value: 2,
               },
+              {
+                label: 'Respostas de Texto',
+                value: 3,
+              },
             ]}
             value={tabTableIndex}
             onChange={(_, value) => {
@@ -748,122 +743,136 @@ export const FormQuestionsDashboard = ({
           />
 
           <SPaper>
-            <SFlex direction="column" gap={24} color="background.paper">
-              {/* Create a structure grouped by questions first, then by participant groups */}
-              {(() => {
-                // Get all unique questions across all participant groups
-                const allQuestions = new Map();
+            {isTextAnswersTab ? (
+              <FormTextAnswers formGroups={generalGroups} />
+            ) : (
+              <SFlex direction="column" gap={24} color="background.paper">
+                {/* Create a structure grouped by questions first, then by participant groups */}
+                {(() => {
+                  // Get all unique questions across all participant groups
+                  const allQuestions = new Map();
 
-                generalQuestionsArrays.forEach((participantGroup) => {
-                  participantGroup.questions.forEach((question) => {
-                    const key = `${question.groupId}-${question.id}`;
-                    if (!allQuestions.has(key)) {
-                      allQuestions.set(key, {
-                        id: question.id,
-                        groupId: question.groupId,
-                        groupName: question.groupName,
-                        details: question.details,
-                        options: question.options,
-                        participantGroupData: [],
+                  generalQuestionsArrays.forEach((participantGroup) => {
+                    participantGroup.questions.forEach((question) => {
+                      const key = `${question.groupId}-${question.id}`;
+                      if (!allQuestions.has(key)) {
+                        allQuestions.set(key, {
+                          id: question.id,
+                          groupId: question.groupId,
+                          groupName: question.groupName,
+                          details: question.details,
+                          options: question.options,
+                          participantGroupData: [],
+                        });
+                      }
+
+                      // Add this participant group's data for this question
+                      allQuestions.get(key).participantGroupData.push({
+                        groupId: participantGroup.groupId,
+                        groupName: participantGroup.groupName,
+                        participantCount: participantGroup.participantCount,
+                        question: question,
                       });
-                    }
-
-                    // Add this participant group's data for this question
-                    allQuestions.get(key).participantGroupData.push({
-                      groupId: participantGroup.groupId,
-                      groupName: participantGroup.groupName,
-                      participantCount: participantGroup.participantCount,
-                      question: question,
                     });
                   });
-                });
 
-                // Group questions by their original form groups
-                const questionsByFormGroup = Array.from(
-                  allQuestions.values(),
-                ).reduce(
-                  (acc, questionData) => {
-                    const groupKey = questionData.groupId;
-                    if (!acc[groupKey]) {
-                      acc[groupKey] = {
-                        groupName: questionData.groupName,
-                        questions: [],
-                      };
-                    }
-                    acc[groupKey].questions.push(questionData);
-                    return acc;
-                  },
-                  {} as Record<string, FormGroupWithQuestions>,
-                );
+                  // Group questions by their original form groups
+                  const questionsByFormGroup = Array.from(
+                    allQuestions.values(),
+                  ).reduce(
+                    (acc, questionData) => {
+                      const groupKey = questionData.groupId;
+                      if (!acc[groupKey]) {
+                        acc[groupKey] = {
+                          groupName: questionData.groupName,
+                          questions: [],
+                        };
+                      }
+                      acc[groupKey].questions.push(questionData);
+                      return acc;
+                    },
+                    {} as Record<string, FormGroupWithQuestions>,
+                  );
 
-                return Object.entries(questionsByFormGroup).map(
-                  ([groupId, groupData]) => {
-                    const typedGroupData = groupData as FormGroupWithQuestions;
-                    return (
-                      <Box key={groupId} mb={6}>
-                        <SText
-                          sx={{
-                            p: 8,
-                            color: '#424242',
-                            fontWeight: 600,
-                            backgroundColor: 'grey.200',
-                            fontSize: 18,
-                            borderBottom: '2px solid',
-                            borderTop: '2px solid',
-                            borderColor: 'grey.300',
-                            mb: 4,
-                          }}
-                        >
-                          {typedGroupData.groupName}
-                        </SText>
+                  return Object.entries(questionsByFormGroup).map(
+                    ([groupId, groupData]) => {
+                      const typedGroupData =
+                        groupData as FormGroupWithQuestions;
+                      return (
+                        <Box key={groupId} mb={6}>
+                          <SText
+                            sx={{
+                              p: 8,
+                              color: '#424242',
+                              fontWeight: 600,
+                              backgroundColor: 'grey.200',
+                              fontSize: 18,
+                              borderBottom: '2px solid',
+                              borderTop: '2px solid',
+                              borderColor: 'grey.300',
+                              mb: 4,
+                            }}
+                          >
+                            {typedGroupData.groupName}
+                          </SText>
 
-                        {/* Group-Level Indicator - shows combined indicator for all questions in this group */}
-                        {isIndicatorTab && (
-                          <GroupDashboardIndicator
-                            groupData={typedGroupData}
-                            selectedGroupingQuestion={selectedGroupingQuestion}
-                          />
-                        )}
-
-                        {/* Render each question with all its participant group variations side by side */}
-                        {!showOnlyGroupIndicators &&
-                          typedGroupData.questions.map(
-                            (questionData: QuestionWithParticipantGroups) => (
-                              <Box key={questionData.id} mb={6} px={8}>
-                                <HtmlContentRenderer
-                                  content={questionData.details.text}
-                                />
-                                <SDivider sx={{ mt: 8, mb: 4 }} />
-
-                                {/* Show all participant groups for this question side by side */}
-                                <SFlex
-                                  gap={4}
-                                  display="grid"
-                                  gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
-                                >
-                                  {questionData.participantGroupData.map(
-                                    (participantData: ParticipantGroupData) => (
-                                      <Box key={participantData.groupId} p={4}>
-                                        <FormQuestionPieChart
-                                          hideQuestionText
-                                          groupName={participantData.groupName}
-                                          question={participantData.question}
-                                          colorScheme="general"
-                                          indicators={isIndicatorTab}
-                                        />
-                                      </Box>
-                                    ),
-                                  )}
-                                </SFlex>
-                              </Box>
-                            ),
+                          {/* Group-Level Indicator - shows combined indicator for all questions in this group */}
+                          {isIndicatorTab && (
+                            <GroupDashboardIndicator
+                              groupData={typedGroupData}
+                              selectedGroupingQuestion={
+                                selectedGroupingQuestion
+                              }
+                            />
                           )}
-                      </Box>
-                    );
-                  },
-                );
-              })()}
-            </SFlex>
+
+                          {/* Render each question with all its participant group variations side by side */}
+                          {!showOnlyGroupIndicators &&
+                            typedGroupData.questions.map(
+                              (questionData: QuestionWithParticipantGroups) => (
+                                <Box key={questionData.id} mb={6} px={8}>
+                                  <HtmlContentRenderer
+                                    content={questionData.details.text}
+                                  />
+                                  <SDivider sx={{ mt: 8, mb: 4 }} />
+
+                                  {/* Show all participant groups for this question side by side */}
+                                  <SFlex
+                                    gap={4}
+                                    display="grid"
+                                    gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
+                                  >
+                                    {questionData.participantGroupData.map(
+                                      (
+                                        participantData: ParticipantGroupData,
+                                      ) => (
+                                        <Box
+                                          key={participantData.groupId}
+                                          p={4}
+                                        >
+                                          <FormQuestionPieChart
+                                            hideQuestionText
+                                            groupName={
+                                              participantData.groupName
+                                            }
+                                            question={participantData.question}
+                                            colorScheme="general"
+                                            indicators={isIndicatorTab}
+                                          />
+                                        </Box>
+                                      ),
+                                    )}
+                                  </SFlex>
+                                </Box>
+                              ),
+                            )}
+                        </Box>
+                      );
+                    },
+                  );
+                })()}
+              </SFlex>
+            )}
           </SPaper>
         </Box>
       )}

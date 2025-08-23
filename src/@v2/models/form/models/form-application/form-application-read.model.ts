@@ -23,6 +23,7 @@ export type IFormApplicationReadModel = {
   };
   totalParticipants: number;
   totalAnswers: number;
+  averageTimeSpent: number | null;
   questionIdentifierGroup: FormQuestionGroupReadModel;
 };
 
@@ -41,6 +42,7 @@ export class FormApplicationReadModel {
   isAnonymous: boolean;
   totalParticipants: number;
   totalAnswers: number;
+  averageTimeSpent: number | null;
   participants: {
     hierarchies: { id: string; name: string }[];
     workspaces: { id: string; name: string }[];
@@ -63,6 +65,7 @@ export class FormApplicationReadModel {
     this.isAnonymous = params.isAnonymous;
     this.totalParticipants = params.totalParticipants;
     this.totalAnswers = params.totalAnswers;
+    this.averageTimeSpent = params.averageTimeSpent;
     this.questionIdentifierGroup = new FormQuestionGroupReadModel(
       params.questionIdentifierGroup,
     );

@@ -20,9 +20,13 @@ export const FormModelTypesMap: Record<
   },
 };
 
-export const FormModelTypesFilterList = Object.entries(FormModelTypesMap).map(
-  ([value, { label }]) => ({
-    value: value as FormTypeEnum,
-    label,
-  }),
-);
+export const FormModelTypesFilterList = [
+  {
+    value: FormTypeEnum.NORMAL,
+    label: FormTypeTranslate[FormTypeEnum.NORMAL],
+  },
+  {
+    value: FormTypeEnum.PSYCHOSOCIAL,
+    label: FormTypeTranslate[FormTypeEnum.PSYCHOSOCIAL],
+  },
+];

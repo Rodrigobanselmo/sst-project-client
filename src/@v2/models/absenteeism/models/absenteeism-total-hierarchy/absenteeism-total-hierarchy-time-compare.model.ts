@@ -13,7 +13,6 @@ export class AbsenteeismTotalHierarchyTimeCompareModel {
   results: AbsenteeismTotalHierarchyTimeCompareResultModel[][];
 
   constructor(params: IAbsenteeismTotalHierarchyTimeCompareModel) {
-    console.log({ r: params.results });
     this.results = params.results.map((group) =>
       group.map(
         (item) => new AbsenteeismTotalHierarchyTimeCompareResultModel(item),

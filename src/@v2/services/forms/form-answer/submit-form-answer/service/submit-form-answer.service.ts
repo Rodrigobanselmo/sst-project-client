@@ -11,18 +11,20 @@ export interface FormAnswerData {
 export interface SubmitFormAnswerParams {
   applicationId: string;
   answers: FormAnswerData[];
+  timeSpent?: number;
 }
 
 export async function submitFormAnswer({
   applicationId,
   answers,
+  timeSpent,
 }: SubmitFormAnswerParams) {
   const response = await api.post(
     bindUrlParams({
       path: FormRoutes.FORM_APPLICATION.PATH_PUBLIC,
       pathParams: { applicationId },
     }),
-    { answers },
+    { answers, timeSpent },
   );
 
   return response.data;

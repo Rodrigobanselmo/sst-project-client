@@ -11,14 +11,18 @@ import { STBoxLoading, STLoadLogoSimpleIcon } from 'layouts/default/loading/styl
 import { useRouter } from 'next/router';
 import { useRef, useState, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
+import { useActiveTimeTracker } from '@v2/hooks/useActiveTimeTracker';
 import { FormAccessDenied } from './components/FormAccessDenied/FormAccessDenied';
 import { HtmlContentRenderer } from './components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { FormQuestionOptionReadModel } from '@v2/models/form/models/shared/form-question-option-read.model';
 import { FormAnswerData } from '@v2/services/forms/form-answer/submit-form-answer/service/submit-form-answer.service';
+import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 
 interface FormAnswers {
-  [questionId: string]: FormQuestionOptionReadModel;
+  [questionId: string]: FormQuestionOptionReadModel | string;
 }
+
+const VALIDATE_STRING_REQUIRED_FIELDS = [FormQuestionTypeEnum.SHORT_TEXT, FormQuestionTypeEnum.LONG_TEXT];
 
 export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean }) => {
   const router = useRouter();
@@ -26,6 +30,12 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const [currentStep, setCurrentStep] = useState(0);
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Initialize active time tracker
+  const timeTracker = useActiveTimeTracker({
+    inactivityThreshold: 30000, // 30 seconds of inactivity
+    autoStart: true,
+  });
 
   const { publicFormApplication, isPublic, isTesting, isLoading } = useFetchPublicFormApplication({
     applicationId: applicationId,
@@ -95,10 +105,19 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
     const missingRequiredFields: string[] = [];
 
+    const allQuestions = publicFormApplication?.groups
+          ?.flatMap(group => group.questions) || [];
+
     requiredQuestions.forEach((question) => {
       const fieldValue = data[question.id];
+      let isError = false;
 
-      const isError = !fieldValue || !fieldValue.id;
+      if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
+        isError = !fieldValue || (typeof fieldValue === 'string' && fieldValue.trim() === '');
+      } else {
+        isError = !fieldValue || (typeof fieldValue === 'object' && !fieldValue.id);
+      }
+
       if (isError) {
         missingRequiredFields.push(question.details.text || question.id);
         form.setError(question.id, {
@@ -122,15 +141,35 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
     // If this is the last step, submit the form
     if (currentStep === totalSteps - 1) {
-      const answersArray = Object.entries(data).map<FormAnswerData>(([questionId, value]) => ({
-        questionId,
-        optionIds: value.id ? [value.id] : undefined,
-      }));
+      const answersArray = Object.entries(data).map<FormAnswerData>(([questionId, value]) => {
+        const question = allQuestions?.find(q => q.id === questionId);
+
+        if (!question?.details.type) {
+          return { questionId, value: undefined };
+        }
+
+        if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
+          return {
+            questionId,
+            value: typeof value === 'string' ? value : undefined,
+          };
+        } else {
+          return {
+            questionId,
+            optionIds: (typeof value === 'object' && value?.id) ? [value.id] : undefined,
+          };
+        }
+      });
 
       try {
+        // Stop time tracking and get final time
+        const totalTimeSpent = timeTracker.getActiveTimeInSeconds();
+        timeTracker.stop();
+
         await submitMutation.mutateAsync({
           applicationId: applicationId as string,
           answers: answersArray,
+          timeSpent: totalTimeSpent,
         });
 
         // Show thank you page

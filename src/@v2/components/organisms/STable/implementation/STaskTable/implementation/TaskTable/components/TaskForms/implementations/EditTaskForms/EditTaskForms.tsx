@@ -75,7 +75,6 @@ export const EditTaskForms = ({
         }),
       });
     } else {
-      console.log(data);
       onSubmit(data.responsible?.id);
     }
   };

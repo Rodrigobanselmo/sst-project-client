@@ -14,13 +14,43 @@ export const questionsIndicatorMapOptions: Record<
   number,
   { label: string; color: string }
 > = {
-  5: { label: 'Muito Positivo', color: '#3cbe7d' },
-  4: { label: 'Positivo', color: '#8fa728' },
+  5: { label: 'Muito Negativo', color: '#F44336' },
+  4: { label: 'Negativo', color: '#d96c2f' },
   3: { label: 'Neutro', color: '#d9d10b' },
-  2: { label: 'Negativo', color: '#d96c2f' },
-  1: { label: 'Muito Negativo', color: '#F44336' },
+  2: { label: 'Positivo', color: '#8fa728' },
+  1: { label: 'Muito Positivo', color: '#3cbe7d' },
   0: { label: 'Não contabilizar', color: '#eeeeee' },
 };
+
+export const questionsRiskValueMapOptions: Record<
+  number,
+  { label: string; color: string }
+> = {
+  5: { label: 'Muito Alto', color: '#3cbe7d' },
+  4: { label: 'Alto', color: '#8fa728' },
+  3: { label: 'Médio', color: '#d9d10b' },
+  2: { label: 'Baixo', color: '#d96c2f' },
+  1: { label: 'Muito Baixo', color: '#F44336' },
+  0: { label: 'Não contabilizar', color: '#eeeeee' },
+};
+
+const questionsIndicatorMapOptionsArray = [
+  { value: 5, ...questionsIndicatorMapOptions[5] },
+  { value: 4, ...questionsIndicatorMapOptions[4] },
+  { value: 3, ...questionsIndicatorMapOptions[3] },
+  { value: 2, ...questionsIndicatorMapOptions[2] },
+  { value: 1, ...questionsIndicatorMapOptions[1] },
+  { value: 0, ...questionsIndicatorMapOptions[0] },
+];
+
+const questionsRiskValueMapOptionsArray = [
+  { value: 5, ...questionsRiskValueMapOptions[5] },
+  { value: 4, ...questionsRiskValueMapOptions[4] },
+  { value: 3, ...questionsRiskValueMapOptions[3] },
+  { value: 2, ...questionsRiskValueMapOptions[2] },
+  { value: 1, ...questionsRiskValueMapOptions[1] },
+  { value: 0, ...questionsRiskValueMapOptions[0] },
+];
 
 interface QuestionOptionsManagerProps {
   sectionIndex: number;
@@ -70,7 +100,6 @@ export const QuestionOptionsManager = ({
         const nextInput = document.querySelector(
           `input[id="sections.${sectionIndex}.items.${questionIndex}.options.${nextIndex}.label"]`,
         ) as HTMLInputElement;
-        console.log('nextInput', nextInput);
         if (nextInput) {
           nextInput.focus();
         }
@@ -106,78 +135,63 @@ export const QuestionOptionsManager = ({
               onKeyDown: (e) => handleKeyDown(e, index),
             }}
           />
-          {riskValueForm && (
-            <SInputForm
-              name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
-              placeholder={`Valor ${index + 1}`}
-              sx={{ flex: 1 }}
-              textFieldProps={{
-                onKeyDown: (e) => handleKeyDown(e, index),
-              }}
-            />
-          )}
-          {!riskValueForm && (
-            <SSearchSelectForm
-              name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
-              placeholder={`Valor ${index + 1}`}
-              hideSearchInput={true}
-              options={[
-                { value: 5, ...questionsIndicatorMapOptions[5] },
-                { value: 4, ...questionsIndicatorMapOptions[4] },
-                { value: 3, ...questionsIndicatorMapOptions[3] },
-                { value: 2, ...questionsIndicatorMapOptions[2] },
-                { value: 1, ...questionsIndicatorMapOptions[1] },
-                { value: 0, ...questionsIndicatorMapOptions[0] },
-              ]}
-              getOptionLabel={(option) => option.label}
-              component={({ option }) => (
-                <SFlex
-                  alignItems="center"
-                  justifyContent="center"
-                  p={3}
-                  sx={{
-                    cursor: 'pointer',
-                    mb: 2,
-                    borderRadius: 1,
-                    border: '1px solid',
-                    width: '150px',
-                    borderColor: 'text.label',
-                    mx: 5,
-                    '&:hover': {
-                      filter: 'brightness(0.8)',
-                    },
-                    backgroundColor: option?.color
-                      ? option.color + '99'
-                      : '#eeeeee99',
-                  }}
-                >
-                  <SText>{option?.label || 'Não contabilizar'}</SText>
-                </SFlex>
-              )}
-              getOptionValue={(option) => option.value}
-              renderFullOption={({ option, label, handleSelect }) => (
-                <SFlex
-                  alignItems="center"
-                  onClick={() => handleSelect(option)}
-                  justifyContent="center"
-                  p={3}
-                  flex={1}
-                  sx={{
-                    cursor: 'pointer',
-                    mb: 2,
-                    borderRadius: 1,
-                    mx: 5,
-                    '&:hover': {
-                      filter: 'brightness(0.8)',
-                    },
-                    backgroundColor: option.color + '99',
-                  }}
-                >
-                  <SText>{label}</SText>
-                </SFlex>
-              )}
-            />
-          )}
+          <SSearchSelectForm
+            name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
+            placeholder={`Valor ${index + 1}`}
+            hideSearchInput={true}
+            options={
+              riskValueForm
+                ? questionsRiskValueMapOptionsArray
+                : questionsIndicatorMapOptionsArray
+            }
+            getOptionLabel={(option) => option.label}
+            component={({ option }) => (
+              <SFlex
+                alignItems="center"
+                justifyContent="center"
+                p={3}
+                sx={{
+                  cursor: 'pointer',
+                  mb: 2,
+                  borderRadius: 1,
+                  border: '1px solid',
+                  width: '150px',
+                  borderColor: 'text.label',
+                  mx: 5,
+                  '&:hover': {
+                    filter: 'brightness(0.8)',
+                  },
+                  backgroundColor: option?.color
+                    ? option.color + '99'
+                    : '#eeeeee99',
+                }}
+              >
+                <SText>{option?.label || 'Não contabilizar'}</SText>
+              </SFlex>
+            )}
+            getOptionValue={(option) => option.value}
+            renderFullOption={({ option, label, handleSelect }) => (
+              <SFlex
+                alignItems="center"
+                onClick={() => handleSelect(option)}
+                justifyContent="center"
+                p={3}
+                flex={1}
+                sx={{
+                  cursor: 'pointer',
+                  mb: 2,
+                  borderRadius: 1,
+                  mx: 5,
+                  '&:hover': {
+                    filter: 'brightness(0.8)',
+                  },
+                  backgroundColor: option.color + '99',
+                }}
+              >
+                <SText>{label}</SText>
+              </SFlex>
+            )}
+          />
           <IconButton
             size="small"
             onClick={() => handleRemoveOption(index)}
