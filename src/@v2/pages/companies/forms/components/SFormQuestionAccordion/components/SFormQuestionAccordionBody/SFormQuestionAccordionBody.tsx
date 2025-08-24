@@ -19,6 +19,7 @@ interface SFormQuestionAccordionProps {
   questionIndex: number;
   onCopy?: () => void;
   onDelete?: () => void;
+  disableRequiredSwitch?: boolean;
 }
 
 export const SFormQuestionAccordionBody = ({
@@ -26,6 +27,7 @@ export const SFormQuestionAccordionBody = ({
   questionIndex,
   onCopy,
   onDelete,
+  disableRequiredSwitch = false,
 }: SFormQuestionAccordionProps) => {
   return (
     <SFlex mt={8} flexDirection="column" gap={5}>
@@ -44,19 +46,25 @@ export const SFormQuestionAccordionBody = ({
 
       <Divider sx={{ mt: 4, mb: 0 }} />
       <SFlex alignItems="center" justifyContent="flex-end" gap={2}>
-        <SIconButton onClick={onCopy}>
-          <SIconCopy color="grey.600" fontSize={20} />
-        </SIconButton>
+        {onCopy && (
+          <SIconButton onClick={onCopy}>
+            <SIconCopy color="grey.600" fontSize={20} />
+          </SIconButton>
+        )}
         <SIconButton onClick={onDelete}>
           <SIconDelete color="grey.600" fontSize={22} />
         </SIconButton>
-        <SDivider orientation="vertical" sx={{ mx: 4, ml: 2, height: 28 }} />
+        {(onCopy || !disableRequiredSwitch) && (
+          <SDivider orientation="vertical" sx={{ mx: 4, ml: 2, height: 28 }} />
+        )}
 
-        <SSwitchForm
-          name={`sections.${sectionIndex}.items.${questionIndex}.required`}
-          label="Obrigatória"
-          fontSize="14px"
-        />
+        {!disableRequiredSwitch && (
+          <SSwitchForm
+            name={`sections.${sectionIndex}.items.${questionIndex}.required`}
+            label="Obrigatória"
+            fontSize="14px"
+          />
+        )}
       </SFlex>
     </SFlex>
   );

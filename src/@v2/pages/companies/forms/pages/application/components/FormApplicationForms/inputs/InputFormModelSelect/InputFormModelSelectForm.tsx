@@ -9,10 +9,12 @@ import {
 interface InputFormModelSelectFormProps
   extends Omit<InputFormModelSelectProps, 'onChange' | 'value'> {
   name: string;
+  disabled?: boolean;
 }
 
 export function InputFormModelSelectForm({
   name,
+  disabled,
   ...inputProps
 }: InputFormModelSelectFormProps) {
   const { setValue, formState, control } = useFormContext();
@@ -31,6 +33,7 @@ export function InputFormModelSelectForm({
       value={value}
       onChange={(value) => setValue(name, value)}
       errorMessage={errorMessage}
+      disabled={disabled}
     />
   );
 }

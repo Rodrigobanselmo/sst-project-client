@@ -99,18 +99,44 @@ export const schemaFormApplicationForm = yup.object({
     .min(1, 'Adicione pelo menos uma seção'),
 }) as any;
 
-export const getFormApplicationInitialValues = () => ({
+export const getFormApplicationInitialValues = ({
+  type = FormIdentifierTypeEnum.CUSTOM,
+  content = '',
+}: {
+  type?: FormIdentifierTypeEnum;
+  content?: string;
+}) => ({
   id: v4(),
-  content: '',
+  content,
   required: false,
   type: {
-    value: FormIdentifierTypeEnum.CUSTOM,
-    label: FormIdentifierTypeTranslate[FormIdentifierTypeEnum.CUSTOM],
+    value: type,
+    label: FormIdentifierTypeTranslate[type],
   },
-  options: Array.from({ length: 4 }, () => ({
-    label: '',
-    // value: '',
-  })),
+  options:
+    type === FormIdentifierTypeEnum.SECTOR
+      ? []
+      : Array.from({ length: 4 }, () => ({
+          label: '',
+          // value: '',
+        })),
+});
+
+export const getFormApplicationInitialValuesRisk = ({
+  type = FormIdentifierTypeEnum.CUSTOM,
+  description = '',
+  title = '',
+  content = '',
+}: {
+  type?: FormIdentifierTypeEnum;
+  description?: string;
+  title?: string;
+  content?: string;
+}) => ({
+  id: v4(),
+  title,
+  description,
+  items: [getFormApplicationInitialValues({ type, content })],
 });
 
 export const formApplicationFormInitialValues = {
@@ -123,7 +149,7 @@ export const formApplicationFormInitialValues = {
       id: v4(),
       title: '',
       description: '',
-      items: [getFormApplicationInitialValues()],
+      items: [getFormApplicationInitialValues({})],
     },
   ],
 } as IFormApplicationFormFields;

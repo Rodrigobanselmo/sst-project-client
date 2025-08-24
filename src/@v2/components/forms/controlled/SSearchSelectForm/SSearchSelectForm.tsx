@@ -10,6 +10,7 @@ interface SSearchSelectFormProps<T>
   extends Omit<SSearchSelectProps<T>, 'onChange' | 'value' | 'component'> {
   component?: (args: { option?: T }) => React.ReactNode;
   name: string;
+  getReturnValue?: (value: T) => string;
 }
 
 export function SSearchSelectForm<T>({

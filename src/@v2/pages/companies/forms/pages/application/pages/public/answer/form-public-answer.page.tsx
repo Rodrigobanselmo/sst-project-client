@@ -17,12 +17,14 @@ import { HtmlContentRenderer } from './components/HtmlContentRenderer/FormAnswer
 import { FormQuestionOptionReadModel } from '@v2/models/form/models/shared/form-question-option-read.model';
 import { FormAnswerData } from '@v2/services/forms/form-answer/submit-form-answer/service/submit-form-answer.service';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
+import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
 
 interface FormAnswers {
   [questionId: string]: FormQuestionOptionReadModel | string;
 }
 
 const VALIDATE_STRING_REQUIRED_FIELDS = [FormQuestionTypeEnum.SHORT_TEXT, FormQuestionTypeEnum.LONG_TEXT];
+const VALIDATE_SYSTEM_REQUIRED_FIELDS = [FormIdentifierTypeEnum.SECTOR];
 
 export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean }) => {
   const router = useRouter();
@@ -37,7 +39,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     autoStart: true,
   });
 
-  const { publicFormApplication, isPublic, isTesting, isLoading } = useFetchPublicFormApplication({
+  const { publicFormApplication, options, isPublic, isTesting, isLoading } = useFetchPublicFormApplication({
     applicationId: applicationId,
   });
 
@@ -147,8 +149,12 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         if (!question?.details.type) {
           return { questionId, value: undefined };
         }
-
-        if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
+        if (VALIDATE_SYSTEM_REQUIRED_FIELDS.includes(question.details.identifierType)) {
+          return {
+            questionId,
+            value: (typeof value === 'object' && value?.id) ? value.id : undefined,
+          };
+        }else if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
           return {
             questionId,
             value: typeof value === 'string' ? value : undefined,
@@ -278,7 +284,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   }
 
   const sectionTitle =
-    currentStep === 0
+    currentStep !== 0
       ? currentGroup?.name || publicFormApplication.name
       : publicFormApplication.name;
 
@@ -365,6 +371,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
                   <FormAnswerFieldControlled 
                     question={question} 
                     name={question.id} 
+                    options={options}
                   />
                 </Box>
               );

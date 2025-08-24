@@ -77,7 +77,7 @@ const IndicatorComponent = ({
       answer.selectedOptionsIds.forEach((optionId) => {
         const option = question.options.find((opt) => opt.id === optionId);
         if (option && option.value !== undefined && option.value > 0) {
-          totalValue += option.value;
+          totalValue += option.value - 1;
           totalAnswers += 1;
         }
       });
@@ -86,7 +86,7 @@ const IndicatorComponent = ({
     if (totalAnswers === 0) return 0;
 
     // Normalize by dividing by (number of answers × 5)
-    const maxPossibleValue = totalAnswers * 5;
+    const maxPossibleValue = totalAnswers * 4;
     return totalValue / maxPossibleValue;
   };
 

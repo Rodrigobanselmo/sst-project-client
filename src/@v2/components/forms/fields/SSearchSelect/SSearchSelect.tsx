@@ -16,7 +16,7 @@ export interface SSearchSelectProps<Value> {
   placeholder?: string;
   disabled?: boolean;
   hideSearchInput?: boolean;
-  getOptionLabel: (option: Value) => string;
+  getOptionLabel: (option: Value) => ReactNode | string;
   getOptionIsDisabled?: (option: Value) => boolean;
   getOptionValue: (option: Value) => string | number | boolean;
   onChange: (value: Value | null, event: React.SyntheticEvent) => void;
@@ -74,6 +74,7 @@ export function SSearchSelect<T>({
   };
 
   const handleClean = (event: React.SyntheticEvent) => {
+    if (disabled) return;
     event.stopPropagation();
     onInputChange?.('', event);
     onChange(null, event);
@@ -122,11 +123,7 @@ export function SSearchSelect<T>({
                 <InputEndAdormentSelect
                   loading={loading}
                   mr={inputProps?.endAdornment ? 4 : 0}
-                  onClear={(e) => {
-                    e.stopPropagation();
-                    onInputChange?.('', e);
-                    onChange(null, e);
-                  }}
+                  onClear={handleClean}
                 />
                 {inputProps?.endAdornment}
               </>

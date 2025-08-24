@@ -91,7 +91,7 @@ const ParticipantGroupIndicator = ({
               (opt) => opt.id === optionId,
             );
             if (option && option.value !== undefined && option.value > 0) {
-              totalValue += option.value;
+              totalValue += option.value - 1;
               totalAnswers += 1;
             }
           });
@@ -102,7 +102,7 @@ const ParticipantGroupIndicator = ({
     if (totalAnswers === 0) return 0;
 
     // Normalize by dividing by (number of answers × 5)
-    const maxPossibleValue = totalAnswers * 5;
+    const maxPossibleValue = totalAnswers * 4;
     return totalValue / maxPossibleValue;
   };
 
@@ -259,7 +259,7 @@ const GroupDashboardIndicator = ({
               (opt) => opt.id === optionId,
             );
             if (option && option.value !== undefined && option.value > 0) {
-              totalValue += option.value;
+              totalValue += option.value - 1;
               totalAnswers += 1;
             }
           });
@@ -270,7 +270,7 @@ const GroupDashboardIndicator = ({
     if (totalAnswers === 0) return 0;
 
     // Normalize by dividing by (number of answers × 5)
-    const maxPossibleValue = totalAnswers * 5;
+    const maxPossibleValue = totalAnswers * 4;
     return totalValue / maxPossibleValue;
   };
 
@@ -379,8 +379,10 @@ export const FormQuestionsDashboard = ({
     useState<boolean>(false);
 
   // Separate first group (identifier) from the rest (general questions)
-  const [identifierGroup, ...generalGroups] = formQuestionsAnswers!
-    .results! as FormQuestionGroupWithAnswersBrowseModel[];
+  const [identifierGroup, ...generalGroups] =
+    (formQuestionsAnswers?.results || [
+      '',
+    ]) as FormQuestionGroupWithAnswersBrowseModel[];
 
   // Get the selected grouping question
   const groupingQuestion = useMemo(() => {
@@ -616,103 +618,112 @@ export const FormQuestionsDashboard = ({
         </Box>
       )}
 
-      {/* Grouping Section */}
-      {identifierQuestions.length > 0 &&
-        generalQuestionsArrays.some((group) => group.questions.length > 0) && (
-          <Box sx={{ p: 3 }}>
-            <SectionHeader
-              icon={<FilterListIcon sx={{ fontSize: 30 }} />}
-              title="Agrupar por Identificação"
-            />
-            <SPaper
-              sx={{
-                p: 10,
-              }}
-            >
-              <SFlex direction="column" gap={3}>
-                {/* Grouping Controls */}
-                <Box>
-                  <SSearchSelect
-                    inputProps={{ sx: { width: 300 } }}
-                    label="Selecionar pergunta para agrupar"
-                    getOptionLabel={(option) => option.textWithoutHtml}
-                    getOptionValue={(option) => option?.id}
-                    onChange={(option) => {
-                      setSelectedGroupingQuestion(option?.id || null);
-                    }}
-                    value={
-                      availableGroupingQuestions.find(
-                        (q) => q.id === selectedGroupingQuestion,
-                      ) || null
-                    }
-                    options={availableGroupingQuestions}
-                    placeholder="selecione uma pergunta de identificação..."
-                  />
-                </Box>
-
-                {/* Selected Grouping Info */}
-                {selectedGroupingQuestion && groupingQuestion && (
+      <Box sx={{ p: 3 }}>
+        {/* Grouping Section */}
+        {identifierQuestions.length > 0 &&
+          generalQuestionsArrays.some(
+            (group) => group.questions.length > 0,
+          ) && (
+            <Box>
+              <SectionHeader
+                icon={<FilterListIcon sx={{ fontSize: 30 }} />}
+                title="Agrupar por Identificação"
+              />
+              <SPaper
+                sx={{
+                  p: 10,
+                }}
+              >
+                <SFlex direction="column" gap={3}>
+                  {/* Grouping Controls */}
                   <Box>
-                    <Typography variant="body2" fontWeight="medium" mb={4}>
-                      Agrupando por: {groupingQuestion.textWithoutHtml}
-                    </Typography>
-                    <SFlex gap={1} flexWrap="wrap">
-                      {participantGroups.map((group) => (
-                        <Chip
-                          key={group.id}
-                          label={`${group.name} (${group.participantIds.size} participantes)`}
-                          color="default"
-                          variant="outlined"
-                        />
-                      ))}
-                    </SFlex>
-                    <Button
-                      size="small"
-                      color="error"
-                      startIcon={<ClearIcon />}
-                      onClick={() => setSelectedGroupingQuestion(null)}
-                      sx={{ mt: 2 }}
-                    >
-                      Remover agrupamento
-                    </Button>
-                  </Box>
-                )}
-
-                {/* Participant Count */}
-                <Box>
-                  <Typography variant="body2" color="text.secondary">
-                    {selectedGroupingQuestion
-                      ? `Dados agrupados em ${participantGroups.length} grupos`
-                      : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
-                  </Typography>
-                </Box>
-
-                {/* Switch to toggle between showing individual questions and only group indicators */}
-                {isIndicatorTab && (
-                  <Box sx={{ mb: 2, display: 'flex' }}>
-                    <SSwitch
-                      label="Mostrar apenas indicadores de grupo"
-                      value={showOnlyGroupIndicators}
-                      onChange={(_, checked) =>
-                        setShowOnlyGroupIndicators(checked)
-                      }
-                      formControlProps={{
-                        sx: {
-                          px: 2,
-                          mt: 10,
-                          py: 1,
-                          borderRadius: 1,
-                          border: '1px solid',
-                          borderColor: 'grey.200',
-                        },
+                    <SSearchSelect
+                      inputProps={{ sx: { width: 300 } }}
+                      label="Selecionar pergunta para agrupar"
+                      getOptionLabel={(option) => option.textWithoutHtml}
+                      getOptionValue={(option) => option?.id}
+                      onChange={(option) => {
+                        setSelectedGroupingQuestion(option?.id || null);
                       }}
+                      value={
+                        availableGroupingQuestions.find(
+                          (q) => q.id === selectedGroupingQuestion,
+                        ) || null
+                      }
+                      options={availableGroupingQuestions}
+                      placeholder="selecione uma pergunta de identificação..."
                     />
                   </Box>
-                )}
-              </SFlex>
-            </SPaper>
-          </Box>
+
+                  {/* Selected Grouping Info */}
+                  {selectedGroupingQuestion && groupingQuestion && (
+                    <Box>
+                      <Typography variant="body2" fontWeight="medium" mb={4}>
+                        Agrupando por: {groupingQuestion.textWithoutHtml}
+                      </Typography>
+                      <SFlex gap={1} flexWrap="wrap">
+                        {participantGroups.map((group) => (
+                          <Chip
+                            key={group.id}
+                            label={`${group.name} (${group.participantIds.size} participantes)`}
+                            color="default"
+                            variant="outlined"
+                          />
+                        ))}
+                      </SFlex>
+                      <Button
+                        size="small"
+                        color="error"
+                        startIcon={<ClearIcon />}
+                        onClick={() => setSelectedGroupingQuestion(null)}
+                        sx={{ mt: 2 }}
+                      >
+                        Remover agrupamento
+                      </Button>
+                    </Box>
+                  )}
+
+                  {/* Participant Count */}
+                  <Box>
+                    <Typography variant="body2" color="text.secondary">
+                      {selectedGroupingQuestion
+                        ? `Dados agrupados em ${participantGroups.length} grupos`
+                        : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
+                    </Typography>
+                  </Box>
+                </SFlex>
+              </SPaper>
+            </Box>
+          )}
+
+        {/* Switch to toggle between showing individual questions and only group indicators */}
+        {isIndicatorTab && (
+          <SPaper
+            sx={{
+              mt: 5,
+              p: 10,
+              py: 5,
+            }}
+          >
+            <Box sx={{ display: 'flex' }}>
+              <SSwitch
+                label="Mostrar apenas indicadores de grupo"
+                value={showOnlyGroupIndicators}
+                onChange={(_, checked) => setShowOnlyGroupIndicators(checked)}
+                formControlProps={{
+                  sx: {
+                    px: 2,
+                    py: 1,
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'grey.200',
+                  },
+                }}
+              />
+            </Box>
+          </SPaper>
         )}
+      </Box>
 
       {/* General Questions Section */}
       {generalQuestionsArrays.some((group) => group.questions.length > 0) && (
@@ -739,6 +750,7 @@ export const FormQuestionsDashboard = ({
             value={tabTableIndex}
             onChange={(_, value) => {
               setTabTableIndex(value);
+              setShowOnlyGroupIndicators(false);
             }}
           />
 

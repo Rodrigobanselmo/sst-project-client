@@ -4,7 +4,7 @@ import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 
 interface SFormQuestionAccordionButtonsProps {
   onAddNewSection?: () => void;
-  onAddNewQuestion: () => void;
+  onAddNewQuestion?: () => void;
 }
 
 export const SFormQuestionAccordionButtons = ({
@@ -29,15 +29,17 @@ export const SFormQuestionAccordionButtons = ({
       mt={4}
       mb={5}
     >
-      <SIconButton
-        tooltip="Adicionar pergunta"
-        onClick={onAddNewQuestion}
-        tooltipProps={{
-          placement: 'right',
-        }}
-      >
-        <AddCircleOutlineIcon />
-      </SIconButton>
+      {onAddNewQuestion && (
+        <SIconButton
+          tooltip="Adicionar pergunta"
+          onClick={onAddNewQuestion}
+          tooltipProps={{
+            placement: 'right',
+          }}
+        >
+          <AddCircleOutlineIcon />
+        </SIconButton>
+      )}
       {onAddNewSection && (
         <SIconButton
           tooltip="Adicionar seção"

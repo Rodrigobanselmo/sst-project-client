@@ -16,6 +16,7 @@ export interface InputFormModelSelectProps {
   onChange: (props: InputFormModelSelectOptionProps | null) => void;
   value: InputFormModelSelectOptionProps;
   errorMessage?: string;
+  disabled?: boolean;
 }
 
 export const InputFormModelSelect = ({
@@ -23,6 +24,7 @@ export const InputFormModelSelect = ({
   value,
   companyId,
   errorMessage,
+  disabled,
 }: InputFormModelSelectProps) => {
   const [search, setSearch] = useState('');
 
@@ -46,6 +48,7 @@ export const InputFormModelSelect = ({
     <SSearchSelect
       value={value}
       errorMessage={errorMessage}
+      disabled={disabled}
       onScrollEnd={() => fetchNextPage()}
       boxProps={{ flex: 1 }}
       options={options}

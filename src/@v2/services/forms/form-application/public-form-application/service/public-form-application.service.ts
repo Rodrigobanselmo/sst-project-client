@@ -3,6 +3,7 @@ import {
   FormApplicationReadPublicModel,
   IFormApplicationReadPublicModel,
 } from '@v2/models/form/models/form-application/form-application-read-public.model';
+import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { api } from 'core/services/apiClient';
 
@@ -17,6 +18,14 @@ export async function publicFormApplication({
     data: IFormApplicationReadPublicModel | null;
     isTesting: boolean;
     isPublic: boolean;
+    options: {
+      hierarchies: {
+        id: string;
+        name: string;
+        type: HierarchyTypeEnum;
+        parentId: string;
+      }[];
+    };
   }>(
     bindUrlParams({
       path: FormRoutes.FORM_APPLICATION.PATH_PUBLIC,
@@ -30,5 +39,6 @@ export async function publicFormApplication({
       : null,
     isTesting: response.data?.isTesting,
     isPublic: response.data?.isPublic,
+    options: response.data?.options,
   };
 }

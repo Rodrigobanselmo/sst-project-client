@@ -1,6 +1,7 @@
 import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
 import { FormIdentifierTypeTranslate } from '@v2/models/form/translations/form-identifier-type.translation';
 import SmartButtonIcon from '@mui/icons-material/SmartButton';
+import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 
 export interface IFormIdentifierTypeOption {
   value: FormIdentifierTypeEnum;
@@ -87,3 +88,39 @@ export const FormIdentifierTypeList = [
   // formIdentifierTypeMap[FormIdentifierTypeEnum.SUB_OFFICE],
   formIdentifierTypeMap[FormIdentifierTypeEnum.CUSTOM],
 ];
+
+export const FormRiskIdentifierTypeList = [
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.EMAIL],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.CPF],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.AGE],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.SEX],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.WORKSPACE],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.DIRECTORY],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.MANAGEMENT],
+  formIdentifierTypeMap[FormIdentifierTypeEnum.SECTOR],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.SUB_SECTOR],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.OFFICE],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.SUB_OFFICE],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.CUSTOM],
+];
+
+export const getFormIdentifierTypeList = (
+  formType: FormTypeEnum | undefined,
+) => {
+  if (formType === FormTypeEnum.PSYCHOSOCIAL) {
+    return FormRiskIdentifierTypeList;
+  }
+  return FormIdentifierTypeList;
+};
+
+export const getDisbleCreateFormIdentifierQuestion = (
+  formType: FormTypeEnum | undefined,
+) => {
+  if (
+    formType === FormTypeEnum.PSYCHOSOCIAL ||
+    formType === FormTypeEnum.RISK
+  ) {
+    return true;
+  }
+  return false;
+};

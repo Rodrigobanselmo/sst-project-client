@@ -19,6 +19,9 @@ interface SFormSectionProps {
   hideInputTitle?: boolean;
   descriptionPlaceholder?: string;
   initialValues: any;
+  disableQuestionDuplication?: boolean;
+  disableQuestionCreation?: boolean;
+  disableRequiredSwitch?: boolean;
 }
 
 export const SFormQuestionSection = ({
@@ -33,6 +36,9 @@ export const SFormQuestionSection = ({
   hideInputTitle = false,
   descriptionPlaceholder = 'Descrição da seção',
   initialValues,
+  disableQuestionDuplication = false,
+  disableQuestionCreation = false,
+  disableRequiredSwitch = false,
 }: SFormSectionProps) => {
   const { control, getValues } = useFormContext();
   const [focusedQuestionIndex, setFocusedQuestionIndex] = useState<
@@ -89,7 +95,9 @@ export const SFormQuestionSection = ({
       sectionIndex={sectionIndex}
       sectionNumber={sectionNumber}
       onDeleteSection={onDeleteSection}
-      onAddNewQuestion={handleAddNewQuestion}
+      onAddNewQuestion={
+        disableQuestionCreation ? undefined : handleAddNewQuestion
+      }
       onMinimizeSection={onMinimizeSection}
       isMinimized={isMinimized}
       title={title}
@@ -140,6 +148,9 @@ export const SFormQuestionSection = ({
                   onAddNewQuestion={() =>
                     handleInsertNewQuestionFromQuestion(questionIndex)
                   }
+                  disableQuestionDuplication={disableQuestionDuplication}
+                  disableQuestionCreation={disableQuestionCreation}
+                  disableRequiredSwitch={disableRequiredSwitch}
                 />
               </Box>
             </div>

@@ -22,7 +22,7 @@ export interface PopperSelectBaseProps<Value> {
   disabled?: boolean;
   startCompoent?: ReactNode;
   hideSearchInput?: boolean;
-  getOptionLabel: (option: Value) => string;
+  getOptionLabel: (option: Value) => ReactNode | string;
   getOptionValue: (option: Value) => string | number | boolean;
   getOptionIsDisabled?: (option: Value) => boolean;
   renderItem?: (args: {

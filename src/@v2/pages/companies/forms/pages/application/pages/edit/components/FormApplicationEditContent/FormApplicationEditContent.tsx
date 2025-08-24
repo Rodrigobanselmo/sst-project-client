@@ -16,7 +16,11 @@ import {
   IFormApplicationFormFields,
   schemaFormApplicationForm,
 } from '../../../../schema/form-application.schema';
-import { FormIdentifierTypeList } from '../../../../components/FormApplicationForms/constants/form-Identifier-type.map';
+import {
+  FormIdentifierTypeList,
+  getDisbleCreateFormIdentifierQuestion,
+  getFormIdentifierTypeList,
+} from '../../../../components/FormApplicationForms/constants/form-Identifier-type.map';
 import { FormFormApplication } from '../../../../components/FormApplicationForms/components/FormFormApplication';
 
 export const FormApplicationEditContent = ({
@@ -37,6 +41,7 @@ export const FormApplicationEditContent = ({
       form: {
         id: formApplication.form.id,
         name: formApplication.form.name,
+        type: formApplication.form.type,
       },
       workspaceIds: formApplication.participants.workspaces.map(
         (workspace) => ({
@@ -114,14 +119,21 @@ export const FormApplicationEditContent = ({
     });
   };
 
+  const disableCreateFormIdentifierQuestion =
+    getDisbleCreateFormIdentifierQuestion(formApplication.form.type);
+
+  const questionsTypeOptions = getFormIdentifierTypeList(
+    formApplication.form.type,
+  );
+
   return (
     <SForm form={form}>
       <SFormSection mb={8}>
-        <FormFormApplication companyId={companyId} />
+        <FormFormApplication companyId={companyId} disabled={true} />
       </SFormSection>
 
       <SFormQuestionSection
-        questionTypeOptions={FormIdentifierTypeList}
+        questionTypeOptions={questionsTypeOptions}
         sectionIndex={0}
         sectionNumber={1}
         isMinimized={false}
@@ -129,6 +141,9 @@ export const FormApplicationEditContent = ({
         title={() => 'Dados Gerais'}
         descriptionPlaceholder="Instruções do questionário (opcional)"
         initialValues={getFormModelInitialValues()}
+        disableQuestionDuplication={disableCreateFormIdentifierQuestion}
+        disableQuestionCreation={disableCreateFormIdentifierQuestion}
+        disableRequiredSwitch={disableCreateFormIdentifierQuestion}
       />
 
       <FormQuestionsButtons

@@ -3,6 +3,7 @@ import { FormQuestionGroupReadModel } from '../shared/form-question-group-read.m
 import { FormApplicationStatusEnum } from '../../enums/form-status.enum';
 import { getPathname } from '@v2/hooks/useAppRouter';
 import { PageRoutes } from '@v2/constants/pages/routes';
+import { FormTypeEnum } from '../../enums/form-type.enum';
 
 export type IFormApplicationReadModel = {
   id: string;
@@ -14,7 +15,7 @@ export type IFormApplicationReadModel = {
   updatedAt: Date;
   startedAt: Date | null;
   endedAt: Date | null;
-  form: { id: string; name: string };
+  form: { id: string; name: string; type: FormTypeEnum };
   isShareableLink: boolean;
   isAnonymous: boolean;
   participants: {
@@ -37,7 +38,7 @@ export class FormApplicationReadModel {
   updatedAt: Date;
   startedAt: Date | null;
   endedAt: Date | null;
-  form: { id: string; name: string };
+  form: { id: string; name: string; type: FormTypeEnum };
   isShareableLink: boolean;
   isAnonymous: boolean;
   totalParticipants: number;

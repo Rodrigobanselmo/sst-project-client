@@ -5,9 +5,10 @@ import { InputWorkspaceSelectMultipleForm } from '../inputs/InputWorkspaceSelect
 
 type Props = {
   companyId: string;
+  disabled?: boolean;
 };
 
-export const FormFormApplication = ({ companyId }: Props) => {
+export const FormFormApplication = ({ companyId, disabled }: Props) => {
   return (
     <>
       <SInputForm
@@ -17,7 +18,11 @@ export const FormFormApplication = ({ companyId }: Props) => {
         fullWidth
         name="name"
       />
-      <InputFormModelSelectForm companyId={companyId} name="form" />
+      <InputFormModelSelectForm
+        companyId={companyId}
+        name="form"
+        disabled={disabled}
+      />
       <InputWorkspaceSelectMultipleForm
         companyId={companyId}
         name="workspaceIds"

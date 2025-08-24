@@ -18,7 +18,10 @@ export const useFetchPublicFormApplication = (
   return {
     ...response,
     publicFormApplication: data?.data,
-    isTesting: data?.isTesting,
-    isPublic: data?.isPublic,
+    isTesting: !!data?.isTesting,
+    isPublic: !!data?.isPublic,
+    options: data?.options ?? {
+      hierarchies: [],
+    },
   };
 };

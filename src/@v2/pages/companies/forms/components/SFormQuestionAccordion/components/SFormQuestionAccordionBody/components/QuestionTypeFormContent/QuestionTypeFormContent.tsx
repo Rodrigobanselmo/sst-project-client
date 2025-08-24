@@ -8,6 +8,7 @@ import { OptionsForm } from './components/OptionsForm';
 import { ShortTextForm } from './components/ShortTextForm';
 import { IFormModelForms } from '@v2/pages/companies/forms/pages/model/schemas/form-model.schema';
 import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
+import { PlaceholderForm } from './components/PlaceholderForm';
 
 interface QuestionTypeFormContentProps {
   sectionIndex: number;
@@ -48,6 +49,7 @@ export const QuestionTypeFormContent = ({
     [FormQuestionTypeEnum.SELECT]: OptionsForm,
     [FormQuestionTypeEnum.TEXT]: LongTextForm,
     [FormIdentifierTypeEnum.CUSTOM]: OptionsForm,
+    [FormIdentifierTypeEnum.SECTOR]: PlaceholderForm,
   };
 
   const renderFormContent = () => {

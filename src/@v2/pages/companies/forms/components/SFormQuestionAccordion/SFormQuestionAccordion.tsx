@@ -19,6 +19,9 @@ interface SFormQuestionAccordionProps {
   onDelete?: () => void;
   onAddNewSection?: () => void;
   onAddNewQuestion: () => void;
+  disableQuestionDuplication?: boolean;
+  disableQuestionCreation?: boolean;
+  disableRequiredSwitch?: boolean;
 }
 
 export const SFormQuestionAccordion = ({
@@ -31,6 +34,9 @@ export const SFormQuestionAccordion = ({
   onDelete,
   onAddNewSection,
   onAddNewQuestion,
+  disableQuestionDuplication = false,
+  disableQuestionCreation = false,
+  disableRequiredSwitch = false,
 }: SFormQuestionAccordionProps) => {
   return (
     <div style={{ position: 'relative' }}>
@@ -75,15 +81,18 @@ export const SFormQuestionAccordion = ({
           <SFormQuestionAccordionBody
             sectionIndex={sectionIndex}
             questionIndex={questionIndex}
-            onCopy={onCopy}
+            onCopy={disableQuestionDuplication ? undefined : onCopy}
             onDelete={onDelete}
+            disableRequiredSwitch={disableRequiredSwitch}
           />
         </SAccordionBody>
       </SAccordion>
       {isFocused && (
         <SFormQuestionAccordionButtons
           onAddNewSection={onAddNewSection}
-          onAddNewQuestion={onAddNewQuestion}
+          onAddNewQuestion={
+            disableQuestionCreation ? undefined : onAddNewQuestion
+          }
         />
       )}
     </div>
