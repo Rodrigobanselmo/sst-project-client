@@ -10,6 +10,7 @@ export interface IFormModelItem {
   apiId?: string;
   content: string;
   required: boolean;
+  risks?: { id: string; name: string }[];
   type: { value: FormQuestionTypeEnum; label: string };
   options?: {
     apiId?: string;

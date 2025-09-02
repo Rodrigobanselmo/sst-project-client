@@ -1,6 +1,6 @@
 import { Box } from '@mui/material';
 import { SText } from '@v2/components/atoms/SText/SText';
-import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
+import { SSearchSelectMultipleForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
 import { useInfinityFetchBrowseRisks } from '@v2/services/forms/risk/browse-risks/hooks/useFetchBrowseRisks';
 import { useState, useMemo } from 'react';
 
@@ -36,7 +36,7 @@ export const FormRiskSelect = ({
   }, [risksData]);
 
   return (
-    <SSearchSelectForm
+    <SSearchSelectMultipleForm
       boxProps={{ flex: 1 }}
       name={name}
       onScrollEnd={() => {
@@ -45,10 +45,10 @@ export const FormRiskSelect = ({
         }
       }}
       loading={isLoading || isFetchingNextPage}
-      getOptionValue={(option: any) => option.id}
+      getOptionValue={(option) => option.id}
       label="Risco"
-      getOptionLabel={(option: any) => option.name}
-      renderItem={({ option }: { option: any }) => (
+      getOptionLabel={(option) => option.name}
+      renderItem={({ option }) => (
         <Box px={8}>
           <SText fontSize={14} mb={-1}>
             {option.name}
@@ -56,8 +56,8 @@ export const FormRiskSelect = ({
           <SText fontSize={11}>PSIC - Severidade: {option.severity}</SText>
         </Box>
       )}
-      onSearch={(value) => setSearch(value)}
-      onInputChange={(value) => console.log(value)}
+      onSearch={(value: string) => setSearch(value)}
+      onInputChange={(value: string) => console.log(value)}
       placeholder="Selecionar Risco"
       options={risks || []}
     />

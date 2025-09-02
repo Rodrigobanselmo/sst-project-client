@@ -8,6 +8,10 @@ import { SEditorForm } from '@v2/components/forms/controlled/SEditorForm/SEditor
 import { SSwitchForm } from '@v2/components/forms/controlled/SSwitchForm/SSwitchForm';
 import { QuestionTypeFormContent } from './components/QuestionTypeFormContent/QuestionTypeFormContent';
 import { FormRiskSelect } from './components/FormRiskSelect';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { IFormModelForms } from '@v2/pages/companies/forms/pages/model/schemas/form-model.schema';
+import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
+import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 
 export interface FormQuestionOption {
   value: string;
@@ -32,8 +36,25 @@ export const SFormQuestionAccordionBody = ({
   disableRequiredSwitch = false,
   companyId,
 }: SFormQuestionAccordionProps) => {
+  const { control } = useFormContext<IFormModelForms>();
+  const formType = useWatch({
+    control,
+    name: 'type.value',
+  });
+
+  const type = useWatch({
+    control,
+    name: `sections.${sectionIndex}.items.${questionIndex}.type.value`,
+  });
+
+  const acceptRiskFromType =
+    type === FormQuestionTypeEnum.CHECKBOX ||
+    type === FormQuestionTypeEnum.RADIO;
+
+  const acceptRiskFromFormType = formType === FormTypeEnum.PSYCHOSOCIAL;
+
   return (
-    <SFlex mt={8} flexDirection="column" gap={5}>
+    <SFlex mt={8} flexDirection="column" gap={10}>
       <SEditorForm
         placeholder="Pergunta"
         name={`sections.${sectionIndex}.items.${questionIndex}.content`}
@@ -42,14 +63,15 @@ export const SFormQuestionAccordionBody = ({
         }}
       />
 
+      {acceptRiskFromType && acceptRiskFromFormType && (
+        <FormRiskSelect
+          name={`sections.${sectionIndex}.items.${questionIndex}.risks`}
+          companyId={companyId}
+        />
+      )}
       <QuestionTypeFormContent
         sectionIndex={sectionIndex}
         questionIndex={questionIndex}
-      />
-
-      <FormRiskSelect
-        name={`sections.${sectionIndex}.items.${questionIndex}.risk`}
-        companyId={companyId}
       />
 
       <Divider sx={{ mt: 4, mb: 0 }} />

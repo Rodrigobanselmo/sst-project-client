@@ -38,6 +38,10 @@ export function transformFormDataToApiFormat(
         }
       }
 
+      if (item.risks && item.risks.length > 0) {
+        question.details.risksIds = item.risks.map((risk) => risk.id);
+      }
+
       return question;
     });
 

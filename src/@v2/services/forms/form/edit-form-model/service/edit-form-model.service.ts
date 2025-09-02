@@ -15,6 +15,7 @@ export interface IFormQuestionDetails {
   text: string;
   type: FormQuestionTypeEnum;
   acceptOther?: boolean;
+  risksIds?: string[];
 }
 
 export interface IFormQuestion {
