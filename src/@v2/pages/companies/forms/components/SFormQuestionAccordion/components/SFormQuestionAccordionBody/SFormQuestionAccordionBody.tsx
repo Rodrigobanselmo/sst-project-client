@@ -7,6 +7,7 @@ import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SEditorForm } from '@v2/components/forms/controlled/SEditorForm/SEditorForm';
 import { SSwitchForm } from '@v2/components/forms/controlled/SSwitchForm/SSwitchForm';
 import { QuestionTypeFormContent } from './components/QuestionTypeFormContent/QuestionTypeFormContent';
+import { FormRiskSelect } from './components/FormRiskSelect';
 
 export interface FormQuestionOption {
   value: string;
@@ -20,6 +21,7 @@ interface SFormQuestionAccordionProps {
   onCopy?: () => void;
   onDelete?: () => void;
   disableRequiredSwitch?: boolean;
+  companyId: string;
 }
 
 export const SFormQuestionAccordionBody = ({
@@ -28,6 +30,7 @@ export const SFormQuestionAccordionBody = ({
   onCopy,
   onDelete,
   disableRequiredSwitch = false,
+  companyId,
 }: SFormQuestionAccordionProps) => {
   return (
     <SFlex mt={8} flexDirection="column" gap={5}>
@@ -42,6 +45,11 @@ export const SFormQuestionAccordionBody = ({
       <QuestionTypeFormContent
         sectionIndex={sectionIndex}
         questionIndex={questionIndex}
+      />
+
+      <FormRiskSelect
+        name={`sections.${sectionIndex}.items.${questionIndex}.risk`}
+        companyId={companyId}
       />
 
       <Divider sx={{ mt: 4, mb: 0 }} />

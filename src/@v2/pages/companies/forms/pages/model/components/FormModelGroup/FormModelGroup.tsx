@@ -81,6 +81,7 @@ export const FormModelGroup = ({ companyId }: { companyId: string }) => {
           return (
             <SFormQuestionSection
               key={field.id}
+              companyId={companyId}
               initialValues={getFormModelInitialValues()}
               questionTypeOptions={FormQuestionTypeMapList}
               sectionIndex={idx}

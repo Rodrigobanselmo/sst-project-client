@@ -51,6 +51,7 @@ export const FormModelAddContent = ({ companyId }: { companyId: string }) => {
   return (
     <SForm form={form}>
       <FormModelInfo containerProps={{ mb: 16 }} />
+
       <FormModelGroup companyId={companyId} />
 
       <FormQuestionsButtons

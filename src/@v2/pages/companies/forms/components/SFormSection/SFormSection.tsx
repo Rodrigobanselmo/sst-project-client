@@ -1,11 +1,10 @@
 import { Box, Stack } from '@mui/material';
-import { useFieldArray, useFormContext } from 'react-hook-form';
 import { useState } from 'react';
-import { SFormQuestionAccordion } from '../SFormQuestionAccordion/SFormQuestionAccordion';
-import { SFormSectionHeader } from './components/SFormSectionHeader/SFormSectionHeader';
-import { getFormModelInitialValues } from '../../pages/model/schemas/form-model.schema';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 import { v4 } from 'uuid';
 import { FormQuestionOption } from '../SFormQuestionAccordion/components/SFormQuestionAccordionBody/SFormQuestionAccordionBody';
+import { SFormQuestionAccordion } from '../SFormQuestionAccordion/SFormQuestionAccordion';
+import { SFormSectionHeader } from './components/SFormSectionHeader/SFormSectionHeader';
 
 interface SFormSectionProps {
   sectionIndex: number;
@@ -22,6 +21,7 @@ interface SFormSectionProps {
   disableQuestionDuplication?: boolean;
   disableQuestionCreation?: boolean;
   disableRequiredSwitch?: boolean;
+  companyId: string;
 }
 
 export const SFormQuestionSection = ({
@@ -39,6 +39,7 @@ export const SFormQuestionSection = ({
   disableQuestionDuplication = false,
   disableQuestionCreation = false,
   disableRequiredSwitch = false,
+  companyId,
 }: SFormSectionProps) => {
   const { control, getValues } = useFormContext();
   const [focusedQuestionIndex, setFocusedQuestionIndex] = useState<
@@ -133,6 +134,7 @@ export const SFormQuestionSection = ({
                 }}
               >
                 <SFormQuestionAccordion
+                  companyId={companyId}
                   sectionIndex={sectionIndex}
                   questionIndex={questionIndex}
                   questionNumber={questionIndex + 1}

@@ -11,4 +11,10 @@ export const FormRoutes = {
   FORM_QUESTIONS_ANSWERS: {
     PATH: 'v2/companies/:companyId/forms/questions-answers/',
   },
+  RISK: {
+    PATH: 'v2/companies/:companyId/forms/risks',
+  },
+  HIERARCHY: {
+    PATH: 'v2/companies/:companyId/forms/hierarchies/',
+  },
 } as const;

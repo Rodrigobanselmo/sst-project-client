@@ -123,6 +123,7 @@ export const FormApplicationAddContent = ({
           sectionNumber={1}
           isMinimized={false}
           hideInputTitle={true}
+          companyId={companyId}
           title={() => 'Dados Gerais'}
           descriptionPlaceholder="Instruções do questionário (opcional)"
           initialValues={getFormApplicationInitialValues({})}

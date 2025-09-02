@@ -22,6 +22,7 @@ interface SFormQuestionAccordionProps {
   disableQuestionDuplication?: boolean;
   disableQuestionCreation?: boolean;
   disableRequiredSwitch?: boolean;
+  companyId: string;
 }
 
 export const SFormQuestionAccordion = ({
@@ -37,6 +38,7 @@ export const SFormQuestionAccordion = ({
   disableQuestionDuplication = false,
   disableQuestionCreation = false,
   disableRequiredSwitch = false,
+  companyId,
 }: SFormQuestionAccordionProps) => {
   return (
     <div style={{ position: 'relative' }}>
@@ -84,6 +86,7 @@ export const SFormQuestionAccordion = ({
             onCopy={disableQuestionDuplication ? undefined : onCopy}
             onDelete={onDelete}
             disableRequiredSwitch={disableRequiredSwitch}
+            companyId={companyId}
           />
         </SAccordionBody>
       </SAccordion>
