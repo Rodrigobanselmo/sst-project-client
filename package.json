@@ -1,6 +1,9 @@
 {
   "name": "sst-project-client",
   "private": true,
+  "engines": {
+    "node": "20"
+  },
   "scripts": {
     "dev": "NODE_OPTIONS='--inspect' next dev",
     "build": "rm -rf .next & next build",
