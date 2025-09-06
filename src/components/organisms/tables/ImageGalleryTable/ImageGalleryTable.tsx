@@ -85,6 +85,10 @@ export const ImageGalleryTable: FC<
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
       name: '',
       freeAspect,
+      compressProps: {
+        maxWidth: 5000,
+        maxHeight: 5000,
+      },
       onConfirm: async (photo) => {
         if (photo.file && photo.name) {
           const image = await mutCreateImage
@@ -112,6 +116,10 @@ export const ImageGalleryTable: FC<
       id: img.id,
       freeAspect,
       url: img.url + `?timestamp=${img.updated_at}`,
+      compressProps: {
+        maxWidth: 5000,
+        maxHeight: 5000,
+      },
       onConfirm: async (photo) => {
         const image = await mutUpdateImage
           .mutateAsync({

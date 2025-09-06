@@ -71,6 +71,7 @@ export const initialPhotoState = {
   name: '',
   freeAspect: false,
   showInputName: false,
+  compressProps: undefined as Partial<ImageBlobCompressProps> | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onConfirm: async (arg: IUploadPhotoConfirm) => {},
 };
@@ -199,7 +200,10 @@ export const ModalUploadPhoto: FC<
         canvasRef.current.toBlob(async (blob) => {
           if (blob) {
             try {
-              const { file, dataUrl } = await imageBlobCompress({ blob });
+              const { file, dataUrl } = await imageBlobCompress({
+                blob,
+                ...photoData.compressProps,
+              });
               await photoData.onConfirm({
                 file,
                 name: data.name,
@@ -219,7 +223,10 @@ export const ModalUploadPhoto: FC<
       if (konvaRef.current?.handleGetCanvas) {
         try {
           const { dataUrl, file } = await konvaRef.current.handleGetCanvas({
-            compressProps: { imageExtension: photoData.imageExtension },
+            compressProps: {
+              imageExtension: photoData.imageExtension,
+              ...photoData.compressProps,
+            },
           });
 
           await photoData.onConfirm({
