@@ -20,9 +20,12 @@ import { HtmlContentRenderer } from '../../../../../public/answer/components/Htm
 import { FormQuestionPieChart } from './components/FormQuestionPieChart/FormQuestionPieChart';
 import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
 import { SectionHeader } from './components/SectionHeader/SectionHeader';
+import { FormRisksAnalysis } from './components/FormRisksAnalysis/FormRisksAnalysis';
 
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { STabs } from '@v2/components/organisms/STabs/STabs';
+import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
+import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -363,11 +366,12 @@ const GroupDashboardIndicator = ({
 
 interface FormQuestionsDashboardProps {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel | null | undefined;
-  formApplication?: FormApplicationReadModel;
+  formApplication: FormApplicationReadModel;
 }
 
 export const FormQuestionsDashboard = ({
   formQuestionsAnswers,
+  formApplication,
 }: FormQuestionsDashboardProps) => {
   const [tabTableIndex, setTabTableIndex] = useState<number>(1);
   // State for managing selected identifier question for grouping
@@ -582,8 +586,13 @@ export const FormQuestionsDashboard = ({
     );
   }
 
+  const isPsychosocialForm =
+    formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
+  const isDone = formApplication.status === FormApplicationStatusEnum.DONE;
+
   const isIndicatorTab = tabTableIndex === 2;
   const isTextAnswersTab = tabTableIndex === 3;
+  const isRisksAnalysisTab = tabTableIndex === 4;
 
   return (
     <SFlex direction="column" gap={16}>
@@ -746,6 +755,14 @@ export const FormQuestionsDashboard = ({
                 label: 'Respostas de Texto',
                 value: 3,
               },
+              ...(isPsychosocialForm && isDone
+                ? [
+                    {
+                      label: 'Análise de Riscos',
+                      value: 4,
+                    },
+                  ]
+                : []),
             ]}
             value={tabTableIndex}
             onChange={(_, value) => {
@@ -757,6 +774,8 @@ export const FormQuestionsDashboard = ({
           <SPaper>
             {isTextAnswersTab ? (
               <FormTextAnswers formGroups={generalGroups} />
+            ) : isRisksAnalysisTab ? (
+              <FormRisksAnalysis formApplication={formApplication} />
             ) : (
               <SFlex direction="column" gap={24} color="background.paper">
                 {/* Create a structure grouped by questions first, then by participant groups */}

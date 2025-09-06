@@ -10,6 +10,7 @@ export interface IFormIdentifierItem {
   content: string;
   required: boolean;
   type: { value: FormIdentifierTypeEnum; label: string };
+  risks?: { id: string; name: string }[];
   options?: {
     apiId?: string;
     label: string;

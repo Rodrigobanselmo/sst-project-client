@@ -8,10 +8,34 @@ import {
 } from '../../schemas/form-model.schema';
 import { FormQuestionTypeMapList } from '../../constants/form-question-type-map';
 
-export const FormModelGroup = ({ companyId }: { companyId: string }) => {
+export const FormModelGroup = ({
+  companyId,
+  isEdit = false,
+}: {
+  companyId: string;
+  isEdit?: boolean;
+}) => {
   const { control, getValues } = useFormContext();
-  const [minimizedSections, setMinimizedSections] = useState<Set<number>>(
-    new Set(),
+
+  // Calculate initial minimized sections only on edit mode when there are more than 30 total questions
+  const getInitialMinimizedSections = (): Set<number> => {
+    if (!isEdit) return new Set<number>();
+
+    const sections = getValues('sections') || [];
+    const totalQuestions = sections.reduce((total: number, section: any) => {
+      return total + (section.items?.length || 0);
+    }, 0);
+
+    if (totalQuestions > 30) {
+      // Return a set with all section indices to minimize all sections
+      return new Set<number>(sections.map((_: any, index: number) => index));
+    }
+
+    return new Set<number>();
+  };
+
+  const [minimizedSections, setMinimizedSections] = useState<Set<number>>(() =>
+    getInitialMinimizedSections(),
   );
   const { fields, remove, replace } = useFieldArray({
     control,

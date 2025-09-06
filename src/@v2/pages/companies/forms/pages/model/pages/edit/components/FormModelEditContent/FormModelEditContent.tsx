@@ -68,10 +68,13 @@ export const FormModelEditContent = ({
             })) || [],
           minValue: undefined,
           maxValue: undefined,
+          risks: question.details.risks,
         })),
       })),
     },
   });
+
+  console.log('form values', formHook.getValues());
 
   const editFormMutation = useMutateEditFormModel();
 
@@ -104,7 +107,7 @@ export const FormModelEditContent = ({
   return (
     <SForm form={formHook}>
       <FormModelInfo containerProps={{ mb: 16 }} />
-      <FormModelGroup companyId={companyId} />
+      <FormModelGroup companyId={companyId} isEdit={true} />
 
       <FormQuestionsButtons
         onCancel={onCancel}

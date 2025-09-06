@@ -1,6 +1,10 @@
 import { FormIdentifierTypeEnum } from '../../enums/form-identifier-type.enum';
 import { FormQuestionTypeEnum } from '../../enums/form-question-type.enum';
 
+export type FormQuestionRiskReadModel = {
+  id: string;
+  name: string;
+};
 export type IFormQuestionDetailsReadModel = {
   id: string;
   text: string;
@@ -9,6 +13,7 @@ export type IFormQuestionDetailsReadModel = {
   acceptOther?: boolean;
   system?: boolean;
   companyId?: string;
+  risks?: FormQuestionRiskReadModel[];
 };
 
 export class FormQuestionDetailsReadModel {
@@ -19,6 +24,7 @@ export class FormQuestionDetailsReadModel {
   acceptOther?: boolean;
   system?: boolean;
   companyId?: string;
+  risks?: FormQuestionRiskReadModel[];
 
   constructor(params: IFormQuestionDetailsReadModel) {
     this.id = params.id;
@@ -29,5 +35,6 @@ export class FormQuestionDetailsReadModel {
       params.identifierType || FormIdentifierTypeEnum.CUSTOM;
     this.system = params.system;
     this.companyId = params.companyId;
+    this.risks = params.risks;
   }
 }

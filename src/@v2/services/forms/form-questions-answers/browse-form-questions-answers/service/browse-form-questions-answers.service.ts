@@ -12,18 +12,13 @@ export async function browseFormQuestionsAnswers({
   formApplicationId,
   search,
 }: BrowseFormQuestionsAnswersParams) {
-  try {
-    const response = await api.get<IFormQuestionsAnswersBrowseModel>(
-      bindUrlParams({
-        path: FormRoutes.FORM_QUESTIONS_ANSWERS.PATH,
-        pathParams: { companyId },
-        queryParams: { formApplicationId, search },
-      }),
-    );
+  const response = await api.get<IFormQuestionsAnswersBrowseModel>(
+    bindUrlParams({
+      path: FormRoutes.FORM_QUESTIONS_ANSWERS.PATH,
+      pathParams: { companyId },
+      queryParams: { formApplicationId, search },
+    }),
+  );
 
-    return new FormQuestionsAnswersBrowseModel(response.data);
-  } catch (error) {
-    console.log(error);
-    return null;
-  }
+  return new FormQuestionsAnswersBrowseModel(response.data);
 }

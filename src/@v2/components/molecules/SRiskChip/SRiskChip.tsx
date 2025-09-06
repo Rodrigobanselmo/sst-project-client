@@ -47,6 +47,12 @@ const sizeMap = {
     width: '30px',
     minWidth: 'fit-content',
   },
+  lg: {
+    fontSize: 12,
+    padding: '1px 4px',
+    width: '30px',
+    minWidth: 'fit-content',
+  },
 };
 
 export const SRiskChip = ({ type, size = 'md', subTypes }: SRiskChipProps) => {

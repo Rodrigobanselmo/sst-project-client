@@ -77,6 +77,14 @@ export const SFormSectionHeader = ({
           <Box
             sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}
           >
+            {onMinimizeSection && (
+              <SIconButton
+                iconButtonProps={{ ref: anchorRef }}
+                onClick={handleMinimizeSection}
+              >
+                <SIconUnfolderMore fontSize={16} />
+              </SIconButton>
+            )}
             <SIconButton
               iconButtonProps={{ ref: anchorRef }}
               onClick={handleTogglePopper}

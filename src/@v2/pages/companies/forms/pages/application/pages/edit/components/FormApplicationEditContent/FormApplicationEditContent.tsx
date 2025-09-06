@@ -73,6 +73,7 @@ export const FormApplicationEditContent = ({
                     value: option.value?.toString() || '',
                     label: option.text,
                   })),
+                  risks: question.details.risks,
                 }),
               ),
             },
@@ -133,6 +134,7 @@ export const FormApplicationEditContent = ({
       </SFormSection>
 
       <SFormQuestionSection
+        companyId={companyId}
         questionTypeOptions={questionsTypeOptions}
         sectionIndex={0}
         sectionNumber={1}

@@ -24,7 +24,6 @@ export async function browseRisks({
   });
 
   const response = await api.get<IRiskBrowseModel>(url);
-  console.log({ response });
 
   return new RiskBrowseModel(response.data);
 }

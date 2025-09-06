@@ -6,21 +6,12 @@ import { QueryKeyFormEnum } from '@v2/constants/enums/form-query-key.enum';
 import { QueryKeyEnum } from '@v2/constants/enums/@query-key.enum';
 
 export const useFetchBrowseRisks = (params: BrowseRisksParams) => {
-  console.log('useFetchBrowseRisks called with params:', params);
-
   const { data, ...response } = useFetch({
     queryFn: async () => {
-      console.log('queryFn called, calling browseRisks with:', params);
       return browseRisks(params);
     },
     queryKey: [QueryKeyFormEnum.FORM_RISKS, params.companyId, params],
     enabled: !!params.companyId,
-  });
-
-  console.log('useFetchBrowseRisks response:', {
-    data,
-    isLoading: response.isLoading,
-    error: response.error,
   });
 
   return {
