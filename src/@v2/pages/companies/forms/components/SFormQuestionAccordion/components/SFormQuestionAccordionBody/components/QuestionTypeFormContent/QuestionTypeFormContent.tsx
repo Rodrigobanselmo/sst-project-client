@@ -13,6 +13,7 @@ import { PlaceholderForm } from './components/PlaceholderForm';
 interface QuestionTypeFormContentProps {
   sectionIndex: number;
   questionIndex: number;
+  disableQuestionValue?: boolean;
 }
 
 interface IForm {
@@ -29,6 +30,7 @@ interface IForm {
 export const QuestionTypeFormContent = ({
   sectionIndex,
   questionIndex,
+  disableQuestionValue = false,
 }: QuestionTypeFormContentProps) => {
   const { control } = useFormContext<IForm>();
 
@@ -60,6 +62,7 @@ export const QuestionTypeFormContent = ({
         <FormComponent
           sectionIndex={sectionIndex}
           questionIndex={questionIndex}
+          disableQuestionValue={disableQuestionValue}
         />
       );
     }

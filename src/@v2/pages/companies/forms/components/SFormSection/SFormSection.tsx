@@ -107,56 +107,58 @@ export const SFormQuestionSection = ({
     >
       <Box>
         <Stack gap={4}>
-          {fields.map((field, questionIndex) => (
-            <div
-              key={field.id}
-              onClick={() => handleQuestionClick(questionIndex)}
-            >
-              <Box
-                sx={{
-                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-                  transform: 'translateY(0)',
-                  opacity: 1,
-                  animation:
-                    'questionSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards',
-                  '@keyframes questionSlideIn': {
-                    '0%': {
-                      maxHeight: 0,
-                      opacity: 0,
-                      transform: 'translateY(-30px)',
-                    },
-                    '100%': {
-                      maxHeight: '1000px',
-                      opacity: 1,
-                      transform: 'translateY(0)',
-                    },
-                  },
-                }}
+          {fields.map((field, questionIndex) => {
+            return (
+              <div
+                key={field.id}
+                onClick={() => handleQuestionClick(questionIndex)}
               >
-                <SFormQuestionAccordion
-                  companyId={companyId}
-                  sectionIndex={sectionIndex}
-                  questionIndex={questionIndex}
-                  questionNumber={questionIndex + 1}
-                  typeOptions={questionTypeOptions}
-                  isFocused={focusedQuestionIndex === questionIndex}
-                  onCopy={() => handleCopyQuestion(questionIndex)}
-                  onDelete={() => handleDeleteQuestion(questionIndex)}
-                  onAddNewSection={
-                    onAddNewSection
-                      ? () => onAddNewSection(questionIndex)
-                      : undefined
-                  }
-                  onAddNewQuestion={() =>
-                    handleInsertNewQuestionFromQuestion(questionIndex)
-                  }
-                  disableQuestionDuplication={disableQuestionDuplication}
-                  disableQuestionCreation={disableQuestionCreation}
-                  disableRequiredSwitch={disableRequiredSwitch}
-                />
-              </Box>
-            </div>
-          ))}
+                <Box
+                  sx={{
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                    transform: 'translateY(0)',
+                    opacity: 1,
+                    animation:
+                      'questionSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+                    '@keyframes questionSlideIn': {
+                      '0%': {
+                        maxHeight: 0,
+                        opacity: 0,
+                        transform: 'translateY(-30px)',
+                      },
+                      '100%': {
+                        maxHeight: '1000px',
+                        opacity: 1,
+                        transform: 'translateY(0)',
+                      },
+                    },
+                  }}
+                >
+                  <SFormQuestionAccordion
+                    companyId={companyId}
+                    sectionIndex={sectionIndex}
+                    questionIndex={questionIndex}
+                    questionNumber={questionIndex + 1}
+                    typeOptions={questionTypeOptions}
+                    isFocused={focusedQuestionIndex === questionIndex}
+                    onCopy={() => handleCopyQuestion(questionIndex)}
+                    onDelete={() => handleDeleteQuestion(questionIndex)}
+                    onAddNewSection={
+                      onAddNewSection
+                        ? () => onAddNewSection(questionIndex)
+                        : undefined
+                    }
+                    onAddNewQuestion={() =>
+                      handleInsertNewQuestionFromQuestion(questionIndex)
+                    }
+                    disableQuestionDuplication={disableQuestionDuplication}
+                    disableQuestionCreation={disableQuestionCreation}
+                    disableRequiredSwitch={disableRequiredSwitch}
+                  />
+                </Box>
+              </div>
+            );
+          })}
         </Stack>
       </Box>
     </SFormSectionHeader>

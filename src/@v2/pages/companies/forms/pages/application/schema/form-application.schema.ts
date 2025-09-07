@@ -9,6 +9,8 @@ export interface IFormIdentifierItem {
   apiId?: string;
   content: string;
   required: boolean;
+  editable: boolean;
+  duplicable: boolean;
   type: { value: FormIdentifierTypeEnum; label: string };
   risks?: { id: string; name: string }[];
   options?: {
@@ -103,13 +105,21 @@ export const schemaFormApplicationForm = yup.object({
 export const getFormApplicationInitialValues = ({
   type = FormIdentifierTypeEnum.CUSTOM,
   content = '',
+  required = false,
+  editable = true,
+  duplicable = true,
 }: {
   type?: FormIdentifierTypeEnum;
   content?: string;
+  required?: boolean;
+  editable?: boolean;
+  duplicable?: boolean;
 }) => ({
   id: v4(),
   content,
-  required: false,
+  required,
+  editable,
+  duplicable,
   type: {
     value: type,
     label: FormIdentifierTypeTranslate[type],
@@ -128,16 +138,30 @@ export const getFormApplicationInitialValuesRisk = ({
   description = '',
   title = '',
   content = '',
+  required = false,
+  editable = true,
+  duplicable = true,
 }: {
   type?: FormIdentifierTypeEnum;
   description?: string;
   title?: string;
   content?: string;
+  required?: boolean;
+  editable?: boolean;
+  duplicable?: boolean;
 }) => ({
   id: v4(),
   title,
   description,
-  items: [getFormApplicationInitialValues({ type, content })],
+  items: [
+    getFormApplicationInitialValues({
+      type,
+      content,
+      required,
+      editable,
+      duplicable,
+    }),
+  ],
 });
 
 export const formApplicationFormInitialValues = {

@@ -25,6 +25,7 @@ interface SFormQuestionAccordionProps {
   onCopy?: () => void;
   onDelete?: () => void;
   disableRequiredSwitch?: boolean;
+  disableQuestionDuplication?: boolean;
   companyId: string;
 }
 
@@ -33,7 +34,8 @@ export const SFormQuestionAccordionBody = ({
   questionIndex,
   onCopy,
   onDelete,
-  disableRequiredSwitch = false,
+  disableRequiredSwitch: disableRequiredSwitchFromProps = false,
+  disableQuestionDuplication: disableQuestionDuplicationFromProps = false,
   companyId,
 }: SFormQuestionAccordionProps) => {
   const { control } = useFormContext<IFormModelForms>();
@@ -47,11 +49,26 @@ export const SFormQuestionAccordionBody = ({
     name: `sections.${sectionIndex}.items.${questionIndex}.type.value`,
   });
 
-  const acceptRiskFromType =
+  const editable = useWatch({
+    control,
+    name: `sections.${sectionIndex}.items.${questionIndex}.editable`,
+  });
+
+  const duplicable = useWatch({
+    control,
+    name: `sections.${sectionIndex}.items.${questionIndex}.duplicable`,
+  });
+
+  const normalOptionInput =
     type === FormQuestionTypeEnum.CHECKBOX ||
+    type === FormQuestionTypeEnum.SELECT ||
     type === FormQuestionTypeEnum.RADIO;
 
   const acceptRiskFromFormType = formType === FormTypeEnum.PSYCHOSOCIAL;
+  const disableDelete = !editable;
+  const disableRequiredSwitch = !editable || disableRequiredSwitchFromProps;
+  const disableQuestionDuplication =
+    !duplicable || !onCopy || disableQuestionDuplicationFromProps;
 
   return (
     <SFlex mt={8} flexDirection="column" gap={10}>
@@ -63,7 +80,7 @@ export const SFormQuestionAccordionBody = ({
         }}
       />
 
-      {acceptRiskFromType && acceptRiskFromFormType && (
+      {normalOptionInput && acceptRiskFromFormType && (
         <FormRiskSelect
           name={`sections.${sectionIndex}.items.${questionIndex}.risks`}
           companyId={companyId}
@@ -72,29 +89,25 @@ export const SFormQuestionAccordionBody = ({
       <QuestionTypeFormContent
         sectionIndex={sectionIndex}
         questionIndex={questionIndex}
+        disableQuestionValue={!normalOptionInput}
       />
 
       <Divider sx={{ mt: 4, mb: 0 }} />
       <SFlex alignItems="center" justifyContent="flex-end" gap={2}>
-        {onCopy && (
-          <SIconButton onClick={onCopy}>
-            <SIconCopy color="grey.600" fontSize={20} />
-          </SIconButton>
-        )}
-        <SIconButton onClick={onDelete}>
+        <SIconButton onClick={onCopy} disabled={disableQuestionDuplication}>
+          <SIconCopy color="grey.600" fontSize={20} />
+        </SIconButton>
+        <SIconButton onClick={onDelete} disabled={disableDelete}>
           <SIconDelete color="grey.600" fontSize={22} />
         </SIconButton>
-        {(onCopy || !disableRequiredSwitch) && (
-          <SDivider orientation="vertical" sx={{ mx: 4, ml: 2, height: 28 }} />
-        )}
+        <SDivider orientation="vertical" sx={{ mx: 4, ml: 2, height: 28 }} />
 
-        {!disableRequiredSwitch && (
-          <SSwitchForm
-            name={`sections.${sectionIndex}.items.${questionIndex}.required`}
-            label="Obrigatória"
-            fontSize="14px"
-          />
-        )}
+        <SSwitchForm
+          name={`sections.${sectionIndex}.items.${questionIndex}.required`}
+          label="Obrigatória"
+          fontSize="14px"
+          disabled={disableRequiredSwitch}
+        />
       </SFlex>
     </SFlex>
   );

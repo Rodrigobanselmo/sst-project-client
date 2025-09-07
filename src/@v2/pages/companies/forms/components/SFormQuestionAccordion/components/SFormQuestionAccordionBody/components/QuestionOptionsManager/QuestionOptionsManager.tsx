@@ -55,11 +55,13 @@ const questionsRiskValueMapOptionsArray = [
 interface QuestionOptionsManagerProps {
   sectionIndex: number;
   questionIndex: number;
+  disableQuestionValue?: boolean;
 }
 
 export const QuestionOptionsManager = ({
   sectionIndex,
   questionIndex,
+  disableQuestionValue = false,
 }: QuestionOptionsManagerProps) => {
   const { control } = useFormContext<IFormModelForms>();
   const addOptionRef = useRef<HTMLDivElement>(null);
@@ -135,63 +137,65 @@ export const QuestionOptionsManager = ({
               onKeyDown: (e) => handleKeyDown(e, index),
             }}
           />
-          <SSearchSelectForm
-            name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
-            placeholder={`Valor ${index + 1}`}
-            hideSearchInput={true}
-            options={
-              riskValueForm
-                ? questionsRiskValueMapOptionsArray
-                : questionsIndicatorMapOptionsArray
-            }
-            getOptionLabel={(option) => option.label}
-            component={({ option }) => (
-              <SFlex
-                alignItems="center"
-                justifyContent="center"
-                p={3}
-                sx={{
-                  cursor: 'pointer',
-                  mb: 2,
-                  borderRadius: 1,
-                  border: '1px solid',
-                  width: '150px',
-                  borderColor: 'text.label',
-                  mx: 5,
-                  '&:hover': {
-                    filter: 'brightness(0.8)',
-                  },
-                  backgroundColor: option?.color
-                    ? option.color + '99'
-                    : '#eeeeee99',
-                }}
-              >
-                <SText>{option?.label || 'Não contabilizar'}</SText>
-              </SFlex>
-            )}
-            getOptionValue={(option) => option.value}
-            renderFullOption={({ option, label, handleSelect }) => (
-              <SFlex
-                alignItems="center"
-                onClick={() => handleSelect(option)}
-                justifyContent="center"
-                p={3}
-                flex={1}
-                sx={{
-                  cursor: 'pointer',
-                  mb: 2,
-                  borderRadius: 1,
-                  mx: 5,
-                  '&:hover': {
-                    filter: 'brightness(0.8)',
-                  },
-                  backgroundColor: option.color + '99',
-                }}
-              >
-                <SText>{label}</SText>
-              </SFlex>
-            )}
-          />
+          {!disableQuestionValue && (
+            <SSearchSelectForm
+              name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
+              placeholder={`Valor ${index + 1}`}
+              hideSearchInput={true}
+              options={
+                riskValueForm
+                  ? questionsRiskValueMapOptionsArray
+                  : questionsIndicatorMapOptionsArray
+              }
+              getOptionLabel={(option) => option.label}
+              component={({ option }) => (
+                <SFlex
+                  alignItems="center"
+                  justifyContent="center"
+                  p={3}
+                  sx={{
+                    cursor: 'pointer',
+                    mb: 2,
+                    borderRadius: 1,
+                    border: '1px solid',
+                    width: '150px',
+                    borderColor: 'text.label',
+                    mx: 5,
+                    '&:hover': {
+                      filter: 'brightness(0.8)',
+                    },
+                    backgroundColor: option?.color
+                      ? option.color + '99'
+                      : '#eeeeee99',
+                  }}
+                >
+                  <SText>{option?.label || 'Não contabilizar'}</SText>
+                </SFlex>
+              )}
+              getOptionValue={(option) => option.value}
+              renderFullOption={({ option, label, handleSelect }) => (
+                <SFlex
+                  alignItems="center"
+                  onClick={() => handleSelect(option)}
+                  justifyContent="center"
+                  p={3}
+                  flex={1}
+                  sx={{
+                    cursor: 'pointer',
+                    mb: 2,
+                    borderRadius: 1,
+                    mx: 5,
+                    '&:hover': {
+                      filter: 'brightness(0.8)',
+                    },
+                    backgroundColor: option.color + '99',
+                  }}
+                >
+                  <SText>{label}</SText>
+                </SFlex>
+              )}
+            />
+          )}
           <IconButton
             size="small"
             onClick={() => handleRemoveOption(index)}

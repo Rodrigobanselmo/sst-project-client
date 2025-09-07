@@ -97,11 +97,11 @@ export const FormRiskIdentifierTypeList = [
   // formIdentifierTypeMap[FormIdentifierTypeEnum.WORKSPACE],
   // formIdentifierTypeMap[FormIdentifierTypeEnum.DIRECTORY],
   // formIdentifierTypeMap[FormIdentifierTypeEnum.MANAGEMENT],
-  formIdentifierTypeMap[FormIdentifierTypeEnum.SECTOR],
+  // formIdentifierTypeMap[FormIdentifierTypeEnum.SECTOR],
   // formIdentifierTypeMap[FormIdentifierTypeEnum.SUB_SECTOR],
   // formIdentifierTypeMap[FormIdentifierTypeEnum.OFFICE],
   // formIdentifierTypeMap[FormIdentifierTypeEnum.SUB_OFFICE],
-  // formIdentifierTypeMap[FormIdentifierTypeEnum.CUSTOM],
+  formIdentifierTypeMap[FormIdentifierTypeEnum.CUSTOM],
 ];
 
 export const getFormIdentifierTypeList = (

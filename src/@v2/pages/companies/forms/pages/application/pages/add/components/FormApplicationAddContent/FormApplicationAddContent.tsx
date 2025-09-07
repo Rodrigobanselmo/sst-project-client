@@ -11,10 +11,7 @@ import { useMutateAddFormApplication } from '@v2/services/forms/form-application
 import { useEffect } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
 import { FormFormApplication } from '../../../../components/FormApplicationForms/components/FormFormApplication';
-import {
-  getDisbleCreateFormIdentifierQuestion,
-  getFormIdentifierTypeList,
-} from '../../../../components/FormApplicationForms/constants/form-Identifier-type.map';
+import { getFormIdentifierTypeList } from '../../../../components/FormApplicationForms/constants/form-Identifier-type.map';
 import { transformFormApplicationDataToApiFormat } from '../../../../helpers/transform-form-application-data';
 import {
   formApplicationFormInitialValues,
@@ -78,6 +75,9 @@ export const FormApplicationAddContent = ({
     if (formModel?.type === FormTypeEnum.PSYCHOSOCIAL) {
       form.setValue('sections', [
         getFormApplicationInitialValuesRisk({
+          editable: false,
+          duplicable: false,
+          required: true,
           type: FormIdentifierTypeEnum.SECTOR,
           content: 'Qual setor da empresa você faz parte?',
           description: `<p>
@@ -106,8 +106,6 @@ export const FormApplicationAddContent = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formModel]);
 
-  const disableCreateFormIdentifierQuestion =
-    getDisbleCreateFormIdentifierQuestion(formModel?.type);
   const questionsTypeOptions = getFormIdentifierTypeList(formModel?.type);
 
   return (
@@ -127,9 +125,6 @@ export const FormApplicationAddContent = ({
           title={() => 'Dados Gerais'}
           descriptionPlaceholder="Instruções do questionário (opcional)"
           initialValues={getFormApplicationInitialValues({})}
-          disableQuestionDuplication={disableCreateFormIdentifierQuestion}
-          disableQuestionCreation={disableCreateFormIdentifierQuestion}
-          disableRequiredSwitch={disableCreateFormIdentifierQuestion}
         />
       )}
 

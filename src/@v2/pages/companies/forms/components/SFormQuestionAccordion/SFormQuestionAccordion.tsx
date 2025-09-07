@@ -8,6 +8,8 @@ import {
   SFormQuestionAccordionBody,
 } from './components/SFormQuestionAccordionBody/SFormQuestionAccordionBody';
 import { SFormQuestionAccordionButtons } from './components/SFormQuestionAccordionButtons/SFormQuestionAccordionButtons';
+import { useFormContext, useWatch } from 'react-hook-form';
+import { IFormModelForms } from '../../pages/model/schemas/form-model.schema';
 
 interface SFormQuestionAccordionProps {
   sectionIndex: number;
@@ -40,6 +42,12 @@ export const SFormQuestionAccordion = ({
   disableRequiredSwitch = false,
   companyId,
 }: SFormQuestionAccordionProps) => {
+  const { control } = useFormContext<IFormModelForms>();
+  const editable = useWatch({
+    control,
+    name: `sections.${sectionIndex}.items.${questionIndex}.editable`,
+  });
+
   return (
     <div style={{ position: 'relative' }}>
       <SAccordion
@@ -59,6 +67,7 @@ export const SFormQuestionAccordion = ({
                 ml: 'auto',
               },
             }}
+            disabled={!editable}
             name={`sections.${sectionIndex}.items.${questionIndex}.type`}
             renderStartAdornment={({ option }) =>
               option ? (
@@ -83,8 +92,9 @@ export const SFormQuestionAccordion = ({
           <SFormQuestionAccordionBody
             sectionIndex={sectionIndex}
             questionIndex={questionIndex}
-            onCopy={disableQuestionDuplication ? undefined : onCopy}
+            onCopy={onCopy}
             onDelete={onDelete}
+            disableQuestionDuplication={disableQuestionDuplication}
             disableRequiredSwitch={disableRequiredSwitch}
             companyId={companyId}
           />

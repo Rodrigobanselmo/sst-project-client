@@ -7,4 +7,5 @@ export enum FormQuestionTypeEnum {
   LONG_TEXT = 'LONG_TEXT',
   DATE = 'DATE',
   NUMBER = 'NUMBER',
+  SYSTEM = 'SYSTEM',
 }

@@ -10,6 +10,8 @@ export interface IFormModelItem {
   apiId?: string;
   content: string;
   required: boolean;
+  editable: boolean;
+  duplicable: boolean;
   risks?: { id: string; name: string }[];
   type: { value: FormQuestionTypeEnum; label: string };
   options?: {
@@ -114,6 +116,8 @@ export const getFormModelInitialValues = () => ({
   id: v4(),
   content: '',
   required: false,
+  editable: true,
+  duplicable: true,
   type: {
     value: FormQuestionTypeEnum.RADIO,
     label: FormQuestionTypeEnumTranslate[FormQuestionTypeEnum.RADIO],

@@ -516,6 +516,7 @@ export const FormQuestionsDashboard = ({
           FormQuestionTypeEnum.RADIO,
           FormQuestionTypeEnum.CHECKBOX,
           FormQuestionTypeEnum.SELECT,
+          FormQuestionTypeEnum.SYSTEM,
         ].includes(question.details.type),
     );
   }, [identifierGroup]);

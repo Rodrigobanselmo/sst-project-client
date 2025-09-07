@@ -137,8 +137,42 @@ export const FormRisksAnalysis = ({
     });
   };
 
+  const handleAddAllRisk = () => {
+    const risks = Object.entries(entityRiskMap)
+      .map(([entityId, riskMap]) => {
+        return Object.entries(riskMap).map(([riskId, risk]) => {
+          return {
+            hierarchyId: entityId,
+            riskId,
+            probability: risk.probability,
+          };
+        });
+      })
+      .flat();
+
+    mutateAssignRisksFormApplication({
+      companyId: formApplication.companyId,
+      applicationId: formApplication.id,
+      risks,
+    });
+  };
+
   return (
     <SPaper sx={{ p: 4 }}>
+      <SFlex justifyContent="space-between" my={4} mx={8} mb={16}>
+        <SText fontSize={18} fontWeight="bold">
+          Análise de Riscos
+        </SText>
+        <SButton
+          variant="shade"
+          text="Adicionar todos os riscos a todos os setores"
+          color="success"
+          onClick={() => {
+            handleAddAllRisk();
+          }}
+        />
+      </SFlex>
+
       <SFlex direction="column" gap={2}>
         {risksWithData.map((riskId) => {
           const risk = riskMap[riskId];
@@ -154,8 +188,23 @@ export const FormRisksAnalysis = ({
               key={riskId}
               expanded={isExpanded}
               onChange={() => handleAccordionChange(riskId)}
+              endComponent={
+                <>
+                  {entitiesWithRisk.every((entityId) =>
+                    isRiskAddedToEntity(
+                      riskId,
+                      entityId,
+                      entityRiskMap[entityId][riskId].probability,
+                    ),
+                  ) && (
+                    <SText color="success.main" fontSize={12} ml="auto" mr={5}>
+                      Risco adicionado a todos os setores
+                    </SText>
+                  )}
+                </>
+              }
               title={
-                <SFlex alignItems="center" gap={2}>
+                <SFlex alignItems="center" gap={2} flex={1}>
                   <SRiskChip
                     size="lg"
                     type={risk.type}

@@ -96,7 +96,8 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     }
   };
 
-  const onSubmit = async (data: FormAnswers) => {
+  const onSubmit = async () => {
+    const data = form.getValues();
     form.clearErrors();
 
     // Validate required fields for current group only
@@ -104,6 +105,8 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     const requiredQuestions = currentGroupQuestions.filter(
       (question) => question.required,
     );
+
+    console.log({data, requiredQuestions});
 
     const missingRequiredFields: string[] = [];
 
@@ -196,8 +199,6 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     }
   };
 
-  const handleSubmit = form.handleSubmit(onSubmit);
-
   if (isLoading) {
     return (
       <Box sx={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -287,6 +288,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     currentStep !== 0
       ? currentGroup?.name || publicFormApplication.name
       : publicFormApplication.name;
+
 
   return (
     <Box ref={scrollContainerRef} sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
@@ -416,7 +418,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
               />
 
               <SButton
-                onClick={handleSubmit}
+                onClick={onSubmit}
                 loading={submitMutation.isPending}
                 disabled={submitMutation.isPending}
                 text={

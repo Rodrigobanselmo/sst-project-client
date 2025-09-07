@@ -126,6 +126,11 @@ export const FormAnswerFieldControlled: React.FC<FormAnswerFieldControlledProps>
             fullWidth
             placeholder="Digite a resposta..."
           />,
+    [FormQuestionTypeEnum.SYSTEM]: <SInputForm
+            name={name}
+            fullWidth
+            placeholder="Digite a resposta..."
+          />,
   };
 
   const renderField = () => {
