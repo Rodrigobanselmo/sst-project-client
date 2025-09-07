@@ -12,4 +12,5 @@ export const FormQuestionTypeEnumTranslate: Record<
   [FormQuestionTypeEnum.CHECKBOX]: 'Caixas de seleção',
   [FormQuestionTypeEnum.DATE]: 'Data',
   [FormQuestionTypeEnum.NUMBER]: 'Número',
+  [FormQuestionTypeEnum.SYSTEM]: 'Sistema',
 };

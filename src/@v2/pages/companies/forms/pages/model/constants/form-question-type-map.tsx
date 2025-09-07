@@ -61,6 +61,11 @@ export const FormQuestionTypeMap: Record<
     label: FormQuestionTypeEnumTranslate[FormQuestionTypeEnum.NUMBER],
     icon: <ViewWeekOutlinedIcon sx={defaultSx} />,
   },
+  [FormQuestionTypeEnum.SYSTEM]: {
+    value: FormQuestionTypeEnum.SYSTEM,
+    label: FormQuestionTypeEnumTranslate[FormQuestionTypeEnum.SYSTEM],
+    icon: <ViewWeekOutlinedIcon sx={defaultSx} />,
+  },
 };
 
 export const FormQuestionTypeMapList = [
