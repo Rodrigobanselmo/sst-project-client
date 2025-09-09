@@ -211,6 +211,17 @@ export const rolesConstantMap = {
     permissions: [] as any,
     order: 1000,
   },
+  [RoleEnum.FORM]: {
+    value: RoleEnum.FORM,
+    label: 'Formulários',
+    info: 'Pode gerenciar formulários',
+    permissions: [
+      PermissionEnum.FORM,
+      PermissionEnum.FORM_MODEL,
+      PermissionEnum.FORM_PSIC,
+    ],
+    order: 1000,
+  },
 } as IRolesOptions;
 
 // [RoleEnum.MANAGEMENT]: {

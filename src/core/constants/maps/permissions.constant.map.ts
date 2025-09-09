@@ -255,6 +255,24 @@ export const permissionsConstantMap = {
     info: 'Pode gerenciar as visitas médicas',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.FORM_MODEL]: {
+    value: PermissionEnum.FORM_MODEL,
+    label: 'Gerenciar Modelos de Formulários',
+    info: 'Pode gerenciar modelos de formulários',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.FORM]: {
+    value: PermissionEnum.FORM,
+    label: 'Gerenciar Formulários',
+    info: 'Pode gerenciar formulários',
+    crud: ['c', 'r', 'u', 'd'],
+  },
+  [PermissionEnum.FORM_PSIC]: {
+    value: PermissionEnum.FORM_PSIC,
+    label: 'Gerenciar Formulários Psicossociais',
+    info: 'Pode gerenciar formulários psicossociais',
+    crud: ['c', 'r', 'u', 'd'],
+  },
 } as IPermissionsOptions;
 
 export const CRUD_LIST = [
