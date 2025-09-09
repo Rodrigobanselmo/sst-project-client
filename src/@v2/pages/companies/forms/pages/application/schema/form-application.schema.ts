@@ -9,8 +9,8 @@ export interface IFormIdentifierItem {
   apiId?: string;
   content: string;
   required: boolean;
-  editable: boolean;
-  duplicable: boolean;
+  disabledEdition: boolean;
+  disableDuplication: boolean;
   type: { value: FormIdentifierTypeEnum; label: string };
   risks?: { id: string; name: string }[];
   options?: {
@@ -106,20 +106,20 @@ export const getFormApplicationInitialValues = ({
   type = FormIdentifierTypeEnum.CUSTOM,
   content = '',
   required = false,
-  editable = true,
-  duplicable = true,
+  disabledEdition = false,
+  disableDuplication = false,
 }: {
   type?: FormIdentifierTypeEnum;
   content?: string;
   required?: boolean;
-  editable?: boolean;
-  duplicable?: boolean;
+  disabledEdition?: boolean;
+  disableDuplication?: boolean;
 }) => ({
   id: v4(),
   content,
   required,
-  editable,
-  duplicable,
+  disabledEdition,
+  disableDuplication,
   type: {
     value: type,
     label: FormIdentifierTypeTranslate[type],
@@ -139,16 +139,16 @@ export const getFormApplicationInitialValuesRisk = ({
   title = '',
   content = '',
   required = false,
-  editable = true,
-  duplicable = true,
+  disabledEdition = false,
+  disableDuplication = false,
 }: {
   type?: FormIdentifierTypeEnum;
   description?: string;
   title?: string;
   content?: string;
   required?: boolean;
-  editable?: boolean;
-  duplicable?: boolean;
+  disabledEdition?: boolean;
+  disableDuplication?: boolean;
 }) => ({
   id: v4(),
   title,
@@ -158,8 +158,8 @@ export const getFormApplicationInitialValuesRisk = ({
       type,
       content,
       required,
-      editable,
-      duplicable,
+      disabledEdition,
+      disableDuplication,
     }),
   ],
 });

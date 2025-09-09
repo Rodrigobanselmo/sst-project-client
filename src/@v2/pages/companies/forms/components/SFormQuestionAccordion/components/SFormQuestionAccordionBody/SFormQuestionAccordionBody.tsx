@@ -49,14 +49,14 @@ export const SFormQuestionAccordionBody = ({
     name: `sections.${sectionIndex}.items.${questionIndex}.type.value`,
   });
 
-  const editable = useWatch({
+  const disabledEdition = useWatch({
     control,
-    name: `sections.${sectionIndex}.items.${questionIndex}.editable`,
+    name: `sections.${sectionIndex}.items.${questionIndex}.disabledEdition`,
   });
 
-  const duplicable = useWatch({
+  const disableDuplication = useWatch({
     control,
-    name: `sections.${sectionIndex}.items.${questionIndex}.duplicable`,
+    name: `sections.${sectionIndex}.items.${questionIndex}.disableDuplication`,
   });
 
   const normalOptionInput =
@@ -65,10 +65,11 @@ export const SFormQuestionAccordionBody = ({
     type === FormQuestionTypeEnum.RADIO;
 
   const acceptRiskFromFormType = formType === FormTypeEnum.PSYCHOSOCIAL;
-  const disableDelete = !editable;
-  const disableRequiredSwitch = !editable || disableRequiredSwitchFromProps;
+  const disableDelete = disabledEdition;
+  const disableRequiredSwitch =
+    disabledEdition || disableRequiredSwitchFromProps;
   const disableQuestionDuplication =
-    !duplicable || !onCopy || disableQuestionDuplicationFromProps;
+    disableDuplication || !onCopy || disableQuestionDuplicationFromProps;
 
   return (
     <SFlex mt={8} flexDirection="column" gap={10}>

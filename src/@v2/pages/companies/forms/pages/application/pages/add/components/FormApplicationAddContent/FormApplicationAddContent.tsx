@@ -75,8 +75,8 @@ export const FormApplicationAddContent = ({
     if (formModel?.type === FormTypeEnum.PSYCHOSOCIAL) {
       form.setValue('sections', [
         getFormApplicationInitialValuesRisk({
-          editable: false,
-          duplicable: false,
+          disabledEdition: true,
+          disableDuplication: true,
           required: true,
           type: FormIdentifierTypeEnum.SECTOR,
           content: 'Qual setor da empresa você faz parte?',

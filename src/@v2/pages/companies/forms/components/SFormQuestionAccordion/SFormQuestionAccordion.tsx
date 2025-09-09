@@ -43,9 +43,9 @@ export const SFormQuestionAccordion = ({
   companyId,
 }: SFormQuestionAccordionProps) => {
   const { control } = useFormContext<IFormModelForms>();
-  const editable = useWatch({
+  const disabledEdition = useWatch({
     control,
-    name: `sections.${sectionIndex}.items.${questionIndex}.editable`,
+    name: `sections.${sectionIndex}.items.${questionIndex}.disabledEdition`,
   });
 
   return (
@@ -67,7 +67,7 @@ export const SFormQuestionAccordion = ({
                 ml: 'auto',
               },
             }}
-            disabled={!editable}
+            disabled={disabledEdition}
             name={`sections.${sectionIndex}.items.${questionIndex}.type`}
             renderStartAdornment={({ option }) =>
               option ? (
