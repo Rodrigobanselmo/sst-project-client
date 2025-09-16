@@ -26,11 +26,11 @@ export const questionsRiskValueMapOptions: Record<
   number,
   { label: string; color: string }
 > = {
-  1: { label: 'Muito Positivo', color: '#3cbe7d' },
-  2: { label: 'Positivo', color: '#8fa728' },
-  3: { label: 'Neutro', color: '#d9d10b' },
-  4: { label: 'Negativo', color: '#d96c2f' },
   5: { label: 'Muito Negativo', color: '#F44336' },
+  4: { label: 'Negativo', color: '#d96c2f' },
+  3: { label: 'Neutro', color: '#d9d10b' },
+  2: { label: 'Positivo', color: '#8fa728' },
+  1: { label: 'Muito Positivo', color: '#3cbe7d' },
   0: { label: 'Não contabilizar', color: '#eeeeee' },
 };
 

@@ -74,8 +74,6 @@ export const FormModelEditContent = ({
     },
   });
 
-  console.log('form values', formHook.getValues());
-
   const editFormMutation = useMutateEditFormModel();
 
   const onSubmit = async (data: IFormModelForms) => {
