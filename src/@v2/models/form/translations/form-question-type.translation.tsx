@@ -8,7 +8,7 @@ export const FormQuestionTypeEnumTranslate: Record<
   [FormQuestionTypeEnum.SHORT_TEXT]: 'Resposta curta',
   [FormQuestionTypeEnum.LONG_TEXT]: 'Texto longo',
   [FormQuestionTypeEnum.SELECT]: 'Lista suspensa',
-  [FormQuestionTypeEnum.RADIO]: 'Múltipla escolha',
+  [FormQuestionTypeEnum.RADIO]: 'Escolha única',
   [FormQuestionTypeEnum.CHECKBOX]: 'Caixas de seleção',
   [FormQuestionTypeEnum.DATE]: 'Data',
   [FormQuestionTypeEnum.NUMBER]: 'Número',
