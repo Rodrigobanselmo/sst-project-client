@@ -20,11 +20,11 @@ interface FormRisksAnalysisProps {
 
 export const probabilityMap: Record<number, { label: string; color: string }> =
   {
-    1: { label: 'muito baixa', color: '#3cbe7d' },
-    2: { label: 'baixa', color: '#8fa728' },
-    3: { label: 'média', color: '#d9d10b' },
-    4: { label: 'alta', color: '#d96c2f' },
-    5: { label: 'muito alta', color: '#F44336' },
+    1: { label: 'Desprezível', color: '#3cbe7d' },
+    2: { label: 'Pequena', color: '#8fa728' },
+    3: { label: 'Moderada', color: '#d9d10b' },
+    4: { label: 'Significativa', color: '#d96c2f' },
+    5: { label: 'Excessiva', color: '#F44336' },
     0: { label: 'não contabilizar', color: '#eeeeee' },
   };
 
