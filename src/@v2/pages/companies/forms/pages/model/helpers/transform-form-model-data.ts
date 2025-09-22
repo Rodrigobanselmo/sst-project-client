@@ -59,7 +59,7 @@ export function transformFormDataToApiFormat(
     description: data.description,
     type: data.type.value,
     anonymous: data.anonymous,
-    shareableLink: data.shareableLink,
+    shareableLink: data.shareableLink.value === 'true',
     questionGroups,
   };
 }

@@ -3,6 +3,7 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { findFirstNestedKeyValue } from '@v2/utils/find-first-key-value';
 import {
   InputFormModelSelect,
+  InputFormModelSelectOptionProps,
   InputFormModelSelectProps,
 } from './InputFormModelSelect';
 
@@ -10,11 +11,13 @@ interface InputFormModelSelectFormProps
   extends Omit<InputFormModelSelectProps, 'onChange' | 'value'> {
   name: string;
   disabled?: boolean;
+  onSelectValue?: (value: InputFormModelSelectOptionProps | null) => void;
 }
 
 export function InputFormModelSelectForm({
   name,
   disabled,
+  onSelectValue,
   ...inputProps
 }: InputFormModelSelectFormProps) {
   const { setValue, formState, control } = useFormContext();
@@ -31,7 +34,10 @@ export function InputFormModelSelectForm({
     <InputFormModelSelect
       {...inputProps}
       value={value}
-      onChange={(value) => setValue(name, value)}
+      onChange={(value) => {
+        onSelectValue?.(value);
+        setValue(name, value);
+      }}
       errorMessage={errorMessage}
       disabled={disabled}
     />

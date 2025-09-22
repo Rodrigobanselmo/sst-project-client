@@ -36,7 +36,7 @@ export interface IFormModelForms {
   title: string;
   description: string;
   anonymous: boolean;
-  shareableLink: boolean;
+  shareableLink: { value: string; label: string };
   type: {
     label: string;
     value: FormTypeEnum;
@@ -48,7 +48,10 @@ export const schemaFormModelForms = yup.object({
   title: yup.string().required('Título é obrigatório'),
   description: yup.string().required('Descrição é obrigatória'),
   anonymous: yup.boolean().default(true),
-  shareableLink: yup.boolean().default(true),
+  shareableLink: yup.object({
+    value: yup.string().default('true'),
+    label: yup.string().default('Link único compartilhável'),
+  }),
   type: yup
     .object({
       label: yup.string().required('Tipo é obrigatório'),
@@ -140,7 +143,10 @@ export const formModelFormsInitialValues: IFormModelForms = {
   title: '',
   description: '',
   anonymous: true,
-  shareableLink: true,
+  shareableLink: {
+    value: 'true',
+    label: 'Link único compartilhável',
+  },
   type: {
     value: FormTypeEnum.NORMAL,
     label: FormTypeTranslate[FormTypeEnum.NORMAL],

@@ -54,6 +54,8 @@ export const FormApplicationAddContent = ({
       description: data.description,
       formId: data.form.id,
       hierarchyIds: [],
+      shareableLink: data.shareableLink.value === 'true',
+      anonymous: data.anonymous,
       workspaceIds: data.workspaceIds.map((workspace) => workspace.id),
       identifier,
     });

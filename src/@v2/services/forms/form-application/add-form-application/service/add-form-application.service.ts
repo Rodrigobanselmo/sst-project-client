@@ -35,6 +35,8 @@ export interface AddFormApplicationParams {
   formId: string;
   workspaceIds: string[];
   hierarchyIds: string[];
+  shareableLink: boolean;
+  anonymous: boolean;
   identifier: IdentifierDto;
 }
 

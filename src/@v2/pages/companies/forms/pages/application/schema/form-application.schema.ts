@@ -31,6 +31,11 @@ export interface IFormIdentifierSection {
 export interface IFormApplicationFormFields {
   name: string;
   description?: string;
+  shareableLink: {
+    value: string;
+    label: string;
+  };
+  anonymous: boolean;
   form: InputFormModelSelectOptionProps;
   workspaceIds: InputWorkspaceSelectMultipleOptionProps[];
   sections: IFormIdentifierSection[];
@@ -39,6 +44,13 @@ export interface IFormApplicationFormFields {
 export const schemaFormApplicationForm = yup.object({
   name: yup.string().required('Nome é obrigatório'),
   description: yup.string().optional(),
+  shareableLink: yup
+    .object({
+      value: yup.string(),
+      label: yup.string(),
+    })
+    .optional(),
+  anonymous: yup.boolean().optional(),
   form: yup
     .object({
       id: yup.string().required('Campo obrigatório'),
@@ -178,3 +190,7 @@ export const formApplicationFormInitialValues = {
     },
   ],
 } as IFormApplicationFormFields;
+
+export const getFormApplicationInitialValuesShareableLink = () => ({
+  ...formApplicationFormInitialValues,
+});

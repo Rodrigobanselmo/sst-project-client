@@ -32,6 +32,7 @@ export const FormApplicationEditContent = ({
 }) => {
   const router = useAppRouter();
 
+  console.log(formApplication);
   const form = useForm<IFormApplicationFormFields>({
     resolver: yupResolver(schemaFormApplicationForm),
     defaultValues: {
@@ -43,6 +44,10 @@ export const FormApplicationEditContent = ({
         name: formApplication.form.name,
         type: formApplication.form.type,
       },
+      shareableLink: formApplication.isShareableLink
+        ? { value: 'true', label: 'Link único compartilhável' }
+        : { value: 'false', label: 'Link por funcionário' },
+      anonymous: formApplication.isAnonymous,
       workspaceIds: formApplication.participants.workspaces.map(
         (workspace) => ({
           id: workspace.id,
@@ -102,6 +107,8 @@ export const FormApplicationEditContent = ({
       name: data.name,
       description: data.description,
       formId: data.form.id,
+      shareableLink: data.shareableLink.value === 'true',
+      anonymous: data.anonymous,
       hierarchyIds: [],
       workspaceIds: data.workspaceIds.map((workspace) => workspace.id),
       identifier,

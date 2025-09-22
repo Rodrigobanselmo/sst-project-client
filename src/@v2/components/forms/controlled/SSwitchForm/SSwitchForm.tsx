@@ -4,11 +4,13 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { SSwitch } from '../../fields/SSwitch/SSwitch';
 import { SSwitchProps } from '../../fields/SSwitch/SSwitch.types';
 
-interface SSwitchFormProps extends Omit<SSwitchProps, 'onChange' | 'value'> {
+interface SSwitchFormProps
+  extends Omit<SSwitchProps, 'onChange' | 'value' | 'label'> {
   name: string;
+  label: string | ((value: boolean) => string);
 }
 
-export function SSwitchForm({ name, ...props }: SSwitchFormProps) {
+export function SSwitchForm({ name, label, ...props }: SSwitchFormProps) {
   const { setValue, formState, control } = useFormContext();
 
   const error = getNestedError(formState?.errors, name);
@@ -22,6 +24,7 @@ export function SSwitchForm({ name, ...props }: SSwitchFormProps) {
   return (
     <SSwitch
       {...props}
+      label={typeof label === 'function' ? label(value) : label}
       formControlProps={{ sx: { mx: 1, mt: 2 } }}
       value={value}
       onChange={(e) => setValue(name, e.target.checked)}

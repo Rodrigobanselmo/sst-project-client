@@ -34,7 +34,9 @@ export const FormModelEditContent = ({
       title: form.name,
       description: form.description || '',
       anonymous: form.anonymous,
-      shareableLink: form.shareable_link,
+      shareableLink: form.shareable_link
+        ? { value: 'true', label: 'Link único compartilhável' }
+        : { value: 'false', label: 'Link por funcionário' },
       type: {
         value: form.type,
         label: FormTypeTranslate[form.type],
@@ -104,7 +106,7 @@ export const FormModelEditContent = ({
 
   return (
     <SForm form={formHook}>
-      <FormModelInfo containerProps={{ mb: 16 }} />
+      <FormModelInfo containerProps={{ mb: 16 }} isEdit={true} />
       <FormModelGroup companyId={companyId} isEdit={true} />
 
       <FormQuestionsButtons

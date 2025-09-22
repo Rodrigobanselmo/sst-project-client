@@ -8,7 +8,7 @@ import { useState } from 'react';
 
 export type InputFormModelSelectOptionProps = Pick<
   FormBrowseResultModel,
-  'id' | 'name' | 'type' | 'shareableLink'
+  'id' | 'name' | 'type' | 'shareableLink' | 'anonymous'
 >;
 
 export interface InputFormModelSelectProps {

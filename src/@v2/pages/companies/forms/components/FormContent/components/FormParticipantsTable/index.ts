@@ -1,0 +1,1 @@
+export { FormParticipantsTable } from './FormParticipantsTable';

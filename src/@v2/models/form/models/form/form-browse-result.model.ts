@@ -20,9 +20,9 @@ export class FormBrowseResultModel {
   description: string | undefined;
   companyId: string;
   type: FormTypeEnum;
-  anonymous: boolean;
   system: boolean;
   shareableLink: boolean;
+  anonymous: boolean;
   updatedAt: Date;
   createdAt: Date;
 
