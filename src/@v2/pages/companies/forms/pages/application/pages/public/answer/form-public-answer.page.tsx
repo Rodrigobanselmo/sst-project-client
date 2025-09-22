@@ -73,19 +73,53 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         // Calculate the position to scroll to (with some offset for better visibility)
         const elementTop = errorElement.offsetTop;
         const offset = 100; // Offset from top for better visibility
+        const scrollTop = elementTop - offset;
 
+        // Multiple approaches for Safari compatibility
         scrollContainerRef.current.scrollTo({
-          top: elementTop - offset,
+          top: scrollTop,
           behavior: 'smooth'
+        });
+
+        // Fallback for Safari with requestAnimationFrame
+        requestAnimationFrame(() => {
+          if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTo({
+              top: scrollTop,
+              behavior: 'smooth'
+            });
+          }
         });
       }
     }
   }, [form.formState.errors]);
 
+  const scrollToTop = useCallback(() => {
+    // Multiple approaches to ensure scrolling works on Safari/iPhone
+    if (scrollContainerRef.current) {
+      // Method 1: Direct scrollTo with smooth behavior
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Method 2: Fallback for Safari - use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      });
+    }
+
+    // Method 3: Additional fallback - scroll the window itself (for mobile Safari)
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
       setCurrentStep(currentStep + 1);
-      scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Use setTimeout to ensure the DOM has updated before scrolling
+      setTimeout(() => {
+        scrollToTop();
+      }, 50);
     }
   };
 
@@ -183,7 +217,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
         // Show thank you page
         setIsFormSubmitted(true);
-        scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollToTop();
       } catch (error) {
         console.error('Error submitting form:', error);
         form.setError('root', {
@@ -191,7 +225,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         });
 
         // Scroll to top to show the error message
-        scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+        scrollToTop();
       }
     } else {
       // Move to next step
@@ -291,7 +325,18 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
 
   return (
-    <Box ref={scrollContainerRef} sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
+    <Box
+      ref={scrollContainerRef}
+      sx={{
+        backgroundColor: 'gray.100',
+        height: '100vh',
+        overflow: 'auto',
+        // Safari-specific scroll improvements
+        WebkitOverflowScrolling: 'touch',
+        scrollBehavior: 'smooth',
+        position: 'relative'
+      }}
+    >
       <Box style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
         <SForm form={form}>
           <SFlex direction="column" gap={10}>
@@ -430,7 +475,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
             </Box>
 
             {/* Step indicator text */}
-            <Box sx={{ textAlign: 'center', marginTop: 2 }}>
+            <Box sx={{ textAlign: 'center', marginTop: 2 , marginBottom: [20, 20, 0]}}>
               <Typography variant="body2" color="text.secondary">
                 Passo {currentStep + 1} de {totalSteps}
               </Typography>

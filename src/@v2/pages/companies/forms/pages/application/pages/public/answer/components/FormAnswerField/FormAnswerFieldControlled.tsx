@@ -1,15 +1,18 @@
 import { Box } from '@mui/material';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SText } from '@v2/components/atoms/SText/SText';
 import { SDatePickerForm } from '@v2/components/forms/controlled/SDatePickerForm/SDatePickerForm';
 import { SInputForm } from '@v2/components/forms/controlled/SInputForm/SInputForm';
 import { SRadioCheckboxForm } from '@v2/components/forms/controlled/SRadioCheckboxForm/SRadioCheckboxForm';
 import { SRadioForm } from '@v2/components/forms/controlled/SRadioForm/SRadioForm';
 import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
 import { SSelectForm } from '@v2/components/forms/controlled/SSelectForm/SSelectForm';
+import { useSearch } from '@v2/hooks/useSearch';
 import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormQuestionReadModel } from '@v2/models/form/models/shared/form-question-read.model';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
-import React from 'react';
+import React, { useState } from 'react';
 
 type HierarchyOption = {
   id: string;
@@ -135,14 +138,10 @@ export const FormAnswerFieldControlled: React.FC<FormAnswerFieldControlledProps>
 
   const renderField = () => {
       if (identifierType === FormIdentifierTypeEnum.SECTOR) {
-        const transformedHierarchies = transformSectorHierarchies(options.hierarchies);
-
-        return <SSearchSelectForm
+        return <FormAnswerFieldControlledSector
               name={name}
-              placeholder="Selecione o setor..."
-              options={transformedHierarchies}
-              getOptionLabel={(option) => option.text}
-              getOptionValue={(option) => option.value}
+              options={options}
+              question={question}
             />;
       }
 
@@ -150,4 +149,37 @@ export const FormAnswerFieldControlled: React.FC<FormAnswerFieldControlledProps>
   };
   
   return renderField();
+}; 
+
+const FormAnswerFieldControlledSector = ({  name, options }: FormAnswerFieldControlledProps) => {
+  const transformedHierarchies = transformSectorHierarchies(options.hierarchies);
+
+    const { results, onSearch } = useSearch({
+      data: transformedHierarchies,
+      keys: ['text'],
+      threshold: 0.2,
+    });
+
+  return (
+    <SSearchSelectForm
+        name={name}
+        placeholder="Selecione o setor..."
+        options={results}
+        onSearch={onSearch}
+        getOptionLabel={(option) => option.text}
+        renderItem={(option) => {
+          const hierarchyChain = option.label.split(' > ');
+          const lastHierarchy = hierarchyChain[hierarchyChain.length - 1];
+          const restOfHierarchies = hierarchyChain.slice(0, -1).join(' > ');
+          
+          return (
+            <SFlex sx={{ flexDirection: 'column' }}>
+              <SText fontSize="11px !important" color="gray.500" sx={{ textAlign: 'left', whiteSpace: 'normal', wordBreak: 'break-word' }}>{restOfHierarchies}</SText>
+              <SText fontSize="13px !important" width="100%" sx={{ textAlign: 'left', whiteSpace: 'normal', wordBreak: 'break-word' }}>{lastHierarchy}</SText>
+            </SFlex>
+          );
+        }}
+        getOptionValue={(option) => option.value}
+      />
+  );
 }; 

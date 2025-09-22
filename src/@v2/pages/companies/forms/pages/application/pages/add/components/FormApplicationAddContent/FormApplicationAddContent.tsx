@@ -81,16 +81,48 @@ export const FormApplicationAddContent = ({
           type: FormIdentifierTypeEnum.SECTOR,
           content: 'Qual setor da empresa você faz parte?',
           description: `<p>
-  Formulário de caracterização de riscos psicossociais no ambiente de trabalho
-</p>
-
-<p><strong>Instruções:</strong></p>
-<ul>
-  <li>Sua participação é <strong>anônima</strong> e seus dados não serão compartilhados individualmente.</li>
-  <li>As informações coletadas serão utilizadas exclusivamente para identificar e compreender riscos psicossociais.</li>
-  <li>Os resultados apoiarão ações de melhoria voltadas à saúde, segurança e bem-estar no ambiente de trabalho.</li>
-  <li>Responda com sinceridade para que possamos promover um ambiente mais seguro e saudável.</li>
-</ul>`,
+        Formulário de caracterização de riscos psicossociais no ambiente de
+        trabalho.
+      </p>
+      <p>
+        <strong>Instruções:</strong>
+      </p>
+      <ul>
+        <li>
+          <p>
+            Sua participação é <strong>anônima</strong> e seus dados não serão
+            compartilhados individualmente.
+          </p>
+        </li>
+        <li>
+          <p>
+            As informações coletadas serão utilizadas exclusivamente para
+            identificar e compreender riscos psicossociais.
+          </p>
+        </li>
+        <li>
+          <p>
+            Os resultados apoiarão ações de melhoria voltadas à saúde, segurança
+            e bem-estar no ambiente de trabalho.
+          </p>
+        </li>
+        <li>
+          <p>
+            Responda com sinceridade para podermos promover um ambiente mais
+            seguro e saudável.
+          </p>
+        </li>
+      </ul>
+      <p>
+        Para esta seção de perguntas gerais, informamos que somente o campo
+        “Setor” é requerido — e já foi configurado para agrupar equipes com
+        número mínimo de pessoas, preservando o anonimato. As demais questões
+        são opcionais: se você entender que alguma resposta (por exemplo, uma
+        faixa etária rara no seu setor) pode, direta ou indiretamente, indicar a
+        sua identidade, fique à vontade para não responder. As informações serão
+        analisadas coletivamente, visando orientar melhor as ações de prevenção
+        e controle.
+      </p>`,
         }),
       ]);
     }
