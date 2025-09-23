@@ -64,7 +64,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
             <SText
               sx={{ fontSize: 18, fontWeight: 500, color: 'text.primary' }}
             >
-              {isSefaz ? 2622 : totalAnswers}
+              {totalAnswers}
             </SText>
             <SText sx={{ fontSize: 14, color: 'text.primary' }}>
               Respostas
@@ -87,7 +87,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
             <SText
               sx={{ fontSize: 18, fontWeight: 500, color: 'text.primary' }}
             >
-              {totalParticipants}
+              {isSefaz ? 2622 : totalParticipants}
             </SText>
             <SText sx={{ fontSize: 14, color: 'text.primary' }}>
               Participantes
