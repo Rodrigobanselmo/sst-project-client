@@ -43,7 +43,7 @@ export function SRadio<T>({
       <RadioGroup value={selectedValue} onChange={handleChange}>
         {options?.map((option) => (
           <FormControlLabel
-            key={getOptionValue(option)}
+            key={String(getOptionValue(option))}
             value={getOptionValue(option).toString()}
             control={
               <Radio
