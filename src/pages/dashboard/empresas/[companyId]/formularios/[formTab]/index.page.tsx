@@ -19,7 +19,7 @@ const Page: NextPage = () => {
         pathParams: { companyId, formTab: FORM_TAB_ENUM.APPLIED },
       });
     }
-  }, [companyId, formTab]);
+  }, [companyId, formTab, router]);
 
   return <FormsPage />;
 };

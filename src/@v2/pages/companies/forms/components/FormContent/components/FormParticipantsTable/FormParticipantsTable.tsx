@@ -23,10 +23,10 @@ import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
 
 const limit = 15;
 
-export const FormParticipantsTable = ({ 
+export const FormParticipantsTable = ({
   companyId,
-  applicationId 
-}: { 
+  applicationId,
+}: {
   companyId: string;
   applicationId: string;
 }) => {
@@ -34,10 +34,11 @@ export const FormParticipantsTable = ({
     Record<FormParticipantsColumnsEnum, boolean>
   >(persistKeys.COLUMNS_FORMS_PARTICIPANTS, {} as any);
 
-  const { onFormParticipantAdd, onFormParticipantClick } = useFormParticipantsActions({
-    companyId,
-    applicationId,
-  });
+  const { onFormParticipantAdd, onFormParticipantClick } =
+    useFormParticipantsActions({
+      companyId,
+      applicationId,
+    });
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<IFormParticipantsFilterProps>();
@@ -89,7 +90,9 @@ export const FormParticipantsTable = ({
         onDelete: () =>
           setQueryParams({
             page: 1,
-            hierarchyIds: queryParams.hierarchyIds?.filter((id) => id !== value),
+            hierarchyIds: queryParams.hierarchyIds?.filter(
+              (id) => id !== value,
+            ),
           }),
       }),
     },

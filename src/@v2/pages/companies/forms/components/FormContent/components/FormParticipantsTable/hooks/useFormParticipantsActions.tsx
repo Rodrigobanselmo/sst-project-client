@@ -1,13 +1,13 @@
 import { useModal } from '@v2/hooks/useModal';
 
-export const useFormParticipantsActions = ({ 
+export const useFormParticipantsActions = ({
   companyId,
-  applicationId 
-}: { 
+  applicationId,
+}: {
   companyId: string;
   applicationId: string;
 }) => {
-  const { onStackOpenModal } = useModal();
+  // const { onStackOpenModal } = useModal();
 
   const onFormParticipantAdd = () => {
     // TODO: Implement add participant functionality
@@ -16,7 +16,12 @@ export const useFormParticipantsActions = ({
 
   const onFormParticipantClick = (participantId: number) => {
     // TODO: Implement participant details/edit functionality
-    console.log('View participant:', participantId, 'in application:', applicationId);
+    console.log(
+      'View participant:',
+      participantId,
+      'in application:',
+      applicationId,
+    );
   };
 
   return {

@@ -35,6 +35,7 @@ export const FormApplicationShareModal = ({
   const publicUrl = useMemo(() => {
     const url = formApplication.publicUrl;
     return `${window.location.origin}${url}`;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formApplication.id]);
 
   // Get the SVG element after QR code renders

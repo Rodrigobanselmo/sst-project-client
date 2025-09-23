@@ -11,7 +11,7 @@ const Page: NextPage = () => {
     router.push(PageRoutes.FORMS.FORMS_APPLICATION.LIST, {
       pathParams: { companyId },
     });
-  }, [companyId]);
+  }, [companyId, router]);
 
   return <div>Formulários</div>;
 };

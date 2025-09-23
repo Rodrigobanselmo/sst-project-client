@@ -103,7 +103,9 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
         <FormParticipantsHeaderRow
           setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.HIERARCHY_NAME]: true })}
+          onHidden={() =>
+            setHiddenColumns({ [columnsEnum.HIERARCHY_NAME]: true })
+          }
           field={FormParticipantsOrderByEnum.HIERARCHY_NAME}
           text={columnMap[columnsEnum.HIERARCHY_NAME].label}
         />
@@ -118,7 +120,9 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
       header: (
         <FormParticipantsHeaderRow
           justify="center"
-          onHidden={() => setHiddenColumns({ [columnsEnum.HAS_RESPONDED]: true })}
+          onHidden={() =>
+            setHiddenColumns({ [columnsEnum.HAS_RESPONDED]: true })
+          }
           text={columnMap[columnsEnum.HAS_RESPONDED].label}
         />
       ),
