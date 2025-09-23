@@ -2,6 +2,7 @@ import { useRouter } from 'next/router';
 
 import { useAuth } from 'core/contexts/AuthContext';
 
+// deprecated
 export const useGetCompanyId = (fromUser = false) => {
   const { user } = useAuth();
   const router = useRouter();

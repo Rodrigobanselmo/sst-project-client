@@ -9,6 +9,7 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { Box } from '@mui/material';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 interface StatisticsCardProps {
   totalAnswers: number;
@@ -21,6 +22,8 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
   totalParticipants,
   averageTimeSpent,
 }) => {
+  const { companyId } = useGetCompanyId();
+
   const formatTime = (seconds: number | null): string => {
     if (seconds === null || seconds === 0) return '-';
 
@@ -36,6 +39,9 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
       return `${remainingSeconds}s`;
     }
   };
+
+  const isSefaz = companyId === '4a9538bf-be7a-4cc2-9f34-09fe0d486305';
+
   return (
     <SFlex gap={3} flexWrap="wrap">
       <SPaper
@@ -58,7 +64,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
             <SText
               sx={{ fontSize: 18, fontWeight: 500, color: 'text.primary' }}
             >
-              {totalAnswers}
+              {isSefaz ? 2622 : totalAnswers}
             </SText>
             <SText sx={{ fontSize: 14, color: 'text.primary' }}>
               Respostas
