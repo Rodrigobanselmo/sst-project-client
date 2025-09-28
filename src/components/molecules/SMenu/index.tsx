@@ -58,14 +58,15 @@ export const SMenu: FC<{ children?: any } & SMenuProps> = ({
           }}
         >
           {option && (icon || option.icon) && (
-            <Icon
-              sx={{
-                color: option?.iconColor ?? 'text.light',
-                fontSize: '18px',
-                mr: '5px',
-              }}
-              component={option.icon ? option.icon : (icon as any)}
-            />
+            <Box mr={5}>
+              <Icon
+                sx={{
+                  color: option?.iconColor ?? 'text.light',
+                  fontSize: '18px',
+                }}
+                component={option.icon ? option.icon : (icon as any)}
+              />
+            </Box>
           )}
           {startAdornment && startAdornment(option)}
           <STooltip

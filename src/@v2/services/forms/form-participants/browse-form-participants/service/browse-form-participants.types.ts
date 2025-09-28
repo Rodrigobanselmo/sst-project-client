@@ -4,11 +4,13 @@ import { IPaginationParams } from '@v2/types/pagination-params.type';
 export enum FormParticipantsOrderByEnum {
   NAME = 'NAME',
   CPF = 'CPF',
-  EMAIL = 'EMAIL',
+  HIERARCHY = 'HIERARCHY',
   STATUS = 'STATUS',
-  HIERARCHY_NAME = 'HIERARCHY_NAME',
   CREATED_AT = 'CREATED_AT',
   UPDATED_AT = 'UPDATED_AT',
+  HAS_RESPONDED = 'HAS_RESPONDED',
+  EMAIL = 'EMAIL',
+  PHONE = 'PHONE',
 }
 
 export interface BrowseFormParticipantsFilters {

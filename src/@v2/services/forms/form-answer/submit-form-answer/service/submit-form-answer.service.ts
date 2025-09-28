@@ -12,19 +12,22 @@ export interface SubmitFormAnswerParams {
   applicationId: string;
   answers: FormAnswerData[];
   timeSpent?: number;
+  encryptedEmployeeId?: string;
 }
 
 export async function submitFormAnswer({
   applicationId,
   answers,
   timeSpent,
+  encryptedEmployeeId,
 }: SubmitFormAnswerParams) {
   const response = await api.post(
     bindUrlParams({
       path: FormRoutes.FORM_APPLICATION.PATH_PUBLIC,
       pathParams: { applicationId },
+      queryParams: { action: 'submit' },
     }),
-    { answers, timeSpent },
+    { answers, timeSpent, encryptedEmployeeId },
   );
 
   return response.data;

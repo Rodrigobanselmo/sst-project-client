@@ -3,11 +3,15 @@ import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participant
 import { IOrderByParams } from '@v2/types/order-by-params.type';
 import { ReactNode } from 'react';
 import { FormParticipantsColumnsEnum } from './enums/form-participants-columns.enum';
+import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 
 export interface IFormParticipantsFilterProps {
   search?: string;
   status?: string[];
-  hierarchyIds?: string[];
+  hierarchies?: {
+    id: string;
+    name: string;
+  }[];
   page?: number;
   limit?: number;
   orderBy?: IOrderByParams<FormParticipantsOrderByEnum>[];
@@ -26,6 +30,7 @@ export interface IFormParticipantsTableTableProps {
   setPage: (page: number) => void;
   setOrderBy: (order: IOrderByParams<FormParticipantsOrderByEnum>) => void;
   onSelectRow: (row: FormParticipantsBrowseResultModel) => void;
+  formApplication?: FormApplicationReadModel;
   pagination?: {
     total: number;
     limit: number;

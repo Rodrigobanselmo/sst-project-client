@@ -41,11 +41,11 @@ export const FormFormApplication = ({ companyId, disabled }: Props) => {
 
           form.setValue(
             'shareableLink',
-            formModel.shareableLink
+            value.shareableLink
               ? { value: 'true', label: 'Link único compartilhável' }
               : { value: 'false', label: 'Link por funcionário' },
           );
-          form.setValue('anonymous', formModel.anonymous);
+          form.setValue('anonymous', value.anonymous);
         }}
       />
       <InputWorkspaceSelectMultipleForm

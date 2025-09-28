@@ -2,9 +2,11 @@ export enum FormParticipantsColumnsEnum {
   NAME = 'NAME',
   CPF = 'CPF',
   EMAIL = 'EMAIL',
+  PHONE = 'PHONE',
   STATUS = 'STATUS',
   HIERARCHY_NAME = 'HIERARCHY_NAME',
   HAS_RESPONDED = 'HAS_RESPONDED',
   CREATED_AT = 'CREATED_AT',
   UPDATED_AT = 'UPDATED_AT',
+  COPY_LINK = 'COPY_LINK',
 }

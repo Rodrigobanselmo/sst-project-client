@@ -9,7 +9,7 @@ import { useMutateSubmitFormAnswer } from '@v2/services/forms/form-answer/submit
 import { useFetchPublicFormApplication } from '@v2/services/forms/form-application/public-form-application/hooks/useFetchPublicFormApplication';
 import { STBoxLoading, STLoadLogoSimpleIcon } from 'layouts/default/loading/styles';
 import { useRouter } from 'next/router';
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useActiveTimeTracker } from '@v2/hooks/useActiveTimeTracker';
 import { FormAccessDenied } from './components/FormAccessDenied/FormAccessDenied';
@@ -18,13 +18,55 @@ import { FormQuestionOptionReadModel } from '@v2/models/form/models/shared/form-
 import { FormAnswerData } from '@v2/services/forms/form-answer/submit-form-answer/service/submit-form-answer.service';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
+import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 
 interface FormAnswers {
-  [questionId: string]: FormQuestionOptionReadModel | string;
+  [questionId: string]: FormQuestionOptionReadModel | string | { id: string; text?: string; value?: string };
 }
 
 const VALIDATE_STRING_REQUIRED_FIELDS = [FormQuestionTypeEnum.SHORT_TEXT, FormQuestionTypeEnum.LONG_TEXT];
 const VALIDATE_SYSTEM_REQUIRED_FIELDS = [FormIdentifierTypeEnum.SECTOR];
+
+// Helper function to transform sector hierarchies (same as in FormAnswerFieldControlled)
+const transformSectorHierarchies = (hierarchies: { id: string; name: string; type: HierarchyTypeEnum; parentId: string }[]) => {
+  // Create a map of hierarchies by ID for quick lookup
+  const hierarchyMap = new Map(
+    hierarchies.map(hierarchy => [hierarchy.id, hierarchy])
+  );
+
+  // Function to build hierarchy chain by following parentId
+  const buildHierarchyChain = (hierarchyId: string): string[] => {
+    const chain: string[] = [];
+    let currentHierarchy = hierarchyMap.get(hierarchyId);
+
+    while (currentHierarchy) {
+      // Only add to chain if it's not a SUB_SECTOR
+      if (currentHierarchy.type !== HierarchyTypeEnum.SUB_SECTOR) {
+        chain.unshift(currentHierarchy.name); // Add to beginning of array
+      }
+      currentHierarchy = currentHierarchy.parentId
+        ? hierarchyMap.get(currentHierarchy.parentId)
+        : undefined;
+    }
+
+    return chain;
+  };
+
+  // Filter hierarchies to only include SECTOR type and transform them
+  return hierarchies
+    .filter(hierarchy => hierarchy.type === HierarchyTypeEnum.SECTOR)
+    .map(hierarchy => {
+      const hierarchyChain = buildHierarchyChain(hierarchy.id);
+      const concatenatedName = hierarchyChain.join(' > ');
+
+      return {
+        id: hierarchy.id,
+        text: concatenatedName,
+        value: hierarchy.id
+      };
+    })
+    .sort((a, b) => a.text.localeCompare(b.text));
+};
 
 export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean }) => {
   const router = useRouter();
@@ -39,8 +81,9 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     autoStart: true,
   });
 
-  const { publicFormApplication, options, isPublic, isTesting, isLoading } = useFetchPublicFormApplication({
+  const { publicFormApplication, options, isPublic, isTesting, hierarchyId, isLoading, hasAlreadyAnswered } = useFetchPublicFormApplication({
     applicationId: applicationId,
+    encrypt: router.query?.encrypt  as string,
   });
 
   const getCanAccess =   () => {
@@ -55,6 +98,31 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const form = useForm<FormAnswers>({
     defaultValues: {},
   });
+
+  // Set initial values for SECTOR field when hierarchyId is available
+  useEffect(() => {
+    if (hierarchyId && publicFormApplication?.groups && options?.hierarchies) {
+      // Find the first question with SECTOR identifier type across all groups
+      const firstSectorQuestion = publicFormApplication.groups
+        .flatMap(group => group.questions)
+        .find(question => question.details.identifierType === FormIdentifierTypeEnum.SECTOR);
+
+      if (firstSectorQuestion) {
+        // Transform hierarchies to get the options in the same format as FormAnswerFieldControlledSector
+        const transformedHierarchies = transformSectorHierarchies(options.hierarchies);
+
+        // Find the matching hierarchy option
+        const matchingOption = transformedHierarchies.find(option => option.id === hierarchyId);
+        if (matchingOption) {
+          // Only set the value if it's not already set (to avoid overriding user changes)
+          const currentValue = form.getValues(firstSectorQuestion.id);
+          if (!currentValue) {
+            form.setValue(firstSectorQuestion.id, matchingOption);
+          }
+        }
+      }
+    }
+  }, [hierarchyId, publicFormApplication, options, form]);
 
 
   const totalSteps = publicFormApplication?.groups?.length || 0;
@@ -140,8 +208,6 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
       (question) => question.required,
     );
 
-    console.log({data, requiredQuestions});
-
     const missingRequiredFields: string[] = [];
 
     const allQuestions = publicFormApplication?.groups
@@ -213,6 +279,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
           applicationId: applicationId as string,
           answers: answersArray,
           timeSpent: totalTimeSpent,
+          encryptedEmployeeId: router.query?.encrypt  as string,
         });
 
         // Show thank you page
@@ -239,6 +306,68 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         <STBoxLoading>
           <STLoadLogoSimpleIcon />
         </STBoxLoading>
+      </Box>
+    );
+  }
+
+  if (hasAlreadyAnswered) {
+    return (
+      <Box sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
+        <Box style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
+          <Box
+            sx={{
+              backgroundColor: '#ffffff',
+              padding: 12,
+              borderRadius: 1,
+              marginBottom: 2,
+              borderTop: '4px solid #ff9800',
+              textAlign: 'center',
+            }}
+          >
+            <Box sx={{ marginBottom: 8 }}>
+              <Typography
+                variant="h1"
+                sx={{
+                  fontSize: 48,
+                  color: '#ff9800',
+                  marginBottom: 4,
+                }}
+              >
+                ⚠️
+              </Typography>
+              <SText
+                variant="h1"
+                fontSize={28}
+                sx={{
+                  color: '#333',
+                  fontWeight: 600,
+                  marginBottom: 8,
+                }}
+              >
+                Formulário já respondido
+              </SText>
+              <SText
+                fontSize={16}
+                sx={{
+                  color: '#666',
+                  marginBottom: 12,
+                  lineHeight: 1.6,
+                }}
+              >
+                Você já respondeu a este formulário anteriormente. Não é possível enviar uma nova resposta.
+              </SText>
+              <SText
+                fontSize={14}
+                sx={{
+                  color: '#888',
+                  fontStyle: 'italic',
+                }}
+              >
+                Se você acredita que isso é um erro, entre em contato com o administrador.
+              </SText>
+            </Box>
+          </Box>
+        </Box>
       </Box>
     );
   }
@@ -392,6 +521,11 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
             {currentGroup?.questions.map((question: FormQuestionReadModel) => {
               const fieldError = form.formState.errors[question.id];
 
+              // Hide the entire question box if it's a SECTOR field with hierarchyId from backend
+              if (question.details.identifierType === FormIdentifierTypeEnum.SECTOR && hierarchyId) {
+                return null;
+              }
+
               return (
                 <Box
                   key={question.id}
@@ -411,13 +545,13 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
                       fontSize={18}
                       sx={{position: 'absolute', top: 15, right: 15}}
                     >
-                      * 
+                      *
                     </SText>
                   )}
                   <HtmlContentRenderer content={question.details.text} mb={6} />
-                  <FormAnswerFieldControlled 
-                    question={question} 
-                    name={question.id} 
+                  <FormAnswerFieldControlled
+                    question={question}
+                    name={question.id}
                     options={options}
                   />
                 </Box>

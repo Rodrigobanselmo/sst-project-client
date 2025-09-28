@@ -14,6 +14,7 @@ export const FormParticipantsColumnMap: Record<
   [FormParticipantsColumnsEnum.NAME]: { label: 'Nome', alwaysVisible: true },
   [FormParticipantsColumnsEnum.CPF]: { label: 'CPF' },
   [FormParticipantsColumnsEnum.EMAIL]: { label: 'Email' },
+  [FormParticipantsColumnsEnum.PHONE]: { label: 'Telefone' },
   [FormParticipantsColumnsEnum.STATUS]: { label: 'Status' },
   [FormParticipantsColumnsEnum.HIERARCHY_NAME]: { label: 'Hierarquia' },
   [FormParticipantsColumnsEnum.HAS_RESPONDED]: { label: 'Respondeu' },
@@ -22,6 +23,7 @@ export const FormParticipantsColumnMap: Record<
     label: 'Atualizado',
     startHidden: true,
   },
+  [FormParticipantsColumnsEnum.COPY_LINK]: { label: 'Compartilhar' },
 };
 
 export const participantsColumns = Object.entries(FormParticipantsColumnMap)

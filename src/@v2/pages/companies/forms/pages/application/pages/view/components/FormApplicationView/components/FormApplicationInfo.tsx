@@ -58,9 +58,12 @@ export const FormApplicationInfo = ({
               />
             </SFlex>
             <SFlex gap={1} alignItems="center">
-              <SIconButton onClick={handleOpenShareModal}>
-                <SIconShare fontSize={22} color="grey.600" />
-              </SIconButton>
+              {(formApplication.isShareableLink ||
+                formApplication.isTesting) && (
+                <SIconButton onClick={handleOpenShareModal}>
+                  <SIconShare fontSize={22} color="grey.600" />
+                </SIconButton>
+              )}
               <SIconButton onClick={onEdit}>
                 <SIconEdit fontSize={22} color="grey.600" />
               </SIconButton>
@@ -134,7 +137,7 @@ export const FormApplicationInfo = ({
         <SDivider />
         <InfoCardSection>
           <SFlex gap={4} justifyContent="flex-start" flexWrap="wrap">
-            {formApplication.isShareableLink && (
+            {(formApplication.isShareableLink || formApplication.isTesting) && (
               <SButton
                 text="Compartilhar"
                 icon={<SIconShare fontSize={18} />}

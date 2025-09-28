@@ -16,6 +16,9 @@ import { FormParticipantsColumnsEnum as columnsEnum } from './enums/form-partici
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { FormParticipantsColumnMap as columnMap } from './maps/form-participants-column-map';
 import { IFormParticipantsTableTableProps } from './SFormParticipantsTable.types';
+import { ParticipantActionsRow } from './components/ParticipantActionsRow';
+import { SIconEmail } from '@v2/assets/icons/SIconEmail/SIconEmail';
+import STooltip from '@v2/components/atoms/STooltip/STooltip';
 
 export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
   data = [],
@@ -28,6 +31,7 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
   onSelectRow,
   hiddenColumns,
   setHiddenColumns,
+  formApplication,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -50,12 +54,12 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
     // CPF
     {
       column: '150px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.CPF),
+      // hidden: getHiddenColumn(hiddenColumns, columnsEnum.CPF),
       header: (
         <FormParticipantsHeaderRow
           setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.CPF]: true })}
+          // onHidden={() => setHiddenColumns({ [columnsEnum.CPF]: true })}
           field={FormParticipantsOrderByEnum.CPF}
           text={columnMap[columnsEnum.CPF].label}
         />
@@ -66,100 +70,156 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
     // EMAIL
     {
       column: 'minmax(200px, 2fr)',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.EMAIL),
+      // hidden: getHiddenColumn(hiddenColumns, columnsEnum.EMAIL),
       header: (
         <FormParticipantsHeaderRow
           setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.EMAIL]: true })}
+          // onHidden={() => setHiddenColumns({ [columnsEnum.EMAIL]: true })}
           field={FormParticipantsOrderByEnum.EMAIL}
           text={columnMap[columnsEnum.EMAIL].label}
         />
       ),
-      row: (row) => <STextRow lineNumber={2} text={row.email || '-'} />,
-    },
-
-    // STATUS
-    {
-      column: '120px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.STATUS),
-      header: (
-        <FormParticipantsHeaderRow
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.STATUS]: true })}
-          field={FormParticipantsOrderByEnum.STATUS}
-          text={columnMap[columnsEnum.STATUS].label}
+      row: (row) => (
+        <STextRow
+          lineNumber={2}
+          text={row.email || '-'}
+          startAddon={
+            row.emailSent ? (
+              <STooltip
+                title={`Email enviado${row.emailSentAt ? ` em ${new Date(row.emailSentAt).toLocaleDateString('pt-BR')}` : ''}`}
+                withWrapper
+              >
+                <SIconEmail color="success.main" fontSize="16px" />
+              </STooltip>
+            ) : undefined
+          }
         />
       ),
-      row: (row) => <STextRow lineNumber={1} text={row.status || '-'} />,
     },
+
+    // PHONE
+    {
+      column: '120px',
+      // hidden: getHiddenColumn(hiddenColumns, columnsEnum.PHONE),
+      header: (
+        <FormParticipantsHeaderRow
+          // onHidden={() => setHiddenColumns({ [columnsEnum.PHONE]: true })}
+          text={columnMap[columnsEnum.PHONE].label}
+        />
+      ),
+      row: (row) => (
+        <STextRow lineNumber={1} text={row.formattedPhone || '-'} />
+      ),
+    },
+
+    // // STATUS
+    // {
+    //   column: '120px',
+    //   hidden: getHiddenColumn(hiddenColumns, columnsEnum.STATUS),
+    //   header: (
+    //     <FormParticipantsHeaderRow
+    //       setOrderBy={setOrderBy}
+    //       orderByMap={orderByMap}
+    //       onHidden={() => setHiddenColumns({ [columnsEnum.STATUS]: true })}
+    //       field={FormParticipantsOrderByEnum.STATUS}
+    //       text={columnMap[columnsEnum.STATUS].label}
+    //     />
+    //   ),
+    //   row: (row) => <STextRow lineNumber={1} text={row.status || '-'} />,
+    // },
 
     // HIERARCHY_NAME
     {
-      column: 'minmax(150px, 1fr)',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.HIERARCHY_NAME),
+      column: 'minmax(150px, 100fr)',
+      // hidden: getHiddenColumn(hiddenColumns, columnsEnum.HIERARCHY_NAME),
       header: (
         <FormParticipantsHeaderRow
           setOrderBy={setOrderBy}
           orderByMap={orderByMap}
-          onHidden={() =>
-            setHiddenColumns({ [columnsEnum.HIERARCHY_NAME]: true })
-          }
-          field={FormParticipantsOrderByEnum.HIERARCHY_NAME}
+          // onHidden={() =>
+          //   setHiddenColumns({ [columnsEnum.HIERARCHY_NAME]: true })
+          // }
+          field={FormParticipantsOrderByEnum.HIERARCHY}
           text={columnMap[columnsEnum.HIERARCHY_NAME].label}
         />
       ),
-      row: (row) => <STextRow lineNumber={2} text={row.hierarchyName || '-'} />,
+      row: (row) => (
+        <STextRow
+          lineNumber={2}
+          text={
+            row.hierarchies
+              ?.map((h) => h.name)
+              .reverse()
+              ?.join(' / ') || '-'
+          }
+        />
+      ),
     },
 
     // HAS_RESPONDED
     {
       column: '100px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.HAS_RESPONDED),
+      // hidden: getHiddenColumn(hiddenColumns, columnsEnum.HAS_RESPONDED),
       header: (
         <FormParticipantsHeaderRow
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
           justify="center"
-          onHidden={() =>
-            setHiddenColumns({ [columnsEnum.HAS_RESPONDED]: true })
-          }
+          // onHidden={() =>
+          //   setHiddenColumns({ [columnsEnum.HAS_RESPONDED]: true })
+          // }
+          field={FormParticipantsOrderByEnum.HAS_RESPONDED}
           text={columnMap[columnsEnum.HAS_RESPONDED].label}
         />
       ),
       row: (row) => <SBooleanRow checked={row.hasResponded} />,
     },
 
-    // CREATED_AT
+    // COPY_LINK
     {
-      column: '120px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.CREATED_AT),
-      header: (
-        <FormParticipantsHeaderRow
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.CREATED_AT]: true })}
-          field={FormParticipantsOrderByEnum.CREATED_AT}
-          text={columnMap[columnsEnum.CREATED_AT].label}
-        />
-      ),
-      row: (row) => <STextRow lineNumber={1} text={row.formattedCreatedAt} />,
+      column: '50px',
+      header: null, // No header for actions column
+      row: (row) =>
+        formApplication ? (
+          <ParticipantActionsRow
+            participant={row}
+            formApplication={formApplication}
+          />
+        ) : null,
     },
 
-    // UPDATED_AT
-    {
-      column: '120px',
-      hidden: getHiddenColumn(hiddenColumns, columnsEnum.UPDATED_AT),
-      header: (
-        <FormParticipantsHeaderRow
-          setOrderBy={setOrderBy}
-          orderByMap={orderByMap}
-          onHidden={() => setHiddenColumns({ [columnsEnum.UPDATED_AT]: true })}
-          field={FormParticipantsOrderByEnum.UPDATED_AT}
-          text={columnMap[columnsEnum.UPDATED_AT].label}
-        />
-      ),
-      row: (row) => <STextRow lineNumber={1} text={row.formattedUpdatedAt} />,
-    },
+    // // CREATED_AT
+    // {
+    //   column: '120px',
+    //   hidden: getHiddenColumn(hiddenColumns, columnsEnum.CREATED_AT),
+    //   header: (
+    //     <FormParticipantsHeaderRow
+    //       setOrderBy={setOrderBy}
+    //       orderByMap={orderByMap}
+    //       onHidden={() => setHiddenColumns({ [columnsEnum.CREATED_AT]: true })}
+    //       field={FormParticipantsOrderByEnum.CREATED_AT}
+    //       text={columnMap[columnsEnum.CREATED_AT].label}
+    //     />
+    //   ),
+    //   row: (row) => <STextRow lineNumber={1} text={row.formattedCreatedAt} />,
+    // },
+
+    // // UPDATED_AT
+    // {
+    //   column: '120px',
+    //   hidden: getHiddenColumn(hiddenColumns, columnsEnum.UPDATED_AT),
+    //   header: (
+    //     <FormParticipantsHeaderRow
+    //       setOrderBy={setOrderBy}
+    //       orderByMap={orderByMap}
+    //       onHidden={() => setHiddenColumns({ [columnsEnum.UPDATED_AT]: true })}
+    //       field={FormParticipantsOrderByEnum.UPDATED_AT}
+    //       text={columnMap[columnsEnum.UPDATED_AT].label}
+    //     />
+    //   ),
+    //   row: (row) => <STextRow lineNumber={1} text={row.formattedUpdatedAt} />,
+    // },
   ];
 
   return (
@@ -178,7 +238,6 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
                   clickable
                   onClick={() => onSelectRow(row)}
                   key={row.id}
-                  minHeight={35}
                 >
                   {rows.map((render) => render(row))}
                 </STableRow>

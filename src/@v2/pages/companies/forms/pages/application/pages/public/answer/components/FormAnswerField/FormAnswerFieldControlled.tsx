@@ -147,7 +147,7 @@ export const FormAnswerFieldControlled: React.FC<FormAnswerFieldControlledProps>
 
       return fieldMap[type];
   };
-  
+
   return renderField();
 }; 
 

@@ -1,15 +1,15 @@
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
-import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
-import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
 import { STableSearchContent } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableSearchContent/STableSearchContent';
 import { STableSearch } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/STableSearch';
+import { STableButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/STableButton';
 import { useTableState } from '@v2/components/organisms/STable/hooks/useTableState';
 import { FormParticipantsColumnsEnum } from '@v2/components/organisms/STable/implementation/SFormParticipantsTable/enums/form-participants-columns.enum';
-import { participantsColumns } from '@v2/components/organisms/STable/implementation/SFormParticipantsTable/maps/form-participants-column-map';
 import { SFormParticipantsTable } from '@v2/components/organisms/STable/implementation/SFormParticipantsTable/SFormParticipantsTable';
+import { SIconEmail } from '@v2/assets/icons/SIconEmail/SIconEmail';
+
 import { IFormParticipantsFilterProps } from '@v2/components/organisms/STable/implementation/SFormParticipantsTable/SFormParticipantsTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
@@ -20,21 +20,25 @@ import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-particip
 import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-form-participants.types';
 import { FormParticipantsTableFilter } from './components/FormParticipantsTableFilter/FormParticipantsTableFilter';
 import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
+import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
+import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 
 const limit = 15;
 
 export const FormParticipantsTable = ({
   companyId,
   applicationId,
+  formApplication,
 }: {
   companyId: string;
   applicationId: string;
+  formApplication?: FormApplicationReadModel;
 }) => {
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<FormParticipantsColumnsEnum, boolean>
   >(persistKeys.COLUMNS_FORMS_PARTICIPANTS, {} as any);
 
-  const { onFormParticipantAdd, onFormParticipantClick } =
+  const { onFormParticipantClick, onSendFormEmail, sendFormEmailMutation } =
     useFormParticipantsActions({
       companyId,
       applicationId,
@@ -49,9 +53,17 @@ export const FormParticipantsTable = ({
     filters: {
       search: queryParams.search,
       status: queryParams.status,
-      hierarchyIds: queryParams.hierarchyIds,
+      hierarchyIds: queryParams.hierarchies?.map((h) => h.id),
     },
     orderBy: queryParams.orderBy || [
+      {
+        field: FormParticipantsOrderByEnum.HAS_RESPONDED,
+        order: 'desc',
+      },
+      {
+        field: FormParticipantsOrderByEnum.HIERARCHY,
+        order: 'asc',
+      },
       {
         field: FormParticipantsOrderByEnum.NAME,
         order: 'asc',
@@ -84,14 +96,14 @@ export const FormParticipantsTable = ({
             status: queryParams.status?.filter((status) => status !== value),
           }),
       }),
-      hierarchyIds: (value) => ({
+      hierarchies: (value) => ({
         leftLabel: 'Hierarquia',
-        label: value,
+        label: value.name,
         onDelete: () =>
           setQueryParams({
             page: 1,
-            hierarchyIds: queryParams.hierarchyIds?.filter(
-              (id) => id !== value,
+            hierarchies: queryParams.hierarchies?.filter(
+              (h) => h.id !== value.id,
             ),
           }),
       }),
@@ -99,12 +111,16 @@ export const FormParticipantsTable = ({
     cleanData: {
       search: '',
       status: [],
-      hierarchyIds: [],
+      hierarchies: [],
       orderBy: [],
       page: 1,
       limit,
     },
   });
+
+  // Check if form is accepting responses
+  const isAcceptingResponses =
+    formApplication?.status === FormApplicationStatusEnum.PROGRESS;
 
   return (
     <>
@@ -113,13 +129,26 @@ export const FormParticipantsTable = ({
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
-          <STableAddButton onClick={onFormParticipantAdd} />
-          <STableColumnsButton
+          <STableButton
+            onClick={() => onSendFormEmail()}
+            text="Enviar Todos os Emails"
+            icon={<SIconEmail fontSize="16px" />}
+            color="info"
+            loading={sendFormEmailMutation.isPending}
+            disabled={!isAcceptingResponses}
+            tooltip={
+              isAcceptingResponses
+                ? 'Enviar email para todos os participantes'
+                : 'Formulário não está aceitando respostas'
+            }
+          />
+          {/* <STableAddButton onClick={onFormParticipantAdd} /> */}
+          {/* <STableColumnsButton
             showLabel
             hiddenColumns={hiddenColumns}
             setHiddenColumns={setHiddenColumns}
             columns={participantsColumns}
-          />
+          /> */}
           <STableFilterButton>
             <FormParticipantsTableFilter
               onFilterData={onFilterData}
@@ -150,12 +179,13 @@ export const FormParticipantsTable = ({
           setHiddenColumns({ ...hiddenColumns, ...hidden })
         }
         hiddenColumns={hiddenColumns}
-        onSelectRow={(row) => onFormParticipantClick(row.id)}
+        onSelectRow={(row) => onFormParticipantClick(row)}
         data={formParticipants?.results || []}
         isLoading={isLoading}
         pagination={formParticipants?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
+        formApplication={formApplication}
       />
     </>
   );

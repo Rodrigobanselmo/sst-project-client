@@ -1,5 +1,6 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { IFormParticipantsFilterProps } from '@v2/components/organisms/STable/implementation/SFormParticipantsTable/SFormParticipantsTable.types';
+import { FormParticipantsTableFilterHierarchy } from './components/FormParticipantsTableFilterHierarchy';
 
 interface FormParticipantsTableFilterProps {
   onFilterData: (props: IFormParticipantsFilterProps) => void;
@@ -16,8 +17,11 @@ export const FormParticipantsTableFilter = ({
 }: FormParticipantsTableFilterProps) => {
   return (
     <SFlex direction="column" gap={4} width={400} pb={10}>
-      {/* TODO: Add filter components for status, hierarchies, etc. */}
-      {/* For now, this is a placeholder - filters can be added later */}
+      <FormParticipantsTableFilterHierarchy
+        onFilterData={onFilterData}
+        filters={filters}
+        companyId={companyId}
+      />
     </SFlex>
   );
 };

@@ -21,6 +21,7 @@ import { FormQuestionPieChart } from './components/FormQuestionPieChart/FormQues
 import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
 import { SectionHeader } from './components/SectionHeader/SectionHeader';
 import { FormRisksAnalysis } from './components/FormRisksAnalysis/FormRisksAnalysis';
+import { FormParticipantsTable } from '../FormParticipantsTable/FormParticipantsTable';
 
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { STabs } from '@v2/components/organisms/STabs/STabs';
@@ -373,7 +374,19 @@ export const FormQuestionsDashboard = ({
   formQuestionsAnswers,
   formApplication,
 }: FormQuestionsDashboardProps) => {
-  const [tabTableIndex, setTabTableIndex] = useState<number>(1);
+  // Set initial tab based on shareableLink status
+  const getInitialTab = () => {
+    if (
+      formApplication.isShareableLink ||
+      formApplication.status === FormApplicationStatusEnum.DONE
+    ) {
+      return 1; // Gráficos tab
+    } else {
+      return 5; // Participantes tab
+    }
+  };
+
+  const [tabTableIndex, setTabTableIndex] = useState<number>(getInitialTab());
   // State for managing selected identifier question for grouping
   const [selectedGroupingQuestion, setSelectedGroupingQuestion] = useState<
     string | null
@@ -530,7 +543,10 @@ export const FormQuestionsDashboard = ({
     );
   }
 
+  const isShareableLink = formApplication.isShareableLink;
+
   if (
+    isShareableLink &&
     identifierQuestions.length === 0 &&
     generalQuestionsArrays.every((group) => group.questions.length === 0)
   ) {
@@ -591,14 +607,17 @@ export const FormQuestionsDashboard = ({
     formApplication.form.type === FormTypeEnum.PSYCHOSOCIAL;
   const isDone = formApplication.status === FormApplicationStatusEnum.DONE;
 
+  const showIdicators = isShareableLink || isDone;
+
   const isIndicatorTab = tabTableIndex === 2;
   const isTextAnswersTab = tabTableIndex === 3;
   const isRisksAnalysisTab = tabTableIndex === 4;
+  const isParticipantsTab = tabTableIndex === 5;
 
   return (
     <SFlex direction="column" gap={16}>
       {/* Identifier Section */}
-      {identifierQuestions.length > 0 && (
+      {showIdicators && identifierQuestions.length > 0 && (
         <Box sx={{ p: 3 }}>
           <SectionHeader
             icon={<PersonIcon sx={{ fontSize: 30 }} />}
@@ -628,139 +647,156 @@ export const FormQuestionsDashboard = ({
         </Box>
       )}
 
-      <Box sx={{ p: 3 }}>
-        {/* Grouping Section */}
-        {identifierQuestions.length > 0 &&
-          generalQuestionsArrays.some(
-            (group) => group.questions.length > 0,
-          ) && (
-            <Box>
-              <SectionHeader
-                icon={<FilterListIcon sx={{ fontSize: 30 }} />}
-                title="Agrupar por Identificação"
-              />
-              <SPaper
-                sx={{
-                  p: 10,
-                }}
-              >
-                <SFlex direction="column" gap={3}>
-                  {/* Grouping Controls */}
-                  <Box>
-                    <SSearchSelect
-                      inputProps={{ sx: { width: 300 } }}
-                      label="Selecionar pergunta para agrupar"
-                      getOptionLabel={(option) => option.textWithoutHtml}
-                      getOptionValue={(option) => option?.id}
-                      onChange={(option) => {
-                        setSelectedGroupingQuestion(option?.id || null);
-                      }}
-                      value={
-                        availableGroupingQuestions.find(
-                          (q) => q.id === selectedGroupingQuestion,
-                        ) || null
-                      }
-                      options={availableGroupingQuestions}
-                      placeholder="selecione uma pergunta de identificação..."
-                    />
-                  </Box>
-
-                  {/* Selected Grouping Info */}
-                  {selectedGroupingQuestion && groupingQuestion && (
+      {showIdicators && (
+        <Box sx={{ p: 3 }}>
+          {/* Grouping Section */}
+          {identifierQuestions.length > 0 &&
+            generalQuestionsArrays.some(
+              (group) => group.questions.length > 0,
+            ) && (
+              <Box>
+                <SectionHeader
+                  icon={<FilterListIcon sx={{ fontSize: 30 }} />}
+                  title="Agrupar por Identificação"
+                />
+                <SPaper
+                  sx={{
+                    p: 10,
+                  }}
+                >
+                  <SFlex direction="column" gap={3}>
+                    {/* Grouping Controls */}
                     <Box>
-                      <Typography variant="body2" fontWeight="medium" mb={4}>
-                        Agrupando por: {groupingQuestion.textWithoutHtml}
-                      </Typography>
-                      <SFlex gap={1} flexWrap="wrap">
-                        {participantGroups.map((group) => (
-                          <Chip
-                            key={group.id}
-                            label={`${group.name} (${group.participantIds.size} participantes)`}
-                            color="default"
-                            variant="outlined"
-                          />
-                        ))}
-                      </SFlex>
-                      <Button
-                        size="small"
-                        color="error"
-                        startIcon={<ClearIcon />}
-                        onClick={() => setSelectedGroupingQuestion(null)}
-                        sx={{ mt: 2 }}
-                      >
-                        Remover agrupamento
-                      </Button>
+                      <SSearchSelect
+                        inputProps={{ sx: { width: 300 } }}
+                        label="Selecionar pergunta para agrupar"
+                        getOptionLabel={(option) => option.textWithoutHtml}
+                        getOptionValue={(option) => option?.id}
+                        onChange={(option) => {
+                          setSelectedGroupingQuestion(option?.id || null);
+                        }}
+                        value={
+                          availableGroupingQuestions.find(
+                            (q) => q.id === selectedGroupingQuestion,
+                          ) || null
+                        }
+                        options={availableGroupingQuestions}
+                        placeholder="selecione uma pergunta de identificação..."
+                      />
                     </Box>
-                  )}
 
-                  {/* Participant Count */}
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      {selectedGroupingQuestion
-                        ? `Dados agrupados em ${participantGroups.length} grupos`
-                        : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
-                    </Typography>
-                  </Box>
-                </SFlex>
-              </SPaper>
-            </Box>
+                    {/* Selected Grouping Info */}
+                    {selectedGroupingQuestion && groupingQuestion && (
+                      <Box>
+                        <Typography variant="body2" fontWeight="medium" mb={4}>
+                          Agrupando por: {groupingQuestion.textWithoutHtml}
+                        </Typography>
+                        <SFlex gap={1} flexWrap="wrap">
+                          {participantGroups.map((group) => (
+                            <Chip
+                              key={group.id}
+                              label={`${group.name} (${group.participantIds.size} participantes)`}
+                              color="default"
+                              variant="outlined"
+                            />
+                          ))}
+                        </SFlex>
+                        <Button
+                          size="small"
+                          color="error"
+                          startIcon={<ClearIcon />}
+                          onClick={() => setSelectedGroupingQuestion(null)}
+                          sx={{ mt: 2 }}
+                        >
+                          Remover agrupamento
+                        </Button>
+                      </Box>
+                    )}
+
+                    {/* Participant Count */}
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        {selectedGroupingQuestion
+                          ? `Dados agrupados em ${participantGroups.length} grupos`
+                          : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
+                      </Typography>
+                    </Box>
+                  </SFlex>
+                </SPaper>
+              </Box>
+            )}
+
+          {/* Switch to toggle between showing individual questions and only group indicators */}
+          {isIndicatorTab && (
+            <SPaper
+              sx={{
+                mt: 5,
+                p: 10,
+                py: 5,
+              }}
+            >
+              <Box sx={{ display: 'flex' }}>
+                <SSwitch
+                  label="Mostrar apenas indicadores de grupo"
+                  value={showOnlyGroupIndicators}
+                  onChange={(_, checked) => setShowOnlyGroupIndicators(checked)}
+                  formControlProps={{
+                    sx: {
+                      px: 2,
+                      py: 1,
+                      borderRadius: 1,
+                      border: '1px solid',
+                      borderColor: 'grey.200',
+                    },
+                  }}
+                />
+              </Box>
+            </SPaper>
           )}
-
-        {/* Switch to toggle between showing individual questions and only group indicators */}
-        {isIndicatorTab && (
-          <SPaper
-            sx={{
-              mt: 5,
-              p: 10,
-              py: 5,
-            }}
-          >
-            <Box sx={{ display: 'flex' }}>
-              <SSwitch
-                label="Mostrar apenas indicadores de grupo"
-                value={showOnlyGroupIndicators}
-                onChange={(_, checked) => setShowOnlyGroupIndicators(checked)}
-                formControlProps={{
-                  sx: {
-                    px: 2,
-                    py: 1,
-                    borderRadius: 1,
-                    border: '1px solid',
-                    borderColor: 'grey.200',
-                  },
-                }}
-              />
-            </Box>
-          </SPaper>
-        )}
-      </Box>
+        </Box>
+      )}
 
       {/* General Questions Section */}
-      {generalQuestionsArrays.some((group) => group.questions.length > 0) && (
+      {(generalQuestionsArrays.some((group) => group.questions.length > 0) ||
+        !isShareableLink) && (
         <Box sx={{ p: 3 }}>
           <SectionHeader
             icon={<InsertChartIcon sx={{ fontSize: 30 }} />}
-            title="Perguntas Gerais"
+            title={showIdicators ? 'Perguntas Gerais' : 'Participantes'}
           />
           <STabs
             options={[
-              {
-                label: 'Gráficos',
-                value: 1,
-              },
-              {
-                label: 'Indicadores',
-                value: 2,
-              },
-              {
-                label: 'Respostas de Texto',
-                value: 3,
-              },
+              // Show these options only if shareableLink is true OR isDone is true
+              ...(showIdicators
+                ? [
+                    {
+                      label: 'Gráficos',
+                      value: 1,
+                    },
+                    {
+                      label: 'Indicadores',
+                      value: 2,
+                    },
+                    {
+                      label: 'Respostas de Texto',
+                      value: 3,
+                    },
+                  ]
+                : []),
               ...(isPsychosocialForm && isDone
                 ? [
                     {
                       label: 'Análise de Riscos',
                       value: 4,
+                    },
+                  ]
+                : []),
+              // Show Participantes tab only if NOT shareableLink
+              ...(!isShareableLink
+                ? [
+                    {
+                      label: 'Participantes',
+                      value: 5,
                     },
                   ]
                 : []),
@@ -772,11 +808,31 @@ export const FormQuestionsDashboard = ({
             }}
           />
 
-          <SPaper>
+          <SPaper
+            sx={
+              isParticipantsTab
+                ? {
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    boxShadow: 'none',
+                    WebkitBoxShadow: 'none',
+                    outline: 'none',
+                    p: 0,
+                    mt: 10,
+                  }
+                : {}
+            }
+          >
             {isTextAnswersTab ? (
               <FormTextAnswers formGroups={generalGroups} />
             ) : isRisksAnalysisTab ? (
               <FormRisksAnalysis formApplication={formApplication} />
+            ) : isParticipantsTab ? (
+              <FormParticipantsTable
+                companyId={formApplication.companyId}
+                applicationId={formApplication.id}
+                formApplication={formApplication}
+              />
             ) : (
               <SFlex direction="column" gap={24} color="background.paper">
                 {/* Create a structure grouped by questions first, then by participant groups */}
