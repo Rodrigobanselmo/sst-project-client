@@ -305,14 +305,14 @@ const GroupDashboardIndicator = ({
   };
 
   return (
-    <Box
+    <SPaper
       sx={{
         p: 3,
         mb: 4,
-        backgroundColor: 'primary.50',
         borderRadius: 2,
         border: '2px solid',
-        borderColor: 'primary.200',
+        backgroundColor: 'grey.100',
+        borderColor: getIndicatorColor(indicatorValue),
       }}
     >
       <Typography variant="h5" textAlign="center" mb={2} color="primary.main">
@@ -361,7 +361,7 @@ const GroupDashboardIndicator = ({
           </Typography>
         </Box>
       </Box>
-    </Box>
+    </SPaper>
   );
 };
 
@@ -609,6 +609,7 @@ export const FormQuestionsDashboard = ({
 
   const showIdicators = isShareableLink || isDone;
 
+  const isGraphsTab = tabTableIndex === 1;
   const isIndicatorTab = tabTableIndex === 2;
   const isTextAnswersTab = tabTableIndex === 3;
   const isRisksAnalysisTab = tabTableIndex === 4;
@@ -810,7 +811,7 @@ export const FormQuestionsDashboard = ({
 
           <SPaper
             sx={
-              isParticipantsTab
+              isParticipantsTab || isGraphsTab || isIndicatorTab
                 ? {
                     backgroundColor: 'transparent',
                     border: 'none',
@@ -888,21 +889,21 @@ export const FormQuestionsDashboard = ({
                         groupData as FormGroupWithQuestions;
                       return (
                         <Box key={groupId} mb={6}>
-                          <SText
-                            sx={{
-                              p: 8,
-                              color: '#424242',
-                              fontWeight: 600,
-                              backgroundColor: 'grey.200',
-                              fontSize: 18,
-                              borderBottom: '2px solid',
-                              borderTop: '2px solid',
-                              borderColor: 'grey.300',
-                              mb: 4,
-                            }}
-                          >
-                            {typedGroupData.groupName}
-                          </SText>
+                          <SPaper>
+                            <SText
+                              sx={{
+                                p: 8,
+                                color: '#424242',
+                                borderRadius: 1,
+                                fontWeight: 600,
+                                backgroundColor: 'grey.100',
+                                fontSize: 18,
+                                mb: 4,
+                              }}
+                            >
+                              {typedGroupData.groupName}
+                            </SText>
+                          </SPaper>
 
                           {/* Group-Level Indicator - shows combined indicator for all questions in this group */}
                           {isIndicatorTab && (
@@ -918,7 +919,12 @@ export const FormQuestionsDashboard = ({
                           {!showOnlyGroupIndicators &&
                             typedGroupData.questions.map(
                               (questionData: QuestionWithParticipantGroups) => (
-                                <Box key={questionData.id} mb={6} px={8}>
+                                <SPaper
+                                  key={questionData.id}
+                                  mb={6}
+                                  px={8}
+                                  py={8}
+                                >
                                   <HtmlContentRenderer
                                     content={questionData.details.text}
                                   />
@@ -951,7 +957,7 @@ export const FormQuestionsDashboard = ({
                                       ),
                                     )}
                                   </SFlex>
-                                </Box>
+                                </SPaper>
                               ),
                             )}
                         </Box>
