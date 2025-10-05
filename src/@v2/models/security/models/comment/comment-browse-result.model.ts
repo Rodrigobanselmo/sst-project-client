@@ -38,6 +38,11 @@ export type ICommentBrowseResultModel = {
     id: string;
   };
 
+  generateSources: {
+    id: string;
+    name: string;
+  }[];
+
   approvedBy: { id: number; name: string; email: string } | null;
   createdBy: { id: number; name: string; email: string } | null;
 };
@@ -73,6 +78,11 @@ export class CommentBrowseResultModel {
     id: string;
   };
 
+  generateSources: {
+    id: string;
+    name: string;
+  }[];
+
   approvedBy: { id: number; name: string; email: string } | null;
   createdBy: { id: number; name: string; email: string } | null;
 
@@ -91,6 +101,7 @@ export class CommentBrowseResultModel {
     this.approvedComment = params.approvedComment;
     this.origin = params.origin;
     this.recommendation = params.recommendation;
+    this.generateSources = params.generateSources;
 
     this.changes = params.changes;
     this.approvedBy = params.approvedBy;

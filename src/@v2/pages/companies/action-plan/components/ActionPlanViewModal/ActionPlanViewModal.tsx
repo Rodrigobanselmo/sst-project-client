@@ -45,6 +45,15 @@ export const ActionPlanViewModal = ({
       ) : (
         <Box display="flex" flex={1} flexDirection="column">
           <SText color="grey.600" fontSize={18}>
+            Fonte geradora
+          </SText>
+          <SDivider sx={{ mt: 3, mb: 6 }} />
+          {actionPlan.generateSources.map((source) => (
+            <SText key={source.id} mb={10} fontSize={16}>
+              {source.name}
+            </SText>
+          ))}
+          <SText color="grey.600" fontSize={18}>
             Recomendação
           </SText>
           <SDivider sx={{ mt: 3, mb: 6 }} />

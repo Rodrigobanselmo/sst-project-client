@@ -175,7 +175,8 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
                 color: 'text.secondary',
               }}
             >
-              faltam {goalParticipants - totalAnswers} respostas
+              faltam {goalParticipants - totalAnswers}/{goalParticipants}{' '}
+              respostas
             </SText>
           </SPaper>
         )}

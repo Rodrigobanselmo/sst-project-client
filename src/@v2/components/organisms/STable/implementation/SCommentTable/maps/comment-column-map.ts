@@ -13,6 +13,7 @@ export const CommentColumnMap: Record<CommentColumnsEnum, CommentTypeMapValue> =
     [CommentColumnsEnum.TEXT]: { label: 'Comentário', alwaysVisible: true },
     [CommentColumnsEnum.ORIGIN]: { label: 'Origem' },
     [CommentColumnsEnum.RECCOMENDATION]: { label: 'Recomendação' },
+    [CommentColumnsEnum.GENERATE_SOURCES]: { label: 'Fontes Geradoras' },
     [CommentColumnsEnum.TEXT_TYPE]: { label: 'Motivo', startHidden: true },
     [CommentColumnsEnum.TYPE]: { label: 'Tipo' },
     [CommentColumnsEnum.CREATED_BY]: { label: 'Criado por' },

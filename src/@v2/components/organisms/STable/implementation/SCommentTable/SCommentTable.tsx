@@ -109,6 +109,31 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
         />
       ),
     },
+    // GENERATE_SOURCES
+    {
+      column: '200px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.GENERATE_SOURCES),
+      header: (
+        <CommentHeaderRow
+          orderByMap={orderByMap}
+          onHidden={() =>
+            setHiddenColumns({ [columnsEnum.GENERATE_SOURCES]: true })
+          }
+          text={columnMap[columnsEnum.GENERATE_SOURCES].label}
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          lineNumber={2}
+          text={row.generateSources?.map((source) => (
+            <>
+              {source.name} <br />
+              <br />
+            </>
+          ))}
+        />
+      ),
+    },
     // RECCOMENDATION
     {
       column: '1fr',
