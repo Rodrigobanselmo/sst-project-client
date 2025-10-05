@@ -88,12 +88,12 @@ export const STableExport: FC<{ children?: any } & STableExportProps> = ({
             disabled: !onExportClick,
             icon: SUploadIcon,
           },
-          {
-            name: 'Baixar Planilha',
-            value: 1,
-            disabled: !onInportClick,
-            icon: SDownloadIcon,
-          },
+          // {
+          //   name: 'Baixar Planilha',
+          //   value: 1,
+          //   disabled: !onInportClick,
+          //   icon: SDownloadIcon,
+          // },
         ]}
       />
     </Box>

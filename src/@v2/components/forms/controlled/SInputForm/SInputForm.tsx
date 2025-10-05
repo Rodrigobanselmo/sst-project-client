@@ -4,7 +4,7 @@ import { SInput } from '../../fields/SInput/SInput';
 import { SInputMultilineProps } from '../../fields/SInputMultiline/SInput.types';
 import { getNestedError } from '../get-nested-error';
 
-interface SInputFormProps
+export interface SInputFormProps
   extends Omit<SInputMultilineProps, 'onChange' | 'value'> {
   name: string;
   id?: string;

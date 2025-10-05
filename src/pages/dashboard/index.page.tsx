@@ -16,7 +16,7 @@ const Home: NextPage = () => {
 
   if (!company.id) return null;
 
-  if (isMasterAdmin) {
+  if (isMasterAdmin || company.isConsulting) {
     return (
       <>
         <SHeaderTag title={'Empresas'} />

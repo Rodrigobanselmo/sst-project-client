@@ -34,6 +34,7 @@ import SDocumentIcon from 'assets/icons/SDocumentIcon';
 import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
 import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
+import ListAltIcon from 'assets/icons/SProtocolIcon';
 
 export interface IDrawerBase {
   text: string;
@@ -42,6 +43,16 @@ export interface IDrawerBase {
   permissions?: PermissionEnum[];
   removeWithRoles?: RoleEnum[];
   showIf?: {
+    isClinic?: boolean;
+    isConsulting?: boolean;
+    isCompany?: boolean;
+    isDocuments?: boolean;
+    isSchedule?: boolean;
+    isAbs?: boolean;
+    isEsocial?: boolean;
+    isCat?: boolean;
+  };
+  hideIf?: {
     isClinic?: boolean;
     isConsulting?: boolean;
     isCompany?: boolean;
@@ -80,7 +91,7 @@ export const useDrawerItems = () => {
 
   const items: IDrawerItemsMap = {
     [DrawerItemsEnum.dashboard]: {
-      text: isMasterAdmin ? 'Home' : 'Plano de ação',
+      text: isMasterAdmin || company.isConsulting ? 'Home' : 'Plano de ação',
       description: 'HOME',
       Icon: MdDashboard,
       href: RoutesEnum.DASHBOARD,
@@ -147,6 +158,9 @@ export const useDrawerItems = () => {
       href: RoutesEnum.COMPANIES,
       roles: [RoleEnum.CONTRACTS],
       shouldMatchExactHref: true,
+      showIf: {
+        isConsulting: true,
+      },
     },
     [DrawerItemsEnum.allClinicsData]: {
       text: 'Clinicas',
@@ -177,8 +191,10 @@ export const useDrawerItems = () => {
       Icon: SCompanyIcon,
       href: RoutesEnum.COMPANY,
       roles: [RoleEnum.COMPANY],
-      removeWithRoles: [RoleEnum.CONTRACTS],
       shouldMatchExactHref: true,
+      hideIf: {
+        isConsulting: true,
+      },
     },
     [DrawerItemsEnum.professionals]: {
       text: 'Profissionais',
@@ -282,6 +298,9 @@ export const useDrawerItems = () => {
       roles: [RoleEnum.COMPANY, RoleEnum.CONTRACTS, RoleEnum.EMPLOYEE],
       permissions: [PermissionEnum.EMPLOYEE],
       shouldMatchExactHref: false,
+      hideIf: {
+        isConsulting: true,
+      },
       href: RoutesEnum.EMPLOYEES,
     },
     [DrawerItemsEnum.registers]: {
@@ -308,7 +327,7 @@ export const useDrawerItems = () => {
     [DrawerItemsEnum.forms]: {
       text: 'Formulários',
       description: 'Gerenciamento de formulários e questionários',
-      Icon: SIconForm,
+      Icon: ListAltIcon,
       href: PageRoutes.FORMS.FORMS_APPLICATION.LIST.replace(
         '[companyId]',
         ':companyId',

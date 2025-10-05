@@ -52,6 +52,7 @@ export const FormApplicationAddContent = ({
       companyId,
       name: data.name,
       description: data.description,
+      participationGoal: data.participationGoal,
       formId: data.form.id,
       hierarchyIds: [],
       shareableLink: data.shareableLink.value === 'true',

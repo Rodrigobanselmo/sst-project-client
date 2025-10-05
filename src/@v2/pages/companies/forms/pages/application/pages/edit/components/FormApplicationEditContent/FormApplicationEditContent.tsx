@@ -48,6 +48,7 @@ export const FormApplicationEditContent = ({
         ? { value: 'true', label: 'Link único compartilhável' }
         : { value: 'false', label: 'Link por funcionário' },
       anonymous: formApplication.isAnonymous,
+      participationGoal: formApplication.participationGoal,
       workspaceIds: formApplication.participants.workspaces.map(
         (workspace) => ({
           id: workspace.id,
@@ -109,6 +110,7 @@ export const FormApplicationEditContent = ({
       formId: data.form.id,
       shareableLink: data.shareableLink.value === 'true',
       anonymous: data.anonymous,
+      participationGoal: data.participationGoal,
       hierarchyIds: [],
       workspaceIds: data.workspaceIds.map((workspace) => workspace.id),
       identifier,

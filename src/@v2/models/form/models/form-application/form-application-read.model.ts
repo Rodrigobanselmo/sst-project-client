@@ -10,6 +10,7 @@ export type IFormApplicationReadModel = {
   name: string;
   companyId: string;
   description: string | undefined;
+  participationGoal?: number;
   createdAt: Date;
   status: FormApplicationStatusEnum;
   updatedAt: Date;
@@ -33,6 +34,7 @@ export class FormApplicationReadModel {
   companyId: string;
   name: string;
   description: string | undefined;
+  participationGoal?: number;
   createdAt: Date;
   status: FormApplicationStatusEnum;
   updatedAt: Date;
@@ -55,6 +57,7 @@ export class FormApplicationReadModel {
     this.companyId = params.companyId;
     this.name = params.name;
     this.description = params.description;
+    this.participationGoal = params.participationGoal;
     this.createdAt = params.createdAt;
     this.status = params.status;
     this.updatedAt = params.updatedAt;

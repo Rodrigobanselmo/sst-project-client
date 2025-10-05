@@ -1,5 +1,6 @@
 import { SInputForm } from '@v2/components/forms/controlled/SInputForm/SInputForm';
 import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
+import { SInputNumberLimitedForm } from '@v2/components/forms/controlled/SInputNumberLimitedForm';
 import { InputFormModelSelectForm } from '../inputs/InputFormModelSelect/InputFormModelSelectForm';
 import { InputWorkspaceSelectMultipleForm } from '../inputs/InputWorkspaceSelect/InputWorkspaceSelectMultipleForm';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -8,7 +9,6 @@ import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SRadioForm } from '@v2/components/forms/controlled/SRadioForm/SRadioForm';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { IFormApplicationFormFields } from '../../../schema/form-application.schema';
-import { useEffect } from 'react';
 
 type Props = {
   companyId: string;
@@ -51,6 +51,15 @@ export const FormFormApplication = ({ companyId, disabled }: Props) => {
       <InputWorkspaceSelectMultipleForm
         companyId={companyId}
         name="workspaceIds"
+      />
+      <SInputNumberLimitedForm
+        label="Meta de Participação (%)"
+        placeholder="Ex: 50"
+        fullWidth
+        name="participationGoal"
+        min={0}
+        max={100}
+        helperText="Defina a meta de participação em porcentagem (1-100%)"
       />
       <SInputMultilineForm
         label="Descrição"

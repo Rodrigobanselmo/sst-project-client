@@ -38,6 +38,7 @@ export interface EditFormApplicationParams {
   description?: string;
   formId?: string;
   shareableLink?: boolean;
+  participationGoal?: number;
   anonymous?: boolean;
   status?: FormApplicationStatusEnum;
   workspaceIds?: string[];

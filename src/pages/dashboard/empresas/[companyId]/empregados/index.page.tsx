@@ -4,6 +4,7 @@ import { EmployeesTable } from 'components/organisms/tables/EmployeesTable/Emplo
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
+import { ModalImportExport } from 'components/organisms/modals/ModalImportExport';
 
 const EmployeesPage: NextPage = () => {
   return (
@@ -11,6 +12,7 @@ const EmployeesPage: NextPage = () => {
       <SHeaderTag title={'Funcionários'} />
       <SContainer>
         <EmployeesTable query={{ all: true }} />
+        <ModalImportExport />
       </SContainer>
     </>
   );

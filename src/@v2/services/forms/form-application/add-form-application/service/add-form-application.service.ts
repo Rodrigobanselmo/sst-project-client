@@ -31,6 +31,7 @@ interface IdentifierDto {
 export interface AddFormApplicationParams {
   name: string;
   description?: string;
+  participationGoal?: number;
   companyId: string;
   formId: string;
   workspaceIds: string[];

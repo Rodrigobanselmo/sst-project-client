@@ -31,6 +31,7 @@ export interface IFormIdentifierSection {
 export interface IFormApplicationFormFields {
   name: string;
   description?: string;
+  participationGoal?: number;
   shareableLink: {
     value: string;
     label: string;
@@ -44,6 +45,19 @@ export interface IFormApplicationFormFields {
 export const schemaFormApplicationForm = yup.object({
   name: yup.string().required('Nome é obrigatório'),
   description: yup.string().optional(),
+  participationGoal: yup
+    .number()
+    .optional()
+    .transform((_, originalValue) => {
+      // Se o valor original é uma string vazia ou undefined, retorna undefined
+      if (originalValue === '' || originalValue === undefined) return undefined;
+      // Converte string para número
+      const numValue = Number(originalValue);
+      return isNaN(numValue) ? undefined : numValue;
+    })
+    .min(0, 'Meta deve ser no mínimo 0%')
+    .max(100, 'Meta deve ser no máximo 100%')
+    .integer('Meta deve ser um número inteiro'),
   shareableLink: yup
     .object({
       value: yup.string(),
@@ -179,6 +193,7 @@ export const getFormApplicationInitialValuesRisk = ({
 export const formApplicationFormInitialValues = {
   name: '',
   description: '',
+  participationGoal: undefined,
   workspaceIds: [] as any[],
   form: {} as any,
   sections: [

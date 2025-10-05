@@ -17,6 +17,16 @@ export interface IAccessFilterBase {
   roles?: RoleEnum[];
   permissions?: PermissionEnum[];
   removeWithRoles?: RoleEnum[];
+  hideIf?: {
+    isClinic?: boolean;
+    isConsulting?: boolean;
+    isCompany?: boolean;
+    isDocuments?: boolean;
+    isSchedule?: boolean;
+    isAbs?: boolean;
+    isEsocial?: boolean;
+    isCat?: boolean;
+  };
   showIf?: {
     isClinic?: boolean;
     isConsulting?: boolean;
@@ -92,6 +102,54 @@ export const useAccess = () => {
       if (!isValidPermissions(item?.permissions)) return false;
       if (isToRemoveWithRoles(item?.removeWithRoles)) return false;
 
+      if (item.hideIf) {
+        let hide = false;
+        // eslint-disable-next-line prettier/prettier
+        if (!hide) hide = !!(item.hideIf.isClinic && company.isClinic);
+        // eslint-disable-next-line prettier/prettier
+        if (!hide) hide = !!(item.hideIf.isConsulting && company.isConsulting);
+        // eslint-disable-next-line prettier/prettier
+        if (!hide)
+          hide = !!(
+            item.hideIf.isCompany &&
+            !company.isConsulting &&
+            !company.isClinic
+          );
+
+        // eslint-disable-next-line prettier/prettier
+        if (!hide)
+          hide = !!(
+            item.hideIf.isAbs &&
+            !company.permissions?.includes(PermissionCompanyEnum.absenteeism)
+          );
+        // eslint-disable-next-line prettier/prettier
+        if (!hide)
+          hide = !!(
+            item.hideIf.isCat &&
+            !company.permissions?.includes(PermissionCompanyEnum.cat)
+          );
+        // eslint-disable-next-line prettier/prettier
+        if (!hide)
+          hide = !!(
+            item.hideIf.isDocuments &&
+            !company.permissions?.includes(PermissionCompanyEnum.document)
+          );
+        // eslint-disable-next-line prettier/prettier
+        if (!hide)
+          hide = !!(
+            item.hideIf.isEsocial &&
+            !company.permissions?.includes(PermissionCompanyEnum.esocial)
+          );
+        // eslint-disable-next-line prettier/prettier
+        if (!hide)
+          hide = !!(
+            item.hideIf.isSchedule &&
+            !company.permissions?.includes(PermissionCompanyEnum.schedule)
+          );
+
+        if (hide) return false;
+      }
+
       if (item.showIf) {
         let show = false;
         // eslint-disable-next-line prettier/prettier
@@ -146,6 +204,7 @@ export const useAccess = () => {
   );
 
   return {
+    isMaster,
     onAccessFilterBase,
     isValidRoles,
     isValidPermissions,
