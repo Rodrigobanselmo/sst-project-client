@@ -479,6 +479,11 @@ export const FormQuestionsDashboard = ({
           )
           .map((question) => ({
             ...question,
+            options: question.options.map((option) => ({
+              ...option,
+              value: option.value ? 6 - option.value : option.value,
+              label: option.text,
+            })),
             groupName: group.name,
             groupId: group.id,
             // Filter answers if participant IDs are provided
