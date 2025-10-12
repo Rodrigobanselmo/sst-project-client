@@ -27,6 +27,10 @@ export interface IActionPlanFilterProps {
     id: string;
     name: string;
   }[];
+  generateSources?: {
+    id: string;
+    name: string;
+  }[];
   page?: number;
   limit?: number;
   orderBy?: IOrderByParams<ActionPlanOrderByEnum>[];

@@ -19,7 +19,7 @@ import { sortString } from 'core/utils/sorts/string.sort';
 
 import { useQueryAllRisk } from '../../../../core/services/hooks/queries/useQueryRiskAll';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
-import { riskFilter } from './constants/filters';
+import { riskFilter, riskFilterWithPsic } from './constants/filters';
 import { ITypeSelectProps } from './types';
 
 export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
@@ -86,7 +86,14 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
 
     if (activeFilters.length > 0)
       return filterData
-        .filter((risk) => activeFilters.includes(risk.type))
+        .filter(
+          (risk) =>
+            activeFilters.includes(risk.type) ||
+            (activeFilters.includes('PSIC') &&
+              risk?.subTypes?.some(
+                (subType) => subType.sub_type.name === 'Psicossociais',
+              )),
+        )
         .sort((a, b) => sortString(a, b, 'name'))
         .map(({ cas, ...filter }) => ({
           cas: onlyNumbers(cas || ''),
@@ -113,7 +120,7 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
       tooltipTitle={`${riskLength} fatores de risco`}
       renderFilter={() => (
         <SMenuSimpleFilter
-          options={riskFilter}
+          options={riskFilterWithPsic}
           activeFilters={activeFilters}
           onClickFilter={handleActiveRisk}
         />
@@ -121,7 +128,11 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
       startAdornment={(options: IRiskFactors | undefined) => (
         <Box
           sx={{
-            backgroundColor: `risk.${options?.type.toLowerCase()}`,
+            backgroundColor: options?.subTypes?.some(
+              (subType) => subType.sub_type.name === 'Psicossociais',
+            )
+              ? 'risk.psic'
+              : `risk.${options?.type.toLowerCase()}`,
             color: 'common.white',
             px: 3,
             py: '1px',
@@ -130,7 +141,13 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
             mr: 6,
           }}
         >
-          {options?.type === RiskEnum.OUTROS ? 'Outros' : options?.type}
+          {options?.subTypes?.some(
+            (subType) => subType.sub_type.name === 'Psicossociais',
+          )
+            ? 'PSIC'
+            : options?.type === RiskEnum.OUTROS
+              ? 'Outros'
+              : options?.type}
         </Box>
       )}
       endAdornment={(options: IRiskFactors | undefined) => {

@@ -50,6 +50,9 @@ export const CommentsTable = ({
       search: queryParams.search,
       workspaceIds: workspaceId ? [workspaceId] : undefined,
       creatorsIds: queryParams.creators?.map((creator) => creator.id),
+      generateSourceIds: queryParams.generateSources?.map(
+        (source) => source.id,
+      ),
     },
     orderBy: queryParams.orderBy || [
       {
@@ -86,10 +89,22 @@ export const CommentsTable = ({
             ),
           }),
       }),
+      generateSources: (value) => ({
+        leftLabel: 'Fonte Geradora',
+        label: value.name,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            generateSources: queryParams.generateSources?.filter(
+              (source) => source.id !== value.id,
+            ),
+          }),
+      }),
     },
     cleanData: {
       search: '',
       creators: [],
+      generateSources: [],
       orderBy: [],
       page: 1,
       limit,

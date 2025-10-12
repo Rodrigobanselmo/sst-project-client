@@ -27,7 +27,9 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
 
   const { subTypes } = useFetchBrowseRiskSubType({
     companyId: companyId || riskData.companyId,
-    filters: {},
+    filters: {
+      types: [type],
+    },
     pagination: {
       page: 1,
     },

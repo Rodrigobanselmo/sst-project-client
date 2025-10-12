@@ -42,7 +42,7 @@ export const CompanyPermissions = ({
   userCompany: ICompany;
   setPermissions: (p: string[]) => void;
 }) => {
-  const { isValidRoles } = useAccess();
+  const { isValidRoles, isMaster } = useAccess();
 
   return (
     <SFlex display={'grid'} gridTemplateColumns={'1fr 1fr 1fr'} {...props}>
@@ -66,8 +66,13 @@ export const CompanyPermissions = ({
               label: 'Acesso ao Absenteísmo',
               item: PermissionCompanyEnum.absenteeism,
             },
+            {
+              label: 'Acesso aos Formulários',
+              item: PermissionCompanyEnum.forms,
+            },
           ].map(({ item, label }) => {
-            if (!userCompany.permissions?.includes(item)) return null;
+            if (!userCompany.permissions?.includes(item) && !isMaster)
+              return null;
 
             const includesPermission = !!permissions?.includes(item);
 

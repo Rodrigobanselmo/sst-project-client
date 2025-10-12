@@ -26,6 +26,7 @@ export interface IAccessFilterBase {
     isAbs?: boolean;
     isEsocial?: boolean;
     isCat?: boolean;
+    isForms?: boolean;
   };
   showIf?: {
     isClinic?: boolean;
@@ -36,6 +37,7 @@ export interface IAccessFilterBase {
     isAbs?: boolean;
     isEsocial?: boolean;
     isCat?: boolean;
+    isForms?: boolean;
   };
 }
 
@@ -146,6 +148,12 @@ export const useAccess = () => {
             item.hideIf.isSchedule &&
             !company.permissions?.includes(PermissionCompanyEnum.schedule)
           );
+        // eslint-disable-next-line prettier/prettier
+        if (!hide)
+          hide = !!(
+            item.hideIf.isForms &&
+            !company.permissions?.includes(PermissionCompanyEnum.forms)
+          );
 
         if (hide) return false;
       }
@@ -193,6 +201,12 @@ export const useAccess = () => {
           show = !!(
             item.showIf.isSchedule &&
             company.permissions?.includes(PermissionCompanyEnum.schedule)
+          );
+        // eslint-disable-next-line prettier/prettier
+        if (!show)
+          show = !!(
+            item.showIf.isForms &&
+            company.permissions?.includes(PermissionCompanyEnum.forms)
           );
 
         if (!show) return false;

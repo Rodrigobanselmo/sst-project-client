@@ -11,6 +11,10 @@ export interface ICommentFilterProps {
   limit?: number;
   orderBy?: IOrderByParams<CommentOrderByEnum>[];
   creators?: { id: number; name: string }[];
+  generateSources?: {
+    id: string;
+    name: string;
+  }[];
 }
 
 export interface ICommentTableTableProps {

@@ -32,5 +32,6 @@ export interface ISActionButtonProps extends Partial<BoxProps> {
     isAbs?: boolean;
     isEsocial?: boolean;
     isCat?: boolean;
+    isForms?: boolean;
   };
 }

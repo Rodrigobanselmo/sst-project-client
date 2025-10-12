@@ -4,6 +4,7 @@ import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearch
 import { FormBrowseResultModel } from '@v2/models/form/models/form/form-browse-result.model';
 import { FormTypeTranslate } from '@v2/models/form/translations/form-type.translation';
 import { useInfinityBrowseFormModel } from '@v2/services/forms/form/browse-form-model/hooks/useInfinityBrowseFormModel';
+import { FormModelOrderByEnum } from '@v2/services/forms/form/browse-form-model/service/browse-form-model.types';
 import { useState } from 'react';
 
 export type InputFormModelSelectOptionProps = Pick<
@@ -33,6 +34,12 @@ export const InputFormModelSelect = ({
     filters: {
       search: search,
     },
+    orderBy: [
+      {
+        field: FormModelOrderByEnum.NAME,
+        order: 'asc',
+      },
+    ],
     pagination: {
       page: 1,
       limit: 10,

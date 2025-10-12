@@ -53,7 +53,10 @@ export const FormRiskSelect = ({
           <SText fontSize={14} mb={-1}>
             {option.name}
           </SText>
-          <SText fontSize={11}>PSIC - Severidade: {option.severity}</SText>
+          <SText fontSize={11}>
+            {option.type !== 'ERG' ? 'INDICADOR' : 'PSIC'} - Severidade:{' '}
+            {option.severity}
+          </SText>
         </Box>
       )}
       onSearch={(value: string) => setSearch(value)}

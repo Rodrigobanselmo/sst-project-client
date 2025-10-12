@@ -51,6 +51,7 @@ export interface IDrawerBase {
     isAbs?: boolean;
     isEsocial?: boolean;
     isCat?: boolean;
+    isForms?: boolean;
   };
   hideIf?: {
     isClinic?: boolean;
@@ -61,6 +62,7 @@ export interface IDrawerBase {
     isAbs?: boolean;
     isEsocial?: boolean;
     isCat?: boolean;
+    isForms?: boolean;
   };
 }
 
@@ -334,6 +336,9 @@ export const useDrawerItems = () => {
       ).replace('[formTab]', FORM_TAB_ENUM.APPLIED),
       permissions: [PermissionEnum.FORM],
       shouldMatchExactHref: false,
+      showIf: {
+        isForms: true,
+      },
     },
   };
 

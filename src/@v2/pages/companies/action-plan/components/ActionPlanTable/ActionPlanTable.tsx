@@ -66,6 +66,9 @@ export const ActionPlanTable = ({
         : queryParams.responsibles?.map((resp) => Number(resp.id)),
       workspaceIds: undefined,
       hierarchyIds: queryParams.hierarchies?.map((hierarchy) => hierarchy.id),
+      generateSourceIds: queryParams.generateSources?.map(
+        (source) => source.id,
+      ),
     },
     orderBy: queryParams.orderBy || [
       {
@@ -169,6 +172,17 @@ export const ActionPlanTable = ({
             riskTypes: queryParams.riskTypes?.filter((type) => type !== value),
           }),
       }),
+      generateSources: (value) => ({
+        leftLabel: 'Fonte Geradora',
+        label: value.name,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            generateSources: queryParams.generateSources?.filter(
+              (source) => source.id !== value.id,
+            ),
+          }),
+      }),
     },
     cleanData: {
       search: '',
@@ -180,6 +194,7 @@ export const ActionPlanTable = ({
       hierarchies: [],
       riskSubTypes: [],
       riskTypes: [],
+      generateSources: [],
       page: 1,
       limit,
     },

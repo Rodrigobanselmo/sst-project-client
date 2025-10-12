@@ -7,6 +7,7 @@ import { ActionPlanTableFilterResponsible } from './components/ActionPlanTableFi
 import { ActionPlanTableFilterStatus } from './components/ActionPlanTableFilterStatus';
 import { ActionPlanBrowseFilterModel } from '@v2/models/security/models/action-plan/action-plan-browse-filter.model';
 import { ActionPlanTableFilterRiskTypes } from './components/ActionPlanTableFilterRiskTypes';
+import { ActionPlanTableFilterGenerateSource } from './components/ActionPlanTableFilterGenerateSource';
 
 interface ActionPlanTableFilterProps {
   onFilterData: (props: IActionPlanFilterProps) => void;
@@ -37,6 +38,11 @@ export const ActionPlanTableFilter = ({
         />
       )}
       <ActionPlanTableFilterResponsible
+        filters={filters}
+        onFilterData={onFilterData}
+        companyId={companyId}
+      />
+      <ActionPlanTableFilterGenerateSource
         filters={filters}
         onFilterData={onFilterData}
         companyId={companyId}

@@ -58,6 +58,10 @@ export const RiskToolGSEViewRowRiskBox: FC<
       );
   };
 
+  const isPsicologico = data.subTypes?.find(
+    (subType) => subType.sub_type.name === 'Psicossociais',
+  );
+
   return (
     <STBoxItem inactive={riskData?.endDate ? 1 : 0}>
       <SFlex className="item_box" align="center">
@@ -70,14 +74,14 @@ export const RiskToolGSEViewRowRiskBox: FC<
             fontSize: '12px',
             color: 'common.white',
             ...(isRepresentAll && {
-              backgroundColor: 'risk.all',
+              backgroundColor: isPsicologico ? 'risk.psic' : 'risk.all',
               border: '1px solid',
               borderColor: `risk.${data?.type.toLowerCase()}`,
               color: `risk.${data?.type.toLowerCase()}`,
             }),
           }}
         >
-          {!isRepresentAll ? data.type : 'PADRÃO'}
+          {!isRepresentAll ? (isPsicologico ? 'PSIC' : data.type) : 'PADRÃO'}
         </Box>
         <STooltip
           minLength={15}

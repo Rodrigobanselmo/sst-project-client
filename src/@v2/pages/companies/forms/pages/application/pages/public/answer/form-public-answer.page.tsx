@@ -68,11 +68,15 @@ const transformSectorHierarchies = (hierarchies: { id: string; name: string; typ
     .sort((a, b) => a.text.localeCompare(b.text));
 };
 
+// Local storage key for saving form state
+const getStorageKey = (applicationId: string) => `form_answers_${applicationId}`;
+
 export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean }) => {
   const router = useRouter();
   const applicationId = router.query.id as string;
   const [currentStep, setCurrentStep] = useState(0);
   const [isFormSubmitted, setIsFormSubmitted] = useState(false);
+  const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Initialize active time tracker
@@ -98,6 +102,91 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const form = useForm<FormAnswers>({
     defaultValues: {},
   });
+
+  // Save form state to local storage
+  const saveFormState = useCallback(() => {
+    if (!applicationId) return;
+
+    const formData = form.getValues();
+    const formState = {
+      answers: formData,
+      currentStep,
+      timestamp: Date.now(),
+    };
+
+    try {
+      localStorage.setItem(getStorageKey(applicationId), JSON.stringify(formState));
+      setLastSavedTime(new Date());
+    } catch (error) {
+      console.warn('Failed to save form state to localStorage:', error);
+    }
+  }, [applicationId, currentStep, form]);
+
+  // Restore form state from local storage
+  const restoreFormState = useCallback(() => {
+    if (!applicationId) return;
+
+    try {
+      const savedState = localStorage.getItem(getStorageKey(applicationId));
+      if (savedState) {
+        const parsedState = JSON.parse(savedState);
+
+        // Check if saved state is not too old (24 hours)
+        const isStateValid = Date.now() - parsedState.timestamp < 24 * 60 * 60 * 1000;
+
+        if (isStateValid && parsedState.answers) {
+          // Restore form values
+          Object.entries(parsedState.answers).forEach(([key, value]) => {
+            if (value) {
+              form.setValue(key, value as any);
+            }
+          });
+
+          // Restore current step
+          if (typeof parsedState.currentStep === 'number') {
+            setCurrentStep(parsedState.currentStep);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Failed to restore form state from localStorage:', error);
+    }
+  }, [applicationId, form]);
+
+  // Clear form state from local storage
+  const clearFormState = useCallback(() => {
+    if (!applicationId) return;
+
+    try {
+      localStorage.removeItem(getStorageKey(applicationId));
+    } catch (error) {
+      console.warn('Failed to clear form state from localStorage:', error);
+    }
+  }, [applicationId]);
+
+  // Restore form state when component mounts and form data is available
+  useEffect(() => {
+    if (publicFormApplication && applicationId) {
+      restoreFormState();
+    }
+  }, [publicFormApplication, applicationId, restoreFormState]);
+
+  // Save form state whenever form values or current step changes
+  useEffect(() => {
+    if (publicFormApplication && applicationId) {
+      const subscription = form.watch(() => {
+        saveFormState();
+      });
+      return () => subscription.unsubscribe();
+    }
+  }, [form, publicFormApplication, applicationId, saveFormState]);
+
+  // Save form state when current step changes
+  useEffect(() => {
+    if (publicFormApplication && applicationId) {
+      saveFormState();
+    }
+  }, [currentStep, publicFormApplication, applicationId, saveFormState]);
 
   // Set initial values for SECTOR field when hierarchyId is available
   useEffect(() => {
@@ -217,10 +306,15 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
       const fieldValue = data[question.id];
       let isError = false;
 
+
       if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
         isError = !fieldValue || (typeof fieldValue === 'string' && fieldValue.trim() === '');
       } else {
-        isError = !fieldValue || (typeof fieldValue === 'object' && !fieldValue.id);
+        if (Array.isArray(fieldValue)) {
+          isError = fieldValue.length === 0;
+        } else {
+          isError = !fieldValue || (typeof fieldValue === 'object' && !fieldValue.id);
+        }
       }
 
       if (isError) {
@@ -257,12 +351,18 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
             questionId,
             value: (typeof value === 'object' && value?.id) ? value.id : undefined,
           };
-        }else if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
+        } else if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
           return {
             questionId,
             value: typeof value === 'string' ? value : undefined,
           };
-        } else {
+        } else if (Array.isArray(value) && value.length > 0 && value[0]?.id) {
+          return {
+            questionId,
+            optionIds: value.map((v: any) => v.id),
+          };
+        }
+        else {
           return {
             questionId,
             optionIds: (typeof value === 'object' && value?.id) ? [value.id] : undefined,
@@ -281,6 +381,9 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
           timeSpent: totalTimeSpent,
           encryptedEmployeeId: router.query?.encrypt  as string,
         });
+
+        // Clear saved form state after successful submission
+        clearFormState();
 
         // Show thank you page
         setIsFormSubmitted(true);
@@ -613,6 +716,11 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
               <Typography variant="body2" color="text.secondary">
                 Passo {currentStep + 1} de {totalSteps}
               </Typography>
+              {lastSavedTime && (
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 1 }}>
+                  Progresso salvo automaticamente às {lastSavedTime.toLocaleTimeString()}
+                </Typography>
+              )}
             </Box>
           </SFlex>
         </SForm>

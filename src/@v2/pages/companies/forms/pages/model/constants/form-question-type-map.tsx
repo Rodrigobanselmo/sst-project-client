@@ -72,7 +72,7 @@ export const FormQuestionTypeMapList = [
   FormQuestionTypeMap[FormQuestionTypeEnum.RADIO],
   FormQuestionTypeMap[FormQuestionTypeEnum.SHORT_TEXT],
   FormQuestionTypeMap[FormQuestionTypeEnum.LONG_TEXT],
-  // FormQuestionTypeMap[FormQuestionTypeEnum.CHECKBOX],
+  FormQuestionTypeMap[FormQuestionTypeEnum.CHECKBOX],
   // FormQuestionTypeMap[FormQuestionTypeEnum.SELECT],
   // FormQuestionTypeMap[FormQuestionTypeEnum.DATE],
   // FormQuestionTypeMap[FormQuestionTypeEnum.NUMBER],

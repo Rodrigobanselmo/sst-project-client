@@ -24,5 +24,6 @@ export interface BrowseCommentsParams {
     textType?: CommentTextTypeEnum[];
     workspaceIds?: string[];
     isApproved?: boolean | null;
+    generateSourceIds?: string[];
   };
 }
