@@ -8,21 +8,25 @@ import { IUseEditCharacterization } from 'components/organisms/modals/ModalAddCh
 import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 import SText from 'components/atoms/SText';
 import SFlex from 'components/atoms/SFlex';
+import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent';
 
-export const ModalAddHierarchyRisk = ({
-  onAddHierarchy,
-  onAddRisk,
-  hierarchies,
-  dataLoading: characterizationLoading,
-  mt = 10,
-  isEdit,
-  children,
-  data,
-  query,
-}: IUseEditCharacterization & {
-  mt?: number | string;
-  children: ReactNode;
-}) => {
+export const ModalAddHierarchyRisk = (
+  props: IUseEditCharacterization & {
+    mt?: number | string;
+    children: ReactNode;
+  },
+) => {
+  const {
+    onAddHierarchy,
+    onAddRisk,
+    hierarchies,
+    dataLoading: characterizationLoading,
+    mt = 10,
+    isEdit,
+    children,
+    data,
+    query,
+  } = props;
   const isDisable = !data?.type;
   return (
     <Box mt={mt}>
@@ -37,6 +41,7 @@ export const ModalAddHierarchyRisk = ({
               { label: 'Cargos', disabled: isDisable },
               { label: 'Fatores de Riscos', disabled: isDisable },
               { label: 'Audios e Videos', disabled: isDisable },
+              { label: 'Análise IA', disabled: isDisable },
             ]}
           />
         }
@@ -137,6 +142,7 @@ export const ModalAddHierarchyRisk = ({
             })}
           </Box>
         </Box>
+        <ModalAiAnalysisContent {...props} />
       </Wizard>
     </Box>
   );

@@ -66,7 +66,9 @@ export function useQueryAccessGroups(
     count: data?.count || 0,
   };
 
-  if (!isMaster) {
+  const isSefaz = user?.companyId === '4a9538bf-be7a-4cc2-9f34-09fe0d486305';
+
+  if (!isMaster && isSefaz) {
     response.data = response.data.filter(
       (group) => !group.name.includes('Administrado'),
     );

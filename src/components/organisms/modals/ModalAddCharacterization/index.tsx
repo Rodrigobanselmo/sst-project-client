@@ -52,6 +52,7 @@ export const ModalAddCharacterization = () => {
       style: { display: 'none' },
       onClick: () => null,
     },
+
     {
       text: 'Salvar',
       variant: 'outlined',
