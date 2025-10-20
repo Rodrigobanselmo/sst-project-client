@@ -16,6 +16,8 @@ import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../../errors/types';
 import { ExposureTypeEnum } from 'core/enums/exposure.enum';
+import { MedTypeEnum } from 'project/enum/medType.enum';
+import { RecTypeEnum } from 'project/enum/recType.enum';
 
 export interface IUpsertRiskData {
   id?: string;
@@ -42,6 +44,15 @@ export interface IUpsertRiskData {
   activities?: any;
   startDate?: Date;
   endDate?: Date;
+  recAddOnly?: { recName?: string; companyId: string }[];
+  admsAddOnly?: {
+    medName?: string;
+    medType?: MedTypeEnum;
+    recType?: RecTypeEnum;
+    companyId: string;
+  }[];
+  generateSourcesAddOnly?: { name?: string; companyId: string }[];
+  engsAddOnly?: { medName?: string; companyId: string }[];
 }
 
 export async function upsertRiskData(

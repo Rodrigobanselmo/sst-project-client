@@ -45,17 +45,17 @@ export const ModalAddCharacterization = () => {
       onClick: () => (saveRef.current = 'risk'),
     },
     {
-      text: 'Salvar',
+      text: 'Salvar Perfil',
       variant: 'outlined',
       id: IdsEnum.ADD_PROFILE_CHARACTERIZATION_ID,
       type: 'submit',
       style: { display: 'none' },
       onClick: () => null,
     },
-
     {
       text: 'Salvar',
       variant: 'outlined',
+      id: IdsEnum.ADD_CHARACTERIZATION_ID,
       type: 'submit',
       onClick: () => (saveRef.current = true),
     },

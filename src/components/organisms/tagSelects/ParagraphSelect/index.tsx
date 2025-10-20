@@ -15,8 +15,8 @@ export const ParagraphSelect: FC<
       options={paragraphOptions.map((key) => ({
         ...paragraphOptionsConstant[key],
       }))}
-      tooltipTitle={paragraphOptionsConstant[selected].name}
-      text={paragraphOptionsConstant[selected].name}
+      tooltipTitle={paragraphOptionsConstant?.[selected]?.name}
+      text={paragraphOptionsConstant?.[selected]?.name}
       // large={false}
       icon={CircleTwoToneIcon}
       large

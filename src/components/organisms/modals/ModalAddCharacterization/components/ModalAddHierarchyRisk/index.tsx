@@ -8,7 +8,7 @@ import { IUseEditCharacterization } from 'components/organisms/modals/ModalAddCh
 import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 import SText from 'components/atoms/SText';
 import SFlex from 'components/atoms/SFlex';
-import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent';
+import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysisContent';
 
 export const ModalAddHierarchyRisk = (
   props: IUseEditCharacterization & {

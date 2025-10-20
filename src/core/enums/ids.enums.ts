@@ -14,6 +14,7 @@ export enum IdsEnum {
   HIERARCHY_MODAL_SELECT_ITEM = 'hierarchy-modal-select-item-:id',
   RISK_TOOL_GHO_INPUT_SEARCH = 'risk-tool-gho-input-search-id',
   ADD_PROFILE_CHARACTERIZATION_ID = 'add-profile-characterization-id',
+  ADD_CHARACTERIZATION_ID = 'add-characterization-id',
   ADD_RISK_CHARACTERIZATION_ID = 'add-risk-characterization-id',
   EMPLOYEE_SELECT_ID = 'employee-select-id',
   EMPLOYEE_SCHEDULE_MEDICAL_EXAM_TYPE_CHECKBOX = 'schedule_medical_visit_table_checkbox_exam_type_:id',

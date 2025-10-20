@@ -6,6 +6,11 @@ export interface AiAnalyzeCharacterizationParams {
   model?: string; // Optional AI model to use (e.g., 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo')
 }
 
+export type WorkProcessItem = {
+  desc: string;
+  type: 'PARAGRAPH' | 'BULLET_0' | 'BULLET_1' | 'BULLET_2';
+};
+
 export type DetailedRisk = {
   id: string;
   name: string;
@@ -13,9 +18,10 @@ export type DetailedRisk = {
   explanation: string;
   generateSource: string;
   probability: number; // 1-5 scale
-  existingControls: string;
-  engineeringMeasures: string[];
-  administrativeMeasures: string[];
+  recommendedEngineeringMeasures: string[];
+  recommendedAdministrativeMeasures: string[];
+  existingEngineeringMeasures: string[];
+  existingAdministrativeMeasures: string[];
   confidence: number;
 };
 
@@ -24,6 +30,8 @@ export type Result = {
   confidence: number;
   recommendedRisks: string[]; // Array of risk UUIDs recommended by AI
   detailedRisks: DetailedRisk[]; // Detailed information about each recommended risk
+  description: string; // Descrição extraída das fotos e informações
+  workProcess: WorkProcessItem[]; // Processo de trabalho extraído
   metadata?: Record<string, any>;
   characterization: {
     id: string;
