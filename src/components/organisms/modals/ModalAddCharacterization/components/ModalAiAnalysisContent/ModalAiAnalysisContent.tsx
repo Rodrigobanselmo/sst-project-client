@@ -43,6 +43,7 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { useAccess } from 'core/hooks/useAccess';
 import { IdsEnum } from 'core/enums/ids.enums';
+import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
 
 interface AiAnalysisFormData {
   customPrompt?: string;
@@ -59,7 +60,7 @@ const AI_MODEL_OPTIONS = [
   { label: 'GPT-4.1 (Avançado) - $1.00/$4.00', value: 'gpt-4.1' },
   { label: 'GPT-4.1 Mini (Eficiente) - $0.20/$0.80', value: 'gpt-4.1-mini' },
   { label: 'GPT-4.1 Nano (Econômico) - $0.05/$0.20', value: 'gpt-4.1-nano' },
-  { label: 'GPT-4o (Recomendado) - $1.25/$5.00', value: 'gpt-4o' },
+  { label: 'GPT-4o (Padrão) - $1.25/$5.00', value: 'gpt-4o' },
   {
     label: 'GPT-4o 2024-05-13 (Versão Específica) - $2.50/$7.50',
     value: 'gpt-4o-2024-05-13',
@@ -296,6 +297,9 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
 
   const [analysisResult, setAnalysisResult] = useState<Result | null>(null);
   const [addedRisks, setAddedRisks] = useState<Set<string>>(new Set());
+  const [expandedAccordions, setExpandedAccordions] = useState<Set<string>>(
+    new Set(),
+  );
 
   // State to track modified risks (for removable tags)
   const [modifiedRisks, setModifiedRisks] = useState<
@@ -322,6 +326,12 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     }
     if (analysisResult?.description) {
       setEditedDescription(analysisResult.description);
+    }
+    // Initialize all accordions as expanded when new analysis result comes in
+    if (analysisResult?.detailedRisks) {
+      setExpandedAccordions(
+        new Set(analysisResult.detailedRisks.map((risk) => risk.id)),
+      );
     }
     // Reset saved states when new analysis result comes in
     setSavedDescription(false);
@@ -761,6 +771,20 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
     );
   };
 
+  // Handle accordion expansion/collapse
+  const handleAccordionChange =
+    (riskId: string) => (_: React.SyntheticEvent, isExpanded: boolean) => {
+      setExpandedAccordions((prev) => {
+        const newSet = new Set(prev);
+        if (isExpanded) {
+          newSet.add(riskId);
+        } else {
+          newSet.delete(riskId);
+        }
+        return newSet;
+      });
+    };
+
   // Convert risk type string to RiskTypeEnum
   const mapRiskTypeToEnum = (type: string): RiskTypeEnum => {
     const typeUpper = type.toUpperCase();
@@ -846,9 +870,13 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
       setAddedRisks((prev) => new Set(prev).add(risk.id));
       console.log('Risk data created successfully with risk:', risk.name);
 
-      // Close the modal after successfully adding the risk
+      // Collapse the accordion after successfully adding the risk
       setTimeout(() => {
-        onClose();
+        setExpandedAccordions((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(risk.id);
+          return newSet;
+        });
       }, 500); // Small delay to show the success state
     } catch (error) {
       console.error('Error creating risk data:', error);
@@ -884,7 +912,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
               <Box>
                 <SFlex direction="column" gap={3}>
                   {isMaster && (
-                    <SSelectForm
+                    <SSearchSelectForm
                       label="Modelo de IA"
                       name="model"
                       options={AI_MODEL_OPTIONS}
@@ -1130,7 +1158,8 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
                             return (
                               <Accordion
                                 key={risk.id}
-                                defaultExpanded={true}
+                                expanded={expandedAccordions.has(risk.id)}
+                                onChange={handleAccordionChange(risk.id)}
                                 sx={{
                                   border: '1px solid',
                                   borderColor: isAdded
