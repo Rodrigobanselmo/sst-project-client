@@ -656,7 +656,7 @@ export const FormQuestionsDashboard = ({
       {showIdicators && (
         <Box sx={{ p: 3 }}>
           {/* Grouping Section */}
-          {identifierQuestions.length > 0 &&
+          {availableGroupingQuestions.length > 0 &&
             generalQuestionsArrays.some(
               (group) => group.questions.length > 0,
             ) && (
