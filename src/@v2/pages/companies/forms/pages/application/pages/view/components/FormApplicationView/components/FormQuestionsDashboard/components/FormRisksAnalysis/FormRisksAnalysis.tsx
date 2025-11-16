@@ -608,13 +608,15 @@ export const FormRisksAnalysis = ({
   };
 
   const handleAnalyzeButtonClick = () => {
-    if (isMaster) {
-      // Master users get the configuration dialog
-      setShowAiDialog(true);
-    } else {
-      // Regular users get direct analysis with default settings
-      handleAnalyzeRisks({});
-    }
+    setShowAiDialog(true);
+
+    // if (isMaster) {
+    //   setShowAiDialog(true);
+    //   // Master users get the configuration dialog
+    // } else {
+    //   // Regular users get direct analysis with default settings
+    //   handleAnalyzeRisks({});
+    // }
   };
 
   return (
@@ -1116,28 +1118,38 @@ export const FormRisksAnalysis = ({
         <Dialog
           open={showAiDialog}
           onClose={() => setShowAiDialog(false)}
-          maxWidth="sm"
+          maxWidth="xl"
           fullWidth
+          PaperProps={{
+            sx: {
+              height: '90vh',
+              maxHeight: '90vh',
+              width: '95vw',
+              maxWidth: '95vw',
+            },
+          }}
         >
           <DialogTitle>Configurar Análise de IA</DialogTitle>
           <FormProvider {...methods}>
             <form onSubmit={handleSubmit(handleAnalyzeRisks)}>
               <DialogContent>
-                <SSearchSelectForm
-                  name="model"
-                  label="Modelo de IA"
-                  placeholder="Selecione o modelo de IA"
-                  options={AI_MODEL_OPTIONS}
-                  getOptionLabel={(option) => option.label}
-                  getOptionValue={(option) => option.value}
-                  boxProps={{ sx: { mb: 3 } }}
-                />
+                {isMaster && (
+                  <SSearchSelectForm
+                    name="model"
+                    label="Modelo de IA"
+                    placeholder="Selecione o modelo de IA"
+                    options={AI_MODEL_OPTIONS}
+                    getOptionLabel={(option) => option.label}
+                    getOptionValue={(option) => option.value}
+                    boxProps={{ sx: { mb: 8 } }}
+                  />
+                )}
                 <SInputMultilineForm
                   name="customPrompt"
                   label="Prompt Personalizado (Opcional)"
                   placeholder="Digite instruções específicas para a análise..."
                   fullWidth
-                  inputProps={{ minRows: 4, maxRows: 8 }}
+                  inputProps={{ minRows: 4, maxRows: 30 }}
                 />
               </DialogContent>
               <DialogActions>
