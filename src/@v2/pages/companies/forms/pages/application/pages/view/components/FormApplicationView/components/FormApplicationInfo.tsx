@@ -44,6 +44,9 @@ export const FormApplicationInfo = ({
     return <SSkeleton height={200} sx={{ mb: 10 }} />;
   }
 
+  const isSharable =
+    formApplication.isShareableLink || formApplication.isTesting || true;
+
   return (
     <>
       <SPaper mb={mb}>
@@ -58,8 +61,7 @@ export const FormApplicationInfo = ({
               />
             </SFlex>
             <SFlex gap={1} alignItems="center">
-              {(formApplication.isShareableLink ||
-                formApplication.isTesting) && (
+              {isSharable && (
                 <SIconButton onClick={handleOpenShareModal}>
                   <SIconShare fontSize={22} color="grey.600" />
                 </SIconButton>
@@ -137,7 +139,7 @@ export const FormApplicationInfo = ({
         <SDivider />
         <InfoCardSection>
           <SFlex gap={4} justifyContent="flex-start" flexWrap="wrap">
-            {(formApplication.isShareableLink || formApplication.isTesting) && (
+            {isSharable && (
               <SButton
                 text="Compartilhar"
                 icon={<SIconShare fontSize={18} />}

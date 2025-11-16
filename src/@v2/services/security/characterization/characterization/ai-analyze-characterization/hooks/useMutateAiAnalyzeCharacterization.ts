@@ -9,19 +9,6 @@ export const useMutateAiAnalyzeCharacterization = () => {
   const mutate = useMutate({
     mutationFn: aiAnalyzeCharacterization,
     invalidateQueryKey: false,
-    // invalidateManyQueryKeys: (_, variables) => [
-    //   [
-    //     QueryKeyCharacterizationEnum.CHARACTERIZATIONS,
-    //     variables.companyId,
-    //     variables.workspaceId,
-    //   ],
-    //   // [
-    //   //   QueryKeyCharacterizationEnum.CHARACTERIZATION,
-    //   //   variables.companyId,
-    //   //   variables.workspaceId,
-    //   //   variables.characterizationId,
-    //   // ],
-    // ],
     onSuccess: () => onSuccessMessage('Análise de IA realizada com sucesso'),
     onError: onErrorMessage,
   });

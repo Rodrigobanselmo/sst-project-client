@@ -98,6 +98,12 @@ export class FormApplicationReadModel {
   }
 
   get publicUrl() {
+    if (!this.isShareableLink && !this.isTesting) {
+      return getPathname(PageRoutes.FORMS.PUBLIC_FORM_ANSWER.LOGIN, {
+        pathParams: { id: this.id },
+      });
+    }
+
     return getPathname(
       this.isTesting
         ? PageRoutes.FORMS.PUBLIC_FORM_ANSWER.TESTING

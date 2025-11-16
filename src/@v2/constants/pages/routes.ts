@@ -24,6 +24,7 @@ export const PageRoutes = {
     PUBLIC_FORM_ANSWER: {
       NORMAL: '/formulario/[id]',
       TESTING: '/formulario/[id]/teste',
+      LOGIN: '/formulario/[id]/login',
     },
   },
 } as const;

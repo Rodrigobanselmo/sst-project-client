@@ -26,6 +26,7 @@ export interface IUpdateEmployee {
   companyId?: string;
   lastExam?: Date | null;
   id?: number;
+  birthday?: Date | null;
   cidIds?: string[];
 }
 

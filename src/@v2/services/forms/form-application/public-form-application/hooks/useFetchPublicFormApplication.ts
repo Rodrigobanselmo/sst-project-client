@@ -13,6 +13,7 @@ export const useFetchPublicFormApplication = (
       return publicFormApplication(params);
     },
     queryKey: [QueryKeyFormEnum.PUBLIC_FORM_APPLICATION, params.applicationId],
+    refetchOnMount: true,
   });
 
   return {

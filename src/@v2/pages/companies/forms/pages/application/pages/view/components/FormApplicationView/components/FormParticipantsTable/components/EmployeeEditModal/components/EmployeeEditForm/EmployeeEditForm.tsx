@@ -3,12 +3,14 @@ import { useForm } from 'react-hook-form';
 import { Box, Grid } from '@mui/material';
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { SInputForm } from '@v2/components/forms/controlled/SInputForm/SInputForm';
+import { SDatePickerForm } from '@v2/components/forms/controlled/SDatePickerForm/SDatePickerForm';
 import { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { EmployeeFormData } from '../../hooks/useEmployeeEditModal';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { maskPhone } from '@v2/utils/@masks/phone.mask';
+import { formatCPF } from '@brazilian-utils/brazilian-utils';
 
 interface EmployeeEditFormProps {
   employee: IEmployee;
@@ -23,6 +25,7 @@ const schema = yup.object().shape({
   phone: yup.string(),
   cpf: yup.string().required('CPF é obrigatório'),
   hierarchyId: yup.string().required('Hierarquia é obrigatória'),
+  birthday: yup.date().nullable(),
 });
 
 export const EmployeeEditForm = forwardRef<
@@ -35,8 +38,9 @@ export const EmployeeEditForm = forwardRef<
       name: employee.name || '',
       email: employee.email || '',
       phone: employee.phone || '',
-      cpf: employee.cpf || '',
+      cpf: formatCPF(employee.cpf) || '',
       hierarchyId: employee.hierarchyId || '',
+      birthday: employee.birthday || null,
     },
   });
 
@@ -49,8 +53,9 @@ export const EmployeeEditForm = forwardRef<
         name: employee.name || '',
         email: employee.email || '',
         phone: employee.phone || '',
-        cpf: employee.cpf || '',
+        cpf: formatCPF(employee.cpf) || '',
         hierarchyId: employee.hierarchyId || '',
+        birthday: employee.birthday || null,
       });
     }
   }, [employee, reset]);
@@ -107,6 +112,10 @@ export const EmployeeEditForm = forwardRef<
               fullWidth
               disabled // CPF usually shouldn't be editable
             />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <SDatePickerForm name="birthday" label="Data de Nascimento" />
           </Grid>
 
           {/* <Grid item xs={12} md={6}>

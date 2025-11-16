@@ -21,6 +21,7 @@ export interface EmployeeFormData {
   phone?: string;
   cpf: string;
   hierarchyId: string;
+  birthday?: Date | null;
 }
 
 export const useEmployeeEditModal = ({
@@ -60,13 +61,10 @@ export const useEmployeeEditModal = ({
           phone: formData.phone,
           cpf: formData.cpf,
           hierarchyId: formData.hierarchyId,
+          birthday: formData.birthday || null,
         });
 
         invalidateQueryKey([QueryKeyFormEnum.FORM_PARTICIPANTS]);
-
-        enqueueSnackbar('Funcionário atualizado com sucesso', {
-          variant: 'success',
-        });
 
         closeModal();
       } catch (error) {
