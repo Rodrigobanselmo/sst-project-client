@@ -40,6 +40,7 @@ import {
   DialogActions,
 } from '@mui/material';
 import { formRiskCustomPrompt } from './custim-prompt';
+import { HomoTypeEnum } from '@v2/models/security/enums/homo-type.enum';
 
 interface FormRisksAnalysisProps {
   formApplication: FormApplicationReadModel;
@@ -452,6 +453,9 @@ export const FormRisksAnalysis = ({
         riskFactorGroupDataId: riskGroupId,
         riskId: analysis.riskId,
         hierarchyId: analysis.hierarchyId,
+        homogeneousGroupId: analysis.hierarchyId,
+        type: HomoTypeEnum.HIERARCHY,
+        keepEmpty: true,
         companyId: formApplication.companyId,
         probability: analysis.probability,
         generateSourcesAddOnly: analysis.analysis.fontesGeradoras.map(
@@ -872,27 +876,22 @@ export const FormRisksAnalysis = ({
                                                 isAnalysisAddedAsRiskData(
                                                   analysis,
                                                 ) || addedRisks.has(analysis.id)
-                                                  ? 'contained'
+                                                  ? 'shade'
                                                   : 'shade'
                                               }
                                               color={
                                                 isAnalysisAddedAsRiskData(
                                                   analysis,
                                                 ) || addedRisks.has(analysis.id)
-                                                  ? 'success'
+                                                  ? 'paper'
                                                   : 'success'
                                               }
                                               size="s"
-                                              disabled={
-                                                isAnalysisAddedAsRiskData(
-                                                  analysis,
-                                                ) || addedRisks.has(analysis.id)
-                                              }
                                               text={
                                                 isAnalysisAddedAsRiskData(
                                                   analysis,
                                                 ) || addedRisks.has(analysis.id)
-                                                  ? 'Adicionado'
+                                                  ? 'Adicionar novamente'
                                                   : 'Adicionar'
                                               }
                                               onClick={() =>
@@ -1114,61 +1113,59 @@ export const FormRisksAnalysis = ({
       </SFlex>
 
       {/* AI Analysis Configuration Dialog - Only for Master Users */}
-      {isMaster && (
-        <Dialog
-          open={showAiDialog}
-          onClose={() => setShowAiDialog(false)}
-          maxWidth="xl"
-          fullWidth
-          PaperProps={{
-            sx: {
-              height: '90vh',
-              maxHeight: '90vh',
-              width: '95vw',
-              maxWidth: '95vw',
-            },
-          }}
-        >
-          <DialogTitle>Configurar Análise de IA</DialogTitle>
-          <FormProvider {...methods}>
-            <form onSubmit={handleSubmit(handleAnalyzeRisks)}>
-              <DialogContent>
-                {isMaster && (
-                  <SSearchSelectForm
-                    name="model"
-                    label="Modelo de IA"
-                    placeholder="Selecione o modelo de IA"
-                    options={AI_MODEL_OPTIONS}
-                    getOptionLabel={(option) => option.label}
-                    getOptionValue={(option) => option.value}
-                    boxProps={{ sx: { mb: 8 } }}
-                  />
-                )}
-                <SInputMultilineForm
-                  name="customPrompt"
-                  label="Prompt Personalizado (Opcional)"
-                  placeholder="Digite instruções específicas para a análise..."
-                  fullWidth
-                  inputProps={{ minRows: 4, maxRows: 30 }}
+      <Dialog
+        open={showAiDialog}
+        onClose={() => setShowAiDialog(false)}
+        maxWidth="xl"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '90vh',
+            maxHeight: '90vh',
+            width: '95vw',
+            maxWidth: '95vw',
+          },
+        }}
+      >
+        <DialogTitle>Configurar Análise de IA</DialogTitle>
+        <FormProvider {...methods}>
+          <form onSubmit={handleSubmit(handleAnalyzeRisks)}>
+            <DialogContent>
+              {isMaster && (
+                <SSearchSelectForm
+                  name="model"
+                  label="Modelo de IA"
+                  placeholder="Selecione o modelo de IA"
+                  options={AI_MODEL_OPTIONS}
+                  getOptionLabel={(option) => option.label}
+                  getOptionValue={(option) => option.value}
+                  boxProps={{ sx: { mb: 8 } }}
                 />
-              </DialogContent>
-              <DialogActions>
-                <SButton
-                  variant="outlined"
-                  text="Cancelar"
-                  onClick={() => setShowAiDialog(false)}
-                />
-                <SButton
-                  variant="contained"
-                  text="Iniciar Análise"
-                  loading={isAnalyzing}
-                  onClick={handleSubmit(handleAnalyzeRisks)}
-                />
-              </DialogActions>
-            </form>
-          </FormProvider>
-        </Dialog>
-      )}
+              )}
+              <SInputMultilineForm
+                name="customPrompt"
+                label="Prompt Personalizado (Opcional)"
+                placeholder="Digite instruções específicas para a análise..."
+                fullWidth
+                inputProps={{ minRows: 4, maxRows: 30 }}
+              />
+            </DialogContent>
+            <DialogActions>
+              <SButton
+                variant="outlined"
+                text="Cancelar"
+                onClick={() => setShowAiDialog(false)}
+              />
+              <SButton
+                variant="contained"
+                text="Iniciar Análise"
+                loading={isAnalyzing}
+                onClick={handleSubmit(handleAnalyzeRisks)}
+              />
+            </DialogActions>
+          </form>
+        </FormProvider>
+      </Dialog>
     </SPaper>
   );
 };
