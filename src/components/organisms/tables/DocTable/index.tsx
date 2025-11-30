@@ -87,6 +87,15 @@ export const DocTable: FC<
     [DocumentTypeEnum.PCSMO]: {
       title: 'PCMSO',
     },
+    [DocumentTypeEnum.PERICULOSIDADE]: {
+      title: 'PERICULOSIDADE',
+    },
+    [DocumentTypeEnum.LTCAT]: {
+      title: 'LTCAT',
+    },
+    [DocumentTypeEnum.INSALUBRIDADE]: {
+      title: 'INSALUBRIDADE',
+    },
     [DocumentTypeEnum.OTHER]: {
       title: 'Outros',
     },

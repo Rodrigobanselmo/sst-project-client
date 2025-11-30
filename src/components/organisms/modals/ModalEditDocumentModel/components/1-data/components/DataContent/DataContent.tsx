@@ -72,6 +72,7 @@ export const DataContent = (props: IUseData) => {
         <Box mb={5} mt={3} maxWidth={['100%']}>
           <DocumentModelSelect
             fullWidth
+            selectAllTypes
             query={{ type: data?.type }}
             onChange={(data) => {
               setData((d) => ({

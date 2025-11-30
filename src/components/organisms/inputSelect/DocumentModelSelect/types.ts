@@ -9,6 +9,7 @@ export interface IDocumentModelSelectProps
   extends Omit<Partial<AutocompleteFormProps<IDocumentModel>>, 'onChange'> {
   control: Control<any, object>;
   name: string;
+  selectAllTypes?: boolean;
   label: string;
   query?: IQueryDocumentModels;
   onChange?: (value: IDocumentModel) => void;

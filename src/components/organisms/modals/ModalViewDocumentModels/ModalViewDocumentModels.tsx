@@ -65,6 +65,9 @@ export const ModalViewDocumentModels: FC = () => {
   const typeMap: Record<number, DocumentTypeEnum> = {
     0: DocumentTypeEnum.PGR,
     1: DocumentTypeEnum.PCSMO,
+    2: DocumentTypeEnum.LTCAT,
+    3: DocumentTypeEnum.PERICULOSIDADE,
+    4: DocumentTypeEnum.INSALUBRIDADE,
   };
 
   return (
@@ -103,6 +106,15 @@ export const ModalViewDocumentModels: FC = () => {
                   },
                   {
                     label: 'PCMSO',
+                  },
+                  {
+                    label: 'LTCAT',
+                  },
+                  {
+                    label: 'Periculosidade',
+                  },
+                  {
+                    label: 'Insalubridade',
                   },
                 ]}
               />

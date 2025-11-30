@@ -16,6 +16,18 @@ export const documentTypeMap: IDocumentTypeOptions = {
     value: DocumentTypeEnum.PCSMO,
     content: 'PCMSO',
   },
+  [DocumentTypeEnum.LTCAT]: {
+    value: DocumentTypeEnum.LTCAT,
+    content: 'LTCAT',
+  },
+  [DocumentTypeEnum.PERICULOSIDADE]: {
+    value: DocumentTypeEnum.PERICULOSIDADE,
+    content: 'Periculosidade',
+  },
+  [DocumentTypeEnum.INSALUBRIDADE]: {
+    value: DocumentTypeEnum.INSALUBRIDADE,
+    content: 'Insalubridade',
+  },
   [DocumentTypeEnum.OTHER]: {
     value: DocumentTypeEnum.OTHER,
     content: 'Outro',
@@ -25,5 +37,8 @@ export const documentTypeMap: IDocumentTypeOptions = {
 export const documentTypeList = [
   documentTypeMap[DocumentTypeEnum.PGR],
   documentTypeMap[DocumentTypeEnum.PCSMO],
+  documentTypeMap[DocumentTypeEnum.LTCAT],
+  documentTypeMap[DocumentTypeEnum.PERICULOSIDADE],
+  documentTypeMap[DocumentTypeEnum.INSALUBRIDADE],
   documentTypeMap[DocumentTypeEnum.OTHER],
 ];

@@ -13,12 +13,15 @@ import SText from 'components/atoms/SText';
 
 export const DocumentModelSelect: FC<
   { children?: any } & IDocumentModelSelectProps
-> = ({ onChange, inputProps, query, ...props }) => {
+> = ({ onChange, inputProps, query, selectAllTypes, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
     setSearch(value);
   }, 300);
+
+  //! remove this deletion when all models are created (added to facilitate alex to copy)
+  if (query && selectAllTypes) delete query?.type;
 
   const { data: docModels, isLoading: loadTables } = useQueryDocumentModels(
     1,
@@ -26,7 +29,7 @@ export const DocumentModelSelect: FC<
     20,
   );
 
-  if (!docModels?.length)
+  if (!docModels?.length && docModels?.length != 0)
     return (
       <>
         <SText fontSize={14} mb={5}>

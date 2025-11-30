@@ -36,6 +36,9 @@ export async function upsertAddDocumentQueue(
 
   if (data.type == DocumentTypeEnum.PGR) docType = 'pgr';
   if (data.type == DocumentTypeEnum.PCSMO) docType = 'pcmso';
+  if (data.type == DocumentTypeEnum.PERICULOSIDADE) docType = 'periculosidade';
+  if (data.type == DocumentTypeEnum.LTCAT) docType = 'ltcat';
+  if (data.type == DocumentTypeEnum.INSALUBRIDADE) docType = 'insalubridade';
 
   const response = await api.post(
     `${ApiRoutesEnum.DOCUMENTS_BASE}/add-queue/${docType}`,

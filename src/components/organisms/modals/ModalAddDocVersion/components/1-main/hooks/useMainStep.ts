@@ -14,6 +14,9 @@ import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 
 import { IUseMainActionsModal } from '../../../hooks/useMainActions';
 import { useMutUpsertPCSMODocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertPCSMOODocumentData/useMutUpsertPCSMODocumentData';
+import { useMutUpsertPERICULOSIDADEDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertPERICULOSIDADEDocumentData/useMutUpsertPERICULOSIDADEDocumentData';
+import { useMutUpsertLTCATDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertLTCATDocumentData/useMutUpsertLTCATDocumentData';
+import { useMutUpsertINSALUBRIDADEDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertINSALUBRIDADEDocumentData/useMutUpsertINSALUBRIDADEDocumentData';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 export const useMainStep = ({
@@ -29,6 +32,9 @@ export const useMainStep = ({
 
   const updateMutation = useMutUpsertPGRDocumentData();
   const updatePcmsoMutation = useMutUpsertPCSMODocumentData();
+  const updatePericulosidadeMutation = useMutUpsertPERICULOSIDADEDocumentData();
+  const updateLtcatMutation = useMutUpsertLTCATDocumentData();
+  const updateInsalubridadeMutation = useMutUpsertINSALUBRIDADEDocumentData();
 
   const fields = [
     'name',
@@ -99,7 +105,13 @@ export const useMainStep = ({
       await (
         data.type == DocumentTypeEnum.PCSMO
           ? updatePcmsoMutation
-          : updateMutation
+          : data.type == DocumentTypeEnum.PERICULOSIDADE
+            ? updatePericulosidadeMutation
+            : data.type == DocumentTypeEnum.LTCAT
+              ? updateLtcatMutation
+              : data.type == DocumentTypeEnum.INSALUBRIDADE
+                ? updateInsalubridadeMutation
+                : updateMutation
       )
         .mutateAsync(submitData)
         .then((response) => {

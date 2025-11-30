@@ -1,5 +1,8 @@
 export enum DocumentTypeEnum {
   PGR = 'PGR',
   PCSMO = 'PCSMO',
+  LTCAT = 'LTCAT',
+  PERICULOSIDADE = 'PERICULOSIDADE',
+  INSALUBRIDADE = 'INSALUBRIDADE',
   OTHER = 'OTHER',
 }

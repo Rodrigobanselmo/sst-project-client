@@ -9,6 +9,9 @@ import SWizardBox from 'components/atoms/SWizardBox';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddDocPCMSOVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPCMSOVersion';
 import { ModalAddDocPGRVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPGRVersion';
+import { ModalAddDocPERICULOSIDADEVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPERICULOSIDADEVersion';
+import { ModalAddDocLTCATVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocLTCATVersion';
+import { ModalAddDocINSALUBRIDADEVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocINSALUBRIDADEVersion';
 import { DocTable } from 'components/organisms/tables/DocTable';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
@@ -53,6 +56,15 @@ export const DocumentsStage = ({
               {
                 label: 'PCMSO',
               },
+              {
+                label: 'PERICULOSIDADE',
+              },
+              {
+                label: 'LTCAT',
+              },
+              {
+                label: 'INSALUBRIDADE',
+              },
             ]}
           />
         }
@@ -70,6 +82,27 @@ export const DocumentsStage = ({
             query={{ type: DocumentTypeEnum.PCSMO }}
           />
           <ModalAddDocPCMSOVersion />
+        </>
+        <>
+          <DocTable
+            type={DocumentTypeEnum.PERICULOSIDADE}
+            query={{ type: DocumentTypeEnum.PERICULOSIDADE }}
+          />
+          <ModalAddDocPERICULOSIDADEVersion />
+        </>
+        <>
+          <DocTable
+            type={DocumentTypeEnum.LTCAT}
+            query={{ type: DocumentTypeEnum.LTCAT }}
+          />
+          <ModalAddDocLTCATVersion />
+        </>
+        <>
+          <DocTable
+            type={DocumentTypeEnum.INSALUBRIDADE}
+            query={{ type: DocumentTypeEnum.INSALUBRIDADE }}
+          />
+          <ModalAddDocINSALUBRIDADEVersion />
         </>
       </Wizard>
     </Box>
