@@ -9,7 +9,7 @@ export interface ICnaeSelectProps
   control: Control<any, object>;
   name: string;
   label: string;
-  data: ICnae;
+  data?: ICnae;
   onChange?: (value: ICnae) => void;
   setValue: (name: string, value: string) => void;
 }

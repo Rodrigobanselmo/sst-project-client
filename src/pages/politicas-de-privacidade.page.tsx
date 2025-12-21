@@ -49,12 +49,13 @@ const PrivacyPolicy = () => {
             Esta Política de Privacidade e Segurança de Dados estabelece as
             diretrizes para o tratamento das informações pessoais coletadas
             durante o acesso e uso do serviço oferecido pela SimpleSST, uma
-            empresa de natureza jurídica 2062 | SOCIEDADE EMPRESÁRIA LIMITADA,
-            registrada sob o CNPJ nº 17.147.530/0001-60. A empresa é uma matriz
-            e está ativa desde 25/09/2012. om endereço comercial situado à Rua
-            ALAMEDA FRANCISCO ALVES nº 96, JARDIM, no município de SANTO ANDRE |
-            SP – CEP 09090-790, com telefone para contato: 12 99681-8163 / (11)
-            3226-2177, email atendimento@simplesst.com.
+            empresa de natureza jurídica Sociedade Empresária Limitada,
+            registrada sob o CNPJ nº 60.161.885/0001-32, razão social
+            &quot;Rodrigo Barbosa Marins Anselmo Desenvolvimento de Software
+            LTDA&quot;. A empresa é uma matriz e está ativa desde 31/03/2025,
+            com endereço comercial situado à Rua Armando Strazzacappa, 54, Apt
+            16 Bloco 2, Parque Rural Fazenda Santa Candida, no município de
+            Campinas | SP – CEP 13087-605, com email atendimento@simplesst.com.
           </p>
           <p style={paragraphStyle}>
             Esta Política de Privacidade complementa os Termos de Uso que

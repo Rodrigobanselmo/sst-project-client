@@ -241,7 +241,12 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
   };
 
   const handleDuplicate = (data: ITypeDocumentModel) => {
-    if ('element' in data)
+    if ('element' in data) {
+      delete data.removeWithAllEmptyVars;
+      delete data.removeWithAllValidVars;
+      delete data.removeWithSomeEmptyVars;
+      delete data.addWithAllVars;
+
       onDuplicateChild({
         ...data,
         ...(data.text &&
@@ -249,6 +254,7 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
             text: '[DUPLICADO] ' + data.text.slice(0, 10) + '...',
           }),
       });
+    }
   };
 
   const handleAddChild = (data: ITypeDocumentModel) => {

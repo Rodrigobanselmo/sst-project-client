@@ -5,12 +5,20 @@ import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
+import STooltip from 'components/atoms/STooltip';
+import SHelpIcon from 'assets/icons/SHelpIcon';
 import { InputForm } from 'components/molecules/form/input';
+import { CnaeInputSelect } from 'components/organisms/inputSelect/CnaeSelect/CnaeSelect';
 
 import { cepMask } from 'core/utils/masks/cep.mask';
 import { cnpjMask } from 'core/utils/masks/cnpj.mask';
 
 import { IUseEditWorkspace } from '../../hooks/useEditWorkspace';
+import { ICnae } from 'core/interfaces/api/ICompany';
+import {
+  SEditor,
+  SEditorToolbarOption,
+} from '@v2/components/forms/fields/SEditor/SEditor';
 
 export const ModalWorkspaceStep = ({
   companyData,
@@ -22,8 +30,10 @@ export const ModalWorkspaceStep = ({
   loadingCep,
   setValue,
 }: IUseEditWorkspace) => {
+  const [primaryCnae, setPrimaryCnae] = React.useState<ICnae | null>(null);
+
   return (
-    <SFlex gap={8} direction="column" mt={8}>
+    <SFlex gap={8} direction="column" mt={8} minWidth={800}>
       <SText color="text.label" fontSize={14}>
         Dados
       </SText>
@@ -160,19 +170,106 @@ export const ModalWorkspaceStep = ({
         />
       </Box>
       {companyData.isFromOtherCnpj && (
-        <InputForm
-          defaultValue={companyData.cnpj}
-          label="CNPJ"
-          control={control}
-          sx={{ minWidth: ['100%', 600] }}
-          setValue={setValue}
-          placeholder={'cnpj do empresa...'}
-          name="cnpj"
-          size="small"
-          mask={cnpjMask.apply}
-          onChange={({ target: { value } }) => onChangeCnpj(value)}
-          loading={loadingCnpj}
-        />
+        <>
+          <Box ml={6}>
+            <SSwitch
+              onChange={() => {
+                setCompanyData({
+                  ...companyData,
+                  useCustomSection: !companyData.useCustomSection,
+                } as any);
+              }}
+              checked={companyData.useCustomSection}
+              label="Criar seção personalizada do estabelecimento"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          </Box>
+          <InputForm
+            defaultValue={companyData.cnpj}
+            label="CNPJ"
+            control={control}
+            sx={{ minWidth: ['100%', 600] }}
+            setValue={setValue}
+            placeholder={'cnpj do empresa...'}
+            name="cnpj"
+            size="small"
+            mask={cnpjMask.apply}
+            onChange={({ target: { value } }) => onChangeCnpj(value)}
+            loading={loadingCnpj}
+          />
+          {!companyData.useCustomSection ? (
+            <>
+              <InputForm
+                defaultValue={companyData.companyJson.name}
+                label="Razão Social"
+                control={control}
+                sx={{ minWidth: ['100%', 600] }}
+                setValue={setValue}
+                name="companyName"
+                size="small"
+              />
+              <CnaeInputSelect
+                control={control}
+                setValue={setValue}
+                onChange={(data) => {
+                  setValue('primaryCnae', data);
+                  setPrimaryCnae(data);
+                }}
+                name="primaryCnaeId"
+                label="CNAE Principal"
+                data={
+                  primaryCnae || companyData.companyJson.primary_activity?.[0]
+                }
+                defaultValue={companyData.companyJson.primary_activity?.[0]}
+              />
+            </>
+          ) : (
+            <Box>
+              <SFlex align="center" gap={1} mb={6} mt={0}>
+                <SText color="grey.600" fontSize={14}>
+                  Estabelecimento (seção personalizada)
+                </SText>
+                <STooltip
+                  title="Este campo será inserido no documento na identificação do estabelecimento"
+                  withWrapper
+                >
+                  <SHelpIcon
+                    sx={{
+                      fontSize: 16,
+                      color: 'grey.600',
+                      cursor: 'pointer',
+                    }}
+                  />
+                </STooltip>
+              </SFlex>
+              <SEditor
+                value={companyData.companyJson.customSectionHTML || ''}
+                toolbarOptions={[
+                  SEditorToolbarOption.HEADING,
+                  SEditorToolbarOption.BOLD,
+                  SEditorToolbarOption.ITALIC,
+                  SEditorToolbarOption.UNDO,
+                  SEditorToolbarOption.REDO,
+                ]}
+                onChange={(value) => {
+                  setValue('customSectionHTML', value);
+                }}
+                placeholder="Digite a seção do estabelecimento..."
+                containerProps={{
+                  sx: {
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                  },
+                }}
+                editorContainerProps={{
+                  sx: { minHeight: 80 },
+                }}
+              />
+            </Box>
+          )}
+        </>
       )}
     </SFlex>
   );

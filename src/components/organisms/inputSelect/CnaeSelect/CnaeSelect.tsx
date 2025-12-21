@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -6,7 +6,10 @@ import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { useQueryCnaes } from 'core/services/hooks/queries/useQueryCnaes/useQueryCnaes';
+import {
+  useQueryCnaes,
+  queryCnaes,
+} from 'core/services/hooks/queries/useQueryCnaes/useQueryCnaes';
 import { cnaeMask } from 'core/utils/masks/cnae.mask';
 
 import { ICnaeSelectProps } from './types';
@@ -24,16 +27,66 @@ export const CnaeInputSelect: FC<{ children?: any } & ICnaeSelectProps> = ({
     setSearch(value);
   }, 300);
 
-  const { data: cnaes, isLoading: loadCnaes } = useQueryCnaes(
+  const { data: cnaes_, isLoading: loadCnaes } = useQueryCnaes(
     1,
     { search },
     20,
   );
 
+  const cnaes = cnaes_ || [];
+
+  if (data?.code) {
+    const foundCnae = cnaes.find((cnae) => cnae.code === data.code);
+    if (!foundCnae) {
+      cnaes.push(data);
+    }
+  }
+
+  // Query for CNAE data when riskDegree is missing
+  useEffect(() => {
+    const shouldQueryCnae = !!(
+      data?.code &&
+      (!data?.riskDegree || data?.riskDegree === '')
+    );
+
+    if (shouldQueryCnae) {
+      const codeForQuery = data.code.replace(/\D/g, '');
+
+      const fetchCnaeData = async () => {
+        try {
+          const result = await queryCnaes(
+            { skip: 0, take: 1 },
+            { code: codeForQuery },
+          );
+
+          if (result?.data && result.data.length > 0) {
+            const foundCnae = result.data.find(
+              (cnae) => cnae.code === data.code,
+            );
+            if (foundCnae && foundCnae.riskDegree) {
+              const updatedCnae = {
+                ...data,
+                riskDegree: foundCnae.riskDegree,
+              };
+              // Update the form value to show the enhanced data
+              onChange?.(updatedCnae);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching CNAE data:', error);
+        }
+      };
+
+      fetchCnaeData();
+    }
+  }, [data, onChange, setValue, props.name]);
+
   return (
     <SFlex flexWrap="wrap" gap={5}>
       <Box height={100} flex={8}>
         <AutocompleteForm
+          unmountOnChangeDefault
           getOptionLabel={(option) =>
             (typeof option != 'string' && option.name) || ''
           }

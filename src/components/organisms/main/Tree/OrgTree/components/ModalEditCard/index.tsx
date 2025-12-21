@@ -17,6 +17,7 @@ import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IEmployee } from 'core/interfaces/api/IEmployee';
 import {
   IQueryEmployee,
@@ -30,7 +31,15 @@ import { ModalEnum } from '../../../../../../../core/enums/modal.enums';
 import { useAppSelector } from '../../../../../../../core/hooks/useAppSelector';
 import { useHierarchyTreeActions } from '../../../../../../../core/hooks/useHierarchyTreeActions';
 import { useRegisterModal } from '../../../../../../../core/hooks/useRegisterModal';
+import { SButton as V2SButton } from '@v2/components/atoms/SButton/SButton';
 import { SButton } from '../../../../../../atoms/SButton';
+import { useMutateEditHierarchy } from '@v2/services/enterprise/hierarchy/edit-hierarchy/hooks/useMutateEditHierarchy';
+import {
+  SEditor,
+  SEditorToolbarOption,
+} from '@v2/components/forms/fields/SEditor/SEditor';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import STooltip from '../../../../../../atoms/STooltip';
 import SFlex from '../../../../../../atoms/SFlex';
 import { SInput } from '../../../../../../atoms/SInput';
 import { SSwitch } from '../../../../../../atoms/SSwitch';
@@ -88,6 +97,8 @@ export const ModalEditCard = () => {
   const { onCloseModal } = useModal();
   const { nodePath, setEditNodeSelectedItem } = useModalCard();
   const { editNodes, removeNodes, createEmptyCard } = useHierarchyTreeActions();
+  const editHierarchyMutation = useMutateEditHierarchy();
+  const { getCompanyId } = useGetCompanyId();
 
   const { preventDelete } = usePreventNode();
   const { enqueueSnackbar } = useSnackbar();
@@ -97,6 +108,8 @@ export const ModalEditCard = () => {
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
   const switchRef = useRef<HTMLInputElement>(null);
   const [workspacesIds, setWorkspaces] = useState<string[]>([]);
+  const [showAdvancedConfig, setShowAdvancedConfig] = useState(false);
+  const projectsTextRef = useRef('');
 
   // useControlClick('s', () => {
   //   if (isOpen(ModalEnum.HIERARCHY_TREE_CARD)) onSave();
@@ -106,14 +119,38 @@ export const ModalEditCard = () => {
     if (selectedNode) {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { action, ...newNode } = selectedNode;
+
+      // Get current workspaces from hierarchy if they exist
+      const currentHierarchy =
+        hierarchies[String(selectedNode.id).split('//')[0]];
+      const currentWorkspaces = currentHierarchy?.workspaceIds || [];
+
+      // Use provided workspaces or preserve current ones
+      const finalWorkspaces =
+        workspacesIds.length > 0 ? workspacesIds : currentWorkspaces;
+
+      // Save metadata if projectsText has content
+      if (projectsTextRef.current.trim() && selectedNode.action !== 'add') {
+        const companyId = getCompanyId(selectedNode);
+        const hierarchyId = String(selectedNode.id).split('//')[0];
+
+        editHierarchyMutation.mutate({
+          companyId,
+          hierarchyId,
+          metadata: {
+            additionalData: projectsTextRef.current,
+          },
+        });
+      }
+
       setEmployees([]);
       setWorkspaces([]);
       queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
       editNodes([newNode], false, {
-        isAdd: true,
+        isAdd: selectedNode.action === 'add',
         employeesIds: employees.map((e) => e.id),
         callBack: refetch,
-        workspacesIds: workspacesIds.length > 0 ? workspacesIds : undefined,
+        workspacesIds: finalWorkspaces.length > 0 ? finalWorkspaces : undefined,
       });
       if (!switchRef.current?.checked)
         onCloseModal(ModalEnum.HIERARCHY_TREE_CARD);
@@ -299,6 +336,77 @@ export const ModalEditCard = () => {
                 sx={{ mb: 10 }}
                 placeholder={nodeTypesConstant[type]?.placeholderRealDesc || ''}
               />
+            )}
+
+            {/* Advanced Configuration Section */}
+            {false && (
+              <Box
+                mt={-6}
+                width={'100%'}
+                display={'flex'}
+                flexDirection="column"
+              >
+                <V2SButton
+                  text="Configuração avançada"
+                  variant="text"
+                  color="info"
+                  size="s"
+                  onClick={() => setShowAdvancedConfig(!showAdvancedConfig)}
+                  buttonProps={{
+                    sx: {
+                      mb: 4,
+                      ml: 'auto',
+                      p: 0,
+                      textTransform: 'none',
+                      color: 'primary.main',
+                    },
+                  }}
+                />
+
+                {showAdvancedConfig && (
+                  <Box sx={{ mb: 10 }}>
+                    <Box display="flex" alignItems="center" mb={4}>
+                      <SText fontSize={14} color="text.main">
+                        Dados adicionais
+                      </SText>
+                      <STooltip title="Forma de adicionar informações extras no documento gerado que conterem esse cargo. Ele aparece no documento a partir do item 'Informações adicionais oriundas de cargos e setores'">
+                        <HelpOutlineIcon
+                          sx={{
+                            fontSize: 16,
+                            color: 'text.secondary',
+                            ml: 1,
+                            cursor: 'help',
+                          }}
+                        />
+                      </STooltip>
+                    </Box>
+                    <SEditor
+                      value={projectsTextRef.current}
+                      toolbarOptions={[
+                        SEditorToolbarOption.HEADING,
+                        SEditorToolbarOption.BOLD,
+                        SEditorToolbarOption.ITALIC,
+                        SEditorToolbarOption.UNDO,
+                        SEditorToolbarOption.REDO,
+                      ]}
+                      onChange={(value) => {
+                        projectsTextRef.current = value;
+                      }}
+                      placeholder="Digite os projetos relacionados..."
+                      containerProps={{
+                        sx: {
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: 1,
+                        },
+                      }}
+                      editorContainerProps={{
+                        sx: { minHeight: 80 },
+                      }}
+                    />
+                  </Box>
+                )}
+              </Box>
             )}
           </Box>
           <ModalViewRiskData selectedNode={selectedNode} />

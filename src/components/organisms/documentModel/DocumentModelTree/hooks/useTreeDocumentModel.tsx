@@ -191,6 +191,16 @@ export const useTreeDocumentModel = (model: IDocumentModelFull | undefined) => {
           section.hasChildren = true;
           section.id = v4();
 
+          delete section.removeWithAllEmptyVars;
+          delete section.removeWithAllValidVars;
+          delete section.removeWithSomeEmptyVars;
+          delete section.addWithAllVars;
+
+          delete child.removeWithAllEmptyVars;
+          delete child.removeWithAllValidVars;
+          delete child.removeWithSomeEmptyVars;
+          delete child.addWithAllVars;
+
           data[0].data = [...data[0].data, section];
 
           if (data[0].children) data[0].children[section.id] = [];

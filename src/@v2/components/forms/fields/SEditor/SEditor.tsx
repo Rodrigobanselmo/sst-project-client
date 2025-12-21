@@ -1,5 +1,4 @@
 import CodeIcon from '@mui/icons-material/Code';
-import CodeOffIcon from '@mui/icons-material/CodeOff';
 import FormatAlignCenterIcon from '@mui/icons-material/FormatAlignCenter';
 import FormatAlignJustifyIcon from '@mui/icons-material/FormatAlignJustify';
 import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
@@ -13,7 +12,6 @@ import FormatUnderlinedIcon from '@mui/icons-material/FormatUnderlined';
 import HorizontalRuleIcon from '@mui/icons-material/HorizontalRule';
 import ImageIcon from '@mui/icons-material/Image';
 import LinkIcon from '@mui/icons-material/Link';
-import LinkOffIcon from '@mui/icons-material/LinkOff';
 import RedoIcon from '@mui/icons-material/Redo';
 import SubscriptIcon from '@mui/icons-material/Subscript';
 import SuperscriptIcon from '@mui/icons-material/Superscript';
@@ -31,7 +29,6 @@ import {
 } from '@mui/material';
 import Code from '@tiptap/extension-code';
 import CodeBlock from '@tiptap/extension-code-block';
-import Blockquote from '@tiptap/extension-blockquote';
 import Heading, { Level } from '@tiptap/extension-heading';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import Image from '@tiptap/extension-image';
@@ -140,6 +137,33 @@ export const SEDITOR_HTML_STYLES = {
   },
 } as const;
 
+// Enum for toolbar options
+export enum SEditorToolbarOption {
+  UNDO = 'undo',
+  REDO = 'redo',
+  HEADING = 'heading',
+  BULLET_LIST = 'bulletList',
+  ORDERED_LIST = 'orderedList',
+  CODE = 'code',
+  HIGHLIGHT = 'highlight',
+  BOLD = 'bold',
+  ITALIC = 'italic',
+  STRIKE = 'strike',
+  UNDERLINE = 'underline',
+  LINK = 'link',
+  SUBSCRIPT = 'subscript',
+  SUPERSCRIPT = 'superscript',
+  ALIGN_LEFT = 'alignLeft',
+  ALIGN_CENTER = 'alignCenter',
+  ALIGN_RIGHT = 'alignRight',
+  ALIGN_JUSTIFY = 'alignJustify',
+  HORIZONTAL_RULE = 'horizontalRule',
+  IMAGE = 'image',
+}
+
+// Default toolbar options (current behavior)
+const DEFAULT_TOOLBAR_OPTIONS = Object.values(SEditorToolbarOption);
+
 const headingOptions = [
   { label: 'Título 1', short: 'H₁', level: 1 },
   { label: 'Título 2', short: 'H₂', level: 2 },
@@ -173,6 +197,25 @@ export interface SEditorProps {
   containerProps?: BoxProps;
   editorContainerProps?: BoxProps;
   error?: boolean;
+  /**
+   * Array of toolbar options to show in the editor toolbar.
+   * If not provided, all toolbar options will be shown (default behavior).
+   *
+   * @example
+   * // Show only bold formatting
+   * toolbarOptions={[SEditorToolbarOption.BOLD]}
+   *
+   * @example
+   * // Show basic formatting options
+   * toolbarOptions={[
+   *   SEditorToolbarOption.BOLD,
+   *   SEditorToolbarOption.ITALIC,
+   *   SEditorToolbarOption.UNDERLINE,
+   *   SEditorToolbarOption.UNDO,
+   *   SEditorToolbarOption.REDO,
+   * ]}
+   */
+  toolbarOptions?: SEditorToolbarOption[];
 }
 
 export function SEditor({
@@ -182,10 +225,16 @@ export function SEditor({
   containerProps,
   editorContainerProps,
   error = false,
+  toolbarOptions = DEFAULT_TOOLBAR_OPTIONS,
 }: SEditorProps) {
   const [isFocused, setIsFocused] = React.useState(false);
   const [showToolbar, setShowToolbar] = React.useState(false);
   const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Helper function to check if a toolbar option should be shown
+  const shouldShowOption = (option: SEditorToolbarOption) => {
+    return toolbarOptions.includes(option);
+  };
 
   const editor = useEditor({
     extensions: [
@@ -311,330 +360,383 @@ export function SEditor({
           onClick={handleToolbarClick}
         >
           {/* Undo/Redo */}
-          <Tooltip title="Desfazer">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().undo().run()}
-                style={buttonStyle(false)}
-                disabled={!editor.can().chain().focus().undo().run()}
-              >
-                <UndoIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Refazer">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().redo().run()}
-                style={buttonStyle(false)}
-                disabled={!editor.can().chain().focus().redo().run()}
-              >
-                <RedoIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          {/* Heading dropdown */}
-          <div>
-            <Button
-              variant="outlined"
-              color="secondary"
-              size="small"
-              onClick={handleHeadingMenuClick}
-              sx={{
-                minWidth: 30,
-                fontWeight: 700,
-                color: currentHeading ? '#7c3aed' : '#232326',
-                background: currentHeading
-                  ? 'rgba(124, 58, 237, 0.12)'
-                  : 'transparent',
-                border: 'none',
-                borderRadius: 2,
-                px: 2,
-                mx: 0.5,
-                '&:hover': { background: 'primary.light' },
-              }}
-            >
-              {headingOptions.find((option) => option.level === currentHeading)
-                ?.short || 'H₁'}
-            </Button>
-            <Menu
-              anchorEl={headingAnchorEl}
-              open={openHeadingMenu}
-              onClose={handleHeadingMenuClose}
-              slotProps={{
-                paper: {
-                  sx: {
-                    mt: 1.5,
-                    borderRadius: 2,
-                    boxShadow: '0px 8px 32px 0px rgba(80, 80, 120, 0.18)',
-                    p: 4,
-                    background: '#fff',
-                    border: 'none',
-                    overflow: 'visible',
-                  },
-                },
-              }}
-              MenuListProps={{
-                sx: {
-                  p: 0,
-                },
-              }}
-            >
-              {headingOptions.map((option) => (
-                <MenuItem
-                  key={option.level}
-                  selected={currentHeading === option.level}
-                  onClick={() => {
-                    handleHeadingMenuClose();
-                    editor
-                      .chain()
-                      .focus()
-                      .toggleHeading({ level: option.level as Level })
-                      .run();
-                  }}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    py: 4,
-                    px: 6,
-                    borderRadius: 1,
-                    fontWeight: currentHeading === option.level ? 700 : 400,
-                    color:
-                      currentHeading === option.level ? '#7c3aed' : '#232326',
-                    fontSize: 16,
-                    background:
-                      currentHeading === option.level
-                        ? 'rgba(124, 58, 237, 0.08)'
-                        : 'transparent',
-                    transition: 'background 0.2s',
-                    '&:hover': { background: 'rgba(124, 58, 237, 0.12)' },
-                    mb: 0.5,
-                  }}
+          {shouldShowOption(SEditorToolbarOption.UNDO) && (
+            <Tooltip title="Desfazer">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().undo().run()}
+                  style={buttonStyle(false)}
+                  disabled={!editor.can().chain().focus().undo().run()}
                 >
-                  <span style={{ fontWeight: 700, fontSize: 18, width: 28 }}>
-                    {option.short}
-                  </span>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Menu>
-          </div>
+                  <UndoIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.REDO) && (
+            <Tooltip title="Refazer">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().redo().run()}
+                  style={buttonStyle(false)}
+                  disabled={!editor.can().chain().focus().redo().run()}
+                >
+                  <RedoIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {/* Heading dropdown */}
+          {shouldShowOption(SEditorToolbarOption.HEADING) && (
+            <div>
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="small"
+                onClick={handleHeadingMenuClick}
+                sx={{
+                  minWidth: 30,
+                  fontWeight: 700,
+                  color: currentHeading ? '#7c3aed' : '#232326',
+                  background: currentHeading
+                    ? 'rgba(124, 58, 237, 0.12)'
+                    : 'transparent',
+                  border: 'none',
+                  borderRadius: 2,
+                  px: 2,
+                  mx: 0.5,
+                  '&:hover': { background: 'primary.light' },
+                }}
+              >
+                {headingOptions.find(
+                  (option) => option.level === currentHeading,
+                )?.short || 'H₁'}
+              </Button>
+              <Menu
+                anchorEl={headingAnchorEl}
+                open={openHeadingMenu}
+                onClose={handleHeadingMenuClose}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      mt: 1.5,
+                      borderRadius: 2,
+                      boxShadow: '0px 8px 32px 0px rgba(80, 80, 120, 0.18)',
+                      p: 4,
+                      background: '#fff',
+                      border: 'none',
+                      overflow: 'visible',
+                    },
+                  },
+                }}
+                MenuListProps={{
+                  sx: {
+                    p: 0,
+                  },
+                }}
+              >
+                {headingOptions.map((option) => (
+                  <MenuItem
+                    key={option.level}
+                    selected={currentHeading === option.level}
+                    onClick={() => {
+                      handleHeadingMenuClose();
+                      editor
+                        .chain()
+                        .focus()
+                        .toggleHeading({ level: option.level as Level })
+                        .run();
+                    }}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      py: 4,
+                      px: 6,
+                      borderRadius: 1,
+                      fontWeight: currentHeading === option.level ? 700 : 400,
+                      color:
+                        currentHeading === option.level ? '#7c3aed' : '#232326',
+                      fontSize: 16,
+                      background:
+                        currentHeading === option.level
+                          ? 'rgba(124, 58, 237, 0.08)'
+                          : 'transparent',
+                      transition: 'background 0.2s',
+                      '&:hover': { background: 'rgba(124, 58, 237, 0.12)' },
+                      mb: 0.5,
+                    }}
+                  >
+                    <span style={{ fontWeight: 700, fontSize: 18, width: 28 }}>
+                      {option.short}
+                    </span>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Menu>
+            </div>
+          )}
           {/* Lists and code */}
-          <Tooltip title="Lista com marcadores">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                style={buttonStyle(editor.isActive('bulletList'))}
-                disabled={
-                  !editor.can().chain().focus().toggleBulletList().run()
-                }
-              >
-                <FormatListBulletedIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Lista numerada">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                style={buttonStyle(editor.isActive('orderedList'))}
-                disabled={
-                  !editor.can().chain().focus().toggleOrderedList().run()
-                }
-              >
-                <FormatListNumberedIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Código">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleCode().run()}
-                style={buttonStyle(editor.isActive('code'))}
-                disabled={!editor.can().chain().focus().toggleCode().run()}
-              >
-                <CodeIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {shouldShowOption(SEditorToolbarOption.BULLET_LIST) && (
+            <Tooltip title="Lista com marcadores">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    editor.chain().focus().toggleBulletList().run()
+                  }
+                  style={buttonStyle(editor.isActive('bulletList'))}
+                  disabled={
+                    !editor.can().chain().focus().toggleBulletList().run()
+                  }
+                >
+                  <FormatListBulletedIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.ORDERED_LIST) && (
+            <Tooltip title="Lista numerada">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    editor.chain().focus().toggleOrderedList().run()
+                  }
+                  style={buttonStyle(editor.isActive('orderedList'))}
+                  disabled={
+                    !editor.can().chain().focus().toggleOrderedList().run()
+                  }
+                >
+                  <FormatListNumberedIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.CODE) && (
+            <Tooltip title="Código">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().toggleCode().run()}
+                  style={buttonStyle(editor.isActive('code'))}
+                  disabled={!editor.can().chain().focus().toggleCode().run()}
+                >
+                  <CodeIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {/* Highlight */}
-          <Tooltip title="Destacar texto">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleHighlight().run()}
-                style={buttonStyle(editor.isActive('highlight'))}
-                disabled={!editor.can().chain().focus().toggleHighlight().run()}
-              >
-                <HighlightIcon
-                  style={{
-                    color: editor.isActive('highlight') ? '#f27329' : undefined,
-                  }}
-                />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {shouldShowOption(SEditorToolbarOption.HIGHLIGHT) && (
+            <Tooltip title="Destacar texto">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().toggleHighlight().run()}
+                  style={buttonStyle(editor.isActive('highlight'))}
+                  disabled={
+                    !editor.can().chain().focus().toggleHighlight().run()
+                  }
+                >
+                  <HighlightIcon
+                    style={{
+                      color: editor.isActive('highlight')
+                        ? '#f27329'
+                        : undefined,
+                    }}
+                  />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {/* Formatting */}
-          <Tooltip title="Negrito">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                style={buttonStyle(editor.isActive('bold'))}
-                disabled={!editor.can().chain().focus().toggleBold().run()}
-              >
-                <FormatBoldIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Itálico">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                style={buttonStyle(editor.isActive('italic'))}
-                disabled={!editor.can().chain().focus().toggleItalic().run()}
-              >
-                <FormatItalicIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Riscado">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleStrike().run()}
-                style={buttonStyle(editor.isActive('strike'))}
-                disabled={!editor.can().chain().focus().toggleStrike().run()}
-              >
-                <FormatStrikethroughIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Sublinhado">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-                style={buttonStyle(editor.isActive('underline'))}
-              >
-                <FormatUnderlinedIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {shouldShowOption(SEditorToolbarOption.BOLD) && (
+            <Tooltip title="Negrito">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().toggleBold().run()}
+                  style={buttonStyle(editor.isActive('bold'))}
+                  disabled={!editor.can().chain().focus().toggleBold().run()}
+                >
+                  <FormatBoldIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.ITALIC) && (
+            <Tooltip title="Itálico">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().toggleItalic().run()}
+                  style={buttonStyle(editor.isActive('italic'))}
+                  disabled={!editor.can().chain().focus().toggleItalic().run()}
+                >
+                  <FormatItalicIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.STRIKE) && (
+            <Tooltip title="Riscado">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().toggleStrike().run()}
+                  style={buttonStyle(editor.isActive('strike'))}
+                  disabled={!editor.can().chain().focus().toggleStrike().run()}
+                >
+                  <FormatStrikethroughIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.UNDERLINE) && (
+            <Tooltip title="Sublinhado">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().toggleUnderline().run()}
+                  style={buttonStyle(editor.isActive('underline'))}
+                >
+                  <FormatUnderlinedIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {/* Link */}
-          <Tooltip title="Link">
-            <span>
-              <IconButton
-                size="small"
-                onClick={setLink}
-                style={buttonStyle(editor.isActive('link'))}
-              >
-                <LinkIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {shouldShowOption(SEditorToolbarOption.LINK) && (
+            <Tooltip title="Link">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={setLink}
+                  style={buttonStyle(editor.isActive('link'))}
+                >
+                  <LinkIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {/* Subscript/Superscript */}
-          <Tooltip title="Subscrito">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleSubscript().run()}
-                style={buttonStyle(editor.isActive('subscript'))}
-              >
-                <SubscriptIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Sobrescrito">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().toggleSuperscript().run()}
-                style={buttonStyle(editor.isActive('superscript'))}
-              >
-                <SuperscriptIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {shouldShowOption(SEditorToolbarOption.SUBSCRIPT) && (
+            <Tooltip title="Subscrito">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() => editor.chain().focus().toggleSubscript().run()}
+                  style={buttonStyle(editor.isActive('subscript'))}
+                >
+                  <SubscriptIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.SUPERSCRIPT) && (
+            <Tooltip title="Sobrescrito">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    editor.chain().focus().toggleSuperscript().run()
+                  }
+                  style={buttonStyle(editor.isActive('superscript'))}
+                >
+                  <SuperscriptIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {/* Text align */}
-          <Tooltip title="Alinhar à esquerda">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() =>
-                  editor.chain().focus().setTextAlign('left').run()
-                }
-                style={buttonStyle(editor.isActive({ textAlign: 'left' }))}
-              >
-                <FormatAlignLeftIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Centralizar">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() =>
-                  editor.chain().focus().setTextAlign('center').run()
-                }
-                style={buttonStyle(editor.isActive({ textAlign: 'center' }))}
-              >
-                <FormatAlignCenterIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Alinhar à direita">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() =>
-                  editor.chain().focus().setTextAlign('right').run()
-                }
-                style={buttonStyle(editor.isActive({ textAlign: 'right' }))}
-              >
-                <FormatAlignRightIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-          <Tooltip title="Justificar">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() =>
-                  editor.chain().focus().setTextAlign('justify').run()
-                }
-                style={buttonStyle(editor.isActive({ textAlign: 'justify' }))}
-              >
-                <FormatAlignJustifyIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {shouldShowOption(SEditorToolbarOption.ALIGN_LEFT) && (
+            <Tooltip title="Alinhar à esquerda">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    editor.chain().focus().setTextAlign('left').run()
+                  }
+                  style={buttonStyle(editor.isActive({ textAlign: 'left' }))}
+                >
+                  <FormatAlignLeftIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.ALIGN_CENTER) && (
+            <Tooltip title="Centralizar">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    editor.chain().focus().setTextAlign('center').run()
+                  }
+                  style={buttonStyle(editor.isActive({ textAlign: 'center' }))}
+                >
+                  <FormatAlignCenterIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.ALIGN_RIGHT) && (
+            <Tooltip title="Alinhar à direita">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    editor.chain().focus().setTextAlign('right').run()
+                  }
+                  style={buttonStyle(editor.isActive({ textAlign: 'right' }))}
+                >
+                  <FormatAlignRightIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
+          {shouldShowOption(SEditorToolbarOption.ALIGN_JUSTIFY) && (
+            <Tooltip title="Justificar">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    editor.chain().focus().setTextAlign('justify').run()
+                  }
+                  style={buttonStyle(editor.isActive({ textAlign: 'justify' }))}
+                >
+                  <FormatAlignJustifyIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {/* Horizontal rule */}
-          <Tooltip title="Linha horizontal">
-            <span>
-              <IconButton
-                size="small"
-                onClick={() => editor.chain().focus().setHorizontalRule().run()}
-              >
-                <HorizontalRuleIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {shouldShowOption(SEditorToolbarOption.HORIZONTAL_RULE) && (
+            <Tooltip title="Linha horizontal">
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    editor.chain().focus().setHorizontalRule().run()
+                  }
+                >
+                  <HorizontalRuleIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
           {/* Image */}
-          <Tooltip title="Adicionar imagem">
-            <span>
-              <IconButton size="small" onClick={addImage}>
-                <ImageIcon fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
+          {shouldShowOption(SEditorToolbarOption.IMAGE) && (
+            <Tooltip title="Adicionar imagem">
+              <span>
+                <IconButton size="small" onClick={addImage}>
+                  <ImageIcon fontSize="small" />
+                </IconButton>
+              </span>
+            </Tooltip>
+          )}
         </Stack>
       )}
       <Box

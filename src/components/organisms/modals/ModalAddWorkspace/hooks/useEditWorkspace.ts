@@ -9,7 +9,7 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
-import { IWorkspace } from 'core/interfaces/api/ICompany';
+import { ICnae, IWorkspace } from 'core/interfaces/api/ICompany';
 import { useMutationCEP } from 'core/services/hooks/mutations/general/useMutationCep';
 import { useMutationCNPJ } from 'core/services/hooks/mutations/general/useMutationCnpj';
 import { GetCNPJResponse } from 'core/services/hooks/mutations/general/useMutationCnpj/types';
@@ -32,8 +32,13 @@ export const initialWorkspaceState = {
   complement: '',
   state: '',
   isFromOtherCnpj: false,
+  useCustomSection: false,
   cnpj: '',
-  companyJson: {} as GetCNPJResponse,
+  companyJson: {} as GetCNPJResponse & {
+    customSectionHTML?: string;
+    isFromOtherCnpj?: boolean;
+    useCustomSection?: boolean;
+  },
 };
 
 interface ISubmit {
@@ -46,6 +51,8 @@ interface ISubmit {
   cep: string;
   complement: string;
   state: string;
+  customSectionHTML?: string;
+  primaryCnae?: ICnae;
 }
 
 export const useEditWorkspace = () => {
@@ -82,6 +89,12 @@ export const useEditWorkspace = () => {
         const newData = {
           ...oldData,
           ...initialData,
+          cnpj: initialData?.companyJson?.cnpj,
+          // Set useCustomSection based on existing customSectionHTML data
+          useCustomSection: !!(initialData as any).companyJson
+            ?.customSectionHTML,
+          isFromOtherCnpj: !!(initialData as any).companyJson?.isFromOtherCnpj,
+          primaryCnae: (initialData as any).companyJson?.useCustomSection,
         };
 
         initialDataRef.current = newData;
@@ -170,11 +183,25 @@ export const useEditWorkspace = () => {
   };
 
   const onSubmit: SubmitHandler<ISubmit> = async (data) => {
+    // Combine description with additional info if provided
+    const finalDescription = data.description;
+
+    // Update companyJson with form data
+    const updatedCompanyJson = {
+      ...companyData.companyJson,
+      isFromOtherCnpj: companyData.isFromOtherCnpj,
+      useCustomSection: companyData.useCustomSection,
+      ...(data.customSectionHTML !== undefined && {
+        customSectionHTML: data.customSectionHTML,
+      }),
+      primaryActivity: data.primaryCnae,
+    };
+
     const workspace: Partial<IWorkspace> = {
       name: data.name,
-      description: data.description,
+      description: finalDescription,
       status: companyData.status,
-      companyJson: companyData.companyJson || undefined,
+      companyJson: updatedCompanyJson || undefined,
       isOwner: !companyData.isFromOtherCnpj,
       cnpj: companyData.cnpj,
       address: {
