@@ -218,6 +218,18 @@ export const useHierarchyTreeActions = () => {
           treeMap[firstNodeId].childrenIds.push(workspace.id);
         });
 
+        // Sort workspaces alphabetically
+        treeMap[firstNodeId].childrenIds = sortArray(
+          treeMap[firstNodeId].childrenIds,
+          {
+            by: 'name',
+            order: 'asc',
+            computed: {
+              name: (workspaceId) => treeMap[workspaceId]?.label || '',
+            },
+          },
+        );
+
         Object.values(hierarchyMap).forEach((values, index) => {
           values.workspaceIds.map((workspaceId) => {
             const hierarchyCopy = getHierarchyCopyFrom(values);
@@ -624,8 +636,8 @@ export const useHierarchyTreeActions = () => {
     const normalizedSearch = stringNormalize(search);
     const matchesIds: string[] = [];
     Object.entries(nodes).forEach(([nodeId, node]) => {
-      if ([TreeTypeEnum.COMPANY, TreeTypeEnum.WORKSPACE].includes(node.type))
-        return;
+      // Exclude only COMPANY from filtering, include WORKSPACE
+      if (node.type === TreeTypeEnum.COMPANY) return;
 
       if (!nodes[nodeId]) return;
       if (!search) {
