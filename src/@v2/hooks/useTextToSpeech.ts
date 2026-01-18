@@ -21,7 +21,7 @@ interface UseTextToSpeechReturn {
  * Useful for accessibility, especially for users who cannot read
  */
 export const useTextToSpeech = (
-  options: UseTextToSpeechOptions = {}
+  options: UseTextToSpeechOptions = {},
 ): UseTextToSpeechReturn => {
   const { lang = 'pt-BR', rate = 0.9, pitch = 1, volume = 1 } = options;
 
@@ -78,7 +78,7 @@ export const useTextToSpeech = (
     // Try to find a Portuguese voice
     const voices = window.speechSynthesis.getVoices();
     const portugueseVoice = voices.find(
-      (voice) => voice.lang.startsWith('pt') && voice.localService
+      (voice) => voice.lang.startsWith('pt') && voice.localService,
     );
     if (portugueseVoice) {
       utterance.voice = portugueseVoice;
@@ -124,4 +124,3 @@ export const useTextToSpeech = (
     originalText,
   };
 };
-
