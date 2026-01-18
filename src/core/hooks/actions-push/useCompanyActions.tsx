@@ -95,6 +95,7 @@ export const useCompanyActions = () => {
       state: company?.address?.state,
       street: company?.address?.street,
       neighborhood: company?.address?.neighborhood,
+      logoUrl: company?.logoUrl,
     };
 
     await history.push({

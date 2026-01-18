@@ -116,6 +116,7 @@ export interface IWorkspace {
   company?: ICompany;
   cnpj?: string;
   companyJson?: GetCNPJResponse;
+  logoUrl?: string;
 }
 
 export interface IAddress {

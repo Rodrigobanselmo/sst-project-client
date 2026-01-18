@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box } from '@mui/material';
+import { Box, styled } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
@@ -20,6 +20,24 @@ import {
   SEditorToolbarOption,
 } from '@v2/components/forms/fields/SEditor/SEditor';
 
+const StyledImage = styled('img')`
+  height: 150px;
+  max-width: 300px;
+  border: 2px solid ${({ theme }) => theme.palette.grey[300]};
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 8px;
+  border-radius: 8px;
+  object-fit: contain;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 0.8;
+  }
+  &:active {
+    opacity: 0.5;
+  }
+`;
+
 export const ModalWorkspaceStep = ({
   companyData,
   control,
@@ -29,6 +47,7 @@ export const ModalWorkspaceStep = ({
   loadingCnpj,
   loadingCep,
   setValue,
+  handleAddPhoto,
 }: IUseEditWorkspace) => {
   const [primaryCnae, setPrimaryCnae] = React.useState<ICnae | null>(null);
 
@@ -37,6 +56,18 @@ export const ModalWorkspaceStep = ({
       <SText color="text.label" fontSize={14}>
         Dados
       </SText>
+      {companyData.id && (
+        <>
+          <SText color="text.label" fontSize={14} mb={-2}>
+            Logo do estabelecimento
+          </SText>
+          <StyledImage
+            alt={companyData.name}
+            src={companyData.logoUrl || '/images/placeholder-image.png'}
+            onClick={handleAddPhoto}
+          />
+        </>
+      )}
       <InputForm
         autoFocus
         defaultValue={companyData.name}

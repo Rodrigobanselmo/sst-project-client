@@ -56,6 +56,7 @@ export const WorkspaceTable: FC<
       id: row?.id,
       status: row?.status,
       companyJson: row?.companyJson,
+      logoUrl: row?.logoUrl,
     };
 
     onOpenModal(ModalEnum.WORKSPACE_ADD, data);

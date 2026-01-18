@@ -18,12 +18,15 @@ import {
   useMutUpdateCompany,
 } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
 import { workspaceSchema } from 'core/utils/schemas/workspace.schema';
+import { useMutAddWorkspacePhoto } from 'core/services/hooks/mutations/manager/company/useMutAddWorkspacePhoto';
+import { initialPhotoState } from 'components/organisms/modals/ModalUploadPhoto';
 
 export const initialWorkspaceState = {
   id: '',
   status: StatusEnum.ACTIVE,
   name: '',
   description: '',
+  logoUrl: '',
   neighborhood: '',
   number: '',
   city: '',
@@ -57,7 +60,7 @@ interface ISubmit {
 
 export const useEditWorkspace = () => {
   const { registerModal, getModalData } = useRegisterModal();
-  const { onCloseModal } = useModal();
+  const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialWorkspaceState);
   const cnpjMutation = useMutationCNPJ();
 
@@ -67,6 +70,7 @@ export const useEditWorkspace = () => {
 
   const updateMutation = useMutUpdateCompany();
   const cepMutation = useMutationCEP();
+  const addPhotoMutation = useMutAddWorkspacePhoto();
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -204,6 +208,7 @@ export const useEditWorkspace = () => {
       companyJson: updatedCompanyJson || undefined,
       isOwner: !companyData.isFromOtherCnpj,
       cnpj: companyData.cnpj,
+      logoUrl: companyData.logoUrl,
       address: {
         neighborhood: data.neighborhood,
         number: data.number,
@@ -227,6 +232,39 @@ export const useEditWorkspace = () => {
     onClose();
   };
 
+  const handleAddPhoto = () => {
+    onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
+      name: 'Logo do estabelecimento',
+      freeAspect: true,
+      imageExtension: 'png',
+      accept: ['image/*', '.heic'],
+      onConfirm: async (photo) => {
+        const addLocalPhoto = (src: string) => {
+          setCompanyData((oldData) => ({
+            ...oldData,
+            logoUrl: src,
+          }));
+        };
+
+        if (photo.file && companyData.id) {
+          const company = await addPhotoMutation
+            .mutateAsync({
+              file: photo.file,
+              workspaceId: companyData.id,
+            })
+            .catch(() => {});
+
+          if (company?.workspace) {
+            const workspace = company.workspace.find(
+              (w) => w.id === companyData.id,
+            );
+            if (workspace?.logoUrl) addLocalPhoto(workspace.logoUrl);
+          }
+        }
+      },
+    } as Partial<typeof initialPhotoState>);
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
@@ -242,6 +280,7 @@ export const useEditWorkspace = () => {
     setCompanyData,
     onChangeCep,
     onChangeCnpj,
+    handleAddPhoto,
   };
 };
 
