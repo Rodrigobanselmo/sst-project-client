@@ -117,12 +117,14 @@ export const FormAnswerFieldControlled: React.FC<FormAnswerFieldControlledProps>
             options={question.options}
             getOptionLabel={(option) => option.text}
             getOptionValue={(option) => option.id}
+            enableSpeak
           />,
     [FormQuestionTypeEnum.CHECKBOX]: <SRadioCheckboxForm
             name={name}
             options={question.options}
             getOptionLabel={(option) => option.text}
             getOptionValue={(option) => option.value?.toString() || option.text}
+            enableSpeak
           />,
     [FormQuestionTypeEnum.TEXT]: <SInputForm
             name={name}

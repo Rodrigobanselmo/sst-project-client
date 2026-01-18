@@ -2,16 +2,21 @@ import { Box, Typography } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { SSpeakButton } from '@v2/components/atoms/SSpeakButton/SSpeakButton';
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
 import { FormQuestionReadModel } from '@v2/models/form/models/shared/form-question-read.model';
 import { FormAnswerFieldControlled } from '@v2/pages/companies/forms/pages/application/pages/public/answer/components/FormAnswerField/FormAnswerFieldControlled';
 import { useMutateSubmitFormAnswer } from '@v2/services/forms/form-answer/submit-form-answer/hooks/useMutateSubmitFormAnswer';
 import { useFetchPublicFormApplication } from '@v2/services/forms/form-application/public-form-application/hooks/useFetchPublicFormApplication';
-import { STBoxLoading, STLoadLogoSimpleIcon } from 'layouts/default/loading/styles';
+import {
+  STBoxLoading,
+  STLoadLogoSimpleIcon,
+} from 'layouts/default/loading/styles';
 import { useRouter } from 'next/router';
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useActiveTimeTracker } from '@v2/hooks/useActiveTimeTracker';
+import { useTextToSpeech } from '@v2/hooks/useTextToSpeech';
 import { FormAccessDenied } from './components/FormAccessDenied/FormAccessDenied';
 import { HtmlContentRenderer } from './components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { FormQuestionOptionReadModel } from '@v2/models/form/models/shared/form-question-option-read.model';
@@ -21,17 +26,30 @@ import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-ty
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 
 interface FormAnswers {
-  [questionId: string]: FormQuestionOptionReadModel | string | { id: string; text?: string; value?: string };
+  [questionId: string]:
+    | FormQuestionOptionReadModel
+    | string
+    | { id: string; text?: string; value?: string };
 }
 
-const VALIDATE_STRING_REQUIRED_FIELDS = [FormQuestionTypeEnum.SHORT_TEXT, FormQuestionTypeEnum.LONG_TEXT];
+const VALIDATE_STRING_REQUIRED_FIELDS = [
+  FormQuestionTypeEnum.SHORT_TEXT,
+  FormQuestionTypeEnum.LONG_TEXT,
+];
 const VALIDATE_SYSTEM_REQUIRED_FIELDS = [FormIdentifierTypeEnum.SECTOR];
 
 // Helper function to transform sector hierarchies (same as in FormAnswerFieldControlled)
-const transformSectorHierarchies = (hierarchies: { id: string; name: string; type: HierarchyTypeEnum; parentId: string }[]) => {
+const transformSectorHierarchies = (
+  hierarchies: {
+    id: string;
+    name: string;
+    type: HierarchyTypeEnum;
+    parentId: string;
+  }[],
+) => {
   // Create a map of hierarchies by ID for quick lookup
   const hierarchyMap = new Map(
-    hierarchies.map(hierarchy => [hierarchy.id, hierarchy])
+    hierarchies.map((hierarchy) => [hierarchy.id, hierarchy]),
   );
 
   // Function to build hierarchy chain by following parentId
@@ -54,24 +72,29 @@ const transformSectorHierarchies = (hierarchies: { id: string; name: string; typ
 
   // Filter hierarchies to only include SECTOR type and transform them
   return hierarchies
-    .filter(hierarchy => hierarchy.type === HierarchyTypeEnum.SECTOR)
-    .map(hierarchy => {
+    .filter((hierarchy) => hierarchy.type === HierarchyTypeEnum.SECTOR)
+    .map((hierarchy) => {
       const hierarchyChain = buildHierarchyChain(hierarchy.id);
       const concatenatedName = hierarchyChain.join(' > ');
 
       return {
         id: hierarchy.id,
         text: concatenatedName,
-        value: hierarchy.id
+        value: hierarchy.id,
       };
     })
     .sort((a, b) => a.text.localeCompare(b.text));
 };
 
 // Local storage key for saving form state
-const getStorageKey = (applicationId: string) => `form_answers_${applicationId}`;
+const getStorageKey = (applicationId: string) =>
+  `form_answers_${applicationId}`;
 
-export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean }) => {
+export const PublicFormAnswerPage = ({
+  testingOnly,
+}: {
+  testingOnly?: boolean;
+}) => {
   const router = useRouter();
   const applicationId = router.query.id as string;
   const [currentStep, setCurrentStep] = useState(0);
@@ -85,12 +108,20 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     autoStart: true,
   });
 
-  const { publicFormApplication, options, isPublic, isTesting, hierarchyId, isLoading, hasAlreadyAnswered } = useFetchPublicFormApplication({
+  const {
+    publicFormApplication,
+    options,
+    isPublic,
+    isTesting,
+    hierarchyId,
+    isLoading,
+    hasAlreadyAnswered,
+  } = useFetchPublicFormApplication({
     applicationId: applicationId,
-    encrypt: router.query?.encrypt  as string,
+    encrypt: router.query?.encrypt as string,
   });
 
-  const getCanAccess =   () => {
+  const getCanAccess = () => {
     if (testingOnly) {
       return isTesting;
     }
@@ -98,6 +129,9 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   };
 
   const submitMutation = useMutateSubmitFormAnswer();
+
+  // Text-to-Speech for accessibility - helps users who cannot read
+  const { speak } = useTextToSpeech();
 
   const form = useForm<FormAnswers>({
     defaultValues: {},
@@ -115,7 +149,10 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     };
 
     try {
-      localStorage.setItem(getStorageKey(applicationId), JSON.stringify(formState));
+      localStorage.setItem(
+        getStorageKey(applicationId),
+        JSON.stringify(formState),
+      );
       setLastSavedTime(new Date());
     } catch (error) {
       console.warn('Failed to save form state to localStorage:', error);
@@ -132,7 +169,8 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         const parsedState = JSON.parse(savedState);
 
         // Check if saved state is not too old (24 hours)
-        const isStateValid = Date.now() - parsedState.timestamp < 24 * 60 * 60 * 1000;
+        const isStateValid =
+          Date.now() - parsedState.timestamp < 24 * 60 * 60 * 1000;
 
         if (isStateValid && parsedState.answers) {
           // Restore form values
@@ -193,15 +231,22 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     if (hierarchyId && publicFormApplication?.groups && options?.hierarchies) {
       // Find the first question with SECTOR identifier type across all groups
       const firstSectorQuestion = publicFormApplication.groups
-        .flatMap(group => group.questions)
-        .find(question => question.details.identifierType === FormIdentifierTypeEnum.SECTOR);
+        .flatMap((group) => group.questions)
+        .find(
+          (question) =>
+            question.details.identifierType === FormIdentifierTypeEnum.SECTOR,
+        );
 
       if (firstSectorQuestion) {
         // Transform hierarchies to get the options in the same format as FormAnswerFieldControlledSector
-        const transformedHierarchies = transformSectorHierarchies(options.hierarchies);
+        const transformedHierarchies = transformSectorHierarchies(
+          options.hierarchies,
+        );
 
         // Find the matching hierarchy option
-        const matchingOption = transformedHierarchies.find(option => option.id === hierarchyId);
+        const matchingOption = transformedHierarchies.find(
+          (option) => option.id === hierarchyId,
+        );
         if (matchingOption) {
           // Only set the value if it's not already set (to avoid overriding user changes)
           const currentValue = form.getValues(firstSectorQuestion.id);
@@ -213,7 +258,6 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
     }
   }, [hierarchyId, publicFormApplication, options, form]);
 
-
   const totalSteps = publicFormApplication?.groups?.length || 0;
   const currentGroup = publicFormApplication?.groups?.[currentStep];
   const canAccess = getCanAccess();
@@ -221,11 +265,13 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const scrollToFirstError = useCallback(() => {
     // Get the first error field
     const errors = form.formState.errors;
-    const firstErrorField = Object.keys(errors).find(key => key !== 'root');
+    const firstErrorField = Object.keys(errors).find((key) => key !== 'root');
 
     if (firstErrorField) {
       // Find the element with the error field ID
-      const errorElement = document.getElementById(`question-${firstErrorField}`);
+      const errorElement = document.getElementById(
+        `question-${firstErrorField}`,
+      );
       if (errorElement && scrollContainerRef.current) {
         // Calculate the position to scroll to (with some offset for better visibility)
         const elementTop = errorElement.offsetTop;
@@ -235,7 +281,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         // Multiple approaches for Safari compatibility
         scrollContainerRef.current.scrollTo({
           top: scrollTop,
-          behavior: 'smooth'
+          behavior: 'smooth',
         });
 
         // Fallback for Safari with requestAnimationFrame
@@ -243,7 +289,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
           if (scrollContainerRef.current) {
             scrollContainerRef.current.scrollTo({
               top: scrollTop,
-              behavior: 'smooth'
+              behavior: 'smooth',
             });
           }
         });
@@ -271,7 +317,12 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
   const handleNext = () => {
     if (currentStep < totalSteps - 1) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+
+      // Voice feedback for accessibility
+      const nextGroupName = publicFormApplication?.groups?.[nextStep]?.name;
+      speak(`Próxima seção: ${nextGroupName || `Passo ${nextStep + 1}`}`);
 
       // Use setTimeout to ensure the DOM has updated before scrolling
       setTimeout(() => {
@@ -283,7 +334,12 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   const handlePrevious = () => {
     if (currentStep > 0) {
       form.clearErrors();
-      setCurrentStep(currentStep - 1);
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+
+      // Voice feedback for accessibility
+      const prevGroupName = publicFormApplication?.groups?.[prevStep]?.name;
+      speak(`Seção anterior: ${prevGroupName || `Passo ${prevStep + 1}`}`);
     }
   };
 
@@ -299,21 +355,23 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
     const missingRequiredFields: string[] = [];
 
-    const allQuestions = publicFormApplication?.groups
-          ?.flatMap(group => group.questions) || [];
+    const allQuestions =
+      publicFormApplication?.groups?.flatMap((group) => group.questions) || [];
 
     requiredQuestions.forEach((question) => {
       const fieldValue = data[question.id];
       let isError = false;
 
-
       if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
-        isError = !fieldValue || (typeof fieldValue === 'string' && fieldValue.trim() === '');
+        isError =
+          !fieldValue ||
+          (typeof fieldValue === 'string' && fieldValue.trim() === '');
       } else {
         if (Array.isArray(fieldValue)) {
           isError = fieldValue.length === 0;
         } else {
-          isError = !fieldValue || (typeof fieldValue === 'object' && !fieldValue.id);
+          isError =
+            !fieldValue || (typeof fieldValue === 'object' && !fieldValue.id);
         }
       }
 
@@ -330,6 +388,11 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         message: `Campos obrigatórios não preenchidos: ${missingRequiredFields.join(', ')}`,
       });
 
+      // Voice feedback for accessibility - announce errors
+      speak(
+        `Atenção: ${missingRequiredFields.length} campos obrigatórios não foram preenchidos. Por favor, responda as perguntas marcadas com asterisco.`,
+      );
+
       // Scroll to the first error field after a short delay to ensure errors are set
       setTimeout(() => {
         scrollToFirstError();
@@ -340,35 +403,44 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
     // If this is the last step, submit the form
     if (currentStep === totalSteps - 1) {
-      const answersArray = Object.entries(data).map<FormAnswerData>(([questionId, value]) => {
-        const question = allQuestions?.find(q => q.id === questionId);
+      const answersArray = Object.entries(data).map<FormAnswerData>(
+        ([questionId, value]) => {
+          const question = allQuestions?.find((q) => q.id === questionId);
 
-        if (!question?.details.type) {
-          return { questionId, value: undefined };
-        }
-        if (VALIDATE_SYSTEM_REQUIRED_FIELDS.includes(question.details.identifierType)) {
-          return {
-            questionId,
-            value: (typeof value === 'object' && value?.id) ? value.id : undefined,
-          };
-        } else if (VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)) {
-          return {
-            questionId,
-            value: typeof value === 'string' ? value : undefined,
-          };
-        } else if (Array.isArray(value) && value.length > 0 && value[0]?.id) {
-          return {
-            questionId,
-            optionIds: value.map((v: any) => v.id),
-          };
-        }
-        else {
-          return {
-            questionId,
-            optionIds: (typeof value === 'object' && value?.id) ? [value.id] : undefined,
-          };
-        }
-      });
+          if (!question?.details.type) {
+            return { questionId, value: undefined };
+          }
+          if (
+            VALIDATE_SYSTEM_REQUIRED_FIELDS.includes(
+              question.details.identifierType,
+            )
+          ) {
+            return {
+              questionId,
+              value:
+                typeof value === 'object' && value?.id ? value.id : undefined,
+            };
+          } else if (
+            VALIDATE_STRING_REQUIRED_FIELDS.includes(question.details.type)
+          ) {
+            return {
+              questionId,
+              value: typeof value === 'string' ? value : undefined,
+            };
+          } else if (Array.isArray(value) && value.length > 0 && value[0]?.id) {
+            return {
+              questionId,
+              optionIds: value.map((v: any) => v.id),
+            };
+          } else {
+            return {
+              questionId,
+              optionIds:
+                typeof value === 'object' && value?.id ? [value.id] : undefined,
+            };
+          }
+        },
+      );
 
       try {
         // Stop time tracking and get final time
@@ -379,11 +451,16 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
           applicationId: applicationId as string,
           answers: answersArray,
           timeSpent: totalTimeSpent,
-          encryptedEmployeeId: router.query?.encrypt  as string,
+          encryptedEmployeeId: router.query?.encrypt as string,
         });
 
         // Clear saved form state after successful submission
         clearFormState();
+
+        // Voice feedback for accessibility - announce success
+        speak(
+          'Obrigado! Seu formulário foi enviado com sucesso. Você pode fechar esta página.',
+        );
 
         // Show thank you page
         setIsFormSubmitted(true);
@@ -393,6 +470,9 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         form.setError('root', {
           message: 'Erro ao enviar formulário. Tente novamente.',
         });
+
+        // Voice feedback for accessibility - announce error
+        speak('Erro ao enviar formulário. Por favor, tente novamente.');
 
         // Scroll to top to show the error message
         scrollToTop();
@@ -405,7 +485,15 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
   if (isLoading) {
     return (
-      <Box sx={{ height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <Box
+        sx={{
+          height: '100vh',
+          width: '100vw',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
         <STBoxLoading>
           <STLoadLogoSimpleIcon />
         </STBoxLoading>
@@ -415,7 +503,9 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
 
   if (hasAlreadyAnswered) {
     return (
-      <Box sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
+      <Box
+        sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}
+      >
         <Box style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
           <Box
             sx={{
@@ -457,7 +547,8 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
                   lineHeight: 1.6,
                 }}
               >
-                Você já respondeu a este formulário anteriormente. Não é possível enviar uma nova resposta.
+                Você já respondeu a este formulário anteriormente. Não é
+                possível enviar uma nova resposta.
               </SText>
               <SText
                 fontSize={14}
@@ -466,7 +557,8 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
                   fontStyle: 'italic',
                 }}
               >
-                Se você acredita que isso é um erro, entre em contato com o administrador.
+                Se você acredita que isso é um erro, entre em contato com o
+                administrador.
               </SText>
             </Box>
           </Box>
@@ -490,7 +582,9 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
   // Show thank you page after successful submission
   if (isFormSubmitted) {
     return (
-      <Box sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}>
+      <Box
+        sx={{ backgroundColor: 'gray.100', height: '100vh', overflow: 'auto' }}
+      >
         <Box style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
           <Box
             sx={{
@@ -532,7 +626,8 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
                   lineHeight: 1.6,
                 }}
               >
-                Seu formulário foi enviado com sucesso. Agradecemos por dedicar seu tempo para responder às nossas perguntas.
+                Seu formulário foi enviado com sucesso. Agradecemos por dedicar
+                seu tempo para responder às nossas perguntas.
               </SText>
               <SText
                 fontSize={14}
@@ -555,7 +650,6 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
       ? currentGroup?.name || publicFormApplication.name
       : publicFormApplication.name;
 
-
   return (
     <Box
       ref={scrollContainerRef}
@@ -566,7 +660,7 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
         // Safari-specific scroll improvements
         WebkitOverflowScrolling: 'touch',
         scrollBehavior: 'smooth',
-        position: 'relative'
+        position: 'relative',
       }}
     >
       <Box style={{ maxWidth: '800px', margin: '0 auto', padding: '20px' }}>
@@ -625,7 +719,11 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
               const fieldError = form.formState.errors[question.id];
 
               // Hide the entire question box if it's a SECTOR field with hierarchyId from backend
-              if (question.details.identifierType === FormIdentifierTypeEnum.SECTOR && hierarchyId) {
+              if (
+                question.details.identifierType ===
+                  FormIdentifierTypeEnum.SECTOR &&
+                hierarchyId
+              ) {
                 return null;
               }
 
@@ -642,16 +740,29 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
                     borderColor: fieldError ? 'error.main' : 'transparent',
                   }}
                 >
-                      {question.required && (
+                  {question.required && (
                     <SText
                       color="error.main"
                       fontSize={18}
-                      sx={{position: 'absolute', top: 15, right: 15}}
+                      sx={{ position: 'absolute', top: 15, right: 45 }}
                     >
                       *
                     </SText>
                   )}
-                  <HtmlContentRenderer content={question.details.text} mb={6} />
+                  {/* Speak button for accessibility - reads question aloud */}
+                  <Box sx={{ position: 'absolute', top: 10, right: 10 }}>
+                    <SSpeakButton
+                      text={question.details.text}
+                      size="medium"
+                      tooltip="Ouvir pergunta"
+                    />
+                  </Box>
+                  <Box sx={{ pr: 10 }}>
+                    <HtmlContentRenderer
+                      content={question.details.text}
+                      mb={6}
+                    />
+                  </Box>
                   <FormAnswerFieldControlled
                     question={question}
                     name={question.id}
@@ -677,7 +788,8 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
                   fontSize={14}
                   sx={{ fontWeight: 600 }}
                 >
-                  Campos obrigatórios não preenchidos ou preenchidos incorretamente.
+                  Campos obrigatórios não preenchidos ou preenchidos
+                  incorretamente.
                 </SText>
               </Box>
             )}
@@ -712,13 +824,24 @@ export const PublicFormAnswerPage = ({ testingOnly }: { testingOnly?: boolean })
             </Box>
 
             {/* Step indicator text */}
-            <Box sx={{ textAlign: 'center', marginTop: 2 , marginBottom: [20, 20, 0]}}>
+            <Box
+              sx={{
+                textAlign: 'center',
+                marginTop: 2,
+                marginBottom: [20, 20, 0],
+              }}
+            >
               <Typography variant="body2" color="text.secondary">
                 Passo {currentStep + 1} de {totalSteps}
               </Typography>
               {lastSavedTime && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', marginTop: 1 }}>
-                  Progresso salvo automaticamente às {lastSavedTime.toLocaleTimeString()}
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ display: 'block', marginTop: 1 }}
+                >
+                  Progresso salvo automaticamente às{' '}
+                  {lastSavedTime.toLocaleTimeString()}
                 </Typography>
               )}
             </Box>

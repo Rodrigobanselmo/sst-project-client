@@ -11,4 +11,6 @@ export interface SRadioCheckboxProps<T = any>
   error?: boolean | string;
   errorMessage?: string;
   size?: 'small' | 'medium';
+  /** Enable text-to-speech buttons for each option (accessibility for users who cannot read) */
+  enableSpeak?: boolean;
 }
