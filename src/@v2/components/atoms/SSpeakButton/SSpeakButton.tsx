@@ -60,7 +60,9 @@ export const SSpeakButton = ({
         <IconButton
           onClick={handleClick}
           size={size}
-          aria-label={isCurrentlySpeakingThis ? 'Parar de ouvir' : 'Ouvir texto'}
+          aria-label={
+            isCurrentlySpeakingThis ? 'Parar de ouvir' : 'Ouvir texto'
+          }
           sx={{
             width: buttonSize,
             height: buttonSize,
@@ -105,4 +107,3 @@ export const SSpeakButton = ({
     </STooltip>
   );
 };
-
