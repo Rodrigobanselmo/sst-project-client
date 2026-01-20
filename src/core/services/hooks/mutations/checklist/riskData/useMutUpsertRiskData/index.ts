@@ -44,7 +44,11 @@ export interface IUpsertRiskData {
   activities?: any;
   startDate?: Date;
   endDate?: Date;
-  recAddOnly?: { recName?: string; companyId: string }[];
+  recAddOnly?: {
+    recName?: string;
+    companyId: string;
+    recType?: RecTypeEnum;
+  }[];
   admsAddOnly?: {
     medName?: string;
     medType?: MedTypeEnum;
@@ -52,7 +56,11 @@ export interface IUpsertRiskData {
     companyId: string;
   }[];
   generateSourcesAddOnly?: { name?: string; companyId: string }[];
-  engsAddOnly?: { medName?: string; companyId: string }[];
+  engsAddOnly?: {
+    medName?: string;
+    companyId: string;
+    medType?: MedTypeEnum;
+  }[];
 }
 
 export async function upsertRiskData(

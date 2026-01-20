@@ -71,6 +71,7 @@ export const RecSelect: FC<{ children?: any } & IRecMedSelectProps> = ({
         riskIds: riskIdsArray,
         edit: true,
         risk,
+        companyId: option?.companyId || '',
         recName: option?.recName || '',
         medName: option?.medName || '',
         recType: option?.recType || '',

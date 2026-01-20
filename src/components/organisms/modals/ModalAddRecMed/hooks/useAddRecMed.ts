@@ -31,6 +31,7 @@ export const initialAddRecMedState = {
   edit: false,
   medType: null as MedTypeEnum | null | '',
   recType: null as RecTypeEnum | null | '',
+  companyId: null as string | null | '',
   onCreate: (value: IRecMed | null) => {},
   onlyInput: '' as 'rec' | 'eng' | 'adm' | '',
 };
@@ -154,6 +155,7 @@ export const useAddRecMed = () => {
         await updateRecMedMut
           .mutateAsync({
             ...submitData,
+            companyId: recMedData.companyId || undefined,
             id: recMedData.id,
           })
           .catch(() => {});
