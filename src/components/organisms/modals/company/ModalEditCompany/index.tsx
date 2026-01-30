@@ -16,6 +16,7 @@ import { SSTModalCompanyStep } from './components/3-sst/SstStep';
 import { FourthModalCompanyStep } from './components/4-logo';
 import { DocumentModalCompanyStep } from './components/5-documents';
 import { ContactModalCompanyStep } from './components/6-contacts';
+import { CoverModalCompanyStep } from './components/7-cover';
 import { useEditCompany } from './hooks/useEditCompany';
 
 export const ModalEditCompany = () => {
@@ -53,6 +54,7 @@ export const ModalEditCompany = () => {
                   { label: 'Informações Adcionais' },
                   // { label: 'Documentos' },
                   { label: 'Contato' },
+                  { label: 'Capa do Documento' },
                 ]}
               />
             ) : null
@@ -66,6 +68,7 @@ export const ModalEditCompany = () => {
           <FourthModalCompanyStep {...props} />
           {/* <DocumentModalCompanyStep {...props} /> */}
           <ContactModalCompanyStep {...props} />
+          <CoverModalCompanyStep {...props} />
         </Wizard>
       </SModalPaper>
     </SModal>

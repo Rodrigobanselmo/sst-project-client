@@ -76,4 +76,5 @@ export enum QueryEnum {
   ABSENTEEISM_MOTIVES = 'ABSENTEEISM_MOTIVES',
   SCHEDULE_BLOCKS = 'SCHEDULE_BLOCKS',
   USERS = 'users',
+  DOCUMENT_COVER = 'document-cover',
 }

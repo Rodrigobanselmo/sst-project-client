@@ -104,4 +104,8 @@ export enum ApiRoutesEnum {
 
   MODEL_RISK_DOWNALOD = '/files/models/risk/:companyId',
   MODEL_EMPLOYEE_DOWNALOD = '/files/models/employee/:companyId',
+
+  // Document Cover
+  DOCUMENT_COVER = '/company/:companyId/document-cover',
+  DOCUMENT_COVER_PREVIEW = '/company/:companyId/document-cover/preview',
 }

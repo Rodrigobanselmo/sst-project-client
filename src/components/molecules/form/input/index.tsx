@@ -42,7 +42,7 @@ export const InputForm = ({
           fullWidth
           label={label}
           variant={variant}
-          value={uneditable ? defaultValue : _value || ''}
+          value={uneditable ? defaultValue : (_value ?? '')}
           disabled={uneditable}
           {...rest}
           {...restInput}
