@@ -138,38 +138,51 @@ export const useCoverEdit = ({
     onCloseUnsavedProp(() => reset());
   };
 
+  const toNumber = (
+    value: number | string | undefined,
+    defaultValue: number,
+  ): number => {
+    if (value === undefined || value === null || value === '')
+      return defaultValue;
+    return Number(value);
+  };
+
   const buildCoverJson = (formData: ICoverFormData): IDocumentCoverJson => ({
     coverProps: {
       logoProps: {
-        x: formData.logoX ?? DEFAULT_COVER_VALUES.logoX,
-        y: formData.logoY ?? DEFAULT_COVER_VALUES.logoY,
-        maxLogoWidth:
-          formData.maxLogoWidth ?? DEFAULT_COVER_VALUES.maxLogoWidth,
-        maxLogoHeight:
-          formData.maxLogoHeight ?? DEFAULT_COVER_VALUES.maxLogoHeight,
+        x: toNumber(formData.logoX, DEFAULT_COVER_VALUES.logoX!),
+        y: toNumber(formData.logoY, DEFAULT_COVER_VALUES.logoY!),
+        maxLogoWidth: toNumber(
+          formData.maxLogoWidth,
+          DEFAULT_COVER_VALUES.maxLogoWidth!,
+        ),
+        maxLogoHeight: toNumber(
+          formData.maxLogoHeight,
+          DEFAULT_COVER_VALUES.maxLogoHeight!,
+        ),
       },
       titleProps: {
-        x: formData.titleX ?? DEFAULT_COVER_VALUES.titleX,
-        y: formData.titleY ?? DEFAULT_COVER_VALUES.titleY,
-        boxX: formData.titleBoxX ?? DEFAULT_COVER_VALUES.titleBoxX,
-        boxY: formData.titleBoxY ?? DEFAULT_COVER_VALUES.titleBoxY,
-        size: formData.titleSize ?? DEFAULT_COVER_VALUES.titleSize,
+        x: toNumber(formData.titleX, DEFAULT_COVER_VALUES.titleX!),
+        y: toNumber(formData.titleY, DEFAULT_COVER_VALUES.titleY!),
+        boxX: toNumber(formData.titleBoxX, DEFAULT_COVER_VALUES.titleBoxX!),
+        boxY: toNumber(formData.titleBoxY, DEFAULT_COVER_VALUES.titleBoxY!),
+        size: toNumber(formData.titleSize, DEFAULT_COVER_VALUES.titleSize!),
         color: formData.titleColor ?? DEFAULT_COVER_VALUES.titleColor,
       },
       versionProps: {
-        x: formData.versionX ?? DEFAULT_COVER_VALUES.versionX,
-        y: formData.versionY ?? DEFAULT_COVER_VALUES.versionY,
-        boxX: formData.versionBoxX ?? DEFAULT_COVER_VALUES.versionBoxX,
-        boxY: formData.versionBoxY ?? DEFAULT_COVER_VALUES.versionBoxY,
-        size: formData.versionSize ?? DEFAULT_COVER_VALUES.versionSize,
+        x: toNumber(formData.versionX, DEFAULT_COVER_VALUES.versionX!),
+        y: toNumber(formData.versionY, DEFAULT_COVER_VALUES.versionY!),
+        boxX: toNumber(formData.versionBoxX, DEFAULT_COVER_VALUES.versionBoxX!),
+        boxY: toNumber(formData.versionBoxY, DEFAULT_COVER_VALUES.versionBoxY!),
+        size: toNumber(formData.versionSize, DEFAULT_COVER_VALUES.versionSize!),
         color: formData.versionColor ?? DEFAULT_COVER_VALUES.versionColor,
       },
       companyProps: {
-        x: formData.companyX ?? DEFAULT_COVER_VALUES.companyX,
-        y: formData.companyY ?? DEFAULT_COVER_VALUES.companyY,
-        boxX: formData.companyBoxX ?? DEFAULT_COVER_VALUES.companyBoxX,
-        boxY: formData.companyBoxY ?? DEFAULT_COVER_VALUES.companyBoxY,
-        size: formData.companySize ?? DEFAULT_COVER_VALUES.companySize,
+        x: toNumber(formData.companyX, DEFAULT_COVER_VALUES.companyX!),
+        y: toNumber(formData.companyY, DEFAULT_COVER_VALUES.companyY!),
+        boxX: toNumber(formData.companyBoxX, DEFAULT_COVER_VALUES.companyBoxX!),
+        boxY: toNumber(formData.companyBoxY, DEFAULT_COVER_VALUES.companyBoxY!),
+        size: toNumber(formData.companySize, DEFAULT_COVER_VALUES.companySize!),
         color: formData.companyColor ?? DEFAULT_COVER_VALUES.companyColor,
       },
       backgroundImagePath: formData.backgroundImagePath,
@@ -263,41 +276,7 @@ export const useCoverEdit = ({
   };
 
   const onSubmit = handleSubmit(async (data) => {
-    const json: IDocumentCoverJson = {
-      coverProps: {
-        logoProps: {
-          x: data.logoX,
-          y: data.logoY,
-          maxLogoWidth: data.maxLogoWidth,
-          maxLogoHeight: data.maxLogoHeight,
-        },
-        titleProps: {
-          x: data.titleX,
-          y: data.titleY,
-          boxX: data.titleBoxX,
-          boxY: data.titleBoxY,
-          size: data.titleSize,
-          color: data.titleColor,
-        },
-        versionProps: {
-          x: data.versionX,
-          y: data.versionY,
-          boxX: data.versionBoxX,
-          boxY: data.versionBoxY,
-          size: data.versionSize,
-          color: data.versionColor,
-        },
-        companyProps: {
-          x: data.companyX,
-          y: data.companyY,
-          boxX: data.companyBoxX,
-          boxY: data.companyBoxY,
-          size: data.companySize,
-          color: data.companyColor,
-        },
-        backgroundImagePath: data.backgroundImagePath,
-      },
-    };
+    const json = buildCoverJson(data);
 
     await upsertCoverMutation.mutateAsync({
       id: data.id,
