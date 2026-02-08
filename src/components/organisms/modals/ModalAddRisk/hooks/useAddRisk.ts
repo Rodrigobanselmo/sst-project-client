@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
-import { RiskEnum } from 'project/enum/risk.enums';
+import { GrauInsalubridadeEnum, RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 import * as Yup from 'yup';
 
@@ -60,6 +60,7 @@ export const initialAddRiskState = {
   carnogenicityLinach: undefined as undefined | string,
   activities: [] as RiskFactorActivities[],
   subType: undefined as string | undefined,
+  grauInsalubridade: undefined as GrauInsalubridadeEnum | undefined,
 };
 
 export const useAddRisk = () => {
@@ -280,6 +281,7 @@ export const useAddRisk = () => {
     carnogenicityLinach,
     activities,
     subType,
+    grauInsalubridade,
   }) => {
     const {
       esocial,
@@ -327,6 +329,7 @@ export const useAddRisk = () => {
       carnogenicityLinach,
       appendix,
       otherAppendix,
+      grauInsalubridade: grauInsalubridade || null,
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;
@@ -401,6 +404,7 @@ export const useAddRisk = () => {
     handleSubmit,
     setValue,
     type,
+    watch,
   };
 };
 

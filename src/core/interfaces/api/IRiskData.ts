@@ -15,7 +15,11 @@ import { IGenerateSource, IRecMed, IRiskFactors } from './IRiskFactors';
 import { ExposureTypeEnum } from 'core/enums/exposure.enum';
 
 export type IRiskDataActivities = {
-  activities: { description?: string; subActivity?: string }[];
+  activities: {
+    description?: string;
+    subActivity?: string;
+    activityType?: string;
+  }[];
   realActivity?: string;
 };
 

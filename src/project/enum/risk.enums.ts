@@ -83,3 +83,33 @@ export const UnMedList = [
   'mppdc',
   'UR (%)',
 ];
+
+export enum GrauInsalubridadeEnum {
+  MIN = 'MIN',
+  MED = 'MED',
+  MAX = 'MAX',
+}
+
+export const GrauInsalubridadeMap: Record<
+  GrauInsalubridadeEnum,
+  { value: GrauInsalubridadeEnum; label: string }
+> = {
+  [GrauInsalubridadeEnum.MIN]: {
+    value: GrauInsalubridadeEnum.MIN,
+    label: 'Grau mínimo – 10%',
+  },
+  [GrauInsalubridadeEnum.MED]: {
+    value: GrauInsalubridadeEnum.MED,
+    label: 'Grau médio – 20%',
+  },
+  [GrauInsalubridadeEnum.MAX]: {
+    value: GrauInsalubridadeEnum.MAX,
+    label: 'Grau máximo – 40%',
+  },
+};
+
+export const GrauInsalubridadeOptions = [
+  GrauInsalubridadeMap[GrauInsalubridadeEnum.MIN],
+  GrauInsalubridadeMap[GrauInsalubridadeEnum.MED],
+  GrauInsalubridadeMap[GrauInsalubridadeEnum.MAX],
+];

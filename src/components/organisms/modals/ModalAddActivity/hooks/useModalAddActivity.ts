@@ -30,7 +30,11 @@ export const initialActivityState = {
 };
 
 interface ISubmit {
-  activities: { description?: string; subActivity?: string }[];
+  activities: {
+    description?: string;
+    subActivity?: string;
+    activityType?: string;
+  }[];
   realActivity?: string;
 }
 
@@ -101,6 +105,7 @@ export const useModalAddActivity = () => {
       activities: dataFrom.activities.map((activity) => ({
         description: activity.description,
         subActivity: activity.subActivity,
+        activityType: activity.activityType,
       })),
       realActivity: dataFrom.realActivity,
     };

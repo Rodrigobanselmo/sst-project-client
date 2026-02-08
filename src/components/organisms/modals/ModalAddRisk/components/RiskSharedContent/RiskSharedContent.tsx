@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useMemo } from 'react';
+import React, { FC } from 'react';
 
 import { Box } from '@mui/material';
 import { SSwitch } from 'components/atoms/SSwitch';
@@ -7,12 +7,14 @@ import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
 import { RadioFormText } from 'components/molecules/form/radio-text';
 import { Esocial24RiskSelect } from 'components/organisms/inputSelect/Esocial24RiskSelect/Esocial24RiskSelect';
-import { RiskEnum, UnMedList } from 'project/enum/risk.enums';
+import {
+  GrauInsalubridadeOptions,
+  RiskEnum,
+  UnMedList,
+} from 'project/enum/risk.enums';
 import { SeverityEnum } from 'project/enum/severity.enums';
 
 import { enumToArray } from 'core/utils/helpers/convertEnum';
-import { getTimeList } from 'core/utils/helpers/times';
-import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
 import { RiskActivityContent } from '../RiskActivityContent/RiskActivityContent';
@@ -193,6 +195,26 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
             placeholder={'exemplo: 1'}
             name="appendix"
             size="small"
+          />
+        </Box>
+        <Box mt={8}>
+          <AutocompleteForm
+            name="grauInsalubridade"
+            control={control}
+            freeSolo={false}
+            fullWidth
+            getOptionLabel={(option) =>
+              GrauInsalubridadeOptions.find((o) => o.value === option)?.label ||
+              ''
+            }
+            inputProps={{
+              labelPosition: 'top',
+              placeholder: 'selecione o grau de insalubridade...',
+            }}
+            setValue={(v) => setValue('grauInsalubridade', v)}
+            defaultValue={riskData.grauInsalubridade || null}
+            label="Grau de Insalubridade"
+            options={[null, ...GrauInsalubridadeOptions.map((o) => o.value)]}
           />
         </Box>
         <Box mt={8}>

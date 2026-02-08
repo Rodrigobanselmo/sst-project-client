@@ -1,6 +1,6 @@
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
-import { RiskEnum } from 'project/enum/risk.enums';
+import { GrauInsalubridadeEnum, RiskEnum } from 'project/enum/risk.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { IEsocialTable24 } from './IEsocial';
@@ -8,8 +8,14 @@ import { IHierarchy } from './IHierarchy';
 import { IRiskData } from './IRiskData';
 import { IExamToRisk } from './IExam';
 
+export enum ActivityTypeEnum {
+  PERICULOSIDADE = 'PERICULOSIDADE',
+  INSALUBRIDADE = 'INSALUBRIDADE',
+}
+
 export type RiskFactorActivities = {
   description: string;
+  activityType?: ActivityTypeEnum;
   subActivities?: {
     description: string;
   }[];
@@ -127,6 +133,7 @@ export interface IRiskFactors {
   activities?: RiskFactorActivities[];
   otherAppendix?: string;
   synonymous?: string;
+  grauInsalubridade?: GrauInsalubridadeEnum;
 
   isAso: boolean;
   isPGR: boolean;
