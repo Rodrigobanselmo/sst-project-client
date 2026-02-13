@@ -35,6 +35,7 @@ export interface IUpdateCompany
   cadastral_situation_description?: string;
   workspace?: Partial<IWorkspace>[];
   doctorResponsibleId?: number | null;
+  metadata?: Record<string, any>;
 }
 
 export async function updateCompany(data: IUpdateCompany, companyId?: string) {

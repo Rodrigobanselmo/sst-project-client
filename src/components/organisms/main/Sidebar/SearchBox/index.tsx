@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
 import { RiCloseCircleLine, RiSearchLine } from 'react-icons/ri';
 
-import { Icon } from '@mui/material';
+import { Icon, useTheme } from '@mui/material';
 
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { SInput } from '../../../../atoms/SInput';
@@ -10,6 +10,7 @@ export function SearchBox(): JSX.Element {
   const { isOpen, open, setIsSearching } = useSidebarDrawer();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
+  const theme = useTheme();
 
   function onClean() {
     setText('');
@@ -22,6 +23,8 @@ export function SearchBox(): JSX.Element {
     open();
   }
 
+  const sidebarBgColor = theme.palette.sidebar.background;
+
   return (
     <SInput
       placeholder="Pesquisar..."
@@ -32,6 +35,7 @@ export function SearchBox(): JSX.Element {
         fontSize: 10,
         '& .MuiOutlinedInput-root': {
           fontSize: '0.9rem',
+          backgroundColor: `${sidebarBgColor} !important`,
         },
         width: '100%',
       }}

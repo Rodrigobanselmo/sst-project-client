@@ -23,7 +23,16 @@ export const useCompanyEdit = ({
 
   const updateCompany = useMutUpdateCompany();
 
-  const fields = ['description', 'operationTime'];
+  const fields = [
+    'description',
+    'operationTime',
+    'metadata.shortName',
+    'metadata.primaryColor',
+    'metadata.visualIdentityEnabled',
+    'metadata.customLogoUrl',
+    'metadata.sidebarBackgroundColor',
+    'metadata.applicationBackgroundColor',
+  ];
 
   const onCloseUnsaved = async () => {
     rest.onCloseUnsaved(() => reset());
@@ -33,12 +42,19 @@ export const useCompanyEdit = ({
     const isValid = await trigger(fields);
 
     if (isValid) {
-      const { description, operationTime } = getValues();
+      const { description, operationTime, metadata } = getValues();
+
+      // Merge metadata do formulário com metadata do companyData (que contém visualIdentityEnabled)
+      const mergedMetadata = {
+        ...companyData.metadata,
+        ...metadata,
+      };
 
       const submitData = {
         ...companyData,
         description,
         operationTime,
+        metadata: mergedMetadata,
         companyId: companyData.id,
       };
 
@@ -71,6 +87,34 @@ export const useCompanyEdit = ({
     } as Partial<typeof initialPhotoState>);
   };
 
+  const handleAddCustomLogo = () => {
+    onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
+      name: 'Logo customizado da sidebar',
+      freeAspect: true,
+      imageExtension: 'png',
+      accept: ['image/*', '.heic'],
+      onConfirm: async (photo) => {
+        const addLocalPhoto = (src: string) => {
+          setCompanyData((oldData) => ({
+            ...oldData,
+            metadata: {
+              ...oldData.metadata,
+              customLogoUrl: src,
+            },
+          }));
+        };
+
+        if (photo.file) {
+          const company = await addPhotoMutation
+            .mutateAsync({ file: photo.file, companyId: companyData.id })
+            .catch(() => {});
+
+          if (company?.logoUrl) addLocalPhoto(company.logoUrl);
+        }
+      },
+    } as Partial<typeof initialPhotoState>);
+  };
+
   return {
     onSubmit,
     loading: updateCompany.isLoading,
@@ -79,5 +123,6 @@ export const useCompanyEdit = ({
     onCloseUnsaved,
     setValue,
     handleAddPhoto,
+    handleAddCustomLogo,
   };
 };

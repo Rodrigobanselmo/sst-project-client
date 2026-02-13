@@ -15,6 +15,16 @@ export const STLogoSimple = styled(LogoSimpleIcon)`
   margin-top: -4px;
 `;
 
+export const STCompanyLogo = styled('img')`
+  min-width: 2rem;
+  max-width: 2rem;
+  min-height: 2rem;
+  max-height: 2rem;
+  object-fit: contain;
+  border-radius: 4px;
+  cursor: pointer;
+`;
+
 export const STTypography = styled(Typography)`
   font-size: 24px;
   font-weight: 500;

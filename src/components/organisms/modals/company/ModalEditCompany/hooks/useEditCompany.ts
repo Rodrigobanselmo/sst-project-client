@@ -65,6 +65,7 @@ export const initialCompanyState = {
   isSavedCreation: false,
   contacts: [] as IContact[],
   permissions: [] as string[],
+  metadata: {} as Record<string, any>,
   address: {
     neighborhood: '',
     number: '',

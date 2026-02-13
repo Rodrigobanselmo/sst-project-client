@@ -15,8 +15,7 @@ import { ReactQueryDevtools as OldReactQueryDevtools } from 'react-query/devtool
 import { Provider } from 'react-redux';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
-import { ThemeProvider as EmotionProvider } from '@emotion/react';
-import { Icon, ThemeProvider } from '@mui/material';
+import { Icon } from '@mui/material';
 import SCloseIcon from 'assets/icons/SCloseIcon';
 import SIconButton from 'components/atoms/SIconButton';
 import { SnackbarKey, SnackbarProvider } from 'notistack';
@@ -24,7 +23,6 @@ import { PersistGate } from 'redux-persist/integration/react';
 
 import { OnlineStatusProvider } from 'core/hooks/useOnlineStatus';
 
-import theme from '../../../configs/theme';
 import { AuthProvider } from '../../../core/contexts/AuthContext';
 import { queryClient as oldQueryClient } from '../../../core/services/queryClient';
 import store, { persistor } from '../../../store';
@@ -32,6 +30,8 @@ import { KBarProvider } from '../KBar/KBarProvider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DynamicThemeProvider } from './DynamicThemeProvider';
+import { GlobalLoadingScreen } from './GlobalLoadingScreen';
 
 const QueryClientProviderComponent = OldQueryClientProvider as any;
 
@@ -48,8 +48,8 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
         <PersistGate loading={null} persistor={persistor}>
           <OnlineStatusProvider>
-            <EmotionProvider theme={theme}>
-              <ThemeProvider theme={theme}>
+            <QueryClientProvider client={queryClient}>
+              <QueryClientProviderComponent client={oldQueryClient}>
                 <SnackbarProvider
                   ref={notistackRef}
                   maxSnack={3}
@@ -78,17 +78,17 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
                   style={{ maxWidth: '28rem', paddingRight: 40 }}
                 >
                   <AuthProvider>
-                    <QueryClientProvider client={queryClient}>
-                      <ReactQueryDevtools initialIsOpen={false} />
-                      <QueryClientProviderComponent client={oldQueryClient}>
+                    <GlobalLoadingScreen>
+                      <DynamicThemeProvider>
+                        <ReactQueryDevtools initialIsOpen={false} />
                         <KBarProvider>{children}</KBarProvider>
                         <OldReactQueryDevtools />
-                      </QueryClientProviderComponent>
-                    </QueryClientProvider>
+                      </DynamicThemeProvider>
+                    </GlobalLoadingScreen>
                   </AuthProvider>
                 </SnackbarProvider>
-              </ThemeProvider>
-            </EmotionProvider>
+              </QueryClientProviderComponent>
+            </QueryClientProvider>
           </OnlineStatusProvider>
         </PersistGate>
       </LocalizationProvider>

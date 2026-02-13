@@ -91,6 +91,7 @@ export interface ICompany {
 
   isGroup: boolean;
   isClinic: boolean;
+  metadata?: Record<string, any>;
 }
 
 export interface ICompanyContract {

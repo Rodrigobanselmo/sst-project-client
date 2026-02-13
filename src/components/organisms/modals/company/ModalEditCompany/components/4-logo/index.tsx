@@ -1,7 +1,8 @@
 import React from 'react';
 
-import { styled } from '@mui/material';
+import { Box, styled } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
+import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import { SModalButtons } from 'components/molecules/SModal';
@@ -36,10 +37,11 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
     loading,
     onCloseUnsaved,
     handleAddPhoto,
+    handleAddCustomLogo,
     previousStep,
     setValue,
   } = useCompanyEdit(props);
-  const { companyData, isEdit } = props;
+  const { companyData, setCompanyData, isEdit } = props;
 
   const buttons = [
     {
@@ -94,6 +96,97 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
             placeholder={'observação opcional sobre a empresa...'}
             name="description"
             size="small"
+          />
+
+          <SText color="text.label" fontSize={16} fontWeight="500" mt={4}>
+            Identidade Visual
+          </SText>
+
+          <Box ml={7}>
+            <SSwitch
+              onChange={() => {
+                setCompanyData((oldData) => ({
+                  ...oldData,
+                  metadata: {
+                    ...oldData.metadata,
+                    visualIdentityEnabled:
+                      !oldData.metadata?.visualIdentityEnabled,
+                  },
+                }));
+              }}
+              checked={!!companyData.metadata?.visualIdentityEnabled}
+              label="Ativado"
+              sx={{ mr: 4 }}
+              color="text.light"
+            />
+          </Box>
+
+          <InputForm
+            setValue={setValue}
+            defaultValue={companyData.metadata?.shortName}
+            label="Nome Encurtado"
+            control={control}
+            labelPosition="center"
+            sx={{ minWidth: ['100%', 600] }}
+            placeholder={'Nome curto da empresa para personalização...'}
+            name="metadata.shortName"
+            helperText="Nome curto que será usado para personalizar a interface do sistema"
+            size="small"
+          />
+
+          <InputForm
+            setValue={setValue}
+            defaultValue={companyData.metadata?.primaryColor}
+            label="Cor Principal"
+            control={control}
+            labelPosition="center"
+            sx={{ minWidth: ['100%', 600] }}
+            name="metadata.primaryColor"
+            helperText="Cor principal que será usada na identidade visual do sistema"
+            size="small"
+            type="color"
+          />
+
+          <SText color="text.label" fontSize={14} mb={-2} mt={4}>
+            Logo customizado da sidebar
+          </SText>
+          <StyledImage
+            alt="Logo customizado"
+            src={
+              companyData.metadata?.customLogoUrl ||
+              '/images/placeholder-image.png'
+            }
+            onClick={handleAddCustomLogo}
+          />
+
+          <InputForm
+            setValue={setValue}
+            defaultValue={
+              companyData.metadata?.sidebarBackgroundColor || '#1A202C'
+            }
+            label="Cor de Fundo da Sidebar"
+            control={control}
+            labelPosition="center"
+            sx={{ minWidth: ['100%', 600] }}
+            name="metadata.sidebarBackgroundColor"
+            helperText="Cor de fundo da sidebar"
+            size="small"
+            type="color"
+          />
+
+          <InputForm
+            setValue={setValue}
+            defaultValue={
+              companyData.metadata?.applicationBackgroundColor || '#dddee2'
+            }
+            label="Cor de Fundo da Aplicação"
+            control={control}
+            labelPosition="center"
+            sx={{ minWidth: ['100%', 600] }}
+            name="metadata.applicationBackgroundColor"
+            helperText="Cor de fundo principal da aplicação"
+            size="small"
+            type="color"
           />
         </SFlex>
       </AnimatedStep>
