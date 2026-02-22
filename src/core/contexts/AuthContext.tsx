@@ -55,6 +55,7 @@ type AuthContextData = {
   refreshUser: (companyId?: string) => Promise<void>;
   user: Partial<IUser> | null;
   isAuthenticated: boolean;
+  token: string | undefined;
 };
 
 type AuthProviderProps = {
@@ -370,7 +371,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         signUp,
         googleSignLink,
         googleSignIn,
-        googleSignUp,
+        googleSignUp: googleSignUp,
+        token: parseCookies()['nextauth.token'],
       }}
     >
       {children}

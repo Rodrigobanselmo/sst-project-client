@@ -35,13 +35,13 @@ const containerStyles: React.CSSProperties = {
  * Uses pure CSS/inline styles to avoid any theme dependency.
  */
 export const GlobalLoadingScreen = ({ children }: GlobalLoadingScreenProps) => {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const { isLoading: isLoadingVisualIdentity } = useFetchVisualIdentity({
     companyId: user?.companyId || '',
   });
 
   // Show loading only if user is logged in and visual identity is loading
-  if (isLoadingVisualIdentity && !user?.companyId) {
+  if (token && (isLoadingVisualIdentity || !user?.companyId)) {
     return (
       <div style={containerStyles}>
         <style>
