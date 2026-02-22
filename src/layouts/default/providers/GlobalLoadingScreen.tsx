@@ -41,7 +41,7 @@ export const GlobalLoadingScreen = ({ children }: GlobalLoadingScreenProps) => {
   });
 
   // Show loading only if user is logged in and visual identity is loading
-  if (isLoadingVisualIdentity || !user?.companyId) {
+  if (isLoadingVisualIdentity && !user?.companyId) {
     return (
       <div style={containerStyles}>
         <style>
