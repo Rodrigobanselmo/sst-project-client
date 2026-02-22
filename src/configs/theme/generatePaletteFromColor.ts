@@ -43,4 +43,3 @@ export function generatePaletteFromColor(mainColor: string) {
     mainBlur,
   };
 }
-
