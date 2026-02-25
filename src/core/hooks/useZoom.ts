@@ -5,7 +5,9 @@ import { useDebouncedCallback } from 'use-debounce';
 
 import { useControlClick } from './useControlClick';
 
-export const useZoom = (containerRef: React.RefObject<HTMLDivElement>) => {
+export const useZoom = (
+  containerRef: React.RefObject<HTMLDivElement | null>,
+) => {
   const wheelSumValue = useRef<number>(0);
 
   const { controlKeyPress } = useControlClick();

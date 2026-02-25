@@ -31,6 +31,6 @@ export interface SMenuItemsSearchProps extends Omit<MenuItemProps, 'selected'> {
   optionsFieldName?: { valueField?: string; contentField?: string };
   multiple?: boolean;
   setScroll: Dispatch<SetStateAction<number>>;
-  listRef?: RefObject<HTMLDivElement>;
+  listRef?: RefObject<HTMLDivElement | null>;
   renderContent?: (option: IMenuSearchOption) => ReactNode;
 }

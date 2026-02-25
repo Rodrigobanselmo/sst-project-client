@@ -25,10 +25,10 @@ export const SCanvasBlurBox: React.FC<{
   maxWidth = 350,
   scale = 1,
 }) => {
-  const RecRef = useRef<any>();
-  const buttonsRef = React.useRef<any>();
-  const shapeRef = React.useRef<any>();
-  const trRef = React.useRef<any>();
+  const RecRef = useRef<any>(null);
+  const buttonsRef = React.useRef<any>(null);
+  const shapeRef = React.useRef<any>(null);
+  const trRef = React.useRef<any>(null);
 
   const [compsProps, setCompsProps] = useState({
     x: 20,

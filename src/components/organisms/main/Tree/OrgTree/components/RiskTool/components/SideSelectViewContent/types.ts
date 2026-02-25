@@ -7,7 +7,7 @@ import { ViewsDataEnum } from '../../utils/view-data-type.constant';
 export interface SideSelectViewContentProps {
   ghoQuery: IGho[];
   viewDataType: ViewsDataEnum;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   handleAddGHO?: () => Promise<void>;
   handleEditGHO: (data: IGho) => void;
   handleSelectGHO: (

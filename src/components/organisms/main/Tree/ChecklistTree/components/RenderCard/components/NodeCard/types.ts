@@ -6,5 +6,5 @@ import { ITreeMapObject } from '../../../../interfaces';
 
 export interface INodeCardProps extends BoxProps {
   node: ITreeMapObject;
-  menuRef: RefObject<HTMLDivElement>;
+  menuRef: RefObject<HTMLDivElement | null>;
 }

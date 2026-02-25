@@ -20,7 +20,7 @@ import { GhoHeaderProps } from './types';
 export const HierarchyFilter: FC<{ children?: any } & GhoHeaderProps> = () => {
   const dispatch = useAppDispatch();
   const { onOpenModal } = useModal();
-  const ref = useRef<HTMLInputElement>();
+  const ref = useRef<HTMLInputElement>(null);
   const search = useAppSelector((s) => s.hierarchy.search);
   const { searchFilterNodes } = useHierarchyTreeActions();
 

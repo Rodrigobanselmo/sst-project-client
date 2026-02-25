@@ -28,7 +28,7 @@ interface SCropImageProps {
   file?: File;
   freeAspect?: boolean;
   canCancel?: boolean;
-  canvasRef: React.RefObject<HTMLCanvasElement>;
+  canvasRef: React.RefObject<HTMLCanvasElement | null>;
   onSelect?: (options: { dataUrl?: string; crop?: PixelCrop }) => void;
   maxHeight?: number;
 }

@@ -9,7 +9,7 @@ import { isDroppable, getDropTarget, isNodeModel } from '../utils';
 
 export const useDropNode = <T>(
   item: NodeModel<T>,
-  ref: React.RefObject<HTMLElement>,
+  ref: React.RefObject<HTMLElement | null>,
 ): [boolean, NodeModel, DragElementWrapper<HTMLElement>] => {
   const treeContext = useTreeContext<T>();
   const placeholderContext = useContext(PlaceholderContext);

@@ -14,7 +14,7 @@ import theme from 'configs/theme';
 
 export interface SSelectButtonProps {
   label: string;
-  anchorEl: React.RefObject<HTMLDivElement>;
+  anchorEl: React.RefObject<HTMLDivElement | null>;
   onClick: () => void;
   minWidth?: number | number[] | string | string[];
   loading?: boolean;

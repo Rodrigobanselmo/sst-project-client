@@ -5,7 +5,7 @@ import { STSTableHRow } from './STableHRow.styles';
 
 export interface ISTableHRowProps extends PropsWithChildren {
   clickable?: boolean;
-  anchorEl?: React.RefObject<HTMLDivElement>;
+  anchorEl?: React.RefObject<HTMLDivElement | null>;
   justify?: 'flex-start' | 'center' | 'flex-end';
   boxProps?: BoxProps;
 }

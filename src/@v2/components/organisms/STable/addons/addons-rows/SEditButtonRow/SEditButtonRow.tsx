@@ -14,7 +14,7 @@ import { MouseEvent as ReactMouseEvent } from 'react';
 
 export interface SEditButtonRowProps {
   label: string;
-  anchorEl?: React.RefObject<HTMLDivElement>;
+  anchorEl?: React.RefObject<HTMLDivElement | null>;
   onClick?: (e: ReactMouseEvent<HTMLDivElement, MouseEvent>) => void;
   boxProps?: BoxProps;
   textProps?: STextProps;

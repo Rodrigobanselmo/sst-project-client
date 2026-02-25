@@ -7,7 +7,7 @@ import { STMouseControlBox } from './styles';
 
 export const MouseControl: FC<
   { children?: any } & {
-    orgContainerRef: React.RefObject<HTMLDivElement>;
+    orgContainerRef: React.RefObject<HTMLDivElement | null>;
   }
 > = ({ orgContainerRef }) => {
   const { getStackModal } = useModal();

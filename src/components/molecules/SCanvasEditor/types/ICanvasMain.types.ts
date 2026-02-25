@@ -1,6 +1,6 @@
 export interface IImageComponentProps {
   imageUrl?: string;
-  canvasRef?: React.RefObject<HTMLCanvasElement>;
+  canvasRef?: React.RefObject<HTMLCanvasElement | null>;
   minWidth?: number;
   minHeight?: number;
   onCrop?: (options: { dataUrl: string; file: File }) => void;

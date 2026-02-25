@@ -22,7 +22,7 @@ export const useSecondStep = ({
     clearErrors,
   } = useFormContext();
   const [isMajorVersion, setIsMajorVersion] = useState(false);
-  const groupsRef = useRef<{ selecteds: { id: string }[] }>();
+  const groupsRef = useRef<{ selecteds: { id: string }[] }>(null);
 
   // const createDoc = useMutUpsertRiskDocsPgr();
   const createDoc = useMutAddQueueDocs();

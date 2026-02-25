@@ -7,7 +7,7 @@ import { ITreeMapObject, ITreeSelectedItem } from '../../../interfaces';
 export interface IOptionsHelpSelectProps extends BoxProps {
   node: ITreeMapObject | ITreeSelectedItem;
   large?: boolean;
-  menuRef: RefObject<HTMLDivElement>;
+  menuRef: RefObject<HTMLDivElement | null>;
   disabled?: boolean;
   onEdit?: (e: React.MouseEvent<HTMLDivElement>) => void;
 }

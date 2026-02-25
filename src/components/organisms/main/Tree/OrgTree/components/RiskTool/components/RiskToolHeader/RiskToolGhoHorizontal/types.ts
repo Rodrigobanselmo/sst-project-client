@@ -12,7 +12,7 @@ export interface SideSelectViewContentProps {
   viewType: ViewTypeEnum;
   loadingCopy?: boolean;
   viewDataType: ViewsDataEnum;
-  inputRef: React.RefObject<HTMLInputElement>;
+  inputRef: React.RefObject<HTMLInputElement | null>;
   handleAddGHO?: () => Promise<void>;
   handleEditGHO: (data: IGho) => void;
   handleCopyGHO: (data: IGho | IHierarchyTreeMapObject | IHierarchy) => void;
