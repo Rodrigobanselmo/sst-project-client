@@ -34,10 +34,10 @@ const nextConfig = {
     NEXT_PUBLIC_MEASUREMENT_ID: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
   },
   images: {
-    domains: [
-      'simplesst.s3.amazonaws.com',
-      'simplesst.s3.sa-east-1.amazonaws.com',
-      'prod-simplesst-docs.s3.amazonaws.com',
+    remotePatterns: [
+      { protocol: 'https', hostname: 'simplesst.s3.amazonaws.com' },
+      { protocol: 'https', hostname: 'simplesst.s3.sa-east-1.amazonaws.com' },
+      { protocol: 'https', hostname: 'prod-simplesst-docs.s3.amazonaws.com' },
     ],
   },
   webpack(config) {

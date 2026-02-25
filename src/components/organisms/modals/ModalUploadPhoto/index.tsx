@@ -71,6 +71,7 @@ export const initialPhotoState = {
   name: '',
   freeAspect: false,
   showInputName: false,
+  saveAsIs: false, // Skip cropping/resizing and save the original file (preserves transparency)
   compressProps: undefined as Partial<ImageBlobCompressProps> | undefined,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onConfirm: async (arg: IUploadPhotoConfirm) => {},
@@ -193,6 +194,33 @@ export const ModalUploadPhoto: FC<
   const onSubmit: SubmitHandler<{ name: string }> = async (data) => {
     if (!isPhotoSelected)
       return enqueueSnackbar('Selecione uma imagem', { variant: 'error' });
+
+    // Save file as-is without cropping/resizing (preserves transparency)
+    if (photoData.saveAsIs && photoData.files?.[0]) {
+      setIsLoading(true);
+      try {
+        const file = photoData.files[0];
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const dataUrl = reader.result as string;
+          await photoData.onConfirm({
+            file,
+            name: data.name,
+            src: dataUrl,
+          });
+          setIsLoading(false);
+          onClose();
+        };
+        reader.onerror = () => {
+          setIsLoading(false);
+        };
+        reader.readAsDataURL(file);
+      } catch {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     if (!completedCrop) {
       CropImage();
 
@@ -291,7 +319,7 @@ export const ModalUploadPhoto: FC<
       type: 'button',
     },
     {
-      text: completedCrop ? 'Salvar' : 'Cortar e Salvar',
+      text: photoData.saveAsIs || completedCrop ? 'Salvar' : 'Cortar e Salvar',
       variant: 'contained',
       type: 'submit',
       disabled: !isPhotoSelected,
@@ -301,8 +329,9 @@ export const ModalUploadPhoto: FC<
   ] as IModalButton[];
 
   const showFileUploader = !isPhotoSelected && !completedCrop;
-  const showCrop = isPhotoSelected && !completedCrop;
-  const showEditor = !!completedCrop;
+  const showCrop = isPhotoSelected && !completedCrop && !photoData.saveAsIs;
+  const showEditor = !!completedCrop && !photoData.saveAsIs;
+  const showPreview = isPhotoSelected && photoData.saveAsIs;
 
   return (
     <SModal {...registerModal(modalName)} keepMounted={false} onClose={onClose}>
@@ -371,6 +400,32 @@ export const ModalUploadPhoto: FC<
             // minWidth={1000}
           />
           // </Box>
+        )}
+
+        {showPreview && photoData.files?.[0] && (
+          <Box
+            flex={1}
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            sx={{
+              maxHeight: 520,
+              backgroundColor: 'grey.200',
+              borderRadius: 2,
+              p: 2,
+              mb: 2,
+            }}
+          >
+            <img
+              src={URL.createObjectURL(photoData.files[0])}
+              alt="Preview"
+              style={{
+                maxWidth: '100%',
+                maxHeight: 500,
+                objectFit: 'contain',
+              }}
+            />
+          </Box>
         )}
 
         <StyledCanvas

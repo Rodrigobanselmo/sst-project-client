@@ -1,3 +1,4 @@
+import '../polyfills/findDOMNode'; // Must be first — patches ReactDOM.findDOMNode for draft-js (React 19)
 import '../core/styles/react-datepicker.css';
 import '../core/styles/cronStyles.css';
 import '../core/styles/react-draft-wysiwyg.css';

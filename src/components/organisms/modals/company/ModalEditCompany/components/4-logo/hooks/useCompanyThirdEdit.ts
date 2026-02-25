@@ -92,7 +92,8 @@ export const useCompanyEdit = ({
       name: 'Logo customizado da sidebar',
       freeAspect: true,
       imageExtension: 'png',
-      accept: ['image/*', '.heic'],
+      saveAsIs: true, // Skip cropping/resizing to preserve PNG transparency
+      accept: ['image/png'],
       onConfirm: async (photo) => {
         const addLocalPhoto = (src: string) => {
           setCompanyData((oldData) => ({

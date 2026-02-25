@@ -20,7 +20,7 @@
     "rootDir": "src",
     "baseUrl": "src",
     "noImplicitAny": false,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true
   },
   "include": [
