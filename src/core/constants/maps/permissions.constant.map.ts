@@ -225,6 +225,12 @@ export const permissionsConstantMap = {
     info: 'Controle das ausências dos colaboradores durante o expediente de trabalho',
     crud: ['c', 'r', 'u', 'd'],
   },
+  [PermissionEnum.ABSENTEEISM_METRICS]: {
+    value: PermissionEnum.ABSENTEEISM_METRICS,
+    label: 'Métricas de Absenteísmo',
+    info: 'Acesso aos dashboards e métricas de absenteísmo',
+    crud: ['r'],
+  },
   [PermissionEnum.SCHEDULE_BLOCK]: {
     value: PermissionEnum.SCHEDULE_BLOCK,
     label: 'Bloquear Prestadores (Feriados e etc...)',

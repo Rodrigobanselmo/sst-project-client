@@ -99,7 +99,10 @@ export const rolesConstantMap = {
     value: RoleEnum.ABSENTEEISM,
     label: 'Absenteísmo',
     info: 'Gerenciamento dos afastamentos e faltas da empresa',
-    permissions: [PermissionEnum.ABSENTEEISM],
+    permissions: [
+      PermissionEnum.ABSENTEEISM,
+      PermissionEnum.ABSENTEEISM_METRICS,
+    ],
     order: 3,
   },
   [RoleEnum.CAT]: {

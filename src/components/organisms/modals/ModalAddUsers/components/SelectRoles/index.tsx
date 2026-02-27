@@ -257,13 +257,22 @@ export const SelectRoles: FC<{ children?: any } & ISelectRolesSelects> = ({
                                     permission.split('-')[0] === pKey,
                                 )
                                 ?.includes(type);
+
+                              // Allow disabling 'r' if it's the only crud option for this permission
+                              const isOnlyReadPermission =
+                                permission.crud?.length === 1 &&
+                                permission.crud[0] === 'r';
+                              const shouldDisableRead =
+                                type === 'r' &&
+                                isChecked &&
+                                !isOnlyReadPermission;
+
                               return (
                                 <SCheckBox
-                                  {...(type === 'r' &&
-                                    isChecked && {
-                                      disabled: true,
-                                      checked: true,
-                                    })}
+                                  {...(shouldDisableRead && {
+                                    disabled: true,
+                                    checked: true,
+                                  })}
                                   key={type}
                                   label={text}
                                   checked={isChecked}

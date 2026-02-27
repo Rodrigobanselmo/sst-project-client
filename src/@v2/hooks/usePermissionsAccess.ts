@@ -24,9 +24,16 @@ export const usePermissionsAccess = () => {
 
   const isActionPlanResponsible = isActionPlan && !isCompany;
 
+  const isAbsenteeism = isAuthSuccess({
+    roles: [RoleEnum.ABSENTEEISM],
+  });
+
+  const isAbsenteeismOnly = isAbsenteeism && !isActionPlan;
+
   return {
     isActionPlanResponsible,
     isMasterAdmin,
     isCharacterizationManager,
+    isAbsenteeismOnly,
   };
 };

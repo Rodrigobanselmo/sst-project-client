@@ -132,7 +132,7 @@ export interface IRiskFactors {
   carnogenicityLinach?: string;
   activities?: RiskFactorActivities[];
   otherAppendix?: string;
-  synonymous?: string;
+  synonymous?: string[];
   grauInsalubridade?: GrauInsalubridadeEnum;
 
   isAso: boolean;

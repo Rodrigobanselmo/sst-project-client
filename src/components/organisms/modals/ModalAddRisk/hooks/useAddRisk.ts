@@ -254,7 +254,7 @@ export const useAddRisk = () => {
   }, [getModalData]);
 
   const onSubmit: SubmitHandler<
-    IRiskSchema & Partial<typeof initialAddRiskState>
+    IRiskSchema & Partial<typeof initialAddRiskState> & { synonymous?: string }
   > = async ({
     name,
     type,
@@ -282,6 +282,7 @@ export const useAddRisk = () => {
     activities,
     subType,
     grauInsalubridade,
+    synonymous,
   }) => {
     const {
       esocial,
@@ -293,6 +294,11 @@ export const useAddRisk = () => {
       isEmergency,
     } = riskData;
     const typeValue = type as RiskEnum;
+    const synonymousArray =
+      synonymous
+        ?.split(';')
+        .map((s: string) => s.trim())
+        .filter(Boolean) || [];
     const risk = {
       activities: activities?.filter((a) => a.description),
       id,
@@ -312,6 +318,7 @@ export const useAddRisk = () => {
       propagation: Array.isArray(propagation)
         ? propagation
         : propagation?.split(', ') || [],
+      synonymous: synonymousArray,
       esocial,
       unit,
       cas,

@@ -47,6 +47,7 @@ export enum PermissionEnum {
   PROF_RESP = '15',
   CAT = '16',
   ABSENTEEISM = '17',
+  ABSENTEEISM_METRICS = '17.1',
   SCHEDULE_BLOCK = '18',
   ALERT = '19',
   DOCUMENT_MODEL = '20',
