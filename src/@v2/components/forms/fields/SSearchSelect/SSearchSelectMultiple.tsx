@@ -138,12 +138,23 @@ export function SSearchSelectMultiple<T>({
                     border="1px solid"
                     borderColor={'primary.main'}
                     borderRadius={'4px'}
+                    maxWidth={350}
                   >
-                    <SText color="primary.main" fontSize={12}>
+                    <SText
+                      color="primary.main"
+                      fontSize={12}
+                      sx={{
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: 300,
+                      }}
+                      title={getOptionLabel(option) || ''}
+                    >
                       {getOptionLabel(option) || ''}
                     </SText>
                     <IconButton
-                      sx={{ height: 16, width: 16 }}
+                      sx={{ height: 16, width: 16, flexShrink: 0 }}
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();

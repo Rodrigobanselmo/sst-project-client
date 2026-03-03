@@ -243,7 +243,7 @@ export const useAddGho = () => {
       addSubOffice: true,
       lockWorkspace: false,
       workspaceIdsFilter: ghoQuery.workspaceIds,
-      workspaceId: ghoQuery.workspaceIds[0],
+      workspaceId: ghoQuery.workspaceIds?.[0],
 
       allHierarchiesIds: hierarchies
         .filter((h) =>

@@ -195,6 +195,27 @@ export const ModalUploadPhoto: FC<
     if (!isPhotoSelected)
       return enqueueSnackbar('Selecione uma imagem', { variant: 'error' });
 
+    // If editing existing photo (has id) and no file changes (only url), just update the name
+    if (
+      photoData.id &&
+      photoData.url &&
+      !photoData.files?.length &&
+      !completedCrop
+    ) {
+      setIsLoading(true);
+      try {
+        await photoData.onConfirm({
+          name: data.name,
+          id: String(photoData.id),
+        });
+        setIsLoading(false);
+        onClose();
+      } catch {
+        setIsLoading(false);
+      }
+      return;
+    }
+
     // Save file as-is without cropping/resizing (preserves transparency)
     if (photoData.saveAsIs && photoData.files?.[0]) {
       setIsLoading(true);
@@ -224,6 +245,7 @@ export const ModalUploadPhoto: FC<
     if (!completedCrop) {
       CropImage();
 
+      setIsLoading(true);
       if (canvasRef.current)
         canvasRef.current.toBlob(async (blob) => {
           if (blob) {
@@ -243,6 +265,7 @@ export const ModalUploadPhoto: FC<
               setIsLoading(false);
             }
           } else {
+            setIsLoading(false);
             onClose();
           }
         }, `image/${photoData.imageExtension}`);
@@ -382,6 +405,7 @@ export const ModalUploadPhoto: FC<
               canvasRef={canvasRef}
               onSelect={handleCrop}
               file={photoData.files?.[0]}
+              imageUrl={!photoData.files?.[0] ? photoData.url : undefined}
             />
             {/* <SButton onClick={handleRemove} xsmall color="error">
               Substituir

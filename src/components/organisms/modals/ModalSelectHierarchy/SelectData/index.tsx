@@ -4,6 +4,7 @@ import { Box, Divider } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
+import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import {
   selectHierarchySearch,
   setAddModalId,
@@ -31,6 +32,7 @@ import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { stringNormalize } from 'core/utils/strings/stringNormalize';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 import { initialHierarchySelectState } from '..';
 
@@ -198,35 +200,34 @@ export const ModalSelectHierarchyData: FC<
 
   if (workspaceSelected === undefined) return null;
 
+  const workspaceOptions = useMemo(() => {
+    const workspaces = company?.workspace || [];
+    const filtered = selectedData?.workspaceIdsFilter?.length
+      ? workspaces.filter((w) => selectedData.workspaceIdsFilter.includes(w.id))
+      : workspaces;
+    return filtered.sort((a, b) => sortString(a, b, 'name'));
+  }, [company?.workspace, selectedData?.workspaceIdsFilter]);
+
   return (
     <Box mt={8} maxHeight={'calc(95vh - 150px)'} overflow="auto">
       <SFlex direction="column" gap={5}>
-        <SFlex gap={4} align="center">
-          <SText mr={4}>Estabelecimento:</SText>
-          {company?.workspace?.map((workspace) => {
-            if (
-              selectedData?.workspaceIdsFilter?.length &&
-              !selectedData.workspaceIdsFilter.includes(workspace.id)
-            )
-              return null;
-            return (
-              <STagButton
-                bg={
-                  workspaceSelected.id === workspace.id
-                    ? 'info.main'
-                    : undefined
-                }
-                active={workspaceSelected.id === workspace.id}
-                key={workspace.id}
-                tooltipTitle={`filtar por ${workspace.name}`}
-                text={workspace.name}
-                large
-                onClick={() => onSelectWorkspace(workspace)}
-                disabled={selectedData.lockWorkspace}
-              />
-            );
-          })}
-        </SFlex>
+        <Box minWidth={300} maxWidth={400} mt={3}>
+          <SSearchSelect
+            value={workspaceSelected}
+            options={workspaceOptions}
+            label="Estabelecimento"
+            placeholder="Selecionar estabelecimento..."
+            disabled={selectedData.lockWorkspace}
+            getOptionLabel={(option: IWorkspace) => option.name}
+            getOptionValue={(option: IWorkspace) => option.id}
+            onChange={(option: IWorkspace | null) => {
+              if (selectedData.lockWorkspace) return;
+              if (option) {
+                onSelectWorkspace(option);
+              }
+            }}
+          />
+        </Box>
         <SFlex gap={10} mt={10}>
           <Box flex={1}>
             <SFlex gap={4} align="center">
