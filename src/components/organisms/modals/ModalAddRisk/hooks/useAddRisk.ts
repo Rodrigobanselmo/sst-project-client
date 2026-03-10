@@ -125,6 +125,8 @@ export const useAddRisk = () => {
 
     setValue('subType', subTypeId);
 
+    setValue('grauInsalubridade', risk?.grauInsalubridade ?? null);
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [risk]);
 
