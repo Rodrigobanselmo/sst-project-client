@@ -55,6 +55,7 @@ export function AutocompleteForm<T>({
             }}
             freeSolo={freeSolo}
             ListboxProps={{ sx: { fontSize: '14px' } } as any}
+            value={value ?? defaultValue}
             defaultValue={defaultValue}
             options={options}
             onChange={(e, v) => {
