@@ -26,6 +26,7 @@ import { useWindowSize } from 'core/hooks/useWindowSize';
 
 interface SCropImageProps {
   file?: File;
+  imageUrl?: string;
   freeAspect?: boolean;
   canCancel?: boolean;
   canvasRef: React.RefObject<HTMLCanvasElement | null>;
@@ -35,6 +36,7 @@ interface SCropImageProps {
 
 export default function SCropImage({
   file,
+  imageUrl,
   freeAspect,
   onSelect,
   maxHeight = 520,
@@ -62,8 +64,10 @@ export default function SCropImage({
   useEffect(() => {
     if (file) {
       readImageFile(file);
+    } else if (imageUrl) {
+      setImgSrc(imageUrl);
     }
-  }, [file]);
+  }, [file, imageUrl]);
 
   function onImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
     let aspectRatio = aspect;
