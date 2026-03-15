@@ -23,6 +23,7 @@ export const ModalAddWorkspace = () => {
     onCloseUnsaved,
     companyData,
     loading,
+    handleDelete,
   } = props;
 
   const buttons = [
@@ -33,6 +34,16 @@ export const ModalAddWorkspace = () => {
       type: 'submit',
       onClick: () => {},
     },
+    ...(companyData.id
+      ? [
+          {
+            text: 'Excluir',
+            variant: 'outlined' as const,
+            color: 'error' as const,
+            onClick: handleDelete,
+          },
+        ]
+      : []),
   ] as IModalButton[];
 
   return (

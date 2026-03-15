@@ -28,6 +28,7 @@ import { useModal } from 'core/hooks/useModal';
 import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 export const WorkspaceTable: FC<
   { children?: any } & BoxProps & { hideModal?: boolean }
@@ -90,7 +91,9 @@ export const WorkspaceTable: FC<
           <STableHRow justifyContent="center">Editar</STableHRow>
         </STableHeader>
         <STableBody<IWorkspace>
-          rowsData={data.workspace || []}
+          rowsData={[...(data.workspace || [])].sort((a, b) =>
+            sortString(a, b, 'name'),
+          )}
           renderRow={(row) => {
             return (
               <STableRow key={row.id}>

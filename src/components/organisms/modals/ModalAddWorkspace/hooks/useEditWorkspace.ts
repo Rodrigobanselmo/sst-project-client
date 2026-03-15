@@ -17,6 +17,7 @@ import {
   IUpdateCompany,
   useMutUpdateCompany,
 } from 'core/services/hooks/mutations/manager/company/useMutUpdateCompany';
+import { useMutDeleteWorkspace } from 'core/services/hooks/mutations/manager/company/useMutDeleteWorkspace';
 import { workspaceSchema } from 'core/utils/schemas/workspace.schema';
 import { useMutAddWorkspacePhoto } from 'core/services/hooks/mutations/manager/company/useMutAddWorkspacePhoto';
 import { initialPhotoState } from 'components/organisms/modals/ModalUploadPhoto';
@@ -69,10 +70,11 @@ export const useEditWorkspace = () => {
   });
 
   const updateMutation = useMutUpdateCompany();
+  const deleteWorkspaceMutation = useMutDeleteWorkspace();
   const cepMutation = useMutationCEP();
   const addPhotoMutation = useMutAddWorkspacePhoto();
 
-  const { preventUnwantedChanges } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete } = usePreventAction();
 
   const [companyData, setCompanyData] = useState({
     ...initialWorkspaceState,
@@ -232,6 +234,18 @@ export const useEditWorkspace = () => {
     onClose();
   };
 
+  const handleDelete = () => {
+    preventDelete(
+      async () => {
+        if (!companyData.id) return;
+        await deleteWorkspaceMutation.mutateAsync({ workspaceId: companyData.id });
+        onClose();
+      },
+      'Deseja realmente excluir este estabelecimento? Ele não aparecerá mais nas listagens.',
+      { confirmText: 'Excluir' },
+    );
+  };
+
   const handleAddPhoto = () => {
     onStackOpenModal(ModalEnum.UPLOAD_PHOTO, {
       name: 'Logo do estabelecimento',
@@ -272,7 +286,7 @@ export const useEditWorkspace = () => {
     companyData,
     onSubmit,
     setValue,
-    loading: updateMutation.isLoading || cnpjMutation.isLoading,
+    loading: updateMutation.isLoading || deleteWorkspaceMutation.isLoading || cnpjMutation.isLoading,
     loadingCep: cepMutation.isLoading,
     loadingCnpj: cnpjMutation.isLoading,
     control,
@@ -281,6 +295,7 @@ export const useEditWorkspace = () => {
     onChangeCep,
     onChangeCnpj,
     handleAddPhoto,
+    handleDelete,
   };
 };
 

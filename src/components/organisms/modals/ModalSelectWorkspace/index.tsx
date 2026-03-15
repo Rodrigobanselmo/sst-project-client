@@ -17,6 +17,7 @@ import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { sortString } from 'core/utils/sorts/string.sort';
 
 export const initialWorkspaceSelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -141,7 +142,9 @@ export const ModalSelectWorkspace: FC = () => {
               <SText mt={-4} mr={40}>
                 {selectData.title}
               </SText>
-              {company.workspace.map((work) => (
+              {[...(company.workspace || [])]
+                .sort((a, b) => sortString(a, b, 'name'))
+                .map((work) => (
                 <STableRow clickable onClick={handleSelect(work)} key={work.id}>
                   <SFlex align="center">
                     <Checkbox
