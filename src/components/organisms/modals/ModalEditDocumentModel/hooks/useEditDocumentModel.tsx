@@ -21,6 +21,7 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
 import { useMutCreateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutCreateDocumentModel/useMutCreateDocumentModel';
 import { useMutUpdateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutUpdateDocumentModel/useMutUpdateDocumentModel';
+import { useMutDeleteDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutDeleteDocumentModel/useMutDeleteDocumentModel';
 import { useQueryDocumentModel } from 'core/services/hooks/queries/useQueryDocumentModel/useQueryDocumentModel';
 import { useQueryDocumentModelData } from 'core/services/hooks/queries/useQueryDocumentModelData/useQueryDocumentModelData';
 
@@ -61,6 +62,7 @@ export const useEditDocumentModel = () => {
 
   const createMutation = useMutCreateDocumentModel();
   const updateMutation = useMutUpdateDocumentModel();
+  const deleteMutation = useMutDeleteDocumentModel();
 
   const { data: model, isLoading: isLoadingModel } = useQueryDocumentModel(
     data.id,
@@ -239,6 +241,18 @@ export const useEditDocumentModel = () => {
       }));
   };
 
+  const handleDelete = () => {
+    preventDelete(
+      async () => {
+        if (!data.id || !data.companyId) return;
+        await deleteMutation.mutateAsync({ id: data.id, companyId: data.companyId });
+        onClose();
+      },
+      'Deseja realmente excluir este modelo de documento? Ele não aparecerá mais na listagem.',
+      { confirmText: 'Excluir' },
+    );
+  };
+
   return {
     registerModal,
     onClose: onCloseUnsaved,
@@ -248,7 +262,8 @@ export const useEditDocumentModel = () => {
       isLoading ||
       isLoadingModel ||
       createMutation.isLoading ||
-      updateMutation.isLoading,
+      updateMutation.isLoading ||
+      deleteMutation.isLoading,
     modalName,
     model: modelData,
     isEdit,
@@ -256,6 +271,7 @@ export const useEditDocumentModel = () => {
     createMutation,
     setChangedState,
     dispatch,
+    handleDelete,
   };
 };
 

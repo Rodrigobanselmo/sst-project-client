@@ -22,6 +22,16 @@ export const DataStep = (data: IUseDocumentModel) => {
       variant: 'contained',
       onClick: () => onSubmit(),
     },
+    ...(data.isEdit && data.handleDelete
+      ? [
+          {
+            text: 'Excluir',
+            variant: 'outlined' as const,
+            color: 'error' as const,
+            onClick: data.handleDelete,
+          },
+        ]
+      : []),
   ] as IModalButton[];
 
   return (
