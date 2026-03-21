@@ -1,7 +1,7 @@
 import { css } from '@emotion/react';
 import { styled, Box } from '@mui/material';
 
-import { STGridExtend } from '../../styles';
+import { STGridExtend } from '../../RiskTool.styles';
 
 export const STGridItem = styled(STGridExtend)<{
   selected?: number;

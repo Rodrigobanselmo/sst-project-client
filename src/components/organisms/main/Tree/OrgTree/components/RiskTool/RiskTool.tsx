@@ -49,7 +49,11 @@ import { RiskToolRiskView } from './components/RiskToolViews/RiskToolRiskView';
 import { IHierarchyTreeMapObject } from './components/RiskToolViews/RiskToolRiskView/types';
 import { SideSelectViewContent } from './components/SideSelectViewContent';
 import { useOpenRiskTool } from './hooks/useOpenRiskTool';
-import { STBoxContainer, STBoxStack, STTableContainer } from './styles';
+import {
+  STBoxContainer,
+  STBoxStack,
+  STTableContainer,
+} from './RiskTool.styles';
 import {
   IViewsDataOption,
   ViewsDataEnum,
@@ -59,7 +63,7 @@ import {
   ViewTypeEnum,
 } from './utils/view-risk-type.constant';
 
-export const RiskToolSlider = ({ riskGroupId }: { riskGroupId?: string }) => {
+export const RiskTool = ({ riskGroupId }: { riskGroupId?: string }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data: ghoQuery } = useQueryGHOAll();

@@ -1,7 +1,7 @@
 import { Box, styled } from '@mui/material';
 import { SInput } from 'components/atoms/SInput';
 
-import { STGridExtend } from '../../styles';
+import { STGridExtend } from '../../RiskTool.styles';
 
 export const STGridItem = styled(STGridExtend)`
   p {

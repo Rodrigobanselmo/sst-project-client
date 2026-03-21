@@ -8,7 +8,7 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { RiskToolSlider } from 'components/organisms/main/Tree/OrgTree/components/RiskTool';
+import { RiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/RiskTool';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
@@ -103,7 +103,7 @@ export const ModalAddCharacterization = () => {
             buttons={buttons}
           />
         </SModalPaper>
-        {isRiskOpen && <RiskToolSlider />}
+        {isRiskOpen && <RiskTool />}
       </>
     </SModal>
   );

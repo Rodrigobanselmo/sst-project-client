@@ -20,7 +20,7 @@ import { GhoTool } from './components/GhoTool';
 import { HierarchyFilter } from './components/GhoTool/components/HierarchyFilter';
 import { LoadingFeedback } from './components/LoadingFeedback';
 import { MouseControl } from './components/MouseControl';
-import { RiskToolSlider } from './components/RiskTool';
+import { RiskTool } from './components/RiskTool/RiskTool';
 import { IOrgTreeProps } from './interfaces';
 import { OrgTree, OrgTreeContainer, STGhoBox } from './OrgTree.styles';
 
@@ -106,7 +106,7 @@ export const OrgTreeComponent: FC<{ children?: any } & IOrgTreeProps> = ({
           gho={isGhoOpen ? 1 : 0}
           risk_init={isRiskOpen ? 1 : 0}
         >
-          {isRiskOpen && <RiskToolSlider />}
+          {isRiskOpen && <RiskTool />}
           {!isRiskOpen && <GhoTool />}
         </STGhoBox>
       )}

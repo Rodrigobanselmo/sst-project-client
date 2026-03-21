@@ -2,7 +2,7 @@ import React from 'react';
 
 import SModal from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { RiskToolSlider } from 'components/organisms/main/Tree/OrgTree/components/RiskTool';
+import { RiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/RiskTool';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
 import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
@@ -40,7 +40,7 @@ export const ModalRiskTool = () => {
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
-      <RiskToolSlider riskGroupId={data.riskGroupId} />
+      <RiskTool riskGroupId={data.riskGroupId} />
     </SModal>
   );
 };

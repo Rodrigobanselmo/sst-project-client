@@ -4,7 +4,7 @@ import { SInput } from 'components/atoms/SInput';
 
 import SArrowUpFilterIcon from 'assets/icons/SArrowUpFilterIcon';
 
-import { STGridExtend } from '../../styles';
+import { STGridExtend } from '../../RiskTool.styles';
 
 export const STGridItem = styled(STGridExtend)`
   p {

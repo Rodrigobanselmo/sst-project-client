@@ -32,7 +32,7 @@ import {
   TreeTypeEnum,
 } from '../../../../enums/tree-type.enums';
 import { useListHierarchy } from '../../hooks/useListHierarchy';
-import { StyledGridMultiGho } from '../../styles';
+import { StyledGridMultiGho } from '../../RiskTool.styles';
 import {
   ViewsDataEnum,
   viewsDataOptionsConstant,
