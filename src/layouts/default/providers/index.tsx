@@ -32,6 +32,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DynamicThemeProvider } from './DynamicThemeProvider';
 import { GlobalLoadingScreen } from './GlobalLoadingScreen';
+import { AIChatProvider } from '@v2/features/ai-chat';
 
 const QueryClientProviderComponent = OldQueryClientProvider as any;
 
@@ -80,8 +81,10 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
                   <AuthProvider>
                     <GlobalLoadingScreen>
                       <DynamicThemeProvider>
-                        <ReactQueryDevtools initialIsOpen={false} />
-                        <KBarProvider>{children}</KBarProvider>
+                        {/* <ReactQueryDevtools initialIsOpen={false} /> */}
+                        <AIChatProvider>
+                          <KBarProvider>{children}</KBarProvider>
+                        </AIChatProvider>
                         <OldReactQueryDevtools />
                       </DynamicThemeProvider>
                     </GlobalLoadingScreen>

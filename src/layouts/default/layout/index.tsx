@@ -26,6 +26,7 @@ import { setIsRouteLoading } from '../../../store/reducers/routeLoad/routeLoadSl
 import { DashboardLayout } from '../../dashboard';
 import DefaultModal from '../modal';
 import { SModal } from '@v2/components/organisms/SModal/SModal';
+import { AIChatToggleButton } from '@v2/features/ai-chat';
 
 const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
   useRedirectDetect();
@@ -82,6 +83,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <ModalReportSelect />
       <ModalReport />
       <ModalBlank />
+      <AIChatToggleButton />
     </main>
   );
 };

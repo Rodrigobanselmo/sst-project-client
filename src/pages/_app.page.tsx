@@ -3,6 +3,7 @@ import '../core/styles/react-datepicker.css';
 import '../core/styles/cronStyles.css';
 import '../core/styles/react-draft-wysiwyg.css';
 import 'dayjs/locale/pt-br';
+import '../@v2/features/ai-chat/styles/ai-chat-variables.css';
 import { Analytics } from '@vercel/analytics/react';
 import * as dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
