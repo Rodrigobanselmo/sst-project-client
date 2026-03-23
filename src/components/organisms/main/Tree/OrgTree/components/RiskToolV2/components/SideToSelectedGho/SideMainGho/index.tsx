@@ -35,8 +35,6 @@ export const SideMainGho: FC<{ children?: any } & SideItemsProps> = ({
     if (data.description) {
       const splitValues = data.description.split('(//)');
       if (splitValues[1]) {
-        if (viewDataType == ViewsDataEnum.ENVIRONMENT)
-          return (environmentMap as any)[splitValues[1]]?.name;
         if (viewDataType == ViewsDataEnum.CHARACTERIZATION)
           return (characterizationMap as any)[splitValues[1]]?.name;
       }

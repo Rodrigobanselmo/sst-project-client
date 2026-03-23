@@ -74,12 +74,6 @@ export const SideSelectViewContent: FC<
 
     const ghoQueryData = ghoQuery;
 
-    if (viewDataType == ViewsDataEnum.ENVIRONMENT) {
-      return ghoQueryData.filter(
-        (gho) => gho.type === HomoTypeEnum.ENVIRONMENT,
-      );
-    }
-
     if (viewDataType === ViewsDataEnum.CHARACTERIZATION)
       return ghoQueryData.filter(
         (gho) =>
@@ -87,6 +81,7 @@ export const SideSelectViewContent: FC<
           [
             HomoTypeEnum.WORKSTATION,
             HomoTypeEnum.EQUIPMENT,
+            HomoTypeEnum.ENVIRONMENT,
             HomoTypeEnum.ACTIVITIES,
           ].includes(gho.type),
       );

@@ -56,15 +56,12 @@ export const RiskToolRiskGhoView: FC<
     const ghoFilteredList = ghoQuery.filter((gho) => {
       if (viewDataType === ViewsDataEnum.GSE) return !gho.type;
 
-      if (viewDataType === ViewsDataEnum.ENVIRONMENT) {
-        return gho.type === HomoTypeEnum.ENVIRONMENT;
-      }
-
       if (viewDataType === ViewsDataEnum.CHARACTERIZATION)
         return (
           gho?.type &&
           [
             HomoTypeEnum.WORKSTATION,
+            HomoTypeEnum.ENVIRONMENT,
             HomoTypeEnum.EQUIPMENT,
             HomoTypeEnum.ACTIVITIES,
           ].includes(gho.type)
