@@ -105,10 +105,17 @@ export const HierarchySelect: FC<
           h.type === activeFilters[0] &&
           (!parentId || (parentId && h.parents.find((p) => p.id === parentId))),
       );
-    (!activeFilters ||
+
+    if (
+      !activeFilters ||
       (filterOptions && filterOptions?.length > 1) ||
-      allFilters) &&
-      setAllFilterTypes(typesSelected);
+      allFilters
+    ) {
+      if (
+        Object.keys(allFilterTypes).length !== Object.keys(typesSelected).length
+      )
+        setAllFilterTypes(typesSelected);
+    }
 
     if (!list) return [];
     if (selectedId)
