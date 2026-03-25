@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { initialAutomateSubOfficeState } from 'components/organisms/modals/ModalAutomateSubOffice/hooks/useHandleActions';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
@@ -8,7 +8,6 @@ import { useRouter } from 'next/router';
 import { setGhoMultiState } from 'store/reducers/hierarchy/ghoMultiSlice';
 import {
   selectGhoId,
-  selectGhoOpen,
   setGhoFilterValues,
   setGhoSearch,
   setGhoSearchSelect,
@@ -25,18 +24,17 @@ import {
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
+import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
-import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
-import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
@@ -46,9 +44,7 @@ import { queryClient } from 'core/services/queryClient';
 import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
-import { RiskToolRiskView } from './components/RiskToolViews/RiskToolRiskView';
 import { IHierarchyTreeMapObject } from './components/RiskToolViews/RiskToolRiskView/types';
-import { SideSelectViewContent } from './components/SideSelectViewContent';
 import { useOpenRiskTool } from './hooks/useOpenRiskTool';
 import {
   STBoxContainer,

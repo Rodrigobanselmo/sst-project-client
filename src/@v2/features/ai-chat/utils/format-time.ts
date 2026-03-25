@@ -2,9 +2,9 @@
  * Format a date to a time string like "1:45 PM"
  */
 export function formatTime(date: Date): string {
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
+  return date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
     hour12: true,
   });
 }
@@ -13,12 +13,12 @@ export function formatTime(date: Date): string {
  * Format a date to a full date/time string for tooltips
  */
 export function formatFullDateTime(date: Date): string {
-  return date.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
     hour12: true,
   });
 }
@@ -35,17 +35,17 @@ export function formatRelativeTime(date: Date): string {
 
   // Less than 1 minute
   if (diffSeconds < 60) {
-    return "just now";
+    return 'agora';
   }
 
   // Less than 1 hour
   if (diffMinutes < 60) {
-    return `${diffMinutes} min ago`;
+    return `${diffMinutes} minutos atrás`;
   }
 
   // Less than 24 hours
   if (diffHours < 24) {
-    return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
+    return diffHours === 1 ? '1 hora atrás' : `${diffHours} horas atrás`;
   }
 
   // More than 24 hours - show the actual time
@@ -63,12 +63,12 @@ export function getDateLabel(date: Date): string {
   const isToday = isSameDay(date, today);
   const isYesterday = isSameDay(date, yesterday);
 
-  if (isToday) return "Today";
-  if (isYesterday) return "Yesterday";
+  if (isToday) return 'Hoje';
+  if (isYesterday) return 'Ontem';
 
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
   });
 }
 
@@ -88,7 +88,7 @@ function isSameDay(date1: Date, date2: Date): boolean {
  */
 export function shouldShowDateSeparator(
   currentDate: Date,
-  previousDate: Date | null
+  previousDate: Date | null,
 ): boolean {
   if (!previousDate) return true;
   return !isSameDay(currentDate, previousDate);

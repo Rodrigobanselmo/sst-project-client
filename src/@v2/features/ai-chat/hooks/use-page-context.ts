@@ -6,6 +6,8 @@ export interface PageContext {
   companyId?: string;
   /** The current route path */
   path?: string;
+  /** Selected homogeneous group ID from URL query params */
+  homogeneousGroupId?: string;
 }
 
 /**
@@ -17,10 +19,12 @@ export function usePageContext(): PageContext {
 
   return useMemo(() => {
     const companyId = router.query.companyId as string | undefined;
+    const ghoId = router.query.ghoId as string | undefined;
 
     return {
       companyId: companyId || undefined,
+      homogeneousGroupId: ghoId || undefined,
       path: router.pathname || undefined,
     };
-  }, [router.query.companyId, router.pathname]);
+  }, [router.query.companyId, router.query.ghoId, router.pathname]);
 }
