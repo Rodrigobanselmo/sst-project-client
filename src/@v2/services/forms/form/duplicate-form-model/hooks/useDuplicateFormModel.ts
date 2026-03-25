@@ -15,16 +15,19 @@ export function useDuplicateFormModel() {
       variables.companyId,
     ],
     onSuccess: () =>
-      onSuccessMessage('Modelo duplicado. Você pode ajustar o novo formulário.'),
+      onSuccessMessage(
+        'Modelo duplicado. Você pode ajustar o novo formulário.',
+      ),
     onError: (error) => {
-      const status = (error as AxiosError)?.response?.status;
+      const axiosError = error as AxiosError;
+      const status = axiosError?.response?.status;
       if (status === 404) {
         onErrorMessage(
           'Serviço de duplicação não encontrado ou modelo indisponível. Confirme se a API está atualizada e tente de novo.',
         );
         return;
       }
-      onErrorMessage(error as IErrorResp);
+      onErrorMessage(axiosError as unknown as IErrorResp);
     },
   });
 }
