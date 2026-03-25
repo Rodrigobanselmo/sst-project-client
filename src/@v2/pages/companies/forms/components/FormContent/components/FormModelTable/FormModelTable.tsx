@@ -20,6 +20,14 @@ import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.tra
 import { orderByFormModelTranslation } from '@v2/models/form/translations/orden-by-form-model.translation';
 import { FormModelTableFilter } from './components/FormApplicationTableFilter/FormApplicationTableFilter';
 import { SFormModelTable } from '@v2/components/organisms/STable/implementation/SFormModelTable/SFormModelTable';
+import ContentCopyOutlined from '@mui/icons-material/ContentCopyOutlined';
+import NoteAddOutlined from '@mui/icons-material/NoteAddOutlined';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import Menu from '@mui/material/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import { useRef, useState } from 'react';
+import { FormModelDuplicateDialog } from './components/FormModelDuplicateDialog/FormModelDuplicateDialog';
 
 const limit = 15;
 
@@ -27,6 +35,10 @@ export const FormModelTable = ({ companyId }: { companyId: string }) => {
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<FormModelColumnsEnum, boolean>
   >(persistKeys.COLUMNS_FORMS_MODEL, {} as any);
+
+  const addMenuAnchorRef = useRef<HTMLDivElement>(null);
+  const [addMenuAnchor, setAddMenuAnchor] = useState<null | HTMLElement>(null);
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
 
   const { onFormModelAdd, onFormModelClick } = useFormModelActions({
     companyId,
@@ -91,7 +103,48 @@ export const FormModelTable = ({ companyId }: { companyId: string }) => {
         onSearch={(search) => onFilterData({ search })}
       >
         <STableSearchContent>
-          <STableAddButton onClick={onFormModelAdd} />
+          <div ref={addMenuAnchorRef}>
+            <STableAddButton
+              onClick={() =>
+                setAddMenuAnchor(addMenuAnchorRef.current)
+              }
+            />
+          </div>
+          <Menu
+            anchorEl={addMenuAnchor}
+            open={Boolean(addMenuAnchor)}
+            onClose={() => setAddMenuAnchor(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+          >
+            <MenuItem
+              onClick={() => {
+                setAddMenuAnchor(null);
+                onFormModelAdd();
+              }}
+            >
+              <ListItemIcon>
+                <NoteAddOutlined fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Formulário em branco" />
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setAddMenuAnchor(null);
+                setDuplicateDialogOpen(true);
+              }}
+            >
+              <ListItemIcon>
+                <ContentCopyOutlined fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Copiar modelo existente" />
+            </MenuItem>
+          </Menu>
+          <FormModelDuplicateDialog
+            open={duplicateDialogOpen}
+            onClose={() => setDuplicateDialogOpen(false)}
+            companyId={companyId}
+          />
           <STableColumnsButton
             showLabel
             hiddenColumns={hiddenColumns}
