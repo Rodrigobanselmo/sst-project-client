@@ -18,6 +18,7 @@ const DashboardLayoutContent: FC<React.PropsWithChildren<any>> = ({
 }) => {
   const { asPath } = useRouter();
   const { isOpen, panelWidth } = useAIChat();
+  const isAIChatEnabled = process.env.NEXT_PUBLIC_ENABLE_AI_CHAT === 'true';
 
   if (asPath.includes(RoutesEnum.ONBOARD))
     return (
@@ -42,16 +43,22 @@ const DashboardLayoutContent: FC<React.PropsWithChildren<any>> = ({
       <KBarRegisterDashboard />
       <SidebarDrawerProvider>
         <Global styles={globalStylesDashboard} />
-        <STGridBox p={2} pl={0} ai_chat_width={isOpen ? panelWidth + 5 : 0}>
+        <STGridBox
+          p={2}
+          pl={0}
+          ai_chat_width={isAIChatEnabled && isOpen ? panelWidth + 5 : 0}
+        >
           <STBoxSidebar>
             <Sidebar />
           </STBoxSidebar>
           <STBoxContent borderRadius={3}>
             <DashboardLoadingFeedback>{children}</DashboardLoadingFeedback>
           </STBoxContent>
-          <STBoxAIChat>
-            <AIChatSidebar />
-          </STBoxAIChat>
+          {isAIChatEnabled && (
+            <STBoxAIChat>
+              <AIChatSidebar />
+            </STBoxAIChat>
+          )}
         </STGridBox>
       </SidebarDrawerProvider>
     </>

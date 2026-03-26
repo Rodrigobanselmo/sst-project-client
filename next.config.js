@@ -32,6 +32,7 @@ const nextConfig = {
     NEXT_PUBLIC_APP_ID: process.env.NEXT_PUBLIC_APP_ID,
     NEXT_PUBLIC_BASE_URL_API: process.env.NEXT_PUBLIC_BASE_URL_API,
     NEXT_PUBLIC_MEASUREMENT_ID: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
+    NEXT_PUBLIC_ENABLE_AI_CHAT: process.env.NEXT_PUBLIC_ENABLE_AI_CHAT,
   },
   images: {
     remotePatterns: [
