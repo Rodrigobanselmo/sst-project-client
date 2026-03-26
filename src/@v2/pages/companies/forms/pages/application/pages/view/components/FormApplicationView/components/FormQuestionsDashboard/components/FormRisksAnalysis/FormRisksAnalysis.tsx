@@ -41,6 +41,7 @@ import {
 } from '@mui/material';
 import { formRiskCustomPrompt } from './custim-prompt';
 import { HomoTypeEnum } from '@v2/models/security/enums/homo-type.enum';
+import { getMatrizRisk } from 'core/utils/helpers/matriz';
 
 interface FormRisksAnalysisProps {
   formApplication: FormApplicationReadModel;
@@ -83,6 +84,38 @@ export const probabilityMap: Record<number, { label: string; color: string }> =
     5: { label: 'Excessiva', color: '#F44336' },
     0: { label: 'não contabilizar', color: '#eeeeee' },
   };
+
+const severityMap: Record<number, { label: string; color: string }> = {
+  1: { label: 'Desprezível', color: '#3cbe7d' },
+  2: { label: 'Pequena', color: '#8fa728' },
+  3: { label: 'Moderada', color: '#d9d10b' },
+  4: { label: 'Significante', color: '#d96c2f' },
+  5: { label: 'Excessiva', color: '#F44336' },
+  0: { label: 'Não informado', color: '#eeeeee' },
+};
+
+const occupationalRiskColorMap: Record<string, string> = {
+  'Muito Baixo': '#3cbe7d',
+  Baixo: '#8fa728',
+  Moderado: '#d9d10b',
+  Alto: '#d96c2f',
+  'Muito Alto': '#F44336',
+  'Não informado': '#eeeeee',
+};
+
+const formatTwoDigits = (n: number) => String(n).padStart(2, '0');
+
+const isValidMatrixValue = (n: unknown): n is number =>
+  typeof n === 'number' && Number.isFinite(n) && n >= 1 && n <= 5;
+
+const badgeSx = (bg: string) => ({
+  backgroundColor: bg,
+  padding: '4px 8px',
+  borderRadius: 1,
+  border: '1px solid',
+  borderColor: 'grey.200',
+  minWidth: 180,
+});
 
 export const FormRisksAnalysis = ({
   formApplication,
@@ -709,6 +742,25 @@ export const FormRisksAnalysis = ({
                     {entitiesWithRisk.map((entityId) => {
                       const entity = entityMap[entityId];
                       const riskData = entityRiskMap[entityId][riskId];
+                      const severity = risk?.severity;
+                      const probability = riskData?.probability;
+
+                      const hasValidSeverity = isValidMatrixValue(severity);
+                      const hasValidProbability = isValidMatrixValue(probability);
+
+                      const matriz =
+                        hasValidSeverity && hasValidProbability
+                          ? getMatrizRisk(severity, probability)
+                          : null;
+
+                      // UX: a matriz tem nível 6 ("Interromper"), mas a padronização desta tela
+                      // exige no máximo "Muito Alto".
+                      const occupationalRiskLabel =
+                        !matriz || matriz.level === 0
+                          ? 'Não informado'
+                          : matriz.level >= 5
+                            ? 'Muito Alto'
+                            : matriz.label;
 
                       return (
                         <Box
@@ -772,26 +824,53 @@ export const FormRisksAnalysis = ({
                             <SFlex
                               center
                               sx={{
-                                minWidth: 200,
-                                backgroundColor:
-                                  probabilityMap[riskData.probability || 0]
-                                    .color,
-                                padding: '4px 8px',
-                                borderRadius: 1,
+                                ml: 'auto',
+                                gap: 2,
+                                flexWrap: 'wrap',
                               }}
                             >
-                              <Typography
-                                variant="body2"
-                                color="text.main"
-                                mb={1}
+                              <Box sx={badgeSx(probabilityMap[probability || 0].color)}>
+                                <Typography variant="body2" color="text.main">
+                                  Probabilidade:{' '}
+                                  {hasValidProbability
+                                    ? `${formatTwoDigits(probability)} ${probabilityMap[probability].label}`
+                                    : 'Não informado'}
+                                </Typography>
+                              </Box>
+
+                              <Box
+                                sx={badgeSx(
+                                  hasValidSeverity
+                                    ? severityMap[severity].color
+                                    : severityMap[0].color,
+                                )}
                               >
-                                Probabilidade: {riskData.probability} (
-                                {
-                                  probabilityMap[riskData.probability || 0]
-                                    .label
-                                }
-                                )
-                              </Typography>
+                                <Typography variant="body2" color="text.main">
+                                  Severidade:{' '}
+                                  {hasValidSeverity
+                                    ? `${formatTwoDigits(severity)} ${severityMap[severity].label}`
+                                    : 'Não informado'}
+                                </Typography>
+                              </Box>
+
+                              <Box
+                                sx={{
+                                  ...badgeSx(
+                                    occupationalRiskColorMap[
+                                      occupationalRiskLabel
+                                    ] ?? occupationalRiskColorMap['Não informado'],
+                                  ),
+                                  borderColor: 'grey.400',
+                                }}
+                              >
+                                <Typography
+                                  variant="body2"
+                                  color="text.main"
+                                  fontWeight={600}
+                                >
+                                  Risco Ocupacional: {occupationalRiskLabel}
+                                </Typography>
+                              </Box>
                             </SFlex>
                           </SFlex>
                           {/* AI Analysis Results for this specific risk-entity combination */}

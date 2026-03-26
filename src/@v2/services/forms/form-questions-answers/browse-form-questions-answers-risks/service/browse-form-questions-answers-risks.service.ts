@@ -22,6 +22,7 @@ export type Result = {
     {
       id: string;
       name: string;
+      severity: number;
       type: RiskTypeEnum;
       subTypes: { sub_type: { id: number; name: string } }[];
     }
