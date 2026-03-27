@@ -741,7 +741,15 @@ export const FormQuestionsDashboard = ({
                 py: 5,
               }}
             >
-              <Box sx={{ display: 'flex' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                }}
+              >
                 <SSwitch
                   label="Mostrar apenas indicadores de grupo"
                   value={showOnlyGroupIndicators}
@@ -756,6 +764,61 @@ export const FormQuestionsDashboard = ({
                     },
                   }}
                 />
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      companyId: formApplication.companyId,
+                      applicationId: formApplication.id,
+                    });
+                    if (selectedGroupingQuestion) {
+                      params.set('groupBy', selectedGroupingQuestion);
+                    }
+                    params.set(
+                      'showOnlyGroupIndicators',
+                      String(showOnlyGroupIndicators),
+                    );
+                    window.open(
+                      `/api/pdf/forms/indicators?${params.toString()}`,
+                      '_blank',
+                      'noopener,noreferrer',
+                    );
+                  }}
+                >
+                  Exportar PDF (Indicadores)
+                </Button>
+              </Box>
+            </SPaper>
+          )}
+
+          {isGraphsTab && (
+            <SPaper
+              sx={{
+                mt: 5,
+                p: 10,
+                py: 5,
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      companyId: formApplication.companyId,
+                      applicationId: formApplication.id,
+                    });
+                    if (selectedGroupingQuestion) {
+                      params.set('groupBy', selectedGroupingQuestion);
+                    }
+                    window.open(
+                      `/api/pdf/forms/charts?${params.toString()}`,
+                      '_blank',
+                      'noopener,noreferrer',
+                    );
+                  }}
+                >
+                  Exportar PDF (Gráficos)
+                </Button>
               </Box>
             </SPaper>
           )}
