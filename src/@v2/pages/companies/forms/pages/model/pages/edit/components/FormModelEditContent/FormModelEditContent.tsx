@@ -1,6 +1,10 @@
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
+import { Box } from '@mui/material';
+import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SForm } from '@v2/components/forms/providers/SFormProvide';
+import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { validateFormOptions } from '@v2/pages/companies/forms/utils/validate-form-options';
+import { useMutateDeleteFormModel } from '@v2/services/forms/form/delete-form-model/hooks/useMutateDeleteFormModel';
 import { useMutateEditFormModel } from '@v2/services/forms/form/edit-form-model/hooks/useMutateEditFormModel';
 import { useForm } from 'react-hook-form';
 import {
@@ -18,6 +22,7 @@ import { FormModelInfo } from '@v2/pages/companies/forms/pages/model/components/
 import { FormModelGroup } from '@v2/pages/companies/forms/pages/model/components/FormModelGroup/FormModelGroup';
 import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
 import { questionsIndicatorMapOptions } from '@v2/pages/companies/forms/components/SFormQuestionAccordion/components/SFormQuestionAccordionBody/components/QuestionOptionsManager/QuestionOptionsManager';
+import { useAccess } from 'core/hooks/useAccess';
 
 export const FormModelEditContent = ({
   companyId,
@@ -27,6 +32,7 @@ export const FormModelEditContent = ({
   form: FormReadModel;
 }) => {
   const router = useAppRouter();
+  const { isMaster } = useAccess();
 
   const formHook = useForm<IFormModelForms>({
     resolver: yupResolver(schemaFormModelForms),
@@ -77,6 +83,8 @@ export const FormModelEditContent = ({
   });
 
   const editFormMutation = useMutateEditFormModel();
+  const deleteFormMutation = useMutateDeleteFormModel();
+  const { showConfirmation } = useConfirmationModal();
 
   const onSubmit = async (data: IFormModelForms) => {
     formHook.clearErrors();
@@ -104,6 +112,27 @@ export const FormModelEditContent = ({
     });
   };
 
+  const onDelete = async () => {
+    const confirmed = await showConfirmation({
+      title: 'Excluir modelo de formulário',
+      message: `Tem certeza que deseja excluir o modelo "${form.name}"?`,
+      confirmText: 'Excluir',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    await deleteFormMutation.mutateAsync({
+      companyId,
+      formId: form.id,
+    });
+
+    router.push(PageRoutes.FORMS.FORMS_MODEL.LIST, {
+      pathParams: { companyId },
+    });
+  };
+
   return (
     <SForm form={formHook}>
       <FormModelInfo containerProps={{ mb: 16 }} isEdit={true} />
@@ -115,6 +144,18 @@ export const FormModelEditContent = ({
         errors={formHook.formState.errors}
         loading={editFormMutation.isPending}
       />
+      {(!form.system || isMaster) && (
+        <Box mt={4} display="flex" justifyContent="flex-end">
+          <SButton
+            text={deleteFormMutation.isPending ? 'Excluindo...' : 'Excluir modelo'}
+            onClick={onDelete}
+            color="danger"
+            variant="outlined"
+            loading={deleteFormMutation.isPending}
+            buttonProps={{ sx: { width: '200px' } }}
+          />
+        </Box>
+      )}
     </SForm>
   );
 };
