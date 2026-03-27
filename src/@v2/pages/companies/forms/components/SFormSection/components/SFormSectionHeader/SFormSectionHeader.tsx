@@ -1,3 +1,5 @@
+import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
+import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
 import { Box, Stack } from '@mui/material';
 import { SIconDelete } from '@v2/assets/icons';
 import { SIconAdd } from '@v2/assets/icons/SIconAdd/SIconAdd';
@@ -18,6 +20,8 @@ interface SFormSectionProps {
   sectionNumber: number;
   children: React.ReactNode;
   onDeleteSection?: () => void;
+  onMoveSectionUp?: () => void;
+  onMoveSectionDown?: () => void;
   onAddNewQuestion?: () => void;
   onMinimizeSection?: () => void;
   title: (index: number) => string;
@@ -30,6 +34,8 @@ export const SFormSectionHeader = ({
   sectionIndex,
   sectionNumber,
   onDeleteSection,
+  onMoveSectionUp,
+  onMoveSectionDown,
   onAddNewQuestion,
   onMinimizeSection,
   isMinimized = false,
@@ -77,6 +83,28 @@ export const SFormSectionHeader = ({
           <Box
             sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}
           >
+            {onMoveSectionUp && (
+              <SIconButton
+                tooltip="Subir seção"
+                onClick={onMoveSectionUp}
+                iconButtonProps={{ 'aria-label': 'Subir seção' }}
+              >
+                <KeyboardArrowUpOutlinedIcon
+                  sx={{ color: 'grey.600', fontSize: 20 }}
+                />
+              </SIconButton>
+            )}
+            {onMoveSectionDown && (
+              <SIconButton
+                tooltip="Descer seção"
+                onClick={onMoveSectionDown}
+                iconButtonProps={{ 'aria-label': 'Descer seção' }}
+              >
+                <KeyboardArrowDownOutlinedIcon
+                  sx={{ color: 'grey.600', fontSize: 20 }}
+                />
+              </SIconButton>
+            )}
             {onMinimizeSection && (
               <SIconButton
                 iconButtonProps={{ ref: anchorRef }}

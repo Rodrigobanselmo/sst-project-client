@@ -1,4 +1,7 @@
-import { InputAdornment } from '@mui/material';
+import KeyboardArrowDownOutlinedIcon from '@mui/icons-material/KeyboardArrowDownOutlined';
+import KeyboardArrowUpOutlinedIcon from '@mui/icons-material/KeyboardArrowUpOutlined';
+import { Box, InputAdornment } from '@mui/material';
+import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
 import { SAccordionBody } from '@v2/components/organisms/SAccordion/components/SAccordionBody/SAccordionBody';
@@ -17,6 +20,8 @@ interface SFormQuestionAccordionProps {
   questionNumber: number;
   typeOptions: FormQuestionOption[];
   isFocused?: boolean;
+  onMoveQuestionUp?: () => void;
+  onMoveQuestionDown?: () => void;
   onCopy?: () => void;
   onDelete?: () => void;
   onAddNewSection?: () => void;
@@ -33,6 +38,8 @@ export const SFormQuestionAccordion = ({
   questionNumber,
   typeOptions,
   isFocused = false,
+  onMoveQuestionUp,
+  onMoveQuestionDown,
   onCopy,
   onDelete,
   onAddNewSection,
@@ -61,30 +68,67 @@ export const SFormQuestionAccordion = ({
           },
         }}
         endComponent={
-          <SSearchSelectForm
-            boxProps={{
-              sx: {
-                ml: 'auto',
-              },
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              ml: 'auto',
             }}
-            disabled={disabledEdition}
-            name={`sections.${sectionIndex}.items.${questionIndex}.type`}
-            renderStartAdornment={({ option }) =>
-              option ? (
-                <InputAdornment position="start">{option?.icon}</InputAdornment>
-              ) : null
-            }
-            placeholder="Tipo"
-            renderItem={(option) => (
-              <SFlex alignItems="center" gap={2}>
-                {option.option.icon}
-                <span>{option.label}</span>
-              </SFlex>
+          >
+            {onMoveQuestionUp && (
+              <SIconButton
+                tooltip="Subir pergunta"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveQuestionUp();
+                }}
+                iconButtonProps={{ 'aria-label': 'Subir pergunta' }}
+              >
+                <KeyboardArrowUpOutlinedIcon
+                  sx={{ color: 'grey.600', fontSize: 20 }}
+                />
+              </SIconButton>
             )}
-            options={typeOptions}
-            getOptionLabel={(option) => option.label}
-            getOptionValue={(option) => option.value}
-          />
+            {onMoveQuestionDown && (
+              <SIconButton
+                tooltip="Descer pergunta"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMoveQuestionDown();
+                }}
+                iconButtonProps={{ 'aria-label': 'Descer pergunta' }}
+              >
+                <KeyboardArrowDownOutlinedIcon
+                  sx={{ color: 'grey.600', fontSize: 20 }}
+                />
+              </SIconButton>
+            )}
+            <SSearchSelectForm
+              boxProps={{
+                sx: {
+                  ml: 0,
+                },
+              }}
+              disabled={disabledEdition}
+              name={`sections.${sectionIndex}.items.${questionIndex}.type`}
+              renderStartAdornment={({ option }) =>
+                option ? (
+                  <InputAdornment position="start">{option?.icon}</InputAdornment>
+                ) : null
+              }
+              placeholder="Tipo"
+              renderItem={(option) => (
+                <SFlex alignItems="center" gap={2}>
+                  {option.option.icon}
+                  <span>{option.label}</span>
+                </SFlex>
+              )}
+              options={typeOptions}
+              getOptionLabel={(option) => option.label}
+              getOptionValue={(option) => option.value}
+            />
+          </Box>
         }
         title={`Pergunta ${questionNumber}`}
       >
