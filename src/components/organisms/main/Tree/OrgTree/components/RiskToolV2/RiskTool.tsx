@@ -103,6 +103,9 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
     return (query.ghoId as string) || null;
   }, [query.ghoId]);
 
+  // Track user-initiated selections to avoid URL sync overwriting them
+  const userSelectedIdRef = useRef<string | null>(null);
+
   // Sync Redux state with URL on mount and when URL changes
   useEffect(() => {
     if (viewDataTypeFromUrl !== viewDataType) {
@@ -110,46 +113,47 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
     }
   }, [viewDataTypeFromUrl, dispatch, viewDataType]);
 
-  // Sync selected GHO/Hierarchy from URL to Redux on mount
+  // Sync selected GHO/Hierarchy from URL to Redux (page load, back/forward)
   useEffect(() => {
-    if (
-      selectedGhoIdFromUrl &&
-      selectedGhoIdFromUrl !== selectedGhoId &&
-      (ghoQuery || hierarchyMap)
-    ) {
-      // Try to find in GHO data first (for GSE, CHARACTERIZATION views)
-      const gho = ghoQuery?.find((g) => g.id === selectedGhoIdFromUrl);
-      if (gho) {
-        const hierarchies =
-          gho.hierarchyOnHomogeneous?.map((h) => h.hierarchyId) || [];
-
-        // Update both the GHO state and the selected state for UI highlighting
-        dispatch(setGhoState({ data: gho, hierarchies }));
-        dispatch(
-          setGhoSelectedId({
-            childrenIds: (gho as any)?.children?.map((i: any) => i?.id),
-            ...gho,
-          } as any),
-        );
-        return;
-      }
-
-      // If not found in GHO, try to find in Hierarchy data (for SIMPLE_BY_GROUP view)
-      const hierarchy = hierarchyMap?.[selectedGhoIdFromUrl];
-      if (hierarchy) {
-        // Update both the GHO state and the selected state for UI highlighting
-        dispatch(
-          setGhoState({ data: hierarchy as any, hierarchies: [hierarchy.id] }),
-        );
-        dispatch(
-          setGhoSelectedId({
-            childrenIds: hierarchy.children || [],
-            ...hierarchy,
-          } as any),
-        );
-      }
+    if (!selectedGhoIdFromUrl) return;
+    // Skip if this URL change was triggered by a user selection we just made
+    if (userSelectedIdRef.current === selectedGhoIdFromUrl) {
+      userSelectedIdRef.current = null;
+      return;
     }
-  }, [selectedGhoIdFromUrl, ghoQuery, hierarchyMap, dispatch, selectedGhoId]);
+    if (selectedGhoIdFromUrl === selectedGhoId) return;
+    if (!ghoQuery && !hierarchyMap) return;
+
+    // Try to find in GHO data first (for GSE, CHARACTERIZATION views)
+    const gho = ghoQuery?.find((g) => g.id === selectedGhoIdFromUrl);
+    if (gho) {
+      const hierarchies =
+        gho.hierarchyOnHomogeneous?.map((h) => h.hierarchyId) || [];
+      dispatch(setGhoState({ data: gho, hierarchies }));
+      dispatch(
+        setGhoSelectedId({
+          childrenIds: (gho as any)?.children?.map((i: any) => i?.id),
+          ...gho,
+        } as any),
+      );
+      return;
+    }
+
+    // If not found in GHO, try to find in Hierarchy data
+    const hierarchy = hierarchyMap?.[selectedGhoIdFromUrl];
+    if (hierarchy) {
+      dispatch(
+        setGhoState({ data: hierarchy as any, hierarchies: [hierarchy.id] }),
+      );
+      dispatch(
+        setGhoSelectedId({
+          childrenIds: hierarchy.children || [],
+          ...hierarchy,
+        } as any),
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedGhoIdFromUrl, ghoQuery, hierarchyMap, dispatch]);
 
   // Initialize URL with viewData parameter if not present
   useEffect(() => {
@@ -277,6 +281,7 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
       if (!gho) {
         if (!selectExpanded) dispatch(setRiskAddToggleExpand());
         // Remove ghoId from URL when deselecting
+        userSelectedIdRef.current = null;
         const newQuery = { ...query };
         delete newQuery.ghoId;
         push({ pathname, query: newQuery }, undefined, { shallow: true });
@@ -285,24 +290,24 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
 
       const isSelected = selectedGhoId === gho.id;
 
-      const data = {
-        hierarchies: isSelected ? [] : hierarchies,
-        data: isSelected ? null : gho,
-      };
-
-      // Update URL with selected GHO ID
-      if (!isSelected) {
-        const newQuery = { ...query, ghoId: gho.id };
-        push({ pathname, query: newQuery }, undefined, { shallow: true });
-      } else {
-        // Remove ghoId from URL when deselecting
-        const newQuery = { ...query };
-        delete newQuery.ghoId;
-        push({ pathname, query: newQuery }, undefined, { shallow: true });
+      // If already selected, do nothing (keep selection)
+      if (isSelected) {
+        return;
       }
 
+      const data = {
+        hierarchies: hierarchies,
+        data: gho,
+      };
+
+      // Update Redux first to avoid race condition with URL sync
       if (selectExpanded) dispatch(setRiskAddToggleExpand());
       dispatch(setGhoState(data));
+
+      // Mark this as a user-initiated selection so URL sync skips it
+      userSelectedIdRef.current = gho.id;
+      const newQuery = { ...query, ghoId: gho.id };
+      push({ pathname, query: newQuery }, undefined, { shallow: true });
     },
     [dispatch, selectExpanded, selectedGhoId, query, pathname, push],
   );
@@ -332,8 +337,10 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
       } as typeof initialAutomateSubOfficeState);
     }
 
-    // Update URL with new viewData parameter
-    const newQuery = { ...query, viewData: option.value };
+    // Update URL with new viewData parameter and remove stale ghoId
+    const newQuery: Record<string, any> = { ...query, viewData: option.value };
+    delete newQuery.ghoId;
+    userSelectedIdRef.current = null;
     push({ pathname, query: newQuery }, undefined, { shallow: true });
 
     dispatch(setGhoMultiState({ selectedDisabledIds: [], selectedIds: [] }));

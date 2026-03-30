@@ -113,15 +113,6 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
 
         <SFlex align="center" gap="1" mb={2}>
           <SFlex center sx={{ ml: 'auto' }}>
-            <SText fontSize={15} color="text.light" mr={2}>
-              Severidade
-            </SText>
-            <STag
-              sx={{ px: 4, mr: 15, fontWeight: 'bold' }}
-              text={severity ? String(severity) : '0'}
-              action={String(severity) as any}
-            />
-
             <RiskToolTopButtonsSelectRisk
               riskGroupId={riskGroupId}
               viewType={viewType}

@@ -96,8 +96,13 @@ export const GhoTool = () => {
 
       const isSelected = selectedGhoId === gho.id;
 
+      // If already selected, do nothing (keep selection)
+      if (isSelected) {
+        return;
+      }
+
       const data = {
-        hierarchies: isSelected ? [] : hierarchies,
+        hierarchies: hierarchies,
         data: gho,
       };
 

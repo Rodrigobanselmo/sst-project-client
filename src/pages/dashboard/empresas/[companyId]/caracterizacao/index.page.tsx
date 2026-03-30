@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 
 import { RiskToolV2 } from 'components/organisms/main/Tree/OrgTree/components/RiskToolV2/RiskTool';
+import { StackModalRiskToolV2 } from 'components/organisms/modals/ModalRiskToolV2';
 import { NextPage } from 'next';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
@@ -44,6 +45,7 @@ const CaracterizacaoPage: NextPage = () => {
           </Box>
         )}
       </SContainer>
+      <StackModalRiskToolV2 />
     </>
   );
 };

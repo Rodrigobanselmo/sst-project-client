@@ -153,15 +153,17 @@ export const RiskToolGhoHorizontal: FC<
       );
 
       // Call the parent's handleSelectGHO to update URL and Redux state
-      if (handleSelectGHO && 'description' in data) {
-        // It's a GHO
-        const hierarchies =
-          (data as IGho).hierarchyOnHomogeneous?.map((h) => h.hierarchyId) ||
-          [];
-        handleSelectGHO(data as IGho, hierarchies);
-      } else if (handleSelectGHO && 'type' in data) {
-        // It's a Hierarchy
-        handleSelectGHO(data as any, [(data as IHierarchy).id]);
+      if (handleSelectGHO) {
+        const isGho = 'hierarchyOnHomogeneous' in data;
+        if (isGho) {
+          const hierarchies =
+            (data as IGho).hierarchyOnHomogeneous?.map(
+              (h) => h.hierarchyId,
+            ) || [];
+          handleSelectGHO(data as IGho, hierarchies);
+        } else {
+          handleSelectGHO(data as any, [(data as IHierarchy).id]);
+        }
       }
 
       if (inputRef && inputRef.current) inputRef.current.value = '';
