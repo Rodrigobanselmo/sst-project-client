@@ -37,10 +37,27 @@ export const FormModelGroup = ({
   const [minimizedSections, setMinimizedSections] = useState<Set<number>>(() =>
     getInitialMinimizedSections(),
   );
-  const { fields, remove, replace } = useFieldArray({
+  const { fields, remove, replace, move } = useFieldArray({
     control,
     name: 'sections',
   });
+
+  const handleMoveSection = (fromIndex: number, direction: 'up' | 'down') => {
+    const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= fields.length) return;
+
+    move(fromIndex, toIndex);
+
+    setMinimizedSections((prev) => {
+      const next = new Set<number>();
+      for (const x of prev) {
+        if (x === fromIndex) next.add(toIndex);
+        else if (x === toIndex) next.add(fromIndex);
+        else next.add(x);
+      }
+      return next;
+    });
+  };
 
   const handleDeleteSection = (index: number) => {
     if (fields.length === 1) {
@@ -116,6 +133,14 @@ export const FormModelGroup = ({
               }
               onMinimizeSection={() => handleMinimizeSection(idx)}
               isMinimized={minimizedSections.has(idx)}
+              onMoveSectionUp={
+                idx > 0 ? () => handleMoveSection(idx, 'up') : undefined
+              }
+              onMoveSectionDown={
+                idx < fields.length - 1
+                  ? () => handleMoveSection(idx, 'down')
+                  : undefined
+              }
             />
           );
         })}

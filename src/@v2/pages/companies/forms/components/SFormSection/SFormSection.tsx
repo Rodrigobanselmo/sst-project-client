@@ -10,6 +10,8 @@ interface SFormSectionProps {
   sectionIndex: number;
   sectionNumber: number;
   onDeleteSection?: () => void;
+  onMoveSectionUp?: () => void;
+  onMoveSectionDown?: () => void;
   onAddNewSection?: (questionIndex: number) => void;
   onMinimizeSection?: () => void;
   isMinimized?: boolean;
@@ -28,6 +30,8 @@ export const SFormQuestionSection = ({
   sectionIndex,
   sectionNumber,
   onDeleteSection,
+  onMoveSectionUp,
+  onMoveSectionDown,
   onAddNewSection,
   onMinimizeSection,
   isMinimized = false,
@@ -46,10 +50,24 @@ export const SFormQuestionSection = ({
     number | null
   >(null);
 
-  const { fields, append, remove, insert } = useFieldArray({
+  const { fields, append, remove, insert, move } = useFieldArray({
     control,
     name: `sections.${sectionIndex}.items`,
   });
+
+  const handleMoveQuestion = (fromIndex: number, direction: 'up' | 'down') => {
+    const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
+    if (toIndex < 0 || toIndex >= fields.length) return;
+
+    move(fromIndex, toIndex);
+
+    setFocusedQuestionIndex((prev) => {
+      if (prev === null) return prev;
+      if (prev === fromIndex) return toIndex;
+      if (prev === toIndex) return fromIndex;
+      return prev;
+    });
+  };
 
   const handleAddNewQuestion = () => {
     append(initialValues);
@@ -96,6 +114,8 @@ export const SFormQuestionSection = ({
       sectionIndex={sectionIndex}
       sectionNumber={sectionNumber}
       onDeleteSection={onDeleteSection}
+      onMoveSectionUp={onMoveSectionUp}
+      onMoveSectionDown={onMoveSectionDown}
       onAddNewQuestion={
         disableQuestionCreation ? undefined : handleAddNewQuestion
       }
@@ -141,6 +161,16 @@ export const SFormQuestionSection = ({
                     questionNumber={questionIndex + 1}
                     typeOptions={questionTypeOptions}
                     isFocused={focusedQuestionIndex === questionIndex}
+                    onMoveQuestionUp={
+                      questionIndex > 0
+                        ? () => handleMoveQuestion(questionIndex, 'up')
+                        : undefined
+                    }
+                    onMoveQuestionDown={
+                      questionIndex < fields.length - 1
+                        ? () => handleMoveQuestion(questionIndex, 'down')
+                        : undefined
+                    }
                     onCopy={() => handleCopyQuestion(questionIndex)}
                     onDelete={() => handleDeleteQuestion(questionIndex)}
                     onAddNewSection={
