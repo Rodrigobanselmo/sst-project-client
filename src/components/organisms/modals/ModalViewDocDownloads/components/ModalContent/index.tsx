@@ -10,6 +10,8 @@ import SText from 'components/atoms/SText';
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
 
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { IUseDocs } from '../../hooks/useModalViewDocDownload';
 
@@ -68,6 +70,26 @@ export const ModalContentDoc = ({
           large
           icon={SDownloadIcon}
         />
+        {doc.documentType === DocumentTypeEnum.PGR && (
+          <STagButton
+            text="Baixar PGR completo (Word)"
+            loading={
+              downloadMutation.isLoading &&
+              !!downloadMutation.variables &&
+              !!downloadMutation.variables.includes(
+                `${ApiRoutesEnum.DOCUMENTS_BASE}/pgr-consolidated/docx/${doc.id}/${doc.companyId || companyId}`,
+              )
+            }
+            onClick={() =>
+              downloadMutation.mutate(
+                `${ApiRoutesEnum.DOCUMENTS_BASE}/pgr-consolidated/docx/${doc.id}/${doc.companyId || companyId}`,
+              )
+            }
+            width={'100%'}
+            large
+            icon={SDownloadIcon}
+          />
+        )}
         <SText mt={4} mb={0} color="text.light">
           Anexos
         </SText>

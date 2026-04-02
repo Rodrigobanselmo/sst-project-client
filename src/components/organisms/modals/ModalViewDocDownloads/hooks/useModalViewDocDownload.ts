@@ -8,10 +8,12 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { useMutDownloadFile } from 'core/services/hooks/mutations/general/useMutDownloadFile';
 import { useMutUploadFile } from 'core/services/hooks/mutations/general/useMutUploadFile';
 import { useQueryDocumentVersion } from 'core/services/hooks/queries/useQueryDocumentVersion';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 export const initialViewDocDownloadState = {
   id: '',
   companyId: '',
+  documentType: undefined as DocumentTypeEnum | undefined,
   downloadRoute: ApiRoutesEnum.DOCUMENTS_BASE,
   downloadAttRoute: ApiRoutesEnum.DOCUMENTS_BASE_ATTACHMENTS,
 };
