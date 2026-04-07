@@ -105,6 +105,7 @@ export const DocTable: FC<
     onOpenModal(ModalEnum.DOCUMENT_DOWNLOAD, {
       id: doc.id,
       companyId,
+      documentType: type,
     } as typeof initialViewDocDownloadState);
   };
 
