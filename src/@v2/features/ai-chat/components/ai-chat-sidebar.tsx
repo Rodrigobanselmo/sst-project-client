@@ -54,6 +54,7 @@ import { ThreadHistory } from './thread-history';
 import { AudioWaveform } from './audio-waveform';
 import { AttachmentPreview } from './attachment-preview';
 import { MessageAttachments } from './message-attachments';
+import { ActionCard } from './action-card';
 import { useSnackbar } from 'notistack';
 import styles from './ai-chat-sidebar.module.css';
 
@@ -231,18 +232,52 @@ export function AIChatSidebar() {
         url: f.url ?? null,
       }));
 
+    // Helper to map a single message (and create action cards if it has pending actions)
+    const mapMessageWithActions = (
+      m: (typeof dbMessages)[0],
+    ): ChatMessage[] => {
+      const baseMessage: ChatMessage = {
+        role: m.role as 'user' | 'assistant' | 'tool' | 'action',
+        content: m.content,
+        toolName: m.toolName ?? undefined,
+        toolStatus:
+          (m.toolStatus as 'running' | 'success' | 'error') ?? undefined,
+        toolDescription: m.toolDescription ?? undefined,
+        timestamp: new Date(m.createdAt),
+        files: m.attachments ? mapAttachments(m.attachments) : undefined,
+      };
+
+      const result: ChatMessage[] = [baseMessage];
+
+      // If message has pending actions, create action cards for them
+      if (m.pendingActions && m.pendingActions.length > 0) {
+        for (const action of m.pendingActions) {
+          result.push({
+            role: 'action',
+            content: '',
+            timestamp: new Date(m.createdAt),
+            actionData: {
+              actionId: action.id,
+              summary: action.summary || 'Ação pendente',
+              details: (action as any).details || action.payload || {}, // Use formatted details if available, fallback to payload
+              status: action.status.toLowerCase() as
+                | 'pending'
+                | 'executing'
+                | 'completed'
+                | 'failed'
+                | 'cancelled',
+            },
+          });
+        }
+      }
+
+      return result;
+    };
+
     if (isLoadingMoreRef.current) {
       isLoadingMoreRef.current = false;
       if (dbMessages.length > 0) {
-        const mapped = dbMessages.map((m) => ({
-          role: m.role as 'user' | 'assistant' | 'tool',
-          content: m.content,
-          toolName: m.toolName ?? undefined,
-          toolStatus:
-            (m.toolStatus as 'running' | 'success' | 'error') ?? undefined,
-          timestamp: new Date(m.createdAt),
-          files: m.attachments ? mapAttachments(m.attachments) : undefined,
-        }));
+        const mapped = dbMessages.flatMap(mapMessageWithActions);
         setMessages(mapped);
       }
       return;
@@ -251,16 +286,7 @@ export function AIChatSidebar() {
     if (streamMessages.length > 0) return;
 
     if (dbMessages.length > 0) {
-      const mapped = dbMessages.map((m) => ({
-        role: m.role as 'user' | 'assistant' | 'tool',
-        content: m.content,
-        toolName: m.toolName ?? undefined,
-        toolStatus:
-          (m.toolStatus as 'running' | 'success' | 'error') ?? undefined,
-        toolDescription: m.toolDescription ?? undefined,
-        timestamp: new Date(m.createdAt),
-        files: m.attachments ? mapAttachments(m.attachments) : undefined,
-      }));
+      const mapped = dbMessages.flatMap(mapMessageWithActions);
       setMessages(mapped);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -816,6 +842,35 @@ export function AIChatSidebar() {
                 return (
                   <div key={index} className={styles.agentMessage}>
                     <span className={styles.agentBadge}>{msg.agentName}</span>
+                  </div>
+                );
+              }
+
+              // Action card messages
+              if (msg.role === 'action' && msg.actionData) {
+                return (
+                  <div key={index} className={styles.actionMessageContainer}>
+                    <ActionCard
+                      actionId={msg.actionData.actionId}
+                      summary={msg.actionData.summary}
+                      details={msg.actionData.details}
+                      status={msg.actionData.status}
+                      onStatusChange={(actionId, newStatus) => {
+                        setMessages((prev) =>
+                          prev.map((m) =>
+                            m.actionData?.actionId === actionId
+                              ? {
+                                  ...m,
+                                  actionData: {
+                                    ...m.actionData!,
+                                    status: newStatus,
+                                  },
+                                }
+                              : m,
+                          ),
+                        );
+                      }}
+                    />
                   </div>
                 );
               }

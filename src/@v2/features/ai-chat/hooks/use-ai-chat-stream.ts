@@ -15,7 +15,7 @@ export interface ChatMessageAttachment {
 }
 
 export interface ChatMessage {
-  role: 'user' | 'assistant' | 'tool' | 'agent';
+  role: 'user' | 'assistant' | 'tool' | 'agent' | 'action';
   content: string;
   toolName?: string;
   toolStatus?: 'running' | 'success' | 'error';
@@ -23,6 +23,12 @@ export interface ChatMessage {
   agentName?: string;
   timestamp: Date;
   files?: ChatMessageAttachment[];
+  actionData?: {
+    actionId: string;
+    summary: string;
+    details: Record<string, unknown>;
+    status: 'pending' | 'executing' | 'completed' | 'failed' | 'cancelled';
+  };
 }
 
 // Stream event types from the backend
@@ -37,6 +43,12 @@ type StreamEvent =
   | { type: 'tool_end'; tool: string; result: string; success: boolean }
   | { type: 'agent_start'; agent: string; name: string; description: string }
   | { type: 'agent_end'; agent: string; success: boolean }
+  | {
+      type: 'action_card';
+      actionId: string;
+      summary: string;
+      details: Record<string, unknown>;
+    }
   | { type: 'error'; message: string };
 
 export interface SendMessageOptions {
@@ -203,6 +215,22 @@ export function useAIChatStream(): UseAIChatStreamReturn {
                   }
                   return updated;
                 });
+              } else if (event.type === 'action_card') {
+                // Add action card message
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    role: 'action',
+                    content: '', // Content will be rendered by ActionCard component
+                    timestamp: new Date(),
+                    actionData: {
+                      actionId: event.actionId,
+                      summary: event.summary,
+                      details: event.details,
+                      status: 'pending',
+                    },
+                  },
+                ]);
               } else if (event.type === 'content') {
                 assistantContent += event.content;
 

@@ -540,6 +540,12 @@
   border: 1px dashed var(--color-border);
 }
 
+/* Action Card Messages */
+.actionMessageContainer {
+  margin: 1rem 0;
+  max-width: 90%;
+}
+
 .toolSuccess {
   background: var(--color-success-10, #e8f5e9);
   color: var(--color-success, #2e7d32);

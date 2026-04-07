@@ -1,4 +1,4 @@
-import { api } from "core/services/apiClient";
+import { api } from 'core/services/apiClient';
 
 // Types
 export interface AIThread {
@@ -21,6 +21,15 @@ export interface AIMessageAttachment {
   url?: string | null;
 }
 
+export interface AIMessagePendingAction {
+  id: string;
+  service: string;
+  payload: any;
+  status: string;
+  summary: string | null;
+  errorMessage: string | null;
+}
+
 export interface AIMessage {
   id: string;
   threadId: string;
@@ -31,6 +40,7 @@ export interface AIMessage {
   toolDescription?: string | null;
   createdAt: string;
   attachments?: AIMessageAttachment[];
+  pendingActions?: AIMessagePendingAction[];
 }
 
 export interface AIMessageEdge {
@@ -67,8 +77,10 @@ export interface AIThreadConnection {
 
 // API functions
 
-export async function createThread(input?: { title?: string }): Promise<AIThread> {
-  const { data } = await api.post<AIThread>("/ai-chat/threads", input ?? {});
+export async function createThread(input?: {
+  title?: string;
+}): Promise<AIThread> {
+  const { data } = await api.post<AIThread>('/ai-chat/threads', input ?? {});
   return data;
 }
 
@@ -77,7 +89,7 @@ export async function listThreads(params?: {
   after?: string | null;
   search?: string | null;
 }): Promise<AIThreadConnection> {
-  const { data } = await api.get<AIThreadConnection>("/ai-chat/threads", {
+  const { data } = await api.get<AIThreadConnection>('/ai-chat/threads', {
     params: {
       first: params?.first ?? 20,
       after: params?.after ?? undefined,
@@ -94,7 +106,7 @@ export async function getThread(id: string): Promise<AIThread> {
 
 export async function updateThread(
   id: string,
-  input: { title: string }
+  input: { title: string },
 ): Promise<AIThread> {
   const { data } = await api.patch<AIThread>(`/ai-chat/threads/${id}`, input);
   return data;
@@ -106,7 +118,7 @@ export async function deleteThread(id: string): Promise<void> {
 
 export async function getMessages(
   threadId: string,
-  params?: { first?: number; before?: string | null }
+  params?: { first?: number; before?: string | null },
 ): Promise<AIMessageConnection> {
   const { data } = await api.get<AIMessageConnection>(
     `/ai-chat/threads/${threadId}/messages`,
@@ -115,7 +127,7 @@ export async function getMessages(
         first: params?.first ?? 20,
         before: params?.before ?? undefined,
       },
-    }
+    },
   );
   return data;
 }
