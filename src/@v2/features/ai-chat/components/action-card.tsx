@@ -52,17 +52,17 @@ export function ActionCard({
         throw new Error(errorData.message || 'Erro ao executar ação');
       }
 
-      const resultData = await response.json();
+      await response.json();
 
-      // Invalidate and refetch all RISK_DATA queries (force refetch even if staleTime hasn't expired)
-      await queryClient.invalidateQueries([QueryEnum.RISK_DATA], {
-        refetchType: 'all',
-      });
-      await queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION], {
-        refetchType: 'all',
-      });
-      await queryClient.refetchQueries([QueryEnum.RISK_DATA], {
-        type: 'active',
+      // Invalidate and refetch all RISK_DATA and CHARACTERIZATION queries from legacy query client
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          return (
+            query.queryKey[0] === QueryEnum.RISK_DATA ||
+            (query.queryKey[0] === QueryEnum.CHARACTERIZATION &&
+              !!query.queryKey[3])
+          );
+        },
       });
 
       onStatusChange(actionId, 'completed');

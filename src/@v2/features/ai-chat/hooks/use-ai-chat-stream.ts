@@ -66,7 +66,7 @@ interface UseAIChatStreamReturn {
   error: string | null;
   sendMessage: (options: SendMessageOptions) => Promise<void>;
   clearMessages: () => void;
-  setMessages: (messages: ChatMessage[]) => void;
+  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   interrupt: () => void;
 }
 
