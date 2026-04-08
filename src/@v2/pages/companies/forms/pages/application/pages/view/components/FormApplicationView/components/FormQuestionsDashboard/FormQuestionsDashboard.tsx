@@ -2,8 +2,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import PersonIcon from '@mui/icons-material/Person';
-import { Box, Button, Chip, CircularProgress, LinearProgress, Typography } from '@mui/material';
-import { useSnackbar } from 'notistack';
+import { Box, Button, Chip, LinearProgress, Typography } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -23,10 +22,6 @@ import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
 import { SectionHeader } from './components/SectionHeader/SectionHeader';
 import { FormRisksAnalysis } from './components/FormRisksAnalysis/FormRisksAnalysis';
 import { FormParticipantsTable } from '../FormParticipantsTable/FormParticipantsTable';
-import {
-  openFormChartsPdfClient,
-  openFormIndicatorsPdfClient,
-} from './helpers/downloadFormsPdfClient';
 
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { STabs } from '@v2/components/organisms/STabs/STabs';
@@ -399,11 +394,6 @@ export const FormQuestionsDashboard = ({
   // State for controlling whether to show only group indicators or individual questions too
   const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] =
     useState<boolean>(false);
-  const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
-    useState(false);
-  const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
-
-  const { enqueueSnackbar } = useSnackbar();
 
   // Separate first group (identifier) from the rest (general questions)
   const [identifierGroup, ...generalGroups] =
@@ -776,38 +766,26 @@ export const FormQuestionsDashboard = ({
                 />
                 <Button
                   variant="outlined"
-                  disabled={
-                    isExportingIndicatorsPdf || isExportingChartsPdf
-                  }
-                  onClick={async () => {
-                    if (isExportingIndicatorsPdf || isExportingChartsPdf) return;
-                    setIsExportingIndicatorsPdf(true);
-                    try {
-                      await openFormIndicatorsPdfClient({
-                        formApplication,
-                        formQuestionsAnswers,
-                        selectedGroupingQuestionId: selectedGroupingQuestion,
-                        showOnlyGroupIndicators,
-                      });
-                    } catch (e) {
-                      console.error(e);
-                      enqueueSnackbar(
-                        'Não foi possível gerar o PDF de indicadores. Tente novamente.',
-                        { variant: 'error' },
-                      );
-                    } finally {
-                      setIsExportingIndicatorsPdf(false);
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      companyId: formApplication.companyId,
+                      applicationId: formApplication.id,
+                    });
+                    if (selectedGroupingQuestion) {
+                      params.set('groupBy', selectedGroupingQuestion);
                     }
+                    params.set(
+                      'showOnlyGroupIndicators',
+                      String(showOnlyGroupIndicators),
+                    );
+                    window.open(
+                      `/api/pdf/forms/indicators?${params.toString()}`,
+                      '_blank',
+                      'noopener,noreferrer',
+                    );
                   }}
-                  startIcon={
-                    isExportingIndicatorsPdf ? (
-                      <CircularProgress color="inherit" size={18} />
-                    ) : undefined
-                  }
                 >
-                  {isExportingIndicatorsPdf
-                    ? 'Gerando PDF...'
-                    : 'Exportar PDF (Indicadores)'}
+                  Exportar PDF (Indicadores)
                 </Button>
               </Box>
             </SPaper>
@@ -824,37 +802,22 @@ export const FormQuestionsDashboard = ({
               <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
                   variant="outlined"
-                  disabled={
-                    isExportingIndicatorsPdf || isExportingChartsPdf
-                  }
-                  onClick={async () => {
-                    if (isExportingIndicatorsPdf || isExportingChartsPdf) return;
-                    setIsExportingChartsPdf(true);
-                    try {
-                      await openFormChartsPdfClient({
-                        formApplication,
-                        formQuestionsAnswers,
-                        selectedGroupingQuestionId: selectedGroupingQuestion,
-                      });
-                    } catch (e) {
-                      console.error(e);
-                      enqueueSnackbar(
-                        'Não foi possível gerar o PDF de gráficos. Tente novamente.',
-                        { variant: 'error' },
-                      );
-                    } finally {
-                      setIsExportingChartsPdf(false);
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      companyId: formApplication.companyId,
+                      applicationId: formApplication.id,
+                    });
+                    if (selectedGroupingQuestion) {
+                      params.set('groupBy', selectedGroupingQuestion);
                     }
+                    window.open(
+                      `/api/pdf/forms/charts?${params.toString()}`,
+                      '_blank',
+                      'noopener,noreferrer',
+                    );
                   }}
-                  startIcon={
-                    isExportingChartsPdf ? (
-                      <CircularProgress color="inherit" size={18} />
-                    ) : undefined
-                  }
                 >
-                  {isExportingChartsPdf
-                    ? 'Gerando PDF...'
-                    : 'Exportar PDF (Gráficos)'}
+                  Exportar PDF (Gráficos)
                 </Button>
               </Box>
             </SPaper>
