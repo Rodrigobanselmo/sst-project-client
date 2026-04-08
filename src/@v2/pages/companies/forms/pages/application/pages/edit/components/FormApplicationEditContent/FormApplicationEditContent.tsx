@@ -8,7 +8,17 @@ import { FormIdentifierTypeTranslate } from '@v2/models/form/translations/form-i
 import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
 import { SFormQuestionSection } from '@v2/pages/companies/forms/components/SFormSection/SFormSection';
 import { useMutateEditFormApplication } from '@v2/services/forms/form-application/edit-form-application/hooks/useMutateEditFormApplication';
-import { useForm } from 'react-hook-form';
+import {
+  FormPreliminaryLibraryBlockDetailApi,
+  FormPreliminaryLibraryQuestionListItemApi,
+} from '@v2/services/forms/form-preliminary-library/types/form-preliminary-library-api.types';
+import { useCallback, useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { AddLibraryBlockDialog } from '../../../../components/AddLibraryBlockDialog/AddLibraryBlockDialog';
+import { AddLibraryQuestionDialog } from '../../../../components/AddLibraryQuestionDialog/AddLibraryQuestionDialog';
+import { getInsertIndexForLibraryQuestion } from '../../../../helpers/get-insert-index-for-library-question';
+import { mapLibraryBlockToFormIdentifierItems } from '../../../../helpers/map-library-block-to-form-identifier-items';
+import { mapLibraryQuestionToFormIdentifierItem } from '../../../../helpers/map-library-question-to-form-identifier-item';
 import { getFormModelInitialValues } from '../../../../../model/schemas/form-model.schema';
 import { transformFormApplicationDataToApiFormat } from '../../../../helpers/transform-form-application-data';
 import {
@@ -32,7 +42,11 @@ export const FormApplicationEditContent = ({
 }) => {
   const router = useAppRouter();
 
-  console.log(formApplication);
+  const [libraryDialogOpen, setLibraryDialogOpen] = useState(false);
+  const [libraryBlockDialogOpen, setLibraryBlockDialogOpen] = useState(false);
+
+  const hasAnswers = formApplication.totalAnswers > 0;
+
   const form = useForm<IFormApplicationFormFields>({
     resolver: yupResolver(schemaFormApplicationForm),
     defaultValues: {
@@ -68,6 +82,10 @@ export const FormApplicationEditContent = ({
                   id: question.id,
                   content: question.details.text || '',
                   required: question.required,
+                  disabledEdition: false,
+                  disableDuplication: false,
+                  detailsQuestionType: question.details.type,
+                  acceptOther: question.details.acceptOther,
                   type: {
                     value: question.details.identifierType,
                     label:
@@ -76,8 +94,15 @@ export const FormApplicationEditContent = ({
                       ],
                   },
                   options: question.options.map((option) => ({
-                    value: option.value?.toString() || '',
+                    apiId: option.id,
                     label: option.text,
+                    value:
+                      option.value !== undefined && option.value !== null
+                        ? String(option.value)
+                        : '',
+                    ...(typeof option.value === 'number'
+                      ? { responseValue: option.value }
+                      : {}),
                   })),
                   risks: question.details.risks,
                 }),
@@ -88,7 +113,35 @@ export const FormApplicationEditContent = ({
     },
   });
 
+  const formType = useWatch({ name: 'form.type', control: form.control });
+
   const editFormMutation = useMutateEditFormApplication();
+
+  const handlePickLibraryQuestion = useCallback(
+    (libraryQuestion: FormPreliminaryLibraryQuestionListItemApi) => {
+      const mapped = mapLibraryQuestionToFormIdentifierItem(libraryQuestion);
+      const items = form.getValues('sections.0.items') ?? [];
+      const insertAt = getInsertIndexForLibraryQuestion(items, formType);
+      const next = [...items];
+      next.splice(insertAt, 0, mapped);
+      form.setValue('sections.0.items', next);
+      setLibraryDialogOpen(false);
+    },
+    [form, formType],
+  );
+
+  const handlePickLibraryBlock = useCallback(
+    (block: FormPreliminaryLibraryBlockDetailApi) => {
+      const mappedItems = mapLibraryBlockToFormIdentifierItems(block);
+      const items = form.getValues('sections.0.items') ?? [];
+      const insertAt = getInsertIndexForLibraryQuestion(items, formType);
+      const next = [...items];
+      next.splice(insertAt, 0, ...mappedItems);
+      form.setValue('sections.0.items', next);
+      setLibraryBlockDialogOpen(false);
+    },
+    [form, formType],
+  );
 
   const onSubmit = async (data: IFormApplicationFormFields) => {
     form.clearErrors();
@@ -155,6 +208,27 @@ export const FormApplicationEditContent = ({
         disableQuestionDuplication={disableCreateFormIdentifierQuestion}
         disableQuestionCreation={disableCreateFormIdentifierQuestion}
         disableRequiredSwitch={disableCreateFormIdentifierQuestion}
+        onAddFromLibrary={
+          hasAnswers ? undefined : () => setLibraryDialogOpen(true)
+        }
+        onAddBlockFromLibrary={
+          hasAnswers ? undefined : () => setLibraryBlockDialogOpen(true)
+        }
+        structureFrozen={hasAnswers}
+      />
+
+      <AddLibraryQuestionDialog
+        open={libraryDialogOpen && !hasAnswers}
+        onClose={() => setLibraryDialogOpen(false)}
+        companyId={companyId}
+        onPick={handlePickLibraryQuestion}
+      />
+
+      <AddLibraryBlockDialog
+        open={libraryBlockDialogOpen && !hasAnswers}
+        onClose={() => setLibraryBlockDialogOpen(false)}
+        companyId={companyId}
+        onPick={handlePickLibraryBlock}
       />
 
       <FormQuestionsButtons

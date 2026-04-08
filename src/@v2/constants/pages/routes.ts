@@ -1,6 +1,8 @@
 export const FORM_TAB_ENUM = {
   APPLIED: 'aplicados',
   MODEL: 'modelos',
+  /** Biblioteca de Perguntas Preliminares — slug de URL */
+  PRELIMINARY_LIBRARY: 'biblioteca-preliminar',
 };
 
 export const PageRoutes = {

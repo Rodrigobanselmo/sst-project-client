@@ -3,6 +3,7 @@ import { STabsParams } from '@v2/components/organisms/STabs/Implementations/STab
 import { FormApplicationTable } from './components/FormApplicationTable/FormApplicationTable';
 import { FormModelTable } from './components/FormModelTable/FormModelTable';
 import { FORM_TAB_ENUM } from '@v2/constants/pages/routes';
+import { PreliminaryLibraryContent } from './components/PreliminaryLibraryContent/PreliminaryLibraryContent';
 
 export const FormContent = ({ companyId }: { companyId: string }) => {
   return (
@@ -19,6 +20,11 @@ export const FormContent = ({ companyId }: { companyId: string }) => {
             label: 'Modelos de Formulário',
             value: FORM_TAB_ENUM.MODEL,
             component: <FormModelTable companyId={companyId} />,
+          },
+          {
+            label: 'Biblioteca de Perguntas Preliminares',
+            value: FORM_TAB_ENUM.PRELIMINARY_LIBRARY,
+            component: <PreliminaryLibraryContent companyId={companyId} />,
           },
         ]}
       />

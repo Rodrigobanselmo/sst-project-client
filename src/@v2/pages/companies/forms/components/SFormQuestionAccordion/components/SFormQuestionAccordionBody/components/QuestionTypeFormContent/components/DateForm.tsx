@@ -3,6 +3,7 @@ import { SDatePickerForm } from '@v2/components/forms/controlled/SDatePickerForm
 interface DateFormProps {
   sectionIndex: number;
   questionIndex: number;
+  structureFrozen?: boolean;
 }
 
 export const DateForm = ({ sectionIndex, questionIndex }: DateFormProps) => {

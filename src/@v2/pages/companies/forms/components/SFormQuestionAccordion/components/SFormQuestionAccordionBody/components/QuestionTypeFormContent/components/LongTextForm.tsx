@@ -3,6 +3,7 @@ import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMulti
 interface LongTextFormProps {
   sectionIndex: number;
   questionIndex: number;
+  structureFrozen?: boolean;
 }
 
 export const LongTextForm = ({

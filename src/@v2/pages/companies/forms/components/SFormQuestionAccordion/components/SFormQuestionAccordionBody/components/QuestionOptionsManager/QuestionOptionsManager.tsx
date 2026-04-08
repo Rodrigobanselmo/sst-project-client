@@ -56,12 +56,15 @@ interface QuestionOptionsManagerProps {
   sectionIndex: number;
   questionIndex: number;
   disableQuestionValue?: boolean;
+  /** Congelamento após respostas: não editar opções nem adicionar/remover. */
+  structureFrozen?: boolean;
 }
 
 export const QuestionOptionsManager = ({
   sectionIndex,
   questionIndex,
   disableQuestionValue = false,
+  structureFrozen = false,
 }: QuestionOptionsManagerProps) => {
   const { control } = useFormContext<IFormModelForms>();
   const addOptionRef = useRef<HTMLDivElement>(null);
@@ -82,10 +85,12 @@ export const QuestionOptionsManager = ({
   });
 
   const handleAddOption = () => {
+    if (structureFrozen) return;
     append({ label: '' });
   };
 
   const handleRemoveOption = (index: number) => {
+    if (structureFrozen) return;
     if (fields.length > 1) {
       remove(index);
     }
@@ -134,6 +139,7 @@ export const QuestionOptionsManager = ({
             color="info"
             sx={{ flex: 1 }}
             textFieldProps={{
+              disabled: structureFrozen,
               onKeyDown: (e) => handleKeyDown(e, index),
             }}
           />
@@ -141,6 +147,7 @@ export const QuestionOptionsManager = ({
             <SSearchSelectForm
               name={`sections.${sectionIndex}.items.${questionIndex}.options.${index}.value`}
               placeholder={`Valor ${index + 1}`}
+              disabled={structureFrozen}
               hideSearchInput={true}
               options={
                 riskValueForm
@@ -199,7 +206,7 @@ export const QuestionOptionsManager = ({
           <IconButton
             size="small"
             onClick={() => handleRemoveOption(index)}
-            disabled={fields.length <= 1}
+            disabled={structureFrozen || fields.length <= 1}
             tabIndex={-1}
           >
             <DeleteIcon fontSize="small" />
@@ -207,34 +214,36 @@ export const QuestionOptionsManager = ({
         </SFlex>
       ))}
 
-      <SFlex alignItems="center" gap={2} mt={2}>
-        <QuestionTypeIcon type={questionType?.value} />
-        <Box
-          ref={addOptionRef}
-          onClick={handleAddOption}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              handleAddOption();
-            }
-          }}
-          tabIndex={0}
-          sx={{
-            fontSize: '12px',
-            fontWeight: 500,
-            color: '#666',
-            cursor: 'pointer',
-            '&:hover': {
-              color: '#000',
-            },
-            '&:focus': {
-              outline: '2px solid #1976d2',
-              outlineOffset: '2px',
-            },
-          }}
-        >
-          Adicionar opção
-        </Box>
-      </SFlex>
+      {!structureFrozen && (
+        <SFlex alignItems="center" gap={2} mt={2}>
+          <QuestionTypeIcon type={questionType?.value} />
+          <Box
+            ref={addOptionRef}
+            onClick={handleAddOption}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleAddOption();
+              }
+            }}
+            tabIndex={0}
+            sx={{
+              fontSize: '12px',
+              fontWeight: 500,
+              color: '#666',
+              cursor: 'pointer',
+              '&:hover': {
+                color: '#000',
+              },
+              '&:focus': {
+                outline: '2px solid #1976d2',
+                outlineOffset: '2px',
+              },
+            }}
+          >
+            Adicionar opção
+          </Box>
+        </SFlex>
+      )}
     </SFlex>
   );
 };

@@ -25,14 +25,19 @@ export function transformFormApplicationDataToApiFormat(
       required: item.required,
       details: {
         text: item.content,
-        type: mapIdentifierTypeToQuestionType(item.type.value),
+        type:
+          item.detailsQuestionType ??
+          mapIdentifierTypeToQuestionType(item.type.value),
         identifierType: item.type.value,
-        acceptOther: false,
+        acceptOther: item.acceptOther ?? false,
       },
       options:
         item.options?.map((option) => ({
           id: option.apiId,
           text: option.label,
+          ...(option.responseValue !== undefined
+            ? { value: option.responseValue }
+            : {}),
         })) || [],
     })),
   };

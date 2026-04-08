@@ -13,6 +13,8 @@ import { SPopperArrow } from '@v2/components/organisms/SPopper/SPopper';
 import { SPopperMenu } from '@v2/components/organisms/SPopper/addons/SPopperMenu/SPopperMenu';
 import { SPopperMenuItem } from '@v2/components/organisms/SPopper/addons/SPopperMenuItem/SPopperMenuItem';
 import { SMoreOptionsIcon } from 'assets/icons/SMoreOptionsIcon/SMoreOptionsIcon';
+import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
+import ViewWeekOutlinedIcon from '@mui/icons-material/ViewWeekOutlined';
 import { useRef, useState } from 'react';
 
 interface SFormSectionProps {
@@ -23,6 +25,8 @@ interface SFormSectionProps {
   onMoveSectionUp?: () => void;
   onMoveSectionDown?: () => void;
   onAddNewQuestion?: () => void;
+  onAddFromLibrary?: () => void;
+  onAddBlockFromLibrary?: () => void;
   onMinimizeSection?: () => void;
   title: (index: number) => string;
   isMinimized?: boolean;
@@ -37,6 +41,8 @@ export const SFormSectionHeader = ({
   onMoveSectionUp,
   onMoveSectionDown,
   onAddNewQuestion,
+  onAddFromLibrary,
+  onAddBlockFromLibrary,
   onMinimizeSection,
   isMinimized = false,
   children,
@@ -159,6 +165,30 @@ export const SFormSectionHeader = ({
               text="Adicionar pergunta"
               onClick={onAddNewQuestion}
               icon={({ color }) => <SIconAdd color={color} fontSize={16} />}
+            />
+          )}
+          {onAddFromLibrary && (
+            <SPopperMenuItem
+              text="Adicionar da biblioteca"
+              onClick={() => {
+                onAddFromLibrary();
+                handleClosePopper();
+              }}
+              icon={({ color }) => (
+                <LibraryBooksOutlinedIcon sx={{ color, fontSize: 18 }} />
+              )}
+            />
+          )}
+          {onAddBlockFromLibrary && (
+            <SPopperMenuItem
+              text="Adicionar bloco da biblioteca"
+              onClick={() => {
+                onAddBlockFromLibrary();
+                handleClosePopper();
+              }}
+              icon={({ color }) => (
+                <ViewWeekOutlinedIcon sx={{ color, fontSize: 18 }} />
+              )}
             />
           )}
           {onMinimizeSection && (

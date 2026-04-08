@@ -197,6 +197,8 @@ export interface SEditorProps {
   containerProps?: BoxProps;
   editorContainerProps?: BoxProps;
   error?: boolean;
+  /** Somente leitura: desativa edição e a barra de ferramentas. */
+  readOnly?: boolean;
   /**
    * Array of toolbar options to show in the editor toolbar.
    * If not provided, all toolbar options will be shown (default behavior).
@@ -225,6 +227,7 @@ export function SEditor({
   containerProps,
   editorContainerProps,
   error = false,
+  readOnly = false,
   toolbarOptions = DEFAULT_TOOLBAR_OPTIONS,
 }: SEditorProps) {
   const [isFocused, setIsFocused] = React.useState(false);
@@ -237,6 +240,7 @@ export function SEditor({
   };
 
   const editor = useEditor({
+    editable: !readOnly,
     extensions: [
       StarterKit,
       Placeholder.configure({
@@ -280,6 +284,12 @@ export function SEditor({
       editor.commands.setContent(value || '', false);
     }
   }, [value, editor]);
+
+  React.useEffect(() => {
+    if (editor) {
+      editor.setEditable(!readOnly);
+    }
+  }, [editor, readOnly]);
 
   React.useEffect(() => {
     return () => {
@@ -350,7 +360,7 @@ export function SEditor({
         ...containerProps?.sx,
       }}
     >
-      {showToolbar && (
+      {showToolbar && !readOnly && (
         <Stack
           direction="row"
           spacing={1}

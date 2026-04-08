@@ -7,9 +7,11 @@ import { useState, useMemo } from 'react';
 export const FormRiskSelect = ({
   name,
   companyId,
+  disabled = false,
 }: {
   name: string;
   companyId: string;
+  disabled?: boolean;
 }) => {
   const [search, setSearch] = useState('');
   const {
@@ -39,6 +41,7 @@ export const FormRiskSelect = ({
     <SSearchSelectMultipleForm
       boxProps={{ flex: 1 }}
       name={name}
+      inputProps={{ disabled }}
       onScrollEnd={() => {
         if (hasNextPage && !isFetchingNextPage) {
           fetchNextPage();

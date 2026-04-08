@@ -7,7 +7,11 @@ interface SEditorFormProps extends SEditorProps {
   name: string;
 }
 
-export function SEditorForm({ name, ...props }: SEditorFormProps) {
+export function SEditorForm({
+  name,
+  readOnly,
+  ...props
+}: SEditorFormProps) {
   const { setValue, formState, control } = useFormContext();
   const error = getNestedError(formState?.errors, name);
 
@@ -21,9 +25,16 @@ export function SEditorForm({ name, ...props }: SEditorFormProps) {
     <div>
       <SEditor
         {...props}
+        readOnly={readOnly}
         value={value}
         error={!!error}
-        onChange={(val: string) => setValue(name, val)}
+        onChange={
+          readOnly
+            ? undefined
+            : (val: string) => {
+                setValue(name, val);
+              }
+        }
       />
       {errorMessage && (
         <div style={{ color: '#d32f2f', fontSize: 13, marginTop: 4 }}>

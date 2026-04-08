@@ -3,6 +3,7 @@ import { SInputForm } from '@v2/components/forms/controlled/SInputForm/SInputFor
 interface ShortTextFormProps {
   sectionIndex: number;
   questionIndex: number;
+  structureFrozen?: boolean;
 }
 
 export const ShortTextForm = ({

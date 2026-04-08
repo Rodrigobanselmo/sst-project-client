@@ -1,4 +1,5 @@
 import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
+import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormIdentifierTypeTranslate } from '@v2/models/form/translations/form-identifier-type.translation';
 import { v4 } from 'uuid';
 import * as yup from 'yup';
@@ -13,10 +14,16 @@ export interface IFormIdentifierItem {
   disableDuplication: boolean;
   type: { value: FormIdentifierTypeEnum; label: string };
   risks?: { id: string; name: string }[];
+  /** Quando definido, sobrescreve o mapeamento padrão em `transformFormApplicationDataToApiFormat` (ex.: cópia da biblioteca). */
+  detailsQuestionType?: FormQuestionTypeEnum;
+  acceptOther?: boolean;
   options?: {
     apiId?: string;
     label: string;
-    // value: string;
+    /** Valor numérico opcional enviado à API (ex.: opções copiadas da biblioteca). */
+    responseValue?: number;
+    /** Campo legado de UI (escalas / select). Distinto de `responseValue`. */
+    value?: string;
   }[];
 }
 
