@@ -4,6 +4,7 @@ import { SInputForm } from '@v2/components/forms/controlled/SInputForm/SInputFor
 interface PlaceholderFormProps {
   sectionIndex: number;
   questionIndex: number;
+  structureFrozen?: boolean;
 }
 
 export const PlaceholderForm = ({

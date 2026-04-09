@@ -1,4 +1,6 @@
-import { Box, Stack } from '@mui/material';
+import LibraryBooksOutlinedIcon from '@mui/icons-material/LibraryBooksOutlined';
+import ViewWeekOutlinedIcon from '@mui/icons-material/ViewWeekOutlined';
+import { Alert, Box, Button, Stack } from '@mui/material';
 import { useState } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import { v4 } from 'uuid';
@@ -23,6 +25,15 @@ interface SFormSectionProps {
   disableQuestionDuplication?: boolean;
   disableQuestionCreation?: boolean;
   disableRequiredSwitch?: boolean;
+  /** Abre o fluxo para copiar uma pergunta da Biblioteca de Perguntas Preliminares. */
+  onAddFromLibrary?: () => void;
+  /** Abre o fluxo para copiar um bloco (várias perguntas) da biblioteca. */
+  onAddBlockFromLibrary?: () => void;
+  /**
+   * Quando true, a estrutura do questionário preliminar não pode mais ser alterada
+   * (ex.: já existem respostas submetidas).
+   */
+  structureFrozen?: boolean;
   companyId: string;
 }
 
@@ -43,6 +54,9 @@ export const SFormQuestionSection = ({
   disableQuestionDuplication = false,
   disableQuestionCreation = false,
   disableRequiredSwitch = false,
+  onAddFromLibrary,
+  onAddBlockFromLibrary,
+  structureFrozen = false,
   companyId,
 }: SFormSectionProps) => {
   const { control, getValues } = useFormContext();
@@ -56,6 +70,7 @@ export const SFormQuestionSection = ({
   });
 
   const handleMoveQuestion = (fromIndex: number, direction: 'up' | 'down') => {
+    if (structureFrozen) return;
     const toIndex = direction === 'up' ? fromIndex - 1 : fromIndex + 1;
     if (toIndex < 0 || toIndex >= fields.length) return;
 
@@ -70,14 +85,17 @@ export const SFormQuestionSection = ({
   };
 
   const handleAddNewQuestion = () => {
+    if (structureFrozen) return;
     append(initialValues);
   };
 
   const handleInsertNewQuestionFromQuestion = (index: number) => {
+    if (structureFrozen) return;
     insert(index + 1, initialValues);
   };
 
   const handleCopyQuestion = (questionIndex: number) => {
+    if (structureFrozen) return;
     const currentValues = getValues();
     const currentQuestion =
       currentValues.sections[sectionIndex].items[questionIndex];
@@ -97,11 +115,23 @@ export const SFormQuestionSection = ({
   };
 
   const handleDeleteQuestion = (questionIndex: number) => {
+    if (structureFrozen) return;
     if (fields.length === 1) {
       return;
     }
     remove(questionIndex);
   };
+
+  const effectiveDisableCreation =
+    disableQuestionCreation || structureFrozen;
+  const effectiveDisableDuplication =
+    disableQuestionDuplication || structureFrozen;
+  const effectiveDisableRequired = disableRequiredSwitch || structureFrozen;
+
+  const libraryFromLibrary = structureFrozen ? undefined : onAddFromLibrary;
+  const blockFromLibrary = structureFrozen
+    ? undefined
+    : onAddBlockFromLibrary;
 
   const handleQuestionClick = (questionIndex: number) => {
     if (focusedQuestionIndex !== questionIndex) {
@@ -117,8 +147,10 @@ export const SFormQuestionSection = ({
       onMoveSectionUp={onMoveSectionUp}
       onMoveSectionDown={onMoveSectionDown}
       onAddNewQuestion={
-        disableQuestionCreation ? undefined : handleAddNewQuestion
+        effectiveDisableCreation ? undefined : handleAddNewQuestion
       }
+      onAddFromLibrary={libraryFromLibrary}
+      onAddBlockFromLibrary={blockFromLibrary}
       onMinimizeSection={onMinimizeSection}
       isMinimized={isMinimized}
       title={title}
@@ -126,6 +158,47 @@ export const SFormQuestionSection = ({
       descriptionPlaceholder={descriptionPlaceholder}
     >
       <Box>
+        {structureFrozen && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Este questionário já recebeu respostas. A estrutura das perguntas
+            preliminares não pode mais ser alterada (incluir, remover, reordenar
+            ou duplicar).
+          </Alert>
+        )}
+        {(libraryFromLibrary || blockFromLibrary) && (
+          <Box
+            sx={{
+              mb: 3,
+              display: 'flex',
+              justifyContent: 'flex-end',
+              flexWrap: 'wrap',
+              gap: 1,
+            }}
+          >
+            {libraryFromLibrary && (
+              <Button
+                type="button"
+                variant="outlined"
+                size="small"
+                startIcon={<LibraryBooksOutlinedIcon />}
+                onClick={libraryFromLibrary}
+              >
+                Adicionar da biblioteca
+              </Button>
+            )}
+            {blockFromLibrary && (
+              <Button
+                type="button"
+                variant="outlined"
+                size="small"
+                startIcon={<ViewWeekOutlinedIcon />}
+                onClick={blockFromLibrary}
+              >
+                Adicionar bloco da biblioteca
+              </Button>
+            )}
+          </Box>
+        )}
         <Stack gap={4}>
           {fields.map((field, questionIndex) => {
             return (
@@ -162,17 +235,26 @@ export const SFormQuestionSection = ({
                     typeOptions={questionTypeOptions}
                     isFocused={focusedQuestionIndex === questionIndex}
                     onMoveQuestionUp={
-                      questionIndex > 0
+                      !structureFrozen && questionIndex > 0
                         ? () => handleMoveQuestion(questionIndex, 'up')
                         : undefined
                     }
                     onMoveQuestionDown={
+                      !structureFrozen &&
                       questionIndex < fields.length - 1
                         ? () => handleMoveQuestion(questionIndex, 'down')
                         : undefined
                     }
-                    onCopy={() => handleCopyQuestion(questionIndex)}
-                    onDelete={() => handleDeleteQuestion(questionIndex)}
+                    onCopy={
+                      structureFrozen
+                        ? undefined
+                        : () => handleCopyQuestion(questionIndex)
+                    }
+                    onDelete={
+                      structureFrozen
+                        ? undefined
+                        : () => handleDeleteQuestion(questionIndex)
+                    }
                     onAddNewSection={
                       onAddNewSection
                         ? () => onAddNewSection(questionIndex)
@@ -181,9 +263,10 @@ export const SFormQuestionSection = ({
                     onAddNewQuestion={() =>
                       handleInsertNewQuestionFromQuestion(questionIndex)
                     }
-                    disableQuestionDuplication={disableQuestionDuplication}
-                    disableQuestionCreation={disableQuestionCreation}
-                    disableRequiredSwitch={disableRequiredSwitch}
+                    disableQuestionDuplication={effectiveDisableDuplication}
+                    disableQuestionCreation={effectiveDisableCreation}
+                    disableRequiredSwitch={effectiveDisableRequired}
+                    structureFrozen={structureFrozen}
                   />
                 </Box>
               </div>

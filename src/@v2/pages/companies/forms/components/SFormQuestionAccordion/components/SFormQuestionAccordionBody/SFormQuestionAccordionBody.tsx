@@ -26,6 +26,7 @@ interface SFormQuestionAccordionProps {
   onDelete?: () => void;
   disableRequiredSwitch?: boolean;
   disableQuestionDuplication?: boolean;
+  structureFrozen?: boolean;
   companyId: string;
 }
 
@@ -36,6 +37,7 @@ export const SFormQuestionAccordionBody = ({
   onDelete,
   disableRequiredSwitch: disableRequiredSwitchFromProps = false,
   disableQuestionDuplication: disableQuestionDuplicationFromProps = false,
+  structureFrozen = false,
   companyId,
 }: SFormQuestionAccordionProps) => {
   const { control } = useFormContext<IFormModelForms>();
@@ -65,17 +67,21 @@ export const SFormQuestionAccordionBody = ({
     type === FormQuestionTypeEnum.RADIO;
 
   const acceptRiskFromFormType = formType === FormTypeEnum.PSYCHOSOCIAL;
-  const disableDelete = disabledEdition;
+  const disableDelete = disabledEdition || !onDelete || structureFrozen;
   const disableRequiredSwitch =
-    disabledEdition || disableRequiredSwitchFromProps;
+    disabledEdition || disableRequiredSwitchFromProps || structureFrozen;
   const disableQuestionDuplication =
-    disableDuplication || !onCopy || disableQuestionDuplicationFromProps;
+    disableDuplication ||
+    !onCopy ||
+    disableQuestionDuplicationFromProps ||
+    structureFrozen;
 
   return (
     <SFlex mt={8} flexDirection="column" gap={10}>
       <SEditorForm
         placeholder="Pergunta"
         name={`sections.${sectionIndex}.items.${questionIndex}.content`}
+        readOnly={structureFrozen}
         editorContainerProps={{
           sx: {},
         }}
@@ -85,12 +91,14 @@ export const SFormQuestionAccordionBody = ({
         <FormRiskSelect
           name={`sections.${sectionIndex}.items.${questionIndex}.risks`}
           companyId={companyId}
+          disabled={structureFrozen}
         />
       )}
       <QuestionTypeFormContent
         sectionIndex={sectionIndex}
         questionIndex={questionIndex}
         disableQuestionValue={!normalOptionInput}
+        structureFrozen={structureFrozen}
       />
 
       <Divider sx={{ mt: 4, mb: 0 }} />

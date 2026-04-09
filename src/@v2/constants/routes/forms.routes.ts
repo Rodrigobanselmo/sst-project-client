@@ -37,4 +37,12 @@ export const FormRoutes = {
     SEND_EMAIL:
       'v2/companies/:companyId/forms/applications/:applicationId/participants/send-email',
   },
+  /** Biblioteca de Perguntas Preliminares (Fase 1 API). */
+  FORM_PRELIMINARY_LIBRARY: {
+    QUESTIONS: 'v2/companies/:companyId/forms/preliminary-library/questions',
+    QUESTION_ID:
+      'v2/companies/:companyId/forms/preliminary-library/questions/:questionId',
+    BLOCKS: 'v2/companies/:companyId/forms/preliminary-library/blocks',
+    BLOCK_ID: 'v2/companies/:companyId/forms/preliminary-library/blocks/:blockId',
+  },
 } as const;

@@ -8,8 +8,17 @@ import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormQuestionsButtons } from '@v2/pages/companies/forms/components/FormQuestionsButtons/FormQuestionsButtons';
 import { SFormQuestionSection } from '@v2/pages/companies/forms/components/SFormSection/SFormSection';
 import { useMutateAddFormApplication } from '@v2/services/forms/form-application/add-form-application/hooks/useMutateAddFormApplication';
-import { useEffect } from 'react';
+import {
+  FormPreliminaryLibraryBlockDetailApi,
+  FormPreliminaryLibraryQuestionListItemApi,
+} from '@v2/services/forms/form-preliminary-library/types/form-preliminary-library-api.types';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm, useWatch } from 'react-hook-form';
+import { AddLibraryBlockDialog } from '../../../../components/AddLibraryBlockDialog/AddLibraryBlockDialog';
+import { AddLibraryQuestionDialog } from '../../../../components/AddLibraryQuestionDialog/AddLibraryQuestionDialog';
+import { getInsertIndexForLibraryQuestion } from '../../../../helpers/get-insert-index-for-library-question';
+import { mapLibraryBlockToFormIdentifierItems } from '../../../../helpers/map-library-block-to-form-identifier-items';
+import { mapLibraryQuestionToFormIdentifierItem } from '../../../../helpers/map-library-question-to-form-identifier-item';
 import { FormFormApplication } from '../../../../components/FormApplicationForms/components/FormFormApplication';
 import { getFormIdentifierTypeList } from '../../../../components/FormApplicationForms/constants/form-Identifier-type.map';
 import { transformFormApplicationDataToApiFormat } from '../../../../helpers/transform-form-application-data';
@@ -34,7 +43,42 @@ export const FormApplicationAddContent = ({
 
   const formModel = useWatch({ name: 'form', control: form.control });
 
+  const [libraryDialogOpen, setLibraryDialogOpen] = useState(false);
+  const [libraryBlockDialogOpen, setLibraryBlockDialogOpen] = useState(false);
+
   const addFormMutation = useMutateAddFormApplication();
+
+  const handlePickLibraryQuestion = useCallback(
+    (libraryQuestion: FormPreliminaryLibraryQuestionListItemApi) => {
+      const mapped = mapLibraryQuestionToFormIdentifierItem(libraryQuestion);
+      const items = form.getValues('sections.0.items') ?? [];
+      const insertAt = getInsertIndexForLibraryQuestion(
+        items,
+        formModel?.type,
+      );
+      const next = [...items];
+      next.splice(insertAt, 0, mapped);
+      form.setValue('sections.0.items', next);
+      setLibraryDialogOpen(false);
+    },
+    [form, formModel?.type],
+  );
+
+  const handlePickLibraryBlock = useCallback(
+    (block: FormPreliminaryLibraryBlockDetailApi) => {
+      const mappedItems = mapLibraryBlockToFormIdentifierItems(block);
+      const items = form.getValues('sections.0.items') ?? [];
+      const insertAt = getInsertIndexForLibraryQuestion(
+        items,
+        formModel?.type,
+      );
+      const next = [...items];
+      next.splice(insertAt, 0, ...mappedItems);
+      form.setValue('sections.0.items', next);
+      setLibraryBlockDialogOpen(false);
+    },
+    [form, formModel?.type],
+  );
 
   const onSubmit = async (data: IFormApplicationFormFields) => {
     form.clearErrors();
@@ -160,8 +204,24 @@ export const FormApplicationAddContent = ({
           title={() => 'Dados Gerais'}
           descriptionPlaceholder="Instruções do questionário (opcional)"
           initialValues={getFormApplicationInitialValues({})}
+          onAddFromLibrary={() => setLibraryDialogOpen(true)}
+          onAddBlockFromLibrary={() => setLibraryBlockDialogOpen(true)}
         />
       )}
+
+      <AddLibraryQuestionDialog
+        open={libraryDialogOpen}
+        onClose={() => setLibraryDialogOpen(false)}
+        companyId={companyId}
+        onPick={handlePickLibraryQuestion}
+      />
+
+      <AddLibraryBlockDialog
+        open={libraryBlockDialogOpen}
+        onClose={() => setLibraryBlockDialogOpen(false)}
+        companyId={companyId}
+        onPick={handlePickLibraryBlock}
+      />
 
       <FormQuestionsButtons
         onSubmit={handleSubmit}

@@ -29,6 +29,8 @@ interface SFormQuestionAccordionProps {
   disableQuestionDuplication?: boolean;
   disableQuestionCreation?: boolean;
   disableRequiredSwitch?: boolean;
+  /** Estrutura congelada (ex.: respostas já coletadas): sem alterar tipo nem conteúdo estrutural. */
+  structureFrozen?: boolean;
   companyId: string;
 }
 
@@ -47,6 +49,7 @@ export const SFormQuestionAccordion = ({
   disableQuestionDuplication = false,
   disableQuestionCreation = false,
   disableRequiredSwitch = false,
+  structureFrozen = false,
   companyId,
 }: SFormQuestionAccordionProps) => {
   const { control } = useFormContext<IFormModelForms>();
@@ -110,7 +113,7 @@ export const SFormQuestionAccordion = ({
                   ml: 0,
                 },
               }}
-              disabled={disabledEdition}
+              disabled={disabledEdition || structureFrozen}
               name={`sections.${sectionIndex}.items.${questionIndex}.type`}
               renderStartAdornment={({ option }) =>
                 option ? (
@@ -140,6 +143,7 @@ export const SFormQuestionAccordion = ({
             onDelete={onDelete}
             disableQuestionDuplication={disableQuestionDuplication}
             disableRequiredSwitch={disableRequiredSwitch}
+            structureFrozen={structureFrozen}
             companyId={companyId}
           />
         </SAccordionBody>

@@ -14,6 +14,7 @@ interface QuestionTypeFormContentProps {
   sectionIndex: number;
   questionIndex: number;
   disableQuestionValue?: boolean;
+  structureFrozen?: boolean;
 }
 
 interface IForm {
@@ -23,6 +24,7 @@ interface IForm {
         value: FormQuestionTypeEnum | FormIdentifierTypeEnum;
         label: string;
       };
+      detailsQuestionType?: FormQuestionTypeEnum;
     }[];
   }[];
 }
@@ -31,6 +33,7 @@ export const QuestionTypeFormContent = ({
   sectionIndex,
   questionIndex,
   disableQuestionValue = false,
+  structureFrozen = false,
 }: QuestionTypeFormContentProps) => {
   const { control } = useFormContext<IForm>();
 
@@ -39,7 +42,15 @@ export const QuestionTypeFormContent = ({
     name: `sections.${sectionIndex}.items.${questionIndex}.type`,
   });
 
-  const questionType = questionTypeValue?.value;
+  const detailsQuestionType = useWatch({
+    control,
+    name: `sections.${sectionIndex}.items.${questionIndex}.detailsQuestionType` as any,
+  }) as FormQuestionTypeEnum | undefined;
+
+  const identifierType = questionTypeValue?.value;
+
+  /** Cópia da biblioteca: `detailsQuestionType` orienta texto longo vs opções. */
+  const questionType = detailsQuestionType ?? identifierType;
 
   const questionTypeFormMap = {
     [FormQuestionTypeEnum.SHORT_TEXT]: ShortTextForm,
@@ -63,6 +74,7 @@ export const QuestionTypeFormContent = ({
           sectionIndex={sectionIndex}
           questionIndex={questionIndex}
           disableQuestionValue={disableQuestionValue}
+          structureFrozen={structureFrozen}
         />
       );
     }
