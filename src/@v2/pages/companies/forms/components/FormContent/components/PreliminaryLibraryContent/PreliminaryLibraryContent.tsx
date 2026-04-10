@@ -1,4 +1,5 @@
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 import { useFetchBrowseFormPreliminaryLibraryBlocks } from '@v2/services/forms/form-preliminary-library/browse-form-preliminary-library-blocks/hooks/useFetchBrowseFormPreliminaryLibraryBlocks';
 import { useFetchBrowseFormPreliminaryLibraryQuestions } from '@v2/services/forms/form-preliminary-library/browse-form-preliminary-library-questions/hooks/useFetchBrowseFormPreliminaryLibraryQuestions';
 import { useFetchReadFormPreliminaryLibraryBlock } from '@v2/services/forms/form-preliminary-library/read-form-preliminary-library-block/hooks/useFetchReadFormPreliminaryLibraryBlock';
@@ -27,6 +28,8 @@ import {
   Typography,
 } from '@mui/material';
 import { useMemo, useState } from 'react';
+import { CreatePreliminaryLibraryBlockDialog } from './CreatePreliminaryLibraryBlockDialog';
+import { CreatePreliminaryLibraryQuestionDialog } from './CreatePreliminaryLibraryQuestionDialog';
 import { PreliminaryLibraryBlockDetailDialog } from './PreliminaryLibraryBlockDetailDialog';
 import { PreliminaryLibraryQuestionDetailDialog } from './PreliminaryLibraryQuestionDetailDialog';
 import {
@@ -90,6 +93,8 @@ export const PreliminaryLibraryContent = ({
 
   const [questionDetailId, setQuestionDetailId] = useState<string | null>(null);
   const [blockDetailId, setBlockDetailId] = useState<string | null>(null);
+  const [createQuestionOpen, setCreateQuestionOpen] = useState(false);
+  const [createBlockOpen, setCreateBlockOpen] = useState(false);
 
   const { question: questionDetail, isLoading: questionDetailLoading } =
     useFetchReadFormPreliminaryLibraryQuestion({
@@ -167,6 +172,8 @@ export const PreliminaryLibraryContent = ({
                 <MenuItem value="OTHER">Outra</MenuItem>
               </Select>
             </FormControl>
+            <Box flex={1} sx={{ minWidth: 8 }} />
+            <STableAddButton onClick={() => setCreateQuestionOpen(true)} />
           </SFlex>
 
           <Table size="small">
@@ -263,6 +270,8 @@ export const PreliminaryLibraryContent = ({
               }}
               sx={{ minWidth: 260 }}
             />
+            <Box flex={1} sx={{ minWidth: 8 }} />
+            <STableAddButton onClick={() => setCreateBlockOpen(true)} />
           </SFlex>
 
           <Table size="small">
@@ -348,6 +357,18 @@ export const PreliminaryLibraryContent = ({
         onClose={() => setBlockDetailId(null)}
         block={blockDetail}
         isLoading={!!blockDetailId && blockDetailLoading}
+      />
+
+      <CreatePreliminaryLibraryQuestionDialog
+        open={createQuestionOpen}
+        onClose={() => setCreateQuestionOpen(false)}
+        companyId={companyId}
+      />
+
+      <CreatePreliminaryLibraryBlockDialog
+        open={createBlockOpen}
+        onClose={() => setCreateBlockOpen(false)}
+        companyId={companyId}
       />
     </SFlex>
   );
