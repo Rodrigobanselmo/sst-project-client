@@ -6,6 +6,8 @@ import { SText } from '@v2/components/atoms/SText/SText';
 export interface STableFilterChipProps {
   label: string;
   leftLabel?: string;
+  /** Destaca o rótulo do tipo (ex.: Setor, Cargo) sem alterar o valor. */
+  leftLabelBold?: boolean;
   onDelete: () => void;
 }
 
@@ -13,6 +15,7 @@ export const STableFilterChip = ({
   onDelete,
   label,
   leftLabel,
+  leftLabelBold,
 }: STableFilterChipProps) => {
   return (
     <SFlex
@@ -29,7 +32,11 @@ export const STableFilterChip = ({
       }}
     >
       {leftLabel && (
-        <SText color={'text.label'} fontSize={13}>
+        <SText
+          color={'text.label'}
+          fontSize={13}
+          sx={leftLabelBold ? { fontWeight: 600, mr: 0.5 } : { mr: 0.5 }}
+        >
           {leftLabel}
         </SText>
       )}

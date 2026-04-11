@@ -5,6 +5,10 @@ import { QueryKeyEnum } from '@v2/constants/enums/@query-key.enum';
 import { browseFormParticipants } from '../service/browse-form-participants.service';
 import { BrowseFormParticipantsParams } from '../service/browse-form-participants.types';
 
+export type UseFetchBrowseFormParticipantsParams = BrowseFormParticipantsParams & {
+  enabled?: boolean;
+};
+
 export const getKeyBrowseFormParticipants = (
   params: BrowseFormParticipantsParams,
 ) => {
@@ -17,14 +21,15 @@ export const getKeyBrowseFormParticipants = (
 };
 
 export const useFetchBrowseFormParticipants = (
-  params: BrowseFormParticipantsParams,
+  params: UseFetchBrowseFormParticipantsParams,
 ) => {
+  const { enabled = true, ...rest } = params;
   const { data, ...response } = useFetch({
     queryFn: async () => {
-      return browseFormParticipants(params);
+      return browseFormParticipants(rest);
     },
-    queryKey: getKeyBrowseFormParticipants(params),
-    enabled: !!params.companyId && !!params.applicationId,
+    queryKey: getKeyBrowseFormParticipants(rest),
+    enabled: !!rest.companyId && !!rest.applicationId && enabled,
   });
 
   return {

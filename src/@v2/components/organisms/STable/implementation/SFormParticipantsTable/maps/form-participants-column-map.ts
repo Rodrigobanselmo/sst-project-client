@@ -16,7 +16,7 @@ export const FormParticipantsColumnMap: Record<
   [FormParticipantsColumnsEnum.EMAIL]: { label: 'Email' },
   [FormParticipantsColumnsEnum.PHONE]: { label: 'Telefone' },
   [FormParticipantsColumnsEnum.STATUS]: { label: 'Status' },
-  [FormParticipantsColumnsEnum.HIERARCHY_NAME]: { label: 'Hierarquia' },
+  [FormParticipantsColumnsEnum.HIERARCHY_NAME]: { label: 'Setor / hierarquia' },
   [FormParticipantsColumnsEnum.HAS_RESPONDED]: { label: 'Respondeu' },
   [FormParticipantsColumnsEnum.CREATED_AT]: { label: 'Criado' },
   [FormParticipantsColumnsEnum.UPDATED_AT]: {

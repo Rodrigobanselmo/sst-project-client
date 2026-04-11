@@ -1,4 +1,5 @@
 import { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
+import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-form-participants.types';
 import { IOrderByParams } from '@v2/types/order-by-params.type';
 import { ReactNode } from 'react';
@@ -11,6 +12,7 @@ export interface IFormParticipantsFilterProps {
   hierarchies?: {
     id: string;
     name: string;
+    type?: HierarchyTypeEnum;
   }[];
   page?: number;
   limit?: number;
@@ -36,4 +38,7 @@ export interface IFormParticipantsTableTableProps {
     limit: number;
     page: number;
   };
+  /** Opções de linhas por página; se ausente, não exibe o seletor. */
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (pageSize: number) => void;
 }
