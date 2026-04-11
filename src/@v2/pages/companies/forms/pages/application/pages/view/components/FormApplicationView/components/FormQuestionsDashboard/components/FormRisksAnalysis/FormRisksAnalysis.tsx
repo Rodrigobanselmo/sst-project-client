@@ -552,7 +552,18 @@ export const FormRisksAnalysis = ({
     );
   }
 
-  const { entityMap, riskMap, entityRiskMap } = formQuestionsAnswersRisks;
+  const { entityMap, riskMap, entityRiskMap, groupedEntityRiskMap, hierarchyGroups } = formQuestionsAnswersRisks;
+
+  // Helper: get effective probability considering hierarchy groups
+  const getEffectiveProbability = (entityId: string, riskId: string): number => {
+    if (hierarchyGroups && hierarchyGroups.length > 0) {
+      const group = hierarchyGroups.find((g) => g.hierarchyIds.includes(entityId));
+      if (group && groupedEntityRiskMap?.[group.id]?.[riskId]) {
+        return groupedEntityRiskMap[group.id][riskId].probability;
+      }
+    }
+    return entityRiskMap[entityId]?.[riskId]?.probability ?? 0;
+  };
 
   // Get all risks that have data
   const risksWithData = Object.keys(riskMap).filter((riskId) =>
@@ -586,7 +597,7 @@ export const FormRisksAnalysis = ({
       applicationId: formApplication.id,
       risks: entityIds.map((entityId) => ({
         riskId,
-        probability: entityRiskMap[entityId][riskId].probability,
+        probability: getEffectiveProbability(entityId, riskId),
         hierarchyId: entityId,
       })),
     });
@@ -599,7 +610,7 @@ export const FormRisksAnalysis = ({
       risks: [
         {
           riskId,
-          probability: entityRiskMap[entityId][riskId].probability,
+          probability: getEffectiveProbability(entityId, riskId),
           hierarchyId: entityId,
         },
       ],
@@ -608,12 +619,12 @@ export const FormRisksAnalysis = ({
 
   const handleAddAllRisk = () => {
     const risks = Object.entries(entityRiskMap)
-      .map(([entityId, riskMap]) => {
-        return Object.entries(riskMap).map(([riskId, risk]) => {
+      .map(([entityId, entityRisks]) => {
+        return Object.entries(entityRisks).map(([riskId]) => {
           return {
             hierarchyId: entityId,
             riskId,
-            probability: risk.probability,
+            probability: getEffectiveProbability(entityId, riskId),
           };
         });
       })
@@ -707,7 +718,7 @@ export const FormRisksAnalysis = ({
                     isRiskAddedToEntity(
                       riskId,
                       entityId,
-                      entityRiskMap[entityId][riskId].probability,
+                      getEffectiveProbability(entityId, riskId),
                     ),
                   ) && (
                     <SText color="success.main" fontSize={12} ml="auto" mr={5}>
@@ -743,7 +754,7 @@ export const FormRisksAnalysis = ({
                       const entity = entityMap[entityId];
                       const riskData = entityRiskMap[entityId][riskId];
                       const severity = risk?.severity;
-                      const probability = riskData?.probability;
+                      const probability = getEffectiveProbability(entityId, riskId);
 
                       const hasValidSeverity = isValidMatrixValue(severity);
                       const hasValidProbability = isValidMatrixValue(probability);
@@ -793,7 +804,7 @@ export const FormRisksAnalysis = ({
                             {isRiskAddedToEntity(
                               riskId,
                               entityId,
-                              riskData.probability,
+                              probability,
                             ) ? (
                               <SFlex
                                 color="success.main"
@@ -1153,7 +1164,7 @@ export const FormRisksAnalysis = ({
                       isRiskAddedToEntity(
                         riskId,
                         entityId,
-                        entityRiskMap[entityId][riskId].probability,
+                        getEffectiveProbability(entityId, riskId),
                       ),
                     ) && (
                       <SButton
@@ -1176,7 +1187,7 @@ export const FormRisksAnalysis = ({
                                 !isRiskAddedToEntity(
                                   riskId,
                                   entityId,
-                                  entityRiskMap[entityId][riskId].probability,
+                                  getEffectiveProbability(entityId, riskId),
                                 ),
                             ),
                           )

@@ -22,11 +22,13 @@ import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
 import { SectionHeader } from './components/SectionHeader/SectionHeader';
 import { FormRisksAnalysis } from './components/FormRisksAnalysis/FormRisksAnalysis';
 import { FormParticipantsTable } from '../FormParticipantsTable/FormParticipantsTable';
+import { FormHierarchyGroupManager } from './components/FormHierarchyGroupManager/FormHierarchyGroupManager';
 
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
 import { STabs } from '@v2/components/organisms/STabs/STabs';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
+import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -446,7 +448,7 @@ export const FormQuestionsDashboard = ({
     ) {
       return 1; // Gráficos tab
     } else {
-      return 5; // Participantes tab
+      return 6; // Participantes tab
     }
   };
 
@@ -458,6 +460,12 @@ export const FormQuestionsDashboard = ({
   // State for controlling whether to show only group indicators or individual questions too
   const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] =
     useState<boolean>(false);
+
+  // Fetch hierarchy groups for sector grouping
+  const { hierarchyGroups } = useFetchBrowseHierarchyGroups({
+    companyId: formApplication.companyId,
+    applicationId: formApplication.id,
+  });
 
   // Separate first group (identifier) from the rest (general questions)
   const [identifierGroup, ...generalGroups] =
@@ -473,7 +481,24 @@ export const FormQuestionsDashboard = ({
     );
   }, [selectedGroupingQuestion, identifierGroup]);
 
+  // Build optionId -> hierarchyId mapping from answers (for hierarchy-type questions)
+  const optionToHierarchyMap = useMemo(() => {
+    if (!groupingQuestion) return new Map<string, string>();
+    const map = new Map<string, string>();
+    groupingQuestion.answers.forEach((answer) => {
+      if (answer.value && answer.selectedOptionsIds.length > 0) {
+        answer.selectedOptionsIds.forEach((optionId) => {
+          if (!map.has(optionId)) {
+            map.set(optionId, answer.value!);
+          }
+        });
+      }
+    });
+    return map;
+  }, [groupingQuestion]);
+
   // Create participant groups based on selected identifier question
+  // When hierarchy groups exist, merge options that correspond to grouped hierarchies
   const participantGroups = useMemo(() => {
     if (!groupingQuestion) {
       // Default: all participants in one group
@@ -494,8 +519,8 @@ export const FormQuestionsDashboard = ({
       ];
     }
 
-    // Create groups for each option of the selected question
-    return groupingQuestion.options.map((option) => {
+    // Create initial groups for each option
+    const initialGroups = groupingQuestion.options.map((option) => {
       const participantIds = new Set<string>();
       groupingQuestion.answers.forEach((answer) => {
         if (answer.selectedOptionsIds.includes(option.id)) {
@@ -506,9 +531,64 @@ export const FormQuestionsDashboard = ({
         id: option.id,
         name: option.text,
         participantIds,
+        hierarchyId: optionToHierarchyMap.get(option.id),
       };
     });
-  }, [groupingQuestion, identifierGroup]);
+
+    // If no hierarchy groups exist, return as-is
+    if (!hierarchyGroups || hierarchyGroups.length === 0) {
+      return initialGroups;
+    }
+
+    // Build hierarchyId -> group mapping
+    const hierarchyToGroupMap = new Map<string, { id: string; name: string }>();
+    hierarchyGroups.forEach((hGroup) => {
+      hGroup.hierarchyIds.forEach((hId) => {
+        hierarchyToGroupMap.set(hId, { id: hGroup.id, name: hGroup.name });
+      });
+    });
+
+    // Merge participant groups that belong to the same hierarchy group
+    const mergedGroupsMap = new Map<
+      string,
+      { id: string; name: string; participantIds: Set<string> }
+    >();
+
+    initialGroups.forEach((group) => {
+      const hId = group.hierarchyId;
+      const hGroup = hId ? hierarchyToGroupMap.get(hId) : undefined;
+
+      if (hGroup) {
+        // This option's hierarchy is part of a group - merge
+        if (mergedGroupsMap.has(hGroup.id)) {
+          const existing = mergedGroupsMap.get(hGroup.id)!;
+          group.participantIds.forEach((pid) =>
+            existing.participantIds.add(pid),
+          );
+        } else {
+          mergedGroupsMap.set(hGroup.id, {
+            id: hGroup.id,
+            name: hGroup.name,
+            participantIds: new Set(group.participantIds),
+          });
+        }
+      } else {
+        // Not grouped - keep individual
+        mergedGroupsMap.set(group.id, {
+          id: group.id,
+          name: group.name,
+          participantIds: group.participantIds,
+        });
+      }
+    });
+
+    return Array.from(mergedGroupsMap.values());
+  }, [
+    groupingQuestion,
+    identifierGroup,
+    hierarchyGroups,
+    optionToHierarchyMap,
+  ]);
 
   // Helper function to filter answers based on participant IDs
   const filterAnswersByParticipants = useCallback(
@@ -682,7 +762,8 @@ export const FormQuestionsDashboard = ({
   const isIndicatorTab = tabTableIndex === 2;
   const isTextAnswersTab = tabTableIndex === 3;
   const isRisksAnalysisTab = tabTableIndex === 4;
-  const isParticipantsTab = tabTableIndex === 5;
+  const isHierarchyGroupsTab = tabTableIndex === 5;
+  const isParticipantsTab = tabTableIndex === 6;
 
   return (
     <SFlex direction="column" gap={16}>
@@ -925,12 +1006,21 @@ export const FormQuestionsDashboard = ({
                     },
                   ]
                 : []),
+              // Show Hierarchy Groups tab for psychosocial forms
+              ...(isPsychosocialForm
+                ? [
+                    {
+                      label: 'Agrupamentos',
+                      value: 5,
+                    },
+                  ]
+                : []),
               // Show Participantes tab only if NOT shareableLink
               ...(!isShareableLink
                 ? [
                     {
                       label: 'Participantes',
-                      value: 5,
+                      value: 6,
                     },
                   ]
                 : []),
@@ -944,7 +1034,10 @@ export const FormQuestionsDashboard = ({
 
           <SPaper
             sx={
-              isParticipantsTab || isGraphsTab || isIndicatorTab
+              isParticipantsTab ||
+              isGraphsTab ||
+              isIndicatorTab ||
+              isHierarchyGroupsTab
                 ? {
                     backgroundColor: 'transparent',
                     border: 'none',
@@ -961,6 +1054,11 @@ export const FormQuestionsDashboard = ({
               <FormTextAnswers formGroups={generalGroups} />
             ) : isRisksAnalysisTab ? (
               <FormRisksAnalysis formApplication={formApplication} />
+            ) : isHierarchyGroupsTab ? (
+              <FormHierarchyGroupManager
+                formApplication={formApplication}
+                inline={true}
+              />
             ) : isParticipantsTab ? (
               <FormParticipantsTable
                 companyId={formApplication.companyId}

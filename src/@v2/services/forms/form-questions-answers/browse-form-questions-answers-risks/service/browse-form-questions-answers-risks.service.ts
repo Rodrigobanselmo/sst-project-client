@@ -27,6 +27,16 @@ export type Result = {
       subTypes: { sub_type: { id: number; name: string } }[];
     }
   >;
+  // Grouped data for indicators (groups as single entities)
+  groupedEntityRiskMap: Record<
+    string,
+    Record<string, { values: number[]; probability: number }>
+  >;
+  groupedEntityMap: Record<
+    string,
+    { id: string; name: string; type: string }
+  >;
+  hierarchyGroups: Array<{ id: string; name: string; hierarchyIds: string[] }>;
 };
 
 export async function browseFormQuestionsAnswersRisks({

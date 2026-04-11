@@ -96,7 +96,7 @@ export function SSearchSelect<T>({
         onScrollEnd={onScrollEnd}
         options={options}
         onClean={handleClean}
-        onSearchFunc={onSearch || (() => {})}
+        onSearchFunc={onSearch}
         hideSearchInput={hideSearchInput}
         getOptionIsDisabled={getOptionIsDisabled}
       >
