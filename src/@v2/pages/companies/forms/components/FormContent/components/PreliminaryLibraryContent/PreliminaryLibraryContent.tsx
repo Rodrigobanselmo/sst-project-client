@@ -2,20 +2,29 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
 import { useFetchBrowseFormPreliminaryLibraryBlocks } from '@v2/services/forms/form-preliminary-library/browse-form-preliminary-library-blocks/hooks/useFetchBrowseFormPreliminaryLibraryBlocks';
 import { useFetchBrowseFormPreliminaryLibraryQuestions } from '@v2/services/forms/form-preliminary-library/browse-form-preliminary-library-questions/hooks/useFetchBrowseFormPreliminaryLibraryQuestions';
+import { useDeleteFormPreliminaryLibraryBlock } from '@v2/services/forms/form-preliminary-library/delete-form-preliminary-library-block/hooks/useDeleteFormPreliminaryLibraryBlock';
+import { useDeleteFormPreliminaryLibraryQuestion } from '@v2/services/forms/form-preliminary-library/delete-form-preliminary-library-question/hooks/useDeleteFormPreliminaryLibraryQuestion';
 import { useFetchReadFormPreliminaryLibraryBlock } from '@v2/services/forms/form-preliminary-library/read-form-preliminary-library-block/hooks/useFetchReadFormPreliminaryLibraryBlock';
 import { useFetchReadFormPreliminaryLibraryQuestion } from '@v2/services/forms/form-preliminary-library/read-form-preliminary-library-question/hooks/useFetchReadFormPreliminaryLibraryQuestion';
 import { FormPreliminaryLibraryCategoryApi } from '@v2/services/forms/form-preliminary-library/types/form-preliminary-library-api.types';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import SearchIcon from '@mui/icons-material/Search';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import {
   Box,
+  Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   IconButton,
   InputAdornment,
   MenuItem,
   Paper,
   Select,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -40,6 +49,12 @@ import {
 const PAGE_SIZE = 20;
 
 type LibraryInnerTab = 'questions' | 'blocks';
+
+type ConfirmDeleteTarget = {
+  kind: 'question' | 'block';
+  id: string;
+  name: string;
+};
 
 export const PreliminaryLibraryContent = ({
   companyId,
@@ -95,6 +110,14 @@ export const PreliminaryLibraryContent = ({
   const [blockDetailId, setBlockDetailId] = useState<string | null>(null);
   const [createQuestionOpen, setCreateQuestionOpen] = useState(false);
   const [createBlockOpen, setCreateBlockOpen] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<ConfirmDeleteTarget | null>(
+    null,
+  );
+
+  const deleteQuestionMutation = useDeleteFormPreliminaryLibraryQuestion();
+  const deleteBlockMutation = useDeleteFormPreliminaryLibraryBlock();
+  const deleteBusy =
+    deleteQuestionMutation.isPending || deleteBlockMutation.isPending;
 
   const { question: questionDetail, isLoading: questionDetailLoading } =
     useFetchReadFormPreliminaryLibraryQuestion({
@@ -112,6 +135,32 @@ export const PreliminaryLibraryContent = ({
 
   const questionCount = questionsResult?.count ?? 0;
   const blockCount = blocksResult?.count ?? 0;
+
+  const handleConfirmDelete = () => {
+    if (!confirmDelete) return;
+    const { kind, id } = confirmDelete;
+    if (kind === 'question') {
+      deleteQuestionMutation.mutate(
+        { companyId, questionId: id },
+        {
+          onSuccess: () => {
+            setConfirmDelete(null);
+            if (questionDetailId === id) setQuestionDetailId(null);
+          },
+        },
+      );
+    } else {
+      deleteBlockMutation.mutate(
+        { companyId, blockId: id },
+        {
+          onSuccess: () => {
+            setConfirmDelete(null);
+            if (blockDetailId === id) setBlockDetailId(null);
+          },
+        },
+      );
+    }
+  };
 
   return (
     <SFlex direction="column" gap={3}>
@@ -183,7 +232,7 @@ export const PreliminaryLibraryContent = ({
                 <TableCell>Categoria</TableCell>
                 <TableCell>Tipo</TableCell>
                 <TableCell>Origem</TableCell>
-                <TableCell align="right" width={96}>
+                <TableCell align="right" width={128}>
                   Ações
                 </TableCell>
               </TableRow>
@@ -225,13 +274,31 @@ export const PreliminaryLibraryContent = ({
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton
-                        aria-label="Ver detalhe"
-                        size="small"
-                        onClick={() => setQuestionDetailId(row.id)}
-                      >
-                        <VisibilityOutlinedIcon fontSize="small" />
-                      </IconButton>
+                      <Stack direction="row" spacing={0.25} justifyContent="flex-end">
+                        <IconButton
+                          aria-label="Ver detalhe"
+                          size="small"
+                          onClick={() => setQuestionDetailId(row.id)}
+                        >
+                          <VisibilityOutlinedIcon fontSize="small" />
+                        </IconButton>
+                        {!row.system && (
+                          <IconButton
+                            aria-label="Excluir pergunta"
+                            size="small"
+                            color="error"
+                            onClick={() =>
+                              setConfirmDelete({
+                                kind: 'question',
+                                id: row.id,
+                                name: row.name,
+                              })
+                            }
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -280,7 +347,7 @@ export const PreliminaryLibraryContent = ({
                 <TableCell>Nome</TableCell>
                 <TableCell>Descrição</TableCell>
                 <TableCell>Origem</TableCell>
-                <TableCell align="right" width={96}>
+                <TableCell align="right" width={128}>
                   Ações
                 </TableCell>
               </TableRow>
@@ -320,13 +387,31 @@ export const PreliminaryLibraryContent = ({
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton
-                        aria-label="Ver detalhe"
-                        size="small"
-                        onClick={() => setBlockDetailId(row.id)}
-                      >
-                        <VisibilityOutlinedIcon fontSize="small" />
-                      </IconButton>
+                      <Stack direction="row" spacing={0.25} justifyContent="flex-end">
+                        <IconButton
+                          aria-label="Ver detalhe"
+                          size="small"
+                          onClick={() => setBlockDetailId(row.id)}
+                        >
+                          <VisibilityOutlinedIcon fontSize="small" />
+                        </IconButton>
+                        {!row.system && (
+                          <IconButton
+                            aria-label="Excluir bloco"
+                            size="small"
+                            color="error"
+                            onClick={() =>
+                              setConfirmDelete({
+                                kind: 'block',
+                                id: row.id,
+                                name: row.name,
+                              })
+                            }
+                          >
+                            <DeleteOutlineIcon fontSize="small" />
+                          </IconButton>
+                        )}
+                      </Stack>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -370,6 +455,46 @@ export const PreliminaryLibraryContent = ({
         onClose={() => setCreateBlockOpen(false)}
         companyId={companyId}
       />
+
+      <Dialog
+        open={!!confirmDelete}
+        onClose={() => !deleteBusy && setConfirmDelete(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {confirmDelete?.kind === 'block'
+            ? 'Excluir bloco da biblioteca'
+            : 'Excluir pergunta da biblioteca'}
+        </DialogTitle>
+        <DialogContent>
+          {confirmDelete?.kind === 'block' ? (
+            <Typography variant="body2" sx={{ pt: 0.5 }}>
+              Tem certeza que deseja excluir o bloco &quot;{confirmDelete?.name}
+              &quot;? Ele deixará de aparecer na biblioteca.
+            </Typography>
+          ) : (
+            <Typography variant="body2" sx={{ pt: 0.5 }}>
+              Tem certeza que deseja excluir a pergunta &quot;{confirmDelete?.name}
+              &quot;? Ela deixará de aparecer na biblioteca. Se ainda estiver em
+              algum bloco ativo, a exclusão será recusada.
+            </Typography>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDelete(null)} disabled={deleteBusy}>
+            Cancelar
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            disabled={deleteBusy}
+            onClick={handleConfirmDelete}
+          >
+            Excluir
+          </Button>
+        </DialogActions>
+      </Dialog>
     </SFlex>
   );
 };
