@@ -36,6 +36,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useAccess } from 'core/hooks/useAccess';
+import { RoleEnum } from 'project/enum/roles.enums';
 import { useMemo, useState } from 'react';
 import { CreatePreliminaryLibraryBlockDialog } from './CreatePreliminaryLibraryBlockDialog';
 import { CreatePreliminaryLibraryQuestionDialog } from './CreatePreliminaryLibraryQuestionDialog';
@@ -54,6 +56,7 @@ type ConfirmDeleteTarget = {
   kind: 'question' | 'block';
   id: string;
   name: string;
+  isSystem: boolean;
 };
 
 export const PreliminaryLibraryContent = ({
@@ -61,6 +64,9 @@ export const PreliminaryLibraryContent = ({
 }: {
   companyId: string;
 }) => {
+  const { isValidRoles } = useAccess();
+  const canDeleteSystemItems = isValidRoles([RoleEnum.MASTER]);
+
   const [innerTab, setInnerTab] = useState<LibraryInnerTab>('questions');
   const [questionPage, setQuestionPage] = useState(0);
   const [blockPage, setBlockPage] = useState(0);
@@ -110,9 +116,8 @@ export const PreliminaryLibraryContent = ({
   const [blockDetailId, setBlockDetailId] = useState<string | null>(null);
   const [createQuestionOpen, setCreateQuestionOpen] = useState(false);
   const [createBlockOpen, setCreateBlockOpen] = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState<ConfirmDeleteTarget | null>(
-    null,
-  );
+  const [confirmDelete, setConfirmDelete] =
+    useState<ConfirmDeleteTarget | null>(null);
 
   const deleteQuestionMutation = useDeleteFormPreliminaryLibraryQuestion();
   const deleteBlockMutation = useDeleteFormPreliminaryLibraryBlock();
@@ -170,11 +175,16 @@ export const PreliminaryLibraryContent = ({
         </Typography>
         <Typography variant="body2" color="text.secondary">
           Perguntas e blocos reutilizáveis (sistema e da empresa). Itens de
-          sistema são somente leitura.
+          sistema: somente leitura para usuários da empresa; exclusão apenas
+          para master.
         </Typography>
       </Box>
 
-      <Paper square elevation={0} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Paper
+        square
+        elevation={0}
+        sx={{ borderBottom: 1, borderColor: 'divider' }}
+      >
         <Tabs
           value={innerTab}
           onChange={(_, v) => setInnerTab(v)}
@@ -263,7 +273,9 @@ export const PreliminaryLibraryContent = ({
                       {translatePreliminaryLibraryCategory(row.category)}
                     </TableCell>
                     <TableCell>
-                      {translatePreliminaryLibraryQuestionType(row.question_type)}
+                      {translatePreliminaryLibraryQuestionType(
+                        row.question_type,
+                      )}
                     </TableCell>
                     <TableCell>
                       <Chip
@@ -274,7 +286,11 @@ export const PreliminaryLibraryContent = ({
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Stack direction="row" spacing={0.25} justifyContent="flex-end">
+                      <Stack
+                        direction="row"
+                        spacing={0.25}
+                        justifyContent="flex-end"
+                      >
                         <IconButton
                           aria-label="Ver detalhe"
                           size="small"
@@ -282,7 +298,7 @@ export const PreliminaryLibraryContent = ({
                         >
                           <VisibilityOutlinedIcon fontSize="small" />
                         </IconButton>
-                        {!row.system && (
+                        {(!row.system || canDeleteSystemItems) && (
                           <IconButton
                             aria-label="Excluir pergunta"
                             size="small"
@@ -292,6 +308,7 @@ export const PreliminaryLibraryContent = ({
                                 kind: 'question',
                                 id: row.id,
                                 name: row.name,
+                                isSystem: row.system,
                               })
                             }
                           >
@@ -387,7 +404,11 @@ export const PreliminaryLibraryContent = ({
                       />
                     </TableCell>
                     <TableCell align="right">
-                      <Stack direction="row" spacing={0.25} justifyContent="flex-end">
+                      <Stack
+                        direction="row"
+                        spacing={0.25}
+                        justifyContent="flex-end"
+                      >
                         <IconButton
                           aria-label="Ver detalhe"
                           size="small"
@@ -395,7 +416,7 @@ export const PreliminaryLibraryContent = ({
                         >
                           <VisibilityOutlinedIcon fontSize="small" />
                         </IconButton>
-                        {!row.system && (
+                        {(!row.system || canDeleteSystemItems) && (
                           <IconButton
                             aria-label="Excluir bloco"
                             size="small"
@@ -405,6 +426,7 @@ export const PreliminaryLibraryContent = ({
                                 kind: 'block',
                                 id: row.id,
                                 name: row.name,
+                                isSystem: row.system,
                               })
                             }
                           >
@@ -475,9 +497,12 @@ export const PreliminaryLibraryContent = ({
             </Typography>
           ) : (
             <Typography variant="body2" sx={{ pt: 0.5 }}>
-              Tem certeza que deseja excluir a pergunta &quot;{confirmDelete?.name}
-              &quot;? Ela deixará de aparecer na biblioteca. Se ainda estiver em
-              algum bloco ativo, a exclusão será recusada.
+              Tem certeza que deseja excluir a pergunta &quot;
+              {confirmDelete?.name}
+              &quot;? Ela deixará de aparecer na biblioteca.
+              {confirmDelete?.isSystem
+                ? ' Esta é uma pergunta global do sistema.'
+                : ' Se ainda estiver em algum bloco ativo, a exclusão será recusada.'}
             </Typography>
           )}
         </DialogContent>
