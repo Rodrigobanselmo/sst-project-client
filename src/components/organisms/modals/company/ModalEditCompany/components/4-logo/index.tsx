@@ -1,7 +1,9 @@
 import React from 'react';
 
 import { Box, styled } from '@mui/material';
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 import SFlex from 'components/atoms/SFlex';
+import SIconButton from 'components/atoms/SIconButton';
 import { SSwitch } from 'components/atoms/SSwitch';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
@@ -38,6 +40,8 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
     onCloseUnsaved,
     handleAddPhoto,
     handleAddCustomLogo,
+    handleRemovePhoto,
+    handleRemoveCustomLogo,
     previousStep,
     setValue,
   } = useCompanyEdit(props);
@@ -65,11 +69,22 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
           <SText color="text.label" fontSize={14} mb={-2}>
             Logo da empresa
           </SText>
-          <StyledImage
-            alt={companyData.name}
-            src={companyData.logoUrl || '/images/placeholder-image.png'}
-            onClick={handleAddPhoto}
-          />
+          <SFlex align="center" gap={4}>
+            <StyledImage
+              alt={companyData.name}
+              src={companyData.logoUrl || '/images/placeholder-image.png'}
+              onClick={handleAddPhoto}
+            />
+            {companyData.logoUrl && (
+              <SIconButton
+                tooltip="Remover logo"
+                onClick={handleRemovePhoto}
+                size="small"
+              >
+                <SDeleteIcon />
+              </SIconButton>
+            )}
+          </SFlex>
           <InputForm
             setValue={setValue}
             defaultValue={companyData.operationTime}
@@ -150,14 +165,25 @@ export const FourthModalCompanyStep = (props: IUseAddCompany) => {
           <SText color="text.label" fontSize={14} mb={-2} mt={4}>
             Logo customizado da sidebar
           </SText>
-          <StyledImage
-            alt="Logo customizado"
-            src={
-              companyData.metadata?.customLogoUrl ||
-              '/images/placeholder-image.png'
-            }
-            onClick={handleAddCustomLogo}
-          />
+          <SFlex align="center" gap={4}>
+            <StyledImage
+              alt="Logo customizado"
+              src={
+                companyData.metadata?.customLogoUrl ||
+                '/images/placeholder-image.png'
+              }
+              onClick={handleAddCustomLogo}
+            />
+            {companyData.metadata?.customLogoUrl && (
+              <SIconButton
+                tooltip="Remover logo customizado"
+                onClick={handleRemoveCustomLogo}
+                size="small"
+              >
+                <SDeleteIcon />
+              </SIconButton>
+            )}
+          </SFlex>
 
           <InputForm
             setValue={setValue}

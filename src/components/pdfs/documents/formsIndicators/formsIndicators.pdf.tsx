@@ -46,7 +46,11 @@ function IndicatorRows({
                 : 'Indicador consolidado'}
             </Text>
             <Text style={s.indicatorPct}>
-              {ind.hasValidAnswers ? `${ind.percentage}%` : '—'}
+              {ind.shouldHideData
+                ? '🔒'
+                : ind.hasValidAnswers
+                  ? `${ind.percentage}%`
+                  : '—'}
             </Text>
           </View>
           {groupingActive ? (
@@ -54,7 +58,11 @@ function IndicatorRows({
               Participantes no grupo: {ind.participantCount}
             </Text>
           ) : null}
-          {!ind.hasValidAnswers ? (
+          {ind.shouldHideData ? (
+            <Text style={s.scoreLine}>
+              Dados protegidos (menos de 3 respostas)
+            </Text>
+          ) : !ind.hasValidAnswers ? (
             <Text style={s.scoreLine}>Sem respostas válidas</Text>
           ) : (
             <>
@@ -188,7 +196,10 @@ const s = StyleSheet.create({
   },
 });
 
-export default function PdfFormIndicators({ data, meta }: PdfFormIndicatorsProps) {
+export default function PdfFormIndicators({
+  data,
+  meta,
+}: PdfFormIndicatorsProps) {
   const groupingLabel =
     data.grouping.active === true
       ? `Agrupamento por identificação: ${data.grouping.questionLabel}`

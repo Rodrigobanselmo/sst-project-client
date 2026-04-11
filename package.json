@@ -5,12 +5,13 @@
     "node": "22"
   },
   "scripts": {
-    "dev": "NODE_OPTIONS='--inspect' next dev --webpack",
-    "build": "rm -rf .next & next build --webpack",
-    "build:test": "rm -rf .next & next build --webpack",
+    "dev": "next dev --turbo",
+    "dev:webpack": "next dev --webpack",
+    "build": "rm -rf .next && next build",
+    "build:test": "rm -rf .next && next build",
     "start": "next start",
-    "type-check": "tsc",
-    "debug": "NODE_OPTIONS='--inspect' next dev --webpack",
+    "type-check": "tsc --noEmit",
+    "debug": "NODE_OPTIONS='--inspect' next dev --turbo",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",

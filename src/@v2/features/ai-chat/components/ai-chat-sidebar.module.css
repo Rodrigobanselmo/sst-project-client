@@ -10,6 +10,7 @@
   flex-direction: column;
   /* Needed for absolute positioned children (thread history overlay) */
   overflow: hidden;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.08);
 }
 
 .panelClosed {
@@ -22,28 +23,36 @@
   top: 0;
   left: -4px;
   right: auto;
-  width: 8px;
+  width: 12px; /* Increased for easier interaction */
   height: 100%;
   cursor: ew-resize;
   z-index: 100;
   background: transparent;
-  transition: background 0.15s ease;
+  transition: all 0.15s ease;
 }
 
 .resizeHandle::after {
   content: '';
   position: absolute;
   top: 0;
-  right: 3px;
+  right: 5px;
   width: 2px;
   height: 100%;
-  background: transparent;
-  transition: background 0.15s ease;
+  background: rgba(128, 128, 128, 0.2); /* Subtle default visibility */
+  transition: all 0.15s ease;
+  border-radius: 1px;
 }
 
-.resizeHandle:hover::after,
+.resizeHandle:hover::after {
+  background: var(--color-primary);
+  width: 3px;
+  box-shadow: 0 0 4px var(--color-primary);
+}
+
 .resizeHandle:active::after {
   background: var(--color-primary);
+  width: 3px;
+  box-shadow: 0 0 6px var(--color-primary);
 }
 
 .header {
@@ -52,7 +61,8 @@
   justify-content: space-between;
   padding: 1rem 1.25rem;
   border-bottom: 1px solid var(--color-border);
-  background: var(--color-paper);
+  background: linear-gradient(to bottom, #ffffff 0%, var(--color-paper) 100%);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .headerLeft {
@@ -582,6 +592,11 @@
   text-align: center;
   padding: 2rem;
   gap: 1.5rem;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(242, 115, 41, 0.02) 100%
+  );
 }
 
 .emptyStateIcon {
@@ -644,7 +659,8 @@
 .inputContainer {
   padding: 1rem;
   border-top: 1px solid var(--color-border);
-  background: var(--color-paper);
+  background: linear-gradient(to top, #ffffff 0%, var(--color-paper) 100%);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .inputWrapper {

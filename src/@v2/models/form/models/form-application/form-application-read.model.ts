@@ -99,7 +99,7 @@ export class FormApplicationReadModel {
 
   get publicUrl() {
     if (!this.isShareableLink && !this.isTesting) {
-      return getPathname(PageRoutes.FORMS.PUBLIC_FORM_ANSWER.LOGIN, {
+      return getPathname(PageRoutes.FORMS.PUBLIC_FORM_ANSWER.NORMAL, {
         pathParams: { id: this.id },
       });
     }

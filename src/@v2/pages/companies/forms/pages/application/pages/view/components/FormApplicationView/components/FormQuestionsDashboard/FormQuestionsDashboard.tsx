@@ -70,12 +70,16 @@ interface ParticipantGroupIndicatorProps {
   groupData: FormGroupWithQuestions;
   participantGroupId: string;
   participantGroupName: string;
+  participantCount: number;
+  isShareableLink: boolean;
 }
 
 const ParticipantGroupIndicator = ({
   groupData,
   participantGroupId,
   participantGroupName,
+  participantCount,
+  isShareableLink,
 }: ParticipantGroupIndicatorProps) => {
   // Calculate indicator value for specific participant group across all questions in this form group
   const calculateParticipantGroupIndicator = () => {
@@ -127,6 +131,9 @@ const ParticipantGroupIndicator = ({
     );
   });
 
+  // Check if should hide data due to privacy (less than 3 responses and not shareable link)
+  const shouldHideData = !isShareableLink && participantCount < 3;
+
   // Get color based on indicator value
   const getIndicatorColor = (value: number): string => {
     if (value >= 0.8) return '#3cbe7d'; // Green for high scores
@@ -139,58 +146,100 @@ const ParticipantGroupIndicator = ({
   return (
     <Box
       sx={{
-        p: 2,
-        px: 10,
-        mb: 2,
-        backgroundColor: 'secondary.50',
-        borderRadius: 1,
-        border: '1px solid',
-        borderColor: 'secondary.200',
+        p: 3,
+        backgroundColor: shouldHideData
+          ? '#fff9e6'
+          : !hasValidAnswers
+            ? '#f5f5f5'
+            : '#fafafa',
+        borderRadius: 2,
+        border: '2px solid',
+        borderColor: shouldHideData
+          ? '#ffb74d'
+          : !hasValidAnswers
+            ? '#e0e0e0'
+            : getIndicatorColor(indicatorValue),
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+          transform: 'translateY(-2px)',
+        },
       }}
     >
-      <Typography variant="h6" textAlign="center" mb={1} color="secondary.main">
+      <Typography
+        variant="h6"
+        textAlign="center"
+        mb={2}
+        fontWeight={600}
+        color="primary.dark"
+      >
         {participantGroupName}
       </Typography>
 
       <Box
-        height={100}
-        maxWidth={500}
-        mx="auto"
+        minHeight={120}
         display="flex"
         flexDirection="column"
         justifyContent="center"
         alignItems="center"
       >
-        {!hasValidAnswers ? (
+        {shouldHideData ? (
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            height="100%"
+            textAlign="center"
+            px={2}
+          >
+            <Typography variant="h5" sx={{ mb: 1 }}>
+              🔒
+            </Typography>
+            <Typography
+              variant="body2"
+              color="warning.dark"
+              fontWeight={600}
+              mb={1}
+            >
+              Dados Protegidos
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Para preservar a privacidade, os indicadores de setores com menos
+              de 3 respostas não são exibidos.
+            </Typography>
+          </Box>
+        ) : !hasValidAnswers ? (
           <Box
             display="flex"
             alignItems="center"
             justifyContent="center"
-            mt={-20}
             height="100%"
             color="text.secondary"
           >
-            <Typography variant="body2">No questions</Typography>
+            <Typography variant="body2">Sem perguntas válidas</Typography>
           </Box>
         ) : (
-          <Box width="100%" mb={1}>
+          <Box width="100%">
             <LinearProgress
               variant="determinate"
               value={percentage}
               sx={{
-                height: 12,
-                borderRadius: 6,
+                height: 14,
+                borderRadius: 7,
                 backgroundColor: '#e0e0e0',
                 '& .MuiLinearProgress-bar': {
                   backgroundColor: getIndicatorColor(indicatorValue),
-                  borderRadius: 6,
+                  borderRadius: 7,
                 },
               }}
             />
             <Typography
-              variant="h4"
+              variant="h3"
               textAlign="center"
-              mt={1}
+              mt={2}
+              fontWeight={700}
               color={getIndicatorColor(indicatorValue)}
             >
               {percentage}%
@@ -199,6 +248,7 @@ const ParticipantGroupIndicator = ({
               variant="body2"
               textAlign="center"
               color="text.secondary"
+              mt={0.5}
             >
               Score: {indicatorValue.toFixed(3)}
             </Typography>
@@ -212,7 +262,8 @@ const ParticipantGroupIndicator = ({
 const GroupDashboardIndicator = ({
   groupData,
   selectedGroupingQuestion,
-}: GroupDashboardIndicatorProps) => {
+  isShareableLink,
+}: GroupDashboardIndicatorProps & { isShareableLink: boolean }) => {
   // Check if demographic grouping is active
   const hasMultipleParticipantGroups =
     groupData.questions.length > 0 &&
@@ -224,17 +275,42 @@ const GroupDashboardIndicator = ({
     const participantGroups = groupData.questions[0].participantGroupData;
 
     return (
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" textAlign="center" mb={3} color="primary.main">
-          Indicadores do Grupo: {groupData.groupName}
-        </Typography>
+      <SPaper
+        sx={{
+          mb: 6,
+          p: 6,
+          pb: 4,
+          borderRadius: 3,
+          backgroundColor: '#fff',
+          border: '2px solid',
+          borderColor: 'primary.100',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+        }}
+      >
+        <Box
+          sx={{
+            mb: 4,
+            pb: 3,
+            borderBottom: '2px solid',
+            borderColor: 'primary.100',
+          }}
+        >
+          <Typography
+            variant="h5"
+            textAlign="center"
+            fontWeight={600}
+            color="primary.main"
+          >
+            Indicadores do Grupo: {groupData.groupName}
+          </Typography>
+        </Box>
 
         {/* Show indicators side by side for each participant group */}
         <SFlex
-          gap={3}
+          gap={4}
           display="grid"
-          px={10}
-          gridTemplateColumns="repeat(auto-fit, minmax(300px, 1fr))"
+          px={2}
+          gridTemplateColumns="repeat(auto-fit, minmax(320px, 1fr))"
         >
           {participantGroups.map((participantGroup) => (
             <ParticipantGroupIndicator
@@ -242,10 +318,12 @@ const GroupDashboardIndicator = ({
               groupData={groupData}
               participantGroupId={participantGroup.groupId}
               participantGroupName={participantGroup.groupName}
+              participantCount={participantGroup.participantCount}
+              isShareableLink={isShareableLink}
             />
           ))}
         </SFlex>
-      </Box>
+      </SPaper>
     );
   }
 
@@ -280,20 +358,6 @@ const GroupDashboardIndicator = ({
 
   const indicatorValue = calculateGroupIndicator();
   const percentage = Math.round(indicatorValue * 100);
-
-  // Check if there are any valid answers (value > 0) across all questions in this group
-  const hasValidAnswers = groupData.questions.some((questionData) =>
-    questionData.participantGroupData.some((participantData) =>
-      participantData.question.answers.some((answer) =>
-        answer.selectedOptionsIds.some((optionId) => {
-          const option = questionData.options.find(
-            (opt) => opt.id === optionId,
-          );
-          return option && option.value !== undefined && option.value > 0;
-        }),
-      ),
-    ),
-  );
 
   // Get color based on indicator value
   const getIndicatorColor = (value: number): string => {
@@ -645,6 +709,7 @@ export const FormQuestionsDashboard = ({
                     question={question}
                     colorScheme="identifier"
                     onCreateGroupAnalysis={handleCreateGroupAnalysis}
+                    isShareableLink={isShareableLink}
                   />
                 </Box>
               ))}
@@ -980,6 +1045,7 @@ export const FormQuestionsDashboard = ({
                               selectedGroupingQuestion={
                                 selectedGroupingQuestion
                               }
+                              isShareableLink={isShareableLink}
                             />
                           )}
 
@@ -1020,6 +1086,10 @@ export const FormQuestionsDashboard = ({
                                             question={participantData.question}
                                             colorScheme="general"
                                             indicators={isIndicatorTab}
+                                            isShareableLink={isShareableLink}
+                                            participantCount={
+                                              participantData.participantCount
+                                            }
                                           />
                                         </Box>
                                       ),

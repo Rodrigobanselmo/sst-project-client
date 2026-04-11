@@ -62,12 +62,27 @@ interface IndicatorComponentProps {
   groupName?: string;
   hideQuestionText?: boolean;
   onCreateGroupAnalysis?: (questionId: string) => void;
+  isShareableLink?: boolean;
+  participantCount?: number;
 }
 
 const IndicatorComponent = ({
   question,
   groupName,
+  isShareableLink = true,
+  participantCount,
 }: IndicatorComponentProps) => {
+  // Count unique participants who answered this question
+  const uniqueParticipants = new Set(
+    question.answers.map((answer) => answer.participantsAnswersId),
+  ).size;
+
+  // Use participantCount if provided, otherwise use uniqueParticipants
+  const actualParticipantCount = participantCount ?? uniqueParticipants;
+
+  // Check if should hide data due to privacy (less than 3 responses and not shareable link)
+  const shouldHideData = !isShareableLink && actualParticipantCount < 3;
+
   // Calculate indicator value
   const calculateIndicator = () => {
     let totalValue = 0;
@@ -133,7 +148,27 @@ const IndicatorComponent = ({
         justifyContent="center"
         alignItems="center"
       >
-        {!hasValidAnswers ? (
+        {shouldHideData ? (
+          <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            height="100%"
+            color="text.secondary"
+            textAlign="center"
+            mt={10}
+            px={2}
+          >
+            <Typography variant="h6" color="warning.main" fontWeight={500}>
+              🔒 Dados Protegidos
+            </Typography>
+            <Typography variant="body2" color="text.secondary" mt={1}>
+              Para preservar a privacidade, os indicadores de setores com menos
+              de 3 respostas não são exibidos.
+            </Typography>
+          </Box>
+        ) : !hasValidAnswers ? (
           <Box
             display="flex"
             alignItems="center"
@@ -196,6 +231,8 @@ interface FormQuestionPieChartProps {
   hideQuestionText?: boolean;
   onCreateGroupAnalysis?: (questionId: string) => void;
   indicators?: boolean;
+  isShareableLink?: boolean;
+  participantCount?: number;
 }
 
 export const FormQuestionPieChart = ({
@@ -205,7 +242,20 @@ export const FormQuestionPieChart = ({
   hideQuestionText = false,
   indicators = false,
   onCreateGroupAnalysis,
+  isShareableLink = true,
+  participantCount,
 }: FormQuestionPieChartProps) => {
+  // Count unique participants who answered this question
+  const uniqueParticipants = new Set(
+    question.answers.map((answer) => answer.participantsAnswersId),
+  ).size;
+
+  // Use participantCount if provided, otherwise use uniqueParticipants
+  const actualParticipantCount = participantCount ?? uniqueParticipants;
+
+  // Check if should hide data due to privacy (less than 3 responses and not shareable link)
+  const shouldHideData = !isShareableLink && actualParticipantCount < 3;
+
   // Get the appropriate color palette for identifier questions
   const identifierColors = colorSchemes.identifier;
 
@@ -253,7 +303,45 @@ export const FormQuestionPieChart = ({
 
   // If indicators is true, use the IndicatorComponent
   if (indicators) {
-    return <IndicatorComponent question={question} groupName={groupName} />;
+    return (
+      <IndicatorComponent
+        question={question}
+        groupName={groupName}
+        isShareableLink={isShareableLink}
+        participantCount={actualParticipantCount}
+      />
+    );
+  }
+
+  // If should hide data, show privacy message
+  if (shouldHideData) {
+    return (
+      <Box>
+        {groupName && (
+          <SText textAlign="center" fontWeight="bold" fontSize={16} mb={2}>
+            {groupName}
+          </SText>
+        )}
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
+          justifyContent="center"
+          height={200}
+          color="text.secondary"
+          textAlign="center"
+          px={2}
+        >
+          <Typography variant="body1" color="warning.main" fontWeight={500}>
+            🔒 Dados Protegidos
+          </Typography>
+          <Typography variant="body2" color="text.secondary" mt={1}>
+            Para preservar a privacidade, os gráficos de setores com menos de 3
+            respostas não são exibidos.
+          </Typography>
+        </Box>
+      </Box>
+    );
   }
 
   // If no data, show a message

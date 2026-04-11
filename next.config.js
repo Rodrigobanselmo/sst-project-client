@@ -1,14 +1,42 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+
+  // Use SWC compiler for faster builds
   compiler: {
     styledComponents: true,
+    // Remove console logs in production
+    removeConsole: process.env.NODE_ENV === 'production',
   },
+
+  // Enable experimental features for faster builds
+  experimental: {
+    // Optimize package imports for faster builds
+    optimizePackageImports: [
+      '@mui/material',
+      '@mui/icons-material',
+      '@emotion/react',
+      '@emotion/styled',
+    ],
+    // Turbopack configuration for loaders
+    turbo: {
+      rules: {
+        '*.svg': {
+          loaders: ['@svgr/webpack'],
+          as: '*.js',
+        },
+      },
+    },
+  },
+
   pageExtensions: ['page.tsx', 'controller.ts'],
+
   onDemandEntries: {
-    maxInactiveAge: 5 * 60 * 1000,
-    pagesBufferLength: 100,
+    // Reduce memory usage by unloading pages faster
+    maxInactiveAge: 60 * 1000, // 1 minute instead of 5
+    pagesBufferLength: 5, // Reduced from 100
   },
+
   async rewrites() {
     return [
       {
@@ -21,6 +49,7 @@ const nextConfig = {
       },
     ];
   },
+
   env: {
     TOKEN_SECRET: process.env.TOKEN_SECRET,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
@@ -34,6 +63,7 @@ const nextConfig = {
     NEXT_PUBLIC_MEASUREMENT_ID: process.env.NEXT_PUBLIC_MEASUREMENT_ID,
     NEXT_PUBLIC_ENABLE_AI_CHAT: process.env.NEXT_PUBLIC_ENABLE_AI_CHAT,
   },
+
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'simplesst.s3.amazonaws.com' },
@@ -41,7 +71,9 @@ const nextConfig = {
       { protocol: 'https', hostname: 'prod-simplesst-docs.s3.amazonaws.com' },
     ],
   },
-  webpack(config) {
+
+  webpack(config, { dev, isServer }) {
+    // SVG loader configuration
     config.module.rules.push({
       test: /\.svg$/i,
       use: [
@@ -55,6 +87,28 @@ const nextConfig = {
         },
       ],
     });
+
+    // Performance optimizations for development
+    if (dev && !isServer) {
+      // Reduce bundle size in development
+      config.optimization = {
+        ...config.optimization,
+        removeAvailableModules: false,
+        removeEmptyChunks: false,
+        splitChunks: false,
+      };
+
+      // Faster source maps in development
+      config.devtool = 'eval-cheap-module-source-map';
+
+      // Cache for faster rebuilds
+      config.cache = {
+        type: 'filesystem',
+        buildDependencies: {
+          config: [__filename],
+        },
+      };
+    }
 
     return config;
   },

@@ -116,6 +116,27 @@ export const useCompanyEdit = ({
     } as Partial<typeof initialPhotoState>);
   };
 
+  const handleRemovePhoto = async () => {
+    await updateCompany
+      .mutateAsync({ logoUrl: '', id: companyData.id })
+      .catch(() => {});
+
+    setCompanyData((oldData) => ({
+      ...oldData,
+      logoUrl: '',
+    }));
+  };
+
+  const handleRemoveCustomLogo = () => {
+    setCompanyData((oldData) => ({
+      ...oldData,
+      metadata: {
+        ...oldData.metadata,
+        customLogoUrl: '',
+      },
+    }));
+  };
+
   return {
     onSubmit,
     loading: updateCompany.isLoading,
@@ -125,5 +146,7 @@ export const useCompanyEdit = ({
     setValue,
     handleAddPhoto,
     handleAddCustomLogo,
+    handleRemovePhoto,
+    handleRemoveCustomLogo,
   };
 };

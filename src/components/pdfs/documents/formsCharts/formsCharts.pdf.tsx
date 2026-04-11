@@ -271,11 +271,17 @@ export default function PdfFormCharts({ data, meta }: PdfFormChartsProps) {
                         {pg.participantGroupName} ({pg.participantCount}{' '}
                         participantes)
                       </Text>
-                      <DistributionTable
-                        rows={pg.rows}
-                        totalAnswers={pg.totalAnswers}
-                        colorScheme="general"
-                      />
+                      {pg.shouldHideData ? (
+                        <Text style={s.empty}>
+                          🔒 Dados protegidos (menos de 3 respostas)
+                        </Text>
+                      ) : (
+                        <DistributionTable
+                          rows={pg.rows}
+                          totalAnswers={pg.totalAnswers}
+                          colorScheme="general"
+                        />
+                      )}
                     </View>
                   ))}
                 </View>

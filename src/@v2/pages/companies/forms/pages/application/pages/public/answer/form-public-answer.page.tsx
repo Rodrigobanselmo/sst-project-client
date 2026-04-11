@@ -16,7 +16,6 @@ import { useRouter } from 'next/router';
 import { useRef, useState, useCallback, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useActiveTimeTracker } from '@v2/hooks/useActiveTimeTracker';
-import { useTextToSpeech } from '@v2/hooks/useTextToSpeech';
 import { FormAccessDenied } from './components/FormAccessDenied/FormAccessDenied';
 import { HtmlContentRenderer } from './components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { FormQuestionOptionReadModel } from '@v2/models/form/models/shared/form-question-option-read.model';
@@ -129,9 +128,6 @@ export const PublicFormAnswerPage = ({
   };
 
   const submitMutation = useMutateSubmitFormAnswer();
-
-  // Text-to-Speech for accessibility - helps users who cannot read
-  const { speak } = useTextToSpeech();
 
   const form = useForm<FormAnswers>({
     defaultValues: {},
@@ -320,10 +316,6 @@ export const PublicFormAnswerPage = ({
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
 
-      // Voice feedback for accessibility
-      const nextGroupName = publicFormApplication?.groups?.[nextStep]?.name;
-      speak(`Próxima seção: ${nextGroupName || `Passo ${nextStep + 1}`}`);
-
       // Use setTimeout to ensure the DOM has updated before scrolling
       setTimeout(() => {
         scrollToTop();
@@ -336,10 +328,6 @@ export const PublicFormAnswerPage = ({
       form.clearErrors();
       const prevStep = currentStep - 1;
       setCurrentStep(prevStep);
-
-      // Voice feedback for accessibility
-      const prevGroupName = publicFormApplication?.groups?.[prevStep]?.name;
-      speak(`Seção anterior: ${prevGroupName || `Passo ${prevStep + 1}`}`);
     }
   };
 
@@ -387,11 +375,6 @@ export const PublicFormAnswerPage = ({
       form.setError('root', {
         message: `Campos obrigatórios não preenchidos: ${missingRequiredFields.join(', ')}`,
       });
-
-      // Voice feedback for accessibility - announce errors
-      speak(
-        `Atenção: ${missingRequiredFields.length} campos obrigatórios não foram preenchidos. Por favor, responda as perguntas marcadas com asterisco.`,
-      );
 
       // Scroll to the first error field after a short delay to ensure errors are set
       setTimeout(() => {
@@ -457,11 +440,6 @@ export const PublicFormAnswerPage = ({
         // Clear saved form state after successful submission
         clearFormState();
 
-        // Voice feedback for accessibility - announce success
-        speak(
-          'Obrigado! Seu formulário foi enviado com sucesso. Você pode fechar esta página.',
-        );
-
         // Show thank you page
         setIsFormSubmitted(true);
         scrollToTop();
@@ -470,9 +448,6 @@ export const PublicFormAnswerPage = ({
         form.setError('root', {
           message: 'Erro ao enviar formulário. Tente novamente.',
         });
-
-        // Voice feedback for accessibility - announce error
-        speak('Erro ao enviar formulário. Por favor, tente novamente.');
 
         // Scroll to top to show the error message
         scrollToTop();

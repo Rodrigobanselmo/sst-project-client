@@ -8,7 +8,7 @@ import {
 
 // Panel width constraints
 export const PANEL_MIN_WIDTH = 320;
-export const PANEL_MAX_WIDTH = 600;
+export const PANEL_MAX_WIDTH = 1200; // Increased for more flexibility
 export const PANEL_DEFAULT_WIDTH = 400;
 
 interface AIChatContextValue {

@@ -65,6 +65,7 @@ export default async function handler(
     const dataset = buildFormChartsPdfDataset({
       formQuestionsAnswers,
       selectedGroupingQuestionId: groupByQuestionId,
+      isShareableLink: formApplication.isShareableLink,
     });
 
     const issuedAt = new Intl.DateTimeFormat('pt-BR', {

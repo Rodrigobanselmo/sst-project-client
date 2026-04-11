@@ -33,11 +33,13 @@ export type IndicatorRowPdf = {
   score: number;
   percentage: number;
   hasValidAnswers: boolean;
+  shouldHideData: boolean; // Privacy protection: hide if <3 responses and not shareable link
 };
 
 export type IndicatorsPdfDataset = {
   /** Alinhado ao toggle da aba Indicadores: só categorias vs categorias + perguntas. */
   showOnlyGroupIndicators: boolean;
+  isShareableLink: boolean; // Whether this is a shareable link (affects privacy hiding)
   grouping:
     | { active: false }
     | { active: true; questionId: string; questionLabel: string };
@@ -97,7 +99,10 @@ const buildQuestionsWithOptions = (
           value: option.value ? 6 - option.value : option.value,
         })),
         answers: filteredParticipantIds
-          ? filterAnswersByParticipants(question.answers, filteredParticipantIds)
+          ? filterAnswersByParticipants(
+              question.answers,
+              filteredParticipantIds,
+            )
           : question.answers,
       })),
   );
@@ -184,17 +189,19 @@ const calculateIndicatorForQuestions = (
 
   questions.forEach((questionData) => {
     const questionsToAggregate = participantGroupId
-      ? [
+      ? ([
           questionData.participantGroupData.find(
             (pg) => pg.groupId === participantGroupId,
           )?.question,
-        ].filter(Boolean) as QuestionForIndicator[]
+        ].filter(Boolean) as QuestionForIndicator[])
       : questionData.participantGroupData.map((pg) => pg.question);
 
     questionsToAggregate.forEach((q) => {
       q.answers.forEach((answer) => {
         answer.selectedOptionsIds.forEach((optionId) => {
-          const option = questionData.options.find((opt) => opt.id === optionId);
+          const option = questionData.options.find(
+            (opt) => opt.id === optionId,
+          );
           if (option && option.value !== undefined && option.value > 0) {
             totalValue += option.value - 1;
             totalAnswers += 1;
@@ -218,15 +225,19 @@ export function buildIndicatorsPdfDataset(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
   showOnlyGroupIndicators: boolean;
+  isShareableLink: boolean;
 }): IndicatorsPdfDataset {
   const {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     showOnlyGroupIndicators,
+    isShareableLink,
   } = params;
 
   if (!formQuestionsAnswers || !Array.isArray(formQuestionsAnswers.results)) {
-    throw new Error('Invalid formQuestionsAnswers payload: missing results array');
+    throw new Error(
+      'Invalid formQuestionsAnswers payload: missing results array',
+    );
   }
 
   const { grouping, participantGroups } = buildParticipantGroups(
@@ -303,13 +314,16 @@ export function buildIndicatorsPdfDataset(params: {
           fg.questions,
           hasMultipleParticipantGroups ? pg.id : undefined,
         );
+      const participantCount = pg.participantIds.size;
+      const shouldHideData = !isShareableLink && participantCount < 3;
       return {
         participantGroupId: pg.id,
         participantGroupName: pg.name,
-        participantCount: pg.participantIds.size,
+        participantCount,
         score,
         percentage,
         hasValidAnswers,
+        shouldHideData,
       };
     });
 
@@ -318,23 +332,25 @@ export function buildIndicatorsPdfDataset(params: {
       : fg.questions.map((q) => ({
           questionId: q.id,
           questionLabel: stripHtml(q.details.text),
-          indicators: (
-            hasMultipleParticipantGroups
-              ? participantGroups
-              : [participantGroups[0]]
+          indicators: (hasMultipleParticipantGroups
+            ? participantGroups
+            : [participantGroups[0]]
           ).map((pg) => {
             const { score, percentage, hasValidAnswers } =
               calculateIndicatorForQuestions(
                 [q],
                 hasMultipleParticipantGroups ? pg.id : undefined,
               );
+            const participantCount = pg.participantIds.size;
+            const shouldHideData = !isShareableLink && participantCount < 3;
             return {
               participantGroupId: pg.id,
               participantGroupName: pg.name,
-              participantCount: pg.participantIds.size,
+              participantCount,
               score,
               percentage,
               hasValidAnswers,
+              shouldHideData,
             };
           }),
         }));
@@ -349,6 +365,7 @@ export function buildIndicatorsPdfDataset(params: {
 
   return {
     showOnlyGroupIndicators,
+    isShareableLink,
     grouping,
     participantGroups: participantGroups.map((pg) => ({
       id: pg.id,

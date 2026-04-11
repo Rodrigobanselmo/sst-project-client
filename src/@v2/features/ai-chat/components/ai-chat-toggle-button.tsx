@@ -1,6 +1,6 @@
 import { useAIChat } from '../context/ai-chat-context';
 import styles from './ai-chat-toggle-button.module.css';
-import AiIcon from '../../../../../public/icons/brand/ai.svg';
+import Image from 'next/image';
 
 export function AIChatToggleButton() {
   const { toggle, isOpen } = useAIChat();
@@ -12,7 +12,12 @@ export function AIChatToggleButton() {
       title="AI Assistant"
       aria-label="Toggle AI Assistant"
     >
-      <AiIcon width={28} height={28} />
+      <Image
+        src="/icons/brand/ai.svg"
+        alt="AI Assistant"
+        width={28}
+        height={28}
+      />
     </button>
   );
 }

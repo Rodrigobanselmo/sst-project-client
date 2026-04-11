@@ -72,6 +72,7 @@ export default async function handler(
       formQuestionsAnswers,
       selectedGroupingQuestionId: groupByQuestionId,
       showOnlyGroupIndicators: onlyGroupIndicators,
+      isShareableLink: formApplication.isShareableLink,
     });
 
     const issuedAt = new Intl.DateTimeFormat('pt-BR', {

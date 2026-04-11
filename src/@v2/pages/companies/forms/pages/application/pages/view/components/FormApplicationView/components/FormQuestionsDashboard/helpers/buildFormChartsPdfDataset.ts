@@ -34,6 +34,7 @@ export type PieRowPdf = {
 };
 
 export type FormChartsPdfDataset = {
+  isShareableLink: boolean; // Whether this is a shareable link (affects privacy hiding)
   grouping:
     | { active: false }
     | { active: true; questionId: string; questionLabel: string };
@@ -61,6 +62,7 @@ export type FormChartsPdfDataset = {
         participantCount: number;
         rows: PieRowPdf[];
         totalAnswers: number;
+        shouldHideData: boolean; // Privacy protection: hide if <3 responses and not shareable link
       }>;
     }>;
   }>;
@@ -106,7 +108,10 @@ const buildQuestionsWithOptions = (
           value: option.value ? 6 - option.value : option.value,
         })),
         answers: filteredParticipantIds
-          ? filterAnswersByParticipants(question.answers, filteredParticipantIds)
+          ? filterAnswersByParticipants(
+              question.answers,
+              filteredParticipantIds,
+            )
           : question.answers,
       })),
   );
@@ -232,11 +237,15 @@ function computePieRows(question: QuestionForChart): {
 export function buildFormChartsPdfDataset(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
+  isShareableLink: boolean;
 }): FormChartsPdfDataset {
-  const { formQuestionsAnswers, selectedGroupingQuestionId } = params;
+  const { formQuestionsAnswers, selectedGroupingQuestionId, isShareableLink } =
+    params;
 
   if (!formQuestionsAnswers || !Array.isArray(formQuestionsAnswers.results)) {
-    throw new Error('Invalid formQuestionsAnswers payload: missing results array');
+    throw new Error(
+      'Invalid formQuestionsAnswers payload: missing results array',
+    );
   }
 
   const { grouping, participantGroups } = buildParticipantGroups(
@@ -323,30 +332,36 @@ export function buildFormChartsPdfDataset(params: {
       questionId: q.id,
       questionLabel: stripHtml(q.details.text),
       byParticipantGroup: participantGroups.map((pg) => {
-        const pdata = q.participantGroupData.find((p) => p.groupId === pg.id)
-          ?.question;
+        const pdata = q.participantGroupData.find(
+          (p) => p.groupId === pg.id,
+        )?.question;
+        const participantCount = pg.participantIds.size;
+        const shouldHideData = !isShareableLink && participantCount < 3;
         if (!pdata) {
           return {
             participantGroupId: pg.id,
             participantGroupName: pg.name,
-            participantCount: pg.participantIds.size,
+            participantCount,
             rows: [] as PieRowPdf[],
             totalAnswers: 0,
+            shouldHideData,
           };
         }
         const { rows, totalAnswers } = computePieRows(pdata);
         return {
           participantGroupId: pg.id,
           participantGroupName: pg.name,
-          participantCount: pg.participantIds.size,
+          participantCount,
           rows,
           totalAnswers,
+          shouldHideData,
         };
       }),
     })),
   }));
 
   return {
+    isShareableLink,
     grouping,
     participantGroups: participantGroups.map((pg) => ({
       id: pg.id,

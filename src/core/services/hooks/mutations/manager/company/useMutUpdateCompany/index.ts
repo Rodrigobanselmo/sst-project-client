@@ -35,6 +35,7 @@ export interface IUpdateCompany
   cadastral_situation_description?: string;
   workspace?: Partial<IWorkspace>[];
   doctorResponsibleId?: number | null;
+  logoUrl?: string;
   metadata?: Record<string, any>;
 }
 
