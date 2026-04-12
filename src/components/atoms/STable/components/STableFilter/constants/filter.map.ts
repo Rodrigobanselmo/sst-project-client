@@ -22,6 +22,21 @@ export enum FilterFieldEnum {
   //ALL
   EXTERNAL_SYSTEM = 'externalSystem',
   DOWNLOAD_TYPE = 'downloadType',
+
+  // RISK (Todos os riscos cadastrados)
+  RISK_TYPES = 'riskTypes',
+  RISK_SEVERITIES = 'severities',
+  RISK_SUB_TYPE_IDS = 'riskSubTypeIds',
+  RISK_MUST_IS_PGR = 'mustIsPGR',
+  RISK_MUST_IS_PPP = 'mustIsPPP',
+  RISK_MUST_IS_PCMSO = 'mustIsPCMSO',
+  RISK_MUST_IS_ASO = 'mustIsAso',
+
+  /** Listagem de absenteísmo */
+  ABSENTEEISM_EMPLOYEES = 'employeeIds',
+  ABSENTEEISM_MOTIVE_IDS = 'motiveIds',
+  ABSENTEEISM_OVERLAP_START = 'absenteeismOverlapStart',
+  ABSENTEEISM_OVERLAP_END = 'absenteeismOverlapEnd',
 }
 
 type IMap = Record<
@@ -96,5 +111,49 @@ export const filterFieldMap: IMap = {
   [FilterFieldEnum.EXTERNAL_SYSTEM]: {
     value: FilterFieldEnum.EXTERNAL_SYSTEM,
     name: 'Exportar para',
+  },
+  [FilterFieldEnum.RISK_TYPES]: {
+    value: FilterFieldEnum.RISK_TYPES,
+    name: 'Tipo de risco',
+  },
+  [FilterFieldEnum.RISK_SEVERITIES]: {
+    value: FilterFieldEnum.RISK_SEVERITIES,
+    name: 'Severidade',
+  },
+  [FilterFieldEnum.RISK_SUB_TYPE_IDS]: {
+    value: FilterFieldEnum.RISK_SUB_TYPE_IDS,
+    name: 'Subtipo',
+  },
+  [FilterFieldEnum.RISK_MUST_IS_PGR]: {
+    value: FilterFieldEnum.RISK_MUST_IS_PGR,
+    name: 'Com PGR',
+  },
+  [FilterFieldEnum.RISK_MUST_IS_PPP]: {
+    value: FilterFieldEnum.RISK_MUST_IS_PPP,
+    name: 'Com PPP',
+  },
+  [FilterFieldEnum.RISK_MUST_IS_PCMSO]: {
+    value: FilterFieldEnum.RISK_MUST_IS_PCMSO,
+    name: 'Com PCMSO',
+  },
+  [FilterFieldEnum.RISK_MUST_IS_ASO]: {
+    value: FilterFieldEnum.RISK_MUST_IS_ASO,
+    name: 'Com ASO',
+  },
+  [FilterFieldEnum.ABSENTEEISM_EMPLOYEES]: {
+    value: FilterFieldEnum.ABSENTEEISM_EMPLOYEES,
+    name: 'Funcionário',
+  },
+  [FilterFieldEnum.ABSENTEEISM_MOTIVE_IDS]: {
+    value: FilterFieldEnum.ABSENTEEISM_MOTIVE_IDS,
+    name: 'Motivo',
+  },
+  [FilterFieldEnum.ABSENTEEISM_OVERLAP_START]: {
+    value: FilterFieldEnum.ABSENTEEISM_OVERLAP_START,
+    name: 'Data (início período)',
+  },
+  [FilterFieldEnum.ABSENTEEISM_OVERLAP_END]: {
+    value: FilterFieldEnum.ABSENTEEISM_OVERLAP_END,
+    name: 'Data (fim período)',
   },
 };

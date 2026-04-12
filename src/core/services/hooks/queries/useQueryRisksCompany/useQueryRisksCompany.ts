@@ -14,6 +14,8 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryRiskCompany {
   search?: string | null;
   companyId?: string;
+  listSortBy?: string;
+  listSortOrder?: 'asc' | 'desc';
 }
 
 export const queryExams = async (

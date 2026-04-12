@@ -13,6 +13,7 @@ import { SIconEmail } from '@v2/assets/icons/SIconEmail/SIconEmail';
 import { IFormParticipantsFilterProps } from '@v2/components/organisms/STable/implementation/SFormParticipantsTable/SFormParticipantsTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { orderByFormParticipantsTranslation } from '@v2/models/form/translations/orden-by-form-participants.translation';
@@ -22,8 +23,7 @@ import { FormParticipantsTableFilter } from './components/FormParticipantsTableF
 import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
-
-const limit = 15;
+import { useCallback } from 'react';
 
 export const FormParticipantsTable = ({
   companyId,
@@ -46,6 +46,14 @@ export const FormParticipantsTable = ({
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<IFormParticipantsFilterProps>();
+
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_FORMS_PARTICIPANTS);
 
   const { formParticipants, isLoading } = useFetchBrowseFormParticipants({
     companyId,
@@ -71,7 +79,7 @@ export const FormParticipantsTable = ({
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || limit,
+      limit: pageLimit,
     },
   });
 
@@ -82,41 +90,49 @@ export const FormParticipantsTable = ({
     getLeftLabel: ({ field }) => orderByFormParticipantsTranslation[field],
   });
 
-  const { onCleanData, onFilterData, paramsChipList } = useTableState({
-    data: queryParams,
-    setData: setQueryParams,
-    chipMap: {
-      search: null,
-      status: (value) => ({
-        leftLabel: 'Status',
-        label: value,
-        onDelete: () =>
-          setQueryParams({
-            page: 1,
-            status: queryParams.status?.filter((status) => status !== value),
-          }),
-      }),
-      hierarchies: (value) => ({
-        leftLabel: 'Hierarquia',
-        label: value.name,
-        onDelete: () =>
-          setQueryParams({
-            page: 1,
-            hierarchies: queryParams.hierarchies?.filter(
-              (h) => h.id !== value.id,
-            ),
-          }),
-      }),
-    },
-    cleanData: {
-      search: '',
-      status: [],
-      hierarchies: [],
-      orderBy: [],
-      page: 1,
-      limit,
-    },
-  });
+  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
+    useTableState({
+      data: queryParams,
+      setData: setQueryParams,
+      chipMap: {
+        search: null,
+        status: (value) => ({
+          leftLabel: 'Status',
+          label: value,
+          onDelete: () =>
+            setQueryParams({
+              page: 1,
+              status: queryParams.status?.filter((status) => status !== value),
+            }),
+        }),
+        hierarchies: (value) => ({
+          leftLabel: 'Hierarquia',
+          label: value.name,
+          onDelete: () =>
+            setQueryParams({
+              page: 1,
+              hierarchies: queryParams.hierarchies?.filter(
+                (h) => h.id !== value.id,
+              ),
+            }),
+        }),
+      },
+      cleanData: {
+        search: '',
+        status: [],
+        hierarchies: [],
+        orderBy: [],
+        page: 1,
+        limit: defaultLimit,
+      },
+    });
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   // Check if form is accepting responses
   const isAcceptingResponses =
@@ -186,6 +202,8 @@ export const FormParticipantsTable = ({
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
         formApplication={formApplication}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

@@ -5,4 +5,7 @@ export type STablePaginationProps = BoxProps & {
   registersPerPage?: number;
   currentPage?: number;
   onPageChange: (page: number) => void;
+  /** When set with onRegistersPerPageChange, shows "Mostrar: [n]" beside the pager. */
+  pageSizeOptions?: readonly number[];
+  onRegistersPerPageChange?: (size: number) => void;
 };

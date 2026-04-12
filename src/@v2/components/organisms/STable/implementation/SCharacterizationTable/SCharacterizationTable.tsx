@@ -37,6 +37,8 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   hiddenColumns,
   filterColumns,
   setHiddenColumns,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -326,6 +328,8 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         limit={pagination?.limit}
         page={pagination?.page}
         setPage={setPage}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

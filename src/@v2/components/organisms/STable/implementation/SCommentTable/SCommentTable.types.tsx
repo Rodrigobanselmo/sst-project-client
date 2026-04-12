@@ -37,4 +37,6 @@ export interface ICommentTableTableProps {
     limit: number;
     page: number;
   };
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (size: number) => void;
 }

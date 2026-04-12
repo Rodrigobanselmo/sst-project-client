@@ -13,6 +13,7 @@ import { SDocumentControlTable } from '@v2/components/organisms/STable/implement
 import { IDocumentControlFilterProps } from '@v2/components/organisms/STable/implementation/SDocumentControlTable/SDocumentControlTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { ordenByDocumentControlTranslation } from '@v2/models/security/translations/orden-by-document-control.translation';
@@ -20,8 +21,7 @@ import { useFetchBrowseDocumentControl } from '@v2/services/enterprise/document-
 import { DocumentControlOrderByEnum } from '@v2/services/enterprise/document-control/document-control/browse-document-control/service/browse-document-control.types';
 import { useDocumentControlActions } from '../../hooks/useDocumentControlActions';
 import { DocumentControlTableFilter } from './components/DocumentControlTableFilter/DocumentControlTableFilter';
-
-const limit = 15;
+import { useCallback } from 'react';
 
 export const DocumentControlTable = ({
   workspaceId,
@@ -43,6 +43,14 @@ export const DocumentControlTable = ({
   const { queryParams, setQueryParams } =
     useQueryParamsState<IDocumentControlFilterProps>();
 
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_DOCUMENT_CONTROL);
+
   const { documentControl, isLoading } = useFetchBrowseDocumentControl({
     companyId,
     workspaceId,
@@ -58,7 +66,7 @@ export const DocumentControlTable = ({
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || limit,
+      limit: pageLimit,
     },
   });
 
@@ -69,29 +77,37 @@ export const DocumentControlTable = ({
     getLeftLabel: ({ field }) => ordenByDocumentControlTranslation[field],
   });
 
-  const { onCleanData, onFilterData, paramsChipList } = useTableState({
-    data: queryParams,
-    setData: setQueryParams,
-    chipMap: {
-      search: null,
-      types: (value) => ({
-        leftLabel: 'Tipo',
-        label: value,
-        onDelete: () =>
-          setQueryParams({
-            page: 1,
-            types: queryParams.types?.filter((type) => type !== value),
-          }),
-      }),
-    },
-    cleanData: {
-      search: '',
-      types: [],
-      orderBy: [],
-      page: 1,
-      limit,
-    },
-  });
+  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
+    useTableState({
+      data: queryParams,
+      setData: setQueryParams,
+      chipMap: {
+        search: null,
+        types: (value) => ({
+          leftLabel: 'Tipo',
+          label: value,
+          onDelete: () =>
+            setQueryParams({
+              page: 1,
+              types: queryParams.types?.filter((type) => type !== value),
+            }),
+        }),
+      },
+      cleanData: {
+        search: '',
+        types: [],
+        orderBy: [],
+        page: 1,
+        limit: defaultLimit,
+      },
+    });
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   return (
     <>
@@ -144,6 +160,8 @@ export const DocumentControlTable = ({
         pagination={documentControl?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

@@ -32,6 +32,8 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
   hiddenColumns,
   setHiddenColumns,
   formApplication,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -252,6 +254,8 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
         limit={pagination?.limit}
         page={pagination?.page}
         setPage={setPage}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

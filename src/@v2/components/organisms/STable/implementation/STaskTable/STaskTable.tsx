@@ -41,6 +41,8 @@ export const STaskTable: FC<ITaskTableProps> = ({
   onEditStatus,
   showPagination = true,
   options,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -252,6 +254,8 @@ export const STaskTable: FC<ITaskTableProps> = ({
           limit={pagination?.limit}
           page={pagination?.page}
           setPage={setPage}
+          pageSizeOptions={pageSizeOptions}
+          onPageSizeChange={onPageSizeChange}
         />
       )}
     </>

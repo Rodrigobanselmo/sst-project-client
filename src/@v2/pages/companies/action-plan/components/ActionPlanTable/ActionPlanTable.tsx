@@ -17,6 +17,7 @@ import { SActionPlanTable } from '@v2/components/organisms/STable/implementation
 import { IActionPlanFilterProps } from '@v2/components/organisms/STable/implementation/SActionPlanTable/SActionPlanTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { ordenByActionPlanTranslation } from '@v2/models/security/translations/orden-by-action-plan.translation';
@@ -27,8 +28,8 @@ import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/
 import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
 import { OccupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
 import { useActionPlanTableActions } from './hooks/useActionPlanActions';
+import { useCallback } from 'react';
 
-const limit = 15;
 const table = TablesSelectEnum.ACTION_PLAN;
 
 export const ActionPlanTable = ({
@@ -50,6 +51,14 @@ export const ActionPlanTable = ({
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<IActionPlanFilterProps>();
+
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_ACTION_PLAN);
 
   const { data, isLoading } = useFetchBrowseActionPlan({
     companyId,
@@ -86,7 +95,7 @@ export const ActionPlanTable = ({
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || limit,
+      limit: pageLimit,
     },
   });
 
@@ -97,7 +106,8 @@ export const ActionPlanTable = ({
     getLeftLabel: ({ field }) => ordenByActionPlanTranslation[field],
   });
 
-  const { onCleanData, onFilterData, paramsChipList } = useTableState({
+  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
+    useTableState({
     data: queryParams,
     setData: setQueryParams,
     chipMap: {
@@ -196,9 +206,16 @@ export const ActionPlanTable = ({
       riskTypes: [],
       generateSources: [],
       page: 1,
-      limit,
+      limit: defaultLimit,
     },
-  });
+    });
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   const { onSelectRow } = useActionPlanTableActions({ companyId });
 
@@ -276,6 +293,8 @@ export const ActionPlanTable = ({
         pagination={data?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

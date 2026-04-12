@@ -11,10 +11,16 @@ import { api } from 'core/services/apiClient';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-interface IQueryAbsenteeism {
+export interface IQueryAbsenteeism {
   search?: string | null;
   companyId?: string;
   companiesIds?: string[];
+  employeeIds?: string[];
+  motiveIds?: string[];
+  absenteeismOverlapStart?: string;
+  absenteeismOverlapEnd?: string;
+  listSortBy?: string;
+  listSortOrder?: 'asc' | 'desc';
 }
 
 export const queryAbsenteeisms = async (
@@ -52,7 +58,14 @@ export function useQueryAbsenteeisms(
   const _companyId = companyID || companyId;
 
   const { data, ...result } = useQuery(
-    [QueryEnum.ABSENTEEISMS, _companyId, page, { ...query }],
+    [
+      QueryEnum.ABSENTEEISMS,
+      _companyId,
+      page,
+      pagination.take,
+      pagination.skip,
+      { ...query },
+    ],
     () => queryAbsenteeisms(pagination, _companyId || '', { ...query }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

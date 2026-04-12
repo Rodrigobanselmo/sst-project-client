@@ -11,7 +11,9 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import usePersistedState from 'core/hooks/usePersistState';
 import { usePersistTimeoutState } from 'core/hooks/usePersistTimeoutState';
+import { AbsenteeismMotive } from 'core/interfaces/api/IAbsenteeism';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
+import { IEmployee } from 'core/interfaces/api/IEmployee';
 import { IQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
@@ -52,6 +54,19 @@ export type IFilterTableData = {
   [FilterFieldEnum.EVALUATION_TYPE]?: IFilterTableType<
     ExamHistoryEvaluationEnum[]
   >;
+  [FilterFieldEnum.RISK_TYPES]?: IFilterTableType<string[]>;
+  [FilterFieldEnum.RISK_SEVERITIES]?: IFilterTableType<number[]>;
+  [FilterFieldEnum.RISK_SUB_TYPE_IDS]?: IFilterTableType<
+    { id: number; name: string; filterValue?: string }[]
+  >;
+  [FilterFieldEnum.RISK_MUST_IS_PGR]?: IFilterTableType<{ filterValue: string }[]>;
+  [FilterFieldEnum.RISK_MUST_IS_PPP]?: IFilterTableType<{ filterValue: string }[]>;
+  [FilterFieldEnum.RISK_MUST_IS_PCMSO]?: IFilterTableType<{ filterValue: string }[]>;
+  [FilterFieldEnum.RISK_MUST_IS_ASO]?: IFilterTableType<{ filterValue: string }[]>;
+  [FilterFieldEnum.ABSENTEEISM_EMPLOYEES]?: IFilterTableType<IEmployee[]>;
+  [FilterFieldEnum.ABSENTEEISM_MOTIVE_IDS]?: IFilterTableType<AbsenteeismMotive[]>;
+  [FilterFieldEnum.ABSENTEEISM_OVERLAP_START]?: IFilterTableType<Date[]>;
+  [FilterFieldEnum.ABSENTEEISM_OVERLAP_END]?: IFilterTableType<Date[]>;
 };
 
 export const useFilterTable = (
@@ -244,7 +259,30 @@ export const useFilterTable = (
   const filtersQuery = useMemo(() => {
     const query: Record<string, any> = {};
 
+    const riskBooleanFilterFields = new Set([
+      FilterFieldEnum.RISK_MUST_IS_PGR,
+      FilterFieldEnum.RISK_MUST_IS_PPP,
+      FilterFieldEnum.RISK_MUST_IS_PCMSO,
+      FilterFieldEnum.RISK_MUST_IS_ASO,
+    ]);
+
     Object.values(filter).forEach((data) => {
+      if (!data?.field) return;
+      if (riskBooleanFilterFields.has(data.field)) {
+        if (data.filters?.length) {
+          query[data.field] = true;
+        }
+        return;
+      }
+      if (
+        data.field === FilterFieldEnum.ABSENTEEISM_OVERLAP_START ||
+        data.field === FilterFieldEnum.ABSENTEEISM_OVERLAP_END
+      ) {
+        const v = data.filters?.[0]?.filterValue;
+        if (v) query[data.field] = v;
+        return;
+      }
+      if (!data.filters?.length) return;
       query[data.field] = data.filters.map((f) => f.filterValue);
     });
     return query;
