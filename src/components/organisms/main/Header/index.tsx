@@ -7,6 +7,7 @@ import { Location } from './Location';
 import { NotificationNav } from './NotificationNav';
 import { Profile } from './Profile';
 import { Tenant } from './Tenant/Tenant';
+import { WorkspaceTenant } from './WorkspaceTenant/WorkspaceTenant';
 import { SearchBar } from './SearchBar/SearchBar';
 
 export function Header(): JSX.Element {
@@ -46,6 +47,7 @@ export function Header(): JSX.Element {
       >
         <SearchBar />
         <Tenant />
+        <WorkspaceTenant />
         <NotificationNav />
         <Profile showProfileData={!isTablet} />
       </Stack>
