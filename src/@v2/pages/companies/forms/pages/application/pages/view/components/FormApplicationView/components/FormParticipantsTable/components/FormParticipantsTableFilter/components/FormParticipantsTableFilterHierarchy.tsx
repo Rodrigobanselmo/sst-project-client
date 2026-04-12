@@ -14,15 +14,6 @@ interface FormParticipantsTableFilterHierarchyProps {
   filters: IFormParticipantsFilterProps;
 }
 
-export const hierarchyTypeLevel: Record<number, string> = {
-  [0]: '',
-  [1]: '->',
-  [2]: '-->',
-  [3]: '--->',
-  [4]: '---->',
-  [5]: '----->',
-};
-
 export const FormParticipantsTableFilterHierarchy = ({
   onFilterData,
   filters,
@@ -65,16 +56,13 @@ export const FormParticipantsTableFilterHierarchy = ({
           },
         }}
         renderItem={({ option }) => {
-          const type = (option as any).type;
+          const type = (option as ActionPlanHierarchyBrowseResultModel).type;
           const isOffice = type === HierarchyTypeEnum.OFFICE;
           const fontSize = isOffice ? 14 : 11;
           return (
-            <SFlex sx={{ position: 'sticky', alignItems: 'center' }}>
-              <SText fontSize={11} color="grey.600">
-                {hierarchyTypeLevel[0]}
-              </SText>
-              <SText fontSize={11} color="grey.600">
-                {hierarchyTypeTranslation[type]}:{' '}
+            <SFlex sx={{ position: 'sticky', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+              <SText fontSize={11} color="grey.700" sx={{ fontWeight: 600 }}>
+                {hierarchyTypeTranslation[type]}:
               </SText>
               <SText fontSize={fontSize}>{option.name}</SText>
             </SFlex>
@@ -87,6 +75,7 @@ export const FormParticipantsTableFilterHierarchy = ({
             hierarchies: option.map((res) => ({
               id: res.id,
               name: res.name,
+              type: (res as ActionPlanHierarchyBrowseResultModel).type,
             })),
           });
         }}
