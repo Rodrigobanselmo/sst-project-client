@@ -13,6 +13,7 @@ export const useFetchBrowseRiskSubType = (params: BrowseSubTypeParams) => {
       return browseSubType(params);
     },
     queryKey: getKeyBrowseSubType(params),
+    enabled: Boolean(params.companyId),
   });
 
   return {

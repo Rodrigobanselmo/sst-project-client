@@ -39,6 +39,8 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
   hiddenColumns,
   filterColumns,
   setHiddenColumns,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -283,6 +285,8 @@ export const SCommentTable: FC<ICommentTableTableProps> = ({
         limit={pagination?.limit}
         page={pagination?.page}
         setPage={setPage}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

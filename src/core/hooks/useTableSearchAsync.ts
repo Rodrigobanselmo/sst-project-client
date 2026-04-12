@@ -13,5 +13,5 @@ export const useTableSearchAsync = () => {
     setPage(1);
   }, 300);
 
-  return { handleSearchChange, search, setPage, page };
+  return { handleSearchChange, search, setSearch, setPage, page };
 };

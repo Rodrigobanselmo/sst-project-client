@@ -27,7 +27,7 @@ export const FilterTagList: FC<{ children?: any } & IFilterTagProps> = ({
       {tagsMemo.map((tag) => {
         return (
           <FilterTag
-            key={tag.field}
+            key={`${tag.field}-${tag.filterValue}`}
             onRemove={(tag) => filterProps.removeTagsFilter([tag])}
             tag={tag}
           />

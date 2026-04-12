@@ -20,6 +20,7 @@ import { ICharacterizationFilterProps } from '@v2/components/organisms/STable/im
 import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
@@ -30,8 +31,8 @@ import { useCharacterizationActions } from '../../hooks/useCharacterizationActio
 import { CharacterizationTableFilter } from './components/CharacterizationTableFilter/CharacterizationTableFilter';
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
 import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
+import { useCallback } from 'react';
 
-const limit = 15;
 const table = TablesSelectEnum.CHARACTERIZATION;
 
 export const CharacterizationTable = () => {
@@ -46,6 +47,14 @@ export const CharacterizationTable = () => {
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<ICharacterizationFilterProps>();
+
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_CHARACTERIZATION);
 
   const { characterizations, isLoading } = useFetchBrowseCharaterizations({
     companyId,
@@ -70,7 +79,7 @@ export const CharacterizationTable = () => {
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || limit,
+      limit: pageLimit,
     },
   });
 
@@ -105,29 +114,37 @@ export const CharacterizationTable = () => {
   const selectedStages =
     stages.filter((stage) => queryParams.stageIds?.includes(stage.id)) || [];
 
-  const { onCleanData, onFilterData, paramsChipList } = useTableState({
-    data: queryParams,
-    setData: setQueryParams,
-    chipMap: {
-      search: null,
-      stageIds: (value) => ({
-        leftLabel: 'Status',
-        label: selectedStages.find((stage) => stage.id === value)?.name || '',
-        onDelete: () =>
-          setQueryParams({
-            page: 1,
-            stageIds: queryParams.stageIds?.filter((id) => id !== value),
-          }),
-      }),
-    },
-    cleanData: {
-      search: '',
-      orderBy: [],
-      stageIds: [],
-      page: 1,
-      limit,
-    },
-  });
+  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
+    useTableState({
+      data: queryParams,
+      setData: setQueryParams,
+      chipMap: {
+        search: null,
+        stageIds: (value) => ({
+          leftLabel: 'Status',
+          label: selectedStages.find((stage) => stage.id === value)?.name || '',
+          onDelete: () =>
+            setQueryParams({
+              page: 1,
+              stageIds: queryParams.stageIds?.filter((id) => id !== value),
+            }),
+        }),
+      },
+      cleanData: {
+        search: '',
+        orderBy: [],
+        stageIds: [],
+        page: 1,
+        limit: defaultLimit,
+      },
+    });
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   return (
     <>
@@ -207,6 +224,8 @@ export const CharacterizationTable = () => {
           options: statusOptions,
           isLoading: isLoadingStatusOptions,
         }}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

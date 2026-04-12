@@ -25,7 +25,6 @@ import { IFormParticipantsTableTableProps } from './SFormParticipantsTable.types
 import { ParticipantActionsRow } from './components/ParticipantActionsRow';
 import { SIconEmail } from '@v2/assets/icons/SIconEmail/SIconEmail';
 import STooltip from '@v2/components/atoms/STooltip/STooltip';
-import { Box, FormControl, InputLabel, MenuItem, Select } from '@mui/material';
 
 export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
   data = [],
@@ -278,36 +277,8 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
         limit={pagination?.limit}
         page={pagination?.page}
         setPage={setPage}
-        endSlot={
-          pageSizeOptions?.length && onPageSizeChange ? (
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-                flexShrink: 0,
-              }}
-            >
-              <FormControl size="small" sx={{ minWidth: 130 }}>
-                <InputLabel id="participants-page-size">Mostrar</InputLabel>
-                <Select
-                  labelId="participants-page-size"
-                  label="Mostrar"
-                  value={pagination?.limit ?? pageSizeOptions[0]}
-                  onChange={(e) =>
-                    onPageSizeChange(Number(e.target.value))
-                  }
-                >
-                  {pageSizeOptions.map((n) => (
-                    <MenuItem key={n} value={n}>
-                      {n}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-          ) : undefined
-        }
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

@@ -26,6 +26,8 @@ export const SAbsenteeismEmployeeTotalTable: FC<IAbsenteeismTableProps> = ({
   onSelectRow,
   filterColumns,
   showPagination = true,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -129,6 +131,8 @@ export const SAbsenteeismEmployeeTotalTable: FC<IAbsenteeismTableProps> = ({
           limit={pagination?.limit}
           page={pagination?.page}
           setPage={setPage}
+          pageSizeOptions={pageSizeOptions}
+          onPageSizeChange={onPageSizeChange}
         />
       )}
     </>

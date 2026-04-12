@@ -46,6 +46,8 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
   filterColumns,
   setHiddenColumns,
   disabledResponisble,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
   const { onViewComment } = useActionPlanActions();
@@ -329,6 +331,8 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         limit={pagination?.limit}
         page={pagination?.page}
         setPage={setPage}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

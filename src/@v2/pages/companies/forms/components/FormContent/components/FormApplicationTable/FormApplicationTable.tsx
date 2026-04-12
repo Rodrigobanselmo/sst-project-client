@@ -11,6 +11,7 @@ import { FormApplicationColumnsEnum } from '@v2/components/organisms/STable/impl
 import { commentColumns } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/maps/fomr-application-column-map';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { useFormApplicationActions } from './hooks/useFormApplicationActions';
@@ -20,8 +21,7 @@ import { FormApplicationOrderByEnum } from '@v2/services/forms/form-application/
 import { useFetchBrowseFormApplication } from '@v2/services/forms/form-application/browse-form-application/hooks/useFetchBrowseFormApplication';
 import { orderByFormApplicationTranslation } from '@v2/models/form/translations/orden-by-form-application.translation';
 import { SFormApplicationTable } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/SFormApplicationTable';
-
-const limit = 15;
+import { useCallback } from 'react';
 
 export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
@@ -35,6 +35,14 @@ export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<IFormApplicationFilterProps>();
+
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_FORMS_APPLICATION);
 
   const { formApplication, isLoading } = useFetchBrowseFormApplication({
     companyId,
@@ -54,7 +62,7 @@ export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || limit,
+      limit: pageLimit,
     },
   });
 
@@ -65,29 +73,37 @@ export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
     getLeftLabel: ({ field }) => orderByFormApplicationTranslation[field],
   });
 
-  const { onCleanData, onFilterData, paramsChipList } = useTableState({
-    data: queryParams,
-    setData: setQueryParams,
-    chipMap: {
-      search: null,
-      status: (value) => ({
-        leftLabel: 'Status',
-        label: value,
-        onDelete: () =>
-          setQueryParams({
-            page: 1,
-            status: queryParams.status?.filter((type) => type !== value),
-          }),
-      }),
-    },
-    cleanData: {
-      search: '',
-      status: [],
-      orderBy: [],
-      page: 1,
-      limit,
-    },
-  });
+  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
+    useTableState({
+      data: queryParams,
+      setData: setQueryParams,
+      chipMap: {
+        search: null,
+        status: (value) => ({
+          leftLabel: 'Status',
+          label: value,
+          onDelete: () =>
+            setQueryParams({
+              page: 1,
+              status: queryParams.status?.filter((type) => type !== value),
+            }),
+        }),
+      },
+      cleanData: {
+        search: '',
+        status: [],
+        orderBy: [],
+        page: 1,
+        limit: defaultLimit,
+      },
+    });
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   return (
     <>
@@ -139,6 +155,8 @@ export const FormApplicationTable = ({ companyId }: { companyId: string }) => {
         pagination={formApplication?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

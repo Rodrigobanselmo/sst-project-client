@@ -15,6 +15,7 @@ import { SCommentTable } from '@v2/components/organisms/STable/implementation/SC
 import { ICommentFilterProps } from '@v2/components/organisms/STable/implementation/SCommentTable/SCommentTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { ordenByCommentTranslation } from '@v2/models/security/translations/orden-by-comment.translation';
@@ -24,8 +25,8 @@ import { CommentTableFilter } from './components/CommentTableFilter/CommentTable
 import { CommentTableSelection } from './components/CommentTableSelection/CommentTableSelection';
 import { useActionPlanTableActions } from '../ActionPlanTable/hooks/useActionPlanActions';
 import { useCommentsActions } from './hooks/useCommentsActions';
+import { useCallback } from 'react';
 
-const limit = 15;
 const table = TablesSelectEnum.COMMENTS;
 
 export const CommentsTable = ({
@@ -43,6 +44,14 @@ export const CommentsTable = ({
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<ICommentFilterProps>();
+
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_COMMENTS);
 
   const { data, isLoading } = useFetchBrowseComments({
     companyId,
@@ -62,7 +71,7 @@ export const CommentsTable = ({
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || limit,
+      limit: pageLimit,
     },
   });
 
@@ -73,43 +82,51 @@ export const CommentsTable = ({
     getLeftLabel: ({ field }) => ordenByCommentTranslation[field],
   });
 
-  const { onCleanData, onFilterData, paramsChipList } = useTableState({
-    data: queryParams,
-    setData: setQueryParams,
-    chipMap: {
-      search: null,
-      creators: (value) => ({
-        leftLabel: 'Criado por',
-        label: value.name,
-        onDelete: () =>
-          setQueryParams({
-            page: 1,
-            creators: queryParams.creators?.filter(
-              (user) => user.id !== value.id,
-            ),
-          }),
-      }),
-      generateSources: (value) => ({
-        leftLabel: 'Fonte Geradora',
-        label: value.name,
-        onDelete: () =>
-          setQueryParams({
-            page: 1,
-            generateSources: queryParams.generateSources?.filter(
-              (source) => source.id !== value.id,
-            ),
-          }),
-      }),
-    },
-    cleanData: {
-      search: '',
-      creators: [],
-      generateSources: [],
-      orderBy: [],
-      page: 1,
-      limit,
-    },
-  });
+  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
+    useTableState({
+      data: queryParams,
+      setData: setQueryParams,
+      chipMap: {
+        search: null,
+        creators: (value) => ({
+          leftLabel: 'Criado por',
+          label: value.name,
+          onDelete: () =>
+            setQueryParams({
+              page: 1,
+              creators: queryParams.creators?.filter(
+                (user) => user.id !== value.id,
+              ),
+            }),
+        }),
+        generateSources: (value) => ({
+          leftLabel: 'Fonte Geradora',
+          label: value.name,
+          onDelete: () =>
+            setQueryParams({
+              page: 1,
+              generateSources: queryParams.generateSources?.filter(
+                (source) => source.id !== value.id,
+              ),
+            }),
+        }),
+      },
+      cleanData: {
+        search: '',
+        creators: [],
+        generateSources: [],
+        orderBy: [],
+        page: 1,
+        limit: defaultLimit,
+      },
+    });
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   const { onSelectRow } = useCommentsActions({ companyId });
 
@@ -178,6 +195,8 @@ export const CommentsTable = ({
         pagination={data?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

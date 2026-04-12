@@ -1,4 +1,3 @@
-import { BoxProps, PaginationProps } from '@mui/material';
 import { ReactNode } from 'react';
 
 export interface STableLoadMoreProps {
@@ -8,6 +7,8 @@ export interface STableLoadMoreProps {
   isLoading?: boolean;
   setPage: (page: number) => void;
   mt?: number | number[];
-  /** Conteúdo entre o contador de total e a paginação (ex.: itens por página). */
+  /** Custom content between total counter and page buttons (e.g. page size select). */
   endSlot?: ReactNode;
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (size: number) => void;
 }

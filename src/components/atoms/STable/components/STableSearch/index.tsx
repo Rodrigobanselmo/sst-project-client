@@ -63,6 +63,7 @@ const STableSearch: FC<{ children?: any } & STableSearchProps> = ({
   children,
   addText,
   boxProps,
+  toolbarBeforeFilter,
   filterProps,
   ...props
 }) => (
@@ -97,6 +98,7 @@ const STableSearch: FC<{ children?: any } & STableSearchProps> = ({
         onInportClick={onImportClick}
       />
     )}
+    {toolbarBeforeFilter}
     {filterProps && <STableFilterIcon {...filterProps} />}
 
     {children}

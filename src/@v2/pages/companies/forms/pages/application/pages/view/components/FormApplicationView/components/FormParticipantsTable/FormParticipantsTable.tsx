@@ -13,6 +13,7 @@ import { SIconEmail } from '@v2/assets/icons/SIconEmail/SIconEmail';
 import { IFormParticipantsFilterProps } from '@v2/components/organisms/STable/implementation/SFormParticipantsTable/SFormParticipantsTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { orderByFormParticipantsTranslation } from '@v2/models/form/translations/orden-by-form-participants.translation';
@@ -36,13 +37,7 @@ import {
 } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 
-const DEFAULT_PAGE_LIMIT = 15;
-const PAGE_SIZE_OPTIONS = [15, 25, 50, 100] as const;
 const GROUP_FETCH_CAP = 5000;
-
-function isAllowedParticipantsPageLimit(n: number): boolean {
-  return (PAGE_SIZE_OPTIONS as readonly number[]).includes(n);
-}
 
 type ParticipantsViewMode = 'list' | 'grouped';
 
@@ -68,22 +63,18 @@ export const FormParticipantsTable = ({
   const { queryParams, setQueryParams } =
     useQueryParamsState<IFormParticipantsFilterProps>();
 
-  const [persistedPageLimit, setPersistedPageLimit] = usePersistedState<number>(
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(
+    queryParams.limit,
     persistKeys.LIMIT_FORMS_PARTICIPANTS,
-    DEFAULT_PAGE_LIMIT,
   );
 
   const [viewMode, setViewMode] = useState<ParticipantsViewMode>('list');
-
-  const pageLimit = useMemo(() => {
-    const q = queryParams.limit;
-    if (q != null && isAllowedParticipantsPageLimit(Number(q))) {
-      return Number(q);
-    }
-    return isAllowedParticipantsPageLimit(persistedPageLimit)
-      ? persistedPageLimit
-      : DEFAULT_PAGE_LIMIT;
-  }, [queryParams.limit, persistedPageLimit]);
 
   const browseFilters = useMemo(
     () => ({
@@ -126,22 +117,21 @@ export const FormParticipantsTable = ({
   });
 
   const orderChipList = useMemo(
-    () =>
-      (orderChipsBase ?? []).map((c) => ({ ...c, leftLabelBold: true })),
+    () => (orderChipsBase ?? []).map((c) => ({ ...c, leftLabelBold: true })),
     [orderChipsBase],
   );
 
   const {
-    onCleanData: resetFiltersFromTableState,
+    onCleanData: resetFromTableState,
     onFilterData,
-    paramsChipList,
+    paramsChipList: paramsChipListBase,
   } = useTableState({
     data: queryParams,
     setData: setQueryParams,
     chipMap: {
       search: null,
       status: (value) => ({
-        leftLabel: 'Status:',
+        leftLabel: 'Status',
         label: value,
         leftLabelBold: true,
         onDelete: () =>
@@ -152,8 +142,8 @@ export const FormParticipantsTable = ({
       }),
       hierarchies: (value) => ({
         leftLabel: value.type
-          ? `${hierarchyTypeTranslation[value.type]}:`
-          : 'Hierarquia:',
+          ? `${hierarchyTypeTranslation[value.type]}`
+          : 'Hierarquia',
         label: value.name,
         leftLabelBold: true,
         onDelete: () =>
@@ -171,23 +161,22 @@ export const FormParticipantsTable = ({
       hierarchies: [],
       orderBy: [],
       page: 1,
-      limit: DEFAULT_PAGE_LIMIT,
+      limit: defaultLimit,
     },
   });
 
-  const onCleanData = useCallback(() => {
-    setPersistedPageLimit(DEFAULT_PAGE_LIMIT);
-    resetFiltersFromTableState();
-  }, [resetFiltersFromTableState, setPersistedPageLimit]);
-
-  const onPageSizeChange = useCallback(
-    (size: number) => {
-      if (!isAllowedParticipantsPageLimit(size)) return;
-      setPersistedPageLimit(size);
-      onFilterData({ limit: size, page: 1 });
-    },
-    [onFilterData, setPersistedPageLimit],
+  const paramsChipList = useMemo(
+    () =>
+      (paramsChipListBase ?? []).map((c) => ({ ...c, leftLabelBold: true })),
+    [paramsChipListBase],
   );
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   const filterSummaryForUi = useMemo(
     () =>
@@ -232,9 +221,7 @@ export const FormParticipantsTable = ({
     if (!queryParams.hierarchies?.length) return '';
     return queryParams.hierarchies
       .map((h) =>
-        h.type
-          ? `${hierarchyTypeTranslation[h.type]} ${h.name}`
-          : h.name,
+        h.type ? `${hierarchyTypeTranslation[h.type]} ${h.name}` : h.name,
       )
       .join('; ');
   }, [queryParams.hierarchies]);
@@ -319,7 +306,9 @@ export const FormParticipantsTable = ({
       </STableInfoSection>
       <Box sx={{ mb: 2, maxWidth: 360 }}>
         <FormControl fullWidth size="small">
-          <InputLabel id="form-participants-view-mode">Modo de visualização</InputLabel>
+          <InputLabel id="form-participants-view-mode">
+            Modo de visualização
+          </InputLabel>
           <Select<ParticipantsViewMode>
             labelId="form-participants-view-mode"
             label="Modo de visualização"
@@ -347,7 +336,7 @@ export const FormParticipantsTable = ({
           setPage={(page) => onFilterData({ page })}
           setOrderBy={onOrderBy}
           formApplication={formApplication}
-          pageSizeOptions={[...PAGE_SIZE_OPTIONS]}
+          pageSizeOptions={pageSizeOptions}
           onPageSizeChange={onPageSizeChange}
         />
       ) : (
