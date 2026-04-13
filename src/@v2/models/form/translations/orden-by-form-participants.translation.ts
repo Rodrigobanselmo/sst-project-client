@@ -8,7 +8,7 @@ export const orderByFormParticipantsTranslation: OrderByTranslationMap = {
   [FormParticipantsOrderByEnum.EMAIL]: 'Email',
   [FormParticipantsOrderByEnum.PHONE]: 'Telefone',
   [FormParticipantsOrderByEnum.STATUS]: 'Status',
-  [FormParticipantsOrderByEnum.HIERARCHY]: 'Hierarquia',
+  [FormParticipantsOrderByEnum.HIERARCHY]: 'Setor / hierarquia',
   [FormParticipantsOrderByEnum.CREATED_AT]: 'Criado em',
   [FormParticipantsOrderByEnum.UPDATED_AT]: 'Atualizado em',
   [FormParticipantsOrderByEnum.HAS_RESPONDED]: 'Respondeu',
