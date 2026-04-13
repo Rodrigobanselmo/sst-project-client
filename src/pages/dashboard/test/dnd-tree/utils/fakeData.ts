@@ -1,15 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as faker from 'faker';
+// Commented out faker import due to UTF-8 encoding issue with Turbopack
+// import * as faker from 'faker';
 
 import { firstNodeId } from 'core/constants/first-node-id.constant';
 
-const fakeData = () => {
-  return {
-    id: faker.datatype.uuid(),
-    label: faker.name.firstName(),
-  };
-};
+// Commented out - causing build issues with faker package
+// const fakeData = () => {
+//   return {
+//     id: faker.datatype.uuid(),
+//     label: faker.name.firstName(),
+//   };
+// };
 
 const nestedObjectToMap = (data: any) => {
   const mapObject: any = {};

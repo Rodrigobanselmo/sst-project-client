@@ -4,10 +4,14 @@ import { BoxProps } from '@mui/material';
 import dayjs from 'dayjs';
 import { ExamHistoryTypeEnum } from 'project/enum/employee-exam-history-type.enum';
 import { StatusEnum } from 'project/enum/status.enum';
-import { DebouncedState } from 'use-debounce/lib/useDebouncedCallback';
+import { useDebouncedCallback } from 'use-debounce';
 
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { ClinicScheduleTypeEnum } from 'core/interfaces/api/IExam';
+
+type DebouncedState<T extends (...args: any[]) => any> = ReturnType<
+  typeof useDebouncedCallback<T>
+>;
 
 export interface IExamsScheduleTable {
   doneDate?: Date;
