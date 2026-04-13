@@ -3,9 +3,11 @@ import React, { FC, useCallback } from 'react';
 import { useAuth } from 'core/contexts/AuthContext';
 
 import { ISAuthShow } from './types';
+import { usePermissionsAccess } from '@/@v2/hooks/usePermissionsAccess';
 
 export const useAuthShow = () => {
   const { user } = useAuth();
+  const { isMasterAdmin } = usePermissionsAccess();
 
   const isAuthSuccess = useCallback(
     ({ roles, permissions, cruds, hideIf }: ISAuthShow) => {
@@ -42,7 +44,7 @@ export const useAuthShow = () => {
     [user],
   );
 
-  return { isAuthSuccess, user };
+  return { isAuthSuccess, user, isMasterAdmin };
 };
 
 //<Acces
