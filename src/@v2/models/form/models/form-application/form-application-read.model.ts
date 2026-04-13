@@ -97,11 +97,17 @@ export class FormApplicationReadModel {
     return this.status === FormApplicationStatusEnum.TESTING;
   }
 
-  get publicUrl() {
+  publicUrl(params: { isLoggedIn?: boolean } = {}) {
+    // If not shareable and not testing, user must login first
     if (!this.isShareableLink && !this.isTesting) {
-      return getPathname(PageRoutes.FORMS.PUBLIC_FORM_ANSWER.NORMAL, {
-        pathParams: { id: this.id },
-      });
+      return getPathname(
+        params.isLoggedIn
+          ? PageRoutes.FORMS.PUBLIC_FORM_ANSWER.NORMAL
+          : PageRoutes.FORMS.PUBLIC_FORM_ANSWER.LOGIN,
+        {
+          pathParams: { id: this.id },
+        },
+      );
     }
 
     return getPathname(

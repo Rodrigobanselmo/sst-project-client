@@ -32,7 +32,7 @@ export const ParticipantActionsRow: FC<ParticipantActionsRowProps> = ({
   });
 
   const handleMenuAction = (action: 'copy' | 'email' | 'whatsapp') => {
-    const baseUrl = `${window.location.origin}${formApplication.publicUrl}`;
+    const baseUrl = `${window.location.origin}${formApplication.publicUrl({ isLoggedIn: true })}`;
     const linkWithEmployeeId = `${baseUrl}?encrypt=${participant.encryptedEmployeeId}`;
 
     if (action === 'copy') {

@@ -33,7 +33,7 @@ export const FormApplicationShareModal = ({
   const [svgElement, setSvgElement] = useState<SVGSVGElement | null>(null);
 
   const publicUrl = useMemo(() => {
-    const url = formApplication.publicUrl;
+    const url = formApplication.publicUrl();
     return `${window.location.origin}${url}`;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formApplication.id]);
