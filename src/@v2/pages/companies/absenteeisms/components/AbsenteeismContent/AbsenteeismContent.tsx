@@ -14,7 +14,7 @@ import { PermissionEnum } from 'project/enum/permission.enum';
 import { AbsenteeismDashboard } from '../AbsenteeismDashboard/AbsenteeismDashboard';
 
 export const AbsenteeismContent = ({ companyId }: { companyId: string }) => {
-  const { isAuthSuccess } = useAuthShow();
+  const { isAuthSuccess, isMasterAdmin } = useAuthShow();
 
   const hasMetricsPermission = isAuthSuccess({
     permissions: [PermissionEnum.ABSENTEEISM_METRICS],
@@ -29,7 +29,7 @@ export const AbsenteeismContent = ({ companyId }: { companyId: string }) => {
       },
     ];
 
-    if (hasMetricsPermission) {
+    if (hasMetricsPermission || isMasterAdmin) {
       options.push({
         label: 'Metricas',
         value: 'metricas',

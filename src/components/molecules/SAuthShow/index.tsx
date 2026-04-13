@@ -3,6 +3,8 @@ import React, { FC, useCallback } from 'react';
 import { useAuth } from 'core/contexts/AuthContext';
 
 import { ISAuthShow } from './types';
+import { usePermissionsAccess } from '@/@v2/hooks/usePermissionsAccess';
+import { RoleEnum } from '@/project/enum/roles.enums';
 
 export const useAuthShow = () => {
   const { user } = useAuth();
@@ -42,7 +44,11 @@ export const useAuthShow = () => {
     [user],
   );
 
-  return { isAuthSuccess, user };
+  const isMasterAdmin = isAuthSuccess({
+    roles: [RoleEnum.MASTER],
+  });
+
+  return { isAuthSuccess, user, isMasterAdmin };
 };
 
 //<Acces
