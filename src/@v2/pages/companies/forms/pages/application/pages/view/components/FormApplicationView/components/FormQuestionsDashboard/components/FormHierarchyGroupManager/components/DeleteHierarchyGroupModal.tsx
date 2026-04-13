@@ -50,7 +50,7 @@ export const DeleteHierarchyGroupModal = ({
           onClick={onConfirm}
           text="Excluir"
           variant="contained"
-          color="error"
+          color="danger"
           loading={loading}
         />
       </DialogActions>
