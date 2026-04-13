@@ -14,7 +14,6 @@ import {
 } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
-import { SText } from '@v2/components/atoms/SText/SText';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import { useEffect, useState } from 'react';
 
@@ -110,7 +109,7 @@ export const UpsertHierarchyGroupModal = ({
       </DialogTitle>
 
       <DialogContent dividers>
-        <SFlex direction="column" gap={3}>
+        <SFlex sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <TextField
             fullWidth
             label="Nome do Agrupamento"
@@ -140,12 +139,31 @@ export const UpsertHierarchyGroupModal = ({
             />
           </Box>
 
-          {selectedHierarchyIds.length > 0 ? (
-            <Box>
-              <SText variant="body2" fontWeight={500} mb={1.5}>
+          {selectedHierarchyIds.length > 0 && (
+            <Box
+              sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1,
+                p: 5,
+                backgroundColor: 'background.paper',
+              }}
+            >
+              <Typography
+                variant="body2"
+                fontWeight={500}
+                mb={1.5}
+                sx={{ color: 'text.primary' }}
+              >
                 Setores selecionados ({selectedHierarchyIds.length}):
-              </SText>
-              <SFlex gap={1} flexWrap="wrap">
+              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  minHeight: '40px',
+                }}
+              >
                 {selectedHierarchyIds.map((hId) => {
                   const hierarchyName = getHierarchyName(hId);
                   return (
@@ -157,13 +175,21 @@ export const UpsertHierarchyGroupModal = ({
                           selectedHierarchyIds.filter((id) => id !== hId),
                         )
                       }
-                      color="primary"
+                      variant="filled"
+                      sx={{
+                        height: '32px',
+                        fontSize: '14px',
+                        mr: 5,
+                        mt: 5,
+                      }}
                     />
                   );
                 })}
-              </SFlex>
+              </Box>
             </Box>
-          ) : (
+          )}
+
+          {selectedHierarchyIds.length === 0 && (
             <Box
               sx={{
                 p: 2,
@@ -172,9 +198,9 @@ export const UpsertHierarchyGroupModal = ({
                 borderRadius: 1,
               }}
             >
-              <SText variant="body2" color="text.secondary">
+              <Typography variant="body2" color="text.secondary">
                 Nenhum setor selecionado ainda
-              </SText>
+              </Typography>
             </Box>
           )}
         </SFlex>
