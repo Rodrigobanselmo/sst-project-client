@@ -37,7 +37,7 @@ import {
 } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 
-const GROUP_FETCH_CAP = 5000;
+const GROUP_FETCH_CAP = 10_000;
 
 type ParticipantsViewMode = 'list' | 'grouped';
 
