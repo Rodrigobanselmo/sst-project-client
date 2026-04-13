@@ -1,6 +1,7 @@
-import { FC, useState } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
+import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import SCheckBox from 'components/atoms/SCheckBox';
 import SFlex from 'components/atoms/SFlex';
 import { SSwitch } from 'components/atoms/SSwitch';
@@ -21,6 +22,7 @@ import { STagRisk } from 'components/atoms/STagRisk';
 import SText from 'components/atoms/SText';
 import { SCheckRiskDocInfo } from 'components/molecules/SCheckRiskDocInfo';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
+import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
 
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
@@ -35,22 +37,22 @@ import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskG
 import { useQueryRisksCompany } from 'core/services/hooks/queries/useQueryRisksCompany/useQueryRisksCompany';
 import { queryClient } from 'core/services/queryClient';
 
-// import { useThrottle } from 'core/hooks/useThrottle';
-// import { queryClient } from 'core/services/queryClient';
-// import { QueryEnum } from 'core/enums/query.enums';
-
-// isFetching,
-// isRefetching,
-// refetch,
-
-// const onRefetchThrottle = useThrottle(() => {
-//   refetch();
-//   // invalidate next or previous pages
-//   queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
-// }, 1000);
-
-// loadingReload={loadQuery || isFetching || isRefetching}
-// onReloadClick={onRefetchThrottle}
+import {
+  DEFAULT_RISKS_IDENTIFIED_PAGE_SIZE,
+  isAllowedRisksIdentifiedPageSize,
+  loadRisksIdentifiedHiddenColumns,
+  loadRisksIdentifiedPageSize,
+  loadRisksIdentifiedSort,
+  RISKS_IDENTIFIED_TABLE_PAGE_SIZES,
+  saveRisksIdentifiedHiddenColumns,
+  saveRisksIdentifiedPageSize,
+  saveRisksIdentifiedSort,
+  StoredRiskIdentifiedSort,
+} from './identifiedRisksTable.storage';
+import {
+  RiskIdentifiedColumnId,
+  RiskIdentifiedListSortBy,
+} from './identifiedRisksTable.types';
 
 export const getRiskDoc = (
   risk: IRiskFactors,
@@ -81,6 +83,14 @@ export const getRiskDoc = (
   return risk;
 };
 
+type ColumnDef = {
+  id: RiskIdentifiedColumnId;
+  column: string;
+  label: string;
+  sortField?: RiskIdentifiedListSortBy;
+  justifyContent?: BoxProps['justifyContent'];
+};
+
 export const RiskCompanyTable: FC<
   { children?: any } & BoxProps & {
       rowsPerPage?: number;
@@ -88,11 +98,10 @@ export const RiskCompanyTable: FC<
       selectedData?: IRiskFactors[];
       query?: IQueryExam;
     }
-> = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
+> = ({ rowsPerPage: rowsPerPageProp, onSelectData, selectedData }) => {
   const [showOrigins, setShowRiskExam] = useState(false);
   const [openId, setOpenId] = useState('');
-  const { data: riskGroupData, isLoading: loadingRiskGroup } =
-    useQueryRiskGroupData();
+  const { data: riskGroupData } = useQueryRiskGroupData();
 
   const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
   const { handleOpenAddRiskModal } = usePushRoute();
@@ -102,6 +111,30 @@ export const RiskCompanyTable: FC<
   const isSelect = !!onSelectData;
   const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
 
+  const [sort, setSort] = useState<StoredRiskIdentifiedSort | null>(() =>
+    loadRisksIdentifiedSort(),
+  );
+  const [hiddenColumns, setHiddenColumns] = useState<
+    Partial<Record<RiskIdentifiedColumnId, boolean>>
+  >(() => loadRisksIdentifiedHiddenColumns());
+
+  const [pageSize, setPageSize] = useState(() =>
+    typeof rowsPerPageProp === 'number'
+      ? rowsPerPageProp
+      : loadRisksIdentifiedPageSize(),
+  );
+
+  const queryWithSort = useMemo(
+    () => ({
+      search,
+      ...(sort && {
+        listSortBy: sort.field,
+        listSortOrder: sort.order,
+      }),
+    }),
+    [search, sort],
+  );
+
   const {
     data: risks,
     isLoading: loadRisks,
@@ -110,7 +143,7 @@ export const RiskCompanyTable: FC<
     isFetching,
     isRefetching,
     refetch,
-  } = useQueryRisksCompany(page, { search }, rowsPerPage);
+  } = useQueryRisksCompany(page, queryWithSort, pageSize);
 
   const onChangeRiskDocInfo = (docInfo: Partial<IRiskDocInfo>) => {
     if (!docInfo.riskId) return;
@@ -123,42 +156,113 @@ export const RiskCompanyTable: FC<
 
   const onAddRisk = () => {
     handleOpenAddRiskModal();
-    // onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
-    //   title:
-    //     'Selecione para qual Sistema de Gestão SST deseja adicionar os fatores de risco',
-    //   onSelect: (docPgr: IRiskGroupData) =>
-    //     push(
-    //       RoutesEnum.RISK_DATA.replace(/:companyId/g, companyId).replace(
-    //         /:riskGroupId/g,
-    //         docPgr.id,
-    //       ),
-    //     ),
-    // } as Partial<typeof initialDocPgrSelectState>);
   };
-
-  // const onEditExam = (exam: IRiskFactors) => {};
 
   const onSelectRow = (risk: IRiskFactors) => {
     if (isSelect) {
       onSelectData(risk);
     }
 
-    // if (openId == risk.id) return setOpenId('');
     return setOpenId(risk.id);
   };
 
-  const header: (BoxProps & { text: string; column: string })[] = [
-    { text: 'Tipo', column: '40px' },
-    { text: 'Nome', column: 'minmax(250px, 400px)' },
-  ];
+  const allColumnDefs: ColumnDef[] = useMemo(
+    () => [
+      {
+        id: 'type',
+        column: '40px',
+        label: 'Tipo',
+        sortField: 'TYPE',
+      },
+      {
+        id: 'name',
+        column: 'minmax(250px, 400px)',
+        label: 'Nome',
+        sortField: 'NAME',
+      },
+    ],
+    [],
+  );
 
-  if (selectedData) header.unshift({ text: '', column: '15px' });
+  const visibleColumns = useMemo(
+    () => allColumnDefs.filter((c) => !hiddenColumns[c.id]),
+    [allColumnDefs, hiddenColumns],
+  );
+
+  const gridTemplate = useMemo(
+    () => visibleColumns.map((c) => c.column).join(' '),
+    [visibleColumns],
+  );
+
+  const columnPickerItems = useMemo(
+    () => allColumnDefs.map((c) => ({ label: c.label, value: c.id })),
+    [allColumnDefs],
+  );
+
+  const onSort = useCallback(
+    (field: RiskIdentifiedListSortBy, order: 'asc' | 'desc') => {
+      const next = { field, order };
+      setSort(next);
+      saveRisksIdentifiedSort(next);
+      setPage(1);
+    },
+    [setPage],
+  );
+
+  const onClearTablePreferences = useCallback(() => {
+    setSort(null);
+    saveRisksIdentifiedSort(null);
+    setHiddenColumns({});
+    saveRisksIdentifiedHiddenColumns({});
+    setPage(1);
+    setShowRiskExam(false);
+    setOpenId('');
+    if (typeof rowsPerPageProp !== 'number') {
+      setPageSize(DEFAULT_RISKS_IDENTIFIED_PAGE_SIZE);
+      saveRisksIdentifiedPageSize(DEFAULT_RISKS_IDENTIFIED_PAGE_SIZE);
+    }
+  }, [setPage, rowsPerPageProp]);
+
+  const onHideColumn = useCallback((id: RiskIdentifiedColumnId) => {
+    setHiddenColumns((prev) => {
+      const next = { ...prev, [id]: true };
+      saveRisksIdentifiedHiddenColumns(next);
+      return next;
+    });
+  }, []);
+
+  const setHiddenColumnsFromPicker = useCallback(
+    (next: Record<RiskIdentifiedColumnId, boolean>) => {
+      setHiddenColumns(next);
+      saveRisksIdentifiedHiddenColumns(next);
+    },
+    [],
+  );
+
+  const onRegistersPerPageChange = useCallback(
+    (size: number) => {
+      if (!isAllowedRisksIdentifiedPageSize(size)) return;
+      setPageSize(size);
+      saveRisksIdentifiedPageSize(size);
+      setPage(1);
+    },
+    [setPage],
+  );
 
   const onRefetchThrottle = useThrottle(() => {
     refetch();
-    // invalidate next or previous pages
     queryClient.invalidateQueries([QueryEnum.RISK, 'pagination']);
   }, 1000);
+
+  const renderMainCells = (row: IRiskFactors) =>
+    visibleColumns.map((col) => {
+      if (col.id === 'type') {
+        return <STagRisk key="type" hideRiskName riskFactor={row} />;
+      }
+      return (
+        <TextIconRow key="name" clickable text={row.name || '-'} />
+      );
+    });
 
   return (
     <>
@@ -175,6 +279,18 @@ export const RiskCompanyTable: FC<
         onChange={(e) => handleSearchChange(e.target.value)}
         loadingReload={loadRisks || isFetching || isRefetching}
         onReloadClick={onRefetchThrottle}
+        toolbarBeforeFilter={
+          !isSelect ? (
+            <STableColumnsButton<RiskIdentifiedColumnId>
+              showLabel
+              columns={columnPickerItems}
+              hiddenColumns={
+                hiddenColumns as Record<RiskIdentifiedColumnId, boolean>
+              }
+              setHiddenColumns={setHiddenColumnsFromPicker}
+            />
+          ) : undefined
+        }
       >
         <SFlex justify="end" flex={1}>
           <SSwitch
@@ -190,20 +306,34 @@ export const RiskCompanyTable: FC<
       </STableSearch>
       <STable
         loading={loadRisks}
-        rowsNumber={rowsPerPage}
-        columns={header.map(({ column }) => column).join(' ')}
+        rowsNumber={pageSize}
+        columns={
+          [
+            ...(selectedData ? ['15px'] : []),
+            ...visibleColumns.map((c) => c.column),
+          ].join(' ')
+        }
       >
         <STableHeader>
-          {header.map(({ text, ...props }) => (
-            <STableHRow key={text} {...props}>
-              {text}
-            </STableHRow>
+          {selectedData && <STableHRow key="check-col" />}
+          {visibleColumns.map((col) => (
+            <TableSortColumnHeader<RiskIdentifiedListSortBy>
+              key={col.id}
+              label={col.label}
+              sortField={col.sortField}
+              activeSort={sort}
+              justifyContent={col.justifyContent}
+              onSort={onSort}
+              onHideColumn={() => onHideColumn(col.id)}
+              onClearTable={onClearTablePreferences}
+            />
           ))}
         </STableHeader>
         <STableBody<(typeof risks)[0]>
+          key={pageSize}
           rowsData={risks}
           hideLoadMore
-          rowsInitialNumber={rowsPerPage}
+          rowsInitialNumber={pageSize}
           renderRow={(row) => {
             const isOpen = showOrigins || openId === row.id;
             return (
@@ -222,10 +352,9 @@ export const RiskCompanyTable: FC<
                       }
                     />
                   )}
-                  <STagRisk hideRiskName riskFactor={row} />
-                  <TextIconRow clickable text={row.name || '-'} />
+                  {renderMainCells(row)}
                   {isOpen && (
-                    <Box gridColumn={'1 / 10'} mb={6} mt={-1}>
+                    <Box gridColumn="1 / -1" mb={6} mt={-1}>
                       {row?.riskFactorData?.map((riskData) => {
                         return (
                           <SFlex
@@ -281,7 +410,7 @@ export const RiskCompanyTable: FC<
                     </Box>
                   )}
                   {isOpen && (
-                    <Box gridColumn={'1 / 10'} mb={6} mt={-1}>
+                    <Box gridColumn="1 / -1" mb={6} mt={-1}>
                       <SFlex gap={'10px'} flexWrap="wrap">
                         <Box
                           sx={{
@@ -346,10 +475,14 @@ export const RiskCompanyTable: FC<
       </STable>
       <STablePagination
         mt={2}
-        registersPerPage={rowsPerPage}
+        registersPerPage={pageSize}
         totalCountOfRegisters={loadRisks ? undefined : count}
         currentPage={page}
         onPageChange={setPage}
+        {...(typeof rowsPerPageProp !== 'number' && {
+          pageSizeOptions: RISKS_IDENTIFIED_TABLE_PAGE_SIZES,
+          onRegistersPerPageChange,
+        })}
       />
     </>
   );

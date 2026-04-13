@@ -31,6 +31,8 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
   onSelectColumn,
   filterColumns,
   showPagination = true,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const results = data?.results || [];
 
@@ -294,6 +296,8 @@ export const SAbsenteeismHierarchyTotalTable: FC<IAbsenteeismTableProps> = ({
           limit={pagination?.limit}
           page={pagination?.page}
           setPage={setPage}
+          pageSizeOptions={pageSizeOptions}
+          onPageSizeChange={onPageSizeChange}
         />
       )}
     </>

@@ -1,7 +1,8 @@
-import { FC } from 'react';
+import { FC, useCallback, useMemo, useState } from 'react';
 
 import BadgeIcon from '@mui/icons-material/Badge';
 import { Box, BoxProps } from '@mui/material';
+import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import SFlex from 'components/atoms/SFlex';
 import {
   STable,
@@ -10,14 +11,12 @@ import {
   STableHRow,
   STableRow,
 } from 'components/atoms/STable';
-import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import { TextCompanyRow } from 'components/atoms/STable/components/Rows/TextCompanyRow';
 import { TextEmployeeRow } from 'components/atoms/STable/components/Rows/TextEmployeeRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { employeeFilterList } from 'components/atoms/STable/components/STableFilter/constants/lists/employeeFilterList';
 import { FilterTagList } from 'components/atoms/STable/components/STableFilter/FilterTag/FilterTagList';
 import { useFilterTable } from 'components/atoms/STable/components/STableFilter/hooks/useFilterTable';
-import { STableFilterIcon } from 'components/atoms/STable/components/STableFilter/STableFilterIcon/STableFilterIcon';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
@@ -28,8 +27,6 @@ import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHie
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { useRouter } from 'next/router';
 import { StatusEnum } from 'project/enum/status.enum';
-
-import EditIcon from 'assets/icons/SEditIcon';
 
 import { statusOptionsConstantEmployee } from 'core/constants/maps/status-options.constant';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -49,27 +46,79 @@ import {
   IQueryEmployee,
   useQueryEmployees,
 } from 'core/services/hooks/queries/useQueryEmployees';
-import { useQueryHierarchies } from 'core/services/hooks/queries/useQueryHierarchies';
 import { queryClient } from 'core/services/queryClient';
 import { cpfMask } from 'core/utils/masks/cpf.mask';
 
 import { getEmployeeRowExamData } from '../HistoryExpiredExamCompanyTable/HistoryExpiredExamCompanyTable';
+import { EmployeesTableSortHeader } from './components/EmployeesTableSortHeader';
+import {
+  DEFAULT_EMPLOYEES_PAGE_SIZE,
+  EMPLOYEES_TABLE_PAGE_SIZES,
+  isAllowedEmployeesPageSize,
+  loadEmployeesPageSize,
+  loadEmployeesSort,
+  loadHiddenEmployeeColumns,
+  saveEmployeesPageSize,
+  saveEmployeesSort,
+  saveHiddenEmployeeColumns,
+  StoredEmployeeSort,
+} from './employeeTable.storage';
+import {
+  EmployeeListSortBy,
+  EmployeeTableColumnId,
+} from './employeeTable.types';
 import { SDropIconEmployee } from './components/SDropIconEmployee/SDropIconEmployee';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 
+type ColumnDef = {
+  id: EmployeeTableColumnId;
+  column: string;
+  label: string;
+  sortField?: EmployeeListSortBy;
+  justifyContent?: BoxProps['justifyContent'];
+};
+
 export const EmployeesTable: FC<
   { children?: any } & BoxProps & {
+      /** When set, locks page size (no selector). When omitted, uses persisted 15/25/50/100. */
       rowsPerPage?: number;
       hideModal?: boolean;
       query?: IQueryEmployee;
     }
-> = ({ rowsPerPage = 8, hideModal, query, ...props }) => {
+> = ({ rowsPerPage: rowsPerPageProp, hideModal, query, ...props }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { data: company, isLoading: loadCompany } = useQueryCompany();
   const filterProps = useFilterTable(undefined, {
     setPage,
   });
   const downloadMutation = useMutDownloadFile();
+
+  const [sort, setSort] = useState<StoredEmployeeSort | null>(() =>
+    loadEmployeesSort(),
+  );
+  const [hiddenColumns, setHiddenColumns] = useState<
+    Partial<Record<EmployeeTableColumnId, boolean>>
+  >(() => loadHiddenEmployeeColumns() as Partial<Record<EmployeeTableColumnId, boolean>>);
+
+  const [pageSize, setPageSize] = useState(() =>
+    typeof rowsPerPageProp === 'number'
+      ? rowsPerPageProp
+      : loadEmployeesPageSize(),
+  );
+
+  const queryWithSort = useMemo(
+    () => ({
+      search,
+      expiredExam: true,
+      ...query,
+      ...filterProps.filtersQuery,
+      ...(sort && {
+        listSortBy: sort.field,
+        listSortOrder: sort.order,
+      }),
+    }),
+    [search, query, filterProps.filtersQuery, sort],
+  );
 
   const {
     data: employees,
@@ -78,11 +127,7 @@ export const EmployeesTable: FC<
     isFetching,
     isRefetching,
     refetch,
-  } = useQueryEmployees(
-    page,
-    { search, expiredExam: true, ...query, ...filterProps.filtersQuery },
-    rowsPerPage,
-  );
+  } = useQueryEmployees(page, queryWithSort, pageSize);
 
   const { onStackOpenModal } = useModal();
   const { push } = useRouter();
@@ -90,10 +135,6 @@ export const EmployeesTable: FC<
 
   const handleEditStatus = (status: StatusEnum) => {
     // TODO edit checklist status
-  };
-
-  const handleGoToEmployee = (companyId: string, employeeId: number) => {
-    //push(`${RoutesEnum.COMPANIES}/${companyId}/${employeeId}`);
   };
 
   const handleGoToHierarchy = (companyId: string) => {
@@ -162,28 +203,229 @@ export const EmployeesTable: FC<
     PermissionCompanyEnum.schedule,
   );
 
-  const header: (BoxProps & { text: string; column: string })[] = [
-    { text: 'Funcionário', column: 'minmax(200px, 5fr)' },
-    ...(query?.all ? [{ text: 'Empresa', column: '150px' }] : []),
-    { text: 'Cargo', column: 'minmax(190px, 1fr)' },
-    ...(isSchedule
-      ? [
-          { text: 'Válidade', column: '180px' },
-          { text: 'Ultimo Exame', column: '110px' },
-        ]
-      : []),
-    { text: 'Status', column: '100px', justifyContent: 'center' },
-    { text: 'Editar', column: '80px', justifyContent: 'center' },
-  ];
+  const allColumnDefs: ColumnDef[] = useMemo(() => {
+    const list: ColumnDef[] = [
+      {
+        id: 'employee',
+        column: 'minmax(200px, 5fr)',
+        label: 'Funcionário',
+        sortField: 'NAME',
+      },
+    ];
+    if (query?.all) {
+      list.push({
+        id: 'company',
+        column: '150px',
+        label: 'Empresa',
+      });
+    }
+    list.push({
+      id: 'cargo',
+      column: 'minmax(190px, 1fr)',
+      label: 'Cargo',
+      sortField: 'HIERARCHY',
+    });
+    if (isSchedule) {
+      list.push(
+        {
+          id: 'validity',
+          column: '180px',
+          label: 'Válidade',
+          sortField: 'EXPIRED_DATE_EXAM',
+        },
+        {
+          id: 'lastExam',
+          column: '110px',
+          label: 'Ultimo Exame',
+          sortField: 'LAST_EXAM',
+        },
+      );
+    }
+    list.push(
+      {
+        id: 'status',
+        column: '100px',
+        label: 'Status',
+        sortField: 'STATUS',
+        justifyContent: 'center',
+      },
+      {
+        id: 'edit',
+        column: '80px',
+        label: 'Editar',
+        justifyContent: 'center',
+      },
+    );
+    return list;
+  }, [query?.all, isSchedule]);
+
+  const columnPickerItems = useMemo(
+    () =>
+      allColumnDefs
+        .filter((c) => c.id !== 'edit')
+        .map((c) => ({ label: c.label, value: c.id })),
+    [allColumnDefs],
+  );
+
+  const setHiddenColumnsFromPicker = useCallback(
+    (next: Record<EmployeeTableColumnId, boolean>) => {
+      setHiddenColumns(next);
+      saveHiddenEmployeeColumns(next);
+    },
+    [],
+  );
+
+  const visibleColumns = useMemo(
+    () => allColumnDefs.filter((c) => !hiddenColumns[c.id]),
+    [allColumnDefs, hiddenColumns],
+  );
+
+  const gridTemplate = useMemo(
+    () => visibleColumns.map((c) => c.column).join(' '),
+    [visibleColumns],
+  );
+
+  const onSort = useCallback(
+    (field: EmployeeListSortBy, order: 'asc' | 'desc') => {
+      const next = { field, order };
+      setSort(next);
+      saveEmployeesSort(next);
+      setPage(1);
+    },
+    [setPage],
+  );
+
+  const onClearTablePreferences = useCallback(() => {
+    setSort(null);
+    saveEmployeesSort(null);
+    setHiddenColumns({});
+    saveHiddenEmployeeColumns({});
+    filterProps.clearFilter();
+    setPage(1);
+    if (typeof rowsPerPageProp !== 'number') {
+      setPageSize(DEFAULT_EMPLOYEES_PAGE_SIZE);
+      saveEmployeesPageSize(DEFAULT_EMPLOYEES_PAGE_SIZE);
+    }
+  }, [filterProps, setPage, rowsPerPageProp]);
+
+  const onHideColumn = useCallback((id: EmployeeTableColumnId) => {
+    setHiddenColumns((prev) => {
+      const next = { ...prev, [id]: true };
+      saveHiddenEmployeeColumns(next);
+      return next;
+    });
+  }, []);
+
+  const onRegistersPerPageChange = useCallback(
+    (size: number) => {
+      if (!isAllowedEmployeesPageSize(size)) return;
+      setPageSize(size);
+      saveEmployeesPageSize(size);
+      setPage(1);
+    },
+    [setPage],
+  );
 
   const onRefetchThrottle = useThrottle(() => {
     refetch();
-    // invalidate next or previous pages
     queryClient.invalidateQueries([QueryEnum.EMPLOYEES]);
   }, 1000);
 
+  const renderCell = (
+    col: ColumnDef,
+    row: IEmployee,
+    examRow: ReturnType<typeof getEmployeeRowExamData>,
+  ) => {
+    const {
+      status,
+      validity,
+      lastExam,
+      employee,
+      isScheduled,
+      isExpired,
+      canScheduleWith45Days,
+      exam,
+    } = examRow;
+
+    switch (col.id) {
+      case 'employee':
+        return <TextEmployeeRow key="employee" employee={employee} />;
+      case 'company':
+        return (
+          <TextCompanyRow key="company" company={employee.company} />
+        );
+      case 'cargo':
+        return (
+          <TextIconRow
+            key="cargo"
+            text={employee.hierarchy?.name}
+            fontSize={12}
+            mr={3}
+          />
+        );
+      case 'validity':
+        return isSchedule ? (
+          <SFlex key="validity" align="center">
+            <Box
+              sx={{
+                minWidth: '7px',
+                minHeight: '7px',
+                maxWidth: '7px',
+                maxHeight: '7px',
+                borderRadius: 1,
+                backgroundColor: status.color,
+              }}
+            />
+            <TextIconRow
+              lineNumber={1}
+              fontSize={11}
+              color="text.light"
+              sx={{ textDecoration: 'underline' }}
+              justifyContent="center"
+              text={validity}
+            />
+          </SFlex>
+        ) : null;
+      case 'lastExam':
+        return isSchedule ? (
+          <TextIconRow key="lastExam" text={lastExam} />
+        ) : null;
+      case 'status':
+        return (
+          <StatusSelect
+            key="status"
+            large={false}
+            sx={{ maxWidth: '130px' }}
+            iconProps={{ sx: { fontSize: 10 } }}
+            textProps={{ fontSize: 10 }}
+            selected={row.statusStep || row.status}
+            options={statusOptionsConstantEmployee}
+            statusOptions={[]}
+            handleSelectMenu={(option) => handleEditStatus(option.value)}
+          />
+        );
+      case 'edit':
+        return (
+          <SFlex key="edit" center>
+            <SDropIconEmployee
+              employee={row}
+              company={company}
+              loading={loadEmployees || loadCompany}
+              isScheduled={isScheduled}
+              isExpired={isExpired}
+              onEditEmployee={onEditEmployee}
+              canSchedule={canScheduleWith45Days}
+              exam={exam}
+            />
+          </SFlex>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <>
+    <Box {...props}>
       <STableTitle icon={BadgeIcon}>Funcionários</STableTitle>
       <STableSearch
         onAddClick={onAddEmployee}
@@ -192,98 +434,58 @@ export const EmployeesTable: FC<
         onChange={(e) => handleSearchChange(e.target.value)}
         loadingReload={loadEmployees || isFetching || isRefetching}
         onReloadClick={onRefetchThrottle}
+        toolbarBeforeFilter={
+          <STableColumnsButton<EmployeeTableColumnId>
+            showLabel
+            columns={columnPickerItems}
+            hiddenColumns={
+              hiddenColumns as Record<EmployeeTableColumnId, boolean>
+            }
+            setHiddenColumns={setHiddenColumnsFromPicker}
+          />
+        }
         filterProps={{ filters: employeeFilterList, ...filterProps }}
       />
       <FilterTagList filterProps={filterProps} />
       <STable
         loading={loadEmployees || loadCompany}
-        rowsNumber={rowsPerPage}
-        columns={header.map(({ column }) => column).join(' ')}
+        rowsNumber={pageSize}
+        columns={gridTemplate}
       >
         <STableHeader>
-          {header.map(({ text, ...props }) => (
-            <STableHRow key={text} {...props}>
-              {text}
-            </STableHRow>
-          ))}
+          {visibleColumns.map((col) =>
+            col.id === 'edit' ? (
+              <STableHRow key={col.id} justifyContent={col.justifyContent}>
+                {col.label}
+              </STableHRow>
+            ) : (
+              <EmployeesTableSortHeader
+                key={col.id}
+                label={col.label}
+                sortField={col.sortField}
+                activeSort={sort}
+                justifyContent={col.justifyContent}
+                onSort={onSort}
+                onHideColumn={() => onHideColumn(col.id)}
+                onClearTable={onClearTablePreferences}
+              />
+            ),
+          )}
         </STableHeader>
         <STableBody<(typeof employees)[0]>
+          key={pageSize}
           rowsData={employees}
           hideLoadMore
-          rowsInitialNumber={rowsPerPage}
+          rowsInitialNumber={pageSize}
           renderRow={(row) => {
-            const {
-              status,
-              validity,
-              lastExam,
-              employee,
-              isScheduled,
-              isExpired,
-              canScheduleWith45Days,
-              exam,
-            } = getEmployeeRowExamData(row);
-
+            const examRow = getEmployeeRowExamData(row);
             return (
               <STableRow
                 onClick={() => onEditEmployee(row)}
                 clickable
                 key={row.id}
               >
-                <TextEmployeeRow employee={employee} />
-                {query?.all && <TextCompanyRow company={employee.company} />}
-                <TextIconRow
-                  text={employee.hierarchy?.name}
-                  fontSize={12}
-                  mr={3}
-                />
-
-                {isSchedule && (
-                  <SFlex align="center">
-                    <Box
-                      sx={{
-                        minWidth: '7px',
-                        minHeight: '7px',
-                        maxWidth: '7px',
-                        maxHeight: '7px',
-                        borderRadius: 1,
-                        backgroundColor: status.color,
-                      }}
-                    />
-                    <TextIconRow
-                      lineNumber={1}
-                      fontSize={11}
-                      color="text.light"
-                      sx={{ textDecoration: 'underline' }}
-                      justifyContent="center"
-                      text={validity}
-                    />
-                  </SFlex>
-                )}
-                {isSchedule && <TextIconRow text={lastExam} />}
-
-                <StatusSelect
-                  large={false}
-                  sx={{ maxWidth: '130px' }}
-                  iconProps={{ sx: { fontSize: 10 } }}
-                  textProps={{ fontSize: 10 }}
-                  selected={row.statusStep || row.status}
-                  options={statusOptionsConstantEmployee}
-                  statusOptions={[]}
-                  handleSelectMenu={(option) => handleEditStatus(option.value)}
-                />
-                <SFlex center>
-                  <SDropIconEmployee
-                    employee={row}
-                    company={company}
-                    loading={loadEmployees || loadCompany}
-                    isScheduled={isScheduled}
-                    isExpired={isExpired}
-                    onEditEmployee={onEditEmployee}
-                    canSchedule={canScheduleWith45Days}
-                    exam={exam}
-                  />
-                </SFlex>
-                {/* <IconButtonRow icon={<EditIcon />} /> */}
+                {visibleColumns.map((col) => renderCell(col, row, examRow))}
               </STableRow>
             );
           }}
@@ -291,10 +493,14 @@ export const EmployeesTable: FC<
       </STable>{' '}
       <STablePagination
         mt={2}
-        registersPerPage={rowsPerPage}
+        registersPerPage={pageSize}
         totalCountOfRegisters={loadEmployees ? undefined : count}
         currentPage={page}
         onPageChange={setPage}
+        {...(typeof rowsPerPageProp !== 'number' && {
+          pageSizeOptions: EMPLOYEES_TABLE_PAGE_SIZES,
+          onRegistersPerPageChange,
+        })}
       />
       {!hideModal && (
         <>
@@ -303,6 +509,6 @@ export const EmployeesTable: FC<
           <ModalSelectHierarchy />
         </>
       )}
-    </>
+    </Box>
   );
 };

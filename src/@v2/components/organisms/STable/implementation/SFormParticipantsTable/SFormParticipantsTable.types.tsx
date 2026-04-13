@@ -40,5 +40,5 @@ export interface IFormParticipantsTableTableProps {
   };
   /** Opções de linhas por página; se ausente, não exibe o seletor. */
   pageSizeOptions?: number[];
-  onPageSizeChange?: (pageSize: number) => void;
+  onPageSizeChange?: (size: number) => void;
 }

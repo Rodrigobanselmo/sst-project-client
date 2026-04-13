@@ -28,6 +28,8 @@ export interface IQueryEmployee {
   workspacesIds?: string[];
   disabled?: boolean;
   noPagination?: boolean;
+  listSortBy?: string;
+  listSortOrder?: 'asc' | 'desc';
 }
 
 export const queryEmployees = async (

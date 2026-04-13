@@ -30,6 +30,8 @@ export const SFormModelTable: FC<IFormModelTableTableProps> = ({
   onSelectRow,
   hiddenColumns,
   setHiddenColumns,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -192,6 +194,8 @@ export const SFormModelTable: FC<IFormModelTableTableProps> = ({
         limit={pagination?.limit}
         page={pagination?.page}
         setPage={setPage}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

@@ -13,15 +13,23 @@ import { STagButton, STagButtonLabelLeft } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { RadioFormText } from 'components/molecules/form/radio-text';
 import { EsocialCitiesSelect } from 'components/organisms/inputSelect/EsocialCitiesSelect/EsocialCitiesSelect';
+import { EmployeeSelect } from 'components/organisms/tagSelects/EmployeeSelect';
 import dayjs from 'dayjs';
 import { examAvaliationTypeList } from 'project/enum/employee-exam-history-avaliation.enum';
 import { employeeExamEvaluationTypeList } from 'project/enum/employee-exam-history-evaluation.enum';
 import { asoExamTypeList } from 'project/enum/employee-exam-history-type.enum';
 
 import { statusOptionsConstant } from 'core/constants/maps/status-options.constant';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { dateToString } from 'core/utils/date/date-format';
 
+import { useFetchBrowseRiskSubType } from '@v2/services/security/risk/sub-type/browse-sub-type/hooks/useFetchBrowseSubType';
+import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
+
+import { useQueryAbsenteeismMotives } from 'core/services/hooks/queries/useQueryAbsenteeismMotives/useQueryAbsenteeismMotives';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { RiskEnum, RiskMap } from 'project/enum/risk.enums';
+import { SeverityEnum } from 'project/enum/severity.enums';
 import { FilterFieldEnum, filterFieldMap } from '../constants/filter.map';
 import {
   ReportDownloadtypeEnum,
@@ -82,6 +90,37 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
   const { control, setValue } = useForm();
   const { data } = useQueryCompany(companySelected?.id);
 
+  const { companyId: riskFilterCompanyId } = useGetCompanyId();
+  const { data: absenteeismMotivesList = [] } = useQueryAbsenteeismMotives(
+    1,
+    {},
+    500,
+  );
+  const selectedRiskTypesForBrowse = filterProps.filter?.[
+    FilterFieldEnum.RISK_TYPES
+  ]?.data as string[] | undefined;
+  const riskSubTypeBrowseTypes =
+    selectedRiskTypesForBrowse?.length && selectedRiskTypesForBrowse.length > 0
+      ? (selectedRiskTypesForBrowse as unknown as RiskTypeEnum[])
+      : (Object.values(RiskTypeEnum) as RiskTypeEnum[]);
+
+  const { subTypes: riskSubTypesBrowse, isLoading: loadRiskSubTypesBrowse } =
+    useFetchBrowseRiskSubType({
+      companyId: riskFilterCompanyId || '',
+      pagination: { page: 1, limit: 500 },
+      filters: { types: riskSubTypeBrowseTypes },
+    });
+
+  const showRiskFactorsFilterBlock = [
+    FilterFieldEnum.RISK_TYPES,
+    FilterFieldEnum.RISK_SEVERITIES,
+    FilterFieldEnum.RISK_SUB_TYPE_IDS,
+    FilterFieldEnum.RISK_MUST_IS_PGR,
+    FilterFieldEnum.RISK_MUST_IS_PPP,
+    FilterFieldEnum.RISK_MUST_IS_PCMSO,
+    FilterFieldEnum.RISK_MUST_IS_ASO,
+  ].some((field) => filters[field]);
+
   return (
     <SFlex
       gap={4}
@@ -95,6 +134,8 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
         FilterFieldEnum.END_DATE,
         FilterFieldEnum.START_DATE,
         FilterFieldEnum.LTE_EXPIRED_EXAM,
+        FilterFieldEnum.ABSENTEEISM_OVERLAP_START,
+        FilterFieldEnum.ABSENTEEISM_OVERLAP_END,
       ].find((field) => filters[field]) && (
         <>
           <SFlex direction="row" gap={10} mb={5}>
@@ -102,6 +143,8 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
               FilterFieldEnum.START_DATE,
               FilterFieldEnum.END_DATE,
               FilterFieldEnum.LTE_EXPIRED_EXAM,
+              FilterFieldEnum.ABSENTEEISM_OVERLAP_START,
+              FilterFieldEnum.ABSENTEEISM_OVERLAP_END,
             ].map((field) => {
               if (!filters[field]) return null;
 
@@ -499,6 +542,250 @@ export const STableFilterBox: FC<{ children?: any } & IFilterBoxProps> = ({
           FilterFieldEnum.CLINICS,
         ].find((i) => filters[i]) && <Divider sx={{ mb: 2, mt: 2 }} />}
       </SFlex>
+
+      {!![
+        FilterFieldEnum.ABSENTEEISM_EMPLOYEES,
+        FilterFieldEnum.ABSENTEEISM_MOTIVE_IDS,
+      ].find((i) => filters[i]) && (
+        <>
+          <Divider sx={{ mb: 2, mt: 2 }} />
+          {filters[FilterFieldEnum.ABSENTEEISM_EMPLOYEES] && (
+            <STagButtonLabelLeft text="Funcionário" width="100%">
+              <EmployeeSelect
+                addButton={false}
+                multiple
+                queryEmployee={{
+                  companyId: riskFilterCompanyId || '',
+                }}
+                selectedEmployees={
+                  (filterProps.filter?.[FilterFieldEnum.ABSENTEEISM_EMPLOYEES]
+                    ?.data as any[]) || []
+                }
+                handleSelect={(_ids, list) => {
+                  filterProps.addFilter(FilterFieldEnum.ABSENTEEISM_EMPLOYEES, {
+                    data: list,
+                    getId: (e) => String(e.id),
+                    getName: (e) => e.name,
+                  });
+                }}
+              />
+            </STagButtonLabelLeft>
+          )}
+          {filters[FilterFieldEnum.ABSENTEEISM_MOTIVE_IDS] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Motivo do afastamento
+              </SText>
+              <SFlex flexWrap={'wrap'}>
+                {absenteeismMotivesList.map((motive) => {
+                  const isChecked = !!filterProps.filter?.[
+                    FilterFieldEnum.ABSENTEEISM_MOTIVE_IDS
+                  ]?.data?.some((m: any) => m.id === motive.id);
+                  return (
+                    <SCheckBox
+                      key={motive.id}
+                      label={motive.desc}
+                      checked={isChecked}
+                      onChange={() => {
+                        filterProps.addFilter(
+                          FilterFieldEnum.ABSENTEEISM_MOTIVE_IDS,
+                          {
+                            data: motive,
+                            getId: () => String(motive.id),
+                            getName: () => motive.desc,
+                          },
+                          { removeIfEqual: true, addOnly: true },
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </SFlex>
+            </Box>
+          )}
+        </>
+      )}
+
+      {showRiskFactorsFilterBlock && (
+        <>
+          <Divider sx={{ mb: 2, mt: 2 }} />
+          {filters[FilterFieldEnum.RISK_TYPES] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Tipo de risco
+              </SText>
+              <SFlex flexWrap={'wrap'}>
+                {(Object.keys(RiskEnum) as RiskEnum[]).map((riskKey) => {
+                  const meta = RiskMap[riskKey];
+                  const isChecked =
+                    !!filterProps.filter?.[
+                      FilterFieldEnum.RISK_TYPES
+                    ]?.data?.includes(riskKey);
+                  return (
+                    <SCheckBox
+                      key={riskKey}
+                      label={meta?.name || riskKey}
+                      checked={isChecked}
+                      onChange={() => {
+                        filterProps.addFilter(
+                          FilterFieldEnum.RISK_TYPES,
+                          {
+                            data: riskKey,
+                            getId: () => riskKey,
+                            getName: () => meta?.name || riskKey,
+                          },
+                          { removeIfEqual: true, addOnly: true },
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </SFlex>
+            </Box>
+          )}
+          {filters[FilterFieldEnum.RISK_SEVERITIES] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Severidade
+              </SText>
+              <SFlex flexWrap={'wrap'}>
+                {[
+                  SeverityEnum.LOW,
+                  SeverityEnum.MEDIUM_LOW,
+                  SeverityEnum.MEDIUM,
+                  SeverityEnum.MEDIUM_HIGH,
+                  SeverityEnum.HIGH,
+                ].map((sev) => (
+                  <SCheckBox
+                    key={String(sev)}
+                    label={String(sev)}
+                    checked={
+                      !!filterProps.filter?.[
+                        FilterFieldEnum.RISK_SEVERITIES
+                      ]?.data?.some((v) => Number(v) === sev)
+                    }
+                    onChange={() => {
+                      filterProps.addFilter(
+                        FilterFieldEnum.RISK_SEVERITIES,
+                        {
+                          data: sev,
+                          getId: () => String(sev),
+                          getName: () => String(sev),
+                        },
+                        { removeIfEqual: true, addOnly: true },
+                      );
+                    }}
+                  />
+                ))}
+              </SFlex>
+            </Box>
+          )}
+          {filters[FilterFieldEnum.RISK_SUB_TYPE_IDS] && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Subtipo
+              </SText>
+              {!riskFilterCompanyId && (
+                <SText fontSize={12} color="text.secondary" mb={2}>
+                  Selecione o contexto da empresa para carregar subtipos.
+                </SText>
+              )}
+              {loadRiskSubTypesBrowse && !!riskFilterCompanyId && (
+                <SText fontSize={12} color="text.secondary" mb={2}>
+                  Carregando subtipos...
+                </SText>
+              )}
+              <SFlex flexWrap={'wrap'}>
+                {(riskSubTypesBrowse?.results || []).map((st) => {
+                  const idStr = String(st.id);
+                  const isChecked = !!filterProps.filter?.[
+                    FilterFieldEnum.RISK_SUB_TYPE_IDS
+                  ]?.filters?.some((f) => String(f.filterValue) === idStr);
+                  return (
+                    <SCheckBox
+                      key={st.id}
+                      label={st.name}
+                      checked={isChecked}
+                      onChange={() => {
+                        filterProps.addFilter(
+                          FilterFieldEnum.RISK_SUB_TYPE_IDS,
+                          {
+                            data: { id: st.id, name: st.name },
+                            getId: (d) => String(d.id),
+                            getName: (d) => d.name,
+                          },
+                          { removeIfEqual: true, addOnly: true },
+                        );
+                      }}
+                    />
+                  );
+                })}
+              </SFlex>
+            </Box>
+          )}
+          {[
+            FilterFieldEnum.RISK_MUST_IS_PGR,
+            FilterFieldEnum.RISK_MUST_IS_PPP,
+            FilterFieldEnum.RISK_MUST_IS_PCMSO,
+            FilterFieldEnum.RISK_MUST_IS_ASO,
+          ].some((f) => filters[f]) && (
+            <Box mb={5}>
+              <SText color="text.label" fontSize={14} mt={6} mb={3}>
+                Presente no cadastro do risco
+              </SText>
+              <SText fontSize={12} color="text.secondary" mb={2}>
+                Marque para listar apenas fatores com a opção ativa no cadastro.
+              </SText>
+              <SFlex flexWrap="wrap" direction="column" gap={1}>
+                {[
+                  {
+                    field: FilterFieldEnum.RISK_MUST_IS_PGR,
+                    label: 'PGR',
+                  },
+                  {
+                    field: FilterFieldEnum.RISK_MUST_IS_PPP,
+                    label: 'PPP',
+                  },
+                  {
+                    field: FilterFieldEnum.RISK_MUST_IS_PCMSO,
+                    label: 'PCMSO',
+                  },
+                  {
+                    field: FilterFieldEnum.RISK_MUST_IS_ASO,
+                    label: 'ASO',
+                  },
+                ].map(({ field, label }) => {
+                  const active = !!filterProps.filter?.[field]?.filters?.length;
+                  return (
+                    <SCheckBox
+                      key={field}
+                      label={label}
+                      checked={active}
+                      onChange={() => {
+                        if (active) {
+                          filterProps.removeTagsFilter([
+                            {
+                              field,
+                              filterValue: '1',
+                              name: label,
+                            },
+                          ]);
+                        } else {
+                          filterProps.addFilter(field, {
+                            data: { filterValue: '1' },
+                            getId: (d) => d.filterValue,
+                            getName: () => label,
+                          });
+                        }
+                      }}
+                    />
+                  );
+                })}
+              </SFlex>
+            </Box>
+          )}
+        </>
+      )}
 
       {false && filters[FilterFieldEnum.DOWNLOAD_TYPE] && (
         <Box mt={10} overflow={'hidden'}>

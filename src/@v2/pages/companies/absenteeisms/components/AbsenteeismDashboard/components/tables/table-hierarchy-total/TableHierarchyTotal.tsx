@@ -11,6 +11,8 @@ import { useTableState } from '@v2/components/organisms/STable/hooks/useTableSta
 import { SAbsenteeismHierarchyTotalTable } from '@v2/components/organisms/STable/implementation/absenteeism/SAbsenteeismHierarchyTotalTable/SAbsenteeismHierarchyTotalTable';
 import { IAbsenteeismFilterProps } from '@v2/components/organisms/STable/implementation/absenteeism/SAbsenteeismHierarchyTotalTable/SAbsenteeismHierarchyTotalTable.types';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
+import { persistKeys } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { AbsenteeismTotalHierarchyResultBrowseModel } from '@v2/models/absenteeism/models/absenteeism-total-hierarchy/absenteeism-total-hierarchy-browse-result.model';
 import { orderByAbsenteeismHierarchyTotalTranslation } from '@v2/models/absenteeism/translations/orden-by-absenteeism-hierarchy-total.translation';
@@ -19,7 +21,7 @@ import {
   AbsenteeismHierarchyTotalOrderByEnum,
   AbsenteeismHierarchyTypeEnum,
 } from '@v2/services/absenteeism/dashboard/browse-absenteeism-hierarchy/service/browse-absenteeism-hierarchy.service';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { GraphTitle } from '../../graphs/components/GraphTitle/GraphTitle';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
 import { AbsenteeismHierarchyTypeTranslation } from '@v2/models/absenteeism/translations/absenteeism-hierarchy-type.translatio';
@@ -32,7 +34,6 @@ interface Props extends FilterTypesProps {
   companyId: string;
 }
 
-const limit = 10;
 const table = TablesSelectEnum.ABSENTEEISM_DASH_HIERARCHY;
 
 export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
@@ -49,6 +50,14 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
     setParams((prev) => ({ ...prev, ...newParams }));
   };
 
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(params.limit, persistKeys.LIMIT_ABSENTEEISM_HIERARCHY_TOTAL);
+
   const { data, isLoading } = useFetchBrowseAbsenteeismHierarchyTotal({
     companyId,
     filters: {
@@ -64,7 +73,7 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
     ],
     pagination: {
       page: params.page || 1,
-      limit: params.limit || limit,
+      limit: pageLimit,
     },
   });
 
@@ -76,23 +85,31 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
       orderByAbsenteeismHierarchyTotalTranslation[field],
   });
 
-  const { onCleanData, onFilterData, paramsChipList } = useTableState({
-    data: params,
-    setData: setParamsPrev,
-    chipMap: {
-      search: null,
-      type: null,
-      hierarchiesIds: null,
-    },
-    cleanData: {
-      search: '',
-      type: null,
-      orderBy: [],
-      hierarchiesIds: [],
-      page: 1,
-      limit,
-    },
-  });
+  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
+    useTableState({
+      data: params,
+      setData: setParamsPrev,
+      chipMap: {
+        search: null,
+        type: null,
+        hierarchiesIds: null,
+      },
+      cleanData: {
+        search: '',
+        type: null,
+        orderBy: [],
+        hierarchiesIds: [],
+        page: 1,
+        limit: defaultLimit,
+      },
+    });
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   const onChangeOrder = (field: AbsenteeismHierarchyTotalOrderByEnum) => {
     setParamsPrev({
@@ -248,6 +265,8 @@ export const TableHierarchyTotal = ({ companyId, ...props }: Props) => {
         pagination={data?.pagination}
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </SPaper>
   );

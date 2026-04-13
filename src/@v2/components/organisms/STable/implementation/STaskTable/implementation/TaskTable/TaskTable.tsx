@@ -14,6 +14,7 @@ import { STaskTable } from '@v2/components/organisms/STable/implementation/STask
 import { ITaskFilterProps } from '@v2/components/organisms/STable/implementation/STaskTable/STaskTable.types';
 import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
+import { useTablePageLimit } from '@v2/hooks/useTablePageLimit';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { useFetchBrowseTask } from '@v2/services/tasks/task/browse-task/hooks/useFetchBrowseTask';
@@ -22,8 +23,8 @@ import { useTaskTableActions } from '../../hooks/useTaskTableActions';
 import { TaskTableFilter } from './components/TaskTableFilter/TaskTableFilter';
 import { TaskTableSelection } from './components/TaskTableSelection/TaskTableSelection';
 import { useTasksTable } from './hooks/useTasksTable';
+import { useCallback } from 'react';
 
-const limit = 15;
 const table = TablesSelectEnum.TASK;
 
 export const TaskTable = ({ companyId }: { companyId: string }) => {
@@ -33,6 +34,14 @@ export const TaskTable = ({ companyId }: { companyId: string }) => {
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<ITaskFilterProps>();
+
+  const {
+    pageLimit,
+    pageSizeOptions,
+    resetPersistedLimit,
+    createPageSizeChangeHandler,
+    defaultLimit,
+  } = useTablePageLimit(queryParams.limit, persistKeys.LIMIT_TASK);
 
   const {
     onAddStatus,
@@ -68,12 +77,12 @@ export const TaskTable = ({ companyId }: { companyId: string }) => {
     ],
     pagination: {
       page: queryParams.page || 1,
-      limit: queryParams.limit || limit,
+      limit: pageLimit,
     },
   });
 
   const {
-    onCleanData,
+    onCleanData: resetFromTableState,
     onFilterData,
     onOrderBy,
     orderChipList,
@@ -84,8 +93,15 @@ export const TaskTable = ({ companyId }: { companyId: string }) => {
     tasks,
     queryParams,
     setQueryParams,
-    limit,
+    limit: defaultLimit,
   });
+
+  const onCleanData = useCallback(() => {
+    resetPersistedLimit();
+    resetFromTableState();
+  }, [resetPersistedLimit, resetFromTableState]);
+
+  const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   const { onSelectRow, handleTaskEdit, handleTaskEditMany } =
     useTaskTableActions({ companyId });
@@ -167,6 +183,8 @@ export const TaskTable = ({ companyId }: { companyId: string }) => {
           options: statusOptions,
           isLoading: isLoadingStatusOptions,
         }}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );

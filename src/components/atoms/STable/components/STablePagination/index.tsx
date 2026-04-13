@@ -1,6 +1,7 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, FormControl, MenuItem, Select, Typography } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material/Select';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 
@@ -22,6 +23,8 @@ const STablePagination: FC<{ children?: any } & STablePaginationProps> = ({
   totalCountOfRegisters,
   currentPage = 1,
   registersPerPage = 10,
+  pageSizeOptions,
+  onRegistersPerPageChange,
   ...props
 }) => {
   const [count, setCount] = useState(totalCountOfRegisters || 0);
@@ -69,6 +72,28 @@ const STablePagination: FC<{ children?: any } & STablePaginationProps> = ({
           de {count}
         </SText>
       </Box>
+
+      {pageSizeOptions?.length && onRegistersPerPageChange ? (
+        <SFlex align="center" gap={2} flexShrink={0}>
+          <Typography variant="body2" color="text.secondary" fontSize={14}>
+            Mostrar:
+          </Typography>
+          <FormControl size="small" variant="outlined" sx={{ minWidth: 72 }}>
+            <Select
+              value={registersPerPage}
+              onChange={(e: SelectChangeEvent<number>) => {
+                onRegistersPerPageChange(Number(e.target.value));
+              }}
+            >
+              {pageSizeOptions.map((n) => (
+                <MenuItem key={n} value={n}>
+                  {n}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </SFlex>
+      ) : null}
 
       <SFlex direction="row" gap={2}>
         {currentPage > 1 + siblingsCount && (

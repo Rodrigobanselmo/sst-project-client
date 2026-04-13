@@ -16,6 +16,8 @@ export type STableButtonProps = Omit<SButtonProps, 'color'> & {
 export type STableSearchProps = SInputProps & {
   onAddClick?: () => void;
   addText?: ReactNode;
+  /** Renders after export/import controls and before the filter icon (e.g. Colunas). */
+  toolbarBeforeFilter?: ReactNode;
   filterProps?: IFilterIconProps;
   onExportClick?: () => void;
   onImportClick?: () => void;

@@ -42,6 +42,9 @@ export interface IQueryCompanies {
   uf?: string[];
 
   disabled?: boolean;
+
+  listSortBy?: string;
+  listSortOrder?: 'asc' | 'desc';
 }
 
 export type IQueryCompaniesTypes = '/by-user' | '';

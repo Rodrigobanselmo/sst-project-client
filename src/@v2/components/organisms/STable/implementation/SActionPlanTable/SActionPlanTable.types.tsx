@@ -57,4 +57,6 @@ export interface IActionPlanTableTableProps {
     limit: number;
     page: number;
   };
+  pageSizeOptions?: number[];
+  onPageSizeChange?: (size: number) => void;
 }

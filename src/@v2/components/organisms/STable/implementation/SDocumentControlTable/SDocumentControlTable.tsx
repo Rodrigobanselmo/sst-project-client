@@ -29,6 +29,8 @@ export const SDocumentControlTable: FC<IDocumentControlTableTableProps> = ({
   onSelectRow,
   hiddenColumns,
   setHiddenColumns,
+  pageSizeOptions,
+  onPageSizeChange,
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -202,6 +204,8 @@ export const SDocumentControlTable: FC<IDocumentControlTableTableProps> = ({
         limit={pagination?.limit}
         page={pagination?.page}
         setPage={setPage}
+        pageSizeOptions={pageSizeOptions}
+        onPageSizeChange={onPageSizeChange}
       />
     </>
   );
