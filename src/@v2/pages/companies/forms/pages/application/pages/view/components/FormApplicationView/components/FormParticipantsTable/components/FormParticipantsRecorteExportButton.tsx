@@ -15,7 +15,7 @@ import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import { Button, CircularProgress } from '@mui/material';
 import { useCallback, useState } from 'react';
 
-const EXPORT_ROW_CAP_LIST = 500;
+const EXPORT_ROW_CAP_LIST = 10_000;
 
 export type FormParticipantsPdfViewMode = 'list' | 'grouped';
 
