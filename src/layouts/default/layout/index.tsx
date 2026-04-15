@@ -9,6 +9,8 @@ import { ModalBlank } from 'components/organisms/modals/ModalBlank/ModalBlank';
 import { ModalReport } from 'components/organisms/modals/ModalReport/ModalReport';
 import { ModalReportSelect } from 'components/organisms/modals/ModalReportSelect/ModalReportSelect';
 import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
+import { ModalCopyRiskImportEntry } from 'components/organisms/modals/ModalCopyRiskImportEntry';
+import { ModalCopyRiskSelect } from 'components/organisms/modals/ModalCopyRiskSelect';
 import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalUploadNewFile } from 'components/organisms/modals/ModalUploadNewFile/ModalUploadNewFile';
 import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
@@ -73,6 +75,8 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <SModal />
       <DefaultModal />
       <ModalSelectCompany />
+      <ModalCopyRiskImportEntry />
+      <ModalCopyRiskSelect />
       <ModalSelectClinic />
       <ModalEditCompany />
       <ModalAddProfessionalResponsible />

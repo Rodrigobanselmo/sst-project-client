@@ -19,17 +19,20 @@ export const STagRisk = ({
 }: ITagRiskProps) => {
   return (
     <SText
-      sx={{
-        ...(isEndDate && { color: 'error.main' }),
-      }}
-      fontSize={14}
-    >
-      <SText
-        fontSize={10}
-        component="span"
         sx={{
-          backgroundColor: `risk.${riskFactor?.type.toLowerCase()}`,
-          color: 'common.white',
+          ...(isEndDate && { color: 'error.main' }),
+        }}
+        fontSize={14}
+      >
+        <SText
+          fontSize={10}
+          component="span"
+          sx={{
+            backgroundColor: (() => {
+              const t = (riskFactor?.type ?? '').toString().toLowerCase();
+              return t ? (`risk.${t}` as const) : 'grey.500';
+            })(),
+            color: 'common.white',
           display: 'inline-block',
           width: '40px',
           borderRadius: '4px',

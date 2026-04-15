@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 
-import { initialRiskToolState } from 'components/organisms/modals/ModalRiskTool/hooks/useModalRiskTool';
+import { initialRiskToolV2State } from 'components/organisms/modals/ModalRiskToolV2/hooks/useModalRiskToolV2';
 import {
   setGhoFilterValues,
   setGhoState,
@@ -150,8 +150,8 @@ export const useOpenRiskTool = () => {
         });
       }, 500);
 
-      onStackOpenModal(ModalEnum.RISK_TOOL, { riskGroupId } as Partial<
-        typeof initialRiskToolState
+      onStackOpenModal(ModalEnum.RISK_TOOL_V2, { riskGroupId } as Partial<
+        typeof initialRiskToolV2State
       >);
     },
     [onOpenSelected, onStackOpenModal],

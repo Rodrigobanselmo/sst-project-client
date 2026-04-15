@@ -28,10 +28,14 @@ export const initialGhoSelectState = {
   multiple: false,
   selected: [] as IGho[],
   onCloseWithoutSelect: () => {},
+  /** Quando definido, restringe a listagem a grupos vinculados a este estabelecimento. */
+  workspaceIdFilter: undefined as string | undefined,
+  /** PGR/SST de origem: usado para listar apenas homogêneos com fatores de risco ativos nesse sistema. */
+  riskFactorGroupDataId: undefined as string | undefined,
 };
 
 export const ModalSelectGho: FC = () => {
-  const { registerModal, getModalData } = useRegisterModal();
+  const { registerModal, getModalData, findModalData } = useRegisterModal();
   const { onCloseModal, onOpenModal } = useModal();
   const { data: company } = useQueryCompany();
   const [selectData, setSelectData] = useState(initialGhoSelectState);
@@ -57,6 +61,13 @@ export const ModalSelectGho: FC = () => {
       });
     }
   }, [getModalData]);
+
+  const stackPayload = findModalData<typeof initialGhoSelectState>(
+    ModalEnum.HOMOGENEOUS_SELECT,
+  );
+  const riskFactorGroupDataIdForList =
+    stackPayload.riskFactorGroupDataId || selectData.riskFactorGroupDataId;
+  const companyIdForList = stackPayload.companyId || selectData.companyId;
 
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();
@@ -111,7 +122,20 @@ export const ModalSelectGho: FC = () => {
                 {selectData.title}
               </SText>
               <GhoAllTable
-                companyId={selectData.companyId}
+                companyId={companyIdForList}
+                workspaceIdFilter={
+                  stackPayload.workspaceIdFilter ||
+                  selectData.workspaceIdFilter ||
+                  undefined
+                }
+                originListQuery={
+                  riskFactorGroupDataIdForList
+                    ? {
+                        onlyWithActiveRisks: true,
+                        riskFactorGroupDataId: riskFactorGroupDataIdForList,
+                      }
+                    : undefined
+                }
                 onSelectData={handleSelect}
                 selectedData={
                   selectData.selected.length > 0

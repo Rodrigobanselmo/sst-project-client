@@ -37,11 +37,22 @@ export const initialDocPgrSelectState = {
 };
 
 export const ModalSelectDocPgr: FC = () => {
-  const { registerModal, getModalData } = useRegisterModal();
+  const { registerModal, getModalData, findModalData, currentModal } =
+    useRegisterModal();
   const { onCloseModal, getStackModal } = useModal();
   const [selectData, setSelectData] = useState(initialDocPgrSelectState);
+
+  const docPgrPayload = findModalData<typeof initialDocPgrSelectState>(
+    ModalEnum.DOC_PGR_SELECT,
+  );
+  const isDocPgrInStack = currentModal.some(
+    (m) => m.name === ModalEnum.DOC_PGR_SELECT,
+  );
+  const companyIdForRiskGroupQuery =
+    (isDocPgrInStack && docPgrPayload?.companyId) || selectData.companyId;
+
   const { data: riskGroupData, isLoading } = useQueryRiskGroupData(
-    selectData.companyId,
+    companyIdForRiskGroupQuery,
   );
   const { data: company } = useQueryCompany();
 
@@ -72,9 +83,9 @@ export const ModalSelectDocPgr: FC = () => {
       (modal) => modal.name === ModalEnum.DOC_PGR_SELECT,
     );
 
-    const initialData = getModalData(
+    const initialData = findModalData<typeof initialDocPgrSelectState>(
       ModalEnum.DOC_PGR_SELECT,
-    ) as typeof initialDocPgrSelectState;
+    );
 
     if (
       isOpen &&
@@ -90,7 +101,13 @@ export const ModalSelectDocPgr: FC = () => {
       if (typeof initialData?.onSelect == 'function')
         initialData?.onSelect(riskGroupData[0]);
     }
-  }, [getModalData, getStackModal, onCloseModal, riskGroupData, selectData]);
+  }, [
+    findModalData,
+    getStackModal,
+    onCloseModal,
+    riskGroupData,
+    selectData,
+  ]);
 
   const onCloseNoSelect = () => {
     selectData.onCloseWithoutSelect?.();

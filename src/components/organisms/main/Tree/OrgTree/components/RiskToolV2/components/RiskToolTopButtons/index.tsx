@@ -78,7 +78,7 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
     }
     dispatch(setGhoOpen(false));
     handleSelectGHO(null, []);
-    onCloseModal(ModalEnum.RISK_TOOL);
+    onCloseModal(ModalEnum.RISK_TOOL_V2);
   };
 
   const severity = selectedRisks.length > 1 ? '-' : selectedRisk?.severity;

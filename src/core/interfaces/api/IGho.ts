@@ -10,6 +10,19 @@ interface IHierarchyGho extends Omit<IHierarchy, 'workspaceIds'> {
   workspaceId: string;
 }
 
+/** Dados mínimos retornados na listagem de GHO para exibir tipo de origem (caracterização / ambiente). */
+export interface IGhoCharacterizationRef {
+  id: string;
+  name: string;
+  type: string;
+}
+
+export interface IGhoEnvironmentRef {
+  id: string;
+  name: string;
+  type: string;
+}
+
 export interface IGho {
   id: string;
   created_at: Date;
@@ -25,6 +38,8 @@ export interface IGho {
   workspaceIds: string[];
   type?: HomoTypeEnum;
   riskData?: IRiskData;
+  characterization?: IGhoCharacterizationRef;
+  environment?: IGhoEnvironmentRef;
 }
 
 export interface IHierarchyOnHomogeneous {

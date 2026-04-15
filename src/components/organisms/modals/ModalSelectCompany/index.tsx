@@ -99,6 +99,7 @@ export const ModalSelectCompany: FC = () => {
       {...registerModal(modalName)}
       keepMounted={false}
       onClose={onCloseNoSelect}
+      sx={{ zIndex: 5000 }}
     >
       <SModalPaper sx={{ minWidth: ['95%', '95%', 1000] }} center p={8}>
         <SModalHeader

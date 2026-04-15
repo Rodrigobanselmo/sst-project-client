@@ -11,7 +11,7 @@ import { queryClient } from 'core/services/queryClient';
 
 import { IErrorResp } from '../../../../errors/types';
 
-interface ICopyHomo {
+export interface ICopyHomo {
   actualGroupId: string;
   companyId?: string;
   companyIdFrom: string;
@@ -20,6 +20,8 @@ interface ICopyHomo {
   copyFromHomoGroupId: string;
   type?: HomoTypeEnum;
   workspaceId?: string;
+  /** Opcional: copiar apenas estes `RiskFactorData` (mantém compatibilidade se omitido). */
+  riskFactorDataIds?: string[];
 }
 
 export async function copyCompany(data: ICopyHomo) {

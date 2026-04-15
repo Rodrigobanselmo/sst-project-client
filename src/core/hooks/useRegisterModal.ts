@@ -51,5 +51,6 @@ export const useRegisterModal = () => {
     registerModal,
     currentModal,
     getModalData,
+    findModalData,
   };
 };

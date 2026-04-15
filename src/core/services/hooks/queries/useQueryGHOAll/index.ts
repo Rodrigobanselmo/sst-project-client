@@ -10,23 +10,48 @@ import { sortString } from 'core/utils/sorts/string.sort';
 
 import { QueryEnum } from '../../../../enums/query.enums';
 
-export const queryGHO = async (companyId: string) => {
+export type QueryGHOListFilters = {
+  onlyWithActiveRisks?: boolean;
+  riskFactorGroupDataId?: string;
+};
+
+const buildGhoAllQueryString = (filters?: QueryGHOListFilters) => {
+  if (!filters?.onlyWithActiveRisks && !filters?.riskFactorGroupDataId) return '';
+  const params = new URLSearchParams();
+  if (filters.onlyWithActiveRisks) params.set('onlyWithActiveRisks', 'true');
+  if (filters.riskFactorGroupDataId)
+    params.set('riskFactorGroupDataId', filters.riskFactorGroupDataId);
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+};
+
+export const queryGHO = async (
+  companyId: string,
+  filters?: QueryGHOListFilters,
+) => {
   const response = await api.get<IGho[]>(
-    ApiRoutesEnum.GHO + `/all/${companyId}`,
+    ApiRoutesEnum.GHO + `/all/${companyId}${buildGhoAllQueryString(filters)}`,
   );
   return response.data.sort((a, b) => sortString(a, b, 'name'));
 };
 
-export function useQueryGHOAll(companyIdProp?: string): IReactQuery<IGho[]> {
+export function useQueryGHOAll(
+  companyIdProp?: string,
+  filters?: QueryGHOListFilters,
+): IReactQuery<IGho[]> {
   const { companyId } = useGetCompanyId();
   const companyIdSelected = companyIdProp || companyId;
-  // const reload = companyIdProp ? 'reload' : ''; //this reload modal to load hierarchy homogeneousGroups
 
   const { data, ...query } = useQuery(
-    [QueryEnum.GHO, companyIdSelected],
+    [
+      QueryEnum.GHO,
+      companyIdSelected,
+      filters?.onlyWithActiveRisks,
+      filters?.riskFactorGroupDataId,
+    ],
     () =>
       companyIdSelected
-        ? queryGHO(companyIdSelected)
+        ? queryGHO(companyIdSelected, filters)
         : <Promise<IGho[]>>emptyArrayReturn(),
     {
       staleTime: 1000 * 60 * 60, // 1 hour

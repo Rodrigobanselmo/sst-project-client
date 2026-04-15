@@ -1,9 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { initialAutomateSubOfficeState } from 'components/organisms/modals/ModalAutomateSubOffice/hooks/useHandleActions';
-import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
-import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
-import { initialGhoSelectState } from 'components/organisms/modals/ModalSelectGho';
 import { useRouter } from 'next/router';
 import { setGhoMultiState } from 'store/reducers/hierarchy/ghoMultiSlice';
 import {
@@ -22,26 +19,20 @@ import {
   setRiskAddToggleExpand,
 } from 'store/reducers/hierarchy/riskAddSlice';
 
-import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
-import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
-import { ICompany } from 'core/interfaces/api/ICompany';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
-import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
 import { useMutCreateGho } from 'core/services/hooks/mutations/checklist/gho/useMutCreateGho';
 import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/useMutDeleteGho';
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
-import { queryClient } from 'core/services/queryClient';
-
 import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
@@ -49,6 +40,7 @@ import { RiskToolRiskView } from './components/RiskToolViews/RiskToolRiskView';
 import { IHierarchyTreeMapObject } from './components/RiskToolViews/RiskToolRiskView/types';
 import { SideSelectViewContent } from './components/SideSelectViewContent';
 import { useOpenRiskTool } from './hooks/useOpenRiskTool';
+import { useRiskToolCopyGhoImportFlow } from '../RiskToolV2/hooks/useRiskToolCopyGhoImportFlow';
 import {
   STBoxContainer,
   STBoxStack,
@@ -91,6 +83,8 @@ export const RiskTool = ({ riskGroupId }: { riskGroupId?: string }) => {
 
     [query.riskGroupId, riskGroupId],
   );
+  const { handleCopyGHO, loadingCopy: loadingCopyHomo } =
+    useRiskToolCopyGhoImportFlow(riskGroupIdMemo, copyHomoMutation);
   const isRiskOpen = useMemo(() => !!riskGroupIdMemo, [riskGroupIdMemo]);
   const { onOpenSelected } = useOpenRiskTool();
 
@@ -121,51 +115,6 @@ export const RiskTool = ({ riskGroupId }: { riskGroupId?: string }) => {
     if (isGSE) onStackOpenModal(ModalEnum.GHO_ADD);
     if (isCharacterization) handleAddCharacterization();
     if (isHierarchy) handleAddEmployees();
-  };
-
-  const handleCopyGHO = async (
-    data: IGho | IHierarchyTreeMapObject | IHierarchy,
-  ) => {
-    const onSelectGhoData = async (gho: IGho, riskGroup: IRiskGroupData) => {
-      const homoId = String(data.id).split('//');
-      const isHierarchy = homoId.length > 1;
-      copyHomoMutation.mutate({
-        actualGroupId: homoId[0],
-        riskGroupId: riskGroupIdMemo as string,
-        companyId: companyId,
-        companyIdFrom: gho.companyId,
-        copyFromHomoGroupId: gho.id,
-        riskGroupIdFrom: riskGroup.id,
-        workspaceId: homoId.length == 2 ? homoId[1] : undefined,
-        ...(isHierarchy ? { type: HomoTypeEnum.HIERARCHY } : {}),
-      });
-    };
-
-    const onSelectRiskGroupData = async (
-      riskGroup: IRiskGroupData,
-      company: ICompany,
-    ) => {
-      queryClient.invalidateQueries([QueryEnum.GHO]);
-      onStackOpenModal(ModalEnum.HOMOGENEOUS_SELECT, {
-        // title: 'Selecione o Sistema de Gestão SST do GSE',
-        onSelect: (gho) => onSelectGhoData(gho as IGho, riskGroup),
-        companyId: company.id,
-      } as Partial<typeof initialGhoSelectState>);
-    };
-
-    const onSelectCompany = async (company: ICompany) => {
-      onStackOpenModal(ModalEnum.DOC_PGR_SELECT, {
-        title: 'Selecione o Sistema de Gestão SST do GSE',
-        onSelect: (riskGroup) =>
-          onSelectRiskGroupData(riskGroup as IRiskGroupData, company),
-        companyId: company.id,
-      } as Partial<typeof initialDocPgrSelectState>);
-    };
-
-    onStackOpenModal(ModalEnum.COMPANY_SELECT, {
-      multiple: false,
-      onSelect: onSelectCompany,
-    } as Partial<typeof initialCompanySelectState>);
   };
 
   const handleEditGHO = (data: IGho | IHierarchyTreeMapObject) => {
@@ -331,7 +280,7 @@ export const RiskTool = ({ riskGroupId }: { riskGroupId?: string }) => {
               viewDataType={viewDataType}
               viewType={viewType}
               ghoQuery={ghoQuery}
-              loadingCopy={copyHomoMutation.isLoading}
+              loadingCopy={loadingCopyHomo}
               riskGroupId={riskGroupIdMemo}
             />
             <STBoxStack

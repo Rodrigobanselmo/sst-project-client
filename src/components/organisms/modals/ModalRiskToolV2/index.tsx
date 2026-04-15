@@ -14,7 +14,6 @@ import { ModalEditEpiData } from 'components/organisms/modals/ModalEditEpiRiskDa
 import { ModalEditExamRiskData } from 'components/organisms/modals/ModalEditExamRiskData/ModalEditExamRiskData';
 import { ModalEditEngRiskData } from 'components/organisms/modals/ModalEditMedRiskData';
 import { ModalAddComment } from 'components/organisms/modals/ModalRiskDataComment';
-import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
@@ -55,7 +54,6 @@ export const StackModalRiskToolV2 = () => {
       <ModalSelectHierarchy />
       <ModalSelectGho />
       <ModalSelectDocPgr />
-      <ModalSelectCompany />
       <ModalEditEpiData />
       <ModalEditEngRiskData />
       <ModalEditExamRiskData />

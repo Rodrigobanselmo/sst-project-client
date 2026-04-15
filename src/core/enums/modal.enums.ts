@@ -56,6 +56,10 @@ export enum ModalEnum {
   HIERARCHY_TREE = 'HIERARCHY_TREE',
   HIERARCHY_TREE_CARD = 'HIERARCHY_TREE_CARD',
   HOMOGENEOUS_SELECT = 'HOMOGENEOUS_SELECT',
+  /** Origem (empresa/estabelecimento) antes de escolher gestão SST e grupo na importação de riscos. */
+  COPY_RISK_IMPORT_ENTRY = 'COPY_RISK_IMPORT_ENTRY',
+  /** Seleção dos riscos a importar após escolher o grupo de origem. */
+  COPY_RISK_SELECT = 'COPY_RISK_SELECT',
   DOCUMENT_DOWNLOAD = 'DOCUMENT_DOWNLOAD',
   PROBABILITY_ADD = 'PROBABILITY_ADD',
   PROFESSIONAL_HEALTH_VIEW = 'PROFESSIONAL_HEALTH_VIEW',
