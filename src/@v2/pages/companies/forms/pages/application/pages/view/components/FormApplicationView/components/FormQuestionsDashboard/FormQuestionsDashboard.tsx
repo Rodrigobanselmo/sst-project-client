@@ -29,6 +29,7 @@ import { STabs } from '@v2/components/organisms/STabs/STabs';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
+import { buildParticipantGroupsForIndicators } from './helpers/buildParticipantGroupsForIndicators';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -481,114 +482,15 @@ export const FormQuestionsDashboard = ({
     );
   }, [selectedGroupingQuestion, identifierGroup]);
 
-  // Build optionId -> hierarchyId mapping from answers (for hierarchy-type questions)
-  const optionToHierarchyMap = useMemo(() => {
-    if (!groupingQuestion) return new Map<string, string>();
-    const map = new Map<string, string>();
-    groupingQuestion.answers.forEach((answer) => {
-      if (answer.value && answer.selectedOptionsIds.length > 0) {
-        answer.selectedOptionsIds.forEach((optionId) => {
-          if (!map.has(optionId)) {
-            map.set(optionId, answer.value!);
-          }
-        });
-      }
-    });
-    return map;
-  }, [groupingQuestion]);
-
-  // Create participant groups based on selected identifier question
-  // When hierarchy groups exist, merge options that correspond to grouped hierarchies
-  const participantGroups = useMemo(() => {
-    if (!groupingQuestion) {
-      // Default: all participants in one group
-      const allParticipantIds = new Set<string>();
-      if (identifierGroup) {
-        identifierGroup.questions.forEach((question) => {
-          question.answers.forEach((answer) => {
-            allParticipantIds.add(answer.participantsAnswersId);
-          });
-        });
-      }
-      return [
-        {
-          id: 'all',
-          name: 'Todos os participantes',
-          participantIds: allParticipantIds,
-        },
-      ];
-    }
-
-    // Create initial groups for each option
-    const initialGroups = groupingQuestion.options.map((option) => {
-      const participantIds = new Set<string>();
-      groupingQuestion.answers.forEach((answer) => {
-        if (answer.selectedOptionsIds.includes(option.id)) {
-          participantIds.add(answer.participantsAnswersId);
-        }
-      });
-      return {
-        id: option.id,
-        name: option.text,
-        participantIds,
-        hierarchyId: optionToHierarchyMap.get(option.id),
-      };
-    });
-
-    // If no hierarchy groups exist, return as-is
-    if (!hierarchyGroups || hierarchyGroups.length === 0) {
-      return initialGroups;
-    }
-
-    // Build hierarchyId -> group mapping
-    const hierarchyToGroupMap = new Map<string, { id: string; name: string }>();
-    hierarchyGroups.forEach((hGroup) => {
-      hGroup.hierarchyIds.forEach((hId) => {
-        hierarchyToGroupMap.set(hId, { id: hGroup.id, name: hGroup.name });
-      });
-    });
-
-    // Merge participant groups that belong to the same hierarchy group
-    const mergedGroupsMap = new Map<
-      string,
-      { id: string; name: string; participantIds: Set<string> }
-    >();
-
-    initialGroups.forEach((group) => {
-      const hId = group.hierarchyId;
-      const hGroup = hId ? hierarchyToGroupMap.get(hId) : undefined;
-
-      if (hGroup) {
-        // This option's hierarchy is part of a group - merge
-        if (mergedGroupsMap.has(hGroup.id)) {
-          const existing = mergedGroupsMap.get(hGroup.id)!;
-          group.participantIds.forEach((pid) =>
-            existing.participantIds.add(pid),
-          );
-        } else {
-          mergedGroupsMap.set(hGroup.id, {
-            id: hGroup.id,
-            name: hGroup.name,
-            participantIds: new Set(group.participantIds),
-          });
-        }
-      } else {
-        // Not grouped - keep individual
-        mergedGroupsMap.set(group.id, {
-          id: group.id,
-          name: group.name,
-          participantIds: group.participantIds,
-        });
-      }
-    });
-
-    return Array.from(mergedGroupsMap.values());
-  }, [
-    groupingQuestion,
-    identifierGroup,
-    hierarchyGroups,
-    optionToHierarchyMap,
-  ]);
+  const participantGroups = useMemo(
+    () =>
+      buildParticipantGroupsForIndicators({
+        formQuestionsAnswers,
+        selectedGroupingQuestionId: selectedGroupingQuestion,
+        hierarchyGroups,
+      }),
+    [formQuestionsAnswers, selectedGroupingQuestion, hierarchyGroups],
+  );
 
   // Helper function to filter answers based on participant IDs
   const filterAnswersByParticipants = useCallback(

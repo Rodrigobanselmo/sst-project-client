@@ -13,6 +13,7 @@ import {
   IFormQuestionsAnswersBrowseModel,
 } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { buildIndicatorsPdfDataset } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildIndicatorsPdfDataset';
+import type { HierarchyGroupForIndicators } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildParticipantGroupsForIndicators';
 import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { setupAPIClient } from 'core/services/api';
 
@@ -47,7 +48,7 @@ export default async function handler(
 
     const apiClient = setupAPIClient({ req } as any);
 
-    const [appRes, qaRes] = await Promise.all([
+    const [appRes, qaRes, hgRes] = await Promise.all([
       apiClient.get<IFormApplicationReadModel>(
         bindUrlParams({
           path: FormRoutes.FORM_APPLICATION.PATH_ID,
@@ -59,6 +60,12 @@ export default async function handler(
           path: FormRoutes.FORM_QUESTIONS_ANSWERS.PATH,
           pathParams: { companyId },
           queryParams: { formApplicationId: applicationId },
+        }),
+      ),
+      apiClient.get<HierarchyGroupForIndicators[]>(
+        bindUrlParams({
+          path: FormRoutes.HIERARCHY_GROUP.PATH,
+          pathParams: { companyId, applicationId },
         }),
       ),
     ]);
@@ -73,6 +80,7 @@ export default async function handler(
       selectedGroupingQuestionId: groupByQuestionId,
       showOnlyGroupIndicators: onlyGroupIndicators,
       isShareableLink: formApplication.isShareableLink,
+      hierarchyGroups: hgRes.data ?? [],
     });
 
     const issuedAt = new Intl.DateTimeFormat('pt-BR', {
