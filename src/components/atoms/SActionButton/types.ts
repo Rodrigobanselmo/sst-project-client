@@ -34,4 +34,12 @@ export interface ISActionButtonProps extends Partial<BoxProps> {
     isCat?: boolean;
     isForms?: boolean;
   };
+  /** Home operacional — cards de formulários */
+  statusLabel?: string;
+  participationPercent?: number | null;
+  formCardId?: string;
+  /** Preenche a célula de grid (largura/altura) sem alterar dados */
+  fillGridCell?: boolean;
+  /** Com fillGridCell: altura compacta (só conteúdo), sem minHeight compartilhado com Lançamentos */
+  fillGridCellCompact?: boolean;
 }

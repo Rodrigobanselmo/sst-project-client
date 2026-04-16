@@ -11,12 +11,16 @@ export const getKeyBrowseFormApplication = (
 
 export const useFetchBrowseFormApplication = (
   params: BrowseFormApplicationParams,
+  options?: {
+    enabled?: boolean;
+  },
 ) => {
   const { data, ...response } = useFetch({
     queryFn: async () => {
       return browseFormApplication(params);
     },
     queryKey: getKeyBrowseFormApplication(params),
+    enabled: options?.enabled,
   });
 
   return {

@@ -7,6 +7,9 @@ import {
 
 export const useFetchReadAbsenteeismTimelineTotal = (
   params: BrowseAbsenteeismTimelineTotalParams,
+  options?: {
+    enabled?: boolean;
+  },
 ) => {
   const { data, ...response } = useFetch({
     queryFn: async () => {
@@ -17,6 +20,7 @@ export const useFetchReadAbsenteeismTimelineTotal = (
       params.companyId,
       params,
     ],
+    enabled: options?.enabled,
   });
 
   return {
