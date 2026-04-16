@@ -14,9 +14,10 @@ import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
   const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
-  const { userCompanyId } = useGetCompanyId();
+  const { companyId, userCompanyId } = useGetCompanyId();
   const { sections } = useDrawerItems();
   const { query } = useRouter();
+  const effectiveCompanyId = companyId || userCompanyId || '';
 
   return (
     <BoxContainerStyled
@@ -46,7 +47,7 @@ export function SideBarNav(): JSX.Element {
                       onClick={item.onClick}
                       href={
                         item?.href
-                          ?.replace(':companyId', userCompanyId || '')
+                          ?.replace(':companyId', effectiveCompanyId)
                           ?.replace(':stage', (query.stage as string) || '0') ||
                         ''
                       }
@@ -69,7 +70,7 @@ export function SideBarNav(): JSX.Element {
                               href={
                                 item?.href?.replace(
                                   ':companyId',
-                                  userCompanyId || '',
+                                  effectiveCompanyId,
                                 ) || ''
                               }
                               icon={item.Icon}
