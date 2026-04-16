@@ -356,7 +356,7 @@ export const useDrawerItems = () => {
       description: 'Tela legada (não é a Home principal)',
       Icon: SCompanyIcon,
       href: RoutesEnum.COMPANY_PAGE,
-      roles: [RoleEnum.CONTRACTS],
+      roles: [RoleEnum.MASTER],
       shouldMatchExactHref: true,
     },
     [DrawerItemsEnum.forms]: {
@@ -398,7 +398,7 @@ export const useDrawerItems = () => {
       items[DrawerItemsEnum.dashboard],
       ...(isMasterAdmin || company.isConsulting
         ? hasActiveCompanyInRoute
-          ? [items[DrawerItemsEnum.companyHome], items[DrawerItemsEnum.companyPage]]
+          ? [items[DrawerItemsEnum.companyHome]]
           : []
         : []),
       items[DrawerItemsEnum.documents],
