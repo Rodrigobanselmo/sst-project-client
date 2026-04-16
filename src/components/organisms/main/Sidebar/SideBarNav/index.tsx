@@ -45,6 +45,12 @@ export function SideBarNav(): JSX.Element {
                       imageType={item.imageType}
                       key={item.text}
                       onClick={item.onClick}
+                      activePrefix={
+                        item?.activePrefix
+                          ?.replace(':companyId', effectiveCompanyId)
+                          ?.replace(':stage', (query.stage as string) || '0') ||
+                        undefined
+                      }
                       href={
                         item?.href
                           ?.replace(':companyId', effectiveCompanyId)
@@ -67,6 +73,12 @@ export function SideBarNav(): JSX.Element {
                               key={item.text}
                               deep={1}
                               onClick={item.onClick}
+                              activePrefix={
+                                item?.activePrefix?.replace(
+                                  ':companyId',
+                                  effectiveCompanyId,
+                                ) || undefined
+                              }
                               href={
                                 item?.href?.replace(
                                   ':companyId',
