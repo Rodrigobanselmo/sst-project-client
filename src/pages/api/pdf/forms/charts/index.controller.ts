@@ -13,9 +13,10 @@ import {
   IFormQuestionsAnswersBrowseModel,
 } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { buildFormChartsPdfDataset } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildFormChartsPdfDataset';
-import type { HierarchyGroupForIndicators } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildParticipantGroupsForIndicators';
 import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { setupAPIClient } from 'core/services/api';
+
+import { fetchHierarchyGroupsForPdf } from '../fetchHierarchyGroupsForPdf';
 
 export default async function handler(
   req: NextApiRequest,
@@ -42,7 +43,7 @@ export default async function handler(
 
     const apiClient = setupAPIClient({ req } as any);
 
-    const [appRes, qaRes, hgRes] = await Promise.all([
+    const [appRes, qaRes] = await Promise.all([
       apiClient.get<IFormApplicationReadModel>(
         bindUrlParams({
           path: FormRoutes.FORM_APPLICATION.PATH_ID,
@@ -56,13 +57,13 @@ export default async function handler(
           queryParams: { formApplicationId: applicationId },
         }),
       ),
-      apiClient.get<HierarchyGroupForIndicators[]>(
-        bindUrlParams({
-          path: FormRoutes.HIERARCHY_GROUP.PATH,
-          pathParams: { companyId, applicationId },
-        }),
-      ),
     ]);
+
+    const hierarchyGroups = await fetchHierarchyGroupsForPdf(
+      apiClient,
+      companyId,
+      applicationId,
+    );
 
     const formApplication = new FormApplicationReadModel(appRes.data);
     const formQuestionsAnswers = new FormQuestionsAnswersBrowseModel(
@@ -73,7 +74,7 @@ export default async function handler(
       formQuestionsAnswers,
       selectedGroupingQuestionId: groupByQuestionId,
       isShareableLink: formApplication.isShareableLink,
-      hierarchyGroups: hgRes.data ?? [],
+      hierarchyGroups,
     });
 
     const issuedAt = new Intl.DateTimeFormat('pt-BR', {
