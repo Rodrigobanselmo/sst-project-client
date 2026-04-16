@@ -16,6 +16,8 @@ import { buildIndicatorsPdfDataset } from '@v2/pages/companies/forms/pages/appli
 import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { setupAPIClient } from 'core/services/api';
 
+import { fetchHierarchyGroupsForPdf } from '../fetchHierarchyGroupsForPdf';
+
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -63,6 +65,12 @@ export default async function handler(
       ),
     ]);
 
+    const hierarchyGroups = await fetchHierarchyGroupsForPdf(
+      apiClient,
+      companyId,
+      applicationId,
+    );
+
     const formApplication = new FormApplicationReadModel(appRes.data);
     const formQuestionsAnswers = new FormQuestionsAnswersBrowseModel(
       qaRes.data,
@@ -73,6 +81,7 @@ export default async function handler(
       selectedGroupingQuestionId: groupByQuestionId,
       showOnlyGroupIndicators: onlyGroupIndicators,
       isShareableLink: formApplication.isShareableLink,
+      hierarchyGroups,
     });
 
     const issuedAt = new Intl.DateTimeFormat('pt-BR', {

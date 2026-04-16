@@ -2,11 +2,10 @@ import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.e
 import { FormAnswerBrowseModel } from '@v2/models/form/models/form-questions-answers/form-answer-browse.model';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 
-type ParticipantGroup = {
-  id: string;
-  name: string;
-  participantIds: Set<string>;
-};
+import {
+  buildParticipantGroupingForIndicatorsPdf,
+  type HierarchyGroupForIndicators,
+} from './buildParticipantGroupsForIndicators';
 
 type QuestionForIndicator = {
   id: string;
@@ -108,78 +107,6 @@ const buildQuestionsWithOptions = (
   );
 };
 
-const buildParticipantGroups = (
-  formQuestionsAnswers: FormQuestionsAnswersBrowseModel,
-  selectedGroupingQuestionId: string | null,
-): {
-  grouping: IndicatorsPdfDataset['grouping'];
-  participantGroups: ParticipantGroup[];
-} => {
-  const [identifierGroup] = formQuestionsAnswers.results;
-
-  if (!identifierGroup) {
-    return {
-      grouping: { active: false },
-      participantGroups: [
-        {
-          id: 'all',
-          name: 'Todos os participantes',
-          participantIds: new Set(),
-        },
-      ],
-    };
-  }
-
-  const groupingQuestion = selectedGroupingQuestionId
-    ? identifierGroup.questions.find((q) => q.id === selectedGroupingQuestionId)
-    : null;
-
-  if (!groupingQuestion) {
-    const allParticipantIds = new Set<string>();
-    identifierGroup.questions.forEach((q) => {
-      q.answers.forEach((answer) => {
-        allParticipantIds.add(answer.participantsAnswersId);
-      });
-    });
-
-    return {
-      grouping: { active: false },
-      participantGroups: [
-        {
-          id: 'all',
-          name: 'Todos os participantes',
-          participantIds: allParticipantIds,
-        },
-      ],
-    };
-  }
-
-  const participantGroups: ParticipantGroup[] = groupingQuestion.options.map(
-    (option) => {
-      const participantIds = new Set<string>();
-      groupingQuestion.answers.forEach((answer) => {
-        if (answer.selectedOptionsIds.includes(option.id)) {
-          participantIds.add(answer.participantsAnswersId);
-        }
-      });
-      return {
-        id: option.id,
-        name: option.text,
-        participantIds,
-      };
-    },
-  );
-
-  return {
-    grouping: {
-      active: true,
-      questionId: groupingQuestion.id,
-      questionLabel: groupingQuestion.textWithoutHtml,
-    },
-    participantGroups,
-  };
-};
-
 const calculateIndicatorForQuestions = (
   questions: QuestionWithParticipantGroups[],
   participantGroupId?: string,
@@ -226,12 +153,15 @@ export function buildIndicatorsPdfDataset(params: {
   selectedGroupingQuestionId: string | null;
   showOnlyGroupIndicators: boolean;
   isShareableLink: boolean;
+  /** Mesmos grupos hierárquicos da tela (opcional; default []). */
+  hierarchyGroups?: HierarchyGroupForIndicators[];
 }): IndicatorsPdfDataset {
   const {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     showOnlyGroupIndicators,
     isShareableLink,
+    hierarchyGroups = [],
   } = params;
 
   if (!formQuestionsAnswers || !Array.isArray(formQuestionsAnswers.results)) {
@@ -240,10 +170,12 @@ export function buildIndicatorsPdfDataset(params: {
     );
   }
 
-  const { grouping, participantGroups } = buildParticipantGroups(
-    formQuestionsAnswers,
-    selectedGroupingQuestionId,
-  );
+  const { grouping, participantGroups } =
+    buildParticipantGroupingForIndicatorsPdf({
+      formQuestionsAnswers,
+      selectedGroupingQuestionId,
+      hierarchyGroups,
+    });
 
   const [, ...generalGroups] = formQuestionsAnswers.results;
 
