@@ -4,9 +4,11 @@ import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { initialReportSelectState } from 'components/organisms/modals/ModalReportSelect/ModalReportSelect';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
+import { useRouter } from 'next/router';
 
 import { SAbsenteeismIcon } from 'assets/icons/SAbsenteeismIcon';
 import SAccessGroupIcon from 'assets/icons/SAccessGroupIcon';
+import { SActionPlanIcon } from 'assets/icons/SActionPlanIcon';
 import { SCalendarIcon } from 'assets/icons/SCalendarIcon';
 import SClinicIcon from 'assets/icons/SClinicIcon';
 import SCompanyGroupIcon from 'assets/icons/SCompanyGroupIcon';
@@ -72,6 +74,8 @@ export interface IDrawerItems extends IDrawerBase {
   image?: string;
   imageType?: 'cat' | 'esocial';
   href?: string;
+  /** Prefixo para considerar ativo (independente do href final). */
+  activePrefix?: string;
   shouldMatchExactHref?: boolean;
   onClick?: () => void;
   items?: IDrawerItems[];
@@ -90,13 +94,21 @@ export const useDrawerItems = () => {
   const { userCompanyId } = useGetCompanyId();
   const { data: company } = useQueryCompany(userCompanyId);
   const { onStackOpenModal } = useModal();
+  const { query } = useRouter();
+  const hasActiveCompanyInRoute = !!query.companyId;
 
   const items: IDrawerItemsMap = {
     [DrawerItemsEnum.dashboard]: {
-      text: isMasterAdmin || company.isConsulting ? 'Home' : 'Plano de ação',
-      description: 'HOME',
+      text: isMasterAdmin || company.isConsulting ? 'Empresas' : 'Home',
+      description:
+        isMasterAdmin || company.isConsulting
+          ? 'Listagem/seleção de empresas'
+          : 'Home operacional da empresa',
       Icon: MdDashboard,
-      href: RoutesEnum.DASHBOARD,
+      href:
+        isMasterAdmin || company.isConsulting
+          ? RoutesEnum.COMPANIES
+          : RoutesEnum.COMPANY,
       shouldMatchExactHref: true,
     },
     [DrawerItemsEnum.documents]: {
@@ -188,13 +200,36 @@ export const useDrawerItems = () => {
       },
     },
     [DrawerItemsEnum.companiesData]: {
-      text: 'Empresa',
-      description: 'Visualizar sua empresa',
+      text: 'Dados da empresa',
+      description: 'Cadastro e configurações da empresa',
       Icon: SCompanyIcon,
       href: RoutesEnum.COMPANY,
       roles: [RoleEnum.COMPANY],
       shouldMatchExactHref: true,
       hideIf: {
+        isConsulting: true,
+      },
+    },
+    [DrawerItemsEnum.companyHome]: {
+      text: 'Home',
+      description: 'Tela operacional principal da empresa selecionada',
+      Icon: SCompanyIcon,
+      // rota real do fluxo operacional (precisa de `:stage`)
+      href: RoutesEnum.COMPANY,
+      // matcher por prefixo para ficar ativo em qualquer stage
+      activePrefix: RoutesEnum.COMPANY.replace('/:stage', ''),
+      roles: [RoleEnum.CONTRACTS],
+      shouldMatchExactHref: false,
+    },
+    [DrawerItemsEnum.actionPlan]: {
+      text: 'Plano de ação',
+      description: 'Gerenciamento do Plano de Ação (PGR)',
+      Icon: SActionPlanIcon,
+      href: RoutesEnum.ACTION_PLAN,
+      permissions: [PermissionEnum.ACTION_PLAN],
+      shouldMatchExactHref: false,
+      showIf: {
+        isCompany: true,
         isConsulting: true,
       },
     },
@@ -318,12 +353,10 @@ export const useDrawerItems = () => {
 
     [DrawerItemsEnum.companyPage]: {
       text: 'Empresa (Antigo)',
-      description: 'Visualizar sua empresa',
+      description: 'Tela legada (não é a Home principal)',
       Icon: SCompanyIcon,
       href: RoutesEnum.COMPANY_PAGE,
-      roles: [RoleEnum.MASTER],
-      // roles: [RoleEnum.COMPANY],
-      removeWithRoles: [RoleEnum.CONTRACTS],
+      roles: [RoleEnum.CONTRACTS],
       shouldMatchExactHref: true,
     },
     [DrawerItemsEnum.forms]: {
@@ -363,12 +396,19 @@ export const useDrawerItems = () => {
     },
     items: [
       items[DrawerItemsEnum.dashboard],
+      ...(isMasterAdmin || company.isConsulting
+        ? hasActiveCompanyInRoute
+          ? [items[DrawerItemsEnum.companyHome], items[DrawerItemsEnum.companyPage]]
+          : []
+        : []),
       items[DrawerItemsEnum.documents],
       items[DrawerItemsEnum.team],
       items[DrawerItemsEnum.schedule],
-      items[DrawerItemsEnum.companiesData],
-      items[DrawerItemsEnum.companyPage],
-      items[DrawerItemsEnum.allCompaniesData],
+      // V2: para usuário comum, "Home" já é a entrada operacional da empresa;
+      // "Dados da empresa" vira redundante no menu lateral (permanece acessível dentro da Home).
+      ...(isMasterAdmin || company.isConsulting
+        ? [items[DrawerItemsEnum.companiesData]]
+        : []),
       items[DrawerItemsEnum.oneClinicsData],
       items[DrawerItemsEnum.allClinicsData],
       items[DrawerItemsEnum.employee],
@@ -388,6 +428,7 @@ export const useDrawerItems = () => {
       },
     },
     items: [
+      items[DrawerItemsEnum.actionPlan],
       items[DrawerItemsEnum.absenteeism],
       items[DrawerItemsEnum.cat],
       items[DrawerItemsEnum.esocial],

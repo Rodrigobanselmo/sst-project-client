@@ -14,9 +14,10 @@ import { BoxContainerStyled, BoxSectionStyled } from './styles';
 
 export function SideBarNav(): JSX.Element {
   const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
-  const { userCompanyId } = useGetCompanyId();
+  const { companyId, userCompanyId } = useGetCompanyId();
   const { sections } = useDrawerItems();
   const { query } = useRouter();
+  const effectiveCompanyId = companyId || userCompanyId || '';
 
   return (
     <BoxContainerStyled
@@ -44,9 +45,15 @@ export function SideBarNav(): JSX.Element {
                       imageType={item.imageType}
                       key={item.text}
                       onClick={item.onClick}
+                      activePrefix={
+                        item?.activePrefix
+                          ?.replace(':companyId', effectiveCompanyId)
+                          ?.replace(':stage', (query.stage as string) || '0') ||
+                        undefined
+                      }
                       href={
                         item?.href
-                          ?.replace(':companyId', userCompanyId || '')
+                          ?.replace(':companyId', effectiveCompanyId)
                           ?.replace(':stage', (query.stage as string) || '0') ||
                         ''
                       }
@@ -66,10 +73,16 @@ export function SideBarNav(): JSX.Element {
                               key={item.text}
                               deep={1}
                               onClick={item.onClick}
+                              activePrefix={
+                                item?.activePrefix?.replace(
+                                  ':companyId',
+                                  effectiveCompanyId,
+                                ) || undefined
+                              }
                               href={
                                 item?.href?.replace(
                                   ':companyId',
-                                  userCompanyId || '',
+                                  effectiveCompanyId,
                                 ) || ''
                               }
                               icon={item.Icon}

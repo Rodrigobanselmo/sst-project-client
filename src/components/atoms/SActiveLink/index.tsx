@@ -16,6 +16,7 @@ export function SActiveLink({
   shouldMatchExactHref,
   canOpen,
   isOpen,
+  activePrefix,
   ...rest
 }: IActiveLinkProps): JSX.Element {
   const { asPath } = useRouter();
@@ -61,8 +62,8 @@ export function SActiveLink({
 
   if (
     !shouldMatchExactHref &&
-    (asPath.startsWith(String(rest.href)) ||
-      asPath.startsWith(String(rest.href)))
+    (asPath.startsWith(String(activePrefix || rest.href)) ||
+      asPath.startsWith(String(activePrefix || rest.href)))
   ) {
     isActive = true;
   }

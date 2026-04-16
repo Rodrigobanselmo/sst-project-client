@@ -7,6 +7,8 @@ import { ModalEnum } from 'core/enums/modal.enums';
 export interface INavLinkProps extends LinkProps {
   icon: ElementType;
   href?: string;
+  /** Prefixo opcional para matcher de item ativo. */
+  activePrefix?: string;
   modalName?: ModalEnum;
   text: string;
   description: string;
