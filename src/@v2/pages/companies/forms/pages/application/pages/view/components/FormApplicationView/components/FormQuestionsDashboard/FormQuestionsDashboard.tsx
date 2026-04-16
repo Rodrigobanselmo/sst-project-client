@@ -2,8 +2,9 @@ import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import PersonIcon from '@mui/icons-material/Person';
-import { Box, Button, Chip, LinearProgress, Typography } from '@mui/material';
+import { Box, Button, Chip, CircularProgress, LinearProgress, Typography } from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
+import { useSnackbar } from 'notistack';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
@@ -30,6 +31,7 @@ import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
 import { buildParticipantGroupsForIndicators } from './helpers/buildParticipantGroupsForIndicators';
+import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -441,6 +443,9 @@ export const FormQuestionsDashboard = ({
   formQuestionsAnswers,
   formApplication,
 }: FormQuestionsDashboardProps) => {
+  const { enqueueSnackbar } = useSnackbar();
+  const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
+
   // Set initial tab based on shareableLink status
   const getInitialTab = () => {
     if (
@@ -850,19 +855,37 @@ export const FormQuestionsDashboard = ({
               <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Button
                   variant="outlined"
-                  onClick={() => {
-                    const params = new URLSearchParams({
-                      companyId: formApplication.companyId,
-                      applicationId: formApplication.id,
-                    });
-                    if (selectedGroupingQuestion) {
-                      params.set('groupBy', selectedGroupingQuestion);
+                  disabled={!formQuestionsAnswers || isExportingChartsPdf}
+                  startIcon={
+                    isExportingChartsPdf ? (
+                      <CircularProgress color="inherit" size={16} />
+                    ) : undefined
+                  }
+                  onClick={async () => {
+                    if (!formQuestionsAnswers) {
+                      enqueueSnackbar('Dados do formulário ainda não carregados.', {
+                        variant: 'warning',
+                      });
+                      return;
                     }
-                    window.open(
-                      `/api/pdf/forms/charts?${params.toString()}`,
-                      '_blank',
-                      'noopener,noreferrer',
-                    );
+                    setIsExportingChartsPdf(true);
+                    try {
+                      await exportFormChartsPdfInBrowser({
+                        formApplication,
+                        formQuestionsAnswers,
+                        selectedGroupingQuestionId: selectedGroupingQuestion,
+                        hierarchyGroups,
+                      });
+                    } catch (e) {
+                      enqueueSnackbar(
+                        e instanceof Error
+                          ? e.message
+                          : 'Não foi possível gerar o PDF dos gráficos.',
+                        { variant: 'error' },
+                      );
+                    } finally {
+                      setIsExportingChartsPdf(false);
+                    }
                   }}
                 >
                   Exportar PDF (Gráficos)
