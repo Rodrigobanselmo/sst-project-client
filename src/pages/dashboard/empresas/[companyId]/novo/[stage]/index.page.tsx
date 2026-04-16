@@ -1,4 +1,5 @@
 import { Box, Icon } from '@mui/material';
+import { ISActionButtonProps } from 'components/atoms/SActionButton/types';
 import { SActionGroupButton } from 'components/atoms/SActionGroupButton';
 import { SActionNextButton } from 'components/atoms/SActionNextButton';
 import { SContainer } from 'components/atoms/SContainer';
@@ -72,6 +73,7 @@ const CompanyPage: NextPage = () => {
     company,
     isLoading,
     pageGroupMemo,
+    launchCardsMemo,
     stage,
     stepsActions,
     stepsActionsList,
@@ -80,6 +82,14 @@ const CompanyPage: NextPage = () => {
 
   useFetchFeedback(isLoading && !company?.id);
   const companyName = getCompanyName(company);
+  const launchGridColumnCount = Math.max(1, pageGroupMemo.length);
+  const homeCardsGridSx = {
+    display: 'grid',
+    gridTemplateColumns: `repeat(${launchGridColumnCount}, minmax(0, 1fr))`,
+    gap: 10,
+    width: '100%',
+    alignItems: 'stretch',
+  };
 
   return (
     <>
@@ -121,11 +131,7 @@ const CompanyPage: NextPage = () => {
                 <SText fontSize={12}>{group}</SText>
                 <Box mt={3} gap={2} display={'flex'} flexDirection={'column'}>
                   {items.map(({ ...props }, index) => (
-                    <SActionStepCheck
-                      index={index}
-                      key={props.text}
-                      {...props}
-                    />
+                    <SActionStepCheck index={index} key={props.text} {...props} />
                   ))}
                 </Box>
               </Box>
@@ -133,16 +139,62 @@ const CompanyPage: NextPage = () => {
           </SFlex>
         )}
 
-        <SFlex mt={5} gap={10} flexWrap="wrap" mb={30}>
+        <Box sx={{ ...homeCardsGridSx, mt: 5, mb: 30 }}>
           {pageGroupMemo.map(({ color, ...props }) => (
-            <SActionGroupButton
+            <Box
               key={props.text}
-              active={stage == props.type}
-              color={color as string}
-              {...props}
-            />
+              sx={{
+                minWidth: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+              }}
+            >
+              <SActionGroupButton
+                active={stage == props.type}
+                color={color as string}
+                {...props}
+                fillGridCell
+                fillGridCellCompact
+              />
+            </Box>
           ))}
-        </SFlex>
+        </Box>
+        {launchCardsMemo.length > 0 && (
+          <>
+            <SText mt={-15}>Lançamentos</SText>
+            <Box sx={{ ...homeCardsGridSx, mt: 5, mb: 30 }}>
+              {launchCardsMemo.map((raw, index) => {
+                const props = raw as ISActionButtonProps;
+                return (
+                  <Box
+                    key={props.formCardId ?? `${props.text}-${index}`}
+                    sx={{
+                      minWidth: 0,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      height: '100%',
+                    }}
+                  >
+                    <SActionGroupButton
+                      text={props.text}
+                      icon={props.icon}
+                      onClick={props.onClick}
+                      tooltipText={props.tooltipText}
+                      infos={props.infos}
+                      disabled={props.disabled}
+                      loading={props.loading}
+                      statusLabel={props.statusLabel}
+                      participationPercent={props.participationPercent}
+                      formCardId={props.formCardId}
+                      fillGridCell
+                    />
+                  </Box>
+                );
+              })}
+            </Box>
+          </>
+        )}
 
         {CompanyActionEnum.EMPLOYEES_GROUP_PAGE == stage && <EmployeeStage />}
 

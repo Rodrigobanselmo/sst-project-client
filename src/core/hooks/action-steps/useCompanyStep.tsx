@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { ISActionButtonProps } from 'components/atoms/SActionButton/types';
+import { useQueryAbsenteeisms } from 'core/services/hooks/queries/useQueryAbsenteeisms/useQueryAbsenteeisms';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
 import { initialModalImportExport } from 'components/organisms/modals/ModalImportExport/hooks/useModalImportExport';
 import { initialDocPgrSelectState } from 'components/organisms/modals/ModalSelectDocPgr';
@@ -8,11 +9,24 @@ import { useRouter } from 'next/router';
 import { useSnackbar } from 'notistack';
 import { CompanyStepEnum } from 'project/enum/company-step.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
+import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
 import { setGhoOpen, setGhoState } from 'store/reducers/hierarchy/ghoSlice';
 import { selectStep, setCompanyStep } from 'store/reducers/step/stepSlice';
 
+import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
+import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
+import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
+import { FormApplicationStatusTranslate } from '@v2/models/form/translations/form-application-status.translation';
+import { useFetchBrowseFormApplication } from '@v2/services/forms/form-application/browse-form-application/hooks/useFetchBrowseFormApplication';
+import { FormApplicationOrderByEnum } from '@v2/services/forms/form-application/browse-form-application/service/browse-form-application.types';
+import { readFormApplication } from '@v2/services/forms/form-application/read-form-application/service/read-form-application.service';
+import { useFetch } from '@v2/hooks/api/useFetch';
+import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
+import { browseActionPlan } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.service';
+import { useFetchReadAbsenteeismTimelineTotal } from '@v2/services/absenteeism/dashboard/read-absenteeism-timeline-total/hooks/useFetchReadAbsenteeismTimelineTotal';
 import SAbsenteeismIcon from 'assets/icons/SAbsenteeismIcon';
+import { SActionPlanIcon } from 'assets/icons/SActionPlanIcon';
 import SCharacterizationIcon from 'assets/icons/SCharacterizationIcon';
 import { SClinicIcon } from 'assets/icons/SClinicIcon';
 import SCompanyIcon from 'assets/icons/SCompanyIcon';
@@ -49,11 +63,202 @@ import SProtocolIcon from 'assets/icons/SProtocolIcon';
 import { queryClient } from 'core/services/queryClient';
 import { QueryEnum } from 'core/enums/query.enums';
 
+/**
+ * Home operacional — não exibir: cancelado (`FormApplicationInfo`) e
+ * teste interno (`FormApplicationStatusTranslate[TESTING]`).
+ */
+const HOME_FORM_APPLICATION_EXCLUDED_STATUSES: ReadonlyArray<FormApplicationStatusEnum> =
+  [
+    FormApplicationStatusEnum.CANCELED,
+    FormApplicationStatusEnum.TESTING,
+  ];
+
+const getHomeFormParticipationPercent = (
+  totalAnswers: number,
+  totalParticipants: number,
+): number => {
+  if (!totalParticipants || totalParticipants <= 0) return 0;
+  return Math.min(100, (totalAnswers / totalParticipants) * 100);
+};
+
 export const useCompanyStep = () => {
   const { onAccessFilterBase } = useAccess();
   // const { userCompanyId } = useGetCompanyId();
   // const { data: userCompany } = useQueryCompany(userCompanyId);
   const { data: company, isLoading } = useQueryCompany();
+  const hasCompany = !!company?.id;
+  const actionPlanWorkspaceIds = useMemo(
+    () => (company.workspace || []).map((ws) => ws.id).filter(Boolean),
+    [company.workspace],
+  );
+
+  const { count: absenteeismTotalCount } = useQueryAbsenteeisms(
+    1,
+    {},
+    1,
+    company.id,
+  );
+  const { formApplication: formsTotal } = useFetchBrowseFormApplication(
+    {
+      companyId: company.id,
+      pagination: { page: 1, limit: 1 },
+    },
+    { enabled: hasCompany },
+  );
+  const { formApplication: formsRelevant } = useFetchBrowseFormApplication(
+    {
+      companyId: company.id,
+      pagination: { page: 1, limit: 100 },
+      orderBy: [
+        {
+          field: FormApplicationOrderByEnum.UPDATED_AT,
+          order: 'desc',
+        },
+      ],
+    },
+    { enabled: hasCompany },
+  );
+  const selectedFormsToShow = useMemo(() => {
+    const applications = (formsRelevant?.results || []).filter((item) =>
+      HOME_FORM_APPLICATION_EXCLUDED_STATUSES.every((s) => item.status !== s),
+    );
+
+    const actives = applications.filter(
+      (item) =>
+        item.status === FormApplicationStatusEnum.PROGRESS ||
+        item.status === FormApplicationStatusEnum.INACTIVE,
+    );
+    const sortedActives = [...actives].sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+
+    const dones = applications.filter(
+      (item) => item.status === FormApplicationStatusEnum.DONE,
+    );
+    const sortedDones = [...dones].sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
+    const latestDone = sortedDones[0];
+
+    const cards = [...sortedActives];
+    if (latestDone) {
+      cards.push(latestDone);
+    }
+    return cards;
+  }, [formsRelevant?.results]);
+  const selectedFormIds = useMemo(
+    () => selectedFormsToShow.map((item) => item.id),
+    [selectedFormsToShow],
+  );
+  const { data: selectedFormsAverageTimeById } = useFetch<Record<string, number | null>>({
+    queryKey: [
+      QueryEnum.COMPANY,
+      'home-forms-average-time-by-id',
+      company.id,
+      selectedFormIds,
+    ],
+    enabled: hasCompany && selectedFormIds.length > 0,
+    queryFn: async () => {
+      const details = await Promise.all(
+        selectedFormIds.map(async (applicationId) => {
+          const application = await readFormApplication({
+            companyId: company.id,
+            applicationId,
+          });
+
+          return {
+            applicationId,
+            averageTimeSpent: application.averageTimeSpent,
+          };
+        }),
+      );
+
+      return details.reduce(
+        (acc, item) => ({ ...acc, [item.applicationId]: item.averageTimeSpent }),
+        {} as Record<string, number | null>,
+      );
+    },
+  });
+  const formatAverageTime = useCallback((seconds?: number | null) => {
+    if (!seconds || seconds <= 0) return '--';
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+
+    if (hours > 0) return `${hours}h ${minutes}m`;
+    if (minutes > 0) return `${minutes}m ${remainingSeconds}s`;
+    return `${remainingSeconds}s`;
+  }, []);
+  const { data: absenteeismTimelineTotal } = useFetchReadAbsenteeismTimelineTotal(
+    {
+      companyId: company.id,
+    },
+    { enabled: hasCompany },
+  );
+  const absenteeismLostDaysTotal = useMemo(
+    () =>
+      absenteeismTimelineTotal?.results?.reduce(
+        (acc, item) => acc + Number(item.days || 0),
+        0,
+      ) ?? 0,
+    [absenteeismTimelineTotal?.results],
+  );
+  const { data: actionPlanSummary } = useFetch<{
+    total: number;
+    pending: number;
+    progress: number;
+    done: number;
+    canceled: number;
+  } | null>({
+    queryKey: [
+      QueryEnum.COMPANY,
+      'home-action-plan-summary',
+      company.id,
+      actionPlanWorkspaceIds,
+    ],
+    enabled: hasCompany && actionPlanWorkspaceIds.length > 0,
+    queryFn: async () => {
+      const countByStatus = async (status?: ActionPlanStatusEnum) => {
+        const totals = await Promise.all(
+          actionPlanWorkspaceIds.map(async (workspaceId) => {
+            try {
+              const result = await browseActionPlan({
+                companyId: company.id,
+                workspaceId,
+                pagination: { page: 1, limit: 1 },
+                ...(status ? { filters: { status: [status] } } : {}),
+              });
+              return result.pagination.total || 0;
+            } catch {
+              return 0;
+            }
+          }),
+        );
+
+        return totals.reduce((acc, n) => acc + n, 0);
+      };
+
+      const [total, pending, progress, done, canceled] = await Promise.all([
+        countByStatus(),
+        countByStatus(ActionPlanStatusEnum.PENDING),
+        countByStatus(ActionPlanStatusEnum.PROGRESS),
+        countByStatus(ActionPlanStatusEnum.DONE),
+        countByStatus(ActionPlanStatusEnum.CANCELED),
+      ]);
+
+      return { total, pending, progress, done, canceled };
+    },
+  });
+
+  const actionPlanCompletionPercent = useMemo(() => {
+    const total = actionPlanSummary?.total ?? 0;
+    const done = actionPlanSummary?.done ?? 0;
+    if (total === 0) return 0;
+    return Math.min(100, (done / total) * 100);
+  }, [actionPlanSummary?.done, actionPlanSummary?.total]);
 
   const onFilterBase = useCallback(
     (item: ISActionButtonProps) => {
@@ -223,6 +428,15 @@ export const useCompanyStep = () => {
     });
   }, [company.id, push]);
 
+  const handleGoForms = useCallback(() => {
+    push({
+      pathname: PageRoutes.FORMS.FORMS_APPLICATION.LIST.replace(
+        '[companyId]',
+        company.id,
+      ).replace('[formTab]', FORM_TAB_ENUM.APPLIED),
+    });
+  }, [company.id, push]);
+
   const handleChangeStage = useCallback(
     (stage: string) => {
       push(
@@ -241,6 +455,64 @@ export const useCompanyStep = () => {
   const handleAddTeam = useCallback(() => {
     onStackOpenModal(ModalEnum.USER_VIEW);
   }, [onStackOpenModal]);
+
+  const formsLaunchCards = useMemo(() => {
+    if (selectedFormsToShow.length > 0) {
+      return selectedFormsToShow.map((application) => ({
+        icon: SIconForm,
+        onClick: handleGoForms,
+        text: application.name || 'Formulário',
+        formCardId: application.id,
+        tooltipText: 'Gerenciamento de formulários e questionários',
+        permissions: [PermissionEnum.FORM],
+        statusLabel: FormApplicationStatusTranslate[application.status],
+        participationPercent: getHomeFormParticipationPercent(
+          Number(application.totalAnswers) || 0,
+          Number(application.totalParticipants) || 0,
+        ),
+        infos: [
+          { label: 'Respostas', value: application.totalAnswers ?? '--' },
+          {
+            label: 'Participantes',
+            value: application.totalParticipants ?? '--',
+          },
+          {
+            label: 'Tempo médio',
+            value: formatAverageTime(
+              selectedFormsAverageTimeById?.[application.id],
+            ),
+          },
+        ],
+        showIf: { isForms: true },
+      }));
+    }
+
+    if ((formsTotal?.pagination?.total ?? 0) === 0) {
+      return [
+        {
+          icon: SIconForm,
+          onClick: handleGoForms,
+          text: 'Sem formulários aplicados',
+          tooltipText: 'Gerenciamento de formulários e questionários',
+          permissions: [PermissionEnum.FORM],
+          infos: [
+            { label: 'Respostas', value: '--' },
+            { label: 'Participantes', value: '--' },
+            { label: 'Tempo médio', value: '--' },
+          ],
+          showIf: { isForms: true },
+        },
+      ];
+    }
+
+    return [];
+  }, [
+    formatAverageTime,
+    formsTotal?.pagination?.total,
+    handleGoForms,
+    selectedFormsAverageTimeById,
+    selectedFormsToShow,
+  ]);
 
   const actionsMapStepMemo = useMemo(() => {
     const pgr = company?.lastDocumentVersion?.find(
@@ -315,10 +587,11 @@ export const useCompanyStep = () => {
       [CompanyActionEnum.ACTION_PLAN]: {
         type: CompanyActionEnum.ACTION_PLAN,
         count: 0,
-        icon: SGhoIcon,
+        icon: SActionPlanIcon,
         onClick: handleGoActionPlan,
-        nextStepLabel: 'Grupos (GSE/GHO)',
-        text: 'Grupos Similares de Exposição',
+        text: 'Plano de Ação',
+        tooltipText: 'Gerenciamento do plano de ação da empresa',
+        permissions: [PermissionEnum.ACTION_PLAN],
       },
       [CompanyActionEnum.RISKS]: {
         type: CompanyActionEnum.RISKS,
@@ -402,6 +675,14 @@ export const useCompanyStep = () => {
         onClick: handleAbsenteeism,
         text: 'Absenteísmo',
         tooltipText: 'Gerenciamento de faltas e afastamentos temporarios',
+        permissions: [PermissionEnum.ABSENTEEISM],
+        showIf: {
+          isAbs: true,
+        },
+        infos: [
+          { label: 'Registros', value: absenteeismTotalCount || 0 },
+          { label: 'Afastados ativos', value: company.employeeAwayCount || 0 },
+        ],
       },
       [CompanyActionEnum.OS]: {
         type: CompanyActionEnum.OS,
@@ -553,6 +834,7 @@ export const useCompanyStep = () => {
     handleGoHierarchy,
     handleGoGho,
     handleGoActionPlan,
+    handleGoForms,
     handleAddRisk,
     handleOpenAddRiskModal,
     handleAddManagerSystem,
@@ -568,6 +850,45 @@ export const useCompanyStep = () => {
     handleEditDocumentModel,
     handleAddCharacterization,
     handleChangeStage,
+    absenteeismTotalCount,
+  ]);
+
+  const launchCardsMemo = useMemo(() => {
+    return [
+      {
+        ...actionsMapStepMemo[CompanyActionEnum.ACTION_PLAN],
+        participationPercent: actionPlanCompletionPercent,
+        infos: [
+          { label: 'Total', value: actionPlanSummary?.total ?? '--' },
+          { label: 'Pendente', value: actionPlanSummary?.pending ?? '--' },
+          { label: 'Iniciada', value: actionPlanSummary?.progress ?? '--' },
+          { label: 'Concluída', value: actionPlanSummary?.done ?? '--' },
+          { label: 'Cancelada', value: actionPlanSummary?.canceled ?? '--' },
+        ],
+      },
+      {
+        ...actionsMapStepMemo[CompanyActionEnum.ABSENTEEISM],
+        infos: [
+          { label: 'Registros', value: absenteeismTotalCount || 0 },
+          { label: 'Afastados ativos', value: company.employeeAwayCount || 0 },
+          { label: 'Dias perdidos', value: absenteeismLostDaysTotal || 0 },
+        ],
+      },
+      ...formsLaunchCards,
+    ].filter((action) => onFilterBase(action));
+  }, [
+    actionPlanCompletionPercent,
+    actionPlanSummary?.canceled,
+    actionPlanSummary?.done,
+    actionPlanSummary?.pending,
+    actionPlanSummary?.progress,
+    actionPlanSummary?.total,
+    actionsMapStepMemo,
+    absenteeismLostDaysTotal,
+    absenteeismTotalCount,
+    company.employeeAwayCount,
+    formsLaunchCards,
+    onFilterBase,
   ]);
 
   const shortActionsStepMemo = useMemo(() => {
@@ -813,8 +1134,39 @@ export const useCompanyStep = () => {
           },
         ].filter((action) => onFilterBase(action)),
       },
+      {
+        group: 'Lançamentos',
+        items: [
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.ACTION_PLAN],
+            count: actionPlanSummary?.total || 0,
+          },
+          {
+            ...actionsMapStepMemo[CompanyActionEnum.ABSENTEEISM],
+            count: absenteeismTotalCount || 0,
+          },
+          {
+            icon: SIconForm,
+            onClick: handleGoForms,
+            text: 'Formulários',
+            tooltipText: 'Gerenciamento de formulários e questionários',
+            permissions: [PermissionEnum.FORM],
+            count: formsTotal?.pagination.total || 0,
+            showIf: {
+              isForms: true,
+            },
+          },
+        ].filter((action) => onFilterBase(action)),
+      },
     ];
-  }, [actionsMapStepMemo, onFilterBase]);
+  }, [
+    actionPlanSummary?.total,
+    actionsMapStepMemo,
+    absenteeismTotalCount,
+    formsTotal?.pagination.total,
+    handleGoForms,
+    onFilterBase,
+  ]);
 
   const nextStep = () => {
     const cantJump = [
@@ -861,6 +1213,7 @@ export const useCompanyStep = () => {
     characterizationActionsStepMemo,
     stepsActions,
     stepsActionsList,
+    launchCardsMemo,
     actionsMapStepMemo,
   };
 };
