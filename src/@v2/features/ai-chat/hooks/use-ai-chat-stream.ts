@@ -3,7 +3,7 @@ import { parseCookies } from 'nookies';
 import type { PageContext } from './use-page-context';
 
 type AIMode = 'fast' | 'smarter';
-const DEFAULT_AI_MODE: AIMode = 'fast';
+const DEFAULT_AI_MODE: AIMode = 'smarter';
 
 export interface ChatMessageAttachment {
   id: string;
@@ -148,10 +148,26 @@ export function useAIChatStream(): UseAIChatStreamReturn {
       const decoder = new TextDecoder();
       let assistantContent = '';
       let hasAssistantMessage = false;
+      let lastChunkTime = Date.now();
+      const CHUNK_TIMEOUT = 120000; // 2 minutes without receiving data = connection lost
 
       while (true) {
+        // Check if we've been waiting too long for data
+        if (Date.now() - lastChunkTime > CHUNK_TIMEOUT) {
+          console.error(
+            '[AI Chat] Stream timeout - no data received for 2 minutes',
+          );
+          setError(
+            'Conexão perdida (timeout). As mensagens foram salvas e aparecerão após recarregar.',
+          );
+          break;
+        }
+
         const { done, value } = await reader.read();
         if (done) break;
+
+        // Reset timeout on each chunk received
+        lastChunkTime = Date.now();
 
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n');
@@ -234,30 +250,39 @@ export function useAIChatStream(): UseAIChatStreamReturn {
               } else if (event.type === 'content') {
                 assistantContent += event.content;
 
-                if (!hasAssistantMessage) {
-                  setMessages((prev) => [
-                    ...prev,
-                    {
-                      role: 'assistant',
-                      content: assistantContent,
-                      timestamp: new Date(),
-                    },
-                  ]);
-                  hasAssistantMessage = true;
-                } else {
-                  setMessages((prev) => {
-                    const updated = [...prev];
-                    const lastIndex = updated.length - 1;
-                    const lastMsg = updated[lastIndex];
-                    if (lastMsg?.role === 'assistant') {
-                      updated[lastIndex] = {
+                // Batch updates: only update UI every 50 chunks or every 500ms
+                const now = Date.now();
+                const shouldUpdate =
+                  !hasAssistantMessage ||
+                  now - lastChunkTime > 500 ||
+                  assistantContent.length % 1000 < event.content.length;
+
+                if (shouldUpdate) {
+                  if (!hasAssistantMessage) {
+                    setMessages((prev) => [
+                      ...prev,
+                      {
                         role: 'assistant',
                         content: assistantContent,
-                        timestamp: lastMsg.timestamp,
-                      };
-                    }
-                    return updated;
-                  });
+                        timestamp: new Date(),
+                      },
+                    ]);
+                    hasAssistantMessage = true;
+                  } else {
+                    setMessages((prev) => {
+                      const updated = [...prev];
+                      const lastIndex = updated.length - 1;
+                      const lastMsg = updated[lastIndex];
+                      if (lastMsg?.role === 'assistant') {
+                        updated[lastIndex] = {
+                          role: 'assistant',
+                          content: assistantContent,
+                          timestamp: lastMsg.timestamp,
+                        };
+                      }
+                      return updated;
+                    });
+                  }
                 }
               } else if (event.type === 'error') {
                 setError(event.message);
@@ -268,9 +293,48 @@ export function useAIChatStream(): UseAIChatStreamReturn {
           }
         }
       }
+
+      // Final update: ensure last accumulated content is saved
+      if (hasAssistantMessage && assistantContent) {
+        console.log(
+          `[AI Chat] Final update - saving ${assistantContent.length} chars`,
+        );
+        setMessages((prev) => {
+          const updated = [...prev];
+          const lastIndex = updated.length - 1;
+          const lastMsg = updated[lastIndex];
+          if (lastMsg?.role === 'assistant') {
+            updated[lastIndex] = {
+              role: 'assistant',
+              content: assistantContent,
+              timestamp: lastMsg.timestamp,
+            };
+          }
+          return updated;
+        });
+      }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {
-        setError('Failed to get response');
+        const error = err as Error;
+        console.error('[AI Chat] Stream error:', error);
+
+        // Provide more specific error messages
+        if (
+          error.message?.includes('fetch') ||
+          error.message?.includes('network')
+        ) {
+          setError(
+            'Conexão perdida. As mensagens foram salvas e aparecerão após recarregar a página.',
+          );
+        } else if (error.message?.includes('timeout')) {
+          setError(
+            'Tempo de resposta excedido. Recarregue a página para ver as mensagens.',
+          );
+        } else {
+          setError(
+            'Erro ao receber resposta. As mensagens foram salvas no servidor.',
+          );
+        }
       }
     } finally {
       setIsLoading(false);

@@ -1,11 +1,11 @@
 /**
- * Format a date to a time string like "1:45 PM"
+ * Format a date to a time string like "13:45"
  */
 export function formatTime(date: Date): string {
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
+  return date.toLocaleTimeString('pt-BR', {
+    hour: '2-digit',
     minute: '2-digit',
-    hour12: true,
+    hour12: false,
   });
 }
 
@@ -13,13 +13,13 @@ export function formatTime(date: Date): string {
  * Format a date to a full date/time string for tooltips
  */
 export function formatFullDateTime(date: Date): string {
-  return date.toLocaleString('en-US', {
+  return date.toLocaleString('pt-BR', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-    hour: 'numeric',
+    hour: '2-digit',
     minute: '2-digit',
-    hour12: true,
+    hour12: false,
   });
 }
 
@@ -66,7 +66,7 @@ export function getDateLabel(date: Date): string {
   if (isToday) return 'Hoje';
   if (isYesterday) return 'Ontem';
 
-  return date.toLocaleDateString('en-US', {
+  return date.toLocaleDateString('pt-BR', {
     month: 'short',
     day: 'numeric',
   });

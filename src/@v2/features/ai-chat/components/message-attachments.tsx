@@ -1,9 +1,9 @@
-import { useState, useCallback } from "react";
-import Description from "@mui/icons-material/Description";
-import TableChart from "@mui/icons-material/TableChart";
-import Close from "@mui/icons-material/Close";
-import { type ChatMessageAttachment } from "../hooks/use-ai-chat-stream";
-import styles from "./message-attachments.module.css";
+import { useState, useCallback } from 'react';
+import Description from '@mui/icons-material/Description';
+import TableChart from '@mui/icons-material/TableChart';
+import Close from '@mui/icons-material/Close';
+import { type ChatMessageAttachment } from '../hooks/use-ai-chat-stream';
+import styles from './message-attachments.module.css';
 
 // Re-export for convenience
 export type { ChatMessageAttachment as MessageAttachment };
@@ -19,20 +19,20 @@ function formatFileSize(bytes: number): string {
 }
 
 function isImageMimeType(mimeType: string): boolean {
-  return mimeType.startsWith("image/");
+  return mimeType.startsWith('image/');
 }
 
 function isPdfMimeType(mimeType: string): boolean {
-  return mimeType === "application/pdf";
+  return mimeType === 'application/pdf';
 }
 
 function isSpreadsheetMimeType(mimeType: string): boolean {
   return (
-    mimeType === "text/csv" ||
-    mimeType === "application/csv" ||
-    mimeType === "application/vnd.ms-excel" ||
+    mimeType === 'text/csv' ||
+    mimeType === 'application/csv' ||
+    mimeType === 'application/vnd.ms-excel' ||
     mimeType ===
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   );
 }
 
@@ -69,7 +69,7 @@ export function MessageAttachments({ files }: MessageAttachmentsProps) {
                 onClick={() => openPreview(file)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && openPreview(file)}
+                onKeyDown={(e) => e.key === 'Enter' && openPreview(file)}
                 title={file.filename}
               >
                 <img
@@ -91,10 +91,13 @@ export function MessageAttachments({ files }: MessageAttachmentsProps) {
               onClick={() => openPreview(file)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && openPreview(file)}
-              title={`Click to ${isPdf ? "view" : "download"} ${file.filename}`}
+              onKeyDown={(e) => e.key === 'Enter' && openPreview(file)}
+              title={`Clique para ${isPdf ? 'visualizar' : 'baixar'} ${file.filename}`}
             >
-              <DocumentIcon style={{ fontSize: 24 }} className={styles.documentIcon} />
+              <DocumentIcon
+                style={{ fontSize: 24 }}
+                className={styles.documentIcon}
+              />
               <div className={styles.documentInfo}>
                 <span className={styles.documentFilename}>{file.filename}</span>
                 <span className={styles.documentMeta}>
@@ -116,7 +119,7 @@ export function MessageAttachments({ files }: MessageAttachmentsProps) {
             <button
               className={styles.closeButton}
               onClick={closePreview}
-              aria-label="Close preview"
+              aria-label="Fechar visualização"
             >
               <Close style={{ fontSize: 18 }} />
             </button>
@@ -134,7 +137,7 @@ export function MessageAttachments({ files }: MessageAttachmentsProps) {
               />
             ) : (
               <a href={previewFile.url} download={previewFile.filename}>
-                Download {previewFile.filename}
+                Baixar {previewFile.filename}
               </a>
             )}
           </div>

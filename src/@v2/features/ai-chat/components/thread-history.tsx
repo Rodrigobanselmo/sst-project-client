@@ -1,14 +1,14 @@
-import { useState, useRef, useCallback, useEffect } from "react";
-import ArrowBack from "@mui/icons-material/ArrowBack";
-import SearchOutlined from "@mui/icons-material/SearchOutlined";
-import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import { useState, useRef, useCallback, useEffect } from 'react';
+import ArrowBack from '@mui/icons-material/ArrowBack';
+import SearchOutlined from '@mui/icons-material/SearchOutlined';
+import DeleteOutline from '@mui/icons-material/DeleteOutline';
 import {
   useQueryAIThreads,
   useDeleteAIThreadMutation,
   type AIThread,
-} from "../api/ai-thread.hooks";
-import { formatRelativeTime, getDateLabel } from "../utils/format-time";
-import styles from "./thread-history.module.css";
+} from '../api/ai-thread.hooks';
+import { formatRelativeTime, getDateLabel } from '../utils/format-time';
+import styles from './thread-history.module.css';
 
 interface ThreadHistoryProps {
   onClose: () => void;
@@ -45,8 +45,8 @@ export function ThreadHistory({
   onSelectThread,
   currentThreadId,
 }: ThreadHistoryProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Debounce search input
@@ -57,16 +57,11 @@ export function ThreadHistory({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const {
-    data,
-    isLoading,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useQueryAIThreads({
-    first: 20,
-    search: debouncedSearch || null,
-  });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useQueryAIThreads({
+      first: 20,
+      search: debouncedSearch || null,
+    });
 
   const deleteThreadMutation = useDeleteAIThreadMutation();
 
@@ -94,11 +89,11 @@ export function ThreadHistory({
   const handleDelete = (
     threadId: string,
     threadTitle: string,
-    e: React.MouseEvent
+    e: React.MouseEvent,
   ) => {
     e.stopPropagation();
     const confirmed = window.confirm(
-      `Are you sure you want to delete "${threadTitle}"? This action cannot be undone.`
+      `Tem certeza que deseja excluir "${threadTitle}"? Esta ação não pode ser desfeita.`,
     );
     if (confirmed) {
       deleteThreadMutation.mutate(threadId);
@@ -132,7 +127,7 @@ export function ThreadHistory({
           <input
             type="text"
             className={styles.searchInput}
-            placeholder="Search"
+            placeholder="Buscar"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -145,10 +140,12 @@ export function ThreadHistory({
           onScroll={handleScroll}
         >
           {isLoading && threads.length === 0 ? (
-            <div className={styles.loading}>Loading...</div>
+            <div className={styles.loading}>Carregando...</div>
           ) : threads.length === 0 ? (
             <div className={styles.empty}>
-              {debouncedSearch ? "No chats found" : "No chats yet"}
+              {debouncedSearch
+                ? 'Nenhuma conversa encontrada'
+                : 'Nenhuma conversa ainda'}
             </div>
           ) : (
             groupedThreads.map((group) => (
@@ -167,7 +164,7 @@ export function ThreadHistory({
             ))
           )}
           {isFetchingNextPage && (
-            <div className={styles.loadingMore}>Loading more...</div>
+            <div className={styles.loadingMore}>Carregando mais...</div>
           )}
         </div>
       </div>
@@ -182,17 +179,12 @@ interface ThreadItemProps {
   onDelete: (e: React.MouseEvent) => void;
 }
 
-function ThreadItem({
-  thread,
-  isActive,
-  onSelect,
-  onDelete,
-}: ThreadItemProps) {
+function ThreadItem({ thread, isActive, onSelect, onDelete }: ThreadItemProps) {
   const date = new Date(thread.updatedAt);
 
   return (
     <div
-      className={`${styles.threadItem} ${isActive ? styles.threadItemActive : ""}`}
+      className={`${styles.threadItem} ${isActive ? styles.threadItemActive : ''}`}
       onClick={onSelect}
     >
       <div className={styles.threadContent}>
@@ -202,7 +194,7 @@ function ThreadItem({
       <button
         className={styles.deleteButton}
         onClick={onDelete}
-        title="Delete chat"
+        title="Excluir conversa"
       >
         <DeleteOutline style={{ fontSize: 16 }} />
       </button>

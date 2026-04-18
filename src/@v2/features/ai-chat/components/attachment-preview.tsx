@@ -1,12 +1,12 @@
-import Close from "@mui/icons-material/Close";
-import Description from "@mui/icons-material/Description";
-import MusicNote from "@mui/icons-material/MusicNote";
-import Movie from "@mui/icons-material/Movie";
-import CircularProgress from "@mui/material/CircularProgress";
-import ErrorOutline from "@mui/icons-material/ErrorOutline";
-import TableChart from "@mui/icons-material/TableChart";
-import { type PendingAttachment } from "../hooks/use-file-attachments";
-import styles from "./attachment-preview.module.css";
+import Close from '@mui/icons-material/Close';
+import Description from '@mui/icons-material/Description';
+import MusicNote from '@mui/icons-material/MusicNote';
+import Movie from '@mui/icons-material/Movie';
+import CircularProgress from '@mui/material/CircularProgress';
+import ErrorOutline from '@mui/icons-material/ErrorOutline';
+import TableChart from '@mui/icons-material/TableChart';
+import { type PendingAttachment } from '../hooks/use-file-attachments';
+import styles from './attachment-preview.module.css';
 
 interface AttachmentPreviewProps {
   attachments: PendingAttachment[];
@@ -25,29 +25,41 @@ export function AttachmentPreview({
         <div key={att.localId} className={styles.attachment}>
           {/* Thumbnail/Icon */}
           <div className={styles.thumbnail}>
-            {att.type === "image" && att.previewUrl ? (
+            {att.type === 'image' && att.previewUrl ? (
               <img
                 src={att.previewUrl}
                 alt={att.filename}
                 className={styles.thumbnailImage}
               />
-            ) : att.type === "video" ? (
-              <Movie style={{ fontSize: 24 }} className={styles.thumbnailIcon} />
-            ) : att.type === "audio" ? (
-              <MusicNote style={{ fontSize: 24 }} className={styles.thumbnailIcon} />
-            ) : att.type === "spreadsheet" ? (
-              <TableChart style={{ fontSize: 24 }} className={styles.thumbnailIcon} />
+            ) : att.type === 'video' ? (
+              <Movie
+                style={{ fontSize: 24 }}
+                className={styles.thumbnailIcon}
+              />
+            ) : att.type === 'audio' ? (
+              <MusicNote
+                style={{ fontSize: 24 }}
+                className={styles.thumbnailIcon}
+              />
+            ) : att.type === 'spreadsheet' ? (
+              <TableChart
+                style={{ fontSize: 24 }}
+                className={styles.thumbnailIcon}
+              />
             ) : (
-              <Description style={{ fontSize: 24 }} className={styles.thumbnailIcon} />
+              <Description
+                style={{ fontSize: 24 }}
+                className={styles.thumbnailIcon}
+              />
             )}
 
             {/* Upload status overlay */}
-            {att.uploadStatus === "uploading" && (
+            {att.uploadStatus === 'uploading' && (
               <div className={styles.uploadingOverlay}>
-                <CircularProgress size={20} style={{ color: "white" }} />
+                <CircularProgress size={20} style={{ color: 'white' }} />
               </div>
             )}
-            {att.uploadStatus === "error" && (
+            {att.uploadStatus === 'error' && (
               <div className={styles.errorOverlay}>
                 <ErrorOutline style={{ fontSize: 20 }} />
               </div>
@@ -64,7 +76,7 @@ export function AttachmentPreview({
             type="button"
             className={styles.removeButton}
             onClick={() => onRemove(att.localId)}
-            title="Remove"
+            title="Remover"
           >
             <Close style={{ fontSize: 14 }} />
           </button>
@@ -76,8 +88,8 @@ export function AttachmentPreview({
 
 function truncateFilename(name: string, maxLength: number): string {
   if (name.length <= maxLength) return name;
-  const ext = name.split(".").pop() || "";
+  const ext = name.split('.').pop() || '';
   const base = name.slice(0, name.length - ext.length - 1);
-  const truncatedBase = base.slice(0, maxLength - ext.length - 4) + "...";
+  const truncatedBase = base.slice(0, maxLength - ext.length - 4) + '...';
   return `${truncatedBase}.${ext}`;
 }

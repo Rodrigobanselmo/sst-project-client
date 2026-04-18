@@ -59,8 +59,8 @@ import { useSnackbar } from 'notistack';
 import styles from './ai-chat-sidebar.module.css';
 
 const AI_MODE_LABELS: Record<AIMode, string> = {
-  fast: 'Fast',
-  smarter: 'Smarter',
+  fast: 'Rápido',
+  smarter: 'Inteligente',
 };
 
 export function AIChatSidebar() {
@@ -74,8 +74,23 @@ export function AIChatSidebar() {
   } = useAIChat();
 
   const [showHistory, setShowHistory] = useState(false);
-  const [aiMode, setAiMode] = useState<AIMode>(DEFAULT_AI_MODE);
+  const [aiMode, setAiModeState] = useState<AIMode>(DEFAULT_AI_MODE);
   const [showModeDropdown, setShowModeDropdown] = useState(false);
+
+  // Load AI mode from localStorage on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem('ai-chat-mode');
+    if (savedMode === 'fast' || savedMode === 'smarter') {
+      setAiModeState(savedMode);
+    }
+  }, []);
+
+  // Save AI mode to localStorage when it changes
+  const setAiMode = (mode: AIMode) => {
+    setAiModeState(mode);
+    localStorage.setItem('ai-chat-mode', mode);
+  };
+
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitleValue, setEditTitleValue] = useState('');
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
@@ -92,7 +107,7 @@ export function AIChatSidebar() {
   const createThreadMutation = useCreateAIThreadMutation();
   const updateThreadMutation = useUpdateAIThreadMutation();
 
-  const currentThreadTitle = threadData?.title ?? 'Untitled chat';
+  const currentThreadTitle = threadData?.title ?? 'Conversa sem título';
 
   const {
     messages: streamMessages,
@@ -442,10 +457,13 @@ export function AIChatSidebar() {
   const handleSuggestionClick = (text: string) => {
     if (inputRef.current) {
       inputRef.current.value = text;
-      inputRef.current.focus();
       inputRef.current.style.height = 'auto';
       inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 150)}px`;
+      setHasInput(true);
     }
+    void handleSubmit({
+      preventDefault: () => {},
+    } as React.BaseSyntheticEvent);
   };
 
   // Handle file attachment button click
@@ -461,7 +479,7 @@ export function AIChatSidebar() {
       if (rejected.length > 0) {
         const fileNames = rejected.map((f) => f.filename).join(', ');
         enqueueSnackbar(
-          `Could not upload: ${fileNames}. Supported: images, videos, audio, PDF, Word, TXT, CSV, Excel.`,
+          `Não foi possível enviar: ${fileNames}. Suportados: imagens, vídeos, áudio, PDF, Word, TXT, CSV, Excel.`,
           { variant: 'error' },
         );
       }
@@ -507,7 +525,7 @@ export function AIChatSidebar() {
         if (rejected.length > 0) {
           const fileNames = rejected.map((f) => f.filename).join(', ');
           enqueueSnackbar(
-            `Could not upload: ${fileNames}. Supported: images, videos, audio, PDF, Word, TXT, CSV, Excel.`,
+            `Não foi possível enviar: ${fileNames}. Suportados: imagens, vídeos, áudio, PDF, Word, TXT, CSV, Excel.`,
             { variant: 'error' },
           );
         }
@@ -649,7 +667,7 @@ export function AIChatSidebar() {
         <div className={styles.dropOverlay}>
           <div className={styles.dropOverlayContent}>
             <CloudUpload style={{ fontSize: 48 }} />
-            <span>Drop files here</span>
+            <span>Solte os arquivos aqui</span>
           </div>
         </div>
       )}
@@ -663,7 +681,7 @@ export function AIChatSidebar() {
       {/* Header */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <button className={styles.iconButton} onClick={close} title="Close">
+          <button className={styles.iconButton} onClick={close} title="Fechar">
             <Close style={{ fontSize: 18 }} />
           </button>
           {isEditingTitle ? (
@@ -720,14 +738,14 @@ export function AIChatSidebar() {
           <button
             className={styles.iconButton}
             onClick={handleCreateThread}
-            title="New chat"
+            title="Nova conversa"
           >
             <Add style={{ fontSize: 18 }} />
           </button>
           <button
             className={styles.iconButton}
             onClick={() => setShowHistory(true)}
-            title="Chat history"
+            title="Histórico de conversas"
           >
             <HistoryOutlined style={{ fontSize: 18 }} />
           </button>
@@ -754,7 +772,7 @@ export function AIChatSidebar() {
           {isLoadingMore && (
             <div className={styles.loadingMore}>
               <CircularProgress size={16} />
-              <span>Loading older messages...</span>
+              <span>Carregando mensagens antigas...</span>
             </div>
           )}
           {/* Loading indicator when switching threads */}
@@ -794,9 +812,9 @@ export function AIChatSidebar() {
                 />
               </div>
               <h3 className={styles.emptyStateTitle}>
-                How can{' '}
+                Como posso{' '}
                 <span className={styles.emptyStateTitleHighlight}>
-                  I help you?
+                  te ajudar?
                 </span>
               </h3>
               <div className={styles.emptyStateSuggestions}>
@@ -804,27 +822,27 @@ export function AIChatSidebar() {
                   type="button"
                   className={styles.suggestionButton}
                   onClick={() =>
-                    handleSuggestionClick('What can you help me with?')
+                    handleSuggestionClick('Com o que você pode me ajudar?')
                   }
                 >
                   <HelpOutline
                     style={{ fontSize: 20 }}
                     className={styles.suggestionIcon}
                   />
-                  <span>What can you help me with?</span>
+                  <span>Com o que você pode me ajudar?</span>
                 </button>
                 <button
                   type="button"
                   className={styles.suggestionButton}
                   onClick={() =>
-                    handleSuggestionClick('Show me prompt examples')
+                    handleSuggestionClick('Me mostre exemplos de prompts')
                   }
                 >
                   <ChatBubbleOutline
                     style={{ fontSize: 20 }}
                     className={styles.suggestionIcon}
                   />
-                  <span>Show me prompt examples</span>
+                  <span>Me mostre exemplos de prompts</span>
                 </button>
               </div>
             </div>
@@ -1058,7 +1076,7 @@ export function AIChatSidebar() {
               className={styles.recordingCancelButton}
               onClick={handleCancelRecording}
               disabled={recordingState === 'transcribing'}
-              title="Cancel recording"
+              title="Cancelar gravação"
             >
               <Close style={{ fontSize: 18 }} />
             </button>
@@ -1068,7 +1086,7 @@ export function AIChatSidebar() {
               {recordingState === 'transcribing' ? (
                 <div className={styles.transcribingIndicator}>
                   <CircularProgress size={18} />
-                  <span>Transcribing...</span>
+                  <span>Transcrevendo...</span>
                 </div>
               ) : (
                 <AudioWaveform data={waveformData} isRecording />
@@ -1081,7 +1099,7 @@ export function AIChatSidebar() {
               className={styles.recordingConfirmButton}
               onClick={handleConfirmRecording}
               disabled={recordingState === 'transcribing'}
-              title="Confirm and transcribe"
+              title="Confirmar e transcrever"
             >
               <Check style={{ fontSize: 18 }} />
             </button>
@@ -1110,7 +1128,7 @@ export function AIChatSidebar() {
               <textarea
                 ref={inputRef}
                 className={styles.input}
-                placeholder="Enter a prompt..."
+                placeholder="Digite uma mensagem..."
                 disabled={isLoading || isUploading}
                 rows={1}
                 onKeyDown={handleKeyDown}
@@ -1123,7 +1141,7 @@ export function AIChatSidebar() {
                 <button
                   type="button"
                   className={styles.inputActionButton}
-                  title="Attach file"
+                  title="Anexar arquivo"
                   disabled={isLoading || isUploading}
                   onClick={handleAttachClick}
                 >
@@ -1174,7 +1192,7 @@ export function AIChatSidebar() {
                 <button
                   type="button"
                   className={styles.inputActionButton}
-                  title="Voice input"
+                  title="Entrada de voz"
                   onClick={handleMicClick}
                   disabled={isLoading || isUploading}
                 >
@@ -1186,7 +1204,7 @@ export function AIChatSidebar() {
                     type="button"
                     className={`${styles.submitButton} ${styles.submitButtonInterrupt}`}
                     onClick={interrupt}
-                    title="Stop generating"
+                    title="Parar geração"
                   >
                     <Stop style={{ fontSize: 14 }} />
                   </button>
@@ -1195,7 +1213,7 @@ export function AIChatSidebar() {
                     type="button"
                     className={styles.submitButton}
                     disabled
-                    title="Uploading files..."
+                    title="Enviando arquivos..."
                   >
                     <CircularProgress size={18} style={{ color: 'white' }} />
                   </button>
@@ -1204,7 +1222,7 @@ export function AIChatSidebar() {
                     type="submit"
                     className={styles.submitButton}
                     disabled={!hasInput && attachments.length === 0}
-                    title="Send message"
+                    title="Enviar mensagem"
                   >
                     <ArrowUpward style={{ fontSize: 18 }} />
                   </button>
