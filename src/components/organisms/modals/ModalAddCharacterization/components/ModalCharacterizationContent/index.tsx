@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef, useState } from 'react';
 
-import { Icon, styled } from '@mui/material';
+import { Icon, Skeleton, styled } from '@mui/material';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
@@ -45,6 +45,13 @@ const StyledImage = styled('img')`
 export const ModalCharacterizationContent = (
   props: IUseEditCharacterization,
 ) => {
+  const [showNameInput, setShowNameInput] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowNameInput(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const {
     control,
     data: characterizationData,
@@ -128,21 +135,25 @@ export const ModalCharacterizationContent = (
   return (
     <ModalAddHierarchyRisk {...props}>
       <SFlex gap={8} direction="column" mt={8}>
-        <InputForm
-          autoFocus
-          defaultValue={characterizationData.name}
-          label="Nome"
-          labelPosition="center"
-          control={control}
-          setValue={setValue}
-          sx={{ width: ['100%'] }}
-          placeholder={'nome do ambiente / atividade...'}
-          name="name"
-          size="small"
-          firstLetterCapitalize
-          {...(manyProfiles &&
-            notPrincipalProfile && { value: principalProfile.name })}
-        />
+        {showNameInput ? (
+          <InputForm
+            autoFocus
+            defaultValue={characterizationData.name}
+            label="Nome"
+            labelPosition="center"
+            control={control}
+            setValue={setValue}
+            sx={{ width: ['100%'] }}
+            placeholder={'nome do ambiente / atividade...'}
+            name="name"
+            size="small"
+            firstLetterCapitalize
+            {...(manyProfiles &&
+              notPrincipalProfile && { value: principalProfile.name })}
+          />
+        ) : (
+          <Skeleton variant="rounded" height={40} sx={{ width: '100%' }} />
+        )}
         <RadioFormText
           type="radio"
           setValue={setValue}

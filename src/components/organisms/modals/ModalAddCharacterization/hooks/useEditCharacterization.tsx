@@ -110,7 +110,16 @@ interface ISubmit {
 
 const modalNameInit = ModalEnum.CHARACTERIZATION_ADD;
 
-export const useEditCharacterization = (modalName = modalNameInit) => {
+interface IUseEditCharacterizationOptions {
+  initialData?: Partial<typeof initialCharacterizationState>;
+  onCloseOverride?: () => void;
+}
+
+export const useEditCharacterization = (
+  modalName = modalNameInit,
+  options: IUseEditCharacterizationOptions = {},
+) => {
+  const { initialData: propsInitialData, onCloseOverride } = options;
   const { registerModal, getModalData } = useRegisterModal();
   const [isLoading, setIsLoading] = useState(false);
   const { onCloseModal, onStackOpenModal } = useModal();
@@ -179,6 +188,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
   useEffect(() => {
     const initialData =
+      propsInitialData ??
       getModalData<Partial<typeof initialCharacterizationState>>(modalName);
 
     if (
@@ -186,6 +196,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
       !characterizationData.profileParentId &&
       !(initialData as any).passBack
     ) {
+      let nextType: CharacterizationTypeEnum | undefined;
       setCharacterizationData((oldData) => {
         const newData = {
           ...oldData,
@@ -195,11 +206,14 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
           profileParentId: '',
         };
 
-        setValue('type', newData.type);
-
         initialDataRef.current = newData;
+        nextType = newData.type;
         return newData;
       });
+
+      if (nextType !== undefined) {
+        setValue('type', nextType);
+      }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -236,6 +250,12 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
   const onClose = useCallback(
     (data?: any) => {
+      if (onCloseOverride) {
+        setCharacterizationData(initialCharacterizationState);
+        reset();
+        onCloseOverride();
+        return;
+      }
       onCloseModal(modalName, data);
       setCharacterizationData(initialCharacterizationState);
       reset();
@@ -244,7 +264,7 @@ export const useEditCharacterization = (modalName = modalNameInit) => {
 
       push(url.pathname + url.search, undefined, { shallow: true });
     },
-    [modalName, onCloseModal, push, reset],
+    [modalName, onCloseModal, push, reset, onCloseOverride],
   );
 
   const onCloseUnsaved = () => {

@@ -2,10 +2,8 @@ import { BoxProps } from '@mui/material';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { useMutateExportCharacterization } from '@v2/services/export/characterization/hooks/useMutateExportCharacterization';
 import { useMutateEditManyCharacterization } from '@v2/services/security/characterization/characterization/edit-many-characterization/hooks/useMutateEditManyActionPlan';
-import { initialCharacterizationState } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
+import { useRouter } from 'next/router';
 
-import { ModalEnum } from 'core/enums/modal.enums';
-import { useModal } from 'core/hooks/useModal';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { useMutUpsertCharacterization } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
 
@@ -15,29 +13,24 @@ export interface ICharacterizationTableTableProps extends BoxProps {
 }
 
 export const useCharacterizationActions = ({ companyId, workspaceId }) => {
-  const { onOpenModal } = useModal();
+  const router = useRouter();
 
   const upsertMutation = useMutUpsertCharacterization();
   const exportMutation = useMutateExportCharacterization();
   const editManyMutation = useMutateEditManyCharacterization();
 
   const handleCharacterizationAdd = async () => {
-    onOpenModal(ModalEnum.CHARACTERIZATION_ADD, {
-      companyId,
-      workspaceId,
-    } as Partial<typeof initialCharacterizationState>);
+    router.push(
+      `/dashboard/empresas/${companyId}/${workspaceId}/caracterizacao-editar/new`,
+    );
   };
 
   const handleCharacterizationEdit = (
     data: CharacterizationBrowseResultModel,
   ) => {
-    const char = {
-      id: data.id,
-    } as ICharacterization;
-
-    onOpenModal(ModalEnum.CHARACTERIZATION_ADD, { ...char } as Partial<
-      typeof initialCharacterizationState
-    >);
+    router.push(
+      `/dashboard/empresas/${companyId}/${workspaceId}/caracterizacao-editar/${data.id}`,
+    );
   };
 
   const handleCharacterizationEditPosition = async ({

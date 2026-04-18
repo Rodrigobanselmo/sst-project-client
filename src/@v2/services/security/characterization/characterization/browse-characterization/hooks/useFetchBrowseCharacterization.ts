@@ -16,6 +16,7 @@ export const useFetchBrowseCharaterizations = (
       params.workspaceId,
       params,
     ],
+    refetchOnMount: true,
   });
 
   return {

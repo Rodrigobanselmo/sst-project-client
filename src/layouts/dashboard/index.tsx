@@ -18,7 +18,7 @@ const DashboardLayoutContent: FC<React.PropsWithChildren<any>> = ({
 }) => {
   const { asPath } = useRouter();
   const { isOpen, panelWidth } = useAIChat();
-  const isAIChatEnabled = false;
+  const isAIChatEnabled = true;
 
   if (asPath.includes(RoutesEnum.ONBOARD))
     return (

@@ -7,6 +7,7 @@ import { NextPage } from 'next';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { SHeader } from '@v2/components/atoms/SHeader/SHeader';
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
+import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { CircularProgress, Box } from '@mui/material';
 
@@ -23,6 +24,7 @@ const CaracterizacaoPage: NextPage = () => {
     <>
       <SHeader title={'Caracterização'} />
       <SContainer>
+        <SPageHeader mb={8} title="Adicionar Fatores de Riscos" />
         {isLoading && (
           <Box
             display="flex"
@@ -45,7 +47,6 @@ const CaracterizacaoPage: NextPage = () => {
           </Box>
         )}
       </SContainer>
-      <StackModalRiskToolV2 />
     </>
   );
 };
