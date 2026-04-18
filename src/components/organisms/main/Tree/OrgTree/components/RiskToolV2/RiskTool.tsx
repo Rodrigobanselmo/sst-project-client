@@ -72,7 +72,7 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
   const { handleAddCharacterization, handleAddEmployees } = usePushRoute();
   const viewType = ViewTypeEnum.SIMPLE_BY_GROUP;
 
-  const { query, push, pathname } = useRouter();
+  const { query, replace, pathname } = useRouter();
   const { onOpenSelected } = useOpenRiskTool();
 
   // Get viewDataType from URL query params or use default
@@ -152,7 +152,7 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
   useEffect(() => {
     if (!query.viewData) {
       const newQuery = { ...query, viewData: viewDataTypeFromUrl };
-      push({ pathname, query: newQuery }, undefined, { shallow: true });
+      replace({ pathname, query: newQuery }, undefined, { shallow: true });
     }
   }, []);
 
@@ -232,7 +232,7 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
         userSelectedIdRef.current = null;
         const newQuery = { ...query };
         delete newQuery.ghoId;
-        push({ pathname, query: newQuery }, undefined, { shallow: true });
+        replace({ pathname, query: newQuery }, undefined, { shallow: true });
         return dispatch(setGhoState({ hierarchies: [], data: null }));
       }
 
@@ -255,9 +255,9 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
       // Mark this as a user-initiated selection so URL sync skips it
       userSelectedIdRef.current = gho.id;
       const newQuery = { ...query, ghoId: gho.id };
-      push({ pathname, query: newQuery }, undefined, { shallow: true });
+      replace({ pathname, query: newQuery }, undefined, { shallow: true });
     },
-    [dispatch, selectExpanded, selectedGhoId, query, pathname, push],
+    [dispatch, selectExpanded, selectedGhoId, query, pathname, replace],
   );
 
   const handleChangeView = (option: IViewsRiskOption) => {
@@ -289,7 +289,7 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
     const newQuery: Record<string, any> = { ...query, viewData: option.value };
     delete newQuery.ghoId;
     userSelectedIdRef.current = null;
-    push({ pathname, query: newQuery }, undefined, { shallow: true });
+    replace({ pathname, query: newQuery }, undefined, { shallow: true });
 
     dispatch(setGhoMultiState({ selectedDisabledIds: [], selectedIds: [] }));
 

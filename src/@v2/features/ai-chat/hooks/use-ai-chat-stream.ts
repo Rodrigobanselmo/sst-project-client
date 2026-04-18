@@ -14,8 +14,17 @@ export interface ChatMessageAttachment {
   url: string | null;
 }
 
+export interface NavigationData {
+  kind: 'route' | 'modal';
+  target: string;
+  label: string;
+  description?: string;
+  params: Record<string, string>;
+  icon?: string;
+}
+
 export interface ChatMessage {
-  role: 'user' | 'assistant' | 'tool' | 'agent' | 'action';
+  role: 'user' | 'assistant' | 'tool' | 'agent' | 'action' | 'navigation';
   content: string;
   toolName?: string;
   toolStatus?: 'running' | 'success' | 'error';
@@ -29,6 +38,7 @@ export interface ChatMessage {
     details: Record<string, unknown>;
     status: 'pending' | 'executing' | 'completed' | 'failed' | 'cancelled';
   };
+  navigationData?: NavigationData;
 }
 
 // Stream event types from the backend
@@ -48,6 +58,15 @@ type StreamEvent =
       actionId: string;
       summary: string;
       details: Record<string, unknown>;
+    }
+  | {
+      type: 'navigation_card';
+      kind: 'route' | 'modal';
+      target: string;
+      label: string;
+      description?: string;
+      params: Record<string, string>;
+      icon?: string;
     }
   | { type: 'error'; message: string };
 
@@ -146,8 +165,8 @@ export function useAIChatStream(): UseAIChatStreamReturn {
       if (!reader) throw new Error('No response body');
 
       const decoder = new TextDecoder();
-      let assistantContent = '';
-      let hasAssistantMessage = false;
+      let assistantContent = ''; // Accumulates content for CURRENT text block
+      let navigationEmittedThisTurn = false; // Suppress duplicate post-card text
       let lastChunkTime = Date.now();
       const CHUNK_TIMEOUT = 120000; // 2 minutes without receiving data = connection lost
 
@@ -164,7 +183,13 @@ export function useAIChatStream(): UseAIChatStreamReturn {
         }
 
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          console.log(
+            '[AI Chat] Stream done, accumulated content:',
+            assistantContent.length,
+          );
+          break;
+        }
 
         // Reset timeout on each chunk received
         lastChunkTime = Date.now();
@@ -175,12 +200,19 @@ export function useAIChatStream(): UseAIChatStreamReturn {
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6);
-            if (data === '[DONE]') continue;
+            if (data === '[DONE]') {
+              console.log('[AI Chat] Received [DONE] marker');
+              continue;
+            }
 
             try {
               const event = JSON.parse(data) as StreamEvent;
 
               if (event.type === 'agent_start') {
+                // Any text accumulated so far is sealed in a previous assistant
+                // message. Clear the buffer so the post-stream final-update
+                // doesn't re-create a duplicate.
+                assistantContent = '';
                 setMessages((prev) => [
                   ...prev,
                   {
@@ -189,10 +221,43 @@ export function useAIChatStream(): UseAIChatStreamReturn {
                     agentName: event.name,
                     timestamp: new Date(),
                   },
+                  // Add automatic "preparing" indicator
+                  {
+                    role: 'tool',
+                    content: 'Preparando resposta...',
+                    toolName: `${event.agent}_preparing`,
+                    toolStatus: 'running',
+                    toolDescription: 'Preparando resposta...',
+                    timestamp: new Date(),
+                  },
                 ]);
               } else if (event.type === 'agent_end') {
-                // Agent finished
+                // Agent finished - mark preparing as complete
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  for (let i = updated.length - 1; i >= 0; i--) {
+                    const msg = updated[i];
+                    if (
+                      msg?.role === 'tool' &&
+                      msg.toolName?.endsWith('_preparing') &&
+                      msg.toolStatus === 'running'
+                    ) {
+                      updated[i] = {
+                        role: 'tool',
+                        content: '\u2713 Preparando resposta...',
+                        toolName: msg.toolName,
+                        toolStatus: 'success',
+                        toolDescription: msg.toolDescription,
+                        timestamp: msg.timestamp,
+                      };
+                      break;
+                    }
+                  }
+                  return updated;
+                });
               } else if (event.type === 'tool_start') {
+                // Seal any pending assistant text in the previous message.
+                assistantContent = '';
                 const displayName = event.description;
                 setMessages((prev) => [
                   ...prev,
@@ -232,6 +297,8 @@ export function useAIChatStream(): UseAIChatStreamReturn {
                   return updated;
                 });
               } else if (event.type === 'action_card') {
+                // Seal any pending assistant text.
+                assistantContent = '';
                 // Add action card message
                 setMessages((prev) => [
                   ...prev,
@@ -247,43 +314,76 @@ export function useAIChatStream(): UseAIChatStreamReturn {
                     },
                   },
                 ]);
+              } else if (event.type === 'navigation_card') {
+                // Seal any pending assistant text. The card itself is the
+                // final response — no further text should be appended.
+                assistantContent = '';
+                navigationEmittedThisTurn = true;
+                setMessages((prev) => [
+                  ...prev,
+                  {
+                    role: 'navigation',
+                    content: '', // Content will be rendered by NavigationCard component
+                    timestamp: new Date(),
+                    navigationData: {
+                      kind: event.kind,
+                      target: event.target,
+                      label: event.label,
+                      description: event.description,
+                      params: event.params,
+                      icon: event.icon,
+                    },
+                  },
+                ]);
               } else if (event.type === 'content') {
-                assistantContent += event.content;
+                // After a navigation card was emitted in this turn, ignore
+                // any further assistant text — Gemini sometimes re-narrates
+                // the same explanation after the tool call.
+                if (navigationEmittedThisTurn) {
+                  console.log(
+                    '[AI Chat] Skipping post-navigation content chunk:',
+                    event.content.substring(0, 60),
+                  );
+                  continue;
+                }
 
-                // Batch updates: only update UI every 50 chunks or every 500ms
-                const now = Date.now();
-                const shouldUpdate =
-                  !hasAssistantMessage ||
-                  now - lastChunkTime > 500 ||
-                  assistantContent.length % 1000 < event.content.length;
+                console.log(
+                  `[AI Chat] Content received: +${event.content.length} chars`,
+                );
 
-                if (shouldUpdate) {
-                  if (!hasAssistantMessage) {
-                    setMessages((prev) => [
-                      ...prev,
-                      {
-                        role: 'assistant',
-                        content: assistantContent,
-                        timestamp: new Date(),
-                      },
-                    ]);
-                    hasAssistantMessage = true;
+                // Strategy: Always append or update the LAST assistant message
+                // This keeps content in order with tools
+                setMessages((prev) => {
+                  const updated = [...prev];
+
+                  // Check if last message is already an assistant message
+                  const lastIndex = updated.length - 1;
+                  if (
+                    lastIndex >= 0 &&
+                    updated[lastIndex]?.role === 'assistant'
+                  ) {
+                    // Update existing last assistant message - append new content
+                    const currentContent = updated[lastIndex].content || '';
+                    updated[lastIndex] = {
+                      role: 'assistant',
+                      content: currentContent + event.content,
+                      timestamp: updated[lastIndex].timestamp,
+                    };
+                    // Update accumulator to match
+                    assistantContent = currentContent + event.content;
                   } else {
-                    setMessages((prev) => {
-                      const updated = [...prev];
-                      const lastIndex = updated.length - 1;
-                      const lastMsg = updated[lastIndex];
-                      if (lastMsg?.role === 'assistant') {
-                        updated[lastIndex] = {
-                          role: 'assistant',
-                          content: assistantContent,
-                          timestamp: lastMsg.timestamp,
-                        };
-                      }
-                      return updated;
+                    // Last message is NOT assistant (might be tool, agent, etc.)
+                    // Create NEW assistant message with ONLY this content (reset accumulator)
+                    assistantContent = event.content;
+                    updated.push({
+                      role: 'assistant',
+                      content: event.content,
+                      timestamp: new Date(),
                     });
                   }
-                }
+
+                  return updated;
+                });
               } else if (event.type === 'error') {
                 setError(event.message);
               }
@@ -295,23 +395,40 @@ export function useAIChatStream(): UseAIChatStreamReturn {
       }
 
       // Final update: ensure last accumulated content is saved
-      if (hasAssistantMessage && assistantContent) {
+      if (assistantContent) {
         console.log(
-          `[AI Chat] Final update - saving ${assistantContent.length} chars`,
+          `[AI Chat] Final update - content length: ${assistantContent.length}`,
         );
+
+        // Always update or create the last assistant message
         setMessages((prev) => {
           const updated = [...prev];
           const lastIndex = updated.length - 1;
-          const lastMsg = updated[lastIndex];
-          if (lastMsg?.role === 'assistant') {
+
+          if (lastIndex >= 0 && updated[lastIndex]?.role === 'assistant') {
+            // Update last assistant message with final content
+            console.log(
+              `[AI Chat] Final update to assistant at index ${lastIndex}`,
+            );
             updated[lastIndex] = {
               role: 'assistant',
               content: assistantContent,
-              timestamp: lastMsg.timestamp,
+              timestamp: updated[lastIndex].timestamp,
             };
+          } else {
+            // No assistant message at end, create one
+            console.warn('[AI Chat] Creating final assistant message');
+            updated.push({
+              role: 'assistant',
+              content: assistantContent,
+              timestamp: new Date(),
+            });
           }
+
           return updated;
         });
+      } else {
+        console.warn('[AI Chat] Stream ended with no content accumulated');
       }
     } catch (err) {
       if ((err as Error).name !== 'AbortError') {

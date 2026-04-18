@@ -55,6 +55,7 @@ import { AudioWaveform } from './audio-waveform';
 import { AttachmentPreview } from './attachment-preview';
 import { MessageAttachments } from './message-attachments';
 import { ActionCard } from './action-card';
+import { NavigationCard } from './navigation-card';
 import { useSnackbar } from 'notistack';
 import styles from './ai-chat-sidebar.module.css';
 
@@ -860,6 +861,15 @@ export function AIChatSidebar() {
                 return (
                   <div key={index} className={styles.agentMessage}>
                     <span className={styles.agentBadge}>{msg.agentName}</span>
+                  </div>
+                );
+              }
+
+              // Navigation card messages
+              if (msg.role === 'navigation' && msg.navigationData) {
+                return (
+                  <div key={index} className={styles.actionMessageContainer}>
+                    <NavigationCard data={msg.navigationData} />
                   </div>
                 );
               }

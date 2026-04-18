@@ -30,8 +30,8 @@ const AIChatContext = createContext<AIChatContextValue | null>(null);
 const STORAGE_KEY = 'ai-chat-panel-width';
 
 export function AIChatProvider({ children }: { children: ReactNode }) {
-  // Default to open
-  const [isOpen, setIsOpen] = useState(true);
+  // Default to closed
+  const [isOpen, setIsOpen] = useState(false);
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(null);
   const [showThreadList, setShowThreadList] = useState(false);
   const [panelWidth, setPanelWidthState] = useState(PANEL_DEFAULT_WIDTH);

@@ -131,7 +131,11 @@ const CompanyPage: NextPage = () => {
                 <SText fontSize={12}>{group}</SText>
                 <Box mt={3} gap={2} display={'flex'} flexDirection={'column'}>
                   {items.map(({ ...props }, index) => (
-                    <SActionStepCheck index={index} key={props.text} {...props} />
+                    <SActionStepCheck
+                      index={index}
+                      key={props.text}
+                      {...props}
+                    />
                   ))}
                 </Box>
               </Box>
