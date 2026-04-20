@@ -109,6 +109,7 @@ interface ISubmit {
 }
 
 const modalNameInit = ModalEnum.CHARACTERIZATION_ADD;
+type CharacterizationArrayField = 'considerations' | 'activities' | 'paragraphs';
 
 interface IUseEditCharacterizationOptions {
   initialData?: Partial<typeof initialCharacterizationState>;
@@ -124,6 +125,7 @@ export const useEditCharacterization = (
   const [isLoading, setIsLoading] = useState(false);
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialCharacterizationState);
+  const didHydratePropsInitialDataRef = useRef<string>('');
   const saveRef = useRef<boolean | string>(false);
   const { query, push, asPath } = useRouter();
   const { selectStartEndDate } = useStartEndDate();
@@ -190,19 +192,34 @@ export const useEditCharacterization = (
     const initialData =
       propsInitialData ??
       getModalData<Partial<typeof initialCharacterizationState>>(modalName);
+    const hasInitialData = !!Object.keys(cleanObjectNullValues(initialData || {}))
+      .length;
+    const propsHydrationKey = [
+      (propsInitialData as any)?.id || '',
+      (propsInitialData as any)?.companyId || '',
+      (propsInitialData as any)?.workspaceId || '',
+    ].join('::');
+    const foundCharacterization =
+      characterizationsQuery?.find((c) => c.id === initialData?.id) || null;
 
     if (
-      initialData &&
+      hasInitialData &&
       !characterizationData.profileParentId &&
       !(initialData as any).passBack
     ) {
+      if (
+        propsInitialData &&
+        didHydratePropsInitialDataRef.current === propsHydrationKey
+      ) {
+        return;
+      }
+
       let nextType: CharacterizationTypeEnum | undefined;
       setCharacterizationData((oldData) => {
         const newData = {
           ...oldData,
           ...cleanObjectNullValues(initialData),
-          ...(characterizationsQuery?.find((c) => c.id === initialData?.id) ||
-            {}),
+          ...(foundCharacterization || {}),
           profileParentId: '',
         };
 
@@ -211,13 +228,28 @@ export const useEditCharacterization = (
         return newData;
       });
 
+      if (propsInitialData) {
+        const needsExistingData = !!(initialData as any)?.id;
+        const hasExistingData = !!foundCharacterization?.id;
+        if (!needsExistingData || hasExistingData) {
+          didHydratePropsInitialDataRef.current = propsHydrationKey;
+        }
+      }
+
       if (nextType !== undefined) {
         setValue('type', nextType);
       }
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getModalData, characterizationsQuery]);
+  }, [
+    getModalData,
+    characterizationsQuery,
+    propsInitialData,
+    modalName,
+    characterizationData.profileParentId,
+    setValue,
+  ]);
 
   useEffect(() => {
     queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
@@ -644,13 +676,13 @@ export const useEditCharacterization = (
 
   const onAddArray = (
     value: string,
-    type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    type: CharacterizationArrayField = 'considerations',
     index?: number,
   ) => {
     const hasIndex = index !== undefined;
 
-    const values = value
-      ?.split('\n\n')
+    const values = (value || '')
+      .split('\n\n')
       .flat()
       .map((a) => a.split('\n'))
       .flat()
@@ -668,93 +700,83 @@ export const useEditCharacterization = (
           .replace(/^(#+\s*)(.*)/, '**$2**'),
       );
 
-    if (characterizationData[type])
-      setCharacterizationData({
-        ...characterizationData,
-        [type]: [
-          ...characterizationData[type].slice(
-            0,
-            hasIndex ? index + 1 : undefined,
-          ),
-          ...values.map(
-            (value) =>
-              value
-                .replace('@!@', '')
-                .replace('@!!@', '')
-                .replace('@!!!@', '') +
-              '{type}=' +
-              (values.length > 1
-                ? value.includes('@!@')
-                  ? ParagraphEnum.BULLET_0
-                  : value.includes('@!!@')
-                    ? ParagraphEnum.BULLET_1
-                    : value.includes('@!!!@')
-                      ? ParagraphEnum.BULLET_2
-                      : ParagraphEnum.PARAGRAPH
-                : type === 'paragraphs'
-                  ? ParagraphEnum.PARAGRAPH
-                  : ParagraphEnum.BULLET_0),
-          ),
-          ...(hasIndex
-            ? characterizationData[type].slice(
-                index + 1,
-                characterizationData[type].length,
-              )
-            : []),
-        ],
-      });
+    setCharacterizationData((oldData) => {
+      const currentValues = oldData[type] || [];
+      const nextValues = [
+        ...currentValues.slice(0, hasIndex ? index + 1 : undefined),
+        ...values.map(
+          (value) =>
+            value
+              .replace('@!@', '')
+              .replace('@!!@', '')
+              .replace('@!!!@', '') +
+            '{type}=' +
+            (values.length > 1
+              ? value.includes('@!@')
+                ? ParagraphEnum.BULLET_0
+                : value.includes('@!!@')
+                  ? ParagraphEnum.BULLET_1
+                  : value.includes('@!!!@')
+                    ? ParagraphEnum.BULLET_2
+                    : ParagraphEnum.PARAGRAPH
+              : type === 'paragraphs'
+                ? ParagraphEnum.PARAGRAPH
+                : ParagraphEnum.BULLET_0),
+        ),
+        ...(hasIndex ? currentValues.slice(index + 1, currentValues.length) : []),
+      ];
+
+      return {
+        ...oldData,
+        [type]: nextValues,
+      };
+    });
   };
 
   const onDeleteArray = (
     value: string,
-    type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    type: CharacterizationArrayField = 'considerations',
     index?: number,
   ) => {
-    if (characterizationData[type])
-      setCharacterizationData({
-        ...characterizationData,
-        [type]: [
-          ...characterizationData[type].filter(
-            (item: string, i: number) =>
-              i !== index ||
-              item.split('{type}=')[0] !== value.split('{type}=')[0],
-          ),
-        ],
-      });
+    setCharacterizationData((oldData) => ({
+      ...oldData,
+      [type]: (oldData[type] || []).filter(
+        (item: string, i: number) =>
+          i !== index || item.split('{type}=')[0] !== value.split('{type}=')[0],
+      ),
+    }));
   };
 
   const onEditArray = (
     value: string,
     paragraphType: ParagraphEnum,
-    type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    type: CharacterizationArrayField = 'considerations',
     i: number,
   ) => {
-    if (characterizationData[type])
-      setCharacterizationData({
-        ...characterizationData,
-        [type]: [
-          ...characterizationData[type].map((item: string, index?: number) => {
-            return i != index ||
-              item.split('{type}=')[0] !== value.split('{type}=')[0]
-              ? item
-              : item.split('{type}=')[0] + '{type}=' + paragraphType;
-          }),
-        ],
-      });
+    setCharacterizationData((oldData) => ({
+      ...oldData,
+      [type]: (oldData[type] || []).map((item: string, index?: number) => {
+        return i != index || item.split('{type}=')[0] !== value.split('{type}=')[0]
+          ? item
+          : item.split('{type}=')[0] + '{type}=' + paragraphType;
+      }),
+    }));
   };
 
   const onEditArrayContent = (
     values: { name: string; type: ParagraphEnum }[],
-    type = 'considerations' as 'considerations' | 'activities' | 'paragraphs',
+    type: CharacterizationArrayField = 'considerations',
     defaultValue = ParagraphEnum.BULLET_0,
   ) => {
-    if (characterizationData[type])
-      setCharacterizationData({
-        ...characterizationData,
-        [type]: values.map(
-          ({ name, type }) => name + '{type}=' + (type || defaultValue),
-        ),
-      });
+    setCharacterizationData((oldData) => {
+      const nextValues = values.map(
+        ({ name, type }) => name + '{type}=' + (type || defaultValue),
+      );
+      return {
+        ...oldData,
+        [type]: nextValues,
+      };
+    });
   };
 
   const onRemove = async () => {
