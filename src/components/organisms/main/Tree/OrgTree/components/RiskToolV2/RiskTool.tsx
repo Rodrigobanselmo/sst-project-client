@@ -52,7 +52,13 @@ import {
   ViewTypeEnum,
 } from './utils/view-risk-type.constant';
 
-export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
+export const RiskToolV2 = ({
+  riskGroupId,
+  riskContextCompanyId,
+}: {
+  riskGroupId: string;
+  riskContextCompanyId?: string;
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data: ghoQuery } = useQueryGHOAll();
@@ -68,7 +74,8 @@ export const RiskToolV2 = ({ riskGroupId }: { riskGroupId: string }) => {
   const { handleCopyGHO, loadingCopy: loadingCopyHomo } =
     useRiskToolCopyGhoImportFlow(riskGroupIdMemo, copyHomoMutation);
   const risk = useAppSelector(selectRisk);
-  const { companyId } = useGetCompanyId();
+  const { companyId: routerCompanyId } = useGetCompanyId();
+  const companyId = riskContextCompanyId || routerCompanyId;
   const { handleAddCharacterization, handleAddEmployees } = usePushRoute();
   const viewType = ViewTypeEnum.SIMPLE_BY_GROUP;
 

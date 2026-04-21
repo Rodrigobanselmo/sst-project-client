@@ -5,7 +5,7 @@ export const ActionPlanStatusTypeTranslate: Record<
   string
 > = {
   [ActionPlanStatusEnum.PENDING]: 'Pendente',
-  [ActionPlanStatusEnum.PROGRESS]: 'Inciado',
+  [ActionPlanStatusEnum.PROGRESS]: 'Iniciado',
   [ActionPlanStatusEnum.DONE]: 'Concluído',
   [ActionPlanStatusEnum.CANCELED]: 'Cancelado',
   [ActionPlanStatusEnum.REJECTED]: 'Rejeitado',

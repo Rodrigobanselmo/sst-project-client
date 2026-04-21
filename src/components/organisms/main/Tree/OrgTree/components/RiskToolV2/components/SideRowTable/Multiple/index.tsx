@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { useStore } from 'react-redux';
 
 import { SButton } from 'components/atoms/SButton';
@@ -84,6 +84,10 @@ export const SideRowTableMulti: FC<
   const store = useStore<any>();
   const { companyId } = useGetCompanyId();
   const { query } = useRouter();
+  const planWorkspaceId = useMemo(
+    () => query.workspaceId as string | undefined,
+    [query.workspaceId],
+  );
   const upsertManyMut = useMutUpsertManyRiskData();
   const deleteManyMut = useMutDeleteManyRiskData();
   const [riskData, setRiskData] = useState<IRiskDataRow>(initialState);
@@ -360,6 +364,7 @@ export const SideRowTableMulti: FC<
           selectedRiskStore?.representAll ||
           !!selectedRisks.find((r) => r?.representAll)
         }
+        planWorkspaceId={planWorkspaceId}
       />
 
       <SButton

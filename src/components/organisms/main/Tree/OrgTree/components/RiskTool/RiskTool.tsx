@@ -33,6 +33,7 @@ import { useMutDeleteGho } from 'core/services/hooks/mutations/checklist/gho/use
 import { useMutDeleteManyRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutDeleteManyRiskData';
 import { useMutCopyHomo } from 'core/services/hooks/mutations/manager/useMutCopyHomo';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
+import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import { RiskToolHeader } from './components/RiskToolHeader';
 import { RiskToolTopButtons } from './components/RiskToolTopButtons';
 import { RiskToolGSEView } from './components/RiskToolViews/RiskToolGSEView';
@@ -55,7 +56,14 @@ import {
   ViewTypeEnum,
 } from './utils/view-risk-type.constant';
 
-export const RiskTool = ({ riskGroupId }: { riskGroupId?: string }) => {
+export const RiskTool = ({
+  riskGroupId,
+  riskContextCompanyId,
+}: {
+  riskGroupId?: string;
+  /** Empresa da caracterização em modal (router pode não ter `companyId`). */
+  riskContextCompanyId?: string;
+}) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data: ghoQuery } = useQueryGHOAll();
@@ -69,7 +77,9 @@ export const RiskTool = ({ riskGroupId }: { riskGroupId?: string }) => {
   const cleanMutation = useMutDeleteManyRiskData();
   const copyHomoMutation = useMutCopyHomo();
   const risk = useAppSelector(selectRisk);
-  const { companyId } = useGetCompanyId();
+  const { companyId: routerCompanyId } = useGetCompanyId();
+  const resolvedCompanyIdForRisk =
+    riskContextCompanyId || routerCompanyId || '';
   const { handleAddCharacterization, handleAddEmployees } = usePushRoute();
 
   const viewType = useAppSelector((state) => state.riskAdd.viewType);
@@ -78,14 +88,28 @@ export const RiskTool = ({ riskGroupId }: { riskGroupId?: string }) => {
   const isOpen = false;
 
   const { query } = useRouter();
-  const riskGroupIdMemo = useMemo(
+  const rawRiskGroupIdFromUrl = useMemo(
     () => (riskGroupId || query.riskGroupId || '') as string,
-
     [query.riskGroupId, riskGroupId],
   );
+  const { data: riskGroupDataList = [] } = useQueryRiskGroupData(
+    resolvedCompanyIdForRisk || undefined,
+  );
+
+  const riskGroupIdMemo = useMemo(() => {
+    const raw = rawRiskGroupIdFromUrl;
+    if (!raw) return '';
+    if (!riskGroupDataList.length) return raw;
+    if (riskGroupDataList.some((g) => g.id === raw)) return raw;
+    return riskGroupDataList[riskGroupDataList.length - 1]?.id || '';
+  }, [rawRiskGroupIdFromUrl, riskGroupDataList]);
+
   const { handleCopyGHO, loadingCopy: loadingCopyHomo } =
     useRiskToolCopyGhoImportFlow(riskGroupIdMemo, copyHomoMutation);
-  const isRiskOpen = useMemo(() => !!riskGroupIdMemo, [riskGroupIdMemo]);
+  const isRiskOpen = useMemo(
+    () => !!rawRiskGroupIdFromUrl,
+    [rawRiskGroupIdFromUrl],
+  );
   const { onOpenSelected } = useOpenRiskTool();
 
   useEffect(() => {
@@ -282,6 +306,7 @@ export const RiskTool = ({ riskGroupId }: { riskGroupId?: string }) => {
               ghoQuery={ghoQuery}
               loadingCopy={loadingCopyHomo}
               riskGroupId={riskGroupIdMemo}
+              syncTargetCompanyId={resolvedCompanyIdForRisk}
             />
             <STBoxStack
               expanded={selectExpanded ? 1 : 0}

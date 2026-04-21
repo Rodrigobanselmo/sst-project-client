@@ -9,4 +9,5 @@ export interface EpiColumnProps {
   handleHelp?: (dataSelect: Partial<IUpsertRiskData>) => void;
   data?: IRiskDataRow;
   risk?: IRiskFactors | null;
+  planWorkspaceId?: string;
 }

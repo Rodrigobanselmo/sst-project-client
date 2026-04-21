@@ -23,6 +23,13 @@ export type IRiskDataActivities = {
   realActivity?: string;
 };
 
+export interface IRiskDataRecDerivedMeasureRead {
+  derivedRecMedId: string;
+  sourceRecMedId: string;
+  workspaceId: string;
+  riskFactorDataRec: { status: StatusEnum };
+}
+
 export interface IRiskData {
   id: string;
   probability?: number;
@@ -53,6 +60,7 @@ export interface IRiskData {
   level?: number;
   intervention?: string;
   dataRecs?: IRiskDataRec[];
+  riskFactorDataRecDerivedMeasures?: IRiskDataRecDerivedMeasureRead[];
   created_at: Date;
   updated_at: Date;
 }
@@ -65,6 +73,7 @@ export interface IRiskDataRec {
   status: StatusEnum;
   recMedId: string;
   riskFactorDataId: string;
+  workspaceId?: string;
   created_at: Date;
   updated_at: Date;
   companyId: string;

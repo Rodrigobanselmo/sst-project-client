@@ -17,7 +17,8 @@ import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysi
 const RiskToolForCharacterization: React.FC<{
   riskGroupId: string;
   characterizationId: string;
-}> = ({ riskGroupId, characterizationId }) => {
+  riskContextCompanyId?: string;
+}> = ({ riskGroupId, characterizationId, riskContextCompanyId }) => {
   const router = useRouter();
 
   useEffect(() => {
@@ -45,7 +46,12 @@ const RiskToolForCharacterization: React.FC<{
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [characterizationId]);
 
-  return <RiskToolV2 riskGroupId={riskGroupId} />;
+  return (
+    <RiskToolV2
+      riskGroupId={riskGroupId}
+      riskContextCompanyId={riskContextCompanyId}
+    />
+  );
 };
 
 export const ModalAddHierarchyRisk = (
@@ -67,7 +73,7 @@ export const ModalAddHierarchyRisk = (
   const isDisable = !data?.type;
 
   const { data: riskGroupData, isLoading: isLoadingRiskGroup } =
-    useQueryRiskGroupData();
+    useQueryRiskGroupData(data.companyId || undefined);
   const riskGroupId = useMemo(() => {
     if (!riskGroupData || riskGroupData.length === 0) return undefined;
     return riskGroupData[riskGroupData.length - 1]?.id;
@@ -98,7 +104,19 @@ export const ModalAddHierarchyRisk = (
             isCreate={!isEdit}
           />
         </Box>
-        <Box sx={{ px: 5, pb: 10 }}>
+        <Box
+          sx={{
+            px: 5,
+            pb: 0,
+            ...(isEdit && {
+              height: 'calc(100vh - 150px)',
+              minHeight: 0,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }),
+          }}
+        >
           {!isEdit && (
             <Box
               sx={{
@@ -140,10 +158,13 @@ export const ModalAddHierarchyRisk = (
             </Box>
           )}
           {isEdit && !isLoadingRiskGroup && riskGroupId && (
-            <RiskToolForCharacterization
-              riskGroupId={riskGroupId}
-              characterizationId={data.id}
-            />
+            <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+              <RiskToolForCharacterization
+                riskGroupId={riskGroupId}
+                characterizationId={data.id}
+                riskContextCompanyId={data.companyId}
+              />
+            </Box>
           )}
         </Box>
         <Box sx={{ px: 5, pb: 10 }}>

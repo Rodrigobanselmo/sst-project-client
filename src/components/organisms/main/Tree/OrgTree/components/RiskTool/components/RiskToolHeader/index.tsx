@@ -29,6 +29,7 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
   viewDataType,
   loadingCopy,
   riskGroupId,
+  syncTargetCompanyId,
 }) => {
   const dispatch = useAppDispatch();
 
@@ -69,6 +70,8 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
             ghoQuery={ghoQuery}
             viewType={viewType}
             loadingCopy={!!loadingCopy}
+            riskGroupId={riskGroupId}
+            syncTargetCompanyId={syncTargetCompanyId}
           />
         )}
       </Box>

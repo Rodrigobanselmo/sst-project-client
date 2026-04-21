@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import { useRouter } from 'next/router';
 import { selectRisk } from 'store/reducers/hierarchy/riskAddSlice';
@@ -25,6 +25,14 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
   isDeleteLoading,
 }) => {
   const risk = useAppSelector(selectRisk);
+  const { query } = useRouter();
+  const planWorkspaceId = useMemo(() => {
+    const fromQuery = query.workspaceId as string | undefined;
+    if (fromQuery) return fromQuery;
+    if (!gho?.id) return undefined;
+    const parts = String(gho.id).split('//');
+    return parts.length >= 2 ? parts[1] : undefined;
+  }, [query.workspaceId, gho?.id]);
   const {
     onHandleSelectSave,
     enqueueSnackbar,
@@ -120,6 +128,7 @@ export const SideRowTable: FC<{ children?: any } & SideTableProps> = ({
       handleDeleteRiskData={() =>
         handleDeleteRiskData?.(riskData?.id as string, gho)
       }
+      planWorkspaceId={planWorkspaceId}
     />
   );
 };

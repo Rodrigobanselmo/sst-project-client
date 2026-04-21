@@ -54,6 +54,7 @@ export enum ApiRoutesEnum {
   CLINIC_EXAM = '/clinic-exam',
   RISK = '/risk',
   RISK_DATA = '/risk-data',
+  RISK_DATA_SYNC_DERIVED_FROM_PLAN = '/risk-data/sync-derived-measures-from-plan',
   RISK_DATA_REC = '/risk-data-rec',
   RISK_DOC_INFO = '/risk-doc-info',
   RISK_GROUP_DATA = '/risk-group-data',

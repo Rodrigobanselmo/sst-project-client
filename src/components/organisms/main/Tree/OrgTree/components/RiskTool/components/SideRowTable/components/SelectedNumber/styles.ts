@@ -26,7 +26,11 @@ export const STSFlex = styled(SFlex)<{ selected?: number; disabled?: number }>`
     css`
       cursor: not-allowed;
       background-color: ${props.theme.palette.background.disabled};
-      opacity: 0.8;
+      opacity: 0.65;
+
+      &:hover {
+        filter: none;
+      }
     `};
 `;
 

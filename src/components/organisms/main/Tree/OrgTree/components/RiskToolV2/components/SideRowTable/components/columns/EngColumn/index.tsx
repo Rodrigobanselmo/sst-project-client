@@ -6,10 +6,16 @@ import { MedTypeEnum } from 'project/enum/medType.enum';
 import { isNaRecMed } from 'project/utils/isNa';
 
 import { IdsEnum } from 'core/enums/ids.enums';
+import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRecMed } from 'core/interfaces/api/IRiskFactors';
 
 import { SelectedTableItem } from '../../SelectedTableItem';
 import { EngColumnProps } from './types';
+import {
+  getCharacterizationPlanItemTintSx,
+  getDerivedMeasurePlanStatus,
+  getDerivedMeasureTooltipPlanStatus,
+} from '../../../../../utils/characterization-action-plan-visual';
 
 export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
   handleSelect,
@@ -17,6 +23,7 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
   handleEdit,
   data,
   risk,
+  planWorkspaceId,
 }) => {
   return (
     <Box>
@@ -52,10 +59,26 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
         }}
       />
       {data &&
-        data.engs?.map((eng) => (
+        data.engs?.map((eng) => {
+          const planStatus = getDerivedMeasurePlanStatus(
+            data as IRiskData,
+            eng.id,
+            planWorkspaceId,
+          );
+          const planTooltipStatus = getDerivedMeasureTooltipPlanStatus(
+            data as IRiskData,
+            eng.id,
+            planWorkspaceId,
+          );
+          return (
           <SelectedTableItem
             key={eng.id}
             name={eng.medName}
+            planStatus={planStatus}
+            planTooltipStatus={planTooltipStatus}
+            itemTintSx={getCharacterizationPlanItemTintSx(
+              planTooltipStatus ?? planStatus,
+            )}
             handleEdit={() => !isNaRecMed(eng.medName) && handleEdit(eng)}
             handleRemove={() =>
               handleRemove({
@@ -63,7 +86,8 @@ export const EngColumn: FC<{ children?: any } & EngColumnProps> = ({
               })
             }
           />
-        ))}
+          );
+        })}
     </Box>
   );
 };

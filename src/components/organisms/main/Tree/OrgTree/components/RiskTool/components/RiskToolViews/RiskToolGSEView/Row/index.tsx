@@ -30,6 +30,7 @@ export const RiskToolGSEViewRow = React.memo<SideRowProps>(
         sx={{
           gridTemplateColumns: '285px 1fr',
           display: isToFilter ? 'none' : 'grid',
+          alignItems: 'stretch',
         }}
         gap={5}
       >

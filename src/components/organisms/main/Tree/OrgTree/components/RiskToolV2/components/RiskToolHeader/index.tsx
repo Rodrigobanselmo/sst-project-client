@@ -27,6 +27,7 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
   viewDataType,
   loadingCopy,
   companyId,
+  riskGroupId,
 }) => {
   return (
     <SFlex align="center" gap={4} mb={5}>
@@ -43,6 +44,7 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
             viewType={viewType}
             loadingCopy={!!loadingCopy}
             companyId={companyId}
+            riskGroupId={riskGroupId}
           />
         )}
       </Box>

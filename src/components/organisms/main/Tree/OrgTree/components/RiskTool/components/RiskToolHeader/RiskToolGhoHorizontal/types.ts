@@ -12,6 +12,8 @@ export interface SideSelectViewContentProps {
   viewType: ViewTypeEnum;
   loadingCopy?: boolean;
   viewDataType: ViewsDataEnum;
+  riskGroupId: string;
+  syncTargetCompanyId?: string;
   inputRef: React.RefObject<HTMLInputElement | null>;
   handleAddGHO?: () => Promise<void>;
   handleEditGHO: (data: IGho) => void;

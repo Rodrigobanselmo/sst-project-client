@@ -14,6 +14,7 @@ export interface SideHeaderProps {
   loadingCopy?: boolean;
   ghoQuery: IGho[];
   inputRef: any;
+  /** Grupo de dados de risco atual (escopo da sincronização com o plano). */
   riskGroupId: string;
   companyId?: string;
   viewDataType: ViewsDataEnum;

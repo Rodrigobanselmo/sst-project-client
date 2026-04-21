@@ -8,4 +8,5 @@ export interface RecColumnProps {
   handleRemove: (values: Partial<IUpsertRiskData>) => void;
   data?: IRiskDataRow;
   risk: IRiskFactors | null;
+  planWorkspaceId?: string;
 }

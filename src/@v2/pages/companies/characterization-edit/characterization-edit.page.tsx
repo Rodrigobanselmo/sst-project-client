@@ -5,11 +5,9 @@ import { Box, Icon } from '@mui/material';
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
 import { SHeader } from '@v2/components/atoms/SHeader/SHeader';
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
-import { SButton } from '@v2/components/atoms/SButton/SButton';
+import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import SIconButton from 'components/atoms/SIconButton';
-import { SModalButtons } from 'components/molecules/SModal';
-import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { ModalCharacterizationContent } from 'components/organisms/modals/ModalAddCharacterization/components/ModalCharacterizationContent';
 import {
   initialCharacterizationState,
@@ -59,39 +57,6 @@ const CharacterizationEditPageContent = () => {
     isLoading,
   } = props;
 
-  const buttons = [
-    {},
-    {
-      text: 'Salvar',
-      variant: 'outlined',
-      id: IdsEnum.ADD_RISK_CHARACTERIZATION_ID,
-      type: 'submit',
-      style: { display: 'none' },
-      onClick: () => (saveRef.current = 'risk'),
-    },
-    {
-      text: 'Salvar Perfil',
-      variant: 'outlined',
-      id: IdsEnum.ADD_PROFILE_CHARACTERIZATION_ID,
-      type: 'submit',
-      style: { display: 'none' },
-      onClick: () => null,
-    },
-    {
-      text: 'Salvar',
-      variant: 'outlined',
-      id: IdsEnum.ADD_CHARACTERIZATION_ID,
-      type: 'submit',
-      onClick: () => (saveRef.current = true),
-    },
-    {
-      text: characterizationData.id ? 'Salvar e Sair' : 'Criar',
-      variant: 'contained',
-      type: 'submit',
-      onClick: () => (saveRef.current = false),
-    },
-  ] as IModalButton[];
-
   return (
     <>
       <SHeader title={'Caracterização'} />
@@ -99,25 +64,89 @@ const CharacterizationEditPageContent = () => {
         sx={{
           opacity: isLoading ? 0.6 : 1,
           pointerEvents: isLoading ? 'none' : 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          width: '100%',
         }}
         component="form"
         onSubmit={(handleSubmit as any)(onSubmit)}
       >
-        <SContainer>
-          <SFlex align="center" justify="space-between" mb={8}>
+        <SContainer
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            flex: 1,
+            minHeight: 0,
+            maxHeight: { xs: 'none', md: 'calc(100dvh - 100px)' },
+            overflow: 'hidden',
+            py: { xs: 6, sm: 8, md: 5 },
+            pb: { xs: 6, md: 2 },
+          }}
+        >
+          <SFlex
+            align="center"
+            justify="space-between"
+            mb={4}
+            gap={3}
+            flexWrap="wrap"
+            sx={{ flexShrink: 0 }}
+          >
             <SPageHeader
               mb={0}
               title={isEdit ? 'Editar Caracterização' : 'Nova Caracterização'}
             />
-            <SFlex align="center" gap={4}>
+            <SFlex
+              align="center"
+              gap={3}
+              flexWrap="wrap"
+              justifyContent="flex-end"
+            >
               <SButton
-                text={characterizationData.id ? 'Salvar' : 'Criar'}
-                variant="contained"
-                color="primary"
-                loading={loading}
+                variant="outlined"
+                style={{ minWidth: 100 }}
+                id={IdsEnum.CANCEL_BUTTON}
+                onClick={onCloseUnsaved}
+              >
+                Cancelar
+              </SButton>
+              <SButton
+                type="submit"
+                variant="outlined"
+                id={IdsEnum.ADD_RISK_CHARACTERIZATION_ID}
+                style={{ display: 'none' }}
+                onClick={() => (saveRef.current = 'risk')}
+              >
+                Salvar
+              </SButton>
+              <SButton
+                type="submit"
+                variant="outlined"
+                id={IdsEnum.ADD_PROFILE_CHARACTERIZATION_ID}
+                style={{ display: 'none' }}
+                onClick={() => null}
+              >
+                Salvar Perfil
+              </SButton>
+              <SButton
+                variant="outlined"
+                type="submit"
+                style={{ minWidth: 100 }}
+                id={IdsEnum.ADD_CHARACTERIZATION_ID}
                 onClick={() => (saveRef.current = true)}
-                buttonProps={{ type: 'submit' }}
-              />
+              >
+                Salvar
+              </SButton>
+              <SButton
+                variant="contained"
+                type="submit"
+                style={{ minWidth: 100 }}
+                loading={loading}
+                onClick={() => (saveRef.current = false)}
+              >
+                {characterizationData.id ? 'Salvar e Sair' : 'Criar'}
+              </SButton>
               {characterizationData?.id && (
                 <SIconButton onClick={onRemove} tooltip="Remover">
                   <Icon component={SDeleteIcon} sx={{ fontSize: 20 }} />
@@ -126,13 +155,18 @@ const CharacterizationEditPageContent = () => {
             </SFlex>
           </SFlex>
 
-          <ModalCharacterizationContent {...props} />
-
-          <SModalButtons
-            loading={loading}
-            onClose={onCloseUnsaved}
-            buttons={buttons}
-          />
+          <Box
+            sx={{
+              flex: 1,
+              minHeight: { xs: 0, md: 'min(360px, calc(100dvh - 220px))' },
+              maxHeight: { xs: 'none', md: 'calc(100dvh - 220px)' },
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              pr: 0.5,
+            }}
+          >
+            <ModalCharacterizationContent {...props} />
+          </Box>
         </SContainer>
       </Box>
     </>

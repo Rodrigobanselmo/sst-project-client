@@ -13,6 +13,7 @@ export interface SideSelectViewContentProps {
   loadingCopy?: boolean;
   viewDataType: ViewsDataEnum;
   companyId?: string;
+  riskGroupId: string;
   inputRef: React.RefObject<HTMLInputElement | null>;
   handleAddGHO?: () => Promise<void>;
   handleEditGHO: (data: IGho) => void;

@@ -11,7 +11,7 @@ export const STBoxContainer = styled(Box)<{
   background-color: ${(props) => props.theme.palette.background.paper};
   width: 100%;
   max-height: 100%;
-  margin: ${(props) => props.theme.spacing(4, 8, 12, 1)};
+  margin: ${(props) => props.theme.spacing(4, 8, 0, 1)};
   border-radius: ${({ theme }) => theme.spacing(3, 3, 12, 3)};
   position: relative;
   overflow: hidden;
@@ -40,9 +40,10 @@ export const STBoxStack = styled(Box)<{
   display: flex;
   flex-direction: column;
   gap: ${(props) => props.theme.spacing(4)};
-  padding-bottom: ${(props) => props.theme.spacing(10)};
-  max-height: calc(100vh - 350px);
-  min-height: ${(props) => props.theme.spacing(100)};
+  padding-bottom: ${(props) => props.theme.spacing(8)};
+  height: calc(100vh - 320px);
+  max-height: calc(100vh - 320px);
+  min-height: 0;
   overflow: auto;
   min-width: fit-content;
 
@@ -63,6 +64,14 @@ export const STBoxStack = styled(Box)<{
     &:hover {
       background: ${({ theme }) => theme.palette.grey[500]};
     }
+  }
+
+  &::after {
+    content: '';
+    display: block;
+    min-height: ${(props) => props.theme.spacing(14)};
+    width: 100%;
+    flex-shrink: 0;
   }
 `;
 

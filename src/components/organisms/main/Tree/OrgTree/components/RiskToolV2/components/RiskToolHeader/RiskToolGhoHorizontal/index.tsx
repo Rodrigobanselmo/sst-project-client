@@ -1,14 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, {
-  FC,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { FC, useCallback, useEffect, useMemo } from 'react';
 
 import { Box, Divider, Icon } from '@mui/material';
+import { useRouter } from 'next/router';
+import { useSnackbar } from 'notistack';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { SEndButton } from 'components/atoms/SIconButton/SEndButton';
@@ -31,8 +26,12 @@ import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { HierarchyEnum } from 'core/enums/hierarchy.enum';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
 import { IdsEnum } from 'core/enums/ids.enums';
+import { QueryEnum } from 'core/enums/query.enums';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { useMutSyncDerivedMeasuresFromPlan } from 'core/services/hooks/mutations/checklist/riskData/useMutSyncDerivedMeasuresFromPlan';
+import { queryClient } from 'core/services/queryClient';
 import { useHorizontalScroll } from 'core/hooks/useHorizontalScroll';
 import { IGho } from 'core/interfaces/api/IGho';
 import { IHierarchy } from 'core/interfaces/api/IHierarchy';
@@ -130,9 +129,60 @@ export const RiskToolGhoHorizontal: FC<
   viewDataType,
   loadingCopy,
   companyId,
+  riskGroupId,
 }) => {
   const dispatch = useAppDispatch();
   const selected = useAppSelector((state) => state.gho.selected);
+  const { query } = useRouter();
+  const { enqueueSnackbar } = useSnackbar();
+  const syncPlanMutation = useMutSyncDerivedMeasuresFromPlan();
+  const { companyId: userCompanyId } = useGetCompanyId(true);
+
+  const planWorkspaceId = useMemo(() => {
+    const fromQuery = query.workspaceId as string | undefined;
+    if (fromQuery) return fromQuery;
+    if (!selected?.id) return undefined;
+    const parts = String(selected.id).split('//');
+    return parts.length >= 2 ? parts[1] : undefined;
+  }, [query.workspaceId, selected?.id]);
+
+  const homoIdForRefetch = useMemo(
+    () => String(selected?.id || '').split('//')[0],
+    [selected?.id],
+  );
+
+  const handleSyncWithPlan = useCallback(async () => {
+    if (!planWorkspaceId) {
+      enqueueSnackbar(
+        'Selecione um estabelecimento (workspace) para sincronizar.',
+        { variant: 'warning' },
+      );
+      return;
+    }
+    await syncPlanMutation.mutateAsync({
+      riskFactorGroupDataId: String(riskGroupId),
+      workspaceId: planWorkspaceId,
+      ...(companyId ? { companyId: String(companyId) } : {}),
+    });
+    await queryClient.refetchQueries([
+      QueryEnum.RISK_DATA,
+      userCompanyId,
+      riskGroupId,
+      homoIdForRefetch,
+    ]);
+  }, [
+    enqueueSnackbar,
+    homoIdForRefetch,
+    companyId,
+    planWorkspaceId,
+    riskGroupId,
+    syncPlanMutation,
+    userCompanyId,
+  ]);
+
+  /** V2: `ENVIRONMENT` e `CHARACTERIZATION` compartilham o mesmo literal de enum. */
+  const showSyncPlanButton =
+    String(viewDataType) === String(ViewsDataEnum.CHARACTERIZATION);
 
   useEffect(() => {
     if (!selected) {
@@ -231,6 +281,25 @@ export const RiskToolGhoHorizontal: FC<
             bg={'background.paper'}
             {...(getFilter({ viewDataType }) as any)}
           />
+          {showSyncPlanButton && (
+            <SButton
+              variant="outlined"
+              sx={{ height: 30 }}
+              disabled={
+                syncPlanMutation.isLoading ||
+                !planWorkspaceId ||
+                !riskGroupId ||
+                !selected
+              }
+              onClick={() => void handleSyncWithPlan()}
+            >
+              <SText sx={{ mr: 5 }}>
+                {syncPlanMutation.isLoading
+                  ? 'Sincronizando…'
+                  : 'Sincronizar com plano'}
+              </SText>
+            </SButton>
+          )}
           <SButton
             onClick={() => {
               selected && handleCopyGHO(selected);

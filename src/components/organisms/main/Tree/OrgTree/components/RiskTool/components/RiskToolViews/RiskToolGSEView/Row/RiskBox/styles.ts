@@ -3,8 +3,14 @@ import { Box, styled } from '@mui/material';
 
 export const STBoxItem = styled(Box)<{ inactive: number }>`
   width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 
   .item_box {
+    flex: 1;
+    min-height: 46px;
     padding: ${(props) => props.theme.spacing(2, 4)};
     border: 2px solid
       ${(props) =>
@@ -17,7 +23,6 @@ export const STBoxItem = styled(Box)<{ inactive: number }>`
     border-bottom-right-radius: 0;
     border-bottom: none;
     position: relative;
-    min-height: 46px;
 
     ${(props) =>
       props.inactive &&
@@ -29,6 +34,7 @@ export const STBoxItem = styled(Box)<{ inactive: number }>`
   }
 
   .item_end_date {
+    flex-shrink: 0;
     padding: ${(props) => props.theme.spacing(1, 4)};
     border: 2px solid
       ${(props) =>

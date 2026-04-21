@@ -12,7 +12,7 @@ export const STBoxContainer = styled(Box)<{
   width: 100%;
   max-height: 100%;
   z-index: ${({ theme }) => theme.mixins.sidebarTree};
-  margin: ${(props) => props.theme.spacing(4, 8, 12, 1)};
+  margin: ${(props) => props.theme.spacing(4, 8, 0, 1)};
   box-shadow: 1px 1px 3px 3px rgba(0, 0, 0, 0.1);
   border-radius: ${({ theme }) => theme.spacing(3, 3, 12, 3)};
   position: relative;
@@ -62,33 +62,39 @@ export const STBoxStack = styled(Box)<{
   display: flex;
   flex-direction: column;
   gap: ${(props) => props.theme.spacing(4)};
-  padding-bottom: ${(props) => props.theme.spacing(10)};
-  max-height: calc(100vh - 350px);
-  min-height: ${(props) => props.theme.spacing(100)};
+  padding-bottom: ${(props) => props.theme.spacing(8)};
+  height: calc(100vh - 320px);
+  max-height: calc(100vh - 320px);
+  min-height: 0;
   overflow: auto;
   min-width: fit-content;
 
   ${(props) =>
     props.risk_init &&
     css`
-      max-height: 335px;
+      height: 365px;
+      max-height: 365px;
+      min-height: 0;
     `};
 
   ${(props) =>
     props.expanded &&
     css`
-      max-height: calc(100vh - 385px);
-      min-height: calc(100vh - 385px);
+      height: calc(100vh - 355px);
+      max-height: calc(100vh - 355px);
+      min-height: calc(100vh - 355px);
       ${props.viewType === ViewTypeEnum.SIMPLE_BY_RISK &&
       css`
-        max-height: calc(100vh - 265px);
-        min-height: calc(100vh - 265px);
+        height: calc(100vh - 235px);
+        max-height: calc(100vh - 235px);
+        min-height: calc(100vh - 235px);
       `};
 
       ${props.viewType === ViewTypeEnum.MULTIPLE &&
       css`
-        max-height: calc(100vh - 305px);
-        min-height: calc(100vh - 305px);
+        height: calc(100vh - 275px);
+        max-height: calc(100vh - 275px);
+        min-height: calc(100vh - 275px);
       `};
     `};
 
@@ -109,6 +115,14 @@ export const STBoxStack = styled(Box)<{
     &:hover {
       background: ${({ theme }) => theme.palette.grey[500]};
     }
+  }
+
+  &::after {
+    content: '';
+    display: block;
+    min-height: ${(props) => props.theme.spacing(14)};
+    width: 100%;
+    flex-shrink: 0;
   }
 `;
 

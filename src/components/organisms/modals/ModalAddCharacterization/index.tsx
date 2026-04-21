@@ -103,7 +103,9 @@ export const ModalAddCharacterization = () => {
             buttons={buttons}
           />
         </SModalPaper>
-        {isRiskOpen && <RiskTool />}
+        {isRiskOpen && (
+          <RiskTool riskContextCompanyId={characterizationData.companyId} />
+        )}
       </>
     </SModal>
   );

@@ -1,14 +1,9 @@
 import React, { FC, useMemo } from 'react';
 
-import { RuleSharp } from '@mui/icons-material';
 import { LinearProgress } from '@mui/material';
-import { STagButton } from 'components/atoms/STagButton';
-import { useRouter } from 'next/router';
-import { useSnackbar } from 'notistack';
-import { RiskEnum, RiskOrderEnum } from 'project/enum/risk.enums';
+import { RiskEnum } from 'project/enum/risk.enums';
 import { selectGhoFilter } from 'store/reducers/hierarchy/ghoSlice';
 
-import { IdsEnum } from 'core/enums/ids.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
@@ -18,8 +13,8 @@ import { useQueryRiskDataByGho } from 'core/services/hooks/queries/useQueryRiskD
 import { queryClient } from 'core/services/queryClient';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortFilter } from 'core/utils/sorts/filter.sort';
+import { effectiveRiskOrderForGSEGrid } from 'core/utils/sorts/risk-gse-grid-order';
 import { sortNumber } from 'core/utils/sorts/number.sort';
-import { sortString } from 'core/utils/sorts/string.sort';
 
 import { RiskToolGSEViewRow } from './Row';
 import { RiskToolGSEViewProps } from './types';
@@ -29,29 +24,17 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
 }) => {
   const selectedGhoFilter = useAppSelector(selectGhoFilter);
   const selectedGho = useAppSelector((state) => state.gho.selected);
-  const { enqueueSnackbar } = useSnackbar();
 
   const { companyId: userCompanyId } = useGetCompanyId(true);
 
-  const gho = useAppSelector((state) => state.gho.selected);
-  const homoId = useMemo(() => String(gho?.id || '').split('//')[0], [gho?.id]);
+  const homoId = useMemo(
+    () => String(selectedGho?.id || '').split('//')[0],
+    [selectedGho?.id],
+  );
 
   //! performance optimization here
   const { data: riskDataQuery, isLoading: isRiskGhoLoading } =
     useQueryRiskDataByGho(riskGroupId as string, homoId);
-
-  const handleAddRisk = () => {
-    if (!selectedGho)
-      enqueueSnackbar(
-        'Selecione um Cargo / GSE / Ambiente acima antes de adicionar um risco',
-        {
-          variant: 'warning',
-          autoHideDuration: 5000,
-        },
-      );
-
-    document.getElementById(IdsEnum.RISK_SELECT)?.click();
-  };
 
   // const representAllRiskData: [IRiskData, IRiskFactors][] = [
   //   [{ riskId: '78fad211-7395-4a98-bc72-2954ce487006' }],
@@ -128,10 +111,18 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
           sortNumber(a.representAll ? -1 : 1, b.representAll ? -1 : 1),
         )
         .sort(([, a], [, b]) =>
-          sortNumber(RiskOrderEnum[a.type], RiskOrderEnum[b.type]),
+          sortNumber(
+            effectiveRiskOrderForGSEGrid(a),
+            effectiveRiskOrderForGSEGrid(b),
+          ),
         );
 
-    return data;
+    return data.sort(([, a], [, b]) =>
+      sortNumber(
+        effectiveRiskOrderForGSEGrid(a),
+        effectiveRiskOrderForGSEGrid(b),
+      ),
+    );
   }, [
     riskDataQuery,
     userCompanyId,
@@ -152,14 +143,6 @@ export const RiskToolGSEView: FC<{ children?: any } & RiskToolGSEViewProps> = ({
           riskGroupId={riskGroupId}
         />
       ))}
-      {gho && (
-        <STagButton
-          active={!!selectedGho}
-          text={'Adicionar fator de risco'}
-          onClick={handleAddRisk}
-          sx={{ mt: 5, mb: 0, maxWidth: 287 }}
-        />
-      )}
     </>
   );
 };

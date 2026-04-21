@@ -15,6 +15,8 @@ export interface SideHeaderProps {
   ghoQuery: IGho[];
   inputRef: any;
   riskGroupId: string;
+  /** Empresa escopo do sync (e GET grupos); obrigatório em fluxos sem `companyId` na URL. */
+  syncTargetCompanyId?: string;
   viewDataType: ViewsDataEnum;
   viewType: ViewTypeEnum;
   handleCopyGHO: (data: IGho | IHierarchyTreeMapObject | IHierarchy) => void;

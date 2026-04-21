@@ -13,12 +13,62 @@ import { SelectedNumber } from '../../SelectedNumber';
 import { EpiColumnProps as ProbabilityColumnProps } from './types';
 import { ExposureTypeEnum, ExposureTypeMap } from 'core/enums/exposure.enum';
 import { SelectExposure } from './SelectExposure';
+import { StatusEnum } from 'project/enum/status.enum';
+
+const CURRENT_PROBABILITY_LOCKED_REASON =
+  'Como todas as recomendações aplicáveis a este risco foram concluídas com sucesso, o risco real deve ser igual ao risco residual. Para alterar essa probabilidade, adicione novas medidas de controle.';
+
+const scopedRows = (data: ProbabilityColumnProps['data'], workspaceId?: string) => {
+  const rows = data?.dataRecs || [];
+  if (!workspaceId) return rows;
+  const scoped = rows.filter((r) => r.workspaceId === workspaceId);
+  return scoped.length ? scoped : rows;
+};
+
+const scopedDerivedLinks = (
+  data: ProbabilityColumnProps['data'],
+  workspaceId?: string,
+) => {
+  const links = data?.riskFactorDataRecDerivedMeasures || [];
+  if (!workspaceId) return links;
+  const scoped = links.filter((l) => l.workspaceId === workspaceId);
+  return scoped.length ? scoped : links;
+};
+
+const isCurrentProbabilityLocked = (
+  data: ProbabilityColumnProps['data'],
+  workspaceId?: string,
+) => {
+  if (!data?.recs?.length) return false;
+  if (!data?.probabilityAfter || data.probability !== data.probabilityAfter) {
+    return false;
+  }
+
+  const rows = scopedRows(data, workspaceId);
+  const links = scopedDerivedLinks(data, workspaceId);
+
+  return data.recs.every((rec) => {
+    const row = rows.find((r) => r.recMedId === rec.id);
+    if (!row || row.status !== StatusEnum.DONE) return false;
+    return links.some((l) => l.sourceRecMedId === rec.id);
+  });
+};
 
 export const ProbabilityColumn: FC<
   { children?: any } & ProbabilityColumnProps
-> = ({ handleSelect, data, handleHelp, risk }) => {
+> = ({ handleSelect, data, handleHelp, risk, planWorkspaceId }) => {
   const dataSelect = {} as Partial<IUpsertRiskData>;
   const { onStackOpenModal } = useModal();
+  const probabilityLockByPlan = isCurrentProbabilityLocked(
+    data,
+    planWorkspaceId,
+  );
+  const allowedLockedProbability = probabilityLockByPlan
+    ? data?.probabilityAfter
+    : undefined;
+  const disabledNumbers = probabilityLockByPlan
+    ? [1, 2, 3, 4, 5, 6].filter((n) => n !== allowedLockedProbability)
+    : [];
 
   if (
     data &&
@@ -70,6 +120,12 @@ export const ProbabilityColumn: FC<
         }}
         selectedNumber={data?.probability}
         disabledGtEqual={7}
+        disabledNumbers={disabledNumbers}
+        getDisabledReason={(number) =>
+          disabledNumbers.includes(number)
+            ? CURRENT_PROBABILITY_LOCKED_REASON
+            : undefined
+        }
         handleHelp={() => handleHelp && handleHelp(dataSelect)}
       />
       <SelectExposure exposure={exposure} onSelect={onChangeExposure} />

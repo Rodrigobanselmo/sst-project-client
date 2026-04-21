@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import { useRouter } from 'next/router';
 
@@ -19,6 +19,14 @@ export const RiskToolSingleRiskRow: FC<
   { children?: any } & RiskToolSingleRiskRowProps
 > = ({ risk, riskData, hide, riskGroupId, isRepresentAll }) => {
   const gho = useAppSelector((state) => state.gho.selected);
+  const { query } = useRouter();
+  const planWorkspaceId = useMemo(() => {
+    const fromQuery = query.workspaceId as string | undefined;
+    if (fromQuery) return fromQuery;
+    if (!gho?.id) return undefined;
+    const parts = String(gho.id).split('//');
+    return parts.length >= 2 ? parts[1] : undefined;
+  }, [query.workspaceId, gho?.id]);
   const {
     onHandleSelectSave,
     enqueueSnackbar,
@@ -113,6 +121,7 @@ export const RiskToolSingleRiskRow: FC<
       handleEditEpi={handleEditEpi}
       handleEditEngs={handleEditEngs}
       isRepresentAll={isRepresentAll}
+      planWorkspaceId={planWorkspaceId}
     />
   );
 };
