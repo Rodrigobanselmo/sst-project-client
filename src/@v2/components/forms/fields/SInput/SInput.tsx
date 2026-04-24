@@ -26,6 +26,7 @@ export const SInput: FC<SInputProps> = ({
   transformation,
   sx,
   variant = 'outlined',
+  hiddenLabel,
   ...props
 }) => {
   const handleChange = (
@@ -69,6 +70,7 @@ export const SInput: FC<SInputProps> = ({
     <TextField
       {...textFieldProps}
       {...props}
+      hiddenLabel={hiddenLabel}
       value={
         transformation
           ? stringTransformations(String(value) || '', transformation)

@@ -18,6 +18,7 @@ export type SInputProps = Pick<
   | 'inputRef'
   | 'fullWidth'
   | 'onBlur'
+  | 'hiddenLabel'
 > & {
   label?: string;
   inputRef?: { current: HTMLInputElement | null };

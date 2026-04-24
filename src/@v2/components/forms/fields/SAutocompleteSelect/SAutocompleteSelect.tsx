@@ -24,6 +24,8 @@ export function SAutocompleteSelect<
   onChange,
   value,
   getOptionLabel,
+  ListboxProps,
+  componentsProps,
   ...props
 }: SAutocompleteSelectProps<T, M, D, F>) {
   //   <SAutocompleteSelect
@@ -38,6 +40,20 @@ export function SAutocompleteSelect<
   //   placeholder="Estado (UF)"
   //   options={[{ label: '1' }, { label: '2' }, { label: '3' }]}
   // />
+  const mergedListboxProps = {
+    ...ListboxProps,
+    sx: {
+      p: 0,
+      '& li': {
+        borderBottom: '1px solid #e0e0e0',
+      },
+      '& li:last-child': {
+        borderBottom: 'none',
+      },
+      ...ListboxProps?.sx,
+    },
+  };
+
   return (
     <Autocomplete
       onChange={onChange}
@@ -46,17 +62,8 @@ export function SAutocompleteSelect<
       noOptionsText="Sem opções"
       options={options}
       loading={loading}
-      ListboxProps={{
-        sx: {
-          p: 0,
-          '& li': {
-            borderBottom: '1px solid #e0e0e0',
-          },
-          '& li:last-child': {
-            borderBottom: 'none',
-          },
-        },
-      }}
+      ListboxProps={mergedListboxProps}
+      componentsProps={componentsProps}
       onInputChange={onInputChange}
       renderInput={(params) => (
         <SInput
@@ -64,8 +71,8 @@ export function SAutocompleteSelect<
           {...inputProps}
           error={!!errorMessage}
           helperText={errorMessage}
-          placeholder={placeholder || 'Digite para pesquisar'}
-          label={label || 'Pesquisar'}
+          placeholder={placeholder ?? 'Digite para pesquisar'}
+          label={label === undefined ? 'Pesquisar' : label}
           inputProps={{
             ...params.InputProps,
             endAdornment: (

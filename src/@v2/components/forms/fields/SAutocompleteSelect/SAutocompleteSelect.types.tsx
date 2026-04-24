@@ -11,7 +11,12 @@ export interface SAutocompleteSelectProps<
   FreeSolo extends boolean | undefined,
 > extends Pick<
     AutocompleteProps<Value, Multiple, DisableClearable, FreeSolo>,
-    'onBlur' | 'onFocus'
+    | 'onBlur'
+    | 'onFocus'
+    | 'isOptionEqualToValue'
+    | 'ListboxProps'
+    | 'componentsProps'
+    | 'sx'
   > {
   options: Value[];
   value: Value | null;

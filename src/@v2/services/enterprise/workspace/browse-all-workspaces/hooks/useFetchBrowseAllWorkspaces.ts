@@ -10,6 +10,7 @@ export const useFetchBrowseAllWorkspaces = (
     queryFn: async () => {
       return browseAllWorkspaces(params);
     },
+    enabled: !!params.companyId,
     queryKey: [
       QueryKeyCompanyEnum.COMPANY_WORKSPACE,
       params.companyId,

@@ -2,8 +2,11 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { STabs } from '@v2/components/organisms/STabs/STabs';
+import { WorkspaceBrowseAutocomplete } from '@v2/components/organisms/workspace/WorkspaceBrowseAutocomplete/WorkspaceBrowseAutocomplete';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+
+export type STabsAllWorkspaceVariant = 'tabs' | 'searchable';
 
 export const STabsAllWorkspace = ({
   companyId,
@@ -11,27 +14,39 @@ export const STabsAllWorkspace = ({
   workspaceId,
   children,
   mb = 5,
+  variant = 'tabs',
 }: {
   companyId: string;
   mb?: number;
   onChange: (id: string) => void;
   workspaceId?: string;
   children: React.ReactNode;
+  variant?: STabsAllWorkspaceVariant;
 }) => {
   const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
     companyId,
   });
 
-  const options =
-    workspaces?.results.map((workspace) => ({
-      label: workspace.name,
-      value: workspace.id,
-    })) || [];
+  const workspaceList = useMemo(() => {
+    if (!workspaces?.results?.length) return [];
+    const list = [...workspaces.results];
+    if (variant === 'searchable') {
+      list.sort((a, b) =>
+        a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }),
+      );
+    }
+    return list;
+  }, [workspaces?.results, variant]);
+
+  const options = workspaceList.map((workspace) => ({
+    label: workspace.name,
+    value: workspace.id,
+  }));
 
   const value = options.find((option) => option.value === workspaceId);
 
   useEffect(() => {
-    const initId = workspaces?.results[0]?.id;
+    const initId = workspaceList[0]?.id;
     if (!value && initId) onChange(initId);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -46,6 +61,21 @@ export const STabsAllWorkspace = ({
     );
 
   if (workspaceId && workspaces?.results.length === 1) return children;
+
+  if (variant === 'searchable') {
+    return (
+      <>
+        <WorkspaceBrowseAutocomplete
+          companyId={companyId}
+          workspaceId={workspaceId}
+          onChange={onChange}
+          mb={mb}
+        />
+        {value && children}
+        {isLoadingAllWorkspaces && <SSkeleton height={500} />}
+      </>
+    );
+  }
 
   return (
     <>

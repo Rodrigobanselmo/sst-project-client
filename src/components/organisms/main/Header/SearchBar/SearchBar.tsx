@@ -1,35 +1,23 @@
-import { Box } from '@mui/material';
-import { useKBar } from 'kbar';
 import SearchIcon from '@mui/icons-material/Search';
+import IconButton from '@mui/material/IconButton';
+import { useKBar } from 'kbar';
 
 export const SearchBar = () => {
   const { query } = useKBar();
 
   return (
-    <Box
+    <IconButton
+      aria-label="Abrir busca"
       onClick={() => {
         query.toggle();
       }}
       sx={{
-        cursor: 'pointer',
-        width: 30,
-        mr: 5,
-        height: '31px',
-        borderRadius: 1,
-        backgroundColor: 'white',
-        justifyContent: 'center',
-        alignItems: 'center',
-        display: 'flex',
-        border: '1px solid',
-        borderColor: 'grey.300',
-        boxShadow: '1px 1px 2px 1px rgba(0, 0, 0, 0.05)',
-        '-webkit-box-shadow': '1px 1px 2px 1px rgba(0, 0, 0, 0.05)',
-        ':hover': {
-          borderColor: 'primary.main',
-        },
+        flexShrink: 0,
+        alignSelf: 'center',
+        mr: 2,
       }}
     >
-      <SearchIcon sx={{ fontSize: '15px', mt: 0, color: 'grey.800' }} />
-    </Box>
+      <SearchIcon sx={{ fontSize: ['1rem', '1.125rem', '1.2rem'] }} />
+    </IconButton>
   );
 };

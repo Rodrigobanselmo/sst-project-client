@@ -3,11 +3,11 @@ import IconButton from '@mui/material/IconButton';
 import Stack from '@mui/material/Stack';
 
 import { useSidebarDrawer } from '../../../../core/contexts/SidebarContext';
+import { HeaderCompanySelect } from './HeaderCompanySelect/HeaderCompanySelect';
+import { HeaderWorkspaceSelect } from './HeaderWorkspaceSelect/HeaderWorkspaceSelect';
 import { Location } from './Location';
 import { NotificationNav } from './NotificationNav';
 import { Profile } from './Profile';
-import { Tenant } from './Tenant/Tenant';
-import { WorkspaceTenant } from './WorkspaceTenant/WorkspaceTenant';
 import { SearchBar } from './SearchBar/SearchBar';
 
 export function Header(): JSX.Element {
@@ -46,8 +46,8 @@ export function Header(): JSX.Element {
         ml="auto"
       >
         <SearchBar />
-        <Tenant />
-        <WorkspaceTenant />
+        <HeaderCompanySelect />
+        <HeaderWorkspaceSelect />
         <NotificationNav />
         <Profile showProfileData={!isTablet} />
       </Stack>
