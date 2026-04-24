@@ -18,6 +18,8 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
   (
     {
       handleAddGHO,
+      handleAddCharacterization,
+      characterizationAddTooltip,
       isAddLoading,
       onSearch,
       small,
@@ -33,21 +35,24 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
       onSearch?.(value);
     }, debounceTime);
 
-    // handleAddGHO()
+    const topAddHandler = handleAddGHO ?? handleAddCharacterization;
+    const topAddTooltip = handleAddCharacterization
+      ? characterizationAddTooltip || 'Adicionar'
+      : selectedGho?.id
+        ? 'Salvar'
+        : 'Adicionar';
+
     return (
       <>
         <STSInput
           endAdornment={
             <>
-              {handleAddGHO && (
-                <STooltip
-                  withWrapper
-                  title={selectedGho?.id ? 'Salvar' : 'Adicionar'}
-                >
+              {topAddHandler && (
+                <STooltip withWrapper title={topAddTooltip}>
                   <div ref={anchorEl}>
                     <SEndButton
                       bg={'tag.add'}
-                      onClick={(e) => (handleAddGHO as any)(e)}
+                      onClick={(e) => (topAddHandler as any)(e)}
                     />{' '}
                   </div>
                 </STooltip>
@@ -66,8 +71,8 @@ export const GhoSearchInput = React.forwardRef<any, GhoInputProps>(
           {...props}
         />
         <SPopperHelper
-          show={ghoQuery && ghoQuery.length === 0}
-          isOpen={ghoQuery && ghoQuery.length === 0}
+          show={!!handleAddGHO && !!ghoQuery && ghoQuery.length === 0}
+          isOpen={!!handleAddGHO && !!ghoQuery && ghoQuery.length === 0}
           close={() => null}
           content="Click aqui para adicionar um GSE"
           anchorEl={anchorEl}

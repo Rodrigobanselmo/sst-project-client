@@ -1,3 +1,5 @@
+import type { ParsedUrlQuery } from 'querystring';
+
 import Box from '@mui/material/Box';
 import SArrowUpFilterIcon from 'assets/icons/SArrowUpFilterIcon';
 import { WorkspaceBrowseAutocomplete } from '@v2/components/organisms/workspace/WorkspaceBrowseAutocomplete/WorkspaceBrowseAutocomplete';
@@ -20,6 +22,10 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const workspaceRouteId = query.workspaceId as string | undefined;
 
   const isDocumentsListPage = pathname === DOCUMENTS_LIST_PATHNAME;
+  const isHierarchyOrganogramPage =
+    typeof pathname === 'string' &&
+    pathname.includes('/empresas/') &&
+    pathname.includes('/hierarquia');
   const routeHasWorkspace = pathname.includes(RoutesParamsEnum.WORKSPACE);
 
   const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
@@ -69,6 +75,53 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
                 { shallow: true },
               );
             }}
+            compact
+            suppressWhenNotMultiple={false}
+          />
+        </Box>
+      </STBox>
+    );
+  }
+
+  if (isHierarchyOrganogramPage) {
+    return (
+      <STBox
+        ml={2}
+        display={isTablet ? 'none' : 'flex'}
+        sx={{
+          cursor: 'default',
+          ...documentsHeaderChipShellSx,
+        }}
+        onClick={(e) => e.stopPropagation()}
+        id={IdsEnum.HIERARCHY_ORG_WORKSPACE_NAVBAR}
+      >
+        <SArrowUpFilterIcon
+          sx={{
+            fontSize: '20px',
+            mt: 0,
+            mr: 0.75,
+            flexShrink: 0,
+            transform: 'rotate(-180deg)',
+          }}
+        />
+        <Box sx={{ flex: 1, minWidth: 0 }} onClick={(e) => e.stopPropagation()}>
+          <WorkspaceBrowseAutocomplete
+            companyId={companyId}
+            workspaceId={tabWorkspaceId}
+            onChange={(id) => {
+              const nextQuery = { ...router.query } as ParsedUrlQuery;
+              if (id) nextQuery.tabWorkspaceId = id;
+              else delete nextQuery.tabWorkspaceId;
+              void router.replace(
+                {
+                  pathname: router.pathname,
+                  query: nextQuery,
+                },
+                undefined,
+                { shallow: true },
+              );
+            }}
+            allowEmptyWorkspace
             compact
             suppressWhenNotMultiple={false}
           />

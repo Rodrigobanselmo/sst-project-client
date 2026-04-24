@@ -16,15 +16,20 @@ import { ModalEditExamRiskData } from 'components/organisms/modals/ModalEditExam
 import { ModalEditEngRiskData } from 'components/organisms/modals/ModalEditMedRiskData';
 import { ModalExcelHierarchies } from 'components/organisms/modals/ModalExcelHierarchies';
 import { ModalRiskTool } from 'components/organisms/modals/ModalRiskTool';
+import { ModalSelectCharacterization } from 'components/organisms/modals/ModalSelectCharacterization';
+import { ModalSelectCompany } from 'components/organisms/modals/ModalSelectCompany';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
 import { ModalSelectGho } from 'components/organisms/modals/ModalSelectGho';
 import { ModalSelectHierarchy } from 'components/organisms/modals/ModalSelectHierarchy';
 import { ModalSelectWorkspace } from 'components/organisms/modals/ModalSelectWorkspace';
+import { ModalSingleInput } from 'components/organisms/modals/ModalSingleInput';
+import { ModalUploadPhoto } from 'components/organisms/modals/ModalUploadPhoto';
 import { NextPage } from 'next';
 import { STFlexContainer } from 'pages/dashboard/checklist/index.styles';
 
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 import { ModalAddActivity } from 'components/organisms/modals/ModalAddActivity';
+import { ModalAddCharacterization } from 'components/organisms/modals/ModalAddCharacterization';
 
 const Hierarchy: NextPage = () => {
   const { hierarchies, company } = useHierarchyTreeLoad();
@@ -52,13 +57,18 @@ const Hierarchy: NextPage = () => {
         <ModalRiskTool />
         <StackModalEditEmployee />
         <ModalSelectWorkspace />
+        <ModalSelectCompany />
+        <ModalSelectCharacterization />
         <ModalSelectHierarchy />
         <ModalSelectGho />
         <ModalSelectDocPgr />
+        <ModalSingleInput />
+        <ModalUploadPhoto />
         <ModalEditEpiData />
         <ModalEditEngRiskData />
         <ModalEditExamRiskData />
         <ModalAutomateSubOffice />
+        <ModalAddCharacterization />
       </STFlexContainer>
     </>
   );

@@ -7,6 +7,7 @@ import {
   setGhoSearch,
 } from 'store/reducers/hierarchy/ghoSlice';
 
+import { originRiskMap } from 'core/constants/maps/origin-risk';
 import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { useAppSelector } from 'core/hooks/useAppSelector';
 
@@ -17,6 +18,8 @@ export const GhoToolHeader: FC<{ children?: any } & GhoHeaderProps> = ({
   handleSelectGHO,
   handleEditGHO,
   handleAddGHO,
+  handleAddCharacterization,
+  characterizationAddTooltip,
   isAddLoading,
   inputRef,
   filter,
@@ -33,6 +36,12 @@ export const GhoToolHeader: FC<{ children?: any } & GhoHeaderProps> = ({
       inputRef.current.value = searchSelected;
   }, [inputRef, searchSelected]);
 
+  const characterizationTooltip =
+    characterizationAddTooltip ||
+    (filter != null && originRiskMap[filter]
+      ? `Adicionar ${originRiskMap[filter].name}`
+      : 'Adicionar');
+
   return (
     <SFlex align="center" gap={4} mb={5}>
       <GhoSearchInput
@@ -41,6 +50,10 @@ export const GhoToolHeader: FC<{ children?: any } & GhoHeaderProps> = ({
         onSearch={onSearch}
         handleEditGHO={handleEditGHO}
         handleAddGHO={!filter ? handleAddGHO : undefined}
+        handleAddCharacterization={
+          filter ? handleAddCharacterization : undefined
+        }
+        characterizationAddTooltip={characterizationTooltip}
         isAddLoading={isAddLoading}
       />
     </SFlex>

@@ -20,24 +20,60 @@ export const GhoSelect: FC<{ children?: any } & IGhoSelectProps> = ({
   showAll,
   large,
   node,
+  cornerBadge,
+  sx,
   ...props
 }) => {
-  const ghos = node.ghos
+  const seenIds = new Set<string>();
+  const ghos = (node.ghos || [])
     .filter((gho) => gho?.type !== HomoTypeEnum.HIERARCHY)
+    .filter((gho) => {
+      if (seenIds.has(gho.id)) return false;
+      seenIds.add(gho.id);
+      return true;
+    })
     .map((gho) => ({ ...gho, name: getHomoGroupName(gho) || '' }));
+
+  const tooltipTitle =
+    ghos.length === 0
+      ? 'Nenhum GSE, ambiente, atividade, posto de trabalho ou equipamento vinculado a este cargo'
+      : `Vínculos (${ghos.length}):\n${ghos
+          .map((gho) => {
+            const line = getHomoGroupName(gho) || gho.name || '';
+            return line.replace(/\n/g, ' — ');
+          })
+          .join('\n')}`;
+
+  const countLabel = String(ghos.length);
+
+  const cornerSx = cornerBadge
+    ? {
+        minWidth: 26,
+        maxWidth: 40,
+        height: 22,
+        pl: '4px',
+        pr: '6px',
+        borderRadius: '11px',
+        '& .icon_main': { mr: ghos.length ? '4px' : 0, fontSize: '13px !important' },
+        ...sx,
+      }
+    : sx;
 
   return (
     <STagSelect
       options={ghos.map((gho) => ({ name: gho.name, value: gho.id }))}
       text={
-        showAll
-          ? `${String(ghos.length)} - ${ghos.map((gho) => gho.name).join(', ')}`
-          : String(ghos.length)
+        cornerBadge
+          ? countLabel
+          : showAll
+            ? `${countLabel} - ${ghos.map((gho) => gho.name).join(', ')}`
+            : countLabel
       }
-      title={'Grupos homogênios de exposição'}
-      large={large}
-      maxWidth={200}
+      tooltipTitle={tooltipTitle}
+      large={cornerBadge ? false : large}
+      maxWidth={cornerBadge ? 44 : 200}
       icon={SGhoIcon}
+      sx={cornerSx}
       {...props}
     />
   );

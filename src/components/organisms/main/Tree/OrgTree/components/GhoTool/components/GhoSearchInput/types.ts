@@ -9,6 +9,8 @@ export interface GhoInputProps extends Omit<Partial<SInputProps>, 'onSearch'> {
   debounceTime?: number;
   onSearch?: (value: string) => void;
   handleAddGHO?: () => Promise<void>;
+  handleAddCharacterization?: () => void;
+  characterizationAddTooltip?: string;
   handleEditGHO?: (data: IGho) => void;
   handleSelectGHO?: (
     gho: IGho | null,

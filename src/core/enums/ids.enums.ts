@@ -2,6 +2,8 @@ export enum IdsEnum {
   COMPANY_SELECT_NAVBAR = 'company-select-navbar',
   WORKSPACE_SELECT_NAVBAR = 'workspace-select-navbar',
   DOCUMENTS_WORKSPACE_NAVBAR = 'documents-workspace-navbar',
+  /** Estabelecimento (filtro do organograma / hierarquia) */
+  HIERARCHY_ORG_WORKSPACE_NAVBAR = 'hierarchy-org-workspace-navbar',
   CANCEL_BUTTON = 'cancel-button',
   CONFIRM_BUTTON = 'confirm-button',
   INPUT_MENU_SEARCH = 'input-menu-search',

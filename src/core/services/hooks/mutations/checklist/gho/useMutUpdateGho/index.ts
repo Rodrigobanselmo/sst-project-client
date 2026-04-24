@@ -39,32 +39,27 @@ export function useMutUpdateGho() {
     async (data: IUpdateGho) => updateGho(data, getCompanyId(data)),
     {
       onSuccess: async (resp) => {
-        if (resp) {
-          queryClient.invalidateQueries({
-            predicate: (query) => {
-              return query.queryKey[0] === QueryEnum.GHO && !!query.queryKey[2];
+        if (resp?.companyId) {
+          // Só atualizar caches cujo dado é lista (ex.: useQueryGHOAll). Chaves como [GHO, companyId, ghoId] guardam um único IGho — chamar .map nelas quebrava o onSuccess e a persistência parecia falhar.
+          queryClient.setQueriesData(
+            {
+              queryKey: [QueryEnum.GHO, resp.companyId],
+              predicate: (query) => Array.isArray(query.state.data),
             },
-          });
-
-          const actualData = queryClient.getQueryData(
-            // eslint-disable-next-line prettier/prettier
-            [QueryEnum.GHO, resp.companyId],
+            (oldData: unknown) => {
+              if (!Array.isArray(oldData)) return oldData;
+              return (oldData as IGho[]).map((gho) => {
+                if (gho.id != resp.id) return gho;
+                return {
+                  ...gho,
+                  ...resp,
+                  hierarchies: resp.hierarchies ?? gho.hierarchies,
+                };
+              });
+            },
           );
-          if (actualData)
-            queryClient.setQueryData(
-              [QueryEnum.GHO, resp.companyId],
-              (oldData: IGho[] | undefined) =>
-                oldData
-                  ? oldData.map((gho) =>
-                      gho.id == resp.id
-                        ? {
-                            ...gho,
-                            ...resp,
-                          }
-                        : gho,
-                    )
-                  : [],
-            );
+
+          void queryClient.invalidateQueries([QueryEnum.GHO, resp.companyId]);
         }
 
         enqueueSnackbar('Grupo homogênio de exposição editado com sucesso', {

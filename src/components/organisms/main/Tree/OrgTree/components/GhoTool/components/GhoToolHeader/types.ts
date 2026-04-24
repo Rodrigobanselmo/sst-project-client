@@ -9,6 +9,8 @@ export interface GhoHeaderProps {
   inputRef: any;
   filter: HomoTypeEnum | null;
   handleAddGHO: () => Promise<void>;
+  handleAddCharacterization?: () => void;
+  characterizationAddTooltip?: string;
   handleEditGHO: (data: IGho) => void;
   handleSelectGHO: (
     gho: IGho | null,

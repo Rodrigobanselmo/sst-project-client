@@ -12,10 +12,13 @@ import { GhoSelect } from '../../../../Selects/GhoSelect';
 
 export interface GhoSelectCardProps extends BoxProps {
   node: ITreeMapObject;
+  cornerBadge?: boolean;
 }
 
 export const GhoSelectCard: FC<{ children?: any } & GhoSelectCardProps> = ({
   node,
+  cornerBadge,
+  ...boxProps
 }) => {
   const isGhoOpen = useAppSelector(selectGhoOpen);
   const parentNodesTree = useAppSelector(
@@ -28,5 +31,12 @@ export const GhoSelectCard: FC<{ children?: any } & GhoSelectCardProps> = ({
     nodeData.ghos = [...(nodeData.ghos || []), ...(parentNode.ghos || [])];
   });
 
-  return <GhoSelect node={nodeData} showAll={!!isGhoOpen} />;
+  return (
+    <GhoSelect
+      node={nodeData}
+      showAll={!!isGhoOpen}
+      cornerBadge={cornerBadge}
+      {...boxProps}
+    />
+  );
 };

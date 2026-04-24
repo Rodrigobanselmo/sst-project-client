@@ -7,4 +7,6 @@ export interface IGhoSelectProps extends BoxProps {
   large?: boolean;
   disabled?: boolean;
   showAll?: boolean;
+  /** Compact pill on the cargo card (bottom-right); same menu + vínculos. */
+  cornerBadge?: boolean;
 }

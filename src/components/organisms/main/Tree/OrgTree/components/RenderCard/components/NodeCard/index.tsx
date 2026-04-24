@@ -146,7 +146,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
   );
   const GhoId = useAppSelector(selectGhoId);
   const store = useStore<any>();
-  // const dispatch = useAppDispatch();
+  const dispatch = useAppDispatch();
   const { hide, ref } = useObserverHide();
 
   const handleAddCard = (e: MouseEvent<HTMLDivElement>) => {
@@ -157,23 +157,20 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     onOpenModal(ModalEnum.HIERARCHY_TREE_CARD);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const onUpdateGho = (newHierarchyIds: string[]) => {
-    return;
+    if (node.showRef) return;
+    dispatch(setGhoState({ hierarchies: newHierarchyIds }));
 
-    // if (node.showRef) return;
-    // dispatch(setGhoState({ hierarchies: newHierarchyIds }));
+    const newGhoState = store.getState().gho as IGhoState;
 
-    // const newGhoState = store.getState().gho as IGhoState;
-
-    // if (GhoId)
-    //   updateMutation.mutate({
-    //     id: GhoId,
-    //     hierarchies: newGhoState.hierarchies.map((hierarchy) => ({
-    //       id: hierarchy.split('//')[0],
-    //       workspaceId: hierarchy.split('//')[1],
-    //     })),
-    //   });
+    if (GhoId)
+      updateMutation.mutate({
+        id: GhoId,
+        hierarchies: newGhoState.hierarchies.map((hierarchy) => ({
+          id: hierarchy.split('//')[0],
+          workspaceId: hierarchy.split('//')[1],
+        })),
+      });
   };
 
   const handleAddGhoHierarchy = (e: MouseEvent<HTMLDivElement>) => {
@@ -237,6 +234,10 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
     node.type,
   );
   const showGhoSelect = !node.showRef && node.ghos && node.ghos.length > 0;
+  const isCargoCard =
+    node.type === TreeTypeEnum.OFFICE || node.type === TreeTypeEnum.SUB_OFFICE;
+  /** Canto inferior direito: sempre no cargo (contagem inclui vínculos agregados do setor em `GhoSelectCard`). */
+  const showCornerGhoBadge = isCargoCard && !node.showRef;
   const showOptionsSelect = !node.showRef && !GhoId;
   const showPopperHelp =
     !node.showRef &&
@@ -325,7 +326,7 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
         )}
       </Box>
       {!hide && (
-        <SFlex gap={2} mt={3}>
+        <SFlex gap={2} mt={3} alignItems="center" width="100%">
           {!showRefSelect && (
             <STagButton
               text={nodeTypesConstant[node.type]?.name}
@@ -333,8 +334,14 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
               title={'Tipo de hierarquia'}
             />
           )}
-          <Stack onClick={handleAddGhoHierarchy} spacing={2} direction="row">
-            {showGhoSelect && <GhoSelectCard node={node} />}
+          <Stack
+            spacing={2}
+            direction="row"
+            sx={{ flex: 1, minWidth: 0, alignItems: 'center' }}
+          >
+            {showGhoSelect && !showCornerGhoBadge && (
+              <GhoSelectCard node={node} />
+            )}
             {showOptionsSelect && (
               <OptionsHelpSelect
                 disabled={!!GhoId}
@@ -361,6 +368,20 @@ export const NodeCard: FC<{ children?: any } & INodeCardProps> = ({
               />
             )}
           </Stack>
+          {showCornerGhoBadge && (
+            <Box
+              sx={{
+                ml: 'auto',
+                pl: 2,
+                display: 'flex',
+                alignItems: 'center',
+                flexShrink: 0,
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <GhoSelectCard node={node} cornerBadge />
+            </Box>
+          )}
         </SFlex>
       )}
     </div>

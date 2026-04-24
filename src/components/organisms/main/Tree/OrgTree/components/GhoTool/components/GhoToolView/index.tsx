@@ -1,23 +1,13 @@
-import React, { FC, useCallback, useMemo } from 'react';
+import React, { FC, useEffect, useMemo } from 'react';
 
 import SFlex from 'components/atoms/SFlex';
 import { STagButton } from 'components/atoms/STagButton';
-import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { useRouter } from 'next/router';
-import {
-  selectGhoFilter,
-  selectGhoId,
-} from 'store/reducers/hierarchy/ghoSlice';
+import { selectGhoId } from 'store/reducers/hierarchy/ghoSlice';
 
 import { originRiskMap } from 'core/constants/maps/origin-risk';
-import { CharacterizationEnum } from 'core/enums/characterization.enums';
 import { HomoTypeEnum } from 'core/enums/homo-type.enum';
-import { ModalEnum } from 'core/enums/modal.enums';
-import { RoutesEnum } from 'core/enums/routes.enums';
 import { useAppSelector } from 'core/hooks/useAppSelector';
-import { useModal } from 'core/hooks/useModal';
-import { IWorkspace } from 'core/interfaces/api/ICompany';
-import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { useQueryGHOAll } from 'core/services/hooks/queries/useQueryGHOAll';
 
 import { GhoRow } from '../GhoRow';
@@ -33,10 +23,26 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
 }) => {
   const { data: ghoQuery } = useQueryGHOAll();
   const selectedGhoId = useAppSelector(selectGhoId);
-  const selectedGhoFilter = useAppSelector(selectGhoFilter);
-  const { data: company } = useQueryCompany();
-  const { onOpenModal } = useModal();
-  const { push } = useRouter();
+  const { pathname, query } = useRouter();
+
+  const isOrgHierarquiaContext =
+    pathname.includes('/empresas/') && pathname.includes('/hierarquia');
+  const tabWorkspaceId = isOrgHierarquiaContext
+    ? (query.tabWorkspaceId as string | undefined)
+    : undefined;
+
+  const disableNonGseTabs = isOrgHierarquiaContext && !tabWorkspaceId;
+
+  useEffect(() => {
+    if (
+      isOrgHierarquiaContext &&
+      !tabWorkspaceId &&
+      filter != null &&
+      filter !== HomoTypeEnum.GSE
+    ) {
+      handleFilter(HomoTypeEnum.GSE);
+    }
+  }, [filter, handleFilter, isOrgHierarquiaContext, tabWorkspaceId]);
 
   const ghoOrderedData = useMemo(() => {
     if (!ghoQuery) return [];
@@ -57,9 +63,16 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
       };
     });
 
-    if (!selectedGhoFilter.value || !selectedGhoFilter.key) return ghoFilter;
+    if (isOrgHierarquiaContext && tabWorkspaceId) {
+      return ghoFilter.filter(
+        (gho) =>
+          gho.workspaceIds?.includes(tabWorkspaceId) ||
+          !!gho.workspaces?.some((w) => w.id === tabWorkspaceId),
+      );
+    }
+
     return ghoFilter;
-  }, [ghoQuery, selectedGhoFilter.key, selectedGhoFilter.value]);
+  }, [ghoQuery, isOrgHierarquiaContext, tabWorkspaceId]);
 
   const ghoFilters = useMemo(() => {
     if (!ghoQuery) return [];
@@ -76,41 +89,30 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
     return [HomoTypeEnum.GSE, ...ghoFilters];
   }, [ghoQuery]);
 
-  const handleGoToCharacterization = useCallback(() => {
-    const workspaceLength = company?.workspace?.length || 0;
-    const goToEnv = (workId: string) => {
-      push({
-        pathname: `${RoutesEnum.CHARACTERIZATIONS.replace(
-          ':companyId',
-          company.id,
-        ).replace(':workspaceId', workId)}/${CharacterizationEnum.ALL}`,
-      });
-    };
-
-    if (workspaceLength != 1) {
-      const initialWorkspaceState = {
-        title: 'Selecione para qual Estabelecimento deseja adicionar',
-        onSelect: (workspace: IWorkspace) => goToEnv(workspace.id),
-      } as typeof initialWorkspaceSelectState;
-
-      onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
-    }
-
-    if (!company?.workspace) return;
-    if (workspaceLength == 1) goToEnv(company.workspace[0].id);
-  }, [company.id, company?.workspace, onOpenModal, push]);
-
   return (
     <>
       <SFlex flexWrap="wrap" align="center" gap={4} mb={5} width="280px">
-        {ghoFilters.map((type) => (
-          <STagButton
-            onClick={() => handleFilter(type || null)}
-            key={type}
-            active={filter === type || (!filter && !type)}
-            text={originRiskMap[type].name}
-          />
-        ))}
+        {ghoFilters.map((type) => {
+          const isGseTab = type === HomoTypeEnum.GSE;
+          const tabDisabled = disableNonGseTabs && !isGseTab;
+          return (
+            <STagButton
+              onClick={() => {
+                if (tabDisabled) return;
+                handleFilter(type || null);
+              }}
+              key={String(type)}
+              active={filter === type || (!filter && !type)}
+              text={originRiskMap[type].name}
+              disabled={tabDisabled}
+              tooltipTitle={
+                tabDisabled
+                  ? 'Selecione um estabelecimento no cabeçalho para listar e vincular ambientes e atividades a este organograma.'
+                  : undefined
+              }
+            />
+          );
+        })}
       </SFlex>
       {ghoOrderedData.map((gho, index) => {
         if (gho.type !== filter && !selectedGhoId) return null;
@@ -128,13 +130,6 @@ export const GhoToolView: FC<{ children?: any } & RiskToolRiskViewProps> = ({
           />
         );
       })}
-      {filter && (
-        <STagButton
-          onClick={handleGoToCharacterization}
-          width="285px"
-          text={'adicionar '}
-        />
-      )}
     </>
   );
 };

@@ -47,6 +47,18 @@ import {
 } from '../../store/reducers/hierarchy/hierarchySlice';
 import { useAppDispatch } from './useAppDispatch';
 
+/** Lista de GHO/GSE do cache — mesma família de chaves que `useQueryGHOAll` (não usar só `[GHO, companyId]`). */
+function getGhoListForCompanyFromCache(companyId: string): IGho[] {
+  const entries = queryClient.getQueriesData<IGho[]>({
+    queryKey: [QueryEnum.GHO, companyId],
+    predicate: (query) => Array.isArray(query.state.data),
+  });
+  const lists = entries
+    .map(([, data]) => data)
+    .filter((d): d is IGho[] => Array.isArray(d));
+  return lists.find((l) => l.length > 0) ?? lists[0] ?? [];
+}
+
 export const useHierarchyTreeActions = () => {
   const dispatch = useAppDispatch();
   const saveMutation = useMutUpdateChecklist(); //! change
@@ -187,9 +199,7 @@ export const useHierarchyTreeActions = () => {
       };
       // refName
 
-      const ghos =
-        queryClient.getQueryData<IGho[]>([QueryEnum.GHO, company.id]) ||
-        ([] as IGho[]);
+      const ghos = getGhoListForCompanyFromCache(company.id);
 
       treeMap[firstNodeId] = {
         id: firstNodeId,
@@ -261,13 +271,20 @@ export const useHierarchyTreeActions = () => {
               realDescription: values?.realDescription ?? undefined,
               description: values.description,
               type: TreeTypeEnum[values.type] as unknown as TreeTypeEnum,
-              ghos: ghos.filter(
-                (gho) =>
+              ghos: ghos.filter((gho) => {
+                const linkedToHierarchy =
                   gho.hierarchies &&
-                  gho.hierarchies.some(
-                    (hierarchy) => values.id === hierarchy.id,
-                  ),
-              ),
+                  gho.hierarchies.some((hierarchy) => {
+                    if (values.id !== hierarchy.id) return false;
+                    if (!hierarchy.workspaceId) return true;
+                    return hierarchy.workspaceId === workspaceId;
+                  });
+                if (!linkedToHierarchy) return false;
+                if (gho.workspaceIds?.length) {
+                  return gho.workspaceIds.includes(workspaceId);
+                }
+                return true;
+              }),
             };
 
             if (!values.parentId && treeMap[workspaceId])

@@ -18,6 +18,11 @@ export type WorkspaceBrowseAutocompleteProps = {
   compact?: boolean;
   /** Omits the control while loading or when a single establishment does not need switching. */
   suppressWhenNotMultiple?: boolean;
+  /**
+   * When true, clearing the field calls `onChange('')` instead of forcing the first establishment.
+   * Used on the organogram page to mean “all establishments”.
+   */
+  allowEmptyWorkspace?: boolean;
   mb?: number;
 };
 
@@ -27,6 +32,7 @@ export function WorkspaceBrowseAutocomplete({
   onChange,
   compact = false,
   suppressWhenNotMultiple = false,
+  allowEmptyWorkspace = false,
   mb,
 }: WorkspaceBrowseAutocompleteProps) {
   const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
@@ -54,7 +60,9 @@ export function WorkspaceBrowseAutocomplete({
 
   if (!isLoadingAllWorkspaces && !workspaces?.results?.length) return null;
 
-  const value = options.find((o) => o.value === workspaceId) ?? null;
+  const value = workspaceId
+    ? options.find((o) => o.value === workspaceId) ?? null
+    : null;
 
   const listMaxHeightPx = getHeaderChipListMaxHeightPx(options.length);
 
@@ -83,6 +91,7 @@ export function WorkspaceBrowseAutocomplete({
       getOptionLabel={(o) => o.label}
       onChange={(_, option) => {
         if (option) onChange(option.value);
+        else if (allowEmptyWorkspace) onChange('');
         else if (options[0]) onChange(options[0].value);
       }}
       loading={isLoadingAllWorkspaces}
