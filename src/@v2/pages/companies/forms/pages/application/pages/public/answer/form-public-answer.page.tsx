@@ -23,6 +23,43 @@ import { FormAnswerData } from '@v2/services/forms/form-answer/submit-form-answe
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormIdentifierTypeEnum } from '@v2/models/form/enums/form-identifier-type.enum';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
+import { PageRoutes } from '@v2/constants/pages/routes';
+
+const THANK_YOU_REDIRECT_MS = 10_000;
+
+const buildPublicFormStartPath = ({
+  applicationId,
+  testingOnly,
+  encryptQuery,
+}: {
+  applicationId: string;
+  testingOnly?: boolean;
+  encryptQuery: string | string[] | undefined;
+}) => {
+  const encryptToken = Array.isArray(encryptQuery)
+    ? encryptQuery[0]
+    : encryptQuery;
+  const hadAuthenticatedSession = Boolean(
+    encryptToken && String(encryptToken).length > 0,
+  );
+
+  if (testingOnly) {
+    return PageRoutes.FORMS.PUBLIC_FORM_ANSWER.TESTING.replace(
+      '[id]',
+      applicationId,
+    );
+  }
+  if (hadAuthenticatedSession) {
+    return PageRoutes.FORMS.PUBLIC_FORM_ANSWER.LOGIN.replace(
+      '[id]',
+      applicationId,
+    );
+  }
+  return PageRoutes.FORMS.PUBLIC_FORM_ANSWER.NORMAL.replace(
+    '[id]',
+    applicationId,
+  );
+};
 
 interface FormAnswers {
   [questionId: string]:
@@ -221,6 +258,29 @@ export const PublicFormAnswerPage = ({
       saveFormState();
     }
   }, [currentStep, publicFormApplication, applicationId, saveFormState]);
+
+  // After definitive success only: return to form entry (login or public start)
+  // for shared devices. Never runs unless isFormSubmitted is true (set only after
+  // successful submitMutation.mutateAsync).
+  useEffect(() => {
+    if (!isFormSubmitted || !applicationId) {
+      return;
+    }
+
+    const destination = buildPublicFormStartPath({
+      applicationId,
+      testingOnly,
+      encryptQuery: router.query.encrypt,
+    });
+
+    const timeoutId = window.setTimeout(() => {
+      void router.replace(destination);
+    }, THANK_YOU_REDIRECT_MS);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [isFormSubmitted, applicationId, router, testingOnly, router.query.encrypt]);
 
   // Set initial values for SECTOR field when hierarchyId is available
   useEffect(() => {
@@ -607,11 +667,12 @@ export const PublicFormAnswerPage = ({
               <SText
                 fontSize={14}
                 sx={{
-                  color: '#888',
-                  fontStyle: 'italic',
+                  color: '#666',
+                  lineHeight: 1.6,
                 }}
               >
-                Você pode fechar esta página agora.
+                Você não precisa fazer mais nada. O sistema retornará
+                automaticamente à tela inicial.
               </SText>
             </Box>
           </Box>
