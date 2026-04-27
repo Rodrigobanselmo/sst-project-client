@@ -12,6 +12,7 @@ import { PieLegends } from './components/PieLegends/PieLegends';
 import { HtmlContentRenderer } from '@v2/pages/companies/forms/pages/application/pages/public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { IndicatorPercentScale } from '../IndicatorPercentScale/IndicatorPercentScale';
 
 // Color mapping based on option values
 const getColorByValue = (value?: number): string => {
@@ -199,6 +200,7 @@ const IndicatorComponent = ({
                 },
               }}
             />
+            <IndicatorPercentScale />
             <Typography
               variant="h4"
               textAlign="center"

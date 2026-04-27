@@ -23,6 +23,82 @@ function getIndicatorColor(value: number): string {
   return '#F44336';
 }
 
+/** Mesmos hex da legenda da tela Indicadores (somente referência visual). */
+const LEGEND_ITEMS: ReadonlyArray<{
+  rangeLabel: string;
+  name: string;
+  color: string;
+}> = [
+  { rangeLabel: '0–19%', name: 'Muito negativo', color: '#F44336' },
+  { rangeLabel: '20–39%', name: 'Negativo', color: '#d96c2f' },
+  { rangeLabel: '40–59%', name: 'Neutro', color: '#d9d10b' },
+  { rangeLabel: '60–79%', name: 'Positivo', color: '#8fa728' },
+  { rangeLabel: '80–100%', name: 'Muito positivo', color: '#3cbe7d' },
+];
+
+const SCALE_MARKS = [0, 20, 40, 60, 80, 100] as const;
+
+function IndicatorsInterpretationLegendPdf() {
+  return (
+    <View style={s.legendBox}>
+      <Text style={s.legendTitle}>Interpretação do indicador de qualidade</Text>
+      <Text style={s.legendBody}>
+        O percentual exibido representa a qualidade do indicador com base nas
+        respostas. Percentuais menores indicam condição mais crítica; percentuais
+        maiores, condição mais favorável.
+      </Text>
+      <Text style={s.legendNote}>
+        Quanto maior o percentual, mais favorável é o resultado do indicador.
+      </Text>
+      {LEGEND_ITEMS.map((item) => (
+        <View key={item.name} style={s.legendRow}>
+          <View style={[s.legendSwatch, { backgroundColor: item.color }]} />
+          <View style={s.legendTextCol}>
+            <Text style={s.legendName}>{item.name}</Text>
+            <Text style={s.legendRange}>{item.rangeLabel}</Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+function IndicatorBarTrackWithScale({
+  percentage,
+  score,
+}: {
+  percentage: number;
+  score: number;
+}) {
+  return (
+    <View style={s.barScaleWrap}>
+      <View style={s.barTrack}>
+        <View
+          style={[
+            s.barFill,
+            {
+              width: `${percentage}%`,
+              backgroundColor: getIndicatorColor(score),
+            },
+          ]}
+        />
+      </View>
+      <View style={s.scaleTicksRow}>
+        {SCALE_MARKS.map((m) => (
+          <View key={m} style={s.scaleTick} />
+        ))}
+      </View>
+      <View style={s.scaleLabelsRow}>
+        {SCALE_MARKS.map((m) => (
+          <Text key={m} style={s.scaleLabel}>
+            {m}
+          </Text>
+        ))}
+      </View>
+    </View>
+  );
+}
+
 function IndicatorRows({
   indicators,
   groupingActive,
@@ -67,17 +143,10 @@ function IndicatorRows({
           ) : (
             <>
               <Text style={s.scoreLine}>Score: {ind.score.toFixed(3)}</Text>
-              <View style={s.barTrack}>
-                <View
-                  style={[
-                    s.barFill,
-                    {
-                      width: `${ind.percentage}%`,
-                      backgroundColor: getIndicatorColor(ind.score),
-                    },
-                  ]}
-                />
-              </View>
+              <IndicatorBarTrackWithScale
+                percentage={ind.percentage}
+                score={ind.score}
+              />
             </>
           )}
         </View>
@@ -179,6 +248,9 @@ const s = StyleSheet.create({
     color: '#666',
     marginBottom: 4,
   },
+  barScaleWrap: {
+    width: '100%',
+  },
   barTrack: {
     height: 8,
     border: '1 solid #ccc',
@@ -187,6 +259,80 @@ const s = StyleSheet.create({
   },
   barFill: {
     height: '100%',
+  },
+  scaleTicksRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 2,
+    paddingHorizontal: 0,
+  },
+  scaleTick: {
+    width: 1,
+    height: 5,
+    backgroundColor: '#888888',
+    opacity: 0.85,
+  },
+  scaleLabelsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 2,
+  },
+  scaleLabel: {
+    fontSize: 6,
+    color: '#666666',
+  },
+  legendBox: {
+    marginBottom: 14,
+    padding: 8,
+    border: '1 solid #e0e0e0',
+    borderRadius: 4,
+    backgroundColor: '#fafafa',
+  },
+  legendTitle: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: '#222222',
+    marginBottom: 6,
+  },
+  legendBody: {
+    fontSize: 8,
+    color: '#555555',
+    lineHeight: 1.35,
+    marginBottom: 4,
+  },
+  legendNote: {
+    fontSize: 7,
+    color: '#666666',
+    lineHeight: 1.35,
+    marginBottom: 8,
+  },
+  legendRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+  },
+  legendSwatch: {
+    width: 10,
+    height: 10,
+    borderRadius: 2,
+    marginRight: 6,
+    marginTop: 1,
+    border: '1 solid #dddddd',
+  },
+  legendTextCol: {
+    flex: 1,
+  },
+  legendName: {
+    fontSize: 8,
+    fontWeight: 700,
+    color: '#222222',
+  },
+  legendRange: {
+    fontSize: 7,
+    color: '#666666',
+    marginTop: 1,
   },
   empty: {
     fontSize: 10,
@@ -220,6 +366,8 @@ export default function PdfFormIndicators({
         <Text style={s.issuedAt}>Emitido em: {meta.issuedAt}</Text>
         <Text style={s.groupingBanner}>{groupingLabel}</Text>
         <Text style={s.displayModeBanner}>{displayModeLabel}</Text>
+
+        <IndicatorsInterpretationLegendPdf />
 
         {data.formGroups.length === 0 ? (
           <Text style={s.empty}>

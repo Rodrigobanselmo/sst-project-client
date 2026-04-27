@@ -19,6 +19,8 @@ import { FormQuestionGroupWithAnswersBrowseModel } from '@v2/models/form/models/
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { HtmlContentRenderer } from '../../../../../public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { FormQuestionPieChart } from './components/FormQuestionPieChart/FormQuestionPieChart';
+import { IndicatorsQualityLegend } from './components/IndicatorsQualityLegend/IndicatorsQualityLegend';
+import { IndicatorPercentScale } from './components/IndicatorPercentScale/IndicatorPercentScale';
 import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
 import { SectionHeader } from './components/SectionHeader/SectionHeader';
 import { FormRisksAnalysis } from './components/FormRisksAnalysis/FormRisksAnalysis';
@@ -240,6 +242,7 @@ const ParticipantGroupIndicator = ({
                 },
               }}
             />
+            <IndicatorPercentScale />
             <Typography
               variant="h3"
               textAlign="center"
@@ -411,6 +414,7 @@ const GroupDashboardIndicator = ({
               },
             }}
           />
+          <IndicatorPercentScale />
           <Typography
             variant="h2"
             textAlign="center"
@@ -992,6 +996,7 @@ export const FormQuestionsDashboard = ({
               />
             ) : (
               <SFlex direction="column" gap={24} color="background.paper">
+                {isIndicatorTab && <IndicatorsQualityLegend />}
                 {/* Create a structure grouped by questions first, then by participant groups */}
                 {(() => {
                   // Get all unique questions across all participant groups
