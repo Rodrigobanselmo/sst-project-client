@@ -2,7 +2,14 @@ import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import PersonIcon from '@mui/icons-material/Person';
-import { Box, Button, Chip, CircularProgress, LinearProgress, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  LinearProgress,
+  Typography,
+} from '@mui/material';
 import { useCallback, useMemo, useState } from 'react';
 import { useSnackbar } from 'notistack';
 
@@ -34,6 +41,7 @@ import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enu
 import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
 import { buildParticipantGroupsForIndicators } from './helpers/buildParticipantGroupsForIndicators';
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
+import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -449,6 +457,8 @@ export const FormQuestionsDashboard = ({
 }: FormQuestionsDashboardProps) => {
   const { enqueueSnackbar } = useSnackbar();
   const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
+  const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
+    useState(false);
 
   // Set initial tab based on shareableLink status
   const getInitialTab = () => {
@@ -823,26 +833,46 @@ export const FormQuestionsDashboard = ({
                 />
                 <Button
                   variant="outlined"
-                  onClick={() => {
-                    const params = new URLSearchParams({
-                      companyId: formApplication.companyId,
-                      applicationId: formApplication.id,
-                    });
-                    if (selectedGroupingQuestion) {
-                      params.set('groupBy', selectedGroupingQuestion);
+                  disabled={isExportingIndicatorsPdf || !formQuestionsAnswers}
+                  startIcon={
+                    isExportingIndicatorsPdf ? (
+                      <CircularProgress size={16} />
+                    ) : undefined
+                  }
+                  onClick={async () => {
+                    if (!formQuestionsAnswers) {
+                      enqueueSnackbar(
+                        'Dados do formulário ainda não carregados.',
+                        {
+                          variant: 'warning',
+                        },
+                      );
+                      return;
                     }
-                    params.set(
-                      'showOnlyGroupIndicators',
-                      String(showOnlyGroupIndicators),
-                    );
-                    window.open(
-                      `/api/pdf/forms/indicators?${params.toString()}`,
-                      '_blank',
-                      'noopener,noreferrer',
-                    );
+                    setIsExportingIndicatorsPdf(true);
+                    try {
+                      await exportFormIndicatorsPdfInBrowser({
+                        formApplication,
+                        formQuestionsAnswers,
+                        selectedGroupingQuestionId: selectedGroupingQuestion,
+                        showOnlyGroupIndicators,
+                        hierarchyGroups,
+                      });
+                    } catch (e) {
+                      enqueueSnackbar(
+                        e instanceof Error
+                          ? e.message
+                          : 'Não foi possível gerar o PDF dos indicadores.',
+                        { variant: 'error' },
+                      );
+                    } finally {
+                      setIsExportingIndicatorsPdf(false);
+                    }
                   }}
                 >
-                  Exportar PDF (Indicadores)
+                  {isExportingIndicatorsPdf
+                    ? 'Gerando PDF...'
+                    : 'Exportar PDF (Indicadores)'}
                 </Button>
               </Box>
             </SPaper>
@@ -867,9 +897,12 @@ export const FormQuestionsDashboard = ({
                   }
                   onClick={async () => {
                     if (!formQuestionsAnswers) {
-                      enqueueSnackbar('Dados do formulário ainda não carregados.', {
-                        variant: 'warning',
-                      });
+                      enqueueSnackbar(
+                        'Dados do formulário ainda não carregados.',
+                        {
+                          variant: 'warning',
+                        },
+                      );
                       return;
                     }
                     setIsExportingChartsPdf(true);
