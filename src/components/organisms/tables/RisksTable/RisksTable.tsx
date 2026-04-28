@@ -72,8 +72,14 @@ export const RisksTable: FC<
       onSelectData?: (company: IRiskFactors) => void;
       selectedData?: IRiskFactors[];
       query?: IQueryExam;
+      onEditRisk?: (risk: IRiskFactors) => void;
     }
-> = ({ rowsPerPage: rowsPerPageProp, onSelectData, selectedData }) => {
+> = ({
+  rowsPerPage: rowsPerPageProp,
+  onSelectData,
+  selectedData,
+  onEditRisk: onEditRiskExternal,
+}) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const filterProps = useFilterTable(undefined, {
     setPage,
@@ -134,6 +140,11 @@ export const RisksTable: FC<
   };
 
   const onEditRisk = (risk: IRiskFactors) => {
+    if (onEditRiskExternal) {
+      onEditRiskExternal(risk);
+      return;
+    }
+
     onStackOpenModal(ModalEnum.RISK_ADD, {
       ...(risk as any),
     } as typeof initialAddRiskState);

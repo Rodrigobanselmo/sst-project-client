@@ -63,7 +63,14 @@ export const initialAddRiskState = {
   grauInsalubridade: undefined as GrauInsalubridadeEnum | undefined,
 };
 
-export const useAddRisk = () => {
+type IUseAddRiskOptions = {
+  initialData?: Partial<typeof initialAddRiskState>;
+  disableModalClose?: boolean;
+  onSubmitSuccess?: () => void;
+  onCancel?: () => void;
+};
+
+export const useAddRisk = (options?: IUseAddRiskOptions) => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddRiskState);
@@ -91,7 +98,11 @@ export const useAddRisk = () => {
 
   useEffect(() => {
     const subTypeId = risk?.subTypes[0]?.sub_type?.id;
-    const initialDataProps = getModalData<any>(ModalEnum.RISK_ADD) || {};
+    const modalData = getModalData<any>(ModalEnum.RISK_ADD) || {};
+    const initialDataProps = {
+      ...modalData,
+      ...(options?.initialData || {}),
+    };
     const {
       isAddRecMed,
       isAddGenerateSource,
@@ -128,10 +139,14 @@ export const useAddRisk = () => {
     setValue('grauInsalubridade', risk?.grauInsalubridade ?? null);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [risk]);
+  }, [risk, options?.initialData]);
 
   useEffect(() => {
-    const initialDataProps = getModalData<any>(ModalEnum.RISK_ADD) || {};
+    const modalData = getModalData<any>(ModalEnum.RISK_ADD) || {};
+    const initialDataProps = {
+      ...modalData,
+      ...(!Object.keys(modalData).length ? options?.initialData : {}),
+    };
 
     const {
       isAddRecMed,
@@ -253,7 +268,7 @@ export const useAddRisk = () => {
         return newData;
       });
     }
-  }, [getModalData]);
+  }, [getModalData, options?.initialData]);
 
   const onSubmit: SubmitHandler<
     IRiskSchema & Partial<typeof initialAddRiskState> & { synonymous?: string }
@@ -379,13 +394,17 @@ export const useAddRisk = () => {
       }
     }
 
+    options?.onSubmitSuccess?.();
     onClose();
   };
 
   const onClose = () => {
-    onCloseModal(ModalEnum.RISK_ADD);
+    if (!options?.disableModalClose) {
+      onCloseModal(ModalEnum.RISK_ADD);
+    }
     setRiskData(initialAddRiskState);
     reset();
+    options?.onCancel?.();
   };
 
   const onCloseUnsaved = () => {

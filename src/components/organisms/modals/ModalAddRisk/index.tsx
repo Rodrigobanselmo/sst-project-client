@@ -1,27 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box } from '@mui/material';
-import { SSwitch } from 'components/atoms/SSwitch';
-import { InputForm } from 'components/molecules/form/input';
-import { RadioFormText } from 'components/molecules/form/radio-text';
 import SModal, {
   SModalButtons,
   SModalHeader,
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { RiskEnum } from 'project/enum/risk.enums';
-import { SeverityEnum } from 'project/enum/severity.enums';
 
 import { ModalEnum } from 'core/enums/modal.enums';
-import { enumToArray } from 'core/utils/helpers/convertEnum';
 
 import { ModalAddGenerateSource } from '../ModalAddGenerateSource';
 import { ModalAddRecMed } from '../ModalAddRecMed';
-import { EditRiskSelects } from './components/EditRiskSelects';
-import { RiskQuiContent } from './components/RiskQuiContent/RiskQuiContent';
-import { RiskSharedContent } from './components/RiskSharedContent/RiskSharedContent';
+import { RiskEditorFields } from './components/RiskEditorFields/RiskEditorFields';
 import { useAddRisk } from './hooks/useAddRisk';
 
 export const ModalAddRisk = () => {
@@ -35,7 +26,6 @@ export const ModalAddRisk = () => {
     riskData,
     setRiskData,
     handleSubmit,
-    type,
   } = props;
 
   const buttons = [
@@ -65,9 +55,7 @@ export const ModalAddRisk = () => {
           onClose={onCloseUnsaved}
           title={'Fator de risco'}
         />
-        <RiskSharedContent {...props} />
-        {type == 'QUI' && <RiskQuiContent {...props} />}
-        <EditRiskSelects riskData={riskData} setRiskData={setRiskData} />
+        <RiskEditorFields {...props} />
 
         <SModalButtons
           loading={loading}
