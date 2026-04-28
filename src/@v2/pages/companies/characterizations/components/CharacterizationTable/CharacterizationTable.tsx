@@ -118,34 +118,39 @@ export const CharacterizationTable = () => {
     getLeftLabel: ({ field }) => ordenByCharacterizationTranslation[field],
   });
 
-  const stages = hasWorkspaceSelected ? characterizations?.filters?.stages || [] : [];
+  const stages = hasWorkspaceSelected
+    ? characterizations?.filters?.stages || []
+    : [];
   const selectedStages =
     stages.filter((stage) => queryParams.stageIds?.includes(stage.id)) || [];
 
-  const { onCleanData: resetFromTableState, onFilterData, paramsChipList } =
-    useTableState({
-      data: queryParams,
-      setData: setQueryParams,
-      chipMap: {
-        search: null,
-        stageIds: (value) => ({
-          leftLabel: 'Status',
-          label: selectedStages.find((stage) => stage.id === value)?.name || '',
-          onDelete: () =>
-            setQueryParams({
-              page: 1,
-              stageIds: queryParams.stageIds?.filter((id) => id !== value),
-            }),
-        }),
-      },
-      cleanData: {
-        search: '',
-        orderBy: [],
-        stageIds: [],
-        page: 1,
-        limit: defaultLimit,
-      },
-    });
+  const {
+    onCleanData: resetFromTableState,
+    onFilterData,
+    paramsChipList,
+  } = useTableState({
+    data: queryParams,
+    setData: setQueryParams,
+    chipMap: {
+      search: null,
+      stageIds: (value) => ({
+        leftLabel: 'Status',
+        label: selectedStages.find((stage) => stage.id === value)?.name || '',
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            stageIds: queryParams.stageIds?.filter((id) => id !== value),
+          }),
+      }),
+    },
+    cleanData: {
+      search: '',
+      orderBy: [],
+      stageIds: [],
+      page: 1,
+      limit: defaultLimit,
+    },
+  });
 
   const onCleanData = useCallback(() => {
     resetPersistedLimit();
@@ -224,7 +229,9 @@ export const CharacterizationTable = () => {
         setFilters={onFilterData}
         setHiddenColumns={setHiddenColumns}
         hiddenColumns={hiddenColumns}
-        onSelectRow={(row) => hasWorkspaceSelected && handleCharacterizationEdit(row)}
+        onSelectRow={(row) =>
+          hasWorkspaceSelected && handleCharacterizationEdit(row)
+        }
         onEditStage={(stageId, row) =>
           handleCharacterizationEditStage({ ...row, stageId })
         }
@@ -233,14 +240,18 @@ export const CharacterizationTable = () => {
         }
         data={hasWorkspaceSelected ? characterizations?.results : []}
         isLoading={hasWorkspaceSelected ? isLoading : false}
-        pagination={hasWorkspaceSelected ? characterizations?.pagination : undefined}
+        pagination={
+          hasWorkspaceSelected ? characterizations?.pagination : undefined
+        }
         setPage={(page) => onFilterData({ page })}
         setOrderBy={onOrderBy}
         statusButtonProps={{
-          onAdd: ({ value }) => hasWorkspaceSelected && onAddStatus(value),
-          onDelete: (id) => hasWorkspaceSelected && onDeleteStatus(id),
+          onAdd: ({ value }) =>
+            hasWorkspaceSelected && (onAddStatus(value) as any),
+          onDelete: (id) => hasWorkspaceSelected && (onDeleteStatus(id) as any),
           onEdit: ({ color, value, id }) =>
-            hasWorkspaceSelected && onEditStatus({ id, color, name: value }),
+            hasWorkspaceSelected &&
+            (onEditStatus({ id, color, name: value }) as any),
           options: hasWorkspaceSelected ? statusOptions : [],
           isLoading: hasWorkspaceSelected ? isLoadingStatusOptions : false,
         }}

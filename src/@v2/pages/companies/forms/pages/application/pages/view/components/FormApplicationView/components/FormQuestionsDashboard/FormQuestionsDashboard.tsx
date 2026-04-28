@@ -42,6 +42,7 @@ import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-grou
 import { buildParticipantGroupsForIndicators } from './helpers/buildParticipantGroupsForIndicators';
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
+import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -459,6 +460,7 @@ export const FormQuestionsDashboard = ({
   const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
   const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
     useState(false);
+  const [pdfLoadingMessage, setPdfLoadingMessage] = useState<string>('');
 
   // Set initial tab based on shareableLink status
   const getInitialTab = () => {
@@ -834,11 +836,6 @@ export const FormQuestionsDashboard = ({
                 <Button
                   variant="outlined"
                   disabled={isExportingIndicatorsPdf || !formQuestionsAnswers}
-                  startIcon={
-                    isExportingIndicatorsPdf ? (
-                      <CircularProgress size={16} />
-                    ) : undefined
-                  }
                   onClick={async () => {
                     if (!formQuestionsAnswers) {
                       enqueueSnackbar(
@@ -850,13 +847,20 @@ export const FormQuestionsDashboard = ({
                       return;
                     }
                     setIsExportingIndicatorsPdf(true);
+                    setPdfLoadingMessage('Iniciando geração do PDF...');
                     try {
-                      await exportFormIndicatorsPdfInBrowser({
-                        formApplication,
-                        formQuestionsAnswers,
-                        selectedGroupingQuestionId: selectedGroupingQuestion,
-                        showOnlyGroupIndicators,
-                        hierarchyGroups,
+                      await exportFormIndicatorsPdfInBrowser(
+                        {
+                          formApplication,
+                          formQuestionsAnswers,
+                          selectedGroupingQuestionId: selectedGroupingQuestion,
+                          showOnlyGroupIndicators,
+                          hierarchyGroups,
+                        },
+                        (message) => setPdfLoadingMessage(message),
+                      );
+                      enqueueSnackbar('PDF gerado com sucesso!', {
+                        variant: 'success',
                       });
                     } catch (e) {
                       enqueueSnackbar(
@@ -867,12 +871,11 @@ export const FormQuestionsDashboard = ({
                       );
                     } finally {
                       setIsExportingIndicatorsPdf(false);
+                      setPdfLoadingMessage('');
                     }
                   }}
                 >
-                  {isExportingIndicatorsPdf
-                    ? 'Gerando PDF...'
-                    : 'Exportar PDF (Indicadores)'}
+                  Exportar PDF (Indicadores)
                 </Button>
               </Box>
             </SPaper>
@@ -1169,6 +1172,11 @@ export const FormQuestionsDashboard = ({
           </SPaper>
         </Box>
       )}
+
+      <SPdfLoadingModal
+        open={isExportingIndicatorsPdf}
+        message={pdfLoadingMessage}
+      />
     </SFlex>
   );
 };
