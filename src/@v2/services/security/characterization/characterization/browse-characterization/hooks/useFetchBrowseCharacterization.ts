@@ -5,6 +5,9 @@ import { BrowseCharacterizationParams } from '../service/browse-characterization
 
 export const useFetchBrowseCharaterizations = (
   params: BrowseCharacterizationParams,
+  options?: {
+    enabled?: boolean;
+  },
 ) => {
   const { data, ...response } = useFetch({
     queryFn: async () => {
@@ -16,6 +19,7 @@ export const useFetchBrowseCharaterizations = (
       params.workspaceId,
       params,
     ],
+    enabled: options?.enabled ?? true,
     refetchOnMount: true,
   });
 

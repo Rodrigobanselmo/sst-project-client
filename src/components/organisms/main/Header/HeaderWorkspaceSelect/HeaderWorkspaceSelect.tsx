@@ -22,6 +22,9 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const workspaceRouteId = query.workspaceId as string | undefined;
 
   const isDocumentsListPage = pathname === DOCUMENTS_LIST_PATHNAME;
+  const isActionPlanPage = pathname === '/dashboard/empresas/[companyId]/plano-de-acao';
+  const isCharacterizationRootPage =
+    pathname === '/dashboard/empresas/[companyId]/caracterizacao';
   const isHierarchyOrganogramPage =
     typeof pathname === 'string' &&
     pathname.includes('/empresas/') &&
@@ -40,7 +43,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
     return null;
   }
 
-  if (isDocumentsListPage) {
+  if (isDocumentsListPage || isActionPlanPage || isCharacterizationRootPage) {
     return (
       <STBox
         ml={2}
@@ -66,15 +69,20 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
             companyId={companyId}
             workspaceId={tabWorkspaceId}
             onChange={(id) => {
+              const nextQuery = { ...router.query } as ParsedUrlQuery;
+              if (id) nextQuery.tabWorkspaceId = id;
+              else delete nextQuery.tabWorkspaceId;
+
               void router.replace(
                 {
                   pathname: router.pathname,
-                  query: { ...router.query, tabWorkspaceId: id },
+                  query: nextQuery,
                 },
                 undefined,
                 { shallow: true },
               );
             }}
+            allowEmptyWorkspace={isCharacterizationRootPage}
             compact
             suppressWhenNotMultiple={false}
           />
