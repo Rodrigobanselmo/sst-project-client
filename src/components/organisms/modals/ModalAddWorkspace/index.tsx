@@ -2,11 +2,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
+import { Box } from '@mui/material';
+
 import SModal, {
   SModalButtons,
   SModalHeader,
   SModalPaper,
 } from 'components/molecules/SModal';
+import { SButton } from 'components/atoms/SButton';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -27,23 +30,12 @@ export const ModalAddWorkspace = () => {
   } = props;
 
   const buttons = [
-    {},
     {
       text: companyData.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
       onClick: () => {},
     },
-    ...(companyData.id
-      ? [
-          {
-            text: 'Excluir',
-            variant: 'outlined' as const,
-            color: 'error' as const,
-            onClick: handleDelete,
-          },
-        ]
-      : []),
   ] as IModalButton[];
 
   return (
@@ -70,7 +62,28 @@ export const ModalAddWorkspace = () => {
           loading={loading}
           onClose={onCloseUnsaved}
           buttons={buttons}
-        />
+          justifyContent="space-between"
+        >
+          <Box display="flex" gap={5}>
+            {companyData.id && (
+              <SButton
+                variant="outlined"
+                color="error"
+                onClick={handleDelete}
+                style={{ minWidth: 100 }}
+              >
+                Excluir
+              </SButton>
+            )}
+            <SButton
+              variant="outlined"
+              onClick={onCloseUnsaved}
+              style={{ minWidth: 100 }}
+            >
+              Cancelar
+            </SButton>
+          </Box>
+        </SModalButtons>
       </SModalPaper>
     </SModal>
   );
