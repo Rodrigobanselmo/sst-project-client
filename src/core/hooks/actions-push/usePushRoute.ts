@@ -24,7 +24,7 @@ import { PageRoutes } from '@v2/constants/pages/routes';
 export const usePushRoute = () => {
   const { data: company } = useQueryCompany();
   const router = useAppRouter();
-  const { push, asPath } = useRouter();
+  const { push, asPath, query } = useRouter();
   const { onOpenRiskToolSelected, onStackOpenModal } = useOpenRiskTool();
   const { onImportEmployee } = useEmployeeActions();
   const { onEditApplyServiceCompany, onAddWorspace } = useCompanyActions();
@@ -117,10 +117,19 @@ export const usePushRoute = () => {
   }, [onOpenRiskToolSelected, onStackOpenModal]);
 
   const handleDocumentControl = useCallback(() => {
-    router.push(PageRoutes.DOCUMENTS.LIST, {
-      pathParams: { companyId: company.id },
-    });
-  }, [company.id, router]);
+    const pathname = PageRoutes.DOCUMENTS.LIST.replace('[companyId]', company.id);
+    const tabWorkspaceId = query.tabWorkspaceId as string | undefined;
+
+    if (tabWorkspaceId) {
+      push({
+        pathname,
+        query: { tabWorkspaceId },
+      });
+      return;
+    }
+
+    push({ pathname });
+  }, [company.id, push, query.tabWorkspaceId]);
 
   return {
     handleAddCharacterization: () => onViewCharacterization({}),

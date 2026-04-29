@@ -25,6 +25,9 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const isActionPlanPage = pathname === '/dashboard/empresas/[companyId]/plano-de-acao';
   const isCharacterizationRootPage =
     pathname === '/dashboard/empresas/[companyId]/caracterizacao';
+  const isNewDocumentsStagePage =
+    pathname === '/dashboard/empresas/[companyId]/novo/[stage]' &&
+    query.stage === 'documentos';
   const isHierarchyOrganogramPage =
     typeof pathname === 'string' &&
     pathname.includes('/empresas/') &&
@@ -43,7 +46,12 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
     return null;
   }
 
-  if (isDocumentsListPage || isActionPlanPage || isCharacterizationRootPage) {
+  if (
+    isDocumentsListPage ||
+    isActionPlanPage ||
+    isCharacterizationRootPage ||
+    isNewDocumentsStagePage
+  ) {
     return (
       <STBox
         ml={2}

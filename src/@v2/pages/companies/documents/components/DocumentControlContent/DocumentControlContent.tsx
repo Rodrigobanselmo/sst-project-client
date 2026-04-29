@@ -3,6 +3,7 @@ import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
+import { Box } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
 import { DocumentControlTable } from '../DocumentControlTable/DocumentControlTable';
@@ -26,10 +27,15 @@ export const DocumentsContent = ({ companyId }: { companyId: string }) => {
   }, [workspaces?.results]);
 
   useEffect(() => {
+    if (workspaces?.results?.length !== 1) return;
     if (!sortedFirstId || queryParams.tabWorkspaceId) return;
     setQueryParams({ tabWorkspaceId: sortedFirstId });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortedFirstId, queryParams.tabWorkspaceId]);
+  }, [
+    queryParams.tabWorkspaceId,
+    setQueryParams,
+    sortedFirstId,
+    workspaces?.results?.length,
+  ]);
 
   if (isLoadingAllWorkspaces) {
     return <SSkeleton height={400} />;
@@ -44,7 +50,11 @@ export const DocumentsContent = ({ companyId }: { companyId: string }) => {
   }
 
   if (!queryParams.tabWorkspaceId) {
-    return <SSkeleton height={400} />;
+    return (
+      <Box mb={2} mt={1} color="text.secondary" fontSize={13}>
+        Selecione um estabelecimento no header para carregar os documentos.
+      </Box>
+    );
   }
 
   return (

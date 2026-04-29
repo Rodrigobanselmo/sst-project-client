@@ -22,7 +22,6 @@ import SText from 'components/atoms/SText';
 import { initialMainDocState } from 'components/organisms/modals/ModalAddDocVersion/hooks/useMainActions';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
-import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
 import { ModalShowHierarchyTree } from 'components/organisms/modals/ModalShowHierarchyTree';
 import { ModalViewDocDownload } from 'components/organisms/modals/ModalViewDocDownloads';
 import { initialViewDocDownloadState } from 'components/organisms/modals/ModalViewDocDownloads/hooks/useModalViewDocDownload';
@@ -40,7 +39,6 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { IRiskDocument } from 'core/interfaces/api/IRiskData';
 import {
   IQueryDocVersion,
@@ -54,8 +52,10 @@ export const DocTable: FC<
       rowsPerPage?: number;
       query?: Partial<IQueryDocVersion>;
       type: DocumentTypeEnum;
+      workspaceId?: string;
+      workspaceName?: string;
     }
-> = ({ rowsPerPage = 8, hideTitle, query, type }) => {
+> = ({ rowsPerPage = 8, hideTitle, query, type, workspaceId, workspaceName }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const {
     data: docs,
@@ -110,19 +110,13 @@ export const DocTable: FC<
   };
 
   const onGenerateVersion = async () => {
-    const initialWorkspaceState = {
-      title: 'Selecione o estabelecimento para o Sistema de Gestão SST',
-      onSelect: (work: IWorkspace) => {
-        onOpenModal(ModalEnum.DOCUMENT_DATA_UPSERT, {
-          workspaceId: work.id,
-          workspaceName: work.name,
-          companyId,
-          type,
-        } as typeof initialMainDocState);
-      },
-    } as typeof initialWorkspaceSelectState;
-
-    onOpenModal(ModalEnum.WORKSPACE_SELECT, initialWorkspaceState);
+    if (!workspaceId) return;
+    onOpenModal(ModalEnum.DOCUMENT_DATA_UPSERT, {
+      workspaceId,
+      workspaceName: workspaceName || '',
+      companyId,
+      type,
+    } as typeof initialMainDocState);
   };
 
   return (
@@ -136,10 +130,7 @@ export const DocTable: FC<
         </STableTitle>
       )}
 
-      <STableSearch
-        onAddClick={() => onGenerateVersion()}
-        onChange={(e) => handleSearchChange(e.target.value)}
-      >
+      <STableSearch onAddClick={() => onGenerateVersion()} onChange={(e) => handleSearchChange(e.target.value)}>
         <STableButton
           tooltip="autualizar"
           onClick={() => {
