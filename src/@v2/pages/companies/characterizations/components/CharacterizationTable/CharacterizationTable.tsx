@@ -27,13 +27,17 @@ import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/characterization/browse-characterization/hooks/useFetchBrowseCharacterization';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
+import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
 import { useCharacterizationActions } from '../../hooks/useCharacterizationActions';
 import { CharacterizationTableFilter } from './components/CharacterizationTableFilter/CharacterizationTableFilter';
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
 import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 
 const table = TablesSelectEnum.CHARACTERIZATION;
+
+const CARACTERIZACAO_ROOT_PATHNAME =
+  '/dashboard/empresas/[companyId]/caracterizacao';
 
 export const CharacterizationTable = () => {
   const router = useRouter();
@@ -43,6 +47,36 @@ export const CharacterizationTable = () => {
     (router.query.workspaceId as string | undefined) ||
     (router.query.tabWorkspaceId as string | undefined);
   const hasWorkspaceSelected = !!workspaceId;
+
+  const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
+    companyId: companyId || '',
+  });
+
+  const soleEstablishmentId = useMemo(() => {
+    if (workspaces?.results?.length !== 1) return undefined;
+    return workspaces.results[0]?.id;
+  }, [workspaces?.results]);
+
+  useEffect(() => {
+    if (router.pathname !== CARACTERIZACAO_ROOT_PATHNAME) return;
+    if (isLoadingAllWorkspaces || !soleEstablishmentId) return;
+    if (router.query.tabWorkspaceId || router.query.workspaceId) return;
+
+    const nextQuery = { ...router.query };
+    nextQuery.tabWorkspaceId = soleEstablishmentId;
+    void router.replace(
+      { pathname: router.pathname, query: nextQuery },
+      undefined,
+      { shallow: true },
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: sync URL once when sole establishment resolves
+  }, [
+    isLoadingAllWorkspaces,
+    soleEstablishmentId,
+    router.pathname,
+    router.query.tabWorkspaceId,
+    router.query.workspaceId,
+  ]);
 
   const [hiddenColumns, setHiddenColumns] = usePersistedState<
     Record<CharacterizationColumnsEnum, boolean>
