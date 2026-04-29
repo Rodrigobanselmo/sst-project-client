@@ -24,7 +24,12 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
   ...props
 }) => {
-  const { riskData, setRiskData, control, setValue, type } = props;
+  const { riskData, setRiskData, control, setValue, type, riskEditorLayout } =
+    props;
+  const longTextFieldSx =
+    riskEditorLayout === 'inline'
+      ? { width: '100%' }
+      : { width: ['100%', 600] };
   const { companyId } = useGetCompanyId();
 
   const { subTypes } = useFetchBrowseRiskSubType({
@@ -121,7 +126,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
             </>
           }
           control={control}
-          sx={{ width: ['100%', 600], mb: 8 }}
+          sx={{ ...longTextFieldSx, mb: 8 }}
           placeholder={'descrião do risco...'}
           name="risk"
           size="small"
@@ -135,7 +140,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           maxRows={5}
           label="Sintomas, Danos ou Qualquer consequência negativa"
           control={control}
-          sx={{ width: ['100%', 600] }}
+          sx={longTextFieldSx}
           placeholder={'descrião dos sintomas...'}
           setValue={setValue}
           name="symptoms"

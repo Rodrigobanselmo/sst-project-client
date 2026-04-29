@@ -68,6 +68,8 @@ type IUseAddRiskOptions = {
   disableModalClose?: boolean;
   onSubmitSuccess?: () => void;
   onCancel?: () => void;
+  /** Quando `inline`, o formulário pode expandir campos longos (ex.: página de fatores de risco). */
+  riskEditorLayout?: 'modal' | 'inline';
 };
 
 export const useAddRisk = (options?: IUseAddRiskOptions) => {
@@ -433,6 +435,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     setValue,
     type,
     watch,
+    riskEditorLayout: options?.riskEditorLayout ?? 'modal',
   };
 };
 

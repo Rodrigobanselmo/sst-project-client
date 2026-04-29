@@ -24,6 +24,7 @@ export const RiskInlineEditor: FC<RiskInlineEditorProps> = ({
     initialData: risk as any,
     disableModalClose: true,
     onCancel: onBackToList,
+    riskEditorLayout: 'inline',
   });
 
   const { riskData, setRiskData, handleSubmit, onSubmit, onCloseUnsaved, loading } =
