@@ -1,10 +1,12 @@
 import { useRouter } from 'next/router';
+import ContentCopyOutlinedIcon from '@mui/icons-material/ContentCopyOutlined';
 
 import { Box } from '@mui/material';
 import { STableFilterChip } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChip/STableFilterChip';
 import { STableFilterChipList } from '@v2/components/organisms/STable/addons/addons-table/STableFilterChipList/STableFilterChipList';
 import { STableInfoSection } from '@v2/components/organisms/STable/addons/addons-table/STableInfoSection/STableInfoSection';
 import { STableAddButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableAddButton/STableAddButton';
+import { STableButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/STableButton';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import { STableExportButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableExportButton/STableExportButton';
 import { STableFilterButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableFilterButton/STableFilterButton';
@@ -132,6 +134,7 @@ export const CharacterizationTable = () => {
     handleCharacterizationEditPosition,
     handleCharacterizationExport,
     handleCharacterizationEditMany,
+    handleCharacterizationCopy,
   } = useCharacterizationActions({ companyId, workspaceId });
 
   const {
@@ -201,7 +204,15 @@ export const CharacterizationTable = () => {
       >
         <STableSearchContent>
           {hasWorkspaceSelected && (
-            <STableAddButton onClick={handleCharacterizationAdd} />
+            <>
+              <STableAddButton onClick={handleCharacterizationAdd} />
+              <STableButton
+                onClick={handleCharacterizationCopy}
+                text="Copiar caracterização"
+                icon={<ContentCopyOutlinedIcon sx={{ fontSize: 16 }} />}
+                color="success"
+              />
+            </>
           )}
           <STableColumnsButton
             hiddenColumns={hiddenColumns}

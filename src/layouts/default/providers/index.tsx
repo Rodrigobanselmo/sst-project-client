@@ -27,16 +27,16 @@ import { AuthProvider } from '../../../core/contexts/AuthContext';
 import { queryClient as oldQueryClient } from '../../../core/services/queryClient';
 import store, { persistor } from '../../../store';
 import { KBarProvider } from '../KBar/KBarProvider';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DynamicThemeProvider } from './DynamicThemeProvider';
 import { GlobalLoadingScreen } from './GlobalLoadingScreen';
 import { AIChatProvider } from '@v2/features/ai-chat';
+import { v2QueryClient } from '@v2/services/query-client';
 
 const QueryClientProviderComponent = OldQueryClientProvider as any;
-
-export const queryClient = new QueryClient();
+export const queryClient = v2QueryClient;
 
 const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
   const notistackRef = React.createRef<SnackbarProvider>();
@@ -49,7 +49,7 @@ const DefaultProviders: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="pt-br">
         <PersistGate loading={null} persistor={persistor}>
           <OnlineStatusProvider>
-            <QueryClientProvider client={queryClient}>
+            <QueryClientProvider client={v2QueryClient}>
               <QueryClientProviderComponent client={oldQueryClient}>
                 <SnackbarProvider
                   ref={notistackRef}

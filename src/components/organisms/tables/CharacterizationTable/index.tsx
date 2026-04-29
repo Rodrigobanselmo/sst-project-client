@@ -67,12 +67,14 @@ export const CharacterizationTable: FC<
   const { companyId: __companyId, workspaceId: __workspaceId } =
     useGetCompanyId();
 
-  const companyId = _companyId || __companyId;
-  const workspaceId = _workspaceId || __workspaceId;
+  const hasProvidedContext = _companyId !== undefined || _workspaceId !== undefined;
+  const companyId = _companyId ?? __companyId;
+  const workspaceId = _workspaceId ?? __workspaceId;
 
   const { data, isLoading } = useQueryCharacterizations(1, {
     companyId,
     workspaceId,
+    strictContext: hasProvidedContext,
   });
 
   const isSelect = !!onSelectData;

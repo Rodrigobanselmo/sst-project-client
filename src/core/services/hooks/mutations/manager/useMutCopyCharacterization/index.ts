@@ -1,4 +1,6 @@
 import { useMutation } from 'react-query';
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
+import { v2QueryClient } from '@v2/services/query-client';
 
 import { useSnackbar } from 'notistack';
 
@@ -15,7 +17,8 @@ interface ICopyChar {
   companyId?: string;
   companyCopyFromId: string;
   characterizationIds: string[];
-  workspaceId: string;
+  workspaceId: string; // destination workspace (route param)
+  sourceWorkspaceId?: string; // source workspace (filter source context)
 }
 
 export async function copyChar(data: ICopyChar) {
@@ -41,12 +44,17 @@ export function useMutCopyCharacterization() {
       copyChar({ ...data, companyId: getCompanyId(data) }),
     {
       onSuccess: async () => {
-        queryClient.invalidateQueries([QueryEnum.RISK_DATA]);
-        queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
-        queryClient.invalidateQueries([QueryEnum.ENVIRONMENTS]);
+        // Legacy queries (react-query v3)
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATIONS]);
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
-        queryClient.invalidateQueries([QueryEnum.GHO]);
+        // V2 queries (@tanstack/react-query) used by current table
+        await v2QueryClient.invalidateQueries({
+          queryKey: [QueryKeyCharacterizationEnum.CHARACTERIZATIONS],
+        });
+        await v2QueryClient.refetchQueries({
+          queryKey: [QueryKeyCharacterizationEnum.CHARACTERIZATIONS],
+          type: 'active',
+        });
 
         enqueueSnackbar('Ambientes e/ou Atividades copiados com sucesso', {
           variant: 'success',

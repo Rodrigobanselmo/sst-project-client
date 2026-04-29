@@ -6,7 +6,6 @@ import {
   TextField,
   createFilterOptions,
 } from '@mui/material';
-import { SButton } from 'components/atoms/SButton';
 import SText from 'components/atoms/SText';
 import SModal, {
   SModalButtons,
@@ -14,7 +13,6 @@ import SModal, {
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -22,17 +20,28 @@ import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { QueryEnum } from 'core/enums/query.enums';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { queryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { useQuery } from 'react-query';
 
 export const initialCopyRiskImportEntryState = {
   onContinue: (_ctx: { sourceCompanyId: string; workspaceId?: string }) => {},
   defaultCompanyId: '' as string,
   defaultWorkspaceId: '' as string | undefined,
+  title: 'Importar riscos — origem',
+  companyLabel: 'Empresa de origem (cópia)',
+  workspaceLabel: 'Estabelecimento de origem',
+  changeCompanyLabel: 'Usar outra empresa',
+  helperText:
+    'Na próxima etapa você escolhe o grupo de riscos (caracterização) de origem na empresa e estabelecimento indicados acima. A empresa e o estabelecimento da tela atual não são alterados.',
 };
 
 const modalName = ModalEnum.COPY_RISK_IMPORT_ENTRY;
 
 const workspaceFilterOptions = createFilterOptions<IWorkspace>({
+  stringify: (option) => option.name || option.id,
+});
+
+const companyFilterOptions = createFilterOptions<ICompany>({
   stringify: (option) => option.name || option.id,
 });
 
@@ -44,12 +53,10 @@ const workspaceAutocompletePopperProps = {
 export const ModalCopyRiskImportEntry: FC = () => {
   const { registerModal, getModalData, findModalData, currentModal } =
     useRegisterModal();
-  const { onCloseModal, onStackOpenModal } = useModal();
+  const { onCloseModal } = useModal();
   const [selectData, setSelectData] = useState(initialCopyRiskImportEntryState);
   const [sourceCompanyId, setSourceCompanyId] = useState('');
   const [workspaceId, setWorkspaceId] = useState<string | undefined>(undefined);
-  /** Evita sobrescrever a empresa escolhida ao voltar do COMPANY_SELECT (getModalData reaplica defaultCompanyId). */
-  const skipDefaultCompanyHydrateRef = useRef(false);
 
   useEffect(() => {
     const fromTop = getModalData(
@@ -67,12 +74,12 @@ export const ModalCopyRiskImportEntry: FC = () => {
       !(initialData as any).passBack
     ) {
       setSelectData((prev) => ({ ...prev, ...initialData }));
-      if (!skipDefaultCompanyHydrateRef.current) {
-        setSourceCompanyId(initialData.defaultCompanyId || '');
-        setWorkspaceId(initialData.defaultWorkspaceId);
-      }
+      setSourceCompanyId(initialData.defaultCompanyId || '');
+      setWorkspaceId(initialData.defaultWorkspaceId);
     }
   }, [currentModal, findModalData, getModalData]);
+
+  const { companies } = useQueryCompanies(1, { findAll: true }, 300);
 
   const { data: sourceCompany } = useQuery(
     [QueryEnum.COMPANY, 'copy-risk-import', sourceCompanyId],
@@ -115,32 +122,29 @@ export const ModalCopyRiskImportEntry: FC = () => {
   }, [showWorkspaceSelect, sortedWorkspaces, workspaceId]);
 
   const onCloseNoSelect = () => {
-    skipDefaultCompanyHydrateRef.current = false;
     setSelectData(initialCopyRiskImportEntryState);
     setSourceCompanyId('');
     setWorkspaceId(undefined);
     onCloseModal(modalName);
   };
 
-  const handleOtherCompany = () => {
-    skipDefaultCompanyHydrateRef.current = true;
-    onStackOpenModal(ModalEnum.COMPANY_SELECT, {
-      multiple: false,
-      onSelect: (company: ICompany) => {
-        setSourceCompanyId(company.id);
-        setWorkspaceId(undefined);
-        onCloseModal(ModalEnum.COMPANY_SELECT);
-      },
-    } as Partial<typeof initialCompanySelectState>);
-  };
-
   const handleContinue = () => {
     if (!sourceCompanyId) return;
-    selectData.onContinue({
+    const onContinue = selectData.onContinue;
+    const context = {
       sourceCompanyId,
       workspaceId: effectiveWorkspaceId,
-    });
-    onCloseNoSelect();
+    };
+
+    // Close current modal before opening the next one.
+    // If we open next and then close by name, modal stack marks the next modal
+    // with passBack=true, causing it to ignore the fresh context payload.
+    setSelectData(initialCopyRiskImportEntryState);
+    setSourceCompanyId('');
+    setWorkspaceId(undefined);
+    onCloseModal(modalName);
+
+    onContinue(context);
   };
 
   const buttons = [
@@ -164,23 +168,36 @@ export const ModalCopyRiskImportEntry: FC = () => {
         <SModalHeader
           tag="select"
           onClose={onCloseNoSelect}
-          title="Importar riscos — origem"
+          title={selectData.title}
         />
         <Box mt={6}>
-          <SText fontSize={14} color="text.light" mb={2}>
-            Empresa de origem (cópia)
-          </SText>
-          <SText fontWeight={600} fontSize={16}>
-            {sourceCompany?.name || '—'}
-          </SText>
-          <SButton
-            variant="text"
+          <Autocomplete<ICompany, false, false, false>
+            fullWidth
             size="small"
-            sx={{ mt: 1, p: 0, minWidth: 0 }}
-            onClick={handleOtherCompany}
-          >
-            Usar outra empresa
-          </SButton>
+            options={companies}
+            filterOptions={companyFilterOptions}
+            getOptionLabel={(company) => company.name || company.id}
+            value={
+              companies.find((company) => String(company.id) === sourceCompanyId) ||
+              ((sourceCompany as ICompany | undefined) ?? null)
+            }
+            onChange={(_, option) => {
+              setSourceCompanyId(option ? String(option.id) : '');
+              setWorkspaceId(undefined);
+            }}
+            isOptionEqualToValue={(a, b) => String(a.id) === String(b.id)}
+            componentsProps={{
+              popper: workspaceAutocompletePopperProps,
+            }}
+            ListboxProps={{ style: { maxHeight: 320 } }}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                label={selectData.companyLabel}
+                placeholder="Buscar por nome…"
+              />
+            )}
+          />
 
           {showWorkspaceSelect ? (
             <Autocomplete<IWorkspace, false, false, false>
@@ -205,7 +222,7 @@ export const ModalCopyRiskImportEntry: FC = () => {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Estabelecimento de origem"
+                  label={selectData.workspaceLabel}
                   placeholder="Buscar por nome…"
                 />
               )}
@@ -213,9 +230,7 @@ export const ModalCopyRiskImportEntry: FC = () => {
           ) : null}
 
           <SText fontSize={12} color="text.light" mt={4}>
-            Na próxima etapa você escolhe o grupo de riscos (caracterização) de
-            origem na empresa e estabelecimento indicados acima. A empresa e o
-            estabelecimento da tela atual não são alterados.
+            {selectData.helperText}
           </SText>
         </Box>
         <SModalButtons onClose={onCloseNoSelect} buttons={buttons} />

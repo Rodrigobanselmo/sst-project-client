@@ -9,16 +9,11 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { CharacterizationTable } from 'components/organisms/tables/CharacterizationTable';
-import { CompaniesTable } from 'components/organisms/tables/CompaniesTable';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { ICharacterization } from 'core/interfaces/api/ICharacterization';
-import {
-  IQueryCompanies,
-  IQueryCompaniesTypes,
-} from 'core/services/hooks/queries/useQueryCompanies';
 
 export const initialCharacterizationSelectState = {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -33,16 +28,22 @@ export const initialCharacterizationSelectState = {
 };
 
 export const ModalSelectCharacterization: FC = () => {
-  const { registerModal, getModalData } = useRegisterModal();
+  const { registerModal, getModalData, findModalData, currentModal } =
+    useRegisterModal();
   const { onCloseModal } = useModal();
   const [selectData, setSelectData] = useState(
     initialCharacterizationSelectState,
   );
 
   useEffect(() => {
-    const initialData = getModalData(
+    const fromTop = getModalData(
       ModalEnum.CHARACTERIZATION_SELECT,
     ) as typeof initialCharacterizationSelectState;
+    const fromStack = findModalData(
+      ModalEnum.CHARACTERIZATION_SELECT,
+    ) as typeof initialCharacterizationSelectState;
+    const initialData =
+      fromTop && Object.keys(fromTop).length ? fromTop : fromStack;
 
     // eslint-disable-next-line prettier/prettier
     if (
@@ -50,16 +51,12 @@ export const ModalSelectCharacterization: FC = () => {
       Object.keys(initialData)?.length &&
       !(initialData as any).passBack
     ) {
-      setSelectData((oldData) => {
-        const newData = {
-          ...oldData,
-          ...initialData,
-        };
-
-        return newData;
+      setSelectData({
+        ...initialCharacterizationSelectState,
+        ...initialData,
       });
     }
-  }, [getModalData]);
+  }, [currentModal, findModalData, getModalData]);
 
   const onCloseNoSelect = () => {
     setSelectData(initialCharacterizationSelectState);
@@ -108,6 +105,7 @@ export const ModalSelectCharacterization: FC = () => {
         <SText>{selectData.title}</SText>
         <Box minWidth={['100%', 600, 800]} pb={10} mt={8}>
           <CharacterizationTable
+            key={`${selectData.companyId || 'no-company'}::${selectData.workspaceId || 'no-workspace'}`}
             {...(selectData.multiple
               ? { selectedData: selectData.selected }
               : {})}

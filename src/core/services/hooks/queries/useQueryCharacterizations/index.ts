@@ -14,6 +14,7 @@ export interface IQueryCharacterization {
   search?: string;
   companyId?: string;
   workspaceId?: string;
+  strictContext?: boolean;
 }
 
 export const queryCharacterizations = async (
@@ -40,8 +41,12 @@ export function useQueryCharacterizations(
   const { companyId: _companyId, workspaceId: _workspaceId } =
     useGetCompanyId();
 
-  const companyId = query.companyId || _companyId;
-  const workspaceId = query.workspaceId || _workspaceId;
+  const companyId = query.strictContext
+    ? query.companyId
+    : query.companyId || _companyId;
+  const workspaceId = query.strictContext
+    ? query.workspaceId
+    : query.workspaceId || _workspaceId;
 
   const { data, ...queryData } = useQuery(
     [QueryEnum.CHARACTERIZATIONS, companyId, workspaceId],

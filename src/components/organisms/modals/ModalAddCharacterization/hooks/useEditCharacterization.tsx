@@ -865,6 +865,7 @@ export const useEditCharacterization = (
                     workspaceId:
                       characterizationData.workspaceId ||
                       (query.workspaceId as string),
+                    sourceWorkspaceId: workspace.id,
                     characterizationIds: char.map((c) => c.id),
                     companyId: characterizationData.companyId,
                   })
