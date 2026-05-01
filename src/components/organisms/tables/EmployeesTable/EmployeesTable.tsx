@@ -67,6 +67,7 @@ import {
   EmployeeListSortBy,
   EmployeeTableColumnId,
 } from './employeeTable.types';
+import { EmployeeEstablishmentsCell } from './components/EmployeeEstablishmentsCell';
 import { SDropIconEmployee } from './components/SDropIconEmployee/SDropIconEmployee';
 import { PermissionCompanyEnum } from 'project/enum/permissionsCompany';
 
@@ -207,7 +208,7 @@ export const EmployeesTable: FC<
     const list: ColumnDef[] = [
       {
         id: 'employee',
-        column: 'minmax(200px, 5fr)',
+        column: 'minmax(200px, 3.5fr)',
         label: 'Funcionário',
         sortField: 'NAME',
       },
@@ -221,9 +222,14 @@ export const EmployeesTable: FC<
     }
     list.push({
       id: 'cargo',
-      column: 'minmax(190px, 1fr)',
+      column: 'minmax(260px, 2fr)',
       label: 'Cargo',
       sortField: 'HIERARCHY',
+    });
+    list.push({
+      id: 'establishments',
+      column: 'minmax(220px, 2.25fr)',
+      label: 'Estab.',
     });
     if (isSchedule) {
       list.push(
@@ -362,6 +368,10 @@ export const EmployeesTable: FC<
             fontSize={12}
             mr={3}
           />
+        );
+      case 'establishments':
+        return (
+          <EmployeeEstablishmentsCell key="establishments" employee={employee} />
         );
       case 'validity':
         return isSchedule ? (

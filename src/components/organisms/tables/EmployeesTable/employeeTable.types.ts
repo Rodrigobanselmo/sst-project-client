@@ -9,6 +9,7 @@ export type EmployeeTableColumnId =
   | 'employee'
   | 'company'
   | 'cargo'
+  | 'establishments'
   | 'validity'
   | 'lastExam'
   | 'status'
