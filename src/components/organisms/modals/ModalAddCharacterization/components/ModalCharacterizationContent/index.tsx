@@ -41,8 +41,12 @@ const StyledImage = styled('img')`
   object-fit: contain;
 `;
 
+interface IModalCharacterizationContentProps extends IUseEditCharacterization {
+  hideCharacterizationDelete?: boolean;
+}
+
 export const ModalCharacterizationContent = (
-  props: IUseEditCharacterization,
+  props: IModalCharacterizationContentProps,
 ) => {
   const [showNameInput, setShowNameInput] = useState(false);
 
@@ -74,6 +78,7 @@ export const ModalCharacterizationContent = (
     onEditArray,
     onEditArrayContent,
     isEdit,
+    hideCharacterizationDelete = false,
   } = props;
 
   const isEnvironment = getIsEnvironment(characterizationData.type);
@@ -218,13 +223,15 @@ export const ModalCharacterizationContent = (
             icon={SAddIcon}
             onClick={() => onAddProfile()}
           />
-          <SIconButton
-            sx={{ ml: 'auto' }}
-            tooltip={'remover perfil'}
-            onClick={() => onRemove()}
-          >
-            <Icon sx={{ fontSize: 20 }} component={SDeleteIcon} />
-          </SIconButton>
+          {!hideCharacterizationDelete && (
+            <SIconButton
+              sx={{ ml: 'auto' }}
+              tooltip={'remover perfil'}
+              onClick={() => onRemove()}
+            >
+              <Icon sx={{ fontSize: 20 }} component={SDeleteIcon} />
+            </SIconButton>
+          )}
         </SFlex>
         {manyProfiles && (
           <InputForm

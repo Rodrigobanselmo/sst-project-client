@@ -2,6 +2,8 @@ import { BoxProps } from '@mui/material';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { useMutateExportCharacterization } from '@v2/services/export/characterization/hooks/useMutateExportCharacterization';
 import { useMutateEditManyCharacterization } from '@v2/services/security/characterization/characterization/edit-many-characterization/hooks/useMutateEditManyActionPlan';
+import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
+import { QueryKeyCharacterizationEnum } from '@v2/constants/enums/characterization-query-key.enum';
 import { useRouter } from 'next/router';
 
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -10,9 +12,11 @@ import { ICharacterization } from 'core/interfaces/api/ICharacterization';
 import { IWorkspace } from 'core/interfaces/api/ICompany';
 import { useMutCopyCharacterization } from 'core/services/hooks/mutations/manager/useMutCopyCharacterization';
 import { useMutUpsertCharacterization } from 'core/services/hooks/mutations/manager/useMutUpsertCharacterization';
+import { deleteCharacterization } from 'core/services/hooks/mutations/manager/useMutDeleteCharacterization';
 import { initialCopyRiskImportEntryState } from 'components/organisms/modals/ModalCopyRiskImportEntry';
 import { initialCharacterizationSelectState } from 'components/organisms/modals/ModalSelectCharacterization';
 import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSelectWorkspace';
+import { queryClient } from 'layouts/default/providers';
 
 export interface ICharacterizationTableTableProps extends BoxProps {
   companyId?: string;
@@ -22,6 +26,7 @@ export interface ICharacterizationTableTableProps extends BoxProps {
 export const useCharacterizationActions = ({ companyId, workspaceId }) => {
   const router = useRouter();
   const { onStackOpenModal } = useModal();
+  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
 
   const upsertMutation = useMutUpsertCharacterization();
   const exportMutation = useMutateExportCharacterization();
@@ -86,6 +91,30 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
         workspaceId,
       })
       .catch(() => {});
+  };
+
+  const handleCharacterizationDeleteMany = async (ids: string[]) => {
+    if (!ids?.length || !companyId || !workspaceId) return false;
+
+    try {
+      await Promise.all(
+        ids.map((id) => deleteCharacterization(id, companyId, workspaceId)),
+      );
+
+      await queryClient.invalidateQueries({
+        queryKey: [
+          QueryKeyCharacterizationEnum.CHARACTERIZATIONS,
+          companyId,
+          workspaceId,
+        ],
+      });
+
+      onSuccessMessage('Caracterizações excluídas com sucesso');
+      return true;
+    } catch (error) {
+      onErrorMessage(error as any);
+      return false;
+    }
   };
 
   const handleCharacterizationExport = async () => {
@@ -165,5 +194,6 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
     handleCharacterizationCopy,
     handleCharacterizationExport,
     handleCharacterizationEditMany,
+    handleCharacterizationDeleteMany,
   };
 };

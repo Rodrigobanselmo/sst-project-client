@@ -1,21 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMemo } from 'react';
 
-import { Box, Icon } from '@mui/material';
+import { Box } from '@mui/material';
 import { SContainer } from '@v2/components/atoms/SContainer/SContainer';
 import { SHeader } from '@v2/components/atoms/SHeader/SHeader';
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
-import SIconButton from 'components/atoms/SIconButton';
 import { ModalCharacterizationContent } from 'components/organisms/modals/ModalAddCharacterization/components/ModalCharacterizationContent';
 import {
   initialCharacterizationState,
   useEditCharacterization,
 } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 import { useRouter } from 'next/router';
-
-import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 
@@ -52,7 +49,6 @@ const CharacterizationEditPageContent = () => {
     data: characterizationData,
     loading,
     isEdit,
-    onRemove,
     saveRef,
     isLoading,
   } = props;
@@ -147,11 +143,6 @@ const CharacterizationEditPageContent = () => {
               >
                 {characterizationData.id ? 'Salvar e Sair' : 'Criar'}
               </SButton>
-              {characterizationData?.id && (
-                <SIconButton onClick={onRemove} tooltip="Remover">
-                  <Icon component={SDeleteIcon} sx={{ fontSize: 20 }} />
-                </SIconButton>
-              )}
             </SFlex>
           </SFlex>
 
@@ -165,7 +156,10 @@ const CharacterizationEditPageContent = () => {
               pr: 0.5,
             }}
           >
-            <ModalCharacterizationContent {...props} />
+            <ModalCharacterizationContent
+              {...props}
+              hideCharacterizationDelete
+            />
           </Box>
         </SContainer>
       </Box>

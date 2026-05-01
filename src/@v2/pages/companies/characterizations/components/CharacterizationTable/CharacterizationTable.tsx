@@ -135,6 +135,7 @@ export const CharacterizationTable = () => {
     handleCharacterizationExport,
     handleCharacterizationEditMany,
     handleCharacterizationCopy,
+    handleCharacterizationDeleteMany,
   } = useCharacterizationActions({ companyId, workspaceId });
 
   const {
@@ -253,6 +254,7 @@ export const CharacterizationTable = () => {
         </STableFilterChipList>
         <CharacterizationTableSelection
           onEditMany={handleCharacterizationEditMany}
+          onDeleteMany={handleCharacterizationDeleteMany}
           table={table}
           stages={hasWorkspaceSelected ? statusOptions : []}
         />
