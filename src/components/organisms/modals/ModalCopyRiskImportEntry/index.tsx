@@ -160,7 +160,7 @@ export const ModalCopyRiskImportEntry: FC = () => {
   return (
     <SModal
       {...registerModal(modalName)}
-      keepMounted
+      keepMounted={false}
       onClose={onCloseNoSelect}
       sx={{ zIndex: 5000 }}
     >
