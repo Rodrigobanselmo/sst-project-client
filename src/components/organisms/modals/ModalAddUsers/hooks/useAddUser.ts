@@ -189,27 +189,27 @@ export const useAddUser = () => {
     };
 
     if (userData.id == 0) {
-      const data = await addUserMut
-        .mutateAsync({
+      try {
+        const data = await addUserMut.mutateAsync({
           companyId: userData.company?.id as string,
           groupId: submitData.groupId as number,
           name: submitData.name,
           email: submitData.email,
           employeeId: userData.employeeId,
-        })
-        .catch(() => {});
+        });
 
-      if (data) userData.onSubmit(data);
+        if (data) userData.onSubmit(data);
+        onClose();
+      } catch (_) {}
     } else {
-      await updateUserMut
-        .mutateAsync({
+      try {
+        await updateUserMut.mutateAsync({
           ...submitData,
           userId: userData.id,
-        })
-        .catch(() => {});
+        });
+        onClose();
+      } catch (_) {}
     }
-
-    onClose();
   };
 
   const onCloseUnsaved = () => {

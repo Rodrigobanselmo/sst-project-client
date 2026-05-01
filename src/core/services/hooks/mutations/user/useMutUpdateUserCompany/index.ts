@@ -44,12 +44,13 @@ export function useMutUpdateUserCompany({
     async (data: IUpdateUser) => updateUserCompany({ companyId, ...data }),
     {
       onSuccess: async (user) => {
-        queryClient.invalidateQueries([QueryEnum.USERS, companyId]);
-        queryClient.invalidateQueries([
+        await queryClient.invalidateQueries([QueryEnum.USERS, companyId]);
+        await queryClient.invalidateQueries([
           QueryEnum.USERS,
           companyId,
           user.userId,
         ]);
+        await queryClient.invalidateQueries([QueryEnum.COMPANIES, companyId]);
 
         enqueueSnackbar(successMessage, {
           variant: 'success',
