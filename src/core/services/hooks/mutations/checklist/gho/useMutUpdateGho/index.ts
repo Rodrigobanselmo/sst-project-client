@@ -15,6 +15,7 @@ export interface IUpdateGho extends Partial<Pick<IGho, 'name' | 'status'>> {
   id: string;
   hierarchies?: { id: string; workspaceId: string }[];
   workspaceIds?: string[];
+  confirmUnlinkWorkspaces?: boolean;
   companyId?: string;
   startDate?: Date;
   endDate?: Date;

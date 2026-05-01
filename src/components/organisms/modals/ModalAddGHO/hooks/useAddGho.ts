@@ -32,6 +32,7 @@ export const initialAddGhoState = {
   description: '',
   workspaces: [] as IWorkspace[],
   workspaceIds: [] as string[],
+  workspaceIdsTouched: false,
   id: '',
   startDate: undefined as Date | undefined,
   endDate: undefined as Date | undefined,
@@ -51,7 +52,7 @@ export const useAddGho = () => {
   const updateGhoMut = useMutUpdateGho();
   const deleteGhoMut = useMutDeleteGho();
 
-  const { preventUnwantedChanges, preventDelete } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete, preventWarn } = usePreventAction();
 
   const [ghoData, setGhoData] = useState({
     ...initialAddGhoState,
@@ -159,18 +160,95 @@ export const useAddGho = () => {
         })
         .catch(() => {});
     } else {
-      await updateGhoMut
-        .mutateAsync({
-          ...submitData,
-          ...(ghoData.workspaceIds.length && {
-            workspaceIds: ghoData.workspaceIds,
-          }),
-          id: ghoData.id,
-        })
-        .then(() => {
-          onClose();
-        })
-        .catch(() => {});
+      const originalWorkspaceIds = removeDuplicate(
+        [
+          ...((ghoQuery.workspaces || []).map((w) => w.id) || []),
+          ...((ghoQuery.workspaceIds || []) as string[]),
+        ].filter(Boolean),
+      );
+
+      const selectedWorkspaceIds = ghoData.workspaceIdsTouched
+        ? ghoData.workspaceIds
+        : originalWorkspaceIds;
+
+      const removedWorkspaceIds = originalWorkspaceIds.filter(
+        (workspaceId) => !selectedWorkspaceIds.includes(workspaceId),
+      );
+
+      const hierarchyWorkspaceIds = removeDuplicate(
+        (ghoQuery.hierarchies || []).reduce((acc, hierarchy) => {
+          const hierarchyWorkspaceIdsFromIds = hierarchy.workspaceIds || [];
+          const hierarchyWorkspaceIdsFromObjects =
+            hierarchy.workspaces?.map((w) => w.id) || [];
+
+          return [
+            ...acc,
+            ...hierarchyWorkspaceIdsFromIds,
+            ...hierarchyWorkspaceIdsFromObjects,
+          ];
+        }, [] as string[]),
+      );
+
+      const hasLinkedHierarchyInRemovedWorkspace = removedWorkspaceIds.some(
+        (workspaceId) => hierarchyWorkspaceIds.includes(workspaceId),
+      );
+
+      const updatePayloadBase: IUpdateGho = {
+        ...submitData,
+        workspaceIds: selectedWorkspaceIds,
+        id: ghoData.id,
+      };
+
+      const updateWithWorkspaceGuard = async (
+        withConfirmUnlinkWorkspaces = false,
+      ) => {
+        await updateGhoMut
+          .mutateAsync({
+            ...updatePayloadBase,
+            ...(withConfirmUnlinkWorkspaces && {
+              confirmUnlinkWorkspaces: true,
+            }),
+          })
+          .then(() => {
+            onClose();
+          })
+          .catch((error: any) => {
+            const status = error?.response?.status;
+
+            if (status === 409 && !withConfirmUnlinkWorkspaces) {
+              preventWarn(
+                'Você está removendo um ou mais estabelecimentos deste GSE.\n\nExistem cargos/grupos de cargos vinculados a este GSE nesses estabelecimentos. Ao confirmar, esses vínculos também serão removidos do grupo.\n\nCaso esses cargos possuam riscos vinculados, esses riscos deixarão de compor a caracterização da empresa para este GSE e poderão desaparecer dos documentos e módulos derivados, incluindo Inventário de Riscos, Plano de Ação, Ordens de Serviço e demais relatórios onde essas informações são utilizadas.\n\nEssa ação altera a rastreabilidade das exposições ocupacionais associadas ao GSE.\n\nDeseja continuar?',
+                () => {
+                  updateWithWorkspaceGuard(true);
+                },
+                {
+                  title: 'Atenção: esta remoção impacta vínculos do GSE',
+                  confirmText: 'Confirmar remoção',
+                  confirmCancel: 'Cancelar',
+                  tag: 'warning',
+                },
+              );
+            }
+          });
+      };
+
+      if (hasLinkedHierarchyInRemovedWorkspace) {
+        preventWarn(
+          'Você está removendo um ou mais estabelecimentos deste GSE.\n\nExistem cargos/grupos de cargos vinculados a este GSE nesses estabelecimentos. Ao confirmar, esses vínculos também serão removidos do grupo.\n\nCaso esses cargos possuam riscos vinculados, esses riscos deixarão de compor a caracterização da empresa para este GSE e poderão desaparecer dos documentos e módulos derivados, incluindo Inventário de Riscos, Plano de Ação, Ordens de Serviço e demais relatórios onde essas informações são utilizadas.\n\nEssa ação altera a rastreabilidade das exposições ocupacionais associadas ao GSE.\n\nDeseja continuar?',
+          () => {
+            updateWithWorkspaceGuard(true);
+          },
+          {
+            title: 'Atenção: esta remoção impacta vínculos do GSE',
+            confirmText: 'Confirmar remoção',
+            confirmCancel: 'Cancelar',
+            tag: 'warning',
+          },
+        );
+        return;
+      }
+
+      await updateWithWorkspaceGuard(false);
     }
   };
 

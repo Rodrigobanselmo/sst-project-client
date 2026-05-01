@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useMemo } from 'react';
+import React, { FC, useEffect, useMemo, useRef } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -27,6 +27,11 @@ export const EditGhoSelects: FC<{ children?: any } & IEditGhoSelects> = ({
   ghoQuery,
 }) => {
   const { data: company, isLoading } = useQueryCompany();
+  const hasChangedWorkspaceSelectionRef = useRef(false);
+
+  useEffect(() => {
+    hasChangedWorkspaceSelectionRef.current = false;
+  }, [ghoData.id]);
 
   const workspaces = useMemo(() => {
     return (company?.workspace || [])
@@ -36,20 +41,27 @@ export const EditGhoSelects: FC<{ children?: any } & IEditGhoSelects> = ({
       .sort((a, b) => sortString(a, b, 'name'));
   }, [company]);
 
-  const workspacesIds = ghoQuery.workspaces?.length
-    ? removeDuplicate([
-        ...ghoQuery.workspaces.map((w) => w.id),
-        ...(ghoData.workspaceIds || []),
-      ])
-    : [...(ghoData.workspaceIds || [])];
+  const workspacesIds = hasChangedWorkspaceSelectionRef.current
+    ? [...(ghoData.workspaceIds || [])]
+    : ghoQuery.workspaces?.length
+      ? removeDuplicate([
+          ...ghoQuery.workspaces.map((w) => w.id),
+          ...(ghoData.workspaceIds || []),
+        ])
+      : [...(ghoData.workspaceIds || [])];
 
   const selectedWorkspaces = useMemo(() => {
     return workspaces.filter((w) => workspacesIds.includes(w.id));
   }, [workspaces, workspacesIds]);
 
   const handleWorkspaceChange = (selected: IWorkspace[]) => {
+    hasChangedWorkspaceSelectionRef.current = true;
     const ids = selected.map((w) => w.id);
-    setGhoData((d: any) => ({ ...d, workspaceIds: ids }));
+    setGhoData((d: any) => ({
+      ...d,
+      workspaceIds: ids,
+      workspaceIdsTouched: true,
+    }));
   };
 
   return (
