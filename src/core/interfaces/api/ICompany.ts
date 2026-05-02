@@ -105,7 +105,7 @@ export interface ICompanyContract {
 export interface IWorkspace {
   id: string;
   name: string;
-  abbreviation: string;
+  abbreviation?: string | null;
   description: string;
   status: StatusEnum;
   created_at: Date;
