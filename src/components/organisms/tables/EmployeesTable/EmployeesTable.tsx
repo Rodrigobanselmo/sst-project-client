@@ -426,6 +426,7 @@ export const EmployeesTable: FC<
               onEditEmployee={onEditEmployee}
               canSchedule={canScheduleWith45Days}
               exam={exam}
+              enableSoftDelete
             />
           </SFlex>
         );

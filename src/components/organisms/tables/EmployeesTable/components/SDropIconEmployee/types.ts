@@ -15,6 +15,8 @@ export interface ISIconUpload {
   loading?: boolean;
   skipOS?: boolean;
   skipGuia?: boolean;
+  /** Quando true, exibe “Excluir funcionário” (soft delete). Apenas na tabela principal de Funcionários. */
+  enableSoftDelete?: boolean;
   employee: IEmployee;
   company: ICompany;
   isScheduled?: boolean;

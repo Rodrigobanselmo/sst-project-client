@@ -36,6 +36,7 @@ export enum ApiRoutesEnum {
   EMPLOYEE_HISTORY_EXAM = '/employee-history/exam',
   SCHEDULE_MEDICAL_VISIT = '/company/:companyId/schedule-medical-visit',
   EMPLOYEES_DELETE_SUB_OFFICE = '/employee/:employeeId/sub-office/:subOfficeId/:companyId',
+  EMPLOYEE_SOFT_DELETE = '/employee/:companyId/:employeeId/soft-delete',
   ENVIRONMENTS = '/company/:companyId/workspace/:workspaceId/environments',
   ENVIRONMENTS_PHOTO = '/company/:companyId/workspace/:workspaceId/environments/photo',
   EPI = '/epi',

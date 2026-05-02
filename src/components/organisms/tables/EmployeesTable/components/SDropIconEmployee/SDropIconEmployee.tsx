@@ -10,10 +10,13 @@ import { useScheduleExam } from 'components/organisms/tables/HistoryScheduleExam
 
 import { SCalendarIcon } from 'assets/icons/SCalendarIcon';
 import SDocumentIcon from 'assets/icons/SDocumentIcon';
+import SDeleteIcon from 'assets/icons/SDeleteIcon';
 import SEditIcon from 'assets/icons/SEditIcon';
 import SMoreOptionsIcon from 'assets/icons/SMoreOptionsIcon/SMoreOptionsIcon';
 import { SOsIcon } from 'assets/icons/SOsIcon';
 
+import { useGlobalModal } from 'core/hooks/useGlobalModal';
+import { useMutSoftDeleteEmployee } from 'core/services/hooks/mutations/manager/useMutSoftDeleteEmployee';
 import { RoutesEnum } from 'core/enums/routes.enums';
 
 import { SMenu } from '../../../../../molecules/SMenu';
@@ -37,12 +40,15 @@ export const SDropIconEmployee: FC<{ children?: any } & ISIconUpload> = ({
   exam,
   skipOS,
   skipGuia,
+  enableSoftDelete,
 }) => {
   const [anchorEl, setAnchorEl] = useState<IAnchorEvent>(null);
   const handleClose = () => {
     setAnchorEl(null);
   };
 
+  const { onOpenGlobalModal } = useGlobalModal();
+  const softDeleteMutation = useMutSoftDeleteEmployee();
   const { onReSchedule } = useScheduleExam();
 
   const companyId = company.id;
@@ -67,6 +73,26 @@ export const SDropIconEmployee: FC<{ children?: any } & ISIconUpload> = ({
     }
     if (option.value == 'EDIT') {
       onEditEmployee?.(employee);
+    }
+    if (option.value === 'SOFT_DELETE') {
+      const modalText = `Você está prestes a excluir este funcionário.
+
+Esta ação não apagará definitivamente os registros do banco de dados. O funcionário será removido da listagem principal por soft delete, preservando histórico ocupacional, lotações, exames, ordens de serviço e demais registros vinculados.
+
+Deseja continuar?`;
+
+      onOpenGlobalModal(
+        {
+          title: 'Excluir funcionário',
+          text: modalText,
+          confirmText: 'Excluir funcionário',
+          confirmCancel: 'Cancelar',
+          tag: 'delete',
+        },
+        () => {
+          softDeleteMutation.mutate(employeeId);
+        },
+      );
     }
 
     handleSelectMenu && handleSelectMenu(option, e);
@@ -132,6 +158,23 @@ export const SDropIconEmployee: FC<{ children?: any } & ISIconUpload> = ({
       disabled: !companyId || !employeeId || disabled,
       borderTop: true,
     },
+    ...(enableSoftDelete
+      ? [
+          {
+            name: 'Excluir funcionário',
+            value: 'SOFT_DELETE',
+            icon: SDeleteIcon,
+            disabled:
+              !companyId ||
+              !employeeId ||
+              disabled ||
+              softDeleteMutation.isLoading,
+            borderTop: true,
+            color: 'error.main',
+            iconColor: 'error.main',
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -171,7 +214,7 @@ export const SDropIconEmployee: FC<{ children?: any } & ISIconUpload> = ({
                 tooltip={text || 'Mais Ações'}
                 sx={{ width: 36, height: 36 }}
                 onClick={handleSelectButton}
-                loading={loading}
+                loading={loading || softDeleteMutation.isLoading}
               >
                 <Icon component={SMoreOptionsIcon} />
               </SIconButton>

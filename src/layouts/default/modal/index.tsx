@@ -29,26 +29,42 @@ const DefaultModal: FC = () => {
 
   const onConfirm = () => {
     dispatch(setModalAction(true));
-    onCloseGlobalModal();
     setInputConfirmText('');
   };
 
-  const buttons = [
-    {
-      text: modalData.confirmText,
-      onClick: onConfirm,
-      variant: 'contained',
-      disabled: modalData.inputConfirm
-        ? !(inputConfirmText == 'deletar')
-        : false,
-    } as IModalButton,
-  ];
+  const confirmButton = {
+    text: modalData.confirmText,
+    onClick: onConfirm,
+    variant: 'contained' as const,
+    disabled: modalData.inputConfirm
+      ? !(inputConfirmText == 'deletar')
+      : false,
+  } as IModalButton;
 
-  if (modalData.confirmCancel)
-    buttons.push({ text: 'Cancel', variant: 'outlined' } as IModalButton);
+  /** Cancel primeiro (à esquerda), confirm por último — sem `.reverse()` mutável no array. */
+  const footerButtons: IModalButton[] = modalData.confirmCancel
+    ? [
+        {
+          text: modalData.confirmCancel,
+          variant: 'outlined',
+        } as IModalButton,
+        confirmButton,
+      ]
+    : [confirmButton];
 
   return (
-    <SModal open={globalModal} onClose={() => dispatch(setModalGlobal(false))}>
+    <SModal
+      open={globalModal}
+      onClose={onCloseGlobalModal}
+      /**
+       * Notistack usa `theme.zIndex.snackbar` (1400); o Modal padrão usa 1300.
+       * Com isso, toasts na base da tela ficam por cima do rodapé e “comem” o clique
+       * no botão de confirmação sem disparar onClick (parece botão morto).
+       */
+      sx={(theme) => ({
+        zIndex: theme.zIndex.snackbar + 100,
+      })}
+    >
       <SModalPaper center>
         <SModalHeader
           tag={modalData.tag || 'none'}
@@ -72,10 +88,7 @@ const DefaultModal: FC = () => {
             />
           </>
         )}
-        <SModalButtons
-          onClose={onCloseGlobalModal}
-          buttons={buttons.reverse()}
-        />
+        <SModalButtons onClose={onCloseGlobalModal} buttons={footerButtons} />
       </SModalPaper>
     </SModal>
   );

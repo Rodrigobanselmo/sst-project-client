@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, MouseEvent } from 'react';
 
 import { Box } from '@mui/material';
 
@@ -36,18 +36,29 @@ export const SModalButtons: FC<{ children?: any } & SModalHeaderProps> = ({
     >
       {children}
       {buttons.map(
-        ({ text, variant, arrowBack, arrowNext, ...buttonProps }, index) => {
+        (
+          { text, variant, arrowBack, arrowNext, onClick: buttonOnClick, ...restProps },
+          index,
+        ) => {
           const isFirst = index === 0;
           const isLast = index === buttons.length - 1;
+          const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
+            if (buttonOnClick) {
+              buttonOnClick(event);
+              return;
+            }
+            onClose();
+          };
           return (
             <SButton
               loading={loading && isLast}
               key={`${index}-button`}
-              variant={variant ? variant : isFirst ? 'outlined' : 'contained'}
-              onClick={onClose}
               style={{ minWidth: 100 }}
               {...(isFirst && { id: IdsEnum.CANCEL_BUTTON })}
-              {...buttonProps}
+              {...restProps}
+              variant={variant ? variant : isFirst ? 'outlined' : 'contained'}
+              type="button"
+              onClick={handleClick}
             >
               {arrowBack && (
                 <SArrowNextIcon
