@@ -52,7 +52,8 @@ export const useAddGho = () => {
   const updateGhoMut = useMutUpdateGho();
   const deleteGhoMut = useMutDeleteGho();
 
-  const { preventUnwantedChanges, preventDelete, preventWarn } = usePreventAction();
+  const { preventUnwantedChanges, preventDelete, preventWarn } =
+    usePreventAction();
 
   const [ghoData, setGhoData] = useState({
     ...initialAddGhoState,
@@ -177,13 +178,15 @@ export const useAddGho = () => {
 
       const hierarchyWorkspaceIds = removeDuplicate(
         (ghoQuery.hierarchies || []).reduce((acc, hierarchy) => {
-          const hierarchyWorkspaceIdsFromIds = hierarchy.workspaceIds || [];
+          const hierarchyWorkspaceIdsFromId = hierarchy.workspaceId
+            ? [hierarchy.workspaceId]
+            : [];
           const hierarchyWorkspaceIdsFromObjects =
             hierarchy.workspaces?.map((w) => w.id) || [];
 
           return [
             ...acc,
-            ...hierarchyWorkspaceIdsFromIds,
+            ...hierarchyWorkspaceIdsFromId,
             ...hierarchyWorkspaceIdsFromObjects,
           ];
         }, [] as string[]),
