@@ -155,6 +155,11 @@ export function buildIndicatorsPdfDataset(params: {
   isShareableLink: boolean;
   /** Mesmos grupos hierárquicos da tela (opcional; default []). */
   hierarchyGroups?: HierarchyGroupForIndicators[];
+  /**
+   * Quando o agrupamento por identificação está ativo, restringe quais grupos entram no PDF.
+   * `undefined` = todos os grupos (comportamento anterior). Não altera cálculo por resposta.
+   */
+  visibleParticipantGroupIds?: string[];
 }): IndicatorsPdfDataset {
   const {
     formQuestionsAnswers,
@@ -162,6 +167,7 @@ export function buildIndicatorsPdfDataset(params: {
     showOnlyGroupIndicators,
     isShareableLink,
     hierarchyGroups = [],
+    visibleParticipantGroupIds,
   } = params;
 
   if (!formQuestionsAnswers || !Array.isArray(formQuestionsAnswers.results)) {
@@ -170,12 +176,17 @@ export function buildIndicatorsPdfDataset(params: {
     );
   }
 
-  const { grouping, participantGroups } =
+  let { grouping, participantGroups } =
     buildParticipantGroupingForIndicatorsPdf({
       formQuestionsAnswers,
       selectedGroupingQuestionId,
       hierarchyGroups,
     });
+
+  if (grouping.active && visibleParticipantGroupIds !== undefined) {
+    const allow = new Set(visibleParticipantGroupIds);
+    participantGroups = participantGroups.filter((g) => allow.has(g.id));
+  }
 
   const [, ...generalGroups] = formQuestionsAnswers.results;
 

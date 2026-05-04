@@ -19,6 +19,8 @@ export async function exportFormIndicatorsPdfInBrowser(
     selectedGroupingQuestionId: string | null;
     showOnlyGroupIndicators: boolean;
     hierarchyGroups: HierarchyGroupForIndicators[];
+    /** Com agrupamento ativo: ids dos grupos a incluir no PDF (alinhado à tela). */
+    visibleParticipantGroupIds?: string[];
   },
   onProgress?: (message: string) => void,
 ): Promise<void> {
@@ -45,6 +47,9 @@ export async function exportFormIndicatorsPdfInBrowser(
     showOnlyGroupIndicators: params.showOnlyGroupIndicators,
     isShareableLink: params.formApplication.isShareableLink,
     hierarchyGroups: params.hierarchyGroups,
+    ...(params.selectedGroupingQuestionId
+      ? { visibleParticipantGroupIds: params.visibleParticipantGroupIds }
+      : {}),
   });
 
   const issuedAt = new Intl.DateTimeFormat('pt-BR', {

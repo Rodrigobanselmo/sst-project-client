@@ -5,12 +5,11 @@ import PersonIcon from '@mui/icons-material/Person';
 import {
   Box,
   Button,
-  Chip,
   CircularProgress,
   LinearProgress,
   Typography,
 } from '@mui/material';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSnackbar } from 'notistack';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
@@ -18,6 +17,7 @@ import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
+import { SSearchSelectMultiple } from '@v2/components/forms/fields/SSearchSelect/SSearchSelectMultiple';
 import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
 import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.enum';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
@@ -39,7 +39,10 @@ import { STabs } from '@v2/components/organisms/STabs/STabs';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
-import { buildParticipantGroupsForIndicators } from './helpers/buildParticipantGroupsForIndicators';
+import {
+  buildParticipantGroupsForIndicators,
+  type ParticipantGroupForIndicators,
+} from './helpers/buildParticipantGroupsForIndicators';
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
 import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
@@ -513,6 +516,54 @@ export const FormQuestionsDashboard = ({
     [formQuestionsAnswers, selectedGroupingQuestion, hierarchyGroups],
   );
 
+  const participantGroupIdsKey = useMemo(
+    () => participantGroups.map((g) => g.id).sort().join('|'),
+    [participantGroups],
+  );
+
+  const groupingSelectionKey = selectedGroupingQuestion
+    ? `${selectedGroupingQuestion}|${participantGroupIdsKey}`
+    : '';
+
+  const [groupingSelectionState, setGroupingSelectionState] = useState<{
+    key: string;
+    ids: string[];
+  }>({ key: '', ids: [] });
+
+  useEffect(() => {
+    if (!selectedGroupingQuestion) {
+      setGroupingSelectionState({ key: '', ids: [] });
+      return;
+    }
+    setGroupingSelectionState({
+      key: groupingSelectionKey,
+      ids: participantGroups.map((g) => g.id),
+    });
+  }, [selectedGroupingQuestion, groupingSelectionKey, participantGroups]);
+
+  const selectedParticipantGroupIdsForView = useMemo(() => {
+    if (!selectedGroupingQuestion) return null;
+    if (groupingSelectionState.key !== groupingSelectionKey) {
+      return participantGroups.map((g) => g.id);
+    }
+    return groupingSelectionState.ids;
+  }, [
+    selectedGroupingQuestion,
+    groupingSelectionKey,
+    groupingSelectionState,
+    participantGroups,
+  ]);
+
+  const visibleParticipantGroups = useMemo(() => {
+    if (!selectedGroupingQuestion) return participantGroups;
+    const idSet = new Set(selectedParticipantGroupIdsForView ?? []);
+    return participantGroups.filter((g) => idSet.has(g.id));
+  }, [
+    selectedGroupingQuestion,
+    participantGroups,
+    selectedParticipantGroupIdsForView,
+  ]);
+
   // Helper function to filter answers based on participant IDs
   const filterAnswersByParticipants = useCallback(
     (
@@ -576,7 +627,7 @@ export const FormQuestionsDashboard = ({
 
   // Create array of arrays for general questions - one array per participant group
   const generalQuestionsArrays = useMemo(() => {
-    return participantGroups.map((group) => {
+    return visibleParticipantGroups.map((group) => {
       const questionsForGroup = filterQuestionsWithOptions(
         generalGroups,
         group.participantIds,
@@ -588,7 +639,17 @@ export const FormQuestionsDashboard = ({
         questions: questionsForGroup,
       };
     });
-  }, [participantGroups, generalGroups, filterQuestionsWithOptions]);
+  }, [visibleParticipantGroups, generalGroups, filterQuestionsWithOptions]);
+
+  const hasGeneralQuestionsForAnyParticipantGroup = useMemo(
+    () =>
+      participantGroups.some(
+        (group) =>
+          filterQuestionsWithOptions(generalGroups, group.participantIds)
+            .length > 0,
+      ),
+    [participantGroups, generalGroups, filterQuestionsWithOptions],
+  );
 
   // Available identifier questions for grouping
   const availableGroupingQuestions = useMemo(() => {
@@ -620,7 +681,7 @@ export const FormQuestionsDashboard = ({
   if (
     isShareableLink &&
     identifierQuestions.length === 0 &&
-    generalQuestionsArrays.every((group) => group.questions.length === 0)
+    !hasGeneralQuestionsForAnyParticipantGroup
   ) {
     return (
       <SFlex
@@ -726,9 +787,7 @@ export const FormQuestionsDashboard = ({
         <Box sx={{ p: 3 }}>
           {/* Grouping Section */}
           {availableGroupingQuestions.length > 0 &&
-            generalQuestionsArrays.some(
-              (group) => group.questions.length > 0,
-            ) && (
+            hasGeneralQuestionsForAnyParticipantGroup && (
               <Box>
                 <SectionHeader
                   icon={<FilterListIcon sx={{ fontSize: 30 }} />}
@@ -766,16 +825,27 @@ export const FormQuestionsDashboard = ({
                         <Typography variant="body2" fontWeight="medium" mb={4}>
                           Agrupando por: {groupingQuestion.textWithoutHtml}
                         </Typography>
-                        <SFlex gap={1} flexWrap="wrap">
-                          {participantGroups.map((group) => (
-                            <Chip
-                              key={group.id}
-                              label={`${group.name} (${group.participantIds.size} participantes)`}
-                              color="default"
-                              variant="outlined"
-                            />
-                          ))}
-                        </SFlex>
+                        <SSearchSelectMultiple<ParticipantGroupForIndicators>
+                          label="Grupos exibidos (filtro de visualização e PDF)"
+                          placeholder="Pesquisar grupos..."
+                          options={participantGroups}
+                          value={participantGroups.filter((g) =>
+                            (selectedParticipantGroupIdsForView ?? []).includes(
+                              g.id,
+                            ),
+                          )}
+                          getOptionLabel={(g) =>
+                            `${g.name} (${g.participantIds.size} participantes)`
+                          }
+                          getOptionValue={(g) => g.id}
+                          onChange={(selected) => {
+                            setGroupingSelectionState({
+                              key: groupingSelectionKey,
+                              ids: selected.map((g) => g.id),
+                            });
+                          }}
+                          boxProps={{ sx: { maxWidth: '100%' } }}
+                        />
                         <Button
                           size="small"
                           color="error"
@@ -792,7 +862,7 @@ export const FormQuestionsDashboard = ({
                     <Box>
                       <Typography variant="body2" color="text.secondary">
                         {selectedGroupingQuestion
-                          ? `Dados agrupados em ${participantGroups.length} grupos`
+                          ? `Total de ${participantGroups.length} grupos no agrupamento · Exibindo ${visibleParticipantGroups.length}`
                           : `Total de ${participantGroups[0]?.participantIds.size || 0} participantes`}
                       </Typography>
                     </Box>
@@ -856,6 +926,13 @@ export const FormQuestionsDashboard = ({
                           selectedGroupingQuestionId: selectedGroupingQuestion,
                           showOnlyGroupIndicators,
                           hierarchyGroups,
+                          ...(selectedGroupingQuestion &&
+                          selectedParticipantGroupIdsForView
+                            ? {
+                                visibleParticipantGroupIds:
+                                  selectedParticipantGroupIdsForView,
+                              }
+                            : {}),
                         },
                         (message) => setPdfLoadingMessage(message),
                       );
@@ -937,8 +1014,7 @@ export const FormQuestionsDashboard = ({
       )}
 
       {/* General Questions Section */}
-      {(generalQuestionsArrays.some((group) => group.questions.length > 0) ||
-        !isShareableLink) && (
+      {(hasGeneralQuestionsForAnyParticipantGroup || !isShareableLink) && (
         <Box sx={{ p: 3 }}>
           <SectionHeader
             icon={<InsertChartIcon sx={{ fontSize: 30 }} />}
