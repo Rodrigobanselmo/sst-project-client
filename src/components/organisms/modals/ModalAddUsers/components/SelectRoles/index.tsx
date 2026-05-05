@@ -34,6 +34,22 @@ import { sortString } from 'core/utils/sorts/string.sort';
 
 import { IPermissionMap } from '../../hooks/useAddUser';
 
+/** Monta `código-crud` só com letras que o executor já possui para aquele módulo (evita salvar ex.: `24-rcud` sem `24-*` no JWT). */
+function buildInitialPermissionStringForExecutor(
+  moduleKey: PermissionEnum,
+  executorPermissions: string[] | undefined,
+): string | null {
+  const ep = (executorPermissions || []).find((p) => p.split('-')[0] === moduleKey);
+  if (!ep) return null;
+  const executorCrud = ep.split('-')[1] || '';
+  const allowedChars = permissionsConstantMap[moduleKey]?.crud?.join('') || 'r';
+  const selected = [
+    ...new Set(Array.from(allowedChars).filter((c) => executorCrud.includes(c))),
+  ];
+  if (!selected.length) return null;
+  return `${moduleKey}-${selected.sort().join('')}`;
+}
+
 interface ISelectRolesSelects extends BoxProps {
   data: {
     roles: RoleEnum[];
@@ -65,14 +81,13 @@ export const SelectRoles: FC<{ children?: any } & ISelectRolesSelects> = ({
         if (!permissions[roleOptions.value])
           permissions[roleOptions.value] = [];
 
-        permissions[roleOptions.value]?.push(
-          ...roleOptions.permissions.map(
-            (permissions) =>
-              permissions +
-                '-' +
-                permissionsConstantMap?.[permissions]?.crud?.join('') || 'r',
-          ),
-        );
+        const built = roleOptions.permissions
+          .map((pk) =>
+            buildInitialPermissionStringForExecutor(pk as PermissionEnum, user?.permissions),
+          )
+          .filter((s): s is string => s != null);
+
+        permissions[roleOptions.value]?.push(...built);
       }
     }
 
