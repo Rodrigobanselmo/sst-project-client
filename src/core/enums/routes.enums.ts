@@ -40,6 +40,7 @@ export enum RoutesEnum {
   PROFILE = '/dashboard/perfil',
   PUBLIC = '/publico',
   RISKS = '/dashboard/empresas/:companyId/fatores-riscos',
+  RISK_EDIT = '/dashboard/empresas/:companyId/fatores-riscos/:riskId/edit',
   RISK_DATA = '/dashboard/empresas/:companyId/hierarquia?riskGroupId=:riskGroupId',
   SCHEDULE = '/dashboard/empresas/:companyId/agenda',
   SCHEDULE_BLOCK = '/dashboard/empresas/:companyId/agenda-block',

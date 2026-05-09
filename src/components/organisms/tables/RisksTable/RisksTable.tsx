@@ -36,7 +36,6 @@ import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist/risk/useMutUpsertRiskDocInfo';
 import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryExams';
-import { useQueryRisks } from 'core/services/hooks/queries/useQueryRisks/useQueryRisks';
 import { queryClient } from 'core/services/queryClient';
 
 import { getRiskDoc } from '../RiskCompanyTable/RiskCompanyTable';
@@ -57,6 +56,7 @@ import {
   RiskRegisteredColumnId,
   RiskRegisteredListSortBy,
 } from './registeredRisksTable.types';
+import { useQueryRisks } from '@/core/services/hooks/queries/useQueryRisks/useQueryRisks';
 
 type ColumnDef = {
   id: RiskRegisteredColumnId;
@@ -285,9 +285,7 @@ export const RisksTable: FC<
       case 'type':
         return <STagRisk key="type" hideRiskName riskFactor={row} />;
       case 'name':
-        return (
-          <TextIconRow key="name" clickable text={row.name || '-'} />
-        );
+        return <TextIconRow key="name" clickable text={row.name || '-'} />;
       case 'subtype': {
         const names =
           row.subTypes
@@ -397,12 +395,10 @@ export const RisksTable: FC<
       <STable
         loading={loadRisks}
         rowsNumber={pageSize}
-        columns={
-          [
-            ...(selectedData ? ['15px'] : []),
-            ...visibleColumns.map((c) => c.column),
-          ].join(' ')
-        }
+        columns={[
+          ...(selectedData ? ['15px'] : []),
+          ...visibleColumns.map((c) => c.column),
+        ].join(' ')}
       >
         <STableHeader>
           {selectedData && <STableHRow key="check-col" />}
