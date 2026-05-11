@@ -5,18 +5,23 @@ import { useEffect } from 'react';
 import { browseFormQuestionsAnswersAnalysis } from '../service/browse-form-questions-answers-analysis.service';
 import { BrowseFormQuestionsAnswersAnalysisParams } from '../service/browse-form-questions-answers-analysis.types';
 
-// Helper function to check if there are processing analyses within the last 10 minutes
+// Window used to consider a PROCESSING record as "still in flight". Extended to 60
+// minutes to accommodate long AI batches running in background on the API side. Beyond
+// this window a record is considered stale (likely the background runner died before
+// resolving it) and polling stops so the user can retry.
+const PROCESSING_FRESHNESS_MS = 60 * 60 * 1000;
+
 export const hasRecentProcessingAnalyses = (
   analyses: any[] | undefined,
 ): boolean => {
   if (!analyses) return false;
 
-  const tenMinutesAgo = new Date(Date.now() - 10 * 60 * 1000); // 10 minutes ago
-  return analyses.some(
-    (analysis) =>
-      analysis.status === FormAiAnalysisStatusEnum.PROCESSING &&
-      new Date(analysis.createdAt) > tenMinutesAgo,
-  );
+  const freshnessThreshold = new Date(Date.now() - PROCESSING_FRESHNESS_MS);
+  return analyses.some((analysis) => {
+    if (analysis.status !== FormAiAnalysisStatusEnum.PROCESSING) return false;
+    const referenceDate = new Date(analysis.updatedAt ?? analysis.createdAt);
+    return referenceDate > freshnessThreshold;
+  });
 };
 
 export const getKeyBrowseFormQuestionsAnswersAnalysis = (
