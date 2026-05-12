@@ -169,7 +169,7 @@ export const RisksTable: FC<
     const list: ColumnDef[] = [
       {
         id: 'type',
-        column: '40px',
+        column: 'minmax(92px, max-content)',
         label: 'Tipo',
         sortField: 'TYPE',
       },

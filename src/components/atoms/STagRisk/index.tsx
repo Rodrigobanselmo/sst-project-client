@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { RiskEnum } from 'project/enum/risk.enums';
 
 import SFlex from '../SFlex';
 import SText from '../SText';
@@ -13,18 +14,21 @@ interface ITagRiskProps {
 }
 
 /** Ordem: primeiro match quando houver vários (ex.: prioriza Psicossociais). */
-const SUBTYPE_CHIP_BY_NAME: Record<string, { label: string; colorKey: string }> = {
-  Psicossociais: { label: 'PSIC', colorKey: 'risk.psic' },
-  Biomecânicos: { label: 'BIOM', colorKey: 'risk.erg' },
-  Ambientais: { label: 'AMB', colorKey: 'risk.erg' },
-  Organizacionais: { label: 'ORG', colorKey: 'risk.erg' },
-  'Mobiliário e Equipamentos': { label: 'MOB', colorKey: 'risk.erg' },
+const SUBTYPE_CHIP_BY_NAME: Record<string, { suffix: string; colorKey: string }> = {
+  Psicossociais: { suffix: 'PSIC', colorKey: 'risk.psic' },
+  Biomecânicos: { suffix: 'BIOM', colorKey: 'risk.erg' },
+  Ambientais: { suffix: 'AMB', colorKey: 'risk.erg' },
+  Organizacionais: { suffix: 'ORG', colorKey: 'risk.erg' },
+  'Mobiliário e Equipamentos': { suffix: 'MOB', colorKey: 'risk.erg' },
 };
 
 function resolveRiskChip(riskFactor: IRiskFactors) {
   for (const name of Object.keys(SUBTYPE_CHIP_BY_NAME)) {
     if (riskFactor.subTypes?.some((s) => s?.sub_type?.name === name)) {
-      return SUBTYPE_CHIP_BY_NAME[name];
+      const { suffix, colorKey } = SUBTYPE_CHIP_BY_NAME[name];
+      const label =
+        riskFactor.type === RiskEnum.ERG ? `ERG-${suffix}` : suffix;
+      return { label, colorKey };
     }
   }
   const t = (riskFactor?.type ?? '').toString().toLowerCase();
@@ -42,31 +46,47 @@ export const STagRisk = ({
   const { label: displayType, colorKey: riskColorKey } =
     resolveRiskChip(riskFactor);
 
-  return (
+  const chip = (
     <SText
+      fontSize={10}
+      component="span"
+      sx={{
+        flexShrink: 0,
+        backgroundColor: riskColorKey,
+        color: 'common.white',
+        display: 'inline-block',
+        minWidth: '58px',
+        width: 'max-content',
+        px: '8px',
+        py: '2px',
+        borderRadius: '4px',
+        boxSizing: 'border-box',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <SFlex center>{displayType}</SFlex>
+    </SText>
+  );
+
+  if (hideRiskName) {
+    return <SFlex align="center">{chip}</SFlex>;
+  }
+
+  return (
+    <SFlex align="center" gap={1.5} sx={{ minWidth: 0, width: '100%' }}>
+      {chip}
+      <SText
+        component="span"
+        fontSize={14}
         sx={{
           ...(isEndDate && { color: 'error.main' }),
-        }}
-        fontSize={14}
-      >
-        <SText
-          fontSize={10}
-          component="span"
-          sx={{
-            backgroundColor: riskColorKey,
-            color: 'common.white',
-          display: 'inline-block',
-          minWidth: '36px',
-          width: 'max-content',
-          px: '6px',
-          borderRadius: '4px',
-          mr: 2,
-          boxSizing: 'border-box',
+          minWidth: 0,
+          flex: 1,
+          lineHeight: 1.35,
         }}
       >
-        <SFlex center>{displayType}</SFlex>
+        {riskFactor?.name || ''}
       </SText>
-      {!hideRiskName ? riskFactor?.name || '' : ''}
-    </SText>
+    </SFlex>
   );
 };
