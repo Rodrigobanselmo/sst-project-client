@@ -20,11 +20,11 @@ const RISK_CHIP_WIDTH_SIMPLE_PX = 86;
 
 /** Ordem: primeiro match quando houver vários (ex.: prioriza Psicossociais). */
 const SUBTYPE_CHIP_BY_NAME: Record<string, { suffix: string; colorKey: string }> = {
-  Psicossociais: { suffix: 'PSIC', colorKey: 'risk.psic' },
-  Biomecânicos: { suffix: 'BIOM', colorKey: 'risk.erg' },
-  Ambientais: { suffix: 'AMB', colorKey: 'risk.erg' },
-  Organizacionais: { suffix: 'ORG', colorKey: 'risk.erg' },
-  'Mobiliário e Equipamentos': { suffix: 'MOB', colorKey: 'risk.erg' },
+  Psicossociais: { suffix: 'PSIC', colorKey: 'risk.ergSubtypePsic' },
+  Biomecânicos: { suffix: 'BIOM', colorKey: 'risk.ergSubtypeBiom' },
+  Ambientais: { suffix: 'AMB', colorKey: 'risk.ergSubtypeAmb' },
+  Organizacionais: { suffix: 'ORG', colorKey: 'risk.ergSubtypeOrg' },
+  'Mobiliário e Equipamentos': { suffix: 'MOB', colorKey: 'risk.ergSubtypeMob' },
 };
 
 function resolveRiskChip(riskFactor: IRiskFactors): {
