@@ -20,7 +20,7 @@ const RISK_CHIP_WIDTH_SIMPLE_PX = 86;
 
 /** Ordem: primeiro match quando houver vários (ex.: prioriza Psicossociais). */
 const SUBTYPE_CHIP_BY_NAME: Record<string, { suffix: string; colorKey: string }> = {
-  Psicossociais: { suffix: 'PSIC', colorKey: 'risk.ergSubtypePsic' },
+  Psicossociais: { suffix: 'PSIC', colorKey: 'risk.psic' },
   Biomecânicos: { suffix: 'BIOM', colorKey: 'risk.ergSubtypeBiom' },
   Ambientais: { suffix: 'AMB', colorKey: 'risk.ergSubtypeAmb' },
   Organizacionais: { suffix: 'ORG', colorKey: 'risk.ergSubtypeOrg' },
@@ -65,6 +65,8 @@ export const STagRisk = ({
   const { label: displayType, colorKey: riskColorKey, chipWidthPx } =
     resolveRiskChip(riskFactor);
 
+  const isPsicChip = riskColorKey === 'risk.psic';
+
   const chip = (
     <SText
       fontSize={10}
@@ -72,7 +74,14 @@ export const STagRisk = ({
       sx={{
         flexShrink: 0,
         backgroundColor: riskColorKey,
-        color: 'common.white',
+        color: isPsicChip ? 'grey.900' : 'common.white',
+        ...(isPsicChip
+          ? {
+              border: '1px solid',
+              borderColor: 'risk.erg',
+              fontWeight: 600,
+            }
+          : {}),
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',

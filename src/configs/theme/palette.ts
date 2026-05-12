@@ -122,8 +122,8 @@ const palette = {
     all: '#fff',
     psic: '#ebe300',
     psicFade: '#fff94711',
-    /** Subtipos ergonômicos (chips STagRisk): família próxima ao `erg`, tons distintos, contraste com texto claro. */
-    ergSubtypePsic: '#a88906',
+    /** Alinhado a `risk.psic` (chip psicossocial STagRisk / RiskBox). */
+    ergSubtypePsic: '#ebe300',
     ergSubtypeBiom: '#5c6b12',
     ergSubtypeAmb: '#1e6b5c',
     ergSubtypeOrg: '#6b4f0f',
