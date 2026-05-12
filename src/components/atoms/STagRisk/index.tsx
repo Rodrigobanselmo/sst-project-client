@@ -13,6 +13,9 @@ interface ITagRiskProps {
   hideRiskName?: boolean;
 }
 
+/** Largura única do chip: comporta o maior rótulo atual (ex.: ERG-PSIC, ERG-BIOM). */
+const RISK_CHIP_FIXED_WIDTH_PX = 100;
+
 /** Ordem: primeiro match quando houver vários (ex.: prioriza Psicossociais). */
 const SUBTYPE_CHIP_BY_NAME: Record<string, { suffix: string; colorKey: string }> = {
   Psicossociais: { suffix: 'PSIC', colorKey: 'risk.psic' },
@@ -54,14 +57,18 @@ export const STagRisk = ({
         flexShrink: 0,
         backgroundColor: riskColorKey,
         color: 'common.white',
-        display: 'inline-block',
-        minWidth: '58px',
-        width: 'max-content',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: RISK_CHIP_FIXED_WIDTH_PX,
+        minWidth: RISK_CHIP_FIXED_WIDTH_PX,
+        maxWidth: RISK_CHIP_FIXED_WIDTH_PX,
         px: '8px',
         py: '2px',
         borderRadius: '4px',
         boxSizing: 'border-box',
         whiteSpace: 'nowrap',
+        textAlign: 'center',
       }}
     >
       <SFlex center>{displayType}</SFlex>
