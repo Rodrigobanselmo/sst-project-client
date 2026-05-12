@@ -12,21 +12,35 @@ interface ITagRiskProps {
   hideRiskName?: boolean;
 }
 
+/** Ordem: primeiro match quando houver vários (ex.: prioriza Psicossociais). */
+const SUBTYPE_CHIP_BY_NAME: Record<string, { label: string; colorKey: string }> = {
+  Psicossociais: { label: 'PSIC', colorKey: 'risk.psic' },
+  Biomecânicos: { label: 'BIOM', colorKey: 'risk.erg' },
+  Ambientais: { label: 'AMB', colorKey: 'risk.erg' },
+  Organizacionais: { label: 'ORG', colorKey: 'risk.erg' },
+  'Mobiliário e Equipamentos': { label: 'MOB', colorKey: 'risk.erg' },
+};
+
+function resolveRiskChip(riskFactor: IRiskFactors) {
+  for (const name of Object.keys(SUBTYPE_CHIP_BY_NAME)) {
+    if (riskFactor.subTypes?.some((s) => s?.sub_type?.name === name)) {
+      return SUBTYPE_CHIP_BY_NAME[name];
+    }
+  }
+  const t = (riskFactor?.type ?? '').toString().toLowerCase();
+  return {
+    label: riskFactor?.type || '',
+    colorKey: t ? (`risk.${t}` as const) : 'grey.500',
+  };
+}
+
 export const STagRisk = ({
   isEndDate,
   hideRiskName,
   riskFactor,
 }: ITagRiskProps) => {
-  const isPsicossocial = riskFactor.subTypes?.some(
-    (s) => s?.sub_type?.name === 'Psicossociais',
-  );
-  const displayType = isPsicossocial ? 'PSIC' : riskFactor?.type || '';
-  const riskColorKey = isPsicossocial
-    ? 'risk.psic'
-    : (() => {
-        const t = (riskFactor?.type ?? '').toString().toLowerCase();
-        return t ? (`risk.${t}` as const) : 'grey.500';
-      })();
+  const { label: displayType, colorKey: riskColorKey } =
+    resolveRiskChip(riskFactor);
 
   return (
     <SText
@@ -42,9 +56,12 @@ export const STagRisk = ({
             backgroundColor: riskColorKey,
             color: 'common.white',
           display: 'inline-block',
-          width: '40px',
+          minWidth: '36px',
+          width: 'max-content',
+          px: '6px',
           borderRadius: '4px',
           mr: 2,
+          boxSizing: 'border-box',
         }}
       >
         <SFlex center>{displayType}</SFlex>
