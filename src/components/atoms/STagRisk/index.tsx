@@ -17,6 +17,17 @@ export const STagRisk = ({
   hideRiskName,
   riskFactor,
 }: ITagRiskProps) => {
+  const isPsicossocial = riskFactor.subTypes?.some(
+    (s) => s?.sub_type?.name === 'Psicossociais',
+  );
+  const displayType = isPsicossocial ? 'PSIC' : riskFactor?.type || '';
+  const riskColorKey = isPsicossocial
+    ? 'risk.psic'
+    : (() => {
+        const t = (riskFactor?.type ?? '').toString().toLowerCase();
+        return t ? (`risk.${t}` as const) : 'grey.500';
+      })();
+
   return (
     <SText
         sx={{
@@ -28,10 +39,7 @@ export const STagRisk = ({
           fontSize={10}
           component="span"
           sx={{
-            backgroundColor: (() => {
-              const t = (riskFactor?.type ?? '').toString().toLowerCase();
-              return t ? (`risk.${t}` as const) : 'grey.500';
-            })(),
+            backgroundColor: riskColorKey,
             color: 'common.white',
           display: 'inline-block',
           width: '40px',
@@ -39,7 +47,7 @@ export const STagRisk = ({
           mr: 2,
         }}
       >
-        <SFlex center>{riskFactor?.type || ''}</SFlex>
+        <SFlex center>{displayType}</SFlex>
       </SText>
       {!hideRiskName ? riskFactor?.name || '' : ''}
     </SText>
