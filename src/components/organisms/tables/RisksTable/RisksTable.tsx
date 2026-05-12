@@ -39,6 +39,7 @@ import { IQueryExam } from 'core/services/hooks/queries/useQueryExams/useQueryEx
 import { queryClient } from 'core/services/queryClient';
 
 import { getRiskDoc } from '../RiskCompanyTable/RiskCompanyTable';
+import { sortRisksIdentifiedForVisualDisplay } from '../RiskCompanyTable/riskCompanyIdentifiedVisualSort';
 import { registeredRisksFilterList } from './registeredRisksFilterList';
 import {
   DEFAULT_RISKS_REGISTERED_PAGE_SIZE,
@@ -127,6 +128,11 @@ export const RisksTable: FC<
     isRefetching,
     refetch,
   } = useQueryRisks(page, queryWithSort, pageSize);
+
+  const displayRisks = useMemo(
+    () => sortRisksIdentifiedForVisualDisplay(risks),
+    [risks],
+  );
 
   const { onStackOpenModal } = useModal();
   const upsertRiskDocInfo = useMutUpsertRiskDocInfo();
@@ -421,9 +427,9 @@ export const RisksTable: FC<
             ),
           )}
         </STableHeader>
-        <STableBody<(typeof risks)[0]>
+        <STableBody<IRiskFactors>
           key={pageSize}
-          rowsData={risks}
+          rowsData={displayRisks}
           hideLoadMore
           rowsInitialNumber={pageSize}
           renderRow={(row) => {
