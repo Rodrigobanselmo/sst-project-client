@@ -54,6 +54,7 @@ import {
   RiskIdentifiedColumnId,
   RiskIdentifiedListSortBy,
 } from './identifiedRisksTable.types';
+import { sortRisksIdentifiedForVisualDisplay } from './riskCompanyIdentifiedVisualSort';
 
 export const getRiskDoc = (
   risk: IRiskFactors,
@@ -146,6 +147,11 @@ export const RiskCompanyTable: FC<
     isRefetching,
     refetch,
   } = useQueryRisksCompany(page, queryWithSort, pageSize);
+
+  const displayRisks = useMemo(
+    () => sortRisksIdentifiedForVisualDisplay(risks),
+    [risks],
+  );
 
   const onChangeRiskDocInfo = (docInfo: Partial<IRiskDocInfo>) => {
     if (!docInfo.riskId) return;
@@ -335,9 +341,9 @@ export const RiskCompanyTable: FC<
             />
           ))}
         </STableHeader>
-        <STableBody<(typeof risks)[0]>
+        <STableBody<IRiskFactors>
           key={pageSize}
-          rowsData={risks}
+          rowsData={displayRisks}
           hideLoadMore
           rowsInitialNumber={pageSize}
           renderRow={(row) => {
