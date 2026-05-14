@@ -16,17 +16,21 @@ import { FormApplicationShareModal } from './FormApplicationShareModal';
 import { FormApplicationDeleteConfirmModal } from './FormApplicationDeleteConfirmModal';
 import { FormApplicationStatusChange } from './FormApplicationStatusChange';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
+import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
+import { FormCampaignBanner } from './FormCampaignBanner/FormCampaignBanner';
 
 export const FormApplicationInfo = ({
   mb,
   formApplication,
   onEdit,
   companyId,
+  modelQuestionCount,
 }: {
   mb: number[];
   formApplication: FormApplicationReadModel | null | undefined;
   onEdit: () => void;
   companyId: string;
+  modelQuestionCount?: number | null;
 }) => {
   const { openModal, closeModal } = useModal();
 
@@ -161,6 +165,13 @@ export const FormApplicationInfo = ({
                 onClick={handleOpenShareModal}
                 variant="outlined"
                 color="info"
+              />
+            )}
+            {formApplication.form?.type === FormTypeEnum.PSYCHOSOCIAL && (
+              <FormCampaignBanner
+                formApplication={formApplication}
+                companyId={companyId}
+                modelQuestionCount={modelQuestionCount}
               />
             )}
             <FormApplicationStatusChange

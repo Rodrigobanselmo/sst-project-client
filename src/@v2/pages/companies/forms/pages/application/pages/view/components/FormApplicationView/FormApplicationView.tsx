@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { useFetchReadFormApplication } from '@v2/services/forms/form-application/read-form-application/hooks/useFetchReadFormApplication';
 import { useFormApplicationViewActions } from '../../hooks/useFormApplicationViewActions';
@@ -24,6 +25,14 @@ export const FormApplicationView = ({
     applicationId: formApplicationId,
   });
 
+  const modelQuestionCount = useMemo(() => {
+    if (!formQuestionsAnswers?.results) return null;
+    const count = formQuestionsAnswers.results
+      .filter((group) => !group.identifier)
+      .reduce((sum, group) => sum + group.questions.length, 0);
+    return count > 0 ? count : null;
+  }, [formQuestionsAnswers]);
+
   const handleEdit = () => {
     if (formApplication) onFormApplicationEdit(formApplication);
   };
@@ -35,6 +44,7 @@ export const FormApplicationView = ({
         formApplication={formApplication}
         onEdit={handleEdit}
         companyId={companyId}
+        modelQuestionCount={modelQuestionCount}
       />
       {!isLoading && formApplication && (
         <SFlex direction="column" gap={20}>
