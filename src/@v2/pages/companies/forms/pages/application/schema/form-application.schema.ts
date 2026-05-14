@@ -47,6 +47,9 @@ export interface IFormApplicationFormFields {
   form: InputFormModelSelectOptionProps;
   workspaceIds: InputWorkspaceSelectMultipleOptionProps[];
   sections: IFormIdentifierSection[];
+  bannerIntroText?: string;
+  bannerWhyText?: string;
+  bannerContactText?: string;
 }
 
 export const schemaFormApplicationForm = yup.object({
@@ -88,6 +91,9 @@ export const schemaFormApplicationForm = yup.object({
       return true;
     },
   }),
+  bannerIntroText: yup.string().optional(),
+  bannerWhyText: yup.string().optional(),
+  bannerContactText: yup.string().optional(),
   sections: yup
     .array()
     .of(
@@ -201,6 +207,9 @@ export const formApplicationFormInitialValues = {
   name: '',
   description: '',
   participationGoal: undefined,
+  bannerIntroText: '',
+  bannerWhyText: '',
+  bannerContactText: '',
   workspaceIds: [] as any[],
   form: {} as any,
   sections: [

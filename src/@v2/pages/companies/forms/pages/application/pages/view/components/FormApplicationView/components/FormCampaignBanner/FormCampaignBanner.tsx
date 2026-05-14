@@ -22,6 +22,46 @@ function escapeHtml(s: string): string {
     .replace(/"/g, '&quot;');
 }
 
+function formatBannerText(raw: string): string {
+  const escaped = escapeHtml(raw);
+
+  const lines = escaped.split('\n');
+  const result: string[] = [];
+  let inList = false;
+
+  for (const line of lines) {
+    const bulletMatch = line.match(/^\s*- (.+)/);
+
+    if (bulletMatch) {
+      if (!inList) {
+        result.push('<ul style="margin:4px 0 4px 18px;padding:0;">');
+        inList = true;
+      }
+      result.push(`<li>${applyInlineFormatting(bulletMatch[1])}</li>`);
+    } else {
+      if (inList) {
+        result.push('</ul>');
+        inList = false;
+      }
+      if (line.trim() === '') {
+        result.push('<br/>');
+      } else {
+        result.push(applyInlineFormatting(line));
+      }
+    }
+  }
+
+  if (inList) result.push('</ul>');
+
+  return result.join('\n');
+}
+
+function applyInlineFormatting(text: string): string {
+  return text
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/_(.+?)_/g, '<em>$1</em>');
+}
+
 async function generateQrSvgString(
   url: string,
   size: number,
@@ -63,6 +103,15 @@ interface BuildBannerHtmlParams {
   modelQuestionCount: number | null | undefined;
 }
 
+const DEFAULT_INTRO_TEXT = (companyName: string) =>
+  `O Programa de Gerenciamento de Riscos (PGR) está em andamento na ${companyName}, com ações voltadas para identificar os Fatores de Riscos Psicossociais (FRPS) no ambiente laboral.`;
+
+const DEFAULT_WHY_TEXT =
+  'Estamos aplicando o Copenhagen Psychosocial Questionnaire (COPSOQ III), um instrumento internacionalmente reconhecido e desenvolvido pelo Danish National Institute for Occupational Health. O questionário é anônimo e individual, garantindo total sigilo nas respostas. Ele nos ajudará a compreender os desafios psicossociais no trabalho e a planejar soluções eficazes para promover saúde mental e bem-estar.';
+
+const DEFAULT_CONTACT_TEXT =
+  'Entre em contato com o setor de RH da sua empresa ou diretamente com a SimpleSST: (51) 98348-5050';
+
 function buildBannerHtml({
   formApplication,
   publicUrl,
@@ -85,6 +134,10 @@ function buildBannerHtml({
     : SIMPLE_SST_LOGO_SVG.replace('%%COLOR%%', primary);
 
   const formName = escapeHtml(formApplication.name);
+
+  const introText = formApplication.bannerIntroText?.trim() || DEFAULT_INTRO_TEXT(companyName);
+  const whyText = formApplication.bannerWhyText?.trim() || DEFAULT_WHY_TEXT;
+  const contactText = formApplication.bannerContactText?.trim() || DEFAULT_CONTACT_TEXT;
 
   const avgTime = formApplication.averageTimeSpent;
   const hasRealAverage = avgTime !== null && avgTime > 0;
@@ -125,6 +178,8 @@ function buildBannerHtml({
   .section { background: #f8f9fa; border-radius: 8px; padding: 14px 18px; border-left: 4px solid ${primary}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .section h4 { font-size: 15px; font-weight: 700; color: ${dark}; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
   .section p { font-size: 14px; color: #444; line-height: 1.6; }
+  .section ul, .cta ul, .contact ul { list-style: disc; margin: 4px 0 4px 18px; padding: 0; }
+  .section li, .cta li, .contact li { font-size: 14px; color: #444; line-height: 1.6; margin-bottom: 2px; }
 
   .two-col { display: flex; gap: 16px; }
   .two-col > .section { flex: 1; }
@@ -172,12 +227,12 @@ function buildBannerHtml({
   <div class="content">
     <div class="cta">
       <h3>PARTICIPE DA PESQUISA</h3>
-      <p>O Programa de Gerenciamento de Riscos (PGR) está em andamento na <strong>${escapeHtml(companyName)}</strong>, com ações voltadas para identificar os Fatores de Riscos Psicossociais (FRPS) no ambiente laboral.</p>
+      <p>${formatBannerText(introText)}</p>
     </div>
 
     <div class="section">
       <h4>Por que participar?</h4>
-      <p>Estamos aplicando o <strong>Copenhagen Psychosocial Questionnaire (COPSOQ III)</strong>, um instrumento internacionalmente reconhecido e desenvolvido pelo Danish National Institute for Occupational Health. O questionário é <strong>anônimo e individual</strong>, garantindo total sigilo nas respostas. Ele nos ajudará a compreender os desafios psicossociais no trabalho e a planejar soluções eficazes para promover saúde mental e bem-estar.</p>
+      <p>${formatBannerText(whyText)}</p>
     </div>
 
     <div class="two-col">
@@ -214,7 +269,7 @@ function buildBannerHtml({
   <div class="contact">
     <div>
       <h4>Dúvidas?</h4>
-      <p>Entre em contato com o setor de RH da sua empresa<br/>ou diretamente com a SimpleSST: <strong>(51) 98348-5050</strong></p>
+      <p>${formatBannerText(contactText)}</p>
     </div>
   </div>
 

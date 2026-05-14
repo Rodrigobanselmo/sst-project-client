@@ -26,6 +26,9 @@ export type IFormApplicationReadModel = {
   totalParticipants: number;
   totalAnswers: number;
   averageTimeSpent: number | null;
+  bannerIntroText?: string | null;
+  bannerWhyText?: string | null;
+  bannerContactText?: string | null;
   questionIdentifierGroup: FormQuestionGroupReadModel;
 };
 
@@ -46,6 +49,9 @@ export class FormApplicationReadModel {
   totalParticipants: number;
   totalAnswers: number;
   averageTimeSpent: number | null;
+  bannerIntroText: string | null;
+  bannerWhyText: string | null;
+  bannerContactText: string | null;
   participants: {
     hierarchies: { id: string; name: string }[];
     workspaces: { id: string; name: string }[];
@@ -70,6 +76,9 @@ export class FormApplicationReadModel {
     this.totalParticipants = params.totalParticipants;
     this.totalAnswers = params.totalAnswers;
     this.averageTimeSpent = params.averageTimeSpent;
+    this.bannerIntroText = params.bannerIntroText ?? null;
+    this.bannerWhyText = params.bannerWhyText ?? null;
+    this.bannerContactText = params.bannerContactText ?? null;
     this.questionIdentifierGroup = new FormQuestionGroupReadModel(
       params.questionIdentifierGroup,
     );

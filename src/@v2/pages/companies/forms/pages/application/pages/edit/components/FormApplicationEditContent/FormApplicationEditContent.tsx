@@ -53,6 +53,9 @@ export const FormApplicationEditContent = ({
       ...formApplicationFormInitialValues,
       name: formApplication.name,
       description: formApplication.description || '',
+      bannerIntroText: formApplication.bannerIntroText || '',
+      bannerWhyText: formApplication.bannerWhyText || '',
+      bannerContactText: formApplication.bannerContactText || '',
       form: {
         id: formApplication.form.id,
         name: formApplication.form.name,
@@ -167,6 +170,9 @@ export const FormApplicationEditContent = ({
       hierarchyIds: [],
       workspaceIds: data.workspaceIds.map((workspace) => workspace.id),
       identifier,
+      bannerIntroText: data.bannerIntroText?.trim() || '',
+      bannerWhyText: data.bannerWhyText?.trim() || '',
+      bannerContactText: data.bannerContactText?.trim() || '',
     });
 
     router.push(PageRoutes.FORMS.FORMS_APPLICATION.VIEW, {

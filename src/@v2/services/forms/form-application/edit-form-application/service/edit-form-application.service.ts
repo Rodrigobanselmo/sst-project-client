@@ -44,6 +44,9 @@ export interface EditFormApplicationParams {
   workspaceIds?: string[];
   hierarchyIds?: string[];
   identifier?: Identifier;
+  bannerIntroText?: string;
+  bannerWhyText?: string;
+  bannerContactText?: string;
 }
 
 export async function editFormApplication({
