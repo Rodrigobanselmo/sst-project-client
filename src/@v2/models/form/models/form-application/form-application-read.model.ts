@@ -29,6 +29,7 @@ export type IFormApplicationReadModel = {
   bannerIntroText?: string | null;
   bannerWhyText?: string | null;
   bannerContactText?: string | null;
+  reminderCount?: number;
   questionIdentifierGroup: FormQuestionGroupReadModel;
 };
 
@@ -52,6 +53,7 @@ export class FormApplicationReadModel {
   bannerIntroText: string | null;
   bannerWhyText: string | null;
   bannerContactText: string | null;
+  reminderCount: number;
   participants: {
     hierarchies: { id: string; name: string }[];
     workspaces: { id: string; name: string }[];
@@ -79,6 +81,7 @@ export class FormApplicationReadModel {
     this.bannerIntroText = params.bannerIntroText ?? null;
     this.bannerWhyText = params.bannerWhyText ?? null;
     this.bannerContactText = params.bannerContactText ?? null;
+    this.reminderCount = params.reminderCount ?? 0;
     this.questionIdentifierGroup = new FormQuestionGroupReadModel(
       params.questionIdentifierGroup,
     );
