@@ -62,6 +62,19 @@ function applyInlineFormatting(text: string): string {
     .replace(/_(.+?)_/g, '<em>$1</em>');
 }
 
+/** Quebra visual segura para impressão: linhas só em `/`, sem espaço na string copiável. */
+function formatUrlForBannerDisplay(url: string): string {
+  const safe = escapeHtml(url);
+  const marker = '/formulario/';
+  const idx = safe.indexOf(marker);
+  if (idx !== -1) {
+    const prefix = safe.slice(0, idx + marker.length);
+    const suffix = safe.slice(idx + marker.length);
+    return `<span class="url-part">${prefix}</span><span class="url-part">${suffix}</span>`;
+  }
+  return safe.replace(/\//g, '/<wbr>');
+}
+
 async function generateQrSvgString(
   url: string,
   size: number,
@@ -187,10 +200,12 @@ function buildBannerHtml({
   .access { display: flex; align-items: center; gap: 20px; background: #f8f9fa; border-radius: 8px; padding: 16px 20px; border: 2px solid ${primary}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .access-qr { flex-shrink: 0; }
   .access-qr svg { display: block; }
-  .access-info { flex: 1; }
+  .access-info { flex: 1; min-width: 0; }
   .access-info h4 { font-size: 14px; font-weight: 700; color: ${dark}; margin-bottom: 4px; text-transform: uppercase; }
   .access-info p { font-size: 12px; color: #444; line-height: 1.5; }
-  .access-info .url { font-family: monospace; font-size: 10.5px; color: ${primary}; word-break: break-all; margin-top: 6px; background: #fff; padding: 5px 8px; border-radius: 4px; border: 1px solid #ddd; }
+  .access-info .url { font-family: monospace; font-size: 9.5px; color: ${primary}; margin-top: 6px; background: #fff; padding: 5px 8px; border-radius: 4px; border: 1px solid #ddd; line-height: 1.35; word-break: normal; overflow-wrap: normal; }
+  .access-info .url a { color: inherit; text-decoration: none; }
+  .access-info .url .url-part { display: block; white-space: nowrap; }
   .access-time { flex-shrink: 0; text-align: center; background: ${primary}; color: #fff; border-radius: 8px; padding: 10px 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .access-time .big { font-size: 22px; font-weight: 800; line-height: 1; }
   .access-time .small { font-size: 10px; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
@@ -251,7 +266,7 @@ function buildBannerHtml({
       <div class="access-info">
         <h4>Como participar?</h4>
         <p>Escaneie o QR Code ao lado com a câmera do celular ou acesse o link abaixo:</p>
-        <div class="url">${escapeHtml(publicUrl)}</div>
+        <div class="url"><a href="${escapeHtml(publicUrl)}">${formatUrlForBannerDisplay(publicUrl)}</a></div>
       </div>
       <div class="access-time">
         <div class="big">${timeDisplay}</div>
