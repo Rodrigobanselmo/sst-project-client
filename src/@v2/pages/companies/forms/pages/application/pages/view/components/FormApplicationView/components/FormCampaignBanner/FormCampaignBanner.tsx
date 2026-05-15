@@ -62,19 +62,6 @@ function applyInlineFormatting(text: string): string {
     .replace(/_(.+?)_/g, '<em>$1</em>');
 }
 
-/** Quebra visual segura para impressão: linhas só em `/`, sem espaço na string copiável. */
-function formatUrlForBannerDisplay(url: string): string {
-  const safe = escapeHtml(url);
-  const marker = '/formulario/';
-  const idx = safe.indexOf(marker);
-  if (idx !== -1) {
-    const prefix = safe.slice(0, idx + marker.length);
-    const suffix = safe.slice(idx + marker.length);
-    return `<span class="url-part">${prefix}</span><span class="url-part">${suffix}</span>`;
-  }
-  return safe.replace(/\//g, '/<wbr>');
-}
-
 async function generateQrSvgString(
   url: string,
   size: number,
@@ -197,16 +184,15 @@ function buildBannerHtml({
   .two-col { display: flex; gap: 16px; }
   .two-col > .section { flex: 1; }
 
-  .access { display: flex; align-items: center; gap: 20px; background: #f8f9fa; border-radius: 8px; padding: 16px 20px; border: 2px solid ${primary}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  .access-qr { flex-shrink: 0; }
+  .access { display: grid; grid-template-columns: auto 1fr auto; grid-template-rows: auto auto; column-gap: 16px; row-gap: 8px; align-items: center; background: #f8f9fa; border-radius: 8px; padding: 14px 16px; border: 2px solid ${primary}; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .access-qr { grid-row: 1; grid-column: 1; align-self: center; }
   .access-qr svg { display: block; }
-  .access-info { flex: 1; min-width: 0; }
+  .access-info { grid-column: 2; grid-row: 1; min-width: 0; }
   .access-info h4 { font-size: 14px; font-weight: 700; color: ${dark}; margin-bottom: 4px; text-transform: uppercase; }
   .access-info p { font-size: 12px; color: #444; line-height: 1.5; }
-  .access-info .url { font-family: monospace; font-size: 9.5px; color: ${primary}; margin-top: 6px; background: #fff; padding: 5px 8px; border-radius: 4px; border: 1px solid #ddd; line-height: 1.35; word-break: normal; overflow-wrap: normal; }
-  .access-info .url a { color: inherit; text-decoration: none; }
-  .access-info .url .url-part { display: block; white-space: nowrap; }
-  .access-time { flex-shrink: 0; text-align: center; background: ${primary}; color: #fff; border-radius: 8px; padding: 10px 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .access-url { grid-column: 1 / -1; grid-row: 2; min-width: 0; }
+  .access-url a { display: block; font-family: monospace; font-size: 7.5px; color: ${primary}; background: #fff; padding: 5px 8px; border-radius: 4px; border: 1px solid #ddd; line-height: 1.2; text-decoration: none; white-space: nowrap; word-break: keep-all; overflow-wrap: normal; letter-spacing: -0.02em; }
+  .access-time { grid-column: 3; grid-row: 1; align-self: center; text-align: center; background: ${primary}; color: #fff; border-radius: 8px; padding: 10px 14px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .access-time .big { font-size: 22px; font-weight: 800; line-height: 1; }
   .access-time .small { font-size: 10px; font-weight: 600; text-transform: uppercase; margin-top: 2px; }
 
@@ -224,6 +210,7 @@ function buildBannerHtml({
     html, body { width: 210mm; height: 297mm; }
     .page { page-break-after: avoid; }
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .access-url a { white-space: nowrap !important; word-break: keep-all !important; overflow-wrap: normal !important; }
   }
 </style>
 </head>
@@ -266,13 +253,13 @@ function buildBannerHtml({
       <div class="access-info">
         <h4>Como participar?</h4>
         <p>Escaneie o QR Code ao lado com a câmera do celular ou acesse o link abaixo:</p>
-        <div class="url"><a href="${escapeHtml(publicUrl)}">${formatUrlForBannerDisplay(publicUrl)}</a></div>
       </div>
       <div class="access-time">
         <div class="big">${timeDisplay}</div>
         <div class="small">${timeLabel}</div>
         <div class="small" style="margin-top:4px;font-size:8px;opacity:0.85">${timeSublabel}</div>
       </div>
+      <div class="access-url"><a href="${escapeHtml(publicUrl)}">${escapeHtml(publicUrl)}</a></div>
     </div>
 
     <div class="cta-bottom">
