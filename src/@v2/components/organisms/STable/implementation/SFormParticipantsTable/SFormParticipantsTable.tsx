@@ -2,6 +2,7 @@ import { FC } from 'react';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { getFormParticipantEstablishmentLabel } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment';
 import {
   getFormParticipantHierarchyChain,
   getFormParticipantSectorLabel,
@@ -127,6 +128,28 @@ export const SFormParticipantsTable: FC<IFormParticipantsTableTableProps> = ({
       ),
       row: (row) => (
         <STextRow lineNumber={1} text={row.formattedPhone || '-'} />
+      ),
+    },
+
+    // WORKSPACE_NAME
+    {
+      column: 'minmax(140px, 1fr)',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.WORKSPACE_NAME),
+      header: (
+        <FormParticipantsHeaderRow
+          orderByMap={orderByMap}
+          text={columnMap[columnsEnum.WORKSPACE_NAME].label}
+          filters={filterColumns[columnsEnum.WORKSPACE_NAME]}
+          onHidden={() =>
+            setHiddenColumns({ [columnsEnum.WORKSPACE_NAME]: true })
+          }
+        />
+      ),
+      row: (row) => (
+        <STextRow
+          lineNumber={2}
+          text={getFormParticipantEstablishmentLabel(row)}
+        />
       ),
     },
 

@@ -1,3 +1,7 @@
+import {
+  buildEstablishmentAggregates,
+  getFormParticipantEstablishmentLabel,
+} from '@v2/models/form/helpers/form-participants-aggregate-by-establishment';
 import { buildSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-sector';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import {
@@ -17,7 +21,10 @@ import { useCallback, useState } from 'react';
 
 const EXPORT_ROW_CAP_LIST = 10_000;
 
-export type FormParticipantsPdfViewMode = 'list' | 'grouped';
+export type FormParticipantsPdfViewMode =
+  | 'list'
+  | 'grouped'
+  | 'grouped_establishment';
 
 type Props = {
   companyId: string;
@@ -60,16 +67,18 @@ export const FormParticipantsRecorteExportButton = ({
   const onExport = useCallback(async () => {
     setLoading(true);
     try {
-      const isGrouped = viewMode === 'grouped';
+      const isGroupedSector = viewMode === 'grouped';
+      const isGroupedEstablishment = viewMode === 'grouped_establishment';
+      const isGroupedFetch = isGroupedSector || isGroupedEstablishment;
 
       const bundle = await browseFormParticipants({
         companyId,
         applicationId,
         filters,
-        orderBy: isGrouped ? GROUPED_ORDER_BY : orderBy,
+        orderBy: isGroupedFetch ? GROUPED_ORDER_BY : orderBy,
         pagination: {
           page: 1,
-          limit: isGrouped ? groupedFetchLimit : EXPORT_ROW_CAP_LIST,
+          limit: isGroupedFetch ? groupedFetchLimit : EXPORT_ROW_CAP_LIST,
         },
       });
 
@@ -108,7 +117,7 @@ export const FormParticipantsRecorteExportButton = ({
       let tableSection: string;
       let noteHtml: string;
 
-      if (isGrouped) {
+      if (isGroupedSector) {
         const aggregates = buildSectorAggregates(rows);
         const tableRows = aggregates
           .map((g) => {
@@ -140,16 +149,48 @@ export const FormParticipantsRecorteExportButton = ({
             ? `Agrupamento limitado a ${groupedFetchLimit} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
             : '';
         noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
+      } else if (isGroupedEstablishment) {
+        const aggregates = buildEstablishmentAggregates(rows);
+        const tableRows = aggregates
+          .map((g) => {
+            const c = getResponseRateBarColor(g.responseRatePercent);
+            const w = Math.min(100, Math.max(0, g.responseRatePercent));
+            const pct = g.responseRatePercent.toLocaleString('pt-BR', {
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 1,
+            });
+            return `<tr>
+              <td>${escapeHtml(g.establishmentLabel)}</td>
+              <td class="num">${g.total}</td>
+              <td class="num">${g.responded}</td>
+              <td class="num">${g.notResponded}</td>
+              <td class="num">${pct}%</td>
+              <td><div class="cellbar"><div style="width:${w}%;max-width:100%;background:${c}"></div></div></td>
+            </tr>`;
+          })
+          .join('');
+
+        tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento</h2>
+        <table><thead><tr>
+          <th>Estabelecimento</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+
+        const capNote =
+          fs.totalParticipants > groupedFetchLimit
+            ? `Agrupamento limitado a ${groupedFetchLimit} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
+            : '';
+        noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
       } else {
         const tableRows = rows
           .map((r) => {
             const hier = `${getFormParticipantSectorLabel(r)} — ${getFormParticipantHierarchyChain(r)}`;
-            return `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(hier)}</td><td>${r.hasResponded ? 'Sim' : 'Não'}</td></tr>`;
+            return `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(getFormParticipantEstablishmentLabel(r))}</td><td>${escapeHtml(hier)}</td><td>${r.hasResponded ? 'Sim' : 'Não'}</td></tr>`;
           })
           .join('');
 
         tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Lista de participantes</h2>
-        <table><thead><tr><th>Nome</th><th>Setor / hierarquia</th><th>Respondeu</th></tr></thead>
+        <table><thead><tr><th>Nome</th><th>Estabelecimento</th><th>Setor / hierarquia</th><th>Respondeu</th></tr></thead>
         <tbody>${tableRows}</tbody></table>`;
 
         noteHtml =
@@ -159,9 +200,11 @@ export const FormParticipantsRecorteExportButton = ({
             : '';
       }
 
-      const titleMain = isGrouped
+      const titleMain = isGroupedSector
         ? 'Recorte filtrado — agrupado por setor'
-        : 'Participantes — recorte filtrado (lista detalhada)';
+        : isGroupedEstablishment
+          ? 'Recorte filtrado — agrupado por estabelecimento'
+          : 'Participantes — recorte filtrado (lista detalhada)';
 
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Recorte — ${escapeHtml(appName)}</title>
         <style>${sharedStyles}</style></head><body>

@@ -3,6 +3,7 @@ export enum FormParticipantsColumnsEnum {
   CPF = 'CPF',
   EMAIL = 'EMAIL',
   PHONE = 'PHONE',
+  WORKSPACE_NAME = 'WORKSPACE_NAME',
   STATUS = 'STATUS',
   HIERARCHY_NAME = 'HIERARCHY_NAME',
   HAS_RESPONDED = 'HAS_RESPONDED',

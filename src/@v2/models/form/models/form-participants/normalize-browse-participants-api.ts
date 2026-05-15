@@ -16,6 +16,28 @@ function optionalNonNegativeNumber(n: unknown): number | undefined {
   return Number.isFinite(x) && x >= 0 ? x : undefined;
 }
 
+function optionalString(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeParticipantResult(raw: unknown): Record<string, unknown> {
+  if (!raw || typeof raw !== 'object') return {};
+  const o = { ...(raw as Record<string, unknown>) };
+
+  const workspaceId =
+    optionalString(o.workspaceId) ?? optionalString(o.workspace_id);
+  const workspaceName =
+    optionalString(o.workspaceName) ?? optionalString(o.workspace_name);
+
+  o.workspaceId = workspaceId;
+  o.workspaceName = workspaceName;
+
+  return o;
+}
+
 function countRespondedInRawResults(results: unknown[]): number {
   return results.filter((r) => {
     if (!r || typeof r !== 'object') return false;
@@ -39,7 +61,9 @@ export function normalizeBrowseParticipantsApiPayload(
   raw: unknown,
 ): NormalizedBrowseParticipantsPayload {
   const d = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
-  const results = Array.isArray(d.results) ? d.results : [];
+  const results = Array.isArray(d.results)
+    ? d.results.map(normalizeParticipantResult)
+    : [];
   const p = (d.pagination && typeof d.pagination === 'object'
     ? d.pagination
     : {}) as Record<string, unknown>;

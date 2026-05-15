@@ -15,6 +15,7 @@ export const FormParticipantsColumnMap: Record<
   [FormParticipantsColumnsEnum.CPF]: { label: 'CPF' },
   [FormParticipantsColumnsEnum.EMAIL]: { label: 'Email' },
   [FormParticipantsColumnsEnum.PHONE]: { label: 'Telefone' },
+  [FormParticipantsColumnsEnum.WORKSPACE_NAME]: { label: 'Estabelecimento' },
   [FormParticipantsColumnsEnum.STATUS]: { label: 'Status' },
   [FormParticipantsColumnsEnum.HIERARCHY_NAME]: { label: 'Setor / hierarquia' },
   [FormParticipantsColumnsEnum.HAS_RESPONDED]: { label: 'Respondeu' },

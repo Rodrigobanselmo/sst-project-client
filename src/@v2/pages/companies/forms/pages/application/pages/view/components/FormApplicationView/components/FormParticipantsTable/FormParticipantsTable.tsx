@@ -22,6 +22,7 @@ import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-particip
 import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-form-participants.types';
 import { FormParticipantsTableFilter } from './components/FormParticipantsTableFilter/FormParticipantsTableFilter';
 import { FormParticipantsFilterSummary } from './components/FormParticipantsFilterSummary';
+import { FormParticipantsGroupedByEstablishment } from './components/FormParticipantsGroupedByEstablishment';
 import { FormParticipantsGroupedBySector } from './components/FormParticipantsGroupedBySector';
 import { FormParticipantsRecorteExportButton } from './components/FormParticipantsRecorteExportButton';
 import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
@@ -38,11 +39,11 @@ import {
   Select,
   SelectChangeEvent,
 } from '@mui/material';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const GROUP_FETCH_CAP = 10_000;
 
-type ParticipantsViewMode = 'list' | 'grouped';
+type ParticipantsViewMode = 'list' | 'grouped' | 'grouped_establishment';
 
 export const FormParticipantsTable = ({
   companyId,
@@ -78,6 +79,16 @@ export const FormParticipantsTable = ({
   );
 
   const [viewMode, setViewMode] = useState<ParticipantsViewMode>('list');
+
+  const participantWorkspacesCount =
+    formApplication?.participants.workspaces.length ?? 0;
+  const showGroupedByEstablishment = participantWorkspacesCount > 1;
+
+  useEffect(() => {
+    if (viewMode === 'grouped_establishment' && !showGroupedByEstablishment) {
+      setViewMode('list');
+    }
+  }, [viewMode, showGroupedByEstablishment]);
 
   const browseFilters = useMemo(
     () => ({
@@ -213,7 +224,7 @@ export const FormParticipantsTable = ({
         },
       ],
       pagination: { page: 1, limit: groupedFetchLimit },
-      enabled: viewMode === 'grouped',
+      enabled: viewMode === 'grouped' || viewMode === 'grouped_establishment',
     });
 
   // Check if form is accepting responses
@@ -277,8 +288,11 @@ export const FormParticipantsTable = ({
     setViewMode(e.target.value as ParticipantsViewMode);
   };
 
+  const isGroupedViewMode =
+    viewMode === 'grouped' || viewMode === 'grouped_establishment';
+
   const isPartialGroupedFetch =
-    viewMode === 'grouped' &&
+    isGroupedViewMode &&
     filterSummaryForUi.totalParticipants > GROUP_FETCH_CAP;
 
   return (
@@ -373,6 +387,11 @@ export const FormParticipantsTable = ({
           >
             <MenuItem value="list">Lista detalhada</MenuItem>
             <MenuItem value="grouped">Agrupado por setor</MenuItem>
+            {showGroupedByEstablishment ? (
+              <MenuItem value="grouped_establishment">
+                Agrupado por estabelecimento
+              </MenuItem>
+            ) : null}
           </Select>
         </FormControl>
       </Box>
@@ -394,6 +413,13 @@ export const FormParticipantsTable = ({
           formApplication={formApplication}
           pageSizeOptions={pageSizeOptions}
           onPageSizeChange={onPageSizeChange}
+        />
+      ) : viewMode === 'grouped_establishment' ? (
+        <FormParticipantsGroupedByEstablishment
+          rows={groupedParticipants?.results ?? []}
+          isLoading={groupedLoading}
+          fetchCap={GROUP_FETCH_CAP}
+          isPartialFetch={isPartialGroupedFetch}
         />
       ) : (
         <FormParticipantsGroupedBySector

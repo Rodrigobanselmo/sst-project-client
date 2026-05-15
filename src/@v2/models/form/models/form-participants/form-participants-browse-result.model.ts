@@ -22,6 +22,8 @@ export type IFormParticipantsBrowseResultModel = {
   hasResponded: boolean;
   emailSent: boolean;
   emailSentAt: Date | null;
+  workspaceId?: string | null;
+  workspaceName?: string | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -41,6 +43,8 @@ export class FormParticipantsBrowseResultModel {
   hasResponded: boolean;
   emailSent: boolean;
   emailSentAt: Date | null;
+  workspaceId: string | null;
+  workspaceName: string | null;
   createdAt: Date;
   updatedAt: Date;
 
@@ -59,6 +63,8 @@ export class FormParticipantsBrowseResultModel {
     this.hasResponded = params.hasResponded;
     this.emailSent = params.emailSent;
     this.emailSentAt = params.emailSentAt;
+    this.workspaceId = params.workspaceId ?? null;
+    this.workspaceName = params.workspaceName ?? null;
     this.createdAt = params.createdAt;
     this.updatedAt = params.updatedAt;
   }
