@@ -23,6 +23,7 @@ import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participant
 import { FormParticipantsTableFilter } from './components/FormParticipantsTableFilter/FormParticipantsTableFilter';
 import { FormParticipantsFilterSummary } from './components/FormParticipantsFilterSummary';
 import { FormParticipantsGroupedByEstablishment } from './components/FormParticipantsGroupedByEstablishment';
+import { FormParticipantsGroupedByEstablishmentSector } from './components/FormParticipantsGroupedByEstablishmentSector';
 import { FormParticipantsGroupedBySector } from './components/FormParticipantsGroupedBySector';
 import { FormParticipantsRecorteExportButton } from './components/FormParticipantsRecorteExportButton';
 import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
@@ -43,7 +44,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const GROUP_FETCH_CAP = 10_000;
 
-type ParticipantsViewMode = 'list' | 'grouped' | 'grouped_establishment';
+type ParticipantsViewMode =
+  | 'list'
+  | 'grouped'
+  | 'grouped_establishment'
+  | 'grouped_establishment_sector';
 
 export const FormParticipantsTable = ({
   companyId,
@@ -85,7 +90,11 @@ export const FormParticipantsTable = ({
   const showGroupedByEstablishment = participantWorkspacesCount > 1;
 
   useEffect(() => {
-    if (viewMode === 'grouped_establishment' && !showGroupedByEstablishment) {
+    if (
+      (viewMode === 'grouped_establishment' ||
+        viewMode === 'grouped_establishment_sector') &&
+      !showGroupedByEstablishment
+    ) {
       setViewMode('list');
     }
   }, [viewMode, showGroupedByEstablishment]);
@@ -224,7 +233,10 @@ export const FormParticipantsTable = ({
         },
       ],
       pagination: { page: 1, limit: groupedFetchLimit },
-      enabled: viewMode === 'grouped' || viewMode === 'grouped_establishment',
+      enabled:
+        viewMode === 'grouped' ||
+        viewMode === 'grouped_establishment' ||
+        viewMode === 'grouped_establishment_sector',
     });
 
   // Check if form is accepting responses
@@ -289,7 +301,9 @@ export const FormParticipantsTable = ({
   };
 
   const isGroupedViewMode =
-    viewMode === 'grouped' || viewMode === 'grouped_establishment';
+    viewMode === 'grouped' ||
+    viewMode === 'grouped_establishment' ||
+    viewMode === 'grouped_establishment_sector';
 
   const isPartialGroupedFetch =
     isGroupedViewMode &&
@@ -392,6 +406,11 @@ export const FormParticipantsTable = ({
                 Agrupado por estabelecimento
               </MenuItem>
             ) : null}
+            {showGroupedByEstablishment ? (
+              <MenuItem value="grouped_establishment_sector">
+                Agrupado por estabelecimento e setor
+              </MenuItem>
+            ) : null}
           </Select>
         </FormControl>
       </Box>
@@ -416,6 +435,13 @@ export const FormParticipantsTable = ({
         />
       ) : viewMode === 'grouped_establishment' ? (
         <FormParticipantsGroupedByEstablishment
+          rows={groupedParticipants?.results ?? []}
+          isLoading={groupedLoading}
+          fetchCap={GROUP_FETCH_CAP}
+          isPartialFetch={isPartialGroupedFetch}
+        />
+      ) : viewMode === 'grouped_establishment_sector' ? (
+        <FormParticipantsGroupedByEstablishmentSector
           rows={groupedParticipants?.results ?? []}
           isLoading={groupedLoading}
           fetchCap={GROUP_FETCH_CAP}
