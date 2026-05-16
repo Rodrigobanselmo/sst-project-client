@@ -2,6 +2,7 @@ import {
   buildEstablishmentAggregates,
   getFormParticipantEstablishmentLabel,
 } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment';
+import { buildEstablishmentSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-sector';
 import { buildSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-sector';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import {
@@ -24,7 +25,8 @@ const EXPORT_ROW_CAP_LIST = 10_000;
 export type FormParticipantsPdfViewMode =
   | 'list'
   | 'grouped'
-  | 'grouped_establishment';
+  | 'grouped_establishment'
+  | 'grouped_establishment_sector';
 
 type Props = {
   companyId: string;
@@ -52,6 +54,34 @@ const GROUPED_ORDER_BY: IOrderByParams<FormParticipantsOrderByEnum>[] = [
   { field: FormParticipantsOrderByEnum.NAME, order: 'asc' },
 ];
 
+type AggregatePdfRow = {
+  label: string;
+  total: number;
+  responded: number;
+  notResponded: number;
+  responseRatePercent: number;
+};
+
+function renderAggregatePdfTableRow(
+  g: AggregatePdfRow,
+  rowClass: string,
+): string {
+  const c = getResponseRateBarColor(g.responseRatePercent);
+  const w = Math.min(100, Math.max(0, g.responseRatePercent));
+  const pct = g.responseRatePercent.toLocaleString('pt-BR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  });
+  return `<tr class="${rowClass}">
+    <td>${escapeHtml(g.label)}</td>
+    <td class="num">${g.total}</td>
+    <td class="num">${g.responded}</td>
+    <td class="num">${g.notResponded}</td>
+    <td class="num">${pct}%</td>
+    <td><div class="cellbar"><div style="width:${w}%;max-width:100%;background:${c}"></div></div></td>
+  </tr>`;
+}
+
 export const FormParticipantsRecorteExportButton = ({
   companyId,
   applicationId,
@@ -69,7 +99,12 @@ export const FormParticipantsRecorteExportButton = ({
     try {
       const isGroupedSector = viewMode === 'grouped';
       const isGroupedEstablishment = viewMode === 'grouped_establishment';
-      const isGroupedFetch = isGroupedSector || isGroupedEstablishment;
+      const isGroupedEstablishmentSector =
+        viewMode === 'grouped_establishment_sector';
+      const isGroupedFetch =
+        isGroupedSector ||
+        isGroupedEstablishment ||
+        isGroupedEstablishmentSector;
 
       const bundle = await browseFormParticipants({
         companyId,
@@ -112,6 +147,8 @@ export const FormParticipantsRecorteExportButton = ({
           .cellbar{height:12px;background:#e0e0e0;border-radius:6px;overflow:hidden;border:1px solid #ddd;min-width:120px}
           .cellbar > div{height:100%;min-width:2px;border-radius:6px;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
           .num{text-align:right}
+          .est-row td:first-child{font-weight:700;background:#f0f0f0}
+          .sector-row td:first-child{padding-left:24px;color:#555}
       `;
 
       let tableSection: string;
@@ -120,22 +157,12 @@ export const FormParticipantsRecorteExportButton = ({
       if (isGroupedSector) {
         const aggregates = buildSectorAggregates(rows);
         const tableRows = aggregates
-          .map((g) => {
-            const c = getResponseRateBarColor(g.responseRatePercent);
-            const w = Math.min(100, Math.max(0, g.responseRatePercent));
-            const pct = g.responseRatePercent.toLocaleString('pt-BR', {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 1,
-            });
-            return `<tr>
-              <td>${escapeHtml(g.sectorLabel)}</td>
-              <td class="num">${g.total}</td>
-              <td class="num">${g.responded}</td>
-              <td class="num">${g.notResponded}</td>
-              <td class="num">${pct}%</td>
-              <td><div class="cellbar"><div style="width:${w}%;max-width:100%;background:${c}"></div></div></td>
-            </tr>`;
-          })
+          .map((g) =>
+            renderAggregatePdfTableRow(
+              { label: g.sectorLabel, ...g },
+              '',
+            ),
+          )
           .join('');
 
         tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Por setor</h2>
@@ -152,27 +179,45 @@ export const FormParticipantsRecorteExportButton = ({
       } else if (isGroupedEstablishment) {
         const aggregates = buildEstablishmentAggregates(rows);
         const tableRows = aggregates
-          .map((g) => {
-            const c = getResponseRateBarColor(g.responseRatePercent);
-            const w = Math.min(100, Math.max(0, g.responseRatePercent));
-            const pct = g.responseRatePercent.toLocaleString('pt-BR', {
-              minimumFractionDigits: 0,
-              maximumFractionDigits: 1,
-            });
-            return `<tr>
-              <td>${escapeHtml(g.establishmentLabel)}</td>
-              <td class="num">${g.total}</td>
-              <td class="num">${g.responded}</td>
-              <td class="num">${g.notResponded}</td>
-              <td class="num">${pct}%</td>
-              <td><div class="cellbar"><div style="width:${w}%;max-width:100%;background:${c}"></div></div></td>
-            </tr>`;
-          })
+          .map((g) =>
+            renderAggregatePdfTableRow(
+              { label: g.establishmentLabel, ...g },
+              '',
+            ),
+          )
           .join('');
 
         tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento</h2>
         <table><thead><tr>
           <th>Estabelecimento</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+
+        const capNote =
+          fs.totalParticipants > groupedFetchLimit
+            ? `Agrupamento limitado a ${groupedFetchLimit} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
+            : '';
+        noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
+      } else if (isGroupedEstablishmentSector) {
+        const groups = buildEstablishmentSectorAggregates(rows);
+        const tableRows = groups
+          .flatMap((est) => [
+            renderAggregatePdfTableRow(
+              { label: est.establishmentLabel, ...est },
+              'est-row',
+            ),
+            ...est.sectors.map((sector) =>
+              renderAggregatePdfTableRow(
+                { label: sector.sectorLabel, ...sector },
+                'sector-row',
+              ),
+            ),
+          ])
+          .join('');
+
+        tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento e setor</h2>
+        <table><thead><tr>
+          <th>Estabelecimento / Setor</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 
@@ -204,12 +249,14 @@ export const FormParticipantsRecorteExportButton = ({
         ? 'Recorte filtrado — agrupado por setor'
         : isGroupedEstablishment
           ? 'Recorte filtrado — agrupado por estabelecimento'
-          : 'Participantes — recorte filtrado (lista detalhada)';
+          : isGroupedEstablishmentSector
+            ? 'Recorte filtrado — agrupado por estabelecimento e setor'
+            : 'Participantes — recorte filtrado (lista detalhada)';
 
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Recorte — ${escapeHtml(appName)}</title>
         <style>${sharedStyles}</style></head><body>
         <h1>${escapeHtml(titleMain)}</h1>
-        <div class="meta"><strong>Aplicação:</strong> ${escapeHtml(appName)}<br/>
+        <div class="meta">
         <strong>Gerado em:</strong> ${escapeHtml(generatedAt)}<br/>
         <strong>Filtros (hierarquia):</strong> ${escapeHtml(hierarchyLabels || 'Nenhum filtro de hierarquia')}</div>
         <p class="section-title">Taxa de resposta no recorte</p>
