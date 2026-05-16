@@ -226,17 +226,29 @@ export const FormParticipantsTable = ({
     [],
   );
 
-  const { formParticipants: groupedParticipants, isLoading: groupedLoading } =
-    useFetchBrowseAllFormParticipantsForGrouping({
-      companyId,
-      applicationId,
-      filters: browseFilters,
-      orderBy: groupedOrderBy,
-      enabled:
-        viewMode === 'grouped' ||
-        viewMode === 'grouped_establishment' ||
-        viewMode === 'grouped_establishment_sector',
-    });
+  const {
+    formParticipants: groupedParticipants,
+    isLoading: groupedLoading,
+    isFetching: groupedFetching,
+  } = useFetchBrowseAllFormParticipantsForGrouping({
+    companyId,
+    applicationId,
+    filters: browseFilters,
+    orderBy: groupedOrderBy,
+    enabled:
+      viewMode === 'grouped' ||
+      viewMode === 'grouped_establishment' ||
+      viewMode === 'grouped_establishment_sector',
+  });
+
+  const groupedRowsReady =
+    !groupedLoading &&
+    !groupedFetching &&
+    groupedParticipants != null;
+  const groupedRows = groupedRowsReady
+    ? (groupedParticipants.results ?? [])
+    : [];
+  const groupedTableLoading = !groupedRowsReady;
 
   // Check if form is accepting responses
   const isAcceptingResponses =
@@ -304,8 +316,9 @@ export const FormParticipantsTable = ({
     viewMode === 'grouped_establishment' ||
     viewMode === 'grouped_establishment_sector';
 
-  const groupedRowsCount = groupedParticipants?.results.length ?? 0;
+  const groupedRowsCount = groupedRows.length;
   const isPartialGroupedFetch =
+    groupedRowsReady &&
     isGroupedViewMode &&
     (filterSummaryForUi.totalParticipants > FORM_PARTICIPANTS_GROUPED_FETCH_CAP ||
       groupedRowsCount < filterSummaryForUi.totalParticipants);
@@ -435,22 +448,22 @@ export const FormParticipantsTable = ({
         />
       ) : viewMode === 'grouped_establishment' ? (
         <FormParticipantsGroupedByEstablishment
-          rows={groupedParticipants?.results ?? []}
-          isLoading={groupedLoading}
+          rows={groupedRows}
+          isLoading={groupedTableLoading}
           fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
           isPartialFetch={isPartialGroupedFetch}
         />
       ) : viewMode === 'grouped_establishment_sector' ? (
         <FormParticipantsGroupedByEstablishmentSector
-          rows={groupedParticipants?.results ?? []}
-          isLoading={groupedLoading}
+          rows={groupedRows}
+          isLoading={groupedTableLoading}
           fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
           isPartialFetch={isPartialGroupedFetch}
         />
       ) : (
         <FormParticipantsGroupedBySector
-          rows={groupedParticipants?.results ?? []}
-          isLoading={groupedLoading}
+          rows={groupedRows}
+          isLoading={groupedTableLoading}
           fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
           isPartialFetch={isPartialGroupedFetch}
         />

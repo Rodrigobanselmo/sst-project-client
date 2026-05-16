@@ -6,6 +6,8 @@ export const FORM_PARTICIPANTS_GROUPED_FETCH_CAP = 10_000;
 
 const BATCH_SIZE = 500;
 
+const isDev = process.env.NODE_ENV !== 'production';
+
 export type BrowseAllFilteredFormParticipantsParams = Omit<
   BrowseFormParticipantsParams,
   'pagination'
@@ -15,7 +17,10 @@ export type BrowseAllFilteredFormParticipantsParams = Omit<
 
 /**
  * Carrega todos os participantes do recorte filtrado (até maxRows),
- * paginando em lotes para não depender de um único request com limit alto.
+ * paginando em lotes até atingir filterSummary.totalParticipants ou não haver próxima página.
+ *
+ * Não usa `batch.length < requestedLimit` como fim de paginação: a API pode devolver
+ * o default (20) mesmo quando pedimos 500 — nesse caso continuamos pelas páginas.
  */
 export async function browseAllFilteredFormParticipants(
   params: BrowseAllFilteredFormParticipantsParams,
@@ -24,27 +29,43 @@ export async function browseAllFilteredFormParticipants(
   let page = 1;
   const allResults: FormParticipantsBrowseModel['results'] = [];
   let filterSummary: FormParticipantsBrowseModel['filterSummary'] | undefined;
+  const maxPages = Math.ceil(maxRows / BATCH_SIZE) + 5;
 
-  while (allResults.length < maxRows) {
-    const remaining = maxRows - allResults.length;
-    const limit = Math.min(BATCH_SIZE, remaining);
-
+  while (allResults.length < maxRows && page <= maxPages) {
     const bundle = await browseFormParticipants({
       ...params,
-      pagination: { page, limit },
+      pagination: { page, limit: BATCH_SIZE },
     });
 
     filterSummary = bundle.filterSummary;
     const batch = bundle.results ?? [];
     allResults.push(...batch);
 
-    const targetTotal = Math.min(filterSummary.totalParticipants, maxRows);
+    const recorteTotal = filterSummary.totalParticipants;
+    const targetTotal =
+      recorteTotal > 0 ? Math.min(recorteTotal, maxRows) : maxRows;
+
+    if (isDev) {
+      console.debug('[browseAllFilteredFormParticipants]', {
+        page,
+        requestedLimit: BATCH_SIZE,
+        apiReportedLimit: bundle.pagination.limit,
+        batchLength: batch.length,
+        loaded: allResults.length,
+        recorteTotal,
+        targetTotal,
+        hasNextPage: bundle.pagination.nextPage,
+      });
+    }
 
     if (batch.length === 0) break;
-    if (allResults.length >= targetTotal) break;
-    if (batch.length < limit) break;
 
-    page += 1;
+    if (recorteTotal > 0 && allResults.length >= targetTotal) break;
+
+    const nextPage = bundle.pagination.nextPage;
+    if (!nextPage) break;
+
+    page = nextPage;
   }
 
   const fs = filterSummary ?? {

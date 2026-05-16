@@ -18,7 +18,7 @@ export const getKeyBrowseAllFormParticipantsForGrouping = (
 ) => {
   return [
     QueryKeyFormEnum.FORM_PARTICIPANTS,
-    'grouped-all',
+    'grouped-all-v2',
     params.companyId,
     params.applicationId,
     params.filters,
@@ -30,7 +30,7 @@ export const useFetchBrowseAllFormParticipantsForGrouping = (
   params: UseFetchBrowseAllFormParticipantsForGroupingParams,
 ) => {
   const { enabled = true, ...rest } = params;
-  const { data, ...response } = useFetch({
+  const { data, isFetching, ...response } = useFetch({
     queryFn: async () => {
       return browseAllFilteredFormParticipants({
         ...rest,
@@ -44,6 +44,7 @@ export const useFetchBrowseAllFormParticipantsForGrouping = (
 
   return {
     ...response,
+    isFetching,
     formParticipants: data,
   };
 };

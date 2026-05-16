@@ -19,8 +19,8 @@ export async function browseFormParticipants({
       path: FormRoutes.FORM_PARTICIPANTS.PATH,
       pathParams: { companyId, applicationId },
       queryParams: {
-        ...query,
         ...filters,
+        orderBy: query.orderBy,
         page: query.pagination?.page,
         limit: query.pagination?.limit,
       },
