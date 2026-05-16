@@ -18,7 +18,9 @@ import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { orderByFormParticipantsTranslation } from '@v2/models/form/translations/orden-by-form-participants.translation';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
+import { useFetchBrowseAllFormParticipantsForGrouping } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseAllFormParticipantsForGrouping';
 import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseFormParticipants';
+import { FORM_PARTICIPANTS_GROUPED_FETCH_CAP } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-all-filtered-form-participants';
 import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-form-participants.types';
 import { FormParticipantsTableFilter } from './components/FormParticipantsTableFilter/FormParticipantsTableFilter';
 import { FormParticipantsFilterSummary } from './components/FormParticipantsFilterSummary';
@@ -41,8 +43,6 @@ import {
   SelectChangeEvent,
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-
-const GROUP_FETCH_CAP = 10_000;
 
 type ParticipantsViewMode =
   | 'list'
@@ -212,27 +212,26 @@ export const FormParticipantsTable = ({
     [formParticipants?.filterSummary],
   );
 
-  const groupedFetchLimit = Math.min(
-    GROUP_FETCH_CAP,
-    Math.max(filterSummaryForUi.totalParticipants, 1),
+  const groupedOrderBy = useMemo(
+    () => [
+      {
+        field: FormParticipantsOrderByEnum.HIERARCHY,
+        order: 'asc' as const,
+      },
+      {
+        field: FormParticipantsOrderByEnum.NAME,
+        order: 'asc' as const,
+      },
+    ],
+    [],
   );
 
   const { formParticipants: groupedParticipants, isLoading: groupedLoading } =
-    useFetchBrowseFormParticipants({
+    useFetchBrowseAllFormParticipantsForGrouping({
       companyId,
       applicationId,
       filters: browseFilters,
-      orderBy: [
-        {
-          field: FormParticipantsOrderByEnum.HIERARCHY,
-          order: 'asc',
-        },
-        {
-          field: FormParticipantsOrderByEnum.NAME,
-          order: 'asc',
-        },
-      ],
-      pagination: { page: 1, limit: groupedFetchLimit },
+      orderBy: groupedOrderBy,
       enabled:
         viewMode === 'grouped' ||
         viewMode === 'grouped_establishment' ||
@@ -305,9 +304,11 @@ export const FormParticipantsTable = ({
     viewMode === 'grouped_establishment' ||
     viewMode === 'grouped_establishment_sector';
 
+  const groupedRowsCount = groupedParticipants?.results.length ?? 0;
   const isPartialGroupedFetch =
     isGroupedViewMode &&
-    filterSummaryForUi.totalParticipants > GROUP_FETCH_CAP;
+    (filterSummaryForUi.totalParticipants > FORM_PARTICIPANTS_GROUPED_FETCH_CAP ||
+      groupedRowsCount < filterSummaryForUi.totalParticipants);
 
   return (
     <>
@@ -328,7 +329,6 @@ export const FormParticipantsTable = ({
             orderBy={orderByForExport}
             hierarchyLabels={hierarchyFilterDescription}
             viewMode={viewMode}
-            groupedFetchLimit={groupedFetchLimit}
           />
           <STableButton
             onClick={() => onSendFormEmail()}
@@ -437,21 +437,21 @@ export const FormParticipantsTable = ({
         <FormParticipantsGroupedByEstablishment
           rows={groupedParticipants?.results ?? []}
           isLoading={groupedLoading}
-          fetchCap={GROUP_FETCH_CAP}
+          fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
           isPartialFetch={isPartialGroupedFetch}
         />
       ) : viewMode === 'grouped_establishment_sector' ? (
         <FormParticipantsGroupedByEstablishmentSector
           rows={groupedParticipants?.results ?? []}
           isLoading={groupedLoading}
-          fetchCap={GROUP_FETCH_CAP}
+          fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
           isPartialFetch={isPartialGroupedFetch}
         />
       ) : (
         <FormParticipantsGroupedBySector
           rows={groupedParticipants?.results ?? []}
           isLoading={groupedLoading}
-          fetchCap={GROUP_FETCH_CAP}
+          fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
           isPartialFetch={isPartialGroupedFetch}
         />
       )}

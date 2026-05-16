@@ -1,5 +1,9 @@
 // Service
 export { browseFormParticipants } from './service/browse-form-participants.service';
+export {
+  browseAllFilteredFormParticipants,
+  FORM_PARTICIPANTS_GROUPED_FETCH_CAP,
+} from './service/browse-all-filtered-form-participants';
 export type {
   BrowseFormParticipantsParams,
   BrowseFormParticipantsFilters,
@@ -12,6 +16,7 @@ export {
   useInfinityFetchBrowseFormParticipants,
   getKeyBrowseFormParticipants,
 } from './hooks/useFetchBrowseFormParticipants';
+export { useFetchBrowseAllFormParticipantsForGrouping } from './hooks/useFetchBrowseAllFormParticipantsForGrouping';
 
 // Models
 export type {

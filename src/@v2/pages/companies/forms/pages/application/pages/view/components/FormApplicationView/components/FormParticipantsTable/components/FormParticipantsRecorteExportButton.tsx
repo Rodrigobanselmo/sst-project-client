@@ -10,6 +10,10 @@ import {
   getFormParticipantSectorLabel,
 } from '@v2/models/form/helpers/form-participant-hierarchy-display';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
+import {
+  browseAllFilteredFormParticipants,
+  FORM_PARTICIPANTS_GROUPED_FETCH_CAP,
+} from '@v2/services/forms/form-participants/browse-form-participants/service/browse-all-filtered-form-participants';
 import { browseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-form-participants.service';
 import {
   BrowseFormParticipantsFilters,
@@ -37,8 +41,6 @@ type Props = {
   hierarchyLabels: string;
   /** Modo de visualização ativo na tela — define o layout do PDF. */
   viewMode: FormParticipantsPdfViewMode;
-  /** Mesmo limite usado na visão agrupada (min(cap, total do recorte)). */
-  groupedFetchLimit: number;
 };
 
 function escapeHtml(s: string) {
@@ -90,7 +92,6 @@ export const FormParticipantsRecorteExportButton = ({
   orderBy,
   hierarchyLabels,
   viewMode,
-  groupedFetchLimit,
 }: Props) => {
   const [loading, setLoading] = useState(false);
 
@@ -106,19 +107,27 @@ export const FormParticipantsRecorteExportButton = ({
         isGroupedEstablishment ||
         isGroupedEstablishmentSector;
 
-      const bundle = await browseFormParticipants({
-        companyId,
-        applicationId,
-        filters,
-        orderBy: isGroupedFetch ? GROUPED_ORDER_BY : orderBy,
-        pagination: {
-          page: 1,
-          limit: isGroupedFetch ? groupedFetchLimit : EXPORT_ROW_CAP_LIST,
-        },
-      });
+      const bundle = isGroupedFetch
+        ? await browseAllFilteredFormParticipants({
+            companyId,
+            applicationId,
+            filters,
+            orderBy: GROUPED_ORDER_BY,
+          })
+        : await browseFormParticipants({
+            companyId,
+            applicationId,
+            filters,
+            orderBy,
+            pagination: { page: 1, limit: EXPORT_ROW_CAP_LIST },
+          });
 
       const fs = bundle.filterSummary;
       const rows = bundle.results ?? [];
+      const groupedRowsIncomplete =
+        isGroupedFetch &&
+        (rows.length < fs.totalParticipants ||
+          fs.totalParticipants > FORM_PARTICIPANTS_GROUPED_FETCH_CAP);
       const generatedAt = new Date().toLocaleString('pt-BR');
       const appName = formApplication?.name ?? applicationId;
       const barColor = getResponseRateBarColor(fs.responseRatePercent);
@@ -171,10 +180,9 @@ export const FormParticipantsRecorteExportButton = ({
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 
-        const capNote =
-          fs.totalParticipants > groupedFetchLimit
-            ? `Agrupamento limitado a ${groupedFetchLimit} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
-            : '';
+        const capNote = groupedRowsIncomplete
+          ? `Agrupamento limitado a ${rows.length} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
+          : '';
         noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
       } else if (isGroupedEstablishment) {
         const aggregates = buildEstablishmentAggregates(rows);
@@ -193,10 +201,9 @@ export const FormParticipantsRecorteExportButton = ({
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 
-        const capNote =
-          fs.totalParticipants > groupedFetchLimit
-            ? `Agrupamento limitado a ${groupedFetchLimit} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
-            : '';
+        const capNote = groupedRowsIncomplete
+          ? `Agrupamento limitado a ${rows.length} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
+          : '';
         noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
       } else if (isGroupedEstablishmentSector) {
         const groups = buildEstablishmentSectorAggregates(rows);
@@ -221,10 +228,9 @@ export const FormParticipantsRecorteExportButton = ({
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 
-        const capNote =
-          fs.totalParticipants > groupedFetchLimit
-            ? `Agrupamento limitado a ${groupedFetchLimit} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
-            : '';
+        const capNote = groupedRowsIncomplete
+          ? `Agrupamento limitado a ${rows.length} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
+          : '';
         noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
       } else {
         const tableRows = rows
@@ -284,7 +290,6 @@ export const FormParticipantsRecorteExportButton = ({
     orderBy,
     hierarchyLabels,
     viewMode,
-    groupedFetchLimit,
   ]);
 
   return (

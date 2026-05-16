@@ -18,7 +18,12 @@ export async function browseFormParticipants({
     bindUrlParams({
       path: FormRoutes.FORM_PARTICIPANTS.PATH,
       pathParams: { companyId, applicationId },
-      queryParams: { ...query, ...filters },
+      queryParams: {
+        ...query,
+        ...filters,
+        page: query.pagination?.page,
+        limit: query.pagination?.limit,
+      },
     }),
   );
 
