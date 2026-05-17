@@ -25,8 +25,20 @@ import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participant
 import { FormParticipantsTableFilter } from './components/FormParticipantsTableFilter/FormParticipantsTableFilter';
 import { FormParticipantsFilterSummary } from './components/FormParticipantsFilterSummary';
 import { FormParticipantsGroupedByEstablishment } from './components/FormParticipantsGroupedByEstablishment';
+import { FormParticipantsGroupedByEstablishmentHierarchy } from './components/FormParticipantsGroupedByEstablishmentHierarchy';
 import { FormParticipantsGroupedByEstablishmentSector } from './components/FormParticipantsGroupedByEstablishmentSector';
+import { FormParticipantsGroupedByHierarchyType } from './components/FormParticipantsGroupedByHierarchyType';
 import { FormParticipantsGroupedBySector } from './components/FormParticipantsGroupedBySector';
+import {
+  ESTABLISHMENT_HIERARCHY_GROUPING_CONFIGS,
+  FLAT_HIERARCHY_GROUPING_CONFIGS,
+  getEstablishmentHierarchyGroupingConfig,
+  getFlatHierarchyGroupingConfig,
+  getParticipantsViewModeSelectLabel,
+  isGroupedViewMode,
+  isParticipantsViewMode,
+  type ParticipantsViewMode,
+} from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
 import { FormParticipantsRecorteExportButton } from './components/FormParticipantsRecorteExportButton';
 import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
@@ -35,20 +47,50 @@ import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useC
 import { useMutateSendFormReminder } from '@v2/services/forms/form-participants';
 import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import {
+  Alert,
   Box,
   FormControl,
   InputLabel,
+  ListSubheader,
   MenuItem,
   Select,
   SelectChangeEvent,
 } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  useCallback,
+  useMemo,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 
-type ParticipantsViewMode =
-  | 'list'
-  | 'grouped'
-  | 'grouped_establishment'
-  | 'grouped_establishment_sector';
+const isDev = process.env.NODE_ENV !== 'production';
+
+function ViewModeSelectCategory({
+  children,
+  withTopSpacing = false,
+}: {
+  children: ReactNode;
+  withTopSpacing?: boolean;
+}) {
+  return (
+    <ListSubheader
+      disableSticky
+      sx={{
+        fontWeight: 700,
+        fontSize: '1rem',
+        lineHeight: 1.5,
+        color: 'primary.dark',
+        pointerEvents: 'none',
+        py: 0.5,
+        backgroundColor: 'transparent',
+        ...(withTopSpacing ? { mt: 1.5, pt: 1 } : {}),
+      }}
+    >
+      {children}
+    </ListSubheader>
+  );
+}
 
 export const FormParticipantsTable = ({
   companyId,
@@ -84,20 +126,44 @@ export const FormParticipantsTable = ({
   );
 
   const [viewMode, setViewMode] = useState<ParticipantsViewMode>('list');
+  const [viewModeMenuOpen, setViewModeMenuOpen] = useState(false);
 
   const participantWorkspacesCount =
-    formApplication?.participants.workspaces.length ?? 0;
+    formApplication?.participants?.workspaces?.length ?? 0;
   const showGroupedByEstablishment = participantWorkspacesCount > 1;
+  const showEstablishmentViewModeOptions = showGroupedByEstablishment;
 
-  useEffect(() => {
-    if (
-      (viewMode === 'grouped_establishment' ||
-        viewMode === 'grouped_establishment_sector') &&
-      !showGroupedByEstablishment
-    ) {
-      setViewMode('list');
-    }
-  }, [viewMode, showGroupedByEstablishment]);
+  const flatHierarchyBeforeSector = useMemo(
+    () =>
+      FLAT_HIERARCHY_GROUPING_CONFIGS.filter(
+        (c) => c.viewMode !== 'grouped_sub_sector',
+      ),
+    [],
+  );
+
+  const flatHierarchySubSector = useMemo(
+    () =>
+      FLAT_HIERARCHY_GROUPING_CONFIGS.filter(
+        (c) => c.viewMode === 'grouped_sub_sector',
+      ),
+    [],
+  );
+
+  const establishmentHierarchyBeforeSubSector = useMemo(
+    () =>
+      ESTABLISHMENT_HIERARCHY_GROUPING_CONFIGS.filter(
+        (c) => c.viewMode !== 'grouped_establishment_sub_sector',
+      ),
+    [],
+  );
+
+  const establishmentHierarchySubSector = useMemo(
+    () =>
+      ESTABLISHMENT_HIERARCHY_GROUPING_CONFIGS.filter(
+        (c) => c.viewMode === 'grouped_establishment_sub_sector',
+      ),
+    [],
+  );
 
   const browseFilters = useMemo(
     () => ({
@@ -229,26 +295,20 @@ export const FormParticipantsTable = ({
   const {
     formParticipants: groupedParticipants,
     isLoading: groupedLoading,
-    isFetching: groupedFetching,
+    isError: groupedLoadError,
   } = useFetchBrowseAllFormParticipantsForGrouping({
     companyId,
     applicationId,
     filters: browseFilters,
     orderBy: groupedOrderBy,
-    enabled:
-      viewMode === 'grouped' ||
-      viewMode === 'grouped_establishment' ||
-      viewMode === 'grouped_establishment_sector',
+    enabled: isGroupedViewMode(viewMode),
   });
 
-  const groupedRowsReady =
-    !groupedLoading &&
-    !groupedFetching &&
-    groupedParticipants != null;
-  const groupedRows = groupedRowsReady
-    ? (groupedParticipants.results ?? [])
-    : [];
-  const groupedTableLoading = !groupedRowsReady;
+  const groupedRows = groupedParticipants?.results ?? [];
+  const groupedTableLoading =
+    groupedLoading && groupedParticipants == null;
+  const showGroupedLoadError =
+    groupedLoadError && !groupedLoading && groupedParticipants == null;
 
   // Check if form is accepting responses
   const isAcceptingResponses =
@@ -307,21 +367,121 @@ export const FormParticipantsTable = ({
     [queryParams.orderBy],
   );
 
-  const onViewModeChange = (e: SelectChangeEvent<ParticipantsViewMode>) => {
-    setViewMode(e.target.value as ParticipantsViewMode);
-  };
+  const selectViewMode = useCallback(
+    (next: ParticipantsViewMode) => {
+      if (isDev) {
+        console.debug('[FormParticipantsTable] selectViewMode', {
+          previous: viewMode,
+          next,
+          participantWorkspacesCount,
+          showGroupedByEstablishment,
+          showEstablishmentViewModeOptions,
+          workspaces: formApplication?.participants?.workspaces,
+        });
+      }
+      setViewMode(next);
+      setViewModeMenuOpen(false);
+    },
+    [
+      viewMode,
+      participantWorkspacesCount,
+      showGroupedByEstablishment,
+      showEstablishmentViewModeOptions,
+      formApplication?.participants?.workspaces,
+    ],
+  );
 
-  const isGroupedViewMode =
-    viewMode === 'grouped' ||
-    viewMode === 'grouped_establishment' ||
-    viewMode === 'grouped_establishment_sector';
+  const handleEstablishmentViewModeSelect = useCallback(
+    (mode: ParticipantsViewMode) => (event: MouseEvent<HTMLLIElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      selectViewMode(mode);
+      queueMicrotask(() => setViewModeMenuOpen(false));
+    },
+    [selectViewMode],
+  );
+
+  const onViewModeChange = (e: SelectChangeEvent<string>) => {
+    const value = e.target.value;
+    if (isDev) {
+      console.debug('[FormParticipantsTable] onChange', {
+        rawValue: value,
+        accepted: isParticipantsViewMode(value),
+        participantWorkspacesCount,
+        showEstablishmentViewModeOptions,
+      });
+    }
+    if (!isParticipantsViewMode(value)) {
+      setViewModeMenuOpen(false);
+      return;
+    }
+    selectViewMode(value);
+  };
 
   const groupedRowsCount = groupedRows.length;
   const isPartialGroupedFetch =
-    groupedRowsReady &&
-    isGroupedViewMode &&
+    isGroupedViewMode(viewMode) &&
+    groupedParticipants != null &&
     (filterSummaryForUi.totalParticipants > FORM_PARTICIPANTS_GROUPED_FETCH_CAP ||
       groupedRowsCount < filterSummaryForUi.totalParticipants);
+
+  const groupedTableProps = useMemo(
+    () => ({
+      rows: groupedRows,
+      isLoading: groupedTableLoading,
+      fetchCap: FORM_PARTICIPANTS_GROUPED_FETCH_CAP,
+      isPartialFetch: isPartialGroupedFetch,
+    }),
+    [groupedRows, groupedTableLoading, isPartialGroupedFetch],
+  );
+
+  const renderGroupedContent = () => {
+    if (showGroupedLoadError) {
+      return (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Não foi possível carregar todos os participantes para o agrupamento.
+          Tente novamente ou use a lista detalhada.
+        </Alert>
+      );
+    }
+
+    switch (viewMode) {
+      case 'grouped_establishment':
+        return <FormParticipantsGroupedByEstablishment {...groupedTableProps} />;
+      case 'grouped_establishment_sector':
+        return (
+          <FormParticipantsGroupedByEstablishmentSector {...groupedTableProps} />
+        );
+      case 'grouped':
+        return <FormParticipantsGroupedBySector {...groupedTableProps} />;
+      case 'grouped_directory':
+      case 'grouped_management':
+      case 'grouped_sub_sector': {
+        const config = getFlatHierarchyGroupingConfig(viewMode);
+        if (!config) return null;
+        return (
+          <FormParticipantsGroupedByHierarchyType
+            {...groupedTableProps}
+            config={config}
+          />
+        );
+      }
+      case 'grouped_establishment_directory':
+      case 'grouped_establishment_management':
+      case 'grouped_establishment_sub_sector': {
+        const config = getEstablishmentHierarchyGroupingConfig(viewMode);
+        if (!config) return null;
+        return (
+          <FormParticipantsGroupedByEstablishmentHierarchy
+            {...groupedTableProps}
+            config={config}
+          />
+        );
+      }
+      default:
+        return null;
+    }
+  };
 
   return (
     <>
@@ -401,28 +561,86 @@ export const FormParticipantsTable = ({
           ))}
         </STableFilterChipList>
       </STableInfoSection>
-      <Box sx={{ mb: 2, maxWidth: 360 }}>
+      <Box sx={{ mb: 2, maxWidth: 420 }}>
         <FormControl fullWidth size="small">
           <InputLabel id="form-participants-view-mode">
             Modo de visualização
           </InputLabel>
-          <Select<ParticipantsViewMode>
+          <Select
             labelId="form-participants-view-mode"
             label="Modo de visualização"
             value={viewMode}
+            open={viewModeMenuOpen}
+            onOpen={() => setViewModeMenuOpen(true)}
+            onClose={() => setViewModeMenuOpen(false)}
             onChange={onViewModeChange}
+            renderValue={(mode) =>
+              getParticipantsViewModeSelectLabel(mode as ParticipantsViewMode)
+            }
+            MenuProps={{
+              autoFocus: false,
+              disableAutoFocusItem: true,
+            }}
           >
+            <ViewModeSelectCategory>Visualizações básicas</ViewModeSelectCategory>
             <MenuItem value="list">Lista detalhada</MenuItem>
+            <ViewModeSelectCategory withTopSpacing>
+              Por nível hierárquico
+            </ViewModeSelectCategory>
+            {flatHierarchyBeforeSector.map((config) => (
+              <MenuItem key={config.viewMode} value={config.viewMode}>
+                {config.selectLabel}
+              </MenuItem>
+            ))}
             <MenuItem value="grouped">Agrupado por setor</MenuItem>
-            {showGroupedByEstablishment ? (
-              <MenuItem value="grouped_establishment">
-                Agrupado por estabelecimento
+            {flatHierarchySubSector.map((config) => (
+              <MenuItem key={config.viewMode} value={config.viewMode}>
+                {config.selectLabel}
               </MenuItem>
-            ) : null}
-            {showGroupedByEstablishment ? (
-              <MenuItem value="grouped_establishment_sector">
-                Agrupado por estabelecimento e setor
-              </MenuItem>
+            ))}
+            {showEstablishmentViewModeOptions ? (
+              <>
+                <ViewModeSelectCategory withTopSpacing>
+                  Por estabelecimento
+                </ViewModeSelectCategory>
+                <MenuItem
+                  value="grouped_establishment"
+                  onMouseDown={handleEstablishmentViewModeSelect(
+                    'grouped_establishment',
+                  )}
+                >
+                  Agrupado por estabelecimento
+                </MenuItem>
+                <ViewModeSelectCategory withTopSpacing>
+                  Estabelecimento + nível hierárquico
+                </ViewModeSelectCategory>
+                {establishmentHierarchyBeforeSubSector.map((config) => (
+                  <MenuItem
+                    key={config.viewMode}
+                    value={config.viewMode}
+                    onMouseDown={handleEstablishmentViewModeSelect(config.viewMode)}
+                  >
+                    {config.selectLabel}
+                  </MenuItem>
+                ))}
+                <MenuItem
+                  value="grouped_establishment_sector"
+                  onMouseDown={handleEstablishmentViewModeSelect(
+                    'grouped_establishment_sector',
+                  )}
+                >
+                  Agrupado por estabelecimento e setor
+                </MenuItem>
+                {establishmentHierarchySubSector.map((config) => (
+                  <MenuItem
+                    key={config.viewMode}
+                    value={config.viewMode}
+                    onMouseDown={handleEstablishmentViewModeSelect(config.viewMode)}
+                  >
+                    {config.selectLabel}
+                  </MenuItem>
+                ))}
+              </>
             ) : null}
           </Select>
         </FormControl>
@@ -446,27 +664,8 @@ export const FormParticipantsTable = ({
           pageSizeOptions={pageSizeOptions}
           onPageSizeChange={onPageSizeChange}
         />
-      ) : viewMode === 'grouped_establishment' ? (
-        <FormParticipantsGroupedByEstablishment
-          rows={groupedRows}
-          isLoading={groupedTableLoading}
-          fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
-          isPartialFetch={isPartialGroupedFetch}
-        />
-      ) : viewMode === 'grouped_establishment_sector' ? (
-        <FormParticipantsGroupedByEstablishmentSector
-          rows={groupedRows}
-          isLoading={groupedTableLoading}
-          fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
-          isPartialFetch={isPartialGroupedFetch}
-        />
       ) : (
-        <FormParticipantsGroupedBySector
-          rows={groupedRows}
-          isLoading={groupedTableLoading}
-          fetchCap={FORM_PARTICIPANTS_GROUPED_FETCH_CAP}
-          isPartialFetch={isPartialGroupedFetch}
-        />
+        renderGroupedContent()
       )}
     </>
   );

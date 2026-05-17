@@ -2,14 +2,24 @@ import {
   buildEstablishmentAggregates,
   getFormParticipantEstablishmentLabel,
 } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment';
+import { buildEstablishmentHierarchyAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-hierarchy';
 import { buildEstablishmentSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-sector';
+import { buildHierarchyTypeAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-type';
 import { buildSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-sector';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import {
   getFormParticipantHierarchyChain,
   getFormParticipantSectorLabel,
 } from '@v2/models/form/helpers/form-participant-hierarchy-display';
+import {
+  getEstablishmentHierarchyGroupingConfig,
+  getFlatHierarchyGroupingConfig,
+  getGroupedPdfTitle,
+  isGroupedViewMode,
+  type FormParticipantsPdfViewMode,
+} from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
+import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import {
   browseAllFilteredFormParticipants,
   FORM_PARTICIPANTS_GROUPED_FETCH_CAP,
@@ -26,11 +36,7 @@ import { useCallback, useState } from 'react';
 
 const EXPORT_ROW_CAP_LIST = 10_000;
 
-export type FormParticipantsPdfViewMode =
-  | 'list'
-  | 'grouped'
-  | 'grouped_establishment'
-  | 'grouped_establishment_sector';
+export type { FormParticipantsPdfViewMode };
 
 type Props = {
   companyId: string;
@@ -39,7 +45,6 @@ type Props = {
   filters: BrowseFormParticipantsFilters;
   orderBy: IOrderByParams<FormParticipantsOrderByEnum>[];
   hierarchyLabels: string;
-  /** Modo de visualização ativo na tela — define o layout do PDF. */
   viewMode: FormParticipantsPdfViewMode;
 };
 
@@ -84,6 +89,144 @@ function renderAggregatePdfTableRow(
   </tr>`;
 }
 
+function renderFlatHierarchyPdfSection(
+  rows: FormParticipantsBrowseResultModel[],
+  config: NonNullable<ReturnType<typeof getFlatHierarchyGroupingConfig>>,
+): string {
+  const aggregates = buildHierarchyTypeAggregates(
+    rows,
+    config.hierarchyType,
+    config.missingLabel,
+  );
+  const tableRows = aggregates
+    .map((g) =>
+      renderAggregatePdfTableRow({ label: g.groupLabel, ...g }, ''),
+    )
+    .join('');
+
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+        <table><thead><tr>
+          <th>${escapeHtml(config.groupColumnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+}
+
+function renderEstablishmentHierarchyPdfSection(
+  rows: FormParticipantsBrowseResultModel[],
+  config: NonNullable<ReturnType<typeof getEstablishmentHierarchyGroupingConfig>>,
+): string {
+  const groups = buildEstablishmentHierarchyAggregates(
+    rows,
+    config.hierarchyType,
+    config.missingLabel,
+  );
+  const tableRows = groups
+    .flatMap((est) => [
+      renderAggregatePdfTableRow(
+        { label: est.establishmentLabel, ...est },
+        'est-row',
+      ),
+      ...est.hierarchyGroups.map((group) =>
+        renderAggregatePdfTableRow(
+          { label: group.groupLabel, ...group },
+          'sector-row',
+        ),
+      ),
+    ])
+    .join('');
+
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+        <table><thead><tr>
+          <th>${escapeHtml(config.headerColumnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+}
+
+function buildGroupedTableSection(
+  viewMode: FormParticipantsPdfViewMode,
+  rows: FormParticipantsBrowseResultModel[],
+): string {
+  if (viewMode === 'grouped') {
+    const aggregates = buildSectorAggregates(rows);
+    const tableRows = aggregates
+      .map((g) =>
+        renderAggregatePdfTableRow({ label: g.sectorLabel, ...g }, ''),
+      )
+      .join('');
+
+    return `<h2 style="font-size:15px;margin:20px 0 8px">Por setor</h2>
+        <table><thead><tr>
+          <th>Setor</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+  }
+
+  if (viewMode === 'grouped_establishment') {
+    const aggregates = buildEstablishmentAggregates(rows);
+    const tableRows = aggregates
+      .map((g) =>
+        renderAggregatePdfTableRow(
+          { label: g.establishmentLabel, ...g },
+          '',
+        ),
+      )
+      .join('');
+
+    return `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento</h2>
+        <table><thead><tr>
+          <th>Estabelecimento</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+  }
+
+  if (viewMode === 'grouped_establishment_sector') {
+    const groups = buildEstablishmentSectorAggregates(rows);
+    const tableRows = groups
+      .flatMap((est) => [
+        renderAggregatePdfTableRow(
+          { label: est.establishmentLabel, ...est },
+          'est-row',
+        ),
+        ...est.sectors.map((sector) =>
+          renderAggregatePdfTableRow(
+            { label: sector.sectorLabel, ...sector },
+            'sector-row',
+          ),
+        ),
+      ])
+      .join('');
+
+    return `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento e setor</h2>
+        <table><thead><tr>
+          <th>Estabelecimento / Setor</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+  }
+
+  const flatConfig = getFlatHierarchyGroupingConfig(viewMode);
+  if (flatConfig) return renderFlatHierarchyPdfSection(rows, flatConfig);
+
+  const establishmentHierarchyConfig =
+    getEstablishmentHierarchyGroupingConfig(viewMode);
+  if (establishmentHierarchyConfig) {
+    return renderEstablishmentHierarchyPdfSection(
+      rows,
+      establishmentHierarchyConfig,
+    );
+  }
+
+  const tableRows = rows
+    .map((r) => {
+      const hier = `${getFormParticipantSectorLabel(r)} — ${getFormParticipantHierarchyChain(r)}`;
+      return `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(getFormParticipantEstablishmentLabel(r))}</td><td>${escapeHtml(hier)}</td><td>${r.hasResponded ? 'Sim' : 'Não'}</td></tr>`;
+    })
+    .join('');
+
+  return `<h2 style="font-size:15px;margin:20px 0 8px">Lista de participantes</h2>
+        <table><thead><tr><th>Nome</th><th>Estabelecimento</th><th>Setor / hierarquia</th><th>Respondeu</th></tr></thead>
+        <tbody>${tableRows}</tbody></table>`;
+}
+
 export const FormParticipantsRecorteExportButton = ({
   companyId,
   applicationId,
@@ -98,14 +241,7 @@ export const FormParticipantsRecorteExportButton = ({
   const onExport = useCallback(async () => {
     setLoading(true);
     try {
-      const isGroupedSector = viewMode === 'grouped';
-      const isGroupedEstablishment = viewMode === 'grouped_establishment';
-      const isGroupedEstablishmentSector =
-        viewMode === 'grouped_establishment_sector';
-      const isGroupedFetch =
-        isGroupedSector ||
-        isGroupedEstablishment ||
-        isGroupedEstablishmentSector;
+      const isGroupedFetch = isGroupedViewMode(viewMode);
 
       const bundle = isGroupedFetch
         ? await browseAllFilteredFormParticipants({
@@ -160,104 +296,22 @@ export const FormParticipantsRecorteExportButton = ({
           .sector-row td:first-child{padding-left:24px;color:#555}
       `;
 
-      let tableSection: string;
-      let noteHtml: string;
+      const tableSection = buildGroupedTableSection(viewMode, rows);
 
-      if (isGroupedSector) {
-        const aggregates = buildSectorAggregates(rows);
-        const tableRows = aggregates
-          .map((g) =>
-            renderAggregatePdfTableRow(
-              { label: g.sectorLabel, ...g },
-              '',
-            ),
-          )
-          .join('');
-
-        tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Por setor</h2>
-        <table><thead><tr>
-          <th>Setor</th><th class="num">Participantes</th><th class="num">Responderam</th>
-          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
-        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
-
+      let noteHtml = '';
+      if (isGroupedFetch) {
         const capNote = groupedRowsIncomplete
           ? `Agrupamento limitado a ${rows.length} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
           : '';
         noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
-      } else if (isGroupedEstablishment) {
-        const aggregates = buildEstablishmentAggregates(rows);
-        const tableRows = aggregates
-          .map((g) =>
-            renderAggregatePdfTableRow(
-              { label: g.establishmentLabel, ...g },
-              '',
-            ),
-          )
-          .join('');
-
-        tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento</h2>
-        <table><thead><tr>
-          <th>Estabelecimento</th><th class="num">Participantes</th><th class="num">Responderam</th>
-          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
-        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
-
-        const capNote = groupedRowsIncomplete
-          ? `Agrupamento limitado a ${rows.length} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
-          : '';
-        noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
-      } else if (isGroupedEstablishmentSector) {
-        const groups = buildEstablishmentSectorAggregates(rows);
-        const tableRows = groups
-          .flatMap((est) => [
-            renderAggregatePdfTableRow(
-              { label: est.establishmentLabel, ...est },
-              'est-row',
-            ),
-            ...est.sectors.map((sector) =>
-              renderAggregatePdfTableRow(
-                { label: sector.sectorLabel, ...sector },
-                'sector-row',
-              ),
-            ),
-          ])
-          .join('');
-
-        tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Por estabelecimento e setor</h2>
-        <table><thead><tr>
-          <th>Estabelecimento / Setor</th><th class="num">Participantes</th><th class="num">Responderam</th>
-          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
-        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
-
-        const capNote = groupedRowsIncomplete
-          ? `Agrupamento limitado a ${rows.length} participantes carregados. Total no recorte: ${fs.totalParticipants}.`
-          : '';
-        noteHtml = capNote ? `<p class="note">${escapeHtml(capNote)}</p>` : '';
-      } else {
-        const tableRows = rows
-          .map((r) => {
-            const hier = `${getFormParticipantSectorLabel(r)} — ${getFormParticipantHierarchyChain(r)}`;
-            return `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(getFormParticipantEstablishmentLabel(r))}</td><td>${escapeHtml(hier)}</td><td>${r.hasResponded ? 'Sim' : 'Não'}</td></tr>`;
-          })
-          .join('');
-
-        tableSection = `<h2 style="font-size:15px;margin:20px 0 8px">Lista de participantes</h2>
-        <table><thead><tr><th>Nome</th><th>Estabelecimento</th><th>Setor / hierarquia</th><th>Respondeu</th></tr></thead>
-        <tbody>${tableRows}</tbody></table>`;
-
-        noteHtml =
-          fs.totalParticipants > EXPORT_ROW_CAP_LIST ||
-          rows.length < fs.totalParticipants
-            ? `<p class="note">${fs.totalParticipants > EXPORT_ROW_CAP_LIST ? `Listagem limitada a ${EXPORT_ROW_CAP_LIST} linhas. ` : ''}Total no recorte: ${fs.totalParticipants} participantes.</p>`
-            : '';
+      } else if (
+        fs.totalParticipants > EXPORT_ROW_CAP_LIST ||
+        rows.length < fs.totalParticipants
+      ) {
+        noteHtml = `<p class="note">${fs.totalParticipants > EXPORT_ROW_CAP_LIST ? `Listagem limitada a ${EXPORT_ROW_CAP_LIST} linhas. ` : ''}Total no recorte: ${fs.totalParticipants} participantes.</p>`;
       }
 
-      const titleMain = isGroupedSector
-        ? 'Recorte filtrado — agrupado por setor'
-        : isGroupedEstablishment
-          ? 'Recorte filtrado — agrupado por estabelecimento'
-          : isGroupedEstablishmentSector
-            ? 'Recorte filtrado — agrupado por estabelecimento e setor'
-            : 'Participantes — recorte filtrado (lista detalhada)';
+      const titleMain = getGroupedPdfTitle(viewMode);
 
       const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Recorte — ${escapeHtml(appName)}</title>
         <style>${sharedStyles}</style></head><body>

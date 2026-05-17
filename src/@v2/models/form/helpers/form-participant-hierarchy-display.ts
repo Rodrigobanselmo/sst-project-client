@@ -1,6 +1,21 @@
 import { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 
+export const FORM_PARTICIPANT_MISSING_DIRECTORY_LABEL = 'Sem superintendência';
+export const FORM_PARTICIPANT_MISSING_MANAGEMENT_LABEL = 'Sem diretoria';
+export const FORM_PARTICIPANT_MISSING_SUB_SECTOR_LABEL = 'Sem subsetor';
+
+export function getFormParticipantHierarchyLabelByType(
+  row: FormParticipantsBrowseResultModel,
+  type: HierarchyTypeEnum,
+  missingLabel: string,
+): string {
+  const node = row.hierarchies.find((h) => h.type === type);
+  const name = node?.name?.trim();
+  if (name) return name;
+  return missingLabel;
+}
+
 /** Rótulo principal para leitura gerencial: prioriza sub-setor/setor. */
 export function getFormParticipantSectorLabel(
   row: FormParticipantsBrowseResultModel,
