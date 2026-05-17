@@ -1,4 +1,10 @@
+import {
+  getStructuralIndicatorGroupingLabel,
+  isStructuralIndicatorGroupingKey,
+} from '@v2/models/form/helpers/form-indicators-structural-grouping.config';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
+import { buildStructuralParticipantGroupsForIndicators } from './buildStructuralParticipantGroupsForIndicators';
+import { resolveParticipantStructuresForGrouping } from './resolveParticipantStructuresForGrouping';
 
 export type HierarchyGroupForIndicators = {
   id: string;
@@ -43,6 +49,20 @@ export function buildParticipantGroupsForIndicators(params: {
     selectedGroupingQuestionId,
     hierarchyGroups = [],
   } = params;
+
+  if (
+    selectedGroupingQuestionId &&
+    isStructuralIndicatorGroupingKey(selectedGroupingQuestionId)
+  ) {
+    return buildStructuralParticipantGroupsForIndicators({
+      participantStructures: resolveParticipantStructuresForGrouping(
+        formQuestionsAnswers,
+      ),
+      groupingKey: selectedGroupingQuestionId,
+    });
+  }
+
+  const effectiveHierarchyGroups = hierarchyGroups;
 
   const results = formQuestionsAnswers?.results ?? [];
   const [identifierGroup] = results;
@@ -102,7 +122,7 @@ export function buildParticipantGroupsForIndicators(params: {
 
   let merged: ParticipantGroupForIndicators[];
 
-  if (!hierarchyGroups.length) {
+  if (!effectiveHierarchyGroups.length) {
     merged = initialGroups.map(({ id, name, participantIds }) => ({
       id,
       name,
@@ -113,7 +133,7 @@ export function buildParticipantGroupsForIndicators(params: {
       string,
       { id: string; name: string }
     >();
-    hierarchyGroups.forEach((hGroup) => {
+    effectiveHierarchyGroups.forEach((hGroup) => {
       hGroup.hierarchyIds.forEach((hId) => {
         hierarchyToGroupMap.set(hId, { id: hGroup.id, name: hGroup.name });
       });
@@ -189,6 +209,46 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
           participantIds: new Set(),
         },
       ],
+    };
+  }
+
+  if (
+    selectedGroupingQuestionId &&
+    isStructuralIndicatorGroupingKey(selectedGroupingQuestionId)
+  ) {
+    const participantGroups = buildStructuralParticipantGroupsForIndicators({
+      participantStructures: resolveParticipantStructuresForGrouping(
+        formQuestionsAnswers,
+      ),
+      groupingKey: selectedGroupingQuestionId,
+    });
+    if (participantGroups.length === 0) {
+      const allParticipantIds = new Set<string>();
+      identifierGroup.questions.forEach((q) => {
+        q.answers.forEach((answer) => {
+          allParticipantIds.add(answer.participantsAnswersId);
+        });
+      });
+      return {
+        grouping: { active: false },
+        participantGroups: [
+          {
+            id: 'all',
+            name: 'Todos os participantes',
+            participantIds: allParticipantIds,
+          },
+        ],
+      };
+    }
+    return {
+      grouping: {
+        active: true,
+        questionId: selectedGroupingQuestionId,
+        questionLabel: getStructuralIndicatorGroupingLabel(
+          selectedGroupingQuestionId,
+        ),
+      },
+      participantGroups,
     };
   }
 

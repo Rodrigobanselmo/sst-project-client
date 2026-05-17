@@ -7,6 +7,7 @@ import {
   Button,
   CircularProgress,
   LinearProgress,
+  ListSubheader,
   Typography,
 } from '@mui/material';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -40,9 +41,19 @@ import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
 import {
+  STRUCTURAL_INDICATOR_GROUPING_CONFIGS,
+} from '@v2/models/form/helpers/form-indicators-structural-grouping.config';
+import {
   buildParticipantGroupsForIndicators,
   type ParticipantGroupForIndicators,
 } from './helpers/buildParticipantGroupsForIndicators';
+import {
+  INDICATORS_GROUPING_SECTION_IDENTIFICATION_ID,
+  INDICATORS_GROUPING_SECTION_STRUCTURAL_ID,
+  isIndicatorsGroupingSelectableOption,
+  type IndicatorsGroupingSelectOption,
+} from './helpers/indicators-grouping-select.types';
+import { resolveParticipantStructuresForGrouping } from './helpers/resolveParticipantStructuresForGrouping';
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
 import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
@@ -498,13 +509,107 @@ export const FormQuestionsDashboard = ({
       '',
     ]) as FormQuestionGroupWithAnswersBrowseModel[];
 
-  // Get the selected grouping question
-  const groupingQuestion = useMemo(() => {
-    if (!selectedGroupingQuestion || !identifierGroup) return null;
-    return identifierGroup.questions.find(
-      (q) => q.id === selectedGroupingQuestion,
+  const availableGroupingQuestions = useMemo(() => {
+    if (!identifierGroup) return [];
+
+    return identifierGroup.questions.filter(
+      (question) =>
+        question.options.length > 0 &&
+        [
+          FormQuestionTypeEnum.RADIO,
+          FormQuestionTypeEnum.CHECKBOX,
+          FormQuestionTypeEnum.SELECT,
+          FormQuestionTypeEnum.SYSTEM,
+        ].includes(question.details.type),
     );
-  }, [selectedGroupingQuestion, identifierGroup]);
+  }, [identifierGroup]);
+
+  const participantStructuresForGrouping = useMemo(
+    () => resolveParticipantStructuresForGrouping(formQuestionsAnswers),
+    [formQuestionsAnswers],
+  );
+
+  const showStructuralGroupingOptions =
+    participantStructuresForGrouping.length > 0;
+
+  const groupingSelectOptions = useMemo((): IndicatorsGroupingSelectOption[] => {
+    const options: IndicatorsGroupingSelectOption[] = [];
+
+    const questionOptions: IndicatorsGroupingSelectOption[] =
+      availableGroupingQuestions.map((question) => ({
+        kind: 'question',
+        id: question.id,
+        label: question.textWithoutHtml,
+        question,
+      }));
+
+    if (questionOptions.length > 0) {
+      options.push({
+        kind: 'section',
+        id: INDICATORS_GROUPING_SECTION_IDENTIFICATION_ID,
+        label: 'Identificação',
+      });
+      options.push(...questionOptions);
+    }
+
+    if (showStructuralGroupingOptions) {
+      options.push({
+        kind: 'section',
+        id: INDICATORS_GROUPING_SECTION_STRUCTURAL_ID,
+        label: 'Estrutura organizacional',
+        withTopSpacing: questionOptions.length > 0,
+      });
+      options.push(
+        ...STRUCTURAL_INDICATOR_GROUPING_CONFIGS.map((config) => ({
+          kind: 'structural' as const,
+          id: config.key,
+          label: config.selectLabel,
+        })),
+      );
+    }
+
+    return options;
+  }, [availableGroupingQuestions, showStructuralGroupingOptions]);
+
+  const selectableGroupingOptions = useMemo(
+    () => groupingSelectOptions.filter(isIndicatorsGroupingSelectableOption),
+    [groupingSelectOptions],
+  );
+
+  const selectedGroupingOption = useMemo(
+    () =>
+      selectableGroupingOptions.find(
+        (o) => o.id === selectedGroupingQuestion,
+      ) ?? null,
+    [selectableGroupingOptions, selectedGroupingQuestion],
+  );
+
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production' || !formQuestionsAnswers) {
+      return;
+    }
+    console.debug('[FormQuestionsDashboard] grouping data', {
+      apiParticipantStructuresLength:
+        formQuestionsAnswers.participantStructures.length,
+      resolvedParticipantStructuresLength:
+        participantStructuresForGrouping.length,
+      groupingSelectOptionsLength: groupingSelectOptions.length,
+      structuralOptionsInSelect: groupingSelectOptions.filter(
+        (o) => o.kind === 'structural',
+      ).length,
+    });
+  }, [
+    formQuestionsAnswers,
+    participantStructuresForGrouping.length,
+    groupingSelectOptions,
+  ]);
+
+  const selectedGroupingLabel = selectedGroupingOption?.label ?? null;
+
+  const groupingQuestion = useMemo(() => {
+    if (selectedGroupingOption?.kind !== 'question') return null;
+    return selectedGroupingOption.question;
+  }, [selectedGroupingOption]);
 
   const participantGroups = useMemo(
     () =>
@@ -651,22 +756,6 @@ export const FormQuestionsDashboard = ({
     [participantGroups, generalGroups, filterQuestionsWithOptions],
   );
 
-  // Available identifier questions for grouping
-  const availableGroupingQuestions = useMemo(() => {
-    if (!identifierGroup) return [];
-
-    return identifierGroup.questions.filter(
-      (question) =>
-        question.options.length > 0 &&
-        [
-          FormQuestionTypeEnum.RADIO,
-          FormQuestionTypeEnum.CHECKBOX,
-          FormQuestionTypeEnum.SELECT,
-          FormQuestionTypeEnum.SYSTEM,
-        ].includes(question.details.type),
-    );
-  }, [identifierGroup]);
-
   // Early return for loading state
   if (!formQuestionsAnswers) {
     return (
@@ -786,7 +875,7 @@ export const FormQuestionsDashboard = ({
       {showIdicators && (
         <Box sx={{ p: 3 }}>
           {/* Grouping Section */}
-          {availableGroupingQuestions.length > 0 &&
+          {groupingSelectOptions.length > 0 &&
             hasGeneralQuestionsForAnyParticipantGroup && (
               <Box>
                 <SectionHeader
@@ -801,29 +890,76 @@ export const FormQuestionsDashboard = ({
                   <SFlex direction="column" gap={3}>
                     {/* Grouping Controls */}
                     <Box>
-                      <SSearchSelect
+                      <SSearchSelect<IndicatorsGroupingSelectOption>
                         inputProps={{ sx: { width: 300 } }}
                         label="Selecionar pergunta para agrupar"
-                        getOptionLabel={(option) => option.textWithoutHtml}
-                        getOptionValue={(option) => option?.id}
-                        onChange={(option) => {
-                          setSelectedGroupingQuestion(option?.id || null);
+                        getOptionLabel={(option) => option.label}
+                        getOptionValue={(option) => option.id}
+                        getOptionIsDisabled={(option) => option.kind === 'section'}
+                        renderFullOption={({ option, handleSelect, isSelected }) => {
+                          if (option.kind === 'section') {
+                            return (
+                              <ListSubheader
+                                key={option.id}
+                                disableSticky
+                                sx={{
+                                  fontWeight: 700,
+                                  fontSize: '0.875rem',
+                                  lineHeight: 1.5,
+                                  color: 'primary.dark',
+                                  pointerEvents: 'none',
+                                  py: 0.5,
+                                  backgroundColor: 'transparent',
+                                  ...(option.withTopSpacing
+                                    ? { mt: 1.5, pt: 1 }
+                                    : {}),
+                                }}
+                              >
+                                {option.label}
+                              </ListSubheader>
+                            );
+                          }
+                          return (
+                            <Box
+                              key={option.id}
+                              onClick={handleSelect}
+                              sx={{
+                                px: 2,
+                                py: 1,
+                                cursor: 'pointer',
+                                backgroundColor: isSelected
+                                  ? 'action.selected'
+                                  : undefined,
+                                '&:hover': { backgroundColor: 'action.hover' },
+                              }}
+                            >
+                              <Typography variant="body2">
+                                {option.label}
+                              </Typography>
+                            </Box>
+                          );
                         }}
-                        value={
-                          availableGroupingQuestions.find(
-                            (q) => q.id === selectedGroupingQuestion,
-                          ) || null
-                        }
-                        options={availableGroupingQuestions}
+                        onChange={(option) => {
+                          if (
+                            !option ||
+                            !isIndicatorsGroupingSelectableOption(option)
+                          ) {
+                            setSelectedGroupingQuestion(null);
+                            return;
+                          }
+                          setSelectedGroupingQuestion(option.id);
+                        }}
+                        value={selectedGroupingOption}
+                        options={groupingSelectOptions}
                         placeholder="selecione uma pergunta de identificação..."
                       />
                     </Box>
 
                     {/* Selected Grouping Info */}
-                    {selectedGroupingQuestion && groupingQuestion && (
+                    {selectedGroupingQuestion && selectedGroupingLabel && (
                       <Box>
                         <Typography variant="body2" fontWeight="medium" mb={4}>
-                          Agrupando por: {groupingQuestion.textWithoutHtml}
+                          Agrupando por: {selectedGroupingLabel}
                         </Typography>
                         <SSearchSelectMultiple<ParticipantGroupForIndicators>
                           label="Grupos exibidos (filtro de visualização e PDF)"

@@ -10,8 +10,8 @@ import {
 } from '@v2/models/form/models/form-application/form-application-read.model';
 import {
   FormQuestionsAnswersBrowseModel,
-  IFormQuestionsAnswersBrowseModel,
 } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
+import { normalizeFormQuestionsAnswersBrowsePayload } from '@v2/models/form/helpers/normalize-form-questions-answers-browse-payload';
 import { buildIndicatorsPdfDataset } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildIndicatorsPdfDataset';
 import { bindUrlParams } from '@v2/utils/bind-ul-params';
 import { setupAPIClient } from 'core/services/api';
@@ -56,7 +56,7 @@ export default async function handler(
           pathParams: { companyId, applicationId },
         }),
       ),
-      apiClient.get<IFormQuestionsAnswersBrowseModel>(
+      apiClient.get(
         bindUrlParams({
           path: FormRoutes.FORM_QUESTIONS_ANSWERS.PATH,
           pathParams: { companyId },
@@ -73,7 +73,7 @@ export default async function handler(
 
     const formApplication = new FormApplicationReadModel(appRes.data);
     const formQuestionsAnswers = new FormQuestionsAnswersBrowseModel(
-      qaRes.data,
+      normalizeFormQuestionsAnswersBrowsePayload(qaRes.data),
     );
 
     const dataset = buildIndicatorsPdfDataset({
