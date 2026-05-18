@@ -16,6 +16,7 @@ interface IHierarchyTypeSelectBaseProps
   disabled?: boolean;
   bg?: string;
   companyId?: string;
+  workspaceId?: string;
   tooltipText?: (value: string) => ReactNode;
   parentId?: string;
   borderActive?: 'error' | 'info' | 'warning' | 'success';

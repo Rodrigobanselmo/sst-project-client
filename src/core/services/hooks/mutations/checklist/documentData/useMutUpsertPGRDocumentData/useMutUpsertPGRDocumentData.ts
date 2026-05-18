@@ -46,6 +46,7 @@ export interface IUpsertPGRDocumentData {
     isHideCA: boolean;
     isHideOriginColumn: boolean;
     aprTypeSeparation: string | null;
+    legalResponsibleBy?: string;
   };
 }
 

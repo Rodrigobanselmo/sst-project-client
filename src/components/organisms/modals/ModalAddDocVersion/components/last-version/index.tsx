@@ -150,7 +150,11 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
             multiline
           />
         </SFlex>
-        <SelectGroup compRef={groupsRef} />
+        <SelectGroup
+          compRef={groupsRef}
+          companyId={data.companyId}
+          workspaceId={data.workspaceId}
+        />
       </AnimatedStep>
       <SModalButtons
         loading={loading}

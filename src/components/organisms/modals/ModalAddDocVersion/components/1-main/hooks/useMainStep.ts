@@ -18,6 +18,7 @@ import { useMutUpsertPERICULOSIDADEDocumentData } from 'core/services/hooks/muta
 import { useMutUpsertLTCATDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertLTCATDocumentData/useMutUpsertLTCATDocumentData';
 import { useMutUpsertINSALUBRIDADEDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertINSALUBRIDADEDocumentData/useMutUpsertINSALUBRIDADEDocumentData';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
 export const useMainStep = ({
   data,
@@ -25,6 +26,7 @@ export const useMainStep = ({
   initialDataRef,
   ...rest
 }: IUseMainActionsModal) => {
+  const { data: company } = useQueryCompany(data.companyId);
   const { trigger, getValues, setValue, control, setError, reset } =
     useFormContext();
   const { enqueueSnackbar } = useSnackbar();
@@ -42,6 +44,7 @@ export const useMainStep = ({
     'elaboratedBy',
     'revisionBy',
     'coordinatorBy',
+    'legalResponsibleBy',
     'validityStart',
     'validityEnd',
   ];
@@ -60,6 +63,7 @@ export const useMainStep = ({
         elaboratedBy,
         revisionBy,
         coordinatorBy,
+        legalResponsibleBy,
         validityStart,
         validityEnd,
       } = getValues();
@@ -100,6 +104,10 @@ export const useMainStep = ({
         elaboratedBy,
         revisionBy,
         coordinatorBy,
+        json: {
+          ...data.json,
+          legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
+        },
       };
 
       await (
@@ -121,6 +129,10 @@ export const useMainStep = ({
               id: response?.id as string,
               validityStart: dateFormat(`01/${validityStart}`) || null,
               validityEnd: dateFormat(`01/${validityEnd}`) || null,
+              json: {
+                ...data.json,
+                legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
+              },
             };
             initialDataRef.current = setDataObj;
 
@@ -240,6 +252,7 @@ export const useMainStep = ({
     setData,
     initialDataRef,
     setValue,
+    company,
   };
 };
 

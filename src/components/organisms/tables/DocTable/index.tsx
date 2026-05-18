@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import { Box, BoxProps } from '@mui/material';
@@ -10,6 +10,7 @@ import {
   STableHRow,
   STableRow,
 } from 'components/atoms/STable';
+import IconButtonRow from 'components/atoms/STable/components/Rows/IconButtonRow';
 import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import { STableButton } from 'components/atoms/STable/components/STableButton';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
@@ -31,6 +32,7 @@ import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
+import { SDeleteIcon } from 'assets/icons/SDeleteIcon';
 import { SReloadIcon } from 'assets/icons/SReloadIcon';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -38,12 +40,14 @@ import { ModalEnum } from 'core/enums/modal.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { useModal } from 'core/hooks/useModal';
+import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IRiskDocument } from 'core/interfaces/api/IRiskData';
 import {
   IQueryDocVersion,
   useQueryDocVersions,
 } from 'core/services/hooks/queries/useQueryDocVersions/useQueryDocVersions';
+import { useMutDeleteDocVersion } from 'core/services/hooks/mutations/checklist/documentData/useMutDeleteDocVersion/useMutDeleteDocVersion';
 import { queryClient } from 'core/services/queryClient';
 
 export const DocTable: FC<
@@ -75,6 +79,46 @@ export const DocTable: FC<
   );
   const { onOpenModal } = useModal();
   const { companyId } = useGetCompanyId();
+  const { preventDelete } = usePreventAction();
+  const deleteDocVersion = useMutDeleteDocVersion();
+
+  const isDownloadExpired = useCallback(
+    (createdAt: string | Date) =>
+      dayjs(createdAt).add(7, 'days').isBefore(dayjs()),
+    [],
+  );
+
+  const getDeleteConfirmMessage = useCallback(
+    (doc: IRiskDocument) => {
+      const processing = doc.status === StatusEnum.PROCESSING;
+      const downloadExpired = isDownloadExpired(doc.created_at);
+
+      if (processing) {
+        return 'Este documento ainda está em processamento. Tem certeza que deseja excluí-lo?';
+      }
+
+      if (!downloadExpired) {
+        return 'Este documento ainda está disponível para download. Tem certeza que deseja excluí-lo?';
+      }
+
+      return 'Tem certeza que deseja excluir este documento?';
+    },
+    [isDownloadExpired],
+  );
+
+  const handleDeleteDoc = useCallback(
+    (doc: IRiskDocument) => {
+      preventDelete(
+        async () => {
+          await deleteDocVersion
+            .mutateAsync({ id: doc.id, companyId })
+            .catch(() => {});
+        },
+        getDeleteConfirmMessage(doc),
+      );
+    },
+    [companyId, deleteDocVersion, getDeleteConfirmMessage, preventDelete],
+  );
 
   const handleEditStatus = (status: StatusEnum) => {
     // TODO edit checklist status
@@ -146,7 +190,7 @@ export const DocTable: FC<
       <STable
         rowsNumber={rowsPerPage}
         loading={isLoading}
-        columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px 100px"
+        columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px 130px"
       >
         <STableHeader>
           <STableHRow>Identificação</STableHRow>
@@ -165,6 +209,7 @@ export const DocTable: FC<
             const isError =
               processing &&
               dayjs(row.created_at).add(3, 'hour').isBefore(dayjs());
+            const downloadExpired = isDownloadExpired(row.created_at);
 
             return (
               <STableRow key={row.id}>
@@ -185,16 +230,41 @@ export const DocTable: FC<
                   disabled
                   handleSelectMenu={(option) => handleEditStatus(option.value)}
                 />
-                <STagButton
-                  text="Baixar"
-                  onClick={() => handleOpenDocModal(row)}
-                  large
-                  disabled={
-                    processing ||
-                    dayjs(row.created_at).add(7, 'days').isBefore(dayjs())
-                  }
-                  icon={SDownloadIcon}
-                />
+                <SFlex
+                  align="center"
+                  justifyContent="flex-end"
+                  gap={1}
+                  className="table-row-box"
+                  sx={{ width: '100%', pr: 1 }}
+                >
+                  <STagButton
+                    text="Baixar"
+                    onClick={() => handleOpenDocModal(row)}
+                    large
+                    disabled={processing || downloadExpired}
+                    icon={SDownloadIcon}
+                    sx={{ flexShrink: 0 }}
+                  />
+                  <IconButtonRow
+                    icon={<SDeleteIcon />}
+                    tooltipTitle="Excluir"
+                    sx={{
+                      flexShrink: 0,
+                      width: 32,
+                      height: 32,
+                      mx: 0,
+                      svg: { fontSize: 18, color: 'grey.600' },
+                    }}
+                    disabled={
+                      deleteDocVersion.isLoading &&
+                      deleteDocVersion.variables?.id === row.id
+                    }
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteDoc(row);
+                    }}
+                  />
+                </SFlex>
                 {/* <STagButton
                   text="Baixar"
                   loading={

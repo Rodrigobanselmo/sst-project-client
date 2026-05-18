@@ -27,6 +27,7 @@ export const initialPgrDocState = {
     isHideOriginColumn: false,
     aprTypeSeparation: null as HierarchyTypeEnum | null,
     hasEmergencyPlan: false,
+    legalResponsibleBy: '',
     months_period_level_2: 24,
     months_period_level_3: 12,
     months_period_level_4: 6,

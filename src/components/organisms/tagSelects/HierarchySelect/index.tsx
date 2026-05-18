@@ -29,6 +29,7 @@ export const HierarchySelect: FC<
   filterOptions,
   parentId,
   allFilters,
+  workspaceId,
   multiple,
   ...props
 }) => {
@@ -103,7 +104,8 @@ export const HierarchySelect: FC<
       .filter(
         (h) =>
           h.type === activeFilters[0] &&
-          (!parentId || (parentId && h.parents.find((p) => p.id === parentId))),
+          (!parentId || (parentId && h.parents.find((p) => p.id === parentId))) &&
+          (!workspaceId || h.workspaceIds?.includes(workspaceId)),
       );
 
     if (
@@ -133,6 +135,7 @@ export const HierarchySelect: FC<
     filterOptions,
     selectedId,
     parentId,
+    workspaceId,
   ]);
 
   const textField = getText(selectedId, text);
