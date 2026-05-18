@@ -105,7 +105,7 @@ export const useMainStep = ({
         revisionBy,
         coordinatorBy,
         json: {
-          ...data.json,
+          ...(data as any)?.json,
           legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
         },
       };
