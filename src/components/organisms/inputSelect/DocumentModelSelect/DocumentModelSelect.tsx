@@ -57,6 +57,7 @@ export const DocumentModelSelect: FC<
         onChange?.(value);
         setSearch('');
       }}
+      onGetValue={(value) => value ?? null}
       {...props}
       noOptionsText={<SFlex gap={8}>Nenhuma opção</SFlex>}
       renderOption={(props, option) => (

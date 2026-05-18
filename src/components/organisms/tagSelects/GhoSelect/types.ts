@@ -17,6 +17,7 @@ interface IGHOTypeSelectBaseProps
   disabled?: boolean;
   bg?: string;
   companyId?: string;
+  workspaceId?: string;
   tooltipText?: (value: string) => ReactNode;
   borderActive?: 'error' | 'info' | 'warning' | 'success';
 }

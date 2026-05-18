@@ -40,6 +40,7 @@ export interface IPGRDocumentData extends IDocumentDataBase {
     months_period_level_5: number;
     isQ5: boolean;
     hasEmergencyPlan: boolean;
+    legalResponsibleBy?: string;
   };
 }
 

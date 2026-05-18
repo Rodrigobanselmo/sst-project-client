@@ -27,6 +27,7 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
   defaultFilter = HomoTypeEnum.GSE,
   filterOptions,
   allFilters,
+  workspaceId,
   ...props
 }) => {
   const { ghoListData, ghoTree } = useListGhoQuery(companyId);
@@ -111,7 +112,12 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
           name: gho.type ? gho.description.split('(//)')[0] : gho.name,
         };
       })
-      .filter((h) => (h.type || HomoTypeEnum.GSE) === activeFilters[0]);
+      .filter((h) => (h.type || HomoTypeEnum.GSE) === activeFilters[0])
+      .filter(
+        (h) =>
+          !workspaceId ||
+          h.workspaceIds?.includes(workspaceId),
+      );
 
     (!activeFilters ||
       (filterOptions && filterOptions?.length > 1) ||
@@ -127,7 +133,7 @@ export const GhoSelect: FC<{ children?: any } & IGHOTypeSelectProps> = ({
       });
 
     return sortArray(list, { by: 'name', order: 'asc' });
-  }, [ghoListData, activeFilters, filterOptions, allFilters, selectedId]);
+  }, [ghoListData, activeFilters, filterOptions, allFilters, selectedId, workspaceId]);
 
   const textField = getText(selectedId, text);
   const isNotSelected = !selectedId;

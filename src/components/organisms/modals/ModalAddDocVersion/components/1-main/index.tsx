@@ -17,7 +17,8 @@ import { useMainStep } from './hooks/useMainStep';
 
 export const MainModalStep = (props: IUseMainActionsModal) => {
   const propsStep = useMainStep(props);
-  const { onSubmit, control, onCloseUnsaved, loading, setValue } = propsStep;
+  const { onSubmit, control, onCloseUnsaved, loading, setValue, company } =
+    propsStep;
 
   const { data, setData } = props;
   const buttons = [
@@ -127,6 +128,21 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
               control={control}
               placeholder={'pessoa responsavél por operacionalizar o PRG...'}
               name="coordinatorBy"
+              size="small"
+              smallPlaceholder
+              inputProps={{
+                textTransform: 'capitalize',
+              }}
+            />
+            <InputForm
+              setValue={setValue}
+              defaultValue={
+                data?.json?.legalResponsibleBy || company?.responsibleName || ''
+              }
+              label="Responsável legal da empresa"
+              control={control}
+              placeholder={'nome do responsável legal...'}
+              name="legalResponsibleBy"
               size="small"
               smallPlaceholder
               inputProps={{

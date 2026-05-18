@@ -55,6 +55,7 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
         isHideCA: data.json?.isHideCA,
         isHideOriginColumn: data.json?.isHideOriginColumn,
         aprTypeSeparation: data.json?.aprTypeSeparation,
+        legalResponsibleBy: data.json?.legalResponsibleBy,
       },
     };
 

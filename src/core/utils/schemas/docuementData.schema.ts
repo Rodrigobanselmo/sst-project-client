@@ -8,6 +8,7 @@ export const documentDataSchema = yup.object().shape({
   revisionBy: yup.string().trim(),
   approvedBy: yup.string().trim(),
   coordinatorBy: yup.string().trim(),
+  legalResponsibleBy: yup.string().trim(),
 });
 
 export type IPgrSchema = Record<keyof typeof documentDataSchema, string>;

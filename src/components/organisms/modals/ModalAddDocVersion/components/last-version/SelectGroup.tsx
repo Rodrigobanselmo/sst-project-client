@@ -25,7 +25,15 @@ import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import SIconButton from 'components/atoms/SIconButton';
 import SCloseIcon from 'assets/icons/SCloseIcon';
 
-export const SelectGroup = ({ compRef }: { compRef: any }) => {
+export const SelectGroup = ({
+  compRef,
+  companyId,
+  workspaceId,
+}: {
+  compRef: any;
+  companyId: string;
+  workspaceId: string;
+}) => {
   const [selecteds, setSelecteds] = useState<(IGho | IHierarchy)[]>([]);
   const [viewDataType, setViewDataType] = useState<ViewsDataEnum>(
     ViewsDataEnum.HIERARCHY,
@@ -81,7 +89,8 @@ export const SelectGroup = ({ compRef }: { compRef: any }) => {
             });
           }}
           allFilters
-          companyId={''}
+          companyId={companyId}
+          workspaceId={workspaceId}
           renderButton={({ onClick, text }) => {
             return (
               <Box
