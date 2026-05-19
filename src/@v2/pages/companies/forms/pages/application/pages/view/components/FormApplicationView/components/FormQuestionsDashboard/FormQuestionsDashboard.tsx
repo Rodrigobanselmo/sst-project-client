@@ -1128,6 +1128,13 @@ export const FormQuestionsDashboard = ({
                         formQuestionsAnswers,
                         selectedGroupingQuestionId: selectedGroupingQuestion,
                         hierarchyGroups,
+                        ...(selectedGroupingQuestion &&
+                        selectedParticipantGroupIdsForView
+                          ? {
+                              visibleParticipantGroupIds:
+                                selectedParticipantGroupIdsForView,
+                            }
+                          : {}),
                       });
                     } catch (e) {
                       enqueueSnackbar(

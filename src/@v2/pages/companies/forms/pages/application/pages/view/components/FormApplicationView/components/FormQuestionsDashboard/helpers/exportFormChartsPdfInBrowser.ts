@@ -15,6 +15,8 @@ export async function exportFormChartsPdfInBrowser(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
   hierarchyGroups: HierarchyGroupForIndicators[];
+  /** Com agrupamento ativo: ids dos grupos a incluir no PDF (alinhado à tela). */
+  visibleParticipantGroupIds?: string[];
 }): Promise<void> {
   const { pdf } = await import('@react-pdf/renderer');
   const { default: PdfFormCharts } = await import(
@@ -27,6 +29,9 @@ export async function exportFormChartsPdfInBrowser(params: {
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     isShareableLink: params.formApplication.isShareableLink,
     hierarchyGroups: params.hierarchyGroups,
+    ...(params.selectedGroupingQuestionId
+      ? { visibleParticipantGroupIds: params.visibleParticipantGroupIds }
+      : {}),
   });
 
   const issuedAt = new Intl.DateTimeFormat('pt-BR', {

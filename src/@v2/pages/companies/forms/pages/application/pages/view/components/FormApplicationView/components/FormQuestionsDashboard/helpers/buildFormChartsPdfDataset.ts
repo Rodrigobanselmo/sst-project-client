@@ -166,12 +166,18 @@ export function buildFormChartsPdfDataset(params: {
   selectedGroupingQuestionId: string | null;
   isShareableLink: boolean;
   hierarchyGroups?: HierarchyGroupForIndicators[];
+  /**
+   * Quando o agrupamento por identificação está ativo, restringe quais grupos entram no PDF.
+   * `undefined` = todos os grupos do agrupamento. Alinhado à tela e ao PDF de indicadores.
+   */
+  visibleParticipantGroupIds?: string[];
 }): FormChartsPdfDataset {
   const {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     isShareableLink,
     hierarchyGroups = [],
+    visibleParticipantGroupIds,
   } = params;
 
   if (!formQuestionsAnswers || !Array.isArray(formQuestionsAnswers.results)) {
@@ -180,12 +186,17 @@ export function buildFormChartsPdfDataset(params: {
     );
   }
 
-  const { grouping, participantGroups } =
+  let { grouping, participantGroups } =
     buildParticipantGroupingForIndicatorsPdf({
       formQuestionsAnswers,
       selectedGroupingQuestionId,
       hierarchyGroups,
     });
+
+  if (grouping.active && visibleParticipantGroupIds !== undefined) {
+    const allow = new Set(visibleParticipantGroupIds);
+    participantGroups = participantGroups.filter((g) => allow.has(g.id));
+  }
 
   const [identifierGroup, ...generalGroups] = formQuestionsAnswers.results;
 
