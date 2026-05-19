@@ -1237,7 +1237,12 @@ export const FormQuestionsDashboard = ({
             {isTextAnswersTab ? (
               <FormTextAnswers formGroups={generalGroups} />
             ) : isRisksAnalysisTab ? (
-              <FormRisksAnalysis formApplication={formApplication} />
+              <FormRisksAnalysis
+                formApplication={formApplication}
+                formQuestionsAnswers={formQuestionsAnswers}
+                visibleParticipantGroups={visibleParticipantGroups}
+                selectedGroupingQuestionId={selectedGroupingQuestion}
+              />
             ) : isHierarchyGroupsTab ? (
               <FormHierarchyGroupManager
                 formApplication={formApplication}

@@ -10,6 +10,14 @@ import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
 import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
 import { SAccordionBody } from '@v2/components/organisms/SAccordion/components/SAccordionBody/SAccordionBody';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
+import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
+import type { ParticipantGroupForIndicators } from '../../helpers/buildParticipantGroupsForIndicators';
+import {
+  buildRiskAnalysisViewContext,
+  groupEntityIdsByEstablishment,
+  shouldGroupEntitiesByEstablishment,
+  sortRiskIdsForAnalysis,
+} from '../../helpers/buildRiskAnalysisViewContext';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
 import { useMutateAiAnalyzeFormQuestionsRisks } from '@v2/services/forms/ai-analyze-risks/hooks/useMutateAiAnalyzeFormQuestionsRisks';
 import { useMutateAssignRisksFormApplication } from '@v2/services/forms/form-application/assign-risks-form-application/hooks/useMutateAssignRisksFormApplication';
@@ -27,7 +35,7 @@ import { SIconDelete } from '@v2/assets/icons/SIconDelete/SIconDelete';
 import { TextField } from '@mui/material';
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useAccess } from 'core/hooks/useAccess';
 import { useForm, FormProvider } from 'react-hook-form';
 
@@ -45,6 +53,9 @@ import { getMatrizRisk } from 'core/utils/helpers/matriz';
 
 interface FormRisksAnalysisProps {
   formApplication: FormApplicationReadModel;
+  formQuestionsAnswers?: FormQuestionsAnswersBrowseModel | null;
+  visibleParticipantGroups?: ParticipantGroupForIndicators[];
+  selectedGroupingQuestionId?: string | null;
 }
 
 // AI Model options (same as ModalAiAnalysisContent)
@@ -119,6 +130,9 @@ const badgeSx = (bg: string) => ({
 
 export const FormRisksAnalysis = ({
   formApplication,
+  formQuestionsAnswers = null,
+  visibleParticipantGroups = [],
+  selectedGroupingQuestionId = null,
 }: FormRisksAnalysisProps) => {
   const { isMaster } = useAccess();
   const [expandedRisks, setExpandedRisks] = useState<Record<string, boolean>>(
@@ -544,6 +558,70 @@ export const FormRisksAnalysis = ({
     }
   };
 
+  const entityMap = formQuestionsAnswersRisks?.entityMap ?? {};
+  const riskMap = formQuestionsAnswersRisks?.riskMap ?? {};
+  const entityRiskMap = formQuestionsAnswersRisks?.entityRiskMap ?? {};
+  const groupedEntityRiskMap =
+    formQuestionsAnswersRisks?.groupedEntityRiskMap ?? {};
+  const hierarchyGroups = formQuestionsAnswersRisks?.hierarchyGroups ?? [];
+
+  const { allowedEntityIds, entityEstablishmentMap } = useMemo(
+    () =>
+      buildRiskAnalysisViewContext({
+        formQuestionsAnswers,
+        visibleParticipantGroups,
+        selectedGroupingQuestionId,
+        entityMap,
+      }),
+    [
+      formQuestionsAnswers,
+      visibleParticipantGroups,
+      selectedGroupingQuestionId,
+      entityMap,
+    ],
+  );
+
+  const isEntityVisible = useCallback(
+    (entityId: string) =>
+      allowedEntityIds === null || allowedEntityIds.has(entityId),
+    [allowedEntityIds],
+  );
+
+  const getEffectiveProbability = useCallback(
+    (entityId: string, riskId: string): number => {
+      if (hierarchyGroups.length > 0) {
+        const group = hierarchyGroups.find((g) =>
+          g.hierarchyIds.includes(entityId),
+        );
+        if (group && groupedEntityRiskMap[group.id]?.[riskId]) {
+          return groupedEntityRiskMap[group.id][riskId].probability;
+        }
+      }
+      return entityRiskMap[entityId]?.[riskId]?.probability ?? 0;
+    },
+    [hierarchyGroups, groupedEntityRiskMap, entityRiskMap],
+  );
+
+  const getEntitiesWithRisk = useCallback(
+    (riskId: string) =>
+      Object.keys(entityRiskMap).filter(
+        (entityId) =>
+          entityRiskMap[entityId]?.[riskId] && isEntityVisible(entityId),
+      ),
+    [entityRiskMap, isEntityVisible],
+  );
+
+  const risksWithData = useMemo(
+    () =>
+      sortRiskIdsForAnalysis(
+        Object.keys(riskMap).filter(
+          (riskId) => getEntitiesWithRisk(riskId).length > 0,
+        ),
+        riskMap,
+      ),
+    [riskMap, getEntitiesWithRisk],
+  );
+
   if (isLoading || !formQuestionsAnswersRisks) {
     return (
       <SPaper sx={{ p: 4 }}>
@@ -551,24 +629,6 @@ export const FormRisksAnalysis = ({
       </SPaper>
     );
   }
-
-  const { entityMap, riskMap, entityRiskMap, groupedEntityRiskMap, hierarchyGroups } = formQuestionsAnswersRisks;
-
-  // Helper: get effective probability considering hierarchy groups
-  const getEffectiveProbability = (entityId: string, riskId: string): number => {
-    if (hierarchyGroups && hierarchyGroups.length > 0) {
-      const group = hierarchyGroups.find((g) => g.hierarchyIds.includes(entityId));
-      if (group && groupedEntityRiskMap?.[group.id]?.[riskId]) {
-        return groupedEntityRiskMap[group.id][riskId].probability;
-      }
-    }
-    return entityRiskMap[entityId]?.[riskId]?.probability ?? 0;
-  };
-
-  // Get all risks that have data
-  const risksWithData = Object.keys(riskMap).filter((riskId) =>
-    Object.values(entityRiskMap).some((entityRisks) => entityRisks[riskId]),
-  );
 
   if (risksWithData.length === 0) {
     return (
@@ -619,6 +679,7 @@ export const FormRisksAnalysis = ({
 
   const handleAddAllRisk = () => {
     const risks = Object.entries(entityRiskMap)
+      .filter(([entityId]) => isEntityVisible(entityId))
       .map(([entityId, entityRisks]) => {
         return Object.entries(entityRisks).map(([riskId]) => {
           return {
@@ -702,10 +763,19 @@ export const FormRisksAnalysis = ({
           const risk = riskMap[riskId];
           const isExpanded = expandedRisks[riskId] || false;
 
-          // Get all entities that have this risk
-          const entitiesWithRisk = Object.keys(entityRiskMap).filter(
-            (entityId) => entityRiskMap[entityId][riskId],
+          const entitiesWithRisk = getEntitiesWithRisk(riskId);
+          const groupByEstablishment = shouldGroupEntitiesByEstablishment(
+            entitiesWithRisk,
+            entityMap,
+            entityEstablishmentMap,
           );
+          const entityDisplayGroups = groupByEstablishment
+            ? groupEntityIdsByEstablishment(
+                entitiesWithRisk,
+                entityMap,
+                entityEstablishmentMap,
+              )
+            : [{ establishment: '', entityIds: entitiesWithRisk }];
 
           return (
             <SAccordion
@@ -750,7 +820,21 @@ export const FormRisksAnalysis = ({
                   </Typography>
 
                   <SFlex direction="column" gap={4}>
-                    {entitiesWithRisk.map((entityId) => {
+                    {entityDisplayGroups.map(
+                      ({ establishment, entityIds: groupEntityIds }) => (
+                        <Box key={establishment || 'all'}>
+                          {groupByEstablishment && establishment && (
+                            <Typography
+                              variant="subtitle2"
+                              fontWeight={600}
+                              color="text.secondary"
+                              sx={{ mb: 2, mt: groupEntityIds.length ? 0 : 0 }}
+                            >
+                              {establishment}
+                            </Typography>
+                          )}
+                          <SFlex direction="column" gap={4}>
+                            {groupEntityIds.map((entityId) => {
                       const entity = entityMap[entityId];
                       const riskData = entityRiskMap[entityId][riskId];
                       const severity = risk?.severity;
@@ -1157,7 +1241,11 @@ export const FormRisksAnalysis = ({
                             })()}
                         </Box>
                       );
-                    })}
+                            })}
+                          </SFlex>
+                        </Box>
+                      ),
+                    )}
 
                     {/* Only show "Add to all entities" button if not all entities have the risk added */}
                     {!entitiesWithRisk.every((entityId) =>
