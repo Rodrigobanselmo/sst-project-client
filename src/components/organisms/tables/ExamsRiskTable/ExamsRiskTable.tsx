@@ -72,7 +72,7 @@ export const ExamsRiskTable: FC<
       selectedData?: IExamToRisk[];
       query?: IQueryExam;
     }
-> = ({ rowsPerPage = 8, workspaceId, onSelectData, selectedData, query }) => {
+> = ({ rowsPerPage = 8, onSelectData, selectedData, query }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
@@ -87,7 +87,7 @@ export const ExamsRiskTable: FC<
     refetch,
   } = useQueryExamsRisk(
     page,
-    { search, workspaceId, ...query },
+    { search, ...query },
     rowsPerPage,
   );
 
