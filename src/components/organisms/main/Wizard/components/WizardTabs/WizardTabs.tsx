@@ -27,8 +27,7 @@ const WizardTabs: React.FC<{ children?: any } & Props> = ({
     if (typeof active === 'number') {
       goToStep(active);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [goToStep]);
+  }, [active, goToStep]);
 
   return (
     <>

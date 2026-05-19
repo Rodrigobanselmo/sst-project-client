@@ -10,6 +10,7 @@ import {
   CHARACTERIZATION_AMBIENTES_PATHNAME,
   CHARACTERIZATION_GSE_PATHNAME,
   CHARACTERIZATION_MODULE_LABEL,
+  CHARACTERIZATION_MODULE_ROUTE_VALUE,
   COMPANY_SST_PATHNAME,
   getCharacterizationSstPath,
   getCharacterizationSubTabLabel,
@@ -274,7 +275,7 @@ export const useLocation = () => {
 
     const characterizationModule = {
       name: CHARACTERIZATION_MODULE_LABEL,
-      value: 'caracterizacao-modulo',
+      value: CHARACTERIZATION_MODULE_ROUTE_VALUE,
       action: () => getCharacterizationSstPath(companyId),
     };
 
@@ -487,5 +488,24 @@ export const useLocation = () => {
     [company.isClinic, companyBreadcrumbIndex, pathname],
   );
 
-  return { getRoutePath, routes, companyBreadcrumbIndex, showCompanyAreaMenu, companyId };
+  const characterizationBreadcrumbIndex = useMemo(
+    () =>
+      routes.findIndex((r) => r.value === CHARACTERIZATION_MODULE_ROUTE_VALUE),
+    [routes],
+  );
+
+  const showCharacterizationSubareaMenu = useMemo(
+    () => characterizationBreadcrumbIndex >= 0,
+    [characterizationBreadcrumbIndex],
+  );
+
+  return {
+    getRoutePath,
+    routes,
+    companyBreadcrumbIndex,
+    showCompanyAreaMenu,
+    characterizationBreadcrumbIndex,
+    showCharacterizationSubareaMenu,
+    companyId,
+  };
 };

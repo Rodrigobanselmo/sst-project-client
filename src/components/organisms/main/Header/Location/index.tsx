@@ -17,6 +17,7 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { brandNameConstant } from '../../../../../core/constants/brand.constant';
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
+import { CharacterizationBreadcrumbSubareaMenu } from './components/CharacterizationBreadcrumbSubareaMenu';
 import { CompanyBreadcrumbAreaMenu } from './components/CompanyBreadcrumbAreaMenu';
 import { useLocation } from './hooks/useLocation';
 
@@ -27,6 +28,8 @@ export function Location(): JSX.Element {
     routes,
     companyBreadcrumbIndex,
     showCompanyAreaMenu,
+    characterizationBreadcrumbIndex,
+    showCharacterizationSubareaMenu,
     companyId,
   } = useLocation();
   return (
@@ -61,6 +64,16 @@ export function Location(): JSX.Element {
                 items.push(
                   <CompanyBreadcrumbAreaMenu
                     key={`company-area-menu-${index}`}
+                    companyId={companyId}
+                  />,
+                );
+              } else if (
+                showCharacterizationSubareaMenu &&
+                prevIndex === characterizationBreadcrumbIndex
+              ) {
+                items.push(
+                  <CharacterizationBreadcrumbSubareaMenu
+                    key={`characterization-subarea-menu-${index}`}
                     companyId={companyId}
                   />,
                 );

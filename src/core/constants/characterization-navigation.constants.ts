@@ -22,7 +22,32 @@ export const CHARACTERIZATION_SUB_TAB_LABELS: Record<
 
 export const CHARACTERIZATION_MODULE_LABEL = 'Caracterização';
 
+/** Valor estável do segmento "Caracterização" no breadcrumb (`useLocation`). */
+export const CHARACTERIZATION_MODULE_ROUTE_VALUE = 'caracterizacao-modulo';
+
 export const COMPANY_SST_PATHNAME = '/dashboard/empresas/[companyId]/novo/[stage]';
+
+export const COMPANY_SST_STAGE = 'sst';
+
+export type CharacterizationSubareaNavItem = {
+  label: string;
+  tab: CharacterizationSubTabEnum;
+};
+
+const CHARACTERIZATION_SUBAREA_TABS = [
+  CharacterizationSubTabEnum.RISKS,
+  CharacterizationSubTabEnum.ENVIRONMENTS,
+  CharacterizationSubTabEnum.GSE,
+  CharacterizationSubTabEnum.EXAMS,
+  CharacterizationSubTabEnum.PROTOCOLS,
+] as const;
+
+export function getCharacterizationSubareaNavItems(): CharacterizationSubareaNavItem[] {
+  return CHARACTERIZATION_SUBAREA_TABS.map((tab) => ({
+    tab,
+    label: CHARACTERIZATION_SUB_TAB_LABELS[tab],
+  }));
+}
 
 export const CHARACTERIZATION_AMBIENTES_PATHNAME =
   '/dashboard/empresas/[companyId]/caracterizacao';
