@@ -7,15 +7,17 @@ import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
-
-import { IErrorResp } from '../../../../errors/types';
+import { IErrorResp } from '@/@v2/types/error.type';
 
 export interface IDeleteDocVersion {
   id: string;
   companyId?: string;
 }
 
-export async function deleteDocVersion(data: IDeleteDocVersion, companyId?: string) {
+export async function deleteDocVersion(
+  data: IDeleteDocVersion,
+  companyId?: string,
+) {
   if (!companyId) return null;
 
   const response = await api.delete(
@@ -30,11 +32,14 @@ export function useMutDeleteDocVersion() {
   const { enqueueSnackbar } = useSnackbar();
 
   return useMutation(
-    async (data: IDeleteDocVersion) => deleteDocVersion(data, getCompanyId(data)),
+    async (data: IDeleteDocVersion) =>
+      deleteDocVersion(data, getCompanyId(data)),
     {
       onSuccess: async () => {
         queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
-        enqueueSnackbar('Documento removido da listagem', { variant: 'success' });
+        enqueueSnackbar('Documento removido da listagem', {
+          variant: 'success',
+        });
       },
       onError: (error: IErrorResp) => {
         if (error.response?.data)

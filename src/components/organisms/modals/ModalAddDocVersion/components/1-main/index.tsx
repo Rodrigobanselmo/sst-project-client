@@ -137,7 +137,9 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
             <InputForm
               setValue={setValue}
               defaultValue={
-                data?.json?.legalResponsibleBy || company?.responsibleName || ''
+                (data as any)?.json?.legalResponsibleBy ||
+                company?.responsibleName ||
+                ''
               }
               label="Responsável legal da empresa"
               control={control}

@@ -130,7 +130,7 @@ export const useMainStep = ({
               validityStart: dateFormat(`01/${validityStart}`) || null,
               validityEnd: dateFormat(`01/${validityEnd}`) || null,
               json: {
-                ...data.json,
+                ...(data as any)?.json,
                 legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
               },
             };
