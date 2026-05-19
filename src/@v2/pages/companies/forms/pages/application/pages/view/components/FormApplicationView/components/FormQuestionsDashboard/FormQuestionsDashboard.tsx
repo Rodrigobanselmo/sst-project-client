@@ -56,6 +56,7 @@ import {
 import { resolveParticipantStructuresForGrouping } from './helpers/resolveParticipantStructuresForGrouping';
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
+import { exportFormRiskAnalysisPdfInBrowser } from './helpers/exportFormRiskAnalysisPdfInBrowser';
 import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
 
 // Types for the restructured data
@@ -473,6 +474,8 @@ export const FormQuestionsDashboard = ({
   const { enqueueSnackbar } = useSnackbar();
   const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
   const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
+    useState(false);
+  const [isExportingRisksAnalysisPdf, setIsExportingRisksAnalysisPdf] =
     useState(false);
   const [pdfLoadingMessage, setPdfLoadingMessage] = useState<string>('');
 
@@ -1153,6 +1156,73 @@ export const FormQuestionsDashboard = ({
               </Box>
             </SPaper>
           )}
+
+          {isRisksAnalysisTab && (
+            <SPaper
+              sx={{
+                mt: 5,
+                p: 10,
+                py: 5,
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                <Button
+                  variant="outlined"
+                  disabled={!formQuestionsAnswers || isExportingRisksAnalysisPdf}
+                  startIcon={
+                    isExportingRisksAnalysisPdf ? (
+                      <CircularProgress color="inherit" size={16} />
+                    ) : undefined
+                  }
+                  onClick={async () => {
+                    if (!formQuestionsAnswers) {
+                      enqueueSnackbar(
+                        'Dados do formulário ainda não carregados.',
+                        { variant: 'warning' },
+                      );
+                      return;
+                    }
+                    setIsExportingRisksAnalysisPdf(true);
+                    setPdfLoadingMessage('Iniciando geração do PDF...');
+                    try {
+                      await exportFormRiskAnalysisPdfInBrowser(
+                        {
+                          formApplication,
+                          formQuestionsAnswers,
+                          selectedGroupingQuestionId: selectedGroupingQuestion,
+                          selectedGroupingLabel,
+                          hierarchyGroups,
+                          ...(selectedGroupingQuestion &&
+                          selectedParticipantGroupIdsForView
+                            ? {
+                                visibleParticipantGroupIds:
+                                  selectedParticipantGroupIdsForView,
+                              }
+                            : {}),
+                        },
+                        (message) => setPdfLoadingMessage(message),
+                      );
+                      enqueueSnackbar('PDF gerado com sucesso!', {
+                        variant: 'success',
+                      });
+                    } catch (e) {
+                      enqueueSnackbar(
+                        e instanceof Error
+                          ? e.message
+                          : 'Não foi possível gerar o PDF da análise de riscos.',
+                        { variant: 'error' },
+                      );
+                    } finally {
+                      setIsExportingRisksAnalysisPdf(false);
+                      setPdfLoadingMessage('');
+                    }
+                  }}
+                >
+                  Exportar PDF (Análise de Riscos)
+                </Button>
+              </Box>
+            </SPaper>
+          )}
         </Box>
       )}
 
@@ -1398,7 +1468,7 @@ export const FormQuestionsDashboard = ({
       )}
 
       <SPdfLoadingModal
-        open={isExportingIndicatorsPdf}
+        open={isExportingIndicatorsPdf || isExportingRisksAnalysisPdf}
         message={pdfLoadingMessage}
       />
     </SFlex>

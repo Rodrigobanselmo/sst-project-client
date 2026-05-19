@@ -1,0 +1,304 @@
+import React from 'react';
+import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+
+import type {
+  RiskAnalysisPdfDataset,
+  RiskAnalysisPdfRecommendationItem,
+} from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildRiskAnalysisPdfDataset';
+
+export type PdfFormRiskAnalysisProps = {
+  data: RiskAnalysisPdfDataset;
+  meta: {
+    formName: string;
+    applicationName: string;
+    issuedAt: string;
+  };
+};
+
+function Badge({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color: string;
+}) {
+  return (
+    <View style={[s.badge, { backgroundColor: color }]}>
+      <Text style={s.badgeText}>
+        {label}: {value}
+      </Text>
+    </View>
+  );
+}
+
+function RecommendationList({
+  title,
+  items,
+}: {
+  title: string;
+  items: RiskAnalysisPdfRecommendationItem[];
+}) {
+  if (items.length === 0) return null;
+
+  return (
+    <View style={s.recSection}>
+      <Text style={s.recTitle}>{title}</Text>
+      {items.map((item, index) => (
+        <View key={`${title}-${index}`} style={s.recItem}>
+          <Text style={s.recName}>• {item.nome}</Text>
+          {item.justificativa ? (
+            <Text style={s.recJustification}>{item.justificativa}</Text>
+          ) : null}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const s = StyleSheet.create({
+  page: {
+    paddingTop: 40,
+    paddingBottom: 40,
+    paddingHorizontal: 40,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: 700,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 11,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  issuedAt: {
+    fontSize: 9,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  groupingBanner: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginBottom: 16,
+    padding: 8,
+    backgroundColor: '#e8f4fc',
+    border: '1 solid #90caf9',
+    borderRadius: 4,
+  },
+  factorSection: {
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottom: '1 solid #e0e0e0',
+  },
+  factorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  typeBadge: {
+    fontSize: 8,
+    fontWeight: 700,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+    backgroundColor: '#fff8e1',
+    border: '1 solid #f9a825',
+    color: '#f57f17',
+  },
+  factorName: {
+    fontSize: 12,
+    fontWeight: 700,
+    color: '#222',
+    flex: 1,
+  },
+  establishmentTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: '#555',
+    marginTop: 6,
+    marginBottom: 6,
+  },
+  sectorBlock: {
+    marginBottom: 10,
+    padding: 8,
+    backgroundColor: '#fafafa',
+    border: '1 solid #eeeeee',
+    borderRadius: 4,
+  },
+  sectorHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+    flexWrap: 'wrap',
+    gap: 4,
+  },
+  sectorType: {
+    fontSize: 8,
+    color: '#666',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 2,
+  },
+  sectorName: {
+    fontSize: 10,
+    fontWeight: 600,
+    color: '#333',
+    flex: 1,
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginBottom: 4,
+  },
+  badge: {
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
+    border: '1 solid #dddddd',
+  },
+  badgeText: {
+    fontSize: 8,
+    color: '#222',
+  },
+  aiNote: {
+    fontSize: 8,
+    color: '#666',
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  recSection: {
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  recTitle: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: '#333',
+    marginBottom: 4,
+  },
+  recItem: {
+    marginBottom: 4,
+  },
+  recName: {
+    fontSize: 8,
+    color: '#222',
+    lineHeight: 1.35,
+  },
+  recJustification: {
+    fontSize: 7,
+    color: '#666',
+    marginLeft: 8,
+    marginTop: 2,
+    lineHeight: 1.35,
+  },
+  empty: {
+    fontSize: 10,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 24,
+  },
+});
+
+export default function PdfFormRiskAnalysis({
+  data,
+  meta,
+}: PdfFormRiskAnalysisProps) {
+  const groupingLabel =
+    data.grouping.active === true
+      ? `Recorte: agrupamento por identificação — ${data.grouping.questionLabel}`
+      : 'Recorte: todos os participantes (sem agrupamento)';
+
+  return (
+    <Document>
+      <Page size="A4" style={s.page} wrap>
+        <Text style={s.title}>Relatório de Análise de Riscos</Text>
+        <Text style={s.subtitle}>Formulário: {meta.formName}</Text>
+        <Text style={s.subtitle}>Aplicação: {meta.applicationName}</Text>
+        <Text style={s.issuedAt}>Emitido em: {meta.issuedAt}</Text>
+        <Text style={s.groupingBanner}>{groupingLabel}</Text>
+
+        {data.factors.length === 0 ? (
+          <Text style={s.empty}>
+            Nenhum fator de risco identificado para o recorte selecionado.
+          </Text>
+        ) : (
+          data.factors.map((factor) => (
+            <View key={factor.riskId} style={s.factorSection}>
+              <View style={s.factorHeader}>
+                <Text style={s.typeBadge}>{factor.typeLabel}</Text>
+                <Text style={s.factorName}>{factor.name}</Text>
+              </View>
+
+              {factor.establishmentBlocks.map((block) => (
+                <View key={`${factor.riskId}-${block.establishment || 'all'}`}>
+                  {block.establishment ? (
+                    <Text style={s.establishmentTitle}>{block.establishment}</Text>
+                  ) : null}
+
+                  {block.sectors.map((sector, sectorIndex) => (
+                    <View
+                      key={`${factor.riskId}-${block.establishment}-${sectorIndex}`}
+                      style={s.sectorBlock}
+                    >
+                      <View style={s.sectorHeader}>
+                        <Text style={s.sectorType}>{sector.sectorTypeLabel}</Text>
+                        <Text style={s.sectorName}>{sector.sectorName}</Text>
+                      </View>
+
+                      <View style={s.badgesRow}>
+                        <Badge
+                          label="Probabilidade"
+                          value={sector.classification.probabilityLabel}
+                          color={sector.classification.probabilityColor}
+                        />
+                        <Badge
+                          label="Severidade"
+                          value={sector.classification.severityLabel}
+                          color={sector.classification.severityColor}
+                        />
+                        <Badge
+                          label="Risco Ocupacional"
+                          value={sector.classification.occupationalRiskLabel}
+                          color={sector.classification.occupationalRiskColor}
+                        />
+                      </View>
+
+                      {sector.aiConfidencePercent != null ? (
+                        <Text style={s.aiNote}>
+                          Análise de IA disponível — confiança:{' '}
+                          {sector.aiConfidencePercent}%
+                        </Text>
+                      ) : null}
+
+                      <RecommendationList
+                        title="Fontes Geradoras"
+                        items={sector.fontesGeradoras}
+                      />
+                      <RecommendationList
+                        title="Recomendações (Medidas de Engenharia)"
+                        items={sector.medidasEngenharia}
+                      />
+                      <RecommendationList
+                        title="Recomendações (Medidas Administrativas)"
+                        items={sector.medidasAdministrativas}
+                      />
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          ))
+        )}
+      </Page>
+    </Document>
+  );
+}
