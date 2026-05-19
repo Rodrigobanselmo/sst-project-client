@@ -6,6 +6,15 @@ import { initialWorkspaceSelectState } from 'components/organisms/modals/ModalSe
 import { useRouter } from 'next/router';
 
 import { brandNameConstant } from 'core/constants/brand.constant';
+import {
+  CHARACTERIZATION_AMBIENTES_PATHNAME,
+  CHARACTERIZATION_GSE_PATHNAME,
+  CHARACTERIZATION_MODULE_LABEL,
+  COMPANY_SST_PATHNAME,
+  getCharacterizationSstPath,
+  getCharacterizationSubTabLabel,
+  parseCharacterizationActiveTab,
+} from 'core/constants/characterization-navigation.constants';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -246,8 +255,65 @@ export const useLocation = () => {
     if (routesPath.length <= 1 && routeMap[RoutesParamsEnum.BRAND]) {
       routesPath.unshift(routeMap[RoutesParamsEnum.BRAND] as any);
     }
+
+    const characterizationModule = {
+      name: CHARACTERIZATION_MODULE_LABEL,
+      value: 'caracterizacao-modulo',
+      action: () => getCharacterizationSstPath(companyId),
+    };
+
+    const hideSegmentValues = new Set([
+      'sst',
+      'caracterizacao',
+      'grupos-homogenios',
+    ]);
+
+    if (pathname === COMPANY_SST_PATHNAME && query.stage === 'sst') {
+      const tab = parseCharacterizationActiveTab(query.active);
+      const filtered = routesPath.filter((r) => !hideSegmentValues.has(r.value));
+      const companyIdx = filtered.findIndex((r) => r.value === companyId);
+      const insertAt = companyIdx >= 0 ? companyIdx + 1 : filtered.length;
+      filtered.splice(insertAt, 0, characterizationModule, {
+        name: getCharacterizationSubTabLabel(tab),
+        value: `caracterizacao-${tab}`,
+        action: () =>
+          `${getCharacterizationSstPath(companyId)}?active=${tab}`,
+      });
+      return filtered;
+    }
+
+    if (pathname === CHARACTERIZATION_AMBIENTES_PATHNAME) {
+      const filtered = routesPath.filter(
+        (r) => r.value !== 'caracterizacao',
+      );
+      const companyIdx = filtered.findIndex((r) => r.value === companyId);
+      const insertAt = companyIdx >= 0 ? companyIdx + 1 : filtered.length;
+      filtered.splice(insertAt, 0, characterizationModule, {
+        name: getCharacterizationSubTabLabel(1),
+        value: 'caracterizacao-ambientes',
+        action: () =>
+          `${getCharacterizationSstPath(companyId)}?active=1`,
+      });
+      return filtered;
+    }
+
+    if (pathname === CHARACTERIZATION_GSE_PATHNAME) {
+      const filtered = routesPath.filter(
+        (r) => r.value !== 'grupos-homogenios',
+      );
+      const companyIdx = filtered.findIndex((r) => r.value === companyId);
+      const insertAt = companyIdx >= 0 ? companyIdx + 1 : filtered.length;
+      filtered.splice(insertAt, 0, characterizationModule, {
+        name: getCharacterizationSubTabLabel(2),
+        value: 'caracterizacao-gse',
+        action: () =>
+          `${getCharacterizationSstPath(companyId)}?active=2`,
+      });
+      return filtered;
+    }
+
     return routesPath;
-  }, [pathname, routeMap]);
+  }, [companyId, pathname, query.active, query.stage, routeMap]);
 
   const getRoutePath = (routeValue: IRouteMapValue, index: number) => {
     if (routeValue?.action) {

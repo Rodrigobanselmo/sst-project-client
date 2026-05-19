@@ -15,6 +15,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryGhos {
   search?: string | null;
   companyId?: string;
+  workspaceId?: string;
   name?: string;
   type?: HomoTypeEnum[];
 }

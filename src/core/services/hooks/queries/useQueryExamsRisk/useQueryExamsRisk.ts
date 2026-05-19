@@ -14,6 +14,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryExamRisk {
   search?: string | null;
   companyId?: string;
+  workspaceId?: string;
 }
 
 export const queryExams = async (

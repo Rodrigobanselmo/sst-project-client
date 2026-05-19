@@ -46,7 +46,7 @@ export const ProtocolsRiskTable: FC<
       selectedData?: IProtocolToRisk[];
       query?: IQueryProtocol;
     }
-> = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
+> = ({ rowsPerPage = 8, workspaceId, onSelectData, selectedData, query }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
@@ -59,7 +59,11 @@ export const ProtocolsRiskTable: FC<
     isFetching,
     isRefetching,
     refetch,
-  } = useQueryProtocolsRisk(page, { search }, rowsPerPage);
+  } = useQueryProtocolsRisk(
+    page,
+    { search, workspaceId, ...query },
+    rowsPerPage,
+  );
 
   const { onStackOpenModal } = useModal();
   const copyProtocolMutation = useMutCopyProtocolRisk();

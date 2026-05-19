@@ -4,14 +4,17 @@ import { StackModalAddGho } from 'components/organisms/modals/ModalAddGHO';
 import { GhosTable } from 'components/organisms/tables/GhosTable/GhosTable';
 import { NextPage } from 'next';
 
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
 
 const RiskPage: NextPage = () => {
+  const { workspaceId } = useTabWorkspaceId();
+
   return (
     <>
       <SHeaderTag title={'GSE'} />
       <SContainer>
-        <GhosTable />
+        <GhosTable workspaceId={workspaceId} />
         <StackModalAddGho />
       </SContainer>
     </>

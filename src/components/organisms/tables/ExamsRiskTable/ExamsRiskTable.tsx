@@ -72,7 +72,7 @@ export const ExamsRiskTable: FC<
       selectedData?: IExamToRisk[];
       query?: IQueryExam;
     }
-> = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
+> = ({ rowsPerPage = 8, workspaceId, onSelectData, selectedData, query }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
@@ -85,7 +85,11 @@ export const ExamsRiskTable: FC<
     isFetching,
     isRefetching,
     refetch,
-  } = useQueryExamsRisk(page, { search }, rowsPerPage);
+  } = useQueryExamsRisk(
+    page,
+    { search, workspaceId, ...query },
+    rowsPerPage,
+  );
 
   const { onStackOpenModal } = useModal();
   const copyExamMutation = useMutCopyExamRisk();

@@ -10,6 +10,13 @@ import { useSidebarDrawer } from 'core/contexts/SidebarContext';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useRouter } from 'next/router';
 
+import {
+  CHARACTERIZATION_AMBIENTES_PATHNAME,
+  CHARACTERIZATION_GSE_PATHNAME,
+  CharacterizationSubTabEnum,
+  COMPANY_SST_PATHNAME,
+  parseCharacterizationActiveTab,
+} from 'core/constants/characterization-navigation.constants';
 import { RoutesParamsEnum } from '../Location/hooks/useLocation';
 import { STBox } from '../Tenant/Tenant';
 
@@ -24,7 +31,18 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const isDocumentsListPage = pathname === DOCUMENTS_LIST_PATHNAME;
   const isActionPlanPage = pathname === '/dashboard/empresas/[companyId]/plano-de-acao';
   const isCharacterizationRootPage =
-    pathname === '/dashboard/empresas/[companyId]/caracterizacao';
+    pathname === CHARACTERIZATION_AMBIENTES_PATHNAME;
+  const isSstCharacterizationPage =
+    pathname === COMPANY_SST_PATHNAME && query.stage === 'sst';
+  const sstActiveTab = isSstCharacterizationPage
+    ? parseCharacterizationActiveTab(query.active)
+    : null;
+  const showSstWorkspaceSelector =
+    isSstCharacterizationPage &&
+    sstActiveTab !== CharacterizationSubTabEnum.EXAMS &&
+    sstActiveTab !== CharacterizationSubTabEnum.PROTOCOLS;
+  const isGseCharacterizationPage =
+    pathname === CHARACTERIZATION_GSE_PATHNAME;
   const isNewDocumentsStagePage =
     pathname === '/dashboard/empresas/[companyId]/novo/[stage]' &&
     query.stage === 'documentos';
@@ -50,6 +68,8 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
     isDocumentsListPage ||
     isActionPlanPage ||
     isCharacterizationRootPage ||
+    showSstWorkspaceSelector ||
+    isGseCharacterizationPage ||
     isNewDocumentsStagePage
   ) {
     return (
@@ -90,7 +110,11 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
                 { shallow: true },
               );
             }}
-            allowEmptyWorkspace={isCharacterizationRootPage}
+            allowEmptyWorkspace={
+              isCharacterizationRootPage ||
+              showSstWorkspaceSelector ||
+              isGseCharacterizationPage
+            }
             compact
             suppressWhenNotMultiple={false}
           />

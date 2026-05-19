@@ -34,11 +34,12 @@ import {
 export const GhosTable: FC<
   { children?: any } & BoxProps & {
       rowsPerPage?: number;
+      workspaceId?: string;
       onSelectData?: (company: IGho) => void;
       selectedData?: IGho[];
       query?: IQueryGhos;
     }
-> = ({ rowsPerPage = 8, onSelectData, selectedData }) => {
+> = ({ rowsPerPage = 8, workspaceId, onSelectData, selectedData, query }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
@@ -47,7 +48,11 @@ export const GhosTable: FC<
     data: risks,
     isLoading: loadRisks,
     count,
-  } = useQueryGhos(page, { search }, rowsPerPage);
+  } = useQueryGhos(
+    page,
+    { search, workspaceId, ...query },
+    rowsPerPage,
+  );
 
   const { onStackOpenModal } = useModal();
 

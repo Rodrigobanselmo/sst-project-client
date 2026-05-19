@@ -14,6 +14,7 @@ import { QueryEnum } from '../../../../enums/query.enums';
 export interface IQueryRiskCompany {
   search?: string | null;
   companyId?: string;
+  workspaceId?: string;
   listSortBy?: string;
   listSortOrder?: 'asc' | 'desc';
 }

@@ -96,11 +96,17 @@ type ColumnDef = {
 export const RiskCompanyTable: FC<
   { children?: any } & BoxProps & {
       rowsPerPage?: number;
+      workspaceId?: string;
       onSelectData?: (risk: IRiskFactors) => void;
       selectedData?: IRiskFactors[];
       query?: IQueryExam;
     }
-> = ({ rowsPerPage: rowsPerPageProp, onSelectData, selectedData }) => {
+> = ({
+  rowsPerPage: rowsPerPageProp,
+  workspaceId,
+  onSelectData,
+  selectedData,
+}) => {
   const [showOrigins, setShowRiskExam] = useState(false);
   const [openId, setOpenId] = useState('');
   const { data: riskGroupData } = useQueryRiskGroupData();
@@ -130,12 +136,13 @@ export const RiskCompanyTable: FC<
   const queryWithSort = useMemo(
     () => ({
       search,
+      ...(workspaceId ? { workspaceId } : {}),
       ...(sort && {
         listSortBy: sort.field,
         listSortOrder: sort.order,
       }),
     }),
-    [search, sort],
+    [search, sort, workspaceId],
   );
 
   const {

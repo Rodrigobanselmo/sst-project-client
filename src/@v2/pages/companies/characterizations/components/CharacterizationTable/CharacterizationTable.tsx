@@ -38,6 +38,8 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 const table = TablesSelectEnum.CHARACTERIZATION;
 
+import { COMPANY_SST_PATHNAME } from 'core/constants/characterization-navigation.constants';
+
 const CARACTERIZACAO_ROOT_PATHNAME =
   '/dashboard/empresas/[companyId]/caracterizacao';
 
@@ -59,8 +61,13 @@ export const CharacterizationTable = () => {
     return workspaces.results[0]?.id;
   }, [workspaces?.results]);
 
+  const isCharacterizationListRoute =
+    router.pathname === CARACTERIZACAO_ROOT_PATHNAME ||
+    (router.pathname === COMPANY_SST_PATHNAME &&
+      router.query.stage === 'sst');
+
   useEffect(() => {
-    if (router.pathname !== CARACTERIZACAO_ROOT_PATHNAME) return;
+    if (!isCharacterizationListRoute) return;
     if (isLoadingAllWorkspaces || !soleEstablishmentId) return;
     if (router.query.tabWorkspaceId || router.query.workspaceId) return;
 
@@ -75,7 +82,7 @@ export const CharacterizationTable = () => {
   }, [
     isLoadingAllWorkspaces,
     soleEstablishmentId,
-    router.pathname,
+    isCharacterizationListRoute,
     router.query.tabWorkspaceId,
     router.query.workspaceId,
   ]);

@@ -418,7 +418,8 @@ export const useCompanyStep = () => {
 
   const handleGoGho = useCallback(() => {
     push({
-      pathname: RoutesEnum.GHOS.replace(':companyId', company.id),
+      pathname: RoutesEnum.COMPANY_SST.replace(':companyId', company.id),
+      query: { active: '2' },
     });
   }, [company.id, push]);
 
