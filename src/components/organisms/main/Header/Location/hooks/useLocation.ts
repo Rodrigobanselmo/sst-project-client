@@ -15,6 +15,19 @@ import {
   getCharacterizationSubTabLabel,
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
+import {
+  ABSENTEEISM_TAB_PATHNAME,
+  ACTION_PLAN_PATHNAME,
+  COMPANY_HOME_PATHNAME,
+  COMPANY_STAGE_BREADCRUMB,
+  FORM_TAB_BREADCRUMB_LABELS,
+  FORMS_TAB_PATHNAME,
+  getAbsenteeismListPath,
+  getAbsenteeismMetricsPath,
+  getFormsAppliedListPath,
+} from 'core/constants/company-breadcrumb.constants';
+import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
+import { CompanyActionEnum } from 'core/enums/company-action.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -221,7 +234,10 @@ export const useLocation = () => {
             return RoutesEnum.CLINIC.replace(':companyId', companyId);
 
           if (!company.isClinic)
-            return RoutesEnum.COMPANY.replace(':companyId', companyId);
+            return RoutesEnum.COMPANY.replace(':companyId', companyId).replace(
+              ':stage',
+              CompanyActionEnum.COMPANY_GROUP_PAGE,
+            );
         },
       },
       [RoutesParamsEnum.STAGE]: {
@@ -312,13 +328,141 @@ export const useLocation = () => {
       return filtered;
     }
 
+    const insertAfterCompany = (
+      segments: IRouteMapValue[],
+      extra: IRouteMapValue[],
+    ) => {
+      const companyIdx = segments.findIndex((r) => r.value === companyId);
+      const insertAt = companyIdx >= 0 ? companyIdx + 1 : segments.length;
+      segments.splice(insertAt, 0, ...extra);
+      return segments;
+    };
+
+    if (pathname === COMPANY_HOME_PATHNAME) {
+      const stage = query.stage as string | undefined;
+      const stageConfig = stage ? COMPANY_STAGE_BREADCRUMB[stage] : undefined;
+      const hideStageValues = new Set([
+        'sst',
+        'empregados',
+        'empresa',
+        'documentos',
+      ]);
+      const filtered = routesPath.filter(
+        (r) => !hideStageValues.has(r.value),
+      );
+      if (stageConfig) {
+        return insertAfterCompany(filtered, [
+          {
+            name: stageConfig.label,
+            value: `company-stage-${stage}`,
+            action: () => stageConfig.getPath(companyId),
+          },
+        ]);
+      }
+      return filtered;
+    }
+
+    if (pathname === ABSENTEEISM_TAB_PATHNAME) {
+      const tab = query.absenteeismsTab as string | undefined;
+      const filtered = routesPath.filter(
+        (r) => !['absenteismo', 'lista', 'metricas'].includes(r.value),
+      );
+      const segments = insertAfterCompany(filtered, [
+        {
+          name: 'Absenteísmo',
+          value: 'absenteismo-modulo',
+          action: () => getAbsenteeismListPath(companyId),
+        },
+      ]);
+      if (tab === 'metricas') {
+        segments.push({
+          name: 'Métricas',
+          value: 'absenteismo-metricas',
+          action: () => getAbsenteeismMetricsPath(companyId),
+        });
+      }
+      return segments;
+    }
+
+    if (pathname === ACTION_PLAN_PATHNAME) {
+      const filtered = routesPath.filter((r) => r.value !== 'plano-de-acao');
+      return insertAfterCompany(filtered, [
+        {
+          name: 'Plano de Ação',
+          value: 'plano-de-acao-modulo',
+          action: () =>
+            RoutesEnum.ACTION_PLAN.replace(':companyId', companyId),
+        },
+      ]);
+    }
+
+    if (pathname === FORMS_TAB_PATHNAME) {
+      const formTab = query.formTab as string | undefined;
+      const filtered = routesPath.filter(
+        (r) => r.value !== 'formularios' && r.value !== formTab,
+      );
+      const segments = insertAfterCompany(filtered, [
+        {
+          name: 'Formulários',
+          value: 'formularios-modulo',
+          action: () => getFormsAppliedListPath(companyId),
+        },
+      ]);
+      const tabLabel = formTab ? FORM_TAB_BREADCRUMB_LABELS[formTab] : undefined;
+      if (tabLabel) {
+        segments.push({
+          name: tabLabel,
+          value: `formularios-${formTab}`,
+          action: () =>
+            PageRoutes.FORMS.FORMS_APPLICATION.LIST.replace(
+              '[companyId]',
+              companyId,
+            ).replace('[formTab]', formTab || FORM_TAB_ENUM.APPLIED),
+        });
+      }
+      return segments;
+    }
+
+    if (
+      pathname.startsWith('/dashboard/empresas/') &&
+      pathname.includes('/formularios/') &&
+      pathname !== FORMS_TAB_PATHNAME
+    ) {
+      const filtered = routesPath.filter(
+        (r) =>
+          ![
+            'formularios',
+            'aplicados',
+            'modelos',
+            'biblioteca-preliminar',
+            'add',
+            'edit',
+          ].includes(r.value),
+      );
+      return insertAfterCompany(filtered, [
+        {
+          name: 'Formulários',
+          value: 'formularios-modulo',
+          action: () => getFormsAppliedListPath(companyId),
+        },
+      ]);
+    }
+
     return routesPath;
-  }, [companyId, pathname, query.active, query.stage, routeMap]);
+  }, [
+    companyId,
+    pathname,
+    query.absenteeismsTab,
+    query.active,
+    query.formTab,
+    query.stage,
+    routeMap,
+  ]);
 
   const getRoutePath = (routeValue: IRouteMapValue, index: number) => {
     if (routeValue?.action) {
       const path = routeValue.action();
-      if (path) return path;
+      if (path) return path.replace(/^\//, '');
     }
 
     const route = routes
@@ -330,5 +474,18 @@ export const useLocation = () => {
     return route;
   };
 
-  return { getRoutePath, routes };
+  const companyBreadcrumbIndex = useMemo(
+    () => routes.findIndex((r) => r.value === companyId),
+    [routes, companyId],
+  );
+
+  const showCompanyAreaMenu = useMemo(
+    () =>
+      companyBreadcrumbIndex >= 0 &&
+      pathname.includes('/empresas/') &&
+      !company.isClinic,
+    [company.isClinic, companyBreadcrumbIndex, pathname],
+  );
+
+  return { getRoutePath, routes, companyBreadcrumbIndex, showCompanyAreaMenu, companyId };
 };

@@ -17,11 +17,18 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { brandNameConstant } from '../../../../../core/constants/brand.constant';
 import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
+import { CompanyBreadcrumbAreaMenu } from './components/CompanyBreadcrumbAreaMenu';
 import { useLocation } from './hooks/useLocation';
 
 export function Location(): JSX.Element {
   const { isTablet } = useSidebarDrawer();
-  const { getRoutePath, routes } = useLocation();
+  const {
+    getRoutePath,
+    routes,
+    companyBreadcrumbIndex,
+    showCompanyAreaMenu,
+    companyId,
+  } = useLocation();
   return (
     <Box>
       <Typography color="text.main" fontSize={['18px', '20px', '22px']}>
@@ -33,53 +40,47 @@ export function Location(): JSX.Element {
           sx={{
             marginTop: -3,
           }}
-          separator={
-            <NavigateNextIcon
-              sx={{ color: 'gray.500', ml: -2, mr: -4, fontSize: '20px' }}
-            />
-          }
+          separator={false}
         >
-          {routes.map((route, index) => {
-            if (!route.name) return null;
+          {routes.flatMap((route, index) => {
+            if (!route.name) return [];
             if (
               route.name.substring(0, 1) == '[' &&
               route.name.substring(route.name.length - 1) == ']'
             )
-              return null;
+              return [];
 
-            return (
-              <SFlex align="center" gap={3} key={index}>
-                {/* {route.onDropSelect && (
-                  <STagButton
+            const items: JSX.Element[] = [];
+
+            if (index > 0) {
+              const prevIndex = index - 1;
+              if (
+                showCompanyAreaMenu &&
+                prevIndex === companyBreadcrumbIndex
+              ) {
+                items.push(
+                  <CompanyBreadcrumbAreaMenu
+                    key={`company-area-menu-${index}`}
+                    companyId={companyId}
+                  />,
+                );
+              } else {
+                items.push(
+                  <NavigateNextIcon
+                    key={`breadcrumb-sep-${index}`}
                     sx={{
-                      minHeight: '15px',
-                      maxHeight: '15px',
-                      minWidth: '90px',
-                      maxWidth: '90px',
-                      // minWidth: '20px',
-                      // maxWidth: '20px',
-                      p: 0,
+                      color: 'gray.500',
+                      ml: -2,
+                      mr: -4,
+                      fontSize: '20px',
                     }}
-                    onClick={() => route?.onDropSelect?.()}
-                    iconProps={{
-                      sx: {
-                        transform: 'rotate(-180deg)',
-                        m: 0,
-                        p: 0,
-                        fontSize: 12,
-                      },
-                    }}
-                    textProps={{
-                      sx: {
-                        m: 0,
-                        p: 0,
-                        fontSize: 12,
-                      },
-                    }}
-                    icon={SArrowUpFilterIcon}
-                    text={'empresas'}
-                  />
-                )} */}
+                  />,
+                );
+              }
+            }
+
+            items.push(
+              <SFlex align="center" gap={3} key={`${route.value}-${index}`}>
                 <NextLink href={'/' + getRoutePath(route, index)} passHref>
                   <Link underline="hover">
                     <SText
@@ -93,8 +94,10 @@ export function Location(): JSX.Element {
                     </SText>
                   </Link>
                 </NextLink>
-              </SFlex>
+              </SFlex>,
             );
+
+            return items;
           })}
         </Breadcrumbs>
       )}
