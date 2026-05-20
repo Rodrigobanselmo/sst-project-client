@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 
-import { CircularProgress } from '@mui/material';
+import { Box, CircularProgress } from '@mui/material';
 import { Header } from 'components/organisms/main/Header';
 
 import { useAuth } from '../../../core/contexts/AuthContext';
@@ -61,12 +61,22 @@ export const DashboardLoadingFeedback: FC<React.PropsWithChildren<any>> = ({
   };
 
   return (
-    <STBoxChildren>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        minHeight: 0,
+        overflow: 'hidden',
+      }}
+    >
       <Header />
-      {(isLoadingRoute || isFetchingData) && (
-        <STBoxLoading>{renderLoadingLogo()}</STBoxLoading>
-      )}
-      {children}
-    </STBoxChildren>
+      <STBoxChildren>
+        {(isLoadingRoute || isFetchingData) && (
+          <STBoxLoading>{renderLoadingLogo()}</STBoxLoading>
+        )}
+        {children}
+      </STBoxChildren>
+    </Box>
   );
 };

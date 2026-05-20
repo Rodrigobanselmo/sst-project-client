@@ -2,11 +2,12 @@ import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Box from '@mui/material/Box';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
-import Typography from '@mui/material/Typography';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
+import { isCompanyFlowPathname } from 'core/constants/company-breadcrumb.constants';
 import { useSidebarDrawer } from 'core/contexts/SidebarContext';
 import NextLink from 'next/link';
+import { useRouter } from 'next/router';
 
 import { CharacterizationBreadcrumbSubareaMenu } from './components/CharacterizationBreadcrumbSubareaMenu';
 import { CompanyBreadcrumbAreaMenu } from './components/CompanyBreadcrumbAreaMenu';
@@ -15,7 +16,9 @@ import { FormsBreadcrumbSubareaMenu } from './components/FormsBreadcrumbSubareaM
 import { useLocation } from './hooks/useLocation';
 
 export function Location(): JSX.Element {
+  const { pathname } = useRouter();
   const { isTablet } = useSidebarDrawer();
+  const isCompanyFlow = isCompanyFlowPathname(pathname);
   const {
     getRoutePath,
     routes,
@@ -30,22 +33,24 @@ export function Location(): JSX.Element {
     companyId,
   } = useLocation();
 
+  if (isTablet || (isCompanyFlow && !routes.some((r) => r.name))) {
+    return <Box />;
+  }
+
   return (
-    <Box>
-      <Typography color="text.main" fontSize={['18px', '20px', '22px']}>
-        Dashboard
-      </Typography>
-      {!isTablet && (
-        <Breadcrumbs
-          aria-label="breadcrumb"
-          maxItems={8}
-          itemsBeforeCollapse={2}
-          itemsAfterCollapse={1}
-          sx={{
-            marginTop: -3,
-          }}
-          separator={false}
-        >
+    <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0, flex: 1 }}>
+      <Breadcrumbs
+        aria-label="breadcrumb"
+        maxItems={8}
+        itemsBeforeCollapse={2}
+        itemsAfterCollapse={1}
+        sx={{
+          '& .MuiBreadcrumbs-ol': {
+            flexWrap: 'nowrap',
+          },
+        }}
+        separator={false}
+      >
           {routes.map((route, index) => {
             if (!route.name) return null;
             if (
@@ -111,8 +116,7 @@ export function Location(): JSX.Element {
               </SFlex>
             );
           })}
-        </Breadcrumbs>
-      )}
+      </Breadcrumbs>
     </Box>
   );
 }
