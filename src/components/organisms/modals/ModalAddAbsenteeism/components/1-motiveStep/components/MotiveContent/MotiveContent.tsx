@@ -43,11 +43,11 @@ export const MotiveContent = (props: IUseMotiveData) => {
           }}
           autoComplete={false}
           onChange={(option) => {
-            setValue('motiveId', option?.id);
+            setValue('motiveId', option?.id ?? undefined);
             setAbsenteeismData((d) => ({
               ...d,
-              motiveId: option?.id,
-              motive: option,
+              motiveId: option?.id ?? undefined,
+              motive: option ?? undefined,
             }));
           }}
           onGetValue={(option) => (option ?? null) as any}
@@ -75,12 +75,12 @@ export const MotiveContent = (props: IUseMotiveData) => {
           }}
           autoComplete={false}
           onChange={(option) => {
-            setValue('esocial18Motive', option?.id);
+            setValue('esocial18Motive', option?.id ?? undefined);
             setAbsenteeismData((d) => ({
               ...d,
-              esocial18Motive: option?.id,
-              esocial18Code: option?.code,
-              esocial18: option,
+              esocial18Motive: option?.id ?? undefined,
+              esocial18Code: option?.code ?? undefined,
+              esocial18: option ?? undefined,
             }));
           }}
           onGetValue={(option) => (option ?? null) as any}

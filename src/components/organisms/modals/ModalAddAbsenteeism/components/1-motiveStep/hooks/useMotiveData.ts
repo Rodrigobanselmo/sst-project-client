@@ -112,6 +112,8 @@ export const useMotiveData = (props: IUseAddAbsenteeism) => {
     const dtStart = getDateWithTime(sDt, sT);
     const dtEnd = getDateWithTime(eDt, eT);
 
+    if (!dtStart || !dtEnd) return;
+
     if (isDay) return calcAbsenteeismDaysAway(dtStart, dtEnd);
 
     return Math.abs(dayjs(dtStart).diff(dtEnd, 'hour'));
