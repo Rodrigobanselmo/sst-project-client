@@ -12,6 +12,7 @@ import {
   isAbsTraffic,
 } from 'core/interfaces/api/IAbsenteeism';
 import { ICreateAbsenteeism } from 'core/services/hooks/mutations/manager/absenteeism/useMutCreateAbsenteeism/useMutCreateAbsenteeism';
+import { calcAbsenteeismDaysAway } from 'core/utils/absenteeism/calc-absenteeism-days-away';
 
 import { IUseAddAbsenteeism } from '../../../hooks/useAddAbsenteeism';
 
@@ -111,7 +112,9 @@ export const useMotiveData = (props: IUseAddAbsenteeism) => {
     const dtStart = getDateWithTime(sDt, sT);
     const dtEnd = getDateWithTime(eDt, eT);
 
-    return Math.abs(dayjs(dtStart).diff(dtEnd, isDay ? 'days' : 'hour'));
+    if (isDay) return calcAbsenteeismDaysAway(dtStart, dtEnd);
+
+    return Math.abs(dayjs(dtStart).diff(dtEnd, 'hour'));
   }, [
     absenteeismData.endTime,
     absenteeismData.startDate,

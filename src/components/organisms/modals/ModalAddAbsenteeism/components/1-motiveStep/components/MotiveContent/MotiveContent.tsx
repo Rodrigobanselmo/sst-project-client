@@ -31,25 +31,27 @@ export const MotiveContent = (props: IUseMotiveData) => {
           getOptionLabel={(option) =>
             (typeof option != 'string' && option?.desc) || ''
           }
+          isOptionEqualToValue={(a, b) =>
+            String(typeof a === 'object' && a != null ? a.id : a) ===
+            String(typeof b === 'object' && b != null ? b.id : b)
+          }
           inputProps={{
             autoFocus: true,
             labelPosition: 'top',
             placeholder: 'pesquisar motivo',
             name: 'motiveId',
-            value: absenteeismData?.motive?.desc || '',
           }}
           autoComplete={false}
-          onGetValue={(option) => {
+          onChange={(option) => {
             setValue('motiveId', option?.id);
             setAbsenteeismData((d) => ({
               ...d,
               motiveId: option?.id,
               motive: option,
             }));
-            return option?.id;
           }}
-          setValue={(v: any) => setValue('motiveId', v?.id || '')}
-          defaultValue={absenteeismData?.motive || ''}
+          onGetValue={(option) => (option ?? null) as any}
+          defaultValue={absenteeismData?.motive || null}
           label="Tipo de Motivo*"
           options={absenteeismMotives}
         />
@@ -61,15 +63,18 @@ export const MotiveContent = (props: IUseMotiveData) => {
           getOptionLabel={(option) =>
             (typeof option != 'string' && option?.description) || ''
           }
+          isOptionEqualToValue={(a, b) =>
+            String(typeof a === 'object' && a != null ? a.id : a) ===
+            String(typeof b === 'object' && b != null ? b.id : b)
+          }
           inputProps={{
             autoFocus: true,
             labelPosition: 'top',
             placeholder: 'pesquisar tabela 18 do eSocial...',
             name: 'esocial18Motive',
-            value: absenteeismData?.esocial18?.description || '',
           }}
           autoComplete={false}
-          onGetValue={(option) => {
+          onChange={(option) => {
             setValue('esocial18Motive', option?.id);
             setAbsenteeismData((d) => ({
               ...d,
@@ -77,16 +82,9 @@ export const MotiveContent = (props: IUseMotiveData) => {
               esocial18Code: option?.code,
               esocial18: option,
             }));
-            return option?.id;
           }}
-          setValue={(v: any) => {
-            if (typeof v === 'string' || v?.description === 'string')
-              setValue(
-                'esocial18Motive',
-                typeof v === 'string' ? v : v?.description,
-              );
-          }}
-          defaultValue={absenteeismData?.esocial18 || ''}
+          onGetValue={(option) => (option ?? null) as any}
+          defaultValue={absenteeismData?.esocial18 || null}
           label="Motivo (eSocial)"
           options={esocial18Table}
           unmountOnChangeDefault
