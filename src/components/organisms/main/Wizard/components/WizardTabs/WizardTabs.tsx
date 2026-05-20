@@ -15,12 +15,17 @@ const WizardTabs: React.FC<{ children?: any } & Props> = ({
   ...props
 }) => {
   const { activeStep, goToStep } = useWizard();
-  const { asPath, push } = useRouter();
+  const router = useRouter();
 
   const handleActiveTab = (activeStep: number) => {
-    push(asPath.split('?')[0] + '/?active=' + activeStep, undefined, {
-      shallow: true,
-    });
+    void router.replace(
+      {
+        pathname: router.pathname,
+        query: { ...router.query, active: String(activeStep) },
+      },
+      undefined,
+      { shallow: true },
+    );
   };
 
   useEffect(() => {

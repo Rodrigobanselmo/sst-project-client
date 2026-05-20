@@ -24,6 +24,7 @@ import { useEffect, useMemo } from 'react';
 import SDocumentVersionIcon from 'assets/icons/SDocumentVersionIcon';
 
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
+import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
 
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
@@ -35,7 +36,7 @@ export const DocumentsStage = ({
 }: ICompanyStage) => {
   const router = useRouter();
   const companyId = router.query.companyId as string;
-  const tabWorkspaceId = router.query.tabWorkspaceId as string | undefined;
+  const { workspaceId: tabWorkspaceId, setWorkspaceId } = useTabWorkspaceId();
 
   const { workspaces, isLoadingAllWorkspaces } = useFetchBrowseAllWorkspaces({
     companyId: companyId || '',
@@ -53,18 +54,8 @@ export const DocumentsStage = ({
     if (workspaces?.results?.length !== 1) return;
     if (!sortedFirstId || tabWorkspaceId) return;
 
-    const nextQuery = { ...router.query, tabWorkspaceId: sortedFirstId };
-    void router.replace(
-      { pathname: router.pathname, query: nextQuery },
-      undefined,
-      { shallow: true },
-    );
-  }, [
-    router,
-    sortedFirstId,
-    tabWorkspaceId,
-    workspaces?.results?.length,
-  ]);
+    setWorkspaceId(sortedFirstId);
+  }, [setWorkspaceId, sortedFirstId, tabWorkspaceId, workspaces?.results?.length]);
 
   const selectedWorkspaceName = useMemo(() => {
     if (!tabWorkspaceId) return undefined;

@@ -440,17 +440,24 @@ export const useCompanyStep = () => {
 
   const handleChangeStage = useCallback(
     (stage: string) => {
-      push(
-        pathname
-          .replace('[companyId]', query.companyId as string)
-          .replace('[stage]', stage),
+      const nextQuery = { ...query };
+      delete nextQuery.stage;
+      delete nextQuery.active;
+
+      void push(
+        {
+          pathname: pathname
+            .replace('[companyId]', query.companyId as string)
+            .replace('[stage]', stage),
+          query: nextQuery,
+        },
         undefined,
         {
           shallow: true,
         },
       );
     },
-    [pathname, push, query.companyId],
+    [pathname, push, query],
   );
 
   const handleAddTeam = useCallback(() => {
