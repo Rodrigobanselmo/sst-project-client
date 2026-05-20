@@ -31,6 +31,7 @@ import { useModal } from 'core/hooks/useModal';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
 import { IAbsenteeism } from 'core/interfaces/api/IAbsenteeism';
 import { useQueryAbsenteeisms } from 'core/services/hooks/queries/useQueryAbsenteeisms/useQueryAbsenteeisms';
+import { calcAbsenteeismDaysAway } from 'core/utils/absenteeism/calc-absenteeism-days-away';
 import { dateToString, dateToTimeString } from 'core/utils/date/date-format';
 
 import {
@@ -269,10 +270,11 @@ export const AbsenteeismsTable: FC<
         return (
           <TextIconRow
             justifyContent={'center'}
-            text={`${-dayjs(row.startDate).diff(
-              row.endDate,
-              isDay ? 'd' : 'hour',
-            )} ${isDay ? 'dias' : 'horas'}`}
+            text={`${
+              isDay
+                ? calcAbsenteeismDaysAway(row.startDate, row.endDate)
+                : -dayjs(row.startDate).diff(row.endDate, 'hour')
+            } ${isDay ? 'dias' : 'horas'}`}
           />
         );
       case 'edit':
