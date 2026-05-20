@@ -1,7 +1,6 @@
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 import { CompanyActionEnum } from 'core/enums/company-action.enum';
 import { RoutesEnum } from 'core/enums/routes.enums';
-
 import { getCharacterizationSstPath } from './characterization-navigation.constants';
 
 export const COMPANIES_LIST_PATHNAME = '/dashboard/empresas';
@@ -109,6 +108,71 @@ export const FORM_TAB_BREADCRUMB_LABELS: Record<string, string> = {
   [FORM_TAB_ENUM.MODEL]: 'Modelos de Formulário',
   [FORM_TAB_ENUM.PRELIMINARY_LIBRARY]: 'Biblioteca de Perguntas Preliminares',
 };
+
+/** Valor estável do segmento "Formulários" no breadcrumb (`useLocation`). */
+/** Valor estável do segmento "Documentos" no breadcrumb (`useLocation`). */
+export const DOCUMENTS_MODULE_ROUTE_VALUE = 'documentos-modulo';
+
+export const DOCUMENT_TYPE_BREADCRUMB_LABELS: Record<number, string> = {
+  0: 'PGR',
+  1: 'PCMSO',
+  2: 'PERICULOSIDADE',
+  3: 'LTCAT',
+  4: 'INSALUBRIDADE',
+  5: 'FRPS',
+};
+
+export type DocumentsSubareaNavItem = {
+  label: string;
+  active: number;
+};
+
+export function getDocumentsSubareaNavItems(): DocumentsSubareaNavItem[] {
+  return [
+    { label: DOCUMENT_TYPE_BREADCRUMB_LABELS[0], active: 0 },
+    { label: DOCUMENT_TYPE_BREADCRUMB_LABELS[1], active: 1 },
+    { label: DOCUMENT_TYPE_BREADCRUMB_LABELS[2], active: 2 },
+    { label: DOCUMENT_TYPE_BREADCRUMB_LABELS[3], active: 3 },
+    { label: DOCUMENT_TYPE_BREADCRUMB_LABELS[4], active: 4 },
+    { label: DOCUMENT_TYPE_BREADCRUMB_LABELS[5], active: 5 },
+  ];
+}
+
+export function getDocumentsStagePath(companyId: string, active = 0) {
+  const base = companyHomeStagePath(companyId, CompanyActionEnum.DOCUMENTS_GROUP_PAGE);
+  return active > 0 ? `${base}?active=${active}` : base;
+}
+
+export const FORMS_MODULE_ROUTE_VALUE = 'formularios-modulo';
+
+export type FormsSubareaNavItem = {
+  label: string;
+  formTab: string;
+};
+
+export function getFormsTabListPath(companyId: string, formTab: string) {
+  return PageRoutes.FORMS.FORMS_APPLICATION.LIST.replace(
+    '[companyId]',
+    companyId,
+  ).replace('[formTab]', formTab);
+}
+
+export function getFormsSubareaNavItems(): FormsSubareaNavItem[] {
+  return [
+    {
+      label: FORM_TAB_BREADCRUMB_LABELS[FORM_TAB_ENUM.APPLIED],
+      formTab: FORM_TAB_ENUM.APPLIED,
+    },
+    {
+      label: FORM_TAB_BREADCRUMB_LABELS[FORM_TAB_ENUM.MODEL],
+      formTab: FORM_TAB_ENUM.MODEL,
+    },
+    {
+      label: FORM_TAB_BREADCRUMB_LABELS[FORM_TAB_ENUM.PRELIMINARY_LIBRARY],
+      formTab: FORM_TAB_ENUM.PRELIMINARY_LIBRARY,
+    },
+  ];
+}
 
 /** Menu leve após o nome da empresa no breadcrumb (primeira versão). */
 export function getCompanyAreaNavItems(companyId: string): CompanyAreaNavItem[] {

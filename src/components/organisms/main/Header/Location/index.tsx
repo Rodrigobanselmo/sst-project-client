@@ -4,21 +4,14 @@ import Breadcrumbs from '@mui/material/Breadcrumbs';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import SFlex from 'components/atoms/SFlex';
-import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
+import { useSidebarDrawer } from 'core/contexts/SidebarContext';
 import NextLink from 'next/link';
-import { useRouter } from 'next/router';
 
-import { SArrowUpFilterIcon } from 'assets/icons/SArrowUpFilterIcon';
-
-import { ICompany } from 'core/interfaces/api/ICompany';
-import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { getCompanyName } from 'core/utils/helpers/companyName';
-
-import { brandNameConstant } from '../../../../../core/constants/brand.constant';
-import { useSidebarDrawer } from '../../../../../core/contexts/SidebarContext';
 import { CharacterizationBreadcrumbSubareaMenu } from './components/CharacterizationBreadcrumbSubareaMenu';
 import { CompanyBreadcrumbAreaMenu } from './components/CompanyBreadcrumbAreaMenu';
+import { DocumentsBreadcrumbSubareaMenu } from './components/DocumentsBreadcrumbSubareaMenu';
+import { FormsBreadcrumbSubareaMenu } from './components/FormsBreadcrumbSubareaMenu';
 import { useLocation } from './hooks/useLocation';
 
 export function Location(): JSX.Element {
@@ -30,8 +23,13 @@ export function Location(): JSX.Element {
     showCompanyAreaMenu,
     characterizationBreadcrumbIndex,
     showCharacterizationSubareaMenu,
+    formsBreadcrumbIndex,
+    showFormsSubareaMenu,
+    documentsBreadcrumbIndex,
+    showDocumentsSubareaMenu,
     companyId,
   } = useLocation();
+
   return (
     <Box>
       <Typography color="text.main" fontSize={['18px', '20px', '22px']}>
@@ -40,7 +38,7 @@ export function Location(): JSX.Element {
       {!isTablet && (
         <Breadcrumbs
           aria-label="breadcrumb"
-          maxItems={6}
+          maxItems={8}
           itemsBeforeCollapse={2}
           itemsAfterCollapse={1}
           sx={{
@@ -48,40 +46,40 @@ export function Location(): JSX.Element {
           }}
           separator={false}
         >
-          {routes.flatMap((route, index) => {
-            if (!route.name) return [];
+          {routes.map((route, index) => {
+            if (!route.name) return null;
             if (
               route.name.substring(0, 1) == '[' &&
               route.name.substring(route.name.length - 1) == ']'
             )
-              return [];
+              return null;
 
-            const items: JSX.Element[] = [];
-
-            if (index > 0) {
-              const prevIndex = index - 1;
-              if (
-                showCompanyAreaMenu &&
-                prevIndex === companyBreadcrumbIndex
-              ) {
-                items.push(
+            const prevIndex = index - 1;
+            const separator =
+              index > 0 ? (
+                showCompanyAreaMenu && prevIndex === companyBreadcrumbIndex ? (
                   <CompanyBreadcrumbAreaMenu
                     key={`company-area-menu-${index}`}
                     companyId={companyId}
-                  />,
-                );
-              } else if (
-                showCharacterizationSubareaMenu &&
-                prevIndex === characterizationBreadcrumbIndex
-              ) {
-                items.push(
+                  />
+                ) : showCharacterizationSubareaMenu &&
+                  prevIndex === characterizationBreadcrumbIndex ? (
                   <CharacterizationBreadcrumbSubareaMenu
                     key={`characterization-subarea-menu-${index}`}
                     companyId={companyId}
-                  />,
-                );
-              } else {
-                items.push(
+                  />
+                ) : showDocumentsSubareaMenu &&
+                  prevIndex === documentsBreadcrumbIndex ? (
+                  <DocumentsBreadcrumbSubareaMenu
+                    key={`documents-subarea-menu-${index}`}
+                    companyId={companyId}
+                  />
+                ) : showFormsSubareaMenu && prevIndex === formsBreadcrumbIndex ? (
+                  <FormsBreadcrumbSubareaMenu
+                    key={`forms-subarea-menu-${index}`}
+                    companyId={companyId}
+                  />
+                ) : (
                   <NavigateNextIcon
                     key={`breadcrumb-sep-${index}`}
                     sx={{
@@ -90,13 +88,13 @@ export function Location(): JSX.Element {
                       mr: -4,
                       fontSize: '20px',
                     }}
-                  />,
-                );
-              }
-            }
+                  />
+                )
+              ) : null;
 
-            items.push(
+            return (
               <SFlex align="center" gap={3} key={`${route.value}-${index}`}>
+                {separator}
                 <NextLink href={'/' + getRoutePath(route, index)} passHref>
                   <Link underline="hover">
                     <SText
@@ -110,10 +108,8 @@ export function Location(): JSX.Element {
                     </SText>
                   </Link>
                 </NextLink>
-              </SFlex>,
+              </SFlex>
             );
-
-            return items;
           })}
         </Breadcrumbs>
       )}

@@ -21,8 +21,12 @@ import {
   ACTION_PLAN_PATHNAME,
   COMPANY_HOME_PATHNAME,
   COMPANY_STAGE_BREADCRUMB,
+  DOCUMENTS_MODULE_ROUTE_VALUE,
+  DOCUMENT_TYPE_BREADCRUMB_LABELS,
   FORM_TAB_BREADCRUMB_LABELS,
+  FORMS_MODULE_ROUTE_VALUE,
   FORMS_TAB_PATHNAME,
+  getDocumentsStagePath,
   getAbsenteeismListPath,
   getAbsenteeismMetricsPath,
   getFormsAppliedListPath,
@@ -357,6 +361,27 @@ export const useLocation = () => {
       const filtered = routesPath.filter(
         (r) => !hideStageValues.has(r.value),
       );
+
+      if (stage === CompanyActionEnum.DOCUMENTS_GROUP_PAGE) {
+        const active = Number(query.active ?? 0);
+        const activeLabel =
+          DOCUMENT_TYPE_BREADCRUMB_LABELS[active] ??
+          DOCUMENT_TYPE_BREADCRUMB_LABELS[0];
+
+        return insertAfterCompany(filtered, [
+          {
+            name: 'Documentos',
+            value: DOCUMENTS_MODULE_ROUTE_VALUE,
+            action: () => getDocumentsStagePath(companyId, 0),
+          },
+          {
+            name: activeLabel,
+            value: `documentos-tipo-${active}`,
+            action: () => getDocumentsStagePath(companyId, active),
+          },
+        ]);
+      }
+
       if (stageConfig) {
         return insertAfterCompany(filtered, [
           {
@@ -411,7 +436,7 @@ export const useLocation = () => {
       const segments = insertAfterCompany(filtered, [
         {
           name: 'Formulários',
-          value: 'formularios-modulo',
+          value: FORMS_MODULE_ROUTE_VALUE,
           action: () => getFormsAppliedListPath(companyId),
         },
       ]);
@@ -449,7 +474,7 @@ export const useLocation = () => {
       return insertAfterCompany(filtered, [
         {
           name: 'Formulários',
-          value: 'formularios-modulo',
+          value: FORMS_MODULE_ROUTE_VALUE,
           action: () => getFormsAppliedListPath(companyId),
         },
       ]);
@@ -510,6 +535,31 @@ export const useLocation = () => {
     [characterizationBreadcrumbIndex],
   );
 
+  const formsBreadcrumbIndex = useMemo(
+    () => routes.findIndex((r) => r.value === FORMS_MODULE_ROUTE_VALUE),
+    [routes],
+  );
+
+  const showFormsSubareaMenu = useMemo(
+    () =>
+      formsBreadcrumbIndex >= 0 &&
+      pathname.includes('/formularios'),
+    [formsBreadcrumbIndex, pathname],
+  );
+
+  const documentsBreadcrumbIndex = useMemo(
+    () => routes.findIndex((r) => r.value === DOCUMENTS_MODULE_ROUTE_VALUE),
+    [routes],
+  );
+
+  const showDocumentsSubareaMenu = useMemo(
+    () =>
+      documentsBreadcrumbIndex >= 0 &&
+      pathname === COMPANY_HOME_PATHNAME &&
+      query.stage === CompanyActionEnum.DOCUMENTS_GROUP_PAGE,
+    [documentsBreadcrumbIndex, pathname, query.stage],
+  );
+
   return {
     getRoutePath,
     routes,
@@ -517,6 +567,10 @@ export const useLocation = () => {
     showCompanyAreaMenu,
     characterizationBreadcrumbIndex,
     showCharacterizationSubareaMenu,
+    formsBreadcrumbIndex,
+    showFormsSubareaMenu,
+    documentsBreadcrumbIndex,
+    showDocumentsSubareaMenu,
     companyId,
   };
 };
