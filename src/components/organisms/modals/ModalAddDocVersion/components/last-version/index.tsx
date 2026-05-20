@@ -48,7 +48,7 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
     const response = await queryDocVersions(
       { take: 1, skip: 0 },
       {
-        type: DocumentTypeEnum.PGR,
+        type: data.type ?? DocumentTypeEnum.PGR,
         companyId: data.companyId,
         workspaceId: data.workspaceId,
       },
@@ -61,7 +61,7 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
     const actVersion = docs[0] ? docs[0].version : '0.0.0';
 
     setActualVersion(actVersion);
-  }, [data.companyId, data.workspaceId]);
+  }, [data.companyId, data.workspaceId, data.type]);
 
   const getOptions = useCallback(async () => {
     const version = await actualVersion;

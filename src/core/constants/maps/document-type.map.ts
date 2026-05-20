@@ -28,6 +28,10 @@ export const documentTypeMap: IDocumentTypeOptions = {
     value: DocumentTypeEnum.INSALUBRIDADE,
     content: 'Insalubridade',
   },
+  [DocumentTypeEnum.FRPS]: {
+    value: DocumentTypeEnum.FRPS,
+    content: 'FRPS',
+  },
   [DocumentTypeEnum.OTHER]: {
     value: DocumentTypeEnum.OTHER,
     content: 'Outro',
@@ -40,5 +44,6 @@ export const documentTypeList = [
   documentTypeMap[DocumentTypeEnum.LTCAT],
   documentTypeMap[DocumentTypeEnum.PERICULOSIDADE],
   documentTypeMap[DocumentTypeEnum.INSALUBRIDADE],
+  documentTypeMap[DocumentTypeEnum.FRPS],
   documentTypeMap[DocumentTypeEnum.OTHER],
 ];

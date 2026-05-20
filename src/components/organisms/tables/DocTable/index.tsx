@@ -140,6 +140,9 @@ export const DocTable: FC<
     [DocumentTypeEnum.INSALUBRIDADE]: {
       title: 'INSALUBRIDADE',
     },
+    [DocumentTypeEnum.FRPS]: {
+      title: 'FRPS',
+    },
     [DocumentTypeEnum.OTHER]: {
       title: 'Outros',
     },

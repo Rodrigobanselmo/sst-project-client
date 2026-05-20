@@ -17,6 +17,7 @@ import { useMutUpsertPCSMODocumentData } from 'core/services/hooks/mutations/che
 import { useMutUpsertPERICULOSIDADEDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertPERICULOSIDADEDocumentData/useMutUpsertPERICULOSIDADEDocumentData';
 import { useMutUpsertLTCATDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertLTCATDocumentData/useMutUpsertLTCATDocumentData';
 import { useMutUpsertINSALUBRIDADEDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertINSALUBRIDADEDocumentData/useMutUpsertINSALUBRIDADEDocumentData';
+import { useMutUpsertFRPSDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertFRPSDocumentData/useMutUpsertFRPSDocumentData';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 
@@ -37,6 +38,7 @@ export const useMainStep = ({
   const updatePericulosidadeMutation = useMutUpsertPERICULOSIDADEDocumentData();
   const updateLtcatMutation = useMutUpsertLTCATDocumentData();
   const updateInsalubridadeMutation = useMutUpsertINSALUBRIDADEDocumentData();
+  const updateFrpsMutation = useMutUpsertFRPSDocumentData();
 
   const fields = [
     'name',
@@ -119,7 +121,9 @@ export const useMainStep = ({
               ? updateLtcatMutation
               : data.type == DocumentTypeEnum.INSALUBRIDADE
                 ? updateInsalubridadeMutation
-                : updateMutation
+                : data.type == DocumentTypeEnum.FRPS
+                  ? updateFrpsMutation
+                  : updateMutation
       )
         .mutateAsync(submitData)
         .then((response) => {
@@ -241,7 +245,10 @@ export const useMainStep = ({
 
   return {
     onSubmit,
-    loading: updateMutation.isLoading || updatePcmsoMutation.isLoading,
+    loading:
+      updateMutation.isLoading ||
+      updatePcmsoMutation.isLoading ||
+      updateFrpsMutation.isLoading,
     control,
     onCloseUnsaved,
     onAddArray,

@@ -4,5 +4,6 @@ export enum DocumentTypeEnum {
   LTCAT = 'LTCAT',
   PERICULOSIDADE = 'PERICULOSIDADE',
   INSALUBRIDADE = 'INSALUBRIDADE',
+  FRPS = 'FRPS',
   OTHER = 'OTHER',
 }

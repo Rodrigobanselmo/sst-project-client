@@ -68,6 +68,7 @@ export const ModalViewDocumentModels: FC = () => {
     2: DocumentTypeEnum.LTCAT,
     3: DocumentTypeEnum.PERICULOSIDADE,
     4: DocumentTypeEnum.INSALUBRIDADE,
+    5: DocumentTypeEnum.FRPS,
   };
 
   return (
@@ -115,6 +116,9 @@ export const ModalViewDocumentModels: FC = () => {
                   },
                   {
                     label: 'Insalubridade',
+                  },
+                  {
+                    label: 'FRPS',
                   },
                 ]}
               />

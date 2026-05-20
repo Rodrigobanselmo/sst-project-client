@@ -70,9 +70,14 @@ export const ModalContentDoc = ({
           large
           icon={SDownloadIcon}
         />
-        {doc.documentType === DocumentTypeEnum.PGR && (
+        {(doc.documentType === DocumentTypeEnum.PGR ||
+          doc.documentType === DocumentTypeEnum.FRPS) && (
           <STagButton
-            text="Baixar PGR completo (Word)"
+            text={
+              doc.documentType === DocumentTypeEnum.FRPS
+                ? 'Baixar documento completo (Word)'
+                : 'Baixar PGR completo (Word)'
+            }
             loading={
               downloadMutation.isLoading &&
               !!downloadMutation.variables &&

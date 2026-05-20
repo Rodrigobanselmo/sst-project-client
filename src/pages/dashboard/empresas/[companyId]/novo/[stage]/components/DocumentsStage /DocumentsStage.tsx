@@ -12,6 +12,7 @@ import { ModalAddDocPGRVersion } from 'components/organisms/modals/ModalAddDocVe
 import { ModalAddDocPERICULOSIDADEVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPERICULOSIDADEVersion';
 import { ModalAddDocLTCATVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocLTCATVersion';
 import { ModalAddDocINSALUBRIDADEVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocINSALUBRIDADEVersion';
+import { ModalAddDocFRPSVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocFRPSVersion';
 import { DocTable } from 'components/organisms/tables/DocTable';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
@@ -122,6 +123,9 @@ export const DocumentsStage = ({
                 {
                   label: 'INSALUBRIDADE',
                 },
+                {
+                  label: 'FRPS',
+                },
               ]}
             />
           }
@@ -176,6 +180,18 @@ export const DocumentsStage = ({
               }}
             />
             <ModalAddDocINSALUBRIDADEVersion />
+          </>
+          <>
+            <DocTable
+              workspaceId={tabWorkspaceId}
+              workspaceName={selectedWorkspaceName}
+              type={DocumentTypeEnum.FRPS}
+              query={{
+                type: DocumentTypeEnum.FRPS,
+                workspaceId: tabWorkspaceId,
+              }}
+            />
+            <ModalAddDocFRPSVersion />
           </>
         </Wizard>
       )}
