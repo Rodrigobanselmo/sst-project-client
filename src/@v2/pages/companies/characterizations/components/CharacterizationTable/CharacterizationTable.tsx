@@ -18,7 +18,10 @@ import { useTableState } from '@v2/components/organisms/STable/hooks/useTableSta
 import { CharacterizationColumnsEnum } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/enums/characterization-columns.enum';
 import { characterizationColumns } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/maps/characterization-column-map';
 import { SCharacterizationTable } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable';
-import { ICharacterizationFilterProps } from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable.types';
+import {
+  ICharacterizationFilterProps,
+  ICharacterizationTableTableProps,
+} from '@v2/components/organisms/STable/implementation/SCharacterizationTable/SCharacterizationTable.types';
 import { useApiStatus } from '@v2/hooks/useApiStatus';
 import { useOrderBy } from '@v2/hooks/useOrderBy';
 import { persistKeys, usePersistedState } from '@v2/hooks/usePersistState';
@@ -278,7 +281,7 @@ export const CharacterizationTable = ({
     </>
   );
 
-  const characterizationTableProps = {
+  const characterizationTableProps: ICharacterizationTableTableProps = {
     table,
     filterColumns: {
       [CharacterizationColumnsEnum.STAGE]: (
@@ -295,8 +298,9 @@ export const CharacterizationTable = ({
     setFilters: onFilterData,
     setHiddenColumns,
     hiddenColumns,
-    onSelectRow: (row) =>
-      hasWorkspaceSelected && handleCharacterizationEdit(row),
+    onSelectRow: (row) => {
+      if (hasWorkspaceSelected) handleCharacterizationEdit(row);
+    },
     onEditStage: (stageId, row) =>
       handleCharacterizationEditStage({ ...row, stageId }),
     onEditPosition: (order, row) =>
@@ -304,24 +308,17 @@ export const CharacterizationTable = ({
     data: hasWorkspaceSelected ? characterizations?.results : [],
     isLoading: hasWorkspaceSelected ? isLoading : false,
     pagination: hasWorkspaceSelected ? characterizations?.pagination : undefined,
-    setPage: (page: number) => onFilterData({ page }),
+    setPage: (page) => onFilterData({ page }),
     setOrderBy: onOrderBy,
     statusButtonProps: {
-      onAdd: ({ value }: { value: string }) =>
-        hasWorkspaceSelected && (onAddStatus(value) as any),
-      onDelete: (id: number) =>
-        hasWorkspaceSelected && (onDeleteStatus(id) as any),
-      onEdit: ({
-        color,
-        value,
-        id,
-      }: {
-        color: string;
-        value: string;
-        id: number;
-      }) =>
-        hasWorkspaceSelected &&
-        (onEditStatus({ id, color, name: value }) as any),
+      onAdd: ({ value }) =>
+        hasWorkspaceSelected ? onAddStatus(value) : Promise.resolve(),
+      onDelete: (id) =>
+        hasWorkspaceSelected ? onDeleteStatus(id) : Promise.resolve(),
+      onEdit: ({ color, value, id }) =>
+        hasWorkspaceSelected
+          ? onEditStatus({ id, color, name: value })
+          : Promise.resolve(),
       options: hasWorkspaceSelected ? statusOptions : [],
       isLoading: hasWorkspaceSelected ? isLoadingStatusOptions : false,
     },
