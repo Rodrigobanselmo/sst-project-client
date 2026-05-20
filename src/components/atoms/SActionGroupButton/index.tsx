@@ -20,9 +20,15 @@ export const SActionGroupButton = ({
   formCardId: _formCardId,
   fillGridCell,
   fillGridCellCompact,
+  fillGridCellLaunch,
   ...props
 }: ISActionButtonProps) => {
   const { sx: sxProp, ...restProps } = props;
+  const isLaunchRow = Boolean(fillGridCell && fillGridCellLaunch);
+  const isUpperGridCard = Boolean(
+    fillGridCell && fillGridCellCompact && !fillGridCellLaunch,
+  );
+
   const getInfoColor = (label: string) => {
     const normalized = label.toLowerCase();
     if (normalized.includes('afastad')) return 'error.main';
@@ -70,6 +76,41 @@ export const SActionGroupButton = ({
           ? 'info.main'
           : 'success.main';
 
+  const showParticipationBar =
+    participationPercent != null &&
+    !Number.isNaN(participationPercent) &&
+    Boolean(participationBarMuiColor) &&
+    !loading;
+
+  const isLaunchHeaderMetric = (label: string) => {
+    const normalized = label.toLowerCase().trim();
+    return normalized === 'total' || normalized === 'registros';
+  };
+
+  const launchHeaderInfo =
+    isLaunchRow && infos
+      ? infos.find((item) => isLaunchHeaderMetric(item.label))
+      : undefined;
+
+  const launchBodyInfos =
+    isLaunchRow && launchHeaderInfo
+      ? infos?.filter((item) => item !== launchHeaderInfo) ?? []
+      : infos;
+
+  const launchBodyMid = Math.ceil((launchBodyInfos?.length ?? 0) / 2);
+
+  const renderLaunchInfo = (item: { label: string; value: string | number }) => (
+    <SText
+      key={item.label}
+      fontSize={12}
+      lineHeight={1.35}
+      fontWeight={getInfoWeight(item.label)}
+      color={getInfoColor(item.label)}
+    >
+      {item.label}: {item.value}
+    </SText>
+  );
+
   return (
     <STooltip title={tooltipText}>
       <STBox
@@ -78,8 +119,19 @@ export const SActionGroupButton = ({
         disabled={disabled || loading ? 1 : 0}
         color={color as string | undefined}
         sx={{
-          ...(fillGridCell
-            ? fillGridCellCompact
+          ...(isLaunchRow
+            ? {
+                width: '100%',
+                maxWidth: '100%',
+                minWidth: 0,
+                height: '100%',
+                minHeight: 0,
+                boxSizing: 'border-box',
+                display: 'flex',
+                flexDirection: 'column',
+                padding: (theme) => theme.spacing(3),
+              }
+            : isUpperGridCard
               ? {
                   width: '100%',
                   maxWidth: '100%',
@@ -90,28 +142,54 @@ export const SActionGroupButton = ({
                   display: 'flex',
                   flexDirection: 'column',
                 }
-              : {
-                  width: '100%',
-                  maxWidth: '100%',
-                  minWidth: 0,
-                  height: '100%',
-                  minHeight: 240,
-                  boxSizing: 'border-box',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }
-            : {}),
+              : fillGridCell
+                ? {
+                    width: '100%',
+                    maxWidth: '100%',
+                    minWidth: 0,
+                    height: '100%',
+                    minHeight: 240,
+                    boxSizing: 'border-box',
+                    display: 'flex',
+                    flexDirection: 'column',
+                  }
+                : {}),
           ...sxProp,
         }}
         {...restProps}
       >
-        <SFlex align={'center'} gap={5} px={2}>
+        <SFlex
+          align={'center'}
+          gap={isLaunchRow ? 4 : 5}
+          px={2}
+          flexShrink={0}
+          width="100%"
+          minWidth={0}
+          sx={isLaunchRow ? { mb: 2 } : undefined}
+        >
           {!loading && (
             <>
-              <Icon component={icon} sx={{ fontSize: 30 }} />
-              <SText fontSize={15} fontWeight={500}>
+              <Icon
+                component={icon}
+                sx={{ fontSize: isLaunchRow ? 24 : 30, flexShrink: 0 }}
+              />
+              <SText
+                fontSize={isLaunchRow ? 14 : 15}
+                fontWeight={500}
+                noWrap={isLaunchRow}
+              >
                 {text}
               </SText>
+              {isLaunchRow && launchHeaderInfo && (
+                <SText
+                  fontSize={12}
+                  fontWeight={getInfoWeight(launchHeaderInfo.label)}
+                  color={getInfoColor(launchHeaderInfo.label)}
+                  sx={{ ml: 'auto', whiteSpace: 'nowrap', flexShrink: 0 }}
+                >
+                  {launchHeaderInfo.label}: {launchHeaderInfo.value}
+                </SText>
+              )}
             </>
           )}
           {loading && (
@@ -123,67 +201,90 @@ export const SActionGroupButton = ({
             </>
           )}
         </SFlex>
-        {statusLabel && !loading && (
+        {statusLabel && !loading && !isLaunchRow && (
           <Box px={2} pt={1}>
             <SText fontSize={12} color="text.secondary" fontWeight={500}>
               {statusLabel}
             </SText>
           </Box>
         )}
-        <SFlex
-          sx={
-            fillGridCell && !fillGridCellCompact
-              ? { flex: 1, minHeight: 0 }
-              : undefined
-          }
+        <Box
+          sx={{
+            flex: fillGridCell ? 1 : undefined,
+            minHeight: fillGridCell ? 0 : undefined,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: isLaunchRow
+              ? showParticipationBar
+                ? 'space-between'
+                : 'space-evenly'
+              : 'flex-start',
+          }}
         >
-          <SFlex p={10} px={4} pb={5} flexDirection={'column'}>
-            {infos &&
-              infos.slice(0, 3).map((item) => (
-                <SText
-                  key={item.label}
-                  fontSize={13}
-                  fontWeight={getInfoWeight(item.label)}
-                  color={getInfoColor(item.label)}
-                >
-                  {item.label}: {item.value}
-                </SText>
-              ))}
-          </SFlex>
-          <SFlex p={10} pr={0} pb={5} flexDirection={'column'}>
-            {infos &&
-              infos?.length > 3 &&
-              infos.slice(3, 6).map((item) => (
-                <SText
-                  key={item.label}
-                  fontSize={13}
-                  fontWeight={getInfoWeight(item.label)}
-                  color={getInfoColor(item.label)}
-                >
-                  {item.label}: {item.value}
-                </SText>
-              ))}
-          </SFlex>
-        </SFlex>
-        {participationPercent != null &&
-          !Number.isNaN(participationPercent) &&
-          participationBarMuiColor &&
-          !loading && (
+          {isLaunchRow ? (
+            <SFlex
+              px={3}
+              py={2}
+              sx={{ flex: 1, minHeight: 0 }}
+              gap={3}
+              alignItems="flex-start"
+            >
+              <SFlex flex={1} flexDirection="column" gap={1} minWidth={0}>
+                {launchBodyInfos
+                  ?.slice(0, launchBodyMid)
+                  .map((item) => renderLaunchInfo(item))}
+              </SFlex>
+              <SFlex flex={1} flexDirection="column" gap={1} minWidth={0}>
+                {launchBodyInfos
+                  ?.slice(launchBodyMid)
+                  .map((item) => renderLaunchInfo(item))}
+              </SFlex>
+            </SFlex>
+          ) : (
+            <SFlex sx={{ flex: 1, minHeight: 0 }}>
+              <SFlex p={10} px={4} pb={5} flexDirection={'column'}>
+                {infos &&
+                  infos.slice(0, 3).map((item) => (
+                    <SText
+                      key={item.label}
+                      fontSize={13}
+                      fontWeight={getInfoWeight(item.label)}
+                      color={getInfoColor(item.label)}
+                    >
+                      {item.label}: {item.value}
+                    </SText>
+                  ))}
+              </SFlex>
+              <SFlex p={10} pr={0} pb={5} flexDirection={'column'}>
+                {infos &&
+                  infos?.length > 3 &&
+                  infos.slice(3, 6).map((item) => (
+                    <SText
+                      key={item.label}
+                      fontSize={13}
+                      fontWeight={getInfoWeight(item.label)}
+                      color={getInfoColor(item.label)}
+                    >
+                      {item.label}: {item.value}
+                    </SText>
+                  ))}
+              </SFlex>
+            </SFlex>
+          )}
+          {showParticipationBar && (
             <Box
               px={2}
-              pb={2}
+              pb={isLaunchRow ? 1 : 2}
               width="100%"
               minWidth={fillGridCell ? 0 : 220}
-              sx={
-                fillGridCell && !fillGridCellCompact ? { mt: 'auto' } : undefined
-              }
+              flexShrink={0}
             >
               <LinearProgress
                 variant="determinate"
                 value={Math.min(100, Math.max(0, participationPercent))}
                 color={participationBarMuiColor}
                 sx={{
-                  height: 8,
+                  height: isLaunchRow ? 6 : 8,
                   borderRadius: 1,
                   backgroundColor: 'grey.200',
                 }}
@@ -201,6 +302,7 @@ export const SActionGroupButton = ({
               </SText>
             </Box>
           )}
+        </Box>
       </STBox>
     </STooltip>
   );

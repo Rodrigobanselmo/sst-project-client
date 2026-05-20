@@ -464,56 +464,38 @@ export const useCompanyStep = () => {
     onStackOpenModal(ModalEnum.USER_VIEW);
   }, [onStackOpenModal]);
 
-  const formsLaunchCards = useMemo(() => {
-    if (selectedFormsToShow.length > 0) {
-      return selectedFormsToShow.map((application) => ({
-        icon: SIconForm,
-        onClick: handleGoForms,
-        text: application.name || 'Formulário',
-        formCardId: application.id,
-        tooltipText: 'Gerenciamento de formulários e questionários',
-        permissions: [PermissionEnum.FORM],
-        statusLabel: FormApplicationStatusTranslate[application.status],
-        participationPercent: getHomeFormParticipationPercent(
-          Number(application.totalAnswers) || 0,
-          Number(application.totalParticipants) || 0,
-        ),
-        infos: [
-          { label: 'Respostas', value: application.totalAnswers ?? '--' },
-          {
-            label: 'Participantes',
-            value: application.totalParticipants ?? '--',
-          },
-          {
-            label: 'Tempo médio',
-            value: formatAverageTime(
-              selectedFormsAverageTimeById?.[application.id],
-            ),
-          },
-        ],
-        showIf: { isForms: true },
-      }));
-    }
-
-    if ((formsTotal?.pagination?.total ?? 0) === 0) {
-      return [
+  const formsLaunchGroup = useMemo(() => {
+    const applications = selectedFormsToShow.map((application) => ({
+      id: application.id,
+      name: application.name || application.form?.name || 'Formulário',
+      statusLabel: FormApplicationStatusTranslate[application.status],
+      participationPercent: getHomeFormParticipationPercent(
+        Number(application.totalAnswers) || 0,
+        Number(application.totalParticipants) || 0,
+      ),
+      infos: [
+        { label: 'Respostas', value: application.totalAnswers ?? '--' },
         {
-          icon: SIconForm,
-          onClick: handleGoForms,
-          text: 'Sem formulários aplicados',
-          tooltipText: 'Gerenciamento de formulários e questionários',
-          permissions: [PermissionEnum.FORM],
-          infos: [
-            { label: 'Respostas', value: '--' },
-            { label: 'Participantes', value: '--' },
-            { label: 'Tempo médio', value: '--' },
-          ],
-          showIf: { isForms: true },
+          label: 'Participantes',
+          value: application.totalParticipants ?? '--',
         },
-      ];
-    }
+        {
+          label: 'Tempo médio',
+          value: formatAverageTime(
+            selectedFormsAverageTimeById?.[application.id],
+          ),
+        },
+      ],
+    }));
 
-    return [];
+    return {
+      applications,
+      isEmpty:
+        applications.length === 0 &&
+        (formsTotal?.pagination?.total ?? 0) === 0,
+      emptyMessage: 'Sem formulários aplicados',
+      onViewAll: handleGoForms,
+    };
   }, [
     formatAverageTime,
     formsTotal?.pagination?.total,
@@ -861,6 +843,14 @@ export const useCompanyStep = () => {
     absenteeismTotalCount,
   ]);
 
+  const showFormsLaunchGroup = useMemo(
+    () =>
+      onFilterBase({
+        showIf: { isForms: true },
+      } as ISActionButtonProps),
+    [onFilterBase],
+  );
+
   const launchCardsMemo = useMemo(() => {
     return [
       {
@@ -882,7 +872,6 @@ export const useCompanyStep = () => {
           { label: 'Dias perdidos', value: absenteeismLostDaysTotal || 0 },
         ],
       },
-      ...formsLaunchCards,
     ].filter((action) => onFilterBase(action));
   }, [
     actionPlanCompletionPercent,
@@ -895,7 +884,6 @@ export const useCompanyStep = () => {
     absenteeismLostDaysTotal,
     absenteeismTotalCount,
     company.employeeAwayCount,
-    formsLaunchCards,
     onFilterBase,
   ]);
 
@@ -1222,6 +1210,8 @@ export const useCompanyStep = () => {
     stepsActions,
     stepsActionsList,
     launchCardsMemo,
+    formsLaunchGroup,
+    showFormsLaunchGroup,
     actionsMapStepMemo,
   };
 };

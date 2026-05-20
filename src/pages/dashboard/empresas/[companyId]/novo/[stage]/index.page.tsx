@@ -56,6 +56,8 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { SActionButton } from '../../../../../../components/atoms/SActionButton';
 import { CharacterizationStage } from './components/CharacterizationStage/CharacterizationStage';
+import { CompanyHomeFormsGroupCard } from './components/CompanyHomeFormsGroupCard/CompanyHomeFormsGroupCard';
+import { companyHomeLaunchCardShellSx } from './components/company-home-launch.constants';
 import { CompanyStage } from './components/CompanyStage/CompanyStage';
 import { DocumentsStage } from './components/DocumentsStage /DocumentsStage';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
@@ -74,6 +76,8 @@ const CompanyPage: NextPage = () => {
     isLoading,
     pageGroupMemo,
     launchCardsMemo,
+    formsLaunchGroup,
+    showFormsLaunchGroup,
     stage,
     stepsActions,
     stepsActionsList,
@@ -82,8 +86,16 @@ const CompanyPage: NextPage = () => {
 
   useFetchFeedback(isLoading && !company?.id);
   const companyName = getCompanyName(company);
-  const launchGridColumnCount = Math.max(1, pageGroupMemo.length);
+  const topGridColumnCount = Math.max(1, pageGroupMemo.length);
+  const launchGridColumnCount = Math.max(topGridColumnCount, 4);
   const homeCardsGridSx = {
+    display: 'grid',
+    gridTemplateColumns: `repeat(${topGridColumnCount}, minmax(0, 1fr))`,
+    gap: 10,
+    width: '100%',
+    alignItems: 'stretch',
+  };
+  const launchCardsGridSx = {
     display: 'grid',
     gridTemplateColumns: `repeat(${launchGridColumnCount}, minmax(0, 1fr))`,
     gap: 10,
@@ -164,38 +176,49 @@ const CompanyPage: NextPage = () => {
             </Box>
           ))}
         </Box>
-        {launchCardsMemo.length > 0 && (
+        {(launchCardsMemo.length > 0 || showFormsLaunchGroup) && (
           <>
             <SText mt={-15}>Lançamentos</SText>
-            <Box sx={{ ...homeCardsGridSx, mt: 5, mb: 30 }}>
+            <Box sx={{ ...launchCardsGridSx, mt: 5, mb: 30 }}>
               {launchCardsMemo.map((raw, index) => {
-                const props = raw as ISActionButtonProps;
+                const cardProps = raw as ISActionButtonProps;
                 return (
-                  <Box
-                    key={props.formCardId ?? `${props.text}-${index}`}
-                    sx={{
-                      minWidth: 0,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      height: '100%',
-                    }}
-                  >
+                  <Box key={`${cardProps.text}-${index}`} sx={companyHomeLaunchCardShellSx}>
                     <SActionGroupButton
-                      text={props.text}
-                      icon={props.icon}
-                      onClick={props.onClick}
-                      tooltipText={props.tooltipText}
-                      infos={props.infos}
-                      disabled={props.disabled}
-                      loading={props.loading}
-                      statusLabel={props.statusLabel}
-                      participationPercent={props.participationPercent}
-                      formCardId={props.formCardId}
+                      text={cardProps.text}
+                      icon={cardProps.icon}
+                      onClick={cardProps.onClick}
+                      tooltipText={cardProps.tooltipText}
+                      infos={cardProps.infos}
+                      disabled={cardProps.disabled}
+                      loading={cardProps.loading}
+                      statusLabel={cardProps.statusLabel}
+                      participationPercent={cardProps.participationPercent}
                       fillGridCell
+                      fillGridCellLaunch
                     />
                   </Box>
                 );
               })}
+              {showFormsLaunchGroup && (
+                <Box
+                  sx={{
+                    ...companyHomeLaunchCardShellSx,
+                    gridColumn: {
+                      xs: '1 / -1',
+                      sm: launchGridColumnCount >= 4 ? 'span 2' : 'span 1',
+                    },
+                  }}
+                >
+                  <CompanyHomeFormsGroupCard
+                    companyId={company.id}
+                    applications={formsLaunchGroup.applications}
+                    isEmpty={formsLaunchGroup.isEmpty}
+                    emptyMessage={formsLaunchGroup.emptyMessage}
+                    onViewAll={formsLaunchGroup.onViewAll}
+                  />
+                </Box>
+              )}
             </Box>
           </>
         )}

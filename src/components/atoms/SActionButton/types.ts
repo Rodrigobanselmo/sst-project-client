@@ -40,6 +40,13 @@ export interface ISActionButtonProps extends Partial<BoxProps> {
   formCardId?: string;
   /** Preenche a célula de grid (largura/altura) sem alterar dados */
   fillGridCell?: boolean;
-  /** Com fillGridCell: altura compacta (só conteúdo), sem minHeight compartilhado com Lançamentos */
+  /**
+   * Cards superiores da home: preenche o grid sem minHeight 240,
+   * mantendo infos em duas colunas.
+   */
   fillGridCellCompact?: boolean;
+  /**
+   * Linha Lançamentos: layout vertical compacto (infos em coluna única + barra no rodapé).
+   */
+  fillGridCellLaunch?: boolean;
 }

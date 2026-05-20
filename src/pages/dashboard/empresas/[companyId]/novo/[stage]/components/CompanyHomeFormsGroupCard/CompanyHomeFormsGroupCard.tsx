@@ -1,0 +1,263 @@
+import { useCallback, useRef, useState } from 'react';
+
+import {
+  Box,
+  Icon,
+  LinearProgress,
+  Popover,
+  Typography,
+} from '@mui/material';
+import { useRouter } from 'next/router';
+
+import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
+import { PageRoutes } from '@v2/constants/pages/routes';
+import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
+import { STBox } from 'components/atoms/SActionGroupButton/styles';
+
+export type HomeFormLaunchItem = {
+  id: string;
+  name: string;
+  statusLabel: string;
+  participationPercent: number;
+  infos: { label: string; value: string | number }[];
+};
+
+type Props = {
+  companyId: string;
+  applications: HomeFormLaunchItem[];
+  isEmpty: boolean;
+  emptyMessage: string;
+  onViewAll: () => void;
+};
+
+const getParticipationColor = (percent: number) => {
+  if (percent < 50) return 'error' as const;
+  if (percent < 80) return 'info' as const;
+  return 'success' as const;
+};
+
+function FormItemPreview({ item }: { item: HomeFormLaunchItem }) {
+  return (
+    <Box sx={{ p: 2, minWidth: 220, maxWidth: 280 }}>
+      <SText fontSize={14} fontWeight={600} mb={1}>
+        {item.name}
+      </SText>
+      <SText fontSize={12} color="text.secondary" mb={1.5}>
+        {item.statusLabel}
+      </SText>
+      {item.infos.map((info) => (
+        <SText key={info.label} fontSize={12} color="text.light">
+          {info.label}: {info.value}
+        </SText>
+      ))}
+      <SText
+        fontSize={12}
+        fontWeight={600}
+        sx={{ mt: 1, color: `${getParticipationColor(item.participationPercent)}.main` }}
+      >
+        Participação:{' '}
+        {item.participationPercent.toLocaleString('pt-BR', {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })}
+        %
+      </SText>
+    </Box>
+  );
+}
+
+function FormLaunchRow({
+  item,
+  companyId,
+}: {
+  item: HomeFormLaunchItem;
+  companyId: string;
+}) {
+  const router = useRouter();
+  const rowRef = useRef<HTMLDivElement>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+
+  const openPreview = useCallback(() => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+      closeTimerRef.current = null;
+    }
+    if (rowRef.current) setAnchorEl(rowRef.current);
+  }, []);
+
+  const scheduleClose = useCallback(() => {
+    closeTimerRef.current = setTimeout(() => setAnchorEl(null), 120);
+  }, []);
+
+  const handleClick = useCallback(() => {
+    void router.push(
+      PageRoutes.FORMS.FORMS_APPLICATION.VIEW.replace(
+        '[companyId]',
+        companyId,
+      ).replace('[id]', item.id),
+    );
+  }, [companyId, item.id, router]);
+
+  const barColor = getParticipationColor(item.participationPercent);
+
+  return (
+    <>
+      <Box
+        ref={rowRef}
+        onClick={handleClick}
+        onMouseEnter={openPreview}
+        onMouseLeave={scheduleClose}
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) 52px 48px',
+          alignItems: 'center',
+          gap: 1,
+          px: 1.5,
+          py: 1,
+          borderRadius: 1,
+          cursor: 'pointer',
+          '&:hover': { bgcolor: 'action.hover' },
+        }}
+      >
+        <Box minWidth={0}>
+          <SText
+            fontSize={13}
+            fontWeight={500}
+            sx={{
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {item.name}
+          </SText>
+          <SText fontSize={11} color="text.secondary" noWrap>
+            {item.statusLabel}
+          </SText>
+        </Box>
+        <LinearProgress
+          variant="determinate"
+          value={Math.min(100, Math.max(0, item.participationPercent))}
+          color={barColor}
+          sx={{ height: 6, borderRadius: 1, bgcolor: 'grey.200' }}
+        />
+        <SText
+          fontSize={12}
+          fontWeight={600}
+          textAlign="right"
+          color={`${barColor}.main`}
+        >
+          {item.participationPercent.toLocaleString('pt-BR', {
+            maximumFractionDigits: 0,
+          })}
+          %
+        </SText>
+      </Box>
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        disableRestoreFocus
+        sx={{ pointerEvents: 'none' }}
+        slotProps={{
+          paper: {
+            sx: { pointerEvents: 'auto', mt: 0.5 },
+            onMouseEnter: openPreview,
+            onMouseLeave: scheduleClose,
+          },
+        }}
+      >
+        <FormItemPreview item={item} />
+      </Popover>
+    </>
+  );
+}
+
+export function CompanyHomeFormsGroupCard({
+  companyId,
+  applications,
+  isEmpty,
+  emptyMessage,
+  onViewAll,
+}: Props): JSX.Element {
+  return (
+    <STBox
+      onClick={isEmpty ? onViewAll : undefined}
+      sx={{
+        width: '100%',
+        maxWidth: 'none',
+        minWidth: 0,
+        minHeight: 0,
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box',
+        cursor: isEmpty ? 'pointer' : 'default',
+      }}
+    >
+      <SFlex align="center" gap={5} px={2} flexShrink={0}>
+        <Icon component={SIconForm} sx={{ fontSize: 26 }} />
+        <SText fontSize={14} fontWeight={600}>
+          Formulários aplicados
+        </SText>
+        {!isEmpty && (
+          <Typography
+            component="span"
+            fontSize={12}
+            color="text.secondary"
+            sx={{ ml: 'auto' }}
+          >
+            {applications.length}{' '}
+            {applications.length === 1 ? 'ativo' : 'ativos'}
+          </Typography>
+        )}
+      </SFlex>
+
+      <Box
+        sx={{
+          flex: 1,
+          minHeight: 0,
+          mt: 1,
+          px: 0.5,
+          pb: 1.5,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0.25,
+          overflowY: 'auto',
+          overflowX: 'hidden',
+        }}
+      >
+        {isEmpty ? (
+          <SText fontSize={13} color="text.secondary" px={2} py={1}>
+            {emptyMessage}
+          </SText>
+        ) : (
+          applications.map((item) => (
+            <FormLaunchRow key={item.id} item={item} companyId={companyId} />
+          ))
+        )}
+      </Box>
+
+      {!isEmpty && (
+        <Box px={2} pt={1.5} pb={1.5} mt={0.5} flexShrink={0}>
+          <SText
+            fontSize={12}
+            color="primary.main"
+            fontWeight={500}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewAll();
+            }}
+            sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+          >
+            Ver todos os formulários
+          </SText>
+        </Box>
+      )}
+    </STBox>
+  );
+}
