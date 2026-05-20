@@ -16,6 +16,7 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
+import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
 import { initialExamRiskState } from 'components/organisms/modals/ModalEditExamRisk/hooks/useEditExams';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { company } from 'faker/locale/zh_TW';
@@ -71,8 +72,17 @@ export const ExamsRiskTable: FC<
       onSelectData?: (company: IExamToRisk) => void;
       selectedData?: IExamToRisk[];
       query?: IQueryExam;
+      companyFlowSticky?: boolean;
+      companyFlowBelowTabs?: boolean;
     }
-> = ({ rowsPerPage = 8, onSelectData, selectedData, query }) => {
+> = ({
+  rowsPerPage = 8,
+  onSelectData,
+  selectedData,
+  query,
+  companyFlowSticky = false,
+  companyFlowBelowTabs = false,
+}) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
@@ -144,26 +154,30 @@ export const ExamsRiskTable: FC<
     queryClient.invalidateQueries([QueryEnum.EXAMS_RISK]);
   }, 1000);
 
-  return (
+  const tableColumns = `${
+    selectedData ? '15px ' : ''
+  }minmax(250px, 5fr) minmax(150px, 5fr) 120px 55px 135px ${
+    false ? '180px' : ''
+  }90px 80px`;
+
+  const tableChrome = (
     <>
       {!isSelect && (
-        <>
-          <STableTitle
-            subtitle={
-              <>
-                Aqui você pode relacionar exames a riscos especificos
-                <SText fontSize={11}>
-                  (Exemplo: Todos os cargos que possuirem o risco de Ruído e o
-                  exame de Audiometria estiver vinculado, todos os empregados
-                  terão que realizar tal exame)
-                </SText>
-              </>
-            }
-            icon={SExamIcon}
-          >
-            Exames
-          </STableTitle>
-        </>
+        <STableTitle
+          subtitle={
+            <>
+              Aqui você pode relacionar exames a riscos especificos
+              <SText fontSize={11}>
+                (Exemplo: Todos os cargos que possuirem o risco de Ruído e o
+                exame de Audiometria estiver vinculado, todos os empregados
+                terão que realizar tal exame)
+              </SText>
+            </>
+          }
+          icon={SExamIcon}
+        >
+          Exames
+        </STableTitle>
       )}
       <STableSearch
         onAddClick={onAddExam}
@@ -172,17 +186,11 @@ export const ExamsRiskTable: FC<
         loadingReload={loadExams || isFetching || isRefetching}
         onReloadClick={onRefetchThrottle}
       />
-      <STable
-        loading={loadExams || copyExamMutation.isLoading}
-        rowsNumber={rowsPerPage}
-        columns={`${
-          selectedData ? '15px ' : ''
-        }minmax(250px, 5fr) minmax(150px, 5fr) 120px 55px 135px ${
-          // eslint-disable-next-line no-constant-condition
-          false ? '180px' : ''
-        }90px 80px`}
-      >
-        <STableHeader>
+    </>
+  );
+
+  const tableHeader = (
+    <STableHeader>
           {selectedData && <STableHRow></STableHRow>}
           <STableHRow>Risco</STableHRow>
           <STableHRow>Exame</STableHRow>
@@ -198,8 +206,11 @@ export const ExamsRiskTable: FC<
           <STableHRow justifyContent="center">Peridiocidade</STableHRow>
           {/* <STableHRow justifyContent="center">Status</STableHRow> */}
           <STableHRow justifyContent="center">Ações</STableHRow>
-        </STableHeader>
-        <STableBody<(typeof exams)[0]>
+    </STableHeader>
+  );
+
+  const tableBody = (
+    <STableBody<(typeof exams)[0]>
           rowsData={exams}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
@@ -276,15 +287,47 @@ export const ExamsRiskTable: FC<
               </STableRow>
             );
           }}
-        />
+    />
+  );
+
+  const tablePagination = (
+    <STablePagination
+      mt={2}
+      registersPerPage={rowsPerPage}
+      totalCountOfRegisters={loadExams ? undefined : count}
+      currentPage={page}
+      onPageChange={setPage}
+    />
+  );
+
+  if (companyFlowSticky) {
+    return (
+      <CompanyFlowTableSection
+        chrome={tableChrome}
+        columns={tableColumns}
+        loading={loadExams || copyExamMutation.isLoading}
+        rowsNumber={rowsPerPage}
+        header={tableHeader}
+        footer={tablePagination}
+        belowModuleTabs={companyFlowBelowTabs}
+      >
+        {tableBody}
+      </CompanyFlowTableSection>
+    );
+  }
+
+  return (
+    <>
+      {tableChrome}
+      <STable
+        columns={tableColumns}
+        loading={loadExams || copyExamMutation.isLoading}
+        rowsNumber={rowsPerPage}
+      >
+        {tableHeader}
+        {tableBody}
       </STable>
-      <STablePagination
-        mt={2}
-        registersPerPage={rowsPerPage}
-        totalCountOfRegisters={loadExams ? undefined : count}
-        currentPage={page}
-        onPageChange={setPage}
-      />
+      {tablePagination}
     </>
   );
 };

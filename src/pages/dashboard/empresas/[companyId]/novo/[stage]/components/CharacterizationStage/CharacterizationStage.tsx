@@ -1,5 +1,6 @@
 import { Box, BoxProps } from '@mui/material';
 import { CharacterizationTable } from '@v2/pages/companies/characterizations/components/CharacterizationTable/CharacterizationTable';
+import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ExamsRiskTable } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
 import { ExamsRiskTableList } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTableList';
@@ -38,29 +39,42 @@ export const CharacterizationStage = ({ query, ...props }: ICompanyStage) => {
     <Box {...props}>
       <Wizard
         header={
-          <WizardTabs
-            shadow
-            onUrl
-            active={activeTab}
-            options={tabOptions}
-          />
+          <CompanyFlowStickySubheader>
+            <WizardTabs
+              shadow
+              onUrl
+              active={activeTab}
+              options={tabOptions}
+            />
+          </CompanyFlowStickySubheader>
         }
       >
         <>
-          <RiskCompanyTable workspaceId={workspaceId} />
+          <RiskCompanyTable
+            workspaceId={workspaceId}
+            companyFlowSticky
+            companyFlowBelowTabs
+          />
         </>
         <>
-          <CharacterizationTable />
+          <CharacterizationTable
+            companyFlowSticky
+            companyFlowBelowTabs
+          />
         </>
         <>
-          <GhosTable workspaceId={workspaceId} />
+          <GhosTable
+            workspaceId={workspaceId}
+            companyFlowSticky
+            companyFlowBelowTabs
+          />
         </>
         <>
-          <ExamsRiskTable />
-          <ExamsRiskTableList />
+          <ExamsRiskTable companyFlowSticky companyFlowBelowTabs />
+          <ExamsRiskTableList companyFlowSticky companyFlowBelowTabs />
         </>
         <>
-          <ProtocolsRiskTable />
+          <ProtocolsRiskTable companyFlowSticky companyFlowBelowTabs />
         </>
       </Wizard>
     </Box>

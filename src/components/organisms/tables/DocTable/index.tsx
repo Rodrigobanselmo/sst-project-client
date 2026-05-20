@@ -20,6 +20,7 @@ import STableSearch, {
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
+import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
 import { initialMainDocState } from 'components/organisms/modals/ModalAddDocVersion/hooks/useMainActions';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
@@ -58,8 +59,19 @@ export const DocTable: FC<
       type: DocumentTypeEnum;
       workspaceId?: string;
       workspaceName?: string;
+      companyFlowSticky?: boolean;
+      companyFlowBelowTabs?: boolean;
     }
-> = ({ rowsPerPage = 8, hideTitle, query, type, workspaceId, workspaceName }) => {
+> = ({
+  rowsPerPage = 8,
+  hideTitle,
+  query,
+  type,
+  workspaceId,
+  workspaceName,
+  companyFlowSticky = false,
+  companyFlowBelowTabs = false,
+}) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const {
     data: docs,
@@ -166,7 +178,9 @@ export const DocTable: FC<
     } as typeof initialMainDocState);
   };
 
-  return (
+  const tableColumns =
+    'minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px 130px';
+  const tableChrome = (
     <>
       {!hideTitle && (
         <STableTitle mr={5} icon={LibraryAddCheckIcon}>
@@ -176,8 +190,10 @@ export const DocTable: FC<
           </SText>
         </STableTitle>
       )}
-
-      <STableSearch onAddClick={() => onGenerateVersion()} onChange={(e) => handleSearchChange(e.target.value)}>
+      <STableSearch
+        onAddClick={() => onGenerateVersion()}
+        onChange={(e) => handleSearchChange(e.target.value)}
+      >
         <STableButton
           tooltip="autualizar"
           onClick={() => {
@@ -189,22 +205,21 @@ export const DocTable: FC<
           color="grey.500"
         />
       </STableSearch>
-
-      <STable
-        rowsNumber={rowsPerPage}
-        loading={isLoading}
-        columns="minmax(200px, 1fr) minmax(200px, 2fr) minmax(200px, 2fr) 100px 120px 100px 130px"
-      >
-        <STableHeader>
-          <STableHRow>Identificação</STableHRow>
-          <STableHRow>Descrição</STableHRow>
-          <STableHRow>Estabelecimento</STableHRow>
-          <STableHRow justifyContent="center">Versão</STableHRow>
-          <STableHRow justifyContent="center">Criação</STableHRow>
-          <STableHRow justifyContent="center">Status</STableHRow>
-          <STableHRow justifyContent="center">Download</STableHRow>
-        </STableHeader>
-        <STableBody<(typeof docs)[0]>
+    </>
+  );
+  const tableHeader = (
+    <STableHeader>
+      <STableHRow>Identificação</STableHRow>
+      <STableHRow>Descrição</STableHRow>
+      <STableHRow>Estabelecimento</STableHRow>
+      <STableHRow justifyContent="center">Versão</STableHRow>
+      <STableHRow justifyContent="center">Criação</STableHRow>
+      <STableHRow justifyContent="center">Status</STableHRow>
+      <STableHRow justifyContent="center">Download</STableHRow>
+    </STableHeader>
+  );
+  const tableBody = (
+    <STableBody<(typeof docs)[0]>
           hideLoadMore
           rowsData={docs}
           renderRow={(row) => {
@@ -286,15 +301,44 @@ export const DocTable: FC<
               </STableRow>
             );
           }}
-        />
+    />
+  );
+  const tablePagination = (
+    <STablePagination
+      mt={2}
+      registersPerPage={rowsPerPage}
+      totalCountOfRegisters={isLoading ? undefined : count}
+      currentPage={page}
+      onPageChange={setPage}
+    />
+  );
+
+  const tableContent = companyFlowSticky ? (
+    <CompanyFlowTableSection
+      chrome={tableChrome}
+      columns={tableColumns}
+      loading={isLoading}
+      rowsNumber={rowsPerPage}
+      header={tableHeader}
+      footer={tablePagination}
+      belowModuleTabs={companyFlowBelowTabs}
+    >
+      {tableBody}
+    </CompanyFlowTableSection>
+  ) : (
+    <>
+      {tableChrome}
+      <STable columns={tableColumns} loading={isLoading} rowsNumber={rowsPerPage}>
+        {tableHeader}
+        {tableBody}
       </STable>
-      <STablePagination
-        mt={2}
-        registersPerPage={rowsPerPage}
-        totalCountOfRegisters={isLoading ? undefined : count}
-        currentPage={page}
-        onPageChange={setPage}
-      />
+      {tablePagination}
+    </>
+  );
+
+  return (
+    <>
+      {tableContent}
       <ModalAddRiskGroup />
       <ModalShowHierarchyTree />
       <ModalSelectDocPgr />

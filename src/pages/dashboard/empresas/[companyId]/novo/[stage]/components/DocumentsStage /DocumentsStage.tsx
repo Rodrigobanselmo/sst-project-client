@@ -6,6 +6,7 @@ import SFlex from 'components/atoms/SFlex';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
 import SWizardBox from 'components/atoms/SWizardBox';
+import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddDocPCMSOVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPCMSOVersion';
 import { ModalAddDocPGRVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPGRVersion';
@@ -94,11 +95,12 @@ export const DocumentsStage = ({
       {!isLoadingAllWorkspaces && !!tabWorkspaceId && (
         <Wizard
           header={
-            <WizardTabs
-              shadow
-              onUrl
-              active={query.active ? Number(query.active) : 0}
-              options={[
+            <CompanyFlowStickySubheader>
+              <WizardTabs
+                shadow
+                onUrl
+                active={query.active ? Number(query.active) : 0}
+                options={[
                 {
                   label: 'PGR',
                 },
@@ -118,7 +120,8 @@ export const DocumentsStage = ({
                   label: 'FRPS',
                 },
               ]}
-            />
+              />
+            </CompanyFlowStickySubheader>
           }
         >
           <>
@@ -127,6 +130,8 @@ export const DocumentsStage = ({
               workspaceName={selectedWorkspaceName}
               type={DocumentTypeEnum.PGR}
               query={{ type: DocumentTypeEnum.PGR, workspaceId: tabWorkspaceId }}
+              companyFlowSticky
+              companyFlowBelowTabs
             />
             <ModalAddDocPGRVersion />
           </>
@@ -136,6 +141,8 @@ export const DocumentsStage = ({
               workspaceName={selectedWorkspaceName}
               type={DocumentTypeEnum.PCSMO}
               query={{ type: DocumentTypeEnum.PCSMO, workspaceId: tabWorkspaceId }}
+              companyFlowSticky
+              companyFlowBelowTabs
             />
             <ModalAddDocPCMSOVersion />
           </>
@@ -148,6 +155,8 @@ export const DocumentsStage = ({
                 type: DocumentTypeEnum.PERICULOSIDADE,
                 workspaceId: tabWorkspaceId,
               }}
+              companyFlowSticky
+              companyFlowBelowTabs
             />
             <ModalAddDocPERICULOSIDADEVersion />
           </>
@@ -157,6 +166,8 @@ export const DocumentsStage = ({
               workspaceName={selectedWorkspaceName}
               type={DocumentTypeEnum.LTCAT}
               query={{ type: DocumentTypeEnum.LTCAT, workspaceId: tabWorkspaceId }}
+              companyFlowSticky
+              companyFlowBelowTabs
             />
             <ModalAddDocLTCATVersion />
           </>
@@ -169,6 +180,8 @@ export const DocumentsStage = ({
                 type: DocumentTypeEnum.INSALUBRIDADE,
                 workspaceId: tabWorkspaceId,
               }}
+              companyFlowSticky
+              companyFlowBelowTabs
             />
             <ModalAddDocINSALUBRIDADEVersion />
           </>
@@ -181,6 +194,8 @@ export const DocumentsStage = ({
                 type: DocumentTypeEnum.FRPS,
                 workspaceId: tabWorkspaceId,
               }}
+              companyFlowSticky
+              companyFlowBelowTabs
             />
             <ModalAddDocFRPSVersion />
           </>

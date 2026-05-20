@@ -14,6 +14,7 @@ import TextIconRow from 'components/atoms/STable/components/Rows/TextIconRow';
 import STablePagination from 'components/atoms/STable/components/STablePagination';
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
+import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
 import { initialAddGhoState } from 'components/organisms/modals/ModalAddGHO/hooks/useAddGho';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -38,8 +39,18 @@ export const GhosTable: FC<
       onSelectData?: (company: IGho) => void;
       selectedData?: IGho[];
       query?: IQueryGhos;
+      companyFlowSticky?: boolean;
+      companyFlowBelowTabs?: boolean;
     }
-> = ({ rowsPerPage = 8, workspaceId, onSelectData, selectedData, query }) => {
+> = ({
+  rowsPerPage = 8,
+  workspaceId,
+  onSelectData,
+  selectedData,
+  query,
+  companyFlowSticky = false,
+  companyFlowBelowTabs = false,
+}) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
@@ -84,7 +95,8 @@ export const GhosTable: FC<
 
   if (selectedData) header.unshift({ text: '', column: '15px' });
 
-  return (
+  const tableColumns = header.map(({ column }) => column).join(' ');
+  const tableChrome = (
     <>
       {!isSelect && (
         <STableTitle icon={SGhoIcon}>Grupo Similar de Exposição</STableTitle>
@@ -93,63 +105,84 @@ export const GhosTable: FC<
         onAddClick={onAddGHO}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
-      <STable
+    </>
+  );
+  const tableHeader = (
+    <STableHeader>
+      {header.map(({ text, ...props }) => (
+        <STableHRow key={text} {...props}>
+          {text}
+        </STableHRow>
+      ))}
+    </STableHeader>
+  );
+  const tableBody = (
+    <STableBody<(typeof risks)[0]>
+      rowsData={risks}
+      hideLoadMore
+      rowsInitialNumber={rowsPerPage}
+      renderRow={(row) => (
+        <STableRow onClick={() => onSelectRow(row)} clickable key={row.id}>
+          {selectedData && (
+            <SCheckBox
+              label=""
+              checked={!!selectedData.find((exam) => exam.id === row.id)}
+            />
+          )}
+          <TextIconRow clickable text={row.name || '-'} />
+          <StatusSelect
+            large={false}
+            sx={{ maxWidth: '90px' }}
+            selected={'status' in row ? row.status : StatusEnum.ACTIVE}
+            statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
+            handleSelectMenu={(option) => handleEditStatus(option.value)}
+            disabled
+          />
+          <IconButtonRow
+            icon={<EditIcon />}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEditGHO(row);
+            }}
+          />
+        </STableRow>
+      )}
+    />
+  );
+  const tablePagination = (
+    <STablePagination
+      mt={2}
+      registersPerPage={rowsPerPage}
+      totalCountOfRegisters={loadRisks ? undefined : count}
+      currentPage={page}
+      onPageChange={setPage}
+    />
+  );
+
+  if (companyFlowSticky) {
+    return (
+      <CompanyFlowTableSection
+        chrome={tableChrome}
+        columns={tableColumns}
         loading={loadRisks}
         rowsNumber={rowsPerPage}
-        columns={header.map(({ column }) => column).join(' ')}
+        header={tableHeader}
+        footer={tablePagination}
+        belowModuleTabs={companyFlowBelowTabs}
       >
-        <STableHeader>
-          {header.map(({ text, ...props }) => (
-            <STableHRow key={text} {...props}>
-              {text}
-            </STableHRow>
-          ))}
-        </STableHeader>
-        <STableBody<(typeof risks)[0]>
-          rowsData={risks}
-          hideLoadMore
-          rowsInitialNumber={rowsPerPage}
-          renderRow={(row) => {
-            return (
-              <STableRow
-                onClick={() => onSelectRow(row)}
-                clickable
-                key={row.id}
-              >
-                {selectedData && (
-                  <SCheckBox
-                    label=""
-                    checked={!!selectedData.find((exam) => exam.id === row.id)}
-                  />
-                )}
-                <TextIconRow clickable text={row.name || '-'} />
-                <StatusSelect
-                  large={false}
-                  sx={{ maxWidth: '90px' }}
-                  selected={'status' in row ? row.status : StatusEnum.ACTIVE}
-                  statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
-                  handleSelectMenu={(option) => handleEditStatus(option.value)}
-                  disabled
-                />
-                <IconButtonRow
-                  icon={<EditIcon />}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onEditGHO(row);
-                  }}
-                />
-              </STableRow>
-            );
-          }}
-        />
-      </STable>{' '}
-      <STablePagination
-        mt={2}
-        registersPerPage={rowsPerPage}
-        totalCountOfRegisters={loadRisks ? undefined : count}
-        currentPage={page}
-        onPageChange={setPage}
-      />
+        {tableBody}
+      </CompanyFlowTableSection>
+    );
+  }
+
+  return (
+    <>
+      {tableChrome}
+      <STable columns={tableColumns} loading={loadRisks} rowsNumber={rowsPerPage}>
+        {tableHeader}
+        {tableBody}
+      </STable>
+      {tablePagination}
     </>
   );
 };

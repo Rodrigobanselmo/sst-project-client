@@ -22,6 +22,7 @@ import { STagRisk } from 'components/atoms/STagRisk';
 import SText from 'components/atoms/SText';
 import { SCheckRiskDocInfo } from 'components/molecules/SCheckRiskDocInfo';
 import { useOpenRiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/hooks/useOpenRiskTool';
+import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
 import { TableSortColumnHeader } from 'components/organisms/tables/common/TableSortColumnHeader';
 
 import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
@@ -100,12 +101,18 @@ export const RiskCompanyTable: FC<
       onSelectData?: (risk: IRiskFactors) => void;
       selectedData?: IRiskFactors[];
       query?: IQueryExam;
+      /** Chrome sticky no fluxo empresarial (home da empresa / Caracterização). */
+      companyFlowSticky?: boolean;
+      /** Chrome sticky abaixo das abas do módulo (ex.: Riscos / GSE). */
+      companyFlowBelowTabs?: boolean;
     }
 > = ({
   rowsPerPage: rowsPerPageProp,
   workspaceId,
   onSelectData,
   selectedData,
+  companyFlowSticky = false,
+  companyFlowBelowTabs = false,
 }) => {
   const [showOrigins, setShowRiskExam] = useState(false);
   const [openId, setOpenId] = useState('');
@@ -283,7 +290,12 @@ export const RiskCompanyTable: FC<
       );
     });
 
-  return (
+  const tableColumns = [
+    ...(selectedData ? ['15px'] : []),
+    ...visibleColumns.map((c) => c.column),
+  ].join(' ');
+
+  const tableChrome = (
     <>
       {!isSelect && (
         <STableTitle
@@ -323,37 +335,48 @@ export const RiskCompanyTable: FC<
           />
         </SFlex>
       </STableSearch>
-      <STable
-        loading={loadRisks}
-        rowsNumber={pageSize}
-        columns={
-          [
-            ...(selectedData ? ['15px'] : []),
-            ...visibleColumns.map((c) => c.column),
-          ].join(' ')
-        }
-      >
-        <STableHeader>
-          {selectedData && <STableHRow key="check-col" />}
-          {visibleColumns.map((col) => (
-            <TableSortColumnHeader<RiskIdentifiedListSortBy>
-              key={col.id}
-              label={col.label}
-              sortField={col.sortField}
-              activeSort={sort}
-              justifyContent={col.justifyContent}
-              onSort={onSort}
-              onHideColumn={() => onHideColumn(col.id)}
-              onClearTable={onClearTablePreferences}
-            />
-          ))}
-        </STableHeader>
-        <STableBody<IRiskFactors>
-          key={pageSize}
-          rowsData={displayRisks}
-          hideLoadMore
-          rowsInitialNumber={pageSize}
-          renderRow={(row) => {
+    </>
+  );
+
+  const tableHeader = (
+    <STableHeader>
+      {selectedData && <STableHRow key="check-col" />}
+      {visibleColumns.map((col) => (
+        <TableSortColumnHeader<RiskIdentifiedListSortBy>
+          key={col.id}
+          label={col.label}
+          sortField={col.sortField}
+          activeSort={sort}
+          justifyContent={col.justifyContent}
+          onSort={onSort}
+          onHideColumn={() => onHideColumn(col.id)}
+          onClearTable={onClearTablePreferences}
+        />
+      ))}
+    </STableHeader>
+  );
+
+  const tablePagination = (
+    <STablePagination
+      mt={2}
+      registersPerPage={pageSize}
+      totalCountOfRegisters={loadRisks ? undefined : count}
+      currentPage={page}
+      onPageChange={setPage}
+      {...(typeof rowsPerPageProp !== 'number' && {
+        pageSizeOptions: RISKS_IDENTIFIED_TABLE_PAGE_SIZES,
+        onRegistersPerPageChange,
+      })}
+    />
+  );
+
+  const tableBody = (
+    <STableBody<IRiskFactors>
+      key={pageSize}
+      rowsData={displayRisks}
+      hideLoadMore
+      rowsInitialNumber={pageSize}
+      renderRow={(row) => {
             const isOpen = showOrigins || openId === row.id;
             return (
               <>
@@ -490,19 +513,33 @@ export const RiskCompanyTable: FC<
               </>
             );
           }}
-        />
+    />
+  );
+
+  if (companyFlowSticky) {
+    return (
+      <CompanyFlowTableSection
+        chrome={tableChrome}
+        columns={tableColumns}
+        loading={loadRisks}
+        rowsNumber={pageSize}
+        header={tableHeader}
+        footer={tablePagination}
+        belowModuleTabs={companyFlowBelowTabs}
+      >
+        {tableBody}
+      </CompanyFlowTableSection>
+    );
+  }
+
+  return (
+    <>
+      {tableChrome}
+      <STable columns={tableColumns} loading={loadRisks} rowsNumber={pageSize}>
+        {tableHeader}
+        {tableBody}
       </STable>
-      <STablePagination
-        mt={2}
-        registersPerPage={pageSize}
-        totalCountOfRegisters={loadRisks ? undefined : count}
-        currentPage={page}
-        onPageChange={setPage}
-        {...(typeof rowsPerPageProp !== 'number' && {
-          pageSizeOptions: RISKS_IDENTIFIED_TABLE_PAGE_SIZES,
-          onRegistersPerPageChange,
-        })}
-      />
+      {tablePagination}
     </>
   );
 };

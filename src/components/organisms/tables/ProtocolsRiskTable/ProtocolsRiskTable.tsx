@@ -16,6 +16,7 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
+import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
 import { initialProtocolRiskState } from 'components/organisms/modals/ModalEditProtocolRisk/hooks/useEditProtocols';
 import { initialCompanySelectState } from 'components/organisms/modals/ModalSelectCompany';
 import { company } from 'faker/locale/zh_TW';
@@ -45,8 +46,17 @@ export const ProtocolsRiskTable: FC<
       onSelectData?: (company: IProtocolToRisk) => void;
       selectedData?: IProtocolToRisk[];
       query?: IQueryProtocol;
+      companyFlowSticky?: boolean;
+      companyFlowBelowTabs?: boolean;
     }
-> = ({ rowsPerPage = 8, onSelectData, selectedData, query }) => {
+> = ({
+  rowsPerPage = 8,
+  onSelectData,
+  selectedData,
+  query,
+  companyFlowSticky = false,
+  companyFlowBelowTabs = false,
+}) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
 
   const isSelect = !!onSelectData;
@@ -120,26 +130,25 @@ export const ProtocolsRiskTable: FC<
     queryClient.invalidateQueries([QueryEnum.PROTOCOLS_RISK]);
   }, 1000);
 
-  return (
+  const tableColumns = `${selectedData ? '15px ' : ''}250px minmax(150px, 5fr) 80px`;
+  const tableChrome = (
     <>
       {!isSelect && (
-        <>
-          <STableTitle
-            subtitle={
-              <>
-                Aqui você pode relacionar protocolos a riscos especificos
-                <SText fontSize={11}>
-                  (Exemplo: Todos os cargos que possuirem o risco de Trabalho em
-                  altura e tiver um protocolo vinculado, todos os empregados
-                  terão essa indicação no ASO)
-                </SText>
-              </>
-            }
-            icon={SProtocolIcon}
-          >
-            Relação de Protocolos
-          </STableTitle>
-        </>
+        <STableTitle
+          subtitle={
+            <>
+              Aqui você pode relacionar protocolos a riscos especificos
+              <SText fontSize={11}>
+                (Exemplo: Todos os cargos que possuirem o risco de Trabalho em
+                altura e tiver um protocolo vinculado, todos os empregados
+                terão essa indicação no ASO)
+              </SText>
+            </>
+          }
+          icon={SProtocolIcon}
+        >
+          Relação de Protocolos
+        </STableTitle>
       )}
       <STableSearch
         onAddClick={onAddProtocol}
@@ -148,18 +157,18 @@ export const ProtocolsRiskTable: FC<
         loadingReload={loadProtocols || isFetching || isRefetching}
         onChange={(e) => handleSearchChange(e.target.value)}
       />
-      <STable
-        loading={loadProtocols || copyProtocolMutation.isLoading}
-        rowsNumber={rowsPerPage}
-        columns={`${selectedData ? '15px ' : ''}250px minmax(150px, 5fr) 80px`}
-      >
-        <STableHeader>
-          {selectedData && <STableHRow></STableHRow>}
-          <STableHRow>Protocolo</STableHRow>
-          <STableHRow>Risco</STableHRow>
-          <STableHRow justifyContent="center">Editar</STableHRow>
-        </STableHeader>
-        <STableBody<(typeof protocols)[0]>
+    </>
+  );
+  const tableHeader = (
+    <STableHeader>
+      {selectedData && <STableHRow></STableHRow>}
+      <STableHRow>Protocolo</STableHRow>
+      <STableHRow>Risco</STableHRow>
+      <STableHRow justifyContent="center">Editar</STableHRow>
+    </STableHeader>
+  );
+  const tableBody = (
+    <STableBody<(typeof protocols)[0]>
           rowsData={protocols}
           hideLoadMore
           rowsInitialNumber={rowsPerPage}
@@ -190,15 +199,46 @@ export const ProtocolsRiskTable: FC<
               </STableRow>
             );
           }}
-        />
+    />
+  );
+  const tablePagination = (
+    <STablePagination
+      mt={2}
+      registersPerPage={rowsPerPage}
+      totalCountOfRegisters={loadProtocols ? undefined : count}
+      currentPage={page}
+      onPageChange={setPage}
+    />
+  );
+
+  if (companyFlowSticky) {
+    return (
+      <CompanyFlowTableSection
+        chrome={tableChrome}
+        columns={tableColumns}
+        loading={loadProtocols || copyProtocolMutation.isLoading}
+        rowsNumber={rowsPerPage}
+        header={tableHeader}
+        footer={tablePagination}
+        belowModuleTabs={companyFlowBelowTabs}
+      >
+        {tableBody}
+      </CompanyFlowTableSection>
+    );
+  }
+
+  return (
+    <>
+      {tableChrome}
+      <STable
+        columns={tableColumns}
+        loading={loadProtocols || copyProtocolMutation.isLoading}
+        rowsNumber={rowsPerPage}
+      >
+        {tableHeader}
+        {tableBody}
       </STable>
-      <STablePagination
-        mt={2}
-        registersPerPage={rowsPerPage}
-        totalCountOfRegisters={loadProtocols ? undefined : count}
-        currentPage={page}
-        onPageChange={setPage}
-      />
+      {tablePagination}
     </>
   );
 };

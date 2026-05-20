@@ -48,4 +48,6 @@ export interface ICharacterizationTableTableProps {
   };
   pageSizeOptions?: number[];
   onPageSizeChange?: (size: number) => void;
+  /** Separa cabeçalho de colunas do corpo para sticky no fluxo empresarial. */
+  part?: 'full' | 'header' | 'body';
 }

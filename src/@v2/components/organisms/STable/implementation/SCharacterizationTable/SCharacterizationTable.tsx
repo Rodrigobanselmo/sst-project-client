@@ -39,6 +39,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   setHiddenColumns,
   pageSizeOptions,
   onPageSizeChange,
+  part = 'full',
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
 
@@ -296,6 +297,55 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
     },
   ];
 
+  if (part === 'header') {
+    return (
+      <STable
+        table={tableRows}
+        data={[]}
+        renderHeader={(headers) => <STableHeader>{headers}</STableHeader>}
+        renderBody={() => null}
+      />
+    );
+  }
+
+  if (part === 'body') {
+    return (
+      <>
+        <STable
+          isLoadingMore={isLoading}
+          table={tableRows}
+          data={data}
+          renderHeader={() => null}
+          renderBody={({ data: rowsData, rows }) => (
+            <STableBody
+              rows={rowsData}
+              renderRow={(row) => (
+                <STableRow
+                  status={row.isInactive ? 'inactive' : 'none'}
+                  clickable
+                  onClick={() => onSelectRow(row)}
+                  key={row.id}
+                  minHeight={35}
+                >
+                  {rows.map((render) => render(row))}
+                </STableRow>
+              )}
+            />
+          )}
+        />
+        <STablePagination
+          isLoading={isLoading}
+          total={pagination?.total}
+          limit={pagination?.limit}
+          page={pagination?.page}
+          setPage={setPage}
+          pageSizeOptions={pageSizeOptions}
+          onPageSizeChange={onPageSizeChange}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <STable
@@ -303,9 +353,9 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
         table={tableRows}
         data={data}
         renderHeader={(headers) => <STableHeader>{headers}</STableHeader>}
-        renderBody={({ data, rows }) => (
+        renderBody={({ data: rowsData, rows }) => (
           <STableBody
-            rows={data}
+            rows={rowsData}
             renderRow={(row) => {
               return (
                 <STableRow

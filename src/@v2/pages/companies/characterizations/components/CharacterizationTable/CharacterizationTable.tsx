@@ -34,16 +34,25 @@ import { useCharacterizationActions } from '../../hooks/useCharacterizationActio
 import { CharacterizationTableFilter } from './components/CharacterizationTableFilter/CharacterizationTableFilter';
 import { CharacterizationTableFilterStage } from './components/CharacterizationTableFilter/components/CharacterizationTableFilterStage';
 import { CharacterizationTableSelection } from './components/CharacterizationTableSelection/CharacterizationTableSelection';
+import { CompanyFlowV2StickySection } from 'components/organisms/main/CompanyFlow/CompanyFlowV2StickySection';
 import { useCallback, useEffect, useMemo } from 'react';
 
 const table = TablesSelectEnum.CHARACTERIZATION;
+
+type CharacterizationTableProps = {
+  companyFlowSticky?: boolean;
+  companyFlowBelowTabs?: boolean;
+};
 
 import { COMPANY_SST_PATHNAME } from 'core/constants/characterization-navigation.constants';
 
 const CARACTERIZACAO_ROOT_PATHNAME =
   '/dashboard/empresas/[companyId]/caracterizacao';
 
-export const CharacterizationTable = () => {
+export const CharacterizationTable = ({
+  companyFlowSticky = false,
+  companyFlowBelowTabs = false,
+}: CharacterizationTableProps = {}) => {
   const router = useRouter();
 
   const companyId = router.query.companyId as string;
@@ -204,7 +213,7 @@ export const CharacterizationTable = () => {
 
   const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
-  return (
+  const tableChrome = (
     <>
       <STableSearch
         search={queryParams.search}
@@ -266,52 +275,83 @@ export const CharacterizationTable = () => {
           stages={hasWorkspaceSelected ? statusOptions : []}
         />
       </STableInfoSection>
-      <SCharacterizationTable
-        table={table}
-        filterColumns={{
-          [CharacterizationColumnsEnum.STAGE]: (
-            <Box mx={4} mt={2} mb={2} width={250}>
-              <CharacterizationTableFilterStage
-                selectedStages={selectedStages}
-                stages={stages}
-                onFilterData={onFilterData}
-              />
-            </Box>
-          ),
-        }}
-        filters={queryParams}
-        setFilters={onFilterData}
-        setHiddenColumns={setHiddenColumns}
-        hiddenColumns={hiddenColumns}
-        onSelectRow={(row) =>
-          hasWorkspaceSelected && handleCharacterizationEdit(row)
+    </>
+  );
+
+  const characterizationTableProps = {
+    table,
+    filterColumns: {
+      [CharacterizationColumnsEnum.STAGE]: (
+        <Box mx={4} mt={2} mb={2} width={250}>
+          <CharacterizationTableFilterStage
+            selectedStages={selectedStages}
+            stages={stages}
+            onFilterData={onFilterData}
+          />
+        </Box>
+      ),
+    },
+    filters: queryParams,
+    setFilters: onFilterData,
+    setHiddenColumns,
+    hiddenColumns,
+    onSelectRow: (row) =>
+      hasWorkspaceSelected && handleCharacterizationEdit(row),
+    onEditStage: (stageId, row) =>
+      handleCharacterizationEditStage({ ...row, stageId }),
+    onEditPosition: (order, row) =>
+      handleCharacterizationEditPosition({ ...row, order }),
+    data: hasWorkspaceSelected ? characterizations?.results : [],
+    isLoading: hasWorkspaceSelected ? isLoading : false,
+    pagination: hasWorkspaceSelected ? characterizations?.pagination : undefined,
+    setPage: (page: number) => onFilterData({ page }),
+    setOrderBy: onOrderBy,
+    statusButtonProps: {
+      onAdd: ({ value }: { value: string }) =>
+        hasWorkspaceSelected && (onAddStatus(value) as any),
+      onDelete: (id: number) =>
+        hasWorkspaceSelected && (onDeleteStatus(id) as any),
+      onEdit: ({
+        color,
+        value,
+        id,
+      }: {
+        color: string;
+        value: string;
+        id: number;
+      }) =>
+        hasWorkspaceSelected &&
+        (onEditStatus({ id, color, name: value }) as any),
+      options: hasWorkspaceSelected ? statusOptions : [],
+      isLoading: hasWorkspaceSelected ? isLoadingStatusOptions : false,
+    },
+    pageSizeOptions,
+    onPageSizeChange,
+  };
+
+  if (companyFlowSticky) {
+    return (
+      <CompanyFlowV2StickySection
+        belowModuleTabs={companyFlowBelowTabs}
+        chrome={tableChrome}
+        tableHeader={
+          hasWorkspaceSelected ? (
+            <SCharacterizationTable
+              {...characterizationTableProps}
+              part="header"
+            />
+          ) : null
         }
-        onEditStage={(stageId, row) =>
-          handleCharacterizationEditStage({ ...row, stageId })
-        }
-        onEditPosition={(order, row) =>
-          handleCharacterizationEditPosition({ ...row, order })
-        }
-        data={hasWorkspaceSelected ? characterizations?.results : []}
-        isLoading={hasWorkspaceSelected ? isLoading : false}
-        pagination={
-          hasWorkspaceSelected ? characterizations?.pagination : undefined
-        }
-        setPage={(page) => onFilterData({ page })}
-        setOrderBy={onOrderBy}
-        statusButtonProps={{
-          onAdd: ({ value }) =>
-            hasWorkspaceSelected && (onAddStatus(value) as any),
-          onDelete: (id) => hasWorkspaceSelected && (onDeleteStatus(id) as any),
-          onEdit: ({ color, value, id }) =>
-            hasWorkspaceSelected &&
-            (onEditStatus({ id, color, name: value }) as any),
-          options: hasWorkspaceSelected ? statusOptions : [],
-          isLoading: hasWorkspaceSelected ? isLoadingStatusOptions : false,
-        }}
-        pageSizeOptions={pageSizeOptions}
-        onPageSizeChange={onPageSizeChange}
-      />
+      >
+        <SCharacterizationTable {...characterizationTableProps} part="body" />
+      </CompanyFlowV2StickySection>
+    );
+  }
+
+  return (
+    <>
+      {tableChrome}
+      <SCharacterizationTable {...characterizationTableProps} />
     </>
   );
 };
