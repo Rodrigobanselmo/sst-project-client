@@ -4,6 +4,52 @@ import { RoutesEnum } from 'core/enums/routes.enums';
 
 import { getCharacterizationSstPath } from './characterization-navigation.constants';
 
+export const COMPANIES_LIST_PATHNAME = '/dashboard/empresas';
+
+export const isCompanyFlowPathname = (pathname: string) =>
+  pathname.startsWith('/dashboard/empresas');
+
+type BreadcrumbSegment = {
+  name: string;
+  value: string;
+  onDropSelect?: () => void;
+  action?: () => string | void;
+};
+
+/** Remove "Dashboard" do path e ancora o fluxo em Empresas. */
+export function normalizeCompanyFlowBreadcrumbs(
+  segments: BreadcrumbSegment[],
+  pathname: string,
+): BreadcrumbSegment[] {
+  if (!isCompanyFlowPathname(pathname)) return segments;
+
+  const withoutDashboard = segments.filter(
+    (segment) =>
+      segment.value !== 'dashboard' &&
+      segment.name?.toLowerCase() !== 'dashboard',
+  );
+
+  const normalized = withoutDashboard.map((segment) =>
+    segment.value === 'empresas'
+      ? {
+          ...segment,
+          name: 'Empresas',
+          action: () =>
+            COMPANIES_LIST_PATHNAME.replace(/^\//, ''),
+        }
+      : segment,
+  );
+
+  if (
+    pathname === COMPANIES_LIST_PATHNAME ||
+    pathname === `${COMPANIES_LIST_PATHNAME}/`
+  ) {
+    return normalized.filter((segment) => segment.value === 'empresas');
+  }
+
+  return normalized;
+}
+
 export const COMPANY_HOME_PATHNAME =
   '/dashboard/empresas/[companyId]/novo/[stage]';
 

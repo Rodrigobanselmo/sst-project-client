@@ -40,6 +40,9 @@ export function Location(): JSX.Element {
       {!isTablet && (
         <Breadcrumbs
           aria-label="breadcrumb"
+          maxItems={6}
+          itemsBeforeCollapse={2}
+          itemsAfterCollapse={1}
           sx={{
             marginTop: -3,
           }}

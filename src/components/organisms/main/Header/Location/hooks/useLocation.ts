@@ -26,6 +26,8 @@ import {
   getAbsenteeismListPath,
   getAbsenteeismMetricsPath,
   getFormsAppliedListPath,
+  isCompanyFlowPathname,
+  normalizeCompanyFlowBreadcrumbs,
 } from 'core/constants/company-breadcrumb.constants';
 import { FORM_TAB_ENUM, PageRoutes } from '@v2/constants/pages/routes';
 import { CompanyActionEnum } from 'core/enums/company-action.enum';
@@ -248,7 +250,7 @@ export const useLocation = () => {
     };
   }, [company, companyId, onDropSelect, query?.characterization, query.docId]);
 
-  const routes = useMemo(() => {
+  const rawRoutes = useMemo(() => {
     const notIncluded = [
       {
         pathname: '/dashboard/empresas/[companyId]/novo/[stage]',
@@ -269,7 +271,11 @@ export const useLocation = () => {
       )
       .filter((route) => route && ![...notIncluded].includes(route.value));
 
-    if (routesPath.length <= 1 && routeMap[RoutesParamsEnum.BRAND]) {
+    if (
+      routesPath.length <= 1 &&
+      routeMap[RoutesParamsEnum.BRAND] &&
+      !isCompanyFlowPathname(pathname)
+    ) {
       routesPath.unshift(routeMap[RoutesParamsEnum.BRAND] as any);
     }
 
@@ -459,6 +465,11 @@ export const useLocation = () => {
     query.stage,
     routeMap,
   ]);
+
+  const routes = useMemo(
+    () => normalizeCompanyFlowBreadcrumbs(rawRoutes, pathname),
+    [rawRoutes, pathname],
+  );
 
   const getRoutePath = (routeValue: IRouteMapValue, index: number) => {
     if (routeValue?.action) {
