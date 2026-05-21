@@ -16,6 +16,7 @@ import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { initialEditDocumentModelState } from 'components/organisms/modals/ModalEditDocumentModel/hooks/useEditDocumentModel';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 
@@ -29,6 +30,8 @@ import {
   useQueryDocumentModels,
 } from 'core/services/hooks/queries/useQueryDocumentModels/useQueryDocumentModels';
 import { dateToString } from 'core/utils/date/date-format';
+
+import { DocumentModelClassificationChips } from './DocumentModelClassificationChips';
 
 export const DocumentModelTable: FC<
   { children?: any } & BoxProps & {
@@ -56,7 +59,7 @@ export const DocumentModelTable: FC<
     count,
   } = useQueryDocumentModels(
     page,
-    { search, ...query },
+    { search, showInactive: true, ...query },
     rowsPerPage,
     companyId,
   );
@@ -88,7 +91,8 @@ export const DocumentModelTable: FC<
 
   const header: (BoxProps & { text: string; column: string })[] = [
     { text: 'Nome', column: 'minmax(150px, 200px)' },
-    { text: 'Descrição', column: 'minmax(200px, 1fr)' },
+    { text: 'Descrição', column: 'minmax(180px, 1fr)' },
+    { text: 'Classificações', column: 'minmax(140px, 220px)' },
     { text: 'Tipo', column: '100px' },
     { text: 'Criação', column: 'minmax(100px, 130px)' },
     { text: 'Status', column: '150px' },
@@ -129,10 +133,18 @@ export const DocumentModelTable: FC<
                 onClick={() => onSelectRow(row)}
                 clickable
                 key={row.id}
-                status={row.status == 'CANCELED' ? 'inactive' : undefined}
+                status={
+                  row.status === StatusEnum.INACTIVE ||
+                  row.status == 'CANCELED'
+                    ? 'inactive'
+                    : undefined
+                }
               >
                 <TextIconRow text={row.name} />
                 <TextIconRow text={row?.description?.trim()} />
+                <DocumentModelClassificationChips
+                  classifications={row.classifications}
+                />
                 <TextIconRow text={documentTypeMap[row.type]?.content} />
                 <TextIconRow text={`${dateToString(row.created_at)}`} />
                 <StatusSelect

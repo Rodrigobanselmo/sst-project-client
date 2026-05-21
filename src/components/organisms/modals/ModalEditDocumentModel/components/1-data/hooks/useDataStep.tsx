@@ -5,6 +5,12 @@ import { useWizard } from 'react-use-wizard';
 import { useCompanyTenant } from 'core/hooks/useCompanyTenant';
 import { ICreateDocumentModel } from 'core/services/hooks/mutations/manager/document-model/useMutCreateDocumentModel/useMutCreateDocumentModel';
 
+import {
+  getDocumentModelClassificationConflict,
+  normalizeDocumentModelClassifications,
+} from 'project/enum/document-model-classification.enum';
+
+import { getDocumentModelMetadataPatch } from '../../../hooks/useEditDocumentModel';
 import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
 
 export const useDataStep = (props: IUseDocumentModel) => {
@@ -42,6 +48,17 @@ export const useDataStep = (props: IUseDocumentModel) => {
     if (error) return;
     if (!data.type) return;
 
+    const classifications = normalizeDocumentModelClassifications(
+      data.classifications,
+    );
+    const classificationConflict =
+      getDocumentModelClassificationConflict(classifications);
+
+    if (classificationConflict) {
+      setError('type', { message: classificationConflict });
+      return;
+    }
+
     const submitData: ICreateDocumentModel & { id: number } = {
       name,
       description,
@@ -49,6 +66,7 @@ export const useDataStep = (props: IUseDocumentModel) => {
       id: data.id,
       copyFromId: data.copyFromId,
       type: data.type,
+      classifications,
     };
 
     const isSameCompany = getIsSameCompany(data.companyId);
@@ -76,7 +94,14 @@ export const useDataStep = (props: IUseDocumentModel) => {
           create();
         }
       } else {
-        await updateMutation.mutateAsync(submitData);
+        await updateMutation.mutateAsync({
+          name: submitData.name,
+          description: submitData.description,
+          companyId: submitData.companyId,
+          type: submitData.type,
+          classifications: submitData.classifications,
+          ...getDocumentModelMetadataPatch(data),
+        });
       }
     } catch (error) {}
   };

@@ -11,7 +11,10 @@ import { useMutPreviewDocumentModel } from 'core/services/hooks/mutations/checkl
 import { IQueryDocumentModelData } from 'core/services/hooks/queries/useQueryDocumentModelData/useQueryDocumentModelData';
 import { queryClient } from 'core/services/queryClient';
 
-import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
+import {
+  getDocumentModelMetadataPatch,
+  IUseDocumentModel,
+} from '../../../hooks/useEditDocumentModel';
 
 export const useViewDocumentModel = (props: IUseDocumentModel) => {
   const { onClose, data, dispatch, model } = props;
@@ -60,9 +63,8 @@ export const useViewDocumentModel = (props: IUseDocumentModel) => {
 
     props.updateMutation
       .mutateAsync({
-        id: data.id,
+        ...getDocumentModelMetadataPatch(data),
         data: modelData,
-        companyId: data.companyId,
       })
       .then(() => {
         dispatch(setSaveDocument());

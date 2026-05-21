@@ -8,16 +8,33 @@ import { InputForm } from 'components/molecules/form/input';
 import { SelectForm } from 'components/molecules/form/select';
 import { DocumentModelSelect } from 'components/organisms/inputSelect/DocumentModelSelect/DocumentModelSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
+import {
+  getDocumentModelClassificationConflict,
+  normalizeDocumentModelClassifications,
+} from 'project/enum/document-model-classification.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { StatusEnum } from 'project/enum/status.enum';
+import { useSnackbar } from 'notistack';
 
 import { documentTypeList } from 'core/constants/maps/document-type.map';
 import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
 
+import { DocumentModelClassificationEditor } from '../DocumentModelClassificationEditor';
+import { getDocumentModelMetadataPatch } from '../../../../hooks/useEditDocumentModel';
 import { IUseData } from '../../hooks/useDataStep';
 
 export const DataContent = (props: IUseData) => {
-  const { control, setData, setValue, data, isEdit, setChangedState } = props;
+  const {
+    control,
+    setData,
+    setValue,
+    data,
+    isEdit,
+    setChangedState,
+    updateMutation,
+  } = props;
+
+  const { enqueueSnackbar } = useSnackbar();
 
   const otherTypeOptions = useMemo(
     () => documentTypeList.filter((o) => o.value !== data?.type),
@@ -172,6 +189,40 @@ export const DataContent = (props: IUseData) => {
         />
       </Box>
 
+      {data?.type && (
+        <Box maxWidth={['100%', 800]}>
+          <DocumentModelClassificationEditor
+            value={data.classifications}
+            onChange={(classifications) => {
+              const normalized =
+                normalizeDocumentModelClassifications(classifications);
+              const conflict =
+                getDocumentModelClassificationConflict(normalized);
+
+              if (conflict) {
+                enqueueSnackbar(conflict, { variant: 'error' });
+                return;
+              }
+
+              setData((d) => ({
+                ...d,
+                classifications: normalized,
+                isChanged: true,
+              }));
+
+              if (isEdit && data.id) {
+                updateMutation.mutate({
+                  ...getDocumentModelMetadataPatch({
+                    ...data,
+                    classifications: normalized,
+                  }),
+                });
+              }
+            }}
+          />
+        </Box>
+      )}
+
       {!isEdit && data?.type && (
         <SFlex direction="column" gap={4} mb={5} mt={3} maxWidth={['100%']}>
           <DocumentModelSelect
@@ -243,17 +294,25 @@ export const DataContent = (props: IUseData) => {
       )}
 
       {isEdit && (
-        <SFlex gap={8} mt={10} align="flex-start">
+        <SFlex gap={8} mt={4} align="flex-start" direction="column">
           <StatusSelect
             selected={data.status}
             statusOptions={[StatusEnum.ACTIVE, StatusEnum.INACTIVE]}
             handleSelectMenu={(option: any) => {
-              if (option?.value)
-                setData({
-                  ...data,
-                  status: option.value,
-                  isChanged: true,
+              if (!option?.value) return;
+              setData({
+                ...data,
+                status: option.value,
+                isChanged: true,
+              });
+              if (data.id) {
+                updateMutation.mutate({
+                  ...getDocumentModelMetadataPatch({
+                    ...data,
+                    status: option.value,
+                  }),
                 });
+              }
             }}
           />
         </SFlex>

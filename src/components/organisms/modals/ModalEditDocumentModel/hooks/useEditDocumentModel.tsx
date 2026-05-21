@@ -5,6 +5,10 @@ import { Box } from '@mui/material';
 import clone from 'clone';
 import SText from 'components/atoms/SText';
 import { parseInlineStyleText } from 'components/organisms/documentModel/utils/parseInlineStyleText';
+import {
+  DocumentModelClassificationEnum,
+  normalizeDocumentModelClassifications,
+} from 'project/enum/document-model-classification.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 import {
@@ -41,7 +45,21 @@ export const initialEditDocumentModelState = {
   isChanged: true,
   sync: false,
   status: StatusEnum.ACTIVE as StatusEnum | undefined,
+  classifications: [] as DocumentModelClassificationEnum[],
 };
+
+/** Metadados do modelo enviados em todo PATCH (status + classificações). */
+export const getDocumentModelMetadataPatch = (data: {
+  id: number;
+  companyId?: string;
+  status?: StatusEnum;
+  classifications?: DocumentModelClassificationEnum[];
+}) => ({
+  id: data.id,
+  companyId: data.companyId,
+  ...(data.status != null ? { status: data.status } : {}),
+  classifications: normalizeDocumentModelClassifications(data.classifications),
+});
 
 const modalName = ModalEnum.DOCUMENT_MODEL_EDIT_DATA;
 
@@ -203,6 +221,9 @@ export const useEditDocumentModel = () => {
           ...oldData,
           ...initialData,
           ...model,
+          classifications: normalizeDocumentModelClassifications(
+            model?.classifications ?? initialData?.classifications,
+          ),
         };
         const needSynchronization = (
           store.getState().document as IDocumentSlice

@@ -1,5 +1,6 @@
 import { useQuery } from 'react-query';
 
+import { DocumentModelClassificationEnum } from 'project/enum/document-model-classification.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import queryString from 'query-string';
 
@@ -19,6 +20,7 @@ export interface IQueryDocumentModels {
   type?: DocumentTypeEnum;
   showInactive?: boolean;
   all?: boolean;
+  classifications?: DocumentModelClassificationEnum[];
 }
 
 export const queryDocumentModels = async (

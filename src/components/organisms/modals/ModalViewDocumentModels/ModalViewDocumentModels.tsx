@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { FC, useEffect, useMemo, useState } from 'react';
 import { Wizard } from 'react-use-wizard';
 
 import { Box } from '@mui/material';
@@ -11,7 +11,9 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { STabs } from 'components/molecules/STabs';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { DocumentModelTable } from 'components/organisms/tables/DocumentModelTable/DocumentModelTable';
+import { DocumentModelClassificationEnum } from 'project/enum/document-model-classification.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
+import { DocumentModelPgrClassificationFilters } from 'components/organisms/tables/DocumentModelTable/DocumentModelPgrClassificationFilters';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -32,6 +34,32 @@ export const ModalViewDocumentModels: FC = () => {
   const { onCloseModal } = useModal();
   const [data, setData] = useState(initialDocumentModelsViewState);
   const [activeStep, setActiveStep] = useState(0);
+  const [classificationFilters, setClassificationFilters] = useState<
+    DocumentModelClassificationEnum[]
+  >([]);
+
+  const typeMap: Record<number, DocumentTypeEnum> = {
+    0: DocumentTypeEnum.PGR,
+    1: DocumentTypeEnum.PCSMO,
+    2: DocumentTypeEnum.LTCAT,
+    3: DocumentTypeEnum.PERICULOSIDADE,
+    4: DocumentTypeEnum.INSALUBRIDADE,
+    5: DocumentTypeEnum.FRPS,
+  };
+
+  const activeDocumentType = data.query?.type ?? typeMap[activeStep];
+
+  const tableQuery = useMemo(
+    () => ({
+      showInactive: true as const,
+      ...(activeDocumentType && { type: activeDocumentType }),
+      ...(classificationFilters.length > 0 && {
+        classifications: classificationFilters,
+      }),
+      ...data.query,
+    }),
+    [activeDocumentType, classificationFilters, data.query],
+  );
 
   useEffect(() => {
     const initialData = getModalData(
@@ -62,15 +90,6 @@ export const ModalViewDocumentModels: FC = () => {
 
   const buttons = [{}] as IModalButton[];
 
-  const typeMap: Record<number, DocumentTypeEnum> = {
-    0: DocumentTypeEnum.PGR,
-    1: DocumentTypeEnum.PCSMO,
-    2: DocumentTypeEnum.LTCAT,
-    3: DocumentTypeEnum.PERICULOSIDADE,
-    4: DocumentTypeEnum.INSALUBRIDADE,
-    5: DocumentTypeEnum.FRPS,
-  };
-
   return (
     <SModal
       {...registerModal(modalName)}
@@ -87,10 +106,7 @@ export const ModalViewDocumentModels: FC = () => {
 
         <Box mt={8} mb={20}>
           <DocumentModelTable
-            query={{
-              ...(typeMap[activeStep] && { type: typeMap[activeStep] }),
-              ...data.query,
-            }}
+            query={tableQuery}
             title={data.title}
             companyId={data.companyId}
           >
@@ -99,6 +115,7 @@ export const ModalViewDocumentModels: FC = () => {
                 value={activeStep}
                 onChange={(_, value) => {
                   setActiveStep(value);
+                  setClassificationFilters([]);
                 }}
                 shadow
                 options={[
@@ -121,6 +138,12 @@ export const ModalViewDocumentModels: FC = () => {
                     label: 'FRPS',
                   },
                 ]}
+              />
+            )}
+            {activeDocumentType === DocumentTypeEnum.PGR && (
+              <DocumentModelPgrClassificationFilters
+                active={classificationFilters}
+                onChange={setClassificationFilters}
               />
             )}
           </DocumentModelTable>

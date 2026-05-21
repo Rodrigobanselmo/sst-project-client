@@ -8,6 +8,7 @@ import {
   IDocumentSlice,
   setSaveDocument,
 } from 'store/reducers/document/documentSlice';
+import { getDocumentModelMetadataPatch } from '../../../hooks/useEditDocumentModel';
 import { IUseDocumentModel } from '../../../hooks/useEditDocumentModel';
 import { queryClient } from 'core/services/queryClient';
 import { QueryEnum } from 'core/enums/query.enums';
@@ -38,9 +39,8 @@ export const useDataStep = (props: IUseDocumentModel) => {
 
     props.updateMutation
       .mutateAsync({
-        id: data.id,
+        ...getDocumentModelMetadataPatch(data),
         data: modelData,
-        companyId: data.companyId,
       })
       .then(() => {
         dispatch(setSaveDocument());

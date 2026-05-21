@@ -1,6 +1,7 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
+import { DocumentModelClassificationEnum } from 'project/enum/document-model-classification.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
@@ -18,6 +19,7 @@ export interface ICreateDocumentModel {
   copyFromId?: number;
   description?: string;
   type: DocumentTypeEnum;
+  classifications?: DocumentModelClassificationEnum[];
 }
 
 export async function upsertDocumentModel(

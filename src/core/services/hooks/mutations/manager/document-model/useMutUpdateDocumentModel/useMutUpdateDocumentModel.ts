@@ -1,6 +1,7 @@
 import { useMutation } from 'react-query';
 
 import { useSnackbar } from 'notistack';
+import { DocumentModelClassificationEnum } from 'project/enum/document-model-classification.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -23,6 +24,7 @@ export interface IUpdateDocumentModel {
   description?: string;
   type?: DocumentTypeEnum;
   status?: StatusEnum;
+  classifications?: DocumentModelClassificationEnum[];
   data?: IDocumentModelData;
 }
 
