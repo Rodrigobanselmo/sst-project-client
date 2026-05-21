@@ -33,6 +33,8 @@ export const initialEditDocumentModelState = {
   companyId: undefined as string | undefined,
   copyFromId: undefined as number | undefined,
   copyFrom: undefined as IDocumentModel | undefined,
+  /** Tipo escolhido no fluxo “copiar de outro tipo”. */
+  copyFromOtherType: undefined as DocumentTypeEnum | undefined,
   name: undefined as string | undefined,
   description: undefined as string | undefined,
   type: undefined as DocumentTypeEnum | undefined,

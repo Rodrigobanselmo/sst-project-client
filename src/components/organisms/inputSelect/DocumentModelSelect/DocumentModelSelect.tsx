@@ -13,15 +13,14 @@ import SText from 'components/atoms/SText';
 
 export const DocumentModelSelect: FC<
   { children?: any } & IDocumentModelSelectProps
-> = ({ onChange, inputProps, query, selectAllTypes, ...props }) => {
+> = ({ onChange, inputProps, query, ...props }) => {
   const [search, setSearch] = useState('');
 
   const handleSearchChange = useDebouncedCallback((value: string) => {
     setSearch(value);
   }, 300);
 
-  //! remove this deletion when all models are created (added to facilitate alex to copy)
-  if (query && selectAllTypes) delete query?.type;
+  const hasTypeFilter = Boolean(query?.type);
 
   const { data: docModels, isLoading: loadTables } = useQueryDocumentModels(
     1,
@@ -29,7 +28,9 @@ export const DocumentModelSelect: FC<
     20,
   );
 
-  if (!docModels?.length && docModels?.length != 0)
+  const options = hasTypeFilter ? docModels : [];
+
+  if (!options?.length && options?.length != 0)
     return (
       <>
         <SText fontSize={14} mb={5}>
@@ -44,7 +45,7 @@ export const DocumentModelSelect: FC<
       getOptionLabel={(option) =>
         typeof option != 'string' && option?.name ? `${option.name}` : ''
       }
-      options={docModels}
+      options={options}
       loading={loadTables}
       onInputChange={(e, v) => handleSearchChange(v)}
       filterOptions={(e) => e}
