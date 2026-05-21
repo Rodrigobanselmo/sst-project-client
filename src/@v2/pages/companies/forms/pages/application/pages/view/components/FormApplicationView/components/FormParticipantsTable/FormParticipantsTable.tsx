@@ -43,9 +43,10 @@ import { FormParticipantsRecorteExportButton } from './components/FormParticipan
 import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
-import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
-import { useMutateSendFormReminder } from '@v2/services/forms/form-participants';
-import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
+import {
+  FORM_REMINDER_LIMIT,
+  useSendFormReminderFlow,
+} from '@v2/services/forms/form-participants/send-form-reminder';
 import {
   Alert,
   Box,
@@ -314,43 +315,29 @@ export const FormParticipantsTable = ({
   const isAcceptingResponses =
     formApplication?.status === FormApplicationStatusEnum.PROGRESS;
 
-  const REMINDER_LIMIT = 4;
   const reminderCount = formApplication?.reminderCount ?? 0;
-  const isReminderLimitReached = reminderCount >= REMINDER_LIMIT;
+  const isReminderLimitReached = reminderCount >= FORM_REMINDER_LIMIT;
 
-  const sendReminderMutation = useMutateSendFormReminder();
-  const { showConfirmation } = useConfirmationModal();
-  const { showSnackBar } = useSystemSnackbar();
+  const { sendReminder, isSending: isSendingReminder } = useSendFormReminderFlow();
 
-  const handleSendReminder = useCallback(async () => {
-    if (!formApplication || !isAcceptingResponses || isReminderLimitReached) return;
+  const handleSendReminder = useCallback(() => {
+    if (!formApplication) return;
 
-    const confirmed = await showConfirmation({
-      title: 'Enviar E-mail de Reforço',
-      message: `O e-mail de reforço será enviado apenas para participantes que ainda não responderam ao formulário.\n\nParticipantes que já responderam não receberão.\n\nEste envio consome 1 das ${REMINDER_LIMIT - reminderCount} rodadas restantes (${reminderCount}/${REMINDER_LIMIT} utilizadas).`,
-      confirmText: 'Enviar Reforço',
-      cancelText: 'Cancelar',
-      variant: 'info',
+    void sendReminder({
+      companyId,
+      applicationId,
+      reminderCount,
+      isAcceptingResponses,
+      isShareableLink: formApplication.isShareableLink,
     });
-
-    if (!confirmed) return;
-
-    sendReminderMutation.mutateAsync(
-      { companyId, applicationId },
-      {
-        onSuccess: (data) => {
-          const parts: string[] = [];
-          parts.push(`${data.emailsSent} e-mail(s) enviado(s)`);
-          if (data.skippedAlreadyAnswered > 0) {
-            parts.push(`${data.skippedAlreadyAnswered} já responderam`);
-          }
-          parts.push(`Reforços: ${data.reminderCount}/${data.reminderLimit}`);
-
-          showSnackBar(parts.join(' · '), { type: 'success' });
-        },
-      },
-    );
-  }, [formApplication, isAcceptingResponses, isReminderLimitReached, reminderCount, companyId, applicationId, showConfirmation, sendReminderMutation, showSnackBar]);
+  }, [
+    applicationId,
+    companyId,
+    formApplication,
+    isAcceptingResponses,
+    reminderCount,
+    sendReminder,
+  ]);
 
   const hierarchyFilterDescription = useMemo(() => {
     if (!queryParams.hierarchies?.length) return '';
@@ -518,17 +505,23 @@ export const FormParticipantsTable = ({
           />
           <STableButton
             onClick={handleSendReminder}
-            text={`Enviar Reforço (${reminderCount}/${REMINDER_LIMIT})`}
+            text={`Enviar Reforço (${reminderCount}/${FORM_REMINDER_LIMIT})`}
             icon={<SIconEmail fontSize="16px" />}
             color="primary"
-            loading={sendReminderMutation.isPending}
-            disabled={!isAcceptingResponses || isReminderLimitReached}
+            loading={isSendingReminder}
+            disabled={
+              !isAcceptingResponses ||
+              formApplication.isShareableLink ||
+              isReminderLimitReached
+            }
             tooltip={
               isReminderLimitReached
-                ? `Limite de ${REMINDER_LIMIT} rodadas de reforço atingido`
+                ? `Limite de ${FORM_REMINDER_LIMIT} rodadas de reforço atingido`
                 : !isAcceptingResponses
                   ? 'Formulário não está aceitando respostas'
-                  : `Enviar e-mail de reforço para quem ainda não respondeu (${reminderCount}/${REMINDER_LIMIT})`
+                  : formApplication.isShareableLink
+                    ? 'Reforço por e-mail não se aplica a link único compartilhável'
+                    : `Enviar e-mail de reforço para quem ainda não respondeu (${reminderCount}/${FORM_REMINDER_LIMIT})`
             }
           />
           {/* <STableAddButton onClick={onFormParticipantAdd} /> */}

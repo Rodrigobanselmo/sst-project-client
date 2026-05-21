@@ -21,6 +21,7 @@ import { FormApplicationStatusTranslate } from '@v2/models/form/translations/for
 import { useFetchBrowseFormApplication } from '@v2/services/forms/form-application/browse-form-application/hooks/useFetchBrowseFormApplication';
 import { FormApplicationOrderByEnum } from '@v2/services/forms/form-application/browse-form-application/service/browse-form-application.types';
 import { readFormApplication } from '@v2/services/forms/form-application/read-form-application/service/read-form-application.service';
+import { isFormReminderEligible } from '@v2/services/forms/form-participants/send-form-reminder';
 import { useFetch } from '@v2/hooks/api/useFetch';
 import { ActionPlanStatusEnum } from '@v2/models/security/enums/action-plan-status.enum';
 import { browseActionPlan } from '@v2/services/security/action-plan/action-plan/browse-action-plan/service/browse-action-plan.service';
@@ -152,10 +153,19 @@ export const useCompanyStep = () => {
     () => selectedFormsToShow.map((item) => item.id),
     [selectedFormsToShow],
   );
-  const { data: selectedFormsAverageTimeById } = useFetch<Record<string, number | null>>({
+  const { data: selectedFormsDetailsById } = useFetch<
+    Record<
+      string,
+      {
+        averageTimeSpent: number | null;
+        reminderCount: number;
+        isShareableLink: boolean;
+      }
+    >
+  >({
     queryKey: [
       QueryEnum.COMPANY,
-      'home-forms-average-time-by-id',
+      'home-forms-details-by-id',
       company.id,
       selectedFormIds,
     ],
@@ -171,13 +181,29 @@ export const useCompanyStep = () => {
           return {
             applicationId,
             averageTimeSpent: application.averageTimeSpent,
+            reminderCount: application.reminderCount ?? 0,
+            isShareableLink: application.isShareableLink,
           };
         }),
       );
 
       return details.reduce(
-        (acc, item) => ({ ...acc, [item.applicationId]: item.averageTimeSpent }),
-        {} as Record<string, number | null>,
+        (acc, item) => ({
+          ...acc,
+          [item.applicationId]: {
+            averageTimeSpent: item.averageTimeSpent,
+            reminderCount: item.reminderCount,
+            isShareableLink: item.isShareableLink,
+          },
+        }),
+        {} as Record<
+          string,
+          {
+            averageTimeSpent: number | null;
+            reminderCount: number;
+            isShareableLink: boolean;
+          }
+        >,
       );
     },
   });
@@ -465,14 +491,29 @@ export const useCompanyStep = () => {
   }, [onStackOpenModal]);
 
   const formsLaunchGroup = useMemo(() => {
-    const applications = selectedFormsToShow.map((application) => ({
+    const applications = selectedFormsToShow.map((application) => {
+      const details = selectedFormsDetailsById?.[application.id];
+      const isAcceptingResponses =
+        application.status === FormApplicationStatusEnum.PROGRESS;
+
+      return {
       id: application.id,
       name: application.name || application.form?.name || 'Formulário',
+      status: application.status,
       statusLabel: FormApplicationStatusTranslate[application.status],
       participationPercent: getHomeFormParticipationPercent(
         Number(application.totalAnswers) || 0,
         Number(application.totalParticipants) || 0,
       ),
+      reminderCount: details?.reminderCount ?? 0,
+      isAcceptingResponses,
+      isShareableLink: details?.isShareableLink ?? true,
+      canSendReminder:
+        details != null &&
+        isFormReminderEligible({
+          isAcceptingResponses,
+          isShareableLink: details.isShareableLink,
+        }),
       infos: [
         { label: 'Respostas', value: application.totalAnswers ?? '--' },
         {
@@ -481,12 +522,11 @@ export const useCompanyStep = () => {
         },
         {
           label: 'Tempo médio',
-          value: formatAverageTime(
-            selectedFormsAverageTimeById?.[application.id],
-          ),
+          value: formatAverageTime(details?.averageTimeSpent),
         },
       ],
-    }));
+    };
+    });
 
     return {
       applications,
@@ -500,7 +540,7 @@ export const useCompanyStep = () => {
     formatAverageTime,
     formsTotal?.pagination?.total,
     handleGoForms,
-    selectedFormsAverageTimeById,
+    selectedFormsDetailsById,
     selectedFormsToShow,
   ]);
 

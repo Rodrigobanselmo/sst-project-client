@@ -7,19 +7,29 @@ import {
   Popover,
   Typography,
 } from '@mui/material';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/router';
 
 import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
 import { PageRoutes } from '@v2/constants/pages/routes';
+import {
+  FORM_REMINDER_LIMIT,
+  useSendFormReminderFlow,
+} from '@v2/services/forms/form-participants/send-form-reminder';
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { STBox } from 'components/atoms/SActionGroupButton/styles';
+import { QueryEnum } from 'core/enums/query.enums';
 
 export type HomeFormLaunchItem = {
   id: string;
   name: string;
   statusLabel: string;
   participationPercent: number;
+  reminderCount: number;
+  isAcceptingResponses: boolean;
+  isShareableLink: boolean;
+  canSendReminder: boolean;
   infos: { label: string; value: string | number }[];
 };
 
@@ -70,14 +80,19 @@ function FormItemPreview({ item }: { item: HomeFormLaunchItem }) {
 function FormLaunchRow({
   item,
   companyId,
+  onSendReminder,
+  isSendingReminder,
 }: {
   item: HomeFormLaunchItem;
   companyId: string;
+  onSendReminder: (item: HomeFormLaunchItem) => void;
+  isSendingReminder: boolean;
 }) {
   const router = useRouter();
   const rowRef = useRef<HTMLDivElement>(null);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const isReminderLimitReached = item.reminderCount >= FORM_REMINDER_LIMIT;
 
   const openPreview = useCallback(() => {
     if (closeTimerRef.current) {
@@ -101,6 +116,27 @@ function FormLaunchRow({
   }, [companyId, item.id, router]);
 
   const barColor = getParticipationColor(item.participationPercent);
+
+  const handleReminderClick = useCallback(
+    (event: React.MouseEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      if (
+        !item.canSendReminder ||
+        isReminderLimitReached ||
+        isSendingReminder
+      ) {
+        return;
+      }
+      onSendReminder(item);
+    },
+    [
+      isReminderLimitReached,
+      isSendingReminder,
+      item,
+      onSendReminder,
+    ],
+  );
 
   return (
     <>
@@ -133,9 +169,60 @@ function FormLaunchRow({
           >
             {item.name}
           </SText>
-          <SText fontSize={11} color="text.secondary" noWrap>
-            {item.statusLabel}
-          </SText>
+          <SFlex align="center" gap={0.5} minWidth={0}>
+            <SText
+              fontSize={11}
+              color="text.secondary"
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                minWidth: 0,
+              }}
+            >
+              {item.statusLabel}
+            </SText>
+            {item.canSendReminder && (
+              <>
+                <SText fontSize={11} color="text.secondary" sx={{ flexShrink: 0 }}>
+                  ·
+                </SText>
+                <SText
+                  component="span"
+                  fontSize={10}
+                  fontWeight={500}
+                  onClick={handleReminderClick}
+                  title={
+                    isReminderLimitReached
+                      ? `Limite de ${FORM_REMINDER_LIMIT} rodadas de reforço atingido`
+                      : `Enviar e-mail de reforço (${item.reminderCount}/${FORM_REMINDER_LIMIT})`
+                  }
+                  sx={{
+                    flexShrink: 0,
+                    color: isReminderLimitReached
+                      ? 'text.disabled'
+                      : 'primary.main',
+                    cursor:
+                      isReminderLimitReached || isSendingReminder
+                        ? 'default'
+                        : 'pointer',
+                    textDecoration:
+                      isReminderLimitReached || isSendingReminder
+                        ? 'none'
+                        : 'underline',
+                    '&:hover': {
+                      textDecoration:
+                        isReminderLimitReached || isSendingReminder
+                          ? 'none'
+                          : 'underline',
+                    },
+                  }}
+                >
+                  Reforço ({item.reminderCount}/{FORM_REMINDER_LIMIT})
+                </SText>
+              </>
+            )}
+          </SFlex>
         </Box>
         <LinearProgress
           variant="determinate"
@@ -184,6 +271,27 @@ export function CompanyHomeFormsGroupCard({
   emptyMessage,
   onViewAll,
 }: Props): JSX.Element {
+  const queryClient = useQueryClient();
+  const { sendReminder, isSending } = useSendFormReminderFlow();
+
+  const handleSendReminder = useCallback(
+    (item: HomeFormLaunchItem) => {
+      void sendReminder({
+        companyId,
+        applicationId: item.id,
+        reminderCount: item.reminderCount,
+        isAcceptingResponses: item.isAcceptingResponses,
+        isShareableLink: item.isShareableLink,
+        onSuccess: () => {
+          void queryClient.invalidateQueries({
+            queryKey: [QueryEnum.COMPANY, 'home-forms-details-by-id', companyId],
+          });
+        },
+      });
+    },
+    [companyId, queryClient, sendReminder],
+  );
+
   return (
     <STBox
       onClick={isEmpty ? onViewAll : undefined}
@@ -237,7 +345,13 @@ export function CompanyHomeFormsGroupCard({
           </SText>
         ) : (
           applications.map((item) => (
-            <FormLaunchRow key={item.id} item={item} companyId={companyId} />
+            <FormLaunchRow
+              key={item.id}
+              item={item}
+              companyId={companyId}
+              onSendReminder={handleSendReminder}
+              isSendingReminder={isSending}
+            />
           ))
         )}
       </Box>
