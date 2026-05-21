@@ -5,21 +5,26 @@ import ReportProblemOutlinedIcon from '@mui/icons-material/ReportProblemOutlined
 import { Box, Icon } from '@mui/material';
 import SIconButton from 'components/atoms/SIconButton';
 import STooltip from 'components/atoms/STooltip';
-import { SMenuSimpleFilter } from 'components/molecules/SMenuSearch/SMenuSimpleFilter';
+import { RiskSelectFilterBar } from './RiskSelectFilterBar';
 import { initialAddRiskState } from 'components/organisms/modals/ModalAddRisk/hooks/useAddRisk';
 import { RiskEnum } from 'project/enum/risk.enums';
 
 import EditIcon from 'assets/icons/SEditIcon';
+import { STagRisk } from 'components/atoms/STagRisk';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
+import { riskMatchesActiveFilters } from 'core/utils/risk-chip.util';
 import { sortString } from 'core/utils/sorts/string.sort';
 
 import { useQueryAllRisk } from '../../../../core/services/hooks/queries/useQueryRiskAll';
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
-import { riskFilter, riskFilterWithPsic } from './constants/filters';
+import {
+  riskFilterErgonomicRow,
+  riskFilterMainRow,
+} from './constants/filters';
 import { ITypeSelectProps } from './types';
 
 export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
@@ -86,14 +91,7 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
 
     if (activeFilters.length > 0)
       return filterData
-        .filter(
-          (risk) =>
-            activeFilters.includes(risk.type) ||
-            (activeFilters.includes('PSIC') &&
-              risk?.subTypes?.some(
-                (subType) => subType.sub_type.name === 'Psicossociais',
-              )),
-        )
+        .filter((risk) => riskMatchesActiveFilters(risk, activeFilters))
         .sort((a, b) => sortString(a, b, 'name'))
         .map(({ cas, ...filter }) => ({
           cas: onlyNumbers(cas || ''),
@@ -118,38 +116,22 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
       handleSelectMenu={handleSelectRisk}
       selected={selectedRiskIds || []}
       tooltipTitle={`${riskLength} fatores de risco`}
+      listMaxHeight="min(560px, calc(100vh - 200px))"
       renderFilter={() => (
-        <SMenuSimpleFilter
-          options={riskFilterWithPsic}
+        <RiskSelectFilterBar
+          mainRow={riskFilterMainRow}
+          ergonomicRow={riskFilterErgonomicRow}
           activeFilters={activeFilters}
           onClickFilter={handleActiveRisk}
         />
       )}
-      startAdornment={(options: IRiskFactors | undefined) => (
-        <Box
-          sx={{
-            backgroundColor: options?.subTypes?.some(
-              (subType) => subType.sub_type.name === 'Psicossociais',
-            )
-              ? 'risk.psic'
-              : `risk.${options?.type.toLowerCase()}`,
-            color: 'common.white',
-            px: 3,
-            py: '1px',
-            borderRadius: 3,
-            fontSize: '0.7rem',
-            mr: 6,
-          }}
-        >
-          {options?.subTypes?.some(
-            (subType) => subType.sub_type.name === 'Psicossociais',
-          )
-            ? 'PSIC'
-            : options?.type === RiskEnum.OUTROS
-              ? 'Outros'
-              : options?.type}
-        </Box>
-      )}
+      startAdornment={(option: IRiskFactors | undefined) =>
+        option ? (
+          <Box sx={{ mr: 6, flexShrink: 0 }}>
+            <STagRisk riskFactor={option} hideRiskName />
+          </Box>
+        ) : null
+      }
       endAdornment={(options: IRiskFactors | undefined) => {
         return (
           <STooltip enterDelay={1200} withWrapper title={'editar'}>

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
-import { RiskEnum, RiskMap } from 'project/enum/risk.enums';
+import { resolveRiskChip } from 'core/utils/risk-chip.util';
 
 import SFlex from '../SFlex';
 import SText from '../SText';
@@ -13,59 +13,17 @@ interface ITagRiskProps {
   hideRiskName?: boolean;
 }
 
-/** Largura do chip para rótulos compostos `ERG-*` (ligeiramente maior que o grupo simples). */
-const RISK_CHIP_WIDTH_COMPOUND_PX = 94;
-/** Largura para nomes por extenso (Físico, Químico, …) e demais rótulos do grupo simples. */
-const RISK_CHIP_WIDTH_SIMPLE_PX = 86;
-
-/** Ordem: primeiro match quando houver vários (ex.: prioriza Psicossociais). */
-const SUBTYPE_CHIP_BY_NAME: Record<string, { suffix: string; colorKey: string }> = {
-  Psicossociais: { suffix: 'PSIC', colorKey: 'risk.psic' },
-  Biomecânicos: { suffix: 'BIOM', colorKey: 'risk.ergSubtypeBiom' },
-  Ambientais: { suffix: 'AMB', colorKey: 'risk.ergSubtypeAmb' },
-  Organizacionais: { suffix: 'ORG', colorKey: 'risk.ergSubtypeOrg' },
-  'Mobiliário e Equipamentos': { suffix: 'MOB', colorKey: 'risk.ergSubtypeMob' },
-};
-
-function resolveRiskChip(riskFactor: IRiskFactors): {
-  label: string;
-  colorKey: string;
-  chipWidthPx: number;
-} {
-  for (const name of Object.keys(SUBTYPE_CHIP_BY_NAME)) {
-    if (riskFactor.subTypes?.some((s) => s?.sub_type?.name === name)) {
-      const { suffix, colorKey } = SUBTYPE_CHIP_BY_NAME[name];
-      const label =
-        riskFactor.type === RiskEnum.ERG ? `ERG-${suffix}` : suffix;
-      const chipWidthPx = label.startsWith('ERG-')
-        ? RISK_CHIP_WIDTH_COMPOUND_PX
-        : RISK_CHIP_WIDTH_SIMPLE_PX;
-      return { label, colorKey, chipWidthPx };
-    }
-  }
-  const t = (riskFactor?.type ?? '').toString().toLowerCase();
-  const rawType = riskFactor?.type;
-  const label =
-    rawType && rawType in RiskMap
-      ? RiskMap[rawType as RiskEnum].name
-      : rawType || '';
-
-  return {
-    label,
-    colorKey: t ? (`risk.${t}` as const) : 'grey.500',
-    chipWidthPx: RISK_CHIP_WIDTH_SIMPLE_PX,
-  };
-}
-
 export const STagRisk = ({
   isEndDate,
   hideRiskName,
   riskFactor,
 }: ITagRiskProps) => {
-  const { label: displayType, colorKey: riskColorKey, chipWidthPx } =
-    resolveRiskChip(riskFactor);
-
-  const isPsicChip = riskColorKey === 'risk.psic';
+  const {
+    label: displayType,
+    colorKey: riskColorKey,
+    chipWidthPx,
+    isPsicChip,
+  } = resolveRiskChip(riskFactor);
 
   const chip = (
     <SText

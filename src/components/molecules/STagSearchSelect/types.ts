@@ -39,6 +39,8 @@ export interface ISTagSearchSelectProps
   onEnter?: (value: string) => void;
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
   renderFilter?: () => React.ReactNode;
+  /** Altura máxima da lista rolável do menu (padrão definido em SMenuSearch). */
+  listMaxHeight?: number | string;
   error?: boolean;
   onSearch?: (value: string) => void;
   renderContent?: (option: IMenuSearchOption) => ReactNode;

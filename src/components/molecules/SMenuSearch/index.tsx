@@ -32,6 +32,7 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
   selected,
   additionalButton,
   renderFilter,
+  listMaxHeight = 350,
   onEnter,
   onSearch,
   asyncLoad,
@@ -147,7 +148,7 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
         sx={{
           borderBottom: '1px solid',
           borderColor: 'background.divider',
-          pb: renderFilter ? 4 : 0,
+          pb: renderFilter ? 2 : 0,
         }}
       >
         <span
@@ -227,7 +228,7 @@ export const SMenuSearch: FC<{ children?: any } & SMenuSearchProps> = ({
           )
             setScroll((scroll) => scroll + 1);
         }}
-        sx={{ maxHeight: 350, overflow: 'auto' }}
+        sx={{ maxHeight: listMaxHeight, overflow: 'auto' }}
       >
         <SMenuSearchItems
           options={results}

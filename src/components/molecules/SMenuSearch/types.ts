@@ -35,6 +35,8 @@ export interface SMenuSearchProps extends Omit<MenuProps, 'open' | 'onClose'> {
   multiple?: boolean;
   additionalButton?: (e: MouseEvent<HTMLButtonElement>) => void;
   renderFilter?: () => React.ReactNode;
+  /** Altura máxima da área rolável de itens (padrão: 350px). */
+  listMaxHeight?: number | string;
   handleMultiSelectMenu?: (
     option: any,
     list: (string | number)[],

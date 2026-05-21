@@ -25,6 +25,7 @@ export const STagSearchSelect: FC<
   selected,
   keys = ['name'],
   renderFilter,
+  listMaxHeight,
   additionalButton,
   tooltipTitle,
   endAdornment,
@@ -111,6 +112,7 @@ export const STagSearchSelect: FC<
         keys={keys}
         additionalButton={additionalButton}
         renderFilter={renderFilter}
+        listMaxHeight={listMaxHeight}
         onEnter={onEnter}
         onSearch={onSearch}
         handleMultiSelectMenu={handleMultiSelectMenu}
