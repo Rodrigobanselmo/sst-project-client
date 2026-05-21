@@ -97,9 +97,7 @@ export const useDataStep = (props: IUseDocumentModel) => {
         await updateMutation.mutateAsync({
           name: submitData.name,
           description: submitData.description,
-          companyId: submitData.companyId,
           type: submitData.type,
-          classifications: submitData.classifications,
           ...getDocumentModelMetadataPatch(data),
         });
       }
