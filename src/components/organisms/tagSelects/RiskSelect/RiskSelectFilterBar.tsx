@@ -8,13 +8,13 @@ type RiskSelectFilterBarProps = {
   mainRow: IMenuFilterOptions[];
   ergonomicRow: IMenuFilterOptions[];
   activeFilters: string[];
-  onClickFilter: (filter: string, e: MouseEvent<HTMLDivElement>) => void;
+  onClickFilter: (filter: string, e: MouseEvent<HTMLButtonElement>) => void;
 };
 
 const FilterPill: FC<{
   option: IMenuFilterOptions;
   isActive: boolean;
-  onClick: (e: MouseEvent<HTMLDivElement>) => void;
+  onClick: (e: MouseEvent<HTMLButtonElement>) => void;
 }> = ({ option, isActive, onClick }) => (
   <STooltip title={`Filtrar por ${option.label}`}>
     <Box

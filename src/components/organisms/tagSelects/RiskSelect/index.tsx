@@ -122,7 +122,7 @@ export const RiskSelect: FC<{ children?: any } & ITypeSelectProps> = ({
           mainRow={riskFilterMainRow}
           ergonomicRow={riskFilterErgonomicRow}
           activeFilters={activeFilters}
-          onClickFilter={handleActiveRisk}
+          onClickFilter={(filter) => handleActiveRisk(filter)}
         />
       )}
       startAdornment={(option: IRiskFactors | undefined) =>
