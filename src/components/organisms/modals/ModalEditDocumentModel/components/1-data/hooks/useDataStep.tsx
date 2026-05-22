@@ -61,12 +61,11 @@ export const useDataStep = (props: IUseDocumentModel) => {
       return;
     }
 
-    const submitData: ICreateDocumentModel & { id: number } = {
+    const submitData: ICreateDocumentModel = {
       name,
       description,
       companyId: data.companyId,
-      id: data.id,
-      copyFromId: data.copyFromId,
+      ...(data.copyFromId ? { copyFromId: data.copyFromId } : {}),
       type: data.type,
       classifications,
     };
@@ -89,7 +88,7 @@ export const useDataStep = (props: IUseDocumentModel) => {
     };
 
     try {
-      if (!submitData.id) {
+      if (!data.id) {
         if (!isSameCompany) {
           handleSelectCompany(create, data.companyId);
         } else {
