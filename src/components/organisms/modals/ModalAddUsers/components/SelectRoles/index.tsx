@@ -34,18 +34,24 @@ import { sortString } from 'core/utils/sorts/string.sort';
 
 import { IPermissionMap } from '../../hooks/useAddUser';
 
-/** Monta `código-crud` só com letras que o executor já possui para aquele módulo (evita salvar ex.: `24-rcud` sem `24-*` no JWT). */
+/** Monta `código-crud` só com letras que o executor já possui para aquele módulo (evita salvar ex.: `24-rcud` sem `24-*` no JWT). Master recebe todas as letras permitidas. */
 function buildInitialPermissionStringForExecutor(
   moduleKey: PermissionEnum,
   executorPermissions: string[] | undefined,
+  isMaster: boolean,
 ): string | null {
+  const allowedChars = permissionsConstantMap[moduleKey]?.crud?.join('') || 'r';
+  const allowedSet = [...new Set(Array.from(allowedChars))];
+
+  if (isMaster) {
+    if (!allowedSet.length) return null;
+    return `${moduleKey}-${allowedSet.sort().join('')}`;
+  }
+
   const ep = (executorPermissions || []).find((p) => p.split('-')[0] === moduleKey);
   if (!ep) return null;
   const executorCrud = ep.split('-')[1] || '';
-  const allowedChars = permissionsConstantMap[moduleKey]?.crud?.join('') || 'r';
-  const selected = [
-    ...new Set(Array.from(allowedChars).filter((c) => executorCrud.includes(c))),
-  ];
+  const selected = allowedSet.filter((c) => executorCrud.includes(c));
   if (!selected.length) return null;
   return `${moduleKey}-${selected.sort().join('')}`;
 }
@@ -68,6 +74,13 @@ export const SelectRoles: FC<{ children?: any } & ISelectRolesSelects> = ({
 }) => {
   const { user } = useAuth();
 
+  const isMasterPermission = useMemo(() => {
+    return !!(
+      user?.permissions &&
+      user.permissions.find((p) => p.split('-')[0] === PermissionEnum.MASTER)
+    );
+  }, [user?.permissions]);
+
   const handleSelectRole = (roleOptions: IRolesOption) => {
     let roles = [...data.roles];
     const permissions = { ...data.permissions };
@@ -83,7 +96,11 @@ export const SelectRoles: FC<{ children?: any } & ISelectRolesSelects> = ({
 
         const built = roleOptions.permissions
           .map((pk) =>
-            buildInitialPermissionStringForExecutor(pk as PermissionEnum, user?.permissions),
+            buildInitialPermissionStringForExecutor(
+              pk as PermissionEnum,
+              user?.permissions,
+              isMasterPermission,
+            ),
           )
           .filter((s): s is string => s != null);
 
@@ -107,25 +124,26 @@ export const SelectRoles: FC<{ children?: any } & ISelectRolesSelects> = ({
     const permissions = { ...data.permissions };
 
     const actualPermissions = [...(permissions[roleOptions.value] || [])];
-    if (!actualPermissions) return;
 
     const permissionIndx = actualPermissions.findIndex(
       (permission) => permission.split('-')[0] == permissionOptions.value,
     );
 
-    if (
-      permissionIndx != -1 &&
-      actualPermissions[permissionIndx].includes(crud)
-    ) {
-      actualPermissions[permissionIndx] = actualPermissions[
-        permissionIndx
-      ].replace(crud, '');
-      permissions[roleOptions.value] = actualPermissions;
+    if (permissionIndx === -1) {
+      actualPermissions.push(`${permissionOptions.value}-${crud}`);
+    } else if (actualPermissions[permissionIndx].includes(crud)) {
+      const next = actualPermissions[permissionIndx].replace(crud, '');
+      if (next === `${permissionOptions.value}-`) {
+        actualPermissions.splice(permissionIndx, 1);
+      } else {
+        actualPermissions[permissionIndx] = next;
+      }
     } else {
       actualPermissions[permissionIndx] =
         actualPermissions[permissionIndx] + crud;
-      permissions[roleOptions.value] = actualPermissions;
     }
+
+    permissions[roleOptions.value] = actualPermissions;
 
     setData({
       ...data,
@@ -156,13 +174,6 @@ export const SelectRoles: FC<{ children?: any } & ISelectRolesSelects> = ({
         ),
       ) as Array<keyof typeof rolesConstantMap>;
   }, [user?.roles]);
-
-  const isMasterPermission = useMemo(() => {
-    return (
-      user?.permissions &&
-      user.permissions.find((p) => p.split('-')[0] === PermissionEnum.MASTER)
-    );
-  }, [user?.permissions]);
 
   const handleSelectAll = () => {
     const isAllSelected = data.roles.length == AllRoles.length;
