@@ -55,13 +55,13 @@ export const documentModelClassificationMap: Record<
     value: DocumentModelClassificationEnum.COPSOQ_III,
     label: 'COPSOQ III',
     shortLabel: 'COPSOQ III',
-    documentTypes: [DocumentTypeEnum.FRPS],
+    documentTypes: [DocumentTypeEnum.PGR, DocumentTypeEnum.FRPS],
   },
   [DocumentModelClassificationEnum.NAO_COPSOQ_III]: {
     value: DocumentModelClassificationEnum.NAO_COPSOQ_III,
     label: 'Não COPSOQ III',
     shortLabel: 'Não COPSOQ',
-    documentTypes: [DocumentTypeEnum.FRPS],
+    documentTypes: [DocumentTypeEnum.PGR, DocumentTypeEnum.FRPS],
   },
   [DocumentModelClassificationEnum.NR18]: {
     value: DocumentModelClassificationEnum.NR18,
