@@ -157,7 +157,6 @@ export const DataContent = (props: IUseData) => {
           control={control}
           placeholder="selecione..."
           name="type"
-          disabled={isEdit}
           label="Tipo de Documento"
           labelPosition="top"
           onChange={(e) => {
