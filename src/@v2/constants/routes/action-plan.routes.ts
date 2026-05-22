@@ -5,6 +5,7 @@ export const ActionPlanRoutes = {
   },
   ACTION_PLAN: {
     BROWSE: 'v2/companies/:companyId/action-plans/workspace/:workspaceId',
+    EXPORT: 'v2/companies/:companyId/action-plans/workspace/:workspaceId/export',
     EDIT: 'v2/companies/:companyId/action-plans',
     EDIT_MANY: 'v2/companies/:companyId/action-plans/many',
     READ: 'v2/companies/:companyId/action-plans/:workspaceId/:riskDataId/:recommendationId',
