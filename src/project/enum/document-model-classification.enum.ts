@@ -82,6 +82,16 @@ const MUTUALLY_EXCLUSIVE: Partial<
   [DocumentModelClassificationEnum.NAO_COPSOQ_III]: DocumentModelClassificationEnum.COPSOQ_III,
 };
 
+/** Modelo contém todas as classificações ativas (interseção / AND). */
+export function documentModelMatchesClassificationFilters(
+  classifications: DocumentModelClassificationEnum[] | undefined,
+  active: DocumentModelClassificationEnum[],
+): boolean {
+  if (!active.length) return true;
+  if (!classifications?.length) return false;
+  return active.every((item) => classifications.includes(item));
+}
+
 /** Alterna um filtro na lista ativa (uso nos chips da listagem PGR). */
 export function toggleDocumentModelClassificationFilter(
   active: DocumentModelClassificationEnum[],

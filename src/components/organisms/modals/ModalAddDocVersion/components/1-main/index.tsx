@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -8,7 +8,13 @@ import { InputForm } from 'components/molecules/form/input';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { DocumentModelSelect } from 'components/organisms/inputSelect/DocumentModelSelect/DocumentModelSelect';
+import { DocumentModelPgrClassificationFilters } from 'components/organisms/tables/DocumentModelTable/DocumentModelPgrClassificationFilters';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
+import {
+  DocumentModelClassificationEnum,
+  documentModelMatchesClassificationFilters,
+} from 'project/enum/document-model-classification.enum';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { IUseMainActionsModal } from '../../hooks/useMainActions';
 import { IUsePGRHandleModal } from '../../hooks/usePGRHandleActions';
@@ -20,7 +26,42 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
   const { onSubmit, control, onCloseUnsaved, loading, setValue, company } =
     propsStep;
 
-  const { data, setData } = props;
+  const { data, setData, type } = props;
+  const [classificationFilters, setClassificationFilters] = useState<
+    DocumentModelClassificationEnum[]
+  >([]);
+
+  const modelQuery = useMemo(
+    () => ({
+      type,
+      ...(classificationFilters.length > 0 && {
+        classifications: classificationFilters,
+      }),
+    }),
+    [type, classificationFilters],
+  );
+
+  const handleClassificationFiltersChange = (
+    next: DocumentModelClassificationEnum[],
+  ) => {
+    setClassificationFilters(next);
+
+    setData((current) => {
+      if (
+        !current.model ||
+        documentModelMatchesClassificationFilters(
+          current.model.classifications,
+          next,
+        )
+      ) {
+        return current;
+      }
+
+      setValue('model', null);
+      return { ...current, modelId: undefined, model: undefined };
+    });
+  };
+
   const buttons = [
     {},
     {
@@ -49,8 +90,18 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
             firstLetterCapitalize
           />
 
+          {type === DocumentTypeEnum.PGR && (
+            <Box sx={{ ml: 0, '& > div': { ml: 0 } }}>
+              <DocumentModelPgrClassificationFilters
+                active={classificationFilters}
+                onChange={handleClassificationFiltersChange}
+              />
+            </Box>
+          )}
+
           <Box mb={5} mt={3} maxWidth={['400px']}>
             <DocumentModelSelect
+              key={classificationFilters.join(',') || 'all'}
               fullWidth
               onChange={(data) => {
                 setData((d) => ({
@@ -59,9 +110,7 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
                   model: data,
                 }));
               }}
-              query={{
-                type: props?.type,
-              }}
+              query={modelQuery}
               inputProps={{
                 labelPosition: 'top',
                 placeholder: 'selecione...',
