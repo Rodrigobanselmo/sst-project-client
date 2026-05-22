@@ -7,6 +7,7 @@ import SText from 'components/atoms/SText';
 import { parseInlineStyleText } from 'components/organisms/documentModel/utils/parseInlineStyleText';
 import {
   DocumentModelClassificationEnum,
+  filterClassificationsForDocumentType,
   normalizeDocumentModelClassifications,
 } from 'project/enum/document-model-classification.enum';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
@@ -221,8 +222,11 @@ export const useEditDocumentModel = () => {
           ...oldData,
           ...initialData,
           ...model,
-          classifications: normalizeDocumentModelClassifications(
-            model?.classifications ?? initialData?.classifications,
+          classifications: filterClassificationsForDocumentType(
+            normalizeDocumentModelClassifications(
+              model?.classifications ?? initialData?.classifications,
+            ),
+            model?.type ?? initialData?.type,
           ),
         };
         const needSynchronization = (

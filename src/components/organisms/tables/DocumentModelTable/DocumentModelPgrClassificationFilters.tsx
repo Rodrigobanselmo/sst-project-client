@@ -1,39 +1,46 @@
 import { FC } from 'react';
 
 import { Box } from '@mui/material';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
 import {
-  documentModelClassificationList,
   DocumentModelClassificationEnum,
+  getDocumentModelClassificationsForType,
   toggleDocumentModelClassificationFilter,
 } from 'project/enum/document-model-classification.enum';
 
 type Props = {
+  documentType: DocumentTypeEnum;
   active: DocumentModelClassificationEnum[];
   onChange: (value: DocumentModelClassificationEnum[]) => void;
 };
 
 export const DocumentModelPgrClassificationFilters: FC<Props> = ({
+  documentType,
   active,
   onChange,
-}) => (
-  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, mb: 4, ml: 2 }}>
-    <FilterPill
-      label="Todos"
-      isActive={active.length === 0}
-      onClick={() => onChange([])}
-    />
-    {documentModelClassificationList.map(({ value, shortLabel }) => (
+}) => {
+  const options = getDocumentModelClassificationsForType(documentType);
+
+  return (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, mb: 4, ml: 2 }}>
       <FilterPill
-        key={value}
-        label={shortLabel}
-        isActive={active.includes(value)}
-        onClick={() =>
-          onChange(toggleDocumentModelClassificationFilter(active, value))
-        }
+        label="Todos"
+        isActive={active.length === 0}
+        onClick={() => onChange([])}
       />
-    ))}
-  </Box>
-);
+      {options.map(({ value, shortLabel }) => (
+        <FilterPill
+          key={value}
+          label={shortLabel}
+          isActive={active.includes(value)}
+          onClick={() =>
+            onChange(toggleDocumentModelClassificationFilter(active, value))
+          }
+        />
+      ))}
+    </Box>
+  );
+};
 
 const FilterPill: FC<{
   label: string;

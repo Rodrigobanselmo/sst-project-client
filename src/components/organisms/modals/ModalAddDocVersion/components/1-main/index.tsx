@@ -13,8 +13,8 @@ import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedSt
 import {
   DocumentModelClassificationEnum,
   documentModelMatchesClassificationFilters,
+  filterClassificationsForDocumentType,
 } from 'project/enum/document-model-classification.enum';
-import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { IUseMainActionsModal } from '../../hooks/useMainActions';
 import { IUsePGRHandleModal } from '../../hooks/usePGRHandleActions';
@@ -44,14 +44,17 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
   const handleClassificationFiltersChange = (
     next: DocumentModelClassificationEnum[],
   ) => {
-    setClassificationFilters(next);
+    const filtered = type
+      ? filterClassificationsForDocumentType(next, type)
+      : next;
+    setClassificationFilters(filtered);
 
     setData((current) => {
       if (
         !current.model ||
         documentModelMatchesClassificationFilters(
           current.model.classifications,
-          next,
+          filtered,
         )
       ) {
         return current;
@@ -90,9 +93,10 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
             firstLetterCapitalize
           />
 
-          {type === DocumentTypeEnum.PGR && (
+          {type && (
             <Box sx={{ ml: 0, '& > div': { ml: 0 } }}>
               <DocumentModelPgrClassificationFilters
+                documentType={type}
                 active={classificationFilters}
                 onChange={handleClassificationFiltersChange}
               />
