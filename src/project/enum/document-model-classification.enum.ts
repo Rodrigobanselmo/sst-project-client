@@ -1,3 +1,5 @@
+import { DocumentTypeEnum } from 'project/enum/document.enums';
+
 export enum DocumentModelClassificationEnum {
   GRO_PGR = 'GRO_PGR',
   SOMENTE_PGR = 'SOMENTE_PGR',
@@ -11,65 +13,114 @@ export enum DocumentModelClassificationEnum {
   BACKUP = 'BACKUP',
 }
 
+const ALL_DOCUMENT_TYPES = Object.values(DocumentTypeEnum);
+
+export type DocumentModelClassificationMeta = {
+  value: DocumentModelClassificationEnum;
+  label: string;
+  shortLabel: string;
+  documentTypes: DocumentTypeEnum[];
+};
+
+/** Metadados das classificações padrão (espelhar API: document-model-classification-applicability). */
 export const documentModelClassificationMap: Record<
   DocumentModelClassificationEnum,
-  { value: DocumentModelClassificationEnum; label: string; shortLabel: string }
+  DocumentModelClassificationMeta
 > = {
   [DocumentModelClassificationEnum.GRO_PGR]: {
     value: DocumentModelClassificationEnum.GRO_PGR,
     label: 'GRO/PGR',
     shortLabel: 'GRO/PGR',
+    documentTypes: [DocumentTypeEnum.PGR],
   },
   [DocumentModelClassificationEnum.SOMENTE_PGR]: {
     value: DocumentModelClassificationEnum.SOMENTE_PGR,
     label: 'Somente PGR',
     shortLabel: 'Somente PGR',
+    documentTypes: [DocumentTypeEnum.PGR],
   },
   [DocumentModelClassificationEnum.COM_FRPS]: {
     value: DocumentModelClassificationEnum.COM_FRPS,
     label: 'Com FRPS',
     shortLabel: 'Com FRPS',
+    documentTypes: [DocumentTypeEnum.PGR],
   },
   [DocumentModelClassificationEnum.SEM_FRPS]: {
     value: DocumentModelClassificationEnum.SEM_FRPS,
     label: 'Sem FRPS',
     shortLabel: 'Sem FRPS',
+    documentTypes: [DocumentTypeEnum.PGR],
   },
   [DocumentModelClassificationEnum.COPSOQ_III]: {
     value: DocumentModelClassificationEnum.COPSOQ_III,
     label: 'COPSOQ III',
     shortLabel: 'COPSOQ III',
+    documentTypes: [DocumentTypeEnum.FRPS],
   },
   [DocumentModelClassificationEnum.NAO_COPSOQ_III]: {
     value: DocumentModelClassificationEnum.NAO_COPSOQ_III,
     label: 'Não COPSOQ III',
     shortLabel: 'Não COPSOQ',
+    documentTypes: [DocumentTypeEnum.FRPS],
   },
   [DocumentModelClassificationEnum.NR18]: {
     value: DocumentModelClassificationEnum.NR18,
     label: 'NR18',
     shortLabel: 'NR18',
+    documentTypes: [DocumentTypeEnum.PGR],
   },
   [DocumentModelClassificationEnum.TERCEIROS]: {
     value: DocumentModelClassificationEnum.TERCEIROS,
     label: 'Terceiros',
     shortLabel: 'Terceiros',
+    documentTypes: ALL_DOCUMENT_TYPES,
   },
   [DocumentModelClassificationEnum.SIMPLIFICADO]: {
     value: DocumentModelClassificationEnum.SIMPLIFICADO,
     label: 'Simplificado',
     shortLabel: 'Simplificado',
+    documentTypes: ALL_DOCUMENT_TYPES,
   },
   [DocumentModelClassificationEnum.BACKUP]: {
     value: DocumentModelClassificationEnum.BACKUP,
     label: 'Backup',
     shortLabel: 'Backup',
+    documentTypes: ALL_DOCUMENT_TYPES,
   },
 };
 
 export const documentModelClassificationList = Object.values(
   documentModelClassificationMap,
 );
+
+export function isClassificationApplicableToDocumentType(
+  classification: DocumentModelClassificationEnum,
+  documentType: DocumentTypeEnum,
+): boolean {
+  return documentModelClassificationMap[classification].documentTypes.includes(
+    documentType,
+  );
+}
+
+export function getDocumentModelClassificationsForType(
+  documentType?: DocumentTypeEnum,
+): DocumentModelClassificationMeta[] {
+  if (!documentType) return documentModelClassificationList;
+  return documentModelClassificationList.filter((item) =>
+    item.documentTypes.includes(documentType),
+  );
+}
+
+export function filterClassificationsForDocumentType(
+  classifications: DocumentModelClassificationEnum[] | undefined | null,
+  documentType?: DocumentTypeEnum,
+): DocumentModelClassificationEnum[] {
+  const normalized = normalizeDocumentModelClassifications(classifications);
+  if (!documentType) return normalized;
+  return normalized.filter((item) =>
+    isClassificationApplicableToDocumentType(item, documentType),
+  );
+}
 
 const MUTUALLY_EXCLUSIVE: Partial<
   Record<DocumentModelClassificationEnum, DocumentModelClassificationEnum>
@@ -133,8 +184,18 @@ export function normalizeDocumentModelClassifications(
 /** Retorna mensagem de erro se houver par excludente; caso contrário, null. */
 export function getDocumentModelClassificationConflict(
   classifications: DocumentModelClassificationEnum[],
+  documentType?: DocumentTypeEnum,
 ): string | null {
-  const set = new Set(normalizeDocumentModelClassifications(classifications));
+  const normalized = normalizeDocumentModelClassifications(classifications);
+  const set = new Set(normalized);
+
+  if (documentType) {
+    for (const classification of normalized) {
+      if (!isClassificationApplicableToDocumentType(classification, documentType)) {
+        return `A classificação ${documentModelClassificationMap[classification].shortLabel} não é válida para o tipo ${documentType}.`;
+      }
+    }
+  }
 
   for (const [a, b] of MUTUALLY_EXCLUSIVE_PAIRS) {
     if (set.has(a) && set.has(b)) {
@@ -163,4 +224,21 @@ export function toggleDocumentModelClassification(
     : list;
 
   return [...withoutConflict, value];
+}
+
+export function getExclusivePairsHintForDocumentType(
+  documentType?: DocumentTypeEnum,
+): string {
+  const applicable = new Set(
+    getDocumentModelClassificationsForType(documentType).map((item) => item.value),
+  );
+
+  const hints = MUTUALLY_EXCLUSIVE_PAIRS.filter(
+    ([a, b]) => applicable.has(a) && applicable.has(b),
+  ).map(
+    ([a, b]) =>
+      `${documentModelClassificationMap[a].shortLabel} ↔ ${documentModelClassificationMap[b].shortLabel}`,
+  );
+
+  return hints.length ? hints.join('; ') : '';
 }

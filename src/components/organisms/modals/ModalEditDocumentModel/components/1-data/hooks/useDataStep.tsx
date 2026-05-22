@@ -51,8 +51,10 @@ export const useDataStep = (props: IUseDocumentModel) => {
     const classifications = normalizeDocumentModelClassifications(
       data.classifications,
     );
-    const classificationConflict =
-      getDocumentModelClassificationConflict(classifications);
+    const classificationConflict = getDocumentModelClassificationConflict(
+      classifications,
+      data.type,
+    );
 
     if (classificationConflict) {
       setError('type', { message: classificationConflict });

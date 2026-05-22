@@ -1,4 +1,5 @@
 import React, { FC, useEffect, useMemo, useState } from 'react';
+import { filterClassificationsForDocumentType } from 'project/enum/document-model-classification.enum';
 import { Wizard } from 'react-use-wizard';
 
 import { Box } from '@mui/material';
@@ -48,6 +49,13 @@ export const ModalViewDocumentModels: FC = () => {
   };
 
   const activeDocumentType = data.query?.type ?? typeMap[activeStep];
+
+  useEffect(() => {
+    if (!activeDocumentType) return;
+    setClassificationFilters((prev) =>
+      filterClassificationsForDocumentType(prev, activeDocumentType),
+    );
+  }, [activeDocumentType]);
 
   const tableQuery = useMemo(
     () => ({
@@ -140,8 +148,9 @@ export const ModalViewDocumentModels: FC = () => {
                 ]}
               />
             )}
-            {activeDocumentType === DocumentTypeEnum.PGR && (
+            {activeDocumentType && (
               <DocumentModelPgrClassificationFilters
+                documentType={activeDocumentType}
                 active={classificationFilters}
                 onChange={setClassificationFilters}
               />

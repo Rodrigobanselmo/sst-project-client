@@ -9,6 +9,7 @@ import { SelectForm } from 'components/molecules/form/select';
 import { DocumentModelSelect } from 'components/organisms/inputSelect/DocumentModelSelect/DocumentModelSelect';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import {
+  filterClassificationsForDocumentType,
   getDocumentModelClassificationConflict,
   normalizeDocumentModelClassifications,
 } from 'project/enum/document-model-classification.enum';
@@ -168,6 +169,10 @@ export const DataContent = (props: IUseData) => {
             setData({
               ...data,
               type: newType,
+              classifications: filterClassificationsForDocumentType(
+                data.classifications,
+                newType,
+              ),
               isChanged: true,
               ...(wasSameTypeCopy
                 ? {
@@ -192,12 +197,17 @@ export const DataContent = (props: IUseData) => {
       {data?.type && (
         <Box maxWidth={['100%', 800]}>
           <DocumentModelClassificationEditor
+            documentType={data.type}
             value={data.classifications}
             onChange={(classifications) => {
-              const normalized =
-                normalizeDocumentModelClassifications(classifications);
-              const conflict =
-                getDocumentModelClassificationConflict(normalized);
+              const normalized = filterClassificationsForDocumentType(
+                normalizeDocumentModelClassifications(classifications),
+                data.type,
+              );
+              const conflict = getDocumentModelClassificationConflict(
+                normalized,
+                data.type,
+              );
 
               if (conflict) {
                 enqueueSnackbar(conflict, { variant: 'error' });
