@@ -56,6 +56,9 @@ export type IDocumentModelElement = {
   size?: number;
   color?: string;
   align?: DocModelAlignmentType;
+  /** Espaçamento entre linhas (ex.: 1 = simples, 1.46 = padrão). */
+  lineHeight?: number;
+  lineHeightBlock?: number[];
   inlineStyleRangeBlock?: IInlineStyleRange[][];
   entityRangeBlock?: IEntityRange[][];
 } & IBase;

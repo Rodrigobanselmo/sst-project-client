@@ -13,6 +13,7 @@ export type DraftEditorProps = {
   label?: string;
   allVisible?: boolean;
   toolbarProps?: object;
+  toolbarCustomButtons?: React.ReactElement[];
   document1?: boolean;
   mention?: {
     separator: string;
