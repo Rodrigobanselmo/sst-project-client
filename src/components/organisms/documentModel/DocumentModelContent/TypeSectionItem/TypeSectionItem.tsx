@@ -81,6 +81,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               text={text}
               entityRange={item.entityRangeBlock?.[index] || []}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -107,6 +108,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               entityRange={item.entityRangeBlock?.[index] || []}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -127,6 +129,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -147,6 +150,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -165,6 +169,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
                 inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
                 text={text}
                 variables={variables}
+                lineHeight={item.lineHeightBlock?.[index]}
                 key={item.id + index}
               />
             ))}
@@ -185,6 +190,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
                 inlineStyleRange={item.inlineStyleRangeBlock?.[index] || []}
                 text={text}
                 variables={variables}
+                lineHeight={item.lineHeightBlock?.[index]}
                 key={item.id + index}
               />
             ))}
@@ -205,6 +211,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={[]}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -221,6 +228,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={[]}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -237,6 +245,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={[]}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -253,6 +262,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={[]}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -269,6 +279,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={[]}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -285,6 +296,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={[]}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}
@@ -301,6 +313,7 @@ export const TypeSectionItem: React.FC<{ children?: any } & Props> = ({
               inlineStyleRange={[]}
               text={text}
               variables={variables}
+              lineHeight={item.lineHeightBlock?.[index]}
               key={item.id + index}
             />
           ))}

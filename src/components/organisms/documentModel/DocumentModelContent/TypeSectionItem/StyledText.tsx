@@ -10,6 +10,8 @@ import {
 } from 'core/interfaces/api/IDocumentModel';
 
 import { replaceAllVariables } from '../../utils/replaceAllVariables';
+import { DEFAULT_LINE_HEIGHT } from 'components/molecules/form/draft-editor/line-height.util';
+
 import { getFontSize } from '../utils/getFontSize';
 
 export const StyledText: FC<
@@ -18,8 +20,9 @@ export const StyledText: FC<
     entityRange: IEntityRange[];
     text: string;
     variables: IDocVariablesAllType;
+    lineHeight?: number;
   }
-> = ({ inlineStyleRange, entityRange, text, variables }) => {
+> = ({ inlineStyleRange, entityRange, text, variables, lineHeight }) => {
   const getStyle = (range: IInlineStyleRange): React.CSSProperties => {
     const style: React.CSSProperties = {};
     switch (range.style) {
@@ -141,5 +144,14 @@ export const StyledText: FC<
     return result;
   };
 
-  return <p>{renderText()}</p>;
+  return (
+    <p
+      style={{
+        lineHeight: lineHeight ?? DEFAULT_LINE_HEIGHT,
+        margin: 0,
+      }}
+    >
+      {renderText()}
+    </p>
+  );
 };

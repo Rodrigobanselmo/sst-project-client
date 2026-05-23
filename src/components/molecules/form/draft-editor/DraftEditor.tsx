@@ -17,6 +17,12 @@ import dynamic from 'next/dynamic';
 
 import { useNewDebounce } from 'core/hooks/useNewDebounce';
 
+import { LineHeightControl } from './LineHeightControl';
+import {
+  DEFAULT_LINE_HEIGHT,
+  lineHeightToClass,
+  parseLineHeightData,
+} from './line-height.util';
 import { DraftEditorProps } from './types';
 
 const STDraftBox = styled(Box)<{ document1?: number; document2?: number }>`
@@ -50,6 +56,20 @@ const STDraftBox = styled(Box)<{ document1?: number; document2?: number }>`
   .public-DraftStyleDefault-block {
     padding: 0rem;
     margin: 0rem;
+    line-height: ${DEFAULT_LINE_HEIGHT};
+  }
+
+  .draft-lh-1 {
+    line-height: 1 !important;
+  }
+  .draft-lh-1_15 {
+    line-height: 1.15 !important;
+  }
+  .draft-lh-1_5 {
+    line-height: 1.5 !important;
+  }
+  .draft-lh-2 {
+    line-height: 2 !important;
   }
 
   .rdw-link-wrapper {
@@ -160,6 +180,49 @@ const STDraftBox = styled(Box)<{ document1?: number; document2?: number }>`
         background-color: transparent;
       }
 
+      .draft-line-height-control {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 4px;
+        max-height: none !important;
+        min-width: 64px !important;
+        max-width: none !important;
+        height: 28px !important;
+        margin: 0 4px;
+        padding: 0 6px;
+        border: 1px solid ${props.theme.palette.grey[400]};
+        border-radius: 4px;
+        background-color: ${props.theme.palette.common.white};
+        box-sizing: border-box;
+        vertical-align: middle;
+      }
+
+      .draft-line-height-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: ${props.theme.palette.grey[700]};
+        line-height: 1;
+        user-select: none;
+      }
+
+      .draft-line-height-control select {
+        border: none;
+        background: transparent;
+        font-size: 12px;
+        cursor: pointer;
+        min-width: 40px;
+        padding: 0;
+        color: ${props.theme.palette.grey[900]};
+        appearance: auto;
+        -webkit-appearance: menulist;
+        position: relative;
+        z-index: 2;
+      }
+
+      .rdw-editor-toolbar {
+        overflow: visible;
+      }
+
       .rdw-option-wrapper {
         max-height: 0px;
         min-width: 0px;
@@ -208,6 +271,7 @@ export const DraftEditor = ({
   document_model,
   handleReturn,
   toolbarProps,
+  toolbarCustomButtons,
   mention,
   handlePastedText,
   autofocus,
@@ -280,6 +344,32 @@ export const DraftEditor = ({
     onDebounce(() => {
       setToolbar(false);
     }, 10000);
+  };
+
+  const documentModelBlockStyleFn = document_model
+    ? (block: { getData: () => { get: (key: string) => unknown } }) => {
+        const lh = parseLineHeightData(block.getData().get('lineHeight'));
+        if (lh != null) return lineHeightToClass(lh);
+        return '';
+      }
+    : undefined;
+
+  const mergedEditorProps = {
+    ...(documentModelBlockStyleFn && {
+      blockStyleFn: documentModelBlockStyleFn,
+    }),
+    ...editorProps,
+    ...(documentModelBlockStyleFn &&
+      editorProps?.blockStyleFn && {
+        blockStyleFn: (
+          block: Parameters<NonNullable<typeof documentModelBlockStyleFn>>[0],
+        ) => {
+          const customClass =
+            editorProps.blockStyleFn?.(block as never) || '';
+          const lhClass = documentModelBlockStyleFn(block) || '';
+          return [customClass, lhClass].filter(Boolean).join(' ');
+        },
+      }),
   };
 
   const onTab = (e: React.KeyboardEvent): void => {
@@ -363,6 +453,15 @@ export const DraftEditor = ({
           },
           ...toolbarProps,
         }}
+        toolbarCustomButtons={
+          document_model
+            ? [
+                <LineHeightControl key="line-height" />,
+                ...(toolbarCustomButtons || []),
+              ]
+            : toolbarCustomButtons
+        }
+        editorProps={mergedEditorProps}
         localization={{
           locale: 'pt',
         }}
@@ -373,7 +472,6 @@ export const DraftEditor = ({
         }}
         toolbarHidden={!toolbar}
         onEditorStateChange={handleChange}
-        {...(editorProps as any)}
       />
     </STDraftBox>
   );

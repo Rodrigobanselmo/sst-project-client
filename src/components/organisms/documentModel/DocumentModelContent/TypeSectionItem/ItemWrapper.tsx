@@ -41,6 +41,8 @@ import {
 import { replaceMultiple } from '../../utils/replaceMultiple';
 import { transformArrayToObjectFunction } from '../../utils/transformArrayToObjectFunction';
 import { ITypeDocumentModel } from '../types/types';
+import { parseLineHeightData } from 'components/molecules/form/draft-editor/line-height.util';
+
 import { RemoveDoubleClickButton } from './RemoveDoubleClickButton';
 import { STContainerItem } from './styles';
 import { ImageGalleryTable } from 'components/organisms/tables/ImageGalleryTable/ImageGalleryTable';
@@ -361,7 +363,13 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
             item.inlineStyleRangeBlock[index],
           );
 
-          data = { ...(item.align && { 'text-align': item.align }) };
+          const blockLineHeight =
+            item.lineHeightBlock?.[index] ?? item.lineHeight;
+
+          data = {
+            ...(item.align && { 'text-align': item.align }),
+            ...(blockLineHeight != null && { lineHeight: blockLineHeight }),
+          };
         }
 
         if ('element' in item && item.entityRangeBlock) {
@@ -481,6 +489,10 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
         });
     });
 
+    const lineHeights = blocks.map((block) =>
+      parseLineHeightData(block.data?.lineHeight),
+    );
+
     const data = paragraph.map(
       (paragraph, index): Partial<NodeDocumentModelElementData> => {
         const numNewlines = (paragraph.match(/\n/g) || []).length + 1;
@@ -492,11 +504,15 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
           }
         }
 
+        const lineHeightBlock = lineHeights.splice(0, numNewlines);
+        const hasLineHeight = lineHeightBlock.some((lh) => lh != null);
+
         return {
           inlineStyleRangeBlock: inlineStyleRange.splice(0, numNewlines),
           entityRangeBlock: entityRangeBlock.splice(0, numNewlines),
           text: paragraph,
           ...(align && { align }),
+          ...(hasLineHeight && { lineHeightBlock }),
         };
       },
     );
