@@ -54,6 +54,7 @@ export function useMutDeleteManyRiskData() {
         queryClient.invalidateQueries([QueryEnum.ENVIRONMENT]);
         queryClient.invalidateQueries([QueryEnum.EXAMS_RISK_DATA]);
         queryClient.invalidateQueries([QueryEnum.CHARACTERIZATION]);
+        queryClient.invalidateQueries([QueryEnum.RISK]);
         queryClient.invalidateQueries([
           QueryEnum.RISK_DATA,
           getCompanyId(resp?.companyId),

@@ -56,6 +56,7 @@ import {
   RiskIdentifiedListSortBy,
 } from './identifiedRisksTable.types';
 import { sortRisksIdentifiedForVisualDisplay } from './riskCompanyIdentifiedVisualSort';
+import { RiskOriginsBulkRemoveMenu } from './RiskOriginsBulkRemoveMenu';
 
 export const getRiskDoc = (
   risk: IRiskFactors,
@@ -395,6 +396,15 @@ export const RiskCompanyTable: FC<
                     />
                   )}
                   {renderMainCells(row)}
+                  {isOpen && !!row.riskFactorData?.length && (
+                    <Box gridColumn="1 / -1" mb={6} mt={-1}>
+                      <RiskOriginsBulkRemoveMenu
+                        risk={row}
+                        riskFactorData={row.riskFactorData ?? []}
+                        riskGroupId={riskGroupId}
+                      />
+                    </Box>
+                  )}
                   {isOpen && (
                     <Box gridColumn="1 / -1" mb={6} mt={-1}>
                       {row?.riskFactorData?.map((riskData) => {

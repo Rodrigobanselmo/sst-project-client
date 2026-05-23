@@ -1,6 +1,6 @@
 import CheckIcon from '@mui/icons-material/Check';
 import EditIcon from '@mui/icons-material/Edit';
-import { Box, Skeleton, Typography } from '@mui/material';
+import { Box, Menu, MenuItem, Skeleton, Typography } from '@mui/material';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SIconButton } from '@v2/components/atoms/SIconButton/SIconButton';
@@ -50,6 +50,11 @@ import {
 import { formRiskCustomPrompt } from './custim-prompt';
 import { HomoTypeEnum } from '@v2/models/security/enums/homo-type.enum';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
+import {
+  entityMatchesMassAddFilter,
+  MassAddOccupationalRiskFilter,
+  resolveOccupationalRiskLevel,
+} from 'core/utils/helpers/occupational-risk-level.util';
 
 interface FormRisksAnalysisProps {
   formApplication: FormApplicationReadModel;
@@ -145,6 +150,10 @@ export const FormRisksAnalysis = ({
 
   const [addedRisks, setAddedRisks] = useState<Set<string>>(new Set());
   const [showAiDialog, setShowAiDialog] = useState(false);
+  const [addRiskMenu, setAddRiskMenu] = useState<{
+    anchorEl: HTMLElement;
+    riskId: string;
+  } | null>(null);
 
   // Form for AI analysis configuration
   const methods = useForm<AiAnalysisFormData>({
@@ -622,6 +631,50 @@ export const FormRisksAnalysis = ({
     [riskMap, getEntitiesWithRisk],
   );
 
+  const getEntityOccupationalLevel = useCallback(
+    (entityId: string, riskId: string) => {
+      const risk = riskMap[riskId];
+      if (!risk) return null;
+      return resolveOccupationalRiskLevel(
+        risk.severity,
+        getEffectiveProbability(entityId, riskId),
+      );
+    },
+    [riskMap, getEffectiveProbability],
+  );
+
+  const getEntityIdsToAdd = useCallback(
+    (riskId: string, filter: MassAddOccupationalRiskFilter) =>
+      getEntitiesWithRisk(riskId).filter((entityId) => {
+        const probability = getEffectiveProbability(entityId, riskId);
+        if (riskLogMap.has(`${riskId}-${entityId}-${probability}`)) {
+          return false;
+        }
+        return entityMatchesMassAddFilter(
+          getEntityOccupationalLevel(entityId, riskId),
+          filter,
+        );
+      }),
+    [
+      getEntitiesWithRisk,
+      getEntityOccupationalLevel,
+      getEffectiveProbability,
+      riskLogMap,
+    ],
+  );
+
+  const addRiskMenuOptions: {
+    filter: MassAddOccupationalRiskFilter;
+    label: string;
+  }[] = [
+    { filter: 'all', label: 'Adicionar a todos os setores' },
+    {
+      filter: 'moderateAndAbove',
+      label: 'Adicionar Moderado, Alto e Muito Alto',
+    },
+    { filter: 'highAndAbove', label: 'Adicionar Alto e Muito Alto' },
+  ];
+
   if (isLoading || !formQuestionsAnswersRisks) {
     return (
       <SPaper sx={{ p: 4 }}>
@@ -815,9 +868,34 @@ export const FormRisksAnalysis = ({
             >
               <SAccordionBody>
                 <SFlex direction="column" gap={3} mt={8}>
-                  <Typography color="text.secondary">
-                    Setores Identificados:
-                  </Typography>
+                  <SFlex
+                    alignItems="center"
+                    justifyContent="space-between"
+                    flexWrap="wrap"
+                    gap={2}
+                  >
+                    <Typography color="text.secondary">
+                      Setores Identificados:
+                    </Typography>
+                    {entitiesWithRisk.length > 0 && (
+                      <SButton
+                        variant="shade"
+                        color="success"
+                        size="s"
+                        text="Adicionar risco a todos os setores"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAddRiskMenu({
+                            anchorEl: e.currentTarget,
+                            riskId,
+                          });
+                        }}
+                        buttonProps={{
+                          sx: { width: 'fit-content' },
+                        }}
+                      />
+                    )}
+                  </SFlex>
 
                   <SFlex direction="column" gap={4}>
                     {entityDisplayGroups.map(
@@ -1246,42 +1324,6 @@ export const FormRisksAnalysis = ({
                         </Box>
                       ),
                     )}
-
-                    {/* Only show "Add to all entities" button if not all entities have the risk added */}
-                    {!entitiesWithRisk.every((entityId) =>
-                      isRiskAddedToEntity(
-                        riskId,
-                        entityId,
-                        getEffectiveProbability(entityId, riskId),
-                      ),
-                    ) && (
-                      <SButton
-                        variant="text"
-                        buttonProps={{
-                          sx: {
-                            width: 'fit-content',
-                            textDecoration: 'underline',
-                            '&:hover': {
-                              textDecoration: 'underline',
-                            },
-                          },
-                        }}
-                        text="Adicionar risco a todos os setores"
-                        onClick={() =>
-                          handleAddRiskToAllEntities(
-                            riskId,
-                            entitiesWithRisk.filter(
-                              (entityId) =>
-                                !isRiskAddedToEntity(
-                                  riskId,
-                                  entityId,
-                                  getEffectiveProbability(entityId, riskId),
-                                ),
-                            ),
-                          )
-                        }
-                      />
-                    )}
                   </SFlex>
                 </SFlex>
               </SAccordionBody>
@@ -1289,6 +1331,35 @@ export const FormRisksAnalysis = ({
           );
         })}
       </SFlex>
+
+      <Menu
+        anchorEl={addRiskMenu?.anchorEl ?? null}
+        open={Boolean(addRiskMenu)}
+        onClose={() => setAddRiskMenu(null)}
+        onClick={(e) => e.stopPropagation()}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+      >
+        {addRiskMenu &&
+          addRiskMenuOptions.map((option) => {
+            const count = getEntityIdsToAdd(addRiskMenu.riskId, option.filter)
+              .length;
+            return (
+              <MenuItem
+                key={option.filter}
+                disabled={count === 0}
+                onClick={() => {
+                  const riskId = addRiskMenu.riskId;
+                  const entityIds = getEntityIdsToAdd(riskId, option.filter);
+                  setAddRiskMenu(null);
+                  handleAddRiskToAllEntities(riskId, entityIds);
+                }}
+              >
+                {option.label} ({count})
+              </MenuItem>
+            );
+          })}
+      </Menu>
 
       {/* AI Analysis Configuration Dialog - Only for Master Users */}
       <Dialog
