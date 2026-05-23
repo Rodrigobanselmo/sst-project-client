@@ -27,6 +27,7 @@ import { ActionPlanTableFilter } from './components/ActionPlanTableFilter/Action
 import { ActionPlanTableSelection } from './components/ActionPlanTableSelection/ActionPlanTableSelection';
 import { ActionPlanStatusTypeTranslate } from '@v2/models/security/translations/action-plan-status-type.translaton';
 import { OccupationalRiskLevelTranslation } from '@v2/models/security/translations/ocupational-risk-level.translation';
+import { useMutateExportActionPlan } from '@v2/services/export/action-plan/hooks/useMutateExportActionPlan';
 import { useActionPlanTableActions } from './hooks/useActionPlanActions';
 import { useCallback } from 'react';
 
@@ -218,6 +219,47 @@ export const ActionPlanTable = ({
   const onPageSizeChange = createPageSizeChangeHandler(onFilterData);
 
   const { onSelectRow } = useActionPlanTableActions({ companyId });
+  const exportMutation = useMutateExportActionPlan();
+
+  const handleExport = useCallback(async () => {
+    await exportMutation.mutateAsync({
+      companyId,
+      workspaceId,
+      search: queryParams.search,
+      occupationalRisks: queryParams.occupationalRisks,
+      status: queryParams.status,
+      isExpired: queryParams.isExpired || undefined,
+      riskTypes: queryParams.riskTypes,
+      riskSubTypes: queryParams.riskSubTypes?.map((subType) => subType.id),
+      responsibleIds: userId
+        ? [userId]
+        : queryParams.responsibles?.map((resp) => Number(resp.id)),
+      hierarchyIds: queryParams.hierarchies?.map((hierarchy) => hierarchy.id),
+      generateSourceIds: queryParams.generateSources?.map(
+        (source) => source.id,
+      ),
+      orderBy: queryParams.orderBy || [
+        {
+          field: ActionPlanOrderByEnum.STATUS,
+          order: 'asc',
+        },
+        {
+          field: ActionPlanOrderByEnum.LEVEL,
+          order: 'desc',
+        },
+        {
+          field: ActionPlanOrderByEnum.ORIGIN,
+          order: 'asc',
+        },
+      ],
+    });
+  }, [
+    companyId,
+    workspaceId,
+    queryParams,
+    userId,
+    exportMutation,
+  ]);
 
   return (
     <>
@@ -243,12 +285,7 @@ export const ActionPlanTable = ({
             />
           </STableFilterButton>
           <STableButtonDivider />
-          <STableExportButton
-            disabled
-            onClick={async () => {
-              //
-            }}
-          />
+          <STableExportButton onClick={handleExport} />
         </STableSearchContent>
       </STableSearch>
       <STableInfoSection>
