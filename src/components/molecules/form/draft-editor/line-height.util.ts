@@ -45,7 +45,7 @@ export const setLineHeightOnBlocks = (
         lineHeight == null
           ? block.getData().delete('lineHeight')
           : block.getData().set('lineHeight', lineHeight);
-      blockMap = blockMap.set(key, block.set('data', data));
+      blockMap = (blockMap as any).set(key, block.set('data', data));
     }
     if (key === endKey) inRange = false;
   });
@@ -54,5 +54,5 @@ export const setLineHeightOnBlocks = (
     blockMap,
   } as Partial<ContentState>);
 
-  return EditorState.push(editorState, newContent, 'change-block-data');
+  return EditorState.push(editorState, newContent as any, 'change-block-data');
 };

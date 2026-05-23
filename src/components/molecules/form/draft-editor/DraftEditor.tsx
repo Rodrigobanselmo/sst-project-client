@@ -364,8 +364,7 @@ export const DraftEditor = ({
         blockStyleFn: (
           block: Parameters<NonNullable<typeof documentModelBlockStyleFn>>[0],
         ) => {
-          const customClass =
-            editorProps.blockStyleFn?.(block as never) || '';
+          const customClass = editorProps.blockStyleFn?.(block as never) || '';
           const lhClass = documentModelBlockStyleFn(block) || '';
           return [customClass, lhClass].filter(Boolean).join(' ');
         },
@@ -396,7 +395,7 @@ export const DraftEditor = ({
         {label}
       </SText>
       <Editor
-        editorRef={setEditorReference}
+        editorRef={setEditorReference as any}
         onTab={onTab}
         mention={mention}
         wrapperClassName="wrapper_content"
@@ -456,7 +455,11 @@ export const DraftEditor = ({
         toolbarCustomButtons={
           document_model
             ? [
-                <LineHeightControl key="line-height" />,
+                <LineHeightControl
+                  key="line-height"
+                  onChange={function (editorState: EditorState): void {}}
+                  editorState={new EditorState()}
+                />,
                 ...(toolbarCustomButtons || []),
               ]
             : toolbarCustomButtons
