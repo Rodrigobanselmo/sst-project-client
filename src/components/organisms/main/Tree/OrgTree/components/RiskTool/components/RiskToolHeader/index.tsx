@@ -11,6 +11,7 @@ import { useAppDispatch } from 'core/hooks/useAppDispatch';
 import { viewsDataOptionsConstant } from '../../utils/view-data-type.constant';
 import { ViewTypeEnum } from '../../utils/view-risk-type.constant';
 import { SideInput } from '../SIdeInput';
+import { ApplyResidualOneToAllButton } from '../ApplyResidualOneToAllButton/ApplyResidualOneToAllButton';
 import { SideRowTableMulti } from '../SideRowTable/Multiple';
 import { RiskToolColumns } from './RiskToolColumns';
 import { RiskToolGhoHorizontal } from './RiskToolGhoHorizontal';
@@ -52,6 +53,14 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
         />
       )}
       <Box width="100%">
+        {viewType === ViewTypeEnum.SIMPLE_BY_RISK && riskInit && riskGroupId && (
+          <SFlex justifyContent="flex-end" mb={3}>
+            <ApplyResidualOneToAllButton
+              riskGroupId={riskGroupId}
+              viewType={viewType}
+            />
+          </SFlex>
+        )}
         {showColumnsHeader && <RiskToolColumns viewType={viewType} />}
         {viewType === ViewTypeEnum.MULTIPLE && (
           <SideRowTableMulti
