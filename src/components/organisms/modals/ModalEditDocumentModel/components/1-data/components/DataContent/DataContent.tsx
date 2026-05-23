@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo } from 'react';
+import { useFormContext } from 'react-hook-form';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
@@ -36,6 +37,7 @@ export const DataContent = (props: IUseData) => {
   } = props;
 
   const { enqueueSnackbar } = useSnackbar();
+  const { getValues } = useFormContext();
 
   const otherTypeOptions = useMemo(
     () => documentTypeList.filter((o) => o.value !== data?.type),
@@ -50,6 +52,13 @@ export const DataContent = (props: IUseData) => {
       ? data.copyFrom
       : undefined;
 
+  const suggestCopyName = (sourceName: string) => {
+    const currentName = (getValues('name') as string | undefined)?.trim();
+    if (!currentName || currentName === sourceName.trim()) {
+      setValue('name', `${sourceName.trim()} (cópia)`);
+    }
+  };
+
   const handleSameTypeCopy = (model: IDocumentModel | null) => {
     if (!model) {
       if (data.copyFrom?.type === data.type) {
@@ -63,6 +72,7 @@ export const DataContent = (props: IUseData) => {
       return;
     }
 
+    suggestCopyName(model.name);
     setData((d) => ({
       ...d,
       copyFromId: model.id,
@@ -111,6 +121,7 @@ export const DataContent = (props: IUseData) => {
       return;
     }
 
+    suggestCopyName(model.name);
     setData((d) => ({
       ...d,
       copyFromId: model.id,
