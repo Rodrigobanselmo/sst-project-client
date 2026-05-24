@@ -5,6 +5,52 @@ import { v4 } from 'uuid';
 import * as yup from 'yup';
 import { InputFormModelSelectOptionProps } from '../components/FormApplicationForms/inputs/InputFormModelSelect/InputFormModelSelect';
 import { InputWorkspaceSelectMultipleOptionProps } from '../components/FormApplicationForms/inputs/InputWorkspaceSelect/InputWorkspaceSelectMultiple';
+import { InputCompanyGroupSelectOptionProps } from '../components/FormApplicationForms/inputs/InputCompanyGroupSelect/InputCompanyGroupSelect';
+import { InputCompanyGroupCompaniesSelectMultipleOptionProps } from '../components/FormApplicationForms/inputs/InputCompanyGroupCompaniesSelect/InputCompanyGroupCompaniesSelectMultiple';
+import { FormApplicationScopeTypeEnum } from '@v2/models/form/enums/form-application-scope-type.enum';
+
+export const FORM_APPLICATION_SCOPE_TYPE_OPTIONS = [
+  {
+    value: FormApplicationScopeTypeEnum.COMPANY_WORKSPACES,
+    label: 'Empresa e estabelecimentos',
+  },
+  {
+    value: FormApplicationScopeTypeEnum.BUSINESS_GROUP_COMPANIES,
+    label: 'Grupo empresarial e empresas',
+  },
+] as const;
+
+export type FormApplicationScopeTypeOption = {
+  value: FormApplicationScopeTypeEnum;
+  label: string;
+};
+
+export function resolveFormApplicationScopeType(
+  scopeType?: FormApplicationScopeTypeOption | FormApplicationScopeTypeEnum | null,
+): FormApplicationScopeTypeEnum {
+  if (!scopeType) {
+    return FormApplicationScopeTypeEnum.COMPANY_WORKSPACES;
+  }
+
+  if (typeof scopeType === 'string') {
+    return scopeType;
+  }
+
+  return scopeType.value ?? FormApplicationScopeTypeEnum.COMPANY_WORKSPACES;
+}
+
+const isBusinessGroupScopeType = (
+  scopeType?: FormApplicationScopeTypeOption | FormApplicationScopeTypeEnum | null,
+) =>
+  resolveFormApplicationScopeType(scopeType) ===
+  FormApplicationScopeTypeEnum.BUSINESS_GROUP_COMPANIES;
+
+const isCompanyWorkspacesScopeType = (
+  scopeType?: FormApplicationScopeTypeOption | FormApplicationScopeTypeEnum | null,
+) =>
+  resolveFormApplicationScopeType(scopeType) ===
+  FormApplicationScopeTypeEnum.COMPANY_WORKSPACES;
+
 export interface IFormIdentifierItem {
   id?: string;
   apiId?: string;
@@ -45,6 +91,9 @@ export interface IFormApplicationFormFields {
   };
   anonymous: boolean;
   form: InputFormModelSelectOptionProps;
+  scopeType: FormApplicationScopeTypeOption;
+  companyGroup: InputCompanyGroupSelectOptionProps | null;
+  companyIds: InputCompanyGroupCompaniesSelectMultipleOptionProps[];
   workspaceIds: InputWorkspaceSelectMultipleOptionProps[];
   sections: IFormIdentifierSection[];
   bannerIntroText?: string;
@@ -81,15 +130,47 @@ export const schemaFormApplicationForm = yup.object({
       name: yup.string().required('Campo obrigatório'),
     })
     .required('Campo obrigatório'),
-  workspaceIds: yup.array().test({
-    name: 'workspace-ids',
-    message: 'Campo obrigatório',
-    exclusive: true,
-    test: function (value) {
-      if (!this.parent.form?.shareableLink && (!value || value.length === 0))
-        return false;
-      return true;
-    },
+  scopeType: yup
+    .object({
+      value: yup
+        .mixed<FormApplicationScopeTypeEnum>()
+        .oneOf(Object.values(FormApplicationScopeTypeEnum))
+        .required(),
+      label: yup.string().required(),
+    })
+    .required(),
+  companyGroup: yup
+    .object({
+      id: yup.number().required(),
+      name: yup.string().required(),
+    })
+    .nullable()
+    .when('scopeType', {
+      is: isBusinessGroupScopeType,
+      then: (schema) => schema.required('Grupo empresarial é obrigatório'),
+      otherwise: (schema) => schema.nullable().optional(),
+    }),
+  companyIds: yup.array().when('scopeType', {
+    is: isBusinessGroupScopeType,
+    then: (schema) =>
+      schema
+        .min(1, 'Selecione ao menos uma empresa do grupo')
+        .required('Selecione ao menos uma empresa do grupo'),
+    otherwise: (schema) => schema.optional(),
+  }),
+  workspaceIds: yup.array().when('scopeType', {
+    is: isCompanyWorkspacesScopeType,
+    then: (schema) =>
+      schema.test({
+        name: 'workspace-ids',
+        message: 'Campo obrigatório',
+        test: function (value) {
+          if (!this.parent.form?.shareableLink && (!value || value.length === 0))
+            return false;
+          return true;
+        },
+      }),
+    otherwise: (schema) => schema.optional(),
   }),
   bannerIntroText: yup.string().optional(),
   bannerWhyText: yup.string().optional(),
@@ -210,8 +291,11 @@ export const formApplicationFormInitialValues = {
   bannerIntroText: '',
   bannerWhyText: '',
   bannerContactText: '',
-  workspaceIds: [] as any[],
-  form: {} as any,
+  scopeType: FORM_APPLICATION_SCOPE_TYPE_OPTIONS[0],
+  companyGroup: null,
+  companyIds: [] as InputCompanyGroupCompaniesSelectMultipleOptionProps[],
+  workspaceIds: [] as InputWorkspaceSelectMultipleOptionProps[],
+  form: {} as InputFormModelSelectOptionProps,
   sections: [
     {
       id: v4(),

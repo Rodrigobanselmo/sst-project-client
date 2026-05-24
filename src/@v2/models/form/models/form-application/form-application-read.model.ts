@@ -3,6 +3,7 @@ import { FormQuestionGroupReadModel } from '../shared/form-question-group-read.m
 import { FormApplicationStatusEnum } from '../../enums/form-status.enum';
 import { getPathname } from '@v2/hooks/useAppRouter';
 import { PageRoutes } from '@v2/constants/pages/routes';
+import { FormApplicationScopeTypeEnum } from '../../enums/form-application-scope-type.enum';
 import { FormTypeEnum } from '../../enums/form-type.enum';
 
 export type IFormApplicationReadModel = {
@@ -19,9 +20,12 @@ export type IFormApplicationReadModel = {
   form: { id: string; name: string; type: FormTypeEnum };
   isShareableLink: boolean;
   isAnonymous: boolean;
+  scopeType: FormApplicationScopeTypeEnum;
+  companyGroupId: number | null;
   participants: {
     hierarchies: { id: string; name: string }[];
     workspaces: { id: string; name: string }[];
+    companies: { id: string; name: string }[];
   };
   totalParticipants: number;
   totalAnswers: number;
@@ -54,9 +58,12 @@ export class FormApplicationReadModel {
   bannerWhyText: string | null;
   bannerContactText: string | null;
   reminderCount: number;
+  scopeType: FormApplicationScopeTypeEnum;
+  companyGroupId: number | null;
   participants: {
     hierarchies: { id: string; name: string }[];
     workspaces: { id: string; name: string }[];
+    companies: { id: string; name: string }[];
   };
   questionIdentifierGroup: FormQuestionGroupReadModel;
 
@@ -72,7 +79,14 @@ export class FormApplicationReadModel {
     this.startedAt = params.startedAt;
     this.endedAt = params.endedAt;
     this.form = params.form;
-    this.participants = params.participants;
+    this.participants = {
+      hierarchies: params.participants.hierarchies ?? [],
+      workspaces: params.participants.workspaces ?? [],
+      companies: params.participants.companies ?? [],
+    };
+    this.scopeType =
+      params.scopeType ?? FormApplicationScopeTypeEnum.COMPANY_WORKSPACES;
+    this.companyGroupId = params.companyGroupId ?? null;
     this.isShareableLink = params.isShareableLink;
     this.isAnonymous = params.isAnonymous;
     this.totalParticipants = params.totalParticipants;
