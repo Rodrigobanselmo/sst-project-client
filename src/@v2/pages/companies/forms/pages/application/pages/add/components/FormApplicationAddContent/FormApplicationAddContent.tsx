@@ -27,8 +27,10 @@ import {
   getFormApplicationInitialValues,
   getFormApplicationInitialValuesRisk,
   IFormApplicationFormFields,
+  resolveFormApplicationScopeType,
   schemaFormApplicationForm,
 } from '../../../../schema/form-application.schema';
+import { FormApplicationScopeTypeEnum } from '@v2/models/form/enums/form-application-scope-type.enum';
 
 export const FormApplicationAddContent = ({
   companyId,
@@ -92,6 +94,11 @@ export const FormApplicationAddContent = ({
 
     const identifier = transformFormApplicationDataToApiFormat(data);
 
+    const resolvedScopeType = resolveFormApplicationScopeType(data.scopeType);
+    const isBusinessGroupScope =
+      resolvedScopeType ===
+      FormApplicationScopeTypeEnum.BUSINESS_GROUP_COMPANIES;
+
     await addFormMutation.mutateAsync({
       companyId,
       name: data.name,
@@ -101,7 +108,14 @@ export const FormApplicationAddContent = ({
       hierarchyIds: [],
       shareableLink: data.shareableLink.value === 'true',
       anonymous: data.anonymous,
-      workspaceIds: data.workspaceIds.map((workspace) => workspace.id),
+      scopeType: resolvedScopeType,
+      companyGroupId: isBusinessGroupScope ? data.companyGroup?.id : undefined,
+      companyIds: isBusinessGroupScope
+        ? data.companyIds.map((company) => company.id)
+        : [],
+      workspaceIds: isBusinessGroupScope
+        ? []
+        : data.workspaceIds.map((workspace) => workspace.id),
       identifier,
     });
 

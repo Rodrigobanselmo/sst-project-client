@@ -41,6 +41,8 @@ export function resolveParticipantStructuresForGrouping(
       bySubmissionId.get(participantsAnswersId) ??
       new FormParticipantStructureBrowseModel({
         participantsAnswersId,
+        companyId: null,
+        companyName: null,
         workspaceId: null,
         workspaceName: null,
         hierarchies: [],

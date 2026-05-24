@@ -45,7 +45,11 @@ export function useQueryCompanyGroups(
   query = {} as IQueryCompanyGroup,
   take = 20,
 ) {
-  const { user } = useGetCompanyId();
+  const { companyId: routeCompanyId, user } = useGetCompanyId();
+  const targetCompanyId =
+    query.companyId || routeCompanyId || user?.companyId || '';
+  const { companyId: _companyIdFromQuery, ...queryWithoutCompanyId } = query;
+
   const pagination: IPagination = {
     skip: (page - 1) * (take || 20),
     take: take || 20,
@@ -54,11 +58,14 @@ export function useQueryCompanyGroups(
   const { data, ...result } = useQuery(
     [
       QueryEnum.COMPANY_GROUP,
-      user?.companyId,
+      targetCompanyId,
       page,
-      { ...pagination, ...query },
+      { ...pagination, ...queryWithoutCompanyId },
     ],
-    () => queryCompanyGroups(pagination, user?.companyId || '', { ...query }),
+    () =>
+      queryCompanyGroups(pagination, targetCompanyId, {
+        ...queryWithoutCompanyId,
+      }),
     {
       staleTime: 1000 * 60 * 60, // 1 hour
     },

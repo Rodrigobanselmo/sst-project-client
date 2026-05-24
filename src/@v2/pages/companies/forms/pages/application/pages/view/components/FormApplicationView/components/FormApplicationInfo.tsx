@@ -16,6 +16,7 @@ import { FormApplicationShareModal } from './FormApplicationShareModal';
 import { FormApplicationDeleteConfirmModal } from './FormApplicationDeleteConfirmModal';
 import { FormApplicationStatusChange } from './FormApplicationStatusChange';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
+import { FormApplicationScopeTypeEnum } from '@v2/models/form/enums/form-application-scope-type.enum';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormCampaignBanner } from './FormCampaignBanner/FormCampaignBanner';
 
@@ -119,7 +120,8 @@ export const FormApplicationInfo = ({
           </>
         )}
         {(formApplication.participants.hierarchies.length > 0 ||
-          formApplication.participants.workspaces.length > 0) && (
+          formApplication.participants.workspaces.length > 0 ||
+          formApplication.participants.companies.length > 0) && (
           <>
             <SDivider />
             <InfoCardSection>
@@ -131,7 +133,19 @@ export const FormApplicationInfo = ({
                     .join(', ')}
                 />
               )}
-              {formApplication.participants.workspaces.length > 0 && (
+              {formApplication.scopeType ===
+                FormApplicationScopeTypeEnum.BUSINESS_GROUP_COMPANIES &&
+                formApplication.participants.companies.length > 0 && (
+                <InfoCardText
+                  label="Empresas participantes"
+                  text={formApplication.participants.companies
+                    .map((company) => company.name)
+                    .join(', ')}
+                />
+              )}
+              {formApplication.scopeType ===
+                FormApplicationScopeTypeEnum.COMPANY_WORKSPACES &&
+                formApplication.participants.workspaces.length > 0 && (
                 <InfoCardText
                   label="Estabelecimentos Participantes"
                   text={formApplication.participants.workspaces

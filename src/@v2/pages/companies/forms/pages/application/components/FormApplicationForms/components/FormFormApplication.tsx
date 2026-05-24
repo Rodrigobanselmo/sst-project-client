@@ -9,9 +9,17 @@ import { SSwitchForm } from '@v2/components/forms/controlled/SSwitchForm/SSwitch
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SRadioForm } from '@v2/components/forms/controlled/SRadioForm/SRadioForm';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { useEffect } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { IFormApplicationFormFields } from '../../../schema/form-application.schema';
+import {
+  FORM_APPLICATION_SCOPE_TYPE_OPTIONS,
+  IFormApplicationFormFields,
+  resolveFormApplicationScopeType,
+} from '../../../schema/form-application.schema';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
+import { FormApplicationScopeTypeEnum } from '@v2/models/form/enums/form-application-scope-type.enum';
+import { InputCompanyGroupSelectForm } from '../inputs/InputCompanyGroupSelect/InputCompanyGroupSelectForm';
+import { InputCompanyGroupCompaniesSelectMultipleForm } from '../inputs/InputCompanyGroupCompaniesSelect/InputCompanyGroupCompaniesSelectMultipleForm';
 
 type Props = {
   companyId: string;
@@ -26,7 +34,28 @@ export const FormFormApplication = ({ companyId, disabled }: Props) => {
     control: form.control,
   });
 
+  const scopeType = useWatch({
+    name: 'scopeType',
+    control: form.control,
+  });
+
+  const resolvedScopeType = resolveFormApplicationScopeType(scopeType);
+
+  const isBusinessGroupScope =
+    resolvedScopeType ===
+    FormApplicationScopeTypeEnum.BUSINESS_GROUP_COMPANIES;
+
   const isPsychosocial = formModel?.type === FormTypeEnum.PSYCHOSOCIAL;
+
+  useEffect(() => {
+    if (resolvedScopeType === FormApplicationScopeTypeEnum.COMPANY_WORKSPACES) {
+      form.setValue('companyGroup', null);
+      form.setValue('companyIds', []);
+      return;
+    }
+
+    form.setValue('workspaceIds', []);
+  }, [form, resolvedScopeType]);
 
   return (
     <>
@@ -53,10 +82,27 @@ export const FormFormApplication = ({ companyId, disabled }: Props) => {
           form.setValue('anonymous', value.anonymous);
         }}
       />
-      <InputWorkspaceSelectMultipleForm
-        companyId={companyId}
-        name="workspaceIds"
-      />
+      <SPaper sx={{ p: 6, borderRadius: 1 }}>
+        <SRadioForm
+          disabled={disabled}
+          label="Aplicação para"
+          name="scopeType"
+          options={[...FORM_APPLICATION_SCOPE_TYPE_OPTIONS]}
+          getOptionLabel={(option) => option.label}
+          getOptionValue={(option) => option.value}
+        />
+      </SPaper>
+      {isBusinessGroupScope ? (
+        <>
+          <InputCompanyGroupSelectForm companyId={companyId} />
+          <InputCompanyGroupCompaniesSelectMultipleForm companyId={companyId} />
+        </>
+      ) : (
+        <InputWorkspaceSelectMultipleForm
+          companyId={companyId}
+          name="workspaceIds"
+        />
+      )}
       <SInputNumberLimitedForm
         label="Meta de Participação (%)"
         placeholder="Ex: 50"
