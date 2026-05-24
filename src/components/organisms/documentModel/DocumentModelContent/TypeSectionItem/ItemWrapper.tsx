@@ -524,11 +524,16 @@ export const ItemWrapper: React.FC<{ children?: any } & Props> = ({
     () =>
       sortArray(
         Object.values(variables)
-          .filter((v) => v.active != false && !v.isBoolean && v.label)
+          .filter(
+            (v) =>
+              v.active != false &&
+              !v.isBoolean &&
+              !!(v.label || v.type),
+          )
           .map((variable) => ({
             text: variable.label || variable.type,
             url: variable.type,
-            value: '{' + variable.type + '}}',
+            value: '{{' + variable.type + '}}',
           })),
         { by: ['text'], order: ['asc'] },
       ),
