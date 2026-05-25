@@ -465,11 +465,13 @@ const GroupDashboardIndicator = ({
 interface FormQuestionsDashboardProps {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel | null | undefined;
   formApplication: FormApplicationReadModel;
+  accessCompanyId: string;
 }
 
 export const FormQuestionsDashboard = ({
   formQuestionsAnswers,
   formApplication,
+  accessCompanyId,
 }: FormQuestionsDashboardProps) => {
   const { enqueueSnackbar } = useSnackbar();
   const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
@@ -502,18 +504,16 @@ export const FormQuestionsDashboard = ({
 
   // Fetch hierarchy groups for sector grouping
   const { hierarchyGroups } = useFetchBrowseHierarchyGroups({
-    companyId: formApplication.companyId,
+    companyId: accessCompanyId,
     applicationId: formApplication.id,
   });
 
-  // Separate first group (identifier) from the rest (general questions)
-  const [identifierGroup, ...generalGroups] =
-    (formQuestionsAnswers?.results || [
-      '',
-    ]) as FormQuestionGroupWithAnswersBrowseModel[];
+  const questionGroups = formQuestionsAnswers?.results ?? [];
+  const identifierGroup = questionGroups[0];
+  const generalGroups = questionGroups.slice(1);
 
   const availableGroupingQuestions = useMemo(() => {
-    if (!identifierGroup) return [];
+    if (!identifierGroup?.questions) return [];
 
     return identifierGroup.questions.filter(
       (question) =>
@@ -1188,6 +1188,7 @@ export const FormQuestionsDashboard = ({
                       await exportFormRiskAnalysisPdfInBrowser(
                         {
                           formApplication,
+                          accessCompanyId,
                           formQuestionsAnswers,
                           selectedGroupingQuestionId: selectedGroupingQuestion,
                           selectedGroupingLabel,
@@ -1309,6 +1310,7 @@ export const FormQuestionsDashboard = ({
             ) : isRisksAnalysisTab ? (
               <FormRisksAnalysis
                 formApplication={formApplication}
+                accessCompanyId={accessCompanyId}
                 formQuestionsAnswers={formQuestionsAnswers}
                 visibleParticipantGroups={visibleParticipantGroups}
                 selectedGroupingQuestionId={selectedGroupingQuestion}
@@ -1316,11 +1318,12 @@ export const FormQuestionsDashboard = ({
             ) : isHierarchyGroupsTab ? (
               <FormHierarchyGroupManager
                 formApplication={formApplication}
+                accessCompanyId={accessCompanyId}
                 inline={true}
               />
             ) : isParticipantsTab ? (
               <FormParticipantsTable
-                companyId={formApplication.companyId}
+                companyId={accessCompanyId}
                 applicationId={formApplication.id}
                 formApplication={formApplication}
               />

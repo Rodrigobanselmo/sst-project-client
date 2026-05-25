@@ -242,6 +242,8 @@ export const useHierarchyTreeActions = () => {
 
         Object.values(hierarchyMap).forEach((values, index) => {
           values.workspaceIds.map((workspaceId) => {
+            if (!treeMap[workspaceId]) return;
+
             const hierarchyCopy = getHierarchyCopyFrom(values);
 
             treeMap[`${values.id}//${workspaceId}`] = {
@@ -294,8 +296,10 @@ export const useHierarchyTreeActions = () => {
               ];
           });
           values.workspaceIds.map((workspaceId) => {
+            if (!treeMap[workspaceId]) return;
+
             treeMap[workspaceId].childrenIds = sortArray(
-              treeMap?.[workspaceId]?.childrenIds || [],
+              treeMap[workspaceId].childrenIds || [],
               {
                 by: 'name',
                 order: 'asc',

@@ -17,6 +17,7 @@ export const useFetchBrowseFormQuestionsAnswers = (
       return browseFormQuestionsAnswers(params);
     },
     queryKey: getKeyBrowseFormQuestionsAnswers(params),
+    refetchOnMount: true,
   });
 
   return {

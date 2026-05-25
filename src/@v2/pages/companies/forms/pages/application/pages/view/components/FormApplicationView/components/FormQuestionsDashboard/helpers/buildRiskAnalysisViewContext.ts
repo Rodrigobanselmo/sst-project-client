@@ -32,6 +32,7 @@ export function buildRiskAnalysisViewContext(params: {
   visibleParticipantGroups: ParticipantGroupForIndicators[];
   selectedGroupingQuestionId: string | null;
   entityMap: Record<string, EntityInfo>;
+  entityEstablishmentMapFromApi?: Record<string, string>;
 }): {
   allowedEntityIds: Set<string> | null;
   entityEstablishmentMap: Map<string, string>;
@@ -41,6 +42,7 @@ export function buildRiskAnalysisViewContext(params: {
     visibleParticipantGroups,
     selectedGroupingQuestionId,
     entityMap,
+    entityEstablishmentMapFromApi,
   } = params;
 
   const participantStructures =
@@ -59,16 +61,25 @@ export function buildRiskAnalysisViewContext(params: {
 
   const entityEstablishmentMap = new Map<string, string>();
 
+  if (entityEstablishmentMapFromApi) {
+    Object.entries(entityEstablishmentMapFromApi).forEach(([entityId, establishment]) => {
+      const label = establishment?.trim();
+      if (label) {
+        entityEstablishmentMap.set(entityId, label);
+      }
+    });
+  }
+
   for (const structure of structuresForEstablishmentLabel) {
     const entityId = resolveEntityIdForParticipant(structure, entityMap);
     if (!entityId) continue;
 
+    if (entityEstablishmentMap.has(entityId)) continue;
+
     const establishment =
       structure.workspaceName?.trim() || FORM_PARTICIPANT_NO_ESTABLISHMENT_LABEL;
 
-    if (!entityEstablishmentMap.has(entityId)) {
-      entityEstablishmentMap.set(entityId, establishment);
-    }
+    entityEstablishmentMap.set(entityId, establishment);
   }
 
   if (!selectedGroupingQuestionId) {

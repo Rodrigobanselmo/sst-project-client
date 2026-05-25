@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from 'react';
+import React, { useState } from 'react';
 
 import { Box } from '@mui/material';
 
@@ -11,14 +11,18 @@ import SModal, {
 } from 'components/molecules/SModal';
 import { SButton } from 'components/atoms/SButton';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
+import { useAccess } from 'core/hooks/useAccess';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 
 import { ModalWorkspaceStep } from './components/ModalWorkspaceStep';
+import { ConvertWorkspaceToCompanyModal } from './components/ConvertWorkspaceToCompanyModal/ConvertWorkspaceToCompanyModal';
 import { useEditWorkspace } from './hooks/useEditWorkspace';
 
 export const ModalAddWorkspace = () => {
   const props = useEditWorkspace();
+  const { isMaster } = useAccess();
+  const [convertOpen, setConvertOpen] = useState(false);
   const {
     onSubmit,
     registerModal,
@@ -39,11 +43,12 @@ export const ModalAddWorkspace = () => {
   ] as IModalButton[];
 
   return (
-    <SModal
-      {...registerModal(ModalEnum.WORKSPACE_ADD)}
-      keepMounted={false}
-      onClose={onCloseUnsaved}
-    >
+    <>
+      <SModal
+        {...registerModal(ModalEnum.WORKSPACE_ADD)}
+        keepMounted={false}
+        onClose={onCloseUnsaved}
+      >
       <SModalPaper
         p={8}
         center
@@ -65,6 +70,16 @@ export const ModalAddWorkspace = () => {
           justifyContent="space-between"
         >
           <Box display="flex" gap={5}>
+            {companyData.id && isMaster && (
+              <SButton
+                variant="outlined"
+                color="warning"
+                onClick={() => setConvertOpen(true)}
+                style={{ minWidth: 180 }}
+              >
+                Converter em empresa
+              </SButton>
+            )}
             {companyData.id && (
               <SButton
                 variant="outlined"
@@ -85,6 +100,16 @@ export const ModalAddWorkspace = () => {
           </Box>
         </SModalButtons>
       </SModalPaper>
-    </SModal>
+      </SModal>
+      {companyData.id && (
+        <ConvertWorkspaceToCompanyModal
+          open={convertOpen}
+          onClose={() => setConvertOpen(false)}
+          onConverted={onCloseUnsaved}
+          workspaceId={companyData.id}
+          workspaceName={companyData.name}
+        />
+      )}
+    </>
   );
 };

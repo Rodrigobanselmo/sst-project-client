@@ -145,9 +145,19 @@ export const FormApplicationInfo = ({
               )}
               {formApplication.scopeType ===
                 FormApplicationScopeTypeEnum.COMPANY_WORKSPACES &&
+                formApplication.participants.companies.length > 0 && (
+                <InfoCardText
+                  label="Empresas participantes (convertidas)"
+                  text={formApplication.participants.companies
+                    .map((company) => company.name)
+                    .join(', ')}
+                />
+              )}
+              {formApplication.scopeType ===
+                FormApplicationScopeTypeEnum.COMPANY_WORKSPACES &&
                 formApplication.participants.workspaces.length > 0 && (
                 <InfoCardText
-                  label="Estabelecimentos Participantes"
+                  label="Estabelecimentos participantes"
                   text={formApplication.participants.workspaces
                     .map((w) => w.name)
                     .join(', ')}

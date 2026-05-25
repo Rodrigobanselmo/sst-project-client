@@ -22,6 +22,7 @@ import { mapLibraryQuestionToFormIdentifierItem } from '../../../../helpers/map-
 import { getFormModelInitialValues } from '../../../../../model/schemas/form-model.schema';
 import { transformFormApplicationDataToApiFormat } from '../../../../helpers/transform-form-application-data';
 import {
+  buildFormApplicationScopeFormDefaults,
   formApplicationFormInitialValues,
   IFormApplicationFormFields,
   schemaFormApplicationForm,
@@ -66,12 +67,12 @@ export const FormApplicationEditContent = ({
         : { value: 'false', label: 'Link por funcionário' },
       anonymous: formApplication.isAnonymous,
       participationGoal: formApplication.participationGoal,
-      workspaceIds: formApplication.participants.workspaces.map(
-        (workspace) => ({
-          id: workspace.id,
-          name: workspace.name,
-        }),
-      ),
+      ...buildFormApplicationScopeFormDefaults({
+        scopeType: formApplication.scopeType,
+        companyGroupId: formApplication.companyGroupId,
+        companies: formApplication.participants.companies,
+        workspaces: formApplication.participants.workspaces,
+      }),
       // Transform questionIdentifierGroup data to sections format
       sections: formApplication.questionIdentifierGroup
         ? [

@@ -17,11 +17,13 @@ import { DeleteHierarchyGroupModal } from './components/DeleteHierarchyGroupModa
 
 interface FormHierarchyGroupManagerProps {
   formApplication: FormApplicationReadModel;
+  accessCompanyId: string;
   inline?: boolean;
 }
 
 export const FormHierarchyGroupManager = ({
   formApplication,
+  accessCompanyId,
 }: FormHierarchyGroupManagerProps) => {
   const [upsertModalOpen, setUpsertModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -33,7 +35,7 @@ export const FormHierarchyGroupManager = ({
   );
 
   const { hierarchyGroups } = useFetchBrowseHierarchyGroups({
-    companyId: formApplication.companyId,
+    companyId: accessCompanyId,
     applicationId: formApplication.id,
   });
 
@@ -44,7 +46,7 @@ export const FormHierarchyGroupManager = ({
 
   const { formQuestionsAnswersRisks } = useFetchBrowseFormQuestionsAnswersRisks(
     {
-      companyId: formApplication.companyId,
+      companyId: accessCompanyId,
       applicationId: formApplication.id,
     },
   );
@@ -122,7 +124,7 @@ export const FormHierarchyGroupManager = ({
 
     upsertGroups(
       {
-        companyId: formApplication.companyId,
+        companyId: accessCompanyId,
         applicationId: formApplication.id,
         groups,
       },
@@ -137,7 +139,7 @@ export const FormHierarchyGroupManager = ({
 
     deleteGroup(
       {
-        companyId: formApplication.companyId,
+        companyId: accessCompanyId,
         applicationId: formApplication.id,
         groupId: deletingGroup.id,
       },

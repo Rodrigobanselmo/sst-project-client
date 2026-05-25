@@ -15,6 +15,7 @@ import { buildParticipantGroupsForIndicators } from './buildParticipantGroupsFor
 export async function exportFormRiskAnalysisPdfInBrowser(
   params: {
     formApplication: FormApplicationReadModel;
+    accessCompanyId: string;
     formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
     selectedGroupingQuestionId: string | null;
     selectedGroupingLabel?: string | null;
@@ -45,11 +46,11 @@ export async function exportFormRiskAnalysisPdfInBrowser(
 
   const [risksData, analysisData] = await Promise.all([
     browseFormQuestionsAnswersRisks({
-      companyId: params.formApplication.companyId,
+      companyId: params.accessCompanyId,
       applicationId: params.formApplication.id,
     }),
     browseFormQuestionsAnswersAnalysis({
-      companyId: params.formApplication.companyId,
+      companyId: params.accessCompanyId,
       applicationId: params.formApplication.id,
     }),
   ]);

@@ -29,6 +29,7 @@ export const useInfinityBrowseResponsibles = (
       params,
       QueryKeyEnum.INFINITE,
     ],
+    enabled: !!params.companyId,
   });
 
   return {

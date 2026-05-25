@@ -20,6 +20,7 @@ import {
 } from '../../helpers/buildRiskAnalysisViewContext';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
 import { useMutateAiAnalyzeFormQuestionsRisks } from '@v2/services/forms/ai-analyze-risks/hooks/useMutateAiAnalyzeFormQuestionsRisks';
+import { useMutateApplyAiAnalysisAsRiskData } from '@v2/services/forms/form-application/apply-ai-analysis-as-risk-data/hooks/useMutateApplyAiAnalysisAsRiskData';
 import { useMutateAssignRisksFormApplication } from '@v2/services/forms/form-application/assign-risks-form-application/hooks/useMutateAssignRisksFormApplication';
 import { useFetchBrowseFormApplicationRiskLog } from '@v2/services/forms/form-application/form-application-risk-log/hooks/useFetchBrowseFormApplicationRiskLog';
 import {
@@ -29,8 +30,7 @@ import {
 
 import { useMutateEditFormQuestionsAnswersAnalysis } from '@v2/services/forms/form-questions-answers-analysis/edit-form-questions-answers-analysis/hooks/useMutateEditFormQuestionsAnswersAnalysis';
 import { useFetchBrowseFormQuestionsAnswersRisks } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers-risks/hooks/useFetchBrowseFormQuestionsAnswersRisks';
-import { useMutUpsertRiskData } from 'core/services/hooks/mutations/checklist/riskData/useMutUpsertRiskData';
-import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import { useSnackbar } from 'notistack';
 import { SIconDelete } from '@v2/assets/icons/SIconDelete/SIconDelete';
 import { TextField } from '@mui/material';
 import { MedTypeEnum } from 'project/enum/medType.enum';
@@ -48,7 +48,6 @@ import {
   DialogActions,
 } from '@mui/material';
 import { formRiskCustomPrompt } from './custim-prompt';
-import { HomoTypeEnum } from '@v2/models/security/enums/homo-type.enum';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 import {
   entityMatchesMassAddFilter,
@@ -58,6 +57,7 @@ import {
 
 interface FormRisksAnalysisProps {
   formApplication: FormApplicationReadModel;
+  accessCompanyId: string;
   formQuestionsAnswers?: FormQuestionsAnswersBrowseModel | null;
   visibleParticipantGroups?: ParticipantGroupForIndicators[];
   selectedGroupingQuestionId?: string | null;
@@ -135,6 +135,7 @@ const badgeSx = (bg: string) => ({
 
 export const FormRisksAnalysis = ({
   formApplication,
+  accessCompanyId,
   formQuestionsAnswers = null,
   visibleParticipantGroups = [],
   selectedGroupingQuestionId = null,
@@ -169,19 +170,20 @@ export const FormRisksAnalysis = ({
   const { mutate: mutateAiAnalyzeFormQuestionsRisks, isPending: isAnalyzing } =
     useMutateAiAnalyzeFormQuestionsRisks();
 
-  const { data: riskGroupData } = useQueryRiskGroupData();
+  const { enqueueSnackbar } = useSnackbar();
 
   const editAnalysisMutation = useMutateEditFormQuestionsAnswersAnalysis();
-  const upsertRiskDataMutation = useMutUpsertRiskData();
+  const applyAiAnalysisAsRiskDataMutation =
+    useMutateApplyAiAnalysisAsRiskData();
 
   const { riskLogs } = useFetchBrowseFormApplicationRiskLog({
-    companyId: formApplication.companyId,
+    companyId: accessCompanyId,
     applicationId: formApplication.id,
   });
 
   const { formQuestionsAnswersRisks, isLoading } =
     useFetchBrowseFormQuestionsAnswersRisks({
-      companyId: formApplication.companyId,
+      companyId: accessCompanyId,
       applicationId: formApplication.id,
     });
 
@@ -190,7 +192,7 @@ export const FormRisksAnalysis = ({
 
     refetch,
   } = useFetchBrowseFormQuestionsAnswersAnalysis({
-    companyId: formApplication.companyId,
+    companyId: accessCompanyId,
     applicationId: formApplication.id,
   });
 
@@ -253,7 +255,7 @@ export const FormRisksAnalysis = ({
       updatedAnalysis[itemType][itemIndex].nome = newName;
 
       await editAnalysisMutation.mutateAsync({
-        companyId: formApplication.companyId,
+        companyId: accessCompanyId,
         applicationId: formApplication.id,
         analysisId,
         analysis: updatedAnalysis,
@@ -278,7 +280,7 @@ export const FormRisksAnalysis = ({
       updatedAnalysis[itemType].splice(itemIndex, 1);
 
       await editAnalysisMutation.mutateAsync({
-        companyId: formApplication.companyId,
+        companyId: accessCompanyId,
         applicationId: formApplication.id,
         analysisId,
         analysis: updatedAnalysis,
@@ -494,60 +496,46 @@ export const FormRisksAnalysis = ({
     );
   };
 
-  // Helper function to add AI analysis as risk data
   const handleAddAnalysisAsRiskData = async (analysis: any) => {
+    if (!analysis.hierarchyId || !analysis.riskId) {
+      enqueueSnackbar('Dados da análise incompletos', { variant: 'error' });
+      return;
+    }
+
     try {
-      // Get the first available risk group
-      const riskGroupId = riskGroupData?.[0]?.id;
-
-      if (!riskGroupId) {
-        console.error('No risk group found');
-        return;
-      }
-
-      await upsertRiskDataMutation.mutateAsync({
-        riskFactorGroupDataId: riskGroupId,
-        riskId: analysis.riskId,
+      await applyAiAnalysisAsRiskDataMutation.mutateAsync({
+        companyId: accessCompanyId,
+        applicationId: formApplication.id,
         hierarchyId: analysis.hierarchyId,
-        homogeneousGroupId: analysis.hierarchyId,
-        type: HomoTypeEnum.HIERARCHY,
-        keepEmpty: true,
-        companyId: formApplication.companyId,
+        riskId: analysis.riskId,
         probability: analysis.probability,
-        generateSourcesAddOnly: analysis.analysis.fontesGeradoras.map(
-          (fonte: any) => ({
-            name: fonte.nome,
-            companyId: formApplication.companyId,
-          }),
+        generateSourcesAddOnly: analysis.analysis?.fontesGeradoras?.map(
+          (fonte: any) => ({ name: fonte.nome }),
         ),
-        engsAddOnly: analysis.analysis.medidasEngenhariaRecomendadas.map(
+        engsAddOnly: analysis.analysis?.medidasEngenhariaRecomendadas?.map(
           (medida: any) => ({
             medName: medida.nome,
-            type: MedTypeEnum.ENG,
-            companyId: formApplication.companyId,
+            medType: MedTypeEnum.ENG,
           }),
         ),
         recAddOnly: [
-          ...analysis.analysis.medidasAdministrativasRecomendadas.map(
+          ...(analysis.analysis?.medidasAdministrativasRecomendadas?.map(
             (medida: any) => ({
               recName: medida.nome,
-              companyId: formApplication.companyId,
-              type: RecTypeEnum.ADM,
+              recType: RecTypeEnum.ADM,
             }),
-          ),
-          ...analysis.analysis.medidasEngenhariaRecomendadas.map(
+          ) ?? []),
+          ...(analysis.analysis?.medidasEngenhariaRecomendadas?.map(
             (medida: any) => ({
               recName: medida.nome,
-              type: RecTypeEnum.ENG,
-              companyId: formApplication.companyId,
+              recType: RecTypeEnum.ENG,
             }),
-          ),
+          ) ?? []),
         ],
       });
 
-      // Mark this analysis as added by updating the analysis with a new field
       await editAnalysisMutation.mutateAsync({
-        companyId: formApplication.companyId,
+        companyId: accessCompanyId,
         applicationId: formApplication.id,
         analysisId: analysis.id,
         analysis: {
@@ -556,14 +544,9 @@ export const FormRisksAnalysis = ({
         },
       });
 
-      // Mark analysis as added in local state
       setAddedRisks((prev) => new Set(prev).add(analysis.id));
-      console.log(
-        'Risk data created successfully from AI analysis:',
-        analysis.riskName,
-      );
-    } catch (error) {
-      console.error('Error creating risk data from AI analysis:', error);
+    } catch {
+      // Erros exibidos pelos hooks de mutação
     }
   };
 
@@ -581,12 +564,15 @@ export const FormRisksAnalysis = ({
         visibleParticipantGroups,
         selectedGroupingQuestionId,
         entityMap,
+        entityEstablishmentMapFromApi:
+          formQuestionsAnswersRisks?.entityEstablishmentMap,
       }),
     [
       formQuestionsAnswers,
       visibleParticipantGroups,
       selectedGroupingQuestionId,
       entityMap,
+      formQuestionsAnswersRisks?.entityEstablishmentMap,
     ],
   );
 
@@ -706,7 +692,7 @@ export const FormRisksAnalysis = ({
 
   const handleAddRiskToAllEntities = (riskId: string, entityIds: string[]) => {
     mutateAssignRisksFormApplication({
-      companyId: formApplication.companyId,
+      companyId: accessCompanyId,
       applicationId: formApplication.id,
       risks: entityIds.map((entityId) => ({
         riskId,
@@ -718,7 +704,7 @@ export const FormRisksAnalysis = ({
 
   const handleAddRiskToEntity = (riskId: string, entityId: string) => {
     mutateAssignRisksFormApplication({
-      companyId: formApplication.companyId,
+      companyId: accessCompanyId,
       applicationId: formApplication.id,
       risks: [
         {
@@ -745,7 +731,7 @@ export const FormRisksAnalysis = ({
       .flat();
 
     mutateAssignRisksFormApplication({
-      companyId: formApplication.companyId,
+      companyId: accessCompanyId,
       applicationId: formApplication.id,
       risks,
     });
@@ -755,7 +741,7 @@ export const FormRisksAnalysis = ({
     // Just trigger the analysis - the results will be polled automatically
     // by useFetchBrowseFormQuestionsAnswersAnalysis when there are PROCESSING analyses
     mutateAiAnalyzeFormQuestionsRisks({
-      companyId: formApplication.companyId,
+      companyId: accessCompanyId,
       formApplicationId: formApplication.id,
       customPrompt: data?.customPrompt,
       model: data?.model?.value,

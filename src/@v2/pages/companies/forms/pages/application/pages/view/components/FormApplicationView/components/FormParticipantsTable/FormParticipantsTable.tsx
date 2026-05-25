@@ -44,6 +44,10 @@ import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import {
+  countFormApplicationParticipantCompanies,
+  shouldShowEstablishmentParticipantViewModes,
+} from '@v2/models/form/helpers/form-participants-view-mode-visibility';
+import {
   FORM_REMINDER_LIMIT,
   useSendFormReminderFlow,
 } from '@v2/services/forms/form-participants/send-form-reminder';
@@ -131,8 +135,16 @@ export const FormParticipantsTable = ({
 
   const participantWorkspacesCount =
     formApplication?.participants?.workspaces?.length ?? 0;
-  const showGroupedByEstablishment = participantWorkspacesCount > 1;
-  const showEstablishmentViewModeOptions = showGroupedByEstablishment;
+  const participantCompaniesCount = countFormApplicationParticipantCompanies(
+    formApplication?.participants?.companies,
+  );
+  const showEstablishmentViewModeOptions =
+    shouldShowEstablishmentParticipantViewModes({
+      scopeType: formApplication?.scopeType,
+      participantWorkspacesCount,
+      participantCompaniesCount,
+    });
+  const showGroupedByEstablishment = showEstablishmentViewModeOptions;
 
   const flatHierarchyBeforeSector = useMemo(
     () =>
@@ -406,20 +418,26 @@ export const FormParticipantsTable = ({
   };
 
   const groupedRowsCount = groupedRows.length;
-  const isPartialGroupedFetch =
+  const recorteTotalParticipants = filterSummaryForUi.totalParticipants;
+  const isGroupedOverCap =
     isGroupedViewMode(viewMode) &&
     groupedParticipants != null &&
-    (filterSummaryForUi.totalParticipants > FORM_PARTICIPANTS_GROUPED_FETCH_CAP ||
-      groupedRowsCount < filterSummaryForUi.totalParticipants);
+    recorteTotalParticipants > FORM_PARTICIPANTS_GROUPED_FETCH_CAP;
+  const isGroupedIncompleteFetch =
+    isGroupedViewMode(viewMode) &&
+    groupedParticipants != null &&
+    !isGroupedOverCap &&
+    recorteTotalParticipants > 0 &&
+    groupedRowsCount < recorteTotalParticipants;
 
   const groupedTableProps = useMemo(
     () => ({
       rows: groupedRows,
       isLoading: groupedTableLoading,
       fetchCap: FORM_PARTICIPANTS_GROUPED_FETCH_CAP,
-      isPartialFetch: isPartialGroupedFetch,
+      isPartialFetch: false,
     }),
-    [groupedRows, groupedTableLoading, isPartialGroupedFetch],
+    [groupedRows, groupedTableLoading],
   );
 
   const renderGroupedContent = () => {
@@ -432,7 +450,28 @@ export const FormParticipantsTable = ({
       );
     }
 
-    switch (viewMode) {
+    return (
+      <>
+        {isGroupedOverCap ? (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            O recorte tem mais de {FORM_PARTICIPANTS_GROUPED_FETCH_CAP}{' '}
+            participantes. O agrupamento usa apenas os primeiros{' '}
+            {FORM_PARTICIPANTS_GROUPED_FETCH_CAP} registros carregados; os totais
+            podem estar incompletos. O resumo do topo continua refletindo o recorte
+            completo.
+          </Alert>
+        ) : null}
+        {isGroupedIncompleteFetch ? (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Foram carregados {groupedRowsCount} de {recorteTotalParticipants}{' '}
+            participantes do recorte para o agrupamento. Atualize a página ou use a
+            lista detalhada se os totais parecerem incompletos. O resumo do topo
+            continua refletindo o recorte completo ({recorteTotalParticipants}{' '}
+            participantes).
+          </Alert>
+        ) : null}
+        {(() => {
+          switch (viewMode) {
       case 'grouped_establishment':
         return <FormParticipantsGroupedByEstablishment {...groupedTableProps} />;
       case 'grouped_establishment_sector':
@@ -467,7 +506,10 @@ export const FormParticipantsTable = ({
       }
       default:
         return null;
-    }
+          }
+        })()}
+      </>
+    );
   };
 
   return (

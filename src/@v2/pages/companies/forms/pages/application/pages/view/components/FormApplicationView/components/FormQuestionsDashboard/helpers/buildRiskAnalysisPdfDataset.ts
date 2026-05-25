@@ -95,6 +95,7 @@ export function buildRiskAnalysisPdfDataset(params: {
       visibleParticipantGroups,
       selectedGroupingQuestionId,
       entityMap,
+      entityEstablishmentMapFromApi: risksData.entityEstablishmentMap,
     });
 
   const isEntityVisible = (entityId: string) =>

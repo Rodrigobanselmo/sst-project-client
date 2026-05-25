@@ -57,6 +57,7 @@ export const FormApplicationView = ({
           <FormQuestionsDashboard
             formQuestionsAnswers={formQuestionsAnswers}
             formApplication={formApplication}
+            accessCompanyId={companyId}
           />
         </SFlex>
       )}

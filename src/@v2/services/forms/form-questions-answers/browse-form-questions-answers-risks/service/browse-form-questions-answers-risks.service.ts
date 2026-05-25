@@ -14,7 +14,7 @@ export type Result = {
   // entityId -> { id: string; type: HierarchyEnum; name: string }
   entityMap: Record<
     string,
-    { id: string; type: HierarchyTypeEnum; name: string }
+    { id: string; type: HierarchyTypeEnum; name: string; companyId: string }
   >;
   // riskId -> { id: string; name: string; type: RiskEnum; subTypes: { sub_type: { id: number; name: string } }[] }
   riskMap: Record<
@@ -37,6 +37,7 @@ export type Result = {
     { id: string; name: string; type: string }
   >;
   hierarchyGroups: Array<{ id: string; name: string; hierarchyIds: string[] }>;
+  entityEstablishmentMap?: Record<string, string>;
 };
 
 export async function browseFormQuestionsAnswersRisks({

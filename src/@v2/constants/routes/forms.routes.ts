@@ -10,6 +10,8 @@ export const FormRoutes = {
     PATH_ID: 'v2/companies/:companyId/forms/applications/:applicationId',
     PATH_ASSIGN_RISKS:
       'v2/companies/:companyId/forms/applications/:applicationId/assign-risks',
+    PATH_APPLY_AI_ANALYSIS_RISK_DATA:
+      'v2/companies/:companyId/forms/applications/:applicationId/apply-ai-analysis-risk-data',
     PATH_RISK_LOGS:
       'v2/companies/:companyId/forms/applications/:applicationId/risk-logs',
     PATH_PUBLIC: 'v2/forms/applications/:applicationId/public',

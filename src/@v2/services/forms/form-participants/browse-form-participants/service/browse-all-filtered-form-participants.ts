@@ -39,7 +39,12 @@ export async function browseAllFilteredFormParticipants(
 
     filterSummary = bundle.filterSummary;
     const batch = bundle.results ?? [];
-    allResults.push(...batch);
+    const seenIds = new Set(allResults.map((row) => row.id));
+    for (const row of batch) {
+      if (seenIds.has(row.id)) continue;
+      seenIds.add(row.id);
+      allResults.push(row);
+    }
 
     const recorteTotal = filterSummary.totalParticipants;
     const targetTotal =

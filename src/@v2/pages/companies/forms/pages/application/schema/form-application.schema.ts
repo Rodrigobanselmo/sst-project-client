@@ -25,6 +25,36 @@ export type FormApplicationScopeTypeOption = {
   label: string;
 };
 
+export function buildFormApplicationScopeFormDefaults(params: {
+  scopeType: FormApplicationScopeTypeEnum;
+  companyGroupId: number | null;
+  companies: { id: string; name: string }[];
+  workspaces: { id: string; name: string }[];
+}): Pick<
+  IFormApplicationFormFields,
+  'scopeType' | 'companyGroup' | 'companyIds' | 'workspaceIds'
+> {
+  const scopeType =
+    FORM_APPLICATION_SCOPE_TYPE_OPTIONS.find(
+      (option) => option.value === params.scopeType,
+    ) ?? FORM_APPLICATION_SCOPE_TYPE_OPTIONS[0];
+
+  return {
+    scopeType,
+    companyGroup: params.companyGroupId
+      ? { id: params.companyGroupId, name: '' }
+      : null,
+    companyIds: params.companies.map((company) => ({
+      id: company.id,
+      name: company.name,
+    })),
+    workspaceIds: params.workspaces.map((workspace) => ({
+      id: workspace.id,
+      name: workspace.name,
+    })),
+  };
+}
+
 export function resolveFormApplicationScopeType(
   scopeType?: FormApplicationScopeTypeOption | FormApplicationScopeTypeEnum | null,
 ): FormApplicationScopeTypeEnum {
