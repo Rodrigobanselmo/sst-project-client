@@ -299,16 +299,20 @@ export const PublicFormAnswerPage = ({
           options.hierarchies,
         );
 
-        // Find the matching hierarchy option
-        const matchingOption = transformedHierarchies.find(
-          (option) => option.id === hierarchyId,
-        );
-        if (matchingOption) {
-          // Only set the value if it's not already set (to avoid overriding user changes)
-          const currentValue = form.getValues(firstSectorQuestion.id);
-          if (!currentValue) {
-            form.setValue(firstSectorQuestion.id, matchingOption);
-          }
+        // Find the matching hierarchy option, or fall back to a minimal value
+        // built from hierarchyId alone — the backend only needs the id and the
+        // SECTOR question is hidden, so the missing label is harmless.
+        const matchingOption =
+          transformedHierarchies.find((option) => option.id === hierarchyId) ?? {
+            id: hierarchyId,
+            text: '',
+            value: hierarchyId,
+          };
+
+        // Only set the value if it's not already set (to avoid overriding user changes)
+        const currentValue = form.getValues(firstSectorQuestion.id);
+        if (!currentValue) {
+          form.setValue(firstSectorQuestion.id, matchingOption);
         }
       }
     }
@@ -395,11 +399,21 @@ export const PublicFormAnswerPage = ({
     const data = form.getValues();
     form.clearErrors();
 
-    // Validate required fields for current group only
+    // Validate required fields for current group only.
+    // SECTOR fields auto-populated via hierarchyId are hidden in the UI (see render
+    // loop below) — exclude them so we don't fail validation on a field the user
+    // cannot interact with.
     const currentGroupQuestions = currentGroup?.questions || [];
-    const requiredQuestions = currentGroupQuestions.filter(
-      (question) => question.required,
-    );
+    const requiredQuestions = currentGroupQuestions.filter((question) => {
+      if (!question.required) return false;
+      if (
+        question.details.identifierType === FormIdentifierTypeEnum.SECTOR &&
+        hierarchyId
+      ) {
+        return false;
+      }
+      return true;
+    });
 
     const missingRequiredFields: string[] = [];
 
