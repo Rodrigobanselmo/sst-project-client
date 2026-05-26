@@ -6,8 +6,6 @@ import { SContainer } from 'components/atoms/SContainer';
 import SFlex from 'components/atoms/SFlex';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import SIconButton from 'components/atoms/SIconButton';
-import SPageTitle from 'components/atoms/SPageTitle';
-import SPageTitleSection from 'components/atoms/SPageTitleSection';
 import { STagButton } from 'components/atoms/STagButton';
 import SText from 'components/atoms/SText';
 import { ModalAddDocPCMSOVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPCMSOVersion';
@@ -44,7 +42,6 @@ import { NextPage } from 'next';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { SArrowNextIcon } from 'assets/icons/SArrowNextIcon';
-import SClinicIcon from 'assets/icons/SClinicIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SUploadIcon from 'assets/icons/SUploadIcon';
 
@@ -57,12 +54,12 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 import { SActionButton } from '../../../../../../components/atoms/SActionButton';
 import { CharacterizationStage } from './components/CharacterizationStage/CharacterizationStage';
 import { CompanyHomeFormsGroupCard } from './components/CompanyHomeFormsGroupCard/CompanyHomeFormsGroupCard';
+import { CompanyHomeOperationalHeader } from './components/CompanyHomeOperationalHeader/CompanyHomeOperationalHeader';
 import { companyHomeLaunchCardShellSx } from './components/company-home-launch.constants';
 import { CompanyStage } from './components/CompanyStage/CompanyStage';
 import { DocumentsStage } from './components/DocumentsStage /DocumentsStage';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
 import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
-import { SActionStepCheck } from 'components/atoms/SActionStepCheck';
 import { SButton } from 'components/atoms/SButton';
 import { useModal } from 'core/hooks/useModal';
 import { ModalEnum } from 'core/enums/modal.enums';
@@ -108,11 +105,12 @@ const CompanyPage: NextPage = () => {
       <SHeaderTag hideInitial title={companyName} />
 
       <SContainer>
-        <SPageTitle
-          icon={SClinicIcon}
-          rightElement={
-            <Box ml="auto">
-              <SFlex gap={5}>
+        <CompanyHomeOperationalHeader
+          companyName={companyName}
+          stepsActionsList={stepsActionsList}
+          headerActions={
+            <Box ml="auto" sx={{ flexShrink: 0 }}>
+              <SFlex gap={5} flexWrap="wrap" justify="flex-end">
                 <SButton
                   variant="outlined"
                   size="small"
@@ -132,30 +130,9 @@ const CompanyPage: NextPage = () => {
               </SFlex>
             </Box>
           }
-        >
-          {companyName}
-        </SPageTitle>
+        />
 
-        {stepsActionsList.length != 0 && (
-          <SFlex mt={5} gap={35} overflow="auto" mb={15}>
-            {stepsActionsList.map(({ group, items }) => (
-              <Box key={group} minWidth="fit-content">
-                <SText fontSize={12}>{group}</SText>
-                <Box mt={3} gap={2} display={'flex'} flexDirection={'column'}>
-                  {items.map(({ ...props }, index) => (
-                    <SActionStepCheck
-                      index={index}
-                      key={props.text}
-                      {...props}
-                    />
-                  ))}
-                </Box>
-              </Box>
-            ))}
-          </SFlex>
-        )}
-
-        <Box sx={{ ...homeCardsGridSx, mt: 5, mb: 30 }}>
+        <Box sx={{ ...homeCardsGridSx, mt: 2, mb: 30 }}>
           {pageGroupMemo.map(({ color, ...props }) => (
             <Box
               key={props.text}
@@ -178,8 +155,8 @@ const CompanyPage: NextPage = () => {
         </Box>
         {(launchCardsMemo.length > 0 || showFormsLaunchGroup) && (
           <>
-            <SText mt={-15}>Lançamentos</SText>
-            <Box sx={{ ...launchCardsGridSx, mt: 5, mb: 30 }}>
+            <SText mt={-8}>Lançamentos</SText>
+            <Box sx={{ ...launchCardsGridSx, mt: 3, mb: 24 }}>
               {launchCardsMemo.map((raw, index) => {
                 const cardProps = raw as ISActionButtonProps;
                 return (
