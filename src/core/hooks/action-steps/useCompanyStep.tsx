@@ -409,8 +409,17 @@ export const useCompanyStep = () => {
   }, [push, company.id]);
 
   const handleOs = useCallback(() => {
-    push(RoutesEnum.OS.replace(/:companyId/g, company.id));
-  }, [push, company.id]);
+    const tabWorkspaceId = query.tabWorkspaceId as string | undefined;
+    const activeTab = query.active as string | undefined;
+    const nextQuery: Record<string, string> = {};
+    if (tabWorkspaceId) nextQuery.tabWorkspaceId = tabWorkspaceId;
+    if (activeTab) nextQuery.active = activeTab;
+
+    void push({
+      pathname: RoutesEnum.OS.replace(':companyId', company.id),
+      query: nextQuery,
+    });
+  }, [company.id, push, query.active, query.tabWorkspaceId]);
 
   const handleAddExam = useCallback(() => {
     onStackOpenModal(ModalEnum.EXAM_RISK_VIEW);
@@ -588,7 +597,7 @@ export const useCompanyStep = () => {
         type: CompanyActionEnum.DOCUMENTS,
         icon: SDocumentIcon,
         onClick: handleDocumentControl,
-        text: 'Documentos',
+        text: 'Acervo Técnico',
         tooltipText:
           'Centralização dos documentos da empresa e gerenciamento de vencimentos',
       },
@@ -817,11 +826,11 @@ export const useCompanyStep = () => {
         icon: SDocumentIcon,
         onClick: () =>
           handleChangeStage(CompanyActionEnum.DOCUMENTS_GROUP_PAGE),
-        text: 'Documentos',
+        text: 'Programas e Laudos',
         showIf: {
           isDocuments: true,
         },
-        tooltipText: 'Geração de versoes dos documentos da empresa',
+        tooltipText: 'Geração de versões dos programas e laudos da empresa',
         roles: [],
         permissions: [],
         infos: [

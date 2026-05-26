@@ -14,7 +14,7 @@ export const DocumentViewPage = () => {
     <>
       <SHeaderTag title={'Documento'} />
       <SContainer>
-        <SPageHeader mb={8} title="Documentos" />
+        <SPageHeader mb={8} title="Acervo Técnico" />
         <DocumentControlView
           companyId={companyId}
           documentControlId={documentControlId}

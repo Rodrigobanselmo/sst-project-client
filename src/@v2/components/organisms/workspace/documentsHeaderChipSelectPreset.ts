@@ -22,15 +22,25 @@ export const documentsHeaderChipShellSx = {
 /** Row height estimate for dynamic list max-height (compact header selects). */
 export const HEADER_CHIP_ROW_PX = 40;
 
+/** Altura máxima do dropdown de estabelecimento/empresa no header (~65vh). */
+export const HEADER_CHIP_LIST_VIEWPORT_RATIO = 0.65;
+
+export const HEADER_CHIP_LIST_MIN_PX = 96;
+
+export function getHeaderChipViewportMaxHeightPx(): number {
+  if (typeof globalThis !== 'undefined' && 'innerHeight' in globalThis) {
+    return Math.floor(
+      (globalThis as Window & typeof globalThis).innerHeight *
+        HEADER_CHIP_LIST_VIEWPORT_RATIO,
+    );
+  }
+  return 480;
+}
+
 export function getHeaderChipListMaxHeightPx(optionCount: number): number {
+  const vhCap = getHeaderChipViewportMaxHeightPx();
   const content = optionCount * HEADER_CHIP_ROW_PX + 12;
-  const vhCap =
-    typeof globalThis !== 'undefined' && 'innerHeight' in globalThis
-      ? Math.floor(
-          (globalThis as Window & typeof globalThis).innerHeight * 0.72,
-        )
-      : 520;
-  return Math.min(Math.max(content, 72), vhCap, 640);
+  return Math.min(Math.max(content, HEADER_CHIP_LIST_MIN_PX), vhCap);
 }
 
 export function headerChipCompactListSx(
@@ -38,6 +48,7 @@ export function headerChipCompactListSx(
 ): SxProps<Theme> {
   return {
     maxHeight: listMaxHeightPx,
+    overflowY: 'auto',
     py: 0.5,
     '& li': {
       alignItems: 'flex-start',
@@ -55,6 +66,7 @@ export const headerChipDefaultListSx = (
   listMaxHeightPx: number,
 ): SxProps<Theme> => ({
   maxHeight: listMaxHeightPx,
+  overflowY: 'auto',
   p: 0,
   '& li': { borderBottom: '1px solid #e0e0e0' },
   '& li:last-child': { borderBottom: 'none' },
@@ -103,12 +115,18 @@ export const headerChipCompactAutocompleteSx: SxProps<Theme> = {
   },
 };
 
-export const headerChipCompactPaperComponentsProps = {
-  paper: {
-    sx: {
-      width: 'max-content',
-      minWidth: '100%',
-      maxWidth: 'min(560px, 92vw)',
+export function headerChipCompactPaperComponentsProps(listMaxHeightPx: number) {
+  return {
+    paper: {
+      sx: {
+        width: 'max-content',
+        minWidth: '100%',
+        maxWidth: 'min(560px, 92vw)',
+        maxHeight: listMaxHeightPx,
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+      },
     },
-  },
-} as const;
+  } as const;
+}

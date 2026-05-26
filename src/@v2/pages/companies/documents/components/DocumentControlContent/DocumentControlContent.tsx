@@ -6,9 +6,17 @@ import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/b
 import { Box } from '@mui/material';
 import { useEffect, useMemo } from 'react';
 
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import {
+  enrichPickableWorkspaces,
+  pickDefaultWorkspace,
+} from 'core/utils/helpers/pick-default-workspace.util';
+
 import { DocumentControlTable } from '../DocumentControlTable/DocumentControlTable';
 
 export const DocumentsContent = ({ companyId }: { companyId: string }) => {
+  const { data: company, isLoading: isLoadingCompany } =
+    useQueryCompany(companyId);
   const { queryParams, setQueryParams } = useQueryParamsState<{
     tabWorkspaceId?: string;
     tabTableIndex?: number;
@@ -18,23 +26,26 @@ export const DocumentsContent = ({ companyId }: { companyId: string }) => {
     companyId,
   });
 
-  const sortedFirstId = useMemo(() => {
-    if (!workspaces?.results?.length) return undefined;
-    return [...workspaces.results]
-      .sort((a, b) =>
-        a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }),
-      )[0]?.id;
-  }, [workspaces?.results]);
+  const defaultWorkspaceId = useMemo(() => {
+    const pickable = enrichPickableWorkspaces(
+      workspaces?.results,
+      company?.workspace,
+    );
+    return pickDefaultWorkspace(pickable);
+  }, [company?.workspace, workspaces?.results]);
 
   useEffect(() => {
-    if (workspaces?.results?.length !== 1) return;
-    if (!sortedFirstId || queryParams.tabWorkspaceId) return;
-    setQueryParams({ tabWorkspaceId: sortedFirstId });
+    if (isLoadingAllWorkspaces || isLoadingCompany || !defaultWorkspaceId) {
+      return;
+    }
+    if (queryParams.tabWorkspaceId) return;
+    setQueryParams({ tabWorkspaceId: defaultWorkspaceId });
   }, [
+    defaultWorkspaceId,
+    isLoadingAllWorkspaces,
+    isLoadingCompany,
     queryParams.tabWorkspaceId,
     setQueryParams,
-    sortedFirstId,
-    workspaces?.results?.length,
   ]);
 
   if (isLoadingAllWorkspaces) {

@@ -112,9 +112,9 @@ export const useDrawerItems = () => {
       shouldMatchExactHref: true,
     },
     [DrawerItemsEnum.documents]: {
-      text: 'Documentos',
+      text: 'Acervo Técnico',
       Icon: SDocumentIcon,
-      description: 'Documentos',
+      description: 'Documentos arquivados, versionados e controle de vencimento',
       href: RoutesEnum.DOCUMENTS,
       shouldMatchExactHref: false,
       roles: [RoleEnum.DOCUMENTS],

@@ -94,7 +94,7 @@ export const COMPANY_STAGE_BREADCRUMB: Record<
     getPath: (id) => companyHomeStagePath(id, CompanyActionEnum.COMPANY_GROUP_PAGE),
   },
   [CompanyActionEnum.DOCUMENTS_GROUP_PAGE]: {
-    label: 'Documentos',
+    label: 'Programas e Laudos',
     getPath: (id) => companyHomeStagePath(id, CompanyActionEnum.DOCUMENTS_GROUP_PAGE),
   },
   [CompanyActionEnum.SST_GROUP_PAGE]: {
@@ -109,16 +109,25 @@ export const FORM_TAB_BREADCRUMB_LABELS: Record<string, string> = {
   [FORM_TAB_ENUM.PRELIMINARY_LIBRARY]: 'Biblioteca de Perguntas Preliminares',
 };
 
-/** Valor estável do segmento "Formulários" no breadcrumb (`useLocation`). */
-/** Valor estável do segmento "Documentos" no breadcrumb (`useLocation`). */
+/** Valor estável do segmento "Programas e Laudos" no breadcrumb (`useLocation`). */
 export const DOCUMENTS_MODULE_ROUTE_VALUE = 'documentos-modulo';
+
+/** Valor estável do segmento "Acervo Técnico" no breadcrumb (`useLocation`). */
+export const DOCUMENTS_LIST_MODULE_ROUTE_VALUE = 'acervo-tecnico-modulo';
+
+export const DOCUMENTS_LIST_PATHNAME =
+  '/dashboard/empresas/[companyId]/documentos';
+
+export function getDocumentsListPath(companyId: string) {
+  return PageRoutes.DOCUMENTS.LIST.replace('[companyId]', companyId);
+}
 
 export const DOCUMENT_TYPE_BREADCRUMB_LABELS: Record<number, string> = {
   0: 'PGR',
   1: 'PCMSO',
-  2: 'PERICULOSIDADE',
+  2: 'Periculosidade',
   3: 'LTCAT',
-  4: 'INSALUBRIDADE',
+  4: 'Insalubridade',
   5: 'FRPS',
 };
 
@@ -138,10 +147,20 @@ export function getDocumentsSubareaNavItems(): DocumentsSubareaNavItem[] {
   ];
 }
 
-export function getDocumentsStagePath(companyId: string, active = 0) {
+export function getDocumentsStagePath(
+  companyId: string,
+  active = 0,
+  tabWorkspaceId?: string,
+) {
   const base = companyHomeStagePath(companyId, CompanyActionEnum.DOCUMENTS_GROUP_PAGE);
-  return active > 0 ? `${base}?active=${active}` : base;
+  const params = new URLSearchParams();
+  if (active > 0) params.set('active', String(active));
+  if (tabWorkspaceId) params.set('tabWorkspaceId', tabWorkspaceId);
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
 }
+
+export const COMPANY_OS_PATHNAME = '/dashboard/empresas/[companyId]/os';
 
 export const FORMS_MODULE_ROUTE_VALUE = 'formularios-modulo';
 
@@ -190,8 +209,12 @@ export function getCompanyAreaNavItems(companyId: string): CompanyAreaNavItem[] 
       href: getCharacterizationSstPath(companyId),
     },
     {
-      label: 'Documentos',
+      label: 'Programas e Laudos',
       href: companyHomeStagePath(companyId, CompanyActionEnum.DOCUMENTS_GROUP_PAGE),
+    },
+    {
+      label: 'Acervo Técnico',
+      href: getDocumentsListPath(companyId),
     },
     {
       label: 'Plano de Ação',

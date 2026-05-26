@@ -11,9 +11,9 @@ export const DocumentsPage = () => {
 
   return (
     <>
-      <SHeaderTag title={'Documentos'} />
+      <SHeaderTag title={'Acervo Técnico'} />
       <SContainer>
-        <SPageHeader mb={8} title="Documentos" />
+        <SPageHeader mb={8} title="Acervo Técnico" />
         <DocumentsContent companyId={companyId} />
       </SContainer>
     </>
