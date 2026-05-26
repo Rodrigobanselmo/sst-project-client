@@ -21,11 +21,14 @@ import {
   ACTION_PLAN_PATHNAME,
   COMPANY_HOME_PATHNAME,
   COMPANY_STAGE_BREADCRUMB,
+  DOCUMENTS_LIST_MODULE_ROUTE_VALUE,
+  DOCUMENTS_LIST_PATHNAME,
   DOCUMENTS_MODULE_ROUTE_VALUE,
   DOCUMENT_TYPE_BREADCRUMB_LABELS,
   FORM_TAB_BREADCRUMB_LABELS,
   FORMS_MODULE_ROUTE_VALUE,
   FORMS_TAB_PATHNAME,
+  getDocumentsListPath,
   getDocumentsStagePath,
   getAbsenteeismListPath,
   getAbsenteeismMetricsPath,
@@ -370,14 +373,13 @@ export const useLocation = () => {
 
         return insertAfterCompany(filtered, [
           {
-            name: 'Documentos',
+            name: 'Programas e Laudos',
             value: DOCUMENTS_MODULE_ROUTE_VALUE,
-            action: () => getDocumentsStagePath(companyId, 0),
+            action: () => getDocumentsStagePath(companyId, active),
           },
           {
             name: activeLabel,
             value: `documentos-tipo-${active}`,
-            action: () => getDocumentsStagePath(companyId, active),
           },
         ]);
       }
@@ -424,6 +426,34 @@ export const useLocation = () => {
           value: 'plano-de-acao-modulo',
           action: () =>
             RoutesEnum.ACTION_PLAN.replace(':companyId', companyId),
+        },
+      ]);
+    }
+
+    if (pathname === DOCUMENTS_LIST_PATHNAME) {
+      const filtered = routesPath.filter((r) => r.value !== 'documentos');
+      return insertAfterCompany(filtered, [
+        {
+          name: 'Acervo Técnico',
+          value: DOCUMENTS_LIST_MODULE_ROUTE_VALUE,
+          action: () => getDocumentsListPath(companyId),
+        },
+      ]);
+    }
+
+    if (
+      pathname.startsWith('/dashboard/empresas/') &&
+      pathname.includes('/documentos/') &&
+      pathname !== DOCUMENTS_LIST_PATHNAME
+    ) {
+      const filtered = routesPath.filter(
+        (r) => r.value !== 'documentos' && r.value !== (query.id as string),
+      );
+      return insertAfterCompany(filtered, [
+        {
+          name: 'Acervo Técnico',
+          value: DOCUMENTS_LIST_MODULE_ROUTE_VALUE,
+          action: () => getDocumentsListPath(companyId),
         },
       ]);
     }
@@ -487,6 +517,7 @@ export const useLocation = () => {
     query.absenteeismsTab,
     query.active,
     query.formTab,
+    query.id,
     query.stage,
     routeMap,
   ]);

@@ -6,6 +6,12 @@ import SFlex from 'components/atoms/SFlex';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import SText from 'components/atoms/SText';
 import SWizardBox from 'components/atoms/SWizardBox';
+import {
+  companyFlowCompactPanelSx,
+  companyFlowCompactShortcutButtonSx,
+  COMPANY_FLOW_COMPACT_SHORTCUTS_FLEX_GAP,
+  COMPANY_HOME_CARDS_GRID_GAP,
+} from 'components/organisms/main/CompanyFlow/company-flow-compact-shortcuts.styles';
 import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ModalAddDocPCMSOVersion } from 'components/organisms/modals/ModalAddDocVersion/main/ModalAddDocPCMSOVersion';
@@ -26,10 +32,16 @@ import SDocumentVersionIcon from 'assets/icons/SDocumentVersionIcon';
 
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
+import {
+  enrichPickableWorkspaces,
+  pickDefaultWorkspace,
+} from 'core/utils/helpers/pick-default-workspace.util';
 
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
 export const DocumentsStage = ({
+  company,
+  isLoading,
   documentsStepMemo,
   documentsModelsStepMemo,
   query,
@@ -43,20 +55,32 @@ export const DocumentsStage = ({
     companyId: companyId || '',
   });
 
-  const sortedFirstId = useMemo(() => {
-    if (!workspaces?.results?.length) return undefined;
-    return [...workspaces.results]
-      .sort((a, b) =>
-        a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }),
-      )[0]?.id;
-  }, [workspaces?.results]);
+  const defaultWorkspaceId = useMemo(() => {
+    const pickable = enrichPickableWorkspaces(
+      workspaces?.results,
+      company?.workspace,
+    );
+    return pickDefaultWorkspace(pickable);
+  }, [company?.workspace, workspaces?.results]);
 
   useEffect(() => {
-    if (workspaces?.results?.length !== 1) return;
-    if (!sortedFirstId || tabWorkspaceId) return;
+    if (
+      isLoadingAllWorkspaces ||
+      isLoading ||
+      !defaultWorkspaceId ||
+      tabWorkspaceId
+    ) {
+      return;
+    }
 
-    setWorkspaceId(sortedFirstId);
-  }, [setWorkspaceId, sortedFirstId, tabWorkspaceId, workspaces?.results?.length]);
+    setWorkspaceId(defaultWorkspaceId);
+  }, [
+    defaultWorkspaceId,
+    isLoading,
+    isLoadingAllWorkspaces,
+    setWorkspaceId,
+    tabWorkspaceId,
+  ]);
 
   const selectedWorkspaceName = useMemo(() => {
     if (!tabWorkspaceId) return undefined;
@@ -65,19 +89,65 @@ export const DocumentsStage = ({
   }, [tabWorkspaceId, workspaces?.results]);
 
   return (
-    <Box {...props}>
-      <SText mt={20}>Controle de Vencimento</SText>
-      <SFlex mt={5} gap={10} flexWrap="wrap">
-        {documentsStepMemo.map((props) => (
-          <SActionButton key={props.text} {...props} />
-        ))}
-      </SFlex>
-      <SText mt={20}>Modelos</SText>
-      <SFlex mt={5} gap={10} flexWrap="wrap" mb={25}>
-        {documentsModelsStepMemo.map((props) => (
-          <SActionButton key={props.text} {...props} />
-        ))}
-      </SFlex>
+    <Box
+      {...props}
+      sx={[
+        { mt: -4 },
+        ...(props.sx
+          ? Array.isArray(props.sx)
+            ? props.sx
+            : [props.sx]
+          : []),
+      ]}
+    >
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+          gap: COMPANY_HOME_CARDS_GRID_GAP,
+          mt: 0,
+          mb: 1.25,
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        <Box sx={companyFlowCompactPanelSx}>
+          <SText fontSize={11} fontWeight={600} color="text.secondary" lineHeight={1.2}>
+            Controle de Vencimento
+          </SText>
+          <SFlex
+            mt={0.75}
+            gap={COMPANY_FLOW_COMPACT_SHORTCUTS_FLEX_GAP}
+            flexWrap="wrap"
+          >
+            {documentsStepMemo.map((actionProps) => (
+              <SActionButton
+                key={actionProps.text}
+                {...actionProps}
+                sx={companyFlowCompactShortcutButtonSx}
+              />
+            ))}
+          </SFlex>
+        </Box>
+        <Box sx={companyFlowCompactPanelSx}>
+          <SText fontSize={11} fontWeight={600} color="text.secondary" lineHeight={1.2}>
+            Modelos
+          </SText>
+          <SFlex
+            mt={0.75}
+            gap={COMPANY_FLOW_COMPACT_SHORTCUTS_FLEX_GAP}
+            flexWrap="wrap"
+          >
+            {documentsModelsStepMemo.map((actionProps) => (
+              <SActionButton
+                key={actionProps.text}
+                {...actionProps}
+                sx={companyFlowCompactShortcutButtonSx}
+              />
+            ))}
+          </SFlex>
+        </Box>
+      </Box>
       {isLoadingAllWorkspaces && <SSkeleton height={280} />}
       {!isLoadingAllWorkspaces && !workspaces?.results?.length && (
         <Box mb={2} mt={1} color="text.secondary" fontSize={13}>
@@ -99,6 +169,8 @@ export const DocumentsStage = ({
               <WizardTabs
                 shadow
                 onUrl
+                mt={0.75}
+                mb={8}
                 active={query.active ? Number(query.active) : 0}
                 options={[
                 {

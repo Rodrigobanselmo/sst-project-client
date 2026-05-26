@@ -6,7 +6,6 @@ import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
 import { GoogleButton } from 'components/atoms/SSocialButton/GoogleButton/GoogleButton';
 import { SSwitch } from 'components/atoms/SSwitch';
-import STableTitle from 'components/atoms/STable/components/STableTitle';
 import STooltip from 'components/atoms/STooltip';
 import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
@@ -43,10 +42,7 @@ export const OsForm = (props: BoxProps) => {
 
   return (
     <STBox {...props}>
-      <SFlex mb={15} align={'center'}>
-        <STableTitle mb={0} mr={5}>
-          Ordem de Serviço (OS)
-        </STableTitle>
+      <SFlex mb={10} align={'center'} justify="flex-end">
         <STooltip title="Importar de outra empresa">
           <div>
             <SButton

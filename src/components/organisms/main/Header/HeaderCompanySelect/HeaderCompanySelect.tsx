@@ -108,7 +108,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
             style: { maxHeight: listMaxHeightPx },
             sx: headerChipCompactListSx(listMaxHeightPx),
           }}
-          componentsProps={headerChipCompactPaperComponentsProps}
+          componentsProps={headerChipCompactPaperComponentsProps(listMaxHeightPx)}
           label=""
           placeholder={value ? '' : 'Selecione a empresa'}
           options={options}

@@ -64,7 +64,7 @@ export function DocumentsBreadcrumbSubareaMenu({
     <>
       <IconButton
         size="small"
-        aria-label="Ir para outra subárea de Documentos"
+        aria-label="Ir para outra subárea de Programas e Laudos"
         aria-controls={open ? 'documents-subarea-breadcrumb-menu' : undefined}
         aria-haspopup="true"
         aria-expanded={open ? 'true' : undefined}

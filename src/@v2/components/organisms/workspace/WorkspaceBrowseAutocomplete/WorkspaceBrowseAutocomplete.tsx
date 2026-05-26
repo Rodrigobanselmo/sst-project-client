@@ -77,7 +77,9 @@ export function WorkspaceBrowseAutocomplete({
         style: { maxHeight: listMaxHeightPx },
         sx: listSx,
       }}
-      componentsProps={compact ? headerChipCompactPaperComponentsProps : undefined}
+      componentsProps={
+        compact ? headerChipCompactPaperComponentsProps(listMaxHeightPx) : undefined
+      }
       label={compact ? '' : 'Estabelecimento'}
       placeholder={
         compact

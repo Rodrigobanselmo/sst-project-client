@@ -97,22 +97,36 @@ export function Location(): JSX.Element {
                 )
               ) : null;
 
+            const label =
+              route.name.length > 20
+                ? `${route.name.slice(0, 20)}...`
+                : route.name;
+            const isClickable = Boolean(route.action);
+
             return (
               <SFlex align="center" gap={3} key={`${route.value}-${index}`}>
                 {separator}
-                <NextLink href={'/' + getRoutePath(route, index)} passHref>
-                  <Link underline="hover">
-                    <SText
-                      sx={{ textTransform: 'capitalize' }}
-                      fontSize="0.825rem"
-                      color="gray.500"
-                    >
-                      {route.name.length > 20
-                        ? `${route.name.slice(0, 20)}...`
-                        : route.name}
-                    </SText>
-                  </Link>
-                </NextLink>
+                {isClickable ? (
+                  <NextLink href={'/' + getRoutePath(route, index)} passHref>
+                    <Link underline="hover">
+                      <SText
+                        sx={{ textTransform: 'capitalize' }}
+                        fontSize="0.825rem"
+                        color="gray.500"
+                      >
+                        {label}
+                      </SText>
+                    </Link>
+                  </NextLink>
+                ) : (
+                  <SText
+                    sx={{ textTransform: 'capitalize' }}
+                    fontSize="0.825rem"
+                    color="gray.500"
+                  >
+                    {label}
+                  </SText>
+                )}
               </SFlex>
             );
           })}
