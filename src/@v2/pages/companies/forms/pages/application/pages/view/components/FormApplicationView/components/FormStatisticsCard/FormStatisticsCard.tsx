@@ -13,6 +13,7 @@ import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 
 interface StatisticsCardProps {
   totalAnswers: number;
+  respondedParticipantsCount?: number;
   totalParticipants: number;
   averageTimeSpent: number | null;
   participationGoal?: number;
@@ -20,10 +21,13 @@ interface StatisticsCardProps {
 
 export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
   totalAnswers,
+  respondedParticipantsCount,
   totalParticipants,
   averageTimeSpent,
   participationGoal,
 }) => {
+  const campaignRespondedCount =
+    respondedParticipantsCount ?? totalAnswers;
   const { companyId } = useGetCompanyId();
 
   const formatTime = (seconds: number | null): string => {
@@ -52,11 +56,15 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
 
   const calculateProgressPercentage = () => {
     if (!participationGoal || goalParticipants === 0) return 0;
-    return Math.min((totalAnswers / goalParticipants) * 100, 100);
+    return Math.min((campaignRespondedCount / goalParticipants) * 100, 100);
   };
 
   const goalParticipants = calculateGoalParticipants();
   const progressPercentage = calculateProgressPercentage();
+  const remainingForGoal = Math.max(
+    0,
+    goalParticipants - campaignRespondedCount,
+  );
 
   return (
     <SFlex direction="column" gap={4}>
@@ -81,10 +89,10 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
               <SText
                 sx={{ fontSize: 18, fontWeight: 500, color: 'text.primary' }}
               >
-                {totalAnswers}
+                {campaignRespondedCount}
               </SText>
               <SText sx={{ fontSize: 14, color: 'text.primary' }}>
-                Respostas
+                Responderam
               </SText>
             </SFlex>
           </SFlex>
@@ -116,21 +124,20 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
         {participationGoal && (
           <SPaper
             sx={{
-              position: 'relative',
               p: 3,
               borderRadius: 2,
-              minWidth: 200,
+              minWidth: 220,
               textAlign: 'center',
             }}
           >
             <SFlex
               direction="row"
-              gap={4}
-              px={2}
+              gap={3}
+              px={1}
               align="center"
-              height={'100%'}
+              justify="center"
             >
-              <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+              <Box sx={{ position: 'relative', display: 'inline-flex', flexShrink: 0 }}>
                 <CircularProgress
                   variant="determinate"
                   value={100}
@@ -151,33 +158,25 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
                   }}
                 />
               </Box>
-              <SFlex direction="row" gap={2} align="center">
-                <SText
-                  sx={{
-                    fontSize: 18,
-                    fontWeight: 500,
-                    color: 'text.primary',
-                  }}
-                >
-                  {Math.round(progressPercentage)}%
-                </SText>
-                <SText sx={{ fontSize: 14, color: 'text.primary' }}>
-                  Meta ({participationGoal}%)
-                </SText>
-              </SFlex>
+              <SText
+                sx={{
+                  fontSize: 18,
+                  fontWeight: 500,
+                  color: 'text.primary',
+                  textAlign: 'left',
+                }}
+              >
+                {Math.round(progressPercentage)}% da meta
+              </SText>
             </SFlex>
-            <SText
-              sx={{
-                position: 'absolute',
-                bottom: -20,
-                left: 10,
-                fontSize: 12,
-                color: 'text.secondary',
-              }}
-            >
-              faltam {goalParticipants - totalAnswers}/{goalParticipants}{' '}
-              respostas
-            </SText>
+            <SFlex direction="column" gap={0.5} mt={1.5} align="center">
+              <SText sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}>
+                {campaignRespondedCount}/{goalParticipants} respondentes da meta
+              </SText>
+              <SText sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}>
+                faltam {remainingForGoal} para atingir {participationGoal}%
+              </SText>
+            </SFlex>
           </SPaper>
         )}
 

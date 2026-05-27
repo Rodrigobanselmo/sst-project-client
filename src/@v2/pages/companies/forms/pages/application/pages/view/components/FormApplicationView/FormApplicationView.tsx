@@ -50,6 +50,9 @@ export const FormApplicationView = ({
         <SFlex direction="column" gap={20}>
           <FormStatisticsCard
             totalAnswers={formApplication.totalAnswers}
+            respondedParticipantsCount={
+              formApplication.respondedParticipantsCount
+            }
             totalParticipants={formApplication.totalParticipants}
             averageTimeSpent={formApplication.averageTimeSpent}
             participationGoal={formApplication.participationGoal}
