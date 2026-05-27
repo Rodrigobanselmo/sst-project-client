@@ -15,6 +15,38 @@ export type PdfFormRiskAnalysisProps = {
   };
 };
 
+type NarrativeBlock =
+  | { type: 'heading'; level: 1 | 2 | 3; text: string }
+  | { type: 'bullet'; text: string }
+  | { type: 'numbered'; text: string }
+  | { type: 'paragraph'; text: string };
+
+function parseNarrativeMarkdown(markdown: string): NarrativeBlock[] {
+  const lines = markdown
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  return lines.map((line) => {
+    if (line.startsWith('### ')) {
+      return { type: 'heading', level: 3, text: line.slice(4).trim() };
+    }
+    if (line.startsWith('## ')) {
+      return { type: 'heading', level: 2, text: line.slice(3).trim() };
+    }
+    if (line.startsWith('# ')) {
+      return { type: 'heading', level: 1, text: line.slice(2).trim() };
+    }
+    if (/^[-*]\s+/.test(line)) {
+      return { type: 'bullet', text: line.replace(/^[-*]\s+/, '').trim() };
+    }
+    if (/^\d+\.\s+/.test(line)) {
+      return { type: 'numbered', text: line.replace(/^\d+\.\s+/, '').trim() };
+    }
+    return { type: 'paragraph', text: line };
+  });
+}
+
 function Badge({
   label,
   value,
@@ -90,6 +122,53 @@ const s = StyleSheet.create({
     backgroundColor: '#e8f4fc',
     border: '1 solid #90caf9',
     borderRadius: 4,
+  },
+  narrativeSection: {
+    marginBottom: 16,
+    padding: 10,
+    backgroundColor: '#f8fbff',
+    border: '1 solid #dce8f5',
+    borderRadius: 4,
+  },
+  narrativeTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: '#1f3b5b',
+    marginBottom: 8,
+  },
+  narrativeHeading1: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: '#1f3b5b',
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  narrativeHeading2: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: '#274d77',
+    marginTop: 5,
+    marginBottom: 3,
+  },
+  narrativeHeading3: {
+    fontSize: 8.5,
+    fontWeight: 700,
+    color: '#365f8f',
+    marginTop: 4,
+    marginBottom: 2,
+  },
+  narrativeParagraph: {
+    fontSize: 8.5,
+    lineHeight: 1.45,
+    color: '#2b2b2b',
+    marginBottom: 3,
+  },
+  narrativeListItem: {
+    fontSize: 8.5,
+    lineHeight: 1.45,
+    color: '#2b2b2b',
+    marginBottom: 2,
+    marginLeft: 8,
   },
   factorSection: {
     marginBottom: 16,
@@ -216,6 +295,10 @@ export default function PdfFormRiskAnalysis({
     data.grouping.active === true
       ? `Recorte: agrupamento por identificação — ${data.grouping.questionLabel}`
       : 'Recorte: todos os participantes (sem agrupamento)';
+  const narrativeBlocks =
+    data.narrativeDiagnosticMarkdown?.trim()
+      ? parseNarrativeMarkdown(data.narrativeDiagnosticMarkdown)
+      : [];
 
   return (
     <Document>
@@ -225,6 +308,49 @@ export default function PdfFormRiskAnalysis({
         <Text style={s.subtitle}>Aplicação: {meta.applicationName}</Text>
         <Text style={s.issuedAt}>Emitido em: {meta.issuedAt}</Text>
         <Text style={s.groupingBanner}>{groupingLabel}</Text>
+
+        {narrativeBlocks.length > 0 ? (
+          <View style={s.narrativeSection}>
+            <Text style={s.narrativeTitle}>Diagnóstico narrativo com IA</Text>
+            {narrativeBlocks.map((block, index) => {
+              if (block.type === 'heading') {
+                const headingStyle =
+                  block.level === 1
+                    ? s.narrativeHeading1
+                    : block.level === 2
+                      ? s.narrativeHeading2
+                      : s.narrativeHeading3;
+                return (
+                  <Text key={`narrative-heading-${index}`} style={headingStyle}>
+                    {block.text}
+                  </Text>
+                );
+              }
+
+              if (block.type === 'bullet') {
+                return (
+                  <Text key={`narrative-bullet-${index}`} style={s.narrativeListItem}>
+                    • {block.text}
+                  </Text>
+                );
+              }
+
+              if (block.type === 'numbered') {
+                return (
+                  <Text key={`narrative-numbered-${index}`} style={s.narrativeListItem}>
+                    - {block.text}
+                  </Text>
+                );
+              }
+
+              return (
+                <Text key={`narrative-paragraph-${index}`} style={s.narrativeParagraph}>
+                  {block.text}
+                </Text>
+              );
+            })}
+          </View>
+        ) : null}
 
         {data.factors.length === 0 ? (
           <Text style={s.empty}>

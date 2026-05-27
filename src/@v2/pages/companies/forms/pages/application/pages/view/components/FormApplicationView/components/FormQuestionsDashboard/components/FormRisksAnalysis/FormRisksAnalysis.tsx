@@ -18,6 +18,8 @@ import {
   shouldGroupEntitiesByEstablishment,
   sortRiskIdsForAnalysis,
 } from '../../helpers/buildRiskAnalysisViewContext';
+import { buildRiskNarrativeDiagnosticScope } from '../../helpers/buildRiskNarrativeDiagnosticScope';
+import { RiskNarrativeDiagnosticSection } from './RiskNarrativeDiagnosticSection';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
 import { useMutateAiAnalyzeFormQuestionsRisks } from '@v2/services/forms/ai-analyze-risks/hooks/useMutateAiAnalyzeFormQuestionsRisks';
 import { useMutateApplyAiAnalysisAsRiskData } from '@v2/services/forms/form-application/apply-ai-analysis-as-risk-data/hooks/useMutateApplyAiAnalysisAsRiskData';
@@ -35,9 +37,18 @@ import { SIconDelete } from '@v2/assets/icons/SIconDelete/SIconDelete';
 import { TextField } from '@mui/material';
 import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAccess } from 'core/hooks/useAccess';
 import { useForm, FormProvider } from 'react-hook-form';
+import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
+import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
+import { useFetchSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useFetchSystemAiPrompt';
+import { useMutateUpsertSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useMutateUpsertSystemAiPrompt';
+import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
+import {
+  getFormAiAnalysisErrorMessage,
+  getRecentFormAiAnalysisBatchSummary,
+} from './form-ai-analysis.utils';
 
 import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
 import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
@@ -47,13 +58,13 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material';
-import { formRiskCustomPrompt } from './custim-prompt';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 import {
   entityMatchesMassAddFilter,
   MassAddOccupationalRiskFilter,
   resolveOccupationalRiskLevel,
 } from 'core/utils/helpers/occupational-risk-level.util';
+import { AI_MODEL_OPTIONS } from './ai-model-options';
 
 interface FormRisksAnalysisProps {
   formApplication: FormApplicationReadModel;
@@ -61,30 +72,8 @@ interface FormRisksAnalysisProps {
   formQuestionsAnswers?: FormQuestionsAnswersBrowseModel | null;
   visibleParticipantGroups?: ParticipantGroupForIndicators[];
   selectedGroupingQuestionId?: string | null;
+  selectedGroupingLabel?: string | null;
 }
-
-// AI Model options (same as ModalAiAnalysisContent)
-const AI_MODEL_OPTIONS = [
-  { label: 'GPT-5 (Premium) - $0.625/$5.00', value: 'gpt-5' },
-  { label: 'GPT-5 Mini (Balanceado) - $0.125/$1.00', value: 'gpt-5-mini' },
-  { label: 'GPT-5 Nano (Ultra Rápido) - $0.025/$0.20', value: 'gpt-5-nano' },
-  { label: 'GPT-4.1 (Avançado) - $1.00/$4.00', value: 'gpt-4.1' },
-  { label: 'GPT-4.1 Mini (Eficiente) - $0.20/$0.80', value: 'gpt-4.1-mini' },
-  { label: 'GPT-4.1 Nano (Econômico) - $0.05/$0.20', value: 'gpt-4.1-nano' },
-  { label: 'GPT-4o (Padrão) - $1.25/$5.00', value: 'gpt-4o' },
-  {
-    label: 'GPT-4o 2024-05-13 (Versão Específica) - $2.50/$7.50',
-    value: 'gpt-4o-2024-05-13',
-  },
-  { label: 'GPT-4o Mini (Rápido) - $0.075/$0.30', value: 'gpt-4o-mini' },
-  { label: 'O1 Mini (Raciocínio Rápido) - $0.55/$2.20', value: 'o1-mini' },
-  { label: 'O3 Mini (Análise Rápida) - $0.55/$2.20', value: 'o3-mini' },
-  { label: 'O4 Mini (Nova Geração) - $0.55/$2.20', value: 'o4-mini' },
-  {
-    label: 'O4 Mini Deep Research (Pesquisa Nova Geração) - $1.00/$4.00',
-    value: 'o4-mini-deep-research',
-  },
-];
 
 interface AiAnalysisFormData {
   customPrompt?: string;
@@ -139,8 +128,10 @@ export const FormRisksAnalysis = ({
   formQuestionsAnswers = null,
   visibleParticipantGroups = [],
   selectedGroupingQuestionId = null,
+  selectedGroupingLabel = null,
 }: FormRisksAnalysisProps) => {
   const { isMaster } = useAccess();
+  const { showConfirmation } = useConfirmationModal();
   const [expandedRisks, setExpandedRisks] = useState<Record<string, boolean>>(
     {},
   );
@@ -159,10 +150,28 @@ export const FormRisksAnalysis = ({
   // Form for AI analysis configuration
   const methods = useForm<AiAnalysisFormData>({
     defaultValues: {
-      customPrompt: formRiskCustomPrompt,
+      customPrompt: '',
     },
   });
-  const { handleSubmit } = methods;
+  const { handleSubmit, reset, getValues } = methods;
+
+  const { data: systemAiPrompt, isLoading: isLoadingSystemAiPrompt } =
+    useFetchSystemAiPrompt(
+      SystemAiPromptKeyEnum.RISK_SOURCES_RECOMMENDATIONS,
+      isMaster && showAiDialog,
+    );
+
+  const { mutate: mutateUpsertSystemAiPrompt, isPending: isSavingDefaultPrompt } =
+    useMutateUpsertSystemAiPrompt();
+
+  useEffect(() => {
+    if (!isMaster || !showAiDialog || !systemAiPrompt) return;
+
+    reset({
+      customPrompt: systemAiPrompt.content,
+      model: getValues('model'),
+    });
+  }, [getValues, isMaster, reset, showAiDialog, systemAiPrompt]);
 
   const { mutate: mutateAssignRisksFormApplication } =
     useMutateAssignRisksFormApplication();
@@ -200,6 +209,38 @@ export const FormRisksAnalysis = ({
   const hasProcessingAnalyses = useMemo(() => {
     return hasRecentProcessingAnalyses(formQuestionsAnswersAnalysis?.results);
   }, [formQuestionsAnswersAnalysis]);
+
+  const wasProcessingAnalysesRef = useRef(false);
+  const batchFailureNotifiedRef = useRef(false);
+
+  useEffect(() => {
+    if (hasProcessingAnalyses) {
+      wasProcessingAnalysesRef.current = true;
+      batchFailureNotifiedRef.current = false;
+      return;
+    }
+
+    if (!wasProcessingAnalysesRef.current || batchFailureNotifiedRef.current) return;
+
+    wasProcessingAnalysesRef.current = false;
+
+    const { done, failed, processing } = getRecentFormAiAnalysisBatchSummary(
+      formQuestionsAnswersAnalysis?.results,
+    );
+
+    if (processing.length > 0) return;
+
+    if (failed.length > 0 && done.length === 0) {
+      batchFailureNotifiedRef.current = true;
+      const firstError = getFormAiAnalysisErrorMessage(
+        failed[0]?.metadata as Record<string, unknown> | undefined,
+      );
+      enqueueSnackbar(
+        `Nenhuma análise foi concluída (${failed.length} falha(s)). ${firstError}`,
+        { variant: 'error', autoHideDuration: 12000 },
+      );
+    }
+  }, [enqueueSnackbar, formQuestionsAnswersAnalysis?.results, hasProcessingAnalyses]);
 
   // Create a map to check if risk has been added to entity
   const riskLogMap = useMemo(() => {
@@ -582,6 +623,22 @@ export const FormRisksAnalysis = ({
     [allowedEntityIds],
   );
 
+  const riskNarrativeDiagnosticScope = useMemo(
+    () =>
+      buildRiskNarrativeDiagnosticScope({
+        selectedGroupingQuestionId,
+        visibleParticipantGroups,
+        allowedEntityIds,
+        groupingLabel: selectedGroupingLabel,
+      }),
+    [
+      selectedGroupingQuestionId,
+      visibleParticipantGroups,
+      allowedEntityIds,
+      selectedGroupingLabel,
+    ],
+  );
+
   const getEffectiveProbability = useCallback(
     (entityId: string, riskId: string): number => {
       if (hierarchyGroups.length > 0) {
@@ -738,33 +795,59 @@ export const FormRisksAnalysis = ({
   };
 
   const handleAnalyzeRisks = (data?: AiAnalysisFormData) => {
-    // Just trigger the analysis - the results will be polled automatically
-    // by useFetchBrowseFormQuestionsAnswersAnalysis when there are PROCESSING analyses
-    mutateAiAnalyzeFormQuestionsRisks({
-      companyId: accessCompanyId,
-      formApplicationId: formApplication.id,
-      customPrompt: data?.customPrompt,
-      model: data?.model?.value,
-    });
+    batchFailureNotifiedRef.current = false;
 
-    // Close the dialog if it was open
+    mutateAiAnalyzeFormQuestionsRisks(
+      {
+        companyId: accessCompanyId,
+        formApplicationId: formApplication.id,
+        ...(isMaster && data?.customPrompt?.trim()
+          ? { customPrompt: data.customPrompt.trim() }
+          : {}),
+        ...(isMaster && data?.model?.value ? { model: data.model.value } : {}),
+      },
+      {
+        onSuccess: () => {
+          void refetch();
+          setTimeout(() => void refetch(), 3000);
+        },
+      },
+    );
+
     setShowAiDialog(false);
-
-    setTimeout(() => {
-      refetch();
-    }, 10000);
   };
 
   const handleAnalyzeButtonClick = () => {
-    setShowAiDialog(true);
+    if (isMaster) {
+      setShowAiDialog(true);
+      return;
+    }
 
-    // if (isMaster) {
-    //   setShowAiDialog(true);
-    //   // Master users get the configuration dialog
-    // } else {
-    //   // Regular users get direct analysis with default settings
-    //   handleAnalyzeRisks({});
-    // }
+    handleAnalyzeRisks();
+  };
+
+  const handleSaveDefaultPrompt = async () => {
+    const content = getValues('customPrompt')?.trim();
+    if (!content) {
+      enqueueSnackbar('O prompt não pode estar vazio.', { variant: 'warning' });
+      return;
+    }
+
+    const confirmed = await showConfirmation({
+      title: 'Definir como prompt padrão',
+      message:
+        'O conteúdo atual do prompt será salvo como padrão do sistema para análises de Fontes Geradoras e Recomendações. Deseja continuar?',
+      confirmText: 'Salvar',
+      cancelText: 'Cancelar',
+      variant: 'warning',
+    });
+
+    if (!confirmed) return;
+
+    mutateUpsertSystemAiPrompt({
+      key: SystemAiPromptKeyEnum.RISK_SOURCES_RECOMMENDATIONS,
+      content,
+    });
   };
 
   return (
@@ -796,6 +879,13 @@ export const FormRisksAnalysis = ({
           />
         </SFlex>
       </SFlex>
+
+      <RiskNarrativeDiagnosticSection
+        companyId={accessCompanyId}
+        formApplicationId={formApplication.id}
+        scope={riskNarrativeDiagnosticScope}
+        isMaster={isMaster}
+      />
 
       <SFlex direction="column" gap={2}>
         {risksWithData.map((riskId) => {
@@ -1035,17 +1125,54 @@ export const FormRisksAnalysis = ({
                           {/* AI Analysis Results for this specific risk-entity combination */}
                           {formQuestionsAnswersAnalysis?.results &&
                             (() => {
-                              // Filter analysis results for this specific risk and entity
-                              const relevantAnalysis =
+                              const resultsForPair =
                                 formQuestionsAnswersAnalysis.results.filter(
                                   (analysis) =>
                                     analysis.riskId === riskId &&
-                                    analysis.hierarchyId === entityId &&
-                                    analysis.analysis &&
-                                    analysis.status === 'DONE',
+                                    analysis.hierarchyId === entityId,
                                 );
 
-                              if (relevantAnalysis.length === 0) return null;
+                              const relevantAnalysis = resultsForPair.filter(
+                                (analysis) =>
+                                  analysis.analysis &&
+                                  analysis.status ===
+                                    FormAiAnalysisStatusEnum.DONE,
+                              );
+
+                              const failedAnalysis = resultsForPair.find(
+                                (analysis) =>
+                                  analysis.status ===
+                                  FormAiAnalysisStatusEnum.FAILED,
+                              );
+
+                              if (
+                                relevantAnalysis.length === 0 &&
+                                !failedAnalysis
+                              ) {
+                                return null;
+                              }
+
+                              if (
+                                relevantAnalysis.length === 0 &&
+                                failedAnalysis
+                              ) {
+                                return (
+                                  <Box mt={3}>
+                                    <Typography
+                                      variant="body2"
+                                      color="error.main"
+                                      sx={{ fontStyle: 'italic' }}
+                                    >
+                                      Análise de IA falhou:{' '}
+                                      {getFormAiAnalysisErrorMessage(
+                                        failedAnalysis.metadata as
+                                          | Record<string, unknown>
+                                          | undefined,
+                                      )}
+                                    </Typography>
+                                  </Box>
+                                );
+                              }
 
                               const analysisKey = `${riskId}-${entityId}`;
                               const isAnalysisExpanded =
@@ -1347,7 +1474,7 @@ export const FormRisksAnalysis = ({
           })}
       </Menu>
 
-      {/* AI Analysis Configuration Dialog - Only for Master Users */}
+      {isMaster && (
       <Dialog
         open={showAiDialog}
         onClose={() => setShowAiDialog(false)}
@@ -1366,41 +1493,55 @@ export const FormRisksAnalysis = ({
         <FormProvider {...methods}>
           <form onSubmit={handleSubmit(handleAnalyzeRisks)}>
             <DialogContent>
-              {isMaster && (
-                <SSearchSelectForm
-                  name="model"
-                  label="Modelo de IA"
-                  placeholder="Selecione o modelo de IA"
-                  options={AI_MODEL_OPTIONS}
-                  getOptionLabel={(option) => option.label}
-                  getOptionValue={(option) => option.value}
-                  boxProps={{ sx: { mb: 8 } }}
+              <SSearchSelectForm
+                name="model"
+                label="Modelo de IA"
+                placeholder="Selecione o modelo de IA"
+                options={AI_MODEL_OPTIONS}
+                getOptionLabel={(option) => option.label}
+                getOptionValue={(option) => option.value}
+                boxProps={{ sx: { mb: 8 } }}
+              />
+              {isLoadingSystemAiPrompt ? (
+                <Skeleton variant="rectangular" height={320} />
+              ) : (
+                <SInputMultilineForm
+                  name="customPrompt"
+                  label="Prompt da análise"
+                  placeholder="Carregando prompt padrão do sistema..."
+                  fullWidth
+                  inputProps={{ minRows: 4, maxRows: 30 }}
                 />
               )}
-              <SInputMultilineForm
-                name="customPrompt"
-                label="Prompt Personalizado (Opcional)"
-                placeholder="Digite instruções específicas para a análise..."
-                fullWidth
-                inputProps={{ minRows: 4, maxRows: 30 }}
-              />
             </DialogContent>
-            <DialogActions>
+            <DialogActions sx={{ justifyContent: 'space-between', px: 3 }}>
               <SButton
                 variant="outlined"
-                text="Cancelar"
-                onClick={() => setShowAiDialog(false)}
+                color="primary"
+                text="Definir como prompt padrão"
+                loading={isSavingDefaultPrompt}
+                disabled={isLoadingSystemAiPrompt || isAnalyzing}
+                onClick={handleSaveDefaultPrompt}
               />
-              <SButton
-                variant="contained"
-                text="Iniciar Análise"
-                loading={isAnalyzing}
-                onClick={handleSubmit(handleAnalyzeRisks)}
-              />
+              <SFlex gap={2}>
+                <SButton
+                  variant="outlined"
+                  text="Cancelar"
+                  onClick={() => setShowAiDialog(false)}
+                />
+                <SButton
+                  variant="contained"
+                  text="Iniciar Análise"
+                  loading={isAnalyzing || isLoadingSystemAiPrompt}
+                  disabled={isLoadingSystemAiPrompt}
+                  onClick={handleSubmit(handleAnalyzeRisks)}
+                />
+              </SFlex>
             </DialogActions>
           </form>
         </FormProvider>
       </Dialog>
+      )}
     </SPaper>
   );
 };

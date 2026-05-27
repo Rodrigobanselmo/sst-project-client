@@ -45,6 +45,7 @@ export type RiskAnalysisPdfDataset = {
   grouping:
     | { active: false }
     | { active: true; questionLabel: string };
+  narrativeDiagnosticMarkdown?: string | null;
   factors: RiskAnalysisPdfFactor[];
 };
 
@@ -71,6 +72,7 @@ export function buildRiskAnalysisPdfDataset(params: {
   visibleParticipantGroups: ParticipantGroupForIndicators[];
   selectedGroupingQuestionId: string | null;
   selectedGroupingLabel?: string | null;
+  narrativeDiagnosticMarkdown?: string | null;
 }): RiskAnalysisPdfDataset {
   const {
     risksData,
@@ -79,6 +81,7 @@ export function buildRiskAnalysisPdfDataset(params: {
     visibleParticipantGroups,
     selectedGroupingQuestionId,
     selectedGroupingLabel,
+    narrativeDiagnosticMarkdown,
   } = params;
 
   const {
@@ -204,5 +207,5 @@ export function buildRiskAnalysisPdfDataset(params: {
       }
     : { active: false as const };
 
-  return { grouping, factors };
+  return { grouping, factors, narrativeDiagnosticMarkdown };
 }

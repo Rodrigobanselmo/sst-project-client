@@ -38,6 +38,8 @@ export type IndicatorRowPdf = {
 export type IndicatorsPdfDataset = {
   /** Alinhado ao toggle da aba Indicadores: só categorias vs categorias + perguntas. */
   showOnlyGroupIndicators: boolean;
+  /** Diagnóstico narrativo salvo para o mesmo scope do PDF (quando DONE). */
+  narrativeDiagnosticMarkdown?: string | null;
   isShareableLink: boolean; // Whether this is a shareable link (affects privacy hiding)
   grouping:
     | { active: false }
@@ -152,6 +154,7 @@ export function buildIndicatorsPdfDataset(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
   showOnlyGroupIndicators: boolean;
+  narrativeDiagnosticMarkdown?: string | null;
   isShareableLink: boolean;
   /** Mesmos grupos hierárquicos da tela (opcional; default []). */
   hierarchyGroups?: HierarchyGroupForIndicators[];
@@ -165,6 +168,7 @@ export function buildIndicatorsPdfDataset(params: {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     showOnlyGroupIndicators,
+    narrativeDiagnosticMarkdown = null,
     isShareableLink,
     hierarchyGroups = [],
     visibleParticipantGroupIds,
@@ -308,6 +312,7 @@ export function buildIndicatorsPdfDataset(params: {
 
   return {
     showOnlyGroupIndicators,
+    narrativeDiagnosticMarkdown,
     isShareableLink,
     grouping,
     participantGroups: participantGroups.map((pg) => ({
