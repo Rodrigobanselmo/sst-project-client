@@ -43,6 +43,7 @@ import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useC
 import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
 import { useFetchSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useFetchSystemAiPrompt';
 import { useMutateUpsertSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useMutateUpsertSystemAiPrompt';
+import type { AnalysisItemInventoryEntry } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse.model';
 import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import {
   getFormAiAnalysisErrorMessage,
@@ -64,6 +65,64 @@ import {
   resolveOccupationalRiskLevel,
 } from 'core/utils/helpers/occupational-risk-level.util';
 import { AI_MODEL_OPTIONS } from './ai-model-options';
+
+type AnalysisItemBadgeVariant =
+  | 'inventory-in'
+  | 'inventory-pending'
+  | 'catalog-in'
+  | 'catalog-new';
+
+const analysisItemBadgeSx = (variant: AnalysisItemBadgeVariant) => {
+  const palette: Record<AnalysisItemBadgeVariant, { bgcolor: string; color: string }> =
+    {
+      'inventory-in': { bgcolor: 'success.dark', color: '#fff' },
+      'inventory-pending': { bgcolor: 'warning.dark', color: '#fff' },
+      'catalog-in': { bgcolor: 'info.dark', color: '#fff' },
+      'catalog-new': { bgcolor: 'grey.800', color: '#fff' },
+    };
+
+  return {
+    display: 'inline-block',
+    px: 1,
+    py: 0.25,
+    borderRadius: 0.5,
+    fontSize: 11,
+    fontWeight: 600,
+    lineHeight: 1.2,
+    ...palette[variant],
+  };
+};
+
+const AnalysisItemStatusBadges = ({
+  itemStatus,
+}: {
+  itemStatus?: AnalysisItemInventoryEntry;
+}) => {
+  if (!itemStatus) return null;
+
+  return (
+    <SFlex alignItems="center" gap={0.5} flexWrap="wrap">
+      <Box
+        component="span"
+        sx={analysisItemBadgeSx(
+          itemStatus.existsInInventory ? 'inventory-in' : 'inventory-pending',
+        )}
+      >
+        {itemStatus.existsInInventory ? 'No inventário' : 'Pendente'}
+      </Box>
+      {typeof itemStatus.existsInCatalog === 'boolean' && (
+        <Box
+          component="span"
+          sx={analysisItemBadgeSx(
+            itemStatus.existsInCatalog ? 'catalog-in' : 'catalog-new',
+          )}
+        >
+          {itemStatus.existsInCatalog ? 'Cadastrado' : 'Novo cadastro'}
+        </Box>
+      )}
+    </SFlex>
+  );
+};
 
 interface FormRisksAnalysisProps {
   formApplication: FormApplicationReadModel;
@@ -140,6 +199,7 @@ export const FormRisksAnalysis = ({
   >({});
 
   const [addedRisks, setAddedRisks] = useState<Set<string>>(new Set());
+  const [applyingItemKey, setApplyingItemKey] = useState<string | null>(null);
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [addRiskMenu, setAddRiskMenu] = useState<{
     anchorEl: HTMLElement;
@@ -241,8 +301,74 @@ export const FormRisksAnalysis = ({
     [formQuestionsAnswersRisks?.inventoryStatusByKey],
   );
 
+  const analysisInventoryStatus = useMemo(
+    () => formQuestionsAnswersAnalysis?.analysisInventoryStatus ?? {},
+    [formQuestionsAnswersAnalysis?.analysisInventoryStatus],
+  );
+
   const buildInventoryStatusKey = (riskId: string, hierarchyId: string) =>
     `${riskId}:${hierarchyId}`;
+
+  type AnalysisItemType =
+    | 'fontesGeradoras'
+    | 'medidasEngenhariaRecomendadas'
+    | 'medidasAdministrativasRecomendadas';
+
+  const getAnalysisItemStatus = useCallback(
+    (
+      analysisId: string,
+      itemType: AnalysisItemType,
+      itemIndex: number,
+    ): AnalysisItemInventoryEntry | undefined => {
+      const status = analysisInventoryStatus[analysisId];
+      if (!status) return undefined;
+      const entry = status[itemType]?.[itemIndex];
+      if (entry == null || typeof entry !== 'object') return undefined;
+      if (
+        typeof entry.existsInInventory !== 'boolean' ||
+        typeof entry.existsInCatalog !== 'boolean'
+      ) {
+        return undefined;
+      }
+      return entry;
+    },
+    [analysisInventoryStatus],
+  );
+
+  const countPendingAnalysisItems = useCallback(
+    (analysis: { id: string; analysis?: Record<string, unknown> | null }) => {
+      const status = analysisInventoryStatus[analysis.id];
+      if (!status || !analysis.analysis) return null;
+
+      let pending = 0;
+      const countPendingInArray = (
+        items: unknown[] | undefined,
+        entries: AnalysisItemInventoryEntry[] | undefined,
+      ) => {
+        if (!items?.length) return;
+        items.forEach((_, index) => {
+          if (entries?.[index]?.existsInInventory !== true) pending += 1;
+        });
+      };
+
+      countPendingInArray(
+        analysis.analysis.fontesGeradoras as unknown[] | undefined,
+        status.fontesGeradoras,
+      );
+      countPendingInArray(
+        analysis.analysis.medidasEngenhariaRecomendadas as unknown[] | undefined,
+        status.medidasEngenhariaRecomendadas,
+      );
+      countPendingInArray(
+        analysis.analysis
+          .medidasAdministrativasRecomendadas as unknown[] | undefined,
+        status.medidasAdministrativasRecomendadas,
+      );
+
+      return pending;
+    },
+    [analysisInventoryStatus],
+  );
 
   const isRiskInInventory = useCallback(
     (riskId: string, entityId: string) =>
@@ -265,6 +391,47 @@ export const FormRisksAnalysis = ({
       return isRiskInInventory(analysis.riskId, analysis.hierarchyId);
     },
     [addedRisks, isRiskInInventory],
+  );
+
+  const getApplyAnalysisButtonProps = useCallback(
+    (analysis: {
+      id: string;
+      riskId: string;
+      hierarchyId: string;
+      analysis?: Record<string, unknown> | null;
+    }) => {
+      const riskInInventory = isRiskInInventory(
+        analysis.riskId,
+        analysis.hierarchyId,
+      );
+      const pendingCount = countPendingAnalysisItems(analysis);
+
+      if (pendingCount === null) {
+        const applied = isAnalysisApplied(analysis);
+        return {
+          text: applied ? 'Adicionar novamente' : 'Adicionar',
+          color: applied ? ('paper' as const) : ('success' as const),
+        };
+      }
+
+      if (!riskInInventory) {
+        return { text: 'Adicionar', color: 'success' as const };
+      }
+
+      if (pendingCount > 0) {
+        return {
+          text: `Adicionar pendentes (${pendingCount})`,
+          color: 'success' as const,
+        };
+      }
+
+      if (isAnalysisApplied(analysis)) {
+        return { text: 'Adicionar novamente', color: 'paper' as const };
+      }
+
+      return { text: 'Todos no inventário', color: 'paper' as const };
+    },
+    [countPendingAnalysisItems, isAnalysisApplied, isRiskInInventory],
   );
 
   const handleAccordionChange = (riskId: string) => {
@@ -332,6 +499,114 @@ export const FormRisksAnalysis = ({
     }
   };
 
+  const buildApplyingItemKey = (
+    analysisId: string,
+    itemType: AnalysisItemType,
+    itemIndex: number,
+  ) => `${analysisId}:${itemType}:${itemIndex}`;
+
+  const applyAnalysisItemsToInventory = useCallback(
+    async (
+      analysis: {
+        id: string;
+        hierarchyId: string;
+        riskId: string;
+        probability?: number;
+        analysis?: Record<string, unknown> | null;
+      },
+      items: {
+        fontesGeradoras?: { nome: string }[];
+        medidasEngenharia?: { nome: string }[];
+        medidasAdministrativas?: { nome: string }[];
+      },
+    ) => {
+      const hasItems =
+        !!items.fontesGeradoras?.length ||
+        !!items.medidasEngenharia?.length ||
+        !!items.medidasAdministrativas?.length;
+
+      if (!hasItems) return false;
+
+      await applyAiAnalysisAsRiskDataMutation.mutateAsync({
+        companyId: accessCompanyId,
+        applicationId: formApplication.id,
+        hierarchyId: analysis.hierarchyId,
+        riskId: analysis.riskId,
+        probability: analysis.probability,
+        generateSourcesAddOnly: items.fontesGeradoras?.map((fonte) => ({
+          name: fonte.nome,
+        })),
+        engsAddOnly: items.medidasEngenharia?.map((medida) => ({
+          medName: medida.nome,
+          medType: MedTypeEnum.ENG,
+        })),
+        recAddOnly: [
+          ...(items.medidasAdministrativas?.map((medida) => ({
+            recName: medida.nome,
+            recType: RecTypeEnum.ADM,
+          })) ?? []),
+          ...(items.medidasEngenharia?.map((medida) => ({
+            recName: medida.nome,
+            recType: RecTypeEnum.ENG,
+          })) ?? []),
+        ],
+      });
+
+      await editAnalysisMutation.mutateAsync({
+        companyId: accessCompanyId,
+        applicationId: formApplication.id,
+        analysisId: analysis.id,
+        analysis: {
+          ...analysis.analysis,
+          isAddedAsRiskData: true,
+        } as never,
+      });
+
+      setAddedRisks((prev) => new Set(prev).add(analysis.id));
+      return true;
+    },
+    [
+      accessCompanyId,
+      applyAiAnalysisAsRiskDataMutation,
+      editAnalysisMutation,
+      formApplication.id,
+    ],
+  );
+
+  const handleAddSingleAnalysisItem = useCallback(
+    async (
+      analysis: any,
+      itemType: AnalysisItemType,
+      itemIndex: number,
+      item: { nome: string },
+    ) => {
+      if (!analysis.hierarchyId || !analysis.riskId) {
+        enqueueSnackbar('Dados da análise incompletos', { variant: 'error' });
+        return;
+      }
+
+      const key = buildApplyingItemKey(analysis.id, itemType, itemIndex);
+      setApplyingItemKey(key);
+      try {
+        await applyAnalysisItemsToInventory(analysis, {
+          fontesGeradoras:
+            itemType === 'fontesGeradoras' ? [item] : undefined,
+          medidasEngenharia:
+            itemType === 'medidasEngenhariaRecomendadas' ? [item] : undefined,
+          medidasAdministrativas:
+            itemType === 'medidasAdministrativasRecomendadas'
+              ? [item]
+              : undefined,
+        });
+      } catch {
+        // Erros exibidos pelos hooks de mutação
+      } finally {
+        setApplyingItemKey(null);
+      }
+    },
+    [applyAnalysisItemsToInventory, enqueueSnackbar],
+  );
+
   // Component for editable analysis items
   const EditableAnalysisItem = ({
     item,
@@ -341,6 +616,9 @@ export const FormRisksAnalysis = ({
     analysis,
     backgroundColor,
     borderColor,
+    itemStatus,
+    onAddItem,
+    isAddingItem,
   }: {
     item: any;
     itemIndex: number;
@@ -352,6 +630,9 @@ export const FormRisksAnalysis = ({
     analysis: any;
     backgroundColor: string;
     borderColor: string;
+    itemStatus?: AnalysisItemInventoryEntry;
+    onAddItem?: () => void;
+    isAddingItem?: boolean;
   }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(item.nome);
@@ -386,11 +667,15 @@ export const FormRisksAnalysis = ({
           transition: 'all 0.2s ease-in-out',
           '&:hover': {
             boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-            '.edit-actions': {
+            '.analysis-item-edit-actions': {
               opacity: 1,
             },
           },
-          '.edit-actions': {
+          '.analysis-item-add-action': {
+            opacity: 1,
+            visibility: 'visible',
+          },
+          '.analysis-item-edit-actions': {
             opacity: 0,
             transition: 'opacity 0.2s ease-in-out',
           },
@@ -456,58 +741,102 @@ export const FormRisksAnalysis = ({
                     },
                   }}
                 >
-                  <SText
-                    className="item-name"
-                    variant="body2"
-                    fontWeight="medium"
-                    fontSize={13}
-                    sx={{
-                      mb: 0.5,
-                      transition: 'color 0.2s ease-in-out',
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    {item.nome}
-                  </SText>
+                  <SFlex alignItems="center" gap={1} flexWrap="wrap" mb={0.5}>
+                    <SText
+                      className="item-name"
+                      variant="body2"
+                      fontWeight="medium"
+                      fontSize={13}
+                      sx={{
+                        transition: 'color 0.2s ease-in-out',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {item.nome}
+                    </SText>
+                    <AnalysisItemStatusBadges itemStatus={itemStatus} />
+                  </SFlex>
                 </Box>
-                <SFlex className="edit-actions" gap={0.5}>
-                  <SIconButton
-                    iconButtonProps={{
-                      sx: {
-                        p: 0.5,
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: 'primary.light',
-                          color: 'primary.contrastText',
-                        },
-                      },
-                    }}
-                    onClick={() => setIsEditing(true)}
+                <SFlex
+                  direction="column"
+                  alignItems="flex-end"
+                  gap={0.5}
+                  flexShrink={0}
+                  ml={1}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {onAddItem && (
+                    <Box className="analysis-item-add-action">
+                      <SButton
+                        variant="contained"
+                        color="success"
+                        size="s"
+                        text={isAddingItem ? 'Adicionando...' : 'Adicionar'}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onAddItem();
+                        }}
+                        buttonProps={{
+                          disabled: isAddingItem,
+                          title: 'Adicionar este item ao inventário',
+                          sx: {
+                            minWidth: 'auto',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                            boxShadow: 'none',
+                            opacity: 1,
+                            visibility: 'visible',
+                          },
+                        }}
+                      />
+                    </Box>
+                  )}
+                  <SFlex
+                    className="analysis-item-edit-actions"
+                    gap={0.5}
+                    alignItems="center"
                   >
-                    <EditIcon fontSize="small" />
-                  </SIconButton>
-                  <SIconButton
-                    iconButtonProps={{
-                      sx: {
-                        p: 0.5,
-                        borderRadius: 1,
-                        '&:hover': {
-                          backgroundColor: 'error.light',
-                          color: 'error.contrastText',
+                    <SIconButton
+                      iconButtonProps={{
+                        sx: {
+                          p: 0.5,
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: 'primary.light',
+                            color: 'primary.contrastText',
+                          },
                         },
-                      },
-                    }}
-                    onClick={() =>
-                      handleRemoveAnalysisItem(
-                        analysisId,
-                        itemType,
-                        itemIndex,
-                        analysis,
-                      )
-                    }
-                  >
-                    <SIconDelete fontSize="16px" />
-                  </SIconButton>
+                      }}
+                      onClick={() => setIsEditing(true)}
+                    >
+                      <EditIcon fontSize="small" />
+                    </SIconButton>
+                    <SIconButton
+                      iconButtonProps={{
+                        sx: {
+                          p: 0.5,
+                          borderRadius: 1,
+                          '&:hover': {
+                            backgroundColor: 'error.light',
+                            color: 'error.contrastText',
+                          },
+                        },
+                      }}
+                      onClick={() =>
+                        handleRemoveAnalysisItem(
+                          analysisId,
+                          itemType,
+                          itemIndex,
+                          analysis,
+                        )
+                      }
+                    >
+                      <SIconDelete fontSize="16px" />
+                    </SIconButton>
+                  </SFlex>
                 </SFlex>
               </SFlex>
               {item.justificativa && (
@@ -538,55 +867,66 @@ export const FormRisksAnalysis = ({
     );
   };
 
+  const filterPendingAnalysisItems = <T extends { nome: string }>(
+    items: T[] | undefined,
+    entries: AnalysisItemInventoryEntry[] | undefined,
+  ): T[] | undefined => {
+    if (!items?.length) return undefined;
+    if (!entries?.length) return items;
+    const pending = items.filter(
+      (_, index) => entries[index]?.existsInInventory !== true,
+    );
+    return pending.length > 0 ? pending : undefined;
+  };
+
   const handleAddAnalysisAsRiskData = async (analysis: any) => {
     if (!analysis.hierarchyId || !analysis.riskId) {
       enqueueSnackbar('Dados da análise incompletos', { variant: 'error' });
       return;
     }
 
+    const itemStatus = analysisInventoryStatus[analysis.id];
+    const useItemStatus = itemStatus != null;
+
+    const fontesGeradoras = useItemStatus
+      ? filterPendingAnalysisItems(
+          analysis.analysis?.fontesGeradoras,
+          itemStatus.fontesGeradoras,
+        )
+      : analysis.analysis?.fontesGeradoras;
+
+    const medidasEngenharia = useItemStatus
+      ? filterPendingAnalysisItems(
+          analysis.analysis?.medidasEngenhariaRecomendadas,
+          itemStatus.medidasEngenhariaRecomendadas,
+        )
+      : analysis.analysis?.medidasEngenhariaRecomendadas;
+
+    const medidasAdministrativas = useItemStatus
+      ? filterPendingAnalysisItems(
+          analysis.analysis?.medidasAdministrativasRecomendadas,
+          itemStatus.medidasAdministrativasRecomendadas,
+        )
+      : analysis.analysis?.medidasAdministrativasRecomendadas;
+
+    if (
+      useItemStatus &&
+      !fontesGeradoras?.length &&
+      !medidasEngenharia?.length &&
+      !medidasAdministrativas?.length
+    ) {
+      enqueueSnackbar('Todos os itens já estão no inventário', {
+        variant: 'info',
+      });
+      return;
+    }
+
     try {
-      await applyAiAnalysisAsRiskDataMutation.mutateAsync({
-        companyId: accessCompanyId,
-        applicationId: formApplication.id,
-        hierarchyId: analysis.hierarchyId,
-        riskId: analysis.riskId,
-        probability: analysis.probability,
-        generateSourcesAddOnly: analysis.analysis?.fontesGeradoras?.map(
-          (fonte: any) => ({ name: fonte.nome }),
-        ),
-        engsAddOnly: analysis.analysis?.medidasEngenhariaRecomendadas?.map(
-          (medida: any) => ({
-            medName: medida.nome,
-            medType: MedTypeEnum.ENG,
-          }),
-        ),
-        recAddOnly: [
-          ...(analysis.analysis?.medidasAdministrativasRecomendadas?.map(
-            (medida: any) => ({
-              recName: medida.nome,
-              recType: RecTypeEnum.ADM,
-            }),
-          ) ?? []),
-          ...(analysis.analysis?.medidasEngenhariaRecomendadas?.map(
-            (medida: any) => ({
-              recName: medida.nome,
-              recType: RecTypeEnum.ENG,
-            }),
-          ) ?? []),
-        ],
+      await applyAnalysisItemsToInventory(analysis, {
+        fontesGeradoras,
+        medidasEngenharia,
+        medidasAdministrativas,
       });
-
-      await editAnalysisMutation.mutateAsync({
-        companyId: accessCompanyId,
-        applicationId: formApplication.id,
-        analysisId: analysis.id,
-        analysis: {
-          ...analysis.analysis,
-          isAddedAsRiskData: true,
-        },
-      });
-
-      setAddedRisks((prev) => new Set(prev).add(analysis.id));
     } catch {
       // Erros exibidos pelos hooks de mutação
     }
@@ -1232,15 +1572,15 @@ export const FormRisksAnalysis = ({
                                             <SButton
                                               variant="shade"
                                               color={
-                                                isAnalysisApplied(analysis)
-                                                  ? 'paper'
-                                                  : 'success'
+                                                getApplyAnalysisButtonProps(
+                                                  analysis,
+                                                ).color
                                               }
                                               size="s"
                                               text={
-                                                isAnalysisApplied(analysis)
-                                                  ? 'Adicionar novamente'
-                                                  : 'Adicionar'
+                                                getApplyAnalysisButtonProps(
+                                                  analysis,
+                                                ).text
                                               }
                                               onClick={() =>
                                                 handleAddAnalysisAsRiskData(
@@ -1283,18 +1623,48 @@ export const FormRisksAnalysis = ({
                                                   gap={4}
                                                 >
                                                   {analysis.analysis.fontesGeradoras.map(
-                                                    (fonte, index) => (
-                                                      <EditableAnalysisItem
-                                                        key={index}
-                                                        item={fonte}
-                                                        itemIndex={index}
-                                                        analysisId={analysis.id}
-                                                        itemType="fontesGeradoras"
-                                                        analysis={analysis}
-                                                        backgroundColor="grey.50"
-                                                        borderColor="grey.200"
-                                                      />
-                                                    ),
+                                                    (fonte, index) => {
+                                                      const itemStatus =
+                                                        getAnalysisItemStatus(
+                                                          analysis.id,
+                                                          'fontesGeradoras',
+                                                          index,
+                                                        );
+
+                                                      return (
+                                                        <EditableAnalysisItem
+                                                          key={index}
+                                                          item={fonte}
+                                                          itemIndex={index}
+                                                          analysisId={analysis.id}
+                                                          itemType="fontesGeradoras"
+                                                          analysis={analysis}
+                                                          backgroundColor="grey.50"
+                                                          borderColor="grey.200"
+                                                          itemStatus={itemStatus}
+                                                          onAddItem={
+                                                            itemStatus?.existsInInventory !==
+                                                            true
+                                                              ? () =>
+                                                                  handleAddSingleAnalysisItem(
+                                                                    analysis,
+                                                                    'fontesGeradoras',
+                                                                    index,
+                                                                    fonte,
+                                                                  )
+                                                              : undefined
+                                                          }
+                                                          isAddingItem={
+                                                            applyingItemKey ===
+                                                            buildApplyingItemKey(
+                                                              analysis.id,
+                                                              'fontesGeradoras',
+                                                              index,
+                                                            )
+                                                          }
+                                                        />
+                                                      );
+                                                    },
                                                   )}
                                                 </SFlex>
                                               </Box>
@@ -1336,18 +1706,48 @@ export const FormRisksAnalysis = ({
                                                   gap={1}
                                                 >
                                                   {analysis.analysis.medidasEngenhariaRecomendadas.map(
-                                                    (medida, index) => (
-                                                      <EditableAnalysisItem
-                                                        key={index}
-                                                        item={medida}
-                                                        itemIndex={index}
-                                                        analysisId={analysis.id}
-                                                        itemType="medidasEngenhariaRecomendadas"
-                                                        analysis={analysis}
-                                                        backgroundColor="grey.50"
-                                                        borderColor="grey.200"
-                                                      />
-                                                    ),
+                                                    (medida, index) => {
+                                                      const itemStatus =
+                                                        getAnalysisItemStatus(
+                                                          analysis.id,
+                                                          'medidasEngenhariaRecomendadas',
+                                                          index,
+                                                        );
+
+                                                      return (
+                                                        <EditableAnalysisItem
+                                                          key={index}
+                                                          item={medida}
+                                                          itemIndex={index}
+                                                          analysisId={analysis.id}
+                                                          itemType="medidasEngenhariaRecomendadas"
+                                                          analysis={analysis}
+                                                          backgroundColor="grey.50"
+                                                          borderColor="grey.200"
+                                                          itemStatus={itemStatus}
+                                                          onAddItem={
+                                                            itemStatus?.existsInInventory !==
+                                                            true
+                                                              ? () =>
+                                                                  handleAddSingleAnalysisItem(
+                                                                    analysis,
+                                                                    'medidasEngenhariaRecomendadas',
+                                                                    index,
+                                                                    medida,
+                                                                  )
+                                                              : undefined
+                                                          }
+                                                          isAddingItem={
+                                                            applyingItemKey ===
+                                                            buildApplyingItemKey(
+                                                              analysis.id,
+                                                              'medidasEngenhariaRecomendadas',
+                                                              index,
+                                                            )
+                                                          }
+                                                        />
+                                                      );
+                                                    },
                                                   )}
                                                 </SFlex>
                                               </Box>
@@ -1390,18 +1790,48 @@ export const FormRisksAnalysis = ({
                                                   gap={1}
                                                 >
                                                   {analysis.analysis.medidasAdministrativasRecomendadas.map(
-                                                    (medida, index) => (
-                                                      <EditableAnalysisItem
-                                                        key={index}
-                                                        item={medida}
-                                                        itemIndex={index}
-                                                        analysisId={analysis.id}
-                                                        itemType="medidasAdministrativasRecomendadas"
-                                                        analysis={analysis}
-                                                        backgroundColor="grey.50"
-                                                        borderColor="grey.200"
-                                                      />
-                                                    ),
+                                                    (medida, index) => {
+                                                      const itemStatus =
+                                                        getAnalysisItemStatus(
+                                                          analysis.id,
+                                                          'medidasAdministrativasRecomendadas',
+                                                          index,
+                                                        );
+
+                                                      return (
+                                                        <EditableAnalysisItem
+                                                          key={index}
+                                                          item={medida}
+                                                          itemIndex={index}
+                                                          analysisId={analysis.id}
+                                                          itemType="medidasAdministrativasRecomendadas"
+                                                          analysis={analysis}
+                                                          backgroundColor="grey.50"
+                                                          borderColor="grey.200"
+                                                          itemStatus={itemStatus}
+                                                          onAddItem={
+                                                            itemStatus?.existsInInventory !==
+                                                            true
+                                                              ? () =>
+                                                                  handleAddSingleAnalysisItem(
+                                                                    analysis,
+                                                                    'medidasAdministrativasRecomendadas',
+                                                                    index,
+                                                                    medida,
+                                                                  )
+                                                              : undefined
+                                                          }
+                                                          isAddingItem={
+                                                            applyingItemKey ===
+                                                            buildApplyingItemKey(
+                                                              analysis.id,
+                                                              'medidasAdministrativasRecomendadas',
+                                                              index,
+                                                            )
+                                                          }
+                                                        />
+                                                      );
+                                                    },
                                                   )}
                                                 </SFlex>
                                               </Box>
