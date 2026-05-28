@@ -24,7 +24,6 @@ import { hierarchyTypeTranslation } from '@v2/models/security/translations/hiera
 import { useMutateAiAnalyzeFormQuestionsRisks } from '@v2/services/forms/ai-analyze-risks/hooks/useMutateAiAnalyzeFormQuestionsRisks';
 import { useMutateApplyAiAnalysisAsRiskData } from '@v2/services/forms/form-application/apply-ai-analysis-as-risk-data/hooks/useMutateApplyAiAnalysisAsRiskData';
 import { useMutateAssignRisksFormApplication } from '@v2/services/forms/form-application/assign-risks-form-application/hooks/useMutateAssignRisksFormApplication';
-import { useFetchBrowseFormApplicationRiskLog } from '@v2/services/forms/form-application/form-application-risk-log/hooks/useFetchBrowseFormApplicationRiskLog';
 import {
   useFetchBrowseFormQuestionsAnswersAnalysis,
   hasRecentProcessingAnalyses,
@@ -185,11 +184,6 @@ export const FormRisksAnalysis = ({
   const applyAiAnalysisAsRiskDataMutation =
     useMutateApplyAiAnalysisAsRiskData();
 
-  const { riskLogs } = useFetchBrowseFormApplicationRiskLog({
-    companyId: accessCompanyId,
-    applicationId: formApplication.id,
-  });
-
   const { formQuestionsAnswersRisks, isLoading } =
     useFetchBrowseFormQuestionsAnswersRisks({
       companyId: accessCompanyId,
@@ -242,24 +236,36 @@ export const FormRisksAnalysis = ({
     }
   }, [enqueueSnackbar, formQuestionsAnswersAnalysis?.results, hasProcessingAnalyses]);
 
-  // Create a map to check if risk has been added to entity
-  const riskLogMap = useMemo(() => {
-    const map = new Map<string, boolean>();
-    riskLogs.forEach((log) => {
-      const key = `${log.riskId}-${log.entityId}-${log.probability}`;
-      map.set(key, true);
-    });
-    return map;
-  }, [riskLogs]);
+  const inventoryStatusByKey = useMemo(
+    () => formQuestionsAnswersRisks?.inventoryStatusByKey ?? {},
+    [formQuestionsAnswersRisks?.inventoryStatusByKey],
+  );
 
-  // Helper function to check if risk is added to entity
-  const isRiskAddedToEntity = (
-    riskId: string,
-    entityId: string,
-    probability: number,
-  ) => {
-    return riskLogMap.has(`${riskId}-${entityId}-${probability}`);
-  };
+  const buildInventoryStatusKey = (riskId: string, hierarchyId: string) =>
+    `${riskId}:${hierarchyId}`;
+
+  const isRiskInInventory = useCallback(
+    (riskId: string, entityId: string) =>
+      inventoryStatusByKey[buildInventoryStatusKey(riskId, entityId)] === true,
+    [inventoryStatusByKey],
+  );
+
+  /** Dados desta análise de IA já foram aplicados e o risco ainda existe no inventário. */
+  const isAnalysisApplied = useCallback(
+    (analysis: {
+      id: string;
+      riskId: string;
+      hierarchyId: string;
+      analysis?: Record<string, unknown> | null;
+    }) => {
+      const markedApplied =
+        (analysis.analysis as { isAddedAsRiskData?: boolean } | undefined)
+          ?.isAddedAsRiskData === true || addedRisks.has(analysis.id);
+      if (!markedApplied) return false;
+      return isRiskInInventory(analysis.riskId, analysis.hierarchyId);
+    },
+    [addedRisks, isRiskInInventory],
+  );
 
   const handleAccordionChange = (riskId: string) => {
     setExpandedRisks((prev) => ({
@@ -273,11 +279,6 @@ export const FormRisksAnalysis = ({
       ...prev,
       [analysisKey]: !prev[analysisKey],
     }));
-  };
-
-  // Helper function to check if analysis was already added as risk data
-  const isAnalysisAddedAsRiskData = (analysis: any) => {
-    return analysis.analysis?.isAddedAsRiskData === true;
   };
 
   // Helper function to handle editing analysis items
@@ -690,7 +691,7 @@ export const FormRisksAnalysis = ({
     (riskId: string, filter: MassAddOccupationalRiskFilter) =>
       getEntitiesWithRisk(riskId).filter((entityId) => {
         const probability = getEffectiveProbability(entityId, riskId);
-        if (riskLogMap.has(`${riskId}-${entityId}-${probability}`)) {
+        if (isRiskInInventory(riskId, entityId)) {
           return false;
         }
         return entityMatchesMassAddFilter(
@@ -702,7 +703,7 @@ export const FormRisksAnalysis = ({
       getEntitiesWithRisk,
       getEntityOccupationalLevel,
       getEffectiveProbability,
-      riskLogMap,
+      isRiskInInventory,
     ],
   );
 
@@ -914,11 +915,7 @@ export const FormRisksAnalysis = ({
               endComponent={
                 <>
                   {entitiesWithRisk.every((entityId) =>
-                    isRiskAddedToEntity(
-                      riskId,
-                      entityId,
-                      getEffectiveProbability(entityId, riskId),
-                    ),
+                    isRiskInInventory(riskId, entityId),
                   ) && (
                     <SText color="success.main" fontSize={12} ml="auto" mr={5}>
                       Risco adicionado a todos os setores
@@ -1039,11 +1036,7 @@ export const FormRisksAnalysis = ({
                             <Typography variant="body1" fontWeight="medium">
                               {entity.name}
                             </Typography>
-                            {isRiskAddedToEntity(
-                              riskId,
-                              entityId,
-                              probability,
-                            ) ? (
+                            {isRiskInInventory(riskId, entityId) ? (
                               <SFlex
                                 color="success.main"
                                 fontSize={12}
@@ -1237,25 +1230,15 @@ export const FormRisksAnalysis = ({
                                               %
                                             </SText>
                                             <SButton
-                                              variant={
-                                                isAnalysisAddedAsRiskData(
-                                                  analysis,
-                                                ) || addedRisks.has(analysis.id)
-                                                  ? 'shade'
-                                                  : 'shade'
-                                              }
+                                              variant="shade"
                                               color={
-                                                isAnalysisAddedAsRiskData(
-                                                  analysis,
-                                                ) || addedRisks.has(analysis.id)
+                                                isAnalysisApplied(analysis)
                                                   ? 'paper'
                                                   : 'success'
                                               }
                                               size="s"
                                               text={
-                                                isAnalysisAddedAsRiskData(
-                                                  analysis,
-                                                ) || addedRisks.has(analysis.id)
+                                                isAnalysisApplied(analysis)
                                                   ? 'Adicionar novamente'
                                                   : 'Adicionar'
                                               }

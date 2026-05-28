@@ -38,6 +38,7 @@ export type Result = {
   >;
   hierarchyGroups: Array<{ id: string; name: string; hierarchyIds: string[] }>;
   entityEstablishmentMap?: Record<string, string>;
+  inventoryStatusByKey?: Record<string, boolean>;
 };
 
 export async function browseFormQuestionsAnswersRisks({
