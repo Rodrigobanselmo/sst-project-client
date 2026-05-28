@@ -38,6 +38,7 @@ import {
 import { EmployeesTable } from 'components/organisms/tables/EmployeesTable/EmployeesTable';
 import { WorkspaceTable } from 'components/organisms/tables/WorkspaceTable';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
+import dynamic from 'next/dynamic';
 import { NextPage } from 'next';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -63,6 +64,14 @@ import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SC
 import { SButton } from 'components/atoms/SButton';
 import { useModal } from 'core/hooks/useModal';
 import { ModalEnum } from 'core/enums/modal.enums';
+
+const ModalSelectCharacterization = dynamic(
+  () =>
+    import('components/organisms/modals/ModalSelectCharacterization').then(
+      ({ ModalSelectCharacterization }) => ModalSelectCharacterization,
+    ) as any,
+  { ssr: false },
+) as any;
 
 const CompanyPage: NextPage = () => {
   const { onStackOpenModal } = useModal();
@@ -230,6 +239,7 @@ const CompanyPage: NextPage = () => {
         <ModalAddRiskGroup />
         <ModalShowHierarchyTree />
         <ModalSelectWorkspace />
+        <ModalSelectCharacterization />
         <ModalSelectDocPgr />
         <ModalAddExam />
         <ModalAddProtocol />
