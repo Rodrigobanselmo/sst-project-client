@@ -16,6 +16,7 @@ export type IFormQuestionsAnswersAnalysisBrowseResultModel = {
   probability?: number;
   confidence?: number;
   analysis: AiRiskAnalysisResponse | null;
+  metadata?: Record<string, unknown>;
   model?: string;
   processingTimeMs?: number;
   createdAt: Date;
@@ -32,6 +33,7 @@ export class FormQuestionsAnswersAnalysisBrowseResultModel {
   probability?: number;
   confidence?: number;
   analysis: AiRiskAnalysisResponse | null;
+  metadata?: Record<string, unknown>;
   model?: string;
   processingTimeMs?: number;
   createdAt: Date;
@@ -47,6 +49,7 @@ export class FormQuestionsAnswersAnalysisBrowseResultModel {
     this.status = params.status;
     this.confidence = params.confidence;
     this.analysis = params.analysis;
+    this.metadata = params.metadata;
     this.model = params.model;
     this.processingTimeMs = params.processingTimeMs;
     this.createdAt = params.createdAt;

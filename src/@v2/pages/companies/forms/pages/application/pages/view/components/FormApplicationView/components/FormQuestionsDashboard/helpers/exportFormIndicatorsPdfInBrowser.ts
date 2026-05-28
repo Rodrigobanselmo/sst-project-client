@@ -3,8 +3,13 @@ import React from 'react';
 
 import type { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import type { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
+import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
+import { readIndicatorsNarrativeDiagnostic } from '@v2/services/forms/indicators-narrative-diagnostic/service/indicators-narrative-diagnostic.service';
+import { diagnosticMatchesViewMode } from '@v2/services/forms/indicators-narrative-diagnostic/service/indicators-narrative-diagnostic.scope';
 
 import type { HierarchyGroupForIndicators } from './buildParticipantGroupsForIndicators';
+import { buildParticipantGroupsForIndicators } from './buildParticipantGroupsForIndicators';
+import { buildIndicatorsNarrativeDiagnosticScope } from './buildIndicatorsNarrativeDiagnosticScope';
 
 /**
  * Gera o PDF de indicadores no navegador com a mesma base da tela
@@ -14,9 +19,11 @@ import type { HierarchyGroupForIndicators } from './buildParticipantGroupsForInd
  */
 export async function exportFormIndicatorsPdfInBrowser(
   params: {
+    accessCompanyId: string;
     formApplication: FormApplicationReadModel;
     formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
     selectedGroupingQuestionId: string | null;
+    selectedGroupingLabel?: string | null;
     showOnlyGroupIndicators: boolean;
     hierarchyGroups: HierarchyGroupForIndicators[];
     /** Com agrupamento ativo: ids dos grupos a incluir no PDF (alinhado à tela). */
@@ -41,10 +48,48 @@ export async function exportFormIndicatorsPdfInBrowser(
   onProgress?.('Processando dados dos indicadores...');
   await yieldToUI();
 
+  const participantGroups = buildParticipantGroupsForIndicators({
+    formQuestionsAnswers: params.formQuestionsAnswers,
+    selectedGroupingQuestionId: params.selectedGroupingQuestionId,
+    hierarchyGroups: params.hierarchyGroups,
+  });
+
+  const visibleParticipantGroups = params.selectedGroupingQuestionId
+    ? params.visibleParticipantGroupIds
+      ? participantGroups.filter((g) => params.visibleParticipantGroupIds!.includes(g.id))
+      : participantGroups
+    : participantGroups;
+
+  const narrativeScope = buildIndicatorsNarrativeDiagnosticScope({
+    selectedGroupingQuestionId: params.selectedGroupingQuestionId,
+    visibleParticipantGroups,
+    groupingLabel: params.selectedGroupingLabel ?? null,
+    showOnlyGroupIndicators: params.showOnlyGroupIndicators,
+  });
+
+  onProgress?.('Carregando diagnóstico narrativo salvo...');
+  await yieldToUI();
+
+  const narrativeDiagnostic = await readIndicatorsNarrativeDiagnostic({
+    companyId: params.accessCompanyId,
+    formApplicationId: params.formApplication.id,
+    scope: narrativeScope,
+  });
+
+  const narrativeDiagnosticMarkdown =
+    narrativeDiagnostic?.status === FormAiAnalysisStatusEnum.DONE &&
+    diagnosticMatchesViewMode(
+      narrativeDiagnostic,
+      narrativeScope.showOnlyGroupIndicators,
+    )
+      ? narrativeDiagnostic.contentMarkdown
+      : null;
+
   const dataset = buildIndicatorsPdfDataset({
     formQuestionsAnswers: params.formQuestionsAnswers,
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     showOnlyGroupIndicators: params.showOnlyGroupIndicators,
+    narrativeDiagnosticMarkdown,
     isShareableLink: params.formApplication.isShareableLink,
     hierarchyGroups: params.hierarchyGroups,
     ...(params.selectedGroupingQuestionId

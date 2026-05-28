@@ -2,12 +2,16 @@ import type { DocumentProps } from '@react-pdf/renderer';
 import React from 'react';
 
 import type { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
+import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import type { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { browseFormQuestionsAnswersAnalysis } from '@v2/services/forms/form-questions-answers-analysis/browse-form-questions-answers-analysis/service/browse-form-questions-answers-analysis.service';
 import { browseFormQuestionsAnswersRisks } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers-risks/service/browse-form-questions-answers-risks.service';
+import { readRiskNarrativeDiagnostic } from '@v2/services/forms/risk-narrative-diagnostic/service/risk-narrative-diagnostic.service';
 
 import type { ParticipantGroupForIndicators } from './buildParticipantGroupsForIndicators';
 import { buildParticipantGroupsForIndicators } from './buildParticipantGroupsForIndicators';
+import { buildRiskAnalysisViewContext } from './buildRiskAnalysisViewContext';
+import { buildRiskNarrativeDiagnosticScope } from './buildRiskNarrativeDiagnosticScope';
 
 /**
  * Gera o PDF de Análise de Riscos no navegador (`buildRiskAnalysisPdfDataset` + `PdfFormRiskAnalysis`).
@@ -76,6 +80,35 @@ export async function exportFormRiskAnalysisPdfInBrowser(
       : participantGroups
     : participantGroups;
 
+  const { allowedEntityIds } = buildRiskAnalysisViewContext({
+    formQuestionsAnswers: params.formQuestionsAnswers,
+    visibleParticipantGroups,
+    selectedGroupingQuestionId: params.selectedGroupingQuestionId,
+    entityMap: risksData.entityMap,
+    entityEstablishmentMapFromApi: risksData.entityEstablishmentMap,
+  });
+
+  const narrativeScope = buildRiskNarrativeDiagnosticScope({
+    selectedGroupingQuestionId: params.selectedGroupingQuestionId,
+    visibleParticipantGroups,
+    allowedEntityIds,
+    groupingLabel: params.selectedGroupingLabel,
+  });
+
+  onProgress?.('Carregando diagnóstico narrativo salvo...');
+  await yieldToUI();
+
+  const narrativeDiagnostic = await readRiskNarrativeDiagnostic({
+    companyId: params.accessCompanyId,
+    formApplicationId: params.formApplication.id,
+    scope: narrativeScope,
+  });
+
+  const narrativeDiagnosticMarkdown =
+    narrativeDiagnostic?.status === FormAiAnalysisStatusEnum.DONE
+      ? narrativeDiagnostic.contentMarkdown
+      : null;
+
   const dataset = buildRiskAnalysisPdfDataset({
     risksData,
     analysisData,
@@ -83,6 +116,7 @@ export async function exportFormRiskAnalysisPdfInBrowser(
     visibleParticipantGroups,
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     selectedGroupingLabel: params.selectedGroupingLabel,
+    narrativeDiagnosticMarkdown,
   });
 
   const issuedAt = new Intl.DateTimeFormat('pt-BR', {

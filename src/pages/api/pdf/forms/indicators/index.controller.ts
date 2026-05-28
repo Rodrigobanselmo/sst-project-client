@@ -45,7 +45,7 @@ export default async function handler(
     const onlyGroupIndicators =
       typeof showOnlyGroupIndicators === 'string'
         ? showOnlyGroupIndicators === 'true'
-        : true;
+        : false;
 
     const apiClient = setupAPIClient({ req } as any);
 

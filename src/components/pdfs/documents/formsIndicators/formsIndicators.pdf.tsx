@@ -155,6 +155,34 @@ function IndicatorRows({
   );
 }
 
+type PdfNarrativeLine = {
+  text: string;
+  kind: 'heading' | 'body';
+};
+
+function markdownToPdfLines(markdown: string): PdfNarrativeLine[] {
+  return markdown
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const isHeading = /^#{1,6}\s/.test(line);
+      const text = line
+        .replace(/^#{1,6}\s*/g, '')
+        .replace(/^[-*]\s+/g, '• ')
+        .replace(/^\d+\.\s+/g, '• ')
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/__(.*?)__/g, '$1')
+        .replace(/`([^`]+)`/g, '$1');
+
+      return {
+        text,
+        kind: isHeading ? 'heading' : 'body',
+      };
+    });
+}
+
 const s = StyleSheet.create({
   page: {
     paddingTop: 40,
@@ -340,6 +368,33 @@ const s = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
   },
+  narrativeSection: {
+    marginBottom: 14,
+    padding: 8,
+    border: '1 solid #d8d8d8',
+    borderRadius: 4,
+    backgroundColor: '#fcfcfc',
+  },
+  narrativeTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: '#222',
+    marginBottom: 6,
+  },
+  narrativeLine: {
+    fontSize: 8,
+    color: '#333',
+    lineHeight: 1.35,
+    marginBottom: 3,
+  },
+  narrativeHeadingLine: {
+    fontSize: 9,
+    fontWeight: 700,
+    color: '#111',
+    lineHeight: 1.35,
+    marginTop: 4,
+    marginBottom: 2,
+  },
 });
 
 export default function PdfFormIndicators({
@@ -356,6 +411,9 @@ export default function PdfFormIndicators({
     : 'Exibição: indicadores por categoria e por pergunta';
 
   const groupingActive = data.grouping.active;
+  const narrativeLines = data.narrativeDiagnosticMarkdown
+    ? markdownToPdfLines(data.narrativeDiagnosticMarkdown)
+    : [];
 
   return (
     <Document>
@@ -368,6 +426,21 @@ export default function PdfFormIndicators({
         <Text style={s.displayModeBanner}>{displayModeLabel}</Text>
 
         <IndicatorsInterpretationLegendPdf />
+        {narrativeLines.length > 0 ? (
+          <View style={s.narrativeSection}>
+            <Text style={s.narrativeTitle}>Diagnóstico narrativo com IA</Text>
+            {narrativeLines.map((line, index) => (
+              <Text
+                key={`${index}-${line.text.slice(0, 20)}`}
+                style={
+                  line.kind === 'heading' ? s.narrativeHeadingLine : s.narrativeLine
+                }
+              >
+                {line.text}
+              </Text>
+            ))}
+          </View>
+        ) : null}
 
         {data.formGroups.length === 0 ? (
           <Text style={s.empty}>

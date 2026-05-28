@@ -58,6 +58,9 @@ import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBro
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
 import { exportFormRiskAnalysisPdfInBrowser } from './helpers/exportFormRiskAnalysisPdfInBrowser';
 import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
+import { IndicatorsNarrativeDiagnosticSection } from './components/IndicatorsNarrativeDiagnosticSection/IndicatorsNarrativeDiagnosticSection';
+import { buildIndicatorsNarrativeDiagnosticScope } from './helpers/buildIndicatorsNarrativeDiagnosticScope';
+import { useAccess } from 'core/hooks/useAccess';
 
 // Types for the restructured data
 interface QuestionWithParticipantGroups {
@@ -473,6 +476,7 @@ export const FormQuestionsDashboard = ({
   formApplication,
   accessCompanyId,
 }: FormQuestionsDashboardProps) => {
+  const { isMaster } = useAccess();
   const { enqueueSnackbar } = useSnackbar();
   const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
   const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
@@ -671,6 +675,22 @@ export const FormQuestionsDashboard = ({
     participantGroups,
     selectedParticipantGroupIdsForView,
   ]);
+
+  const indicatorsNarrativeScope = useMemo(
+    () =>
+      buildIndicatorsNarrativeDiagnosticScope({
+        selectedGroupingQuestionId: selectedGroupingQuestion,
+        visibleParticipantGroups,
+        groupingLabel: selectedGroupingLabel,
+        showOnlyGroupIndicators,
+      }),
+    [
+      selectedGroupingQuestion,
+      visibleParticipantGroups,
+      selectedGroupingLabel,
+      showOnlyGroupIndicators,
+    ],
+  );
 
   // Helper function to filter answers based on participant IDs
   const filterAnswersByParticipants = useCallback(
@@ -1060,9 +1080,11 @@ export const FormQuestionsDashboard = ({
                     try {
                       await exportFormIndicatorsPdfInBrowser(
                         {
+                          accessCompanyId,
                           formApplication,
                           formQuestionsAnswers,
                           selectedGroupingQuestionId: selectedGroupingQuestion,
+                          selectedGroupingLabel,
                           showOnlyGroupIndicators,
                           hierarchyGroups,
                           ...(selectedGroupingQuestion &&
@@ -1314,6 +1336,7 @@ export const FormQuestionsDashboard = ({
                 formQuestionsAnswers={formQuestionsAnswers}
                 visibleParticipantGroups={visibleParticipantGroups}
                 selectedGroupingQuestionId={selectedGroupingQuestion}
+                selectedGroupingLabel={selectedGroupingLabel}
               />
             ) : isHierarchyGroupsTab ? (
               <FormHierarchyGroupManager
@@ -1330,6 +1353,14 @@ export const FormQuestionsDashboard = ({
             ) : (
               <SFlex direction="column" gap={24} color="background.paper">
                 {isIndicatorTab && <IndicatorsQualityLegend />}
+                {isIndicatorTab && (
+                  <IndicatorsNarrativeDiagnosticSection
+                    companyId={accessCompanyId}
+                    formApplicationId={formApplication.id}
+                    scope={indicatorsNarrativeScope}
+                    isMaster={isMaster}
+                  />
+                )}
                 {/* Create a structure grouped by questions first, then by participant groups */}
                 {(() => {
                   // Get all unique questions across all participant groups
