@@ -22,6 +22,8 @@ import { useFetchBrowseAllFormParticipantsForGrouping } from '@v2/services/forms
 import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseFormParticipants';
 import { FORM_PARTICIPANTS_GROUPED_FETCH_CAP } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-all-filtered-form-participants';
 import { FormParticipantsOrderByEnum } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-form-participants.types';
+import { coerceParticipantSearchQuery } from '@v2/models/form/helpers/coerce-participant-search-query';
+import { normalizeParticipantSearchTerm } from '@v2/models/form/helpers/normalize-participant-search-term';
 import { FormParticipantsTableFilter } from './components/FormParticipantsTableFilter/FormParticipantsTableFilter';
 import { FormParticipantsFilterSummary } from './components/FormParticipantsFilterSummary';
 import { FormParticipantsGroupedByEstablishment } from './components/FormParticipantsGroupedByEstablishment';
@@ -63,6 +65,7 @@ import {
 } from '@mui/material';
 import {
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type MouseEvent,
@@ -118,6 +121,15 @@ export const FormParticipantsTable = ({
 
   const { queryParams, setQueryParams } =
     useQueryParamsState<IFormParticipantsFilterProps>();
+
+  const [searchInput, setSearchInput] = useState(() =>
+    coerceParticipantSearchQuery(queryParams.search),
+  );
+
+  useEffect(() => {
+    const fromUrl = coerceParticipantSearchQuery(queryParams.search);
+    setSearchInput((current) => (current === fromUrl ? current : fromUrl));
+  }, [queryParams.search]);
 
   const {
     pageLimit,
@@ -178,14 +190,33 @@ export const FormParticipantsTable = ({
     [],
   );
 
-  const browseFilters = useMemo(
-    () => ({
-      search: queryParams.search,
-      status: queryParams.status,
+  const browseFilters = useMemo(() => {
+    const hasResponded =
+      queryParams.responseFilter === 'responded'
+        ? true
+        : queryParams.responseFilter === 'not_responded'
+          ? false
+          : undefined;
+
+    const normalizedSearch = searchInput.trim()
+      ? normalizeParticipantSearchTerm(searchInput.trim())
+      : undefined;
+
+    return {
+      search: normalizedSearch,
       hierarchyIds: queryParams.hierarchies?.map((h) => h.id),
-    }),
-    [queryParams.search, queryParams.status, queryParams.hierarchies],
-  );
+      workspaceIds:
+        queryParams.workspaces && queryParams.workspaces.length > 0
+          ? queryParams.workspaces.map((w) => w.id)
+          : undefined,
+      hasResponded,
+    };
+  }, [
+    searchInput,
+    queryParams.hierarchies,
+    queryParams.workspaces,
+    queryParams.responseFilter,
+  ]);
 
   const { formParticipants, isLoading } = useFetchBrowseFormParticipants({
     companyId,
@@ -232,14 +263,26 @@ export const FormParticipantsTable = ({
     setData: setQueryParams,
     chipMap: {
       search: null,
-      status: (value) => ({
-        leftLabel: 'Status',
-        label: value,
+      responseFilter: (value) => ({
+        leftLabel: 'Resposta',
+        label: value === 'responded' ? 'Responderam' : 'Não responderam',
         leftLabelBold: true,
         onDelete: () =>
           setQueryParams({
             page: 1,
-            status: queryParams.status?.filter((status) => status !== value),
+            responseFilter: null,
+          }),
+      }),
+      workspaces: (value) => ({
+        leftLabel: 'Estabelecimento',
+        label: value.name,
+        leftLabelBold: true,
+        onDelete: () =>
+          setQueryParams({
+            page: 1,
+            workspaces: queryParams.workspaces?.filter(
+              (w) => w.id !== value.id,
+            ),
           }),
       }),
       hierarchies: (value) => ({
@@ -259,7 +302,8 @@ export const FormParticipantsTable = ({
     },
     cleanData: {
       search: '',
-      status: [],
+      responseFilter: null,
+      workspaces: [],
       hierarchies: [],
       orderBy: [],
       page: 1,
@@ -273,8 +317,20 @@ export const FormParticipantsTable = ({
     [paramsChipListBase],
   );
 
+  const handleParticipantSearch = useCallback(
+    (value: string) => {
+      const trimmed = value.trim();
+      setSearchInput(trimmed);
+      onFilterData({
+        search: trimmed ? trimmed : (null as unknown as string),
+      });
+    },
+    [onFilterData],
+  );
+
   const onCleanData = useCallback(() => {
     resetPersistedLimit();
+    setSearchInput('');
     resetFromTableState();
   }, [resetPersistedLimit, resetFromTableState]);
 
@@ -519,8 +575,9 @@ export const FormParticipantsTable = ({
         isLoading={isLoading}
       />
       <STableSearch
-        search={queryParams.search}
-        onSearch={(search) => onFilterData({ search })}
+        search={searchInput}
+        onSearch={handleParticipantSearch}
+        inputProps={{ placeholder: 'Nome, CPF, e-mail ou telefone...' }}
       >
         <STableSearchContent>
           <FormParticipantsRecorteExportButton
@@ -579,6 +636,7 @@ export const FormParticipantsTable = ({
               filters={queryParams}
               companyId={companyId}
               applicationId={applicationId}
+              formApplication={formApplication}
             />
           </STableFilterButton>
         </STableSearchContent>

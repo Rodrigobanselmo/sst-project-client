@@ -6,14 +6,23 @@ import { ReactNode } from 'react';
 import { FormParticipantsColumnsEnum } from './enums/form-participants-columns.enum';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 
+export type FormParticipantsResponseFilterValue =
+  | 'all'
+  | 'responded'
+  | 'not_responded';
+
 export interface IFormParticipantsFilterProps {
   search?: string;
-  status?: string[];
   hierarchies?: {
     id: string;
     name: string;
     type?: HierarchyTypeEnum;
   }[];
+  workspaces?: {
+    id: string;
+    name: string;
+  }[];
+  responseFilter?: FormParticipantsResponseFilterValue | null;
   page?: number;
   limit?: number;
   orderBy?: IOrderByParams<FormParticipantsOrderByEnum>[];

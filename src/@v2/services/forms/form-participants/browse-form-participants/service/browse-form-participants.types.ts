@@ -13,10 +13,14 @@ export enum FormParticipantsOrderByEnum {
   PHONE = 'PHONE',
 }
 
+export type FormParticipantsResponseFilter = 'all' | 'responded' | 'not_responded';
+
 export interface BrowseFormParticipantsFilters {
   search?: string;
-  status?: string[];
   hierarchyIds?: string[];
+  workspaceIds?: string[];
+  /** true = respondeu; false = não respondeu; omitido = todos */
+  hasResponded?: boolean;
 }
 
 export interface BrowseFormParticipantsParams {
