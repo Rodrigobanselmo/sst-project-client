@@ -17,6 +17,7 @@ interface StatisticsCardProps {
   totalParticipants: number;
   averageTimeSpent: number | null;
   participationGoal?: number;
+  isShareableLink: boolean;
 }
 
 export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
@@ -25,9 +26,15 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
   totalParticipants,
   averageTimeSpent,
   participationGoal,
+  isShareableLink,
 }) => {
-  const campaignRespondedCount =
-    respondedParticipantsCount ?? totalAnswers;
+  const campaignRespondedCount = isShareableLink
+    ? totalAnswers
+    : (respondedParticipantsCount ?? totalAnswers);
+  const countLabel = isShareableLink ? 'Respostas' : 'Responderam';
+  const goalCountLabel = isShareableLink
+    ? 'respostas da meta'
+    : 'respondentes da meta';
   const { companyId } = useGetCompanyId();
 
   const formatTime = (seconds: number | null): string => {
@@ -92,7 +99,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
                 {campaignRespondedCount}
               </SText>
               <SText sx={{ fontSize: 14, color: 'text.primary' }}>
-                Responderam
+                {countLabel}
               </SText>
             </SFlex>
           </SFlex>
@@ -171,7 +178,7 @@ export const FormStatisticsCard: React.FC<StatisticsCardProps> = ({
             </SFlex>
             <SFlex direction="column" gap={0.5} mt={1.5} align="center">
               <SText sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}>
-                {campaignRespondedCount}/{goalParticipants} respondentes da meta
+                {campaignRespondedCount}/{goalParticipants} {goalCountLabel}
               </SText>
               <SText sx={{ fontSize: 12, color: 'text.secondary', lineHeight: 1.35 }}>
                 faltam {remainingForGoal} para atingir {participationGoal}%
