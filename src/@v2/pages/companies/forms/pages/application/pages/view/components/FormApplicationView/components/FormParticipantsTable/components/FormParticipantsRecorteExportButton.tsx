@@ -5,6 +5,11 @@ import {
 import { buildEstablishmentHierarchyAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-hierarchy';
 import { buildEstablishmentSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment-sector';
 import { buildHierarchyTypeAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-type';
+import {
+  buildHierarchyGroupAggregates,
+  buildSectorWithHierarchyGroupAggregates,
+  type HierarchyGroupForParticipants,
+} from '@v2/models/form/helpers/form-participants-aggregate-by-hierarchy-group';
 import { buildSectorAggregates } from '@v2/models/form/helpers/form-participants-aggregate-by-sector';
 import { getResponseRateBarColor } from '@v2/models/form/helpers/form-participants-response-rate-colors';
 import {
@@ -15,9 +20,12 @@ import {
   getEstablishmentHierarchyGroupingConfig,
   getFlatHierarchyGroupingConfig,
   getGroupedPdfTitle,
+  getHierarchyGroupGroupingConfig,
   isGroupedViewMode,
+  isHierarchyGroupViewMode,
   type FormParticipantsPdfViewMode,
 } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
+import { browseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/service/browse-hierarchy-groups.service';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
 import type { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-participants/form-participants-browse-result.model';
 import {
@@ -46,6 +54,7 @@ type Props = {
   orderBy: IOrderByParams<FormParticipantsOrderByEnum>[];
   hierarchyLabels: string;
   viewMode: FormParticipantsPdfViewMode;
+  hierarchyGroups?: HierarchyGroupForParticipants[];
 };
 
 function escapeHtml(s: string) {
@@ -142,10 +151,64 @@ function renderEstablishmentHierarchyPdfSection(
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 }
 
+function renderHierarchyGroupPdfSection(
+  rows: FormParticipantsBrowseResultModel[],
+  hierarchyGroups: HierarchyGroupForParticipants[],
+): string {
+  const config = getHierarchyGroupGroupingConfig('grouped_hierarchy_group')!;
+  const aggregates = buildHierarchyGroupAggregates(rows, hierarchyGroups);
+  const tableRows = aggregates
+    .map((g) => renderAggregatePdfTableRow(g, ''))
+    .join('');
+
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+        <table><thead><tr>
+          <th>${escapeHtml(config.columnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+}
+
+function renderSectorWithHierarchyGroupPdfSection(
+  rows: FormParticipantsBrowseResultModel[],
+  hierarchyGroups: HierarchyGroupForParticipants[],
+): string {
+  const config = getHierarchyGroupGroupingConfig('grouped_sector_hierarchy_group')!;
+  const blocks = buildSectorWithHierarchyGroupAggregates(rows, hierarchyGroups);
+  const tableRows = blocks
+    .flatMap((block) => [
+      renderAggregatePdfTableRow(
+        { label: block.groupLabel, ...block },
+        'group-row',
+      ),
+      ...block.sectors.map((sector) =>
+        renderAggregatePdfTableRow(
+          { label: sector.sectorLabel, ...sector },
+          'sector-row',
+        ),
+      ),
+    ])
+    .join('');
+
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+        <table><thead><tr>
+          <th>${escapeHtml(config.nestedHeaderColumnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+}
+
 function buildGroupedTableSection(
   viewMode: FormParticipantsPdfViewMode,
   rows: FormParticipantsBrowseResultModel[],
+  hierarchyGroups: HierarchyGroupForParticipants[],
 ): string {
+  if (viewMode === 'grouped_hierarchy_group') {
+    return renderHierarchyGroupPdfSection(rows, hierarchyGroups);
+  }
+
+  if (viewMode === 'grouped_sector_hierarchy_group') {
+    return renderSectorWithHierarchyGroupPdfSection(rows, hierarchyGroups);
+  }
+
   if (viewMode === 'grouped') {
     const aggregates = buildSectorAggregates(rows);
     const tableRows = aggregates
@@ -235,6 +298,7 @@ export const FormParticipantsRecorteExportButton = ({
   orderBy,
   hierarchyLabels,
   viewMode,
+  hierarchyGroups: hierarchyGroupsProp,
 }: Props) => {
   const [loading, setLoading] = useState(false);
 
@@ -260,6 +324,16 @@ export const FormParticipantsRecorteExportButton = ({
 
       const fs = bundle.filterSummary;
       const rows = bundle.results ?? [];
+
+      let hierarchyGroups = hierarchyGroupsProp ?? [];
+      if (isHierarchyGroupViewMode(viewMode) && hierarchyGroups.length === 0) {
+        const fetched = await browseHierarchyGroups({ companyId, applicationId });
+        hierarchyGroups = fetched.map((g) => ({
+          id: g.id,
+          name: g.name,
+          hierarchyIds: g.hierarchyIds,
+        }));
+      }
       const groupedRowsIncomplete =
         isGroupedFetch &&
         (rows.length < fs.totalParticipants ||
@@ -293,10 +367,15 @@ export const FormParticipantsRecorteExportButton = ({
           .cellbar > div{height:100%;min-width:2px;border-radius:6px;-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
           .num{text-align:right}
           .est-row td:first-child{font-weight:700;background:#f0f0f0}
+          .group-row td:first-child{font-weight:700;background:#f0f0f0}
           .sector-row td:first-child{padding-left:24px;color:#555}
       `;
 
-      const tableSection = buildGroupedTableSection(viewMode, rows);
+      const tableSection = buildGroupedTableSection(
+        viewMode,
+        rows,
+        hierarchyGroups,
+      );
 
       let noteHtml = '';
       if (isGroupedFetch) {
@@ -344,6 +423,7 @@ export const FormParticipantsRecorteExportButton = ({
     orderBy,
     hierarchyLabels,
     viewMode,
+    hierarchyGroupsProp,
   ]);
 
   return (

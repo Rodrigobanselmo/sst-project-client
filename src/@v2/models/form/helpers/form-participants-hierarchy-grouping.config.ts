@@ -8,6 +8,8 @@ import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum
 export type ParticipantsViewMode =
   | 'list'
   | 'grouped'
+  | 'grouped_hierarchy_group'
+  | 'grouped_sector_hierarchy_group'
   | 'grouped_establishment'
   | 'grouped_establishment_sector'
   | 'grouped_directory'
@@ -40,6 +42,8 @@ export function isGroupedViewMode(mode: ParticipantsViewMode): boolean {
 export const ALL_PARTICIPANTS_VIEW_MODES: readonly ParticipantsViewMode[] = [
   'list',
   'grouped',
+  'grouped_hierarchy_group',
+  'grouped_sector_hierarchy_group',
   'grouped_establishment',
   'grouped_establishment_sector',
   'grouped_directory',
@@ -49,6 +53,53 @@ export const ALL_PARTICIPANTS_VIEW_MODES: readonly ParticipantsViewMode[] = [
   'grouped_establishment_management',
   'grouped_establishment_sub_sector',
 ] as const;
+
+export type HierarchyGroupGroupingConfig = {
+  viewMode:
+    | 'grouped_hierarchy_group'
+    | 'grouped_sector_hierarchy_group';
+  selectLabel: string;
+  loadingMessage: string;
+  pdfTitle: string;
+  pdfSectionTitle: string;
+  columnLabel: string;
+  nestedHeaderColumnLabel: string;
+};
+
+export const HIERARCHY_GROUP_GROUPING_CONFIGS: HierarchyGroupGroupingConfig[] = [
+  {
+    viewMode: 'grouped_hierarchy_group',
+    selectLabel: 'Agrupado por agrupamento de setores',
+    loadingMessage: 'Carregando agrupamento por agrupamento de setores…',
+    pdfTitle: 'Recorte filtrado — agrupado por agrupamento de setores',
+    pdfSectionTitle: 'Por agrupamento de setores',
+    columnLabel: 'Agrupamento de setores',
+    nestedHeaderColumnLabel: 'Agrupamento de setores',
+  },
+  {
+    viewMode: 'grouped_sector_hierarchy_group',
+    selectLabel: 'Agrupado por setor + agrupamento de setores',
+    loadingMessage:
+      'Carregando agrupamento por setor e agrupamento de setores…',
+    pdfTitle:
+      'Recorte filtrado — agrupado por setor e agrupamento de setores',
+    pdfSectionTitle: 'Por agrupamento e setor',
+    columnLabel: 'Agrupamento de setores',
+    nestedHeaderColumnLabel: 'Agrupamento / Setor',
+  },
+];
+
+export function getHierarchyGroupGroupingConfig(
+  viewMode: ParticipantsViewMode,
+): HierarchyGroupGroupingConfig | undefined {
+  return HIERARCHY_GROUP_GROUPING_CONFIGS.find((c) => c.viewMode === viewMode);
+}
+
+export function isHierarchyGroupViewMode(
+  mode: ParticipantsViewMode,
+): mode is HierarchyGroupGroupingConfig['viewMode'] {
+  return HIERARCHY_GROUP_GROUPING_CONFIGS.some((c) => c.viewMode === mode);
+}
 
 export function isParticipantsViewMode(
   value: string,
@@ -191,6 +242,8 @@ export function getParticipantsViewModeSelectLabel(
 ): string {
   if (viewMode === 'list') return 'Lista detalhada';
   if (viewMode === 'grouped') return 'Agrupado por setor';
+  const hierarchyGroup = getHierarchyGroupGroupingConfig(viewMode);
+  if (hierarchyGroup) return hierarchyGroup.selectLabel;
   if (viewMode === 'grouped_establishment') {
     return 'Agrupado por estabelecimento';
   }
@@ -209,6 +262,8 @@ export function getGroupedPdfTitle(viewMode: ParticipantsViewMode): string {
   if (flat) return flat.pdfTitle;
   const est = getEstablishmentHierarchyGroupingConfig(viewMode);
   if (est) return est.pdfTitle;
+  const hierarchyGroup = getHierarchyGroupGroupingConfig(viewMode);
+  if (hierarchyGroup) return hierarchyGroup.pdfTitle;
   if (viewMode === 'grouped') return 'Recorte filtrado — agrupado por setor';
   if (viewMode === 'grouped_establishment') {
     return 'Recorte filtrado — agrupado por estabelecimento';

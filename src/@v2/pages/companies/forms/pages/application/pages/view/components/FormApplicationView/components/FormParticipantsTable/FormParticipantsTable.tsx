@@ -30,17 +30,23 @@ import { FormParticipantsGroupedByEstablishment } from './components/FormPartici
 import { FormParticipantsGroupedByEstablishmentHierarchy } from './components/FormParticipantsGroupedByEstablishmentHierarchy';
 import { FormParticipantsGroupedByEstablishmentSector } from './components/FormParticipantsGroupedByEstablishmentSector';
 import { FormParticipantsGroupedByHierarchyType } from './components/FormParticipantsGroupedByHierarchyType';
+import { FormParticipantsGroupedByHierarchyGroup } from './components/FormParticipantsGroupedByHierarchyGroup';
 import { FormParticipantsGroupedBySector } from './components/FormParticipantsGroupedBySector';
+import { FormParticipantsGroupedBySectorWithHierarchyGroup } from './components/FormParticipantsGroupedBySectorWithHierarchyGroup';
 import {
   ESTABLISHMENT_HIERARCHY_GROUPING_CONFIGS,
   FLAT_HIERARCHY_GROUPING_CONFIGS,
   getEstablishmentHierarchyGroupingConfig,
   getFlatHierarchyGroupingConfig,
+  getHierarchyGroupGroupingConfig,
   getParticipantsViewModeSelectLabel,
+  HIERARCHY_GROUP_GROUPING_CONFIGS,
   isGroupedViewMode,
+  isHierarchyGroupViewMode,
   isParticipantsViewMode,
   type ParticipantsViewMode,
 } from '@v2/models/form/helpers/form-participants-hierarchy-grouping.config';
+import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
 import { FormParticipantsRecorteExportButton } from './components/FormParticipantsRecorteExportButton';
 import { useFormParticipantsActions } from './hooks/useFormParticipantsActions';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
@@ -361,6 +367,21 @@ export const FormParticipantsTable = ({
     [],
   );
 
+  const { hierarchyGroups: hierarchyGroupsRaw } = useFetchBrowseHierarchyGroups({
+    companyId,
+    applicationId,
+  });
+
+  const hierarchyGroupsForGrouping = useMemo(
+    () =>
+      hierarchyGroupsRaw.map((g) => ({
+        id: g.id,
+        name: g.name,
+        hierarchyIds: g.hierarchyIds,
+      })),
+    [hierarchyGroupsRaw],
+  );
+
   const {
     formParticipants: groupedParticipants,
     isLoading: groupedLoading,
@@ -536,6 +557,27 @@ export const FormParticipantsTable = ({
         );
       case 'grouped':
         return <FormParticipantsGroupedBySector {...groupedTableProps} />;
+      case 'grouped_hierarchy_group':
+      case 'grouped_sector_hierarchy_group': {
+        const hierarchyGroupConfig = getHierarchyGroupGroupingConfig(viewMode);
+        if (!hierarchyGroupConfig) return null;
+        if (viewMode === 'grouped_hierarchy_group') {
+          return (
+            <FormParticipantsGroupedByHierarchyGroup
+              {...groupedTableProps}
+              hierarchyGroups={hierarchyGroupsForGrouping}
+              config={hierarchyGroupConfig}
+            />
+          );
+        }
+        return (
+          <FormParticipantsGroupedBySectorWithHierarchyGroup
+            {...groupedTableProps}
+            hierarchyGroups={hierarchyGroupsForGrouping}
+            config={hierarchyGroupConfig}
+          />
+        );
+      }
       case 'grouped_directory':
       case 'grouped_management':
       case 'grouped_sub_sector': {
@@ -588,6 +630,11 @@ export const FormParticipantsTable = ({
             orderBy={orderByForExport}
             hierarchyLabels={hierarchyFilterDescription}
             viewMode={viewMode}
+            hierarchyGroups={
+              isHierarchyGroupViewMode(viewMode)
+                ? hierarchyGroupsForGrouping
+                : undefined
+            }
           />
           <STableButton
             onClick={() => onSendFormEmail()}
@@ -686,6 +733,14 @@ export const FormParticipantsTable = ({
               </MenuItem>
             ))}
             <MenuItem value="grouped">Agrupado por setor</MenuItem>
+            <ViewModeSelectCategory withTopSpacing>
+              Agrupamentos de setores
+            </ViewModeSelectCategory>
+            {HIERARCHY_GROUP_GROUPING_CONFIGS.map((config) => (
+              <MenuItem key={config.viewMode} value={config.viewMode}>
+                {config.selectLabel}
+              </MenuItem>
+            ))}
             {flatHierarchySubSector.map((config) => (
               <MenuItem key={config.viewMode} value={config.viewMode}>
                 {config.selectLabel}
