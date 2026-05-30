@@ -1,4 +1,3 @@
-import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { FormQuestionsAnswersAnalysisBrowseModel } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse.model';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
@@ -13,6 +12,10 @@ import {
   sortRiskIdsForAnalysis,
 } from './buildRiskAnalysisViewContext';
 import { expandRiskAnalysisEntitiesForHierarchyGroups } from './expandRiskAnalysisEntitiesForHierarchyGroups';
+import {
+  resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback,
+  type AiAnalysisResolutionSource,
+} from './resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback';
 import { buildSectorRiskClassificationPdf } from './riskAnalysisMatrixLabels';
 
 export type RiskAnalysisPdfRecommendationItem = {
@@ -27,6 +30,8 @@ export type RiskAnalysisPdfSector = {
   fontesGeradoras: RiskAnalysisPdfRecommendationItem[];
   medidasEngenharia: RiskAnalysisPdfRecommendationItem[];
   medidasAdministrativas: RiskAnalysisPdfRecommendationItem[];
+  aiAnalysisSource?: Exclude<AiAnalysisResolutionSource, 'absent'>;
+  sourceHierarchyId?: string;
   aiConfidencePercent?: number;
 };
 
@@ -133,14 +138,7 @@ export function buildRiskAnalysisPdfDataset(params: {
       isEntityVisible,
     });
 
-  const analysisByKey = new Map<
-    string,
-    NonNullable<FormQuestionsAnswersAnalysisBrowseModel['results']>[number]
-  >();
-  (analysisData?.results ?? []).forEach((item) => {
-    if (item.status !== FormAiAnalysisStatusEnum.DONE || !item.analysis) return;
-    analysisByKey.set(`${item.riskId}::${item.hierarchyId}`, item);
-  });
+  const analysisResults = analysisData?.results ?? [];
 
   const riskIds = sortRiskIdsForAnalysis(
     Object.keys(riskMap).filter(
@@ -176,8 +174,14 @@ export function buildRiskAnalysisPdfDataset(params: {
             probability,
           );
 
-          const analysis = analysisByKey.get(`${riskId}::${entityId}`);
-          const analysisPayload = analysis?.analysis;
+          const resolved =
+            resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback({
+              riskId,
+              entityId,
+              results: analysisResults,
+              hierarchyGroups,
+            });
+          const analysisPayload = resolved.analysis?.analysis;
 
           return {
             sectorTypeLabel:
@@ -194,9 +198,19 @@ export function buildRiskAnalysisPdfDataset(params: {
             medidasAdministrativas: mapAnalysisItems(
               analysisPayload?.medidasAdministrativasRecomendadas,
             ),
-            ...(analysis?.confidence != null
+            ...(resolved.source !== 'absent' && resolved.analysis
               ? {
-                  aiConfidencePercent: Math.round(analysis.confidence * 100),
+                  aiAnalysisSource: resolved.source,
+                  ...(resolved.sourceHierarchyId
+                    ? { sourceHierarchyId: resolved.sourceHierarchyId }
+                    : {}),
+                  ...(resolved.analysis.confidence != null
+                    ? {
+                        aiConfidencePercent: Math.round(
+                          resolved.analysis.confidence * 100,
+                        ),
+                      }
+                    : {}),
                 }
               : {}),
           };

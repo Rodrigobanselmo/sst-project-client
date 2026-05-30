@@ -398,6 +398,12 @@ export default function PdfFormRiskAnalysis({
                         />
                       </View>
 
+                      {sector.aiAnalysisSource === 'hierarchy_group_fallback' ? (
+                        <Text style={s.aiNote}>
+                          Análise aplicada pelo agrupamento de setores.
+                        </Text>
+                      ) : null}
+
                       {sector.aiConfidencePercent != null ? (
                         <Text style={s.aiNote}>
                           Análise de IA disponível — confiança:{' '}

@@ -19,6 +19,20 @@ import {
   sortRiskIdsForAnalysis,
 } from '../../helpers/buildRiskAnalysisViewContext';
 import { expandRiskAnalysisEntitiesForHierarchyGroups } from '../../helpers/expandRiskAnalysisEntitiesForHierarchyGroups';
+import { buildEnrichedInventoryStatusByKey } from '../../helpers/buildEnrichedInventoryStatusByKey';
+import { buildInventoryStatusKey } from '../../helpers/buildInventoryStatusKey';
+import {
+  buildLocalAppliedAnalysisItemKey,
+  countPendingTargetAnalysisItems,
+  resolveTargetAnalysisItemStatus,
+} from '../../helpers/resolveTargetAnalysisItemStatus';
+import {
+  buildTargetAiAnalysisViewModel,
+  resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback,
+} from '../../helpers/resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback';
+import { useFetchBrowseFormApplicationRiskLog } from '@v2/services/forms/form-application/form-application-risk-log/hooks/useFetchBrowseFormApplicationRiskLog';
+import { fetchFullRiskDataForHierarchy } from '../../helpers/fetchFullRiskDataForHierarchy';
+import { QueryEnum } from 'core/enums/query.enums';
 import { buildHierarchyIdToWorkspaceNameFromParticipants } from '../../helpers/buildHierarchyIdToWorkspaceNameFromParticipants';
 import { buildRiskNarrativeDiagnosticScope } from '../../helpers/buildRiskNarrativeDiagnosticScope';
 import { RiskNarrativeDiagnosticSection } from './RiskNarrativeDiagnosticSection';
@@ -37,9 +51,9 @@ import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-particip
 import { useSnackbar } from 'notistack';
 import { SIconDelete } from '@v2/assets/icons/SIconDelete/SIconDelete';
 import { TextField } from '@mui/material';
-import { MedTypeEnum } from 'project/enum/medType.enum';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { useAccess } from 'core/hooks/useAccess';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
@@ -47,7 +61,6 @@ import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.
 import { useFetchSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useFetchSystemAiPrompt';
 import { useMutateUpsertSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useMutateUpsertSystemAiPrompt';
 import type { AnalysisItemInventoryEntry } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse.model';
-import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import {
   getFormAiAnalysisErrorMessage,
   getRecentFormAiAnalysisBatchSummary,
@@ -202,6 +215,11 @@ export const FormRisksAnalysis = ({
   >({});
 
   const [addedRisks, setAddedRisks] = useState<Set<string>>(new Set());
+  const [locallyAppliedInventoryKeys, setLocallyAppliedInventoryKeys] =
+    useState<Set<string>>(() => new Set());
+  const [locallyAppliedItemKeys, setLocallyAppliedItemKeys] = useState<Set<string>>(
+    () => new Set(),
+  );
   const [applyingItemKey, setApplyingItemKey] = useState<string | null>(null);
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [addRiskMenu, setAddRiskMenu] = useState<{
@@ -252,6 +270,11 @@ export const FormRisksAnalysis = ({
       companyId: accessCompanyId,
       applicationId: formApplication.id,
     });
+
+  const { riskLogs } = useFetchBrowseFormApplicationRiskLog({
+    companyId: accessCompanyId,
+    applicationId: formApplication.id,
+  });
 
   const { formParticipants } = useFetchBrowseFormParticipants({
     companyId: accessCompanyId,
@@ -328,9 +351,6 @@ export const FormRisksAnalysis = ({
     [formQuestionsAnswersAnalysis?.analysisInventoryStatus],
   );
 
-  const buildInventoryStatusKey = (riskId: string, hierarchyId: string) =>
-    `${riskId}:${hierarchyId}`;
-
   type AnalysisItemType =
     | 'fontesGeradoras'
     | 'medidasEngenhariaRecomendadas'
@@ -390,70 +410,6 @@ export const FormRisksAnalysis = ({
       return pending;
     },
     [analysisInventoryStatus],
-  );
-
-  const isRiskInInventory = useCallback(
-    (riskId: string, entityId: string) =>
-      inventoryStatusByKey[buildInventoryStatusKey(riskId, entityId)] === true,
-    [inventoryStatusByKey],
-  );
-
-  /** Dados desta análise de IA já foram aplicados e o risco ainda existe no inventário. */
-  const isAnalysisApplied = useCallback(
-    (analysis: {
-      id: string;
-      riskId: string;
-      hierarchyId: string;
-      analysis?: Record<string, unknown> | null;
-    }) => {
-      const markedApplied =
-        (analysis.analysis as { isAddedAsRiskData?: boolean } | undefined)
-          ?.isAddedAsRiskData === true || addedRisks.has(analysis.id);
-      if (!markedApplied) return false;
-      return isRiskInInventory(analysis.riskId, analysis.hierarchyId);
-    },
-    [addedRisks, isRiskInInventory],
-  );
-
-  const getApplyAnalysisButtonProps = useCallback(
-    (analysis: {
-      id: string;
-      riskId: string;
-      hierarchyId: string;
-      analysis?: Record<string, unknown> | null;
-    }) => {
-      const riskInInventory = isRiskInInventory(
-        analysis.riskId,
-        analysis.hierarchyId,
-      );
-      const pendingCount = countPendingAnalysisItems(analysis);
-
-      if (pendingCount === null) {
-        const applied = isAnalysisApplied(analysis);
-        return {
-          text: applied ? 'Adicionar novamente' : 'Adicionar',
-          color: applied ? ('paper' as const) : ('success' as const),
-        };
-      }
-
-      if (!riskInInventory) {
-        return { text: 'Adicionar', color: 'success' as const };
-      }
-
-      if (pendingCount > 0) {
-        return {
-          text: `Adicionar pendentes (${pendingCount})`,
-          color: 'success' as const,
-        };
-      }
-
-      if (isAnalysisApplied(analysis)) {
-        return { text: 'Adicionar novamente', color: 'paper' as const };
-      }
-
-      return { text: 'Todos no inventário', color: 'paper' as const };
-    },
-    [countPendingAnalysisItems, isAnalysisApplied, isRiskInInventory],
   );
 
   const handleAccordionChange = (riskId: string) => {
@@ -541,6 +497,9 @@ export const FormRisksAnalysis = ({
         medidasEngenharia?: { nome: string }[];
         medidasAdministrativas?: { nome: string }[];
       },
+      options?: {
+        skipMarkAnalysisApplied?: boolean;
+      },
     ) => {
       const hasItems =
         !!items.fontesGeradoras?.length ||
@@ -558,10 +517,6 @@ export const FormRisksAnalysis = ({
         generateSourcesAddOnly: items.fontesGeradoras?.map((fonte) => ({
           name: fonte.nome,
         })),
-        engsAddOnly: items.medidasEngenharia?.map((medida) => ({
-          medName: medida.nome,
-          medType: MedTypeEnum.ENG,
-        })),
         recAddOnly: [
           ...(items.medidasAdministrativas?.map((medida) => ({
             recName: medida.nome,
@@ -574,17 +529,60 @@ export const FormRisksAnalysis = ({
         ],
       });
 
-      await editAnalysisMutation.mutateAsync({
-        companyId: accessCompanyId,
-        applicationId: formApplication.id,
-        analysisId: analysis.id,
-        analysis: {
-          ...analysis.analysis,
-          isAddedAsRiskData: true,
-        } as never,
+      if (!options?.skipMarkAnalysisApplied) {
+        await editAnalysisMutation.mutateAsync({
+          companyId: accessCompanyId,
+          applicationId: formApplication.id,
+          analysisId: analysis.id,
+          analysis: {
+            ...analysis.analysis,
+            isAddedAsRiskData: true,
+          } as never,
+        });
+
+        setAddedRisks((prev) => new Set(prev).add(analysis.id));
+      }
+
+      setLocallyAppliedInventoryKeys((prev) => {
+        const next = new Set(prev);
+        next.add(buildInventoryStatusKey(analysis.riskId, analysis.hierarchyId));
+        return next;
+      });
+      setLocallyAppliedItemKeys((prev) => {
+        const next = new Set(prev);
+        items.fontesGeradoras?.forEach((item) => {
+          next.add(
+            buildLocalAppliedAnalysisItemKey({
+              riskId: analysis.riskId,
+              targetHierarchyId: analysis.hierarchyId,
+              itemType: 'fontesGeradoras',
+              itemName: item.nome,
+            }),
+          );
+        });
+        items.medidasEngenharia?.forEach((item) => {
+          next.add(
+            buildLocalAppliedAnalysisItemKey({
+              riskId: analysis.riskId,
+              targetHierarchyId: analysis.hierarchyId,
+              itemType: 'medidasEngenhariaRecomendadas',
+              itemName: item.nome,
+            }),
+          );
+        });
+        items.medidasAdministrativas?.forEach((item) => {
+          next.add(
+            buildLocalAppliedAnalysisItemKey({
+              riskId: analysis.riskId,
+              targetHierarchyId: analysis.hierarchyId,
+              itemType: 'medidasAdministrativasRecomendadas',
+              itemName: item.nome,
+            }),
+          );
+        });
+        return next;
       });
 
-      setAddedRisks((prev) => new Set(prev).add(analysis.id));
       return true;
     },
     [
@@ -601,6 +599,7 @@ export const FormRisksAnalysis = ({
       itemType: AnalysisItemType,
       itemIndex: number,
       item: { nome: string },
+      options?: { skipMarkAnalysisApplied?: boolean },
     ) => {
       if (!analysis.hierarchyId || !analysis.riskId) {
         enqueueSnackbar('Dados da análise incompletos', { variant: 'error' });
@@ -610,16 +609,20 @@ export const FormRisksAnalysis = ({
       const key = buildApplyingItemKey(analysis.id, itemType, itemIndex);
       setApplyingItemKey(key);
       try {
-        await applyAnalysisItemsToInventory(analysis, {
-          fontesGeradoras:
-            itemType === 'fontesGeradoras' ? [item] : undefined,
-          medidasEngenharia:
-            itemType === 'medidasEngenhariaRecomendadas' ? [item] : undefined,
-          medidasAdministrativas:
-            itemType === 'medidasAdministrativasRecomendadas'
-              ? [item]
-              : undefined,
-        });
+        await applyAnalysisItemsToInventory(
+          analysis,
+          {
+            fontesGeradoras:
+              itemType === 'fontesGeradoras' ? [item] : undefined,
+            medidasEngenharia:
+              itemType === 'medidasEngenhariaRecomendadas' ? [item] : undefined,
+            medidasAdministrativas:
+              itemType === 'medidasAdministrativasRecomendadas'
+                ? [item]
+                : undefined,
+          },
+          options,
+        );
       } catch {
         // Erros exibidos pelos hooks de mutação
       } finally {
@@ -641,6 +644,7 @@ export const FormRisksAnalysis = ({
     itemStatus,
     onAddItem,
     isAddingItem,
+    readOnly = false,
   }: {
     item: any;
     itemIndex: number;
@@ -655,6 +659,7 @@ export const FormRisksAnalysis = ({
     itemStatus?: AnalysisItemInventoryEntry;
     onAddItem?: () => void;
     isAddingItem?: boolean;
+    readOnly?: boolean;
   }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(item.nome);
@@ -753,14 +758,16 @@ export const FormRisksAnalysis = ({
               <SFlex alignItems="flex-start" justifyContent="space-between">
                 <Box
                   flex={1}
-                  onClick={() => setIsEditing(true)}
+                  onClick={readOnly ? undefined : () => setIsEditing(true)}
                   sx={{
-                    cursor: 'pointer',
-                    '&:hover': {
-                      '& .item-name': {
-                        color: 'primary.main',
-                      },
-                    },
+                    cursor: readOnly ? 'default' : 'pointer',
+                    '&:hover': readOnly
+                      ? undefined
+                      : {
+                          '& .item-name': {
+                            color: 'primary.main',
+                          },
+                        },
                   }}
                 >
                   <SFlex alignItems="center" gap={1} flexWrap="wrap" mb={0.5}>
@@ -816,49 +823,51 @@ export const FormRisksAnalysis = ({
                       />
                     </Box>
                   )}
-                  <SFlex
-                    className="analysis-item-edit-actions"
-                    gap={0.5}
-                    alignItems="center"
-                  >
-                    <SIconButton
-                      iconButtonProps={{
-                        sx: {
-                          p: 0.5,
-                          borderRadius: 1,
-                          '&:hover': {
-                            backgroundColor: 'primary.light',
-                            color: 'primary.contrastText',
-                          },
-                        },
-                      }}
-                      onClick={() => setIsEditing(true)}
+                  {!readOnly && (
+                    <SFlex
+                      className="analysis-item-edit-actions"
+                      gap={0.5}
+                      alignItems="center"
                     >
-                      <EditIcon fontSize="small" />
-                    </SIconButton>
-                    <SIconButton
-                      iconButtonProps={{
-                        sx: {
-                          p: 0.5,
-                          borderRadius: 1,
-                          '&:hover': {
-                            backgroundColor: 'error.light',
-                            color: 'error.contrastText',
+                      <SIconButton
+                        iconButtonProps={{
+                          sx: {
+                            p: 0.5,
+                            borderRadius: 1,
+                            '&:hover': {
+                              backgroundColor: 'primary.light',
+                              color: 'primary.contrastText',
+                            },
                           },
-                        },
-                      }}
-                      onClick={() =>
-                        handleRemoveAnalysisItem(
-                          analysisId,
-                          itemType,
-                          itemIndex,
-                          analysis,
-                        )
-                      }
-                    >
-                      <SIconDelete fontSize="16px" />
-                    </SIconButton>
-                  </SFlex>
+                        }}
+                        onClick={() => setIsEditing(true)}
+                      >
+                        <EditIcon fontSize="small" />
+                      </SIconButton>
+                      <SIconButton
+                        iconButtonProps={{
+                          sx: {
+                            p: 0.5,
+                            borderRadius: 1,
+                            '&:hover': {
+                              backgroundColor: 'error.light',
+                              color: 'error.contrastText',
+                            },
+                          },
+                        }}
+                        onClick={() =>
+                          handleRemoveAnalysisItem(
+                            analysisId,
+                            itemType,
+                            itemIndex,
+                            analysis,
+                          )
+                        }
+                      >
+                        <SIconDelete fontSize="16px" />
+                      </SIconButton>
+                    </SFlex>
+                  )}
                 </SFlex>
               </SFlex>
               {item.justificativa && (
@@ -901,38 +910,88 @@ export const FormRisksAnalysis = ({
     return pending.length > 0 ? pending : undefined;
   };
 
-  const handleAddAnalysisAsRiskData = async (analysis: any) => {
+  const handleAddAnalysisAsRiskData = async (
+    analysis: any,
+    options?: {
+      skipItemStatus?: boolean;
+      skipMarkAnalysisApplied?: boolean;
+      isHierarchyGroupFallback?: boolean;
+      sourceAnalysisId?: string;
+      riskDataForHierarchy?: import('core/interfaces/api/IRiskData').IRiskData[];
+    },
+  ) => {
     if (!analysis.hierarchyId || !analysis.riskId) {
       enqueueSnackbar('Dados da análise incompletos', { variant: 'error' });
       return;
     }
 
-    const itemStatus = analysisInventoryStatus[analysis.id];
-    const useItemStatus = itemStatus != null;
+    const filterPendingForTarget = <T extends { nome: string }>(
+      items: T[] | undefined,
+      itemType: AnalysisItemType,
+    ): T[] | undefined => {
+      if (!items?.length || !options?.sourceAnalysisId) return undefined;
+      const pending = items.filter((item, index) => {
+        const status = resolveTargetAnalysisItemStatus({
+          riskId: analysis.riskId,
+          targetHierarchyId: analysis.hierarchyId,
+          itemType,
+          itemName: item.nome,
+          itemIndex: index,
+          sourceAnalysisId: options.sourceAnalysisId!,
+          results: formQuestionsAnswersAnalysis?.results ?? [],
+          analysisInventoryStatus,
+          riskDataForHierarchy: options.riskDataForHierarchy,
+          locallyAppliedItemKeys,
+        });
+        return status?.existsInInventory !== true;
+      });
+      return pending.length > 0 ? pending : undefined;
+    };
 
-    const fontesGeradoras = useItemStatus
-      ? filterPendingAnalysisItems(
+    const itemStatus = options?.skipItemStatus
+      ? undefined
+      : analysisInventoryStatus[analysis.id];
+    const useItemStatus = !options?.isHierarchyGroupFallback && itemStatus != null;
+    const useTargetItemStatus = options?.isHierarchyGroupFallback === true;
+
+    const fontesGeradoras = useTargetItemStatus
+      ? filterPendingForTarget(
           analysis.analysis?.fontesGeradoras,
-          itemStatus.fontesGeradoras,
+          'fontesGeradoras',
         )
-      : analysis.analysis?.fontesGeradoras;
+      : useItemStatus
+        ? filterPendingAnalysisItems(
+            analysis.analysis?.fontesGeradoras,
+            itemStatus.fontesGeradoras,
+          )
+        : analysis.analysis?.fontesGeradoras;
 
-    const medidasEngenharia = useItemStatus
-      ? filterPendingAnalysisItems(
+    const medidasEngenharia = useTargetItemStatus
+      ? filterPendingForTarget(
           analysis.analysis?.medidasEngenhariaRecomendadas,
-          itemStatus.medidasEngenhariaRecomendadas,
+          'medidasEngenhariaRecomendadas',
         )
-      : analysis.analysis?.medidasEngenhariaRecomendadas;
+      : useItemStatus
+        ? filterPendingAnalysisItems(
+            analysis.analysis?.medidasEngenhariaRecomendadas,
+            itemStatus.medidasEngenhariaRecomendadas,
+          )
+        : analysis.analysis?.medidasEngenhariaRecomendadas;
 
-    const medidasAdministrativas = useItemStatus
-      ? filterPendingAnalysisItems(
+    const medidasAdministrativas = useTargetItemStatus
+      ? filterPendingForTarget(
           analysis.analysis?.medidasAdministrativasRecomendadas,
-          itemStatus.medidasAdministrativasRecomendadas,
+          'medidasAdministrativasRecomendadas',
         )
-      : analysis.analysis?.medidasAdministrativasRecomendadas;
+      : useItemStatus
+        ? filterPendingAnalysisItems(
+            analysis.analysis?.medidasAdministrativasRecomendadas,
+            itemStatus.medidasAdministrativasRecomendadas,
+          )
+        : analysis.analysis?.medidasAdministrativasRecomendadas;
 
     if (
-      useItemStatus &&
+      (useItemStatus || useTargetItemStatus) &&
       !fontesGeradoras?.length &&
       !medidasEngenharia?.length &&
       !medidasAdministrativas?.length
@@ -944,11 +1003,15 @@ export const FormRisksAnalysis = ({
     }
 
     try {
-      await applyAnalysisItemsToInventory(analysis, {
-        fontesGeradoras,
-        medidasEngenharia,
-        medidasAdministrativas,
-      });
+      await applyAnalysisItemsToInventory(
+        analysis,
+        {
+          fontesGeradoras,
+          medidasEngenharia,
+          medidasAdministrativas,
+        },
+        { skipMarkAnalysisApplied: options?.skipMarkAnalysisApplied },
+      );
     } catch {
       // Erros exibidos pelos hooks de mutação
     }
@@ -1043,6 +1106,180 @@ export const FormRisksAnalysis = ({
         riskMap,
       ),
     [riskMap, getEntitiesWithRisk],
+  );
+
+  const fallbackHierarchyTargets = useMemo(() => {
+    if (!formQuestionsAnswersAnalysis?.results?.length) return [];
+
+    const targets = new Map<string, string>();
+    for (const riskId of risksWithData) {
+      for (const entityId of getEntitiesWithRisk(riskId)) {
+        const resolved = resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback(
+          {
+            riskId,
+            entityId,
+            results: formQuestionsAnswersAnalysis.results,
+            hierarchyGroups,
+          },
+        );
+        if (resolved.source !== 'hierarchy_group_fallback') continue;
+
+        const companyId = entityMap[entityId]?.companyId;
+        if (companyId) targets.set(entityId, companyId);
+      }
+    }
+
+    return Array.from(targets.entries()).map(([hierarchyId, companyId]) => ({
+      hierarchyId,
+      companyId,
+    }));
+  }, [
+    entityMap,
+    formQuestionsAnswersAnalysis?.results,
+    getEntitiesWithRisk,
+    hierarchyGroups,
+    risksWithData,
+  ]);
+
+  const fallbackRiskDataQueries = useQueries({
+    queries: fallbackHierarchyTargets.map(({ hierarchyId, companyId }) => ({
+      queryKey: [
+        QueryEnum.RISK_DATA,
+        companyId,
+        hierarchyId,
+        QueryEnum.HIERARCHY,
+        'form-risk-analysis-inherited-target',
+      ],
+      queryFn: () => fetchFullRiskDataForHierarchy(companyId, hierarchyId),
+      enabled: Boolean(companyId && hierarchyId),
+      staleTime: 0,
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: true,
+    })),
+  });
+
+  const riskDataByHierarchyId = useMemo(() => {
+    const map = new Map<string, import('core/interfaces/api/IRiskData').IRiskData[]>();
+    fallbackHierarchyTargets.forEach(({ hierarchyId }, index) => {
+      const data = fallbackRiskDataQueries[index]?.data;
+      if (data) map.set(hierarchyId, data);
+    });
+    return map;
+  }, [fallbackHierarchyTargets, fallbackRiskDataQueries]);
+
+  const enrichedInventoryStatusByKey = useMemo(
+    () =>
+      buildEnrichedInventoryStatusByKey({
+        inventoryStatusByKey,
+        riskLogEntries: riskLogs,
+        riskDataByHierarchyId,
+        locallyAppliedRiskKeys: locallyAppliedInventoryKeys,
+      }),
+    [
+      inventoryStatusByKey,
+      locallyAppliedInventoryKeys,
+      riskDataByHierarchyId,
+      riskLogs,
+    ],
+  );
+
+  const isRiskInInventory = useCallback(
+    (riskId: string, entityId: string) =>
+      enrichedInventoryStatusByKey[
+        buildInventoryStatusKey(riskId, entityId)
+      ] === true,
+    [enrichedInventoryStatusByKey],
+  );
+
+  const isAnalysisApplied = useCallback(
+    (analysis: {
+      id: string;
+      riskId: string;
+      hierarchyId: string;
+      analysis?: Record<string, unknown> | null;
+    }) => {
+      const markedApplied =
+        (analysis.analysis as { isAddedAsRiskData?: boolean } | undefined)
+          ?.isAddedAsRiskData === true || addedRisks.has(analysis.id);
+      if (!markedApplied) return false;
+      return isRiskInInventory(analysis.riskId, analysis.hierarchyId);
+    },
+    [addedRisks, isRiskInInventory],
+  );
+
+  const getApplyAnalysisButtonProps = useCallback(
+    (
+      analysis: {
+        id: string;
+        riskId: string;
+        hierarchyId: string;
+        analysis?: Record<string, unknown> | null;
+      },
+      options?: {
+        isHierarchyGroupFallback?: boolean;
+        sourceAnalysisId?: string;
+        riskDataForHierarchy?: import('core/interfaces/api/IRiskData').IRiskData[];
+      },
+    ) => {
+      const riskInInventory = isRiskInInventory(
+        analysis.riskId,
+        analysis.hierarchyId,
+      );
+      const pendingCount =
+        options?.isHierarchyGroupFallback &&
+        options.sourceAnalysisId &&
+        analysis.analysis
+          ? countPendingTargetAnalysisItems({
+              analysisContent: analysis.analysis as {
+                fontesGeradoras?: Array<{ nome: string }>;
+                medidasEngenhariaRecomendadas?: Array<{ nome: string }>;
+                medidasAdministrativasRecomendadas?: Array<{ nome: string }>;
+              },
+              riskId: analysis.riskId,
+              targetHierarchyId: analysis.hierarchyId,
+              sourceAnalysisId: options.sourceAnalysisId,
+              results: formQuestionsAnswersAnalysis?.results ?? [],
+              analysisInventoryStatus,
+              riskDataForHierarchy: options.riskDataForHierarchy,
+              locallyAppliedItemKeys,
+            })
+          : countPendingAnalysisItems(analysis);
+
+      if (pendingCount === null) {
+        const applied = options?.isHierarchyGroupFallback
+          ? riskInInventory
+          : isAnalysisApplied(analysis);
+        return {
+          text: applied ? 'Adicionar novamente' : 'Adicionar',
+          color: applied ? ('paper' as const) : ('success' as const),
+        };
+      }
+
+      if (!riskInInventory) {
+        return { text: 'Adicionar', color: 'success' as const };
+      }
+
+      if (pendingCount > 0) {
+        return {
+          text: `Adicionar pendentes (${pendingCount})`,
+          color: 'success' as const,
+        };
+      }
+
+      if (options?.isHierarchyGroupFallback || isAnalysisApplied(analysis)) {
+        return { text: 'Adicionar novamente', color: 'paper' as const };
+      }
+
+      return { text: 'Todos no inventário', color: 'paper' as const };
+    },
+    [
+      analysisInventoryStatus,
+      countPendingAnalysisItems,
+      formQuestionsAnswersAnalysis?.results,
+      isAnalysisApplied,
+      isRiskInInventory,
+      locallyAppliedItemKeys,
+    ],
   );
 
   const getEntityOccupationalLevel = useCallback(
@@ -1487,36 +1724,27 @@ export const FormRisksAnalysis = ({
                           {/* AI Analysis Results for this specific risk-entity combination */}
                           {formQuestionsAnswersAnalysis?.results &&
                             (() => {
-                              const resultsForPair =
-                                formQuestionsAnswersAnalysis.results.filter(
-                                  (analysis) =>
-                                    analysis.riskId === riskId &&
-                                    analysis.hierarchyId === entityId,
+                              const resolved =
+                                resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback(
+                                  {
+                                    riskId,
+                                    entityId,
+                                    results:
+                                      formQuestionsAnswersAnalysis.results,
+                                    hierarchyGroups,
+                                  },
                                 );
 
-                              const relevantAnalysis = resultsForPair.filter(
-                                (analysis) =>
-                                  analysis.analysis &&
-                                  analysis.status ===
-                                    FormAiAnalysisStatusEnum.DONE,
-                              );
-
-                              const failedAnalysis = resultsForPair.find(
-                                (analysis) =>
-                                  analysis.status ===
-                                  FormAiAnalysisStatusEnum.FAILED,
-                              );
-
                               if (
-                                relevantAnalysis.length === 0 &&
-                                !failedAnalysis
+                                !resolved.analysis &&
+                                !resolved.failedAnalysis
                               ) {
                                 return null;
                               }
 
                               if (
-                                relevantAnalysis.length === 0 &&
-                                failedAnalysis
+                                !resolved.analysis &&
+                                resolved.failedAnalysis
                               ) {
                                 return (
                                   <Box mt={3}>
@@ -1527,7 +1755,7 @@ export const FormRisksAnalysis = ({
                                     >
                                       Análise de IA falhou:{' '}
                                       {getFormAiAnalysisErrorMessage(
-                                        failedAnalysis.metadata as
+                                        resolved.failedAnalysis.metadata as
                                           | Record<string, unknown>
                                           | undefined,
                                       )}
@@ -1536,6 +1764,60 @@ export const FormRisksAnalysis = ({
                                 );
                               }
 
+                              const isHierarchyGroupFallback =
+                                resolved.source === 'hierarchy_group_fallback';
+                              const sourceAnalysis = resolved.analysis!;
+                              const analysis = buildTargetAiAnalysisViewModel({
+                                resolved,
+                                targetHierarchyId: entityId,
+                                targetProbability: getEffectiveProbability(
+                                  entityId,
+                                  riskId,
+                                ),
+                              })!;
+                              const fallbackApplyOptions = isHierarchyGroupFallback
+                                ? {
+                                    skipMarkAnalysisApplied: true as const,
+                                  }
+                                : undefined;
+                              const riskDataForHierarchy =
+                                riskDataByHierarchyId.get(entityId);
+                              const fallbackUiOptions = isHierarchyGroupFallback
+                                ? {
+                                    isHierarchyGroupFallback: true as const,
+                                    sourceAnalysisId: sourceAnalysis.id,
+                                    riskDataForHierarchy,
+                                  }
+                                : undefined;
+                              const resolveDisplayedItemStatus = (
+                                itemType: AnalysisItemType,
+                                itemName: string,
+                                itemIndex: number,
+                              ) =>
+                                isHierarchyGroupFallback
+                                  ? resolveTargetAnalysisItemStatus({
+                                      riskId,
+                                      targetHierarchyId: entityId,
+                                      itemType,
+                                      itemName,
+                                      itemIndex,
+                                      sourceAnalysisId: sourceAnalysis.id,
+                                      results:
+                                        formQuestionsAnswersAnalysis.results,
+                                      analysisInventoryStatus,
+                                      riskDataForHierarchy,
+                                      locallyAppliedItemKeys,
+                                    })
+                                  : getAnalysisItemStatus(
+                                      sourceAnalysis.id,
+                                      itemType,
+                                      itemIndex,
+                                    );
+                              const applyAnalysisButtonProps =
+                                getApplyAnalysisButtonProps(
+                                  analysis,
+                                  fallbackUiOptions,
+                                );
                               const analysisKey = `${riskId}-${entityId}`;
                               const isAnalysisExpanded =
                                 expandedAnalysis[analysisKey];
@@ -1564,309 +1846,327 @@ export const FormRisksAnalysis = ({
                                   />
                                   {isAnalysisExpanded && (
                                     <SFlex direction="column" gap={2}>
-                                      {relevantAnalysis.map((analysis) => (
-                                        <Box
-                                          key={analysis.id}
-                                          sx={{
-                                            p: 3,
-                                            backgroundColor: 'primary.50',
-                                          }}
-                                        >
-                                          <SFlex
-                                            alignItems="center"
-                                            gap={2}
-                                            mb={2}
+                                      <Box
+                                        key={sourceAnalysis.id}
+                                        sx={{
+                                          p: 3,
+                                          backgroundColor: 'primary.50',
+                                        }}
+                                      >
+                                        {isHierarchyGroupFallback && (
+                                          <Typography
+                                            variant="body2"
+                                            color="text.secondary"
+                                            sx={{
+                                              mb: 2,
+                                              fontStyle: 'italic',
+                                              fontSize: 12,
+                                            }}
                                           >
-                                            <SText
-                                              variant="body2"
-                                              color="text.main"
-                                            >
-                                              Análise de IA para este
-                                              risco/setor:{' '}
-                                              {analysis.analysis?.frps}
-                                            </SText>
-                                            <SText
-                                              variant="body2"
-                                              color="text.secondary"
-                                              fontSize={12}
-                                              sx={{ fontStyle: 'italic' }}
-                                            >
-                                              Confiança:{' '}
-                                              {Math.round(
-                                                (analysis?.confidence ?? 0) *
-                                                  100,
-                                              )}
-                                              %
-                                            </SText>
-                                            <SButton
-                                              variant="shade"
-                                              color={
-                                                getApplyAnalysisButtonProps(
-                                                  analysis,
-                                                ).color
-                                              }
-                                              size="s"
-                                              text={
-                                                getApplyAnalysisButtonProps(
-                                                  analysis,
-                                                ).text
-                                              }
-                                              onClick={() =>
-                                                handleAddAnalysisAsRiskData(
-                                                  analysis,
-                                                )
-                                              }
-                                              buttonProps={{
-                                                sx: {
-                                                  ml: 'auto',
-                                                  minWidth: 'auto',
-                                                  px: 2,
-                                                  py: 0.5,
-                                                  fontSize: '0.75rem',
-                                                },
-                                              }}
-                                            />
-                                          </SFlex>
-
-                                          {/* Fontes Geradoras */}
-                                          {analysis.analysis?.fontesGeradoras &&
-                                            analysis.analysis.fontesGeradoras
-                                              .length > 0 && (
-                                              <Box mb={2} mt={4}>
-                                                <SFlex
-                                                  alignItems="center"
-                                                  gap={4}
-                                                  mb={4}
-                                                >
-                                                  <SText
-                                                    variant="body2"
-                                                    fontWeight="bold"
-                                                    color="text.primary"
-                                                    fontSize={14}
-                                                  >
-                                                    Fontes Geradoras
-                                                  </SText>
-                                                </SFlex>
-                                                <SFlex
-                                                  direction="column"
-                                                  gap={4}
-                                                >
-                                                  {analysis.analysis.fontesGeradoras.map(
-                                                    (fonte, index) => {
-                                                      const itemStatus =
-                                                        getAnalysisItemStatus(
-                                                          analysis.id,
-                                                          'fontesGeradoras',
-                                                          index,
-                                                        );
-
-                                                      return (
-                                                        <EditableAnalysisItem
-                                                          key={index}
-                                                          item={fonte}
-                                                          itemIndex={index}
-                                                          analysisId={analysis.id}
-                                                          itemType="fontesGeradoras"
-                                                          analysis={analysis}
-                                                          backgroundColor="grey.50"
-                                                          borderColor="grey.200"
-                                                          itemStatus={itemStatus}
-                                                          onAddItem={
-                                                            itemStatus?.existsInInventory !==
-                                                            true
-                                                              ? () =>
-                                                                  handleAddSingleAnalysisItem(
-                                                                    analysis,
-                                                                    'fontesGeradoras',
-                                                                    index,
-                                                                    fonte,
-                                                                  )
-                                                              : undefined
-                                                          }
-                                                          isAddingItem={
-                                                            applyingItemKey ===
-                                                            buildApplyingItemKey(
-                                                              analysis.id,
-                                                              'fontesGeradoras',
-                                                              index,
-                                                            )
-                                                          }
-                                                        />
-                                                      );
-                                                    },
-                                                  )}
-                                                </SFlex>
-                                              </Box>
+                                            Análise aplicada pelo agrupamento de
+                                            setores.
+                                          </Typography>
+                                        )}
+                                        <SFlex
+                                          alignItems="center"
+                                          gap={2}
+                                          mb={2}
+                                        >
+                                          <SText
+                                            variant="body2"
+                                            color="text.main"
+                                          >
+                                            Análise de IA para este risco/setor:{' '}
+                                            {analysis.analysis?.frps}
+                                          </SText>
+                                          <SText
+                                            variant="body2"
+                                            color="text.secondary"
+                                            fontSize={12}
+                                            sx={{ fontStyle: 'italic' }}
+                                          >
+                                            Confiança:{' '}
+                                            {Math.round(
+                                              (sourceAnalysis.confidence ?? 0) *
+                                                100,
                                             )}
+                                            %
+                                          </SText>
+                                          <SButton
+                                            variant="shade"
+                                            color={applyAnalysisButtonProps.color}
+                                            size="s"
+                                            text={applyAnalysisButtonProps.text}
+                                            onClick={() =>
+                                              handleAddAnalysisAsRiskData(
+                                                analysis,
+                                                isHierarchyGroupFallback
+                                                  ? {
+                                                      ...fallbackUiOptions,
+                                                      skipMarkAnalysisApplied:
+                                                        true,
+                                                    }
+                                                  : undefined,
+                                              )
+                                            }
+                                            buttonProps={{
+                                              sx: {
+                                                ml: 'auto',
+                                                minWidth: 'auto',
+                                                px: 2,
+                                                py: 0.5,
+                                                fontSize: '0.75rem',
+                                              },
+                                            }}
+                                          />
+                                        </SFlex>
 
-                                          {/* Medidas de Engenharia */}
-                                          {analysis.analysis
-                                            ?.medidasEngenhariaRecomendadas &&
-                                            analysis.analysis
-                                              .medidasEngenhariaRecomendadas
-                                              .length > 0 && (
-                                              <Box mb={2} mt={8}>
-                                                <SFlex
-                                                  alignItems="center"
-                                                  gap={1}
-                                                  mb={2}
+                                        {/* Fontes Geradoras */}
+                                        {analysis.analysis?.fontesGeradoras &&
+                                          analysis.analysis.fontesGeradoras
+                                            .length > 0 && (
+                                            <Box mb={2} mt={4}>
+                                              <SFlex
+                                                alignItems="center"
+                                                gap={4}
+                                                mb={4}
+                                              >
+                                                <SText
+                                                  variant="body2"
+                                                  fontWeight="bold"
+                                                  color="text.primary"
+                                                  fontSize={14}
                                                 >
-                                                  <Box
-                                                    sx={{
-                                                      width: 4,
-                                                      height: 20,
-                                                      backgroundColor:
-                                                        'blue.400',
-                                                      borderRadius: 2,
-                                                    }}
-                                                  />
-                                                  <SText
-                                                    variant="body2"
-                                                    fontWeight="bold"
-                                                    color="text.primary"
-                                                    fontSize={14}
-                                                  >
-                                                    Recomendações (Medidas de
-                                                    Engenharia)
-                                                  </SText>
-                                                </SFlex>
-                                                <SFlex
-                                                  direction="column"
-                                                  gap={1}
-                                                >
-                                                  {analysis.analysis.medidasEngenhariaRecomendadas.map(
-                                                    (medida, index) => {
-                                                      const itemStatus =
-                                                        getAnalysisItemStatus(
-                                                          analysis.id,
-                                                          'medidasEngenhariaRecomendadas',
-                                                          index,
-                                                        );
-
-                                                      return (
-                                                        <EditableAnalysisItem
-                                                          key={index}
-                                                          item={medida}
-                                                          itemIndex={index}
-                                                          analysisId={analysis.id}
-                                                          itemType="medidasEngenhariaRecomendadas"
-                                                          analysis={analysis}
-                                                          backgroundColor="grey.50"
-                                                          borderColor="grey.200"
-                                                          itemStatus={itemStatus}
-                                                          onAddItem={
-                                                            itemStatus?.existsInInventory !==
-                                                            true
-                                                              ? () =>
-                                                                  handleAddSingleAnalysisItem(
-                                                                    analysis,
-                                                                    'medidasEngenhariaRecomendadas',
-                                                                    index,
-                                                                    medida,
-                                                                  )
-                                                              : undefined
-                                                          }
-                                                          isAddingItem={
-                                                            applyingItemKey ===
-                                                            buildApplyingItemKey(
-                                                              analysis.id,
-                                                              'medidasEngenhariaRecomendadas',
-                                                              index,
-                                                            )
-                                                          }
-                                                        />
+                                                  Fontes Geradoras
+                                                </SText>
+                                              </SFlex>
+                                              <SFlex direction="column" gap={4}>
+                                                {analysis.analysis.fontesGeradoras.map(
+                                                  (fonte, index) => {
+                                                    const itemStatus =
+                                                      resolveDisplayedItemStatus(
+                                                        'fontesGeradoras',
+                                                        fonte.nome,
+                                                        index,
                                                       );
-                                                    },
-                                                  )}
-                                                </SFlex>
-                                              </Box>
-                                            )}
 
-                                          {/* Medidas Administrativas */}
-                                          {analysis.analysis
-                                            ?.medidasAdministrativasRecomendadas &&
-                                            analysis.analysis
-                                              .medidasAdministrativasRecomendadas
-                                              .length > 0 && (
-                                              <Box>
-                                                <SFlex
-                                                  alignItems="center"
-                                                  gap={1}
-                                                  mb={2}
-                                                  mt={8}
-                                                >
-                                                  <Box
-                                                    sx={{
-                                                      width: 4,
-                                                      height: 20,
-                                                      backgroundColor:
-                                                        'green.400',
-                                                      borderRadius: 2,
-                                                    }}
-                                                  />
-                                                  <SText
-                                                    variant="body2"
-                                                    fontWeight="bold"
-                                                    color="text.primary"
-                                                    fontSize={14}
-                                                  >
-                                                    Recomendações (Medidas
-                                                    Administrativas)
-                                                  </SText>
-                                                </SFlex>
-                                                <SFlex
-                                                  direction="column"
-                                                  gap={1}
-                                                >
-                                                  {analysis.analysis.medidasAdministrativasRecomendadas.map(
-                                                    (medida, index) => {
-                                                      const itemStatus =
-                                                        getAnalysisItemStatus(
-                                                          analysis.id,
-                                                          'medidasAdministrativasRecomendadas',
-                                                          index,
-                                                        );
+                                                    return (
+                                                      <EditableAnalysisItem
+                                                        key={index}
+                                                        item={fonte}
+                                                        itemIndex={index}
+                                                        analysisId={
+                                                          sourceAnalysis.id
+                                                        }
+                                                        itemType="fontesGeradoras"
+                                                        analysis={analysis}
+                                                        backgroundColor="grey.50"
+                                                        borderColor="grey.200"
+                                                        itemStatus={itemStatus}
+                                                        readOnly={
+                                                          isHierarchyGroupFallback
+                                                        }
+                                                        onAddItem={
+                                                          itemStatus?.existsInInventory !==
+                                                          true
+                                                            ? () =>
+                                                                handleAddSingleAnalysisItem(
+                                                                  analysis,
+                                                                  'fontesGeradoras',
+                                                                  index,
+                                                                  fonte,
+                                                                  fallbackApplyOptions,
+                                                                )
+                                                            : undefined
+                                                        }
+                                                        isAddingItem={
+                                                          applyingItemKey ===
+                                                          buildApplyingItemKey(
+                                                            sourceAnalysis.id,
+                                                            'fontesGeradoras',
+                                                            index,
+                                                          )
+                                                        }
+                                                      />
+                                                    );
+                                                  },
+                                                )}
+                                              </SFlex>
+                                            </Box>
+                                          )}
 
-                                                      return (
-                                                        <EditableAnalysisItem
-                                                          key={index}
-                                                          item={medida}
-                                                          itemIndex={index}
-                                                          analysisId={analysis.id}
-                                                          itemType="medidasAdministrativasRecomendadas"
-                                                          analysis={analysis}
-                                                          backgroundColor="grey.50"
-                                                          borderColor="grey.200"
-                                                          itemStatus={itemStatus}
-                                                          onAddItem={
-                                                            itemStatus?.existsInInventory !==
-                                                            true
-                                                              ? () =>
-                                                                  handleAddSingleAnalysisItem(
-                                                                    analysis,
-                                                                    'medidasAdministrativasRecomendadas',
-                                                                    index,
-                                                                    medida,
-                                                                  )
-                                                              : undefined
-                                                          }
-                                                          isAddingItem={
-                                                            applyingItemKey ===
-                                                            buildApplyingItemKey(
-                                                              analysis.id,
-                                                              'medidasAdministrativasRecomendadas',
-                                                              index,
-                                                            )
-                                                          }
-                                                        />
+                                        {/* Medidas de Engenharia */}
+                                        {analysis.analysis
+                                          ?.medidasEngenhariaRecomendadas &&
+                                          analysis.analysis
+                                            .medidasEngenhariaRecomendadas
+                                            .length > 0 && (
+                                            <Box mb={2} mt={8}>
+                                              <SFlex
+                                                alignItems="center"
+                                                gap={1}
+                                                mb={2}
+                                              >
+                                                <Box
+                                                  sx={{
+                                                    width: 4,
+                                                    height: 20,
+                                                    backgroundColor: 'blue.400',
+                                                    borderRadius: 2,
+                                                  }}
+                                                />
+                                                <SText
+                                                  variant="body2"
+                                                  fontWeight="bold"
+                                                  color="text.primary"
+                                                  fontSize={14}
+                                                >
+                                                  Recomendações (Medidas de
+                                                  Engenharia)
+                                                </SText>
+                                              </SFlex>
+                                              <SFlex direction="column" gap={1}>
+                                                {analysis.analysis.medidasEngenhariaRecomendadas.map(
+                                                  (medida, index) => {
+                                                    const itemStatus =
+                                                      resolveDisplayedItemStatus(
+                                                        'medidasEngenhariaRecomendadas',
+                                                        medida.nome,
+                                                        index,
                                                       );
-                                                    },
-                                                  )}
-                                                </SFlex>
-                                              </Box>
-                                            )}
-                                        </Box>
-                                      ))}
+
+                                                    return (
+                                                      <EditableAnalysisItem
+                                                        key={index}
+                                                        item={medida}
+                                                        itemIndex={index}
+                                                        analysisId={
+                                                          sourceAnalysis.id
+                                                        }
+                                                        itemType="medidasEngenhariaRecomendadas"
+                                                        analysis={analysis}
+                                                        backgroundColor="grey.50"
+                                                        borderColor="grey.200"
+                                                        itemStatus={itemStatus}
+                                                        readOnly={
+                                                          isHierarchyGroupFallback
+                                                        }
+                                                        onAddItem={
+                                                          itemStatus?.existsInInventory !==
+                                                          true
+                                                            ? () =>
+                                                                handleAddSingleAnalysisItem(
+                                                                  analysis,
+                                                                  'medidasEngenhariaRecomendadas',
+                                                                  index,
+                                                                  medida,
+                                                                  fallbackApplyOptions,
+                                                                )
+                                                            : undefined
+                                                        }
+                                                        isAddingItem={
+                                                          applyingItemKey ===
+                                                          buildApplyingItemKey(
+                                                            sourceAnalysis.id,
+                                                            'medidasEngenhariaRecomendadas',
+                                                            index,
+                                                          )
+                                                        }
+                                                      />
+                                                    );
+                                                  },
+                                                )}
+                                              </SFlex>
+                                            </Box>
+                                          )}
+
+                                        {/* Medidas Administrativas */}
+                                        {analysis.analysis
+                                          ?.medidasAdministrativasRecomendadas &&
+                                          analysis.analysis
+                                            .medidasAdministrativasRecomendadas
+                                            .length > 0 && (
+                                            <Box>
+                                              <SFlex
+                                                alignItems="center"
+                                                gap={1}
+                                                mb={2}
+                                                mt={8}
+                                              >
+                                                <Box
+                                                  sx={{
+                                                    width: 4,
+                                                    height: 20,
+                                                    backgroundColor:
+                                                      'green.400',
+                                                    borderRadius: 2,
+                                                  }}
+                                                />
+                                                <SText
+                                                  variant="body2"
+                                                  fontWeight="bold"
+                                                  color="text.primary"
+                                                  fontSize={14}
+                                                >
+                                                  Recomendações (Medidas
+                                                  Administrativas)
+                                                </SText>
+                                              </SFlex>
+                                              <SFlex direction="column" gap={1}>
+                                                {analysis.analysis.medidasAdministrativasRecomendadas.map(
+                                                  (medida, index) => {
+                                                    const itemStatus =
+                                                      resolveDisplayedItemStatus(
+                                                        'medidasAdministrativasRecomendadas',
+                                                        medida.nome,
+                                                        index,
+                                                      );
+
+                                                    return (
+                                                      <EditableAnalysisItem
+                                                        key={index}
+                                                        item={medida}
+                                                        itemIndex={index}
+                                                        analysisId={
+                                                          sourceAnalysis.id
+                                                        }
+                                                        itemType="medidasAdministrativasRecomendadas"
+                                                        analysis={analysis}
+                                                        backgroundColor="grey.50"
+                                                        borderColor="grey.200"
+                                                        itemStatus={itemStatus}
+                                                        readOnly={
+                                                          isHierarchyGroupFallback
+                                                        }
+                                                        onAddItem={
+                                                          itemStatus?.existsInInventory !==
+                                                          true
+                                                            ? () =>
+                                                                handleAddSingleAnalysisItem(
+                                                                  analysis,
+                                                                  'medidasAdministrativasRecomendadas',
+                                                                  index,
+                                                                  medida,
+                                                                  fallbackApplyOptions,
+                                                                )
+                                                            : undefined
+                                                        }
+                                                        isAddingItem={
+                                                          applyingItemKey ===
+                                                          buildApplyingItemKey(
+                                                            sourceAnalysis.id,
+                                                            'medidasAdministrativasRecomendadas',
+                                                            index,
+                                                          )
+                                                        }
+                                                      />
+                                                    );
+                                                  },
+                                                )}
+                                              </SFlex>
+                                            </Box>
+                                          )}
+                                      </Box>
                                     </SFlex>
                                   )}
                                 </Box>
