@@ -6,10 +6,13 @@ import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-
 import type { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { browseFormQuestionsAnswersAnalysis } from '@v2/services/forms/form-questions-answers-analysis/browse-form-questions-answers-analysis/service/browse-form-questions-answers-analysis.service';
 import { browseFormQuestionsAnswersRisks } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers-risks/service/browse-form-questions-answers-risks.service';
+import { browseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/service/browse-form-participants.service';
 import { readRiskNarrativeDiagnostic } from '@v2/services/forms/risk-narrative-diagnostic/service/risk-narrative-diagnostic.service';
 
 import type { ParticipantGroupForIndicators } from './buildParticipantGroupsForIndicators';
 import { buildParticipantGroupsForIndicators } from './buildParticipantGroupsForIndicators';
+import { buildParticipantGroupingEnrichmentContext } from './buildParticipantGroupingEnrichmentContext';
+import { buildHierarchyIdToWorkspaceNameFromParticipants } from './buildHierarchyIdToWorkspaceNameFromParticipants';
 import { buildRiskAnalysisViewContext } from './buildRiskAnalysisViewContext';
 import { buildRiskNarrativeDiagnosticScope } from './buildRiskNarrativeDiagnosticScope';
 
@@ -48,7 +51,7 @@ export async function exportFormRiskAnalysisPdfInBrowser(
   onProgress?.('Carregando dados de riscos...');
   await yieldToUI();
 
-  const [risksData, analysisData] = await Promise.all([
+  const [risksData, analysisData, formParticipants] = await Promise.all([
     browseFormQuestionsAnswersRisks({
       companyId: params.accessCompanyId,
       applicationId: params.formApplication.id,
@@ -56,6 +59,11 @@ export async function exportFormRiskAnalysisPdfInBrowser(
     browseFormQuestionsAnswersAnalysis({
       companyId: params.accessCompanyId,
       applicationId: params.formApplication.id,
+    }),
+    browseFormParticipants({
+      companyId: params.accessCompanyId,
+      applicationId: params.formApplication.id,
+      pagination: { page: 1, limit: 10_000 },
     }),
   ]);
 
@@ -70,6 +78,11 @@ export async function exportFormRiskAnalysisPdfInBrowser(
     formQuestionsAnswers: params.formQuestionsAnswers,
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     hierarchyGroups: params.hierarchyGroups,
+    groupingEnrichment: buildParticipantGroupingEnrichmentContext({
+      entityMap: risksData.entityMap,
+      participants: formParticipants?.results ?? [],
+      applicationWorkspaces: params.formApplication.participants.workspaces,
+    }),
   });
 
   const visibleParticipantGroups = params.selectedGroupingQuestionId
@@ -80,12 +93,21 @@ export async function exportFormRiskAnalysisPdfInBrowser(
       : participantGroups
     : participantGroups;
 
+  const hierarchyIdToWorkspaceName =
+    buildHierarchyIdToWorkspaceNameFromParticipants(
+      formParticipants?.results ?? [],
+    );
+  const applicationWorkspaceNames =
+    params.formApplication.participants.workspaces.map((workspace) => workspace.name);
+
   const { allowedEntityIds } = buildRiskAnalysisViewContext({
     formQuestionsAnswers: params.formQuestionsAnswers,
     visibleParticipantGroups,
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     entityMap: risksData.entityMap,
     entityEstablishmentMapFromApi: risksData.entityEstablishmentMap,
+    hierarchyIdToWorkspaceName,
+    applicationWorkspaceNames,
   });
 
   const narrativeScope = buildRiskNarrativeDiagnosticScope({
@@ -117,6 +139,8 @@ export async function exportFormRiskAnalysisPdfInBrowser(
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     selectedGroupingLabel: params.selectedGroupingLabel,
     narrativeDiagnosticMarkdown,
+    hierarchyIdToWorkspaceName,
+    applicationWorkspaceNames,
   });
 
   const issuedAt = new Intl.DateTimeFormat('pt-BR', {

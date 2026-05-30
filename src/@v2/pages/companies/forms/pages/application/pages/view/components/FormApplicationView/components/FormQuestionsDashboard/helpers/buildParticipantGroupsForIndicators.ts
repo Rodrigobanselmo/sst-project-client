@@ -1,8 +1,11 @@
 import {
   getStructuralIndicatorGroupingLabel,
   isStructuralIndicatorGroupingKey,
+  type StructuralIndicatorGroupingKey,
 } from '@v2/models/form/helpers/form-indicators-structural-grouping.config';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
+import type { ParticipantGroupingEnrichmentContext } from './buildParticipantGroupingEnrichmentContext';
+import { expandStructuralParticipantGroupsFromHierarchyGroups } from './expandStructuralParticipantGroupsFromHierarchyGroups';
 import { buildStructuralParticipantGroupsForIndicators } from './buildStructuralParticipantGroupsForIndicators';
 import { resolveParticipantStructuresForGrouping } from './resolveParticipantStructuresForGrouping';
 
@@ -43,22 +46,43 @@ export function buildParticipantGroupsForIndicators(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel | null | undefined;
   selectedGroupingQuestionId: string | null;
   hierarchyGroups: HierarchyGroupForIndicators[];
+  groupingEnrichment?: ParticipantGroupingEnrichmentContext | null;
 }): ParticipantGroupForIndicators[] {
   const {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     hierarchyGroups = [],
+    groupingEnrichment,
   } = params;
 
   if (
     selectedGroupingQuestionId &&
     isStructuralIndicatorGroupingKey(selectedGroupingQuestionId)
   ) {
-    return buildStructuralParticipantGroupsForIndicators({
+    const baseGroups = buildStructuralParticipantGroupsForIndicators({
       participantStructures: resolveParticipantStructuresForGrouping(
         formQuestionsAnswers,
       ),
       groupingKey: selectedGroupingQuestionId,
+    });
+
+    if (
+      !groupingEnrichment ||
+      hierarchyGroups.length === 0 ||
+      (selectedGroupingQuestionId !== '__participant_workspace' &&
+        selectedGroupingQuestionId !== '__participant_sector')
+    ) {
+      return baseGroups;
+    }
+
+    return expandStructuralParticipantGroupsFromHierarchyGroups({
+      groups: baseGroups,
+      groupingKey: selectedGroupingQuestionId as StructuralIndicatorGroupingKey,
+      hierarchyGroups,
+      entityMap: groupingEnrichment.entityMap,
+      hierarchyIdToWorkspaceName: groupingEnrichment.hierarchyIdToWorkspaceName,
+      applicationWorkspaces: groupingEnrichment.applicationWorkspaces,
+      applicationWorkspaceNames: groupingEnrichment.applicationWorkspaceNames,
     });
   }
 
@@ -187,6 +211,7 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
   hierarchyGroups: HierarchyGroupForIndicators[];
+  groupingEnrichment?: ParticipantGroupingEnrichmentContext | null;
 }): {
   grouping: ParticipantGroupingForPdf;
   participantGroups: ParticipantGroupForIndicators[];
@@ -195,6 +220,7 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     hierarchyGroups = [],
+    groupingEnrichment,
   } = params;
 
   const [identifierGroup] = formQuestionsAnswers.results;
@@ -222,7 +248,25 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
       ),
       groupingKey: selectedGroupingQuestionId,
     });
-    if (participantGroups.length === 0) {
+    const expandedParticipantGroups =
+      groupingEnrichment &&
+      hierarchyGroups.length > 0 &&
+      (selectedGroupingQuestionId === '__participant_workspace' ||
+        selectedGroupingQuestionId === '__participant_sector')
+        ? expandStructuralParticipantGroupsFromHierarchyGroups({
+            groups: participantGroups,
+            groupingKey: selectedGroupingQuestionId,
+            hierarchyGroups,
+            entityMap: groupingEnrichment.entityMap,
+            hierarchyIdToWorkspaceName:
+              groupingEnrichment.hierarchyIdToWorkspaceName,
+            applicationWorkspaces: groupingEnrichment.applicationWorkspaces,
+            applicationWorkspaceNames:
+              groupingEnrichment.applicationWorkspaceNames,
+          })
+        : participantGroups;
+
+    if (expandedParticipantGroups.length === 0) {
       const allParticipantIds = new Set<string>();
       identifierGroup.questions.forEach((q) => {
         q.answers.forEach((answer) => {
@@ -248,7 +292,7 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
           selectedGroupingQuestionId,
         ),
       },
-      participantGroups,
+      participantGroups: expandedParticipantGroups,
     };
   }
 
@@ -281,6 +325,7 @@ export function buildParticipantGroupingForIndicatorsPdf(params: {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     hierarchyGroups,
+    groupingEnrichment: params.groupingEnrichment,
   });
 
   if (participantGroups.length === 0) {

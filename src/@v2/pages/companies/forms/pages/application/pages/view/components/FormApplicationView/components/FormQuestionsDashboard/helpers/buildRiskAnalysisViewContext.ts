@@ -1,10 +1,12 @@
 import { FORM_PARTICIPANT_NO_ESTABLISHMENT_LABEL } from '@v2/models/form/helpers/form-participants-aggregate-by-establishment';
+import { isStructuralIndicatorGroupingKey } from '@v2/models/form/helpers/form-indicators-structural-grouping.config';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { FormParticipantStructureBrowseModel } from '@v2/models/form/models/form-questions-answers/form-participant-structure-browse.model';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 
 import type { ParticipantGroupForIndicators } from './buildParticipantGroupsForIndicators';
+import { resolveEstablishmentLabelFromSectorName } from './resolveEstablishmentLabelFromSectorName';
 import { resolveParticipantStructuresForGrouping } from './resolveParticipantStructuresForGrouping';
 
 type EntityInfo = { id: string; name: string; type: HierarchyTypeEnum };
@@ -27,12 +29,45 @@ function resolveEntityIdForParticipant(
   return (sector ?? candidates[0]).id;
 }
 
+function buildAllowedEntityIdsForStructuralGrouping(params: {
+  selectedGroupingQuestionId: string;
+  visibleParticipantGroups: ParticipantGroupForIndicators[];
+  entityMap: Record<string, EntityInfo>;
+  entityEstablishmentMap: Map<string, string>;
+}): Set<string> {
+  const allowedEntityIds = new Set<string>();
+
+  for (const group of params.visibleParticipantGroups) {
+    if (params.selectedGroupingQuestionId === '__participant_sector') {
+      const match = group.id.match(/__participant_sector::[^:]+::(.+)$/);
+      if (match?.[1]) {
+        allowedEntityIds.add(match[1]);
+      }
+      continue;
+    }
+
+    if (params.selectedGroupingQuestionId === '__participant_workspace') {
+      const groupName = group.name.trim();
+      Object.keys(params.entityMap).forEach((entityId) => {
+        const establishment = params.entityEstablishmentMap.get(entityId)?.trim();
+        if (establishment && establishment === groupName) {
+          allowedEntityIds.add(entityId);
+        }
+      });
+    }
+  }
+
+  return allowedEntityIds;
+}
+
 export function buildRiskAnalysisViewContext(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel | null | undefined;
   visibleParticipantGroups: ParticipantGroupForIndicators[];
   selectedGroupingQuestionId: string | null;
   entityMap: Record<string, EntityInfo>;
   entityEstablishmentMapFromApi?: Record<string, string>;
+  hierarchyIdToWorkspaceName?: Map<string, string>;
+  applicationWorkspaceNames?: string[];
 }): {
   allowedEntityIds: Set<string> | null;
   entityEstablishmentMap: Map<string, string>;
@@ -43,6 +78,8 @@ export function buildRiskAnalysisViewContext(params: {
     selectedGroupingQuestionId,
     entityMap,
     entityEstablishmentMapFromApi,
+    hierarchyIdToWorkspaceName,
+    applicationWorkspaceNames = [],
   } = params;
 
   const participantStructures =
@@ -82,8 +119,47 @@ export function buildRiskAnalysisViewContext(params: {
     entityEstablishmentMap.set(entityId, establishment);
   }
 
+  if (hierarchyIdToWorkspaceName) {
+    hierarchyIdToWorkspaceName.forEach((workspaceName, hierarchyId) => {
+      if (entityEstablishmentMap.has(hierarchyId)) return;
+      const label = workspaceName.trim();
+      if (label) {
+        entityEstablishmentMap.set(hierarchyId, label);
+      }
+    });
+  }
+
+  if (applicationWorkspaceNames.length > 0) {
+    for (const entityId of Object.keys(entityMap)) {
+      if (entityEstablishmentMap.has(entityId)) continue;
+
+      const sectorName = entityMap[entityId]?.name;
+      if (!sectorName) continue;
+
+      const matchedLabel = resolveEstablishmentLabelFromSectorName(
+        sectorName,
+        applicationWorkspaceNames,
+      );
+      if (matchedLabel) {
+        entityEstablishmentMap.set(entityId, matchedLabel);
+      }
+    }
+  }
+
   if (!selectedGroupingQuestionId) {
     return { allowedEntityIds: null, entityEstablishmentMap };
+  }
+
+  if (isStructuralIndicatorGroupingKey(selectedGroupingQuestionId)) {
+    return {
+      allowedEntityIds: buildAllowedEntityIdsForStructuralGrouping({
+        selectedGroupingQuestionId,
+        visibleParticipantGroups,
+        entityMap,
+        entityEstablishmentMap,
+      }),
+      entityEstablishmentMap,
+    };
   }
 
   const allowedEntityIds = new Set<string>();

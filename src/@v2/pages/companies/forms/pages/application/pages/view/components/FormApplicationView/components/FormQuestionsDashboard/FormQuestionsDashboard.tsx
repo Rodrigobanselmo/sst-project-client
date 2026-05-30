@@ -40,6 +40,8 @@ import { STabs } from '@v2/components/organisms/STabs/STabs';
 import { FormTypeEnum } from '@v2/models/form/enums/form-type.enum';
 import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import { useFetchBrowseHierarchyGroups } from '@v2/services/forms/hierarchy-group/browse-hierarchy-groups/hooks/useFetchBrowseHierarchyGroups';
+import { useFetchBrowseFormQuestionsAnswersRisks } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers-risks/hooks/useFetchBrowseFormQuestionsAnswersRisks';
+import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseFormParticipants';
 import {
   STRUCTURAL_INDICATOR_GROUPING_CONFIGS,
 } from '@v2/models/form/helpers/form-indicators-structural-grouping.config';
@@ -54,6 +56,7 @@ import {
   type IndicatorsGroupingSelectOption,
 } from './helpers/indicators-grouping-select.types';
 import { resolveParticipantStructuresForGrouping } from './helpers/resolveParticipantStructuresForGrouping';
+import { buildParticipantGroupingEnrichmentContext } from './helpers/buildParticipantGroupingEnrichmentContext';
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
 import { exportFormRiskAnalysisPdfInBrowser } from './helpers/exportFormRiskAnalysisPdfInBrowser';
@@ -512,6 +515,31 @@ export const FormQuestionsDashboard = ({
     applicationId: formApplication.id,
   });
 
+  const { formQuestionsAnswersRisks } = useFetchBrowseFormQuestionsAnswersRisks({
+    companyId: accessCompanyId,
+    applicationId: formApplication.id,
+  });
+
+  const { formParticipants } = useFetchBrowseFormParticipants({
+    companyId: accessCompanyId,
+    applicationId: formApplication.id,
+    pagination: { page: 1, limit: 10_000 },
+  });
+
+  const groupingEnrichment = useMemo(
+    () =>
+      buildParticipantGroupingEnrichmentContext({
+        entityMap: formQuestionsAnswersRisks?.entityMap,
+        participants: formParticipants?.results ?? [],
+        applicationWorkspaces: formApplication.participants.workspaces,
+      }),
+    [
+      formQuestionsAnswersRisks?.entityMap,
+      formParticipants?.results,
+      formApplication.participants.workspaces,
+    ],
+  );
+
   const questionGroups = formQuestionsAnswers?.results ?? [];
   const identifierGroup = questionGroups[0];
   const generalGroups = questionGroups.slice(1);
@@ -624,8 +652,14 @@ export const FormQuestionsDashboard = ({
         formQuestionsAnswers,
         selectedGroupingQuestionId: selectedGroupingQuestion,
         hierarchyGroups,
+        groupingEnrichment,
       }),
-    [formQuestionsAnswers, selectedGroupingQuestion, hierarchyGroups],
+    [
+      formQuestionsAnswers,
+      selectedGroupingQuestion,
+      hierarchyGroups,
+      groupingEnrichment,
+    ],
   );
 
   const participantGroupIdsKey = useMemo(

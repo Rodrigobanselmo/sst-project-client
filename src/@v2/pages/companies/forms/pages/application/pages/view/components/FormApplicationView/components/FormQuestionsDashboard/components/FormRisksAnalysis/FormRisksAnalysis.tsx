@@ -18,6 +18,8 @@ import {
   shouldGroupEntitiesByEstablishment,
   sortRiskIdsForAnalysis,
 } from '../../helpers/buildRiskAnalysisViewContext';
+import { expandRiskAnalysisEntitiesForHierarchyGroups } from '../../helpers/expandRiskAnalysisEntitiesForHierarchyGroups';
+import { buildHierarchyIdToWorkspaceNameFromParticipants } from '../../helpers/buildHierarchyIdToWorkspaceNameFromParticipants';
 import { buildRiskNarrativeDiagnosticScope } from '../../helpers/buildRiskNarrativeDiagnosticScope';
 import { RiskNarrativeDiagnosticSection } from './RiskNarrativeDiagnosticSection';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
@@ -31,6 +33,7 @@ import {
 
 import { useMutateEditFormQuestionsAnswersAnalysis } from '@v2/services/forms/form-questions-answers-analysis/edit-form-questions-answers-analysis/hooks/useMutateEditFormQuestionsAnswersAnalysis';
 import { useFetchBrowseFormQuestionsAnswersRisks } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers-risks/hooks/useFetchBrowseFormQuestionsAnswersRisks';
+import { useFetchBrowseFormParticipants } from '@v2/services/forms/form-participants/browse-form-participants/hooks/useFetchBrowseFormParticipants';
 import { useSnackbar } from 'notistack';
 import { SIconDelete } from '@v2/assets/icons/SIconDelete/SIconDelete';
 import { TextField } from '@mui/material';
@@ -249,6 +252,25 @@ export const FormRisksAnalysis = ({
       companyId: accessCompanyId,
       applicationId: formApplication.id,
     });
+
+  const { formParticipants } = useFetchBrowseFormParticipants({
+    companyId: accessCompanyId,
+    applicationId: formApplication.id,
+    pagination: { page: 1, limit: 10_000 },
+  });
+
+  const hierarchyIdToWorkspaceName = useMemo(
+    () =>
+      buildHierarchyIdToWorkspaceNameFromParticipants(
+        formParticipants?.results ?? [],
+      ),
+    [formParticipants?.results],
+  );
+
+  const applicationWorkspaceNames = useMemo(
+    () => formApplication.participants.workspaces.map((workspace) => workspace.name),
+    [formApplication.participants.workspaces],
+  );
 
   const {
     formQuestionsAnswersAnalysis,
@@ -948,6 +970,8 @@ export const FormRisksAnalysis = ({
         entityMap,
         entityEstablishmentMapFromApi:
           formQuestionsAnswersRisks?.entityEstablishmentMap,
+        hierarchyIdToWorkspaceName,
+        applicationWorkspaceNames,
       }),
     [
       formQuestionsAnswers,
@@ -955,6 +979,8 @@ export const FormRisksAnalysis = ({
       selectedGroupingQuestionId,
       entityMap,
       formQuestionsAnswersRisks?.entityEstablishmentMap,
+      hierarchyIdToWorkspaceName,
+      applicationWorkspaceNames,
     ],
   );
 
@@ -997,11 +1023,15 @@ export const FormRisksAnalysis = ({
 
   const getEntitiesWithRisk = useCallback(
     (riskId: string) =>
-      Object.keys(entityRiskMap).filter(
-        (entityId) =>
-          entityRiskMap[entityId]?.[riskId] && isEntityVisible(entityId),
-      ),
-    [entityRiskMap, isEntityVisible],
+      expandRiskAnalysisEntitiesForHierarchyGroups({
+        riskId,
+        entityRiskMap,
+        groupedEntityRiskMap,
+        entityMap,
+        hierarchyGroups,
+        isEntityVisible,
+      }),
+    [entityRiskMap, groupedEntityRiskMap, entityMap, hierarchyGroups, isEntityVisible],
   );
 
   const risksWithData = useMemo(
@@ -1327,7 +1357,6 @@ export const FormRisksAnalysis = ({
                           <SFlex direction="column" gap={4}>
                             {groupEntityIds.map((entityId) => {
                       const entity = entityMap[entityId];
-                      const riskData = entityRiskMap[entityId][riskId];
                       const severity = risk?.severity;
                       const probability = getEffectiveProbability(entityId, riskId);
 

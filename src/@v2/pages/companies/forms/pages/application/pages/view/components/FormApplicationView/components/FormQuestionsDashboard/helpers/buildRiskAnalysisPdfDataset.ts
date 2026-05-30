@@ -12,6 +12,7 @@ import {
   isFrpsRisk,
   sortRiskIdsForAnalysis,
 } from './buildRiskAnalysisViewContext';
+import { expandRiskAnalysisEntitiesForHierarchyGroups } from './expandRiskAnalysisEntitiesForHierarchyGroups';
 import { buildSectorRiskClassificationPdf } from './riskAnalysisMatrixLabels';
 
 export type RiskAnalysisPdfRecommendationItem = {
@@ -73,6 +74,8 @@ export function buildRiskAnalysisPdfDataset(params: {
   selectedGroupingQuestionId: string | null;
   selectedGroupingLabel?: string | null;
   narrativeDiagnosticMarkdown?: string | null;
+  hierarchyIdToWorkspaceName?: Map<string, string>;
+  applicationWorkspaceNames?: string[];
 }): RiskAnalysisPdfDataset {
   const {
     risksData,
@@ -82,6 +85,8 @@ export function buildRiskAnalysisPdfDataset(params: {
     selectedGroupingQuestionId,
     selectedGroupingLabel,
     narrativeDiagnosticMarkdown,
+    hierarchyIdToWorkspaceName,
+    applicationWorkspaceNames,
   } = params;
 
   const {
@@ -99,6 +104,8 @@ export function buildRiskAnalysisPdfDataset(params: {
       selectedGroupingQuestionId,
       entityMap,
       entityEstablishmentMapFromApi: risksData.entityEstablishmentMap,
+      hierarchyIdToWorkspaceName,
+      applicationWorkspaceNames,
     });
 
   const isEntityVisible = (entityId: string) =>
@@ -117,10 +124,14 @@ export function buildRiskAnalysisPdfDataset(params: {
   };
 
   const getEntitiesWithRisk = (riskId: string) =>
-    Object.keys(entityRiskMap).filter(
-      (entityId) =>
-        entityRiskMap[entityId]?.[riskId] && isEntityVisible(entityId),
-    );
+    expandRiskAnalysisEntitiesForHierarchyGroups({
+      riskId,
+      entityRiskMap,
+      groupedEntityRiskMap,
+      entityMap,
+      hierarchyGroups,
+      isEntityVisible,
+    });
 
   const analysisByKey = new Map<
     string,
