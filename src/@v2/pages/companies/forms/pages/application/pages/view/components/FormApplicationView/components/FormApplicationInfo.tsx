@@ -8,6 +8,7 @@ import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SSkeleton } from '@v2/components/atoms/SSkeleton/SDivider';
 import { InfoCardAvatar } from '@v2/components/organisms/SInfoCard/components/InfoCardAvatar/InfoCardAvatar';
 import { InfoCardSection } from '@v2/components/organisms/SInfoCard/components/InfoCardSection/InfoCardSection';
+import { InfoCardExpandableText } from '@v2/components/organisms/SInfoCard/components/InfoCardText/InfoCardExpandableText';
 import { InfoCardText } from '@v2/components/organisms/SInfoCard/components/InfoCardText/InfoCardText';
 import { ModalKeyEnum, useModal } from '@v2/hooks/useModal';
 import { FormApplicationReadModel } from '@v2/models/form/models/form-application/form-application-read.model';
@@ -156,7 +157,7 @@ export const FormApplicationInfo = ({
               {formApplication.scopeType ===
                 FormApplicationScopeTypeEnum.COMPANY_WORKSPACES &&
                 formApplication.participants.workspaces.length > 0 && (
-                <InfoCardText
+                <InfoCardExpandableText
                   label="Estabelecimentos participantes"
                   text={formApplication.participants.workspaces
                     .map((w) => w.name)
