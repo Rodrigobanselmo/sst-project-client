@@ -6,6 +6,7 @@ import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 
 import type { ParticipantGroupForIndicators } from './buildParticipantGroupsForIndicators';
+import { resolveEstablishmentLabelForHierarchyId } from './resolveEstablishmentLabelForHierarchyId';
 import { resolveEstablishmentLabelFromSectorName } from './resolveEstablishmentLabelFromSectorName';
 import { resolveParticipantStructuresForGrouping } from './resolveParticipantStructuresForGrouping';
 
@@ -33,7 +34,8 @@ function buildAllowedEntityIdsForStructuralGrouping(params: {
   selectedGroupingQuestionId: string;
   visibleParticipantGroups: ParticipantGroupForIndicators[];
   entityMap: Record<string, EntityInfo>;
-  entityEstablishmentMap: Map<string, string>;
+  hierarchyIdToWorkspaceName: Map<string, string>;
+  applicationWorkspaceNames: string[];
 }): Set<string> {
   const allowedEntityIds = new Set<string>();
 
@@ -49,7 +51,13 @@ function buildAllowedEntityIdsForStructuralGrouping(params: {
     if (params.selectedGroupingQuestionId === '__participant_workspace') {
       const groupName = group.name.trim();
       Object.keys(params.entityMap).forEach((entityId) => {
-        const establishment = params.entityEstablishmentMap.get(entityId)?.trim();
+        const establishment = resolveEstablishmentLabelForHierarchyId({
+          hierarchyId: entityId,
+          entityMap: params.entityMap,
+          hierarchyIdToWorkspaceName: params.hierarchyIdToWorkspaceName,
+          applicationWorkspaceNames: params.applicationWorkspaceNames,
+        })?.trim();
+
         if (establishment && establishment === groupName) {
           allowedEntityIds.add(entityId);
         }
@@ -156,7 +164,9 @@ export function buildRiskAnalysisViewContext(params: {
         selectedGroupingQuestionId,
         visibleParticipantGroups,
         entityMap,
-        entityEstablishmentMap,
+        hierarchyIdToWorkspaceName:
+          hierarchyIdToWorkspaceName ?? new Map<string, string>(),
+        applicationWorkspaceNames,
       }),
       entityEstablishmentMap,
     };

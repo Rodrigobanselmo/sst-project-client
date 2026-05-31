@@ -1,3 +1,4 @@
+import { deriveSyntheticEstablishmentLabelFromSectorName } from './deriveSyntheticEstablishmentLabelFromSectorName';
 import { resolveEstablishmentLabelFromSectorName } from './resolveEstablishmentLabelFromSectorName';
 
 export function resolveEstablishmentLabelForHierarchyId(params: {
@@ -14,8 +15,11 @@ export function resolveEstablishmentLabelForHierarchyId(params: {
   const sectorName = params.entityMap[params.hierarchyId]?.name;
   if (!sectorName) return null;
 
-  return resolveEstablishmentLabelFromSectorName(
+  const fromWorkspaceList = resolveEstablishmentLabelFromSectorName(
     sectorName,
     params.applicationWorkspaceNames,
   );
+  if (fromWorkspaceList) return fromWorkspaceList;
+
+  return deriveSyntheticEstablishmentLabelFromSectorName(sectorName);
 }

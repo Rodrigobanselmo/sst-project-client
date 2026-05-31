@@ -1028,7 +1028,7 @@ export const FormQuestionsDashboard = ({
                             ),
                           )}
                           getOptionLabel={(g) =>
-                            `${g.name} (${g.participantIds.size} participantes)`
+                            `${g.name} (${g.participantIds.size} funcionários atuais)`
                           }
                           getOptionValue={(g) => g.id}
                           onChange={(selected) => {
