@@ -1,29 +1,37 @@
-import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
+
+export enum AiAnalyzeFormQuestionsRisksModeEnum {
+  FULL = 'FULL',
+  FULL_INCREMENTAL = 'FULL_INCREMENTAL',
+  TARGET = 'TARGET',
+}
 
 export interface AiAnalyzeFormQuestionsRisksParams {
   companyId: string;
   formApplicationId: string;
+  mode?: AiAnalyzeFormQuestionsRisksModeEnum;
+  riskId?: string;
+  hierarchyId?: string;
   customPrompt?: string;
-  model?: string; // Optional AI model to use (e.g., 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo')
+  model?: string;
 }
 
 export type AiRiskAnalysisResponse = {
-  frps: string; // Nome do FRPS
+  frps: string;
   fontesGeradoras: Array<{
     nome: string;
     justificativa: string;
-    origem: 'sistema' | 'ia'; // 'sistema' for existing, 'ia' for AI suggestions
+    origem: 'sistema' | 'ia';
   }>;
   medidasEngenhariaRecomendadas: Array<{
     nome: string;
     justificativa: string;
-    origem: 'sistema' | 'ia'; // modificações recomendadas no local/equipamento para isolar/remover perigo
+    origem: 'sistema' | 'ia';
   }>;
   medidasAdministrativasRecomendadas: Array<{
     nome: string;
     justificativa: string;
-    origem: 'sistema' | 'ia'; // organização recomendada do trabalho para reduzir exposição
+    origem: 'sistema' | 'ia';
   }>;
 };
 
@@ -52,5 +60,11 @@ export type Result = {
     model?: string;
     processingTimeMs: number;
     failedAnalyses?: number;
+    analysesQueued?: number;
+    analysesSkipped?: number;
+    analysesComplemented?: number;
+    mode?: AiAnalyzeFormQuestionsRisksModeEnum;
+    targetRiskId?: string;
+    targetHierarchyId?: string;
   };
 };

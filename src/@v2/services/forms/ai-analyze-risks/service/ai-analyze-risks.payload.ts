@@ -1,4 +1,9 @@
+import { AiAnalyzeFormQuestionsRisksModeEnum } from './ai-analyze-risks.types';
+
 export class AiAnalyzeFormQuestionsRisksPayload {
+  mode?: AiAnalyzeFormQuestionsRisksModeEnum;
+  riskId?: string;
+  hierarchyId?: string;
   customPrompt?: string;
-  model?: string; // Optional AI model to use (e.g., 'gpt-4o', 'gpt-4o-mini', 'gpt-3.5-turbo')
+  model?: string;
 }
