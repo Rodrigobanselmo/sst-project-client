@@ -38,6 +38,8 @@ import { buildRiskNarrativeDiagnosticScope } from '../../helpers/buildRiskNarrat
 import { RiskNarrativeDiagnosticSection } from './RiskNarrativeDiagnosticSection';
 import { hierarchyTypeTranslation } from '@v2/models/security/translations/hierarchy-type.translation';
 import { useMutateAiAnalyzeFormQuestionsRisks } from '@v2/services/forms/ai-analyze-risks/hooks/useMutateAiAnalyzeFormQuestionsRisks';
+import { AiAnalyzeFormQuestionsRisksModeEnum } from '@v2/services/forms/ai-analyze-risks/service/ai-analyze-risks.types';
+import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import { useMutateApplyAiAnalysisAsRiskData } from '@v2/services/forms/form-application/apply-ai-analysis-as-risk-data/hooks/useMutateApplyAiAnalysisAsRiskData';
 import { useMutateAssignRisksFormApplication } from '@v2/services/forms/form-application/assign-risks-form-application/hooks/useMutateAssignRisksFormApplication';
 import {
@@ -98,6 +100,31 @@ const INHERITED_ANALYSIS_ITEM_REMOVE_CONFIRMATION = {
   confirmText: 'Continuar',
   cancelText: 'Cancelar',
   variant: 'warning' as const,
+};
+
+const REANALYSIS_CONFIRMATION = {
+  title: 'Analisar com IA novamente',
+  message:
+    'A análise será executada novamente, mas o sistema tentará complementar apenas fontes geradoras e recomendações faltantes. Itens já existentes não serão duplicados.',
+  confirmText: 'Continuar',
+  cancelText: 'Cancelar',
+  variant: 'warning' as const,
+};
+
+const TARGET_REANALYSIS_CONFIRMATION = {
+  title: 'Analisar IA novamente deste setor',
+  message:
+    'A análise deste risco/setor será executada novamente, complementando apenas fontes geradoras e recomendações faltantes. Itens já existentes não serão duplicados.',
+  confirmText: 'Continuar',
+  cancelText: 'Cancelar',
+  variant: 'warning' as const,
+};
+
+type PendingAiAnalyzeRequest = {
+  mode: AiAnalyzeFormQuestionsRisksModeEnum;
+  riskId?: string;
+  hierarchyId?: string;
+  successMessage?: string;
 };
 
 type AnalysisItemType =
@@ -211,57 +238,120 @@ const isValidMatrixValue = (n: unknown): n is number =>
   typeof n === 'number' && Number.isFinite(n) && n >= 1 && n <= 5;
 
 const CLASSIFICATION_BADGE_WIDTH_SCALE = 0.76;
+const SECTOR_ROW_WIDTH_REDUCTION = 0.83;
+const SECTOR_ROW_WIDTH_ADJUSTMENT = 1.59;
 
-const buildClassificationBadgeWidth = (
-  prefix: string,
-  suffixes: string[],
-) => {
+const SECTOR_ROW_ELEMENT_LABELS = [
+  'Adicionar risco a este setor',
+  'Analisar IA novamente deste setor',
+  'Analisar IA deste setor',
+  'Analisando IA...',
+  'Probabilidade: 04 Significativa',
+  'Severidade: 05 Excessiva',
+  'Risco Ocupacional: Não informado',
+];
+
+const buildSectorRowElementWidth = () => {
+  const longestBadgeLabelLength = Math.max(
+    'Probabilidade: 04 Significativa'.length,
+    'Severidade: 05 Excessiva'.length,
+    'Risco Ocupacional: Não informado'.length,
+  );
+  const currentMaxBadgeWidthCh = Math.ceil(
+    longestBadgeLabelLength * CLASSIFICATION_BADGE_WIDTH_SCALE,
+  );
+  const reducedBadgeWidthCh = Math.ceil(
+    currentMaxBadgeWidthCh * SECTOR_ROW_WIDTH_REDUCTION,
+  );
   const longestLabelLength = Math.max(
-    ...suffixes.map((suffix) => `${prefix}${suffix}`.length),
+    ...SECTOR_ROW_ELEMENT_LABELS.map((label) => label.length),
+  );
+  const widthForCompactControlsCh = Math.ceil(longestLabelLength * 0.62);
+  const baseWidthCh = Math.max(
+    reducedBadgeWidthCh,
+    widthForCompactControlsCh,
   );
 
-  return `${Math.ceil(longestLabelLength * CLASSIFICATION_BADGE_WIDTH_SCALE)}ch`;
+  return `${Math.ceil(baseWidthCh * SECTOR_ROW_WIDTH_ADJUSTMENT)}ch`;
 };
 
-const PROBABILITY_BADGE_WIDTH = buildClassificationBadgeWidth(
-  'Probabilidade: ',
-  [
-    'Não informado',
-    ...([1, 2, 3, 4, 5] as const).map(
-      (value) => `${formatTwoDigits(value)} ${probabilityMap[value].label}`,
-    ),
-  ],
-);
+const SECTOR_ROW_ELEMENT_WIDTH = buildSectorRowElementWidth();
+const SECTOR_ROW_ELEMENT_HEIGHT = 32;
+const SECTOR_ROW_STACK_GAP = 4;
+const SECTOR_ROW_OCCUPATIONAL_BADGE_HEIGHT =
+  SECTOR_ROW_ELEMENT_HEIGHT * 2 + SECTOR_ROW_STACK_GAP;
 
-const SEVERITY_BADGE_WIDTH = buildClassificationBadgeWidth('Severidade: ', [
-  'Não informado',
-  ...([1, 2, 3, 4, 5] as const).map(
-    (value) => `${formatTwoDigits(value)} ${severityMap[value].label}`,
-  ),
-]);
+const sectorRowStackSx = {
+  flexShrink: 0,
+  display: 'flex',
+  flexDirection: 'column' as const,
+  gap: `${SECTOR_ROW_STACK_GAP}px`,
+};
 
-const OCCUPATIONAL_RISK_BADGE_WIDTH = buildClassificationBadgeWidth(
-  'Risco Ocupacional: ',
-  ['Não informado', 'Muito Baixo', 'Baixo', 'Moderado', 'Alto', 'Muito Alto'],
-);
+const sectorRowElementBaseSx = {
+  boxSizing: 'border-box' as const,
+  flexShrink: 0,
+  width: SECTOR_ROW_ELEMENT_WIDTH,
+  minWidth: SECTOR_ROW_ELEMENT_WIDTH,
+  maxWidth: SECTOR_ROW_ELEMENT_WIDTH,
+  minHeight: SECTOR_ROW_ELEMENT_HEIGHT,
+  height: SECTOR_ROW_ELEMENT_HEIGHT,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  textAlign: 'center' as const,
+  whiteSpace: 'nowrap' as const,
+  px: 0.5,
+  fontSize: '0.7rem',
+  lineHeight: 1.2,
+};
 
-const ADD_RISK_ACTION_COLUMN_WIDTH = 200;
+const sectorActionButtonSx = {
+  ...sectorRowElementBaseSx,
+  py: 0,
+  fontWeight: 600,
+};
 
-const badgeSx = (
-  bg: string,
-  width: string,
-) => ({
+const badgeSx = (bg: string) => ({
+  ...sectorRowElementBaseSx,
   backgroundColor: bg,
-  padding: '3px 5px',
   borderRadius: 1,
   border: '1px solid',
   borderColor: 'grey.200',
-  boxSizing: 'border-box',
-  flexShrink: 0,
-  width,
-  minWidth: width,
-  whiteSpace: 'nowrap',
 });
+
+const occupationalRiskBadgeSx = (bg: string) => ({
+  ...badgeSx(bg),
+  position: 'relative' as const,
+  height: SECTOR_ROW_OCCUPATIONAL_BADGE_HEIGHT,
+  minHeight: SECTOR_ROW_OCCUPATIONAL_BADGE_HEIGHT,
+  borderColor: 'grey.400',
+});
+
+const sectorRowClassificationDotsSx = {
+  position: 'absolute' as const,
+  top: 4,
+  left: 4,
+  display: 'flex',
+  gap: '3px',
+  pointerEvents: 'none' as const,
+};
+
+const sectorRowClassificationDotSx = (color: string) => ({
+  width: 8,
+  height: 8,
+  borderRadius: '50%',
+  backgroundColor: color,
+  border: '1px solid #fff',
+  flexShrink: 0,
+});
+
+const sectorRowBadgeTextSx = {
+  fontSize: '0.7rem',
+  lineHeight: 1.2,
+  textAlign: 'center',
+  width: '100%',
+};
 
 export const FormRisksAnalysis = ({
   formApplication,
@@ -289,6 +379,8 @@ export const FormRisksAnalysis = ({
   );
   const [applyingItemKey, setApplyingItemKey] = useState<string | null>(null);
   const [showAiDialog, setShowAiDialog] = useState(false);
+  const [pendingAiAnalyze, setPendingAiAnalyze] =
+    useState<PendingAiAnalyzeRequest | null>(null);
   const [addRiskMenu, setAddRiskMenu] = useState<{
     anchorEl: HTMLElement;
     riskId: string;
@@ -375,6 +467,50 @@ export const FormRisksAnalysis = ({
   const hasProcessingAnalyses = useMemo(() => {
     return hasRecentProcessingAnalyses(formQuestionsAnswersAnalysis?.results);
   }, [formQuestionsAnswersAnalysis]);
+
+  const hasPreviousAiRun = useMemo(
+    () =>
+      (formQuestionsAnswersAnalysis?.results ?? []).some(
+        (result) =>
+          result.status === FormAiAnalysisStatusEnum.DONE ||
+          result.status === FormAiAnalysisStatusEnum.FAILED,
+      ),
+    [formQuestionsAnswersAnalysis?.results],
+  );
+
+  const isTargetAnalysisProcessing = useCallback(
+    (riskId: string, hierarchyId: string) =>
+      (formQuestionsAnswersAnalysis?.results ?? []).some(
+        (result) =>
+          result.riskId === riskId &&
+          result.hierarchyId === hierarchyId &&
+          result.status === FormAiAnalysisStatusEnum.PROCESSING,
+      ),
+    [formQuestionsAnswersAnalysis?.results],
+  );
+
+  const hasOwnAnalysisForPair = useCallback(
+    (riskId: string, hierarchyId: string) =>
+      (formQuestionsAnswersAnalysis?.results ?? []).some(
+        (result) =>
+          result.riskId === riskId &&
+          result.hierarchyId === hierarchyId &&
+          (result.status === FormAiAnalysisStatusEnum.DONE ||
+            result.status === FormAiAnalysisStatusEnum.FAILED ||
+            result.status === FormAiAnalysisStatusEnum.PROCESSING),
+      ),
+    [formQuestionsAnswersAnalysis?.results],
+  );
+
+  const openAiAnalyzeDialog = (request: PendingAiAnalyzeRequest) => {
+    setPendingAiAnalyze(request);
+    setShowAiDialog(true);
+  };
+
+  const closeAiAnalyzeDialog = () => {
+    setShowAiDialog(false);
+    setPendingAiAnalyze(null);
+  };
 
   const wasProcessingAnalysesRef = useRef(false);
   const batchFailureNotifiedRef = useRef(false);
@@ -1532,13 +1668,24 @@ export const FormRisksAnalysis = ({
     });
   };
 
-  const handleAnalyzeRisks = (data?: AiAnalysisFormData) => {
+  const handleAnalyzeRisks = (
+    data?: AiAnalysisFormData,
+    options?: {
+      mode?: AiAnalyzeFormQuestionsRisksModeEnum;
+      riskId?: string;
+      hierarchyId?: string;
+      successMessage?: string;
+    },
+  ) => {
     batchFailureNotifiedRef.current = false;
 
     mutateAiAnalyzeFormQuestionsRisks(
       {
         companyId: accessCompanyId,
         formApplicationId: formApplication.id,
+        mode: options?.mode ?? AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
+        riskId: options?.riskId,
+        hierarchyId: options?.hierarchyId,
         ...(isMaster && data?.customPrompt?.trim()
           ? { customPrompt: data.customPrompt.trim() }
           : {}),
@@ -1546,6 +1693,10 @@ export const FormRisksAnalysis = ({
       },
       {
         onSuccess: () => {
+          enqueueSnackbar(
+            options?.successMessage ?? 'Análise de IA iniciada.',
+            { variant: 'success' },
+          );
           void refetch();
           setTimeout(() => void refetch(), 3000);
         },
@@ -1553,15 +1704,50 @@ export const FormRisksAnalysis = ({
     );
 
     setShowAiDialog(false);
+    setPendingAiAnalyze(null);
   };
 
-  const handleAnalyzeButtonClick = () => {
+  const handleAnalyzeButtonClick = async () => {
+    if (hasPreviousAiRun) {
+      const confirmed = await showConfirmation(REANALYSIS_CONFIRMATION);
+      if (!confirmed) return;
+    }
+
     if (isMaster) {
-      setShowAiDialog(true);
+      openAiAnalyzeDialog({
+        mode: AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
+      });
       return;
     }
 
-    handleAnalyzeRisks();
+    handleAnalyzeRisks(undefined, {
+      mode: AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
+    });
+  };
+
+  const handleTargetAnalyze = async (riskId: string, hierarchyId: string) => {
+    const hasOwnAnalysis = hasOwnAnalysisForPair(riskId, hierarchyId);
+
+    if (hasOwnAnalysis) {
+      const confirmed = await showConfirmation(TARGET_REANALYSIS_CONFIRMATION);
+      if (!confirmed) return;
+    }
+
+    const targetRequest: PendingAiAnalyzeRequest = {
+      mode: AiAnalyzeFormQuestionsRisksModeEnum.TARGET,
+      riskId,
+      hierarchyId,
+      successMessage: hasOwnAnalysis
+        ? 'Análise de IA deste setor reiniciada.'
+        : 'Análise de IA deste setor iniciada.',
+    };
+
+    if (isMaster) {
+      openAiAnalyzeDialog(targetRequest);
+      return;
+    }
+
+    handleAnalyzeRisks(undefined, targetRequest);
   };
 
   const handleSaveDefaultPrompt = async () => {
@@ -1588,6 +1774,12 @@ export const FormRisksAnalysis = ({
     });
   };
 
+  const submitMasterAnalyze = handleSubmit((data) => {
+    if (!pendingAiAnalyze) return;
+
+    handleAnalyzeRisks(data, pendingAiAnalyze);
+  });
+
   return (
     <SPaper sx={{ p: 4 }}>
       <SFlex justifyContent="space-between" my={4} mx={8} mb={16}>
@@ -1600,7 +1792,9 @@ export const FormRisksAnalysis = ({
             text={
               hasProcessingAnalyses
                 ? 'Processando análise...'
-                : 'Analisar com IA'
+                : hasPreviousAiRun
+                  ? 'Analisar com IA novamente'
+                  : 'Analisar com IA'
             }
             color="primary"
             loading={isAnalyzing || hasProcessingAnalyses}
@@ -1789,57 +1983,77 @@ export const FormRisksAnalysis = ({
                                 {entity.name}
                               </Typography>
                             </SFlex>
-                            <Box
-                              sx={{
-                                width: ADD_RISK_ACTION_COLUMN_WIDTH,
-                                flexShrink: 0,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
+                            <SFlex sx={sectorRowStackSx}>
                               {isRiskInInventory(riskId, entityId) ? (
-                                <SFlex
-                                  color="success.main"
-                                  fontSize={12}
-                                  gap={1}
-                                  alignItems="center"
-                                  justifyContent="center"
+                                <Box
+                                  sx={{
+                                    ...sectorRowElementBaseSx,
+                                    border: '1px solid',
+                                    borderColor: 'grey.200',
+                                    borderRadius: 1,
+                                    color: 'success.main',
+                                    gap: 0.5,
+                                  }}
                                 >
-                                  <CheckIcon sx={{ fontSize: 16 }} />
-                                  <SText color="success.main" fontSize={12}>
+                                  <CheckIcon sx={{ fontSize: 14 }} />
+                                  <SText
+                                    color="success.main"
+                                    fontSize={11}
+                                    sx={{ lineHeight: 1.2 }}
+                                  >
                                     Risco adicionado
                                   </SText>
-                                </SFlex>
+                                </Box>
                               ) : (
                                 <SButton
                                   variant="shade"
                                   color="paper"
-                                  buttonProps={{
-                                    sx: { width: '100%' },
-                                  }}
                                   text="Adicionar risco a este setor"
                                   onClick={() =>
                                     handleAddRiskToEntity(riskId, entityId)
                                   }
+                                  buttonProps={{
+                                    sx: sectorActionButtonSx,
+                                  }}
                                 />
                               )}
-                            </Box>
-                            <SFlex
-                              center
-                              sx={{
-                                gap: 1.5,
-                                flexShrink: 0,
-                                flexWrap: 'wrap',
-                              }}
-                            >
+                              <SButton
+                                variant="shade"
+                                color="primary"
+                                text={
+                                  isTargetAnalysisProcessing(riskId, entityId)
+                                    ? 'Analisando IA...'
+                                    : hasOwnAnalysisForPair(riskId, entityId)
+                                      ? 'Analisar IA novamente deste setor'
+                                      : 'Analisar IA deste setor'
+                                }
+                                loading={isTargetAnalysisProcessing(
+                                  riskId,
+                                  entityId,
+                                )}
+                                disabled={isTargetAnalysisProcessing(
+                                  riskId,
+                                  entityId,
+                                )}
+                                onClick={() =>
+                                  handleTargetAnalyze(riskId, entityId)
+                                }
+                                buttonProps={{
+                                  sx: sectorActionButtonSx,
+                                }}
+                              />
+                            </SFlex>
+                            <SFlex sx={sectorRowStackSx}>
                               <Box
                                 sx={badgeSx(
                                   probabilityMap[probability || 0].color,
-                                  PROBABILITY_BADGE_WIDTH,
                                 )}
                               >
-                                <Typography variant="body2" color="text.main">
+                                <Typography
+                                  variant="body2"
+                                  color="text.main"
+                                  sx={sectorRowBadgeTextSx}
+                                >
                                   Probabilidade:{' '}
                                   {hasValidProbability
                                     ? `${formatTwoDigits(probability)} ${probabilityMap[probability].label}`
@@ -1852,37 +2066,50 @@ export const FormRisksAnalysis = ({
                                   hasValidSeverity
                                     ? severityMap[severity].color
                                     : severityMap[0].color,
-                                  SEVERITY_BADGE_WIDTH,
                                 )}
                               >
-                                <Typography variant="body2" color="text.main">
+                                <Typography
+                                  variant="body2"
+                                  color="text.main"
+                                  sx={sectorRowBadgeTextSx}
+                                >
                                   Severidade:{' '}
                                   {hasValidSeverity
                                     ? `${formatTwoDigits(severity)} ${severityMap[severity].label}`
                                     : 'Não informado'}
                                 </Typography>
                               </Box>
-
-                              <Box
-                                sx={{
-                                  ...badgeSx(
-                                    occupationalRiskColorMap[
-                                      occupationalRiskLabel
-                                    ] ?? occupationalRiskColorMap['Não informado'],
-                                    OCCUPATIONAL_RISK_BADGE_WIDTH,
-                                  ),
-                                  borderColor: 'grey.400',
-                                }}
-                              >
-                                <Typography
-                                  variant="body2"
-                                  color="text.main"
-                                  fontWeight={600}
-                                >
-                                  Risco Ocupacional: {occupationalRiskLabel}
-                                </Typography>
-                              </Box>
                             </SFlex>
+
+                            <Box
+                              sx={occupationalRiskBadgeSx(
+                                occupationalRiskColorMap[occupationalRiskLabel] ??
+                                  occupationalRiskColorMap['Não informado'],
+                              )}
+                            >
+                              <Box sx={sectorRowClassificationDotsSx}>
+                                <Box
+                                  sx={sectorRowClassificationDotSx(
+                                    probabilityMap[probability || 0].color,
+                                  )}
+                                />
+                                <Box
+                                  sx={sectorRowClassificationDotSx(
+                                    hasValidSeverity
+                                      ? severityMap[severity].color
+                                      : severityMap[0].color,
+                                  )}
+                                />
+                              </Box>
+                              <Typography
+                                variant="body2"
+                                color="text.main"
+                                fontWeight={600}
+                                sx={sectorRowBadgeTextSx}
+                              >
+                                Risco Ocupacional: {occupationalRiskLabel}
+                              </Typography>
+                            </Box>
                           </SFlex>
                           {/* AI Analysis Results for this specific risk-entity combination */}
                           {formQuestionsAnswersAnalysis?.results &&
@@ -2443,7 +2670,7 @@ export const FormRisksAnalysis = ({
       {isMaster && (
       <Dialog
         open={showAiDialog}
-        onClose={() => setShowAiDialog(false)}
+        onClose={closeAiAnalyzeDialog}
         maxWidth="xl"
         fullWidth
         PaperProps={{
@@ -2457,7 +2684,7 @@ export const FormRisksAnalysis = ({
       >
         <DialogTitle>Configurar Análise de IA</DialogTitle>
         <FormProvider {...methods}>
-          <form onSubmit={handleSubmit(handleAnalyzeRisks)}>
+          <form onSubmit={submitMasterAnalyze}>
             <DialogContent>
               <SSearchSelectForm
                 name="model"
@@ -2493,14 +2720,14 @@ export const FormRisksAnalysis = ({
                 <SButton
                   variant="outlined"
                   text="Cancelar"
-                  onClick={() => setShowAiDialog(false)}
+                  onClick={closeAiAnalyzeDialog}
                 />
                 <SButton
                   variant="contained"
                   text="Iniciar Análise"
                   loading={isAnalyzing || isLoadingSystemAiPrompt}
                   disabled={isLoadingSystemAiPrompt}
-                  onClick={handleSubmit(handleAnalyzeRisks)}
+                  onClick={submitMasterAnalyze}
                 />
               </SFlex>
             </DialogActions>

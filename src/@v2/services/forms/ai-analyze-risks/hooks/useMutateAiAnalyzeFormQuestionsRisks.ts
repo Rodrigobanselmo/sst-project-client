@@ -4,7 +4,7 @@ import { useMutate } from '@v2/hooks/api/useMutate';
 import { aiAnalyzeFormQuestionsRisks } from '../service/ai-analyze-risks.service';
 
 export const useMutateAiAnalyzeFormQuestionsRisks = () => {
-  const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
+  const { onErrorMessage } = useApiResponseHandler();
 
   const mutate = useMutate({
     mutationFn: aiAnalyzeFormQuestionsRisks,
@@ -13,7 +13,6 @@ export const useMutateAiAnalyzeFormQuestionsRisks = () => {
       variables.companyId,
       variables.formApplicationId,
     ],
-    onSuccess: () => onSuccessMessage('Análise de IA iniciada com sucesso'),
     onError: onErrorMessage,
   });
 
