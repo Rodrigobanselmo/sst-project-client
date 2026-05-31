@@ -82,6 +82,29 @@ import {
 } from 'core/utils/helpers/occupational-risk-level.util';
 import { AI_MODEL_OPTIONS } from './ai-model-options';
 
+const INHERITED_ANALYSIS_ITEM_EDIT_CONFIRMATION = {
+  title: 'Editar item da análise do agrupamento',
+  message:
+    'Este setor está usando uma análise aplicada pelo agrupamento de setores. Ao editar esta fonte/recomendação, a alteração será aplicada para todos os setores que herdam esta análise. Deseja continuar?',
+  confirmText: 'Continuar',
+  cancelText: 'Cancelar',
+  variant: 'warning' as const,
+};
+
+const INHERITED_ANALYSIS_ITEM_REMOVE_CONFIRMATION = {
+  title: 'Excluir item da análise do agrupamento',
+  message:
+    'Este setor está usando uma análise aplicada pelo agrupamento de setores. Ao excluir esta fonte/recomendação, ela será removida para todos os setores que herdam esta análise. Deseja continuar?',
+  confirmText: 'Continuar',
+  cancelText: 'Cancelar',
+  variant: 'warning' as const,
+};
+
+type AnalysisItemType =
+  | 'fontesGeradoras'
+  | 'medidasEngenhariaRecomendadas'
+  | 'medidasAdministrativasRecomendadas';
+
 type AnalysisItemBadgeVariant =
   | 'inventory-in'
   | 'inventory-pending'
@@ -351,11 +374,6 @@ export const FormRisksAnalysis = ({
     [formQuestionsAnswersAnalysis?.analysisInventoryStatus],
   );
 
-  type AnalysisItemType =
-    | 'fontesGeradoras'
-    | 'medidasEngenhariaRecomendadas'
-    | 'medidasAdministrativasRecomendadas';
-
   const getAnalysisItemStatus = useCallback(
     (
       analysisId: string,
@@ -476,6 +494,52 @@ export const FormRisksAnalysis = ({
       console.error('Error removing analysis item:', error);
     }
   };
+
+  const createInheritedAnalysisItemEditHandler = (
+    sourceAnalysis: {
+      id: string;
+      analysis?: Record<string, unknown> | null;
+    },
+    itemType: AnalysisItemType,
+    itemIndex: number,
+  ) =>
+    async (newName: string): Promise<boolean> => {
+      const confirmed = await showConfirmation(
+        INHERITED_ANALYSIS_ITEM_EDIT_CONFIRMATION,
+      );
+      if (!confirmed) return false;
+
+      await handleEditAnalysisItem(
+        sourceAnalysis.id,
+        itemType,
+        itemIndex,
+        newName,
+        sourceAnalysis,
+      );
+      return true;
+    };
+
+  const createInheritedAnalysisItemRemoveHandler = (
+    sourceAnalysis: {
+      id: string;
+      analysis?: Record<string, unknown> | null;
+    },
+    itemType: AnalysisItemType,
+    itemIndex: number,
+  ) =>
+    async (): Promise<void> => {
+      const confirmed = await showConfirmation(
+        INHERITED_ANALYSIS_ITEM_REMOVE_CONFIRMATION,
+      );
+      if (!confirmed) return;
+
+      await handleRemoveAnalysisItem(
+        sourceAnalysis.id,
+        itemType,
+        itemIndex,
+        sourceAnalysis,
+      );
+    };
 
   const buildApplyingItemKey = (
     analysisId: string,
@@ -645,6 +709,8 @@ export const FormRisksAnalysis = ({
     onAddItem,
     isAddingItem,
     readOnly = false,
+    onEditItem,
+    onRemoveItem,
   }: {
     item: any;
     itemIndex: number;
@@ -660,19 +726,32 @@ export const FormRisksAnalysis = ({
     onAddItem?: () => void;
     isAddingItem?: boolean;
     readOnly?: boolean;
+    onEditItem?: (newName: string) => void | Promise<boolean | void>;
+    onRemoveItem?: () => void | Promise<void>;
   }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editValue, setEditValue] = useState(item.nome);
 
+    useEffect(() => {
+      if (!isEditing) {
+        setEditValue(item.nome);
+      }
+    }, [isEditing, item.nome]);
+
     const handleSave = async () => {
       if (editValue.trim() && editValue !== item.nome) {
-        await handleEditAnalysisItem(
-          analysisId,
-          itemType,
-          itemIndex,
-          editValue.trim(),
-          analysis,
-        );
+        if (onEditItem) {
+          const saved = await onEditItem(editValue.trim());
+          if (saved === false) return;
+        } else {
+          await handleEditAnalysisItem(
+            analysisId,
+            itemType,
+            itemIndex,
+            editValue.trim(),
+            analysis,
+          );
+        }
       }
       setIsEditing(false);
     };
@@ -855,14 +934,18 @@ export const FormRisksAnalysis = ({
                             },
                           },
                         }}
-                        onClick={() =>
-                          handleRemoveAnalysisItem(
+                        onClick={async () => {
+                          if (onRemoveItem) {
+                            await onRemoveItem();
+                            return;
+                          }
+                          await handleRemoveAnalysisItem(
                             analysisId,
                             itemType,
                             itemIndex,
                             analysis,
-                          )
-                        }
+                          );
+                        }}
                       >
                         <SIconDelete fontSize="16px" />
                       </SIconButton>
@@ -930,6 +1013,7 @@ export const FormRisksAnalysis = ({
       itemType: AnalysisItemType,
     ): T[] | undefined => {
       if (!items?.length || !options?.sourceAnalysisId) return undefined;
+
       const pending = items.filter((item, index) => {
         const status = resolveTargetAnalysisItemStatus({
           riskId: analysis.riskId,
@@ -1789,6 +1873,7 @@ export const FormRisksAnalysis = ({
                                     riskDataForHierarchy,
                                   }
                                 : undefined;
+                              const displayAnalysisContent = sourceAnalysis.analysis;
                               const resolveDisplayedItemStatus = (
                                 itemType: AnalysisItemType,
                                 itemName: string,
@@ -1922,8 +2007,8 @@ export const FormRisksAnalysis = ({
                                         </SFlex>
 
                                         {/* Fontes Geradoras */}
-                                        {analysis.analysis?.fontesGeradoras &&
-                                          analysis.analysis.fontesGeradoras
+                                        {displayAnalysisContent?.fontesGeradoras &&
+                                          displayAnalysisContent.fontesGeradoras
                                             .length > 0 && (
                                             <Box mb={2} mt={4}>
                                               <SFlex
@@ -1941,7 +2026,7 @@ export const FormRisksAnalysis = ({
                                                 </SText>
                                               </SFlex>
                                               <SFlex direction="column" gap={4}>
-                                                {analysis.analysis.fontesGeradoras.map(
+                                                {displayAnalysisContent.fontesGeradoras.map(
                                                   (fonte, index) => {
                                                     const itemStatus =
                                                       resolveDisplayedItemStatus(
@@ -1949,26 +2034,46 @@ export const FormRisksAnalysis = ({
                                                         fonte.nome,
                                                         index,
                                                       );
+                                                    const canEditItem =
+                                                      itemStatus?.existsInInventory !==
+                                                      true;
 
                                                     return (
                                                       <EditableAnalysisItem
-                                                        key={index}
+                                                        key={`fontesGeradoras-${index}`}
                                                         item={fonte}
                                                         itemIndex={index}
                                                         analysisId={
                                                           sourceAnalysis.id
                                                         }
                                                         itemType="fontesGeradoras"
-                                                        analysis={analysis}
+                                                        analysis={sourceAnalysis}
                                                         backgroundColor="grey.50"
                                                         borderColor="grey.200"
                                                         itemStatus={itemStatus}
-                                                        readOnly={
-                                                          isHierarchyGroupFallback
+                                                        readOnly={!canEditItem}
+                                                        onEditItem={
+                                                          isHierarchyGroupFallback &&
+                                                          canEditItem
+                                                            ? createInheritedAnalysisItemEditHandler(
+                                                                sourceAnalysis,
+                                                                'fontesGeradoras',
+                                                                index,
+                                                              )
+                                                            : undefined
+                                                        }
+                                                        onRemoveItem={
+                                                          isHierarchyGroupFallback &&
+                                                          canEditItem
+                                                            ? createInheritedAnalysisItemRemoveHandler(
+                                                                sourceAnalysis,
+                                                                'fontesGeradoras',
+                                                                index,
+                                                              )
+                                                            : undefined
                                                         }
                                                         onAddItem={
-                                                          itemStatus?.existsInInventory !==
-                                                          true
+                                                          canEditItem
                                                             ? () =>
                                                                 handleAddSingleAnalysisItem(
                                                                   analysis,
@@ -1996,9 +2101,9 @@ export const FormRisksAnalysis = ({
                                           )}
 
                                         {/* Medidas de Engenharia */}
-                                        {analysis.analysis
+                                        {displayAnalysisContent
                                           ?.medidasEngenhariaRecomendadas &&
-                                          analysis.analysis
+                                          displayAnalysisContent
                                             .medidasEngenhariaRecomendadas
                                             .length > 0 && (
                                             <Box mb={2} mt={8}>
@@ -2026,7 +2131,7 @@ export const FormRisksAnalysis = ({
                                                 </SText>
                                               </SFlex>
                                               <SFlex direction="column" gap={1}>
-                                                {analysis.analysis.medidasEngenhariaRecomendadas.map(
+                                                {displayAnalysisContent.medidasEngenhariaRecomendadas.map(
                                                   (medida, index) => {
                                                     const itemStatus =
                                                       resolveDisplayedItemStatus(
@@ -2034,26 +2139,46 @@ export const FormRisksAnalysis = ({
                                                         medida.nome,
                                                         index,
                                                       );
+                                                    const canEditItem =
+                                                      itemStatus?.existsInInventory !==
+                                                      true;
 
                                                     return (
                                                       <EditableAnalysisItem
-                                                        key={index}
+                                                        key={`medidasEngenhariaRecomendadas-${index}`}
                                                         item={medida}
                                                         itemIndex={index}
                                                         analysisId={
                                                           sourceAnalysis.id
                                                         }
                                                         itemType="medidasEngenhariaRecomendadas"
-                                                        analysis={analysis}
+                                                        analysis={sourceAnalysis}
                                                         backgroundColor="grey.50"
                                                         borderColor="grey.200"
                                                         itemStatus={itemStatus}
-                                                        readOnly={
-                                                          isHierarchyGroupFallback
+                                                        readOnly={!canEditItem}
+                                                        onEditItem={
+                                                          isHierarchyGroupFallback &&
+                                                          canEditItem
+                                                            ? createInheritedAnalysisItemEditHandler(
+                                                                sourceAnalysis,
+                                                                'medidasEngenhariaRecomendadas',
+                                                                index,
+                                                              )
+                                                            : undefined
+                                                        }
+                                                        onRemoveItem={
+                                                          isHierarchyGroupFallback &&
+                                                          canEditItem
+                                                            ? createInheritedAnalysisItemRemoveHandler(
+                                                                sourceAnalysis,
+                                                                'medidasEngenhariaRecomendadas',
+                                                                index,
+                                                              )
+                                                            : undefined
                                                         }
                                                         onAddItem={
-                                                          itemStatus?.existsInInventory !==
-                                                          true
+                                                          canEditItem
                                                             ? () =>
                                                                 handleAddSingleAnalysisItem(
                                                                   analysis,
@@ -2081,9 +2206,9 @@ export const FormRisksAnalysis = ({
                                           )}
 
                                         {/* Medidas Administrativas */}
-                                        {analysis.analysis
+                                        {displayAnalysisContent
                                           ?.medidasAdministrativasRecomendadas &&
-                                          analysis.analysis
+                                          displayAnalysisContent
                                             .medidasAdministrativasRecomendadas
                                             .length > 0 && (
                                             <Box>
@@ -2113,7 +2238,7 @@ export const FormRisksAnalysis = ({
                                                 </SText>
                                               </SFlex>
                                               <SFlex direction="column" gap={1}>
-                                                {analysis.analysis.medidasAdministrativasRecomendadas.map(
+                                                {displayAnalysisContent.medidasAdministrativasRecomendadas.map(
                                                   (medida, index) => {
                                                     const itemStatus =
                                                       resolveDisplayedItemStatus(
@@ -2121,26 +2246,46 @@ export const FormRisksAnalysis = ({
                                                         medida.nome,
                                                         index,
                                                       );
+                                                    const canEditItem =
+                                                      itemStatus?.existsInInventory !==
+                                                      true;
 
                                                     return (
                                                       <EditableAnalysisItem
-                                                        key={index}
+                                                        key={`medidasAdministrativasRecomendadas-${index}`}
                                                         item={medida}
                                                         itemIndex={index}
                                                         analysisId={
                                                           sourceAnalysis.id
                                                         }
                                                         itemType="medidasAdministrativasRecomendadas"
-                                                        analysis={analysis}
+                                                        analysis={sourceAnalysis}
                                                         backgroundColor="grey.50"
                                                         borderColor="grey.200"
                                                         itemStatus={itemStatus}
-                                                        readOnly={
-                                                          isHierarchyGroupFallback
+                                                        readOnly={!canEditItem}
+                                                        onEditItem={
+                                                          isHierarchyGroupFallback &&
+                                                          canEditItem
+                                                            ? createInheritedAnalysisItemEditHandler(
+                                                                sourceAnalysis,
+                                                                'medidasAdministrativasRecomendadas',
+                                                                index,
+                                                              )
+                                                            : undefined
+                                                        }
+                                                        onRemoveItem={
+                                                          isHierarchyGroupFallback &&
+                                                          canEditItem
+                                                            ? createInheritedAnalysisItemRemoveHandler(
+                                                                sourceAnalysis,
+                                                                'medidasAdministrativasRecomendadas',
+                                                                index,
+                                                              )
+                                                            : undefined
                                                         }
                                                         onAddItem={
-                                                          itemStatus?.existsInInventory !==
-                                                          true
+                                                          canEditItem
                                                             ? () =>
                                                                 handleAddSingleAnalysisItem(
                                                                   analysis,
