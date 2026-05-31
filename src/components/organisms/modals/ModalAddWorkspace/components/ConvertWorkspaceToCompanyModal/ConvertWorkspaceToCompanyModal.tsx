@@ -238,7 +238,11 @@ export const ConvertWorkspaceToCompanyModal = ({
                   <strong>Impacto da conversão:</strong>
                   <ul>
                     <li>{preview.counts.employees} empregado(s) migrado(s)</li>
-                    <li>{preview.counts.hierarchies} hierarquia(s) clonada(s)</li>
+                    <li>
+                      {preview.counts.hierarchies} hierarquia(s):{' '}
+                      {preview.counts.hierarchiesMoved} movida(s) (mesmo ID) e{' '}
+                      {preview.counts.hierarchiesCloned} clonada(s)
+                    </li>
                     <li>
                       {preview.counts.formApplications} formulário(s) aplicado(s)
                       convertido(s)

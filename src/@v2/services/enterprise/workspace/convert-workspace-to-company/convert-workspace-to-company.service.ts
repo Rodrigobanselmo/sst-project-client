@@ -22,6 +22,8 @@ export type WorkspaceConvertPreviewApi = {
   counts: {
     employees: number;
     hierarchies: number;
+    hierarchiesMoved: number;
+    hierarchiesCloned: number;
     homogeneousGroups: number;
     characterizations: number;
     environments: number;
