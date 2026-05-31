@@ -210,13 +210,57 @@ const formatTwoDigits = (n: number) => String(n).padStart(2, '0');
 const isValidMatrixValue = (n: unknown): n is number =>
   typeof n === 'number' && Number.isFinite(n) && n >= 1 && n <= 5;
 
-const badgeSx = (bg: string) => ({
+const CLASSIFICATION_BADGE_WIDTH_SCALE = 0.76;
+
+const buildClassificationBadgeWidth = (
+  prefix: string,
+  suffixes: string[],
+) => {
+  const longestLabelLength = Math.max(
+    ...suffixes.map((suffix) => `${prefix}${suffix}`.length),
+  );
+
+  return `${Math.ceil(longestLabelLength * CLASSIFICATION_BADGE_WIDTH_SCALE)}ch`;
+};
+
+const PROBABILITY_BADGE_WIDTH = buildClassificationBadgeWidth(
+  'Probabilidade: ',
+  [
+    'Não informado',
+    ...([1, 2, 3, 4, 5] as const).map(
+      (value) => `${formatTwoDigits(value)} ${probabilityMap[value].label}`,
+    ),
+  ],
+);
+
+const SEVERITY_BADGE_WIDTH = buildClassificationBadgeWidth('Severidade: ', [
+  'Não informado',
+  ...([1, 2, 3, 4, 5] as const).map(
+    (value) => `${formatTwoDigits(value)} ${severityMap[value].label}`,
+  ),
+]);
+
+const OCCUPATIONAL_RISK_BADGE_WIDTH = buildClassificationBadgeWidth(
+  'Risco Ocupacional: ',
+  ['Não informado', 'Muito Baixo', 'Baixo', 'Moderado', 'Alto', 'Muito Alto'],
+);
+
+const ADD_RISK_ACTION_COLUMN_WIDTH = 200;
+
+const badgeSx = (
+  bg: string,
+  width: string,
+) => ({
   backgroundColor: bg,
-  padding: '4px 8px',
+  padding: '3px 5px',
   borderRadius: 1,
   border: '1px solid',
   borderColor: 'grey.200',
-  minWidth: 180,
+  boxSizing: 'border-box',
+  flexShrink: 0,
+  width,
+  minWidth: width,
+  whiteSpace: 'nowrap',
 });
 
 export const FormRisksAnalysis = ({
@@ -834,9 +878,10 @@ export const FormRisksAnalysis = ({
             </SFlex>
           ) : (
             <SFlex direction="column" gap={1} width="100%">
-              <SFlex alignItems="flex-start" justifyContent="space-between">
+              <SFlex alignItems="center" justifyContent="space-between" gap={1}>
                 <Box
                   flex={1}
+                  minWidth={0}
                   onClick={readOnly ? undefined : () => setIsEditing(true)}
                   sx={{
                     cursor: readOnly ? 'default' : 'pointer',
@@ -866,47 +911,19 @@ export const FormRisksAnalysis = ({
                   </SFlex>
                 </Box>
                 <SFlex
-                  direction="column"
-                  alignItems="flex-end"
+                  alignItems="center"
+                  justifyContent="flex-end"
                   gap={0.5}
                   flexShrink={0}
-                  ml={1}
+                  flexWrap="wrap"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  {onAddItem && (
-                    <Box className="analysis-item-add-action">
-                      <SButton
-                        variant="contained"
-                        color="success"
-                        size="s"
-                        text={isAddingItem ? 'Adicionando...' : 'Adicionar'}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onAddItem();
-                        }}
-                        buttonProps={{
-                          disabled: isAddingItem,
-                          title: 'Adicionar este item ao inventário',
-                          sx: {
-                            minWidth: 'auto',
-                            px: 1.5,
-                            py: 0.5,
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap',
-                            boxShadow: 'none',
-                            opacity: 1,
-                            visibility: 'visible',
-                          },
-                        }}
-                      />
-                    </Box>
-                  )}
                   {!readOnly && (
                     <SFlex
                       className="analysis-item-edit-actions"
                       gap={0.5}
                       alignItems="center"
+                      flexShrink={0}
                     >
                       <SIconButton
                         iconButtonProps={{
@@ -950,6 +967,35 @@ export const FormRisksAnalysis = ({
                         <SIconDelete fontSize="16px" />
                       </SIconButton>
                     </SFlex>
+                  )}
+                  {onAddItem && (
+                    <Box className="analysis-item-add-action">
+                      <SButton
+                        variant="contained"
+                        color="success"
+                        size="s"
+                        text={isAddingItem ? 'Adicionando...' : 'Adicionar'}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onAddItem();
+                        }}
+                        buttonProps={{
+                          disabled: isAddingItem,
+                          title: 'Adicionar este item ao inventário',
+                          sx: {
+                            minWidth: 'auto',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.75rem',
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                            boxShadow: 'none',
+                            opacity: 1,
+                            visibility: 'visible',
+                          },
+                        }}
+                      />
+                    </Box>
                   )}
                 </SFlex>
               </SFlex>
@@ -1709,59 +1755,90 @@ export const FormRisksAnalysis = ({
                             borderColor: 'grey.200',
                           }}
                         >
-                          <SFlex alignItems="center" gap={4} mb={2}>
+                          <SFlex
+                            alignItems="center"
+                            gap={2}
+                            mb={2}
+                            flexWrap="wrap"
+                          >
+                            <SFlex
+                              alignItems="center"
+                              gap={2}
+                              flex={1}
+                              minWidth={0}
+                            >
+                              <Box
+                                sx={{
+                                  backgroundColor: 'grey.100',
+                                  padding: '2px 4px',
+                                  borderRadius: 1,
+                                  border: '1px solid',
+                                  borderColor: 'grey.200',
+                                  flexShrink: 0,
+                                }}
+                              >
+                                <Typography fontSize={12} color="text.secondary">
+                                  {hierarchyTypeTranslation[entity.type]}
+                                </Typography>
+                              </Box>
+                              <Typography
+                                variant="body1"
+                                fontWeight="medium"
+                                sx={{ minWidth: 0 }}
+                              >
+                                {entity.name}
+                              </Typography>
+                            </SFlex>
                             <Box
                               sx={{
-                                backgroundColor: 'grey.100',
-                                padding: '2px 4px',
-                                borderRadius: 1,
-                                border: '1px solid',
-                                borderColor: 'grey.200',
+                                width: ADD_RISK_ACTION_COLUMN_WIDTH,
+                                flexShrink: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
                               }}
                             >
-                              <Typography fontSize={12} color="text.secondary">
-                                {hierarchyTypeTranslation[entity.type]}
-                              </Typography>
+                              {isRiskInInventory(riskId, entityId) ? (
+                                <SFlex
+                                  color="success.main"
+                                  fontSize={12}
+                                  gap={1}
+                                  alignItems="center"
+                                  justifyContent="center"
+                                >
+                                  <CheckIcon sx={{ fontSize: 16 }} />
+                                  <SText color="success.main" fontSize={12}>
+                                    Risco adicionado
+                                  </SText>
+                                </SFlex>
+                              ) : (
+                                <SButton
+                                  variant="shade"
+                                  color="paper"
+                                  buttonProps={{
+                                    sx: { width: '100%' },
+                                  }}
+                                  text="Adicionar risco a este setor"
+                                  onClick={() =>
+                                    handleAddRiskToEntity(riskId, entityId)
+                                  }
+                                />
+                              )}
                             </Box>
-                            <Typography variant="body1" fontWeight="medium">
-                              {entity.name}
-                            </Typography>
-                            {isRiskInInventory(riskId, entityId) ? (
-                              <SFlex
-                                color="success.main"
-                                fontSize={12}
-                                gap={3}
-                                width="180px"
-                                textAlign="center"
-                                ml="auto"
-                              >
-                                <CheckIcon sx={{ fontSize: 16 }} />
-                                <SText color="success.main" fontSize={12}>
-                                  Risco adicionado
-                                </SText>
-                              </SFlex>
-                            ) : (
-                              <SButton
-                                variant="shade"
-                                color="paper"
-                                buttonProps={{
-                                  sx: { ml: 'auto', width: '180px' },
-                                }}
-                                text="Adicionar risco a este setor"
-                                onClick={() =>
-                                  handleAddRiskToEntity(riskId, entityId)
-                                }
-                              />
-                            )}
                             <SFlex
                               center
                               sx={{
-                                ml: 'auto',
-                                gap: 2,
+                                gap: 1.5,
+                                flexShrink: 0,
                                 flexWrap: 'wrap',
                               }}
                             >
-                              <Box sx={badgeSx(probabilityMap[probability || 0].color)}>
+                              <Box
+                                sx={badgeSx(
+                                  probabilityMap[probability || 0].color,
+                                  PROBABILITY_BADGE_WIDTH,
+                                )}
+                              >
                                 <Typography variant="body2" color="text.main">
                                   Probabilidade:{' '}
                                   {hasValidProbability
@@ -1775,6 +1852,7 @@ export const FormRisksAnalysis = ({
                                   hasValidSeverity
                                     ? severityMap[severity].color
                                     : severityMap[0].color,
+                                  SEVERITY_BADGE_WIDTH,
                                 )}
                               >
                                 <Typography variant="body2" color="text.main">
@@ -1791,6 +1869,7 @@ export const FormRisksAnalysis = ({
                                     occupationalRiskColorMap[
                                       occupationalRiskLabel
                                     ] ?? occupationalRiskColorMap['Não informado'],
+                                    OCCUPATIONAL_RISK_BADGE_WIDTH,
                                   ),
                                   borderColor: 'grey.400',
                                 }}
