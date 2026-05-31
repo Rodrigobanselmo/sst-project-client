@@ -18,8 +18,10 @@ export type GroupedEntityRiskMapForExpansion = Record<
  * Setores com dado próprio do risco no recorte, mais membros do mesmo agrupamento
  * quando o grupo materializa o risco (via dado individual ou groupedEntityRiskMap).
  *
- * - Se algum membro visível tem dado próprio do risco: expande todo o grupo.
- * - Se o risco vem só do agrupamento agregado: expande apenas membros visíveis no recorte.
+ * - Se algum membro visível tem dado próprio do risco: expande os demais membros
+ *   do mesmo agrupamento que também estejam no recorte (`isEntityVisible`).
+ * - Se o risco vem só do agrupamento agregado: expande apenas membros visíveis.
+ * - A expansão nunca ultrapassa o recorte estrutural selecionado (Estabelecimento/Setor).
  */
 export function expandRiskAnalysisEntitiesForHierarchyGroups(params: {
   riskId: string;
@@ -61,17 +63,10 @@ export function expandRiskAnalysisEntitiesForHierarchyGroups(params: {
 
     if (!groupHasAggregatedRisk && !groupHasMemberWithDirectRisk) continue;
 
-    const expandAllGroupMembers = group.hierarchyIds.some(
-      (hierarchyId) =>
-        Boolean(entityRiskMap[hierarchyId]?.[riskId]) &&
-        isEntityVisible(hierarchyId),
-    );
-
     for (const hierarchyId of group.hierarchyIds) {
       if (!entityMap[hierarchyId]) continue;
-      if (expandAllGroupMembers || isEntityVisible(hierarchyId)) {
-        entityIds.add(hierarchyId);
-      }
+      if (!isEntityVisible(hierarchyId)) continue;
+      entityIds.add(hierarchyId);
     }
   }
 
