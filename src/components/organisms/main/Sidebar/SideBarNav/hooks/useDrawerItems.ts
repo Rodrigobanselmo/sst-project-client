@@ -165,6 +165,14 @@ export const useDrawerItems = () => {
       href: RoutesEnum.DATABASE,
       roles: [RoleEnum.MASTER],
     },
+    [DrawerItemsEnum.catalogEquivalences]: {
+      text: 'Equivalências de Catálogo',
+      description:
+        'Consolidação de fontes geradoras e recomendações duplicadas ou equivalentes',
+      Icon: SDatabaseIcon,
+      href: RoutesEnum.DATABASE_CATALOG_EQUIVALENCES,
+      roles: [RoleEnum.MASTER],
+    },
     [DrawerItemsEnum.allCompaniesData]: {
       text: 'Empresas',
       description: 'Visualizar empresas cadastradas',
@@ -413,6 +421,7 @@ export const useDrawerItems = () => {
       items[DrawerItemsEnum.allClinicsData],
       items[DrawerItemsEnum.employee],
       items[DrawerItemsEnum.importExportData],
+      items[DrawerItemsEnum.catalogEquivalences],
       items[DrawerItemsEnum.forms],
     ],
   };

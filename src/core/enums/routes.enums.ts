@@ -19,6 +19,7 @@ export enum RoutesEnum {
   COMPANY_RISKS = '/dashboard/empresas/:companyId/riscos',
   DASHBOARD = '/dashboard',
   DATABASE = '/dashboard/dados',
+  DATABASE_CATALOG_EQUIVALENCES = '/dashboard/dados/equivalencias-catalogo',
   DND_TREE_DEMO = '/dashboard/test/dnd-tree',
   EMPLOYEES = '/dashboard/empresas/:companyId/empregados',
   GHOS = '/dashboard/empresas/:companyId/grupos-homogenios',
