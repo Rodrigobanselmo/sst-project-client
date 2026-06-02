@@ -19,6 +19,8 @@ export interface SideTopProps {
   onChangeView?: (option: IViewsRiskOption) => void;
   riskGroupId: string;
   onChangeViewData?: (option: IViewsDataOption) => void;
+  hideViewSwitcher?: boolean;
+  hideCloseButton?: boolean;
   handleSelectGHO: (
     gho: IGho | null,
     hierarchies: string[],

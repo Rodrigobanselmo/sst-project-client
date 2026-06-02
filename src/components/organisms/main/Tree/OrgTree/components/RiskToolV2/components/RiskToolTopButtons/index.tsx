@@ -55,6 +55,8 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
   viewDataType,
   onChangeViewData,
   riskGroupId,
+  hideViewSwitcher = false,
+  hideCloseButton = false,
 }) => {
   const dispatch = useAppDispatch();
   const { asPath, push } = useRouter();
@@ -87,28 +89,36 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
     <SFlex direction="column">
       <SFlex align="center" justify="space-between">
         <SFlex align="center">
-          <SText ml={4} fontSize={15} color="text.light" mr={5}>
-            Adicionar Risco por:
-          </SText>
-          <SPageMenu
-            active={viewDataType}
-            options={[
-              ViewsDataEnum.GSE,
-              ViewsDataEnum.HIERARCHY,
-              ViewsDataEnum.CHARACTERIZATION,
-              ViewsDataEnum.EMPLOYEE,
-            ].map((key) => ({
-              ...viewsDataOptionsConstant[key],
-              label: viewsDataOptionsConstant[key].short,
-            }))}
-            onChange={(option) =>
-              onChangeViewData &&
-              viewsDataOptionsConstant[option as unknown as ViewsDataEnum] &&
-              onChangeViewData(
-                viewsDataOptionsConstant[option as unknown as ViewsDataEnum],
-              )
-            }
-          />
+          {hideViewSwitcher ? (
+            <SText ml={4} fontSize={15} color="text.light" mr={5}>
+              GSE: {viewsDataOptionsConstant[ViewsDataEnum.GSE].short}
+            </SText>
+          ) : (
+            <>
+              <SText ml={4} fontSize={15} color="text.light" mr={5}>
+                Adicionar Risco por:
+              </SText>
+              <SPageMenu
+                active={viewDataType}
+                options={[
+                  ViewsDataEnum.GSE,
+                  ViewsDataEnum.HIERARCHY,
+                  ViewsDataEnum.CHARACTERIZATION,
+                  ViewsDataEnum.EMPLOYEE,
+                ].map((key) => ({
+                  ...viewsDataOptionsConstant[key],
+                  label: viewsDataOptionsConstant[key].short,
+                }))}
+                onChange={(option) =>
+                  onChangeViewData &&
+                  viewsDataOptionsConstant[option as unknown as ViewsDataEnum] &&
+                  onChangeViewData(
+                    viewsDataOptionsConstant[option as unknown as ViewsDataEnum],
+                  )
+                }
+              />
+            </>
+          )}
         </SFlex>
 
         <SFlex align="center" gap="1" mb={2}>
@@ -118,9 +128,11 @@ export const RiskToolTopButtons: FC<{ children?: any } & SideTopProps> = ({
               viewType={viewType}
             />
 
-            <SIconButton onClick={handleCloseRisk} size="small">
-              <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
-            </SIconButton>
+            {!hideCloseButton && (
+              <SIconButton onClick={handleCloseRisk} size="small">
+                <Icon component={SCloseIcon} sx={{ fontSize: '1.2rem' }} />
+              </SIconButton>
+            )}
           </SFlex>
         </SFlex>
       </SFlex>

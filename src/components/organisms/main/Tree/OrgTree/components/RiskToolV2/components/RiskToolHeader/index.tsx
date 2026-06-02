@@ -28,6 +28,9 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
   loadingCopy,
   companyId,
   riskGroupId,
+  hideGhoPicker = false,
+  lockedGhoName,
+  disableEditGho = false,
 }) => {
   return (
     <SFlex align="center" gap={4} mb={5}>
@@ -45,6 +48,9 @@ export const RiskToolHeader: FC<{ children?: any } & RiskToolProps> = ({
             loadingCopy={!!loadingCopy}
             companyId={companyId}
             riskGroupId={riskGroupId}
+            hideGhoPicker={hideGhoPicker}
+            lockedGhoName={lockedGhoName}
+            disableEditGho={disableEditGho}
           />
         )}
       </Box>

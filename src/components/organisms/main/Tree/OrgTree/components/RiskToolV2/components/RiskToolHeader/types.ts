@@ -31,4 +31,7 @@ export interface SideHeaderProps {
         type: string;
       }
     | undefined;
+  hideGhoPicker?: boolean;
+  lockedGhoName?: string;
+  disableEditGho?: boolean;
 }
