@@ -231,7 +231,8 @@ export const useEditCharacterization = (
     ) {
       if (
         propsInitialData &&
-        didHydratePropsInitialDataRef.current === propsHydrationKey
+        didHydratePropsInitialDataRef.current === propsHydrationKey &&
+        (!!(initialData as any)?.id ? !!characterizationData.type : true)
       ) {
         return;
       }
@@ -270,6 +271,67 @@ export const useEditCharacterization = (
     propsInitialData,
     modalName,
     characterizationData.profileParentId,
+    setValue,
+  ]);
+
+  const didHydrateFromDetailQueryRef = useRef(false);
+
+  useEffect(() => {
+    didHydrateFromDetailQueryRef.current = false;
+  }, [
+    propsInitialData?.id,
+    propsInitialData?.workspaceId,
+    propsInitialData?.companyId,
+  ]);
+
+  useEffect(() => {
+    const entityId =
+      characterizationData.profileParentId || characterizationData.id;
+    if (!entityId || entityId === 'new') return;
+    if (!contextCompanyId || !contextWorkspaceId) return;
+    if (characterizationLoading) return;
+    if (!characterizationDataQuery?.id) return;
+
+    const detailSource = characterizationData.profileParentId
+      ? characterizationDataQuery.profiles?.find(
+          (profile) => profile.id === characterizationData.id,
+        ) || ({} as ICharacterization)
+      : characterizationDataQuery;
+
+    if (!detailSource?.id || detailSource.id !== entityId) return;
+    if (characterizationData.type || didHydrateFromDetailQueryRef.current) return;
+    if (!detailSource.type) return;
+
+    didHydrateFromDetailQueryRef.current = true;
+
+    setCharacterizationData((oldData) => {
+      const newData = {
+        ...oldData,
+        ...cleanObjectNullValues({
+          ...detailSource,
+          companyId: contextCompanyId || oldData.companyId,
+          workspaceId: contextWorkspaceId || oldData.workspaceId,
+        }),
+        profileParentId: oldData.profileParentId,
+        id: oldData.id || detailSource.id,
+      };
+      initialDataRef.current = newData;
+      return newData;
+    });
+
+    setValue('type', detailSource.type);
+    if (detailSource.name) setValue('name', detailSource.name);
+    if (detailSource.description != null) {
+      setValue('description', detailSource.description || '');
+    }
+  }, [
+    characterizationData.id,
+    characterizationData.profileParentId,
+    characterizationData.type,
+    characterizationDataQuery,
+    characterizationLoading,
+    contextCompanyId,
+    contextWorkspaceId,
     setValue,
   ]);
 

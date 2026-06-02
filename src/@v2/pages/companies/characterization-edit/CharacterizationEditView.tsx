@@ -14,9 +14,6 @@ import {
 } from 'components/organisms/modals/ModalAddCharacterization/hooks/useEditCharacterization';
 
 import { IdsEnum } from 'core/enums/ids.enums';
-import {
-  CHARACTERIZATION_INLINE_EDITOR_HEIGHT,
-} from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
 
 export type CharacterizationEditViewProps = {
   companyId: string;
@@ -158,24 +155,31 @@ export const CharacterizationEditView = ({
         sx={{
           display: 'flex',
           flexDirection: 'column',
-          flex: 1,
-          minHeight: 0,
+          flex: embedded ? 1 : undefined,
+          minHeight: embedded ? 0 : undefined,
           maxHeight: embedded
             ? 'none'
-            : { xs: 'none', md: 'calc(100dvh - 100px)' },
+            : { xs: 'none', md: 'calc(100vh - 100px)' },
           overflow: embedded ? 'visible' : 'hidden',
           py: embedded ? 0 : { xs: 6, sm: 8, md: 5 },
           pb: embedded ? 0 : { xs: 6, md: 2 },
           px: embedded ? 0 : undefined,
+          ...(embedded
+            ? {}
+            : {
+                '@supports (height: 100dvh)': {
+                  maxHeight: { md: 'calc(100dvh - 100px)' },
+                },
+              }),
         }}
       >
         {headerRow}
 
         <Box
           sx={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: embedded ? 'hidden' : 'auto',
+            flex: embedded ? 1 : undefined,
+            minHeight: embedded ? 0 : undefined,
+            overflowY: 'auto',
             overflowX: 'hidden',
             pr: 0.5,
             display: 'flex',
@@ -201,8 +205,6 @@ export const CharacterizationEditView = ({
           flexDirection: 'column',
           flex: 1,
           minHeight: 0,
-          height: { xs: 'auto', md: CHARACTERIZATION_INLINE_EDITOR_HEIGHT },
-          maxHeight: { md: CHARACTERIZATION_INLINE_EDITOR_HEIGHT },
         }}
       >
         {content}

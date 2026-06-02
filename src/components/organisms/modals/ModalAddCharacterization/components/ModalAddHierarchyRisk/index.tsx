@@ -13,7 +13,7 @@ import SFlex from 'components/atoms/SFlex';
 import { useRouter } from 'next/router';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
 import {
-  CHARACTERIZATION_INLINE_RISK_TOOL_HEIGHT,
+  inlineRiskToolHeightSx,
 } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
 import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysisContent';
 
@@ -147,10 +147,15 @@ export const ModalAddHierarchyRisk = (
             px: embedded ? 0 : 5,
             pb: 0,
             ...(isEdit && {
-              height: embedded
-                ? CHARACTERIZATION_INLINE_RISK_TOOL_HEIGHT
-                : 'calc(100vh - 150px)',
-              minHeight: embedded ? 420 : 0,
+              ...(embedded
+                ? inlineRiskToolHeightSx
+                : {
+                    height: 'calc(100vh - 150px)',
+                    minHeight: 0,
+                    '@supports (height: 100dvh)': {
+                      height: 'calc(100dvh - 150px)',
+                    },
+                  }),
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',

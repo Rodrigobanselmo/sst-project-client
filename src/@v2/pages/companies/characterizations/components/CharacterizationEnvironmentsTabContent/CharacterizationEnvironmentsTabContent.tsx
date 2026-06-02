@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
+import { Box } from '@mui/material';
 import { CharacterizationEditView } from '@v2/pages/companies/characterization-edit/CharacterizationEditView';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { useRouter } from 'next/router';
@@ -59,14 +60,24 @@ export const CharacterizationEnvironmentsTabContent = ({
 
   if (editSession && companyId) {
     return (
-      <CharacterizationEditView
-        key={editSession.id}
-        companyId={companyId}
-        workspaceId={editSession.workspaceId}
-        characterizationId={editSession.id}
-        embedded
-        onBack={() => setEditSession(null)}
-      />
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          width: '100%',
+        }}
+      >
+        <CharacterizationEditView
+          key={editSession.id}
+          companyId={companyId}
+          workspaceId={editSession.workspaceId}
+          characterizationId={editSession.id}
+          embedded
+          onBack={() => setEditSession(null)}
+        />
+      </Box>
     );
   }
 
