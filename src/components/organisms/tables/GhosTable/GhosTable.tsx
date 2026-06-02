@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useCallback, useState } from 'react';
 
 import { BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -21,7 +21,6 @@ import { StatusEnum } from 'project/enum/status.enum';
 
 import EditIcon from 'assets/icons/SEditIcon';
 import { SGhoIcon } from 'assets/icons/SGhoIcon';
-import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
@@ -31,6 +30,9 @@ import {
   IQueryGhos,
   useQueryGhos,
 } from 'core/services/hooks/queries/useQueryGhos/useQueryGhos';
+
+const GHO_TABLE_PAGE_SIZES = [15, 25, 50, 100] as const;
+const DEFAULT_GHO_TABLE_PAGE_SIZE = 15;
 
 export const GhosTable: FC<
   { children?: any } & BoxProps & {
@@ -43,7 +45,7 @@ export const GhosTable: FC<
       companyFlowBelowTabs?: boolean;
     }
 > = ({
-  rowsPerPage = 8,
+  rowsPerPage: rowsPerPageProp,
   workspaceId,
   onSelectData,
   selectedData,
@@ -52,6 +54,11 @@ export const GhosTable: FC<
   companyFlowBelowTabs = false,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+  const [pageSize, setPageSize] = useState(() =>
+    typeof rowsPerPageProp === 'number'
+      ? rowsPerPageProp
+      : DEFAULT_GHO_TABLE_PAGE_SIZE,
+  );
 
   const isSelect = !!onSelectData;
 
@@ -59,10 +66,15 @@ export const GhosTable: FC<
     data: risks,
     isLoading: loadRisks,
     count,
-  } = useQueryGhos(
-    page,
-    { search, workspaceId, ...query },
-    rowsPerPage,
+  } = useQueryGhos(page, { search, workspaceId, ...query }, pageSize);
+
+  const onRegistersPerPageChange = useCallback(
+    (size: number) => {
+      if (!(GHO_TABLE_PAGE_SIZES as readonly number[]).includes(size)) return;
+      setPageSize(size);
+      setPage(1);
+    },
+    [setPage],
   );
 
   const { onStackOpenModal } = useModal();
@@ -120,7 +132,7 @@ export const GhosTable: FC<
     <STableBody<(typeof risks)[0]>
       rowsData={risks}
       hideLoadMore
-      rowsInitialNumber={rowsPerPage}
+      rowsInitialNumber={pageSize}
       renderRow={(row) => (
         <STableRow onClick={() => onSelectRow(row)} clickable key={row.id}>
           {selectedData && (
@@ -152,10 +164,14 @@ export const GhosTable: FC<
   const tablePagination = (
     <STablePagination
       mt={2}
-      registersPerPage={rowsPerPage}
+      registersPerPage={pageSize}
       totalCountOfRegisters={loadRisks ? undefined : count}
       currentPage={page}
       onPageChange={setPage}
+      {...(typeof rowsPerPageProp !== 'number' && {
+        pageSizeOptions: [...GHO_TABLE_PAGE_SIZES],
+        onRegistersPerPageChange,
+      })}
     />
   );
 
@@ -165,7 +181,7 @@ export const GhosTable: FC<
         chrome={tableChrome}
         columns={tableColumns}
         loading={loadRisks}
-        rowsNumber={rowsPerPage}
+        rowsNumber={pageSize}
         header={tableHeader}
         footer={tablePagination}
         belowModuleTabs={companyFlowBelowTabs}
@@ -178,7 +194,7 @@ export const GhosTable: FC<
   return (
     <>
       {tableChrome}
-      <STable columns={tableColumns} loading={loadRisks} rowsNumber={rowsPerPage}>
+      <STable columns={tableColumns} loading={loadRisks} rowsNumber={pageSize}>
         {tableHeader}
         {tableBody}
       </STable>
