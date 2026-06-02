@@ -30,7 +30,6 @@ import { SRiskFactorIcon } from 'assets/icons/SRiskFactorIcon';
 import { QueryEnum } from 'core/enums/query.enums';
 import { usePushRoute } from 'core/hooks/actions-push/usePushRoute';
 import { useTableSearchAsync } from 'core/hooks/useTableSearchAsync';
-import { useRouter } from 'next/router';
 import { useThrottle } from 'core/hooks/useThrottle';
 import { IRiskDocInfo, IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpsertRiskDocInfo } from 'core/services/hooks/mutations/checklist/risk/useMutUpsertRiskDocInfo';
@@ -121,7 +120,6 @@ export const RiskCompanyTable: FC<
 
   const riskGroupId = riskGroupData?.[riskGroupData.length - 1]?.id;
   const { handleOpenAddRiskModal } = usePushRoute();
-  const router = useRouter();
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const { onOpenRiskToolSelected } = useOpenRiskTool();
 
@@ -178,10 +176,6 @@ export const RiskCompanyTable: FC<
   };
 
   const onAddRisk = () => {
-    if (companyId) {
-      router.push(`/dashboard/empresas/${companyId}/caracterizacao`);
-      return;
-    }
     handleOpenAddRiskModal();
   };
 
