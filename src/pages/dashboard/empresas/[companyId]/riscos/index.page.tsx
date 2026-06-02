@@ -2,6 +2,7 @@ import React from 'react';
 
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
+import { StackModalAddGho } from 'components/organisms/modals/ModalAddGHO';
 import { StackModalRiskTool } from 'components/organisms/modals/ModalRiskTool';
 import { RiskCompanyTable } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
 import { NextPage } from 'next';
@@ -16,6 +17,7 @@ const RiskPage: NextPage = () => {
         <RiskCompanyTable />
       </SContainer>
       <StackModalRiskTool />
+      <StackModalAddGho includeHierarchySelect={false} />
     </>
   );
 };

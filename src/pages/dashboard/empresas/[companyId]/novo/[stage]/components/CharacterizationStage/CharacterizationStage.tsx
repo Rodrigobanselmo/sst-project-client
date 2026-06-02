@@ -4,7 +4,7 @@ import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlo
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ExamsRiskTable } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
 import { ExamsRiskTableList } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTableList';
-import { GhosTable } from 'components/organisms/tables/GhosTable/GhosTable';
+import { GhoGseTabContent } from 'components/organisms/modals/ModalAddGHO';
 import { ProtocolsRiskTable } from 'components/organisms/tables/ProtocolsRiskTable/ProtocolsRiskTable';
 import { RiskCompanyTable } from 'components/organisms/tables/RiskCompanyTable/RiskCompanyTable';
 import { Wizard } from 'react-use-wizard';
@@ -63,7 +63,7 @@ export const CharacterizationStage = ({ query, ...props }: ICompanyStage) => {
           />
         </>
         <>
-          <GhosTable
+          <GhoGseTabContent
             workspaceId={workspaceId}
             companyFlowSticky
             companyFlowBelowTabs

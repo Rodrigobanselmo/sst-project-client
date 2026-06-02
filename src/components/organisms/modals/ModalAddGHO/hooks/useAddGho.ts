@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
+import { useStore } from 'react-redux';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
 import { StatusEnum } from 'project/enum/status.enum';
@@ -23,6 +24,13 @@ import { ghoSchema } from 'core/utils/schemas/gho.schema';
 import { useStartEndDate } from '../../ModalAddCharacterization/hooks/useStartEndDate';
 import { initialHierarchySelectState } from '../../ModalSelectHierarchy';
 import { IWorkspace } from './../../../../../core/interfaces/api/ICompany';
+import {
+  mapGhoHierarchiesToActiveLinks,
+  mapModalSelectIdsToGhoLinks,
+  mergeGhoHierarchyLinks,
+} from './ghoHierarchyLinks';
+
+export type GhoAddLayout = 'modal' | 'page';
 
 export const initialAddGhoState = {
   status: StatusEnum.ACTIVE,
@@ -36,12 +44,14 @@ export const initialAddGhoState = {
   id: '',
   startDate: undefined as Date | undefined,
   endDate: undefined as Date | undefined,
+  layout: 'modal' as GhoAddLayout,
 };
 
 export const useAddGho = () => {
   const { registerModal, getModalData } = useRegisterModal();
   const { onCloseModal, onStackOpenModal } = useModal();
   const { selectStartEndDate } = useStartEndDate();
+  const store = useStore<any>();
   const initialDataRef = useRef(initialAddGhoState);
 
   const { handleSubmit, control, reset, getValues, setValue } = useForm<any>({
@@ -269,31 +279,33 @@ export const useAddGho = () => {
   };
 
   const onAddHierarchy = () => {
+    const existingLinksAtOpen = mapGhoHierarchiesToActiveLinks(
+      hierarchies as IHierarchy[],
+    );
+
     const handleSelect = (
-      hierarchies: IHierarchy[],
+      hierarchiesSelected: IHierarchy[],
       startDate: Date,
       endDate: Date,
       close?: () => void,
     ) => {
+      const modalSelectIds = store.getState().hierarchy
+        .modalSelectIds as string[];
+      const fallbackWorkspaceId = ghoQuery.workspaceIds?.[0];
+      const newlySelectedLinks = mapModalSelectIdsToGhoLinks(
+        modalSelectIds,
+        fallbackWorkspaceId,
+      );
+
       if (isEdit) {
         const submitData: IUpdateGho = {
           companyId: ghoData.companyId,
           id: ghoData.id,
           startDate,
           endDate,
-          hierarchies: hierarchies.reduce(
-            (acc, hierarchy) => {
-              acc = [
-                ...acc,
-                ...hierarchy.workspaceIds.map((workspaceId) => ({
-                  id: hierarchy.id,
-                  workspaceId,
-                })),
-              ];
-
-              return acc;
-            },
-            [] as { id: string; workspaceId: string }[],
+          hierarchies: mergeGhoHierarchyLinks(
+            existingLinksAtOpen,
+            newlySelectedLinks,
           ),
         };
 
@@ -302,12 +314,18 @@ export const useAddGho = () => {
           .then(() => close?.())
           .catch(() => {});
       } else {
+        const newHierarchies = hierarchiesSelected.map((h) => ({
+          ...h,
+          id: String(h.id).split('//')[0],
+          hierarchyOnHomogeneous: [{ startDate, endDate } as any],
+        }));
+
         setGhoData((oldData) => ({
           ...oldData,
-          hierarchies: hierarchies.map((h) => ({
-            ...h,
-            hierarchyOnHomogeneous: [{ startDate, endDate } as any],
-          })),
+          hierarchies: removeDuplicate(
+            [...oldData.hierarchies, ...newHierarchies],
+            { removeById: 'id' },
+          ),
           startDate,
           endDate,
         }));

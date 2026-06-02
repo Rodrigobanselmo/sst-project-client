@@ -15,7 +15,10 @@ import STablePagination from 'components/atoms/STable/components/STablePaginatio
 import STableSearch from 'components/atoms/STable/components/STableSearch';
 import STableTitle from 'components/atoms/STable/components/STableTitle';
 import { CompanyFlowTableSection } from 'components/organisms/main/CompanyFlow/CompanyFlowTableSection';
-import { initialAddGhoState } from 'components/organisms/modals/ModalAddGHO/hooks/useAddGho';
+import {
+  GhoAddLayout,
+  initialAddGhoState,
+} from 'components/organisms/modals/ModalAddGHO/hooks/useAddGho';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import { StatusEnum } from 'project/enum/status.enum';
 
@@ -43,6 +46,8 @@ export const GhosTable: FC<
       query?: IQueryGhos;
       companyFlowSticky?: boolean;
       companyFlowBelowTabs?: boolean;
+      /** Layout amplo (sem backdrop de modal) na edição/criação de GSE. */
+      pageGhoLayout?: boolean;
     }
 > = ({
   rowsPerPage: rowsPerPageProp,
@@ -52,6 +57,7 @@ export const GhosTable: FC<
   query,
   companyFlowSticky = false,
   companyFlowBelowTabs = false,
+  pageGhoLayout = false,
 }) => {
   const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
   const [pageSize, setPageSize] = useState(() =>
@@ -83,14 +89,21 @@ export const GhosTable: FC<
     // TODO edit checklist status
   };
 
+  const ghoModalPayload = (
+    data: Partial<typeof initialAddGhoState> = {},
+  ): typeof initialAddGhoState =>
+    ({
+      ...initialAddGhoState,
+      ...data,
+      ...(pageGhoLayout && { layout: 'page' as GhoAddLayout }),
+    }) as typeof initialAddGhoState;
+
   const onAddGHO = () => {
-    onStackOpenModal(ModalEnum.GHO_ADD, {} as typeof initialAddGhoState);
+    onStackOpenModal(ModalEnum.GHO_ADD, ghoModalPayload());
   };
 
   const onEditGHO = (gho: IGho) => {
-    onStackOpenModal(ModalEnum.GHO_ADD, {
-      ...(gho as any),
-    } as typeof initialAddGhoState);
+    onStackOpenModal(ModalEnum.GHO_ADD, ghoModalPayload(gho as any));
   };
 
   const onSelectRow = (risk: IGho) => {

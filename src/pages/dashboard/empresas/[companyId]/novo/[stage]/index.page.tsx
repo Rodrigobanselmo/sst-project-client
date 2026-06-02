@@ -20,6 +20,10 @@ import { StackModalEditEmployee } from 'components/organisms/modals/ModalEditEmp
 import { ModalEditExamRisk } from 'components/organisms/modals/ModalEditExamRisk/ModalEditExamRisk';
 import { ModalEditProtocolRisk } from 'components/organisms/modals/ModalEditProtocolRisk/ModalEditProtocolRisk';
 import { ModalImportExport } from 'components/organisms/modals/ModalImportExport';
+import {
+  GhoEditorProvider,
+  StackModalAddGho,
+} from 'components/organisms/modals/ModalAddGHO';
 import { StackModalRiskTool } from 'components/organisms/modals/ModalRiskTool';
 import { ModalSelectClinic } from 'components/organisms/modals/ModalSelectClinics';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
@@ -216,9 +220,13 @@ const CompanyPage: NextPage = () => {
         )}
 
         {CompanyActionEnum.SST_GROUP_PAGE == stage && (
-          <>
+          <GhoEditorProvider>
             <CharacterizationStage {...props} />
-          </>
+            <StackModalAddGho
+              includeHierarchySelect={false}
+              embedInParentProvider
+            />
+          </GhoEditorProvider>
         )}
 
         {CompanyActionEnum.DOCUMENTS_GROUP_PAGE == stage && (
@@ -230,6 +238,9 @@ const CompanyPage: NextPage = () => {
         )}
 
         <StackModalRiskTool />
+        {CompanyActionEnum.SST_GROUP_PAGE != stage && (
+          <StackModalAddGho includeHierarchySelect={false} />
+        )}
         <ModalViewProfessional />
         <ModalSingleInput />
         <StackModalEditEmployee />

@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useCallback, useState } from 'react';
 
 import { Box, BoxProps } from '@mui/material';
 import SCheckBox from 'components/atoms/SCheckBox';
@@ -24,6 +24,9 @@ import { dateToString } from 'core/utils/date/date-format';
 import { sortDate } from 'core/utils/sorts/data.sort';
 import { sortString } from 'core/utils/sorts/string.sort';
 
+const HIERARCHY_HOMO_PAGE_SIZES = [15, 25, 50, 100] as const;
+const DEFAULT_HIERARCHY_HOMO_PAGE_SIZE = 15;
+
 export const HierarchyHomoTable: FC<
   { children?: any } & BoxProps & {
       rowsPerPage?: number;
@@ -34,9 +37,12 @@ export const HierarchyHomoTable: FC<
       hierarchies: IHierarchy[];
       loading: boolean;
       isCreate?: boolean;
+      /** Quando definido, fixa o tamanho da página e oculta o seletor. */
+      fixedRowsPerPage?: number;
     }
 > = ({
-  rowsPerPage = 8,
+  rowsPerPage: rowsPerPageProp,
+  fixedRowsPerPage,
   onAdd,
   selectedData,
   onSelectData,
@@ -44,7 +50,13 @@ export const HierarchyHomoTable: FC<
   hierarchies,
   isCreate,
 }) => {
-  // const { handleSearchChange, search, page, setPage } = useTableSearchAsync();
+  const [pageSize, setPageSize] = useState(() =>
+    typeof fixedRowsPerPage === 'number'
+      ? fixedRowsPerPage
+      : typeof rowsPerPageProp === 'number'
+        ? rowsPerPageProp
+        : DEFAULT_HIERARCHY_HOMO_PAGE_SIZE,
+  );
 
   const isSelect = !!onSelectData;
   const { selectStartEndDate } = useStartEndDate();
@@ -109,10 +121,26 @@ export const HierarchyHomoTable: FC<
   }, [] as any[]);
 
   const { handleSearchChange, results, page, setPage } = useTableSearch({
-    rowsPerPage: 8,
+    rowsPerPage: pageSize,
     data,
     keys: ['name', 'label'],
   });
+
+  const showPageSizeSelector =
+    typeof fixedRowsPerPage !== 'number' && typeof rowsPerPageProp !== 'number';
+
+  const onRegistersPerPageChange = useCallback(
+    (size: number) => {
+      if (
+        !(HIERARCHY_HOMO_PAGE_SIZES as readonly number[]).includes(size)
+      ) {
+        return;
+      }
+      setPageSize(size);
+      setPage(1);
+    },
+    [setPage],
+  );
 
   const getName = (row: IHierarchy) => {
     const parents = row?.parents || [];
@@ -142,7 +170,7 @@ export const HierarchyHomoTable: FC<
       />
       <STable
         loading={loading}
-        rowsNumber={rowsPerPage}
+        rowsNumber={pageSize}
         columns={`${
           selectedData ? '15px ' : ''
         }minmax(250px, 5fr) 120px 120px 50px`}
@@ -155,7 +183,7 @@ export const HierarchyHomoTable: FC<
             .sort((a, b) => sortDate(b?.endDate, a?.endDate))
             .sort((a, b) => sortString(a?.name, b?.name))}
           // hideLoadMore
-          rowsInitialNumber={rowsPerPage}
+          rowsInitialNumber={pageSize}
           hideLoadMore
           renderRow={(row) => {
             return (
@@ -217,10 +245,14 @@ export const HierarchyHomoTable: FC<
       </STable>
       <STablePagination
         mt={2}
-        registersPerPage={rowsPerPage}
+        registersPerPage={pageSize}
         totalCountOfRegisters={loading ? undefined : data.length}
         currentPage={page}
         onPageChange={setPage}
+        {...(showPageSizeSelector && {
+          pageSizeOptions: [...HIERARCHY_HOMO_PAGE_SIZES],
+          onRegistersPerPageChange,
+        })}
       />
     </>
   );

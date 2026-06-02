@@ -5,7 +5,6 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 import { RiskTool } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/RiskTool';
 import { ModalAddEpi } from 'components/organisms/modals/ModalAddEpi';
 import { ModalAddGenerateSource } from 'components/organisms/modals/ModalAddGenerateSource';
-import { ModalAddGho } from 'components/organisms/modals/ModalAddGHO';
 import { ModalAddProbability } from 'components/organisms/modals/ModalAddProbability';
 import { ModalAddRecMed } from 'components/organisms/modals/ModalAddRecMed';
 import { ModalAddRisk } from 'components/organisms/modals/ModalAddRisk';
@@ -58,7 +57,6 @@ export const StackModalRiskTool = () => {
       <ModalAutomateSubOffice />
 
       <ModalAddRisk />
-      <ModalAddGho />
       <ModalAddGenerateSource />
       <ModalAddRecMed />
       <ModalAddEpi />

@@ -1,16 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 
-import { Box } from '@mui/material';
-import SFlex from 'components/atoms/SFlex';
-import { InputForm } from 'components/molecules/form/input';
 import SModal, {
   SModalButtons,
   SModalHeader,
   SModalPaper,
 } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
-import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
 
 import SDeleteIcon from 'assets/icons/SDeleteIcon';
 
@@ -18,15 +14,19 @@ import { ModalEnum } from 'core/enums/modal.enums';
 
 import { ModalAutomateSubOffice } from '../ModalAutomateSubOffice';
 import { ModalSelectHierarchy } from '../ModalSelectHierarchy';
-import { EditGhoSelects } from './components/EditGhoSelects';
-import { useAddGho } from './hooks/useAddGho';
+import { GhoFormContent } from './components/GhoFormContent';
+import { GhoEditorProvider, useGhoEditor } from './context/GhoEditorContext';
 
-export const ModalAddGho = () => {
+export { GhoEditorProvider, useGhoEditor, useGhoEditorOptional } from './context/GhoEditorContext';
+export { GhoPageEditor } from './components/GhoPageEditor';
+export { GhoGseTabContent } from './components/GhoGseTabContent';
+
+/** Modal tradicional (organograma, grupos-homogênios, risk tool, etc.). */
+export const ModalAddGhoView = () => {
   const {
     registerModal,
     onCloseUnsaved,
     onSubmit,
-    loadingQuery,
     loading,
     ghoData,
     setGhoData,
@@ -37,7 +37,29 @@ export const ModalAddGho = () => {
     hierarchies,
     ghoQuery,
     setValue,
-  } = useAddGho();
+    loadingQuery,
+  } = useGhoEditor();
+
+  const modalProps = registerModal(ModalEnum.GHO_ADD);
+
+  if (!modalProps.open || ghoData.layout === 'page') return null;
+
+  const formContentProps = {
+    layout: ghoData.layout,
+    ghoData,
+    ghoQuery,
+    setGhoData,
+    control,
+    setValue,
+    handleSubmit,
+    onSubmit,
+    onCloseUnsaved,
+    onRemove,
+    onAddHierarchy,
+    hierarchies: hierarchies as any,
+    loadingQuery,
+    loading,
+  };
 
   const buttons = [
     {},
@@ -51,7 +73,7 @@ export const ModalAddGho = () => {
 
   return (
     <SModal
-      {...registerModal(ModalEnum.GHO_ADD)}
+      {...modalProps}
       keepMounted={false}
       onClose={onCloseUnsaved}
     >
@@ -59,54 +81,18 @@ export const ModalAddGho = () => {
         p={8}
         component="form"
         onSubmit={(handleSubmit as any)(onSubmit)}
+        sx={{ width: 1000, maxWidth: '95vw' }}
       >
         <SModalHeader
           tag={ghoData.id ? 'edit' : 'add'}
           onClose={onCloseUnsaved}
-          title={'Grupo similar de exposição'}
+          title={ghoData.id ? 'Editar GSE' : 'Grupo similar de exposição'}
           secondIcon={ghoData?.id ? SDeleteIcon : undefined}
           secondIconClick={onRemove}
         />
-        <SFlex gap={8} direction="column" mt={8}>
-          <InputForm
-            setValue={setValue}
-            autoFocus
-            defaultValue={ghoData.name}
-            minRows={2}
-            maxRows={4}
-            label="Nome"
-            control={control}
-            sx={{ width: ['100%', '100%', '100%', 800] }}
-            placeholder={'nome do GSE...'}
-            name="name"
-            size="small"
-          />
-          <InputForm
-            multiline
-            defaultValue={ghoData.description || ghoQuery.description}
-            minRows={2}
-            setValue={setValue}
-            maxRows={4}
-            label="Descrição"
-            control={control}
-            sx={{ width: ['100%', '100%', '100%', 800] }}
-            placeholder={'descrição do GSE...'}
-            name="description"
-            size="small"
-          />
-          <Box mt={10}>
-            <HierarchyHomoTable
-              onAdd={onAddHierarchy}
-              loading={loadingQuery}
-              hierarchies={hierarchies as any}
-            />
-          </Box>
-        </SFlex>
-        <EditGhoSelects
-          ghoQuery={ghoQuery}
-          ghoData={ghoData}
-          setGhoData={setGhoData}
-        />
+
+        <GhoFormContent {...formContentProps} />
+
         <SModalButtons
           loading={loading}
           onClose={onCloseUnsaved}
@@ -117,12 +103,33 @@ export const ModalAddGho = () => {
   );
 };
 
-export const StackModalAddGho = () => {
-  return (
+/** Compat: monta provider + view (páginas que usam só `<ModalAddGho />`). */
+export const ModalAddGho = () => (
+  <GhoEditorProvider>
+    <ModalAddGhoView />
+  </GhoEditorProvider>
+);
+
+type StackModalAddGhoProps = {
+  /** Evita duplicar `ModalSelectHierarchy` quando a página já o monta (ex.: `/novo/sst`). */
+  includeHierarchySelect?: boolean;
+  /** Provider já existe no ancestral (ex.: bloco SST em `/novo/sst`). */
+  embedInParentProvider?: boolean;
+};
+
+export const StackModalAddGho = ({
+  includeHierarchySelect = true,
+  embedInParentProvider = false,
+}: StackModalAddGhoProps = {}) => {
+  const stack = (
     <>
-      <ModalAddGho />
-      <ModalSelectHierarchy />
+      <ModalAddGhoView />
+      {includeHierarchySelect && <ModalSelectHierarchy />}
       <ModalAutomateSubOffice />
     </>
   );
+
+  if (embedInParentProvider) return stack;
+
+  return <GhoEditorProvider>{stack}</GhoEditorProvider>;
 };
