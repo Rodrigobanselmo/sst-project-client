@@ -1,5 +1,5 @@
 import { Box, BoxProps } from '@mui/material';
-import { CharacterizationTable } from '@v2/pages/companies/characterizations/components/CharacterizationTable/CharacterizationTable';
+import { CharacterizationEnvironmentsTabContent } from '@v2/pages/companies/characterizations/components/CharacterizationEnvironmentsTabContent/CharacterizationEnvironmentsTabContent';
 import { CompanyFlowStickySubheader } from 'components/organisms/main/CompanyFlow/CompanyFlowStickySubheader';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { ExamsRiskTable } from 'components/organisms/tables/ExamsRiskTable/ExamsRiskTable';
@@ -17,13 +17,16 @@ import {
 import { IUseCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useHierarchyTreeLoad } from 'components/organisms/main/Tree/OrgTree/hooks/useHierarchyTreeLoad';
 import { useTabWorkspaceId } from 'core/hooks/useTabWorkspaceId';
+import { useCharacterizationInlineEditorOptional } from 'pages/dashboard/empresas/[companyId]/novo/[stage]/context/CharacterizationInlineEditorContext';
 
 export interface ICompanyStage extends Partial<BoxProps>, IUseCompanyStep {}
 
-export const CharacterizationStage = ({ query, ...props }: ICompanyStage) => {
+export const CharacterizationStage = ({ query, sx, ...props }: ICompanyStage) => {
   useHierarchyTreeLoad();
   const { workspaceId } = useTabWorkspaceId();
   const activeTab = parseCharacterizationActiveTab(query?.active);
+  const inlineEditor = useCharacterizationInlineEditorOptional();
+  const isInlineCharacterizationEdit = inlineEditor?.isInlineEditOpen ?? false;
 
   const tabOptions = [
     CharacterizationSubTabEnum.RISKS,
@@ -36,7 +39,19 @@ export const CharacterizationStage = ({ query, ...props }: ICompanyStage) => {
   }));
 
   return (
-    <Box {...props}>
+    <Box
+      {...props}
+      sx={{
+        ...(isInlineCharacterizationEdit && {
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          mt: 0,
+        }),
+        ...(Array.isArray(sx) ? Object.assign({}, ...sx) : sx),
+      }}
+    >
       <Wizard
         header={
           <CompanyFlowStickySubheader>
@@ -57,7 +72,7 @@ export const CharacterizationStage = ({ query, ...props }: ICompanyStage) => {
           />
         </>
         <>
-          <CharacterizationTable
+          <CharacterizationEnvironmentsTabContent
             companyFlowSticky
             companyFlowBelowTabs
           />

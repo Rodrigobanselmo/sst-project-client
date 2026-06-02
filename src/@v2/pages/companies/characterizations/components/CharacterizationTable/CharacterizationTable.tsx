@@ -30,6 +30,7 @@ import { useQueryParamsState } from '@v2/hooks/useQueryParamsState';
 import { orderByTranslation } from '@v2/models/.shared/translations/orden-by.translation';
 import { StatusTypeEnum } from '@v2/models/security/enums/status-type.enum';
 import { ordenByCharacterizationTranslation } from '@v2/models/security/translations/orden-by-characterization.translation';
+import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { useFetchBrowseCharaterizations } from '@v2/services/security/characterization/characterization/browse-characterization/hooks/useFetchBrowseCharacterization';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
 import { useFetchBrowseAllWorkspaces } from '@v2/services/enterprise/workspace/browse-all-workspaces/hooks/useFetchBrowseAllWorkspaces';
@@ -45,6 +46,8 @@ const table = TablesSelectEnum.CHARACTERIZATION;
 type CharacterizationTableProps = {
   companyFlowSticky?: boolean;
   companyFlowBelowTabs?: boolean;
+  onInlineEdit?: (row: CharacterizationBrowseResultModel) => void;
+  onInlineAdd?: () => void;
 };
 
 import { COMPANY_SST_PATHNAME } from 'core/constants/characterization-navigation.constants';
@@ -55,6 +58,8 @@ const CARACTERIZACAO_ROOT_PATHNAME =
 export const CharacterizationTable = ({
   companyFlowSticky = false,
   companyFlowBelowTabs = false,
+  onInlineEdit,
+  onInlineAdd,
 }: CharacterizationTableProps = {}) => {
   const router = useRouter();
 
@@ -155,7 +160,12 @@ export const CharacterizationTable = ({
     handleCharacterizationEditMany,
     handleCharacterizationCopy,
     handleCharacterizationDeleteMany,
-  } = useCharacterizationActions({ companyId, workspaceId });
+  } = useCharacterizationActions({
+    companyId,
+    workspaceId,
+    onInlineEdit,
+    onInlineAdd,
+  });
 
   const {
     onAddStatus,
@@ -299,6 +309,9 @@ export const CharacterizationTable = ({
     setHiddenColumns,
     hiddenColumns,
     onSelectRow: (row) => {
+      if (hasWorkspaceSelected) handleCharacterizationEdit(row);
+    },
+    onEditRow: (row) => {
       if (hasWorkspaceSelected) handleCharacterizationEdit(row);
     },
     onEditStage: (stageId, row) =>

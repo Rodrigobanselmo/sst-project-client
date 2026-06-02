@@ -23,7 +23,19 @@ export interface ICharacterizationTableTableProps extends BoxProps {
   workspaceId?: string;
 }
 
-export const useCharacterizationActions = ({ companyId, workspaceId }) => {
+type UseCharacterizationActionsParams = {
+  companyId?: string;
+  workspaceId?: string;
+  onInlineEdit?: (data: CharacterizationBrowseResultModel) => void;
+  onInlineAdd?: () => void;
+};
+
+export const useCharacterizationActions = ({
+  companyId,
+  workspaceId,
+  onInlineEdit,
+  onInlineAdd,
+}: UseCharacterizationActionsParams) => {
   const router = useRouter();
   const { onStackOpenModal } = useModal();
   const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
@@ -33,7 +45,15 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
   const editManyMutation = useMutateEditManyCharacterization();
   const copyMutation = useMutCopyCharacterization();
 
+  const hasWorkspaceContext = !!companyId && !!workspaceId;
+
   const handleCharacterizationAdd = async () => {
+    if (onInlineAdd) {
+      if (!hasWorkspaceContext) return;
+      onInlineAdd();
+      return;
+    }
+    if (!hasWorkspaceContext) return;
     router.push(
       `/dashboard/empresas/${companyId}/${workspaceId}/caracterizacao-editar/new`,
     );
@@ -42,6 +62,11 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
   const handleCharacterizationEdit = (
     data: CharacterizationBrowseResultModel,
   ) => {
+    if (onInlineEdit) {
+      onInlineEdit(data);
+      return;
+    }
+    if (!hasWorkspaceContext) return;
     router.push(
       `/dashboard/empresas/${companyId}/${workspaceId}/caracterizacao-editar/${data.id}`,
     );
@@ -53,6 +78,7 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
     type,
     order,
   }: Pick<ICharacterization, 'id' | 'order' | 'name' | 'type'>) => {
+    if (!hasWorkspaceContext) return;
     await upsertMutation
       .mutateAsync({ id, name, type, order, companyId, workspaceId })
       .catch(() => {});
@@ -64,6 +90,7 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
     name,
     type,
   }: Pick<ICharacterization, 'id' | 'stageId' | 'name' | 'type'>) => {
+    if (!hasWorkspaceContext) return;
     await upsertMutation
       .mutateAsync({
         id,
@@ -83,6 +110,7 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
     ids: string[];
     stageId?: number | null;
   }) => {
+    if (!hasWorkspaceContext) return;
     await editManyMutation
       .mutateAsync({
         ids,
@@ -94,7 +122,7 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
   };
 
   const handleCharacterizationDeleteMany = async (ids: string[]) => {
-    if (!ids?.length || !companyId || !workspaceId) return false;
+    if (!ids?.length || !hasWorkspaceContext) return false;
 
     try {
       await Promise.all(
@@ -118,14 +146,17 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
   };
 
   const handleCharacterizationExport = async () => {
+    if (!hasWorkspaceContext) return;
     await exportMutation
       .mutateAsync({ companyId, workspaceId })
       .catch(() => {});
   };
 
   const handleCharacterizationCopy = () => {
+    if (!hasWorkspaceContext) return;
+
     onStackOpenModal(ModalEnum.COPY_RISK_IMPORT_ENTRY, {
-      defaultCompanyId: companyId || '',
+      defaultCompanyId: companyId,
       defaultWorkspaceId: workspaceId,
       title: 'Copiar caracterização — origem',
       companyLabel: 'Empresa de origem (cópia)',
@@ -153,7 +184,7 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
                   void copyMutation
                     .mutateAsync({
                       companyCopyFromId: sourceCompanyId,
-                      workspaceId: workspaceId || '',
+                      workspaceId,
                       sourceWorkspaceId: workspace.id,
                       characterizationIds: char.map((c) => c.id),
                       companyId,
@@ -174,7 +205,7 @@ export const useCharacterizationActions = ({ companyId, workspaceId }) => {
             void copyMutation
               .mutateAsync({
                 companyCopyFromId: sourceCompanyId,
-                workspaceId: workspaceId || '',
+                workspaceId,
                 sourceWorkspaceId,
                 characterizationIds: char.map((c) => c.id),
                 companyId,

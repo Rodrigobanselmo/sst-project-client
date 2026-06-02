@@ -22,6 +22,7 @@ export const CharacterizationColumnMap: Record<
   [CharacterizationColumnsEnum.HIERARCHY]: { label: 'Cargos' },
   [CharacterizationColumnsEnum.PROFILES]: { label: 'Perfis' },
   [CharacterizationColumnsEnum.STAGE]: { label: 'Status' },
+  [CharacterizationColumnsEnum.EDIT]: { label: 'Editar', alwaysVisible: true },
 };
 
 export const characterizationColumns = Object.entries(CharacterizationColumnMap)

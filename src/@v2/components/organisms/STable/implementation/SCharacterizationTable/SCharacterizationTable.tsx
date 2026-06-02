@@ -1,7 +1,9 @@
 import { FC } from 'react';
 
+import EditIcon from 'assets/icons/SEditIcon';
 import { CharacterizationBrowseResultModel } from '@v2/models/security/models/characterization/characterization-browse-result.model';
 import { CharacterizationOrderByEnum } from '@v2/services/security/characterization/characterization/browse-characterization/service/browse-characterization.types';
+import { SIconButtonRow } from '../../addons/addons-rows/SIconButtonRow/SIconButtonRow';
 import { SInputNumberButtonRow } from '../../addons/addons-rows/SInputNumberButtonRow/SInputNumberButtonRow';
 import { SSelectHRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectHRow';
 import { SSelectRow } from '../../addons/addons-rows/SCheckSelectFullRow/SCheckSelectRow';
@@ -12,6 +14,7 @@ import { STable } from '../../common/STable/STable';
 import { ITableData } from '../../common/STable/STable.types';
 import { STableBody } from '../../common/STableBody/STableBody';
 import { STableHeader } from '../../common/STableHeader/STableHeader';
+import { STableHRow } from '../../common/STableHRow/STableHRow';
 import { STableRow } from '../../common/STableRow/STableRow';
 import { mapOrderByTable } from '../../helpers/map-order-by-table.helper';
 import { CharacterizationHeaderRow } from './components/CharacterizationHeaderRow/CharacterizationHeaderRow';
@@ -34,6 +37,7 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
   onEditStage,
   onEditPosition,
   onSelectRow,
+  onEditRow,
   hiddenColumns,
   filterColumns,
   setHiddenColumns,
@@ -293,6 +297,18 @@ export const SCharacterizationTable: FC<ICharacterizationTableTableProps> = ({
             onSelect: (id) => onEditStage(id, row),
           }}
         />
+      ),
+    },
+    {
+      column: '80px',
+      hidden: hiddenColumns[columnsEnum.EDIT],
+      header: (
+        <STableHRow justify="center">{columnMap[columnsEnum.EDIT].label}</STableHRow>
+      ),
+      row: (row) => (
+        <SIconButtonRow onClick={() => (onEditRow ?? onSelectRow)(row)}>
+          <EditIcon />
+        </SIconButtonRow>
       ),
     },
   ];

@@ -12,6 +12,9 @@ import SText from 'components/atoms/SText';
 import SFlex from 'components/atoms/SFlex';
 import { useRouter } from 'next/router';
 import { useQueryRiskGroupData } from 'core/services/hooks/queries/useQueryRiskGroupData';
+import {
+  CHARACTERIZATION_INLINE_RISK_TOOL_HEIGHT,
+} from 'pages/dashboard/empresas/[companyId]/novo/[stage]/constants/characterization-inline-layout.constants';
 import { ModalAiAnalysisContent } from '../ModalAiAnalysisContent/ModalAiAnalysisContent';
 
 const RiskToolForCharacterization: React.FC<{
@@ -58,6 +61,7 @@ export const ModalAddHierarchyRisk = (
   props: IUseEditCharacterization & {
     mt?: number | string;
     children: ReactNode;
+    embedded?: boolean;
   },
 ) => {
   const {
@@ -69,6 +73,7 @@ export const ModalAddHierarchyRisk = (
     children,
     data,
     query,
+    embedded = false,
   } = props;
   const isDisable = !data?.type;
 
@@ -80,7 +85,18 @@ export const ModalAddHierarchyRisk = (
   }, [riskGroupData]);
 
   return (
-    <Box mt={mt}>
+    <Box
+      mt={embedded ? 0 : mt}
+      sx={{
+        ...(embedded && {
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0,
+          height: '100%',
+        }),
+      }}
+    >
       <Wizard
         header={
           <WizardTabs
@@ -95,8 +111,30 @@ export const ModalAddHierarchyRisk = (
           />
         }
       >
-        <Box sx={{ px: 5, pb: 10 }}>{children}</Box>
-        <Box sx={{ px: 5, pb: 10 }}>
+        <Box
+          sx={{
+            px: embedded ? 0 : 5,
+            pb: embedded ? 4 : 10,
+            ...(embedded && {
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+            }),
+          }}
+        >
+          {children}
+        </Box>
+        <Box
+          sx={{
+            px: embedded ? 0 : 5,
+            pb: embedded ? 4 : 10,
+            ...(embedded && {
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+            }),
+          }}
+        >
           <HierarchyHomoTable
             onAdd={onAddHierarchy}
             loading={characterizationLoading}
@@ -106,11 +144,13 @@ export const ModalAddHierarchyRisk = (
         </Box>
         <Box
           sx={{
-            px: 5,
+            px: embedded ? 0 : 5,
             pb: 0,
             ...(isEdit && {
-              height: 'calc(100vh - 150px)',
-              minHeight: 0,
+              height: embedded
+                ? CHARACTERIZATION_INLINE_RISK_TOOL_HEIGHT
+                : 'calc(100vh - 150px)',
+              minHeight: embedded ? 420 : 0,
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',

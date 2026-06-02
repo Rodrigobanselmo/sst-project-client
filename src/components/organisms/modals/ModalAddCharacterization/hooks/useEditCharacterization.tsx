@@ -114,13 +114,20 @@ type CharacterizationArrayField = 'considerations' | 'activities' | 'paragraphs'
 interface IUseEditCharacterizationOptions {
   initialData?: Partial<typeof initialCharacterizationState>;
   onCloseOverride?: () => void;
+  companyId?: string;
+  workspaceId?: string;
 }
 
 export const useEditCharacterization = (
   modalName = modalNameInit,
   options: IUseEditCharacterizationOptions = {},
 ) => {
-  const { initialData: propsInitialData, onCloseOverride } = options;
+  const {
+    initialData: propsInitialData,
+    onCloseOverride,
+    companyId: contextCompanyId,
+    workspaceId: contextWorkspaceId,
+  } = options;
   const { registerModal, getModalData } = useRegisterModal();
   const [isLoading, setIsLoading] = useState(false);
   const { onCloseModal, onStackOpenModal } = useModal();
@@ -131,7 +138,18 @@ export const useEditCharacterization = (
   const { selectStartEndDate } = useStartEndDate();
   const { data: ghoQuery, isLoading: ghoLoading } = useQueryGHOAll();
   const dispatch = useAppDispatch();
-  const { data: characterizationsQuery } = useQueryCharacterizations();
+  const characterizationListQuery =
+    contextCompanyId && contextWorkspaceId
+      ? {
+          companyId: contextCompanyId,
+          workspaceId: contextWorkspaceId,
+          strictContext: true,
+        }
+      : undefined;
+  const { data: characterizationsQuery } = useQueryCharacterizations(
+    1,
+    characterizationListQuery ?? {},
+  );
   const { enqueueSnackbar } = useSnackbar();
 
   const {
@@ -167,6 +185,10 @@ export const useEditCharacterization = (
     isLoading: characterizationLoading,
   } = useQueryCharacterization(
     characterizationData.profileParentId || characterizationData.id,
+    {
+      companyId: contextCompanyId,
+      workspaceId: contextWorkspaceId,
+    },
   );
 
   const characterizationQuery = characterizationData.profileParentId

@@ -29,6 +29,7 @@ export interface ICharacterizationTableTableProps {
   setPage: (page: number) => void;
   setOrderBy: (order: IOrderByParams<CharacterizationOrderByEnum>) => void;
   onSelectRow: (row: CharacterizationBrowseResultModel) => void;
+  onEditRow?: (row: CharacterizationBrowseResultModel) => void;
   onEditStage: (
     stageId: number | null,
     row: CharacterizationBrowseResultModel,

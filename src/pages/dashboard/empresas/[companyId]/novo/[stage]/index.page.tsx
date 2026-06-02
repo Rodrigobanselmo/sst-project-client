@@ -64,6 +64,10 @@ import { companyHomeLaunchCardShellSx } from './components/company-home-launch.c
 import { CompanyStage } from './components/CompanyStage/CompanyStage';
 import { DocumentsStage } from './components/DocumentsStage /DocumentsStage';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
+import {
+  CharacterizationInlineEditorProvider,
+  useCharacterizationInlineEditor,
+} from './context/CharacterizationInlineEditorContext';
 import { SCompanyPermissions } from 'components/molecules/SCompanyPermissions/SCompanyPermissions';
 import { SButton } from 'components/atoms/SButton';
 import { useModal } from 'core/hooks/useModal';
@@ -77,9 +81,41 @@ const ModalSelectCharacterization = dynamic(
   { ssr: false },
 ) as any;
 
+const ModalSelectCompany = dynamic(
+  () =>
+    import('components/organisms/modals/ModalSelectCompany').then(
+      ({ ModalSelectCompany }) => ModalSelectCompany,
+    ) as any,
+  { ssr: false },
+) as any;
+
+const ModalUploadPhoto = dynamic(
+  () =>
+    import('components/organisms/modals/ModalUploadPhoto').then(
+      ({ ModalUploadPhoto }) => ModalUploadPhoto,
+    ) as any,
+  { ssr: false },
+) as any;
+
 const CompanyPage: NextPage = () => {
-  const { onStackOpenModal } = useModal();
   const props = useCompanyStep();
+
+  return (
+    <>
+      <SHeaderTag hideInitial title={getCompanyName(props.company)} />
+
+      <SContainer>
+        <CharacterizationInlineEditorProvider>
+          <CompanyPageLayout {...props} />
+        </CharacterizationInlineEditorProvider>
+      </SContainer>
+    </>
+  );
+};
+
+const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
+  const { onStackOpenModal } = useModal();
+  const { isInlineEditOpen } = useCharacterizationInlineEditor();
 
   const {
     company,
@@ -89,7 +125,6 @@ const CompanyPage: NextPage = () => {
     formsLaunchGroup,
     showFormsLaunchGroup,
     stage,
-    stepsActions,
     stepsActionsList,
     handleUploadRisk,
   } = props;
@@ -98,6 +133,8 @@ const CompanyPage: NextPage = () => {
   const companyName = getCompanyName(company);
   const topGridColumnCount = Math.max(1, pageGroupMemo.length);
   const launchGridColumnCount = Math.max(topGridColumnCount, 4);
+  const hideHomeSummaryCards =
+    CompanyActionEnum.SST_GROUP_PAGE === stage && isInlineEditOpen;
   const homeCardsGridSx = {
     display: 'grid',
     gridTemplateColumns: `repeat(${topGridColumnCount}, minmax(0, 1fr))`,
@@ -115,9 +152,6 @@ const CompanyPage: NextPage = () => {
 
   return (
     <>
-      <SHeaderTag hideInitial title={companyName} />
-
-      <SContainer>
         <CompanyHomeOperationalHeader
           companyName={companyName}
           stepsActionsList={stepsActionsList}
@@ -145,28 +179,31 @@ const CompanyPage: NextPage = () => {
           }
         />
 
-        <Box sx={{ ...homeCardsGridSx, mt: 2, mb: 30 }}>
-          {pageGroupMemo.map(({ color, ...props }) => (
-            <Box
-              key={props.text}
-              sx={{
-                minWidth: 0,
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%',
-              }}
-            >
-              <SActionGroupButton
-                active={stage == props.type}
-                color={color as string}
-                {...props}
-                fillGridCell
-                fillGridCellCompact
-              />
-            </Box>
-          ))}
-        </Box>
-        {(launchCardsMemo.length > 0 || showFormsLaunchGroup) && (
+        {!hideHomeSummaryCards && (
+          <Box sx={{ ...homeCardsGridSx, mt: 2, mb: 30 }}>
+            {pageGroupMemo.map(({ color, ...props }) => (
+              <Box
+                key={props.text}
+                sx={{
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
+                }}
+              >
+                <SActionGroupButton
+                  active={stage == props.type}
+                  color={color as string}
+                  {...props}
+                  fillGridCell
+                  fillGridCellCompact
+                />
+              </Box>
+            ))}
+          </Box>
+        )}
+        {!hideHomeSummaryCards &&
+          (launchCardsMemo.length > 0 || showFormsLaunchGroup) && (
           <>
             <SText mt={-8}>Lançamentos</SText>
             <Box sx={{ ...launchCardsGridSx, mt: 3, mb: 24 }}>
@@ -251,7 +288,9 @@ const CompanyPage: NextPage = () => {
         <ModalShowHierarchyTree />
         <ModalSelectWorkspace />
         <ModalSelectCharacterization />
+        <ModalSelectCompany />
         <ModalSelectDocPgr />
+        <ModalUploadPhoto />
         <ModalAddExam />
         <ModalAddProtocol />
         <ModalViewExam />
@@ -262,7 +301,6 @@ const CompanyPage: NextPage = () => {
         <ModalViewUsers />
         <StackModalViewUsers />
         <StackModalViewDocuments />
-      </SContainer>
     </>
   );
 };

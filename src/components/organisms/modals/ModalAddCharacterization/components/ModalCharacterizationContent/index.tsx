@@ -43,6 +43,7 @@ const StyledImage = styled('img')`
 
 interface IModalCharacterizationContentProps extends IUseEditCharacterization {
   hideCharacterizationDelete?: boolean;
+  embedded?: boolean;
 }
 
 export const ModalCharacterizationContent = (
@@ -134,9 +135,11 @@ export const ModalCharacterizationContent = (
     },
   ];
 
+  const { embedded, ...hierarchyRiskProps } = props;
+
   return (
-    <ModalAddHierarchyRisk {...props}>
-      <SFlex gap={8} direction="column" mt={8}>
+    <ModalAddHierarchyRisk {...hierarchyRiskProps} embedded={embedded}>
+      <SFlex gap={8} direction="column" mt={embedded ? 0 : 8}>
         {showNameInput ? (
           <InputForm
             autoFocus

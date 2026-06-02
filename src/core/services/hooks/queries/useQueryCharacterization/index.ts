@@ -23,10 +23,23 @@ export const queryCharacterization = async (
   return response.data;
 };
 
+export type UseQueryCharacterizationContext = {
+  companyId?: string;
+  workspaceId?: string;
+};
+
 export function useQueryCharacterization(
   id: string,
+  context: UseQueryCharacterizationContext = {},
 ): IReactQuery<ICharacterization> {
-  const { companyId, workspaceId } = useGetCompanyId();
+  const { companyId: routerCompanyId, workspaceId: routerWorkspaceId, router } =
+    useGetCompanyId();
+
+  const companyId = context.companyId ?? routerCompanyId;
+  const workspaceId =
+    context.workspaceId ??
+    routerWorkspaceId ??
+    (router.query.tabWorkspaceId as string | undefined);
 
   const { data, ...query } = useQuery(
     [QueryEnum.CHARACTERIZATION, companyId, workspaceId, id],
