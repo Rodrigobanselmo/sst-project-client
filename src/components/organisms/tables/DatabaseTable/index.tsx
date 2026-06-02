@@ -1,6 +1,7 @@
 import { FC } from 'react';
 
-import { BoxProps } from '@mui/material';
+import { Box, BoxProps, Link as MuiLink } from '@mui/material';
+import NextLink from 'next/link';
 import {
   STable,
   STableBody,
@@ -18,6 +19,7 @@ import SDatabaseIcon from 'assets/icons/SDatabaseIcon';
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
 import SUploadIcon from 'assets/icons/SUploadIcon';
 
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { ModalEnum } from 'core/enums/modal.enums';
 import { useModal } from 'core/hooks/useModal';
 import { useTableSearch } from 'core/hooks/useTableSearch';
@@ -41,6 +43,15 @@ export const DatabaseTable: FC<{ children?: any } & BoxProps> = () => {
   return (
     <>
       <STableTitle icon={SDatabaseIcon}>Banco de dados</STableTitle>
+      <Box mb={2}>
+        <MuiLink
+          component={NextLink}
+          href={RoutesEnum.DATABASE_CATALOG_EQUIVALENCES}
+          underline="hover"
+        >
+          Equivalências de Catálogo
+        </MuiLink>
+      </Box>
       <STableSearch onChange={(e) => handleSearchChange(e.target.value)} />
       <STable
         loading={isLoading}

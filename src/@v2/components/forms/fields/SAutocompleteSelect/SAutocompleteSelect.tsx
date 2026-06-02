@@ -26,6 +26,7 @@ export function SAutocompleteSelect<
   getOptionLabel,
   ListboxProps,
   componentsProps,
+  isOptionEqualToValue,
   ...props
 }: SAutocompleteSelectProps<T, M, D, F>) {
   //   <SAutocompleteSelect
@@ -59,6 +60,7 @@ export function SAutocompleteSelect<
       onChange={onChange}
       getOptionLabel={getOptionLabel}
       value={value}
+      {...(isOptionEqualToValue ? { isOptionEqualToValue } : {})}
       noOptionsText="Sem opções"
       options={options}
       loading={loading}
