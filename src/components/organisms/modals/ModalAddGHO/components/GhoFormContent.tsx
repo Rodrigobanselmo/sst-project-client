@@ -6,9 +6,11 @@ import { Box } from '@mui/material';
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
 import { SButton } from 'components/atoms/SButton';
 import SFlex from 'components/atoms/SFlex';
+import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 import { HierarchyHomoTable } from 'components/organisms/tables/HierarchyHomoTable/HierarchyHomoTable';
+import { useRouter } from 'next/router';
 
 import { IdsEnum } from 'core/enums/ids.enums';
 import { IGho } from 'core/interfaces/api/IGho';
@@ -21,6 +23,7 @@ import {
 } from 'react-hook-form';
 
 import { EditGhoSelects } from './EditGhoSelects';
+import { RiskToolForGse } from './RiskToolForGse';
 import { initialAddGhoState } from '../hooks/useAddGho';
 
 export type GhoAddLayout = 'modal' | 'page';
@@ -58,16 +61,32 @@ export const GhoFormContent = ({
   loadingQuery,
   loading,
 }: GhoFormContentProps) => {
+  const router = useRouter();
+  const companyId = router.query.companyId as string;
   const title = ghoData.id ? 'Editar GSE' : 'Grupo similar de exposição';
   const submitLabel = ghoData.id ? 'Salvar' : 'Criar';
   const isPage = layout === 'page';
+  const isEdit = !!ghoData.id;
+  const risksTabDisabled = !isEdit;
+
+  const wizardTabsOptions = isPage
+    ? [
+        { label: 'Dados' },
+        { label: 'Cargos' },
+        { label: 'Fatores de Riscos', disabled: risksTabDisabled },
+      ]
+    : [{ label: 'Dados' }, { label: 'Cargos' }];
 
   const wizard = (
     <Wizard
       header={
         <WizardTabs
           shadow
-          options={[{ label: 'Dados' }, { label: 'Cargos' }]}
+          {...(isPage && {
+            onChangeTab: (index, cb) =>
+              risksTabDisabled && index === 2 ? undefined : cb(index),
+          })}
+          options={wizardTabsOptions}
         />
       }
     >
@@ -114,6 +133,32 @@ export const GhoFormContent = ({
           hierarchies={hierarchies as any}
         />
       </Box>
+
+      {isPage && (
+        <Box sx={{ px: 0, pb: 4 }}>
+          {!isEdit ? (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: 200,
+              }}
+            >
+              <SText variant="body1" textAlign="center">
+                Salve o GSE antes de vincular fatores de risco.
+              </SText>
+            </Box>
+          ) : (
+            <RiskToolForGse
+              companyId={companyId}
+              ghoId={ghoData.id}
+              ghoName={ghoData.name || ghoQuery.name}
+              gho={ghoQuery?.id ? (ghoQuery as IGho) : null}
+            />
+          )}
+        </Box>
+      )}
     </Wizard>
   );
 

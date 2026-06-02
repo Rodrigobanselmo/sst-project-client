@@ -27,4 +27,7 @@ export interface SideSelectViewContentProps {
         type: string;
       }
     | undefined;
+  hideGhoPicker?: boolean;
+  lockedGhoName?: string;
+  disableEditGho?: boolean;
 }

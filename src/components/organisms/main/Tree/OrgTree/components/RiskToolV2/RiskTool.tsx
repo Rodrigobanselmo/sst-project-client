@@ -52,13 +52,29 @@ import {
   ViewTypeEnum,
 } from './utils/view-risk-type.constant';
 
+export type RiskToolV2Props = {
+  riskGroupId: string;
+  riskContextCompanyId?: string;
+  embedded?: boolean;
+  lockedViewData?: ViewsDataEnum;
+  lockedGhoId?: string;
+  lockedGhoName?: string;
+  hideViewSwitcher?: boolean;
+  hideGhoPicker?: boolean;
+  disableEditGho?: boolean;
+};
+
 export const RiskToolV2 = ({
   riskGroupId,
   riskContextCompanyId,
-}: {
-  riskGroupId: string;
-  riskContextCompanyId?: string;
-}) => {
+  embedded = false,
+  lockedViewData,
+  lockedGhoId,
+  lockedGhoName,
+  hideViewSwitcher = false,
+  hideGhoPicker = false,
+  disableEditGho = false,
+}: RiskToolV2Props) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { preventDelete } = usePreventAction();
   const { data: ghoQuery } = useQueryGHOAll();
@@ -84,6 +100,7 @@ export const RiskToolV2 = ({
 
   // Get viewDataType from URL query params or use default
   const viewDataTypeFromUrl = useMemo(() => {
+    if (lockedViewData) return lockedViewData;
     const viewDataParam = query.viewData as string;
     if (
       viewDataParam &&
@@ -92,11 +109,13 @@ export const RiskToolV2 = ({
       return viewDataParam as ViewsDataEnum;
     }
     return ViewsDataEnum.HIERARCHY; // default
-  }, [query.viewData]);
+  }, [query.viewData, lockedViewData]);
 
   const viewDataType = useAppSelector(
     (state) => state.riskAdd.viewData,
   ) as unknown as ViewsDataEnum;
+
+  const effectiveViewDataType = lockedViewData ?? viewDataType;
 
   // Get selected GHO ID from URL
   const selectedGhoIdFromUrl = useMemo(() => {
@@ -106,15 +125,25 @@ export const RiskToolV2 = ({
   // Track user-initiated selections to avoid URL sync overwriting them
   const userSelectedIdRef = useRef<string | null>(null);
 
+  useEffect(() => {
+    if (!lockedViewData) return;
+    dispatch(setRiskAddState({ viewData: lockedViewData as any }));
+  }, [dispatch, lockedViewData]);
+
   // Sync Redux state with URL on mount and when URL changes
   useEffect(() => {
+    if (lockedViewData && viewDataTypeFromUrl !== viewDataType) {
+      dispatch(setRiskAddState({ viewData: viewDataTypeFromUrl as any }));
+      return;
+    }
     if (viewDataTypeFromUrl !== viewDataType) {
       dispatch(setRiskAddState({ viewData: viewDataTypeFromUrl as any }));
     }
-  }, [viewDataTypeFromUrl, dispatch, viewDataType]);
+  }, [viewDataTypeFromUrl, dispatch, viewDataType, lockedViewData]);
 
   // Sync selected GHO/Hierarchy from URL to Redux (page load, back/forward)
   useEffect(() => {
+    if (lockedGhoId) return;
     if (!selectedGhoIdFromUrl) return;
     // Skip if this URL change was triggered by a user selection we just made
     if (userSelectedIdRef.current === selectedGhoIdFromUrl) {
@@ -157,6 +186,7 @@ export const RiskToolV2 = ({
 
   // Initialize URL with viewData parameter if not present
   useEffect(() => {
+    if (embedded || lockedViewData) return;
     if (!query.viewData) {
       const newQuery = { ...query, viewData: viewDataTypeFromUrl };
       replace({ pathname, query: newQuery }, undefined, { shallow: true });
@@ -182,6 +212,7 @@ export const RiskToolV2 = ({
 
   const handleAddGHO = async (e: any) => {
     e.stopPropagation();
+    if (disableEditGho || hideGhoPicker) return;
     const isGSE = viewDataType == ViewsDataEnum.GSE;
     const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
     const isCharacterization = viewDataType == ViewsDataEnum.CHARACTERIZATION;
@@ -192,6 +223,7 @@ export const RiskToolV2 = ({
   };
 
   const handleEditGHO = (data: IGho | IHierarchyTreeMapObject) => {
+    if (disableEditGho) return;
     onStackOpenModal(ModalEnum.GHO_ADD, {
       id: data.id,
       name: data.name,
@@ -233,6 +265,9 @@ export const RiskToolV2 = ({
 
   const handleSelectGHO = useCallback(
     (gho: IGho | null, hierarchies: string[]) => {
+      if (lockedGhoId) {
+        return;
+      }
       if (!gho) {
         if (!selectExpanded) dispatch(setRiskAddToggleExpand());
         // Remove ghoId from URL when deselecting
@@ -264,7 +299,7 @@ export const RiskToolV2 = ({
       const newQuery = { ...query, ghoId: gho.id };
       replace({ pathname, query: newQuery }, undefined, { shallow: true });
     },
-    [dispatch, selectExpanded, selectedGhoId, query, pathname, replace],
+    [dispatch, selectExpanded, selectedGhoId, query, pathname, replace, lockedGhoId],
   );
 
   const handleChangeView = (option: IViewsRiskOption) => {
@@ -281,6 +316,7 @@ export const RiskToolV2 = ({
   const handleChangeViewData = (
     option: Omit<IViewsDataOption, 'name' | 'placeholder'>,
   ) => {
+    if (hideViewSwitcher || lockedViewData) return;
     if (option.value === ViewsDataEnum.EMPLOYEE) {
       return onStackOpenModal(ModalEnum.AUTOMATE_SUB_OFFICE, {
         callback: (hierarchy) => {
@@ -320,10 +356,12 @@ export const RiskToolV2 = ({
           onChangeView={handleChangeView}
           onChangeViewData={handleChangeViewData}
           viewType={viewType}
-          viewDataType={viewDataType}
+          viewDataType={effectiveViewDataType}
           handleSelectGHO={handleSelectGHO}
           riskInit={true}
           riskGroupId={riskGroupIdMemo}
+          hideViewSwitcher={hideViewSwitcher}
+          hideCloseButton={embedded}
         />
         <STTableContainer>
           <RiskToolHeader
@@ -334,12 +372,15 @@ export const RiskToolV2 = ({
             isAddLoading={addMutation.isLoading}
             riskInit={true}
             inputRef={inputRef}
-            viewDataType={viewDataType}
+            viewDataType={effectiveViewDataType}
             viewType={viewType}
             ghoQuery={ghoQuery}
             loadingCopy={loadingCopyHomo}
             riskGroupId={riskGroupIdMemo}
             companyId={companyId}
+            hideGhoPicker={hideGhoPicker}
+            lockedGhoName={lockedGhoName}
+            disableEditGho={disableEditGho}
           />
           <STBoxStack
             expanded={selectExpanded ? 1 : 0}

@@ -130,6 +130,9 @@ export const RiskToolGhoHorizontal: FC<
   loadingCopy,
   companyId,
   riskGroupId,
+  hideGhoPicker = false,
+  lockedGhoName,
+  disableEditGho = false,
 }) => {
   const dispatch = useAppDispatch();
   const selected = useAppSelector((state) => state.gho.selected);
@@ -185,13 +188,14 @@ export const RiskToolGhoHorizontal: FC<
     String(viewDataType) === String(ViewsDataEnum.CHARACTERIZATION);
 
   useEffect(() => {
+    if (hideGhoPicker) return;
     if (!selected) {
       const listItem = document.getElementById(
         IdsEnum.INPUT_MENU_SEARCH_GHO_HIERARCHY,
       );
       listItem?.click();
     }
-  }, [viewDataType, selected]);
+  }, [viewDataType, selected, hideGhoPicker]);
 
   const handleSelect = useCallback(
     (data: IGho | IHierarchyTreeMapObject | IHierarchy) => {
@@ -223,64 +227,81 @@ export const RiskToolGhoHorizontal: FC<
 
   const { name, type } = getSelectedHierarchy({ selected, viewDataType });
   const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
+  const displayName = hideGhoPicker
+    ? lockedGhoName || name || selected?.name || ''
+    : name || '';
 
   return (
     <>
       <SFlex>
         <SFlex justifyContent="space-between" flex={1}>
-          <GhoOrHierarchySelect
-            isHierarchy={isHierarchy}
-            tooltipText={(textField) => textField}
-            text={name || ''}
-            large
-            icon={null}
-            maxWidth={'auto'}
-            handleSelect={(hierarchy: IHierarchy | IGho) => {
-              handleSelect(hierarchy);
-            }}
-            allFilters
-            companyId={companyId || ''}
-            renderButton={({ onClick, text }) => {
-              return (
-                <Box
-                  minWidth={285}
-                  maxWidth={800}
-                  width={
-                    text.length ? Math.max(text.length * 15, 285) : undefined
-                  }
-                >
-                  <SInput
-                    id={IdsEnum.INPUT_MENU_SEARCH_GHO_HIERARCHY}
-                    onClick={onClick}
-                    placeholder={
-                      viewsDataOptionsConstant[viewDataType].placeholder
+          {hideGhoPicker ? (
+            <Box minWidth={285}>
+              <SInput
+                variant="outlined"
+                subVariant="search"
+                fullWidth
+                value={displayName}
+                placeholder="GSE"
+                size="small"
+                disabled
+              />
+            </Box>
+          ) : (
+            <GhoOrHierarchySelect
+              isHierarchy={isHierarchy}
+              tooltipText={(textField) => textField}
+              text={name || ''}
+              large
+              icon={null}
+              maxWidth={'auto'}
+              handleSelect={(hierarchy: IHierarchy | IGho) => {
+                handleSelect(hierarchy);
+              }}
+              allFilters
+              companyId={companyId || ''}
+              renderButton={({ onClick, text }) => {
+                return (
+                  <Box
+                    minWidth={285}
+                    maxWidth={800}
+                    width={
+                      text.length ? Math.max(text.length * 15, 285) : undefined
                     }
-                    variant="outlined"
-                    subVariant="search"
-                    fullWidth
-                    value={text}
-                    startAdornment={type || ''}
-                    size="small"
-                    endAdornment={
-                      <>
-                        {handleAddGHO && (
-                          <STooltip withWrapper title={'Adicionar'}>
-                            <SEndButton
-                              bg={'tag.add'}
-                              onClick={(e) => (handleAddGHO as any)(e)} //handleAddGHO()
-                            />
-                          </STooltip>
-                        )}
-                      </>
-                    }
-                  />
-                </Box>
-              );
-            }}
-            active={false}
-            bg={'background.paper'}
-            {...(getFilter({ viewDataType }) as any)}
-          />
+                  >
+                    <SInput
+                      id={IdsEnum.INPUT_MENU_SEARCH_GHO_HIERARCHY}
+                      onClick={onClick}
+                      placeholder={
+                        viewsDataOptionsConstant[viewDataType].placeholder
+                      }
+                      variant="outlined"
+                      subVariant="search"
+                      fullWidth
+                      value={text}
+                      startAdornment={type || ''}
+                      size="small"
+                      endAdornment={
+                        <>
+                          {handleAddGHO && (
+                            <STooltip withWrapper title={'Adicionar'}>
+                              <SEndButton
+                                bg={'tag.add'}
+                                onClick={(e) => (handleAddGHO as any)(e)} //handleAddGHO()
+                              />
+                            </STooltip>
+                          )}
+                        </>
+                      }
+                    />
+                  </Box>
+                );
+              }}
+              active={false}
+              bg={'background.paper'}
+              {...(getFilter({ viewDataType }) as any)}
+            />
+          )}
           {showSyncPlanButton && (
             <SButton
               variant="outlined"
@@ -321,7 +342,9 @@ export const RiskToolGhoHorizontal: FC<
           <SideInput
             onSearch={(value) => dispatch(setGhoSearchRisk(value))}
             handleSelectGHO={handleSelectGHO}
-            handleEditGHO={handleEditGHO}
+            handleEditGHO={
+              disableEditGho ? () => undefined : handleEditGHO
+            }
             placeholder="Pesquisar por risco"
           />
           <RiskToolColumns viewType={viewType} />
