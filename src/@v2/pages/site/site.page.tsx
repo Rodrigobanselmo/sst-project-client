@@ -4,8 +4,10 @@ import { SiteHeader } from './components/SiteHeader';
 import { SiteReliefStrip } from './components/SiteReliefStrip';
 import { SiteAudienceSection } from './components/sections/SiteAudienceSection';
 import { SiteContactSection } from './components/sections/SiteContactSection';
+import { SiteCreatedForSection } from './components/sections/SiteCreatedForSection';
 import { SiteDifferentialsSection } from './components/sections/SiteDifferentialsSection';
 import { SiteHeroSection } from './components/sections/SiteHeroSection';
+import { SiteMainHeroSection } from './components/sections/SiteMainHeroSection';
 import { SiteMaterialsSection } from './components/sections/SiteMaterialsSection';
 import { SiteModulesSection } from './components/sections/SiteModulesSection';
 import { SiteProblemsSection } from './components/sections/SiteProblemsSection';
@@ -21,12 +23,14 @@ export function SitePage() {
     <div className="lp">
       <SiteHeader />
       <main className="lp-main">
-        <SiteHeroSection />
-        <SiteReliefStrip />
+        <SiteMainHeroSection />
+        <SiteCreatedForSection />
         <SiteProblemsSection />
-        <SiteModulesSection />
         <SiteDifferentialsSection />
         <SitePsychosocialSection />
+        <SiteModulesSection />
+        <SiteReliefStrip />
+        <SiteHeroSection />
         <SiteAudienceSection />
         <SiteMaterialsSection />
         <SiteContactSection />

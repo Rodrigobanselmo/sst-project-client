@@ -2,9 +2,61 @@ import { SITE_IMAGES } from './site-images.constant';
 
 export const SITE_NAV_LINKS = [
   { label: 'Soluções', href: '#solucoes' },
+  { label: 'Para quem é', href: '#para-quem-foi-criado' },
   { label: 'Psicossocial', href: '#psicossocial' },
-  { label: 'Para quem é', href: '#para-quem-e' },
   { label: 'Contato', href: '#contato' },
+] as const;
+
+/** Públicos-alvo — hero de posicionamento (6 cards) */
+export const SITE_CREATED_FOR = [
+  {
+    title: 'Técnicos e engenheiros iniciando a carreira',
+    description:
+      'Transforme conhecimento técnico em processos estruturados e ganhe segurança na elaboração de documentos.',
+    image: SITE_IMAGES.pillarBeginner,
+    imageAlt: 'Profissional iniciante estruturando documentos de SST com apoio da plataforma',
+    objectPosition: '50% 42%',
+  },
+  {
+    title: 'Profissionais experientes',
+    description:
+      'Automatize tarefas repetitivas e concentre seu tempo em análises, estratégia e decisões técnicas.',
+    image: SITE_IMAGES.pillarExperienced,
+    imageAlt: 'Profissional experiente focado em análise técnica com automação no SimpleSST',
+    objectPosition: '50% 45%',
+  },
+  {
+    title: 'Consultorias de SST',
+    description:
+      'Padronize entregas, reduza retrabalho e escale operações mantendo qualidade e rastreabilidade.',
+    image: SITE_IMAGES.pillarConsulting,
+    imageAlt: 'Consultoria de SST padronizando entregas para múltiplos clientes',
+    objectPosition: '50% 40%',
+  },
+  {
+    title: 'SESMTs corporativos',
+    description:
+      'Integre riscos, documentos, planos de ação, evidências e indicadores em um único fluxo.',
+    image: SITE_IMAGES.pillarCorporateSesmt,
+    imageAlt: 'SESMT corporativo integrando riscos, documentos e planos de ação',
+    objectPosition: '50% 48%',
+  },
+  {
+    title: 'Psicólogos e equipes multidisciplinares',
+    description:
+      'Gerencie fatores de riscos psicossociais, campanhas, indicadores e planos de ação integrados ao PGR.',
+    image: SITE_IMAGES.pillarPsychosocial,
+    imageAlt: 'Equipe multidisciplinar gerenciando fatores psicossociais integrados ao PGR',
+    objectPosition: '50% 38%',
+  },
+  {
+    title: 'Grandes corporações',
+    description:
+      'Controle múltiplas unidades, equipes e processos em uma plataforma preparada para operações complexas.',
+    image: SITE_IMAGES.pillarEnterprise,
+    imageAlt: 'Grande corporação gerenciando múltiplas unidades e processos de SST',
+    objectPosition: '50% 44%',
+  },
 ] as const;
 
 /** Narrativa problema → consequência → solução → benefício */

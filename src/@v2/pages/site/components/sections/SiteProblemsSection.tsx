@@ -21,12 +21,20 @@ export function SiteProblemsSection() {
 
         <div className="lp-problems__grid">
           <div className="lp-problems__media">
-            <LandingPicture
-              src={SITE_IMAGES.problemSolution}
-              alt="Fluxo de documentos físicos para gestão digital no SimpleSST"
-              className="lp-problems__visual"
-              objectPosition="48% 50%"
-            />
+            <div className="lp-problems__media-stack">
+              <LandingPicture
+                src={SITE_IMAGES.problemLegacy}
+                alt="Profissional de SST em escritório utilizando o painel do SimpleSST"
+                className="lp-problems__visual lp-problems__visual--legacy"
+                objectPosition="50% 42%"
+              />
+              <LandingPicture
+                src={SITE_IMAGES.problemSolution}
+                alt="Fluxo de documentos físicos para gestão digital no SimpleSST"
+                className="lp-problems__visual lp-problems__visual--flow"
+                objectPosition="48% 50%"
+              />
+            </div>
           </div>
           <ul className="lp-story-list">
             {SITE_SOLUTION_STORIES.map((story) => (
