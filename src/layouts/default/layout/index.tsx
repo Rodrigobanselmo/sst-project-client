@@ -35,6 +35,8 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector(selectUser);
+  const isMarketingSite =
+    router.pathname === '/site' || router.pathname.startsWith('/site/');
 
   useEffect(() => {
     const handleStart = (nextPath: string) => {
@@ -49,6 +51,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
     };
 
     if (
+      !isMarketingSite &&
       router.pathname != RoutesEnum.ONBOARD_USER &&
       user &&
       // (!user.name || !user.cpf)
@@ -66,7 +69,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       router.events.off('routeChangeComplete', handleStop);
       router.events.off('routeChangeError', handleStop);
     };
-  }, [router, dispatch, user]);
+  }, [router, dispatch, user, isMarketingSite]);
 
   return (
     <main>
@@ -87,7 +90,7 @@ const DefaultLayout: FC<React.PropsWithChildren<any>> = ({ children }) => {
       <ModalReportSelect />
       <ModalReport />
       <ModalBlank />
-      <AIChatToggleButton />
+      {!isMarketingSite && <AIChatToggleButton />}
     </main>
   );
 };
