@@ -1,4 +1,3 @@
-import { Box } from '@mui/material';
 import { SiteFooter } from './components/SiteFooter';
 import { SiteHeader } from './components/SiteHeader';
 import { SiteReliefStrip } from './components/SiteReliefStrip';
@@ -10,22 +9,23 @@ import { SiteMaterialsSection } from './components/sections/SiteMaterialsSection
 import { SiteModulesSection } from './components/sections/SiteModulesSection';
 import { SiteProblemsSection } from './components/sections/SiteProblemsSection';
 import { SitePsychosocialSection } from './components/sections/SitePsychosocialSection';
-import { sitePageSx } from './styles/site.styles';
 
 export function SitePage() {
   return (
-    <Box sx={sitePageSx}>
+    <div className="lp">
       <SiteHeader />
-      <SiteHeroSection />
-      <SiteReliefStrip />
-      <SiteProblemsSection />
-      <SiteModulesSection />
-      <SiteDifferentialsSection />
-      <SitePsychosocialSection />
-      <SiteAudienceSection />
-      <SiteMaterialsSection />
-      <SiteContactSection />
+      <main className="lp-main">
+        <SiteHeroSection />
+        <SiteReliefStrip />
+        <SiteProblemsSection />
+        <SiteModulesSection />
+        <SiteDifferentialsSection />
+        <SitePsychosocialSection />
+        <SiteAudienceSection />
+        <SiteMaterialsSection />
+        <SiteContactSection />
+      </main>
       <SiteFooter />
-    </Box>
+    </div>
   );
 }

@@ -1,139 +1,71 @@
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  IconButton,
-  Link,
-  Stack,
-  Toolbar,
-  Drawer,
-  List,
-  ListItemButton,
-  ListItemText,
-} from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import NextLink from 'next/link';
-import { useState } from 'react';
+import Link from 'next/link';
+import { useCallback, useState } from 'react';
 import { SITE_NAV_LINKS } from '../constants/site-content.constant';
-import { SiteLogo } from './SiteLogo';
-import { sitePalette } from '../styles/site.palette';
+import { SITE_BRAND } from '../constants/site-brand.constant';
 
 const LOGIN_PATH = '/login';
 
 export function SiteHeader() {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const closeMenu = useCallback(() => {
+    setMenuOpen(false);
+  }, []);
 
   return (
-    <AppBar
-      position="sticky"
-      elevation={0}
-      sx={{
-        bgcolor: 'rgba(250, 248, 245, 0.85)',
-        backdropFilter: 'blur(12px)',
-        color: sitePalette.ink,
-        borderBottom: `1px solid ${sitePalette.border}`,
-      }}
-    >
-      <Container maxWidth="lg">
-        <Toolbar disableGutters sx={{ minHeight: { xs: 72, md: 84 }, gap: 2, py: { xs: 1, md: 1.5 } }}>
-          <SiteLogo size="lg" />
+    <header className="lp-header">
+      <div className="lp-wrap lp-header__inner">
+        <a href="/site" className="lp-logo" aria-label="SimpleSST — início">
+          <img src={SITE_BRAND.logoHorizontal} alt="SimpleSST" width={160} height={40} />
+        </a>
 
-          <Stack
-            direction="row"
-            alignItems="center"
-            sx={{
-              ml: { md: 6 },
-              flex: 1,
-              display: { xs: 'none', md: 'flex' },
-              gap: 5,
-            }}
-          >
-            {SITE_NAV_LINKS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                underline="none"
-                fontWeight={500}
-                fontSize="1rem"
-                sx={{
-                  color: sitePalette.inkSoft,
-                  transition: 'color 0.2s ease',
-                  '&:hover': { color: sitePalette.orange },
-                }}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </Stack>
-
-          <Stack direction="row" spacing={2} alignItems="center" sx={{ ml: 'auto' }}>
-            <Button
-              component={NextLink}
-              href={LOGIN_PATH}
-              variant="contained"
-              size="medium"
-              sx={{
-                display: { xs: 'none', sm: 'inline-flex' },
-                textTransform: 'none',
-                fontWeight: 700,
-                px: 3,
-                borderRadius: 3,
-                bgcolor: sitePalette.orange,
-                boxShadow: 'none',
-                '&:hover': { bgcolor: '#e0651f', boxShadow: `0 8px 24px ${sitePalette.orangeGlow}` },
-              }}
-            >
-              Acessar sistema
-            </Button>
-            <IconButton
-              aria-label="Abrir menu"
-              onClick={() => setMobileOpen(true)}
-              sx={{ display: { md: 'none' }, color: sitePalette.ink }}
-            >
-              <MenuIcon />
-            </IconButton>
-          </Stack>
-        </Toolbar>
-      </Container>
-
-      <Drawer
-        anchor="right"
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-        PaperProps={{ sx: { width: 300, bgcolor: sitePalette.canvas } }}
-      >
-        <Box sx={{ p: 3 }}>
-          <SiteLogo size="lg" />
-        </Box>
-        <List sx={{ px: 2 }}>
+        <nav className="lp-nav" aria-label="Seções da página">
           {SITE_NAV_LINKS.map((item) => (
-            <ListItemButton
-              key={item.href}
-              component="a"
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              sx={{ borderRadius: 2, mb: 0.5 }}
-            >
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{ fontWeight: 500, fontSize: '1.0625rem', color: sitePalette.ink }}
-              />
-            </ListItemButton>
+            <a key={item.href} href={item.href}>
+              {item.label}
+            </a>
           ))}
-          <ListItemButton
-            component={NextLink}
-            href={LOGIN_PATH}
-            onClick={() => setMobileOpen(false)}
-            sx={{ mt: 2, borderRadius: 2 }}
+        </nav>
+
+        <div className="lp-header__actions">
+          <Link href={LOGIN_PATH} className="lp-btn lp-btn--primary">
+            Acessar sistema
+          </Link>
+          <button
+            type="button"
+            className="lp-menu-toggle"
+            aria-label="Abrir menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(true)}
           >
-            <ListItemText
-              primary="Acessar sistema"
-              primaryTypographyProps={{ fontWeight: 700, color: sitePalette.orange }}
-            />
-          </ListItemButton>
-        </List>
-      </Drawer>
-    </AppBar>
+            <span />
+          </button>
+        </div>
+      </div>
+
+      <div className={`lp-drawer${menuOpen ? ' is-open' : ''}`} aria-hidden={!menuOpen}>
+        <button
+          type="button"
+          className="lp-drawer__backdrop"
+          aria-label="Fechar menu"
+          onClick={closeMenu}
+        />
+        <div className="lp-drawer__panel" role="dialog" aria-modal="true" aria-label="Menu">
+          <a href="/site" className="lp-logo" onClick={closeMenu}>
+            <img src={SITE_BRAND.logoHorizontal} alt="SimpleSST" width={140} height={36} />
+          </a>
+          <nav>
+            {SITE_NAV_LINKS.map((item) => (
+              <a key={item.href} href={item.href} onClick={closeMenu}>
+                {item.label}
+              </a>
+            ))}
+            <Link href={LOGIN_PATH} className="lp-btn lp-btn--primary" onClick={closeMenu}>
+              Acessar sistema
+            </Link>
+          </nav>
+        </div>
+      </div>
+    </header>
   );
 }

@@ -1,4 +1,3 @@
-import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import Head from 'next/head';
 import { NextPage } from 'next';
 import { SitePage } from '@v2/pages/site/site.page';
@@ -10,8 +9,8 @@ const SITE_DESCRIPTION =
 const SiteRoutePage: NextPage = () => {
   return (
     <>
-      <SHeaderTag hideInitial title={SITE_TITLE} />
       <Head>
+        <title>{SITE_TITLE}</title>
         <meta name="description" content={SITE_DESCRIPTION} />
       </Head>
       <SitePage />

@@ -1,52 +1,28 @@
-import { Box, Container, Stack, Typography } from '@mui/material';
 import { SITE_MATERIALS } from '../../constants/site-content.constant';
-import { siteSectionCompactSx } from '../../styles/site.styles';
-import { sitePalette } from '../../styles/site.palette';
 
 export function SiteMaterialsSection() {
   return (
-    <Box
-      component="section"
-      sx={{ ...siteSectionCompactSx, background: sitePalette.sectionEmphasisGradient }}
-    >
-      <Container maxWidth="md">
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={3}
-          alignItems={{ xs: 'flex-start', sm: 'center' }}
-          justifyContent="space-between"
-        >
-          <Box>
-            <Typography variant="overline" color={sitePalette.inkMuted} fontWeight={600}>
-              Em breve
-            </Typography>
-            <Typography variant="h6" fontWeight={700} color={sitePalette.ink}>
+    <section className="lp-materials" aria-labelledby="lp-materials-title">
+      <div className="lp-wrap">
+        <div className="lp-materials__row">
+          <div>
+            <p className="lp-label">Em breve</p>
+            <h2 id="lp-materials-title" className="lp-h2" style={{ fontSize: '1.5rem' }}>
               Materiais gratuitos
-            </Typography>
-            <Typography color={sitePalette.inkMuted} mt={0.5} fontSize="1.0625rem">
+            </h2>
+            <p className="lp-body" style={{ marginTop: '0.5rem' }}>
               Artigos, e-books e referências de metodologia para sua equipe.
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={2} flexWrap="wrap" useFlexGap>
+            </p>
+          </div>
+          <div className="lp-tags" role="list">
             {SITE_MATERIALS.map((m) => (
-              <Typography
-                key={m.title}
-                variant="body2"
-                sx={{
-                  px: 2,
-                  py: 0.75,
-                  borderRadius: 2,
-                  bgcolor: sitePalette.surface,
-                  color: sitePalette.inkMuted,
-                  border: `1px solid ${sitePalette.border}`,
-                }}
-              >
+              <span key={m.title} className="lp-tag" role="listitem">
                 {m.title}
-              </Typography>
+              </span>
             ))}
-          </Stack>
-        </Stack>
-      </Container>
-    </Box>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
