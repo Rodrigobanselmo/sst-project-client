@@ -1,4 +1,5 @@
 /** Marca institucional em public/site/ */
 export const SITE_BRAND = {
-  logoHorizontal: '/site/simplesst-logo-horizontal.png',
+  logoOnLight: '/site/simplesst-logo-yellow-black.png',
+  logoOnDark: '/site/simplesst-logo-yellow-white.png',
 } as const;

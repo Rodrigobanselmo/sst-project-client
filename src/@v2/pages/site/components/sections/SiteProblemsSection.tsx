@@ -20,12 +20,14 @@ export function SiteProblemsSection() {
         </header>
 
         <div className="lp-problems__grid">
-          <LandingPicture
-            src={SITE_IMAGES.problemSolution}
-            alt="Fluxo de documentos físicos para gestão digital no SimpleSST"
-            className="lp-problems__visual"
-            objectPosition="44% 50%"
-          />
+          <div className="lp-problems__media">
+            <LandingPicture
+              src={SITE_IMAGES.problemSolution}
+              alt="Fluxo de documentos físicos para gestão digital no SimpleSST"
+              className="lp-problems__visual"
+              objectPosition="48% 50%"
+            />
+          </div>
           <ul className="lp-story-list">
             {SITE_SOLUTION_STORIES.map((story) => (
               <li key={story.problem}>

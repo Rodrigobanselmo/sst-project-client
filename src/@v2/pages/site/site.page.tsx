@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { SiteFooter } from './components/SiteFooter';
 import { SiteHeader } from './components/SiteHeader';
 import { SiteReliefStrip } from './components/SiteReliefStrip';
@@ -11,6 +12,11 @@ import { SiteProblemsSection } from './components/sections/SiteProblemsSection';
 import { SitePsychosocialSection } from './components/sections/SitePsychosocialSection';
 
 export function SitePage() {
+  useEffect(() => {
+    document.documentElement.classList.add('lp-scroll');
+    return () => document.documentElement.classList.remove('lp-scroll');
+  }, []);
+
   return (
     <div className="lp">
       <SiteHeader />
