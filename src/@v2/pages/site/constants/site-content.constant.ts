@@ -186,7 +186,11 @@ export const SITE_AUDIENCE = [
 ] as const;
 
 export const SITE_MATERIALS = [
-  { title: 'Artigos', description: 'Em breve' },
+  {
+    title: 'Artigos',
+    description: 'Em breve',
+    href: '/site/artigos/adaptacao-copsoq-iii-pgr',
+  },
   { title: 'E-books', description: 'Em breve' },
   { title: 'Metodologia', description: 'Em breve' },
 ] as const;

@@ -1,8 +1,9 @@
+import Link from 'next/link';
 import { SITE_MATERIALS } from '../../constants/site-content.constant';
 
 export function SiteMaterialsSection() {
   return (
-    <section className="lp-materials" aria-labelledby="lp-materials-title">
+    <section className="lp-materials" id="materiais" aria-labelledby="lp-materials-title">
       <div className="lp-wrap">
         <div className="lp-materials__row">
           <div>
@@ -15,11 +16,17 @@ export function SiteMaterialsSection() {
             </p>
           </div>
           <div className="lp-tags" role="list">
-            {SITE_MATERIALS.map((m) => (
-              <span key={m.title} className="lp-tag" role="listitem">
-                {m.title}
-              </span>
-            ))}
+            {SITE_MATERIALS.map((m) =>
+              'href' in m && m.href ? (
+                <Link key={m.title} href={m.href} className="lp-tag lp-tag--link" role="listitem">
+                  {m.title}
+                </Link>
+              ) : (
+                <span key={m.title} className="lp-tag" role="listitem">
+                  {m.title}
+                </span>
+              ),
+            )}
           </div>
         </div>
       </div>
