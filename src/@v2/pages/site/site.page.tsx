@@ -9,6 +9,7 @@ import { SiteDifferentialsSection } from './components/sections/SiteDifferential
 import { SiteHeroSection } from './components/sections/SiteHeroSection';
 import { SiteMainHeroSection } from './components/sections/SiteMainHeroSection';
 import { SiteMaterialsSection } from './components/sections/SiteMaterialsSection';
+import { SiteMobileAppSection } from './components/sections/SiteMobileAppSection';
 import { SiteModulesSection } from './components/sections/SiteModulesSection';
 import { SiteProblemsSection } from './components/sections/SiteProblemsSection';
 import { SitePsychosocialSection } from './components/sections/SitePsychosocialSection';
@@ -33,6 +34,7 @@ export function SitePage() {
         <SiteHeroSection />
         <SiteAudienceSection />
         <SiteMaterialsSection />
+        <SiteMobileAppSection />
         <SiteContactSection />
       </main>
       <SiteFooter />

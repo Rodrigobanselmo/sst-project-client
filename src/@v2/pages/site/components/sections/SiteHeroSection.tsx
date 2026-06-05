@@ -30,10 +30,10 @@ export function SiteHeroSection() {
             </div>
           </div>
           <LandingPicture
-            src={SITE_IMAGES.hero}
-            alt="Equipe de SST em ambiente de trabalho colaborativo"
+            src={SITE_IMAGES.problemSolution}
+            alt="Fluxo de documentos físicos para gestão digital no SimpleSST"
             className="lp-hero__visual"
-            objectPosition="62% 42%"
+            objectPosition="48% 50%"
             priority
           />
         </div>
