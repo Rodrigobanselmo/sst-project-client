@@ -185,12 +185,21 @@ export const SITE_AUDIENCE = [
   },
 ] as const;
 
-export const SITE_MATERIALS = [
+export const SITE_MATERIALS_INTRO =
+  'Conteúdos práticos para apoiar sua operação de SST.';
+
+export const SITE_MATERIAL_CARDS = [
   {
-    title: 'Artigos',
-    description: 'Em breve',
+    title: 'Ginástica laboral',
+    description: 'Vídeos curtos para pausas no trabalho',
+    href: '/site/materiais/ginastica-laboral',
+  },
+  {
+    title: 'Adaptação do COPSOQ III ao PGR',
+    description: 'Guia prático para integrar fatores psicossociais ao GRO (NR-1)',
     href: '/site/artigos/adaptacao-copsoq-iii-pgr',
   },
-  { title: 'E-books', description: 'Em breve' },
-  { title: 'Metodologia', description: 'Em breve' },
 ] as const;
+
+/** Categorias futuras — exibidas de forma discreta, sem bloquear os materiais já publicados */
+export const SITE_MATERIALS_UPCOMING = ['E-books', 'Metodologia'] as const;

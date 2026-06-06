@@ -1165,18 +1165,8 @@ html.lp-scroll {
   background: var(--lp-canvas-muted);
 }
 
-.lp-materials__row {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-@media (min-width: 640px) {
-  .lp-materials__row {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-  }
+.lp-materials__head {
+  max-width: 40rem;
 }
 
 .lp-tags {
@@ -1205,6 +1195,166 @@ html.lp-scroll {
   border-color: var(--lp-yellow);
   color: var(--lp-ink);
   background: rgba(246, 208, 64, 0.12);
+}
+
+.lp-materials__cards {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .lp-materials__cards {
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  }
+}
+
+.lp-materials__card {
+  display: block;
+  padding: 1.25rem 1.375rem;
+  text-decoration: none;
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-lg);
+  box-shadow: var(--lp-shadow-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.lp-materials__card:hover {
+  border-color: var(--lp-yellow);
+  background: rgba(246, 208, 64, 0.08);
+  box-shadow: var(--lp-shadow-md);
+}
+
+.lp-materials__card-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+
+.lp-materials__card .lp-body {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.lp-materials__upcoming-label {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lp-ink-muted);
+}
+
+.lp-tag--muted {
+  color: var(--lp-ink-muted);
+  background: var(--lp-canvas);
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+/* Ginástica laboral */
+.lp-gym {
+  padding-block: clamp(2rem, 6vw, 3.5rem) var(--lp-section-y);
+  background: var(--lp-canvas);
+}
+
+.lp-gym__header {
+  max-width: 48rem;
+  margin-bottom: 2rem;
+}
+
+.lp-gym__videos {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.lp-gym__card {
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.25rem;
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-lg);
+  box-shadow: var(--lp-shadow-sm);
+}
+
+@media (min-width: 900px) {
+  .lp-gym__card {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 1.75rem;
+    align-items: start;
+    padding: 1.5rem;
+  }
+}
+
+.lp-gym__card-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+
+.lp-gym__duration {
+  margin: 0.75rem 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--lp-ink-muted);
+}
+
+.lp-video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--lp-radius-md);
+  background: var(--lp-black);
+  box-shadow: var(--lp-shadow-sm);
+}
+
+.lp-video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.lp-gym__youtube-link {
+  display: inline-block;
+  margin-top: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--lp-ink-soft);
+  text-decoration: none;
+}
+
+.lp-gym__youtube-link:hover {
+  color: var(--lp-ink);
+  text-decoration: underline;
+}
+
+.lp-gym__disclaimer {
+  margin: 2rem 0 0;
+  padding: 1rem 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--lp-ink-muted);
+  background: var(--lp-canvas-muted);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-md);
+}
+
+.lp-gym__cta {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  text-align: center;
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-lg);
+  box-shadow: var(--lp-shadow-sm);
 }
 
 /* Artigo institucional */
