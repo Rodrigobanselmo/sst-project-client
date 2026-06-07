@@ -1506,6 +1506,408 @@ html.lp-scroll {
   margin-top: 2.5rem;
 }
 
+/* E-book — ergonomia home office */
+.lp-ebook {
+  padding-block: clamp(2rem, 6vw, 3.5rem) var(--lp-section-y);
+  background: var(--lp-canvas);
+}
+
+.lp-ebook__header {
+  max-width: none;
+}
+
+.lp-ebook .lp-article__intro {
+  max-width: none;
+}
+
+@media (max-width: 767px) {
+  .lp-ebook__header,
+  .lp-ebook .lp-article__intro {
+    text-align: center;
+  }
+}
+
+.lp-ebook__hero {
+  margin-top: 2rem;
+  padding-block: 2rem;
+  background: var(--lp-canvas-muted);
+  border-top: 1px solid var(--lp-border);
+  border-bottom: 1px solid var(--lp-border);
+}
+
+.lp-ebook__hero-grid {
+  display: grid;
+  gap: 1.75rem;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .lp-ebook__hero-grid {
+    grid-template-columns: minmax(12rem, 20rem) minmax(0, 1fr);
+    gap: 2.5rem 3.5rem;
+    align-items: center;
+  }
+}
+
+.lp-ebook__preview {
+  display: flex;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .lp-ebook__preview {
+    justify-content: flex-start;
+  }
+}
+
+.lp-ebook__cover-frame {
+  width: min(100%, 14rem);
+  padding: 0.375rem;
+  background: var(--lp-white);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-md);
+  box-shadow: var(--lp-shadow-md);
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .lp-ebook__cover-frame {
+    width: 100%;
+    max-width: 20rem;
+  }
+}
+
+.lp-ebook__cover-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+  object-fit: contain;
+  object-position: center;
+  border-radius: calc(var(--lp-radius-md) - 3px);
+}
+
+.lp-ebook__hero-copy {
+  max-width: none;
+}
+
+.lp-ebook__blocks {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2.5rem;
+}
+
+@media (min-width: 768px) {
+  .lp-ebook__blocks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.lp-ebook__block {
+  padding: 1.375rem 1.5rem;
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-lg);
+  box-shadow: var(--lp-shadow-sm);
+}
+
+.lp-ebook__block-title {
+  margin: 0 0 1rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--lp-ink);
+}
+
+.lp-ebook__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lp-ebook__list li {
+  position: relative;
+  padding-left: 1.125rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--lp-ink-soft);
+}
+
+.lp-ebook__list li + li {
+  margin-top: 0.625rem;
+}
+
+.lp-ebook__list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: 50%;
+  background: var(--lp-yellow);
+}
+
+.lp-ebook__previews {
+  margin-top: 2.5rem;
+  padding-block: 2.5rem;
+  background: var(--lp-canvas-muted);
+  border-top: 1px solid var(--lp-border);
+}
+
+.lp-ebook__previews-head {
+  max-width: 42rem;
+}
+
+.lp-ebook__previews-subtitle {
+  margin: 0.75rem 0 0;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--lp-ink-soft);
+}
+
+.lp-ebook__preview-cards {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+@media (min-width: 640px) {
+  .lp-ebook__preview-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .lp-ebook__preview-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.lp-ebook__preview-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.125rem;
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-lg);
+  box-shadow: var(--lp-shadow-sm);
+}
+
+.lp-ebook__preview-media-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.lp-ebook__preview-media-btn:focus-visible {
+  outline: 2px solid var(--lp-yellow);
+  outline-offset: 3px;
+  border-radius: var(--lp-radius-md);
+}
+
+.lp-ebook__preview-media-btn:hover .lp-ebook__preview-media,
+.lp-ebook__preview-media-btn:focus-visible .lp-ebook__preview-media {
+  border-color: var(--lp-yellow);
+  box-shadow: var(--lp-shadow-sm);
+}
+
+.lp-ebook__preview-media {
+  position: relative;
+  width: 100%;
+  padding: 0.5rem;
+  background: var(--lp-white);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-md);
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lp-ebook__preview-zoom {
+  position: absolute;
+  right: 0.625rem;
+  bottom: 0.625rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.55rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--lp-ink);
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--lp-border);
+  border-radius: 999px;
+  box-shadow: var(--lp-shadow-sm);
+  pointer-events: none;
+}
+
+.lp-ebook__preview-zoom-icon {
+  flex-shrink: 0;
+}
+
+.lp-ebook__preview-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  object-position: center;
+  border-radius: calc(var(--lp-radius-md) - 2px);
+}
+
+.lp-ebook__preview-card-title {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--lp-ink);
+}
+
+.lp-ebook__preview-card-text {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+/* Lightbox — ampliação de imagens (landing /site) */
+.lp-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+.lp-lightbox__backdrop {
+  position: absolute;
+  inset: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(17, 17, 17, 0.88);
+  cursor: pointer;
+}
+
+.lp-lightbox__dialog {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 90vw;
+  max-height: 85vh;
+}
+
+.lp-lightbox__img {
+  display: block;
+  max-width: 90vw;
+  max-height: 85vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--lp-radius-md);
+  box-shadow: var(--lp-shadow-md);
+}
+
+.lp-lightbox__close {
+  position: absolute;
+  top: -2.75rem;
+  right: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--lp-white);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.lp-lightbox__close:hover,
+.lp-lightbox__close:focus-visible {
+  background: rgba(255, 255, 255, 0.22);
+  outline: none;
+}
+
+@media (max-width: 640px) {
+  .lp-lightbox__close {
+    top: 0.5rem;
+    right: 0.5rem;
+    background: rgba(17, 17, 17, 0.65);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.lp-ebook__disclaimer {
+  margin: 2.5rem 0 0;
+  padding: 1rem 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  color: var(--lp-ink-muted);
+  background: var(--lp-canvas-muted);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-md);
+}
+
+.lp-ebook__cta {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background: var(--lp-surface);
+  border: 1px solid var(--lp-border);
+  border-radius: var(--lp-radius-lg);
+  box-shadow: var(--lp-shadow-sm);
+}
+
+.lp-ebook__actions {
+  display: grid;
+  gap: 0.875rem;
+  width: 100%;
+  margin-top: 0;
+}
+
+@media (min-width: 768px) {
+  .lp-ebook__actions {
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .lp-ebook__actions > :nth-child(1) {
+    justify-self: start;
+  }
+
+  .lp-ebook__actions > :nth-child(2) {
+    justify-self: center;
+  }
+
+  .lp-ebook__actions > :nth-child(3) {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 767px) {
+  .lp-ebook__actions {
+    grid-template-columns: 1fr;
+  }
+
+  .lp-ebook__actions > * {
+    width: 100%;
+    justify-self: stretch;
+    text-align: center;
+  }
+}
+
 /* App mobile — interface de campo */
 .lp-mobile-app {
   padding-block: var(--lp-section-y);

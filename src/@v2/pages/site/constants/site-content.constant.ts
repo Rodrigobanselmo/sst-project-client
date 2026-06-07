@@ -190,6 +190,12 @@ export const SITE_MATERIALS_INTRO =
 
 export const SITE_MATERIAL_CARDS = [
   {
+    title: 'Ergonomia aplicada ao Home Office',
+    description:
+      'E-book com orientações práticas para configurar o posto de trabalho, organizar pausas e melhorar a rotina no trabalho remoto.',
+    href: '/site/materiais/ergonomia-home-office',
+  },
+  {
     title: 'Ginástica laboral',
     description: 'Vídeos curtos para pausas no trabalho',
     href: '/site/materiais/ginastica-laboral',
@@ -202,4 +208,4 @@ export const SITE_MATERIAL_CARDS = [
 ] as const;
 
 /** Categorias futuras — exibidas de forma discreta, sem bloquear os materiais já publicados */
-export const SITE_MATERIALS_UPCOMING = ['E-books', 'Metodologia'] as const;
+export const SITE_MATERIALS_UPCOMING = ['Metodologia'] as const;
