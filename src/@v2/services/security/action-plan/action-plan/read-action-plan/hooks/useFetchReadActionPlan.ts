@@ -15,6 +15,7 @@ export const useFetchReadActionPlan = (params: ReadActionPlanParams) => {
       QueryKeyEnum.READ,
       params,
     ],
+    refetchOnMount: true,
   });
 
   return {

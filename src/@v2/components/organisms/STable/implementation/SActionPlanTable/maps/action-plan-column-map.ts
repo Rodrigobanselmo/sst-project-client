@@ -23,6 +23,10 @@ export const ActionPlanColumnMap: Record<
   [ActionPlanColumnsEnum.RECOMMENDATION]: { label: 'Recomendação' },
   [ActionPlanColumnsEnum.STATUS]: { label: 'Status' },
   [ActionPlanColumnsEnum.RESPONSIBLE]: { label: 'Responsável' },
+  [ActionPlanColumnsEnum.EFFECTIVENESS]: {
+    label: 'Eficácia',
+    startHidden: true,
+  },
   [ActionPlanColumnsEnum.CREATED_AT]: { label: 'Criado', startHidden: true },
   [ActionPlanColumnsEnum.UPDATED_AT]: {
     label: 'Atualizado',

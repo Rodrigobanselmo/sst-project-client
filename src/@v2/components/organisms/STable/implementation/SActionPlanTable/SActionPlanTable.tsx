@@ -22,6 +22,7 @@ import { ActionPlanHeaderRow } from './components/ActionPlanHeaderRow/ActionPlan
 import { ActionPlanResponsibleSelect } from './components/ActionPlanResponsibleSelect/ActionPlanResponsibleSelect';
 import { ActionPlanStatusSelect } from './components/ActionPlanStatusSelect/ActionPlanStatusSelect';
 import { ActionPlanValidDateSelect } from './components/ActionPlanValidDateSelect/ActionPlanValidDateSelect';
+import { ActionPlanEffectivenessBadge } from './components/ActionPlanEffectivenessBadge/ActionPlanEffectivenessBadge';
 import { ActionPlanColumnsEnum as columnsEnum } from './enums/action-plan-columns.enum';
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { useActionPlanActions } from './hooks/useActionPlanActions';
@@ -194,6 +195,22 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => <ActionPlanStatusSelect companyId={companyId} row={row} />,
+    },
+    // EFFECTIVENESS
+    {
+      column: '130px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.EFFECTIVENESS),
+      header: (
+        <ActionPlanHeaderRow
+          justify="center"
+          orderByMap={orderByMap}
+          onHidden={() =>
+            setHiddenColumns({ [columnsEnum.EFFECTIVENESS]: true })
+          }
+          text={columnMap[columnsEnum.EFFECTIVENESS].label}
+        />
+      ),
+      row: (row) => <ActionPlanEffectivenessBadge row={row} />,
     },
     // RESPONSIBLE
     {

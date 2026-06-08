@@ -8,6 +8,9 @@ import { useFetchReadActionPlan } from '@v2/services/security/action-plan/action
 import { ActionPlanSubTasks } from './components/ActionPlanSubTasks';
 import { ActionPlanRecommendationsPhotos } from '../ActionPlanRecommendationsPhotos/ActionPlanRecommendationsPhotos';
 import { ActionPlanCharacterizationPhotos } from '../ActionPlanCharacterizationPhotos/ActionPlanCharacterizationPhotos';
+import { ActionPlanExecutionSummary } from './components/ActionPlanExecutionSummary';
+import { ActionPlanPlanningSection } from './components/ActionPlanPlanningSection';
+import { ActionPlanEffectivenessSection } from './components/ActionPlanEffectivenessSection';
 
 export const ActionPlanViewModal = ({
   companyId,
@@ -60,6 +63,15 @@ export const ActionPlanViewModal = ({
           <SText mb={10} fontSize={16}>
             {actionPlan.recommendation.name}
           </SText>
+          <ActionPlanExecutionSummary actionPlan={actionPlan} />
+          <ActionPlanPlanningSection
+            actionPlan={actionPlan}
+            companyId={companyId}
+          />
+          <ActionPlanEffectivenessSection
+            actionPlan={actionPlan}
+            companyId={companyId}
+          />
           <ActionPlanSubTasks
             actionPlan={actionPlan}
             boxProps={{ mt: 4, mb: 20 }}

@@ -1,5 +1,6 @@
 import { dateUtils } from '@v2/utils/date-utils';
 import { ActionPlanStatusEnum } from '../../enums/action-plan-status.enum';
+import { EffectivenessStatusEnum } from '../../enums/effectiveness-status.enum';
 import { OriginTypeEnum } from '../../enums/origin-type.enum';
 import { RecommendationTypeEnum } from '../../enums/recommendation-type.enum';
 import { RiskTypeEnum } from '../../enums/risk-type.enum';
@@ -9,6 +10,14 @@ import {
   ActionPlanBrowseCommentResultModel,
   IActionPlanBrowseCommentResultModel,
 } from './action-plan-browse-comment-result.model';
+import {
+  ActionPlanEffectivenessModel,
+  IActionPlanEffectivenessModel,
+} from './action-plan-effectiveness.model';
+import {
+  ActionPlanPlanningModel,
+  IActionPlanPlanningModel,
+} from './action-plan-planning.model';
 
 export type IActionPlanBrowseResultModel = {
   uuid: {
@@ -37,6 +46,8 @@ export type IActionPlanBrowseResultModel = {
   status: ActionPlanStatusEnum;
   responsible: { id: string; name: string } | null;
   comments: IActionPlanBrowseCommentResultModel[];
+  planning?: IActionPlanPlanningModel;
+  effectiveness?: IActionPlanEffectivenessModel;
 };
 
 export class ActionPlanBrowseResultModel {
@@ -66,6 +77,8 @@ export class ActionPlanBrowseResultModel {
   status: ActionPlanStatusEnum;
   responsible: { id: string; name: string } | null;
   comments: ActionPlanBrowseCommentResultModel[];
+  planning: ActionPlanPlanningModel;
+  effectiveness: ActionPlanEffectivenessModel;
 
   constructor(params: IActionPlanBrowseResultModel) {
     this.uuid = params.uuid;
@@ -85,6 +98,17 @@ export class ActionPlanBrowseResultModel {
     this.origin = params.origin;
     this.comments = params.comments.map(
       (comment) => new ActionPlanBrowseCommentResultModel(comment),
+    );
+    this.planning = new ActionPlanPlanningModel(
+      params.planning ?? { monitoringMethod: null, resultCriteria: null },
+    );
+    this.effectiveness = new ActionPlanEffectivenessModel(
+      params.effectiveness ?? {
+        status: EffectivenessStatusEnum.NOT_EVALUATED,
+        date: null,
+        comment: null,
+        evaluatedBy: null,
+      },
     );
   }
 

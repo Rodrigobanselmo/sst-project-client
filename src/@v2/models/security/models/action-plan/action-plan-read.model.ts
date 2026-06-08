@@ -1,6 +1,16 @@
+import { ActionPlanStatusEnum } from '../../enums/action-plan-status.enum';
+import { EffectivenessStatusEnum } from '../../enums/effectiveness-status.enum';
 import { OriginTypeEnum } from '../../enums/origin-type.enum';
 import { originTypeTranslation } from '../../translations/origin-type.translation';
 import { ActionPlanReadPhotoModel } from './action-plan-read-photo.model';
+import {
+  ActionPlanEffectivenessModel,
+  IActionPlanEffectivenessModel,
+} from './action-plan-effectiveness.model';
+import {
+  ActionPlanPlanningModel,
+  IActionPlanPlanningModel,
+} from './action-plan-planning.model';
 
 export type IActionPlanReadModel = {
   uuid: {
@@ -12,6 +22,9 @@ export type IActionPlanReadModel = {
   companyId: string;
   name: string;
   type: OriginTypeEnum;
+  status: ActionPlanStatusEnum;
+  validDate: Date | null;
+  responsible: { id: string; name: string } | null;
 
   characterizationPhotos: ActionPlanReadPhotoModel[];
   recommendation: {
@@ -22,6 +35,8 @@ export type IActionPlanReadModel = {
     id: string;
     name: string;
   }[];
+  planning?: IActionPlanPlanningModel;
+  effectiveness?: IActionPlanEffectivenessModel;
 };
 
 export class ActionPlanReadModel {
@@ -34,6 +49,9 @@ export class ActionPlanReadModel {
   companyId: string;
   name: string;
   type: OriginTypeEnum;
+  status: ActionPlanStatusEnum;
+  validDate: Date | null;
+  responsible: { id: string; name: string } | null;
 
   characterizationPhotos: ActionPlanReadPhotoModel[];
   recommendation: {
@@ -44,19 +62,38 @@ export class ActionPlanReadModel {
     id: string;
     name: string;
   }[];
+  planning: ActionPlanPlanningModel;
+  effectiveness: ActionPlanEffectivenessModel;
 
   constructor(params: IActionPlanReadModel) {
     this.uuid = params.uuid;
     this.name = params.name;
     this.type = params.type;
     this.companyId = params.companyId;
+    this.status = params.status ?? ActionPlanStatusEnum.PENDING;
+    this.validDate = params.validDate ? new Date(params.validDate) : null;
+    this.responsible = params.responsible ?? null;
 
-    this.recommendation = params.recommendation;
-    this.generateSources = params.generateSources.map((source) => ({
+    this.recommendation = {
+      name: params.recommendation?.name ?? '',
+      photos: params.recommendation?.photos ?? [],
+    };
+    this.generateSources = (params.generateSources ?? []).map((source) => ({
       id: source.id,
       name: source.name.replaceAll('**', ''),
     }));
-    this.characterizationPhotos = params.characterizationPhotos;
+    this.characterizationPhotos = params.characterizationPhotos ?? [];
+    this.planning = new ActionPlanPlanningModel(
+      params.planning ?? { monitoringMethod: null, resultCriteria: null },
+    );
+    this.effectiveness = new ActionPlanEffectivenessModel(
+      params.effectiveness ?? {
+        status: EffectivenessStatusEnum.NOT_EVALUATED,
+        date: null,
+        comment: null,
+        evaluatedBy: null,
+      },
+    );
   }
 
   get originType() {
