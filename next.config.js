@@ -40,7 +40,7 @@ const nextConfig = {
   async rewrites() {
     return [
       {
-        destination: '/login',
+        destination: '/site',
         source: '/',
       },
       {

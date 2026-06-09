@@ -11,6 +11,7 @@ import SMailIcon from 'assets/icons/SMailIcon';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { QueryEnum } from 'core/enums/query.enums';
+import { RoutesEnum } from 'core/enums/routes.enums';
 import { useMutUpdateUser } from 'core/services/hooks/mutations/user/useMutUpdateUser';
 import { queryClient } from 'core/services/queryClient';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
@@ -34,7 +35,7 @@ export const InvitesPopper: FC<{ children?: any } & IInvitesPopperProps> = ({
   const handleAcceptInvite = async (id: string) => {
     await acceptInviteMut.mutateAsync({ token: id }).catch(() => {});
     refreshUser();
-    router.push('/');
+    router.push(RoutesEnum.DASHBOARD);
     queryClient.invalidateQueries([QueryEnum.INVITES_USER]);
     close();
   };

@@ -26,7 +26,7 @@ export enum RoutesEnum {
   ACTION_PLAN = '/dashboard/empresas/:companyId/plano-de-acao',
   EXAMS = '/dashboard/empresas/:companyId/exames',
   HIERARCHY = '/dashboard/empresas/:companyId/hierarquia',
-  LOGIN = '/',
+  LOGIN = '/login',
   MANAGER_SYSTEM = '/dashboard/empresas/:companyId/gestao-sst',
   MODAL = '/dashboard/test/modal',
   ONBOARD = '/acesso',
