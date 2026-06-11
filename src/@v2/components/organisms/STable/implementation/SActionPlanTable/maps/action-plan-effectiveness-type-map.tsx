@@ -16,6 +16,21 @@ type EffectivenessStatusTypeMapValue = {
   };
 };
 
+const effectivenessNeutralSchema = {
+  color: palette.grey[600],
+  borderColor: palette.grey[400],
+  iconColor: palette.grey[500],
+  backgroundColor: palette.grey[100],
+} as const;
+
+const effectivenessOrange = palette.graph.orange;
+const effectivenessOrangeSchema = {
+  color: effectivenessOrange,
+  borderColor: effectivenessOrange,
+  iconColor: effectivenessOrange,
+  backgroundColor: `${effectivenessOrange}22`,
+} as const;
+
 export const EffectivenessStatusTypeMap: Record<
   EffectivenessStatusEnum,
   EffectivenessStatusTypeMapValue
@@ -23,12 +38,7 @@ export const EffectivenessStatusTypeMap: Record<
   [EffectivenessStatusEnum.NOT_EVALUATED]: {
     label: EffectivenessStatusTranslate[EffectivenessStatusEnum.NOT_EVALUATED],
     startAddon: <SStartAddonCircle color={palette.grey[400]} />,
-    schema: {
-      color: palette.grey[600],
-      borderColor: palette.grey[400],
-      iconColor: palette.grey[500],
-      backgroundColor: palette.grey[100],
-    },
+    schema: effectivenessNeutralSchema,
   },
   [EffectivenessStatusEnum.EFFECTIVE]: {
     label: EffectivenessStatusTranslate[EffectivenessStatusEnum.EFFECTIVE],
@@ -43,13 +53,8 @@ export const EffectivenessStatusTypeMap: Record<
   [EffectivenessStatusEnum.PARTIALLY_EFFECTIVE]: {
     label:
       EffectivenessStatusTranslate[EffectivenessStatusEnum.PARTIALLY_EFFECTIVE],
-    startAddon: <SStartAddonCircle color={palette.schema.yellow} />,
-    schema: {
-      color: palette.schema.yellow,
-      borderColor: palette.schema.yellow,
-      iconColor: palette.schema.yellow,
-      backgroundColor: palette.schema.yellowFade,
-    },
+    startAddon: <SStartAddonCircle color={effectivenessOrange} />,
+    schema: effectivenessOrangeSchema,
   },
   [EffectivenessStatusEnum.INEFFECTIVE]: {
     label: EffectivenessStatusTranslate[EffectivenessStatusEnum.INEFFECTIVE],
@@ -129,12 +134,7 @@ export const getEffectivenessDisplay = (
   if (isPendingReview) {
     return {
       label: 'Eficácia pendente',
-      schema: {
-        color: palette.schema.yellow,
-        borderColor: palette.schema.yellow,
-        iconColor: palette.schema.yellow,
-        backgroundColor: palette.schema.yellowFade,
-      },
+      schema: effectivenessNeutralSchema,
     };
   }
 

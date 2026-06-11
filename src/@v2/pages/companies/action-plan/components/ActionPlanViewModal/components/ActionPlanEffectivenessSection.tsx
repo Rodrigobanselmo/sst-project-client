@@ -20,6 +20,10 @@ import { dateUtils } from '@v2/utils/date-utils';
 import palette from 'configs/theme/palette';
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
+import {
+  ActionPlanMeasureCorrectionAlert,
+  isEffectivenessRequiringCorrection,
+} from './ActionPlanMeasureCorrectionAlert';
 
 type EffectivenessFormFields = {
   effectivenessStatus: { label: string; value: EffectivenessStatusEnum };
@@ -86,6 +90,10 @@ export const ActionPlanEffectivenessSection = ({
   ]);
 
   const selectedStatus = form.watch('effectivenessStatus')?.value;
+  const displayEffectivenessStatus = selectedStatus ?? effectivenessStatus;
+  const showCorrectionAlert = isEffectivenessRequiringCorrection(
+    displayEffectivenessStatus,
+  );
 
   useEffect(() => {
     if (selectedStatus === EffectivenessStatusEnum.NOT_EVALUATED) {
@@ -183,6 +191,7 @@ export const ActionPlanEffectivenessSection = ({
             />
           </SFormRow>
         </SFormSection>
+        {showCorrectionAlert && <ActionPlanMeasureCorrectionAlert />}
         {(formattedDate || evaluatedBy?.name) && (
           <Box mt={4}>
             {formattedDate && (
