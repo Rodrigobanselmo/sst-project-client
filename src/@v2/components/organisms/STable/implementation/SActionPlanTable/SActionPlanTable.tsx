@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 
 import { SIconComments } from '@v2/assets/icons';
 import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
@@ -23,6 +23,11 @@ import { ActionPlanResponsibleSelect } from './components/ActionPlanResponsibleS
 import { ActionPlanStatusSelect } from './components/ActionPlanStatusSelect/ActionPlanStatusSelect';
 import { ActionPlanValidDateSelect } from './components/ActionPlanValidDateSelect/ActionPlanValidDateSelect';
 import { ActionPlanEffectivenessBadge } from './components/ActionPlanEffectivenessBadge/ActionPlanEffectivenessBadge';
+import { ActionPlanExposedWorkersBadge } from './components/ActionPlanExposedWorkersBadge/ActionPlanExposedWorkersBadge';
+import {
+  computePopulationPriorityMap,
+  PopulationPriorityEnum,
+} from './helpers/compute-population-priority.helper';
 import { ActionPlanColumnsEnum as columnsEnum } from './enums/action-plan-columns.enum';
 import { getHiddenColumn } from './helpers/get-hidden-column';
 import { useActionPlanActions } from './hooks/useActionPlanActions';
@@ -52,6 +57,10 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
 }) => {
   const orderByMap = mapOrderByTable(filters.orderBy);
   const { onViewComment } = useActionPlanActions();
+  const populationPriorityMap = useMemo(
+    () => computePopulationPriorityMap(data),
+    [data],
+  );
 
   const tableRows: ITableData<ActionPlanBrowseResultModel>[] = [
     // CHECK_BOX
@@ -155,6 +164,29 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
         />
       ),
       row: (row) => <OccupationalRiskTag level={row.ocupationalRisk} />,
+    },
+    // EXPOSED_WORKERS
+    {
+      column: '90px',
+      hidden: getHiddenColumn(hiddenColumns, columnsEnum.EXPOSED_WORKERS),
+      header: (
+        <ActionPlanHeaderRow
+          justify="center"
+          setOrderBy={setOrderBy}
+          orderByMap={orderByMap}
+          onHidden={() =>
+            setHiddenColumns({ [columnsEnum.EXPOSED_WORKERS]: true })
+          }
+          field={ActionPlanOrderByEnum.EXPOSED_WORKERS}
+          text={columnMap[columnsEnum.EXPOSED_WORKERS].label}
+        />
+      ),
+      row: (row) => (
+        <ActionPlanExposedWorkersBadge
+          count={row.exposedWorkersCount}
+          priority={populationPriorityMap[row.id]}
+        />
+      ),
     },
     // RECOMMENDATION
     {
@@ -325,6 +357,15 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
                     clickable
                     onClick={() => onSelectRow(row)}
                     minHeight={35}
+                    sx={
+                      populationPriorityMap[row.id] ===
+                      PopulationPriorityEnum.HIGH
+                        ? {
+                            boxShadow: (theme) =>
+                              `inset 3px 0 0 ${theme.palette.error.main}`,
+                          }
+                        : undefined
+                    }
                   >
                     {rows.map((render) => render(row))}
                   </STableRow>

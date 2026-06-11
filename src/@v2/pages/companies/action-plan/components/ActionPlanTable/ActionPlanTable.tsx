@@ -90,6 +90,10 @@ export const ActionPlanTable = ({
         order: 'desc',
       },
       {
+        field: ActionPlanOrderByEnum.EXPOSED_WORKERS,
+        order: 'desc',
+      },
+      {
         field: ActionPlanOrderByEnum.ORIGIN,
         order: 'asc',
       },
@@ -245,6 +249,10 @@ export const ActionPlanTable = ({
         },
         {
           field: ActionPlanOrderByEnum.LEVEL,
+          order: 'desc',
+        },
+        {
+          field: ActionPlanOrderByEnum.EXPOSED_WORKERS,
           order: 'desc',
         },
         {

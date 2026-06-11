@@ -20,6 +20,7 @@ export const ActionPlanColumnMap: Record<
     startHidden: true,
   },
   [ActionPlanColumnsEnum.LEVEL]: { label: 'Nível' },
+  [ActionPlanColumnsEnum.EXPOSED_WORKERS]: { label: 'Expostos' },
   [ActionPlanColumnsEnum.RECOMMENDATION]: { label: 'Recomendação' },
   [ActionPlanColumnsEnum.STATUS]: { label: 'Status' },
   [ActionPlanColumnsEnum.RESPONSIBLE]: { label: 'Responsável' },

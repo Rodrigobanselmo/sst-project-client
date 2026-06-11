@@ -48,6 +48,7 @@ export type IActionPlanBrowseResultModel = {
   comments: IActionPlanBrowseCommentResultModel[];
   planning?: IActionPlanPlanningModel;
   effectiveness?: IActionPlanEffectivenessModel;
+  exposedWorkersCount?: number;
 };
 
 export class ActionPlanBrowseResultModel {
@@ -79,6 +80,7 @@ export class ActionPlanBrowseResultModel {
   comments: ActionPlanBrowseCommentResultModel[];
   planning: ActionPlanPlanningModel;
   effectiveness: ActionPlanEffectivenessModel;
+  exposedWorkersCount: number;
 
   constructor(params: IActionPlanBrowseResultModel) {
     this.uuid = params.uuid;
@@ -110,6 +112,7 @@ export class ActionPlanBrowseResultModel {
         evaluatedBy: null,
       },
     );
+    this.exposedWorkersCount = params.exposedWorkersCount ?? 0;
   }
 
   get formatedDoneAt() {

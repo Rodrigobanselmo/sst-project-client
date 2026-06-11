@@ -16,4 +16,5 @@ export const ordenByActionPlanTranslation: OrderByTranslationMap = {
   [ActionPlanOrderByEnum.CANCEL_DATE]: 'data de cancelamento',
   [ActionPlanOrderByEnum.VALID_DATE]: 'data válida',
   [ActionPlanOrderByEnum.RESPONSIBLE]: 'responsável',
+  [ActionPlanOrderByEnum.EXPOSED_WORKERS]: 'trabalhadores expostos',
 };

@@ -26,8 +26,11 @@ export const ActionPlanExecutionSummary = ({
           ? dateUtils(actionPlan.validDate).format('DD/MM/YYYY')
           : 'Sem prazo'}
       </SText>
-      <SText fontSize={15}>
+      <SText fontSize={15} mb={3}>
         Responsável: {actionPlan.responsible?.name || 'Não definido'}
+      </SText>
+      <SText fontSize={15}>
+        Trabalhadores expostos: {actionPlan.exposedWorkersCount}
       </SText>
     </Box>
   );

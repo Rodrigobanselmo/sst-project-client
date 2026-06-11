@@ -37,6 +37,7 @@ export type IActionPlanReadModel = {
   }[];
   planning?: IActionPlanPlanningModel;
   effectiveness?: IActionPlanEffectivenessModel;
+  exposedWorkersCount?: number;
 };
 
 export class ActionPlanReadModel {
@@ -64,6 +65,7 @@ export class ActionPlanReadModel {
   }[];
   planning: ActionPlanPlanningModel;
   effectiveness: ActionPlanEffectivenessModel;
+  exposedWorkersCount: number;
 
   constructor(params: IActionPlanReadModel) {
     this.uuid = params.uuid;
@@ -94,6 +96,7 @@ export class ActionPlanReadModel {
         evaluatedBy: null,
       },
     );
+    this.exposedWorkersCount = params.exposedWorkersCount ?? 0;
   }
 
   get originType() {
