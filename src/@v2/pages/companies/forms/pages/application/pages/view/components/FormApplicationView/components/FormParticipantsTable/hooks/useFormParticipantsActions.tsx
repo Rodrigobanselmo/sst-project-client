@@ -24,7 +24,7 @@ export const useFormParticipantsActions = ({
     openModal(
       ModalKeyEnum.EMPLOYEE_EDIT,
       <EmployeeEditModal
-        companyId={companyId}
+        companyId={participant.companyId || companyId}
         encryptedEmployeeId={participant.encryptedEmployeeId}
         participantData={participant}
       />,

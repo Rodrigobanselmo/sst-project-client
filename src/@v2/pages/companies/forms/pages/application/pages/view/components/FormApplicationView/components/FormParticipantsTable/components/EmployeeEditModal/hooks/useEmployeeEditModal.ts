@@ -4,8 +4,6 @@ import { FormParticipantsBrowseResultModel } from '@v2/models/form/models/form-p
 import { useQueryEmployee } from 'core/services/hooks/queries/useQueryEmployee/useQueryEmployee';
 import { useMutUpdateEmployee } from 'core/services/hooks/mutations/manager/useMutUpdateEmployee';
 import { useSnackbar } from 'notistack';
-import { useQueryClient } from '@tanstack/react-query';
-import { QueryKeyEnum } from '@v2/constants/enums/@query-key.enum';
 import { QueryKeyFormEnum } from '@v2/constants/enums/form-query-key.enum';
 import { useInvalidateQuery } from '@v2/hooks/api/useInvalidateQuery';
 
@@ -34,14 +32,13 @@ export const useEmployeeEditModal = ({
   const { invalidateQueryKey } = useInvalidateQuery();
   const formRef = useRef<{ onSubmit: () => void } | null>(null);
 
-  // We need to get the actual employee ID from the encrypted ID
-  // For now, we'll use the participant data directly since we have the employee info
-  const employeeId = participantData.id; // This might need to be adjusted based on your data structure
+  const employeeCompanyId = participantData.companyId || companyId;
+  const employeeId = participantData.id;
 
   const { data: employee, isLoading } = useQueryEmployee(
     {
       id: employeeId,
-      companyId,
+      companyId: employeeCompanyId,
     },
     { enabled: !!employeeId },
   );
@@ -55,7 +52,7 @@ export const useEmployeeEditModal = ({
       try {
         await updateEmployeeMutation.mutateAsync({
           id: employee.id,
-          companyId,
+          companyId: employeeCompanyId,
           name: formData.name,
           email: formData.email,
           phone: formData.phone,
@@ -76,7 +73,7 @@ export const useEmployeeEditModal = ({
     [
       employee,
       updateEmployeeMutation,
-      companyId,
+      employeeCompanyId,
       enqueueSnackbar,
       closeModal,
       invalidateQueryKey,
