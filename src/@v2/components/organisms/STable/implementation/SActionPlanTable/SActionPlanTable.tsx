@@ -24,6 +24,7 @@ import { ActionPlanStatusSelect } from './components/ActionPlanStatusSelect/Acti
 import { ActionPlanValidDateSelect } from './components/ActionPlanValidDateSelect/ActionPlanValidDateSelect';
 import { ActionPlanEffectivenessBadge } from './components/ActionPlanEffectivenessBadge/ActionPlanEffectivenessBadge';
 import { ActionPlanExposedWorkersBadge } from './components/ActionPlanExposedWorkersBadge/ActionPlanExposedWorkersBadge';
+import { ActionPlanRecommendationTypeBadge } from './components/ActionPlanRecommendationTypeBadge/ActionPlanRecommendationTypeBadge';
 import {
   computePopulationPriorityMap,
   PopulationPriorityEnum,
@@ -209,6 +210,12 @@ export const SActionPlanTable: FC<IActionPlanTableTableProps> = ({
           tooltipMinLength={30}
           lineNumber={2}
           text={row.recommendation.name}
+          startAddon={
+            <ActionPlanRecommendationTypeBadge
+              type={row.recommendation.type}
+              variant="dot"
+            />
+          }
         />
       ),
     },

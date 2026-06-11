@@ -11,17 +11,22 @@ import { ActionPlanCharacterizationPhotos } from '../ActionPlanCharacterizationP
 import { ActionPlanExecutionSummary } from './components/ActionPlanExecutionSummary';
 import { ActionPlanPlanningSection } from './components/ActionPlanPlanningSection';
 import { ActionPlanEffectivenessSection } from './components/ActionPlanEffectivenessSection';
+import { ActionPlanRecommendationTypeBadge } from '@v2/components/organisms/STable/implementation/SActionPlanTable/components/ActionPlanRecommendationTypeBadge/ActionPlanRecommendationTypeBadge';
+import { RecommendationTypeEnum } from '@v2/models/security/enums/recommendation-type.enum';
+import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 
 export const ActionPlanViewModal = ({
   companyId,
   recommendationId,
   riskDataId,
   workspaceId,
+  recommendationType,
 }: {
   companyId: string;
   recommendationId: string;
   riskDataId: string;
   workspaceId: string;
+  recommendationType?: RecommendationTypeEnum;
 }) => {
   const { actionPlan, isLoading } = useFetchReadActionPlan({
     companyId,
@@ -60,9 +65,16 @@ export const ActionPlanViewModal = ({
             Recomendação
           </SText>
           <SDivider sx={{ mt: 3, mb: 6 }} />
-          <SText mb={10} fontSize={16}>
-            {actionPlan.recommendation.name}
-          </SText>
+          <SFlex align="center" gap={4} mb={10} flexWrap="wrap">
+            {recommendationType && (
+              <ActionPlanRecommendationTypeBadge
+                type={recommendationType}
+                variant="badge"
+                size="md"
+              />
+            )}
+            <SText fontSize={16}>{actionPlan.recommendation.name}</SText>
+          </SFlex>
           <ActionPlanExecutionSummary actionPlan={actionPlan} />
           <ActionPlanPlanningSection
             actionPlan={actionPlan}

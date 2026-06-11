@@ -25,6 +25,7 @@ export const useActionPlanTableActions = ({
         recommendationId={actionPlan.uuid.recommendationId}
         riskDataId={actionPlan.uuid.riskDataId}
         workspaceId={actionPlan.uuid.workspaceId}
+        recommendationType={actionPlan.recommendation.type}
       />,
     );
   };
