@@ -505,15 +505,27 @@ export const useCompanyStep = () => {
       const isAcceptingResponses =
         application.status === FormApplicationStatusEnum.PROGRESS;
 
+      const groupParticipationPercent = getHomeFormParticipationPercent(
+        Number(application.totalAnswers) || 0,
+        Number(application.totalParticipants) || 0,
+      );
+      const isBusinessGroupApplication =
+        application.isBusinessGroupApplication ?? false;
+      const currentCompanyParticipationPercent = isBusinessGroupApplication
+        ? getHomeFormParticipationPercent(
+            Number(application.currentCompanyAnswers) || 0,
+            Number(application.currentCompanyParticipants) || 0,
+          )
+        : undefined;
+
       return {
       id: application.id,
       name: application.name || application.form?.name || 'Formulário',
       status: application.status,
       statusLabel: FormApplicationStatusTranslate[application.status],
-      participationPercent: getHomeFormParticipationPercent(
-        Number(application.totalAnswers) || 0,
-        Number(application.totalParticipants) || 0,
-      ),
+      participationPercent: groupParticipationPercent,
+      isBusinessGroupApplication,
+      currentCompanyParticipationPercent,
       reminderCount: details?.reminderCount ?? 0,
       isAcceptingResponses,
       isShareableLink: details?.isShareableLink ?? true,

@@ -21,6 +21,9 @@ export type IFormApplicationBrowseResultModel = {
   companyId: string;
   totalAnswers: number;
   totalParticipants: number;
+  isBusinessGroupApplication?: boolean;
+  currentCompanyParticipants?: number | null;
+  currentCompanyAnswers?: number | null;
   form: IFormResultModel;
 };
 
@@ -36,6 +39,9 @@ export class FormApplicationBrowseResultModel {
   companyId: string;
   totalAnswers: number;
   totalParticipants: number;
+  isBusinessGroupApplication: boolean;
+  currentCompanyParticipants: number | null;
+  currentCompanyAnswers: number | null;
   form: IFormResultModel;
 
   constructor(params: IFormApplicationBrowseResultModel) {
@@ -51,6 +57,9 @@ export class FormApplicationBrowseResultModel {
 
     this.totalParticipants = params.totalParticipants;
     this.totalAnswers = params.totalAnswers;
+    this.isBusinessGroupApplication = params.isBusinessGroupApplication ?? false;
+    this.currentCompanyParticipants = params.currentCompanyParticipants ?? null;
+    this.currentCompanyAnswers = params.currentCompanyAnswers ?? null;
     this.form = params.form;
   }
 

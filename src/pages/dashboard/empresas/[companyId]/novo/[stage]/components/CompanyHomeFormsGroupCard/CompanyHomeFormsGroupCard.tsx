@@ -26,6 +26,8 @@ export type HomeFormLaunchItem = {
   name: string;
   statusLabel: string;
   participationPercent: number;
+  isBusinessGroupApplication?: boolean;
+  currentCompanyParticipationPercent?: number;
   reminderCount: number;
   isAcceptingResponses: boolean;
   isShareableLink: boolean;
@@ -47,6 +49,53 @@ const getParticipationColor = (percent: number) => {
   return 'success' as const;
 };
 
+const formatParticipationPercent = (percent: number, fractionDigits = 0) =>
+  percent.toLocaleString('pt-BR', {
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits,
+  });
+
+function ParticipationProgressRow({
+  label,
+  percent,
+  fractionDigits = 0,
+}: {
+  label: string;
+  percent: number;
+  fractionDigits?: number;
+}) {
+  const barColor = getParticipationColor(percent);
+
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: '58px minmax(0, 1fr) 34px',
+        alignItems: 'center',
+        gap: 0.75,
+      }}
+    >
+      <SText fontSize={10} color="text.secondary" lineNumber={1}>
+        {label}
+      </SText>
+      <LinearProgress
+        variant="determinate"
+        value={Math.min(100, Math.max(0, percent))}
+        color={barColor}
+        sx={{ height: 5, borderRadius: 1, bgcolor: 'grey.200' }}
+      />
+      <SText
+        fontSize={11}
+        fontWeight={600}
+        textAlign="right"
+        color={`${barColor}.main`}
+      >
+        {formatParticipationPercent(percent, fractionDigits)}%
+      </SText>
+    </Box>
+  );
+}
+
 function FormItemPreview({ item }: { item: HomeFormLaunchItem }) {
   return (
     <Box sx={{ p: 2, minWidth: 220, maxWidth: 280 }}>
@@ -61,18 +110,47 @@ function FormItemPreview({ item }: { item: HomeFormLaunchItem }) {
           {info.label}: {info.value}
         </SText>
       ))}
-      <SText
-        fontSize={12}
-        fontWeight={600}
-        sx={{ mt: 1, color: `${getParticipationColor(item.participationPercent)}.main` }}
-      >
-        Participação:{' '}
-        {item.participationPercent.toLocaleString('pt-BR', {
-          minimumFractionDigits: 1,
-          maximumFractionDigits: 1,
-        })}
-        %
-      </SText>
+      {item.isBusinessGroupApplication ? (
+        <>
+          <SText
+            fontSize={12}
+            fontWeight={600}
+            sx={{
+              mt: 1,
+              color: `${getParticipationColor(item.participationPercent)}.main`,
+            }}
+          >
+            Grupo empresarial:{' '}
+            {formatParticipationPercent(item.participationPercent, 1)}%
+          </SText>
+          <SText
+            fontSize={12}
+            fontWeight={600}
+            sx={{
+              color: `${getParticipationColor(item.currentCompanyParticipationPercent ?? 0)}.main`,
+            }}
+          >
+            Esta empresa:{' '}
+            {formatParticipationPercent(
+              item.currentCompanyParticipationPercent ?? 0,
+              1,
+            )}
+            %
+          </SText>
+        </>
+      ) : (
+        <SText
+          fontSize={12}
+          fontWeight={600}
+          sx={{
+            mt: 1,
+            color: `${getParticipationColor(item.participationPercent)}.main`,
+          }}
+        >
+          Participação:{' '}
+          {formatParticipationPercent(item.participationPercent, 1)}%
+        </SText>
+      )}
     </Box>
   );
 }
@@ -115,8 +193,6 @@ function FormLaunchRow({
     );
   }, [companyId, item.id, router]);
 
-  const barColor = getParticipationColor(item.participationPercent);
-
   const handleReminderClick = useCallback(
     (event: React.MouseEvent) => {
       event.stopPropagation();
@@ -147,7 +223,9 @@ function FormLaunchRow({
         onMouseLeave={scheduleClose}
         sx={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) 52px 48px',
+          gridTemplateColumns: item.isBusinessGroupApplication
+            ? 'minmax(0, 1fr) 150px'
+            : 'minmax(0, 1fr) 52px 48px',
           alignItems: 'center',
           gap: 1,
           px: 1.5,
@@ -224,23 +302,35 @@ function FormLaunchRow({
             )}
           </SFlex>
         </Box>
-        <LinearProgress
-          variant="determinate"
-          value={Math.min(100, Math.max(0, item.participationPercent))}
-          color={barColor}
-          sx={{ height: 6, borderRadius: 1, bgcolor: 'grey.200' }}
-        />
-        <SText
-          fontSize={12}
-          fontWeight={600}
-          textAlign="right"
-          color={`${barColor}.main`}
-        >
-          {item.participationPercent.toLocaleString('pt-BR', {
-            maximumFractionDigits: 0,
-          })}
-          %
-        </SText>
+        {item.isBusinessGroupApplication ? (
+          <Box display="flex" flexDirection="column" gap={0.5}>
+            <ParticipationProgressRow
+              label="Grupo"
+              percent={item.participationPercent}
+            />
+            <ParticipationProgressRow
+              label="Esta empresa"
+              percent={item.currentCompanyParticipationPercent ?? 0}
+            />
+          </Box>
+        ) : (
+          <>
+            <LinearProgress
+              variant="determinate"
+              value={Math.min(100, Math.max(0, item.participationPercent))}
+              color={getParticipationColor(item.participationPercent)}
+              sx={{ height: 6, borderRadius: 1, bgcolor: 'grey.200' }}
+            />
+            <SText
+              fontSize={12}
+              fontWeight={600}
+              textAlign="right"
+              color={`${getParticipationColor(item.participationPercent)}.main`}
+            >
+              {formatParticipationPercent(item.participationPercent)}%
+            </SText>
+          </>
+        )}
       </Box>
       <Popover
         open={Boolean(anchorEl)}
