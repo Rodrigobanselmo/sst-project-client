@@ -51,6 +51,7 @@ const parseActiveTab = (
   if (value === 'participants') return 'participants';
   if (value === 'charts') return 'charts';
   if (value === 'indicators') return 'indicators';
+  if (value === 'narrative') return 'indicators';
   return 'summary';
 };
 

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 
+import { useAccess } from 'core/hooks/useAccess';
+
 import FilterListIcon from '@mui/icons-material/FilterList';
 import PersonIcon from '@mui/icons-material/Person';
 import {
@@ -34,7 +36,10 @@ import { IndicatorsQualityLegend } from '@v2/pages/companies/forms/pages/applica
 import { SectionHeader } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/SectionHeader/SectionHeader';
 import { HtmlContentRenderer } from '@v2/pages/companies/forms/pages/application/pages/public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { useFetchConsolidatedViewQuestionsAnswers } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewQuestionsAnswers';
+import { normalizeConsolidatedIndicatorsNarrativeScope } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.scope';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
+
+import { FormConsolidatedNarrativeSection } from '../FormConsolidatedNarrativeSection/FormConsolidatedNarrativeSection';
 
 type Props = {
   companyGroupId: number;
@@ -52,9 +57,9 @@ export function FormConsolidatedAnalyticsSection({
   applicationIds,
   mode,
 }: Props) {
+  const { isMaster } = useAccess();
   const [groupingMode, setGroupingMode] =
     useState<ConsolidatedAnalyticsGroupingMode>('overview');
-
   const { questionsAnswersData, isLoading, isError } =
     useFetchConsolidatedViewQuestionsAnswers(
       { companyGroupId, applicationIds },
@@ -150,6 +155,20 @@ export function FormConsolidatedAnalyticsSection({
     [questionsAnswersData?.totals],
   );
 
+  const selectedGroupingLabel =
+    groupingOptions.find((option) => option.id === groupingMode)?.label ??
+    'Visão geral';
+
+  const indicatorsNarrativeScope = useMemo(
+    () =>
+      normalizeConsolidatedIndicatorsNarrativeScope({
+        groupingMode,
+        groupingLabel: selectedGroupingLabel,
+        showOnlyGroupIndicators: false,
+      }),
+    [groupingMode, selectedGroupingLabel],
+  );
+
   const recorteSnapshot = useMemo(
     () =>
       questionsAnswersData
@@ -197,7 +216,7 @@ export function FormConsolidatedAnalyticsSection({
       <SPaper shadow={false} sx={{ p: 2 }}>
         <SectionHeader
           icon={<FilterListIcon sx={{ fontSize: 30 }} />}
-          title="Agrupamento do recorte"
+          title="Agrupamento da visualização"
         />
         <FormControl fullWidth size="small" sx={{ maxWidth: 480, mt: 2 }}>
           <InputLabel id="consolidated-analytics-grouping">
@@ -218,9 +237,19 @@ export function FormConsolidatedAnalyticsSection({
             ))}
           </Select>
         </FormControl>
+
       </SPaper>
 
       {mode === 'indicators' && <IndicatorsQualityLegend />}
+
+      {mode === 'indicators' && (
+        <FormConsolidatedNarrativeSection
+          companyGroupId={companyGroupId}
+          applicationIds={applicationIds}
+          scope={indicatorsNarrativeScope}
+          isMaster={isMaster}
+        />
+      )}
 
       {mode === 'charts' && identifierQuestions.length > 0 && (
         <Box>
@@ -312,20 +341,20 @@ export function FormConsolidatedAnalyticsSection({
                     </SPaper>
 
                     {groupData.questions.map((question) => (
-                      <SPaper key={question.id} mb={3} px={4} py={4}>
-                        <HtmlContentRenderer content={question.details.text} />
-                        <SDivider sx={{ mt: 3, mb: 3 }} />
-                        <Box p={2}>
-                          <FormQuestionPieChart
-                            hideQuestionText
-                            question={question}
-                            colorScheme="general"
-                            indicators={mode === 'indicators'}
-                            isShareableLink={false}
-                            participantCount={participantGroup.participantCount}
-                          />
-                        </Box>
-                      </SPaper>
+                        <SPaper key={question.id} mb={3} px={4} py={4}>
+                          <HtmlContentRenderer content={question.details.text} />
+                          <SDivider sx={{ mt: 3, mb: 3 }} />
+                          <Box p={2}>
+                            <FormQuestionPieChart
+                              hideQuestionText
+                              question={question}
+                              colorScheme="general"
+                              indicators={mode === 'indicators'}
+                              isShareableLink={false}
+                              participantCount={participantGroup.participantCount}
+                            />
+                          </Box>
+                        </SPaper>
                     ))}
                   </Box>
                 ),

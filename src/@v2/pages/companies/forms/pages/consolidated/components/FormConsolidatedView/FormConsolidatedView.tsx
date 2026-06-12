@@ -435,7 +435,7 @@ function ConsolidatedSummaryContent({
                       ? onOpenParticipantsTab
                       : key === 'charts'
                         ? onOpenChartsTab
-                        : key === 'indicators'
+                        : key === 'indicators' || key === 'indicatorsNarrative'
                           ? onOpenIndicatorsTab
                           : undefined;
 
@@ -506,7 +506,7 @@ function ConsolidatedSummaryContent({
                   ? onOpenParticipantsTab
                   : key === 'charts'
                     ? onOpenChartsTab
-                    : key === 'indicators'
+                    : key === 'indicators' || key === 'indicatorsNarrative'
                       ? onOpenIndicatorsTab
                       : undefined
                 : undefined;
@@ -551,8 +551,8 @@ function ConsolidatedSummaryContent({
           Próximas fases
         </SText>
         <Typography variant="body2" color="text.secondary">
-          Narrativa executiva e PDF consolidado serão disponibilizados em fases
-          futuras desta visão analítica.
+          PDF consolidado será disponibilizado em fase futura. A narrativa
+          executiva consolidada está na aba Indicadores.
         </Typography>
       </Paper>
     </Box>
