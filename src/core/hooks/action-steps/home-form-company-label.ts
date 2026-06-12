@@ -2,6 +2,20 @@ import { FormApplicationBrowseResultModel } from '@v2/models/form/models/form-ap
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 
+export function getHomeCompanyLabel(company: {
+  companyInitials?: string | null;
+  companyFantasy?: string | null;
+  companyName?: string | null;
+}): string | undefined {
+  const label = getCompanyName({
+    initials: company.companyInitials ?? undefined,
+    fantasy: company.companyFantasy ?? undefined,
+    name: company.companyName ?? undefined,
+  } as ICompany);
+
+  return label || undefined;
+}
+
 export function getHomeFormCompanyLabel(
   application: FormApplicationBrowseResultModel,
   options: {
@@ -15,11 +29,5 @@ export function getHomeFormCompanyLabel(
     return options.businessGroupName ?? undefined;
   }
 
-  const label = getCompanyName({
-    initials: application.companyInitials ?? undefined,
-    fantasy: application.companyFantasy ?? undefined,
-    name: application.companyName ?? undefined,
-  } as ICompany);
-
-  return label || undefined;
+  return getHomeCompanyLabel(application);
 }

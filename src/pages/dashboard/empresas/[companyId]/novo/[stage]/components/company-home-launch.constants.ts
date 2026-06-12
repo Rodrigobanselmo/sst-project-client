@@ -4,7 +4,9 @@ import { SxProps, Theme } from '@mui/material';
 export const COMPANY_HOME_LAUNCH_CARD_HEIGHT = 168;
 
 const FORM_ITEM_HEIGHT_WITH_COMPANY_LABEL = 58;
+const ACTION_PLAN_ITEM_HEIGHT_WITH_COMPANY_LABEL = 44;
 const FORMS_CARD_CHROME_HEIGHT = 100;
+const ACTION_PLAN_CARD_CHROME_HEIGHT = 148;
 const CONSOLIDATED_LAUNCH_ROW_MAX_HEIGHT = {
   xs: 320,
   sm: 520,
@@ -27,15 +29,41 @@ export const companyHomeLaunchCardShellConsolidatedSx = {
   minHeight: COMPANY_HOME_LAUNCH_CARD_HEIGHT,
 } as const;
 
-export function getConsolidatedLaunchRowMinHeight(formsCount: number): number {
-  if (formsCount <= 0) {
+function getConsolidatedCardContentHeight(
+  chromeHeight: number,
+  itemHeight: number,
+  itemCount: number,
+): number {
+  if (itemCount <= 0) {
     return COMPANY_HOME_LAUNCH_CARD_HEIGHT;
   }
 
-  const contentHeight =
-    FORMS_CARD_CHROME_HEIGHT + formsCount * FORM_ITEM_HEIGHT_WITH_COMPANY_LABEL;
+  return Math.max(
+    COMPANY_HOME_LAUNCH_CARD_HEIGHT,
+    chromeHeight + itemCount * itemHeight,
+  );
+}
 
-  return Math.max(COMPANY_HOME_LAUNCH_CARD_HEIGHT, contentHeight);
+export function getConsolidatedLaunchRowMinHeight(options: {
+  formsCount?: number;
+  actionPlanCompaniesCount?: number;
+}): number {
+  const formsHeight = getConsolidatedCardContentHeight(
+    FORMS_CARD_CHROME_HEIGHT,
+    FORM_ITEM_HEIGHT_WITH_COMPANY_LABEL,
+    options.formsCount ?? 0,
+  );
+  const actionPlanHeight = getConsolidatedCardContentHeight(
+    ACTION_PLAN_CARD_CHROME_HEIGHT,
+    ACTION_PLAN_ITEM_HEIGHT_WITH_COMPANY_LABEL,
+    options.actionPlanCompaniesCount ?? 0,
+  );
+
+  return Math.max(
+    COMPANY_HOME_LAUNCH_CARD_HEIGHT,
+    formsHeight,
+    actionPlanHeight,
+  );
 }
 
 function clampConsolidatedLaunchRowHeight(
@@ -47,9 +75,12 @@ function clampConsolidatedLaunchRowHeight(
 
 export function getConsolidatedLaunchCardsGridSx(
   baseGridSx: SxProps<Theme>,
-  formsCount: number,
+  options: {
+    formsCount?: number;
+    actionPlanCompaniesCount?: number;
+  },
 ): SxProps<Theme> {
-  const targetMinHeight = getConsolidatedLaunchRowMinHeight(formsCount);
+  const targetMinHeight = getConsolidatedLaunchRowMinHeight(options);
 
   return {
     ...(baseGridSx as object),
@@ -61,9 +92,12 @@ export function getConsolidatedLaunchCardsGridSx(
 }
 
 export function getConsolidatedFormsCardShellSx(
-  formsCount: number,
+  options: {
+    formsCount?: number;
+    actionPlanCompaniesCount?: number;
+  },
 ): SxProps<Theme> {
-  const targetMinHeight = getConsolidatedLaunchRowMinHeight(formsCount);
+  const targetMinHeight = getConsolidatedLaunchRowMinHeight(options);
 
   return {
     ...companyHomeLaunchCardShellConsolidatedSx,

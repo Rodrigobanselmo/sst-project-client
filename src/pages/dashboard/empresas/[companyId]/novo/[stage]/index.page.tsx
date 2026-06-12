@@ -60,6 +60,7 @@ import { getCompanyName } from 'core/utils/helpers/companyName';
 
 import { SActionButton } from '../../../../../../components/atoms/SActionButton';
 import { CharacterizationStage } from './components/CharacterizationStage/CharacterizationStage';
+import { CompanyHomeActionPlanGroupCard } from './components/CompanyHomeActionPlanGroupCard/CompanyHomeActionPlanGroupCard';
 import { CompanyHomeFormsGroupCard } from './components/CompanyHomeFormsGroupCard/CompanyHomeFormsGroupCard';
 import { CompanyHomeOperationalHeader } from './components/CompanyHomeOperationalHeader/CompanyHomeOperationalHeader';
 import {
@@ -134,6 +135,8 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
     launchCardsMemo,
     formsLaunchGroup,
     showFormsLaunchGroup,
+    actionPlanLaunchGroup,
+    showActionPlanLaunchGroup,
     stage,
     stepsActionsList,
     handleUploadRisk,
@@ -163,15 +166,21 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
     width: '100%',
     alignItems: 'stretch',
   };
-  const consolidatedFormsCount = formsLaunchGroup.applications.length;
+  const consolidatedLaunchHeightOptions = {
+    formsCount: formsLaunchGroup.applications.length,
+    actionPlanCompaniesCount: actionPlanLaunchGroup?.companies.length ?? 0,
+  };
   const launchCardShellSx = isGroupConsolidated
     ? companyHomeLaunchCardShellConsolidatedSx
     : companyHomeLaunchCardShellSx;
   const launchCardsGridSxResolved = isGroupConsolidated
-    ? getConsolidatedLaunchCardsGridSx(launchCardsGridSx, consolidatedFormsCount)
+    ? getConsolidatedLaunchCardsGridSx(
+        launchCardsGridSx,
+        consolidatedLaunchHeightOptions,
+      )
     : launchCardsGridSx;
   const formsCardShellSx = isGroupConsolidated
-    ? getConsolidatedFormsCardShellSx(consolidatedFormsCount)
+    ? getConsolidatedFormsCardShellSx(consolidatedLaunchHeightOptions)
     : launchCardShellSx;
 
   return (
@@ -227,10 +236,27 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
           </Box>
         )}
         {!hideHomeSummaryCards &&
-          (launchCardsMemo.length > 0 || showFormsLaunchGroup) && (
+          (launchCardsMemo.length > 0 ||
+            showFormsLaunchGroup ||
+            showActionPlanLaunchGroup) && (
           <>
             <SText mt={-8}>Lançamentos</SText>
             <Box sx={{ ...launchCardsGridSxResolved, mt: 3, mb: 24 }}>
+              {showActionPlanLaunchGroup && actionPlanLaunchGroup && (
+                <Box sx={launchCardShellSx}>
+                  <CompanyHomeActionPlanGroupCard
+                    total={actionPlanLaunchGroup.total}
+                    pending={actionPlanLaunchGroup.pending}
+                    started={actionPlanLaunchGroup.started}
+                    done={actionPlanLaunchGroup.done}
+                    canceled={actionPlanLaunchGroup.canceled}
+                    completionPercent={actionPlanLaunchGroup.completionPercent}
+                    companies={actionPlanLaunchGroup.companies}
+                    loading={actionPlanLaunchGroup.loading}
+                    onClick={actionPlanLaunchGroup.onClick}
+                  />
+                </Box>
+              )}
               {launchCardsMemo.map((raw, index) => {
                 const cardProps = raw as ISActionButtonProps;
                 return (

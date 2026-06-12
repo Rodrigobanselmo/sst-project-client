@@ -59,7 +59,10 @@ import { dateFromNow } from 'core/utils/date/date-format';
 import { useFetchCompanyGroupHomeSummary } from '@v2/services/enterprise/company-group/home-summary/hooks/useFetchCompanyGroupHomeSummary';
 import { HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE } from 'core/constants/home-business-group-scope.constants';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
-import { getHomeFormCompanyLabel } from 'core/hooks/action-steps/home-form-company-label';
+import {
+  getHomeCompanyLabel,
+  getHomeFormCompanyLabel,
+} from 'core/hooks/action-steps/home-form-company-label';
 import { selectHomeFormApplicationsToShow } from 'core/hooks/action-steps/home-form-applications-selection';
 
 import { useAccess } from '../useAccess';
@@ -487,10 +490,17 @@ export const useCompanyStep = () => {
   }, [company.id, push]);
 
   const handleGoActionPlan = useCallback(() => {
+    if (isGroupConsolidated) {
+      enqueueSnackbar(HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE, {
+        variant: 'info',
+      });
+      return;
+    }
+
     push({
       pathname: RoutesEnum.ACTION_PLAN.replace(':companyId', company.id),
     });
-  }, [company.id, push]);
+  }, [company.id, enqueueSnackbar, isGroupConsolidated, push]);
 
   const handleGoForms = useCallback(() => {
     push({
@@ -970,50 +980,101 @@ export const useCompanyStep = () => {
     [onFilterBase],
   );
 
+  const showActionPlanLaunchGroup = useMemo(
+    () =>
+      isGroupConsolidated &&
+      onFilterBase(actionsMapStepMemo[CompanyActionEnum.ACTION_PLAN]),
+    [actionsMapStepMemo, isGroupConsolidated, onFilterBase],
+  );
+
+  const actionPlanLaunchGroup = useMemo(() => {
+    const summary = groupSummary?.actionPlan;
+    if (!isGroupConsolidated || summary?.status !== 'available') {
+      return null;
+    }
+
+    const companies = summary.companies
+      .map((company) => {
+        const completionPercent =
+          company.total > 0
+            ? Math.min(100, (company.done / company.total) * 100)
+            : 0;
+
+        return {
+          companyId: company.companyId,
+          companyLabel: getHomeCompanyLabel(company) ?? 'Empresa',
+          total: company.total,
+          pending: company.pending,
+          started: company.started,
+          done: company.done,
+          canceled: company.canceled,
+          completionPercent,
+        };
+      })
+      .sort((a, b) => b.pending - a.pending || b.total - a.total);
+
+    const completionPercent =
+      summary.total > 0
+        ? Math.min(100, (summary.done / summary.total) * 100)
+        : 0;
+
+    return {
+      total: summary.total,
+      pending: summary.pending,
+      started: summary.started,
+      done: summary.done,
+      canceled: summary.canceled,
+      completionPercent,
+      companies,
+      loading: isLoadingGroupSummary,
+      onClick: handleGoActionPlan,
+    };
+  }, [
+    groupSummary?.actionPlan,
+    handleGoActionPlan,
+    isGroupConsolidated,
+    isLoadingGroupSummary,
+  ]);
+
   const launchCardsMemo = useMemo(() => {
-    return [
-      {
+    const cards: ISActionButtonProps[] = [];
+
+    if (!isGroupConsolidated) {
+      cards.push({
         ...actionsMapStepMemo[CompanyActionEnum.ACTION_PLAN],
-        participationPercent: isGroupConsolidated
-          ? undefined
-          : actionPlanCompletionPercent,
-        infos: isGroupConsolidated
-          ? [
-              { label: 'Total', value: '--' },
-              { label: 'Pendente', value: '--' },
-              { label: 'Iniciada', value: '--' },
-              { label: 'Concluída', value: '--' },
-              { label: 'Cancelada', value: '--' },
-            ]
-          : [
-              { label: 'Total', value: actionPlanSummary?.total ?? '--' },
-              { label: 'Pendente', value: actionPlanSummary?.pending ?? '--' },
-              { label: 'Iniciada', value: actionPlanSummary?.progress ?? '--' },
-              { label: 'Concluída', value: actionPlanSummary?.done ?? '--' },
-              { label: 'Cancelada', value: actionPlanSummary?.canceled ?? '--' },
-            ],
-      },
-      {
-        ...actionsMapStepMemo[CompanyActionEnum.ABSENTEEISM],
-        infos: isGroupConsolidated
-          ? [
-              { label: 'Registros', value: '--' },
-              {
-                label: 'Afastados ativos',
-                value: homeMetrics.employeeAwayCount || 0,
-              },
-              { label: 'Dias perdidos', value: '--' },
-            ]
-          : [
-              { label: 'Registros', value: absenteeismTotalCount || 0 },
-              {
-                label: 'Afastados ativos',
-                value: company.employeeAwayCount || 0,
-              },
-              { label: 'Dias perdidos', value: absenteeismLostDaysTotal || 0 },
-            ],
-      },
-    ].filter((action) => onFilterBase(action));
+        participationPercent: actionPlanCompletionPercent,
+        infos: [
+          { label: 'Total', value: actionPlanSummary?.total ?? '--' },
+          { label: 'Pendente', value: actionPlanSummary?.pending ?? '--' },
+          { label: 'Iniciada', value: actionPlanSummary?.progress ?? '--' },
+          { label: 'Concluída', value: actionPlanSummary?.done ?? '--' },
+          { label: 'Cancelada', value: actionPlanSummary?.canceled ?? '--' },
+        ],
+      });
+    }
+
+    cards.push({
+      ...actionsMapStepMemo[CompanyActionEnum.ABSENTEEISM],
+      infos: isGroupConsolidated
+        ? [
+            { label: 'Registros', value: '--' },
+            {
+              label: 'Afastados ativos',
+              value: homeMetrics.employeeAwayCount || 0,
+            },
+            { label: 'Dias perdidos', value: '--' },
+          ]
+        : [
+            { label: 'Registros', value: absenteeismTotalCount || 0 },
+            {
+              label: 'Afastados ativos',
+              value: company.employeeAwayCount || 0,
+            },
+            { label: 'Dias perdidos', value: absenteeismLostDaysTotal || 0 },
+          ],
+    });
+
+    return cards.filter((action) => onFilterBase(action));
   }, [
     actionPlanCompletionPercent,
     actionPlanSummary?.canceled,
@@ -1357,6 +1418,8 @@ export const useCompanyStep = () => {
     launchCardsMemo,
     formsLaunchGroup,
     showFormsLaunchGroup,
+    actionPlanLaunchGroup,
+    showActionPlanLaunchGroup,
     actionsMapStepMemo,
   };
 };
