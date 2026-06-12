@@ -123,20 +123,22 @@ function FormItemPreview({ item }: { item: HomeFormLaunchItem }) {
             Grupo empresarial:{' '}
             {formatParticipationPercent(item.participationPercent, 1)}%
           </SText>
-          <SText
-            fontSize={12}
-            fontWeight={600}
-            sx={{
-              color: `${getParticipationColor(item.currentCompanyParticipationPercent ?? 0)}.main`,
-            }}
-          >
-            Esta empresa:{' '}
-            {formatParticipationPercent(
-              item.currentCompanyParticipationPercent ?? 0,
-              1,
-            )}
-            %
-          </SText>
+          {item.currentCompanyParticipationPercent != null && (
+            <SText
+              fontSize={12}
+              fontWeight={600}
+              sx={{
+                color: `${getParticipationColor(item.currentCompanyParticipationPercent)}.main`,
+              }}
+            >
+              Esta empresa:{' '}
+              {formatParticipationPercent(
+                item.currentCompanyParticipationPercent,
+                1,
+              )}
+              %
+            </SText>
+          )}
         </>
       ) : (
         <SText
@@ -308,10 +310,12 @@ function FormLaunchRow({
               label="Grupo"
               percent={item.participationPercent}
             />
-            <ParticipationProgressRow
-              label="Esta empresa"
-              percent={item.currentCompanyParticipationPercent ?? 0}
-            />
+            {item.currentCompanyParticipationPercent != null && (
+              <ParticipationProgressRow
+                label="Esta empresa"
+                percent={item.currentCompanyParticipationPercent}
+              />
+            )}
           </Box>
         ) : (
           <>

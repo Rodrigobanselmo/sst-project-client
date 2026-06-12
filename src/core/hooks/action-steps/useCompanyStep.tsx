@@ -56,6 +56,10 @@ import { useMutReport } from 'core/services/hooks/mutations/reports/useMutReport
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { dateFromNow } from 'core/utils/date/date-format';
 
+import { useFetchCompanyGroupHomeSummary } from '@v2/services/enterprise/company-group/home-summary/hooks/useFetchCompanyGroupHomeSummary';
+import { HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE } from 'core/constants/home-business-group-scope.constants';
+import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
+
 import { useAccess } from '../useAccess';
 import { useAppSelector } from '../useAppSelector';
 import { usePushRoute } from '../actions-push/usePushRoute';
@@ -84,10 +88,63 @@ const getHomeFormParticipationPercent = (
 
 export const useCompanyStep = () => {
   const { onAccessFilterBase } = useAccess();
-  // const { userCompanyId } = useGetCompanyId();
-  // const { data: userCompany } = useQueryCompany(userCompanyId);
+  const {
+    isGroupConsolidated,
+    businessGroupId,
+    routeCompanyId,
+    businessGroupName,
+  } = useHomeBusinessGroupScope();
   const { data: company, isLoading } = useQueryCompany();
+  const { summary: groupSummary, isLoading: isLoadingGroupSummary } =
+    useFetchCompanyGroupHomeSummary(
+      { companyGroupId: businessGroupId ?? 0 },
+      {
+        enabled: isGroupConsolidated && !!businessGroupId,
+      },
+    );
   const hasCompany = !!company?.id;
+  const homeMetrics = useMemo(() => {
+    if (isGroupConsolidated && groupSummary) {
+      return {
+        employeeCount: groupSummary.employees.active,
+        employeeInactiveCount: groupSummary.employees.inactive,
+        employeeAwayCount: groupSummary.employees.away,
+        hierarchyCount: groupSummary.companyData.hierarchies,
+        workspaceLength: groupSummary.companyData.workspaces,
+        clinicsConnectedCount: groupSummary.companyData.clinicsConnected,
+        riskCount: groupSummary.characterization.risks,
+        examsCount: groupSummary.characterization.exams,
+        protocolsCount: groupSummary.characterization.protocols,
+        characterizationCount: groupSummary.characterization.environments,
+        episCount: groupSummary.characterization.epis,
+        homogenousGroupCount: groupSummary.characterization.homogeneousGroups,
+        lastDocumentVersion: undefined,
+      };
+    }
+
+    return {
+      employeeCount: company.employeeCount,
+      employeeInactiveCount: company.employeeInactiveCount,
+      employeeAwayCount: company.employeeAwayCount,
+      hierarchyCount: company.hierarchyCount,
+      workspaceLength: company.workspace?.length || 0,
+      clinicsConnectedCount: company.clinicsConnectedCount,
+      riskCount: company.riskCount,
+      examsCount: company.examsCount,
+      protocolsCount: company.protocolsCount,
+      characterizationCount: company.characterizationCount,
+      episCount: company.episCount,
+      homogenousGroupCount: company.homogenousGroupCount,
+      lastDocumentVersion: company.lastDocumentVersion,
+    };
+  }, [company, groupSummary, isGroupConsolidated]);
+  const formsBrowseCompanyId = routeCompanyId || company.id;
+  const consolidatedFormsFilters = isGroupConsolidated
+    ? {
+        companyGroupScope: 'consolidated' as const,
+        companyGroupId: businessGroupId ?? undefined,
+      }
+    : undefined;
   const actionPlanWorkspaceIds = useMemo(
     () => (company.workspace || []).map((ws) => ws.id).filter(Boolean),
     [company.workspace],
@@ -97,18 +154,19 @@ export const useCompanyStep = () => {
     1,
     {},
     1,
-    company.id,
+    isGroupConsolidated ? '' : company.id,
   );
   const { formApplication: formsTotal } = useFetchBrowseFormApplication(
     {
-      companyId: company.id,
+      companyId: formsBrowseCompanyId,
       pagination: { page: 1, limit: 1 },
+      filters: consolidatedFormsFilters,
     },
     { enabled: hasCompany },
   );
   const { formApplication: formsRelevant } = useFetchBrowseFormApplication(
     {
-      companyId: company.id,
+      companyId: formsBrowseCompanyId,
       pagination: { page: 1, limit: 100 },
       orderBy: [
         {
@@ -116,6 +174,7 @@ export const useCompanyStep = () => {
           order: 'desc',
         },
       ],
+      filters: consolidatedFormsFilters,
     },
     { enabled: hasCompany },
   );
@@ -169,7 +228,7 @@ export const useCompanyStep = () => {
       company.id,
       selectedFormIds,
     ],
-    enabled: hasCompany && selectedFormIds.length > 0,
+    enabled: hasCompany && !isGroupConsolidated && selectedFormIds.length > 0,
     queryFn: async () => {
       const details = await Promise.all(
         selectedFormIds.map(async (applicationId) => {
@@ -222,7 +281,7 @@ export const useCompanyStep = () => {
     {
       companyId: company.id,
     },
-    { enabled: hasCompany },
+    { enabled: hasCompany && !isGroupConsolidated },
   );
   const absenteeismLostDaysTotal = useMemo(
     () =>
@@ -245,7 +304,7 @@ export const useCompanyStep = () => {
       company.id,
       actionPlanWorkspaceIds,
     ],
-    enabled: hasCompany && actionPlanWorkspaceIds.length > 0,
+    enabled: hasCompany && !isGroupConsolidated && actionPlanWorkspaceIds.length > 0,
     queryFn: async () => {
       const countByStatus = async (status?: ActionPlanStatusEnum) => {
         const totals = await Promise.all(
@@ -475,6 +534,13 @@ export const useCompanyStep = () => {
 
   const handleChangeStage = useCallback(
     (stage: string) => {
+      if (isGroupConsolidated) {
+        enqueueSnackbar(HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE, {
+          variant: 'info',
+        });
+        return;
+      }
+
       const nextQuery = { ...query };
       delete nextQuery.stage;
       delete nextQuery.active;
@@ -492,7 +558,7 @@ export const useCompanyStep = () => {
         },
       );
     },
-    [pathname, push, query],
+    [enqueueSnackbar, isGroupConsolidated, pathname, push, query],
   );
 
   const handleAddTeam = useCallback(() => {
@@ -511,12 +577,13 @@ export const useCompanyStep = () => {
       );
       const isBusinessGroupApplication =
         application.isBusinessGroupApplication ?? false;
-      const currentCompanyParticipationPercent = isBusinessGroupApplication
-        ? getHomeFormParticipationPercent(
-            Number(application.currentCompanyAnswers) || 0,
-            Number(application.currentCompanyParticipants) || 0,
-          )
-        : undefined;
+      const currentCompanyParticipationPercent =
+        isGroupConsolidated || !isBusinessGroupApplication
+          ? undefined
+          : getHomeFormParticipationPercent(
+              Number(application.currentCompanyAnswers) || 0,
+              Number(application.currentCompanyParticipants) || 0,
+            );
 
       return {
       id: application.id,
@@ -530,6 +597,7 @@ export const useCompanyStep = () => {
       isAcceptingResponses,
       isShareableLink: details?.isShareableLink ?? true,
       canSendReminder:
+        !isGroupConsolidated &&
         details != null &&
         isFormReminderEligible({
           isAcceptingResponses,
@@ -563,14 +631,15 @@ export const useCompanyStep = () => {
     handleGoForms,
     selectedFormsDetailsById,
     selectedFormsToShow,
+    isGroupConsolidated,
   ]);
 
   const actionsMapStepMemo = useMemo(() => {
-    const pgr = company?.lastDocumentVersion?.find(
+    const pgr = homeMetrics.lastDocumentVersion?.find(
       (l) => l.documentData.type == DocumentTypeEnum.PGR,
     )?.created_at;
 
-    const pcmso = company?.lastDocumentVersion?.find(
+    const pcmso = homeMetrics.lastDocumentVersion?.find(
       (l) => l.documentData.type == DocumentTypeEnum.PCSMO,
     )?.created_at;
 
@@ -794,9 +863,9 @@ export const useCompanyStep = () => {
         roles: [],
         permissions: [],
         infos: [
-          { label: 'Ativos', value: company.employeeCount || 0 },
-          { label: 'Inativos', value: company.employeeInactiveCount || 0 },
-          { label: 'Afastados', value: company.employeeAwayCount || 0 },
+          { label: 'Ativos', value: homeMetrics.employeeCount || 0 },
+          { label: 'Inativos', value: homeMetrics.employeeInactiveCount || 0 },
+          { label: 'Afastados', value: homeMetrics.employeeAwayCount || 0 },
         ],
       },
       [CompanyActionEnum.SST_GROUP_PAGE]: {
@@ -808,12 +877,15 @@ export const useCompanyStep = () => {
         roles: [],
         permissions: [],
         infos: [
-          { label: 'Riscos', value: company.riskCount || 0 },
-          { label: 'Exames', value: company.examsCount || 0 },
-          { label: 'Protocolos', value: company.protocolsCount || 0 },
-          { label: 'Ambientes', value: company.protocolsCount || 0 },
-          { label: 'EPIs', value: company.episCount || 0 },
-          { label: 'GSE', value: company.homogenousGroupCount || 0 },
+          { label: 'Riscos', value: homeMetrics.riskCount || 0 },
+          { label: 'Exames', value: homeMetrics.examsCount || 0 },
+          { label: 'Protocolos', value: homeMetrics.protocolsCount || 0 },
+          {
+            label: 'Ambientes',
+            value: homeMetrics.characterizationCount || 0,
+          },
+          { label: 'EPIs', value: homeMetrics.episCount || 0 },
+          { label: 'GSE', value: homeMetrics.homogenousGroupCount || 0 },
         ],
       },
       [CompanyActionEnum.COMPANY_GROUP_PAGE]: {
@@ -825,11 +897,11 @@ export const useCompanyStep = () => {
         roles: [],
         permissions: [],
         infos: [
-          { label: 'Cargos', value: company.hierarchyCount || 0 },
-          { label: 'Estabelecimentos', value: company.workspace?.length || 0 },
+          { label: 'Cargos', value: homeMetrics.hierarchyCount || 0 },
+          { label: 'Estabelecimentos', value: homeMetrics.workspaceLength || 0 },
           {
             label: 'Clínicas Vinculadas',
-            value: company.clinicsConnectedCount || 0,
+            value: homeMetrics.clinicsConnectedCount || 0,
           },
         ],
       },
@@ -842,18 +914,23 @@ export const useCompanyStep = () => {
         showIf: {
           isDocuments: true,
         },
-        tooltipText: 'Geração de versões dos programas e laudos da empresa',
+        tooltipText: isGroupConsolidated
+          ? 'Selecione uma empresa para ver programas e laudos'
+          : 'Geração de versões dos programas e laudos da empresa',
         roles: [],
         permissions: [],
         infos: [
           {
             label: 'PGR',
-            value: (pgr ? `ultima versão (${dateFromNow(pgr)})` : '') || '--',
+            value: isGroupConsolidated
+              ? '--'
+              : (pgr ? `ultima versão (${dateFromNow(pgr)})` : '') || '--',
           },
           {
             label: 'PCMSO',
-            value:
-              (pcmso ? `ultima versão (${dateFromNow(pcmso)})` : '') || '--',
+            value: isGroupConsolidated
+              ? '--'
+              : (pcmso ? `ultima versão (${dateFromNow(pcmso)})` : '') || '--',
           },
         ],
       },
@@ -861,6 +938,8 @@ export const useCompanyStep = () => {
 
     return actions;
   }, [
+    homeMetrics,
+    isGroupConsolidated,
     company?.lastDocumentVersion,
     company.workspace?.length,
     company.employeeCount,
@@ -916,22 +995,44 @@ export const useCompanyStep = () => {
     return [
       {
         ...actionsMapStepMemo[CompanyActionEnum.ACTION_PLAN],
-        participationPercent: actionPlanCompletionPercent,
-        infos: [
-          { label: 'Total', value: actionPlanSummary?.total ?? '--' },
-          { label: 'Pendente', value: actionPlanSummary?.pending ?? '--' },
-          { label: 'Iniciada', value: actionPlanSummary?.progress ?? '--' },
-          { label: 'Concluída', value: actionPlanSummary?.done ?? '--' },
-          { label: 'Cancelada', value: actionPlanSummary?.canceled ?? '--' },
-        ],
+        participationPercent: isGroupConsolidated
+          ? undefined
+          : actionPlanCompletionPercent,
+        infos: isGroupConsolidated
+          ? [
+              { label: 'Total', value: '--' },
+              { label: 'Pendente', value: '--' },
+              { label: 'Iniciada', value: '--' },
+              { label: 'Concluída', value: '--' },
+              { label: 'Cancelada', value: '--' },
+            ]
+          : [
+              { label: 'Total', value: actionPlanSummary?.total ?? '--' },
+              { label: 'Pendente', value: actionPlanSummary?.pending ?? '--' },
+              { label: 'Iniciada', value: actionPlanSummary?.progress ?? '--' },
+              { label: 'Concluída', value: actionPlanSummary?.done ?? '--' },
+              { label: 'Cancelada', value: actionPlanSummary?.canceled ?? '--' },
+            ],
       },
       {
         ...actionsMapStepMemo[CompanyActionEnum.ABSENTEEISM],
-        infos: [
-          { label: 'Registros', value: absenteeismTotalCount || 0 },
-          { label: 'Afastados ativos', value: company.employeeAwayCount || 0 },
-          { label: 'Dias perdidos', value: absenteeismLostDaysTotal || 0 },
-        ],
+        infos: isGroupConsolidated
+          ? [
+              { label: 'Registros', value: '--' },
+              {
+                label: 'Afastados ativos',
+                value: homeMetrics.employeeAwayCount || 0,
+              },
+              { label: 'Dias perdidos', value: '--' },
+            ]
+          : [
+              { label: 'Registros', value: absenteeismTotalCount || 0 },
+              {
+                label: 'Afastados ativos',
+                value: company.employeeAwayCount || 0,
+              },
+              { label: 'Dias perdidos', value: absenteeismLostDaysTotal || 0 },
+            ],
       },
     ].filter((action) => onFilterBase(action));
   }, [
@@ -945,6 +1046,8 @@ export const useCompanyStep = () => {
     absenteeismLostDaysTotal,
     absenteeismTotalCount,
     company.employeeAwayCount,
+    homeMetrics.employeeAwayCount,
+    isGroupConsolidated,
     onFilterBase,
   ]);
 
@@ -1256,7 +1359,9 @@ export const useCompanyStep = () => {
     nextStepMemo,
     actionsStepMemo,
     company,
-    isLoading,
+    isLoading: isLoading || (isGroupConsolidated && isLoadingGroupSummary),
+    isGroupConsolidated,
+    businessGroupName,
     nextStep,
     medicineStepMemo,
     handleUploadRisk,

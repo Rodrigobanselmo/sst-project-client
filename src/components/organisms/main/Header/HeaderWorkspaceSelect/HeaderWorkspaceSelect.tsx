@@ -17,6 +17,7 @@ import {
   COMPANY_SST_PATHNAME,
   parseCharacterizationActiveTab,
 } from 'core/constants/characterization-navigation.constants';
+import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
 import { RoutesParamsEnum } from '../Location/hooks/useLocation';
 import { STBox } from '../Tenant/Tenant';
 
@@ -24,6 +25,7 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const { isTablet } = useSidebarDrawer();
   const router = useRouter();
   const { pathname, query, push, asPath } = router;
+  const { isHomePage, isGroupConsolidated } = useHomeBusinessGroupScope();
   const companyId = query.companyId as string | undefined;
   const tabWorkspaceId = query.tabWorkspaceId as string | undefined;
   const workspaceRouteId = query.workspaceId as string | undefined;
@@ -59,6 +61,10 @@ export function HeaderWorkspaceSelect(): JSX.Element | null {
   const workspaceCount = workspaces?.results?.length ?? 0;
 
   if (!companyId) return null;
+
+  if (isHomePage && isGroupConsolidated) {
+    return null;
+  }
 
   if (!isLoadingAllWorkspaces && workspaceCount <= 1) {
     return null;

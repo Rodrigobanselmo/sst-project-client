@@ -50,7 +50,9 @@ import { SArrowNextIcon } from 'assets/icons/SArrowNextIcon';
 import SPhotoIcon from 'assets/icons/SPhotoIcon';
 import SUploadIcon from 'assets/icons/SUploadIcon';
 
+import { Alert } from '@mui/material';
 import { CompanyActionEnum } from 'core/enums/company-action.enum';
+import { HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE } from 'core/constants/home-business-group-scope.constants';
 import { useCompanyStep } from 'core/hooks/action-steps/useCompanyStep';
 import { useFetchFeedback } from 'core/hooks/useFetchFeedback';
 import { withSSRAuth } from 'core/utils/auth/withSSRAuth';
@@ -99,10 +101,13 @@ const ModalUploadPhoto = dynamic(
 
 const CompanyPage: NextPage = () => {
   const props = useCompanyStep();
+  const pageTitle = props.isGroupConsolidated
+    ? props.businessGroupName || getCompanyName(props.company)
+    : getCompanyName(props.company);
 
   return (
     <>
-      <SHeaderTag hideInitial title={getCompanyName(props.company)} />
+      <SHeaderTag hideInitial title={pageTitle} />
 
       <SContainer>
         <CharacterizationInlineEditorProvider>
@@ -127,10 +132,14 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
     stage,
     stepsActionsList,
     handleUploadRisk,
+    isGroupConsolidated,
+    businessGroupName,
   } = props;
 
   useFetchFeedback(isLoading && !company?.id);
-  const companyName = getCompanyName(company);
+  const companyName = isGroupConsolidated
+    ? businessGroupName || getCompanyName(company)
+    : getCompanyName(company);
   const topGridColumnCount = Math.max(1, pageGroupMemo.length);
   const launchGridColumnCount = Math.max(topGridColumnCount, 4);
   const hideHomeSummaryCards =
@@ -250,13 +259,23 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
           </>
         )}
 
-        {CompanyActionEnum.EMPLOYEES_GROUP_PAGE == stage && <EmployeeStage />}
+        {isGroupConsolidated &&
+          stage !== pageGroupMemo[0]?.type && (
+            <Alert severity="info" sx={{ mt: 2 }}>
+              {HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE}
+            </Alert>
+          )}
 
-        {CompanyActionEnum.COMPANY_GROUP_PAGE == stage && (
+        {!isGroupConsolidated &&
+          CompanyActionEnum.EMPLOYEES_GROUP_PAGE == stage && <EmployeeStage />}
+
+        {!isGroupConsolidated &&
+          CompanyActionEnum.COMPANY_GROUP_PAGE == stage && (
           <CompanyStage {...props} />
         )}
 
-        {CompanyActionEnum.SST_GROUP_PAGE == stage && (
+        {!isGroupConsolidated &&
+          CompanyActionEnum.SST_GROUP_PAGE == stage && (
           <GhoEditorProvider>
             <CharacterizationStage {...props} />
             <StackModalAddGho
@@ -266,7 +285,8 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
           </GhoEditorProvider>
         )}
 
-        {CompanyActionEnum.DOCUMENTS_GROUP_PAGE == stage && (
+        {!isGroupConsolidated &&
+          CompanyActionEnum.DOCUMENTS_GROUP_PAGE == stage && (
           <>
             <DocumentsStage {...props} />
             <StackModalViewDocumentModels />

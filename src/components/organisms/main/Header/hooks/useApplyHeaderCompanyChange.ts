@@ -18,7 +18,12 @@ export function useApplyHeaderCompanyChange() {
   const { onStackOpenModal } = useModal();
 
   const applyCompanyChange = useCallback(
-    (selectedCompany: ICompany) => {
+    (
+      selectedCompany: ICompany,
+      options?: {
+        queryOverrides?: Record<string, string | string[] | undefined>;
+      },
+    ) => {
       const includeCompany = pathname.includes(RoutesParamsEnum.COMPANY);
       if (!includeCompany) return;
 
@@ -35,17 +40,24 @@ export function useApplyHeaderCompanyChange() {
         workspace?: IWorkspace;
         doc?: IRiskGroupData;
       }) => {
-        const queryParams = asPath
-          .split('?')[1]
-          ?.split('&')
-          .map((q) =>
-            q.includes('riskGroupId=')
-              ? doc?.id
-                ? `riskGroupId=${doc?.id}`
-                : ''
-              : q || '',
-          )
-          .join('&');
+        const searchParams = new URLSearchParams(asPath.split('?')[1] ?? '');
+
+        if (doc?.id) {
+          searchParams.set('riskGroupId', doc.id);
+        } else if (searchParams.has('riskGroupId') && !doc) {
+          searchParams.delete('riskGroupId');
+        }
+
+        Object.entries(options?.queryOverrides ?? {}).forEach(([key, value]) => {
+          if (value === undefined || value === '') {
+            searchParams.delete(key);
+            return;
+          }
+
+          searchParams.set(key, String(value));
+        });
+
+        const mergedQuery = searchParams.toString();
 
         void push(
           '/' +
@@ -58,7 +70,7 @@ export function useApplyHeaderCompanyChange() {
                 (query?.characterization as string) || '',
               )
               .replace(RoutesParamsEnum.DOC, (query.docId as string) || '') +
-            (queryParams ? `?${queryParams}` : ''),
+            (mergedQuery ? `?${mergedQuery}` : ''),
         );
       };
 

@@ -10,8 +10,14 @@ import {
   headerChipCompactPaperComponentsProps,
 } from '@v2/components/organisms/workspace/documentsHeaderChipSelectPreset';
 import { useApplyHeaderCompanyChange } from '../hooks/useApplyHeaderCompanyChange';
+import { useApplyHomeScopeChange } from '../hooks/useApplyHomeScopeChange';
 import { useSidebarDrawer } from 'core/contexts/SidebarContext';
+import {
+  HOME_ALL_GROUP_COMPANIES_VALUE,
+  isHomeCompanyPage,
+} from 'core/constants/home-business-group-scope.constants';
 import { IdsEnum } from 'core/enums/ids.enums';
+import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
@@ -24,29 +30,40 @@ import { STBox } from '../Tenant/Tenant';
 
 const COMPANIES_PAGE_TAKE = 400;
 
-type CompanyOption = { label: string; value: string; company: ICompany };
+type CompanyOption = { label: string; value: string; company?: ICompany };
 
 export function HeaderCompanySelect(): JSX.Element | null {
   const { isTablet } = useSidebarDrawer();
   const router = useRouter();
   const { pathname, query } = router;
   const { data: company } = useQueryCompany();
+  const { hasBusinessGroup, businessGroupId, isGroupConsolidated } =
+    useHomeBusinessGroupScope();
   const companyId = (query.companyId as string) || company.id;
   const { applyCompanyChange } = useApplyHeaderCompanyChange();
+  const { applyAllGroupCompaniesScope, applyHomeCompanySelection } =
+    useApplyHomeScopeChange();
 
   const includeCompany = pathname.includes(RoutesParamsEnum.COMPANY);
   const includeClinic = pathname.includes(RoutesParamsEnum.CLINIC);
+  const showHomeGroupCompanyOptions =
+    isHomeCompanyPage(pathname) && hasBusinessGroup && !!businessGroupId;
 
   const { companies, isLoading } = useQueryCompanies(
     1,
-    { isClinic: includeClinic, disabled: !includeCompany },
+    {
+      isClinic: includeClinic,
+      disabled: !includeCompany,
+      ...(showHomeGroupCompanyOptions && businessGroupId
+        ? { groupId: businessGroupId }
+        : {}),
+    },
     COMPANIES_PAGE_TAKE,
     '',
   );
 
   const options: CompanyOption[] = useMemo(() => {
-    if (!companies?.length) return [];
-    return [...companies]
+    const companyOptions = (companies?.length ? [...companies] : [])
       .sort((a, b) =>
         getCompanyName(a).localeCompare(getCompanyName(b), 'pt-BR', {
           sensitivity: 'base',
@@ -57,14 +74,34 @@ export function HeaderCompanySelect(): JSX.Element | null {
         value: c.id,
         company: c,
       }));
-  }, [companies]);
 
-  const displayName =
-    company.isGroup && query.companyId !== company.id
-      ? 'Todas as empresas'
-      : getCompanyName(company);
+    if (!showHomeGroupCompanyOptions) {
+      return companyOptions;
+    }
+
+    return [
+      {
+        label: 'Todas as empresas do grupo',
+        value: HOME_ALL_GROUP_COMPANIES_VALUE,
+      },
+      ...companyOptions,
+    ];
+  }, [companies, showHomeGroupCompanyOptions]);
+
+  const displayName = isGroupConsolidated
+    ? 'Todas as empresas do grupo'
+    : getCompanyName(company);
 
   const value: CompanyOption | null = useMemo(() => {
+    if (isGroupConsolidated) {
+      return (
+        options.find((o) => o.value === HOME_ALL_GROUP_COMPANIES_VALUE) ?? {
+          label: 'Todas as empresas do grupo',
+          value: HOME_ALL_GROUP_COMPANIES_VALUE,
+        }
+      );
+    }
+
     const fromList = options.find((o) => o.value === companyId);
     if (fromList) return fromList;
     if (companyId && company?.id === companyId) {
@@ -75,7 +112,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
       };
     }
     return null;
-  }, [options, companyId, company, displayName]);
+  }, [options, companyId, company, displayName, isGroupConsolidated]);
 
   if (!includeCompany) return null;
 
@@ -115,8 +152,32 @@ export function HeaderCompanySelect(): JSX.Element | null {
           value={value}
           getOptionLabel={(o) => o.label}
           onChange={(_, option) => {
-            if (option?.company && option.company.id !== companyId) {
-              applyCompanyChange(option.company);
+            if (!option) return;
+
+            if (
+              showHomeGroupCompanyOptions &&
+              option.value === HOME_ALL_GROUP_COMPANIES_VALUE
+            ) {
+              if (!isGroupConsolidated && businessGroupId) {
+                applyAllGroupCompaniesScope(businessGroupId);
+              }
+              return;
+            }
+
+            if (option.company) {
+              if (showHomeGroupCompanyOptions) {
+                if (
+                  option.company.id !== companyId ||
+                  isGroupConsolidated
+                ) {
+                  applyHomeCompanySelection(option.company, businessGroupId);
+                }
+                return;
+              }
+
+              if (option.company.id !== companyId) {
+                applyCompanyChange(option.company);
+              }
             }
           }}
           loading={isLoading}

@@ -19,5 +19,7 @@ export interface BrowseFormApplicationParams {
   filters?: {
     search?: string;
     status?: FormApplicationStatusEnum[];
+    companyGroupScope?: 'consolidated';
+    companyGroupId?: number;
   };
 }

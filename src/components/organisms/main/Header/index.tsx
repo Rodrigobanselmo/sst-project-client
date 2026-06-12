@@ -5,6 +5,7 @@ import { isCompanyFlowPathname } from 'core/constants/company-breadcrumb.constan
 import { useRouter } from 'next/router';
 
 import { useSidebarDrawer } from '../../../../core/contexts/SidebarContext';
+import { HeaderBusinessGroupSelect } from './HeaderBusinessGroupSelect/HeaderBusinessGroupSelect';
 import { HeaderCompanySelect } from './HeaderCompanySelect/HeaderCompanySelect';
 import { HeaderWorkspaceSelect } from './HeaderWorkspaceSelect/HeaderWorkspaceSelect';
 import { Location } from './Location';
@@ -54,6 +55,7 @@ export function Header(): JSX.Element {
         ml="auto"
       >
         <SearchBar />
+        <HeaderBusinessGroupSelect />
         <HeaderCompanySelect />
         <HeaderWorkspaceSelect />
         <NotificationNav />
