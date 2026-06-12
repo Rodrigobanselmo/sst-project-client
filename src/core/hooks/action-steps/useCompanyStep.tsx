@@ -59,6 +59,8 @@ import { dateFromNow } from 'core/utils/date/date-format';
 import { useFetchCompanyGroupHomeSummary } from '@v2/services/enterprise/company-group/home-summary/hooks/useFetchCompanyGroupHomeSummary';
 import { HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE } from 'core/constants/home-business-group-scope.constants';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
+import { getHomeFormCompanyLabel } from 'core/hooks/action-steps/home-form-company-label';
+import { selectHomeFormApplicationsToShow } from 'core/hooks/action-steps/home-form-applications-selection';
 
 import { useAccess } from '../useAccess';
 import { useAppSelector } from '../useAppSelector';
@@ -67,16 +69,6 @@ import { initialProtocolRiskState } from 'components/organisms/modals/ModalEditP
 import SProtocolIcon from 'assets/icons/SProtocolIcon';
 import { queryClient } from 'core/services/queryClient';
 import { QueryEnum } from 'core/enums/query.enums';
-
-/**
- * Home operacional — não exibir: cancelado (`FormApplicationInfo`) e
- * teste interno (`FormApplicationStatusTranslate[TESTING]`).
- */
-const HOME_FORM_APPLICATION_EXCLUDED_STATUSES: ReadonlyArray<FormApplicationStatusEnum> =
-  [
-    FormApplicationStatusEnum.CANCELED,
-    FormApplicationStatusEnum.TESTING,
-  ];
 
 const getHomeFormParticipationPercent = (
   totalAnswers: number,
@@ -178,36 +170,13 @@ export const useCompanyStep = () => {
     },
     { enabled: hasCompany },
   );
-  const selectedFormsToShow = useMemo(() => {
-    const applications = (formsRelevant?.results || []).filter((item) =>
-      HOME_FORM_APPLICATION_EXCLUDED_STATUSES.every((s) => item.status !== s),
-    );
-
-    const actives = applications.filter(
-      (item) =>
-        item.status === FormApplicationStatusEnum.PROGRESS ||
-        item.status === FormApplicationStatusEnum.INACTIVE,
-    );
-    const sortedActives = [...actives].sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    );
-
-    const dones = applications.filter(
-      (item) => item.status === FormApplicationStatusEnum.DONE,
-    );
-    const sortedDones = [...dones].sort(
-      (a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-    );
-    const latestDone = sortedDones[0];
-
-    const cards = [...sortedActives];
-    if (latestDone) {
-      cards.push(latestDone);
-    }
-    return cards;
-  }, [formsRelevant?.results]);
+  const selectedFormsToShow = useMemo(
+    () =>
+      selectHomeFormApplicationsToShow(formsRelevant?.results || [], {
+        isGroupConsolidated,
+      }),
+    [formsRelevant?.results, isGroupConsolidated],
+  );
   const selectedFormIds = useMemo(
     () => selectedFormsToShow.map((item) => item.id),
     [selectedFormsToShow],
@@ -585,36 +554,44 @@ export const useCompanyStep = () => {
               Number(application.currentCompanyParticipants) || 0,
             );
 
+      const averageTimeSpent =
+        details?.averageTimeSpent ?? application.averageTimeSpent ?? null;
+
       return {
-      id: application.id,
-      name: application.name || application.form?.name || 'Formulário',
-      status: application.status,
-      statusLabel: FormApplicationStatusTranslate[application.status],
-      participationPercent: groupParticipationPercent,
-      isBusinessGroupApplication,
-      currentCompanyParticipationPercent,
-      reminderCount: details?.reminderCount ?? 0,
-      isAcceptingResponses,
-      isShareableLink: details?.isShareableLink ?? true,
-      canSendReminder:
-        !isGroupConsolidated &&
-        details != null &&
-        isFormReminderEligible({
-          isAcceptingResponses,
-          isShareableLink: details.isShareableLink,
+        id: application.id,
+        companyId: application.companyId,
+        companyLabel: getHomeFormCompanyLabel(application, {
+          isGroupConsolidated,
+          businessGroupName,
         }),
-      infos: [
-        { label: 'Respostas', value: application.totalAnswers ?? '--' },
-        {
-          label: 'Participantes',
-          value: application.totalParticipants ?? '--',
-        },
-        {
-          label: 'Tempo médio',
-          value: formatAverageTime(details?.averageTimeSpent),
-        },
-      ],
-    };
+        name: application.name || application.form?.name || 'Formulário',
+        status: application.status,
+        statusLabel: FormApplicationStatusTranslate[application.status],
+        participationPercent: groupParticipationPercent,
+        isBusinessGroupApplication,
+        currentCompanyParticipationPercent,
+        reminderCount: details?.reminderCount ?? 0,
+        isAcceptingResponses,
+        isShareableLink: details?.isShareableLink ?? true,
+        canSendReminder:
+          !isGroupConsolidated &&
+          details != null &&
+          isFormReminderEligible({
+            isAcceptingResponses,
+            isShareableLink: details.isShareableLink,
+          }),
+        infos: [
+          { label: 'Respostas', value: application.totalAnswers ?? '--' },
+          {
+            label: 'Participantes',
+            value: application.totalParticipants ?? '--',
+          },
+          {
+            label: 'Tempo médio',
+            value: formatAverageTime(averageTimeSpent),
+          },
+        ],
+      };
     });
 
     return {
@@ -624,8 +601,10 @@ export const useCompanyStep = () => {
         (formsTotal?.pagination?.total ?? 0) === 0,
       emptyMessage: 'Sem formulários aplicados',
       onViewAll: handleGoForms,
+      isGroupConsolidated,
     };
   }, [
+    businessGroupName,
     formatAverageTime,
     formsTotal?.pagination?.total,
     handleGoForms,

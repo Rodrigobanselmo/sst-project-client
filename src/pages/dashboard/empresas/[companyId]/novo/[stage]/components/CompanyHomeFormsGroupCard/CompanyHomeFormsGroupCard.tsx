@@ -23,6 +23,8 @@ import { QueryEnum } from 'core/enums/query.enums';
 
 export type HomeFormLaunchItem = {
   id: string;
+  companyId?: string;
+  companyLabel?: string;
   name: string;
   statusLabel: string;
   participationPercent: number;
@@ -41,6 +43,7 @@ type Props = {
   isEmpty: boolean;
   emptyMessage: string;
   onViewAll: () => void;
+  isGroupConsolidated?: boolean;
 };
 
 const getParticipationColor = (percent: number) => {
@@ -102,6 +105,11 @@ function FormItemPreview({ item }: { item: HomeFormLaunchItem }) {
       <SText fontSize={14} fontWeight={600} mb={1}>
         {item.name}
       </SText>
+      {item.companyLabel && (
+        <SText fontSize={11} color="text.secondary" mb={0.5}>
+          {item.companyLabel}
+        </SText>
+      )}
       <SText fontSize={12} color="text.secondary" mb={1.5}>
         {item.statusLabel}
       </SText>
@@ -187,13 +195,14 @@ function FormLaunchRow({
   }, []);
 
   const handleClick = useCallback(() => {
+    const targetCompanyId = item.companyId || companyId;
     void router.push(
       PageRoutes.FORMS.FORMS_APPLICATION.VIEW.replace(
         '[companyId]',
-        companyId,
+        targetCompanyId,
       ).replace('[id]', item.id),
     );
-  }, [companyId, item.id, router]);
+  }, [companyId, item.companyId, item.id, router]);
 
   const handleReminderClick = useCallback(
     (event: React.MouseEvent) => {
@@ -249,6 +258,19 @@ function FormLaunchRow({
           >
             {item.name}
           </SText>
+          {item.companyLabel && (
+            <SText
+              fontSize={10}
+              color="text.secondary"
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {item.companyLabel}
+            </SText>
+          )}
           <SFlex align="center" gap={0.5} minWidth={0}>
             <SText
               fontSize={11}
@@ -364,6 +386,7 @@ export function CompanyHomeFormsGroupCard({
   isEmpty,
   emptyMessage,
   onViewAll,
+  isGroupConsolidated = false,
 }: Props): JSX.Element {
   const queryClient = useQueryClient();
   const { sendReminder, isSending } = useSendFormReminderFlow();
@@ -414,7 +437,13 @@ export function CompanyHomeFormsGroupCard({
             sx={{ ml: 'auto' }}
           >
             {applications.length}{' '}
-            {applications.length === 1 ? 'ativo' : 'ativos'}
+            {isGroupConsolidated
+              ? applications.length === 1
+                ? 'formulário'
+                : 'formulários'
+              : applications.length === 1
+                ? 'ativo'
+                : 'ativos'}
           </Typography>
         )}
       </SFlex>

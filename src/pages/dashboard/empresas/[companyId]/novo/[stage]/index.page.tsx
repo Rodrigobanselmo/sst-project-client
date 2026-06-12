@@ -62,7 +62,12 @@ import { SActionButton } from '../../../../../../components/atoms/SActionButton'
 import { CharacterizationStage } from './components/CharacterizationStage/CharacterizationStage';
 import { CompanyHomeFormsGroupCard } from './components/CompanyHomeFormsGroupCard/CompanyHomeFormsGroupCard';
 import { CompanyHomeOperationalHeader } from './components/CompanyHomeOperationalHeader/CompanyHomeOperationalHeader';
-import { companyHomeLaunchCardShellSx } from './components/company-home-launch.constants';
+import {
+  companyHomeLaunchCardShellConsolidatedSx,
+  companyHomeLaunchCardShellSx,
+  getConsolidatedFormsCardShellSx,
+  getConsolidatedLaunchCardsGridSx,
+} from './components/company-home-launch.constants';
 import { CompanyStage } from './components/CompanyStage/CompanyStage';
 import { DocumentsStage } from './components/DocumentsStage /DocumentsStage';
 import { EmployeeStage } from './components/EmployeeStage/EmployeeStage';
@@ -158,6 +163,16 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
     width: '100%',
     alignItems: 'stretch',
   };
+  const consolidatedFormsCount = formsLaunchGroup.applications.length;
+  const launchCardShellSx = isGroupConsolidated
+    ? companyHomeLaunchCardShellConsolidatedSx
+    : companyHomeLaunchCardShellSx;
+  const launchCardsGridSxResolved = isGroupConsolidated
+    ? getConsolidatedLaunchCardsGridSx(launchCardsGridSx, consolidatedFormsCount)
+    : launchCardsGridSx;
+  const formsCardShellSx = isGroupConsolidated
+    ? getConsolidatedFormsCardShellSx(consolidatedFormsCount)
+    : launchCardShellSx;
 
   return (
     <>
@@ -215,11 +230,11 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
           (launchCardsMemo.length > 0 || showFormsLaunchGroup) && (
           <>
             <SText mt={-8}>Lançamentos</SText>
-            <Box sx={{ ...launchCardsGridSx, mt: 3, mb: 24 }}>
+            <Box sx={{ ...launchCardsGridSxResolved, mt: 3, mb: 24 }}>
               {launchCardsMemo.map((raw, index) => {
                 const cardProps = raw as ISActionButtonProps;
                 return (
-                  <Box key={`${cardProps.text}-${index}`} sx={companyHomeLaunchCardShellSx}>
+                  <Box key={`${cardProps.text}-${index}`} sx={launchCardShellSx}>
                     <SActionGroupButton
                       text={cardProps.text}
                       icon={cardProps.icon}
@@ -239,7 +254,7 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
               {showFormsLaunchGroup && (
                 <Box
                   sx={{
-                    ...companyHomeLaunchCardShellSx,
+                    ...(formsCardShellSx as object),
                     gridColumn: {
                       xs: '1 / -1',
                       sm: launchGridColumnCount >= 4 ? 'span 2' : 'span 1',
@@ -252,6 +267,7 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
                     isEmpty={formsLaunchGroup.isEmpty}
                     emptyMessage={formsLaunchGroup.emptyMessage}
                     onViewAll={formsLaunchGroup.onViewAll}
+                    isGroupConsolidated={formsLaunchGroup.isGroupConsolidated}
                   />
                 </Box>
               )}
