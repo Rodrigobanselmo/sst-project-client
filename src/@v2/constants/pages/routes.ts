@@ -11,6 +11,9 @@ export const PageRoutes = {
     VIEW: '/dashboard/empresas/[companyId]/documentos/[id]',
   },
   FORMS: {
+    CONSOLIDATED_VIEW: {
+      LIST: '/dashboard/empresas/[companyId]/formularios/consolidado',
+    },
     FORMS_APPLICATION: {
       LIST: '/dashboard/empresas/[companyId]/formularios/[formTab]',
       VIEW: '/dashboard/empresas/[companyId]/formularios/aplicados/[id]',

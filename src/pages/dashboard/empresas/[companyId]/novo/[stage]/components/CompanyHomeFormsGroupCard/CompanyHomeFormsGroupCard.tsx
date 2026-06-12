@@ -8,10 +8,13 @@ import {
   Typography,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 
+import { FormApplicationStatusBadge } from '@v2/components/organisms/STable/implementation/SFormApplicationTable/components/FormApplicationStatusBadge/FormApplicationStatusBadge';
 import { SIconForm } from '@v2/assets/icons/modules/SIconForm/SIconForm';
 import { PageRoutes } from '@v2/constants/pages/routes';
+import { FormApplicationStatusEnum } from '@v2/models/form/enums/form-status.enum';
 import {
   FORM_REMINDER_LIMIT,
   useSendFormReminderFlow,
@@ -26,6 +29,7 @@ export type HomeFormLaunchItem = {
   companyId?: string;
   companyLabel?: string;
   name: string;
+  status: FormApplicationStatusEnum;
   statusLabel: string;
   participationPercent: number;
   isBusinessGroupApplication?: boolean;
@@ -44,6 +48,8 @@ type Props = {
   emptyMessage: string;
   onViewAll: () => void;
   isGroupConsolidated?: boolean;
+  consolidatedViewHref?: string | null;
+  consolidatedViewLabel?: string;
 };
 
 const getParticipationColor = (percent: number) => {
@@ -110,9 +116,9 @@ function FormItemPreview({ item }: { item: HomeFormLaunchItem }) {
           {item.companyLabel}
         </SText>
       )}
-      <SText fontSize={12} color="text.secondary" mb={1.5}>
-        {item.statusLabel}
-      </SText>
+      <Box mb={1.5}>
+        <FormApplicationStatusBadge status={item.status} compact />
+      </Box>
       {item.infos.map((info) => (
         <SText key={info.label} fontSize={12} color="text.light">
           {info.label}: {info.value}
@@ -271,19 +277,8 @@ function FormLaunchRow({
               {item.companyLabel}
             </SText>
           )}
-          <SFlex align="center" gap={0.5} minWidth={0}>
-            <SText
-              fontSize={11}
-              color="text.secondary"
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                minWidth: 0,
-              }}
-            >
-              {item.statusLabel}
-            </SText>
+          <SFlex align="center" gap={0.75} minWidth={0} flexWrap="wrap">
+            <FormApplicationStatusBadge status={item.status} compact />
             {item.canSendReminder && (
               <>
                 <SText fontSize={11} color="text.secondary" sx={{ flexShrink: 0 }}>
@@ -387,6 +382,8 @@ export function CompanyHomeFormsGroupCard({
   emptyMessage,
   onViewAll,
   isGroupConsolidated = false,
+  consolidatedViewHref = null,
+  consolidatedViewLabel = 'Ver consolidação do grupo',
 }: Props): JSX.Element {
   const queryClient = useQueryClient();
   const { sendReminder, isSending } = useSendFormReminderFlow();
@@ -480,7 +477,34 @@ export function CompanyHomeFormsGroupCard({
       </Box>
 
       {!isEmpty && (
-        <Box px={2} pt={1.5} pb={1.5} mt={0.5} flexShrink={0}>
+        <Box
+          px={2}
+          pt={1.5}
+          pb={1.5}
+          mt={0.5}
+          flexShrink={0}
+          display="flex"
+          flexDirection="column"
+          gap={0.75}
+        >
+          {consolidatedViewHref && (
+            <Link href={consolidatedViewHref} legacyBehavior passHref>
+              <SText
+                component="a"
+                fontSize={12}
+                color="secondary.main"
+                fontWeight={600}
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  '&:hover': { textDecoration: 'underline' },
+                }}
+              >
+                {consolidatedViewLabel}
+              </SText>
+            </Link>
+          )}
           <SText
             fontSize={12}
             color="primary.main"

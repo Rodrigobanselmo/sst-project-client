@@ -57,6 +57,8 @@ import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { dateFromNow } from 'core/utils/date/date-format';
 
 import { useFetchCompanyGroupHomeSummary } from '@v2/services/enterprise/company-group/home-summary/hooks/useFetchCompanyGroupHomeSummary';
+import { useFetchConsolidatedViewEligibility } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewEligibility';
+import { ConsolidatedViewEligibleSetModel } from '@v2/models/enterprise/company-group/consolidated-view-eligibility.model';
 import { HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE } from 'core/constants/home-business-group-scope.constants';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
 import {
@@ -92,6 +94,13 @@ export const useCompanyStep = () => {
   const { data: company, isLoading } = useQueryCompany();
   const { summary: groupSummary, isLoading: isLoadingGroupSummary } =
     useFetchCompanyGroupHomeSummary(
+      { companyGroupId: businessGroupId ?? 0 },
+      {
+        enabled: isGroupConsolidated && !!businessGroupId,
+      },
+    );
+  const { eligibility: consolidatedViewEligibility } =
+    useFetchConsolidatedViewEligibility(
       { companyGroupId: businessGroupId ?? 0 },
       {
         enabled: isGroupConsolidated && !!businessGroupId,
@@ -544,6 +553,20 @@ export const useCompanyStep = () => {
     onStackOpenModal(ModalEnum.USER_VIEW);
   }, [onStackOpenModal]);
 
+  const primaryConsolidatedEligibleSet = useMemo<
+    ConsolidatedViewEligibleSetModel | null
+  >(() => {
+    if (!consolidatedViewEligibility?.hasEligibleSet) {
+      return null;
+    }
+
+    return (
+      [...consolidatedViewEligibility.eligibleSets].sort(
+        (left, right) => right.applications.length - left.applications.length,
+      )[0] ?? null
+    );
+  }, [consolidatedViewEligibility]);
+
   const formsLaunchGroup = useMemo(() => {
     const applications = selectedFormsToShow.map((application) => {
       const details = selectedFormsDetailsById?.[application.id];
@@ -604,6 +627,20 @@ export const useCompanyStep = () => {
       };
     });
 
+    const consolidatedViewHref =
+      isGroupConsolidated &&
+      businessGroupId &&
+      primaryConsolidatedEligibleSet &&
+      primaryConsolidatedEligibleSet.applications.length >= 2
+        ? PageRoutes.FORMS.CONSOLIDATED_VIEW.LIST.replace(
+            '[companyId]',
+            formsBrowseCompanyId,
+          ) +
+          `?businessGroupId=${businessGroupId}&applicationIds=${primaryConsolidatedEligibleSet.applications
+            .map((application) => application.applicationId)
+            .join(',')}`
+        : null;
+
     return {
       applications,
       isEmpty:
@@ -612,12 +649,17 @@ export const useCompanyStep = () => {
       emptyMessage: 'Sem formulários aplicados',
       onViewAll: handleGoForms,
       isGroupConsolidated,
+      consolidatedViewHref,
+      consolidatedViewLabel: 'Ver consolidação do grupo',
     };
   }, [
+    businessGroupId,
     businessGroupName,
     formatAverageTime,
+    formsBrowseCompanyId,
     formsTotal?.pagination?.total,
     handleGoForms,
+    primaryConsolidatedEligibleSet,
     selectedFormsDetailsById,
     selectedFormsToShow,
     isGroupConsolidated,

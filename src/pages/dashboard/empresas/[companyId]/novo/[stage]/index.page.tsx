@@ -294,6 +294,8 @@ const CompanyPageLayout = (props: ReturnType<typeof useCompanyStep>) => {
                     emptyMessage={formsLaunchGroup.emptyMessage}
                     onViewAll={formsLaunchGroup.onViewAll}
                     isGroupConsolidated={formsLaunchGroup.isGroupConsolidated}
+                    consolidatedViewHref={formsLaunchGroup.consolidatedViewHref}
+                    consolidatedViewLabel={formsLaunchGroup.consolidatedViewLabel}
                   />
                 </Box>
               )}
