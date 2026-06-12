@@ -40,12 +40,14 @@ import { HtmlContentRenderer } from '@v2/pages/companies/forms/pages/application
 import { useFetchConsolidatedViewQuestionsAnswers } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewQuestionsAnswers';
 import { normalizeConsolidatedIndicatorsNarrativeScope } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.scope';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
+import { SSwitch } from '@v2/components/forms/fields/SSwitch/SSwitch';
 import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
 import { useFetchConsolidatedViewSummary } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewSummary';
 
 import { exportConsolidatedChartsPdfInBrowser } from '../../helpers/exportConsolidatedChartsPdfInBrowser';
 import { exportConsolidatedIndicatorsPdfInBrowser } from '../../helpers/exportConsolidatedIndicatorsPdfInBrowser';
 import { FormConsolidatedNarrativeSection } from '../FormConsolidatedNarrativeSection/FormConsolidatedNarrativeSection';
+import { ConsolidatedFormGroupIndicator } from './ConsolidatedFormGroupIndicator';
 
 type Props = {
   companyGroupId: number;
@@ -67,6 +69,7 @@ export function FormConsolidatedAnalyticsSection({
   const { enqueueSnackbar } = useSnackbar();
   const [groupingMode, setGroupingMode] =
     useState<ConsolidatedAnalyticsGroupingMode>('overview');
+  const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] = useState(false);
   const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
   const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
     useState(false);
@@ -179,9 +182,9 @@ export function FormConsolidatedAnalyticsSection({
       normalizeConsolidatedIndicatorsNarrativeScope({
         groupingMode,
         groupingLabel: selectedGroupingLabel,
-        showOnlyGroupIndicators: false,
+        showOnlyGroupIndicators,
       }),
-    [groupingMode, selectedGroupingLabel],
+    [groupingMode, selectedGroupingLabel, showOnlyGroupIndicators],
   );
 
   const recorteSnapshot = useMemo(
@@ -275,7 +278,29 @@ export function FormConsolidatedAnalyticsSection({
 
       {mode === 'indicators' && (
         <SPaper shadow={false} sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+            }}
+          >
+            <SSwitch
+              label="Mostrar apenas indicadores de grupo"
+              value={showOnlyGroupIndicators}
+              onChange={(_, checked) => setShowOnlyGroupIndicators(checked)}
+              formControlProps={{
+                sx: {
+                  px: 2,
+                  py: 1,
+                  borderRadius: 1,
+                  border: '1px solid',
+                  borderColor: 'grey.200',
+                },
+              }}
+            />
             <Button
               variant="outlined"
               disabled={
@@ -301,7 +326,7 @@ export function FormConsolidatedAnalyticsSection({
                       groupingMode,
                       groupingLabel: selectedGroupingLabel,
                       narrativeScope: indicatorsNarrativeScope,
-                      showOnlyGroupIndicators: false,
+                      showOnlyGroupIndicators,
                     },
                     (message) => setPdfLoadingMessage(message),
                   );
@@ -454,7 +479,16 @@ export function FormConsolidatedAnalyticsSection({
                       </SText>
                     </SPaper>
 
-                    {groupData.questions.map((question) => (
+                    {mode === 'indicators' && showOnlyGroupIndicators ? (
+                      <SPaper mb={3} px={4} py={4}>
+                        <ConsolidatedFormGroupIndicator
+                          questions={groupData.questions}
+                          participantCount={participantGroup.participantCount}
+                          isShareableLink={false}
+                        />
+                      </SPaper>
+                    ) : (
+                      groupData.questions.map((question) => (
                         <SPaper key={question.id} mb={3} px={4} py={4}>
                           <HtmlContentRenderer content={question.details.text} />
                           <SDivider sx={{ mt: 3, mb: 3 }} />
@@ -469,7 +503,8 @@ export function FormConsolidatedAnalyticsSection({
                             />
                           </Box>
                         </SPaper>
-                    ))}
+                      ))
+                    )}
                   </Box>
                 ),
               )}
