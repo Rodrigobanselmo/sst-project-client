@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 
+import PictureAsPdfOutlinedIcon from '@mui/icons-material/PictureAsPdfOutlined';
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined';
 import {
   Alert,
   Autocomplete,
   Box,
+  Button,
   Chip,
   CircularProgress,
   FormControl,
@@ -42,9 +44,12 @@ import {
   shouldProtectConsolidatedParticipantGroup,
 } from '@v2/models/enterprise/company-group/consolidated-view-participants.helpers';
 import { useFetchConsolidatedViewParticipants } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewParticipants';
+import { useFetchConsolidatedViewSummary } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewSummary';
 import { FormParticipantsFilterSummary } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormParticipantsTable/components/FormParticipantsFilterSummary';
 import SText from 'components/atoms/SText';
+import { useSnackbar } from 'notistack';
 
+import { exportConsolidatedParticipantsPdfInBrowser } from '../../helpers/exportConsolidatedParticipantsPdfInBrowser';
 import { ConsolidatedParticipantsGroupedTable } from './ConsolidatedParticipantsGroupedTable';
 
 const CONSOLIDATED_FETCH_LIMIT = 10_000;
@@ -77,6 +82,8 @@ export function FormConsolidatedParticipantsSection({
   companyGroupId,
   applicationIds,
 }: Props) {
+  const { enqueueSnackbar } = useSnackbar();
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [responseFilter, setResponseFilter] = useState<ResponseFilter>('all');
@@ -97,6 +104,10 @@ export function FormConsolidatedParticipantsSection({
       },
       { enabled: companyGroupId > 0 && applicationIds.length >= 2 },
     );
+  const { summary } = useFetchConsolidatedViewSummary(
+    { companyGroupId, applicationIds },
+    { enabled: companyGroupId > 0 && applicationIds.length >= 2 },
+  );
 
   const allParticipants = participantsData?.participants ?? [];
 
@@ -232,6 +243,58 @@ export function FormConsolidatedParticipantsSection({
 
       <SPaper shadow={false} sx={{ p: 2 }}>
         <SFlex align="center" gap={2} flexWrap="wrap" mb={2}>
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            startIcon={
+              isExportingPdf ? (
+                <CircularProgress color="inherit" size={16} />
+              ) : (
+                <PictureAsPdfOutlinedIcon sx={{ fontSize: 18 }} />
+              )
+            }
+            onClick={() => {
+              if (!participantsData || !summary) {
+                enqueueSnackbar('Dados ainda não carregados.', {
+                  variant: 'warning',
+                });
+                return;
+              }
+              setIsExportingPdf(true);
+              try {
+                exportConsolidatedParticipantsPdfInBrowser({
+                  businessGroupName: participantsData.businessGroupName,
+                  formName: summary.formName,
+                  filters,
+                  viewMode,
+                  filterSummary,
+                  participants: filteredParticipants,
+                  groups: groupedRows,
+                });
+              } catch (error) {
+                enqueueSnackbar(
+                  error instanceof Error
+                    ? error.message
+                    : 'Não foi possível gerar o PDF dos participantes.',
+                  { variant: 'error' },
+                );
+              } finally {
+                setIsExportingPdf(false);
+              }
+            }}
+            disabled={isExportingPdf || !participantsData || !summary}
+            sx={{
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              boxShadow: 'none',
+              '&:hover': { boxShadow: 'none' },
+            }}
+          >
+            Recorte (PDF)
+          </Button>
+
           <TextField
             size="small"
             placeholder="Buscar por nome, CPF, e-mail, empresa..."

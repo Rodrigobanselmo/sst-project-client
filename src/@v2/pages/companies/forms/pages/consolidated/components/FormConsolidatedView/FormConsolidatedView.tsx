@@ -19,6 +19,7 @@ import {
   Paper,
   Typography,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
@@ -28,6 +29,7 @@ import { useFetchConsolidatedViewSummary } from '@v2/services/enterprise/company
 import SText from 'components/atoms/SText';
 
 import { ConsolidatedViewTab } from '../../consolidated-view-tab.types';
+import { exportConsolidatedSummaryPdfInBrowser } from '../../helpers/exportConsolidatedSummaryPdfInBrowser';
 import { FormConsolidatedAnalyticsSection } from '../FormConsolidatedAnalyticsSection/FormConsolidatedAnalyticsSection';
 import { FormConsolidatedParticipantsSection } from '../FormConsolidatedParticipantsSection/FormConsolidatedParticipantsSection';
 
@@ -52,6 +54,9 @@ const capabilityStatusLabels: Record<ConsolidatedViewCapabilityStatusEnum, strin
     [ConsolidatedViewCapabilityStatusEnum.NOT_IMPLEMENTED]: 'Em breve',
     [ConsolidatedViewCapabilityStatusEnum.DISABLED]: 'Bloqueado',
   };
+
+/** PDF consolidado é utilitário de exportação por aba, não capability navegável. */
+const CAPABILITY_KEYS_HIDDEN_FROM_SUMMARY = new Set(['pdf']);
 
 type Props = {
   companyGroupId: number;
@@ -146,13 +151,17 @@ function ConsolidatedSummaryContent({
   onOpenChartsTab?: () => void;
   onOpenIndicatorsTab?: () => void;
 }) {
+  const { enqueueSnackbar } = useSnackbar();
+
   const uniqueCompanies = Array.from(
     new Map(
       summary.applications.map((item) => [item.companyId, item.companyLabel]),
     ).entries(),
   );
 
-  const capabilityEntries = Object.entries(summary.capabilities);
+  const capabilityEntries = Object.entries(summary.capabilities).filter(
+    ([key]) => !CAPABILITY_KEYS_HIDDEN_FROM_SUMMARY.has(key),
+  );
   const implementedCapabilities = capabilityEntries.filter(
     ([, status]) => status === ConsolidatedViewCapabilityStatusEnum.IMPLEMENTED,
   );
@@ -546,15 +555,27 @@ function ConsolidatedSummaryContent({
         </Box>
       </SummarySection>
 
-      <Paper variant="outlined" sx={{ p: 2.5, bgcolor: 'grey.50' }}>
-        <SText fontSize={14} fontWeight={600} mb={1}>
-          Próximas fases
-        </SText>
-        <Typography variant="body2" color="text.secondary">
-          PDF consolidado será disponibilizado em fase futura. A narrativa
-          executiva consolidada está na aba Indicadores.
-        </Typography>
-      </Paper>
+      <SPaper shadow={false} sx={{ p: 2.5 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              try {
+                exportConsolidatedSummaryPdfInBrowser(summary);
+              } catch (error) {
+                enqueueSnackbar(
+                  error instanceof Error
+                    ? error.message
+                    : 'Não foi possível gerar o PDF do resumo.',
+                  { variant: 'error' },
+                );
+              }
+            }}
+          >
+            Exportar PDF (Resumo)
+          </Button>
+        </Box>
+      </SPaper>
     </Box>
   );
 }

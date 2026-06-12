@@ -7,6 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import {
   Alert,
   Box,
+  Button,
   CircularProgress,
   FormControl,
   InputLabel,
@@ -14,6 +15,7 @@ import {
   Select,
   Typography,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
@@ -38,7 +40,11 @@ import { HtmlContentRenderer } from '@v2/pages/companies/forms/pages/application
 import { useFetchConsolidatedViewQuestionsAnswers } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewQuestionsAnswers';
 import { normalizeConsolidatedIndicatorsNarrativeScope } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.scope';
 import { SDivider } from '@v2/components/atoms/SDivider/SDivider';
+import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
+import { useFetchConsolidatedViewSummary } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewSummary';
 
+import { exportConsolidatedChartsPdfInBrowser } from '../../helpers/exportConsolidatedChartsPdfInBrowser';
+import { exportConsolidatedIndicatorsPdfInBrowser } from '../../helpers/exportConsolidatedIndicatorsPdfInBrowser';
 import { FormConsolidatedNarrativeSection } from '../FormConsolidatedNarrativeSection/FormConsolidatedNarrativeSection';
 
 type Props = {
@@ -58,13 +64,22 @@ export function FormConsolidatedAnalyticsSection({
   mode,
 }: Props) {
   const { isMaster } = useAccess();
+  const { enqueueSnackbar } = useSnackbar();
   const [groupingMode, setGroupingMode] =
     useState<ConsolidatedAnalyticsGroupingMode>('overview');
+  const [isExportingChartsPdf, setIsExportingChartsPdf] = useState(false);
+  const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
+    useState(false);
+  const [pdfLoadingMessage, setPdfLoadingMessage] = useState('');
   const { questionsAnswersData, isLoading, isError } =
     useFetchConsolidatedViewQuestionsAnswers(
       { companyGroupId, applicationIds },
       { enabled: companyGroupId > 0 && applicationIds.length >= 2 },
     );
+  const { summary } = useFetchConsolidatedViewSummary(
+    { companyGroupId, applicationIds },
+    { enabled: companyGroupId > 0 && applicationIds.length >= 2 },
+  );
 
   const filters = useMemo<ConsolidatedAnalyticsFilters>(
     () => ({ groupingMode }),
@@ -212,6 +227,105 @@ export function FormConsolidatedAnalyticsSection({
         {CONSOLIDATED_PARTICIPANTS_PRIVACY_MIN_SIZE} participantes exibem
         &quot;Dados Protegidos&quot; para preservar o sigilo.
       </Alert>
+
+      {mode === 'charts' && (
+        <SPaper shadow={false} sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              disabled={!formQuestionsAnswers || isExportingChartsPdf}
+              startIcon={
+                isExportingChartsPdf ? (
+                  <CircularProgress color="inherit" size={16} />
+                ) : undefined
+              }
+              onClick={async () => {
+                if (!formQuestionsAnswers || !summary) {
+                  enqueueSnackbar('Dados do formulário ainda não carregados.', {
+                    variant: 'warning',
+                  });
+                  return;
+                }
+                setIsExportingChartsPdf(true);
+                try {
+                  await exportConsolidatedChartsPdfInBrowser({
+                    formName: summary.formName,
+                    businessGroupName: questionsAnswersData.businessGroupName,
+                    formQuestionsAnswers,
+                    groupingMode,
+                    groupingLabel: selectedGroupingLabel,
+                  });
+                } catch (error) {
+                  enqueueSnackbar(
+                    error instanceof Error
+                      ? error.message
+                      : 'Não foi possível gerar o PDF dos gráficos.',
+                    { variant: 'error' },
+                  );
+                } finally {
+                  setIsExportingChartsPdf(false);
+                }
+              }}
+            >
+              Exportar PDF (Gráficos)
+            </Button>
+          </Box>
+        </SPaper>
+      )}
+
+      {mode === 'indicators' && (
+        <SPaper shadow={false} sx={{ p: 2 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <Button
+              variant="outlined"
+              disabled={
+                isExportingIndicatorsPdf || !formQuestionsAnswers || !summary
+              }
+              onClick={async () => {
+                if (!formQuestionsAnswers || !summary) {
+                  enqueueSnackbar('Dados do formulário ainda não carregados.', {
+                    variant: 'warning',
+                  });
+                  return;
+                }
+                setIsExportingIndicatorsPdf(true);
+                setPdfLoadingMessage('Iniciando geração do PDF...');
+                try {
+                  await exportConsolidatedIndicatorsPdfInBrowser(
+                    {
+                      companyGroupId,
+                      applicationIds,
+                      formName: summary.formName,
+                      businessGroupName: questionsAnswersData.businessGroupName,
+                      formQuestionsAnswers,
+                      groupingMode,
+                      groupingLabel: selectedGroupingLabel,
+                      narrativeScope: indicatorsNarrativeScope,
+                      showOnlyGroupIndicators: false,
+                    },
+                    (message) => setPdfLoadingMessage(message),
+                  );
+                  enqueueSnackbar('PDF gerado com sucesso!', {
+                    variant: 'success',
+                  });
+                } catch (error) {
+                  enqueueSnackbar(
+                    error instanceof Error
+                      ? error.message
+                      : 'Não foi possível gerar o PDF dos indicadores.',
+                    { variant: 'error' },
+                  );
+                } finally {
+                  setIsExportingIndicatorsPdf(false);
+                  setPdfLoadingMessage('');
+                }
+              }}
+            >
+              Exportar PDF (Indicadores)
+            </Button>
+          </Box>
+        </SPaper>
+      )}
 
       <SPaper shadow={false} sx={{ p: 2 }}>
         <SectionHeader
@@ -381,6 +495,11 @@ export function FormConsolidatedAnalyticsSection({
         Sem e-mail, reforço, banner, edição, análise operacional de riscos ou
         envio para inventário/PGR.
       </Typography>
+
+      <SPdfLoadingModal
+        open={isExportingIndicatorsPdf}
+        message={pdfLoadingMessage}
+      />
     </Box>
   );
 }

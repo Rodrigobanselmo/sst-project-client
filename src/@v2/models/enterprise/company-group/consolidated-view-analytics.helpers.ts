@@ -255,6 +255,38 @@ export function getConsolidatedMeasurableGroups(
   return formQuestionsAnswers.results.filter((group) => !group.identifier);
 }
 
+export function buildConsolidatedParticipantGroupingForPdf(params: {
+  formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
+  groupingMode: ConsolidatedAnalyticsGroupingMode;
+  groupingLabel: string;
+}): {
+  grouping:
+    | { active: false }
+    | { active: true; questionId: string; questionLabel: string };
+  participantGroups: ParticipantGroupForIndicators[];
+} {
+  const participantGroups = buildConsolidatedAnalyticsParticipantGroups({
+    formQuestionsAnswers: params.formQuestionsAnswers,
+    groupingMode: params.groupingMode,
+  });
+
+  if (params.groupingMode === 'overview') {
+    return {
+      grouping: { active: false },
+      participantGroups,
+    };
+  }
+
+  return {
+    grouping: {
+      active: true,
+      questionId: params.groupingMode,
+      questionLabel: params.groupingLabel,
+    },
+    participantGroups,
+  };
+}
+
 export function buildConsolidatedAnalyticsRecorteSnapshot(params: {
   mode: 'charts' | 'indicators';
   filters: ConsolidatedAnalyticsFilters;

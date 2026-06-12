@@ -5,6 +5,7 @@ import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-que
 import {
   buildParticipantGroupingForIndicatorsPdf,
   type HierarchyGroupForIndicators,
+  type ParticipantGroupForIndicators,
 } from './buildParticipantGroupsForIndicators';
 
 type QuestionForIndicator = {
@@ -163,6 +164,11 @@ export function buildIndicatorsPdfDataset(params: {
    * `undefined` = todos os grupos (comportamento anterior). Não altera cálculo por resposta.
    */
   visibleParticipantGroupIds?: string[];
+  /** Visão consolidada: agrupamento já resolvido fora do fluxo por aplicação. */
+  participantGroupingOverride?: {
+    grouping: IndicatorsPdfDataset['grouping'];
+    participantGroups: ParticipantGroupForIndicators[];
+  };
 }): IndicatorsPdfDataset {
   const {
     formQuestionsAnswers,
@@ -172,6 +178,7 @@ export function buildIndicatorsPdfDataset(params: {
     isShareableLink,
     hierarchyGroups = [],
     visibleParticipantGroupIds,
+    participantGroupingOverride,
   } = params;
 
   if (!formQuestionsAnswers || !Array.isArray(formQuestionsAnswers.results)) {
@@ -180,12 +187,13 @@ export function buildIndicatorsPdfDataset(params: {
     );
   }
 
-  let { grouping, participantGroups } =
-    buildParticipantGroupingForIndicatorsPdf({
-      formQuestionsAnswers,
-      selectedGroupingQuestionId,
-      hierarchyGroups,
-    });
+  let { grouping, participantGroups } = participantGroupingOverride
+    ? participantGroupingOverride
+    : buildParticipantGroupingForIndicatorsPdf({
+        formQuestionsAnswers,
+        selectedGroupingQuestionId,
+        hierarchyGroups,
+      });
 
   if (grouping.active && visibleParticipantGroupIds !== undefined) {
     const allow = new Set(visibleParticipantGroupIds);
