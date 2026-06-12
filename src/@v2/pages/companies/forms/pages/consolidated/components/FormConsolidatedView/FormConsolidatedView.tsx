@@ -14,6 +14,7 @@ import {
   Box,
   Chip,
   CircularProgress,
+  Button,
   Divider,
   Paper,
   Typography,
@@ -25,6 +26,9 @@ import { ConsolidatedViewCapabilityStatusEnum } from '@v2/models/enterprise/comp
 import { ConsolidatedViewSummaryModel } from '@v2/models/enterprise/company-group/consolidated-view-summary.model';
 import { useFetchConsolidatedViewSummary } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewSummary';
 import SText from 'components/atoms/SText';
+
+import { ConsolidatedViewTab } from '../../consolidated-view-tab.types';
+import { FormConsolidatedParticipantsSection } from '../FormConsolidatedParticipantsSection/FormConsolidatedParticipantsSection';
 
 const capabilityLabels: Record<string, string> = {
   participants: 'Participantes',
@@ -43,6 +47,7 @@ const capabilityLabels: Record<string, string> = {
 
 const capabilityStatusLabels: Record<ConsolidatedViewCapabilityStatusEnum, string> =
   {
+    [ConsolidatedViewCapabilityStatusEnum.IMPLEMENTED]: 'Disponível',
     [ConsolidatedViewCapabilityStatusEnum.NOT_IMPLEMENTED]: 'Em breve',
     [ConsolidatedViewCapabilityStatusEnum.DISABLED]: 'Bloqueado',
   };
@@ -50,6 +55,8 @@ const capabilityStatusLabels: Record<ConsolidatedViewCapabilityStatusEnum, strin
 type Props = {
   companyGroupId: number;
   applicationIds: string[];
+  activeTab: ConsolidatedViewTab;
+  onOpenParticipantsTab?: () => void;
 };
 
 function SummarySection({
@@ -127,8 +134,10 @@ function TotalMetricCard({
 
 function ConsolidatedSummaryContent({
   summary,
+  onOpenParticipantsTab,
 }: {
   summary: ConsolidatedViewSummaryModel;
+  onOpenParticipantsTab?: () => void;
 }) {
   const uniqueCompanies = Array.from(
     new Map(
@@ -137,6 +146,9 @@ function ConsolidatedSummaryContent({
   );
 
   const capabilityEntries = Object.entries(summary.capabilities);
+  const implementedCapabilities = capabilityEntries.filter(
+    ([, status]) => status === ConsolidatedViewCapabilityStatusEnum.IMPLEMENTED,
+  );
   const upcomingCapabilities = capabilityEntries.filter(
     ([, status]) =>
       status === ConsolidatedViewCapabilityStatusEnum.NOT_IMPLEMENTED,
@@ -164,10 +176,19 @@ function ConsolidatedSummaryContent({
         <SText fontSize={15} fontWeight={700} mb={0.5}>
           Visão consolidada virtual
         </SText>
-        <Typography variant="body2" color="text.secondary">
+        <Typography variant="body2" color="text.secondary" mb={1.5}>
           Leitura analítica e documental do grupo. Não altera aplicações
           individuais, análises operacionais, inventário ou envio ao PGR.
         </Typography>
+        {onOpenParticipantsTab && (
+          <Button
+            size="small"
+            variant="contained"
+            onClick={onOpenParticipantsTab}
+          >
+            Ver participantes consolidados
+          </Button>
+        )}
       </Alert>
 
       <Box
@@ -389,9 +410,40 @@ function ConsolidatedSummaryContent({
       >
         <Box
           display="grid"
-          gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }}
+          gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr 1fr' }}
           gap={2}
         >
+          {implementedCapabilities.length > 0 && (
+            <Box>
+              <SFlex align="center" gap={1} mb={1}>
+                <MarkEmailReadOutlinedIcon fontSize="small" color="success" />
+                <SText fontSize={13} fontWeight={600}>
+                  Disponível nesta fase
+                </SText>
+              </SFlex>
+              <Box display="flex" flexWrap="wrap" gap={1}>
+                {implementedCapabilities.map(([key]) => (
+                  <Chip
+                    key={key}
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                    label={capabilityLabels[key] || key}
+                    clickable={key === 'participants' && !!onOpenParticipantsTab}
+                    onClick={
+                      key === 'participants' ? onOpenParticipantsTab : undefined
+                    }
+                    sx={
+                      key === 'participants' && onOpenParticipantsTab
+                        ? { cursor: 'pointer' }
+                        : undefined
+                    }
+                  />
+                ))}
+              </Box>
+            </Box>
+          )}
+
           <Box>
             <SFlex align="center" gap={1} mb={1}>
               <HourglassEmptyOutlinedIcon fontSize="small" color="warning" />
@@ -435,33 +487,44 @@ function ConsolidatedSummaryContent({
         <Divider sx={{ my: 2 }} />
 
         <Box display="flex" flexDirection="column" gap={0.75}>
-          {capabilityEntries.map(([key, status]) => (
-            <Box
-              key={key}
-              display="flex"
-              alignItems="center"
-              justifyContent="space-between"
-              gap={2}
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: 1,
-                '&:hover': { bgcolor: 'action.hover' },
-              }}
-            >
-              <SText fontSize={13}>{capabilityLabels[key] || key}</SText>
-              <Chip
-                size="small"
-                label={capabilityStatusLabels[status]}
-                color={
-                  status === ConsolidatedViewCapabilityStatusEnum.DISABLED
-                    ? 'default'
-                    : 'warning'
-                }
-                variant="outlined"
-              />
-            </Box>
-          ))}
+          {capabilityEntries.map(([key, status]) => {
+            const isParticipantsLink =
+              key === 'participants' &&
+              status === ConsolidatedViewCapabilityStatusEnum.IMPLEMENTED &&
+              !!onOpenParticipantsTab;
+
+            return (
+              <Box
+                key={key}
+                display="flex"
+                alignItems="center"
+                justifyContent="space-between"
+                gap={2}
+                onClick={isParticipantsLink ? onOpenParticipantsTab : undefined}
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1,
+                  cursor: isParticipantsLink ? 'pointer' : 'default',
+                  '&:hover': { bgcolor: 'action.hover' },
+                }}
+              >
+                <SText fontSize={13}>{capabilityLabels[key] || key}</SText>
+                <Chip
+                  size="small"
+                  label={capabilityStatusLabels[status]}
+                  color={
+                    status === ConsolidatedViewCapabilityStatusEnum.DISABLED
+                      ? 'default'
+                      : status === ConsolidatedViewCapabilityStatusEnum.IMPLEMENTED
+                        ? 'success'
+                        : 'warning'
+                  }
+                  variant="outlined"
+                />
+              </Box>
+            );
+          })}
         </Box>
       </SummarySection>
 
@@ -470,9 +533,8 @@ function ConsolidatedSummaryContent({
           Próximas fases
         </SText>
         <Typography variant="body2" color="text.secondary">
-          Participantes detalhados, gráficos, indicadores, narrativa executiva e
-          PDF consolidado serão disponibilizados em fases futuras desta visão
-          analítica.
+          Gráficos, indicadores, narrativa executiva e PDF consolidado serão
+          disponibilizados em fases futuras desta visão analítica.
         </Typography>
       </Paper>
     </Box>
@@ -482,11 +544,27 @@ function ConsolidatedSummaryContent({
 export function FormConsolidatedView({
   companyGroupId,
   applicationIds,
+  activeTab,
+  onOpenParticipantsTab,
 }: Props) {
   const { summary, isLoading, isError } = useFetchConsolidatedViewSummary(
     { companyGroupId, applicationIds },
-    { enabled: companyGroupId > 0 && applicationIds.length >= 2 },
+    {
+      enabled:
+        activeTab === 'summary' &&
+        companyGroupId > 0 &&
+        applicationIds.length >= 2,
+    },
   );
+
+  if (activeTab === 'participants') {
+    return (
+      <FormConsolidatedParticipantsSection
+        companyGroupId={companyGroupId}
+        applicationIds={applicationIds}
+      />
+    );
+  }
 
   if (isLoading) {
     return (
@@ -507,8 +585,10 @@ export function FormConsolidatedView({
 
   return (
     <Box>
-      <Divider sx={{ mb: 3 }} />
-      <ConsolidatedSummaryContent summary={summary} />
+      <ConsolidatedSummaryContent
+        summary={summary}
+        onOpenParticipantsTab={onOpenParticipantsTab}
+      />
     </Box>
   );
 }

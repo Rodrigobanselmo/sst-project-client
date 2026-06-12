@@ -1,10 +1,13 @@
 import dynamic from 'next/dynamic';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/router';
 
 import { SPageHeader } from '@v2/components/molecules/SPageHeader/SPageHeader';
-import { Box, CircularProgress, Typography } from '@mui/material';
+import { Box, CircularProgress, Tab, Tabs, Typography } from '@mui/material';
 import { SContainer } from 'components/atoms/SContainer';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
+
+import { ConsolidatedViewTab } from './consolidated-view-tab.types';
 
 const FormConsolidatedViewClientOnly = dynamic(
   () =>
@@ -42,19 +45,97 @@ const parseApplicationIds = (value: string | string[] | undefined) => {
     .filter(Boolean);
 };
 
+const parseActiveTab = (value: string | string[] | undefined): ConsolidatedViewTab =>
+  value === 'participants' ? 'participants' : 'summary';
+
 export const FormConsolidatedViewPage = () => {
   const router = useRouter();
   const companyGroupId = Number(router.query.businessGroupId || 0);
   const applicationIds = parseApplicationIds(router.query.applicationIds);
+  const activeTab = parseActiveTab(router.query.tab);
+
+  const handleTabChange = useCallback(
+    (_: React.SyntheticEvent, value: ConsolidatedViewTab) => {
+      void router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            tab: value,
+          },
+        },
+        undefined,
+        { shallow: true },
+      );
+    },
+    [router],
+  );
+
+  const openParticipantsTab = useCallback(() => {
+    if (activeTab === 'participants') return;
+
+    void router.push(
+      {
+        pathname: router.pathname,
+        query: {
+          ...router.query,
+          tab: 'participants',
+        },
+      },
+      undefined,
+      { shallow: true },
+    );
+  }, [activeTab, router]);
+
+  const tabs = useMemo(
+    () => (
+      <Tabs
+        value={activeTab}
+        onChange={handleTabChange}
+        variant="scrollable"
+        scrollButtons="auto"
+        sx={{
+          minHeight: 48,
+          '& .MuiTab-root': {
+            minHeight: 48,
+            fontSize: 14,
+            fontWeight: 600,
+            textTransform: 'none',
+          },
+        }}
+      >
+        <Tab label="Resumo" value="summary" />
+        <Tab label="Participantes" value="participants" />
+      </Tabs>
+    ),
+    [activeTab, handleTabChange],
+  );
 
   return (
     <>
       <SHeaderTag title="Formulários consolidados" />
       <SContainer>
-        <SPageHeader mb={4} title="Visão consolidada do grupo" />
+        <SPageHeader mb={2} title="Visão consolidada do grupo" />
+
+        <Box
+          sx={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            bgcolor: 'background.paper',
+            borderBottom: 1,
+            borderColor: 'divider',
+            mb: 3,
+          }}
+        >
+          {tabs}
+        </Box>
+
         <FormConsolidatedViewClientOnly
           companyGroupId={companyGroupId}
           applicationIds={applicationIds}
+          activeTab={activeTab}
+          onOpenParticipantsTab={openParticipantsTab}
         />
       </SContainer>
     </>

@@ -1,4 +1,5 @@
 export enum ConsolidatedViewCapabilityStatusEnum {
+  IMPLEMENTED = 'implemented',
   NOT_IMPLEMENTED = 'not_implemented',
   DISABLED = 'disabled',
 }
