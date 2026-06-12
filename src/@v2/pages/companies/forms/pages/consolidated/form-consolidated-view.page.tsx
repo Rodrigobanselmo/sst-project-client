@@ -45,8 +45,14 @@ const parseApplicationIds = (value: string | string[] | undefined) => {
     .filter(Boolean);
 };
 
-const parseActiveTab = (value: string | string[] | undefined): ConsolidatedViewTab =>
-  value === 'participants' ? 'participants' : 'summary';
+const parseActiveTab = (
+  value: string | string[] | undefined,
+): ConsolidatedViewTab => {
+  if (value === 'participants') return 'participants';
+  if (value === 'charts') return 'charts';
+  if (value === 'indicators') return 'indicators';
+  return 'summary';
+};
 
 export const FormConsolidatedViewPage = () => {
   const router = useRouter();
@@ -71,21 +77,24 @@ export const FormConsolidatedViewPage = () => {
     [router],
   );
 
-  const openParticipantsTab = useCallback(() => {
-    if (activeTab === 'participants') return;
+  const openTab = useCallback(
+    (tab: ConsolidatedViewTab) => {
+      if (activeTab === tab) return;
 
-    void router.push(
-      {
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          tab: 'participants',
+      void router.push(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            tab,
+          },
         },
-      },
-      undefined,
-      { shallow: true },
-    );
-  }, [activeTab, router]);
+        undefined,
+        { shallow: true },
+      );
+    },
+    [activeTab, router],
+  );
 
   const tabs = useMemo(
     () => (
@@ -106,6 +115,8 @@ export const FormConsolidatedViewPage = () => {
       >
         <Tab label="Resumo" value="summary" />
         <Tab label="Participantes" value="participants" />
+        <Tab label="Gráficos" value="charts" />
+        <Tab label="Indicadores" value="indicators" />
       </Tabs>
     ),
     [activeTab, handleTabChange],
@@ -135,7 +146,9 @@ export const FormConsolidatedViewPage = () => {
           companyGroupId={companyGroupId}
           applicationIds={applicationIds}
           activeTab={activeTab}
-          onOpenParticipantsTab={openParticipantsTab}
+          onOpenParticipantsTab={() => openTab('participants')}
+          onOpenChartsTab={() => openTab('charts')}
+          onOpenIndicatorsTab={() => openTab('indicators')}
         />
       </SContainer>
     </>

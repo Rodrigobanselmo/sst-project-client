@@ -28,6 +28,7 @@ import { useFetchConsolidatedViewSummary } from '@v2/services/enterprise/company
 import SText from 'components/atoms/SText';
 
 import { ConsolidatedViewTab } from '../../consolidated-view-tab.types';
+import { FormConsolidatedAnalyticsSection } from '../FormConsolidatedAnalyticsSection/FormConsolidatedAnalyticsSection';
 import { FormConsolidatedParticipantsSection } from '../FormConsolidatedParticipantsSection/FormConsolidatedParticipantsSection';
 
 const capabilityLabels: Record<string, string> = {
@@ -57,6 +58,8 @@ type Props = {
   applicationIds: string[];
   activeTab: ConsolidatedViewTab;
   onOpenParticipantsTab?: () => void;
+  onOpenChartsTab?: () => void;
+  onOpenIndicatorsTab?: () => void;
 };
 
 function SummarySection({
@@ -135,9 +138,13 @@ function TotalMetricCard({
 function ConsolidatedSummaryContent({
   summary,
   onOpenParticipantsTab,
+  onOpenChartsTab,
+  onOpenIndicatorsTab,
 }: {
   summary: ConsolidatedViewSummaryModel;
   onOpenParticipantsTab?: () => void;
+  onOpenChartsTab?: () => void;
+  onOpenIndicatorsTab?: () => void;
 }) {
   const uniqueCompanies = Array.from(
     new Map(
@@ -422,24 +429,29 @@ function ConsolidatedSummaryContent({
                 </SText>
               </SFlex>
               <Box display="flex" flexWrap="wrap" gap={1}>
-                {implementedCapabilities.map(([key]) => (
-                  <Chip
-                    key={key}
-                    size="small"
-                    variant="outlined"
-                    color="success"
-                    label={capabilityLabels[key] || key}
-                    clickable={key === 'participants' && !!onOpenParticipantsTab}
-                    onClick={
-                      key === 'participants' ? onOpenParticipantsTab : undefined
-                    }
-                    sx={
-                      key === 'participants' && onOpenParticipantsTab
-                        ? { cursor: 'pointer' }
-                        : undefined
-                    }
-                  />
-                ))}
+                {implementedCapabilities.map(([key]) => {
+                  const tabHandler =
+                    key === 'participants'
+                      ? onOpenParticipantsTab
+                      : key === 'charts'
+                        ? onOpenChartsTab
+                        : key === 'indicators'
+                          ? onOpenIndicatorsTab
+                          : undefined;
+
+                  return (
+                    <Chip
+                      key={key}
+                      size="small"
+                      variant="outlined"
+                      color="success"
+                      label={capabilityLabels[key] || key}
+                      clickable={!!tabHandler}
+                      onClick={tabHandler}
+                      sx={tabHandler ? { cursor: 'pointer' } : undefined}
+                    />
+                  );
+                })}
               </Box>
             </Box>
           )}
@@ -488,10 +500,16 @@ function ConsolidatedSummaryContent({
 
         <Box display="flex" flexDirection="column" gap={0.75}>
           {capabilityEntries.map(([key, status]) => {
-            const isParticipantsLink =
-              key === 'participants' &&
-              status === ConsolidatedViewCapabilityStatusEnum.IMPLEMENTED &&
-              !!onOpenParticipantsTab;
+            const tabHandler =
+              status === ConsolidatedViewCapabilityStatusEnum.IMPLEMENTED
+                ? key === 'participants'
+                  ? onOpenParticipantsTab
+                  : key === 'charts'
+                    ? onOpenChartsTab
+                    : key === 'indicators'
+                      ? onOpenIndicatorsTab
+                      : undefined
+                : undefined;
 
             return (
               <Box
@@ -500,12 +518,12 @@ function ConsolidatedSummaryContent({
                 alignItems="center"
                 justifyContent="space-between"
                 gap={2}
-                onClick={isParticipantsLink ? onOpenParticipantsTab : undefined}
+                onClick={tabHandler}
                 sx={{
                   px: 1,
                   py: 0.5,
                   borderRadius: 1,
-                  cursor: isParticipantsLink ? 'pointer' : 'default',
+                  cursor: tabHandler ? 'pointer' : 'default',
                   '&:hover': { bgcolor: 'action.hover' },
                 }}
               >
@@ -533,8 +551,8 @@ function ConsolidatedSummaryContent({
           Próximas fases
         </SText>
         <Typography variant="body2" color="text.secondary">
-          Gráficos, indicadores, narrativa executiva e PDF consolidado serão
-          disponibilizados em fases futuras desta visão analítica.
+          Narrativa executiva e PDF consolidado serão disponibilizados em fases
+          futuras desta visão analítica.
         </Typography>
       </Paper>
     </Box>
@@ -546,6 +564,8 @@ export function FormConsolidatedView({
   applicationIds,
   activeTab,
   onOpenParticipantsTab,
+  onOpenChartsTab,
+  onOpenIndicatorsTab,
 }: Props) {
   const { summary, isLoading, isError } = useFetchConsolidatedViewSummary(
     { companyGroupId, applicationIds },
@@ -562,6 +582,26 @@ export function FormConsolidatedView({
       <FormConsolidatedParticipantsSection
         companyGroupId={companyGroupId}
         applicationIds={applicationIds}
+      />
+    );
+  }
+
+  if (activeTab === 'charts') {
+    return (
+      <FormConsolidatedAnalyticsSection
+        companyGroupId={companyGroupId}
+        applicationIds={applicationIds}
+        mode="charts"
+      />
+    );
+  }
+
+  if (activeTab === 'indicators') {
+    return (
+      <FormConsolidatedAnalyticsSection
+        companyGroupId={companyGroupId}
+        applicationIds={applicationIds}
+        mode="indicators"
       />
     );
   }
@@ -588,6 +628,8 @@ export function FormConsolidatedView({
       <ConsolidatedSummaryContent
         summary={summary}
         onOpenParticipantsTab={onOpenParticipantsTab}
+        onOpenChartsTab={onOpenChartsTab}
+        onOpenIndicatorsTab={onOpenIndicatorsTab}
       />
     </Box>
   );
