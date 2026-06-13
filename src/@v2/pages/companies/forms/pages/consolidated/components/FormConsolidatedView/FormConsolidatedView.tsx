@@ -32,6 +32,7 @@ import { ConsolidatedViewTab } from '../../consolidated-view-tab.types';
 import { exportConsolidatedSummaryPdfInBrowser } from '../../helpers/exportConsolidatedSummaryPdfInBrowser';
 import { FormConsolidatedAnalyticsSection } from '../FormConsolidatedAnalyticsSection/FormConsolidatedAnalyticsSection';
 import { FormConsolidatedParticipantsSection } from '../FormConsolidatedParticipantsSection/FormConsolidatedParticipantsSection';
+import { FormConsolidatedRiskAnalysisSection } from '../FormConsolidatedRiskAnalysisSection/FormConsolidatedRiskAnalysisSection';
 
 const capabilityLabels: Record<string, string> = {
   participants: 'Participantes',
@@ -65,6 +66,7 @@ type Props = {
   onOpenParticipantsTab?: () => void;
   onOpenChartsTab?: () => void;
   onOpenIndicatorsTab?: () => void;
+  onOpenRiskAnalysisTab?: () => void;
 };
 
 function SummarySection({
@@ -145,11 +147,13 @@ function ConsolidatedSummaryContent({
   onOpenParticipantsTab,
   onOpenChartsTab,
   onOpenIndicatorsTab,
+  onOpenRiskAnalysisTab,
 }: {
   summary: ConsolidatedViewSummaryModel;
   onOpenParticipantsTab?: () => void;
   onOpenChartsTab?: () => void;
   onOpenIndicatorsTab?: () => void;
+  onOpenRiskAnalysisTab?: () => void;
 }) {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -446,7 +450,9 @@ function ConsolidatedSummaryContent({
                         ? onOpenChartsTab
                         : key === 'indicators' || key === 'indicatorsNarrative'
                           ? onOpenIndicatorsTab
-                          : undefined;
+                          : key === 'riskAnalysisOperational'
+                            ? onOpenRiskAnalysisTab
+                            : undefined;
 
                   return (
                     <Chip
@@ -517,7 +523,9 @@ function ConsolidatedSummaryContent({
                     ? onOpenChartsTab
                     : key === 'indicators' || key === 'indicatorsNarrative'
                       ? onOpenIndicatorsTab
-                      : undefined
+                      : key === 'riskAnalysisOperational'
+                        ? onOpenRiskAnalysisTab
+                        : undefined
                 : undefined;
 
             return (
@@ -587,6 +595,7 @@ export function FormConsolidatedView({
   onOpenParticipantsTab,
   onOpenChartsTab,
   onOpenIndicatorsTab,
+  onOpenRiskAnalysisTab,
 }: Props) {
   const { summary, isLoading, isError } = useFetchConsolidatedViewSummary(
     { companyGroupId, applicationIds },
@@ -627,6 +636,15 @@ export function FormConsolidatedView({
     );
   }
 
+  if (activeTab === 'risk-analysis') {
+    return (
+      <FormConsolidatedRiskAnalysisSection
+        companyGroupId={companyGroupId}
+        applicationIds={applicationIds}
+      />
+    );
+  }
+
   if (isLoading) {
     return (
       <Box py={8} display="flex" justifyContent="center">
@@ -651,6 +669,7 @@ export function FormConsolidatedView({
         onOpenParticipantsTab={onOpenParticipantsTab}
         onOpenChartsTab={onOpenChartsTab}
         onOpenIndicatorsTab={onOpenIndicatorsTab}
+        onOpenRiskAnalysisTab={onOpenRiskAnalysisTab}
       />
     </Box>
   );

@@ -51,6 +51,7 @@ const parseActiveTab = (
   if (value === 'participants') return 'participants';
   if (value === 'charts') return 'charts';
   if (value === 'indicators') return 'indicators';
+  if (value === 'risk-analysis') return 'risk-analysis';
   if (value === 'narrative') return 'indicators';
   return 'summary';
 };
@@ -118,6 +119,7 @@ export const FormConsolidatedViewPage = () => {
         <Tab label="Participantes" value="participants" />
         <Tab label="Gráficos" value="charts" />
         <Tab label="Indicadores" value="indicators" />
+        <Tab label="Análise de Riscos" value="risk-analysis" />
       </Tabs>
     ),
     [activeTab, handleTabChange],
@@ -150,6 +152,7 @@ export const FormConsolidatedViewPage = () => {
           onOpenParticipantsTab={() => openTab('participants')}
           onOpenChartsTab={() => openTab('charts')}
           onOpenIndicatorsTab={() => openTab('indicators')}
+          onOpenRiskAnalysisTab={() => openTab('risk-analysis')}
         />
       </SContainer>
     </>

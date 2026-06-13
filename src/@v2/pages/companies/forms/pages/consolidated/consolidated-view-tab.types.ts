@@ -2,4 +2,5 @@ export type ConsolidatedViewTab =
   | 'summary'
   | 'participants'
   | 'charts'
-  | 'indicators';
+  | 'indicators'
+  | 'risk-analysis';
