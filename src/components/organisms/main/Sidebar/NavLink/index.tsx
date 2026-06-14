@@ -24,11 +24,14 @@ export function NavLink({
   onClick,
   children,
   canOpen,
+  showSubItemsAlways,
   deep,
   ...rest
 }: INavLinkProps): JSX.Element {
   const { isOpen } = useSidebarDrawer();
   const [open, setOpen] = useState(false);
+  const shouldShowChildren = showSubItemsAlways || open;
+
   return (
     <>
       <Box maxWidth={!isAlwaysClose ? '100%' : '70px'}>
@@ -46,7 +49,7 @@ export function NavLink({
             passHref
             onClick={onClick}
             canOpen={canOpen}
-            isOpen={open}
+            isOpen={shouldShowChildren}
             {...(canOpen && {
               onClick: (e) => {
                 setOpen(!open);
@@ -54,7 +57,12 @@ export function NavLink({
               },
             })}
           >
-            <LinkStyle py="0.45rem" px={8} {...rest}>
+            <LinkStyle
+              py="0.45rem"
+              px={8}
+              sx={deep === 2 ? { pl: isOpen ? 24 : 16 } : undefined}
+              {...rest}
+            >
               {(icon || deep) && (
                 <Icon
                   component={icon}
@@ -62,9 +70,13 @@ export function NavLink({
                     fontSize: 20,
                     alignSelf: 'center',
                     ml: isOpen ? 0 : 2,
-                    ...(deep && {
+                    ...(deep === 1 && {
                       fontSize: 6,
                       ml: isOpen ? 0 : 4,
+                    }),
+                    ...(deep === 2 && {
+                      fontSize: 6,
+                      ml: isOpen ? 0 : 6,
                     }),
                   }}
                   {...(deep && { component: CircleIcon })}
@@ -98,7 +110,7 @@ export function NavLink({
           </SActiveLink>
         </STooltip>
       </Box>
-      {open && children}
+      {shouldShowChildren && children}
     </>
   );
 }

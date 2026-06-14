@@ -16,6 +16,8 @@ export interface SAutocompleteSelectProps<
     | 'isOptionEqualToValue'
     | 'ListboxProps'
     | 'componentsProps'
+    | 'filterOptions'
+    | 'openOnFocus'
     | 'sx'
   > {
   options: Value[];

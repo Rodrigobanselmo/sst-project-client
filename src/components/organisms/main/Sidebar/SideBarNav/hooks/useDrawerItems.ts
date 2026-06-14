@@ -1,6 +1,7 @@
 import { MdDashboard } from 'react-icons/md';
 
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
+import ScienceOutlinedIcon from '@mui/icons-material/ScienceOutlined';
 import { initialReportSelectState } from 'components/organisms/modals/ModalReportSelect/ModalReportSelect';
 import { PermissionEnum } from 'project/enum/permission.enum';
 import { RoleEnum } from 'project/enum/roles.enums';
@@ -79,6 +80,8 @@ export interface IDrawerItems extends IDrawerBase {
   shouldMatchExactHref?: boolean;
   onClick?: () => void;
   items?: IDrawerItems[];
+  /** Quando true, subitens ficam visíveis junto com o pai (sem toggle próprio). */
+  alwaysShowSubItems?: boolean;
 }
 
 export interface IDrawerSection {
@@ -263,6 +266,20 @@ export const useDrawerItems = () => {
       description: 'Visualizar os riscos cadastrados',
       Icon: SRiskFactorIcon,
       href: RoutesEnum.RISKS,
+      roles: [RoleEnum.SECURITY],
+      shouldMatchExactHref: true,
+    },
+    [DrawerItemsEnum.hoMethodsGroup]: {
+      text: 'Métodos de HO',
+      description: 'Cadastro técnico de métodos de Higiene Ocupacional.',
+      Icon: ScienceOutlinedIcon,
+      roles: [RoleEnum.SECURITY],
+      alwaysShowSubItems: true,
+    },
+    [DrawerItemsEnum.hoMethods]: {
+      text: 'Químicos',
+      description: 'Métodos de amostragem e análise para agentes químicos.',
+      href: RoutesEnum.HO_METHODS,
       roles: [RoleEnum.SECURITY],
       shouldMatchExactHref: true,
     },
@@ -455,6 +472,10 @@ export const useDrawerItems = () => {
         ...items[DrawerItemsEnum.registers],
         items: [
           items[DrawerItemsEnum.risks],
+          {
+            ...items[DrawerItemsEnum.hoMethodsGroup],
+            items: [items[DrawerItemsEnum.hoMethods]],
+          },
           items[DrawerItemsEnum.exams],
           items[DrawerItemsEnum.professionals],
         ],

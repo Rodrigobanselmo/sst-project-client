@@ -18,4 +18,6 @@ export interface INavLinkProps extends LinkProps {
   shouldMatchExactHref?: boolean;
   isAlwaysClose?: boolean;
   canOpen?: boolean;
+  /** Exibe subitens assim que o item pai estiver visível, sem toggle próprio. */
+  showSubItemsAlways?: boolean;
 }

@@ -10,7 +10,7 @@ import { GetCNPJResponse } from './types';
 
 export async function getCnpj(cnpj: string) {
   const response = await api.get<GetCNPJResponse>(
-    `${ApiRoutesEnum.CNPJ}/${cnpj.replace(/[ˆ\D ]/g, '')}`,
+    `${ApiRoutesEnum.CNPJ}/${cnpj.replace(/\D/g, '')}`,
   );
   return response.data;
 }
