@@ -40,6 +40,7 @@ import {
   formatVolumeRange,
 } from '../maps/ho-method.maps';
 import { HoMethodFormModal } from './HoMethodFormModal';
+import { HoMethodImportPdfModal } from './HoMethodImportPdfModal';
 
 const ROWS_PER_PAGE = 10;
 const AGENT_PREVIEW_LIMIT = 4;
@@ -59,6 +60,7 @@ export const HoMethodsPageContent: FC = () => {
   >({});
 
   const [formOpen, setFormOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingMethodId, setEditingMethodId] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<HoMethodRecord | null>(
     null,
@@ -178,7 +180,6 @@ export const HoMethodsPageContent: FC = () => {
         variant="outlined"
         sx={{
           p: 2,
-          opacity: 0.65,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -187,16 +188,16 @@ export const HoMethodsPageContent: FC = () => {
         }}
       >
         <Box display="flex" alignItems="center" gap={1}>
-          <UploadFileIcon color="disabled" />
+          <UploadFileIcon color="primary" />
           <Box>
-            <Typography variant="subtitle2">Importar planilha</Typography>
+            <Typography variant="subtitle2">Importar método por PDF</Typography>
             <Typography variant="caption" color="text.secondary">
-              Em breve — importação Excel de métodos químicos de HO
+              Extração automática de métodos NIOSH/NMAM a partir de PDF
             </Typography>
           </Box>
         </Box>
-        <Button variant="outlined" disabled>
-          Em breve
+        <Button variant="outlined" onClick={() => setImportOpen(true)}>
+          Importar método por PDF
         </Button>
       </Paper>
 
@@ -581,6 +582,11 @@ export const HoMethodsPageContent: FC = () => {
         open={formOpen}
         method={editingMethod ?? selectedMethod}
         onClose={handleCloseForm}
+      />
+
+      <HoMethodImportPdfModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
       />
 
       <Dialog

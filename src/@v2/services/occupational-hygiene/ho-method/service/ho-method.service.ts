@@ -8,6 +8,7 @@ import type {
   HoExtractionSolventRecord,
   HoLaboratoryRecord,
   HoMethodFileUploadResponse,
+  HoMethodImportParseResult,
   HoMethodRecord,
   HoMethodRiskFactorSnapshot,
   HoMethodWritePayload,
@@ -211,6 +212,23 @@ export async function uploadHoMethodDocument(params: {
       path: HoMethodRoutes.UPLOAD,
       pathParams: { companyId: params.companyId },
     }),
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    },
+  );
+
+  return response.data;
+}
+
+export async function parseHoMethodPdf(
+  file: File,
+): Promise<HoMethodImportParseResult> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post<HoMethodImportParseResult>(
+    HoMethodRoutes.IMPORT_PARSE_PDF,
     formData,
     {
       headers: { 'Content-Type': 'multipart/form-data' },
