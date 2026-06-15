@@ -1,21 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC, useMemo } from 'react';
+import React, { FC } from 'react';
 
-import { Box } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import { SSwitch } from 'components/atoms/SSwitch';
-import { AutocompleteForm } from 'components/molecules/form/autocomplete';
 import { InputForm } from 'components/molecules/form/input';
-import { RadioFormText } from 'components/molecules/form/radio-text';
-import { Esocial24RiskSelect } from 'components/organisms/inputSelect/Esocial24RiskSelect/Esocial24RiskSelect';
-import { RiskEnum, UnMedList } from 'project/enum/risk.enums';
-import { SeverityEnum } from 'project/enum/severity.enums';
-
-import { enumToArray } from 'core/utils/helpers/convertEnum';
-import { getTimeList } from 'core/utils/helpers/times';
-import { timeMask } from 'core/utils/masks/date.mask';
 
 import { IUseAddRisk } from '../../hooks/useAddRisk';
+
+const limitHelperTeto = 'utilizar "T" para indicar TETO';
+const limitHelperLegacyCeiling =
+  'Campo legado: se já houver limite Ceiling informado com C, ele será preservado. Para novos cadastros, prefira o campo ACGIH Ceiling.';
 
 export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
   riskData,
@@ -38,19 +32,28 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
         </Box>
       </SFlex>
 
-      <SFlex mt={8}>
+      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+        Limites NR-15
+      </Typography>
+      <SFlex mt={4}>
         <Box>
           <InputForm
             setValue={setValue}
             defaultValue={riskData.nr15lt}
-            label="NR-15 LT (ppm)"
+            label="NR-15 LT"
             control={control}
             placeholder={'valor...'}
             name="nr15lt"
             size="small"
-            helperText={'utilizar "T" para indicar TETO'}
+            helperText={limitHelperTeto}
           />
         </Box>
+      </SFlex>
+
+      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+        Limites ACGIH
+      </Typography>
+      <SFlex mt={4}>
         <Box>
           <InputForm
             setValue={setValue}
@@ -60,6 +63,7 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
             placeholder={'valor...'}
             name="twa"
             size="small"
+            helperText={limitHelperLegacyCeiling}
           />
         </Box>
         <Box>
@@ -71,22 +75,138 @@ export const RiskQuiContent: FC<{ children?: any } & IUseAddRisk> = ({
             placeholder={'valor...'}
             name="stel"
             size="small"
-            helperText={'utilizar "C" para indicar "CEILLING"'}
+            helperText={limitHelperLegacyCeiling}
+          />
+        </Box>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.acgihCeiling}
+            label="ACGIH Ceiling"
+            control={control}
+            placeholder={'valor...'}
+            name="acgihCeiling"
+            size="small"
           />
         </Box>
       </SFlex>
 
-      <Box mt={8}>
+      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+        Limites NIOSH
+      </Typography>
+      <SFlex mt={4}>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.nioshRel}
+            label="NIOSH REL"
+            control={control}
+            placeholder={'valor...'}
+            name="nioshRel"
+            size="small"
+          />
+        </Box>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.nioshStel}
+            label="NIOSH STEL"
+            control={control}
+            placeholder={'valor...'}
+            name="nioshStel"
+            size="small"
+          />
+        </Box>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.nioshCeiling}
+            label="NIOSH Ceiling"
+            control={control}
+            placeholder={'valor...'}
+            name="nioshCeiling"
+            size="small"
+          />
+        </Box>
+      </SFlex>
+      <Box mt={4}>
         <InputForm
           setValue={setValue}
           defaultValue={riskData.ipvs}
-          label="IPVS/IDHL"
+          label="NIOSH IDLH / IPVS"
           control={control}
-          placeholder={'...'}
+          placeholder={'valor...'}
           name="ipvs"
           size="small"
         />
       </Box>
+
+      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+        Limites OSHA
+      </Typography>
+      <SFlex mt={4}>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.oshaPel}
+            label="OSHA PEL"
+            control={control}
+            placeholder={'valor...'}
+            name="oshaPel"
+            size="small"
+          />
+        </Box>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.oshaStel}
+            label="OSHA STEL"
+            control={control}
+            placeholder={'valor...'}
+            name="oshaStel"
+            size="small"
+          />
+        </Box>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.oshaCeiling}
+            label="OSHA Ceiling"
+            control={control}
+            placeholder={'valor...'}
+            name="oshaCeiling"
+            size="small"
+          />
+        </Box>
+      </SFlex>
+
+      <Typography variant="subtitle2" sx={{ mt: 3, mb: 1 }}>
+        Limites AIHA
+      </Typography>
+      <SFlex mt={4}>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.aihaWeel}
+            label="AIHA WEEL"
+            control={control}
+            placeholder={'valor...'}
+            name="aihaWeel"
+            size="small"
+          />
+        </Box>
+        <Box>
+          <InputForm
+            setValue={setValue}
+            defaultValue={riskData.aihaWeelCeiling}
+            label="AIHA WEEL-C"
+            control={control}
+            placeholder={'valor...'}
+            name="aihaWeelCeiling"
+            size="small"
+          />
+        </Box>
+      </SFlex>
 
       <SFlex mt={8}>
         <Box>

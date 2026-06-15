@@ -22,7 +22,7 @@ const RiskEditPage: NextPage = () => {
   const riskId = router.query.riskId as string;
 
   // Fetch the risk data using the dedicated endpoint
-  const { data: risk, isLoading } = useQueryRisk({ companyId, id: riskId });
+  const { data: risk, isLoading, isError } = useQueryRisk({ companyId, id: riskId });
 
   const handleBackToList = () => {
     router.push(RoutesEnum.RISKS.replace(/:companyId/g, companyId));
@@ -50,6 +50,26 @@ const RiskEditPage: NextPage = () => {
         <SHeaderTag title={'Carregando...'} />
         <SContainer>
           <Box sx={{ px: 5, py: 10 }}>Carregando...</Box>
+        </SContainer>
+      </>
+    );
+  }
+
+  if (isError) {
+    return (
+      <>
+        <SHeaderTag title={'Erro ao carregar risco'} />
+        <SContainer>
+          <Box sx={{ px: 5, py: 10 }}>
+            <p>
+              Não foi possível carregar o fator de risco. Se a API foi atualizada
+              recentemente, confirme que as migrations foram aplicadas com{' '}
+              <code>npx prisma migrate deploy</code>.
+            </p>
+            <SButton variant="outlined" onClick={handleBackToList}>
+              Voltar para lista
+            </SButton>
+          </Box>
         </SContainer>
       </>
     );

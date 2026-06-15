@@ -124,7 +124,16 @@ export interface IRiskFactors {
   vmp?: string;
   twa?: string;
   stel?: string;
+  acgihCeiling?: string;
   ipvs?: string;
+  nioshRel?: string;
+  nioshStel?: string;
+  nioshCeiling?: string;
+  oshaPel?: string;
+  oshaStel?: string;
+  oshaCeiling?: string;
+  aihaWeel?: string;
+  aihaWeelCeiling?: string;
   pv?: string;
   pe?: string;
   isEmergency?: boolean;

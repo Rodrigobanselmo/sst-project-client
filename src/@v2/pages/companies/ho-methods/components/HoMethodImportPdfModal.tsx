@@ -47,6 +47,7 @@ import {
 } from '../utils/ho-method-import.util';
 import {
   buildRiskOptionLabel,
+  mapRiskFactorsToHoMethodSnapshot,
   mapRiskSnapshotToRiskFactors,
 } from '../utils/ho-method-evaluation.util';
 
@@ -414,19 +415,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
                     onSelectRisk={(risk) =>
                       updateAgentMatch(
                         index,
-                        risk
-                          ? {
-                              id: risk.id,
-                              name: risk.name,
-                              cas: risk.cas ?? null,
-                              synonymous: risk.synonymous ?? [],
-                              type: String(risk.type),
-                              unit: risk.unit ?? null,
-                              nr15lt: risk.nr15lt ?? null,
-                              twa: risk.twa ?? null,
-                              stel: risk.stel ?? null,
-                            }
-                          : null,
+                        risk ? mapRiskFactorsToHoMethodSnapshot(risk) : null,
                       )
                     }
                   />

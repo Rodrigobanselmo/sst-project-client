@@ -102,6 +102,14 @@ export type HoMethodRiskFactorSnapshot = {
   nr15lt: string | null;
   twa: string | null;
   stel: string | null;
+  acgihCeiling: string | null;
+  ipvs: string | null;
+  nioshRel: string | null;
+  nioshStel: string | null;
+  nioshCeiling: string | null;
+  oshaPel: string | null;
+  oshaStel: string | null;
+  oshaCeiling: string | null;
 };
 
 export type HoMethodRecord = {
@@ -296,6 +304,21 @@ export type HoMethodImportAgentSuggestion = {
   found: boolean;
 };
 
+export type HoMethodImportOccupationalLimitSuggestions = {
+  acgihTwa: HoMethodImportField<string>;
+  acgihStel: HoMethodImportField<string>;
+  acgihCeiling: HoMethodImportField<string>;
+  aihaWeel: HoMethodImportField<string>;
+  aihaWeelCeiling: HoMethodImportField<string>;
+  oshaPel: HoMethodImportField<string>;
+  oshaStel: HoMethodImportField<string>;
+  oshaCeiling: HoMethodImportField<string>;
+  nioshRel: HoMethodImportField<string>;
+  nioshStel: HoMethodImportField<string>;
+  nioshCeiling: HoMethodImportField<string>;
+  nioshIdlh: HoMethodImportField<string>;
+};
+
 export type HoMethodImportParseResult = {
   detectedFormat: 'NIOSH' | 'NMAM' | 'UNKNOWN';
   isSupportedMethod: boolean;
@@ -335,6 +358,7 @@ export type HoMethodImportParseResult = {
     interferences: HoMethodImportField<string>;
     observations: HoMethodImportField<string>;
   };
+  occupationalLimits: HoMethodImportOccupationalLimitSuggestions;
   agents: HoMethodImportAgentSuggestion[];
   canConfirm: boolean;
   confirmBlockReason: string | null;

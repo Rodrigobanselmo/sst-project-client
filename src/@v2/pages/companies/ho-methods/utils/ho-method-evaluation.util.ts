@@ -1,10 +1,12 @@
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { RiskEnum } from 'project/enum/risk.enums';
+import { hasOccupationalLimitValue } from 'core/utils/helpers/normalizeOccupationalLimitValue';
 
 import {
   HoMethodAgentTypeEnum,
   HoMethodEvaluationTypeEnum,
   HoMethodRiskFactorSnapshot,
+  type HoMethodEvaluationConditionPayload,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 
 import {
@@ -15,7 +17,6 @@ import {
   parseNr15NumericLimit,
 } from './ho-method-nr15-vmp.util';
 import { HO_METHOD_EVALUATION_TYPE_LABELS } from '../maps/ho-method.maps';
-import type { HoMethodEvaluationConditionPayload } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 
 export type InferredEvaluationOption = {
   evaluationType: HoMethodEvaluationTypeEnum;
@@ -26,7 +27,7 @@ export type InferredEvaluationOption = {
   limitOrigin?: string;
 };
 
-const hasValue = (value?: string | null) => Boolean(value?.trim());
+const hasValue = (value?: string | null) => hasOccupationalLimitValue(value);
 
 export const HO_METHOD_CHEMICAL_ONLY_MESSAGE =
   'Nesta fase, o Cadastro de Métodos de HO está habilitado apenas para agentes químicos.';
@@ -103,18 +104,28 @@ export function inferEvaluationOptionsFromRisk(
     });
   }
 
-  const acgihCeilingSource = [risk.twa, risk.stel].find(
-    (value) => hasValue(value) && hasAcgihCeilingMarker(value),
-  );
-
-  if (acgihCeilingSource) {
+  if (hasValue(risk.acgihCeiling)) {
     options.push({
       evaluationType: HoMethodEvaluationTypeEnum.ACGIH_CEILING,
       label: 'CEILING (ACGIH)',
-      limitValue: acgihCeilingSource!.trim(),
+      limitValue: risk.acgihCeiling!.trim(),
       limitUnit,
-      limitOrigin: 'ACGIH (marcador C/Ceiling)',
+      limitOrigin: 'ACGIH Ceiling',
     });
+  } else {
+    const acgihCeilingSource = [risk.twa, risk.stel].find(
+      (value) => hasValue(value) && hasAcgihCeilingMarker(value),
+    );
+
+    if (acgihCeilingSource) {
+      options.push({
+        evaluationType: HoMethodEvaluationTypeEnum.ACGIH_CEILING,
+        label: 'CEILING (ACGIH)',
+        limitValue: acgihCeilingSource!.trim(),
+        limitUnit,
+        limitOrigin: 'ACGIH (marcador C/Ceiling legado)',
+      });
+    }
   }
 
   return options;
@@ -156,6 +167,30 @@ export function buildRiskOptionLabel(risk: IRiskFactors) {
   return parts.join(' · ');
 }
 
+export function mapRiskFactorsToHoMethodSnapshot(
+  risk: IRiskFactors,
+): HoMethodRiskFactorSnapshot {
+  return {
+    id: risk.id,
+    name: risk.name,
+    cas: risk.cas ?? null,
+    synonymous: risk.synonymous ?? [],
+    type: String(risk.type),
+    unit: risk.unit ?? null,
+    nr15lt: risk.nr15lt ?? null,
+    twa: risk.twa ?? null,
+    stel: risk.stel ?? null,
+    acgihCeiling: risk.acgihCeiling ?? null,
+    ipvs: risk.ipvs ?? null,
+    nioshRel: risk.nioshRel ?? null,
+    nioshStel: risk.nioshStel ?? null,
+    nioshCeiling: risk.nioshCeiling ?? null,
+    oshaPel: risk.oshaPel ?? null,
+    oshaStel: risk.oshaStel ?? null,
+    oshaCeiling: risk.oshaCeiling ?? null,
+  };
+}
+
 export function mapRiskSnapshotToRiskFactors(
   snapshot: HoMethodRiskFactorSnapshot,
 ): IRiskFactors {
@@ -169,6 +204,14 @@ export function mapRiskSnapshotToRiskFactors(
     nr15lt: snapshot.nr15lt ?? undefined,
     twa: snapshot.twa ?? undefined,
     stel: snapshot.stel ?? undefined,
+    acgihCeiling: snapshot.acgihCeiling ?? undefined,
+    ipvs: snapshot.ipvs ?? undefined,
+    nioshRel: snapshot.nioshRel ?? undefined,
+    nioshStel: snapshot.nioshStel ?? undefined,
+    nioshCeiling: snapshot.nioshCeiling ?? undefined,
+    oshaPel: snapshot.oshaPel ?? undefined,
+    oshaStel: snapshot.oshaStel ?? undefined,
+    oshaCeiling: snapshot.oshaCeiling ?? undefined,
   } as IRiskFactors;
 }
 
