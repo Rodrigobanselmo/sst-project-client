@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { FC } from 'react';
+import React, { FC, useMemo } from 'react';
 
 import { Box } from '@mui/material';
 import { SSwitch } from 'components/atoms/SSwitch';
@@ -20,12 +20,19 @@ import { IUseAddRisk } from '../../hooks/useAddRisk';
 import { RiskActivityContent } from '../RiskActivityContent/RiskActivityContent';
 import { useFetchBrowseRiskSubType } from '@v2/services/security/risk/sub-type/browse-sub-type/hooks/useFetchBrowseSubType';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { RiskFactorAiSuggestionButton } from '@v2/components/molecules/RiskFactorAiSuggestion/RiskFactorAiSuggestionButton';
+import { CHEMICAL_RISK_SEVERITY_RADIO_OPTIONS } from '@v2/constants/chemical-risk-severity-options.constant';
+import type { RiskFactorAiSuggestionFormSource } from '@v2/services/security/risk/risk-factor-ai-suggestions/utils/build-risk-factor-ai-suggestion-payload.util';
 
 export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
   ...props
 }) => {
   const { riskData, setRiskData, control, setValue, type, riskEditorLayout } =
     props;
+  const {
+    aiSuggestionSourceContext,
+    aiSuggestionKnownDataExtras,
+  } = props;
   const longTextFieldSx =
     riskEditorLayout === 'inline'
       ? { width: '100%' }
@@ -41,6 +48,14 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
       page: 1,
     },
   });
+
+  const severityOptions = useMemo(
+    () =>
+      type === 'QUI'
+        ? CHEMICAL_RISK_SEVERITY_RADIO_OPTIONS
+        : enumToArray(SeverityEnum, 'value'),
+    [type],
+  );
 
   return (
     <>
@@ -104,13 +119,41 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           setValue={setValue}
           label="Severidade"
           control={control}
-          defaultValue={String(riskData.severity)}
-          options={enumToArray(SeverityEnum, 'value')}
+          syncDefaultValue={false}
+          unmountOnChangeDefault={false}
+          controlled
+          options={severityOptions}
           name="severity"
           mt={5}
-          mb={15}
+          mb={5}
           columns={5}
+          onChange={(event) => {
+            const parsed = Number(event.target.value);
+            if (!Number.isInteger(parsed) || parsed < 1 || parsed > 5) return;
+
+            setRiskData((current) => ({
+              ...current,
+              severity: parsed,
+            }));
+          }}
         />
+        {type === 'QUI' && (
+          <RiskFactorAiSuggestionButton
+            form={riskData}
+            setRiskData={(updater) =>
+              setRiskData((current) => updater(current as RiskFactorAiSuggestionFormSource) as typeof riskData)
+            }
+            setValue={setValue}
+            getValues={props.getValues}
+            watch={props.watch}
+            sourceContext={
+              aiSuggestionSourceContext ?? {
+                origin: 'risk-factor-form',
+              }
+            }
+            knownDataExtras={aiSuggestionKnownDataExtras}
+          />
+        )}
         <InputForm
           defaultValue={riskData.risk}
           multiline
@@ -140,7 +183,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
           maxRows={5}
           label="Sintomas, Danos ou Qualquer consequência negativa"
           control={control}
-          sx={longTextFieldSx}
+          sx={{ ...longTextFieldSx, mb: 8 }}
           placeholder={'descrião dos sintomas...'}
           setValue={setValue}
           name="symptoms"

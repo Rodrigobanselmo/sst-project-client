@@ -25,6 +25,8 @@ import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk/useQueryR
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 import { useMutDeleteRisk } from 'core/services/hooks/mutations/checklist/risk/useMutDeleteRisk';
+import type { RiskFactorAiSuggestionKnownDataPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
+import type { RiskFactorAiSuggestionSourceContextPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 
 export const initialAddRiskState = {
   status: StatusEnum.ACTIVE,
@@ -80,6 +82,10 @@ type IUseAddRiskOptions = {
   onCancel?: () => void;
   /** Quando `inline`, o formulário pode expandir campos longos (ex.: página de fatores de risco). */
   riskEditorLayout?: 'modal' | 'inline';
+  /** Contexto de origem para sugestão por IA (Etapa B v2). */
+  aiSuggestionSourceContext?: RiskFactorAiSuggestionSourceContextPayload;
+  /** Dados extras para enriquecer payload da IA (ex.: parse do PDF no fluxo HO). */
+  aiSuggestionKnownDataExtras?: Partial<RiskFactorAiSuggestionKnownDataPayload>;
 };
 
 export const useAddRisk = (options?: IUseAddRiskOptions) => {
@@ -87,7 +93,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   const { onCloseModal } = useModal();
   const initialDataRef = useRef(initialAddRiskState);
 
-  const { handleSubmit, control, reset, getValues, setValue, watch } =
+  const { handleSubmit, control, reset, getValues, setValue, watch, getFieldState } =
     useForm<any>({
       resolver: yupResolver(Yup.object().shape(riskSchema)),
     });
@@ -124,12 +130,28 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     } = initialDataProps;
 
     setRiskData((oldData) => {
+      const severityDirty = getFieldState('severity').isDirty;
+      const riskDirty = getFieldState('risk').isDirty;
+      const symptomsDirty = getFieldState('symptoms').isDirty;
+
       const newData = {
         ...oldData,
         ...(initialData && initialData),
         ...risk,
         subType: subTypeId,
       };
+
+      if (severityDirty) {
+        newData.severity = oldData.severity;
+      }
+
+      if (riskDirty) {
+        newData.risk = oldData.risk;
+      }
+
+      if (symptomsDirty) {
+        newData.symptoms = oldData.symptoms;
+      }
 
       initialDataRef.current = newData;
 
@@ -149,6 +171,10 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     setValue('subType', subTypeId);
 
     setValue('grauInsalubridade', risk?.grauInsalubridade ?? null);
+
+    if (risk?.severity && !getFieldState('severity').isDirty) {
+      setValue('severity', String(risk.severity));
+    }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [risk, options?.initialData]);
@@ -270,17 +296,33 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
       !(initialData as any).passBack
     ) {
       setRiskData((oldData) => {
+        const severityDirty = getFieldState('severity').isDirty;
+        const riskDirty = getFieldState('risk').isDirty;
+        const symptomsDirty = getFieldState('symptoms').isDirty;
+
         const newData = {
           ...oldData,
           ...initialData,
         };
+
+        if (severityDirty) {
+          newData.severity = oldData.severity;
+        }
+
+        if (riskDirty) {
+          newData.risk = oldData.risk;
+        }
+
+        if (symptomsDirty) {
+          newData.symptoms = oldData.symptoms;
+        }
 
         initialDataRef.current = newData;
 
         return newData;
       });
     }
-  }, [getModalData, options?.initialData]);
+  }, [getModalData, getFieldState, options?.initialData]);
 
   const onSubmit: SubmitHandler<
     IRiskSchema & Partial<typeof initialAddRiskState> & { synonymous?: string }
@@ -467,9 +509,12 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     control,
     handleSubmit,
     setValue,
+    getValues,
     type,
     watch,
     riskEditorLayout: options?.riskEditorLayout ?? 'modal',
+    aiSuggestionSourceContext: options?.aiSuggestionSourceContext,
+    aiSuggestionKnownDataExtras: options?.aiSuggestionKnownDataExtras,
   };
 };
 

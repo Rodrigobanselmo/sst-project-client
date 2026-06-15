@@ -4,7 +4,6 @@ import {
   buildHoMethodCreateRiskPrefill,
   type HoMethodCreateRiskPrefillInput,
 } from './ho-method-create-risk-prefill.util';
-import { resolveHoMethodCreateRiskSmartSuggestions } from './ho-method-create-risk-smart-suggestions.util';
 
 export type {
   HoMethodCreateRiskPrefillInput,
@@ -32,12 +31,7 @@ export {
 export function buildHoMethodCreateRiskInitialData(
   params: HoMethodCreateRiskPrefillInput,
 ) {
-  return buildHoMethodCreateRiskPrefill({
-    ...params,
-    smartSuggestions:
-      params.smartSuggestions ??
-      resolveHoMethodCreateRiskSmartSuggestions(params),
-  });
+  return buildHoMethodCreateRiskPrefill(params);
 }
 
 export function buildHoMethodAgentSearchTerm(

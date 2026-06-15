@@ -23,12 +23,15 @@ export const RadioFormText = ({
   optionsFieldName,
   ball,
   setValue,
+  syncDefaultValue = true,
+  controlled = false,
   unmountOnChangeDefault = true,
   ...props
 }: InputFormBoxProps) => {
   useEffect(() => {
+    if (!syncDefaultValue) return;
     defaultValue && setValue?.(name, defaultValue);
-  }, [defaultValue, name, setValue]);
+  }, [defaultValue, name, setValue, syncDefaultValue]);
 
   return (
     <UnmountBox
@@ -39,7 +42,6 @@ export const RadioFormText = ({
         name={name}
         control={control}
         render={({
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           field: { onChange: func, value, ...rest },
           fieldState: { error },
         }) => {
@@ -63,6 +65,10 @@ export const RadioFormText = ({
                 name={name}
                 helperText={error?.message ?? undefined}
                 defaultValue={defaultValue}
+                selectedValue={
+                  value != null && value !== '' ? String(value) : undefined
+                }
+                controlled={controlled}
                 error={!!error}
                 ball={ball}
                 inputProps={(e) => ({

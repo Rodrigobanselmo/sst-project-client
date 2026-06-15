@@ -60,8 +60,8 @@ const inferSeverityFromLimits = (
 };
 
 /**
- * Etapa B v1 — sugestões determinísticas a partir do parse do método.
- * Etapa B v2 (futuro) — substituir/ complementar via provider IA (`source: 'ai'`).
+ * Etapa B v1 — utilitários determinísticos legados (não preenchem mais risk/symptoms/severity).
+ * Etapa B v2 — sugestão por IA via botão manual (`RiskFactorAiSuggestionButton` + POST /v2/risk-factors/ai-suggestions).
  */
 export const buildRuleBasedHoMethodCreateRiskSmartSuggestions = (
   params: HoMethodCreateRiskSmartSuggestionInput,

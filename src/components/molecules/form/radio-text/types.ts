@@ -19,6 +19,10 @@ export type InputFormBoxProps = BoxProps & {
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void;
   setValue: (name: string, value: string) => void;
   reset?: () => void;
+  /** Quando false, não reaplica defaultValue no form via useEffect (campos controlados). */
+  syncDefaultValue?: boolean;
+  /** Radio controlado pelo valor do Controller (react-hook-form). */
+  controlled?: boolean;
   inputProps?: Partial<InputFormProps>;
   inputPropsFunc?: (option: any) => React.InputHTMLAttributes<HTMLInputElement>;
   type: SRadioCheckboxProps['type'];

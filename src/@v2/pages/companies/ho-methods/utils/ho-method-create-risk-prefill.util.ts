@@ -174,11 +174,55 @@ const resolveSharedUnit = (
   return uniqueUnits.length === 1 ? uniqueUnits[0] : units[0];
 };
 
+const pickImportFieldForComments = <T>(
+  field?: HoMethodImportField<T>,
+): string | null => {
+  if (!field?.value) return null;
+  if (typeof field.value === 'string') {
+    return field.value.trim() ? field.value.trim() : null;
+  }
+  return field.value != null ? String(field.value) : null;
+};
+
+const buildMethodTechnicalComments = (
+  params: Pick<
+    HoMethodCreateRiskPrefillInput,
+    'method' | 'parseContext'
+  >,
+  existingComments?: string,
+): string | undefined => {
+  const fields = params.parseContext?.fields;
+  const lines = [
+    existingComments,
+    pickImportFieldForComments(fields?.observations)
+      ? `Observações do método: ${pickImportFieldForComments(fields?.observations)}`
+      : null,
+    pickImportFieldForComments(fields?.applicability)
+      ? `Aplicabilidade: ${pickImportFieldForComments(fields?.applicability)}`
+      : null,
+    pickImportFieldForComments(fields?.analyte)
+      ? `Analito: ${pickImportFieldForComments(fields?.analyte)}`
+      : null,
+    pickImportFieldForComments(fields?.analyticalMethod)
+      ? `Técnica analítica: ${pickImportFieldForComments(fields?.analyticalMethod)}`
+      : null,
+    pickImportFieldForComments(fields?.evaluation)
+      ? `Avaliação: ${pickImportFieldForComments(fields?.evaluation)}`
+      : null,
+    params.method.displayName
+      ? `Referência: método ${params.method.displayName}.`
+      : null,
+  ].filter((line): line is string => Boolean(line?.trim()));
+
+  if (!lines.length) return undefined;
+
+  return [...new Set(lines)].join('\n');
+};
+
 export const buildHoMethodCreateRiskPrefill = (
   params: HoMethodCreateRiskPrefillInput,
 ): Partial<typeof initialAddRiskState> => {
   const limits = params.occupationalLimits;
-  const smart = params.smartSuggestions;
 
   const limitMappings = [
     { key: 'twa' as const, label: 'ACGIH TWA', parsed: pickParsedLimit(limits?.acgihTwa) },
@@ -221,10 +265,11 @@ export const buildHoMethodCreateRiskPrefill = (
   ) as Partial<typeof initialAddRiskState>;
 
   const sharedUnit = resolveSharedUnit(parsedEntries.map((item) => item.parsed));
-  const coments = buildLimitComments(
+  const limitComments = buildLimitComments(
     parsedEntries.map(({ label, parsed }) => ({ label, parsed })),
     params.method.displayName,
   );
+  const coments = buildMethodTechnicalComments(params, limitComments);
 
   return {
     ...initialAddRiskState,
@@ -238,9 +283,6 @@ export const buildHoMethodCreateRiskPrefill = (
     method: params.method.displayName.trim() || undefined,
     unit: sharedUnit,
     coments,
-    risk: smart?.riskDescription,
-    symptoms: smart?.symptoms,
-    severity: smart?.severity ?? initialAddRiskState.severity,
     ...limitValues,
   };
 };

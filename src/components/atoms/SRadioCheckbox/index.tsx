@@ -21,6 +21,8 @@ const InputRadioCheckbox: FC<{ children?: any } & IInputCheckboxProps> = ({
   gridItemsProps,
   disabled,
   defaultValue,
+  selectedValue,
+  controlled = false,
   inputValue,
   reset,
   ball,
@@ -33,6 +35,12 @@ const InputRadioCheckbox: FC<{ children?: any } & IInputCheckboxProps> = ({
 
   const value = typeof option === 'string' ? option : option[valueField];
   const content = typeof option === 'string' ? option : option[contentField];
+  const effectiveSelectedValue =
+    selectedValue != null && selectedValue !== ''
+      ? String(selectedValue)
+      : defaultValue != null && defaultValue !== ''
+        ? String(defaultValue)
+        : undefined;
 
   const gridSize =
     !(typeof option === 'string') && option?.gridSize
@@ -60,12 +68,27 @@ const InputRadioCheckbox: FC<{ children?: any } & IInputCheckboxProps> = ({
     }
   };
 
+  const isChecked =
+    controlled && effectiveSelectedValue != null
+      ? String(value) === effectiveSelectedValue
+      : undefined;
+
   useEffect(() => {
-    if (type === 'radio' && ref.current && value === defaultValue) {
+    if (controlled || type !== 'radio' || !ref.current) return;
+
+    if (effectiveSelectedValue != null) {
+      ref.current.checked = String(value) === effectiveSelectedValue;
+      if (ref.current.checked) {
+        inputValue.current = ref.current.value;
+      }
+      return;
+    }
+
+    if (value === defaultValue) {
       ref.current?.click();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [controlled, effectiveSelectedValue, type, value, defaultValue]);
 
   return (
     <STooltip title={tooltip}>
@@ -76,6 +99,7 @@ const InputRadioCheckbox: FC<{ children?: any } & IInputCheckboxProps> = ({
           type={type}
           disabled={disabled}
           value={value}
+          checked={isChecked}
           {...rest}
         />
 
@@ -143,6 +167,8 @@ const SRadioCheckbox: FC<{ children?: any } & SRadioCheckboxProps> = ({
   error,
   helperText,
   defaultValue,
+  selectedValue,
+  controlled = false,
   reset,
   ball,
   ...props
@@ -185,6 +211,8 @@ const SRadioCheckbox: FC<{ children?: any } & SRadioCheckboxProps> = ({
             gridItemsProps={gridItemsProps}
             disabled={disabled}
             defaultValue={defaultValue}
+            selectedValue={selectedValue}
+            controlled={controlled}
             ball={ball}
           />
         );

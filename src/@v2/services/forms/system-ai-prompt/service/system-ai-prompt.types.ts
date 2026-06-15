@@ -3,6 +3,7 @@ import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.
 export type SystemAiPromptResult = {
   key: SystemAiPromptKeyEnum;
   content: string;
+  defaultContent: string;
   revision: number;
   updatedBy: number | null;
   updatedAt: string;

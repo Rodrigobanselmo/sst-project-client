@@ -15,9 +15,20 @@ import {
 } from 'components/organisms/modals/ModalAddRisk/hooks/useAddRisk';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 
+export type HoMethodCreateRiskAiContext = {
+  origin: 'ho-method-import' | 'ho-method-manual';
+  methodInstitution?: string;
+  methodCode?: string;
+  methodDisplayName?: string;
+  pdfObservations?: string;
+  parseWarnings?: string[];
+  methodContext?: string;
+};
+
 type HoMethodCreateRiskDialogProps = {
   open: boolean;
   initialData: Partial<typeof initialAddRiskState>;
+  aiContext?: HoMethodCreateRiskAiContext;
   onClose: () => void;
   onCreated: (risk: IRiskFactors) => void;
 };
@@ -25,6 +36,7 @@ type HoMethodCreateRiskDialogProps = {
 export const HoMethodCreateRiskDialog: FC<HoMethodCreateRiskDialogProps> = ({
   open,
   initialData,
+  aiContext,
   onClose,
   onCreated,
 }) => {
@@ -33,6 +45,17 @@ export const HoMethodCreateRiskDialog: FC<HoMethodCreateRiskDialogProps> = ({
     disableModalClose: true,
     riskEditorLayout: 'inline',
     onCancel: onClose,
+    aiSuggestionSourceContext: {
+      origin: aiContext?.origin ?? 'ho-method-manual',
+      methodInstitution: aiContext?.methodInstitution,
+      methodCode: aiContext?.methodCode,
+      methodDisplayName: aiContext?.methodDisplayName,
+    },
+    aiSuggestionKnownDataExtras: {
+      pdfObservations: aiContext?.pdfObservations,
+      parseWarnings: aiContext?.parseWarnings,
+      methodContext: aiContext?.methodContext,
+    },
     onSubmitSuccess: (created) => {
       if (created) onCreated(created);
       onClose();

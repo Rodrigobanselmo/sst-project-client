@@ -1331,6 +1331,15 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
               methodCode: form.methodCode,
             },
           })}
+          aiContext={{
+            origin: 'ho-method-manual',
+            methodInstitution: form.institution,
+            methodCode: form.methodCode,
+            methodDisplayName:
+              computedDisplayName ||
+              form.displayName?.trim() ||
+              `${form.institution} ${form.methodCode}`.trim(),
+          }}
           onClose={() => {
             setCreateRiskDialogOpen(false);
             setCreateRiskSource(null);

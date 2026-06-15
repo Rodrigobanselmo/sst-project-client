@@ -798,6 +798,24 @@ export const HoMethodImportPdfModal: FC<Props> = ({
                 }
               : null,
           })}
+          aiContext={{
+            origin: 'ho-method-import',
+            methodInstitution: form?.institution,
+            methodCode: form?.methodCode,
+            methodDisplayName:
+              form?.displayName.trim() ||
+              `${form?.institution ?? HoMethodSourceEnum.NIOSH} ${form?.methodCode ?? ''}`.trim(),
+            pdfObservations: parseResult?.fields?.observations?.value ?? undefined,
+            parseWarnings: parseResult?.warnings,
+            methodContext: [
+              parseResult?.fields?.applicability?.value,
+              parseResult?.fields?.evaluation?.value,
+              parseResult?.fields?.analyte?.value,
+              parseResult?.fields?.analyticalMethod?.value,
+            ]
+              .filter((value): value is string => Boolean(value?.trim()))
+              .join(' | ') || undefined,
+          }}
           onClose={() => {
             setCreateRiskDialogOpen(false);
             setCreateRiskAgentIndex(null);

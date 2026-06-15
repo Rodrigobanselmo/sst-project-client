@@ -43,6 +43,8 @@ export interface IInputCheckboxProps
   backgroundColor?: string;
   color?: string;
   defaultValue?: string;
+  selectedValue?: string;
+  controlled?: boolean;
   ball?: boolean;
 }
 
@@ -66,5 +68,8 @@ export type SRadioCheckboxProps = GridProps & {
   size?: number;
   disabled?: boolean;
   defaultValue?: string;
+  selectedValue?: string;
+  /** Quando true, usa input checked controlado pelo selectedValue. */
+  controlled?: boolean;
   ball?: boolean;
 };
