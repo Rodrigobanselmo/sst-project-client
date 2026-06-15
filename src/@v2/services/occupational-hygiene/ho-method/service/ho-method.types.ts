@@ -112,6 +112,7 @@ export type HoMethodRiskFactorSnapshot = {
   oshaCeiling: string | null;
   aihaWeel: string | null;
   aihaWeelCeiling: string | null;
+  coments: string | null;
 };
 
 export type HoMethodRecord = {
@@ -305,6 +306,7 @@ export type HoMethodImportAgentSuggestion = {
   cas: string | null;
   synonyms: string[];
   occupationalLimits?: HoMethodImportOccupationalLimitSuggestions;
+  technicalNotes?: string[];
   matchedRiskFactor: HoMethodRiskFactorSnapshot | null;
   found: boolean;
   matchConfidence: HoMethodRiskMatchConfidence;

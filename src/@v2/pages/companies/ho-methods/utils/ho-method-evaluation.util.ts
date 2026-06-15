@@ -210,6 +210,7 @@ export function mapRiskFactorsToHoMethodSnapshot(
     oshaCeiling: risk.oshaCeiling ?? null,
     aihaWeel: risk.aihaWeel ?? null,
     aihaWeelCeiling: risk.aihaWeelCeiling ?? null,
+    coments: risk.coments ?? null,
   };
 }
 
@@ -236,6 +237,7 @@ export function mapRiskSnapshotToRiskFactors(
     oshaCeiling: snapshot.oshaCeiling ?? undefined,
     aihaWeel: snapshot.aihaWeel ?? undefined,
     aihaWeelCeiling: snapshot.aihaWeelCeiling ?? undefined,
+    coments: snapshot.coments ?? undefined,
   } as IRiskFactors;
 }
 

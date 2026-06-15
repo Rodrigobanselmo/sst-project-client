@@ -16,6 +16,11 @@ import {
 } from './ho-method-agents.util';
 import { mapRiskSnapshotToRiskFactors } from './ho-method-evaluation.util';
 
+const formatImportNumber = (value: number | null | undefined) => {
+  if (value == null) return '';
+  return String(value).replace('.', ',');
+};
+
 export type HoMethodImportFormState = {
   institution: HoMethodSourceEnum;
   methodCode: string;
@@ -61,24 +66,16 @@ export function importFormFromParseResult(
     displayName: f.displayName.value ?? '',
     analyticalMethod: f.analyticalMethod.value ?? f.technique.value ?? '',
     samplerName: f.sampler.value ?? '',
-    minimumFlowRate:
-      f.minimumFlowRate.value != null ? String(f.minimumFlowRate.value) : '',
-    maximumFlowRate:
-      f.maximumFlowRate.value != null ? String(f.maximumFlowRate.value) : '',
+    minimumFlowRate: formatImportNumber(f.minimumFlowRate.value),
+    maximumFlowRate: formatImportNumber(f.maximumFlowRate.value),
     flowRateUnit: f.flowRateUnit.value ?? 'L/min',
-    minimumVolume:
-      f.minimumVolume.value != null ? String(f.minimumVolume.value) : '',
-    maximumVolume:
-      f.maximumVolume.value != null ? String(f.maximumVolume.value) : '',
+    minimumVolume: formatImportNumber(f.minimumVolume.value),
+    maximumVolume: formatImportNumber(f.maximumVolume.value),
     volumeUnit: f.volumeUnit.value ?? 'L',
     shipment: f.shipment.value ?? '',
-    stabilityDays:
-      f.stabilityDays.value != null ? String(f.stabilityDays.value) : '',
+    stabilityDays: formatImportNumber(f.stabilityDays.value),
     stabilityText: f.stabilityText.value ?? '',
-    storageTemperature:
-      f.storageTemperature.value != null
-        ? String(f.storageTemperature.value)
-        : '',
+    storageTemperature: formatImportNumber(f.storageTemperature.value),
     storageTemperatureUnit: f.storageTemperatureUnit.value ?? '°C',
     extractionSolvent: f.extractionSolvent.value ?? '',
     technique: f.technique.value ?? '',

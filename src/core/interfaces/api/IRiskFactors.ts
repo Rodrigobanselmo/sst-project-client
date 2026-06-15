@@ -142,6 +142,7 @@ export interface IRiskFactors {
   activities?: RiskFactorActivities[];
   otherAppendix?: string;
   synonymous?: string[];
+  coments?: string;
   grauInsalubridade?: GrauInsalubridadeEnum;
 
   isAso: boolean;
