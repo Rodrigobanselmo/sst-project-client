@@ -41,6 +41,7 @@ import { searchHoMethodRiskFactors } from '@v2/services/occupational-hygiene/ho-
 import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 
 import { HO_METHOD_SOURCE_OPTIONS } from '../maps/ho-method.maps';
+import { HoMethodComplementRiskDialog } from './HoMethodComplementRiskDialog';
 import { HoMethodCreateRiskDialog } from './HoMethodCreateRiskDialog';
 import { getHoMethodApiErrorMessage } from '../utils/ho-method-error.util';
 import {
@@ -62,11 +63,13 @@ import {
   mapRiskSnapshotToRiskFactors,
   normalizeCas,
 } from '../utils/ho-method-evaluation.util';
+import { hasRiskComplementSuggestions } from '../utils/ho-method-risk-complement.util';
 
 type Props = {
   open: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialFile?: File | null;
 };
 
 type ImportFieldProps = {
@@ -136,6 +139,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
   open,
   onClose,
   onSuccess,
+  initialFile,
 }) => {
   const { companyId } = useGetCompanyId();
   const createMutation = useMutateCreateHoMethod();
@@ -155,6 +159,9 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     null,
   );
   const [createRiskDialogOpen, setCreateRiskDialogOpen] = useState(false);
+  const [complementAgentIndex, setComplementAgentIndex] = useState<number | null>(
+    null,
+  );
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     setDebouncedAgentSearch(value);
@@ -178,6 +185,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     setDebouncedAgentSearch('');
     setCreateRiskAgentIndex(null);
     setCreateRiskDialogOpen(false);
+    setComplementAgentIndex(null);
   }, []);
 
   const handleClose = () => {
@@ -209,6 +217,11 @@ export const HoMethodImportPdfModal: FC<Props> = ({
       setParsing(false);
     }
   };
+
+  useEffect(() => {
+    if (!open || !initialFile) return;
+    void handleFileSelect(initialFile);
+  }, [open, initialFile]);
 
   const updateForm = (patch: Partial<HoMethodImportFormState>) => {
     setForm((current) => (current ? { ...current, ...patch } : current));
@@ -536,6 +549,12 @@ export const HoMethodImportPdfModal: FC<Props> = ({
                       )
                     }
                     onCreateRisk={() => void handleOpenCreateRisk(index)}
+                    showComplementAction={hasRiskComplementSuggestions(
+                      agent,
+                      form?.methodCode,
+                      form?.institution,
+                    )}
+                    onComplement={() => setComplementAgentIndex(index)}
                   />
                 ))}
               </Section>
@@ -824,6 +843,25 @@ export const HoMethodImportPdfModal: FC<Props> = ({
           onCreated={handleRiskCreated}
         />
       )}
+      <HoMethodComplementRiskDialog
+        open={complementAgentIndex != null}
+        agent={
+          complementAgentIndex != null
+            ? parseResult?.agents[complementAgentIndex] ?? null
+            : null
+        }
+        methodCode={form?.methodCode}
+        methodInstitution={form?.institution}
+        onClose={() => setComplementAgentIndex(null)}
+        onApplied={(updatedRisk) => {
+          if (complementAgentIndex != null && updatedRisk) {
+            updateAgentMatch(complementAgentIndex, updatedRisk);
+          }
+          void queryClient.invalidateQueries({
+            queryKey: hoMethodQueryKeys.all,
+          });
+        }}
+      />
     </Dialog>
   );
 };
@@ -852,6 +890,8 @@ type AgentRowProps = {
   onSearch: (value: string) => void;
   onSelectRisk: (risk: IRiskFactors | null) => void;
   onCreateRisk: () => void;
+  showComplementAction?: boolean;
+  onComplement?: () => void;
 };
 
 const AgentRow: FC<AgentRowProps> = ({
@@ -862,6 +902,8 @@ const AgentRow: FC<AgentRowProps> = ({
   onSearch,
   onSelectRisk,
   onCreateRisk,
+  showComplementAction,
+  onComplement,
 }) => {
   const selectedRisk = agent.matchedRiskFactor
     ? mapRiskSnapshotToRiskFactors(agent.matchedRiskFactor)
@@ -894,6 +936,21 @@ const AgentRow: FC<AgentRowProps> = ({
             <Typography variant="caption" display="block" color="text.secondary">
               Sinônimos: {agent.synonyms.join(', ')}
             </Typography>
+          )}
+          {agent.technicalNotes?.map((note) => (
+            <Typography
+              key={note}
+              variant="caption"
+              display="block"
+              color="text.secondary"
+            >
+              {note}
+            </Typography>
+          ))}
+          {showComplementAction && (
+            <Alert severity="info" sx={{ mt: 1, py: 0.25 }}>
+              Há informações novas disponíveis para este fator de risco.
+            </Alert>
           )}
           {agent.matchConfidence && agent.matchConfidence !== 'high' && (
             <Typography variant="caption" display="block" color="warning.main">
@@ -928,6 +985,16 @@ const AgentRow: FC<AgentRowProps> = ({
               onClick={onCreateRisk}
             >
               Criar fator de risco químico
+            </Button>
+          )}
+          {showComplementAction && onComplement && (
+            <Button
+              size="small"
+              variant="outlined"
+              sx={{ mt: 1, ml: showCreateAction ? 1 : 0 }}
+              onClick={onComplement}
+            >
+              Complementar cadastro
             </Button>
           )}
         </Grid>

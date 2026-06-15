@@ -17,6 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import { useDropzone } from 'react-dropzone';
 import { useFetchBrowseHoMethods } from '@v2/services/occupational-hygiene/ho-method/hooks/useFetchBrowseHoMethods';
 import { useFetchReadHoMethod } from '@v2/services/occupational-hygiene/ho-method/hooks/useFetchReadHoMethod';
 import { useMutateDeleteHoMethod } from '@v2/services/occupational-hygiene/ho-method/hooks/useMutateHoMethod';
@@ -27,6 +28,7 @@ import {
   HoMethodSourceEnum,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 import { getHoMethodApiErrorMessage } from '../utils/ho-method-error.util';
+import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 
 import {
   HO_METHOD_EVALUATION_TYPE_LABELS,
@@ -61,6 +63,7 @@ export const HoMethodsPageContent: FC = () => {
 
   const [formOpen, setFormOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const [editingMethodId, setEditingMethodId] = useState<string | null>(null);
   const [selectedMethod, setSelectedMethod] = useState<HoMethodRecord | null>(
     null,
@@ -101,6 +104,33 @@ export const HoMethodsPageContent: FC = () => {
     formOpen && Boolean(editingMethodId),
   );
   const deleteMutation = useMutateDeleteHoMethod();
+  const { showSnackBar } = useSystemSnackbar();
+
+  const handleImportClose = () => {
+    setImportOpen(false);
+    setPendingImportFile(null);
+  };
+
+  const handlePagePdfDrop = (acceptedFiles: File[]) => {
+    const file = acceptedFiles[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      showSnackBar('Selecione um arquivo PDF (.pdf).', { type: 'error' });
+      return;
+    }
+
+    setPendingImportFile(file);
+    setImportOpen(true);
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: handlePagePdfDrop,
+    accept: { 'application/pdf': ['.pdf'] },
+    maxFiles: 1,
+    noClick: true,
+    noKeyboard: true,
+  });
 
   const methods = data?.results ?? [];
   const pagination = data?.pagination;
@@ -181,13 +211,13 @@ export const HoMethodsPageContent: FC = () => {
         sx={{
           p: 2,
           display: 'flex',
-          alignItems: 'center',
+          alignItems: 'stretch',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: 2,
         }}
       >
-        <Box display="flex" alignItems="center" gap={1}>
+        <Box display="flex" alignItems="center" gap={1} flex={1} minWidth={240}>
           <UploadFileIcon color="primary" />
           <Box>
             <Typography variant="subtitle2">Importar método por PDF</Typography>
@@ -196,6 +226,31 @@ export const HoMethodsPageContent: FC = () => {
             </Typography>
           </Box>
         </Box>
+
+        <Box
+          {...getRootProps()}
+          sx={{
+            flex: 2,
+            minWidth: 280,
+            border: '1px dashed',
+            borderColor: isDragActive ? 'primary.main' : 'grey.400',
+            borderRadius: 1,
+            bgcolor: isDragActive ? 'action.hover' : 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            px: 2,
+            py: 2,
+            textAlign: 'center',
+            cursor: 'copy',
+          }}
+        >
+          <input {...getInputProps()} />
+          <Typography variant="body2" color="text.secondary">
+            Arraste aqui o PDF do método NIOSH/NMAM
+          </Typography>
+        </Box>
+
         <Button variant="outlined" onClick={() => setImportOpen(true)}>
           Importar método por PDF
         </Button>
@@ -586,7 +641,8 @@ export const HoMethodsPageContent: FC = () => {
 
       <HoMethodImportPdfModal
         open={importOpen}
-        onClose={() => setImportOpen(false)}
+        onClose={handleImportClose}
+        initialFile={pendingImportFile}
       />
 
       <Dialog
