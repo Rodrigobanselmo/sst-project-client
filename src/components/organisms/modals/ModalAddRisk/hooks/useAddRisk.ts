@@ -341,6 +341,37 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     }
   }, [getModalData, getFieldState, options?.initialData]);
 
+  useEffect(() => {
+    const initialData = options?.initialData;
+    if (!initialData) return;
+
+    const syncField = (name: string, value?: string | number | null) => {
+      if (value == null || value === '') return;
+      if (getFieldState(name).isDirty) return;
+      setValue(name, value);
+    };
+
+    syncField('type', initialData.type);
+    syncField('unit', initialData.unit);
+    syncField('propagation', initialData.propagation);
+    syncField('method', initialData.method);
+    syncField('cas', initialData.cas);
+    syncField('name', initialData.name);
+    syncField('oshaPel', initialData.oshaPel);
+    syncField('oshaStel', initialData.oshaStel);
+    syncField('oshaCeiling', initialData.oshaCeiling);
+    syncField('nioshRel', initialData.nioshRel);
+    syncField('nioshStel', initialData.nioshStel);
+    syncField('nioshCeiling', initialData.nioshCeiling);
+    syncField('ipvs', initialData.ipvs);
+    syncField('twa', initialData.twa);
+    syncField('stel', initialData.stel);
+    syncField('acgihCeiling', initialData.acgihCeiling);
+    syncField('aihaWeel', initialData.aihaWeel);
+    syncField('aihaWeelCeiling', initialData.aihaWeelCeiling);
+    syncField('coments', initialData.coments);
+  }, [options?.initialData, getFieldState, setValue]);
+
   const onSubmit: SubmitHandler<
     IRiskSchema & Partial<typeof initialAddRiskState> & { synonymous?: string }
   > = async ({

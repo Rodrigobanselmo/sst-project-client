@@ -54,9 +54,20 @@ const LIMIT_LABEL_PREFIX =
 const TRAILING_NOTE_PATTERN = /\(([^)]+)\)\s*$/;
 
 const VALUE_UNIT_PATTERN =
-  /^([\d]+(?:[.,]\d+)?(?:\s*-\s*[\d]+(?:[.,]\d+)?)?)\s*([a-zA-Zμµ°/%][a-zA-Z0-9μµ°/²³\-]*)\s*$/;
+  /^([\d]+(?:[.,]\d+)?(?:\s*-\s*[\d]+(?:[.,]\d+)?)?)\s*([a-zA-Zμµ°/%][a-zA-Z0-9μµ°/²³^\-]*)\s*$/i;
 
 const VALUE_ONLY_PATTERN = /^([\d]+(?:[.,]\d+)?(?:\s*-\s*[\d]+(?:[.,]\d+)?)?)$/;
+
+const DERMAL_ABSORPTION_PATTERN =
+  /\b(skin|pele|cutaneous|dermal|absorption through the skin|absor[cç][aã]o(?:\s+pel(?:a|e)\s+pele)?)\b/i;
+
+export const normalizeLimitExpression = (raw: string): string =>
+  raw
+    .trim()
+    .replace(/\bmg\/cu\s*m\b/gi, 'mg/m3')
+    .replace(/\bm\^3\b/gi, 'm3')
+    .replace(/\s+/g, ' ')
+    .trim();
 
 export const normalizeDecimalForPtBr = (value: string): string =>
   value
@@ -70,6 +81,9 @@ export const normalizeOccupationalLimitUnit = (unit: string): string =>
     .replace(/³/g, '3')
     .replace(/²/g, '2')
     .replace(/µ/g, 'μ')
+    .replace(/\^3/g, '3')
+    .replace(/\bm\^3\b/gi, 'm3')
+    .replace(/\bmg\/cu\s*m\b/gi, 'mg/m3')
     .replace(/\s+/g, '')
     .replace(/\/m3$/i, '/m3')
     .replace(/\/m2$/i, '/m2');
@@ -83,7 +97,7 @@ export const parseOccupationalLimitExpression = (
     return { value: null, unit: null, notes: null, raw: trimmed };
   }
 
-  let working = trimmed.replace(LIMIT_LABEL_PREFIX, '').trim();
+  let working = normalizeLimitExpression(trimmed.replace(LIMIT_LABEL_PREFIX, '').trim());
   let notes: string | null = null;
 
   const noteMatch = working.match(TRAILING_NOTE_PATTERN);
@@ -115,6 +129,19 @@ export const parseOccupationalLimitExpression = (
   const looseNumberMatch = working.match(/^([\d]+(?:[.,]\d+)?(?:\s*-\s*[\d]+(?:[.,]\d+)?)?)/);
   if (looseNumberMatch) {
     const remainder = working.slice(looseNumberMatch[0].length).trim();
+    const remainderUnitMatch = remainder.match(
+      /^([a-zA-Zμµ°/%][a-zA-Z0-9μµ°/²³^\-]*)$/i,
+    );
+
+    if (remainderUnitMatch) {
+      return {
+        value: normalizeDecimalForPtBr(looseNumberMatch[1]),
+        unit: normalizeOccupationalLimitUnit(remainderUnitMatch[1]),
+        notes,
+        raw: trimmed,
+      };
+    }
+
     const mergedNotes = [notes, remainder].filter(Boolean).join('; ') || null;
 
     return {
@@ -163,16 +190,48 @@ const buildLimitComments = (
 
 const resolveSharedUnit = (
   parsedLimits: ParsedOccupationalLimitExpression[],
-): string | undefined => {
+): { unit?: string; conflictNote?: string } => {
   const units = parsedLimits
     .map((item) => item.unit)
     .filter((unit): unit is string => Boolean(unit));
 
-  if (!units.length) return undefined;
+  if (!units.length) return {};
 
   const uniqueUnits = [...new Set(units)];
-  return uniqueUnits.length === 1 ? uniqueUnits[0] : units[0];
+  if (uniqueUnits.length === 1) {
+    return { unit: uniqueUnits[0] };
+  }
+
+  return {
+    conflictNote: `Unidades de limite conflitantes detectadas na importação (${uniqueUnits.join(', ')}); revise a Unidade de Medida manualmente.`,
+  };
 };
+
+const collectDermalAbsorptionEvidence = (
+  params: Pick<HoMethodCreateRiskPrefillInput, 'parseContext' | 'occupationalLimits'>,
+): boolean => {
+  const fieldValues = [
+    params.parseContext?.fields?.observations?.value,
+    params.parseContext?.fields?.applicability?.value,
+    params.parseContext?.fields?.evaluation?.value,
+    params.parseContext?.fields?.analyticalMethod?.value,
+  ];
+
+  const limitValues = Object.values(params.occupationalLimits ?? {}).map(
+    (field) => field?.value,
+  );
+
+  const haystack = [...fieldValues, ...limitValues]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .join(' ');
+
+  return DERMAL_ABSORPTION_PATTERN.test(haystack);
+};
+
+export const resolveHoMethodRiskPropagationMeans = (
+  params: Pick<HoMethodCreateRiskPrefillInput, 'parseContext' | 'occupationalLimits'>,
+): string =>
+  collectDermalAbsorptionEvidence(params) ? 'Ar, pele' : 'Ar';
 
 const pickImportFieldForComments = <T>(
   field?: HoMethodImportField<T>,
@@ -264,12 +323,17 @@ export const buildHoMethodCreateRiskPrefill = (
     parsedEntries.map(({ key, parsed }) => [key, parsed.value ?? undefined]),
   ) as Partial<typeof initialAddRiskState>;
 
-  const sharedUnit = resolveSharedUnit(parsedEntries.map((item) => item.parsed));
+  const { unit: sharedUnit, conflictNote } = resolveSharedUnit(
+    parsedEntries.map((item) => item.parsed),
+  );
   const limitComments = buildLimitComments(
     parsedEntries.map(({ label, parsed }) => ({ label, parsed })),
     params.method.displayName,
   );
-  const coments = buildMethodTechnicalComments(params, limitComments);
+  const coments = buildMethodTechnicalComments(
+    params,
+    [limitComments, conflictNote].filter(Boolean).join('\n') || undefined,
+  );
 
   return {
     ...initialAddRiskState,
@@ -282,6 +346,7 @@ export const buildHoMethodCreateRiskPrefill = (
     synonymous: params.agent.synonyms.filter(Boolean),
     method: params.method.displayName.trim() || undefined,
     unit: sharedUnit,
+    propagation: resolveHoMethodRiskPropagationMeans(params),
     coments,
     ...limitValues,
   };

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import CircleIcon from '@mui/icons-material/Circle';
 import { styled, Typography, Box, Icon, Link } from '@mui/material';
@@ -24,13 +24,22 @@ export function NavLink({
   onClick,
   children,
   canOpen,
-  showSubItemsAlways,
+  forceShowSubItems,
+  isMenuPeer,
+  expandToggleOffset,
   deep,
   ...rest
 }: INavLinkProps): JSX.Element {
   const { isOpen } = useSidebarDrawer();
-  const [open, setOpen] = useState(false);
-  const shouldShowChildren = showSubItemsAlways || open;
+  const [open, setOpen] = useState(Boolean(forceShowSubItems));
+
+  useEffect(() => {
+    if (forceShowSubItems != null) {
+      setOpen(forceShowSubItems);
+    }
+  }, [forceShowSubItems]);
+
+  const shouldShowChildren = open;
 
   return (
     <>
@@ -50,6 +59,7 @@ export function NavLink({
             onClick={onClick}
             canOpen={canOpen}
             isOpen={shouldShowChildren}
+            expandToggleOffset={expandToggleOffset}
             {...(canOpen && {
               onClick: (e) => {
                 setOpen(!open);
@@ -60,7 +70,7 @@ export function NavLink({
             <LinkStyle
               py="0.45rem"
               px={8}
-              sx={deep === 2 ? { pl: isOpen ? 24 : 16 } : undefined}
+              sx={deep === 1 ? { pl: isOpen ? 24 : 16 } : undefined}
               {...rest}
             >
               {(icon || deep) && (
@@ -69,17 +79,22 @@ export function NavLink({
                   sx={{
                     fontSize: 20,
                     alignSelf: 'center',
-                    ml: isOpen ? 0 : 2,
+                    ...(isMenuPeer && {
+                      width: 20,
+                      minWidth: 20,
+                      ml: 0,
+                    }),
+                    ...(!isMenuPeer && {
+                      ml: isOpen ? 0 : 2,
+                    }),
                     ...(deep === 1 && {
                       fontSize: 6,
-                      ml: isOpen ? 0 : 4,
-                    }),
-                    ...(deep === 2 && {
-                      fontSize: 6,
+                      width: 6,
+                      minWidth: 6,
                       ml: isOpen ? 0 : 6,
                     }),
                   }}
-                  {...(deep && { component: CircleIcon })}
+                  {...(deep === 1 && { component: CircleIcon })}
                 />
               )}
               {image && (

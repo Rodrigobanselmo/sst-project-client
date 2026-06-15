@@ -266,15 +266,15 @@ export const useDrawerItems = () => {
       description: 'Visualizar os riscos cadastrados',
       Icon: SRiskFactorIcon,
       href: RoutesEnum.RISKS,
+      activePrefix: RoutesEnum.RISKS,
       roles: [RoleEnum.SECURITY],
-      shouldMatchExactHref: true,
+      shouldMatchExactHref: false,
     },
     [DrawerItemsEnum.hoMethodsGroup]: {
       text: 'Métodos de HO',
       description: 'Cadastro técnico de métodos de Higiene Ocupacional.',
       Icon: ScienceOutlinedIcon,
       roles: [RoleEnum.SECURITY],
-      alwaysShowSubItems: true,
     },
     [DrawerItemsEnum.hoMethods]: {
       text: 'Químicos',

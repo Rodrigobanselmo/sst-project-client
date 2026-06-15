@@ -6,9 +6,6 @@ import { useRouter } from 'next/router';
 
 import SArrowNextIcon from 'assets/icons/SArrowNextIcon';
 
-import { useModal } from 'core/hooks/useModal';
-
-import SFlex from '../SFlex';
 import { IActiveLinkProps } from './types';
 
 export function SActiveLink({
@@ -17,6 +14,7 @@ export function SActiveLink({
   canOpen,
   isOpen,
   activePrefix,
+  expandToggleOffset = true,
   ...rest
 }: IActiveLinkProps): JSX.Element {
   const { asPath } = useRouter();
@@ -31,7 +29,7 @@ export function SActiveLink({
         position={'relative'}
         {...(rest as any)}
       >
-        <Box marginLeft={-8}>{children}</Box>
+        <Box marginLeft={expandToggleOffset ? -8 : 0}>{children}</Box>
         <Box position={'absolute'} right={16} top={5}>
           <SArrowNextIcon
             sx={{
@@ -55,21 +53,30 @@ export function SActiveLink({
       </Box>
     );
   }
+
+  if (!rest.href) {
+    return (
+      <Box {...(rest as any)}>
+        {cloneElement<any>(children, {
+          is_active: 0,
+        })}
+      </Box>
+    );
+  }
+
   const path = asPath.split('?')[0];
+  const hrefForMatch = activePrefix || rest.href;
+
   if (shouldMatchExactHref && (path === rest.href || path === rest.as)) {
     isActive = true;
   }
 
-  if (
-    !shouldMatchExactHref &&
-    (asPath.startsWith(String(activePrefix || rest.href)) ||
-      asPath.startsWith(String(activePrefix || rest.href)))
-  ) {
+  if (!shouldMatchExactHref && hrefForMatch && path.startsWith(hrefForMatch)) {
     isActive = true;
   }
 
   return (
-    <Link {...rest} href={isActive ? asPath : rest.href || ''}>
+    <Link {...rest} href={isActive ? asPath : rest.href}>
       {cloneElement<any>(children, {
         is_active: isActive ? 1 : 0,
       })}

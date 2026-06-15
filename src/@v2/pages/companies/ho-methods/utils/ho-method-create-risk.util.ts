@@ -13,8 +13,10 @@ export type {
 export {
   buildHoMethodCreateRiskPrefill,
   normalizeDecimalForPtBr,
+  normalizeLimitExpression,
   normalizeOccupationalLimitUnit,
   parseOccupationalLimitExpression,
+  resolveHoMethodRiskPropagationMeans,
   type HoMethodCreateRiskMethodContext,
   type HoMethodCreateRiskSmartSuggestions,
 } from './ho-method-create-risk-prefill.util';

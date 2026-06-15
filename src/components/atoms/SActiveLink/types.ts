@@ -13,5 +13,7 @@ export interface IActiveLinkProps extends Omit<LinkProps, 'href' | 'onClick'> {
   modalName?: ModalEnum;
   canOpen?: boolean;
   isOpen?: boolean;
+  /** Quando false, não aplica o deslocamento negativo do toggle de expansão. */
+  expandToggleOffset?: boolean;
   onClick?: (e: any) => void;
 }

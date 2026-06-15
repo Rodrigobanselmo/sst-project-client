@@ -70,6 +70,7 @@
   "exclude": [
     "node_modules",
     ".next",
-    "dist"
+    "dist",
+    "**/*.spec.ts"
   ]
 }

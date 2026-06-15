@@ -790,7 +790,8 @@ export const HoMethodImportPdfModal: FC<Props> = ({
               institution: form?.institution,
               methodCode: form?.methodCode,
             },
-            occupationalLimits: parseResult?.occupationalLimits,
+            occupationalLimits:
+              createRiskAgent.occupationalLimits ?? parseResult?.occupationalLimits,
             parseContext: parseResult
               ? {
                   fields: parseResult.fields,

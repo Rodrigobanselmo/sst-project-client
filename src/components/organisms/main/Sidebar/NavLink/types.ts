@@ -18,6 +18,10 @@ export interface INavLinkProps extends LinkProps {
   shouldMatchExactHref?: boolean;
   isAlwaysClose?: boolean;
   canOpen?: boolean;
-  /** Exibe subitens assim que o item pai estiver visível, sem toggle próprio. */
-  showSubItemsAlways?: boolean;
+  /** Quando definido, controla expansão do submenu conforme a rota atual. */
+  forceShowSubItems?: boolean;
+  /** Itens principais de um mesmo grupo (ex.: Cadastro), alinhados entre si. */
+  isMenuPeer?: boolean;
+  /** Quando false, evita deslocamento do toggle de expansão em submenus pares. */
+  expandToggleOffset?: boolean;
 }

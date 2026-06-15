@@ -16,13 +16,27 @@ export function SideBarNav(): JSX.Element {
   const { isTablet, open, close, isAlwaysClose } = useSidebarDrawer();
   const { companyId, userCompanyId } = useGetCompanyId();
   const { sections } = useDrawerItems();
-  const { query } = useRouter();
+  const router = useRouter();
+  const { query } = router;
   const effectiveCompanyId = companyId || userCompanyId || '';
 
-  const resolveHref = (href?: string) =>
-    href
-      ?.replace(':companyId', effectiveCompanyId)
-      ?.replace(':stage', (query.stage as string) || '0') || '';
+  const resolveHref = (href?: string) => {
+    if (!href) return undefined;
+
+    return (
+      href
+        .replace(':companyId', effectiveCompanyId)
+        .replace(':stage', (query.stage as string) || '0') || undefined
+    );
+  };
+
+  const currentPath = router.asPath.split('?')[0];
+
+  const shouldExpandSubItems = (items?: IDrawerItems[]) =>
+    items?.some((item) => {
+      const itemHref = resolveHref(item.href);
+      return Boolean(itemHref && currentPath.startsWith(itemHref));
+    }) ?? false;
 
   const resolveActivePrefix = (activePrefix?: string) =>
     activePrefix
@@ -36,14 +50,15 @@ export function SideBarNav(): JSX.Element {
         image={child.image}
         imageType={child.imageType}
         key={child.text}
-        deep={1}
         onClick={child.onClick}
         activePrefix={resolveActivePrefix(child.activePrefix)}
         href={resolveHref(child.href)}
         icon={child.Icon}
         text={child.text}
-        canOpen={Boolean(child.items?.length && !child.alwaysShowSubItems)}
-        showSubItemsAlways={child.alwaysShowSubItems}
+        isMenuPeer
+        expandToggleOffset={false}
+        canOpen={Boolean(child.items?.length)}
+        forceShowSubItems={shouldExpandSubItems(child.items)}
         description={child.description}
         shouldMatchExactHref={child.shouldMatchExactHref}
       >
@@ -53,7 +68,7 @@ export function SideBarNav(): JSX.Element {
             image={grandChild.image}
             imageType={grandChild.imageType}
             key={grandChild.text}
-            deep={2}
+            deep={1}
             onClick={grandChild.onClick}
             activePrefix={resolveActivePrefix(grandChild.activePrefix)}
             href={resolveHref(grandChild.href)}
