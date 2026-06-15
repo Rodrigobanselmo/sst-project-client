@@ -156,6 +156,13 @@ export function importAgentsFromParseResult(
     });
 }
 
+export const parseOptionalNumber = (value: string) => {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const parsed = Number(trimmed.replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
 export function buildImportSubmitPayload(params: {
   form: HoMethodImportFormState;
   agents: MethodAgentFormItem[];
@@ -165,13 +172,6 @@ export function buildImportSubmitPayload(params: {
     uploadedAt: string;
   };
 }): HoMethodWritePayload {
-  const parseOptionalNumber = (value: string) => {
-    const trimmed = value.trim();
-    if (!trimmed) return null;
-    const parsed = Number(trimmed.replace(',', '.'));
-    return Number.isFinite(parsed) ? parsed : null;
-  };
-
   const parseOptionalInt = (value: string) => {
     const parsed = parseOptionalNumber(value);
     return parsed == null ? null : Math.round(parsed);

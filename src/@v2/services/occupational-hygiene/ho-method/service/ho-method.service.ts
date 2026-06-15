@@ -9,6 +9,8 @@ import type {
   HoLaboratoryRecord,
   HoMethodFileUploadResponse,
   HoMethodImportParseResult,
+  HoMethodAiReviewResult,
+  HoMethodImportAiReviewPayload,
   HoMethodRecord,
   HoMethodRiskFactorSnapshot,
   HoMethodWritePayload,
@@ -233,6 +235,17 @@ export async function parseHoMethodPdf(
     {
       headers: { 'Content-Type': 'multipart/form-data' },
     },
+  );
+
+  return response.data;
+}
+
+export async function reviewHoMethodImportWithAi(
+  payload: HoMethodImportAiReviewPayload,
+): Promise<HoMethodAiReviewResult> {
+  const response = await api.post<HoMethodAiReviewResult>(
+    HoMethodRoutes.IMPORT_AI_REVIEW,
+    payload,
   );
 
   return response.data;

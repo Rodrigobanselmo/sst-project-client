@@ -5,6 +5,7 @@ export const HoMethodRoutes = {
   UPLOAD: 'v2/companies/:companyId/ho-methods/files',
   RISK_SEARCH: 'v2/ho-methods/risk-factors/search',
   IMPORT_PARSE_PDF: 'v2/ho-methods/import/parse-pdf',
+  IMPORT_AI_REVIEW: 'v2/ho-methods/import/ai-review',
   SAMPLERS: 'v2/ho-samplers',
   EXTRACTION_SOLVENTS: 'v2/ho-extraction-solvents',
   LABORATORIES: 'v2/ho-laboratories',
