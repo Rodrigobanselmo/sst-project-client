@@ -1,4 +1,4 @@
-import { FC, ReactNode, useCallback, useMemo, useState } from 'react';
+import { FC, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import {
@@ -35,8 +35,13 @@ import type {
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 import { HoMethodSourceEnum } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
 import { useDebouncedCallback } from 'use-debounce';
+import { useQueryClient } from '@tanstack/react-query';
+import { hoMethodQueryKeys } from '@v2/services/occupational-hygiene/ho-method/hooks/ho-method.query-keys';
+import { searchHoMethodRiskFactors } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.service';
+import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 
 import { HO_METHOD_SOURCE_OPTIONS } from '../maps/ho-method.maps';
+import { HoMethodCreateRiskDialog } from './HoMethodCreateRiskDialog';
 import { getHoMethodApiErrorMessage } from '../utils/ho-method-error.util';
 import {
   IMPORT_CONFIDENCE_LABELS,
@@ -46,9 +51,16 @@ import {
   type HoMethodImportFormState,
 } from '../utils/ho-method-import.util';
 import {
+  buildHoMethodAgentSearchTerm,
+  buildHoMethodCreateRiskInitialData,
+  HO_METHOD_MATCH_CONFIDENCE_LABELS,
+  shouldOfferCreateRiskAction,
+} from '../utils/ho-method-create-risk.util';
+import {
   buildRiskOptionLabel,
   mapRiskFactorsToHoMethodSnapshot,
   mapRiskSnapshotToRiskFactors,
+  normalizeCas,
 } from '../utils/ho-method-evaluation.util';
 
 type Props = {
@@ -127,6 +139,8 @@ export const HoMethodImportPdfModal: FC<Props> = ({
 }) => {
   const { companyId } = useGetCompanyId();
   const createMutation = useMutateCreateHoMethod();
+  const queryClient = useQueryClient();
+  const { showSnackBar } = useSystemSnackbar();
 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [parseResult, setParseResult] = useState<HoMethodImportParseResult | null>(
@@ -136,8 +150,11 @@ export const HoMethodImportPdfModal: FC<Props> = ({
   const [parsing, setParsing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [, setAgentSearch] = useState('');
   const [debouncedAgentSearch, setDebouncedAgentSearch] = useState('');
+  const [createRiskAgentIndex, setCreateRiskAgentIndex] = useState<number | null>(
+    null,
+  );
+  const [createRiskDialogOpen, setCreateRiskDialogOpen] = useState(false);
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
     setDebouncedAgentSearch(value);
@@ -158,8 +175,9 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     setParsing(false);
     setSubmitting(false);
     setError(null);
-    setAgentSearch('');
     setDebouncedAgentSearch('');
+    setCreateRiskAgentIndex(null);
+    setCreateRiskDialogOpen(false);
   }, []);
 
   const handleClose = () => {
@@ -208,6 +226,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
         ...agents[index],
         matchedRiskFactor: risk,
         found: Boolean(risk),
+        matchConfidence: risk ? 'high' : 'none',
       };
 
       const unmatched = agents.filter((agent) => !agent.found);
@@ -234,6 +253,95 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     parseResult?.canConfirm &&
     allAgentsLinked(parseResult.agents) &&
     Boolean(form?.methodCode.trim());
+
+  useEffect(() => {
+    if (!parseResult?.agents.length) return;
+
+    const targetAgent =
+      parseResult.agents.find((agent) => !agent.found) ?? parseResult.agents[0];
+    const searchTerm = buildHoMethodAgentSearchTerm({
+      substanceName: targetAgent.substanceName,
+      cas: targetAgent.cas,
+      synonyms: targetAgent.synonyms,
+    });
+
+    if (!searchTerm) return;
+
+    setDebouncedAgentSearch(searchTerm);
+    debouncedSearch(searchTerm);
+  }, [parseResult, debouncedSearch]);
+
+  const buildAgentRiskOptions = (
+    agent: HoMethodImportAgentSuggestion,
+    searchResults: IRiskFactors[],
+  ) => {
+    const map = new Map<string, IRiskFactors>();
+
+    agent.candidateRiskFactors.forEach((item) => {
+      map.set(item.id, mapRiskSnapshotToRiskFactors(item));
+    });
+
+    searchResults.forEach((item) => {
+      map.set(item.id, item);
+    });
+
+    if (agent.matchedRiskFactor) {
+      map.set(
+        agent.matchedRiskFactor.id,
+        mapRiskSnapshotToRiskFactors(agent.matchedRiskFactor),
+      );
+    }
+
+    return Array.from(map.values());
+  };
+
+  const handleOpenCreateRisk = async (index: number) => {
+    if (!parseResult || !companyId) return;
+
+    const agent = parseResult.agents[index];
+    if (!agent) return;
+
+    if (agent.cas) {
+      const results = await searchHoMethodRiskFactors({
+        companyId,
+        search: agent.cas,
+      });
+      const existing = results.find(
+        (item) => normalizeCas(item.cas) === normalizeCas(agent.cas),
+      );
+
+      if (existing) {
+        showSnackBar(
+          'Já existe fator de risco com este CAS. Vinculando o cadastro existente.',
+          { type: 'success' },
+        );
+        updateAgentMatch(index, existing);
+        return;
+      }
+    }
+
+    setCreateRiskAgentIndex(index);
+    setCreateRiskDialogOpen(true);
+  };
+
+  const handleRiskCreated = (risk: IRiskFactors) => {
+    if (createRiskAgentIndex == null) return;
+
+    queryClient.invalidateQueries({
+      queryKey: [...hoMethodQueryKeys.all, 'risk-search'],
+    });
+    updateAgentMatch(
+      createRiskAgentIndex,
+      mapRiskFactorsToHoMethodSnapshot(risk),
+    );
+    setCreateRiskDialogOpen(false);
+    setCreateRiskAgentIndex(null);
+  };
+
+  const createRiskAgent =
+    createRiskAgentIndex != null
+      ? parseResult?.agents[createRiskAgentIndex] ?? null
+      : null;
 
   const handleConfirm = async () => {
     if (!pdfFile || !parseResult || !form || !companyId) return;
@@ -286,7 +394,8 @@ export const HoMethodImportPdfModal: FC<Props> = ({
           <Alert severity="info">
             Envie um PDF de método NIOSH/NMAM. O sistema extrai os campos
             principais para revisão antes de salvar no cadastro. Agentes sem
-            fator de risco químico cadastrado devem ser vinculados manualmente.
+            correspondência confiável podem ser vinculados manualmente ou criados
+            nesta tela.
           </Alert>
 
           {error && <Alert severity="error">{error}</Alert>}
@@ -406,10 +515,18 @@ export const HoMethodImportPdfModal: FC<Props> = ({
                   <AgentRow
                     key={`${agent.substanceName}-${agent.cas ?? index}`}
                     agent={agent}
-                    riskOptions={riskAutocompleteOptions}
+                    riskOptions={buildAgentRiskOptions(
+                      agent,
+                      riskAutocompleteOptions,
+                    )}
                     loadingRisks={loadingRisks}
+                    defaultSearchTerm={buildHoMethodAgentSearchTerm({
+                      substanceName: agent.substanceName,
+                      cas: agent.cas,
+                      synonyms: agent.synonyms,
+                    })}
                     onSearch={(value) => {
-                      setAgentSearch(value);
+                      setDebouncedAgentSearch(value);
                       debouncedSearch(value);
                     }}
                     onSelectRisk={(risk) =>
@@ -418,6 +535,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
                         risk ? mapRiskFactorsToHoMethodSnapshot(risk) : null,
                       )
                     }
+                    onCreateRisk={() => void handleOpenCreateRisk(index)}
                   />
                 ))}
               </Section>
@@ -655,6 +773,38 @@ export const HoMethodImportPdfModal: FC<Props> = ({
           {submitting ? 'Salvando…' : 'Confirmar importação'}
         </Button>
       </DialogActions>
+      {companyId && createRiskAgent && (
+        <HoMethodCreateRiskDialog
+          open={createRiskDialogOpen}
+          initialData={buildHoMethodCreateRiskInitialData({
+            companyId,
+            agent: {
+              substanceName: createRiskAgent.substanceName,
+              cas: createRiskAgent.cas,
+              synonyms: createRiskAgent.synonyms,
+            },
+            method: {
+              displayName:
+                form?.displayName.trim() ||
+                `${form?.institution ?? HoMethodSourceEnum.NIOSH} ${form?.methodCode ?? ''}`.trim(),
+              institution: form?.institution,
+              methodCode: form?.methodCode,
+            },
+            occupationalLimits: parseResult?.occupationalLimits,
+            parseContext: parseResult
+              ? {
+                  fields: parseResult.fields,
+                  warnings: parseResult.warnings,
+                }
+              : null,
+          })}
+          onClose={() => {
+            setCreateRiskDialogOpen(false);
+            setCreateRiskAgentIndex(null);
+          }}
+          onCreated={handleRiskCreated}
+        />
+      )}
     </Dialog>
   );
 };
@@ -679,20 +829,35 @@ type AgentRowProps = {
   agent: HoMethodImportAgentSuggestion;
   riskOptions: IRiskFactors[];
   loadingRisks: boolean;
+  defaultSearchTerm: string;
   onSearch: (value: string) => void;
   onSelectRisk: (risk: IRiskFactors | null) => void;
+  onCreateRisk: () => void;
 };
 
 const AgentRow: FC<AgentRowProps> = ({
   agent,
   riskOptions,
   loadingRisks,
+  defaultSearchTerm,
   onSearch,
   onSelectRisk,
+  onCreateRisk,
 }) => {
   const selectedRisk = agent.matchedRiskFactor
     ? mapRiskSnapshotToRiskFactors(agent.matchedRiskFactor)
     : null;
+
+  useEffect(() => {
+    if (!defaultSearchTerm) return;
+    onSearch(defaultSearchTerm);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [agent.substanceName, agent.cas]);
+
+  const showCreateAction = shouldOfferCreateRiskAction({
+    found: agent.found,
+    matchConfidence: agent.matchConfidence ?? 'none',
+  });
 
   return (
     <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
@@ -709,6 +874,11 @@ const AgentRow: FC<AgentRowProps> = ({
           {agent.synonyms.length > 0 && (
             <Typography variant="caption" display="block" color="text.secondary">
               Sinônimos: {agent.synonyms.join(', ')}
+            </Typography>
+          )}
+          {agent.matchConfidence && agent.matchConfidence !== 'high' && (
+            <Typography variant="caption" display="block" color="warning.main">
+              {HO_METHOD_MATCH_CONFIDENCE_LABELS[agent.matchConfidence ?? 'none']}
             </Typography>
           )}
         </Grid>
@@ -728,9 +898,19 @@ const AgentRow: FC<AgentRowProps> = ({
             errorMessage={
               agent.found
                 ? undefined
-                : 'Agente não encontrado — vincule a um fator de risco cadastrado.'
+                : 'Agente não vinculado — selecione um fator existente ou crie um novo.'
             }
           />
+          {showCreateAction && (
+            <Button
+              size="small"
+              variant="outlined"
+              sx={{ mt: 1 }}
+              onClick={onCreateRisk}
+            >
+              Criar fator de risco químico
+            </Button>
+          )}
         </Grid>
       </Grid>
     </Paper>

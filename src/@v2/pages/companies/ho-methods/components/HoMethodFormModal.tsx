@@ -33,6 +33,7 @@ import {
   createHoExtractionSolvent,
   createHoSampler,
   resolveHoMethodDocumentUrl,
+  searchHoMethodRiskFactors,
   uploadHoMethodDocument,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.service';
 import type {
@@ -45,6 +46,7 @@ import type {
 import {
   HoMethodAgentTypeEnum,
   HoMethodAvailabilityStatusEnum,
+  HoMethodEvaluationTypeEnum,
   HoMethodLaboratoryAvailabilityStatusEnum,
   HoMethodSourceEnum,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.types';
@@ -54,6 +56,7 @@ import { hoMethodQueryKeys } from '@v2/services/occupational-hygiene/ho-method/h
 
 import { HoMethodAdvancedSections } from './HoMethodAdvancedSections';
 import { HoMethodAgentsSection } from './HoMethodAgentsSection';
+import { HoMethodCreateRiskDialog } from './HoMethodCreateRiskDialog';
 import { HoLaboratoryFormModal } from './HoLaboratoryFormModal';
 import {
   HO_METHOD_SOURCE_OPTIONS,
@@ -84,9 +87,15 @@ import {
   buildEvaluationDisplayOptions,
   inferEvaluationOptionsFromRisk,
   isChemicalRiskFactor,
+  mapRiskSnapshotToRiskFactors,
   normalizeCas,
+  riskHasRegisteredOccupationalLimits,
   HO_METHOD_CHEMICAL_ONLY_MESSAGE,
 } from '../utils/ho-method-evaluation.util';
+import {
+  buildHoMethodCreateRiskInitialData,
+  type HoMethodCreateRiskAgentSource,
+} from '../utils/ho-method-create-risk.util';
 
 type HoMethodFormModalProps = {
   open: boolean;
@@ -163,6 +172,9 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
   >([]);
   const [laboratorySearch, setLaboratorySearch] = useState('');
   const [laboratoryModalOpen, setLaboratoryModalOpen] = useState(false);
+  const [createRiskDialogOpen, setCreateRiskDialogOpen] = useState(false);
+  const [createRiskSource, setCreateRiskSource] =
+    useState<HoMethodCreateRiskAgentSource | null>(null);
 
   const [labNumericInputs, setLabNumericInputs] = useState<LabNumericInputs>({});
 
@@ -186,17 +198,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
   const risks = useMemo(() => {
     const map = new Map<string, IRiskFactors>();
     riskResults.forEach((item) => {
-      map.set(item.id, {
-        id: item.id,
-        name: item.name,
-        cas: item.cas ?? undefined,
-        synonymous: item.synonymous ?? [],
-        type: item.type as IRiskFactors['type'],
-        unit: item.unit ?? undefined,
-        nr15lt: item.nr15lt ?? undefined,
-        twa: item.twa ?? undefined,
-        stel: item.stel ?? undefined,
-      } as IRiskFactors);
+      map.set(item.id, mapRiskSnapshotToRiskFactors(item));
     });
     methodAgents.forEach((agent) => map.set(agent.risk.id, agent.risk));
     return Array.from(map.values());
@@ -486,7 +488,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     }
 
     const inferred = inferEvaluationOptionsFromRisk(risk);
-    if (!inferred.length) {
+    if (!inferred.length && !riskHasRegisteredOccupationalLimits(risk)) {
       showSnackBar(
         'O agente químico selecionado não possui limites cadastrados para gerar condições de avaliação. Revise o cadastro do fator de risco antes de vinculá-lo ao método.',
         { type: 'error' },
@@ -507,9 +509,22 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
     const existingAgent = methodAgents.find(
       (agent) => agent.localId === activeAgentLocalId,
     );
+    const fallbackConditions =
+      inferred.length === 0 && riskHasRegisteredOccupationalLimits(risk)
+        ? [
+            {
+              evaluationType: HoMethodEvaluationTypeEnum.OTHER,
+              notes: 'Limites ocupacionais cadastrados no fator de risco',
+              flowRateUnit: 'L/min',
+              volumeUnit: 'L',
+            },
+          ]
+        : undefined;
     const nextAgent = createMethodAgentFromRisk(
       risk,
-      options?.preserveExisting ? existingAgent?.evaluationConditions : undefined,
+      options?.preserveExisting
+        ? existingAgent?.evaluationConditions
+        : fallbackConditions,
     );
     const nextAgents = [...methodAgents, nextAgent];
     setMethodAgents(nextAgents);
@@ -571,6 +586,50 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
   const handleCasSearch = (value: string) => {
     setCasInput(value);
     debouncedCasSearch(value);
+  };
+
+  const handleOpenCreateRisk = async () => {
+    const agent: HoMethodCreateRiskAgentSource = {
+      substanceName: riskSearch.trim() || casInput.trim(),
+      cas: casInput.trim() || null,
+      synonyms: [],
+    };
+
+    if (!agent.substanceName && !agent.cas) {
+      showSnackBar('Informe nome ou CAS antes de criar o fator de risco.', {
+        type: 'error',
+      });
+      return;
+    }
+
+    if (agent.cas && companyId) {
+      const results = await searchHoMethodRiskFactors({
+        companyId,
+        search: agent.cas,
+      });
+      const existing = results.find(
+        (item) => normalizeCas(item.cas) === normalizeCas(agent.cas),
+      );
+
+      if (existing) {
+        showSnackBar(
+          'Já existe fator de risco com este CAS. Vinculando o cadastro existente.',
+          { type: 'success' },
+        );
+        addAgentFromRisk(mapRiskSnapshotToRiskFactors(existing));
+        return;
+      }
+    }
+
+    setCreateRiskSource(agent);
+    setCreateRiskDialogOpen(true);
+  };
+
+  const handleRiskCreated = (risk: IRiskFactors) => {
+    queryClient.invalidateQueries({
+      queryKey: [...hoMethodQueryKeys.all, 'risk-search'],
+    });
+    addAgentFromRisk(risk);
   };
 
   useEffect(() => {
@@ -992,6 +1051,7 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
           onAgentSearchInput={(value) => debouncedRiskSearch(value)}
           onSelectAgentToAdd={handleSelectAgentToAdd}
           onCasChange={handleCasSearch}
+          onCreateRisk={() => void handleOpenCreateRisk()}
           riskFactorError={fieldErrors.riskFactorId}
         />
 
@@ -1256,6 +1316,28 @@ export const HoMethodFormModal: FC<HoMethodFormModalProps> = ({
         onClose={() => setLaboratoryModalOpen(false)}
         onCreated={(created) => void handleLaboratoryCreated(created)}
       />
+      {companyId && createRiskSource && (
+        <HoMethodCreateRiskDialog
+          open={createRiskDialogOpen}
+          initialData={buildHoMethodCreateRiskInitialData({
+            companyId,
+            agent: createRiskSource,
+            method: {
+              displayName:
+                computedDisplayName ||
+                form.displayName?.trim() ||
+                `${form.institution} ${form.methodCode}`.trim(),
+              institution: form.institution,
+              methodCode: form.methodCode,
+            },
+          })}
+          onClose={() => {
+            setCreateRiskDialogOpen(false);
+            setCreateRiskSource(null);
+          }}
+          onCreated={handleRiskCreated}
+        />
+      )}
     </Dialog>
   );
 };

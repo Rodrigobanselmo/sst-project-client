@@ -110,6 +110,8 @@ export type HoMethodRiskFactorSnapshot = {
   oshaPel: string | null;
   oshaStel: string | null;
   oshaCeiling: string | null;
+  aihaWeel: string | null;
+  aihaWeelCeiling: string | null;
 };
 
 export type HoMethodRecord = {
@@ -296,12 +298,16 @@ export type HoMethodImportField<T> = {
   rawText?: string | null;
 };
 
+export type HoMethodRiskMatchConfidence = 'high' | 'low' | 'none';
+
 export type HoMethodImportAgentSuggestion = {
   substanceName: string;
   cas: string | null;
   synonyms: string[];
   matchedRiskFactor: HoMethodRiskFactorSnapshot | null;
   found: boolean;
+  matchConfidence: HoMethodRiskMatchConfidence;
+  candidateRiskFactors: HoMethodRiskFactorSnapshot[];
 };
 
 export type HoMethodImportOccupationalLimitSuggestions = {

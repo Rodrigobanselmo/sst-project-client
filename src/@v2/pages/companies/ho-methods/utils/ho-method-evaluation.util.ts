@@ -131,6 +131,26 @@ export function inferEvaluationOptionsFromRisk(
   return options;
 }
 
+export function riskHasRegisteredOccupationalLimits(risk?: IRiskFactors | null) {
+  if (!risk) return false;
+
+  return [
+    risk.nr15lt,
+    risk.twa,
+    risk.stel,
+    risk.acgihCeiling,
+    risk.ipvs,
+    risk.nioshRel,
+    risk.nioshStel,
+    risk.nioshCeiling,
+    risk.oshaPel,
+    risk.oshaStel,
+    risk.oshaCeiling,
+    risk.aihaWeel,
+    risk.aihaWeelCeiling,
+  ].some((value) => hasValue(value));
+}
+
 export function buildEvaluationDisplayOptions(
   inferred: InferredEvaluationOption[],
   selected: HoMethodEvaluationConditionPayload[],
@@ -188,6 +208,8 @@ export function mapRiskFactorsToHoMethodSnapshot(
     oshaPel: risk.oshaPel ?? null,
     oshaStel: risk.oshaStel ?? null,
     oshaCeiling: risk.oshaCeiling ?? null,
+    aihaWeel: risk.aihaWeel ?? null,
+    aihaWeelCeiling: risk.aihaWeelCeiling ?? null,
   };
 }
 
@@ -212,6 +234,8 @@ export function mapRiskSnapshotToRiskFactors(
     oshaPel: snapshot.oshaPel ?? undefined,
     oshaStel: snapshot.oshaStel ?? undefined,
     oshaCeiling: snapshot.oshaCeiling ?? undefined,
+    aihaWeel: snapshot.aihaWeel ?? undefined,
+    aihaWeelCeiling: snapshot.aihaWeelCeiling ?? undefined,
   } as IRiskFactors;
 }
 

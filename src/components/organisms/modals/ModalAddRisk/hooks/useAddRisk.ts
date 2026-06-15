@@ -15,6 +15,7 @@ import { IEsocialTable24 } from 'core/interfaces/api/IEsocial';
 import {
   IGenerateSourceCreate,
   IRecMedCreate,
+  IRiskFactors,
   RiskFactorActivities,
 } from 'core/interfaces/api/IRiskFactors';
 import { useMutUpdateGenerateSource } from 'core/services/hooks/mutations/checklist/generate/useMutUpdateGenerateSource';
@@ -75,7 +76,7 @@ export const initialAddRiskState = {
 type IUseAddRiskOptions = {
   initialData?: Partial<typeof initialAddRiskState>;
   disableModalClose?: boolean;
-  onSubmitSuccess?: () => void;
+  onSubmitSuccess?: (created?: IRiskFactors) => void;
   onCancel?: () => void;
   /** Quando `inline`, o formulário pode expandir campos longos (ex.: página de fatores de risco). */
   riskEditorLayout?: 'modal' | 'inline';
@@ -386,22 +387,27 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     };
 
     if (riskData.companyId) risk.companyId = riskData.companyId;
+
+    let createdRisk: IRiskFactors | undefined;
+
     //  add risk then connect generate source with recMed
     if (risk.id == '') {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, ...riskData } = risk;
-      const create = await createRiskMut.mutateAsync(riskData).catch(() => {});
+      createdRisk =
+        (await createRiskMut.mutateAsync(riskData).catch(() => undefined)) ??
+        undefined;
       recMed.map(async (rm) => {
         if (rm.generateSourceLocalId != undefined) {
           const gsLocal = generateSource.find(
             (gs) => gs.localId === rm.generateSourceLocalId,
           );
-          if (gsLocal && create?.id) {
-            const gsServer = create.generateSource.find(
+          if (gsLocal && createdRisk?.id) {
+            const gsServer = createdRisk.generateSource.find(
               (gs) => gs.name === gsLocal.name,
             );
 
-            const rmServer = create.recMed.find(
+            const rmServer = createdRisk.recMed.find(
               (rmServer) =>
                 rmServer.recName === rm.recName &&
                 rmServer.medName === rm.medName,
@@ -409,7 +415,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
             if (gsServer && rmServer)
               updateGenerateSourceMut.mutate({
                 id: gsServer.id,
-                riskId: create.id,
+                riskId: createdRisk.id,
                 recMeds: [{ id: rmServer.id }],
               });
           }
@@ -420,10 +426,11 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
         await deleteRiskMut.mutateAsync(risk.id).catch(() => {});
       } else {
         await updateRiskMut.mutateAsync(risk).catch(() => {});
+        createdRisk = risk as unknown as IRiskFactors;
       }
     }
 
-    options?.onSubmitSuccess?.();
+    options?.onSubmitSuccess?.(createdRisk);
     onClose();
   };
 
