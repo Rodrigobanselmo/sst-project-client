@@ -1,4 +1,4 @@
-import { FC, useEffect } from 'react';
+import { FC, useEffect, useMemo } from 'react';
 
 import {
   Alert,
@@ -18,8 +18,11 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
 import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
-import { RISK_FACTOR_CHEMICAL_AI_SUGGESTIONS_DEFAULT_PROMPT } from '@v2/constants/risk-factor-chemical-ai-suggestions-default-prompt.constant';
 import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
+import {
+  getRiskFactorAiSuggestionTypeLabel,
+  getRiskFactorAiSuggestionsDefaultPromptByType,
+} from '@v2/services/security/risk/risk-factor-ai-suggestions/utils/risk-factor-ai-suggestions-type.util';
 import {
   AI_MODEL_OPTIONS,
   type AiModelOption,
@@ -42,6 +45,8 @@ type RiskFactorAiSuggestionMasterConfigDialogProps = {
   open: boolean;
   onClose: () => void;
   onApply: (config: RiskFactorAiSuggestionMasterConfig) => void;
+  riskType: string;
+  promptKey: SystemAiPromptKeyEnum;
 };
 
 const DEFAULT_MODEL =
@@ -50,12 +55,17 @@ const DEFAULT_MODEL =
 
 export const RiskFactorAiSuggestionMasterConfigDialog: FC<
   RiskFactorAiSuggestionMasterConfigDialogProps
-> = ({ open, onClose, onApply }) => {
+> = ({ open, onClose, onApply, riskType, promptKey }) => {
   const { showConfirmation } = useConfirmationModal();
   const { enqueueSnackbar } = useSnackbar();
+  const factoryDefaultPrompt = useMemo(
+    () => getRiskFactorAiSuggestionsDefaultPromptByType(riskType),
+    [riskType],
+  );
+  const typeLabel = useMemo(() => getRiskFactorAiSuggestionTypeLabel(riskType), [riskType]);
   const methods = useForm<RiskFactorAiSuggestionMasterConfigForm>({
     defaultValues: {
-      customPrompt: RISK_FACTOR_CHEMICAL_AI_SUGGESTIONS_DEFAULT_PROMPT,
+      customPrompt: factoryDefaultPrompt,
       model: DEFAULT_MODEL,
     },
   });
@@ -66,17 +76,13 @@ export const RiskFactorAiSuggestionMasterConfigDialog: FC<
     isLoading: isLoadingSystemAiPrompt,
     isError: isSystemAiPromptError,
     error: systemAiPromptError,
-  } = useFetchSystemAiPrompt(
-    SystemAiPromptKeyEnum.RISK_FACTOR_CHEMICAL_AI_SUGGESTIONS,
-    open,
-  );
+  } = useFetchSystemAiPrompt(promptKey, open);
 
   const { mutate: mutateUpsertSystemAiPrompt, isPending: isSavingDefaultPrompt } =
     useMutateUpsertSystemAiPrompt();
 
   const factoryDefaultContent =
-    systemAiPrompt?.defaultContent?.trim() ||
-    RISK_FACTOR_CHEMICAL_AI_SUGGESTIONS_DEFAULT_PROMPT;
+    systemAiPrompt?.defaultContent?.trim() || factoryDefaultPrompt;
 
   useEffect(() => {
     if (!open) return;
@@ -97,6 +103,7 @@ export const RiskFactorAiSuggestionMasterConfigDialog: FC<
     }
   }, [
     factoryDefaultContent,
+    factoryDefaultPrompt,
     getValues,
     isLoadingSystemAiPrompt,
     open,
@@ -114,7 +121,7 @@ export const RiskFactorAiSuggestionMasterConfigDialog: FC<
     const confirmed = await showConfirmation({
       title: 'Definir como prompt padrão',
       message:
-        'O conteúdo atual será salvo como prompt padrão do sistema para sugestão IA de fator de risco químico. Deseja continuar?',
+        `O conteúdo atual será salvo como prompt padrão do sistema para sugestão IA de fator de risco ${typeLabel.toLowerCase()}. Deseja continuar?`,
       confirmText: 'Salvar',
       cancelText: 'Cancelar',
       variant: 'warning',
@@ -123,7 +130,7 @@ export const RiskFactorAiSuggestionMasterConfigDialog: FC<
     if (!confirmed) return;
 
     mutateUpsertSystemAiPrompt({
-      key: SystemAiPromptKeyEnum.RISK_FACTOR_CHEMICAL_AI_SUGGESTIONS,
+      key: promptKey,
       content,
     });
   };
@@ -158,11 +165,11 @@ export const RiskFactorAiSuggestionMasterConfigDialog: FC<
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <FormProvider {...methods}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <DialogTitle>Configurar Sugestão IA de Fator de Risco Químico</DialogTitle>
+          <DialogTitle>Configurar Sugestão IA de Fator de Risco {typeLabel}</DialogTitle>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              Configuração central compartilhada pelo cadastro de fatores de risco e pelo
-              fluxo de métodos de HO.
+              Configuração central para fatores de risco {typeLabel.toLowerCase()} no cadastro e,
+              quando aplicável, no fluxo de métodos de HO.
             </Typography>
             {fetchErrorMessage && (
               <Alert severity="warning">{fetchErrorMessage}</Alert>

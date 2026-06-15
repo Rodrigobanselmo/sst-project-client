@@ -1,4 +1,4 @@
-import { FC, useState } from 'react';
+import { FC, useMemo, useState } from 'react';
 
 import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
@@ -25,6 +25,10 @@ import {
   hasRiskFactorAiSuggestionFieldContent,
   type RiskFactorAiSuggestionFormSource,
 } from '@v2/services/security/risk/risk-factor-ai-suggestions/utils/build-risk-factor-ai-suggestion-payload.util';
+import {
+  normalizeRiskFactorType,
+  resolveRiskFactorAiSuggestionPromptKey,
+} from '@v2/services/security/risk/risk-factor-ai-suggestions/utils/risk-factor-ai-suggestions-type.util';
 
 import { RiskFactorAiSuggestionApplyDialog } from './RiskFactorAiSuggestionApplyDialog';
 import type { RiskFactorAiSuggestionApplyMode } from './RiskFactorAiSuggestionApplyDialog';
@@ -58,9 +62,17 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
 }) => {
   const { isMaster } = useAccess();
   const { generate, loading, error, lastResult, reset } = useRiskFactorAiSuggestion();
+  const riskType = normalizeRiskFactorType(form.type);
+  const promptKey = useMemo(
+    () => resolveRiskFactorAiSuggestionPromptKey(riskType),
+    [riskType],
+  );
   const [applyDialogOpen, setApplyDialogOpen] = useState(false);
   const [configDialogOpen, setConfigDialogOpen] = useState(false);
-  const [masterConfig, setMasterConfig] = useState<RiskFactorAiSuggestionMasterConfig>({});
+  const [masterConfigByType, setMasterConfigByType] = useState<
+    Record<string, RiskFactorAiSuggestionMasterConfig>
+  >({});
+  const masterConfig = masterConfigByType[riskType] ?? {};
   const [pendingSuggestion, setPendingSuggestion] = useState<{
     risk: string;
     symptoms: string;
@@ -321,7 +333,14 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
         <RiskFactorAiSuggestionMasterConfigDialog
           open={configDialogOpen}
           onClose={() => setConfigDialogOpen(false)}
-          onApply={setMasterConfig}
+          riskType={riskType}
+          promptKey={promptKey}
+          onApply={(config) =>
+            setMasterConfigByType((current) => ({
+              ...current,
+              [riskType]: config,
+            }))
+          }
         />
       )}
     </Box>

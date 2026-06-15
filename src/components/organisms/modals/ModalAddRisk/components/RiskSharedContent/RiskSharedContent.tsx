@@ -21,7 +21,10 @@ import { RiskActivityContent } from '../RiskActivityContent/RiskActivityContent'
 import { useFetchBrowseRiskSubType } from '@v2/services/security/risk/sub-type/browse-sub-type/hooks/useFetchBrowseSubType';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { RiskFactorAiSuggestionButton } from '@v2/components/molecules/RiskFactorAiSuggestion/RiskFactorAiSuggestionButton';
-import { CHEMICAL_RISK_SEVERITY_RADIO_OPTIONS } from '@v2/constants/chemical-risk-severity-options.constant';
+import {
+  getRiskFactorSeverityRadioOptions,
+  isAiSuggestionSupportedRiskType,
+} from '@v2/constants/risk-factor-severity-options.constant';
 import type { RiskFactorAiSuggestionFormSource } from '@v2/services/security/risk/risk-factor-ai-suggestions/utils/build-risk-factor-ai-suggestion-payload.util';
 
 export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
@@ -51,8 +54,8 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
 
   const severityOptions = useMemo(
     () =>
-      type === 'QUI'
-        ? CHEMICAL_RISK_SEVERITY_RADIO_OPTIONS
+      isAiSuggestionSupportedRiskType(type)
+        ? getRiskFactorSeverityRadioOptions(type)
         : enumToArray(SeverityEnum, 'value'),
     [type],
   );
@@ -137,7 +140,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
             }));
           }}
         />
-        {type === 'QUI' && (
+        {isAiSuggestionSupportedRiskType(type) && (
           <RiskFactorAiSuggestionButton
             form={riskData}
             setRiskData={(updater) =>
