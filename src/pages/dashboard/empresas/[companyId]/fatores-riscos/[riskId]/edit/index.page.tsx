@@ -42,6 +42,7 @@ const RiskEditPage: NextPage = () => {
     onSubmit,
     onCloseUnsaved,
     loading,
+    isCatalogReadOnly,
   } = props;
 
   if (isLoading) {
@@ -137,6 +138,7 @@ const RiskEditPage: NextPage = () => {
                 size="small"
                 type="submit"
                 loading={loading}
+                disabled={isCatalogReadOnly}
                 onClick={() => setRiskData({ ...riskData, hasSubmit: true })}
               >
                 Salvar

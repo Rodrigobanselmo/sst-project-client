@@ -26,6 +26,7 @@ export const ModalAddRisk = () => {
     riskData,
     setRiskData,
     handleSubmit,
+    isCatalogReadOnly,
   } = props;
 
   const buttons = [
@@ -34,6 +35,7 @@ export const ModalAddRisk = () => {
       text: riskData?.id ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
+      disabled: isCatalogReadOnly,
       onClick: () => setRiskData({ ...riskData, hasSubmit: true }),
     },
   ] as IModalButton[];

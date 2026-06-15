@@ -35,6 +35,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
   const {
     aiSuggestionSourceContext,
     aiSuggestionKnownDataExtras,
+    isCatalogReadOnly,
   } = props;
   const longTextFieldSx =
     riskEditorLayout === 'inline'
@@ -140,7 +141,7 @@ export const RiskSharedContent: FC<{ children?: any } & IUseAddRisk> = ({
             }));
           }}
         />
-        {isAiSuggestionSupportedRiskType(type) && (
+        {isAiSuggestionSupportedRiskType(type) && !isCatalogReadOnly && (
           <RiskFactorAiSuggestionButton
             form={riskData}
             setRiskData={(updater) =>

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
@@ -25,6 +25,9 @@ import { useQueryRisk } from 'core/services/hooks/queries/useQueryRisk/useQueryR
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
 import { IRiskSchema, riskSchema } from 'core/utils/schemas/risk.schema';
 import { useMutDeleteRisk } from 'core/services/hooks/mutations/checklist/risk/useMutDeleteRisk';
+import { useAccess } from 'core/hooks/useAccess';
+import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { isRiskFactorCatalogReadOnly } from 'core/utils/risk-factor-catalog-scope.util';
 import type { RiskFactorAiSuggestionKnownDataPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 import type { RiskFactorAiSuggestionSourceContextPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
 
@@ -104,6 +107,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
   const updateRiskMut = useMutUpdateRisk();
   const deleteRiskMut = useMutDeleteRisk();
   const updateGenerateSourceMut = useMutUpdateGenerateSource();
+  const { isMaster } = useAccess();
+  const { user } = useGetCompanyId(true);
 
   const { preventUnwantedChanges } = usePreventAction();
 
@@ -113,6 +118,18 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     id: riskData.id,
     companyId: riskData.companyId,
   });
+
+  const catalogRiskSource = risk ?? riskData;
+
+  const isCatalogReadOnly = useMemo(
+    () =>
+      isRiskFactorCatalogReadOnly({
+        risk: catalogRiskSource,
+        isMaster,
+        userCompanyId: user?.companyId,
+      }),
+    [catalogRiskSource, isMaster, user?.companyId],
+  );
 
   useEffect(() => {
     const subTypeId = risk?.subTypes[0]?.sub_type?.id;
@@ -364,6 +381,8 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     grauInsalubridade,
     synonymous,
   }) => {
+    if (isCatalogReadOnly) return;
+
     const {
       esocial,
       id,
@@ -515,6 +534,7 @@ export const useAddRisk = (options?: IUseAddRiskOptions) => {
     riskEditorLayout: options?.riskEditorLayout ?? 'modal',
     aiSuggestionSourceContext: options?.aiSuggestionSourceContext,
     aiSuggestionKnownDataExtras: options?.aiSuggestionKnownDataExtras,
+    isCatalogReadOnly,
   };
 };
 
