@@ -1,6 +1,8 @@
 import { FC, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
+import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import {
   Alert,
   Box,
@@ -19,15 +21,18 @@ import {
 } from '@mui/material';
 import { SAutocompleteSelect } from '@v2/components/forms/fields/SAutocompleteSelect/SAutocompleteSelect';
 import { SInputFileDropZone } from '@v2/components/forms/fields/SInputFileDropZone/SInputFileDropZone';
+import { useAccess } from 'core/hooks/useAccess';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { useFetchHoMethodRiskSearch } from '@v2/services/occupational-hygiene/ho-method/hooks/useFetchHoMethodRiskSearch';
 import { useMutateCreateHoMethod } from '@v2/services/occupational-hygiene/ho-method/hooks/useMutateHoMethod';
 import {
   parseHoMethodPdf,
+  reviewHoMethodImportWithAi,
   uploadHoMethodDocument,
 } from '@v2/services/occupational-hygiene/ho-method/service/ho-method.service';
 import type {
+  HoMethodAiReviewResult,
   HoMethodImportAgentSuggestion,
   HoMethodImportConfidence,
   HoMethodImportParseResult,
@@ -43,6 +48,11 @@ import { useSystemSnackbar } from '@v2/hooks/useSystemSnackbar';
 import { HO_METHOD_SOURCE_OPTIONS } from '../maps/ho-method.maps';
 import { HoMethodComplementRiskDialog } from './HoMethodComplementRiskDialog';
 import { HoMethodCreateRiskDialog } from './HoMethodCreateRiskDialog';
+import {
+  HoMethodImportAiMasterConfigDialog,
+  type HoMethodImportAiMasterConfig,
+} from './HoMethodImportAiMasterConfigDialog';
+import { HoMethodImportAiReviewDialog } from './HoMethodImportAiReviewDialog';
 import { getHoMethodApiErrorMessage } from '../utils/ho-method-error.util';
 import {
   IMPORT_CONFIDENCE_LABELS,
@@ -142,6 +152,7 @@ export const HoMethodImportPdfModal: FC<Props> = ({
   initialFile,
 }) => {
   const { companyId } = useGetCompanyId();
+  const { isMaster } = useAccess();
   const createMutation = useMutateCreateHoMethod();
   const queryClient = useQueryClient();
   const { showSnackBar } = useSystemSnackbar();
@@ -161,6 +172,15 @@ export const HoMethodImportPdfModal: FC<Props> = ({
   const [createRiskDialogOpen, setCreateRiskDialogOpen] = useState(false);
   const [complementAgentIndex, setComplementAgentIndex] = useState<number | null>(
     null,
+  );
+  const [aiReviewing, setAiReviewing] = useState(false);
+  const [aiReviewResult, setAiReviewResult] = useState<HoMethodAiReviewResult | null>(
+    null,
+  );
+  const [aiReviewOpen, setAiReviewOpen] = useState(false);
+  const [aiMasterConfigOpen, setAiMasterConfigOpen] = useState(false);
+  const [aiMasterConfig, setAiMasterConfig] = useState<HoMethodImportAiMasterConfig>(
+    {},
   );
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
@@ -186,6 +206,10 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     setCreateRiskAgentIndex(null);
     setCreateRiskDialogOpen(false);
     setComplementAgentIndex(null);
+    setAiReviewing(false);
+    setAiReviewResult(null);
+    setAiReviewOpen(false);
+    setAiMasterConfigOpen(false);
   }, []);
 
   const handleClose = () => {
@@ -222,6 +246,48 @@ export const HoMethodImportPdfModal: FC<Props> = ({
     if (!open || !initialFile) return;
     void handleFileSelect(initialFile);
   }, [open, initialFile]);
+
+  const handleAnalyzeWithAi = async () => {
+    if (!parseResult?.extractedText?.trim() || !companyId) {
+      showSnackBar(
+        'Não foi possível obter o texto do PDF para análise assistida. Reimporte o arquivo.',
+        { type: 'error' },
+      );
+      return;
+    }
+
+    setAiReviewing(true);
+    setError(null);
+    try {
+      const result = await reviewHoMethodImportWithAi({
+        companyId,
+        originalFileName: pdfFile?.name,
+        parserResult: parseResult,
+        extractedText: parseResult.extractedText,
+        customPrompt: aiMasterConfig.customPrompt,
+        model: aiMasterConfig.model,
+      });
+      setAiReviewResult(result);
+      setAiReviewOpen(true);
+    } catch (err) {
+      const message = getHoMethodApiErrorMessage(
+        err,
+        'Não foi possível analisar o PDF com IA. Continue com o parser determinístico.',
+      );
+      showSnackBar(message, { type: 'error' });
+      setError(message);
+    } finally {
+      setAiReviewing(false);
+    }
+  };
+
+  const handleAiReviewApplied = (updated: HoMethodImportParseResult) => {
+    setParseResult(updated);
+    setForm(importFormFromParseResult(updated));
+    showSnackBar('Prévia atualizada com os campos selecionados da IA.', {
+      type: 'success',
+    });
+  };
 
   const updateForm = (patch: Partial<HoMethodImportFormState>) => {
     setForm((current) => (current ? { ...current, ...patch } : current));
@@ -434,6 +500,29 @@ export const HoMethodImportPdfModal: FC<Props> = ({
 
           {parseResult && form && fields && (
             <>
+              <Box display="flex" flexWrap="wrap" gap={1} alignItems="center">
+                <Button
+                  variant="outlined"
+                  startIcon={
+                    aiReviewing ? <CircularProgress size={16} /> : <AutoFixHighOutlinedIcon />
+                  }
+                  onClick={() => void handleAnalyzeWithAi()}
+                  disabled={parsing || submitting || aiReviewing}
+                >
+                  {aiReviewing ? 'Analisando método com IA…' : 'Analisar PDF com IA'}
+                </Button>
+                {isMaster && (
+                  <Button
+                    variant="text"
+                    startIcon={<SettingsOutlinedIcon />}
+                    onClick={() => setAiMasterConfigOpen(true)}
+                    disabled={aiReviewing}
+                  >
+                    Configurar prompt/modelo
+                  </Button>
+                )}
+              </Box>
+
               {parseResult.warnings.map((warning) => (
                 <Alert key={warning} severity="warning">
                   {warning}
@@ -861,6 +950,18 @@ export const HoMethodImportPdfModal: FC<Props> = ({
             queryKey: hoMethodQueryKeys.all,
           });
         }}
+      />
+      <HoMethodImportAiReviewDialog
+        open={aiReviewOpen}
+        parserResult={parseResult}
+        aiResult={aiReviewResult}
+        onClose={() => setAiReviewOpen(false)}
+        onApplied={handleAiReviewApplied}
+      />
+      <HoMethodImportAiMasterConfigDialog
+        open={aiMasterConfigOpen}
+        onClose={() => setAiMasterConfigOpen(false)}
+        onApply={setAiMasterConfig}
       />
     </Dialog>
   );

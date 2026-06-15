@@ -371,4 +371,62 @@ export type HoMethodImportParseResult = {
   agents: HoMethodImportAgentSuggestion[];
   canConfirm: boolean;
   confirmBlockReason: string | null;
+  extractedText?: string;
+};
+
+export type HoMethodAiReviewConfidence = 'high' | 'medium' | 'low';
+
+export type HoMethodAiReviewSourceTrace = {
+  page?: number | null;
+  table?: string | null;
+  field: string;
+  excerpt: string;
+};
+
+export type HoMethodAiReviewAgent = {
+  name: string;
+  cas?: string | null;
+  synonyms?: string[];
+  translatedNamePtBr?: string | null;
+  technicalNotes?: string[];
+  occupationalLimits?: Record<string, string | null | undefined> | null;
+  sourceTrace?: HoMethodAiReviewSourceTrace[];
+  confidence: HoMethodAiReviewConfidence;
+  warnings?: string[];
+  matchedRiskFactor?: HoMethodRiskFactorSnapshot | null;
+  matchConfidence?: 'high' | 'low' | 'none';
+  candidateRiskFactors?: HoMethodRiskFactorSnapshot[];
+};
+
+export type HoMethodAiReviewResult = {
+  method?: Record<string, string | null | undefined> | null;
+  agents: HoMethodAiReviewAgent[];
+  sampling?: Record<string, string | null | undefined> | null;
+  preparation?: Record<string, string | null | undefined> | null;
+  analytical?: Record<string, string | null | undefined> | null;
+  observations?: Record<string, string | null | undefined> | null;
+  diagnostics: {
+    detectedTables: Array<{
+      label?: string | null;
+      title?: string | null;
+      page?: number | null;
+      inferredPurpose: 'agents' | 'limits' | 'sampling' | 'properties' | 'unknown';
+      confidence: HoMethodAiReviewConfidence;
+    }>;
+    parserComparison?: {
+      parserAgentCount?: number;
+      aiAgentCount?: number;
+      differences?: string[];
+    } | null;
+    warnings?: string[];
+  };
+};
+
+export type HoMethodImportAiReviewPayload = {
+  companyId?: string;
+  originalFileName?: string;
+  parserResult: HoMethodImportParseResult;
+  extractedText: string;
+  customPrompt?: string;
+  model?: string;
 };
