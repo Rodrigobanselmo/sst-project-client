@@ -1,7 +1,10 @@
 import React from 'react';
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
+import { FormChartDistributionPdf } from 'components/pdfs/shared/FormChartDistributionPdf';
+
 import type { FormChartsPdfDataset } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildFormChartsPdfDataset';
+import type { PieRowPdf } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildFormChartsPdfDataset';
 
 export type PdfFormChartsProps = {
   data: FormChartsPdfDataset;
@@ -12,84 +15,15 @@ export type PdfFormChartsProps = {
   };
 };
 
-function getColorByValue(value?: number): string {
-  if (value === undefined || value === 0) {
-    return '#9e9e9e';
-  }
-  if (value > 5) {
-    return '#2196f3';
-  }
-  const valueColorMap: Record<number, string> = {
-    5: '#3cbe7d',
-    4: '#8fa728',
-    3: '#d9d10b',
-    2: '#d96c2f',
-    1: '#F44336',
-  };
-  return valueColorMap[value] || '#9e9e9e';
-}
-
-const identifierColors = [
-  '#FF6B6B',
-  '#4ECDC4',
-  '#FFEAA7',
-  '#00c8f5',
-  '#DDA0DD',
-  '#F8C471',
-  '#F7DC6F',
-  '#98D8C8',
-  '#BB8FCE',
-  '#85C1E9',
-  '#96CEB4',
-  '#82E0AA',
-];
-
-function DistributionTable({
-  rows,
-  totalAnswers,
-  colorScheme,
-}: {
-  rows: FormChartsPdfDataset['formGroups'][0]['questions'][0]['byParticipantGroup'][0]['rows'];
-  totalAnswers: number;
-  colorScheme: 'identifier' | 'general';
-}) {
-  if (rows.length === 0) {
-    return <Text style={s.muted}>Nenhuma resposta encontrada</Text>;
-  }
-  return (
-    <View>
-      {rows.map((row, idx) => {
-        const color =
-          colorScheme === 'identifier'
-            ? identifierColors[idx % identifierColors.length]
-            : getColorByValue(row.optionValue);
-        return (
-          <View key={`${row.optionLabel}-${idx}`} style={s.optionBlock}>
-            <View style={s.optionLine}>
-              <View style={s.labelWithSwatch}>
-                <View style={[s.swatch, { backgroundColor: color }]} />
-                <Text style={s.optionText}>{row.optionLabel}</Text>
-              </View>
-              <Text style={s.optionNum}>{row.count}</Text>
-              <Text style={s.optionNum}>{row.percentage}%</Text>
-            </View>
-            <View style={s.barTrack}>
-              <View
-                style={[
-                  s.barFill,
-                  {
-                    width: `${row.percentage}%`,
-                    backgroundColor: color,
-                  },
-                ]}
-              />
-            </View>
-          </View>
-        );
-      })}
-      <Text style={s.totalLine}>Total: {totalAnswers} resposta(s)</Text>
-    </View>
-  );
+function mapRowsToChartDistribution(rows: PieRowPdf[]) {
+  return rows.map((row, index) => ({
+    id: `${row.optionLabel}-${index}`,
+    label: row.optionLabel,
+    count: row.count,
+    percentage: row.percentage,
+    color: row.color ?? '#9e9e9e',
+    optionValue: row.optionValue,
+  }));
 }
 
 const s = StyleSheet.create({
@@ -159,55 +93,6 @@ const s = StyleSheet.create({
     marginBottom: 4,
     color: '#333',
   },
-  muted: {
-    fontSize: 9,
-    color: '#666',
-    fontStyle: 'italic',
-    marginBottom: 4,
-  },
-  optionBlock: {
-    marginBottom: 3,
-  },
-  optionLine: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  labelWithSwatch: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    flex: 1,
-    marginRight: 8,
-  },
-  swatch: {
-    width: 6,
-    height: 6,
-    marginRight: 6,
-    marginTop: 2,
-  },
-  optionText: {
-    fontSize: 9,
-    flex: 1,
-  },
-  optionNum: {
-    fontSize: 9,
-    width: 32,
-    textAlign: 'right',
-  },
-  barTrack: {
-    height: 4,
-    marginTop: 2,
-    marginLeft: 12,
-    overflow: 'hidden',
-  },
-  barFill: {
-    height: '100%',
-  },
-  totalLine: {
-    fontSize: 9,
-    fontWeight: 700,
-    marginTop: 6,
-  },
   empty: {
     fontSize: 9,
     color: '#666',
@@ -238,10 +123,10 @@ export default function PdfFormCharts({ data, meta }: PdfFormChartsProps) {
               <View key={chart.questionId} style={s.questionSection}>
                 <Text style={s.categoryName}>{chart.groupName}</Text>
                 <Text style={s.questionHeading}>{chart.questionLabel}</Text>
-                <DistributionTable
-                  rows={chart.rows}
+                <FormChartDistributionPdf
+                  rows={mapRowsToChartDistribution(chart.rows)}
                   totalAnswers={chart.totalAnswers}
-                  colorScheme="identifier"
+                  chartType={data.chartType}
                 />
               </View>
             ))}
@@ -276,10 +161,10 @@ export default function PdfFormCharts({ data, meta }: PdfFormChartsProps) {
                           🔒 Dados protegidos (menos de 3 respostas)
                         </Text>
                       ) : (
-                        <DistributionTable
-                          rows={pg.rows}
+                        <FormChartDistributionPdf
+                          rows={mapRowsToChartDistribution(pg.rows)}
                           totalAnswers={pg.totalAnswers}
-                          colorScheme="general"
+                          chartType={data.chartType}
                         />
                       )}
                     </View>

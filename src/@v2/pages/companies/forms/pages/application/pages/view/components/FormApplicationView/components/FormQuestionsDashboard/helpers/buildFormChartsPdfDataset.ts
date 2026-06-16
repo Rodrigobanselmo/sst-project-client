@@ -2,6 +2,11 @@ import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.e
 import { FormAnswerBrowseModel } from '@v2/models/form/models/form-questions-answers/form-answer-browse.model';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 
+import { computePieDistributionRows } from './compute-pie-distribution-rows.util';
+import {
+  DEFAULT_FORM_CHART_TYPE,
+  type FormChartType,
+} from './form-chart-type.types';
 import {
   buildParticipantGroupingForIndicatorsPdf,
   type HierarchyGroupForIndicators,
@@ -31,9 +36,11 @@ export type PieRowPdf = {
   count: number;
   percentage: number;
   optionValue?: number;
+  color?: string;
 };
 
 export type FormChartsPdfDataset = {
+  chartType: FormChartType;
   isShareableLink: boolean; // Whether this is a shareable link (affects privacy hiding)
   grouping:
     | { active: false }
@@ -117,54 +124,32 @@ const buildQuestionsWithOptions = (
   );
 };
 
-/**
- * Espelha FormQuestionPieChart: contagens por opção, só fatias com count > 0,
- * total = soma das fatias exibidas, percentual = Math.round(count/total*100) como no tooltip.
- */
-function computePieRows(question: QuestionForChart): {
-  rows: PieRowPdf[];
-  totalAnswers: number;
-} {
-  const optionCounts = question.options.reduce(
-    (acc, option) => {
-      acc[option.id] = {
-        id: option.id,
-        label: option.text,
-        value: 0,
-        optionValue: option.value,
-      };
-      return acc;
-    },
-    {} as Record<
-      string,
-      { id: string; label: string; value: number; optionValue?: number }
-    >,
-  );
-
-  question.answers.forEach((answer) => {
-    answer.selectedOptionsIds.forEach((optionId) => {
-      if (optionCounts[optionId]) {
-        optionCounts[optionId].value += 1;
-      }
-    });
+function toPieRowPdf(
+  question: QuestionForChart,
+  colorScheme: 'identifier' | 'general',
+): { rows: PieRowPdf[]; totalAnswers: number } {
+  const { rows, totalAnswers } = computePieDistributionRows({
+    options: question.options,
+    answers: question.answers,
+    colorScheme,
   });
 
-  const pieData = Object.values(optionCounts).filter((item) => item.value > 0);
-  const totalAnswers = pieData.reduce((sum, item) => sum + item.value, 0);
-  const rows: PieRowPdf[] = pieData.map((item) => ({
-    optionLabel: item.label,
-    count: item.value,
-    percentage:
-      totalAnswers > 0 ? Math.round((item.value / totalAnswers) * 100) : 0,
-    optionValue: item.optionValue,
-  }));
-
-  return { rows, totalAnswers };
+  return {
+    rows: rows.map((row) => ({
+      optionLabel: row.label,
+      count: row.count,
+      percentage: row.percentage,
+      optionValue: row.optionValue,
+      color: row.color,
+    })),
+    totalAnswers,
+  };
 }
 
 export function buildFormChartsPdfDataset(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
+  chartType?: FormChartType;
   isShareableLink: boolean;
   hierarchyGroups?: HierarchyGroupForIndicators[];
   /**
@@ -181,6 +166,7 @@ export function buildFormChartsPdfDataset(params: {
   const {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
+    chartType = DEFAULT_FORM_CHART_TYPE,
     isShareableLink,
     hierarchyGroups = [],
     visibleParticipantGroupIds,
@@ -213,7 +199,7 @@ export function buildFormChartsPdfDataset(params: {
     : [];
 
   const identifierCharts = identifierQuestions.map((q) => {
-    const { rows, totalAnswers } = computePieRows(q);
+    const { rows, totalAnswers } = toPieRowPdf(q, 'identifier');
     return {
       questionId: q.id,
       questionLabel: stripHtml(q.details.text),
@@ -300,7 +286,7 @@ export function buildFormChartsPdfDataset(params: {
             shouldHideData,
           };
         }
-        const { rows, totalAnswers } = computePieRows(pdata);
+        const { rows, totalAnswers } = toPieRowPdf(pdata, 'general');
         return {
           participantGroupId: pg.id,
           participantGroupName: pg.name,
@@ -314,6 +300,7 @@ export function buildFormChartsPdfDataset(params: {
   }));
 
   return {
+    chartType,
     isShareableLink,
     grouping,
     participantGroups: participantGroups.map((pg) => ({

@@ -5,6 +5,7 @@ import type { FormApplicationReadModel } from '@v2/models/form/models/form-appli
 import type { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 
 import type { HierarchyGroupForIndicators } from './buildParticipantGroupsForIndicators';
+import type { FormChartType } from './form-chart-type.types';
 
 /**
  * Gera o PDF de gráficos no navegador com a mesma base da tela
@@ -14,6 +15,7 @@ export async function exportFormChartsPdfInBrowser(params: {
   formApplication: FormApplicationReadModel;
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
+  chartType: FormChartType;
   hierarchyGroups: HierarchyGroupForIndicators[];
   /** Com agrupamento ativo: ids dos grupos a incluir no PDF (alinhado à tela). */
   visibleParticipantGroupIds?: string[];
@@ -27,6 +29,7 @@ export async function exportFormChartsPdfInBrowser(params: {
   const dataset = buildFormChartsPdfDataset({
     formQuestionsAnswers: params.formQuestionsAnswers,
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
+    chartType: params.chartType,
     isShareableLink: params.formApplication.isShareableLink,
     hierarchyGroups: params.hierarchyGroups,
     ...(params.selectedGroupingQuestionId

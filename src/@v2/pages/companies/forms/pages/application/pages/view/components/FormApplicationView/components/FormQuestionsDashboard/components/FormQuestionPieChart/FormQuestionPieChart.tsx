@@ -6,55 +6,23 @@ import {
   Typography,
 } from '@mui/material';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
-import { ResponsivePie } from '@nivo/pie';
 import { FormQuestionWithAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-question-with-answers-browse.model';
-import { PieLegends } from './components/PieLegends/PieLegends';
 import { HtmlContentRenderer } from '@v2/pages/companies/forms/pages/application/pages/public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+
+import { calculateFormIndicatorFromQuestion } from '../../helpers/calculate-form-indicator.util';
+import { computePieDistributionRows } from '../../helpers/compute-pie-distribution-rows.util';
+import {
+  DEFAULT_FORM_CHART_TYPE,
+  type FormChartType,
+} from '../../helpers/form-chart-type.types';
+import {
+  getIndicatorColorFromScore,
+} from '../../helpers/form-indicator-quality.util';
+import { FormChartDistributionView } from '../FormChartDistributionView/FormChartDistributionView';
 import { IndicatorPercentScale } from '../IndicatorPercentScale/IndicatorPercentScale';
 
-// Color mapping based on option values
-const getColorByValue = (value?: number): string => {
-  if (value === undefined || value === 0) {
-    return '#9e9e9e'; // grey
-  }
-
-  if (value > 5) {
-    return '#2196f3'; // blue
-  }
-
-  // Value-based color mapping for 1-5
-  const valueColorMap: Record<number, string> = {
-    5: '#3cbe7d',
-    4: '#8fa728',
-    3: '#d9d10b',
-    2: '#d96c2f',
-    1: '#F44336',
-  };
-
-  return valueColorMap[value] || '#9e9e9e'; // fallback to grey
-};
-
-// Color schemes for different sections
-const colorSchemes = {
-  identifier: [
-    '#FF6B6B', // Bright red
-    '#4ECDC4', // Teal
-    '#FFEAA7', // Light yellow
-    '#00c8f5', // Blue
-    '#DDA0DD', // Plum
-    '#F8C471', // Orange
-    '#F7DC6F', // Golden yellow
-    '#98D8C8', // Seafoam green
-    '#BB8FCE', // Light purple
-    '#85C1E9', // Sky blue
-    '#96CEB4', // Mint green
-    '#82E0AA', // Light green
-  ],
-};
-
-// Indicator component for displaying calculated score
 interface IndicatorComponentProps {
   question: Omit<FormQuestionWithAnswersBrowseModel, 'textWithoutHtml'> & {
     groupName: string;
@@ -73,58 +41,18 @@ const IndicatorComponent = ({
   isShareableLink = true,
   participantCount,
 }: IndicatorComponentProps) => {
-  // Count unique participants who answered this question
   const uniqueParticipants = new Set(
     question.answers.map((answer) => answer.participantsAnswersId),
   ).size;
 
-  // Use participantCount if provided, otherwise use uniqueParticipants
   const actualParticipantCount = participantCount ?? uniqueParticipants;
-
-  // Check if should hide data due to privacy (less than 3 responses and not shareable link)
   const shouldHideData = !isShareableLink && actualParticipantCount < 3;
 
-  // Calculate indicator value
-  const calculateIndicator = () => {
-    let totalValue = 0;
-    let totalAnswers = 0;
-
-    question.answers.forEach((answer) => {
-      answer.selectedOptionsIds.forEach((optionId) => {
-        const option = question.options.find((opt) => opt.id === optionId);
-        if (option && option.value !== undefined && option.value > 0) {
-          totalValue += option.value - 1;
-          totalAnswers += 1;
-        }
-      });
+  const { score: indicatorValue, percentage, hasValidAnswers } =
+    calculateFormIndicatorFromQuestion({
+      answers: question.answers,
+      options: question.options,
     });
-
-    if (totalAnswers === 0) return 0;
-
-    // Normalize by dividing by (number of answers × 5)
-    const maxPossibleValue = totalAnswers * 4;
-    return totalValue / maxPossibleValue;
-  };
-
-  const indicatorValue = calculateIndicator();
-  const percentage = Math.round(indicatorValue * 100);
-
-  // Check if there are any answers with value > 0
-  const hasValidAnswers = question.answers.some((answer) =>
-    answer.selectedOptionsIds.some((optionId) => {
-      const option = question.options.find((opt) => opt.id === optionId);
-      return option && option.value !== undefined && option.value > 0;
-    }),
-  );
-
-  // Get color based on indicator value
-  const getIndicatorColor = (value: number): string => {
-    if (value >= 0.8) return '#3cbe7d'; // Green for high scores
-    if (value >= 0.6) return '#8fa728'; // Light green
-    if (value >= 0.4) return '#d9d10b'; // Yellow
-    if (value >= 0.2) return '#d96c2f'; // Orange
-    return '#F44336'; // Red for low scores
-  };
 
   return (
     <Box>
@@ -195,7 +123,7 @@ const IndicatorComponent = ({
                 borderRadius: 10,
                 backgroundColor: '#e0e0e0',
                 '& .MuiLinearProgress-bar': {
-                  backgroundColor: getIndicatorColor(indicatorValue),
+                  backgroundColor: getIndicatorColorFromScore(indicatorValue),
                   borderRadius: 10,
                 },
               }}
@@ -205,7 +133,7 @@ const IndicatorComponent = ({
               variant="h4"
               textAlign="center"
               mt={2}
-              color={getIndicatorColor(indicatorValue)}
+              color={getIndicatorColorFromScore(indicatorValue)}
             >
               {percentage}%
             </Typography>
@@ -230,6 +158,7 @@ interface FormQuestionPieChartProps {
   };
   groupName?: string;
   colorScheme?: 'identifier' | 'general';
+  chartType?: FormChartType;
   hideQuestionText?: boolean;
   onCreateGroupAnalysis?: (questionId: string) => void;
   indicators?: boolean;
@@ -241,69 +170,30 @@ export const FormQuestionPieChart = ({
   question,
   groupName,
   colorScheme = 'general',
+  chartType = DEFAULT_FORM_CHART_TYPE,
   hideQuestionText = false,
   indicators = false,
   onCreateGroupAnalysis,
   isShareableLink = true,
   participantCount,
 }: FormQuestionPieChartProps) => {
-  // Count unique participants who answered this question
   const uniqueParticipants = new Set(
     question.answers.map((answer) => answer.participantsAnswersId),
   ).size;
 
-  // Use participantCount if provided, otherwise use uniqueParticipants
   const actualParticipantCount = participantCount ?? uniqueParticipants;
-
-  // Check if should hide data due to privacy (less than 3 responses and not shareable link)
   const shouldHideData = !isShareableLink && actualParticipantCount < 3;
 
-  // Get the appropriate color palette for identifier questions
-  const identifierColors = colorSchemes.identifier;
-
-  // Count answers for each option
-  const optionCounts = question.options.reduce(
-    (acc, option) => {
-      acc[option.id] = {
-        id: option.id,
-        label: option.text,
-        value: 0,
-        optionValue: option.value, // Store the option value for color mapping
-      };
-      return acc;
-    },
-    {} as Record<
-      string,
-      { id: string; label: string; value: number; optionValue?: number }
-    >,
-  );
-
-  // Count answers
-  question.answers.forEach((answer) => {
-    answer.selectedOptionsIds.forEach((optionId) => {
-      if (optionCounts[optionId]) {
-        optionCounts[optionId].value += 1;
-      }
-    });
+  const { rows, totalAnswers } = computePieDistributionRows({
+    options: question.options,
+    answers: question.answers,
+    colorScheme,
   });
 
-  // Convert to array and filter out options with 0 answers
-  const pieData = Object.values(optionCounts)
-    .filter((item) => item.value > 0)
-    .map((item, index) => ({
-      ...item,
-      color:
-        colorScheme === 'identifier'
-          ? identifierColors[index % identifierColors.length]
-          : getColorByValue(item.optionValue),
-    }));
-
-  // Function to create group analysis by each option
   const handleCreateGroupAnalysis = () => {
     onCreateGroupAnalysis?.(question.id);
   };
 
-  // If indicators is true, use the IndicatorComponent
   if (indicators) {
     return (
       <IndicatorComponent
@@ -315,7 +205,6 @@ export const FormQuestionPieChart = ({
     );
   }
 
-  // If should hide data, show privacy message
   if (shouldHideData) {
     return (
       <Box>
@@ -346,8 +235,7 @@ export const FormQuestionPieChart = ({
     );
   }
 
-  // If no data, show a message
-  if (pieData.length === 0) {
+  if (rows.length === 0) {
     return (
       <Box>
         {groupName && (
@@ -372,8 +260,6 @@ export const FormQuestionPieChart = ({
       </Box>
     );
   }
-
-  const totalAnswers = pieData.reduce((sum, item) => sum + item.value, 0);
 
   return (
     <Box>
@@ -413,49 +299,13 @@ export const FormQuestionPieChart = ({
           </Box>
         )}
       </SFlex>
-      <Box height={200} maxWidth={400} mx="auto">
-        <ResponsivePie
-          data={pieData}
-          margin={{ top: 20, right: 80, bottom: 20, left: 80 }}
-          innerRadius={0.5}
-          padAngle={1}
-          cornerRadius={3}
-          activeOuterRadiusOffset={8}
-          arcLinkLabel={(data) => `${data.label}`}
-          arcLinkLabelsSkipAngle={10}
-          arcLinkLabelsTextColor="#333333"
-          arcLinkLabelsThickness={2}
-          arcLinkLabelsColor={{ from: 'color' }}
-          colors={{ datum: 'data.color' }}
-          arcLabelsSkipAngle={10}
-          arcLabelsTextColor="#333333"
-          enableArcLabels={true}
-          enableArcLinkLabels={true}
-          valueFormat={(value) => {
-            const percentage = (value / totalAnswers) * 100;
-            return percentage < 1 ? '<1%' : `${Math.round(percentage)}%`;
-          }}
-          tooltip={({ datum }) => (
-            <Box
-              sx={{
-                background: 'white',
-                padding: '8px 12px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                width: '300px',
-                color: 'black',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              }}
-            >
-              <strong>{datum.label}</strong>
-              <br />
-              {datum.value} respostas (
-              {Math.round((datum.value / totalAnswers) * 100)}%)
-            </Box>
-          )}
+      <Box maxWidth={400} mx="auto">
+        <FormChartDistributionView
+          rows={rows}
+          totalAnswers={totalAnswers}
+          chartType={chartType}
         />
       </Box>
-      <PieLegends data={pieData} total={totalAnswers} />
     </Box>
   );
 };

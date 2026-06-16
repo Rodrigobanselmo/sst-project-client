@@ -2,14 +2,7 @@ import { Box, Typography } from '@mui/material';
 
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 
-/** Mesmas cores hex usadas nas barras de indicador (sem alterar a paleta). */
-const LEGEND_ITEMS = [
-  { rangeLabel: '0–19%', name: 'Muito negativo', color: '#F44336' },
-  { rangeLabel: '20–39%', name: 'Negativo', color: '#d96c2f' },
-  { rangeLabel: '40–59%', name: 'Neutro', color: '#d9d10b' },
-  { rangeLabel: '60–79%', name: 'Positivo', color: '#8fa728' },
-  { rangeLabel: '80–100%', name: 'Muito positivo', color: '#3cbe7d' },
-] as const;
+import { INDICATOR_QUALITY_LEGEND_ITEMS } from '../../helpers/form-indicator-quality.util';
 
 /**
  * Legenda explicativa da aba Indicadores (FRPS): faixas de percentual alinhadas
@@ -53,7 +46,7 @@ export const IndicatorsQualityLegend = () => {
           rowGap: 2,
         }}
       >
-        {LEGEND_ITEMS.map((item) => (
+        {INDICATOR_QUALITY_LEGEND_ITEMS.map((item) => (
           <Box
             key={item.name}
             sx={{

@@ -2,6 +2,15 @@ import { FormQuestionTypeEnum } from '@v2/models/form/enums/form-question-type.e
 import { FormAnswerBrowseModel } from '@v2/models/form/models/form-questions-answers/form-answer-browse.model';
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 
+import { calculateFormIndicatorFromQuestions } from './calculate-form-indicator.util';
+import {
+  buildExecutiveIndicatorsDistribution,
+  type ExecutiveIndicatorsDistribution,
+} from './buildExecutiveIndicatorsDistribution.util';
+import {
+  DEFAULT_FORM_CHART_TYPE,
+  type FormChartType,
+} from './form-chart-type.types';
 import {
   buildParticipantGroupingForIndicatorsPdf,
   type HierarchyGroupForIndicators,
@@ -39,6 +48,8 @@ export type IndicatorRowPdf = {
 export type IndicatorsPdfDataset = {
   /** Alinhado ao toggle da aba Indicadores: só categorias vs categorias + perguntas. */
   showOnlyGroupIndicators: boolean;
+  executiveDistribution: ExecutiveIndicatorsDistribution;
+  executiveDistributionChartType: FormChartType;
   /** Diagnóstico narrativo salvo para o mesmo scope do PDF (quando DONE). */
   narrativeDiagnosticMarkdown?: string | null;
   isShareableLink: boolean; // Whether this is a shareable link (affects privacy hiding)
@@ -114,11 +125,8 @@ const calculateIndicatorForQuestions = (
   questions: QuestionWithParticipantGroups[],
   participantGroupId?: string,
 ) => {
-  let totalValue = 0;
-  let totalAnswers = 0;
-
-  questions.forEach((questionData) => {
-    const questionsToAggregate = participantGroupId
+  const questionsToAggregate = questions.flatMap((questionData) => {
+    const scopedQuestions = participantGroupId
       ? ([
           questionData.participantGroupData.find(
             (pg) => pg.groupId === participantGroupId,
@@ -126,35 +134,20 @@ const calculateIndicatorForQuestions = (
         ].filter(Boolean) as QuestionForIndicator[])
       : questionData.participantGroupData.map((pg) => pg.question);
 
-    questionsToAggregate.forEach((q) => {
-      q.answers.forEach((answer) => {
-        answer.selectedOptionsIds.forEach((optionId) => {
-          const option = questionData.options.find(
-            (opt) => opt.id === optionId,
-          );
-          if (option && option.value !== undefined && option.value > 0) {
-            totalValue += option.value - 1;
-            totalAnswers += 1;
-          }
-        });
-      });
-    });
+    return scopedQuestions.map((question) => ({
+      answers: question.answers,
+      options: questionData.options,
+    }));
   });
 
-  if (totalAnswers === 0)
-    return { score: 0, percentage: 0, hasValidAnswers: false };
-
-  const maxPossibleValue = totalAnswers * 4;
-  const score = maxPossibleValue > 0 ? totalValue / maxPossibleValue : 0;
-  const percentage = Math.round(score * 100);
-
-  return { score, percentage, hasValidAnswers: true };
+  return calculateFormIndicatorFromQuestions(questionsToAggregate);
 };
 
 export function buildIndicatorsPdfDataset(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   selectedGroupingQuestionId: string | null;
   showOnlyGroupIndicators: boolean;
+  executiveDistributionChartType?: FormChartType;
   narrativeDiagnosticMarkdown?: string | null;
   isShareableLink: boolean;
   /** Mesmos grupos hierárquicos da tela (opcional; default []). */
@@ -174,6 +167,7 @@ export function buildIndicatorsPdfDataset(params: {
     formQuestionsAnswers,
     selectedGroupingQuestionId,
     showOnlyGroupIndicators,
+    executiveDistributionChartType = DEFAULT_FORM_CHART_TYPE,
     narrativeDiagnosticMarkdown = null,
     isShareableLink,
     hierarchyGroups = [],
@@ -318,8 +312,15 @@ export function buildIndicatorsPdfDataset(params: {
     };
   });
 
+  const executiveDistribution = buildExecutiveIndicatorsDistribution({
+    formGroups,
+    showOnlyGroupIndicators,
+  });
+
   return {
     showOnlyGroupIndicators,
+    executiveDistribution,
+    executiveDistributionChartType,
     narrativeDiagnosticMarkdown,
     isShareableLink,
     grouping,

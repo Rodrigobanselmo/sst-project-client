@@ -27,6 +27,8 @@ import { FormQuestionGroupWithAnswersBrowseModel } from '@v2/models/form/models/
 import { FormQuestionsAnswersBrowseModel } from '@v2/models/form/models/form-questions-answers/form-questions-answers-browse.model';
 import { HtmlContentRenderer } from '../../../../../public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
 import { FormQuestionPieChart } from './components/FormQuestionPieChart/FormQuestionPieChart';
+import { FormChartTypeSelector } from './components/FormChartTypeSelector/FormChartTypeSelector';
+import { ExecutiveIndicatorsDistributionSection } from './components/ExecutiveIndicatorsDistribution/ExecutiveIndicatorsDistribution';
 import { IndicatorsQualityLegend } from './components/IndicatorsQualityLegend/IndicatorsQualityLegend';
 import { IndicatorPercentScale } from './components/IndicatorPercentScale/IndicatorPercentScale';
 import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
@@ -60,6 +62,13 @@ import { buildParticipantGroupingEnrichmentContext } from './helpers/buildPartic
 import { exportFormChartsPdfInBrowser } from './helpers/exportFormChartsPdfInBrowser';
 import { exportFormIndicatorsPdfInBrowser } from './helpers/exportFormIndicatorsPdfInBrowser';
 import { exportFormRiskAnalysisPdfInBrowser } from './helpers/exportFormRiskAnalysisPdfInBrowser';
+import { buildIndicatorsPdfDataset } from './helpers/buildIndicatorsPdfDataset';
+import {
+  DEFAULT_FORM_CHART_TYPE,
+  type FormChartType,
+} from './helpers/form-chart-type.types';
+import { getIndicatorColorFromScore } from './helpers/form-indicator-quality.util';
+import { calculateFormIndicatorFromQuestions } from './helpers/calculate-form-indicator.util';
 import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
 import { IndicatorsNarrativeDiagnosticSection } from './components/IndicatorsNarrativeDiagnosticSection/IndicatorsNarrativeDiagnosticSection';
 import { buildIndicatorsNarrativeDiagnosticScope } from './helpers/buildIndicatorsNarrativeDiagnosticScope';
@@ -118,67 +127,28 @@ const ParticipantGroupIndicator = ({
   participantCount,
   isShareableLink,
 }: ParticipantGroupIndicatorProps) => {
-  // Calculate indicator value for specific participant group across all questions in this form group
-  const calculateParticipantGroupIndicator = () => {
-    let totalValue = 0;
-    let totalAnswers = 0;
-
-    // Sum across all questions in this group for the specific participant group
-    groupData.questions.forEach((questionData) => {
-      const participantData = questionData.participantGroupData.find(
-        (pg) => pg.groupId === participantGroupId,
-      );
-
-      if (participantData) {
-        participantData.question.answers.forEach((answer) => {
-          answer.selectedOptionsIds.forEach((optionId) => {
-            const option = questionData.options.find(
-              (opt) => opt.id === optionId,
-            );
-            if (option && option.value !== undefined && option.value > 0) {
-              totalValue += option.value - 1;
-              totalAnswers += 1;
-            }
-          });
-        });
-      }
-    });
-
-    if (totalAnswers === 0) return 0;
-
-    // Normalize by dividing by (number of answers × 5)
-    const maxPossibleValue = totalAnswers * 4;
-    return totalValue / maxPossibleValue;
-  };
-
-  const indicatorValue = calculateParticipantGroupIndicator();
-  const percentage = Math.round(indicatorValue * 100);
-
-  // Check if there are any valid answers for this participant group
-  const hasValidAnswers = groupData.questions.some((questionData) => {
+  const questionsForCalculation = groupData.questions.flatMap((questionData) => {
     const participantData = questionData.participantGroupData.find(
       (pg) => pg.groupId === participantGroupId,
     );
 
-    return participantData?.question.answers.some((answer) =>
-      answer.selectedOptionsIds.some((optionId) => {
-        const option = questionData.options.find((opt) => opt.id === optionId);
-        return option && option.value !== undefined && option.value > 0;
-      }),
-    );
+    if (!participantData) return [];
+
+    return [
+      {
+        answers: participantData.question.answers,
+        options: questionData.options,
+      },
+    ];
   });
 
-  // Check if should hide data due to privacy (less than 3 responses and not shareable link)
-  const shouldHideData = !isShareableLink && participantCount < 3;
+  const {
+    score: indicatorValue,
+    percentage,
+    hasValidAnswers,
+  } = calculateFormIndicatorFromQuestions(questionsForCalculation);
 
-  // Get color based on indicator value
-  const getIndicatorColor = (value: number): string => {
-    if (value >= 0.8) return '#3cbe7d'; // Green for high scores
-    if (value >= 0.6) return '#8fa728'; // Light green
-    if (value >= 0.4) return '#d9d10b'; // Yellow
-    if (value >= 0.2) return '#d96c2f'; // Orange
-    return '#F44336'; // Red for low scores
-  };
+  const shouldHideData = !isShareableLink && participantCount < 3;
 
   return (
     <Box
@@ -195,7 +165,7 @@ const ParticipantGroupIndicator = ({
           ? '#ffb74d'
           : !hasValidAnswers
             ? '#e0e0e0'
-            : getIndicatorColor(indicatorValue),
+            : getIndicatorColorFromScore(indicatorValue),
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
         transition: 'all 0.3s ease',
         '&:hover': {
@@ -267,7 +237,7 @@ const ParticipantGroupIndicator = ({
                 borderRadius: 7,
                 backgroundColor: '#e0e0e0',
                 '& .MuiLinearProgress-bar': {
-                  backgroundColor: getIndicatorColor(indicatorValue),
+                  backgroundColor: getIndicatorColorFromScore(indicatorValue),
                   borderRadius: 7,
                 },
               }}
@@ -278,7 +248,7 @@ const ParticipantGroupIndicator = ({
               textAlign="center"
               mt={2}
               fontWeight={700}
-              color={getIndicatorColor(indicatorValue)}
+              color={getIndicatorColorFromScore(indicatorValue)}
             >
               {percentage}%
             </Typography>
@@ -365,46 +335,17 @@ const GroupDashboardIndicator = ({
     );
   }
 
-  // Default: show combined indicator for all participants
-  const calculateGroupIndicator = () => {
-    let totalValue = 0;
-    let totalAnswers = 0;
+  const questionsForCalculation = groupData.questions.flatMap((questionData) =>
+    questionData.participantGroupData.map((participantData) => ({
+      answers: participantData.question.answers,
+      options: questionData.options,
+    })),
+  );
 
-    // Sum across all questions in this group and all their participant groups
-    groupData.questions.forEach((questionData) => {
-      questionData.participantGroupData.forEach((participantData) => {
-        participantData.question.answers.forEach((answer) => {
-          answer.selectedOptionsIds.forEach((optionId) => {
-            const option = questionData.options.find(
-              (opt) => opt.id === optionId,
-            );
-            if (option && option.value !== undefined && option.value > 0) {
-              totalValue += option.value - 1;
-              totalAnswers += 1;
-            }
-          });
-        });
-      });
-    });
-
-    if (totalAnswers === 0) return 0;
-
-    // Normalize by dividing by (number of answers × 5)
-    const maxPossibleValue = totalAnswers * 4;
-    return totalValue / maxPossibleValue;
-  };
-
-  const indicatorValue = calculateGroupIndicator();
-  const percentage = Math.round(indicatorValue * 100);
-
-  // Get color based on indicator value
-  const getIndicatorColor = (value: number): string => {
-    if (value >= 0.8) return '#3cbe7d'; // Green for high scores
-    if (value >= 0.6) return '#8fa728'; // Light green
-    if (value >= 0.4) return '#d9d10b'; // Yellow
-    if (value >= 0.2) return '#d96c2f'; // Orange
-    return '#F44336'; // Red for low scores
-  };
+  const {
+    score: indicatorValue,
+    percentage,
+  } = calculateFormIndicatorFromQuestions(questionsForCalculation);
 
   return (
     <SPaper
@@ -414,7 +355,7 @@ const GroupDashboardIndicator = ({
         borderRadius: 2,
         border: '2px solid',
         backgroundColor: 'grey.100',
-        borderColor: getIndicatorColor(indicatorValue),
+        borderColor: getIndicatorColorFromScore(indicatorValue),
       }}
     >
       <Typography variant="h5" textAlign="center" mb={2} color="primary.main">
@@ -439,7 +380,7 @@ const GroupDashboardIndicator = ({
               borderRadius: 10,
               backgroundColor: '#e0e0e0',
               '& .MuiLinearProgress-bar': {
-                backgroundColor: getIndicatorColor(indicatorValue),
+                backgroundColor: getIndicatorColorFromScore(indicatorValue),
                 borderRadius: 10,
               },
             }}
@@ -449,7 +390,7 @@ const GroupDashboardIndicator = ({
             variant="h2"
             textAlign="center"
             mt={2}
-            color={getIndicatorColor(indicatorValue)}
+            color={getIndicatorColorFromScore(indicatorValue)}
           >
             {percentage}%
           </Typography>
@@ -508,6 +449,10 @@ export const FormQuestionsDashboard = ({
   // State for controlling whether to show only group indicators or individual questions too
   const [showOnlyGroupIndicators, setShowOnlyGroupIndicators] =
     useState<boolean>(false);
+  const [chartsChartType, setChartsChartType] =
+    useState<FormChartType>(DEFAULT_FORM_CHART_TYPE);
+  const [executiveDistributionChartType, setExecutiveDistributionChartType] =
+    useState<FormChartType>(DEFAULT_FORM_CHART_TYPE);
 
   // Fetch hierarchy groups for sector grouping
   const { hierarchyGroups } = useFetchBrowseHierarchyGroups({
@@ -726,6 +671,31 @@ export const FormQuestionsDashboard = ({
     ],
   );
 
+  const indicatorsDatasetForView = useMemo(() => {
+    if (!formQuestionsAnswers) return null;
+
+    return buildIndicatorsPdfDataset({
+      formQuestionsAnswers,
+      selectedGroupingQuestionId: selectedGroupingQuestion,
+      showOnlyGroupIndicators,
+      executiveDistributionChartType,
+      narrativeDiagnosticMarkdown: null,
+      isShareableLink: formApplication.isShareableLink,
+      hierarchyGroups,
+      ...(selectedGroupingQuestion && selectedParticipantGroupIdsForView
+        ? { visibleParticipantGroupIds: selectedParticipantGroupIdsForView }
+        : {}),
+    });
+  }, [
+    formQuestionsAnswers,
+    selectedGroupingQuestion,
+    showOnlyGroupIndicators,
+    executiveDistributionChartType,
+    formApplication.isShareableLink,
+    hierarchyGroups,
+    selectedParticipantGroupIdsForView,
+  ]);
+
   // Helper function to filter answers based on participant IDs
   const filterAnswersByParticipants = useCallback(
     (
@@ -919,6 +889,7 @@ export const FormQuestionsDashboard = ({
                   <FormQuestionPieChart
                     question={question}
                     colorScheme="identifier"
+                    chartType={chartsChartType}
                     onCreateGroupAnalysis={handleCreateGroupAnalysis}
                     isShareableLink={isShareableLink}
                   />
@@ -1120,6 +1091,7 @@ export const FormQuestionsDashboard = ({
                           selectedGroupingQuestionId: selectedGroupingQuestion,
                           selectedGroupingLabel,
                           showOnlyGroupIndicators,
+                          executiveDistributionChartType,
                           hierarchyGroups,
                           ...(selectedGroupingQuestion &&
                           selectedParticipantGroupIdsForView
@@ -1161,7 +1133,19 @@ export const FormQuestionsDashboard = ({
                 py: 5,
               }}
             >
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 2,
+                }}
+              >
+                <FormChartTypeSelector
+                  value={chartsChartType}
+                  onChange={setChartsChartType}
+                />
                 <Button
                   variant="outlined"
                   disabled={!formQuestionsAnswers || isExportingChartsPdf}
@@ -1186,6 +1170,7 @@ export const FormQuestionsDashboard = ({
                         formApplication,
                         formQuestionsAnswers,
                         selectedGroupingQuestionId: selectedGroupingQuestion,
+                        chartType: chartsChartType,
                         hierarchyGroups,
                         ...(selectedGroupingQuestion &&
                         selectedParticipantGroupIdsForView
@@ -1386,6 +1371,13 @@ export const FormQuestionsDashboard = ({
               />
             ) : (
               <SFlex direction="column" gap={24} color="background.paper">
+                {isIndicatorTab && indicatorsDatasetForView ? (
+                  <ExecutiveIndicatorsDistributionSection
+                    distribution={indicatorsDatasetForView.executiveDistribution}
+                    chartType={executiveDistributionChartType}
+                    onChartTypeChange={setExecutiveDistributionChartType}
+                  />
+                ) : null}
                 {isIndicatorTab && <IndicatorsQualityLegend />}
                 {isIndicatorTab && (
                   <IndicatorsNarrativeDiagnosticSection
@@ -1511,6 +1503,11 @@ export const FormQuestionsDashboard = ({
                                             }
                                             question={participantData.question}
                                             colorScheme="general"
+                                            chartType={
+                                              isGraphsTab
+                                                ? chartsChartType
+                                                : DEFAULT_FORM_CHART_TYPE
+                                            }
                                             indicators={isIndicatorTab}
                                             isShareableLink={isShareableLink}
                                             participantCount={

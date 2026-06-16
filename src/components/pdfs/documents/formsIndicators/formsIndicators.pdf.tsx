@@ -1,10 +1,17 @@
 import React from 'react';
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 
+import { FormChartDistributionPdf } from 'components/pdfs/shared/FormChartDistributionPdf';
+
 import type {
   IndicatorRowPdf,
   IndicatorsPdfDataset,
 } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildIndicatorsPdfDataset';
+import {
+  INDICATOR_PERCENT_SCALE_MARKS,
+  INDICATOR_QUALITY_LEGEND_ITEMS,
+  getIndicatorColorFromScore,
+} from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/form-indicator-quality.util';
 
 export type PdfFormIndicatorsProps = {
   data: IndicatorsPdfDataset;
@@ -14,29 +21,6 @@ export type PdfFormIndicatorsProps = {
     issuedAt: string;
   };
 };
-
-function getIndicatorColor(value: number): string {
-  if (value >= 0.8) return '#3cbe7d';
-  if (value >= 0.6) return '#8fa728';
-  if (value >= 0.4) return '#d9d10b';
-  if (value >= 0.2) return '#d96c2f';
-  return '#F44336';
-}
-
-/** Mesmos hex da legenda da tela Indicadores (somente referência visual). */
-const LEGEND_ITEMS: ReadonlyArray<{
-  rangeLabel: string;
-  name: string;
-  color: string;
-}> = [
-  { rangeLabel: '0–19%', name: 'Muito negativo', color: '#F44336' },
-  { rangeLabel: '20–39%', name: 'Negativo', color: '#d96c2f' },
-  { rangeLabel: '40–59%', name: 'Neutro', color: '#d9d10b' },
-  { rangeLabel: '60–79%', name: 'Positivo', color: '#8fa728' },
-  { rangeLabel: '80–100%', name: 'Muito positivo', color: '#3cbe7d' },
-];
-
-const SCALE_MARKS = [0, 20, 40, 60, 80, 100] as const;
 
 function IndicatorsInterpretationLegendPdf() {
   return (
@@ -50,7 +34,7 @@ function IndicatorsInterpretationLegendPdf() {
       <Text style={s.legendNote}>
         Quanto maior o percentual, mais favorável é o resultado do indicador.
       </Text>
-      {LEGEND_ITEMS.map((item) => (
+      {INDICATOR_QUALITY_LEGEND_ITEMS.map((item) => (
         <View key={item.name} style={s.legendRow}>
           <View style={[s.legendSwatch, { backgroundColor: item.color }]} />
           <View style={s.legendTextCol}>
@@ -78,18 +62,18 @@ function IndicatorBarTrackWithScale({
             s.barFill,
             {
               width: `${percentage}%`,
-              backgroundColor: getIndicatorColor(score),
+              backgroundColor: getIndicatorColorFromScore(score),
             },
           ]}
         />
       </View>
       <View style={s.scaleTicksRow}>
-        {SCALE_MARKS.map((m) => (
+        {INDICATOR_PERCENT_SCALE_MARKS.map((m) => (
           <View key={m} style={s.scaleTick} />
         ))}
       </View>
       <View style={s.scaleLabelsRow}>
-        {SCALE_MARKS.map((m) => (
+        {INDICATOR_PERCENT_SCALE_MARKS.map((m) => (
           <Text key={m} style={s.scaleLabel}>
             {m}
           </Text>
@@ -395,6 +379,30 @@ const s = StyleSheet.create({
     marginTop: 4,
     marginBottom: 2,
   },
+  executiveSection: {
+    marginBottom: 14,
+    padding: 8,
+    border: '1 solid #e0e0e0',
+    borderRadius: 4,
+    backgroundColor: '#fafafa',
+  },
+  executiveTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: '#222',
+    marginBottom: 4,
+  },
+  executiveBody: {
+    fontSize: 8,
+    color: '#555',
+    lineHeight: 1.4,
+    marginBottom: 8,
+  },
+  executiveSummaryLine: {
+    fontSize: 8,
+    color: '#444',
+    marginBottom: 2,
+  },
 });
 
 export default function PdfFormIndicators({
@@ -424,6 +432,42 @@ export default function PdfFormIndicators({
         <Text style={s.issuedAt}>Emitido em: {meta.issuedAt}</Text>
         <Text style={s.groupingBanner}>{groupingLabel}</Text>
         <Text style={s.displayModeBanner}>{displayModeLabel}</Text>
+
+        <View style={s.executiveSection}>
+          <Text style={s.executiveTitle}>
+            Distribuição Geral dos Indicadores
+          </Text>
+          <Text style={s.executiveBody}>
+            Distribuição dos indicadores calculados no recorte atual, classificados
+            conforme as faixas de qualidade. Não representa média geral nem nota
+            única da empresa.
+          </Text>
+          {data.executiveDistribution.totalIndicators === 0 ? (
+            <Text style={s.executiveBody}>
+              Nenhum indicador disponível para o recorte atual.
+            </Text>
+          ) : (
+            <>
+              <FormChartDistributionPdf
+                rows={data.executiveDistribution.rows.map((row) => ({
+                  id: row.bandId,
+                  label: row.name,
+                  count: row.count,
+                  percentage: row.percentage,
+                  color: row.color,
+                }))}
+                totalAnswers={data.executiveDistribution.totalIndicators}
+                chartType={data.executiveDistributionChartType}
+              />
+              {data.executiveDistribution.rows.map((row) => (
+                <Text key={row.bandId} style={s.executiveSummaryLine}>
+                  {row.name} — {row.percentage}% ({row.count}{' '}
+                  {row.count === 1 ? 'indicador' : 'indicadores'})
+                </Text>
+              ))}
+            </>
+          )}
+        </View>
 
         <IndicatorsInterpretationLegendPdf />
         {narrativeLines.length > 0 ? (

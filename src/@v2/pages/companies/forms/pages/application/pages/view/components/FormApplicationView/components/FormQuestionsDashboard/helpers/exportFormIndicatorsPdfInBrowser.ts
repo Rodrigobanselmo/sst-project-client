@@ -10,6 +10,7 @@ import { diagnosticMatchesViewMode } from '@v2/services/forms/indicators-narrati
 import type { HierarchyGroupForIndicators } from './buildParticipantGroupsForIndicators';
 import { buildParticipantGroupsForIndicators } from './buildParticipantGroupsForIndicators';
 import { buildIndicatorsNarrativeDiagnosticScope } from './buildIndicatorsNarrativeDiagnosticScope';
+import type { FormChartType } from './form-chart-type.types';
 
 /**
  * Gera o PDF de indicadores no navegador com a mesma base da tela
@@ -25,6 +26,7 @@ export async function exportFormIndicatorsPdfInBrowser(
     selectedGroupingQuestionId: string | null;
     selectedGroupingLabel?: string | null;
     showOnlyGroupIndicators: boolean;
+    executiveDistributionChartType: FormChartType;
     hierarchyGroups: HierarchyGroupForIndicators[];
     /** Com agrupamento ativo: ids dos grupos a incluir no PDF (alinhado à tela). */
     visibleParticipantGroupIds?: string[];
@@ -89,6 +91,7 @@ export async function exportFormIndicatorsPdfInBrowser(
     formQuestionsAnswers: params.formQuestionsAnswers,
     selectedGroupingQuestionId: params.selectedGroupingQuestionId,
     showOnlyGroupIndicators: params.showOnlyGroupIndicators,
+    executiveDistributionChartType: params.executiveDistributionChartType,
     narrativeDiagnosticMarkdown,
     isShareableLink: params.formApplication.isShareableLink,
     hierarchyGroups: params.hierarchyGroups,
