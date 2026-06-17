@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import {
   Alert,
   Box,
+  Button,
   Chip,
   CircularProgress,
   FormControl,
@@ -12,13 +13,18 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useSnackbar } from 'notistack';
 
 import { SPaper } from '@v2/components/atoms/SPaper/SPaper';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
+import { SPdfLoadingModal } from '@v2/components/organisms/SPdfLoadingModal/SPdfLoadingModal';
 import { useAccess } from 'core/hooks/useAccess';
 import { useFetchConsolidatedViewRiskAnalysis } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewRiskAnalysis';
+import { useFetchConsolidatedViewSummary } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewSummary';
 import { buildConsolidatedRiskNarrativeScopeFromView } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-risk-narrative.scope';
 import SText from 'components/atoms/SText';
+
+import { exportConsolidatedRiskAnalysisPdfInBrowser } from '../../helpers/exportConsolidatedRiskAnalysisPdfInBrowser';
 
 import { ConsolidatedRiskFactorAccordion } from './ConsolidatedRiskFactorAccordion';
 import {
@@ -41,18 +47,26 @@ export function FormConsolidatedRiskAnalysisSection({
   applicationIds,
 }: Props) {
   const { isMaster } = useAccess();
+  const { enqueueSnackbar } = useSnackbar();
   const [search, setSearch] = useState('');
   const [companyFilter, setCompanyFilter] = useState('');
   const [applicationFilter, setApplicationFilter] = useState('');
   const [riskLevelFilter, setRiskLevelFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [groupBy, setGroupBy] = useState<ConsolidatedRiskGroupByMode>('none');
+  const [isExportingRiskAnalysisPdf, setIsExportingRiskAnalysisPdf] =
+    useState(false);
+  const [pdfLoadingMessage, setPdfLoadingMessage] = useState('');
 
   const { riskAnalysisData, isLoading, isError } =
     useFetchConsolidatedViewRiskAnalysis(
       { companyGroupId, applicationIds },
       { enabled: companyGroupId > 0 && applicationIds.length >= 2 },
     );
+  const { summary } = useFetchConsolidatedViewSummary(
+    { companyGroupId, applicationIds },
+    { enabled: companyGroupId > 0 && applicationIds.length >= 2 },
+  );
 
   const filteredItems = useMemo(
     () =>
@@ -190,6 +204,76 @@ export function FormConsolidatedRiskAnalysisSection({
             aplicações individuais e não são recalculados nesta tela. Decisões
             operacionais, inventário e PGR permanecem nas aplicações individuais.
           </Alert>
+
+          <SPaper shadow={false} sx={{ p: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <Button
+                variant="outlined"
+                disabled={
+                  isExportingRiskAnalysisPdf ||
+                  !riskAnalysisData ||
+                  !summary ||
+                  filteredItems.length === 0
+                }
+                startIcon={
+                  isExportingRiskAnalysisPdf ? (
+                    <CircularProgress color="inherit" size={16} />
+                  ) : undefined
+                }
+                onClick={async () => {
+                  if (!riskAnalysisData || !summary) {
+                    enqueueSnackbar('Dados do formulário ainda não carregados.', {
+                      variant: 'warning',
+                    });
+                    return;
+                  }
+                  setIsExportingRiskAnalysisPdf(true);
+                  setPdfLoadingMessage('Iniciando geração do PDF...');
+                  try {
+                    await exportConsolidatedRiskAnalysisPdfInBrowser(
+                      {
+                        companyGroupId,
+                        applicationIds,
+                        formName: summary.formName,
+                        businessGroupName: riskAnalysisData.businessGroupName,
+                        riskAnalysisData,
+                        filteredItems,
+                        groupBy,
+                        narrativeScope,
+                        companyFilter,
+                        applicationFilter,
+                        riskLevelFilter,
+                        statusFilter,
+                        search,
+                        companyLabel: companyOptions.find(
+                          (option) => option.id === companyFilter,
+                        )?.label,
+                        applicationLabel: applicationOptions.find(
+                          (option) => option.id === applicationFilter,
+                        )?.label,
+                      },
+                      (message) => setPdfLoadingMessage(message),
+                    );
+                    enqueueSnackbar('PDF gerado com sucesso!', {
+                      variant: 'success',
+                    });
+                  } catch (error) {
+                    enqueueSnackbar(
+                      error instanceof Error
+                        ? error.message
+                        : 'Não foi possível gerar o PDF da análise de riscos.',
+                      { variant: 'error' },
+                    );
+                  } finally {
+                    setIsExportingRiskAnalysisPdf(false);
+                    setPdfLoadingMessage('');
+                  }
+                }}
+              >
+                Exportar PDF (Análise de Riscos)
+              </Button>
+            </Box>
+          </SPaper>
 
           <SPaper shadow={false} sx={{ p: 2.5 }}>
             <SText fontSize={14} fontWeight={600} mb={1}>
@@ -403,6 +487,11 @@ export function FormConsolidatedRiskAnalysisSection({
             aplicações individuais, com rastreabilidade por empresa, aplicação,
             estabelecimento e setor.
           </Typography>
+
+          <SPdfLoadingModal
+            open={isExportingRiskAnalysisPdf}
+            message={pdfLoadingMessage}
+          />
         </>
       )}
     </Box>

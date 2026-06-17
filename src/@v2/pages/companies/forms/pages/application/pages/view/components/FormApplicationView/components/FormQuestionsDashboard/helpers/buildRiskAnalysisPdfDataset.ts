@@ -33,6 +33,8 @@ export type RiskAnalysisPdfSector = {
   aiAnalysisSource?: Exclude<AiAnalysisResolutionSource, 'absent'>;
   sourceHierarchyId?: string;
   aiConfidencePercent?: number;
+  /** Rastreabilidade consolidada (empresa, aplicação, status). */
+  traceabilityLine?: string;
 };
 
 export type RiskAnalysisPdfEstablishmentBlock = {
@@ -47,11 +49,21 @@ export type RiskAnalysisPdfFactor = {
   establishmentBlocks: RiskAnalysisPdfEstablishmentBlock[];
 };
 
+export type RiskAnalysisPdfViewSection = {
+  label: string;
+  itemCount?: number;
+  factors: RiskAnalysisPdfFactor[];
+};
+
 export type RiskAnalysisPdfDataset = {
   grouping:
     | { active: false }
     | { active: true; questionLabel: string };
   narrativeDiagnosticMarkdown?: string | null;
+  narrativeSectionTitle?: string;
+  consolidatedSummary?: string[];
+  isConsolidatedView?: boolean;
+  viewSections?: RiskAnalysisPdfViewSection[];
   factors: RiskAnalysisPdfFactor[];
 };
 

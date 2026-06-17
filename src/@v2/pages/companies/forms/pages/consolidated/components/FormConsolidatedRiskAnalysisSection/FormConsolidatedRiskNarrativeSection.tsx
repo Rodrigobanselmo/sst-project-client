@@ -294,7 +294,7 @@ export function FormConsolidatedRiskNarrativeSection({
         }}
       >
         <SFlex justifyContent="space-between" alignItems="flex-start" gap={2} mb={2}>
-          <Box>
+          <Box flex={1} minWidth={0}>
             <SText fontSize={16} fontWeight="bold">
               Diagnóstico narrativo consolidado com IA
             </SText>
@@ -310,7 +310,15 @@ export function FormConsolidatedRiskNarrativeSection({
             text={generateButtonLabel}
             loading={isGenerating}
             disabled={showProcessing || isGenerating}
+            minWidth={300}
             onClick={() => void handleGenerate(isDone)}
+            buttonProps={{
+              sx: {
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
+                px: 2.5,
+              },
+            }}
           />
         </SFlex>
 

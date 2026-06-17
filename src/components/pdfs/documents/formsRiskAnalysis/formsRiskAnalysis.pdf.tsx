@@ -285,20 +285,61 @@ const s = StyleSheet.create({
     textAlign: 'center',
     marginTop: 24,
   },
+  summarySection: {
+    marginBottom: 16,
+    padding: 10,
+    backgroundColor: '#f5f5f5',
+    border: '1 solid #e0e0e0',
+    borderRadius: 4,
+  },
+  summaryTitle: {
+    fontSize: 10,
+    fontWeight: 700,
+    color: '#333',
+    marginBottom: 6,
+  },
+  summaryLine: {
+    fontSize: 8.5,
+    color: '#444',
+    lineHeight: 1.4,
+    marginBottom: 2,
+  },
+  viewSectionTitle: {
+    fontSize: 11,
+    fontWeight: 700,
+    color: '#333',
+    marginTop: 8,
+    marginBottom: 8,
+  },
+  traceabilityLine: {
+    fontSize: 7.5,
+    color: '#666',
+    marginBottom: 4,
+    lineHeight: 1.35,
+  },
 });
 
 export default function PdfFormRiskAnalysis({
   data,
   meta,
 }: PdfFormRiskAnalysisProps) {
-  const groupingLabel =
-    data.grouping.active === true
+  const groupingLabel = data.isConsolidatedView
+    ? data.grouping.active === true
+      ? `Recorte: ${data.grouping.questionLabel}`
+      : 'Recorte: visão consolidada read-only'
+    : data.grouping.active === true
       ? `Recorte: agrupamento por identificação — ${data.grouping.questionLabel}`
       : 'Recorte: todos os participantes (sem agrupamento)';
   const narrativeBlocks =
     data.narrativeDiagnosticMarkdown?.trim()
       ? parseNarrativeMarkdown(data.narrativeDiagnosticMarkdown)
       : [];
+  const narrativeTitle =
+    data.narrativeSectionTitle ?? 'Diagnóstico narrativo com IA';
+  const sectionsToRender =
+    data.viewSections && data.viewSections.length > 0
+      ? data.viewSections
+      : [{ label: '', factors: data.factors }];
 
   return (
     <Document>
@@ -309,9 +350,20 @@ export default function PdfFormRiskAnalysis({
         <Text style={s.issuedAt}>Emitido em: {meta.issuedAt}</Text>
         <Text style={s.groupingBanner}>{groupingLabel}</Text>
 
+        {data.consolidatedSummary && data.consolidatedSummary.length > 0 ? (
+          <View style={s.summarySection}>
+            <Text style={s.summaryTitle}>Resumo consolidado</Text>
+            {data.consolidatedSummary.map((line, index) => (
+              <Text key={`summary-${index}`} style={s.summaryLine}>
+                • {line}
+              </Text>
+            ))}
+          </View>
+        ) : null}
+
         {narrativeBlocks.length > 0 ? (
           <View style={s.narrativeSection}>
-            <Text style={s.narrativeTitle}>Diagnóstico narrativo com IA</Text>
+            <Text style={s.narrativeTitle}>{narrativeTitle}</Text>
             {narrativeBlocks.map((block, index) => {
               if (block.type === 'heading') {
                 const headingStyle =
@@ -357,7 +409,16 @@ export default function PdfFormRiskAnalysis({
             Nenhum fator de risco identificado para o recorte selecionado.
           </Text>
         ) : (
-          data.factors.map((factor) => (
+          sectionsToRender.map((viewSection, sectionIndex) => (
+            <View key={`view-section-${sectionIndex}`}>
+              {viewSection.label ? (
+                <Text style={s.viewSectionTitle}>
+                  {viewSection.label} (
+                  {viewSection.itemCount ?? viewSection.factors.length})
+                </Text>
+              ) : null}
+
+              {viewSection.factors.map((factor) => (
             <View key={factor.riskId} style={s.factorSection}>
               <View style={s.factorHeader}>
                 <Text style={s.typeBadge}>{factor.typeLabel}</Text>
@@ -379,6 +440,12 @@ export default function PdfFormRiskAnalysis({
                         <Text style={s.sectorType}>{sector.sectorTypeLabel}</Text>
                         <Text style={s.sectorName}>{sector.sectorName}</Text>
                       </View>
+
+                      {sector.traceabilityLine ? (
+                        <Text style={s.traceabilityLine}>
+                          {sector.traceabilityLine}
+                        </Text>
+                      ) : null}
 
                       <View style={s.badgesRow}>
                         <Badge
@@ -426,6 +493,8 @@ export default function PdfFormRiskAnalysis({
                     </View>
                   ))}
                 </View>
+              ))}
+            </View>
               ))}
             </View>
           ))
