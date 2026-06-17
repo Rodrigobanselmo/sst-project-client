@@ -10,9 +10,15 @@ import SText from 'components/atoms/SText';
 import SDownloadIcon from 'assets/icons/SDownloadIcon';
 
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
-import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 
+import {
+  buildPgrConsolidatedDownloadUrl,
+  formatPgrAttachmentDisplayName,
+  getPgrEssentialDownloadLabel,
+  getPgrFullDownloadLabel,
+  getPgrMainDocumentDownloadLabel,
+} from '../../helpers/pgr-download-labels.util';
 import { IUseDocs } from '../../hooks/useModalViewDocDownload';
 
 export const ModalContentDoc = ({
@@ -21,6 +27,28 @@ export const ModalContentDoc = ({
   doc,
 }: IUseDocs) => {
   const { companyId } = useGetCompanyId();
+  const resolvedCompanyId = doc.companyId || companyId || '';
+  const mainDocumentUrl = `${doc.downloadRoute}/${doc.id}/${resolvedCompanyId}`;
+  const isPgrOrFrps =
+    doc.documentType === DocumentTypeEnum.PGR ||
+    doc.documentType === DocumentTypeEnum.FRPS;
+
+  const essentialConsolidatedUrl = buildPgrConsolidatedDownloadUrl({
+    docId: doc.id,
+    companyId: resolvedCompanyId,
+    profile: 'essential',
+  });
+
+  const fullConsolidatedUrl = buildPgrConsolidatedDownloadUrl({
+    docId: doc.id,
+    companyId: resolvedCompanyId,
+    profile: 'full',
+  });
+
+  const isDownloading = (url: string) =>
+    downloadMutation.isLoading &&
+    !!downloadMutation.variables &&
+    downloadMutation.variables === url;
 
   return (
     <Box>
@@ -53,74 +81,59 @@ export const ModalContentDoc = ({
       </SText>
       <SFlex direction="column" gap={5} mt={5} mb={10}>
         <STagButton
-          text="Baixar documento"
-          loading={
-            downloadMutation.isLoading &&
-            !!downloadMutation.variables &&
-            !!downloadMutation.variables.includes(
-              `${doc.downloadRoute}/${doc.id}/${doc.companyId || companyId}`,
-            )
+          text={
+            isPgrOrFrps && doc.documentType
+              ? getPgrMainDocumentDownloadLabel(doc.documentType)
+              : 'Baixar documento'
           }
-          onClick={() =>
-            downloadMutation.mutate(
-              `${doc.downloadRoute}/${doc.id}/${doc.companyId || companyId}`,
-            )
-          }
+          loading={isDownloading(mainDocumentUrl)}
+          onClick={() => downloadMutation.mutate(mainDocumentUrl)}
           width={'100%'}
           large
           icon={SDownloadIcon}
         />
-        {(doc.documentType === DocumentTypeEnum.PGR ||
-          doc.documentType === DocumentTypeEnum.FRPS) && (
-          <STagButton
-            text={
-              doc.documentType === DocumentTypeEnum.FRPS
-                ? 'Baixar documento completo (Word)'
-                : 'Baixar PGR completo (Word)'
-            }
-            loading={
-              downloadMutation.isLoading &&
-              !!downloadMutation.variables &&
-              !!downloadMutation.variables.includes(
-                `${ApiRoutesEnum.DOCUMENTS_BASE}/pgr-consolidated/docx/${doc.id}/${doc.companyId || companyId}`,
-              )
-            }
-            onClick={() =>
-              downloadMutation.mutate(
-                `${ApiRoutesEnum.DOCUMENTS_BASE}/pgr-consolidated/docx/${doc.id}/${doc.companyId || companyId}`,
-              )
-            }
-            width={'100%'}
-            large
-            icon={SDownloadIcon}
-          />
+        {isPgrOrFrps && doc.documentType && (
+          <>
+            <STagButton
+              text={getPgrEssentialDownloadLabel(doc.documentType)}
+              loading={isDownloading(essentialConsolidatedUrl)}
+              onClick={() => downloadMutation.mutate(essentialConsolidatedUrl)}
+              width={'100%'}
+              large
+              icon={SDownloadIcon}
+            />
+            <STagButton
+              text={getPgrFullDownloadLabel(doc.documentType)}
+              loading={isDownloading(fullConsolidatedUrl)}
+              onClick={() => downloadMutation.mutate(fullConsolidatedUrl)}
+              width={'100%'}
+              large
+              icon={SDownloadIcon}
+            />
+          </>
         )}
         <SText mt={4} mb={0} color="text.light">
           Anexos
         </SText>
         {docQuery?.attachments &&
-          docQuery.attachments.map((attachment) => (
-            <STagButton
-              mb={2}
-              key={attachment.id}
-              text={'Baixar ' + attachment.name}
-              loading={
-                downloadMutation.isLoading &&
-                !!downloadMutation.variables &&
-                !!downloadMutation.variables.includes(attachment.id)
-              }
-              onClick={() =>
-                downloadMutation.mutate(
-                  `${doc.downloadAttRoute.replace(':docId', docQuery.id)}/${
-                    attachment.id
-                  }/${doc.companyId || companyId}`,
-                )
-              }
-              width={'100%'}
-              large
-              icon={SDownloadIcon}
-            />
-          ))}
+          docQuery.attachments.map((attachment) => {
+            const attachmentUrl = `${doc.downloadAttRoute.replace(':docId', docQuery.id)}/${
+              attachment.id
+            }/${resolvedCompanyId}`;
+
+            return (
+              <STagButton
+                mb={2}
+                key={attachment.id}
+                text={`Baixar ${formatPgrAttachmentDisplayName(attachment.name)}`}
+                loading={isDownloading(attachmentUrl)}
+                onClick={() => downloadMutation.mutate(attachmentUrl)}
+                width={'100%'}
+                large
+                icon={SDownloadIcon}
+              />
+            );
+          })}
       </SFlex>
     </Box>
   );
