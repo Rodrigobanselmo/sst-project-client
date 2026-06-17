@@ -6,6 +6,7 @@ import {
   buildConsolidatedParticipantGroupingForPdf,
   ConsolidatedAnalyticsGroupingMode,
 } from '@v2/models/enterprise/company-group/consolidated-view-analytics.helpers';
+import type { FormChartType } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/form-chart-type.types';
 
 export async function exportConsolidatedChartsPdfInBrowser(params: {
   formName: string;
@@ -13,6 +14,7 @@ export async function exportConsolidatedChartsPdfInBrowser(params: {
   formQuestionsAnswers: FormQuestionsAnswersBrowseModel;
   groupingMode: ConsolidatedAnalyticsGroupingMode;
   groupingLabel: string;
+  chartType: FormChartType;
 }): Promise<void> {
   const { pdf } = await import('@react-pdf/renderer');
   const { default: PdfFormCharts } = await import(
@@ -31,6 +33,7 @@ export async function exportConsolidatedChartsPdfInBrowser(params: {
   const dataset = buildFormChartsPdfDataset({
     formQuestionsAnswers: params.formQuestionsAnswers,
     selectedGroupingQuestionId: null,
+    chartType: params.chartType,
     isShareableLink: false,
     participantGroupingOverride,
   });

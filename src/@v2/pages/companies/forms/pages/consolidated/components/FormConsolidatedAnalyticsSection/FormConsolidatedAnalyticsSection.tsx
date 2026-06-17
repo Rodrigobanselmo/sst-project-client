@@ -24,6 +24,7 @@ import {
   buildConsolidatedAnalyticsParticipantGroups,
   buildConsolidatedAnalyticsRecorteSnapshot,
   buildConsolidatedChartQuestions,
+  buildConsolidatedParticipantGroupingForPdf,
   ConsolidatedAnalyticsFilters,
   ConsolidatedAnalyticsGroupingMode,
   getConsolidatedDemographicQuestions,
@@ -34,6 +35,13 @@ import {
 import { CONSOLIDATED_PARTICIPANTS_PRIVACY_MIN_SIZE } from '@v2/models/enterprise/company-group/consolidated-view-participants.helpers';
 import { FormParticipantsFilterSummary } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormParticipantsTable/components/FormParticipantsFilterSummary';
 import { FormQuestionPieChart } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormQuestionPieChart/FormQuestionPieChart';
+import { FormChartTypeSelector } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormChartTypeSelector/FormChartTypeSelector';
+import { ExecutiveIndicatorsDistributionSection } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/ExecutiveIndicatorsDistribution/ExecutiveIndicatorsDistribution';
+import { buildIndicatorsPdfDataset } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/buildIndicatorsPdfDataset';
+import {
+  DEFAULT_FORM_CHART_TYPE,
+  type FormChartType,
+} from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/form-chart-type.types';
 import { IndicatorsQualityLegend } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/IndicatorsQualityLegend/IndicatorsQualityLegend';
 import { SectionHeader } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/SectionHeader/SectionHeader';
 import { HtmlContentRenderer } from '@v2/pages/companies/forms/pages/application/pages/public/answer/components/HtmlContentRenderer/FormAnswerFieldControlled';
@@ -74,6 +82,10 @@ export function FormConsolidatedAnalyticsSection({
   const [isExportingIndicatorsPdf, setIsExportingIndicatorsPdf] =
     useState(false);
   const [pdfLoadingMessage, setPdfLoadingMessage] = useState('');
+  const [chartsChartType, setChartsChartType] =
+    useState<FormChartType>(DEFAULT_FORM_CHART_TYPE);
+  const [executiveDistributionChartType, setExecutiveDistributionChartType] =
+    useState<FormChartType>(DEFAULT_FORM_CHART_TYPE);
   const { questionsAnswersData, isLoading, isError } =
     useFetchConsolidatedViewQuestionsAnswers(
       { companyGroupId, applicationIds },
@@ -201,6 +213,40 @@ export function FormConsolidatedAnalyticsSection({
     [filters, mode, participantGroups, protectedGroupIds, questionsAnswersData],
   );
 
+  const participantGroupingOverride = useMemo(
+    () =>
+      formQuestionsAnswers
+        ? buildConsolidatedParticipantGroupingForPdf({
+            formQuestionsAnswers,
+            groupingMode,
+            groupingLabel: selectedGroupingLabel,
+          })
+        : null,
+    [formQuestionsAnswers, groupingMode, selectedGroupingLabel],
+  );
+
+  const indicatorsDatasetForView = useMemo(() => {
+    if (mode !== 'indicators' || !formQuestionsAnswers || !participantGroupingOverride) {
+      return null;
+    }
+
+    return buildIndicatorsPdfDataset({
+      formQuestionsAnswers,
+      selectedGroupingQuestionId: null,
+      showOnlyGroupIndicators,
+      executiveDistributionChartType,
+      narrativeDiagnosticMarkdown: null,
+      isShareableLink: false,
+      participantGroupingOverride,
+    });
+  }, [
+    executiveDistributionChartType,
+    formQuestionsAnswers,
+    mode,
+    participantGroupingOverride,
+    showOnlyGroupIndicators,
+  ]);
+
   if (isLoading) {
     return (
       <Box py={8} display="flex" justifyContent="center">
@@ -233,7 +279,19 @@ export function FormConsolidatedAnalyticsSection({
 
       {mode === 'charts' && (
         <SPaper shadow={false} sx={{ p: 2 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 2,
+            }}
+          >
+            <FormChartTypeSelector
+              value={chartsChartType}
+              onChange={setChartsChartType}
+            />
             <Button
               variant="outlined"
               disabled={!formQuestionsAnswers || isExportingChartsPdf}
@@ -257,6 +315,7 @@ export function FormConsolidatedAnalyticsSection({
                     formQuestionsAnswers,
                     groupingMode,
                     groupingLabel: selectedGroupingLabel,
+                    chartType: chartsChartType,
                   });
                 } catch (error) {
                   enqueueSnackbar(
@@ -327,6 +386,7 @@ export function FormConsolidatedAnalyticsSection({
                       groupingLabel: selectedGroupingLabel,
                       narrativeScope: indicatorsNarrativeScope,
                       showOnlyGroupIndicators,
+                      executiveDistributionChartType,
                     },
                     (message) => setPdfLoadingMessage(message),
                   );
@@ -379,6 +439,14 @@ export function FormConsolidatedAnalyticsSection({
 
       </SPaper>
 
+      {mode === 'indicators' && indicatorsDatasetForView ? (
+        <ExecutiveIndicatorsDistributionSection
+          distribution={indicatorsDatasetForView.executiveDistribution}
+          chartType={executiveDistributionChartType}
+          onChartTypeChange={setExecutiveDistributionChartType}
+        />
+      ) : null}
+
       {mode === 'indicators' && <IndicatorsQualityLegend />}
 
       {mode === 'indicators' && (
@@ -407,6 +475,7 @@ export function FormConsolidatedAnalyticsSection({
                   <FormQuestionPieChart
                     question={question}
                     colorScheme="identifier"
+                    chartType={chartsChartType}
                     isShareableLink={false}
                   />
                 </Box>
@@ -497,6 +566,11 @@ export function FormConsolidatedAnalyticsSection({
                               hideQuestionText
                               question={question}
                               colorScheme="general"
+                              chartType={
+                                mode === 'charts'
+                                  ? chartsChartType
+                                  : DEFAULT_FORM_CHART_TYPE
+                              }
                               indicators={mode === 'indicators'}
                               isShareableLink={false}
                               participantCount={participantGroup.participantCount}

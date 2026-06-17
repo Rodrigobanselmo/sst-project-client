@@ -10,6 +10,7 @@ import {
 import { readConsolidatedIndicatorsNarrativeDiagnostic } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.service';
 import { consolidatedNarrativeMatchesViewMode } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.scope';
 import { ConsolidatedIndicatorsNarrativeScope } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.types';
+import type { FormChartType } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/helpers/form-chart-type.types';
 
 export async function exportConsolidatedIndicatorsPdfInBrowser(
   params: {
@@ -22,6 +23,7 @@ export async function exportConsolidatedIndicatorsPdfInBrowser(
     groupingLabel: string;
     narrativeScope: ConsolidatedIndicatorsNarrativeScope;
     showOnlyGroupIndicators: boolean;
+    executiveDistributionChartType: FormChartType;
   },
   onProgress?: (message: string) => void,
 ): Promise<void> {
@@ -69,6 +71,7 @@ export async function exportConsolidatedIndicatorsPdfInBrowser(
     formQuestionsAnswers: params.formQuestionsAnswers,
     selectedGroupingQuestionId: null,
     showOnlyGroupIndicators: params.showOnlyGroupIndicators,
+    executiveDistributionChartType: params.executiveDistributionChartType,
     narrativeDiagnosticMarkdown,
     isShareableLink: false,
     participantGroupingOverride,
