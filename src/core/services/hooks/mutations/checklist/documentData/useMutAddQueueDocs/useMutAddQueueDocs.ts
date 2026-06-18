@@ -24,6 +24,7 @@ export interface IUpsertAddDocumentQueue {
   status?: StatusEnum;
   companyId?: string;
   type: DocumentTypeEnum;
+  documentDate?: string;
 }
 
 export async function upsertAddDocumentQueue(

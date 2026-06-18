@@ -74,11 +74,12 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
     value: string,
     type: 'complementaryDocs' | 'complementarySystems',
   ) => {
+    const currentItems = (data.json as any)?.[type] ?? [];
     setData({
       ...data,
       json: {
         ...data.json,
-        [type]: [...(data.json as any)[type], value],
+        [type]: [...currentItems, value],
       },
     });
   };
@@ -87,13 +88,12 @@ export const useStep = ({ data, setData }: IUsePGRHandleModal) => {
     value: string,
     type: 'complementaryDocs' | 'complementarySystems',
   ) => {
+    const currentItems = (data.json as any)?.[type] ?? [];
     setData({
       ...data,
       json: {
         ...data.json,
-        [type]: [
-          ...(data.json as any)[type].filter((item: string) => item !== value),
-        ],
+        [type]: currentItems.filter((item: string) => item !== value),
       },
     });
   };

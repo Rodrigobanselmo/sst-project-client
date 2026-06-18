@@ -12,6 +12,7 @@ import { IDocumentModel } from 'core/interfaces/api/IDocumentModel';
 import { IProfessional } from 'core/interfaces/api/IProfessional';
 import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocumentData/useQueryDocumentData';
 
+import { deriveValidityPeriod } from '../helpers/document-dates.helpers';
 import { IPGRDocumentData } from './../../../../../core/interfaces/api/IDocumentData';
 import { IUseMainActionsModal, useMainActions } from './useMainActions';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
@@ -68,11 +69,20 @@ export const usePGRHandleModal = () => {
         const documentPGR: Partial<IPGRDocumentData> =
           doc?.type == DocumentTypeEnum.PGR ? doc : {};
 
+        const period = deriveValidityPeriod(documentPGR);
+
         const newData = {
           ...initialState,
           ...oldData,
           ...initialData,
           ...documentPGR,
+          versionFamily: initialData?.versionFamily ?? oldData.versionFamily ?? 'test',
+          validityYears: documentPGR.validityYears ?? period.years,
+          validityMonths: documentPGR.validityMonths ?? period.months,
+          documentCreatedAt:
+            documentPGR.validityStart ??
+            initialData?.documentCreatedAt ??
+            oldData.documentCreatedAt,
           json: {
             ...initialState.json,
             ...oldData.json,

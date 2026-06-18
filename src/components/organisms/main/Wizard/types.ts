@@ -8,6 +8,7 @@ export type IWizardProps = BoxProps;
 export interface IWizardLeadProps extends BoxProps {
   slug?: string;
   schemas: any[];
+  defaultValues?: Record<string, unknown>;
   containerRef?: React.MutableRefObject<any>;
   header?: ReactNode;
 }

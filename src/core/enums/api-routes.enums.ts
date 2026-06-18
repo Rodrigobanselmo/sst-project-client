@@ -27,6 +27,8 @@ export enum ApiRoutesEnum {
   DOCUMENT = '/company/:companyId/document',
   DOC_VERSIONS = '/document-version/:companyId',
   DOCUMENT_DATA = '/document-data/:companyId',
+  DOCUMENT_DATA_RESET_UNOFFICIAL = '/document-data/:companyId/:documentDataId/reset-unofficial-versions',
+  DOCUMENT_DATA_RESET_OFFICIAL = '/document-data/:companyId/:documentDataId/reset-official-series',
   DOWNLOAD_CNAE = '/files/cnae',
   DOWNLOAD_EMPLOYEES = '/files/company/employees/download',
   DOWNLOAD_HIERARCHIES = '/files/company/hierarchies/download',

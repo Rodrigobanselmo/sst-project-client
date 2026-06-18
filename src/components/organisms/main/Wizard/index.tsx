@@ -16,9 +16,13 @@ export const Wizard: FC<{ children?: any } & IWizardLeadProps> = ({
   children,
   header,
   schemas,
+  defaultValues,
 }) => {
   const prevStepRef = useRef<number>(0);
-  const methods = useForm<any>({ resolver: resolver(schemas) });
+  const methods = useForm<any>({
+    resolver: resolver(schemas),
+    defaultValues,
+  });
 
   const childrenWithProps = Children.map(children, (child) => {
     if (isValidElement(child)) {

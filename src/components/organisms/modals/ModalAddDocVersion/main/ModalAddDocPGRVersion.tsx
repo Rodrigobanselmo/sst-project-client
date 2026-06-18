@@ -6,13 +6,24 @@ import { Wizard } from 'components/organisms/main/Wizard';
 import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 
 import { documentDataSchema } from 'core/utils/schemas/docuementData.schema';
-import { validitySchema } from 'core/utils/schemas/validity.schema';
-import { versionSchema } from 'core/utils/schemas/version.schema';
+import { pgrComplementarySchema } from 'core/utils/schemas/pgrComplementary.schema';
+
+import { documentVersionWizardDefaultValues } from '../constants/wizard-defaults';
+import { initialPgrDocState } from '../hooks/usePGRHandleActions';
 
 import { MainModalStep } from '../components/1-main';
 import { ComplementaryModalStep } from '../components/2-pgr';
-import { VersionModalStep } from '../components/last-version';
 import { usePGRHandleModal } from '../hooks/usePGRHandleActions';
+
+const pgrWizardDefaultValues = {
+  ...documentVersionWizardDefaultValues,
+  source: initialPgrDocState.json.source,
+  visitDate: '',
+  months_period_level_2: initialPgrDocState.json.months_period_level_2,
+  months_period_level_3: initialPgrDocState.json.months_period_level_3,
+  months_period_level_4: initialPgrDocState.json.months_period_level_4,
+  months_period_level_5: initialPgrDocState.json.months_period_level_5,
+};
 
 export const ModalAddDocPGRVersion = () => {
   const props = usePGRHandleModal();
@@ -35,15 +46,14 @@ export const ModalAddDocPGRVersion = () => {
               options={[
                 { label: 'Dados do Documento' },
                 { label: 'Informações Adcionais' },
-                // { label: 'Avançado' },
               ]}
             />
           }
-          schemas={[documentDataSchema, versionSchema, validitySchema]}
+          schemas={[documentDataSchema, pgrComplementarySchema]}
+          defaultValues={pgrWizardDefaultValues}
         >
           <MainModalStep {...props.props} />
           <ComplementaryModalStep {...props} />
-          <VersionModalStep {...props.props} />
         </Wizard>
       </SModalPaper>
     </SModal>

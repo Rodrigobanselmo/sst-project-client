@@ -31,6 +31,11 @@ export const initialMainDocState = {
   approvedBy: '',
   coordinatorBy: '',
   professionals: [] as IProfessional[],
+  documentDate: null as string | Date | null,
+  documentCreatedAt: null as string | Date | null,
+  versionFamily: 'test' as 'test' | 'official',
+  validityYears: 2,
+  validityMonths: 0,
 
   workspaceClosed: false,
 };
@@ -48,6 +53,7 @@ export const useMainActions = <T>({
     () => ({
       ...initialMainDocState,
       ...initialDocState,
+      type,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],

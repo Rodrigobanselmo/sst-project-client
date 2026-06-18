@@ -2,13 +2,11 @@
 
 import SModal, { SModalHeader, SModalPaper } from 'components/molecules/SModal';
 import { Wizard } from 'components/organisms/main/Wizard';
-import WizardTabs from 'components/organisms/main/Wizard/components/WizardTabs/WizardTabs';
 
 import { documentDataSchema } from 'core/utils/schemas/docuementData.schema';
-import { versionSchema } from 'core/utils/schemas/version.schema';
 
+import { documentVersionWizardDefaultValues } from '../constants/wizard-defaults';
 import { MainModalStep } from '../components/1-main';
-import { VersionModalStep } from '../components/last-version';
 import { useLTCATHandleModal } from '../hooks/useLTCATHandleActions';
 
 export const ModalAddDocLTCATVersion = () => {
@@ -27,18 +25,10 @@ export const ModalAddDocLTCATVersion = () => {
           title={`Documento LTCAT - ${props?.data?.workspaceName}`}
         />
         <Wizard
-          header={
-            <WizardTabs
-              options={[
-                { label: 'Dados do Documento' },
-                // { label: 'Avançado' },
-              ]}
-            />
-          }
-          schemas={[documentDataSchema, versionSchema]}
+          schemas={[documentDataSchema]}
+          defaultValues={documentVersionWizardDefaultValues}
         >
           <MainModalStep {...props.props} />
-          <VersionModalStep {...props.props} />
         </Wizard>
       </SModalPaper>
     </SModal>
