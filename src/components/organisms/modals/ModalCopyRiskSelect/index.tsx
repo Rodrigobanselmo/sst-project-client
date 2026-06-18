@@ -25,6 +25,7 @@ import { useModal } from 'core/hooks/useModal';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
 import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { queryRiskData } from 'core/services/hooks/queries/useQueryRiskDataByGho';
+import { sortRiskDataForVisualDisplay } from 'components/organisms/tables/RiskCompanyTable/riskCompanyIdentifiedVisualSort';
 import { useQuery } from 'react-query';
 
 /** Rótulo legível mesmo quando a API retorna `riskFactor` parcial (ex.: só subtipos). */
@@ -131,6 +132,11 @@ export const ModalCopyRiskSelect: FC = () => {
     [risks],
   );
 
+  const sortedActiveRisks = useMemo(
+    () => sortRiskDataForVisualDisplay(activeRisks, getImportRiskRowLabel),
+    [activeRisks],
+  );
+
   useEffect(() => {
     if (activeRisks.length) {
       setSelectedIds(new Set(activeRisks.map((r) => r.id)));
@@ -233,7 +239,7 @@ export const ModalCopyRiskSelect: FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                activeRisks.map((row) => (
+                sortedActiveRisks.map((row) => (
                   <TableRow key={row.id} hover>
                     <TableCell padding="checkbox">
                       <Checkbox

@@ -1,3 +1,4 @@
+import { IRiskData } from 'core/interfaces/api/IRiskData';
 import { IRiskFactors } from 'core/interfaces/api/IRiskFactors';
 import { RiskEnum } from 'project/enum/risk.enums';
 
@@ -41,7 +42,10 @@ function ergSubtypeRank(risk: IRiskFactors): number {
   return 999;
 }
 
-function compareIdentifiedVisual(a: IRiskFactors, b: IRiskFactors): number {
+function compareRiskFactorTypeAndSubtype(
+  a: IRiskFactors,
+  b: IRiskFactors,
+): number {
   const pa = mainTypeRank(a.type);
   const pb = mainTypeRank(b.type);
   if (pa !== pb) return pa - pb;
@@ -51,6 +55,13 @@ function compareIdentifiedVisual(a: IRiskFactors, b: IRiskFactors): number {
     const sb = ergSubtypeRank(b);
     if (sa !== sb) return sa - sb;
   }
+
+  return 0;
+}
+
+function compareIdentifiedVisual(a: IRiskFactors, b: IRiskFactors): number {
+  const typeCmp = compareRiskFactorTypeAndSubtype(a, b);
+  if (typeCmp !== 0) return typeCmp;
 
   return (a.name || '').localeCompare(b.name || '', 'pt-BR', {
     sensitivity: 'base',
@@ -62,4 +73,28 @@ export function sortRisksIdentifiedForVisualDisplay(
   risks: IRiskFactors[],
 ): IRiskFactors[] {
   return [...risks].sort(compareIdentifiedVisual);
+}
+
+/** Ordenação visual de `IRiskData` (ex.: modal de importação); desempate por rótulo exibido. */
+export function sortRiskDataForVisualDisplay(
+  risks: IRiskData[],
+  getDisplayName: (risk: IRiskData) => string,
+): IRiskData[] {
+  return [...risks].sort((a, b) => {
+    const rfA = a.riskFactor;
+    const rfB = b.riskFactor;
+
+    if (rfA && rfB) {
+      const typeCmp = compareRiskFactorTypeAndSubtype(rfA, rfB);
+      if (typeCmp !== 0) return typeCmp;
+    } else if (!rfA && !rfB) {
+      // fall through to display name
+    } else {
+      return rfA ? -1 : 1;
+    }
+
+    return getDisplayName(a).localeCompare(getDisplayName(b), 'pt-BR', {
+      sensitivity: 'base',
+    });
+  });
 }
