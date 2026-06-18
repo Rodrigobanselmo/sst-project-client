@@ -37,6 +37,7 @@ export const ComplementaryModalStep = (props: IUsePGRHandleModal) => {
   const buttons = [
     {
       text: 'Voltar',
+      onClick: () => onPrevStep(),
     },
     {
       text: 'Salvar',

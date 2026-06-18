@@ -11,15 +11,15 @@ import STooltip from 'components/atoms/STooltip';
 import { InputForm } from 'components/molecules/form/input';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { TypeInputModal } from 'components/organisms/modals/ModalSingleInput';
-import dayjs from 'dayjs';
+import { useWatch } from 'react-hook-form';
 
 import SStarFullIcon from 'assets/icons/SStarFullIcon';
 import SStarIcon from 'assets/icons/SStarIcon';
 
 import { IProfessional } from 'core/interfaces/api/IProfessional';
-import { dateToString } from 'core/utils/date/date-format';
-import { dateMonthMask } from 'core/utils/masks/date.mask';
+import { intMask } from 'core/utils/masks/int.mask';
 
+import { formatValidityRangePreview } from '../../../helpers/document-dates.helpers';
 import { IUseMainStep } from '../hooks/useMainStep';
 
 export const SignatureAndValidation = (props: IUseMainStep) => {
@@ -33,10 +33,20 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
     setValue,
   } = props;
 
+  const documentCreatedAt = useWatch({ control, name: 'documentCreatedAt' });
+  const validityYears = useWatch({ control, name: 'validityYears' });
+  const validityMonths = useWatch({ control, name: 'validityMonths' });
+
+  const validityPreview = formatValidityRangePreview(
+    documentCreatedAt,
+    validityYears,
+    validityMonths,
+  );
+
   return (
     <SFlex width={['100%']} gap={8} direction="column" mt={8}>
       <SText color="text.label" fontSize={14} mb={-2}>
-        Vigência do documento
+        Prazo de vigência
       </SText>
       <Box
         mt={5}
@@ -48,36 +58,35 @@ export const SignatureAndValidation = (props: IUseMainStep) => {
       >
         <InputForm
           setValue={setValue}
-          defaultValue={
-            dateToString(data?.validityStart, 'MM/YYYY') ||
-            dayjs().format('MM/YYYY')
-          }
-          label="Início da vigência do documento"
+          defaultValue={String(data?.validityYears ?? 2)}
+          label="Anos"
           control={control}
-          placeholder={'00/0000'}
-          name="validityStart"
+          placeholder={'0'}
+          name="validityYears"
           size="small"
           smallPlaceholder
-          mask={dateMonthMask.apply}
+          mask={intMask.apply}
         />
         <InputForm
           setValue={setValue}
-          defaultValue={
-            dateToString(data?.validityEnd, 'MM/YYYY') ||
-            ('json' in data &&
-            (data as any).json?.complementarySystems?.length > 0
-              ? dayjs().add(3, 'years').format('MM/YYYY')
-              : dayjs().add(2, 'years').format('MM/YYYY'))
-          }
-          label="Expiração do documento"
+          defaultValue={String(data?.validityMonths ?? 0)}
+          label="Meses"
           control={control}
-          placeholder={'00/0000'}
-          name="validityEnd"
+          placeholder={'0'}
+          name="validityMonths"
           size="small"
           smallPlaceholder
-          mask={dateMonthMask.apply}
+          mask={intMask.apply}
         />
       </Box>
+      {validityPreview && (
+        <SText color="text.secondary" fontSize={13}>
+          Vigência: {validityPreview}
+        </SText>
+      )}
+      <SText color="text.secondary" fontSize={12}>
+        A data inicial da vigência é sempre a Data de Criação do documento.
+      </SText>
       <SDisplaySimpleArray
         values={data.professionals || []}
         valueField="name"

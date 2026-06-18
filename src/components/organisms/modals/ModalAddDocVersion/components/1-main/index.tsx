@@ -3,8 +3,10 @@ import React, { useMemo, useState } from 'react';
 
 import { Box } from '@mui/material';
 import SFlex from 'components/atoms/SFlex';
-import { SSwitch } from 'components/atoms/SSwitch';
+import SText from 'components/atoms/SText';
+import { DatePickerForm } from 'components/molecules/form/date-picker/DatePicker';
 import { InputForm } from 'components/molecules/form/input';
+import { RadioForm } from 'components/molecules/form/radio';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import { DocumentModelSelect } from 'components/organisms/inputSelect/DocumentModelSelect/DocumentModelSelect';
@@ -17,16 +19,58 @@ import {
 } from 'project/enum/document-model-classification.enum';
 
 import { IUseMainActionsModal } from '../../hooks/useMainActions';
-import { IUsePGRHandleModal } from '../../hooks/usePGRHandleActions';
+import {
+  CREATION_DATE_LOCKED_MESSAGE,
+  DOCUMENT_VERSION_FAMILY_OPTIONS,
+} from '../../helpers/document-dates.helpers';
+import { formatRevisionDisplayLabel } from '../../helpers/document-version.helpers';
+import { modalDatePickerCalendarProps } from '../../constants/date-picker-props';
+import { DocumentFiltersModal } from './components/DocumentFiltersModal';
 import { SignatureAndValidation } from './components/SignatureAndValidation';
 import { useMainStep } from './hooks/useMainStep';
+import { SButton } from 'components/atoms/SButton';
 
 export const MainModalStep = (props: IUseMainActionsModal) => {
   const propsStep = useMainStep(props);
-  const { onSubmit, control, onCloseUnsaved, loading, setValue, company } =
-    propsStep;
+  const {
+    onSubmit,
+    control,
+    onCloseUnsaved,
+    loading,
+    setValue,
+    company,
+    creationDateLocked,
+    nextVersion,
+    onVersionFamilyChange,
+    groupsRef,
+  } = propsStep;
 
   const { data, setData, type } = props;
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const creationDefaultDate = useMemo(() => {
+    const raw =
+      (data as { documentCreatedAt?: string | Date | null })
+        ?.documentCreatedAt ?? data?.validityStart;
+    if (!raw) return undefined;
+
+    const parsed = raw instanceof Date ? raw : new Date(raw);
+    return Number.isNaN(parsed.getTime()) ? undefined : parsed;
+  }, [
+    (data as { documentCreatedAt?: string | Date | null })?.documentCreatedAt,
+    data?.validityStart,
+  ]);
+
+  const emissionDefaultDate = useMemo(() => {
+    const raw = (data as { documentDate?: string | Date | null })?.documentDate;
+    if (!raw) return creationDefaultDate;
+
+    const parsed = raw instanceof Date ? raw : new Date(raw);
+    return Number.isNaN(parsed.getTime()) ? creationDefaultDate : parsed;
+  }, [
+    (data as { documentDate?: string | Date | null })?.documentDate,
+    creationDefaultDate,
+  ]);
   const [classificationFilters, setClassificationFilters] = useState<
     DocumentModelClassificationEnum[]
   >([]);
@@ -68,7 +112,7 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
   const buttons = [
     {},
     {
-      text: 'Confirmar Dados',
+      text: 'Criar versão',
       variant: 'contained',
       onClick: () => onSubmit(),
     },
@@ -78,19 +122,50 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     <div>
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
+          <RadioForm
+            setValue={setValue}
+            defaultValue={data.versionFamily ?? 'test'}
+            label="Família da versão"
+            control={control}
+            name="versionFamily"
+            options={[...DOCUMENT_VERSION_FAMILY_OPTIONS]}
+            onChange={(e) => {
+              onVersionFamilyChange(e.target.value as 'test' | 'official');
+            }}
+          />
+
+          <SFlex direction="column" gap={2}>
+            <SText color="text.label" fontSize={14}>
+              Próxima versão
+            </SText>
+            <SText fontSize={18} fontWeight={500}>
+              {formatRevisionDisplayLabel(nextVersion ?? '0.0.0')}
+            </SText>
+          </SFlex>
+
           <InputForm
             setValue={setValue}
             defaultValue={data?.name}
-            multiline
-            minRows={2}
-            maxRows={4}
-            label="Descrição"
+            label="Nome do documento"
             control={control}
-            placeholder={'descrição...'}
+            placeholder={'nome do documento...'}
             name="name"
             size="small"
             smallPlaceholder
             firstLetterCapitalize
+          />
+
+          <InputForm
+            label="Descrição da revisão*"
+            minRows={2}
+            setValue={setValue}
+            maxRows={4}
+            control={control}
+            placeholder={'ex.: Primeira emissão, Revisão anual...'}
+            name="doc_description"
+            size="small"
+            smallPlaceholder
+            multiline
           />
 
           {type && (
@@ -204,11 +279,63 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
                 textTransform: 'capitalize',
               }}
             />
+            <DatePickerForm
+              label="Data de criação do documento"
+              setValue={setValue}
+              control={control}
+              {...(creationDefaultDate ? { defaultValue: creationDefaultDate } : {})}
+              name="documentCreatedAt"
+              superSmall
+              uneditable={creationDateLocked}
+              calendarProps={modalDatePickerCalendarProps}
+              unmountOnChangeDefault={false}
+            />
+            {creationDateLocked && (
+              <SText color="text.secondary" fontSize={11} sx={{ mt: -3 }}>
+                {CREATION_DATE_LOCKED_MESSAGE}
+              </SText>
+            )}
+            <DatePickerForm
+              label="Data de emissão do documento"
+              setValue={setValue}
+              control={control}
+              {...(emissionDefaultDate ? { defaultValue: emissionDefaultDate } : {})}
+              name="documentDate"
+              superSmall
+              calendarProps={modalDatePickerCalendarProps}
+              unmountOnChangeDefault={false}
+            />
           </Box>
 
           <SignatureAndValidation {...propsStep} />
+
+          <Box>
+            <SButton variant="outlined" onClick={() => setFiltersOpen(true)}>
+              Selecionar filtros
+            </SButton>
+            <SText color="text.secondary" fontSize={12} mt={4}>
+              Opcional. Sem filtros, o documento será gerado completo.
+            </SText>
+          </Box>
+
+          <InputForm
+            sx={{ display: 'none' }}
+            setValue={setValue}
+            control={control}
+            name="version"
+            defaultValue={nextVersion}
+          />
         </SFlex>
       </AnimatedStep>
+
+      <DocumentFiltersModal
+        open={filtersOpen}
+        onClose={() => setFiltersOpen(false)}
+        companyId={data.companyId}
+        workspaceId={data.workspaceId}
+        groupsRef={groupsRef}
+      />
+
       <SModalButtons
         loading={loading}
         onClose={onCloseUnsaved}

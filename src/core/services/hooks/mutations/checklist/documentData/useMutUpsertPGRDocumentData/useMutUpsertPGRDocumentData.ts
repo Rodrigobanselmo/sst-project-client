@@ -23,6 +23,8 @@ export interface IUpsertPGRDocumentData {
   companyId?: string;
   validityEnd?: Date;
   validityStart?: Date;
+  validityYears?: number;
+  validityMonths?: number;
   type?: DocumentTypeEnum;
   modelId?: number;
 

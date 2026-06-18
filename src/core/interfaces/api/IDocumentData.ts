@@ -13,7 +13,10 @@ interface IDocumentDataBase {
   workspaceId: string;
   validityStart: Date;
   validityEnd: Date;
+  validityYears?: number | null;
+  validityMonths?: number | null;
   status: StatusEnum;
+  officialRevisionSeries: number;
   modelId: number;
   elaboratedBy: string;
   coordinatorBy: string;

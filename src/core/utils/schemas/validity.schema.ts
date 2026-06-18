@@ -1,14 +1,7 @@
 import * as yup from 'yup';
 
+/** Campos legados mantidos para compatibilidade com formulários antigos. */
 export const validitySchema = yup.object().shape({
-  validityStart: yup
-    .string()
-    .trim()
-    .required('Dado obrigatório')
-    .length(7, 'Data inválida'),
-  validityEnd: yup
-    .string()
-    .trim()
-    .required('Dado obrigatório')
-    .length(7, 'Data inválida'),
+  validityYears: yup.number().min(0),
+  validityMonths: yup.number().min(0).max(11),
 });

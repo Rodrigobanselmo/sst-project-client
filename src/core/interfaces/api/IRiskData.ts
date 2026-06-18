@@ -125,10 +125,16 @@ export interface IRiskDocument {
   documentData: IDocumentData;
   created_at: Date;
   updated_at: Date;
+  documentDate?: string | Date | null;
+  documentCreatedAt?: string | Date | null;
+  validityYears?: number | null;
+  validityMonths?: number | null;
+  validityEndSnapshot?: string | Date | null;
   companyId: string;
   status: StatusEnum;
   workspaceId: string;
   workspaceName: string;
+  officialRevisionSeries?: number | null;
   attachments?: IPgrDocAttachment[];
 }
 

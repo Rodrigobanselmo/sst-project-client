@@ -1,20 +1,33 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useWizard } from 'react-use-wizard';
 
 import SFlex from 'components/atoms/SFlex';
 import SText from 'components/atoms/SText';
 import { InputForm } from 'components/molecules/form/input';
-import { SelectForm } from 'components/molecules/form/select';
 import { SModalButtons } from 'components/molecules/SModal';
 import { IModalButton } from 'components/molecules/SModal/components/SModalButtons/types';
 import AnimatedStep from 'components/organisms/main/Wizard/components/AnimatedStep/AnimatedStep';
 import { DocumentTypeEnum } from 'project/enum/document.enums';
 
 import { queryDocVersions } from 'core/services/hooks/queries/useQueryDocVersions/useQueryDocVersions';
+import { queryGroupDocumentData } from 'core/services/hooks/queries/useQueryDocumentData/useQueryDocumentData';
 
+import {
+  getNextOfficialVersion,
+  getNextUnofficialVersion,
+  isOfficialDocumentVersion,
+} from '../../helpers/document-version.helpers';
+import {
+  DocumentVersionFamily,
+  resolveVersionForFamily,
+} from '../../helpers/document-dates.helpers';
 import { IUseMainActionsModal } from '../../hooks/useMainActions';
 import { useSecondStep } from './hooks/useSecondStep';
 import { SelectGroup } from './SelectGroup';
+
+const UNOFFICIAL_LABEL_SUFFIX = ' — versão de teste (pode ser deletada)';
+const OFFICIAL_LABEL_SUFFIX =
+  ' — versão oficial/controlada (não pode ser deletada)';
 
 export const VersionModalStep = (props: IUseMainActionsModal) => {
   const {
@@ -31,9 +44,69 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
   const { previousStep } = useWizard();
 
   const { data } = props;
+  const versionFamily = (data.versionFamily ?? 'test') as DocumentVersionFamily;
 
-  const [options, setOptions] = useState<string[]>([]);
-  const [actualVersion, setActualVersion] = useState<string>('0.0.0');
+  const [resolvedVersion, setResolvedVersion] = useState('0.0.0');
+
+  const loadVersion = useCallback(async () => {
+    const [response, documentData] = await Promise.all([
+      queryDocVersions(
+        { take: 50, skip: 0 },
+        {
+          type: data.type ?? DocumentTypeEnum.PGR,
+          companyId: data.companyId,
+          workspaceId: data.workspaceId,
+          ...(data.id ? { documentDataId: [data.id] } : {}),
+        },
+      ),
+      data.workspaceId && data.type
+        ? queryGroupDocumentData({
+            companyId: data.companyId,
+            workspaceId: data.workspaceId,
+            type: data.type,
+          })
+        : Promise.resolve(undefined),
+    ]);
+
+    const versions = response.data ?? [];
+    const activeOfficialSeries = documentData?.officialRevisionSeries ?? 1;
+    const nextVersion = resolveVersionForFamily(
+      versionFamily,
+      versions,
+      activeOfficialSeries,
+    );
+
+    setResolvedVersion(nextVersion);
+    setValue('version', nextVersion);
+
+    if (isOfficialDocumentVersion(nextVersion)) {
+      setIsMajorVersion(true);
+    } else {
+      clearErrors();
+      setIsMajorVersion(false);
+    }
+  }, [
+    clearErrors,
+    data.companyId,
+    data.id,
+    data.type,
+    data.workspaceId,
+    setIsMajorVersion,
+    setValue,
+    versionFamily,
+  ]);
+
+  useEffect(() => {
+    loadVersion();
+  }, [loadVersion]);
+
+  const versionDescription = useMemo(() => {
+    if (isOfficialDocumentVersion(resolvedVersion)) {
+      return `${resolvedVersion}${OFFICIAL_LABEL_SUFFIX}`;
+    }
+
+    return `${resolvedVersion}${UNOFFICIAL_LABEL_SUFFIX}`;
+  }, [resolvedVersion]);
 
   const buttons = [
     { onClick: () => previousStep(), text: 'Voltar' },
@@ -44,89 +117,29 @@ export const VersionModalStep = (props: IUseMainActionsModal) => {
     },
   ] as IModalButton[];
 
-  const getActualVersion = useCallback(async () => {
-    const response = await queryDocVersions(
-      { take: 1, skip: 0 },
-      {
-        type: data.type ?? DocumentTypeEnum.PGR,
-        companyId: data.companyId,
-        workspaceId: data.workspaceId,
-      },
-    );
-
-    const docs = response.data;
-
-    if (!docs) '0.0.0';
-
-    const actVersion = docs[0] ? docs[0].version : '0.0.0';
-
-    setActualVersion(actVersion);
-  }, [data.companyId, data.workspaceId, data.type]);
-
-  const getOptions = useCallback(async () => {
-    const version = await actualVersion;
-
-    const newVersion = version.split('.').map((version, index, arr) => {
-      const before = arr.slice(0, index);
-      const after = arr.slice(index + 1, arr.length).map(() => '0');
-      const op = [
-        ...before,
-        typeof Number(version) === 'number' ? Number(version) + 1 : 1,
-        ...after,
-      ].join('.');
-
-      return op;
-    });
-
-    newVersion.push(version);
-
-    // return newVersion.map((v) => ({ content: v, value: v }));
-    setOptions(newVersion);
-  }, [actualVersion]);
-
-  useEffect(() => {
-    getOptions();
-  }, [getOptions]);
-
-  useEffect(() => {
-    getActualVersion();
-  }, [getActualVersion]);
-
   return (
     <>
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
-          <SelectForm
+          <SFlex direction="column" gap={2}>
+            <SText color="text.label" fontSize={14}>
+              Versão
+            </SText>
+            <SText fontSize={15}>{versionDescription}</SText>
+            <SText color="text.secondary" fontSize={12}>
+              Definida automaticamente pela família escolhida na primeira etapa (
+              {versionFamily === 'official'
+                ? 'Documento oficial'
+                : 'Documento de teste'}
+              ).
+            </SText>
+          </SFlex>
+          <InputForm
+            sx={{ display: 'none' }}
             setValue={setValue}
-            renderMenuItemChildren={(item, index) => (
-              <SFlex align="center">
-                {item}{' '}
-                {index === 0 && (
-                  <SText fontSize={13} ml={3}>
-                    {' '}
-                    *entra no controle de versões do documento (não pode ser
-                    deletado)
-                  </SText>
-                )}
-              </SFlex>
-            )}
-            onChange={(e) => {
-              if (e.target.value) {
-                if ((e.target.value as any).includes('.0.0'))
-                  setIsMajorVersion(true);
-                else {
-                  clearErrors();
-                  setIsMajorVersion(false);
-                }
-              }
-            }}
-            label="Versão*"
             control={control}
-            sx={{ minWidth: ['100%', 600] }}
-            placeholder={`versão atual ${actualVersion}`}
             name="version"
-            size="small"
-            options={options}
+            defaultValue={resolvedVersion}
           />
           <InputForm
             label={`Nome ${isMajorVersion ? '*' : '(opcional)'}`}
