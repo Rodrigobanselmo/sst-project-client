@@ -28,6 +28,7 @@ import {
   formatRevisionDisplayLabel,
   getDocumentVersionFamilyLabel,
   isOfficialDocumentVersion,
+  isUnofficialDocumentVersion,
 } from 'components/organisms/modals/ModalAddDocVersion/helpers/document-version.helpers';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
@@ -378,6 +379,51 @@ export const DocTable: FC<
     } as typeof initialMainDocState);
   };
 
+  const handleEditVersion = useCallback(
+    (doc: IRiskDocument) => {
+      if (!workspaceId || !companyId || type !== DocumentTypeEnum.PGR) return;
+      if (!isUnofficialDocumentVersion(doc.version)) return;
+      if (doc.status === StatusEnum.PROCESSING) return;
+
+      onOpenModal(ModalEnum.DOCUMENT_DATA_UPSERT, {
+        regenerateVersionId: doc.id,
+        lockedVersion: doc.version,
+        workspaceId,
+        workspaceName: workspaceName || doc.workspaceName || '',
+        companyId,
+        type,
+        name: doc.name,
+        doc_description: doc.description,
+        documentDate: doc.documentDate,
+        approvedBy: doc.approvedBy || documentData?.approvedBy,
+        elaboratedBy: doc.elaboratedBy || documentData?.elaboratedBy,
+        revisionBy: doc.revisionBy || documentData?.revisionBy,
+        coordinatorBy: documentData?.coordinatorBy,
+        modelId: doc.generationSnapshot?.modelId ?? documentData?.modelId,
+        model: documentData?.model,
+        generationSnapshot: doc.generationSnapshot,
+        professionals: documentData?.professionals,
+        json: documentData?.json,
+        versionFamily: 'test',
+      } as unknown as typeof initialMainDocState);
+    },
+    [
+      companyId,
+      documentData?.approvedBy,
+      documentData?.coordinatorBy,
+      documentData?.elaboratedBy,
+      documentData?.json,
+      documentData?.model,
+      documentData?.modelId,
+      documentData?.professionals,
+      documentData?.revisionBy,
+      onOpenModal,
+      type,
+      workspaceId,
+      workspaceName,
+    ],
+  );
+
   const handleResetUnofficialVersions = useCallback(() => {
     if (!documentData?.id || !companyId) return;
 
@@ -571,6 +617,28 @@ export const DocTable: FC<
               icon={SDownloadIcon}
               sx={{ flexShrink: 0 }}
             />
+            {type === DocumentTypeEnum.PGR && !isOfficialVersion && (
+              <IconButtonRow
+                icon={<SReloadIcon />}
+                tooltipTitle={
+                  processing
+                    ? 'Revisão em processamento'
+                    : 'Editar revisão'
+                }
+                sx={{
+                  flexShrink: 0,
+                  width: 32,
+                  height: 32,
+                  mx: 0,
+                  svg: { fontSize: 18, color: 'grey.600' },
+                }}
+                disabled={processing}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditVersion(row);
+                }}
+              />
+            )}
             <IconButtonRow
               icon={<SDeleteIcon />}
               tooltipTitle={

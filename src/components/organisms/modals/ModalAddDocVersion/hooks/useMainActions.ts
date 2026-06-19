@@ -36,6 +36,13 @@ export const initialMainDocState = {
   versionFamily: 'test' as 'test' | 'official',
   validityYears: 2,
   validityMonths: 0,
+  regenerateVersionId: '' as string | undefined,
+  lockedVersion: '' as string | undefined,
+  doc_description: '',
+  generationSnapshot: undefined as
+    | import('core/interfaces/api/document-generation-snapshot.types').DocumentGenerationSnapshot
+    | null
+    | undefined,
 
   workspaceClosed: false,
 };

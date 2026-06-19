@@ -38,7 +38,9 @@ export const ModalAddDocPGRVersion = () => {
         <SModalHeader
           tag={'version'}
           onClose={props.onCloseUnsaved}
-          title={`Documento PGR - ${props?.data?.workspaceName}`}
+          title={`Documento PGR - ${props?.data?.workspaceName}${
+            props?.data?.regenerateVersionId ? ' - Editar revisão' : ''
+          }`}
         />
         <Wizard
           header={

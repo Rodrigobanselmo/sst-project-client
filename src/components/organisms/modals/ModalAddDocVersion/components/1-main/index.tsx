@@ -47,6 +47,9 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     setDocumentFilters,
     clearDocumentFilters,
     removeDocumentFilterItem,
+    isRegenerateMode,
+    lockedVersion,
+    missingGenerationSnapshot,
   } = propsStep;
 
   const { data, setData, type } = props;
@@ -116,7 +119,7 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
   const buttons = [
     {},
     {
-      text: 'Criar versão',
+      text: isRegenerateMode ? 'Salvar e regerar' : 'Criar versão',
       variant: 'contained',
       onClick: () => onSubmit(),
     },
@@ -126,26 +129,39 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     <div>
       <AnimatedStep>
         <SFlex gap={8} direction="column" mt={8}>
-          <RadioForm
-            setValue={setValue}
-            defaultValue={data.versionFamily ?? 'test'}
-            label="Família da versão"
-            control={control}
-            name="versionFamily"
-            options={[...DOCUMENT_VERSION_FAMILY_OPTIONS]}
-            onChange={(e) => {
-              onVersionFamilyChange(e.target.value as 'test' | 'official');
-            }}
-          />
+          {!isRegenerateMode && (
+            <RadioForm
+              setValue={setValue}
+              defaultValue={data.versionFamily ?? 'test'}
+              label="Família da versão"
+              control={control}
+              name="versionFamily"
+              options={[...DOCUMENT_VERSION_FAMILY_OPTIONS]}
+              onChange={(e) => {
+                onVersionFamilyChange(e.target.value as 'test' | 'official');
+              }}
+            />
+          )}
 
           <SFlex direction="column" gap={2}>
             <SText color="text.label" fontSize={14}>
-              Próxima versão
+              {isRegenerateMode ? 'Revisão selecionada' : 'Próxima versão'}
             </SText>
             <SText fontSize={18} fontWeight={500}>
-              {formatRevisionDisplayLabel(nextVersion ?? '0.0.0')}
+              {formatRevisionDisplayLabel(
+                isRegenerateMode
+                  ? lockedVersion ?? '0.0.0'
+                  : nextVersion ?? '0.0.0',
+              )}
             </SText>
           </SFlex>
+
+          {missingGenerationSnapshot && (
+            <SText color="warning.main" fontSize={13}>
+              Esta revisão não possui filtros salvos. Selecione os filtros antes
+              de regerar para preservar o recorte desejado.
+            </SText>
+          )}
 
           <InputForm
             setValue={setValue}
@@ -167,6 +183,7 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
             control={control}
             placeholder={'ex.: Primeira emissão, Revisão anual...'}
             name="doc_description"
+            defaultValue={(data as { doc_description?: string }).doc_description}
             size="small"
             smallPlaceholder
             multiline

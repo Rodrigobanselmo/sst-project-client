@@ -1,5 +1,7 @@
 import { StatusEnum } from 'project/enum/status.enum';
 
+import { DocumentGenerationSnapshot } from './document-generation-snapshot.types';
+
 import { QuantityTypeEnum } from 'core/constants/maps/quantity-risks';
 import { IEpi } from 'core/interfaces/api/IEpi';
 
@@ -135,6 +137,10 @@ export interface IRiskDocument {
   workspaceId: string;
   workspaceName: string;
   officialRevisionSeries?: number | null;
+  approvedBy?: string | null;
+  elaboratedBy?: string | null;
+  revisionBy?: string | null;
+  generationSnapshot?: DocumentGenerationSnapshot | null;
   attachments?: IPgrDocAttachment[];
 }
 

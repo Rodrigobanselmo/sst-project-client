@@ -17,6 +17,8 @@ export interface IUpsertAddDocumentQueue {
   name: string;
   documentDataId: string;
   ghoIds?: string[];
+  filterViewType?: string;
+  selectedFilters?: Array<{ id: string; name?: string }>;
   workspaceId: string;
   workspaceName: string;
   description?: string;

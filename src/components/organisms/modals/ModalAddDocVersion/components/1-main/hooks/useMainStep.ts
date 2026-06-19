@@ -17,6 +17,7 @@ import { useMutUpsertLTCATDocumentData } from 'core/services/hooks/mutations/che
 import { useMutUpsertINSALUBRIDADEDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertINSALUBRIDADEDocumentData/useMutUpsertINSALUBRIDADEDocumentData';
 import { useMutUpsertFRPSDocumentData } from 'core/services/hooks/mutations/checklist/documentData/useMutUpsertFRPSDocumentData/useMutUpsertFRPSDocumentData';
 import { useMutAddQueueDocs } from 'core/services/hooks/mutations/checklist/documentData/useMutAddQueueDocs/useMutAddQueueDocs';
+import { useMutRegenerateDocVersion } from 'core/services/hooks/mutations/checklist/documentData/useMutRegenerateDocVersion/useMutRegenerateDocVersion';
 import { queryDocVersions } from 'core/services/hooks/queries/useQueryDocVersions/useQueryDocVersions';
 import { queryGroupDocumentData } from 'core/services/hooks/queries/useQueryDocumentData/useQueryDocumentData';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
@@ -39,15 +40,52 @@ import {
 import { IUseMainActionsModal } from '../../../hooks/useMainActions';
 import { useDocumentFormDates } from './useDocumentFormDates';
 import {
+  DocumentFilterItem,
   DocumentFilterSelection,
   emptyDocumentFilterSelection,
 } from '../../last-version/document-filter.types';
+import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
+import { DocumentGenerationSnapshot } from 'core/interfaces/api/document-generation-snapshot.types';
+
+const REGENERATE_CONFIRMATION_MESSAGE =
+  'Esta ação irá atualizar os dados desta revisão e regerar os arquivos de download com base nas informações atuais do sistema. O número da revisão será preservado, mas os arquivos anteriores desta revisão serão substituídos. Deseja continuar?';
 
 const REVISION_DATE_WARNING_MESSAGE = `Você está gerando uma nova revisão de um documento que possui controle de versões.
 
 A data informada poderá ficar anterior ou posterior às revisões já existentes no documento.
 
 Confirme que essa data está correta antes de continuar.`;
+
+const resolveFilterViewType = (value?: string): ViewsDataEnum => {
+  if (value && Object.values(ViewsDataEnum).includes(value as ViewsDataEnum)) {
+    return value as ViewsDataEnum;
+  }
+
+  return ViewsDataEnum.HIERARCHY;
+};
+
+const buildFiltersFromSnapshot = (
+  snapshot?: DocumentGenerationSnapshot | null,
+): DocumentFilterSelection => {
+  if (!snapshot?.ghoIds?.length && !snapshot?.selectedFilters?.length) {
+    return emptyDocumentFilterSelection(
+      resolveFilterViewType(snapshot?.filterViewType),
+    );
+  }
+
+  const selecteds =
+    snapshot?.selectedFilters?.length
+      ? snapshot.selectedFilters.map((item) => ({
+          id: item.id,
+          name: item.name || item.id,
+        }))
+      : (snapshot?.ghoIds || []).map((id) => ({ id, name: id }));
+
+  return {
+    viewDataType: resolveFilterViewType(snapshot?.filterViewType),
+    selecteds: selecteds as DocumentFilterItem[],
+  };
+};
 
 export const useMainStep = ({
   data,
@@ -95,6 +133,20 @@ export const useMainStep = ({
   const updateInsalubridadeMutation = useMutUpsertINSALUBRIDADEDocumentData();
   const updateFrpsMutation = useMutUpsertFRPSDocumentData();
   const createDoc = useMutAddQueueDocs();
+  const regenerateDoc = useMutRegenerateDocVersion();
+  const isRegenerateMode = Boolean(
+    (data as { regenerateVersionId?: string }).regenerateVersionId,
+  );
+  const lockedVersion = (data as { lockedVersion?: string }).lockedVersion;
+  const generationSnapshot = (data as {
+    generationSnapshot?: DocumentGenerationSnapshot | null;
+  }).generationSnapshot;
+
+  useEffect(() => {
+    if (!isRegenerateMode) return;
+
+    setDocumentFilters(buildFiltersFromSnapshot(generationSnapshot));
+  }, [generationSnapshot, isRegenerateMode]);
 
   const watchedCreationDate = useWatch({ control, name: 'documentCreatedAt' });
   const watchedEmissionDate = useWatch({ control, name: 'documentDate' });
@@ -199,6 +251,72 @@ export const useMainStep = ({
     if (!data.modelId)
       return setError('model', { message: 'Campo obrigatório' });
 
+    const emissionIso = resolveDocumentDateFromForm(documentDate);
+    const activeDocumentFilters = documentFiltersRef.current;
+    const ghoIds = activeDocumentFilters.selecteds.length
+      ? activeDocumentFilters.selecteds.map((group) => group.id)
+      : undefined;
+    const selectedFilters = activeDocumentFilters.selecteds.map((group) => ({
+      id: group.id,
+      name: 'name' in group ? group.name : undefined,
+    }));
+    const professionalSignatures = (data.professionals || []).map(
+      (professional) => ({
+        professionalId: professional.id,
+        isSigner: professional.professionalDocumentDataSignature?.isSigner,
+        isElaborator:
+          professional.professionalDocumentDataSignature?.isElaborator,
+      }),
+    );
+
+    if (isRegenerateMode) {
+      const regenerateVersionId = (data as { regenerateVersionId?: string })
+        .regenerateVersionId;
+
+      if (!regenerateVersionId) return;
+
+      if (
+        !(await showConfirmation({
+          title: 'Editar revisão',
+          message: REGENERATE_CONFIRMATION_MESSAGE,
+          confirmText: 'Continuar',
+          cancelText: 'Cancelar',
+          variant: 'warning',
+        }))
+      ) {
+        return;
+      }
+
+      try {
+        await regenerateDoc.mutateAsync({
+          documentVersionId: regenerateVersionId,
+          companyId: data.companyId,
+          name,
+          description: doc_description,
+          documentDate: emissionIso,
+          approvedBy,
+          elaboratedBy,
+          revisionBy,
+          coordinatorBy,
+          legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
+          modelId: data.modelId,
+          ghoIds,
+          filterViewType: activeDocumentFilters.viewDataType,
+          selectedFilters,
+          json: {
+            ...(data as any)?.json,
+            legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
+          },
+          professionalSignatures,
+        });
+        onClose();
+      } catch {
+        // mutation já exibe snackbar de erro
+      }
+
+      return;
+    }
+
     const validityEnd = computeValidityEnd(
       creationDate,
       Number(validityYears),
@@ -299,11 +417,6 @@ export const useMainStep = ({
       }
 
       if (data.type) {
-        const activeDocumentFilters = documentFiltersRef.current;
-        const ghoIds = activeDocumentFilters.selecteds.length
-          ? activeDocumentFilters.selecteds.map((group) => group.id)
-          : undefined;
-
         await createDoc.mutateAsync({
           version: normalizedVersion,
           description: doc_description,
@@ -314,6 +427,8 @@ export const useMainStep = ({
           documentDataId,
           type: data.type,
           ghoIds,
+          filterViewType: activeDocumentFilters.viewDataType,
+          selectedFilters,
           documentDate: emissionIso,
         });
       }
@@ -439,7 +554,8 @@ export const useMainStep = ({
       updateMutation.isLoading ||
       updatePcmsoMutation.isLoading ||
       updateFrpsMutation.isLoading ||
-      createDoc.isLoading,
+      createDoc.isLoading ||
+      regenerateDoc.isLoading,
     control,
     onCloseUnsaved,
     onAddArray,
@@ -459,6 +575,9 @@ export const useMainStep = ({
     setDocumentFilters,
     clearDocumentFilters,
     removeDocumentFilterItem,
+    isRegenerateMode,
+    lockedVersion,
+    missingGenerationSnapshot: isRegenerateMode && !generationSnapshot?.ghoIds?.length,
   };
 };
 

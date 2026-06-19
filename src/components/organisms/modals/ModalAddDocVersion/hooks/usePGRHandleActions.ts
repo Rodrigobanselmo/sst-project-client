@@ -66,8 +66,11 @@ export const usePGRHandleModal = () => {
       !(initialData as any).passBack
     ) {
       setData((oldData) => {
+        const isRegenerate = Boolean(
+          (initialData as { regenerateVersionId?: string }).regenerateVersionId,
+        );
         const documentPGR: Partial<IPGRDocumentData> =
-          doc?.type == DocumentTypeEnum.PGR ? doc : {};
+          !isRegenerate && doc?.type == DocumentTypeEnum.PGR ? doc : {};
 
         const period = deriveValidityPeriod(documentPGR);
 
@@ -76,7 +79,22 @@ export const usePGRHandleModal = () => {
           ...oldData,
           ...initialData,
           ...documentPGR,
-          versionFamily: initialData?.versionFamily ?? oldData.versionFamily ?? 'test',
+          ...(isRegenerate
+            ? {
+                name: initialData.name ?? oldData.name,
+                elaboratedBy:
+                  initialData.elaboratedBy ?? oldData.elaboratedBy,
+                revisionBy: initialData.revisionBy ?? oldData.revisionBy,
+                approvedBy: initialData.approvedBy ?? oldData.approvedBy,
+                coordinatorBy:
+                  initialData.coordinatorBy ?? oldData.coordinatorBy,
+                modelId: initialData.modelId ?? oldData.modelId,
+                model: initialData.model ?? oldData.model,
+              }
+            : {}),
+          versionFamily:
+            initialData?.versionFamily ??
+            (isRegenerate ? 'test' : oldData.versionFamily ?? 'test'),
           validityYears: documentPGR.validityYears ?? period.years,
           validityMonths: documentPGR.validityMonths ?? period.months,
           documentCreatedAt:
