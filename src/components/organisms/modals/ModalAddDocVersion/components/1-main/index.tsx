@@ -26,6 +26,7 @@ import {
 import { formatRevisionDisplayLabel } from '../../helpers/document-version.helpers';
 import { modalDatePickerCalendarProps } from '../../constants/date-picker-props';
 import { DocumentFiltersModal } from './components/DocumentFiltersModal';
+import { DocumentAppliedFiltersSummary } from './components/DocumentAppliedFiltersSummary';
 import { SignatureAndValidation } from './components/SignatureAndValidation';
 import { useMainStep } from './hooks/useMainStep';
 import { SButton } from 'components/atoms/SButton';
@@ -42,7 +43,10 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     creationDateLocked,
     nextVersion,
     onVersionFamilyChange,
-    groupsRef,
+    documentFilters,
+    setDocumentFilters,
+    clearDocumentFilters,
+    removeDocumentFilterItem,
   } = propsStep;
 
   const { data, setData, type } = props;
@@ -316,6 +320,11 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
             <SText color="text.secondary" fontSize={12} mt={4}>
               Opcional. Sem filtros, o documento será gerado completo.
             </SText>
+            <DocumentAppliedFiltersSummary
+              selection={documentFilters}
+              onRemoveItem={removeDocumentFilterItem}
+              onClear={clearDocumentFilters}
+            />
           </Box>
 
           <InputForm
@@ -331,9 +340,10 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
       <DocumentFiltersModal
         open={filtersOpen}
         onClose={() => setFiltersOpen(false)}
+        onConfirm={setDocumentFilters}
+        selection={documentFilters}
         companyId={data.companyId}
         workspaceId={data.workspaceId}
-        groupsRef={groupsRef}
       />
 
       <SModalButtons

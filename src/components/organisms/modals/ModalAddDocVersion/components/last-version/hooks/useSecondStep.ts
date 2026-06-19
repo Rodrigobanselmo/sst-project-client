@@ -10,6 +10,10 @@ import {
   resolveDocumentDateFromForm,
   shouldWarnRevisionDateChange,
 } from '../../../helpers/document-version.helpers';
+import {
+  DocumentFilterItem,
+} from '../document-filter.types';
+import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { IUseMainActionsModal } from '../../../hooks/useMainActions';
 
 const REVISION_DATE_WARNING_MESSAGE = `Você está gerando uma nova revisão de um documento que possui controle de versões.
@@ -33,7 +37,10 @@ export const useSecondStep = ({
     clearErrors,
   } = useFormContext();
   const [isMajorVersion, setIsMajorVersion] = useState(false);
-  const groupsRef = useRef<{ selecteds: { id: string }[] }>(null);
+  const groupsRef = useRef<{
+    selecteds: DocumentFilterItem[];
+    viewDataType: ViewsDataEnum;
+  } | null>(null);
   const { showConfirmation } = useConfirmationModal();
 
   const createDoc = useMutAddQueueDocs();

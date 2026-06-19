@@ -25,19 +25,58 @@ import { IHierarchy } from 'core/interfaces/api/IHierarchy';
 import SIconButton from 'components/atoms/SIconButton';
 import SCloseIcon from 'assets/icons/SCloseIcon';
 
+import { DocumentFilterItem } from './document-filter.types';
+
+type SelectGroupProps = {
+  compRef?: React.MutableRefObject<{
+    selecteds: DocumentFilterItem[];
+    viewDataType: ViewsDataEnum;
+  } | null>;
+  companyId: string;
+  workspaceId: string;
+  selecteds?: DocumentFilterItem[];
+  onSelectedsChange?: (selecteds: DocumentFilterItem[]) => void;
+  viewDataType?: ViewsDataEnum;
+  onViewDataTypeChange?: (viewDataType: ViewsDataEnum) => void;
+};
+
 export const SelectGroup = ({
   compRef,
   companyId,
   workspaceId,
-}: {
-  compRef: any;
-  companyId: string;
-  workspaceId: string;
-}) => {
-  const [selecteds, setSelecteds] = useState<(IGho | IHierarchy)[]>([]);
-  const [viewDataType, setViewDataType] = useState<ViewsDataEnum>(
-    ViewsDataEnum.HIERARCHY,
+  selecteds: selectedsProp,
+  onSelectedsChange,
+  viewDataType: viewDataTypeProp,
+  onViewDataTypeChange,
+}: SelectGroupProps) => {
+  const isControlled = onSelectedsChange !== undefined;
+
+  const [internalSelecteds, setInternalSelecteds] = useState<DocumentFilterItem[]>(
+    [],
   );
+  const [internalViewDataType, setInternalViewDataType] =
+    useState<ViewsDataEnum>(ViewsDataEnum.HIERARCHY);
+
+  const selecteds = isControlled ? (selectedsProp ?? []) : internalSelecteds;
+  const viewDataType = isControlled
+    ? (viewDataTypeProp ?? ViewsDataEnum.HIERARCHY)
+    : internalViewDataType;
+
+  const setSelecteds = (next: DocumentFilterItem[]) => {
+    if (isControlled) {
+      onSelectedsChange?.(next);
+      return;
+    }
+    setInternalSelecteds(next);
+  };
+
+  const setViewDataType = (next: ViewsDataEnum) => {
+    if (isControlled) {
+      onViewDataTypeChange?.(next);
+      return;
+    }
+    setInternalViewDataType(next);
+  };
 
   const isHierarchy = viewDataType == ViewsDataEnum.HIERARCHY;
 
@@ -45,6 +84,12 @@ export const SelectGroup = ({
     selecteds,
     viewDataType,
   }));
+
+  useEffect(() => {
+    if (!isControlled && compRef) {
+      compRef.current = { selecteds, viewDataType };
+    }
+  }, [compRef, isControlled, selecteds, viewDataType]);
 
   return (
     <>
@@ -76,17 +121,20 @@ export const SelectGroup = ({
           icon={null}
           maxWidth={'auto'}
           handleSelect={(hierarchy: IHierarchy | IGho, x) => {
-            setSelecteds((prev) => {
+            setSelecteds((() => {
               if (Array.isArray(hierarchy)) {
-                return [...prev, ...hierarchy].filter(
+                return [...selecteds, ...hierarchy].filter(
                   (item, index, self) =>
                     index === self.findIndex((t) => t.id === item.id),
                 );
-              } else {
-                if (prev.find((item) => item.id === hierarchy.id)) return prev;
-                return [...prev, hierarchy];
               }
-            });
+
+              if (selecteds.find((item) => item.id === hierarchy.id)) {
+                return selecteds;
+              }
+
+              return [...selecteds, hierarchy];
+            })());
           }}
           allFilters
           companyId={companyId}
@@ -159,8 +207,8 @@ export const SelectGroup = ({
                 <SIconButton
                   size="small"
                   onClick={() => {
-                    setSelecteds((prev) =>
-                      prev.filter((item) => item.id !== selected.id),
+                    setSelecteds(
+                      selecteds.filter((item) => item.id !== selected.id),
                     );
                   }}
                 >

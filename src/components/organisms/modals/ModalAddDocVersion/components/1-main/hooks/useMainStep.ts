@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import clone from 'clone';
@@ -38,6 +38,10 @@ import {
 } from '../../../helpers/document-version.helpers';
 import { IUseMainActionsModal } from '../../../hooks/useMainActions';
 import { useDocumentFormDates } from './useDocumentFormDates';
+import {
+  DocumentFilterSelection,
+  emptyDocumentFilterSelection,
+} from '../../last-version/document-filter.types';
 
 const REVISION_DATE_WARNING_MESSAGE = `Você está gerando uma nova revisão de um documento que possui controle de versões.
 
@@ -58,7 +62,9 @@ export const useMainStep = ({
     useFormContext();
   const { enqueueSnackbar } = useSnackbar();
   const { showConfirmation } = useConfirmationModal();
-  const groupsRef = useRef<{ selecteds: { id: string }[] }>(null);
+  const [documentFilters, setDocumentFilters] = useState<DocumentFilterSelection>(
+    () => emptyDocumentFilterSelection(),
+  );
   const emissionDateManuallyEditedRef = useRef(false);
 
   const onFamilyDefaultsApplied = useCallback(() => {
@@ -288,6 +294,10 @@ export const useMainStep = ({
       }
 
       if (data.type) {
+        const ghoIds = documentFilters.selecteds.length
+          ? documentFilters.selecteds.map((group) => group.id)
+          : undefined;
+
         await createDoc.mutateAsync({
           version: normalizedVersion,
           description: doc_description,
@@ -297,7 +307,7 @@ export const useMainStep = ({
           workspaceName: data.workspaceName,
           documentDataId,
           type: data.type,
-          ghoIds: groupsRef.current?.selecteds?.map((group) => group.id),
+          ghoIds,
           documentDate: emissionIso,
         });
       }
@@ -403,6 +413,20 @@ export const useMainStep = ({
     });
   };
 
+  const clearDocumentFilters = useCallback(() => {
+    setDocumentFilters(emptyDocumentFilterSelection(documentFilters.viewDataType));
+  }, [documentFilters.viewDataType]);
+
+  const removeDocumentFilterItem = useCallback(
+    (item: DocumentFilterSelection['selecteds'][number]) => {
+      setDocumentFilters((current) => ({
+        ...current,
+        selecteds: current.selecteds.filter((selected) => selected.id !== item.id),
+      }));
+    },
+    [],
+  );
+
   return {
     onSubmit,
     loading:
@@ -425,7 +449,10 @@ export const useMainStep = ({
     lockedCreationDate,
     nextVersion,
     onVersionFamilyChange,
-    groupsRef,
+    documentFilters,
+    setDocumentFilters,
+    clearDocumentFilters,
+    removeDocumentFilterItem,
   };
 };
 
