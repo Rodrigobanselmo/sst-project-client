@@ -65,7 +65,12 @@ export const useMainStep = ({
   const [documentFilters, setDocumentFilters] = useState<DocumentFilterSelection>(
     () => emptyDocumentFilterSelection(),
   );
+  const documentFiltersRef = useRef(documentFilters);
   const emissionDateManuallyEditedRef = useRef(false);
+
+  useEffect(() => {
+    documentFiltersRef.current = documentFilters;
+  }, [documentFilters]);
 
   const onFamilyDefaultsApplied = useCallback(() => {
     emissionDateManuallyEditedRef.current = false;
@@ -294,8 +299,9 @@ export const useMainStep = ({
       }
 
       if (data.type) {
-        const ghoIds = documentFilters.selecteds.length
-          ? documentFilters.selecteds.map((group) => group.id)
+        const activeDocumentFilters = documentFiltersRef.current;
+        const ghoIds = activeDocumentFilters.selecteds.length
+          ? activeDocumentFilters.selecteds.map((group) => group.id)
           : undefined;
 
         await createDoc.mutateAsync({
