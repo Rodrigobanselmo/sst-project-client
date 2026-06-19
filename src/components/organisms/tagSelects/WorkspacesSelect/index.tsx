@@ -3,10 +3,20 @@ import React, { FC, useMemo } from 'react';
 import { SWorkspaceIcon } from 'assets/icons/SWorkspaceIcon';
 
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
-import { sortString } from 'core/utils/sorts/string.sort';
 
 import { STagSearchSelect } from '../../../molecules/STagSearchSelect';
 import { IWorkspaceSelectProps } from './types';
+
+const WORKSPACE_SEARCH_KEYS = ['name', 'abbreviation', 'description', 'cnpj'] as const;
+
+function compareWorkspaceByName(
+  a: { name?: string },
+  b: { name?: string },
+): number {
+  return (a.name || '').localeCompare(b.name || '', 'pt-BR', {
+    sensitivity: 'base',
+  });
+}
 
 export const WorkspacesSelect: FC<
   { children?: any } & IWorkspaceSelectProps
@@ -19,14 +29,10 @@ export const WorkspacesSelect: FC<
     if (handleSelect) handleSelect(options);
   };
 
-  const options = useMemo(() => {
-    return workspaces
-      .map((workspace) => ({
-        ...workspace,
-      }))
-      .sort((a, b) => sortString(a, b, 'name'));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [company]);
+  const options = useMemo(
+    () => [...workspaces].sort(compareWorkspaceByName),
+    [workspaces],
+  );
 
   const workspaceLength = String(selected ? selected.length : 0);
 
@@ -43,8 +49,8 @@ export const WorkspacesSelect: FC<
             ? 'estabelecimentos'
             : 'estabelecimentos ' + workspaceLength
       }
-      keys={['ca']}
-      placeholder="pesquisar por CA"
+      keys={[...WORKSPACE_SEARCH_KEYS]}
+      placeholder="Pesquisar por nome ou sigla"
       large={large}
       handleSelectMenu={handleSelectWorkspace}
       selected={selected || []}
