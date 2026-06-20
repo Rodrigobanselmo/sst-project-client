@@ -26,10 +26,18 @@ import {
 import { formatRevisionDisplayLabel } from '../../helpers/document-version.helpers';
 import { modalDatePickerCalendarProps } from '../../constants/date-picker-props';
 import { DocumentFiltersModal } from './components/DocumentFiltersModal';
+import { DocumentRiskFilterModal } from './components/DocumentRiskFilterModal';
 import { DocumentAppliedFiltersSummary } from './components/DocumentAppliedFiltersSummary';
+import { DocumentAppliedRiskFilterSummary } from './components/DocumentAppliedRiskFilterSummary';
 import { SignatureAndValidation } from './components/SignatureAndValidation';
 import { useMainStep } from './hooks/useMainStep';
 import { SButton } from 'components/atoms/SButton';
+import { DocumentTypeEnum } from 'project/enum/document.enums';
+import { useDocumentRiskFilterRisks } from './hooks/useDocumentRiskFilterRisks';
+import {
+  buildDocumentRiskFilterSummary,
+  buildDocumentRiskFilterTree,
+} from './helpers/document-risk-filter.helpers';
 
 export const MainModalStep = (props: IUseMainActionsModal) => {
   const propsStep = useMainStep(props);
@@ -47,6 +55,9 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
     setDocumentFilters,
     clearDocumentFilters,
     removeDocumentFilterItem,
+    riskFilter,
+    setRiskFilter,
+    clearRiskFilter,
     isRegenerateMode,
     lockedVersion,
     missingGenerationSnapshot,
@@ -54,6 +65,26 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
 
   const { data, setData, type } = props;
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [riskFiltersOpen, setRiskFiltersOpen] = useState(false);
+  const isPgrDocument = type === DocumentTypeEnum.PGR;
+  const scopeIds = useMemo(
+    () => documentFilters.selecteds.map((item) => item.id),
+    [documentFilters.selecteds],
+  );
+  const { risks: contextualPgrRisks } = useDocumentRiskFilterRisks({
+    companyId: data.companyId,
+    workspaceId: data.workspaceId,
+    scopeIds,
+    enabled: isPgrDocument,
+  });
+  const riskFilterSummary = useMemo(() => {
+    if (!isPgrDocument || !riskFilter) return null;
+
+    return buildDocumentRiskFilterSummary(
+      buildDocumentRiskFilterTree(contextualPgrRisks),
+      riskFilter,
+    );
+  }, [contextualPgrRisks, isPgrDocument, riskFilter]);
 
   const creationDefaultDate = useMemo(() => {
     const raw =
@@ -331,9 +362,16 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
           <SignatureAndValidation {...propsStep} />
 
           <Box>
-            <SButton variant="outlined" onClick={() => setFiltersOpen(true)}>
-              Selecionar filtros
-            </SButton>
+            <SFlex gap={4} flexWrap="wrap">
+              <SButton variant="outlined" onClick={() => setFiltersOpen(true)}>
+                Selecionar filtros
+              </SButton>
+              {isPgrDocument && (
+                <SButton variant="outlined" onClick={() => setRiskFiltersOpen(true)}>
+                  Filtrar riscos
+                </SButton>
+              )}
+            </SFlex>
             <SText color="text.secondary" fontSize={12} mt={4}>
               Opcional. Sem filtros, o documento será gerado completo.
             </SText>
@@ -342,6 +380,12 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
               onRemoveItem={removeDocumentFilterItem}
               onClear={clearDocumentFilters}
             />
+            {isPgrDocument && (
+              <DocumentAppliedRiskFilterSummary
+                summary={riskFilterSummary}
+                onClear={clearRiskFilter}
+              />
+            )}
           </Box>
 
           <InputForm
@@ -362,6 +406,18 @@ export const MainModalStep = (props: IUseMainActionsModal) => {
         companyId={data.companyId}
         workspaceId={data.workspaceId}
       />
+
+      {isPgrDocument && (
+        <DocumentRiskFilterModal
+          open={riskFiltersOpen}
+          onClose={() => setRiskFiltersOpen(false)}
+          onConfirm={setRiskFilter}
+          value={riskFilter}
+          companyId={data.companyId}
+          workspaceId={data.workspaceId}
+          scopeIds={scopeIds}
+        />
+      )}
 
       <SModalButtons
         loading={loading}

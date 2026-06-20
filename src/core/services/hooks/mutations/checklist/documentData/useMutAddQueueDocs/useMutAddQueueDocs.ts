@@ -7,6 +7,7 @@ import { StatusEnum } from 'project/enum/status.enum';
 import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
+import { DocumentGenerationRiskFilter } from 'core/interfaces/api/document-generation-risk-filter.types';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
@@ -26,6 +27,7 @@ export interface IUpsertAddDocumentQueue {
   status?: StatusEnum;
   companyId?: string;
   type: DocumentTypeEnum;
+  riskFilter?: DocumentGenerationRiskFilter;
   documentDate?: string;
 }
 

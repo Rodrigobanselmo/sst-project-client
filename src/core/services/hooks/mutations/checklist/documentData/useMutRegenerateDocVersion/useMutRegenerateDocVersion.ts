@@ -6,6 +6,7 @@ import { ApiRoutesEnum } from 'core/enums/api-routes.enums';
 import { QueryEnum } from 'core/enums/query.enums';
 import { useGetCompanyId } from 'core/hooks/useGetCompanyId';
 import { DocumentGenerationSnapshot } from 'core/interfaces/api/document-generation-snapshot.types';
+import { DocumentGenerationRiskFilter } from 'core/interfaces/api/document-generation-risk-filter.types';
 import { api } from 'core/services/apiClient';
 import { queryClient } from 'core/services/queryClient';
 
@@ -26,6 +27,7 @@ export interface IRegenerateDocumentVersion {
   ghoIds?: string[];
   filterViewType?: string;
   selectedFilters?: Array<{ id: string; name?: string }>;
+  riskFilter?: DocumentGenerationRiskFilter;
   json?: Record<string, unknown>;
   professionalSignatures?: Array<{
     professionalId: number;

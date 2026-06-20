@@ -46,6 +46,7 @@ import {
 } from '../../last-version/document-filter.types';
 import { ViewsDataEnum } from 'components/organisms/main/Tree/OrgTree/components/RiskTool/utils/view-data-type.constant';
 import { DocumentGenerationSnapshot } from 'core/interfaces/api/document-generation-snapshot.types';
+import { DocumentGenerationRiskFilter } from 'core/interfaces/api/document-generation-risk-filter.types';
 
 const REGENERATE_CONFIRMATION_MESSAGE =
   'Esta ação irá atualizar os dados desta revisão e regerar os arquivos de download com base nas informações atuais do sistema. O número da revisão será preservado, mas os arquivos anteriores desta revisão serão substituídos. Deseja continuar?';
@@ -103,12 +104,20 @@ export const useMainStep = ({
   const [documentFilters, setDocumentFilters] = useState<DocumentFilterSelection>(
     () => emptyDocumentFilterSelection(),
   );
+  const [riskFilter, setRiskFilter] = useState<DocumentGenerationRiskFilter | undefined>(
+    undefined,
+  );
   const documentFiltersRef = useRef(documentFilters);
+  const riskFilterRef = useRef(riskFilter);
   const emissionDateManuallyEditedRef = useRef(false);
 
   useEffect(() => {
     documentFiltersRef.current = documentFilters;
   }, [documentFilters]);
+
+  useEffect(() => {
+    riskFilterRef.current = riskFilter;
+  }, [riskFilter]);
 
   const onFamilyDefaultsApplied = useCallback(() => {
     emissionDateManuallyEditedRef.current = false;
@@ -146,6 +155,7 @@ export const useMainStep = ({
     if (!isRegenerateMode) return;
 
     setDocumentFilters(buildFiltersFromSnapshot(generationSnapshot));
+    setRiskFilter(generationSnapshot?.riskFilter);
   }, [generationSnapshot, isRegenerateMode]);
 
   const watchedCreationDate = useWatch({ control, name: 'documentCreatedAt' });
@@ -253,6 +263,7 @@ export const useMainStep = ({
 
     const emissionIso = resolveDocumentDateFromForm(documentDate);
     const activeDocumentFilters = documentFiltersRef.current;
+    const activeRiskFilter = riskFilterRef.current;
     const ghoIds = activeDocumentFilters.selecteds.length
       ? activeDocumentFilters.selecteds.map((group) => group.id)
       : undefined;
@@ -303,6 +314,7 @@ export const useMainStep = ({
           ghoIds,
           filterViewType: activeDocumentFilters.viewDataType,
           selectedFilters,
+          riskFilter: activeRiskFilter,
           json: {
             ...(data as any)?.json,
             legalResponsibleBy: legalResponsibleBy?.trim() || undefined,
@@ -429,6 +441,7 @@ export const useMainStep = ({
           ghoIds,
           filterViewType: activeDocumentFilters.viewDataType,
           selectedFilters,
+          riskFilter: activeRiskFilter,
           documentDate: emissionIso,
         });
       }
@@ -538,6 +551,10 @@ export const useMainStep = ({
     setDocumentFilters(emptyDocumentFilterSelection(documentFilters.viewDataType));
   }, [documentFilters.viewDataType]);
 
+  const clearRiskFilter = useCallback(() => {
+    setRiskFilter(undefined);
+  }, []);
+
   const removeDocumentFilterItem = useCallback(
     (item: DocumentFilterSelection['selecteds'][number]) => {
       setDocumentFilters((current) => ({
@@ -575,6 +592,9 @@ export const useMainStep = ({
     setDocumentFilters,
     clearDocumentFilters,
     removeDocumentFilterItem,
+    riskFilter,
+    setRiskFilter,
+    clearRiskFilter,
     isRegenerateMode,
     lockedVersion,
     missingGenerationSnapshot: isRegenerateMode && !generationSnapshot?.ghoIds?.length,

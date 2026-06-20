@@ -1,3 +1,5 @@
+import { DocumentGenerationRiskFilter } from './document-generation-risk-filter.types';
+
 export type DocumentGenerationFilterItemSnapshot = {
   id: string;
   name?: string;
@@ -16,4 +18,5 @@ export type DocumentGenerationSnapshot = {
     isSigner?: boolean;
     isElaborator?: boolean;
   }>;
+  riskFilter?: DocumentGenerationRiskFilter;
 };
