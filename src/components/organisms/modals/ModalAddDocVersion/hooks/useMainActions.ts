@@ -38,6 +38,7 @@ export const initialMainDocState = {
   validityMonths: 0,
   regenerateVersionId: '' as string | undefined,
   lockedVersion: '' as string | undefined,
+  downloadExpired: false,
   doc_description: '',
   generationSnapshot: undefined as
     | import('core/interfaces/api/document-generation-snapshot.types').DocumentGenerationSnapshot

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 
 import { IRiskDocument } from 'core/interfaces/api/IRiskData';
+import { StatusEnum } from 'project/enum/status.enum';
 
 import {
   formatRevisionDisplayNumber,
@@ -18,6 +19,32 @@ import {
 } from './docTable.types';
 
 export const DOC_VERSIONS_FETCH_LIMIT = 100;
+
+export const TEST_DOWNLOAD_EXPIRY_DAYS = 7;
+
+/** Data de referência da última geração de arquivo disponível para download. */
+export function getTestDownloadExpiryReferenceDate(
+  doc: IRiskDocument,
+): string | Date {
+  if (doc.fileUrl) {
+    return doc.updated_at ?? doc.created_at;
+  }
+
+  return doc.created_at;
+}
+
+/** Versões de teste: download indisponível se processando, sem fileUrl ou expirado (7 dias). */
+export function isTestDownloadExpired(doc: IRiskDocument): boolean {
+  if (isOfficialDocumentVersion(doc.version)) return false;
+  if (doc.status === StatusEnum.PROCESSING) return true;
+  if (!doc.fileUrl) return true;
+
+  const referenceDate = getTestDownloadExpiryReferenceDate(doc);
+
+  return dayjs(referenceDate)
+    .add(TEST_DOWNLOAD_EXPIRY_DAYS, 'days')
+    .isBefore(dayjs());
+}
 
 export function filterDocsByFamily(
   docs: IRiskDocument[],

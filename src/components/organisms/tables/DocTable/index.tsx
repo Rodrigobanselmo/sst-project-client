@@ -1,8 +1,10 @@
 import { FC, useCallback, useEffect, useMemo, useState } from 'react';
 
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
+import VerifiedIcon from '@mui/icons-material/Verified';
 import { Box, BoxProps, FormControl, MenuItem, Select } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material/Select';
+import { alpha } from '@mui/material/styles';
 import { STableColumnsButton } from '@v2/components/organisms/STable/addons/addons-table/STableSearch/components/STableButton/components/STableColumnsButton/STableColumnsButton';
 import SFlex from 'components/atoms/SFlex';
 import {
@@ -29,6 +31,7 @@ import {
   getDocumentVersionFamilyLabel,
   isOfficialDocumentVersion,
   isUnofficialDocumentVersion,
+  validatePromoteTestToOfficial,
 } from 'components/organisms/modals/ModalAddDocVersion/helpers/document-version.helpers';
 import { ModalAddRiskGroup } from 'components/organisms/modals/ModalAddRiskGroup';
 import { ModalSelectDocPgr } from 'components/organisms/modals/ModalSelectDocPgr';
@@ -57,6 +60,7 @@ import {
   useQueryDocVersions,
 } from 'core/services/hooks/queries/useQueryDocVersions/useQueryDocVersions';
 import { useMutDeleteDocVersion } from 'core/services/hooks/mutations/checklist/documentData/useMutDeleteDocVersion/useMutDeleteDocVersion';
+import { useMutPromoteTestToOfficialDocumentVersion } from 'core/services/hooks/mutations/checklist/documentData/useMutPromoteTestToOfficialDocumentVersion/useMutPromoteTestToOfficialDocumentVersion';
 import { useMutResetOfficialSeries } from 'core/services/hooks/mutations/checklist/documentData/useMutResetOfficialSeries/useMutResetOfficialSeries';
 import { useMutResetUnofficialVersions } from 'core/services/hooks/mutations/checklist/documentData/useMutResetUnofficialVersions/useMutResetUnofficialVersions';
 import { useQueryDocumentData } from 'core/services/hooks/queries/useQueryDocumentData/useQueryDocumentData';
@@ -68,6 +72,7 @@ import {
   compareDocVersions,
   DOC_VERSIONS_FETCH_LIMIT,
   filterDocsByFamily,
+  isTestDownloadExpired,
 } from './docTable.helpers';
 import {
   DEFAULT_DOC_VERSIONS_PAGE_SIZE,
@@ -102,6 +107,33 @@ const FAMILY_FILTER_LABELS: Record<DocTableFamilyFilter, string> = {
   test: 'Teste',
   official: 'Oficial',
 };
+
+const EXPIRED_DOWNLOAD_TOOLTIP =
+  'Arquivo expirado. Use Editar revisão para regerar com base nos dados atuais do sistema.';
+
+const PROMOTE_TO_OFFICIAL_CONFIRMATION_MESSAGE =
+  'Esta ação criará uma versão oficial a partir desta versão de teste. A versão de teste será mantida. O arquivo oficial será gerado com base nas informações atuais do sistema e nos parâmetros salvos desta revisão. Deseja continuar?';
+
+const ACTION_ICON_SLOT_SIZE = 32;
+
+const actionIconButtonSx = {
+  flexShrink: 0,
+  width: ACTION_ICON_SLOT_SIZE,
+  height: ACTION_ICON_SLOT_SIZE,
+  mx: 0,
+  svg: { fontSize: 18, color: 'grey.600' },
+} as const;
+
+const ActionIconSlotPlaceholder = () => (
+  <Box
+    aria-hidden
+    sx={{
+      width: ACTION_ICON_SLOT_SIZE,
+      height: ACTION_ICON_SLOT_SIZE,
+      flexShrink: 0,
+    }}
+  />
+);
 
 export const DocTable: FC<
   { children?: any } & BoxProps & {
@@ -165,6 +197,7 @@ export const DocTable: FC<
   const { preventDelete } = usePreventAction();
   const { showConfirmation } = useConfirmationModal();
   const deleteDocVersion = useMutDeleteDocVersion();
+  const promoteTestToOfficial = useMutPromoteTestToOfficialDocumentVersion();
   const resetUnofficialVersions = useMutResetUnofficialVersions();
   const resetOfficialSeries = useMutResetOfficialSeries();
 
@@ -198,13 +231,13 @@ export const DocTable: FC<
       },
       {
         id: 'description',
-        column: 'minmax(160px, 2fr)',
+        column: 'minmax(100px, 1fr)',
         label: 'Descrição',
         sortField: 'DESCRIPTION',
       },
       {
         id: 'workspace',
-        column: 'minmax(140px, 1.5fr)',
+        column: 'minmax(100px, 1fr)',
         label: 'Estabelecimento',
         sortField: 'WORKSPACE',
       },
@@ -231,14 +264,14 @@ export const DocTable: FC<
       },
       {
         id: 'status',
-        column: '100px',
+        column: 'minmax(120px, 130px)',
         label: 'Status',
         sortField: 'STATUS',
         justifyContent: 'center',
       },
       {
         id: 'actions',
-        column: '130px',
+        column: 'minmax(200px, 220px)',
         label: 'Download',
         justifyContent: 'center',
       },
@@ -295,16 +328,26 @@ export const DocTable: FC<
     if (page > lastPage) setPage(lastPage);
   }, [totalCount, pageSize, page, setPage]);
 
-  const isDownloadExpired = useCallback(
-    (createdAt: string | Date) =>
-      dayjs(createdAt).add(7, 'days').isBefore(dayjs()),
-    [],
+  const hasProcessingVersions = useMemo(
+    () => allDocs.some((doc) => doc.status === StatusEnum.PROCESSING),
+    [allDocs],
   );
+
+  useEffect(() => {
+    if (!hasProcessingVersions) return;
+
+    const intervalId = window.setInterval(() => {
+      refetch();
+      queryClient.invalidateQueries([QueryEnum.DOCUMENT_VERSION]);
+    }, 5000);
+
+    return () => window.clearInterval(intervalId);
+  }, [hasProcessingVersions, refetch]);
 
   const getDeleteConfirmMessage = useCallback(
     (doc: IRiskDocument) => {
       const processing = doc.status === StatusEnum.PROCESSING;
-      const downloadExpired = isDownloadExpired(doc.created_at);
+      const downloadExpired = isTestDownloadExpired(doc);
 
       if (processing) {
         return 'Este documento ainda está em processamento. Tem certeza que deseja excluí-lo?';
@@ -316,7 +359,7 @@ export const DocTable: FC<
 
       return 'Tem certeza que deseja excluir este documento?';
     },
-    [isDownloadExpired],
+    [],
   );
 
   const handleDeleteDoc = useCallback(
@@ -405,6 +448,7 @@ export const DocTable: FC<
         professionals: documentData?.professionals,
         json: documentData?.json,
         versionFamily: 'test',
+        downloadExpired: isTestDownloadExpired(doc),
       } as unknown as typeof initialMainDocState);
     },
     [
@@ -421,6 +465,45 @@ export const DocTable: FC<
       type,
       workspaceId,
       workspaceName,
+    ],
+  );
+
+  const handlePromoteToOfficial = useCallback(
+    async (doc: IRiskDocument) => {
+      if (!companyId || type !== DocumentTypeEnum.PGR) return;
+      if (!isUnofficialDocumentVersion(doc.version)) return;
+      if (doc.status === StatusEnum.PROCESSING) return;
+
+      const validation = validatePromoteTestToOfficial(
+        doc.version,
+        activeOfficialVersions,
+      );
+
+      if (validation.allowed === false) return;
+
+      const confirmed = await showConfirmation({
+        title: 'Converter em oficial',
+        message: PROMOTE_TO_OFFICIAL_CONFIRMATION_MESSAGE,
+        confirmText: 'Continuar',
+        cancelText: 'Cancelar',
+        variant: 'warning',
+      });
+
+      if (!confirmed) return;
+
+      await promoteTestToOfficial
+        .mutateAsync({
+          documentVersionId: doc.id,
+          companyId,
+        })
+        .catch(() => {});
+    },
+    [
+      activeOfficialVersions,
+      companyId,
+      promoteTestToOfficial,
+      showConfirmation,
+      type,
     ],
   );
 
@@ -546,21 +629,39 @@ export const DocTable: FC<
   );
 
   const renderCell = (col: ColumnDef, row: IRiskDocument) => {
-    const processing = row.status == StatusEnum.PROCESSING;
-    const isError =
-      processing && dayjs(row.created_at).add(3, 'hour').isBefore(dayjs());
+    const processing = row.status === StatusEnum.PROCESSING;
     const isOfficialVersion = isOfficialDocumentVersion(row.version);
-    const downloadExpired =
-      !isOfficialVersion && isDownloadExpired(row.created_at);
+    const downloadExpired = isTestDownloadExpired(row);
+    const promoteValidation =
+      type === DocumentTypeEnum.PGR && !isOfficialVersion
+        ? validatePromoteTestToOfficial(row.version, activeOfficialVersions)
+        : null;
+    const canPromote = promoteValidation?.allowed === true;
+    const promoteBlockedReason =
+      promoteValidation && promoteValidation.allowed === false
+        ? promoteValidation.reason
+        : undefined;
 
     switch (col.id) {
       case 'name':
         return <TextIconRow key="name" text={row.name || '--'} />;
       case 'description':
-        return <TextIconRow key="description" text={row.description || '--'} />;
+        return (
+          <TextIconRow
+            key="description"
+            text={row.description || '--'}
+            lineNumber={1}
+          />
+        );
       case 'workspace':
         return (
-          <TextIconRow key="workspace" text={row.workspaceName || '--'} />
+          <TextIconRow
+            key="workspace"
+            text={row.workspaceName || '--'}
+            lineNumber={1}
+            tooltipTitle={row.workspaceName || '--'}
+            tooltipProps={{ minLength: 1 }}
+          />
         );
       case 'family':
         return (
@@ -568,6 +669,16 @@ export const DocTable: FC<
             key="family"
             text={getDocumentVersionFamilyLabel(row.version)}
             justifyContent="center"
+            textProps={
+              isOfficialVersion
+                ? {
+                    sx: {
+                      fontWeight: 600,
+                      color: 'primary.main',
+                    },
+                  }
+                : undefined
+            }
           />
         );
       case 'version':
@@ -591,54 +702,99 @@ export const DocTable: FC<
           <StatusSelect
             key="status"
             large
-            sx={{ maxWidth: '120px' }}
-            selected={isError ? StatusEnum.ERROR : row.status}
-            loading={isError ? false : processing}
+            sx={{ minWidth: '110px', maxWidth: '130px' }}
+            selected={row.status}
+            loading={processing}
             statusOptions={[]}
             disabled
             handleSelectMenu={(option) => handleEditStatus(option.value)}
           />
         );
-      case 'actions':
+      case 'actions': {
+        const showPgrTestActions =
+          type === DocumentTypeEnum.PGR && !isOfficialVersion;
+        const usePgrActionGrid = type === DocumentTypeEnum.PGR;
+
         return (
           <SFlex
             key="actions"
             align="center"
-            justifyContent="flex-end"
-            gap={1}
             className="table-row-box"
-            sx={{ width: '100%', pr: 1 }}
+            sx={{
+              display: 'grid',
+              width: '100%',
+              pr: 1,
+              gap: 1,
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gridTemplateColumns: usePgrActionGrid
+                ? `auto ${ACTION_ICON_SLOT_SIZE}px ${ACTION_ICON_SLOT_SIZE}px ${ACTION_ICON_SLOT_SIZE}px`
+                : `auto ${ACTION_ICON_SLOT_SIZE}px`,
+            }}
           >
             <STagButton
               text="Baixar"
               onClick={() => handleOpenDocModal(row)}
               large
               disabled={processing || downloadExpired}
+              tooltipTitle={
+                downloadExpired ? EXPIRED_DOWNLOAD_TOOLTIP : undefined
+              }
               icon={SDownloadIcon}
-              sx={{ flexShrink: 0 }}
+              sx={{ flexShrink: 0, justifySelf: 'end' }}
             />
-            {type === DocumentTypeEnum.PGR && !isOfficialVersion && (
-              <IconButtonRow
-                icon={<SReloadIcon />}
-                tooltipTitle={
-                  processing
-                    ? 'Revisão em processamento'
-                    : 'Editar revisão'
-                }
-                sx={{
-                  flexShrink: 0,
-                  width: 32,
-                  height: 32,
-                  mx: 0,
-                  svg: { fontSize: 18, color: 'grey.600' },
-                }}
-                disabled={processing}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleEditVersion(row);
-                }}
-              />
-            )}
+            {usePgrActionGrid &&
+              (showPgrTestActions ? (
+                <IconButtonRow
+                  icon={<SReloadIcon />}
+                  tooltipTitle={
+                    processing
+                      ? 'Revisão em processamento'
+                      : 'Editar revisão'
+                  }
+                  sx={actionIconButtonSx}
+                  disabled={processing}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleEditVersion(row);
+                  }}
+                />
+              ) : (
+                <ActionIconSlotPlaceholder />
+              ))}
+            {usePgrActionGrid &&
+              (showPgrTestActions ? (
+                <IconButtonRow
+                  icon={<VerifiedIcon />}
+                  tooltipTitle={
+                    processing
+                      ? 'Revisão em processamento'
+                      : canPromote
+                        ? 'Converter em oficial'
+                        : promoteBlockedReason || 'Conversão indisponível'
+                  }
+                  sx={{
+                    ...actionIconButtonSx,
+                    svg: {
+                      fontSize: 18,
+                      color: canPromote ? 'primary.main' : 'grey.400',
+                    },
+                  }}
+                  disabled={
+                    processing ||
+                    !canPromote ||
+                    (promoteTestToOfficial.isLoading &&
+                      promoteTestToOfficial.variables?.documentVersionId ===
+                        row.id)
+                  }
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePromoteToOfficial(row);
+                  }}
+                />
+              ) : (
+                <ActionIconSlotPlaceholder />
+              ))}
             <IconButtonRow
               icon={<SDeleteIcon />}
               tooltipTitle={
@@ -646,13 +802,7 @@ export const DocTable: FC<
                   ? 'Versões oficiais não podem ser excluídas'
                   : 'Excluir'
               }
-              sx={{
-                flexShrink: 0,
-                width: 32,
-                height: 32,
-                mx: 0,
-                svg: { fontSize: 18, color: 'grey.600' },
-              }}
+              sx={actionIconButtonSx}
               disabled={
                 isOfficialVersion ||
                 (deleteDocVersion.isLoading &&
@@ -665,6 +815,7 @@ export const DocTable: FC<
             />
           </SFlex>
         );
+      }
       default:
         return null;
     }
@@ -777,11 +928,25 @@ export const DocTable: FC<
       hideLoadMore
       rowsData={pagedDocs}
       rowsInitialNumber={pageSize}
-      renderRow={(row) => (
-        <STableRow key={row.id}>
-          {visibleColumns.map((col) => renderCell(col, row))}
-        </STableRow>
-      )}
+      renderRow={(row) => {
+        const isOfficialRow = isOfficialDocumentVersion(row.version);
+
+        return (
+          <STableRow
+            key={row.id}
+            sx={
+              isOfficialRow
+                ? (theme) => ({
+                    borderLeft: `3px solid ${alpha(theme.palette.primary.main, 0.35)}`,
+                    backgroundColor: alpha(theme.palette.primary.main, 0.035),
+                  })
+                : undefined
+            }
+          >
+            {visibleColumns.map((col) => renderCell(col, row))}
+          </STableRow>
+        );
+      }}
     />
   );
 

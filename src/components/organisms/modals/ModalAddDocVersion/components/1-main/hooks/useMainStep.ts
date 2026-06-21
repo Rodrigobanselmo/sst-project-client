@@ -51,6 +51,17 @@ import { DocumentGenerationRiskFilter } from 'core/interfaces/api/document-gener
 const REGENERATE_CONFIRMATION_MESSAGE =
   'Esta ação irá atualizar os dados desta revisão e regerar os arquivos de download com base nas informações atuais do sistema. O número da revisão será preservado, mas os arquivos anteriores desta revisão serão substituídos. Deseja continuar?';
 
+const EXPIRED_DOWNLOAD_REGENERATE_WARNING =
+  'O arquivo anterior desta revisão de teste não está mais disponível. Ao regerar, será criado um novo arquivo com base nas informações atuais do sistema.';
+
+const buildRegenerateConfirmationMessage = (downloadExpired?: boolean) => {
+  if (downloadExpired) {
+    return `${EXPIRED_DOWNLOAD_REGENERATE_WARNING}\n\n${REGENERATE_CONFIRMATION_MESSAGE}`;
+  }
+
+  return REGENERATE_CONFIRMATION_MESSAGE;
+};
+
 const REVISION_DATE_WARNING_MESSAGE = `Você está gerando uma nova revisão de um documento que possui controle de versões.
 
 A data informada poderá ficar anterior ou posterior às revisões já existentes no documento.
@@ -289,7 +300,9 @@ export const useMainStep = ({
       if (
         !(await showConfirmation({
           title: 'Editar revisão',
-          message: REGENERATE_CONFIRMATION_MESSAGE,
+          message: buildRegenerateConfirmationMessage(
+            (data as { downloadExpired?: boolean }).downloadExpired,
+          ),
           confirmText: 'Continuar',
           cancelText: 'Cancelar',
           variant: 'warning',

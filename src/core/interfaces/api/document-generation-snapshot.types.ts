@@ -19,4 +19,5 @@ export type DocumentGenerationSnapshot = {
     isElaborator?: boolean;
   }>;
   riskFilter?: DocumentGenerationRiskFilter;
+  promotedFromTestVersionId?: string;
 };

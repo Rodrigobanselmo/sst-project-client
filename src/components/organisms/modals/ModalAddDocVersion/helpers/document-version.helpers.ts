@@ -66,6 +66,53 @@ export function getOfficialVersionMajor(version: string): number {
   return match ? Number(match[1]) : -1;
 }
 
+/** Mapeia versão de teste 0.0.N para oficial (N+1).0.0 (REV. equivalente). */
+export function getOfficialVersionFromUnofficial(version: string): string | null {
+  const patch = getUnofficialVersionPatch(version);
+  if (patch < 0) return null;
+  return `${patch + 1}.0.0`;
+}
+
+export type PromoteTestToOfficialValidation =
+  | { allowed: true; targetOfficialVersion: string }
+  | { allowed: false; reason: string };
+
+export function validatePromoteTestToOfficial(
+  testVersion: string,
+  activeOfficialVersions: DocumentVersionSeriesRow[],
+): PromoteTestToOfficialValidation {
+  const targetOfficialVersion = getOfficialVersionFromUnofficial(testVersion);
+
+  if (!targetOfficialVersion) {
+    return { allowed: false, reason: 'Versão de teste inválida para conversão.' };
+  }
+
+  const targetMajor = getOfficialVersionMajor(targetOfficialVersion);
+  const existingMajors = new Set(
+    activeOfficialVersions.map((version) =>
+      getOfficialVersionMajor(version.version),
+    ),
+  );
+
+  if (existingMajors.has(targetMajor)) {
+    return {
+      allowed: false,
+      reason: `Já existe uma versão oficial ${formatRevisionDisplayLabel(targetOfficialVersion)}.`,
+    };
+  }
+
+  for (let major = 1; major < targetMajor; major++) {
+    if (!existingMajors.has(major)) {
+      return {
+        allowed: false,
+        reason: `Para converter para ${formatRevisionDisplayLabel(targetOfficialVersion)}, é necessário que ${formatRevisionDisplayLabel(`${major}.0.0`)} oficial já exista.`,
+      };
+    }
+  }
+
+  return { allowed: true, targetOfficialVersion };
+}
+
 export function getNextUnofficialVersion(
   versions: { version: string }[],
 ): string {
