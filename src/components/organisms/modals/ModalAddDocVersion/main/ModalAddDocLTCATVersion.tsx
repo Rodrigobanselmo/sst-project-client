@@ -22,7 +22,9 @@ export const ModalAddDocLTCATVersion = () => {
         <SModalHeader
           tag={'version'}
           onClose={props.onCloseUnsaved}
-          title={`Documento LTCAT - ${props?.data?.workspaceName}`}
+          title={`Documento LTCAT - ${props?.data?.workspaceName}${
+            props?.data?.regenerateVersionId ? ' - Editar revisão' : ''
+          }`}
         />
         <Wizard
           schemas={[documentDataSchema]}

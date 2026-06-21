@@ -22,7 +22,9 @@ export const ModalAddDocINSALUBRIDADEVersion = () => {
         <SModalHeader
           tag={'version'}
           onClose={props.onCloseUnsaved}
-          title={`Documento Insalubridade - ${props?.data?.workspaceName}`}
+          title={`Documento Insalubridade - ${props?.data?.workspaceName}${
+            props?.data?.regenerateVersionId ? ' - Editar revisão' : ''
+          }`}
         />
         <Wizard
           schemas={[documentDataSchema]}

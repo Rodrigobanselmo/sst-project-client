@@ -22,7 +22,9 @@ export const ModalAddDocFRPSVersion = () => {
         <SModalHeader
           tag={'version'}
           onClose={props.onCloseUnsaved}
-          title={`Documento FRPS - ${props?.data?.workspaceName}`}
+          title={`Documento FRPS - ${props?.data?.workspaceName}${
+            props?.data?.regenerateVersionId ? ' - Editar revisão' : ''
+          }`}
         />
         <Wizard
           schemas={[documentDataSchema]}

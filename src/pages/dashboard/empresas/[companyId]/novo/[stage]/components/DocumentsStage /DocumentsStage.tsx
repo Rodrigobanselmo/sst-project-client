@@ -183,10 +183,10 @@ export const DocumentsStage = ({
                   label: 'PERICULOSIDADE',
                 },
                 {
-                  label: 'LTCAT',
+                  label: 'INSALUBRIDADE',
                 },
                 {
-                  label: 'INSALUBRIDADE',
+                  label: 'LTCAT',
                 },
                 {
                   label: 'FRPS',
@@ -236,17 +236,6 @@ export const DocumentsStage = ({
             <DocTable
               workspaceId={tabWorkspaceId}
               workspaceName={selectedWorkspaceName}
-              type={DocumentTypeEnum.LTCAT}
-              query={{ type: DocumentTypeEnum.LTCAT, workspaceId: tabWorkspaceId }}
-              companyFlowSticky
-              companyFlowBelowTabs
-            />
-            <ModalAddDocLTCATVersion />
-          </>
-          <>
-            <DocTable
-              workspaceId={tabWorkspaceId}
-              workspaceName={selectedWorkspaceName}
               type={DocumentTypeEnum.INSALUBRIDADE}
               query={{
                 type: DocumentTypeEnum.INSALUBRIDADE,
@@ -256,6 +245,17 @@ export const DocumentsStage = ({
               companyFlowBelowTabs
             />
             <ModalAddDocINSALUBRIDADEVersion />
+          </>
+          <>
+            <DocTable
+              workspaceId={tabWorkspaceId}
+              workspaceName={selectedWorkspaceName}
+              type={DocumentTypeEnum.LTCAT}
+              query={{ type: DocumentTypeEnum.LTCAT, workspaceId: tabWorkspaceId }}
+              companyFlowSticky
+              companyFlowBelowTabs
+            />
+            <ModalAddDocLTCATVersion />
           </>
           <>
             <DocTable

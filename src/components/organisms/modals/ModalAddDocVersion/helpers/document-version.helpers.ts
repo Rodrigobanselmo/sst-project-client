@@ -1,5 +1,25 @@
+import { DocumentTypeEnum } from 'project/enum/document.enums';
+
 export const normalizeDocumentVersion = (version?: string | null): string =>
   (version ?? '').replace('+ ', '').trim();
+
+/**
+ * Tipos com conversão teste → oficial habilitada na UI.
+ * PCMSO: pipeline de geração com erro pré-existente (demanda separada).
+ * LTCAT: ainda sem modelo/documento para homologação.
+ */
+export const DOCUMENT_TYPES_WITH_PROMOTE_TO_OFFICIAL: DocumentTypeEnum[] = [
+  DocumentTypeEnum.PGR,
+  DocumentTypeEnum.PERICULOSIDADE,
+  DocumentTypeEnum.INSALUBRIDADE,
+  DocumentTypeEnum.FRPS,
+];
+
+export function isPromoteToOfficialEnabledForDocumentType(
+  type: DocumentTypeEnum,
+): boolean {
+  return DOCUMENT_TYPES_WITH_PROMOTE_TO_OFFICIAL.includes(type);
+}
 
 /** Versão de teste / não oficial: 0.0.N */
 export function isUnofficialDocumentVersion(version: string): boolean {

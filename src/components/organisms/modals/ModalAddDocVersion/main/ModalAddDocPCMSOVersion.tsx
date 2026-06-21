@@ -23,7 +23,9 @@ export const ModalAddDocPCMSOVersion = () => {
         <SModalHeader
           tag={'version'}
           onClose={props.onCloseUnsaved}
-          title={`Documento PCMSO - ${props?.data?.workspaceName}`}
+          title={`Documento PCMSO - ${props?.data?.workspaceName}${
+            props?.data?.regenerateVersionId ? ' - Editar revisão' : ''
+          }`}
         />
         <Wizard
           schemas={[documentDataSchema]}

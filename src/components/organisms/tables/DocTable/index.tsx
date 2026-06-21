@@ -30,6 +30,7 @@ import {
   formatRevisionDisplayLabel,
   getDocumentVersionFamilyLabel,
   isOfficialDocumentVersion,
+  isPromoteToOfficialEnabledForDocumentType,
   isUnofficialDocumentVersion,
   validatePromoteTestToOfficial,
 } from 'components/organisms/modals/ModalAddDocVersion/helpers/document-version.helpers';
@@ -424,7 +425,7 @@ export const DocTable: FC<
 
   const handleEditVersion = useCallback(
     (doc: IRiskDocument) => {
-      if (!workspaceId || !companyId || type !== DocumentTypeEnum.PGR) return;
+      if (!workspaceId || !companyId) return;
       if (!isUnofficialDocumentVersion(doc.version)) return;
       if (doc.status === StatusEnum.PROCESSING) return;
 
@@ -470,7 +471,7 @@ export const DocTable: FC<
 
   const handlePromoteToOfficial = useCallback(
     async (doc: IRiskDocument) => {
-      if (!companyId || type !== DocumentTypeEnum.PGR) return;
+      if (!companyId || !isPromoteToOfficialEnabledForDocumentType(type)) return;
       if (!isUnofficialDocumentVersion(doc.version)) return;
       if (doc.status === StatusEnum.PROCESSING) return;
 
@@ -632,8 +633,10 @@ export const DocTable: FC<
     const processing = row.status === StatusEnum.PROCESSING;
     const isOfficialVersion = isOfficialDocumentVersion(row.version);
     const downloadExpired = isTestDownloadExpired(row);
+    const supportsPromoteToOfficial =
+      isPromoteToOfficialEnabledForDocumentType(type);
     const promoteValidation =
-      type === DocumentTypeEnum.PGR && !isOfficialVersion
+      supportsPromoteToOfficial && !isOfficialVersion
         ? validatePromoteTestToOfficial(row.version, activeOfficialVersions)
         : null;
     const canPromote = promoteValidation?.allowed === true;
@@ -711,9 +714,9 @@ export const DocTable: FC<
           />
         );
       case 'actions': {
-        const showPgrTestActions =
-          type === DocumentTypeEnum.PGR && !isOfficialVersion;
-        const usePgrActionGrid = type === DocumentTypeEnum.PGR;
+        const showTestVersionActions = !isOfficialVersion;
+        const supportsPromoteToOfficial =
+          isPromoteToOfficialEnabledForDocumentType(type);
 
         return (
           <SFlex
@@ -727,9 +730,11 @@ export const DocTable: FC<
               gap: 1,
               alignItems: 'center',
               justifyContent: 'flex-end',
-              gridTemplateColumns: usePgrActionGrid
+              gridTemplateColumns: supportsPromoteToOfficial
                 ? `auto ${ACTION_ICON_SLOT_SIZE}px ${ACTION_ICON_SLOT_SIZE}px ${ACTION_ICON_SLOT_SIZE}px`
-                : `auto ${ACTION_ICON_SLOT_SIZE}px`,
+                : showTestVersionActions
+                  ? `auto ${ACTION_ICON_SLOT_SIZE}px ${ACTION_ICON_SLOT_SIZE}px`
+                  : `auto ${ACTION_ICON_SLOT_SIZE}px`,
             }}
           >
             <STagButton
@@ -743,8 +748,8 @@ export const DocTable: FC<
               icon={SDownloadIcon}
               sx={{ flexShrink: 0, justifySelf: 'end' }}
             />
-            {usePgrActionGrid &&
-              (showPgrTestActions ? (
+            {(supportsPromoteToOfficial || showTestVersionActions) &&
+              (showTestVersionActions ? (
                 <IconButtonRow
                   icon={<SReloadIcon />}
                   tooltipTitle={
@@ -759,11 +764,11 @@ export const DocTable: FC<
                     handleEditVersion(row);
                   }}
                 />
-              ) : (
+              ) : supportsPromoteToOfficial ? (
                 <ActionIconSlotPlaceholder />
-              ))}
-            {usePgrActionGrid &&
-              (showPgrTestActions ? (
+              ) : null)}
+            {supportsPromoteToOfficial &&
+              (showTestVersionActions ? (
                 <IconButtonRow
                   icon={<VerifiedIcon />}
                   tooltipTitle={

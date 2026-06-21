@@ -22,7 +22,9 @@ export const ModalAddDocPERICULOSIDADEVersion = () => {
         <SModalHeader
           tag={'version'}
           onClose={props.onCloseUnsaved}
-          title={`Documento Periculosidade - ${props?.data?.workspaceName}`}
+          title={`Documento Periculosidade - ${props?.data?.workspaceName}${
+            props?.data?.regenerateVersionId ? ' - Editar revisão' : ''
+          }`}
         />
         <Wizard
           schemas={[documentDataSchema]}

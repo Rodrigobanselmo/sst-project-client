@@ -610,7 +610,11 @@ export const useMainStep = ({
     clearRiskFilter,
     isRegenerateMode,
     lockedVersion,
-    missingGenerationSnapshot: isRegenerateMode && !generationSnapshot?.ghoIds?.length,
+    missingGenerationSnapshot:
+      isRegenerateMode &&
+      data.type === DocumentTypeEnum.PGR &&
+      !generationSnapshot?.ghoIds?.length &&
+      !generationSnapshot?.selectedFilters?.length,
   };
 };
 

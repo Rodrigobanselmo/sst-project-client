@@ -39,16 +39,42 @@ export const useLTCATHandleModal = () => {
       !(initialData as any).passBack
     ) {
       setData((oldData) => {
+        const isRegenerate = Boolean(
+          (initialData as { regenerateVersionId?: string }).regenerateVersionId,
+        );
+        const documentLTCAT: Partial<any> =
+          !isRegenerate && (doc as any)?.type == DocumentTypeEnum.LTCAT
+            ? (doc ?? {})
+            : {};
+
         const newData = {
           ...initialState,
           ...oldData,
           ...initialData,
-          ...doc,
+          ...documentLTCAT,
+          ...(isRegenerate
+            ? {
+                name: initialData.name ?? oldData.name,
+                elaboratedBy:
+                  initialData.elaboratedBy ?? oldData.elaboratedBy,
+                revisionBy: initialData.revisionBy ?? oldData.revisionBy,
+                approvedBy: initialData.approvedBy ?? oldData.approvedBy,
+                coordinatorBy:
+                  initialData.coordinatorBy ?? oldData.coordinatorBy,
+                modelId: initialData.modelId ?? oldData.modelId,
+                model: initialData.model ?? oldData.model,
+                generationSnapshot:
+                  initialData.generationSnapshot ?? oldData.generationSnapshot,
+              }
+            : {}),
+          versionFamily:
+            initialData?.versionFamily ??
+            (isRegenerate ? 'test' : oldData.versionFamily ?? 'test'),
           json: {
             ...initialState.json,
             ...oldData.json,
             ...initialData?.json,
-            ...doc?.json,
+            ...documentLTCAT?.json,
           },
           type: DocumentTypeEnum.LTCAT,
         };
