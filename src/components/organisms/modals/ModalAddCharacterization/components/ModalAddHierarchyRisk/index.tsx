@@ -68,6 +68,8 @@ export const ModalAddHierarchyRisk = (
     onAddHierarchy,
     hierarchies,
     dataLoading: characterizationLoading,
+    isDetailLoading,
+    isDetailError,
     mt = 10,
     isEdit,
     children,
@@ -176,7 +178,7 @@ export const ModalAddHierarchyRisk = (
               </SText>
             </Box>
           )}
-          {isEdit && isLoadingRiskGroup && (
+          {isEdit && isDetailLoading && (
             <Box
               sx={{
                 display: 'flex',
@@ -188,7 +190,33 @@ export const ModalAddHierarchyRisk = (
               <CircularProgress />
             </Box>
           )}
-          {isEdit && !isLoadingRiskGroup && !riskGroupId && (
+          {isEdit && isDetailError && !isDetailLoading && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: 200,
+              }}
+            >
+              <SText variant="body1" textAlign="center" color="error">
+                Não foi possível carregar os dados da caracterização.
+              </SText>
+            </Box>
+          )}
+          {isEdit && !isDetailLoading && !isDetailError && isLoadingRiskGroup && (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                minHeight: 200,
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          )}
+          {isEdit && !isDetailLoading && !isDetailError && !isLoadingRiskGroup && !riskGroupId && (
             <Box
               sx={{
                 display: 'flex',
@@ -202,7 +230,7 @@ export const ModalAddHierarchyRisk = (
               </SText>
             </Box>
           )}
-          {isEdit && !isLoadingRiskGroup && riskGroupId && (
+          {isEdit && !isDetailLoading && !isDetailError && !isLoadingRiskGroup && riskGroupId && (
             <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
               <RiskToolForCharacterization
                 riskGroupId={riskGroupId}

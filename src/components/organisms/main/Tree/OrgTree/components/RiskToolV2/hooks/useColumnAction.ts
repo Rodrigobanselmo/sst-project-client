@@ -84,12 +84,10 @@ export const useColumnAction = () => {
         { removeById: 'examId' },
       );
 
-    await upsertRiskData
-      .mutateAsync({
-        ...submitData,
-        keepEmpty,
-      })
-      .catch(() => {});
+    await upsertRiskData.mutateAsync({
+      ...submitData,
+      keepEmpty,
+    });
   };
 
   const onHandleRemoveSave = async (
@@ -152,11 +150,9 @@ export const useColumnAction = () => {
       ];
     }
 
-    await upsertRiskData
-      .mutateAsync({
-        ...submitData,
-      })
-      .catch(() => {});
+    await upsertRiskData.mutateAsync({
+      ...submitData,
+    });
   };
 
   const onHandleHelp = async ({

@@ -111,6 +111,9 @@ interface ISubmit {
 const modalNameInit = ModalEnum.CHARACTERIZATION_ADD;
 type CharacterizationArrayField = 'considerations' | 'activities' | 'paragraphs';
 
+const isExistingCharacterizationId = (id?: string) =>
+  !!id && id !== 'new';
+
 interface IUseEditCharacterizationOptions {
   initialData?: Partial<typeof initialCharacterizationState>;
   onCloseOverride?: () => void;
@@ -183,6 +186,8 @@ export const useEditCharacterization = (
   const {
     data: characterizationDataQuery,
     isLoading: characterizationLoading,
+    isFetching: characterizationDetailFetching,
+    isError: characterizationDetailError,
   } = useQueryCharacterization(
     characterizationData.profileParentId || characterizationData.id,
     {
@@ -197,7 +202,24 @@ export const useEditCharacterization = (
       ) || ({} as ICharacterization)
     : characterizationDataQuery;
 
-  const isEdit = !!characterizationData.id && !!characterizationQuery?.id;
+  const entityId =
+    characterizationData.profileParentId || characterizationData.id;
+
+  /** Modo edição: id válido vindo de rota/props (não depende do detail já carregado). */
+  const isEdit = isExistingCharacterizationId(entityId);
+
+  const isDetailLoaded =
+    isEdit &&
+    !!characterizationQuery?.id &&
+    characterizationQuery.id === entityId;
+
+  const isDetailLoading =
+    isEdit &&
+    (characterizationLoading || characterizationDetailFetching) &&
+    !isDetailLoaded;
+
+  const isDetailError =
+    isEdit && characterizationDetailError && !isDetailLoading;
   const principalProfile = characterizationDataQuery;
   const profiles = characterizationDataQuery.profiles;
   const manyProfiles =
@@ -274,20 +296,40 @@ export const useEditCharacterization = (
     setValue,
   ]);
 
-  const didHydrateFromDetailQueryRef = useRef(false);
+  const didHydrateFromDetailQueryRef = useRef('');
 
   useEffect(() => {
-    didHydrateFromDetailQueryRef.current = false;
+    didHydrateFromDetailQueryRef.current = '';
   }, [
     propsInitialData?.id,
     propsInitialData?.workspaceId,
     propsInitialData?.companyId,
   ]);
 
+  const detailErrorNotifiedRef = useRef('');
+
   useEffect(() => {
-    const entityId =
-      characterizationData.profileParentId || characterizationData.id;
-    if (!entityId || entityId === 'new') return;
+    if (!isEdit || !isDetailError) return;
+
+    const errorKey = `${entityId}::${contextCompanyId}::${contextWorkspaceId}`;
+    if (detailErrorNotifiedRef.current === errorKey) return;
+    detailErrorNotifiedRef.current = errorKey;
+
+    enqueueSnackbar(
+      'Não foi possível carregar os dados da caracterização. Verifique o estabelecimento selecionado e tente novamente.',
+      { variant: 'error' },
+    );
+  }, [
+    isEdit,
+    isDetailError,
+    entityId,
+    contextCompanyId,
+    contextWorkspaceId,
+    enqueueSnackbar,
+  ]);
+
+  useEffect(() => {
+    if (!isExistingCharacterizationId(entityId)) return;
     if (!contextCompanyId || !contextWorkspaceId) return;
     if (characterizationLoading) return;
     if (!characterizationDataQuery?.id) return;
@@ -299,39 +341,66 @@ export const useEditCharacterization = (
       : characterizationDataQuery;
 
     if (!detailSource?.id || detailSource.id !== entityId) return;
-    if (characterizationData.type || didHydrateFromDetailQueryRef.current) return;
     if (!detailSource.type) return;
+    if (didHydrateFromDetailQueryRef.current === entityId) return;
 
-    didHydrateFromDetailQueryRef.current = true;
+    didHydrateFromDetailQueryRef.current = entityId;
+
+    const baselineBeforeDetail = initialDataRef.current;
 
     setCharacterizationData((oldData) => {
-      const newData = {
-        ...oldData,
-        ...cleanObjectNullValues({
-          ...detailSource,
-          companyId: contextCompanyId || oldData.companyId,
-          workspaceId: contextWorkspaceId || oldData.workspaceId,
-        }),
-        profileParentId: oldData.profileParentId,
-        id: oldData.id || detailSource.id,
-      };
-      initialDataRef.current = newData;
-      return newData;
+      const detailValues = cleanObjectNullValues({
+        ...detailSource,
+        companyId: contextCompanyId || oldData.companyId,
+        workspaceId: contextWorkspaceId || oldData.workspaceId,
+      });
+
+      const merged = { ...oldData, ...detailValues };
+      merged.profileParentId = oldData.profileParentId;
+      merged.id = oldData.id || detailSource.id;
+
+      // Preserva alterações locais feitas antes do detail chegar (comparando com baseline da lista/props).
+      (['name', 'description', 'type'] as const).forEach((field) => {
+        if (
+          oldData[field] &&
+          oldData[field] !== baselineBeforeDetail[field] &&
+          oldData[field] !== detailValues[field]
+        ) {
+          merged[field] = oldData[field];
+        }
+      });
+
+      initialDataRef.current = merged;
+      return merged;
     });
 
-    setValue('type', detailSource.type);
-    if (detailSource.name) setValue('name', detailSource.name);
-    if (detailSource.description != null) {
-      setValue('description', detailSource.description || '');
+    const currentName = getValues('name');
+    const currentDescription = getValues('description');
+
+    if (!currentName || currentName === baselineBeforeDetail.name) {
+      if (detailSource.name) setValue('name', detailSource.name);
+    }
+    if (
+      currentDescription == null ||
+      currentDescription === '' ||
+      currentDescription === baselineBeforeDetail.description
+    ) {
+      if (detailSource.description != null) {
+        setValue('description', detailSource.description || '');
+      }
+    }
+    if (!getValues('type') || getValues('type') === baselineBeforeDetail.type) {
+      setValue('type', detailSource.type);
     }
   }, [
     characterizationData.id,
     characterizationData.profileParentId,
-    characterizationData.type,
     characterizationDataQuery,
     characterizationLoading,
     contextCompanyId,
     contextWorkspaceId,
+    entityId,
+    getValues,
     setValue,
   ]);
 
@@ -973,7 +1042,10 @@ export const useEditCharacterization = (
   return {
     control,
     data: characterizationData,
-    dataLoading: characterizationLoading || ghoLoading,
+    dataLoading: characterizationLoading || ghoLoading || isDetailLoading,
+    isDetailLoaded,
+    isDetailLoading,
+    isDetailError,
     filterQuery: characterizationsQuery.filter(
       (e) => e.type === characterizationData.type,
     ),
