@@ -88,6 +88,7 @@ export const UsersTable: FC<
       company: company,
       linkedCompanyIds,
       accessScope: inferUserAccessScope(company, linkedCompanyIds),
+      sendEmail: false,
     } as typeof initialUserState);
   };
 

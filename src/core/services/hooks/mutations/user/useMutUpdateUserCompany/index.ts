@@ -22,6 +22,7 @@ export interface IUpdateUser {
   readonly permissions?: string[];
   readonly roles?: RoleEnum[];
   readonly status?: StatusEnum;
+  readonly groupId?: number;
 }
 
 export async function updateUserCompany(data: IUpdateUser) {

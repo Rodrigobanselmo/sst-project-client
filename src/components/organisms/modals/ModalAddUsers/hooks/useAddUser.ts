@@ -96,6 +96,7 @@ export const useAddUser = () => {
   const initialDataRef = useRef(initialUserState);
   const hydratedModalRef = useRef<string | null>(null);
   const inferredEditScopeRef = useRef(false);
+  const userChangedScopeRef = useRef(false);
   const [missingGroup, setMissingGroup] = useState(false);
   const [missingScopeSelection, setMissingScopeSelection] = useState(false);
 
@@ -155,6 +156,7 @@ export const useAddUser = () => {
     if (!isModalOpen) {
       hydratedModalRef.current = null;
       inferredEditScopeRef.current = false;
+      userChangedScopeRef.current = false;
       return;
     }
 
@@ -180,12 +182,14 @@ export const useAddUser = () => {
 
     hydratedModalRef.current = hydrationKey;
     inferredEditScopeRef.current = false;
+    userChangedScopeRef.current = false;
 
     setUserData((oldData) => {
       const newData = {
         ...initialUserState,
         ...oldData,
         ...initialData,
+        sendEmail: initialData.id ? false : initialData.sendEmail ?? true,
         companies: initialData.companies?.length
           ? initialData.companies
           : initialData.company
@@ -218,6 +222,7 @@ export const useAddUser = () => {
     if (!activeCompany?.group?.companies?.length) return;
     if (!userData.id) return;
     if (inferredEditScopeRef.current) return;
+    if (userChangedScopeRef.current) return;
 
     inferredEditScopeRef.current = true;
 
@@ -254,18 +259,35 @@ export const useAddUser = () => {
     setMissingScopeSelection(false);
     hydratedModalRef.current = null;
     inferredEditScopeRef.current = false;
+    userChangedScopeRef.current = false;
   };
 
   const onSubmit: SubmitHandler<{
     email?: string;
     name: string;
   }> = async (data) => {
-    if (!data?.email && userData.sendEmail) {
+    if (!userData.id && !data?.email && userData.sendEmail) {
       return setError('email', { message: 'E-mail é obrigatório' });
     }
 
     if (!userData?.group?.id) {
       return setMissingGroup(true);
+    }
+
+    const companiesIds = resolveCompaniesIdsForSubmit({
+      scope: userData.accessScope,
+      company: activeCompany,
+      selectedCompanies: userData.companies,
+      isEdit: !!userData.id,
+      isBusinessGroup,
+    });
+
+    if (
+      isBusinessGroup &&
+      userData.accessScope !== UserAccessScopeEnum.SINGLE &&
+      !companiesIds?.length
+    ) {
+      return setMissingScopeSelection(true);
     }
 
     if (
@@ -288,19 +310,6 @@ export const useAddUser = () => {
       Object.values(RoleEnum).includes(role),
     );
 
-    const canSubmitGroupScope =
-      isBusinessGroup &&
-      hasLoadedGroupMembers &&
-      !!activeCompany?.group?.companies?.length;
-
-    const companiesIds = resolveCompaniesIdsForSubmit({
-      scope: userData.accessScope,
-      company: activeCompany,
-      selectedCompanies: userData.companies,
-      isEdit: !!userData.id,
-      isBusinessGroup: canSubmitGroupScope,
-    });
-
     const submitData = {
       status: userData.status,
       roles: removeDuplicate(roles, { simpleCompare: true }),
@@ -310,32 +319,29 @@ export const useAddUser = () => {
       ...(isConsulting
         ? { companiesIds: userData.companies.map((company) => company.id) }
         : {}),
-      ...(canSubmitGroupScope && companiesIds ? { companiesIds } : {}),
-      ...data,
+      ...(isBusinessGroup && companiesIds?.length ? { companiesIds } : {}),
+      name: data.name ?? userData.name,
+      ...(userData.id ? {} : { email: data.email }),
     };
 
     if (userData.id == 0) {
-      try {
-        const data = await addUserMut.mutateAsync({
-          companyId: activeCompany?.id as string,
-          groupId: submitData.groupId as number,
-          name: submitData.name,
-          email: submitData.email,
-          employeeId: userData.employeeId,
-          ...(canSubmitGroupScope && companiesIds ? { companiesIds } : {}),
-        });
+      const createdUser = await addUserMut.mutateAsync({
+        companyId: activeCompany?.id as string,
+        groupId: submitData.groupId as number,
+        name: submitData.name,
+        email: submitData.email as string,
+        employeeId: userData.employeeId,
+        ...(isBusinessGroup && companiesIds?.length ? { companiesIds } : {}),
+      });
 
-        if (data) userData.onSubmit(data);
-        onClose();
-      } catch (_) {}
+      if (createdUser) userData.onSubmit(createdUser);
+      onClose();
     } else {
-      try {
-        await updateUserMut.mutateAsync({
-          ...submitData,
-          userId: userData.id,
-        });
-        onClose();
-      } catch (_) {}
+      await updateUserMut.mutateAsync({
+        ...submitData,
+        userId: userData.id,
+      });
+      onClose();
     }
   };
 
@@ -400,6 +406,8 @@ export const useAddUser = () => {
   };
 
   const handleAccessScopeChange = (accessScope: UserAccessScopeEnum) => {
+    userChangedScopeRef.current = true;
+
     const nextCompanies = resolveGroupCompaniesForScope(
       accessScope,
       activeCompany,

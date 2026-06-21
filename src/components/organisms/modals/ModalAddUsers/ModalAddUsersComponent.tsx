@@ -152,7 +152,7 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
             onOpenCompanySelect={handleOpenGroupCompanySelect}
             onRemoveCompany={handleRemoveCompany}
             missingSelection={missingScopeSelection}
-            disabled={isLoadingGroupMembers && !hasLoadedGroupMembers}
+            disabled={!hasLoadedGroupMembers || isLoadingGroupMembers}
           />
         </Box>
       )}
