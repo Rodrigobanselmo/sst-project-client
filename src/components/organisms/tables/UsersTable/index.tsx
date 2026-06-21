@@ -18,9 +18,9 @@ import SText from 'components/atoms/SText';
 import { ModalAddAccessGroup } from 'components/organisms/modals/ModalAddAccessGroup';
 import { ModalAddUsers } from 'components/organisms/modals/ModalAddUsers';
 import {
-  convertToPermissionsMap,
   inferUserAccessScope,
   initialUserState,
+  resolveUserEditRolesAndPermissions,
 } from 'components/organisms/modals/ModalAddUsers/hooks/useAddUser';
 import { UserAccessScopeEnum } from 'core/enums/user-access-scope.enum';
 import { ModalSelectAccessGroups } from 'components/organisms/modals/ModalSelectAccessGroup';
@@ -74,13 +74,16 @@ export const UsersTable: FC<
 
     const linkedCompanyIds = user.companies?.map((uc) => uc.companyId) ?? [];
 
+    const { roles, permissions } = resolveUserEditRolesAndPermissions({
+      roles: (userCompany?.roles || []) as RoleEnum[],
+      permissions: userCompany?.permissions || [],
+      group: userCompany?.group || null,
+    });
+
     onStackOpenModal(ModalEnum.USER_ADD, {
       id: user.id,
-      roles: (userCompany?.roles || []) as RoleEnum[],
-      permissions: convertToPermissionsMap(
-        (userCompany?.roles || []) as RoleEnum[],
-        userCompany?.permissions || [],
-      ),
+      roles,
+      permissions,
       status: userCompany?.status || StatusEnum.ACTIVE,
       email: user.email,
       name: user.name,

@@ -19,6 +19,7 @@ import { ICompany } from 'core/interfaces/api/ICompany';
 import { useMutInviteUser } from 'core/services/hooks/mutations/user/useMutInviteUser';
 import { useMutUpdateUserCompany } from 'core/services/hooks/mutations/user/useMutUpdateUserCompany';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
+import { useQueryUser } from 'core/services/hooks/queries/useQueryUser';
 import {
   IQueryCompanies,
   useQueryCompanies,
@@ -29,6 +30,7 @@ import {
   inferUserAccessScope,
   resolveCompaniesIdsForSubmit,
   resolveGroupCompaniesForScope,
+  resolveGroupLinkedCompanyIds,
 } from 'core/utils/helpers/user-access-scope.helper';
 import { userManageSchema } from 'core/utils/schemas/user-manage.schema';
 
@@ -70,6 +72,42 @@ export const convertFromPermissionsMap = (permissions: IPermissionMap) => {
   return { roles, permissions: permissionsList };
 };
 
+type ResolveUserEditRolesParams = {
+  roles?: RoleEnum[];
+  permissions?: string[];
+  permissionsMap?: IPermissionMap;
+  group?: IAccessGroup | null;
+};
+
+/** UserCompany pode vir com roles/permissions vazios no banco; o perfil real está no AccessGroup. */
+export function resolveUserEditRolesAndPermissions({
+  roles = [],
+  permissions = [],
+  permissionsMap,
+  group,
+}: ResolveUserEditRolesParams): {
+  roles: RoleEnum[];
+  permissions: IPermissionMap;
+} {
+  const resolvedRoles = (
+    roles.length ? roles : group?.roles || []
+  ) as RoleEnum[];
+
+  const resolvedPermissionStrings = permissions.length
+    ? permissions
+    : group?.permissions || [];
+
+  const resolvedPermissionsMap =
+    permissionsMap && Object.keys(permissionsMap).length > 0
+      ? permissionsMap
+      : convertToPermissionsMap(resolvedRoles, resolvedPermissionStrings);
+
+  return {
+    roles: resolvedRoles,
+    permissions: resolvedPermissionsMap,
+  };
+}
+
 export const initialUserState = {
   status: StatusEnum.ACTIVE,
   roles: [] as RoleEnum[],
@@ -95,7 +133,7 @@ export const useAddUser = () => {
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialUserState);
   const hydratedModalRef = useRef<string | null>(null);
-  const inferredEditScopeRef = useRef(false);
+  const editLinksResolvedRef = useRef<string | null>(null);
   const userChangedScopeRef = useRef(false);
   const [missingGroup, setMissingGroup] = useState(false);
   const [missingScopeSelection, setMissingScopeSelection] = useState(false);
@@ -133,6 +171,14 @@ export const useAddUser = () => {
   const activeCompany = companyWithGroup ?? baseCompany;
 
   const isConsulting = !!activeCompany?.isConsulting;
+  const isEdit = !!userData.id;
+
+  const { data: editUserDetails, isLoading: isLoadingEditUserLinks } =
+    useQueryUser({
+      userId:
+        isModalOpen && isEdit && isBusinessGroup ? userData.id : undefined,
+      companyId: activeCompany?.id,
+    });
 
   const { companies: consultingCompanies = [] } = useQueryCompanies(
     1,
@@ -155,7 +201,7 @@ export const useAddUser = () => {
   useEffect(() => {
     if (!isModalOpen) {
       hydratedModalRef.current = null;
-      inferredEditScopeRef.current = false;
+      editLinksResolvedRef.current = null;
       userChangedScopeRef.current = false;
       return;
     }
@@ -181,14 +227,22 @@ export const useAddUser = () => {
     if (hydratedModalRef.current === hydrationKey) return;
 
     hydratedModalRef.current = hydrationKey;
-    inferredEditScopeRef.current = false;
+    editLinksResolvedRef.current = null;
     userChangedScopeRef.current = false;
 
     setUserData((oldData) => {
+      const { roles, permissions } = resolveUserEditRolesAndPermissions({
+        roles: initialData.roles as RoleEnum[],
+        permissionsMap: initialData.permissions as IPermissionMap,
+        group: initialData.group ?? null,
+      });
+
       const newData = {
         ...initialUserState,
         ...oldData,
         ...initialData,
+        roles,
+        permissions,
         sendEmail: initialData.id ? false : initialData.sendEmail ?? true,
         companies: initialData.companies?.length
           ? initialData.companies
@@ -198,6 +252,10 @@ export const useAddUser = () => {
       };
 
       initialDataRef.current = newData;
+      reset({
+        name: newData.name || '',
+        email: newData.email || '',
+      });
       return newData;
     });
   }, [findModalData, isModalOpen]);
@@ -218,25 +276,29 @@ export const useAddUser = () => {
   }, [consultingCompanies, isConsulting, isModalOpen, userData.companies.length]);
 
   useEffect(() => {
-    if (!isModalOpen || !isBusinessGroup || !hasLoadedGroupMembers) return;
+    if (!isModalOpen || !isEdit || !isBusinessGroup || !hasLoadedGroupMembers) {
+      return;
+    }
     if (!activeCompany?.group?.companies?.length) return;
-    if (!userData.id) return;
-    if (inferredEditScopeRef.current) return;
+    if (!editUserDetails?.companies) return;
     if (userChangedScopeRef.current) return;
 
-    inferredEditScopeRef.current = true;
+    const linkedInGroup = resolveGroupLinkedCompanyIds(
+      activeCompany,
+      editUserDetails.companies,
+    );
+
+    const resolutionKey = `${userData.id}:${[...linkedInGroup].sort().join(',')}`;
+    if (editLinksResolvedRef.current === resolutionKey) return;
+
+    editLinksResolvedRef.current = resolutionKey;
 
     setUserData((oldData) => {
       const nextData = {
         ...oldData,
-        accessScope: inferUserAccessScope(
-          activeCompany,
-          linkedCompanyIdsForEdit,
-        ),
-        companies: getUserGroupLinkedCompanies(
-          activeCompany,
-          linkedCompanyIdsForEdit,
-        ),
+        linkedCompanyIds: linkedInGroup,
+        accessScope: inferUserAccessScope(activeCompany, linkedInGroup),
+        companies: getUserGroupLinkedCompanies(activeCompany, linkedInGroup),
       };
 
       initialDataRef.current = nextData;
@@ -244,12 +306,18 @@ export const useAddUser = () => {
     });
   }, [
     activeCompany,
+    editUserDetails,
     hasLoadedGroupMembers,
     isBusinessGroup,
+    isEdit,
     isModalOpen,
-    linkedCompanyIdsForEdit,
     userData.id,
   ]);
+
+  const isResolvingEditLinks =
+    isEdit &&
+    isBusinessGroup &&
+    (isLoadingEditUserLinks || !editUserDetails?.companies);
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.USER_ADD, data);
@@ -258,7 +326,7 @@ export const useAddUser = () => {
     setMissingGroup(false);
     setMissingScopeSelection(false);
     hydratedModalRef.current = null;
-    inferredEditScopeRef.current = false;
+    editLinksResolvedRef.current = null;
     userChangedScopeRef.current = false;
   };
 
@@ -298,15 +366,23 @@ export const useAddUser = () => {
       return setMissingScopeSelection(true);
     }
 
-    if (userData.roles.length === 0)
+    const { roles: effectiveRoles, permissions: effectivePermissionsMap } =
+      resolveUserEditRolesAndPermissions({
+        roles: userData.roles,
+        permissionsMap: userData.permissions,
+        group: userData.group,
+      });
+
+    if (effectiveRoles.length === 0 && !userData?.group?.id) {
       return setUserData((oldData) => ({
         ...oldData,
         errors: { roles: 'selecione ao menos uma role' },
       }));
+    }
 
-    const { permissions } = convertFromPermissionsMap(userData.permissions);
+    const { permissions } = convertFromPermissionsMap(effectivePermissionsMap);
 
-    const roles = userData.roles.filter((role) =>
+    const roles = effectiveRoles.filter((role) =>
       Object.values(RoleEnum).includes(role),
     );
 
@@ -341,6 +417,14 @@ export const useAddUser = () => {
         ...submitData,
         userId: userData.id,
       });
+      initialDataRef.current = {
+        ...userData,
+        linkedCompanyIds: companiesIds?.length
+          ? companiesIds
+          : userData.linkedCompanyIds,
+        accessScope: userData.accessScope,
+        companies: userData.companies,
+      };
       onClose();
     }
   };
@@ -438,7 +522,7 @@ export const useAddUser = () => {
     setUserData,
     control,
     handleSubmit,
-    isEdit: !!userData.id,
+    isEdit,
     handleOpenAccessSelect,
     handleOpenCompanySelect,
     handleOpenGroupCompanySelect,
@@ -451,6 +535,7 @@ export const useAddUser = () => {
     missingScopeSelection,
     isLoadingGroupMembers,
     hasLoadedGroupMembers,
+    isResolvingEditLinks,
   };
 };
 

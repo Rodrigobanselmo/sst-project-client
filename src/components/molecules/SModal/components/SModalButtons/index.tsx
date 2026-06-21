@@ -44,10 +44,14 @@ export const SModalButtons: FC<{ children?: any } & SModalHeaderProps> = ({
               loading={loading && isLast}
               key={`${index}-button`}
               variant={variant ? variant : isFirst ? 'outlined' : 'contained'}
-              onClick={onClose}
               style={{ minWidth: 100 }}
               {...(isFirst && { id: IdsEnum.CANCEL_BUTTON })}
               {...buttonProps}
+              onClick={
+                buttonProps.type === 'submit'
+                  ? buttonProps.onClick
+                  : (buttonProps.onClick ?? onClose)
+              }
             >
               {arrowBack && (
                 <SArrowNextIcon

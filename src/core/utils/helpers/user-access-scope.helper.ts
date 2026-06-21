@@ -87,3 +87,27 @@ export function getUserGroupLinkedCompanies(
   const groupMembers = getBusinessGroupMemberCompanies(company);
   return groupMembers.filter((member) => linkedCompanyIds.includes(member.id));
 }
+
+/** Vínculos do usuário dentro do grupo empresarial (ignora empresas fora do grupo). */
+export function resolveGroupLinkedCompanyIds(
+  company: ICompany | null,
+  userCompanies: Array<{ companyId: string }> | undefined,
+): string[] {
+  const groupMemberIds = new Set(
+    getBusinessGroupMemberCompanies(company).map((member) => member.id),
+  );
+
+  if (!groupMemberIds.size) {
+    return company?.id ? [company.id] : [];
+  }
+
+  const linkedInGroup = (userCompanies ?? [])
+    .map((userCompany) => userCompany.companyId)
+    .filter((companyId) => groupMemberIds.has(companyId));
+
+  if (linkedInGroup.length > 0) {
+    return linkedInGroup;
+  }
+
+  return company?.id ? [company.id] : [];
+}

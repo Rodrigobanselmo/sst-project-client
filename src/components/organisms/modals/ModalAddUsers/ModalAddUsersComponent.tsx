@@ -41,15 +41,15 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
     missingScopeSelection,
     isLoadingGroupMembers,
     hasLoadedGroupMembers,
+    isResolvingEditLinks,
   } = props;
 
   const buttons = [
-    {},
+    { type: 'button' },
     {
       text: isEdit ? 'Salvar' : 'Criar',
       variant: 'contained',
       type: 'submit',
-      onClick: () => setUserData({ ...userData }),
     },
   ] as IModalButton[];
 
@@ -145,6 +145,11 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
               Carregando empresas do grupo...
             </SText>
           ) : null}
+          {isResolvingEditLinks ? (
+            <SText fontSize={13} color="text.label">
+              Carregando vínculos do usuário no grupo...
+            </SText>
+          ) : null}
           <UserAccessScopeSection
             scope={userData.accessScope}
             onScopeChange={handleAccessScopeChange}
@@ -152,7 +157,11 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
             onOpenCompanySelect={handleOpenGroupCompanySelect}
             onRemoveCompany={handleRemoveCompany}
             missingSelection={missingScopeSelection}
-            disabled={!hasLoadedGroupMembers || isLoadingGroupMembers}
+            disabled={
+              !hasLoadedGroupMembers ||
+              isLoadingGroupMembers ||
+              isResolvingEditLinks
+            }
           />
         </Box>
       )}

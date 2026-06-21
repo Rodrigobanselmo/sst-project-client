@@ -54,6 +54,14 @@ export function UserAccessScopeSection({
         ))}
       </SFlex>
 
+      {scope !== UserAccessScopeEnum.SINGLE && missingSelection && (
+        <SText fontSize={12} mt={2} color={'error.main'}>
+          {scope === UserAccessScopeEnum.SELECTED
+            ? 'Selecione ao menos uma empresa do grupo'
+            : 'Aguarde o carregamento das empresas do grupo'}
+        </SText>
+      )}
+
       {scope === UserAccessScopeEnum.SELECTED && (
         <SFlex mt={5} gap={5} direction="column">
           <Box>
@@ -67,11 +75,6 @@ export function UserAccessScopeSection({
                 if (!disabled) onOpenCompanySelect();
               }}
             />
-            {missingSelection && (
-              <SText fontSize={12} mt={2} color={'error.main'}>
-                Selecione ao menos uma empresa do grupo
-              </SText>
-            )}
           </Box>
           <SFlex gap={5} flexWrap="wrap">
             {(selectedCompanies ?? []).map((company) => (
