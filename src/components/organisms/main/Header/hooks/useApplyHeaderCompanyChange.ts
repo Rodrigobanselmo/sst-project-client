@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useCallback } from 'react';
 
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useAuth } from 'core/contexts/AuthContext';
 import { useModal } from 'core/hooks/useModal';
 import { ICompany, IWorkspace } from 'core/interfaces/api/ICompany';
 import { IRiskGroupData } from 'core/interfaces/api/IRiskData';
@@ -16,9 +17,10 @@ import { RoutesParamsEnum } from '../Location/hooks/useLocation';
 export function useApplyHeaderCompanyChange() {
   const { query, pathname, push, asPath } = useRouter();
   const { onStackOpenModal } = useModal();
+  const { refreshUser } = useAuth();
 
   const applyCompanyChange = useCallback(
-    (
+    async (
       selectedCompany: ICompany,
       options?: {
         queryOverrides?: Record<string, string | string[] | undefined>;
@@ -31,6 +33,14 @@ export function useApplyHeaderCompanyChange() {
       const includeDoc =
         pathname.includes(RoutesParamsEnum.DOCUMENTS) || query.riskGroupId;
 
+      const previousCompanyId = query.companyId as string | undefined;
+      const isChangingCompany =
+        !!previousCompanyId && selectedCompany.id !== previousCompanyId;
+
+      if (isChangingCompany) {
+        await refreshUser(selectedCompany.id);
+      }
+
       const onChangeRoute = ({
         company,
         workspace,
@@ -41,6 +51,10 @@ export function useApplyHeaderCompanyChange() {
         doc?: IRiskGroupData;
       }) => {
         const searchParams = new URLSearchParams(asPath.split('?')[1] ?? '');
+
+        if (company.id !== previousCompanyId) {
+          searchParams.delete('tabWorkspaceId');
+        }
 
         if (doc?.id) {
           searchParams.set('riskGroupId', doc.id);
@@ -113,7 +127,7 @@ export function useApplyHeaderCompanyChange() {
         onChangeRoute({ company: selectedCompany });
       }
     },
-    [asPath, onStackOpenModal, pathname, push, query],
+    [asPath, onStackOpenModal, pathname, push, query, refreshUser],
   );
 
   return { applyCompanyChange };

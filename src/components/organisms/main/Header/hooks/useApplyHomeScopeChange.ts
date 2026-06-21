@@ -58,7 +58,7 @@ export function useApplyHomeScopeChange() {
         return;
       }
 
-      applyCompanyChange(selectedCompany, { queryOverrides: homeQueryOverrides });
+      void applyCompanyChange(selectedCompany, { queryOverrides: homeQueryOverrides });
     },
     [applyCompanyChange, router],
   );

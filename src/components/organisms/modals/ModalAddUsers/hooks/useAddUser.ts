@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { yupResolver } from '@hookform/resolvers/yup/dist/yup.js';
@@ -8,7 +8,9 @@ import { RoleEnum } from 'project/enum/roles.enums';
 import { StatusEnum } from 'project/enum/status.enum';
 
 import { rolesConstantMap } from 'core/constants/maps/roles.constant.map';
+import { UserAccessScopeEnum } from 'core/enums/user-access-scope.enum';
 import { ModalEnum } from 'core/enums/modal.enums';
+import { useBusinessGroupCompanyContext } from 'core/hooks/useBusinessGroupCompanyContext';
 import { useModal } from 'core/hooks/useModal';
 import { usePreventAction } from 'core/hooks/usePreventAction';
 import { useRegisterModal } from 'core/hooks/useRegisterModal';
@@ -16,11 +18,18 @@ import { IAccessGroup } from 'core/interfaces/api/IAccessGroup';
 import { ICompany } from 'core/interfaces/api/ICompany';
 import { useMutInviteUser } from 'core/services/hooks/mutations/user/useMutInviteUser';
 import { useMutUpdateUserCompany } from 'core/services/hooks/mutations/user/useMutUpdateUserCompany';
+import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import {
   IQueryCompanies,
   useQueryCompanies,
 } from 'core/services/hooks/queries/useQueryCompanies';
 import { removeDuplicate } from 'core/utils/helpers/removeDuplicate';
+import {
+  getUserGroupLinkedCompanies,
+  inferUserAccessScope,
+  resolveCompaniesIdsForSubmit,
+  resolveGroupCompaniesForScope,
+} from 'core/utils/helpers/user-access-scope.helper';
 import { userManageSchema } from 'core/utils/schemas/user-manage.schema';
 
 import { initialAccessGroupsSelectState } from '../../ModalSelectAccessGroup';
@@ -76,14 +85,19 @@ export const initialUserState = {
   group: null as IAccessGroup | null,
   id: 0,
   employeeId: undefined as number | undefined,
+  accessScope: UserAccessScopeEnum.SINGLE,
+  linkedCompanyIds: [] as string[],
   onSubmit: (data: { id: number }) => {},
 };
 
 export const useAddUser = () => {
-  const { registerModal, getModalData } = useRegisterModal();
+  const { registerModal, findModalData, isOpen } = useRegisterModal();
   const { onCloseModal, onStackOpenModal } = useModal();
   const initialDataRef = useRef(initialUserState);
+  const hydratedModalRef = useRef<string | null>(null);
+  const inferredEditScopeRef = useRef(false);
   const [missingGroup, setMissingGroup] = useState(false);
+  const [missingScopeSelection, setMissingScopeSelection] = useState(false);
 
   const { handleSubmit, setError, control, setValue, reset, getValues } =
     useForm<any>({
@@ -96,60 +110,150 @@ export const useAddUser = () => {
 
   const { preventUnwantedChanges } = usePreventAction();
 
+  const { data: queryCompany } = useQueryCompany();
+
   const [userData, setUserData] = useState({
     ...initialUserState,
   });
 
-  const isConsulting = !!userData?.company?.isConsulting;
+  const isModalOpen = isOpen(ModalEnum.USER_ADD);
 
-  const { companies } = useQueryCompanies(
+  const baseCompany =
+    userData.company?.id ? userData.company : queryCompany?.id ? queryCompany : null;
+
+  const {
+    companyWithGroup,
+    isBusinessGroup,
+    businessGroupId,
+    isLoadingGroupMembers,
+    hasLoadedGroupMembers,
+  } = useBusinessGroupCompanyContext(baseCompany);
+
+  const activeCompany = companyWithGroup ?? baseCompany;
+
+  const isConsulting = !!activeCompany?.isConsulting;
+
+  const { companies: consultingCompanies = [] } = useQueryCompanies(
     1,
-    { userId: isConsulting ? userData.id : 0, findAll: true },
+    {
+      userId: isConsulting && userData.id ? userData.id : undefined,
+      findAll: true,
+      disabled: !isConsulting || !userData.id,
+    },
     200,
   );
 
+  const linkedCompanyIdsForEdit = useMemo(() => {
+    if (userData.linkedCompanyIds?.length) return userData.linkedCompanyIds;
+    if (userData.companies.length > 0) {
+      return userData.companies.map((company) => company.id);
+    }
+    return activeCompany?.id ? [activeCompany.id] : [];
+  }, [activeCompany?.id, userData.companies, userData.linkedCompanyIds]);
+
   useEffect(() => {
-    const initialData = getModalData<Partial<typeof initialUserState>>(
+    if (!isModalOpen) {
+      hydratedModalRef.current = null;
+      inferredEditScopeRef.current = false;
+      return;
+    }
+
+    const initialData = findModalData<Partial<typeof initialUserState>>(
       ModalEnum.USER_ADD,
     );
 
-    // eslint-disable-next-line prettier/prettier
     if (
-      initialData &&
-      Object.keys(initialData)?.length &&
-      !(initialData as any).passBack
+      !initialData ||
+      !Object.keys(initialData)?.length ||
+      (initialData as any).passBack
     ) {
-      setUserData((oldData) => {
-        const newData = {
-          ...oldData,
-          ...initialData,
-        };
-
-        initialDataRef.current = newData;
-
-        return newData;
-      });
+      return;
     }
-  }, [getModalData]);
+
+    const hydrationKey = JSON.stringify({
+      id: initialData.id ?? 0,
+      companyId: initialData.company?.id ?? '',
+      email: initialData.email ?? '',
+    });
+
+    if (hydratedModalRef.current === hydrationKey) return;
+
+    hydratedModalRef.current = hydrationKey;
+    inferredEditScopeRef.current = false;
+
+    setUserData((oldData) => {
+      const newData = {
+        ...initialUserState,
+        ...oldData,
+        ...initialData,
+        companies: initialData.companies?.length
+          ? initialData.companies
+          : initialData.company
+            ? [initialData.company]
+            : [],
+      };
+
+      initialDataRef.current = newData;
+      return newData;
+    });
+  }, [findModalData, isModalOpen]);
 
   useEffect(() => {
-    if (companies && companies.length > 0 && userData.companies.length == 0)
-      setUserData((oldData) => {
-        const newData = {
-          ...oldData,
-          companies,
-        };
+    if (!isModalOpen || !isConsulting) return;
+    if (!consultingCompanies.length || userData.companies.length > 0) return;
 
-        initialDataRef.current = newData;
+    setUserData((oldData) => {
+      const newData = {
+        ...oldData,
+        companies: consultingCompanies,
+      };
 
-        return newData;
-      });
-  }, [companies, getModalData, userData.companies.length]);
+      initialDataRef.current = newData;
+      return newData;
+    });
+  }, [consultingCompanies, isConsulting, isModalOpen, userData.companies.length]);
+
+  useEffect(() => {
+    if (!isModalOpen || !isBusinessGroup || !hasLoadedGroupMembers) return;
+    if (!activeCompany?.group?.companies?.length) return;
+    if (!userData.id) return;
+    if (inferredEditScopeRef.current) return;
+
+    inferredEditScopeRef.current = true;
+
+    setUserData((oldData) => {
+      const nextData = {
+        ...oldData,
+        accessScope: inferUserAccessScope(
+          activeCompany,
+          linkedCompanyIdsForEdit,
+        ),
+        companies: getUserGroupLinkedCompanies(
+          activeCompany,
+          linkedCompanyIdsForEdit,
+        ),
+      };
+
+      initialDataRef.current = nextData;
+      return nextData;
+    });
+  }, [
+    activeCompany,
+    hasLoadedGroupMembers,
+    isBusinessGroup,
+    isModalOpen,
+    linkedCompanyIdsForEdit,
+    userData.id,
+  ]);
 
   const onClose = (data?: any) => {
     onCloseModal(ModalEnum.USER_ADD, data);
     setUserData(initialUserState);
     reset();
+    setMissingGroup(false);
+    setMissingScopeSelection(false);
+    hydratedModalRef.current = null;
+    inferredEditScopeRef.current = false;
   };
 
   const onSubmit: SubmitHandler<{
@@ -164,6 +268,14 @@ export const useAddUser = () => {
       return setMissingGroup(true);
     }
 
+    if (
+      isBusinessGroup &&
+      userData.accessScope === UserAccessScopeEnum.SELECTED &&
+      userData.companies.length === 0
+    ) {
+      return setMissingScopeSelection(true);
+    }
+
     if (userData.roles.length === 0)
       return setUserData((oldData) => ({
         ...oldData,
@@ -176,26 +288,41 @@ export const useAddUser = () => {
       Object.values(RoleEnum).includes(role),
     );
 
+    const canSubmitGroupScope =
+      isBusinessGroup &&
+      hasLoadedGroupMembers &&
+      !!activeCompany?.group?.companies?.length;
+
+    const companiesIds = resolveCompaniesIdsForSubmit({
+      scope: userData.accessScope,
+      company: activeCompany,
+      selectedCompanies: userData.companies,
+      isEdit: !!userData.id,
+      isBusinessGroup: canSubmitGroupScope,
+    });
+
     const submitData = {
       status: userData.status,
       roles: removeDuplicate(roles, { simpleCompare: true }),
       permissions: removeDuplicate(permissions, { simpleCompare: true }),
-      companyId: userData.company?.id,
+      companyId: activeCompany?.id,
       ...(userData.group ? { groupId: userData.group.id } : {}),
       ...(isConsulting
         ? { companiesIds: userData.companies.map((company) => company.id) }
         : {}),
+      ...(canSubmitGroupScope && companiesIds ? { companiesIds } : {}),
       ...data,
     };
 
     if (userData.id == 0) {
       try {
         const data = await addUserMut.mutateAsync({
-          companyId: userData.company?.id as string,
+          companyId: activeCompany?.id as string,
           groupId: submitData.groupId as number,
           name: submitData.name,
           email: submitData.email,
           employeeId: userData.employeeId,
+          ...(canSubmitGroupScope && companiesIds ? { companiesIds } : {}),
         });
 
         if (data) userData.onSubmit(data);
@@ -248,6 +375,7 @@ export const useAddUser = () => {
         ...userData,
         companies,
       });
+      setMissingScopeSelection(false);
     };
 
     onStackOpenModal(ModalEnum.COMPANY_SELECT, {
@@ -258,6 +386,12 @@ export const useAddUser = () => {
     } as Partial<typeof initialCompanySelectState>);
   };
 
+  const handleOpenGroupCompanySelect = () => {
+    handleOpenCompanySelect({
+      groupId: businessGroupId ?? activeCompany?.group?.id,
+    });
+  };
+
   const handleRemoveCompany = (company: ICompany) => {
     setUserData({
       ...userData,
@@ -265,12 +399,33 @@ export const useAddUser = () => {
     });
   };
 
+  const handleAccessScopeChange = (accessScope: UserAccessScopeEnum) => {
+    const nextCompanies = resolveGroupCompaniesForScope(
+      accessScope,
+      activeCompany,
+      userData.companies,
+    );
+
+    setUserData({
+      ...userData,
+      accessScope,
+      companies:
+        accessScope === UserAccessScopeEnum.SELECTED
+          ? userData.companies
+          : nextCompanies,
+    });
+    setMissingScopeSelection(false);
+  };
+
   return {
     registerModal,
     onCloseUnsaved,
     onSubmit,
     onClose,
-    loading: inviteUserMut.isLoading || updateUserMut.isLoading,
+    loading:
+      inviteUserMut.isLoading ||
+      updateUserMut.isLoading ||
+      addUserMut.isPending,
     userData,
     setUserData,
     control,
@@ -278,11 +433,19 @@ export const useAddUser = () => {
     isEdit: !!userData.id,
     handleOpenAccessSelect,
     handleOpenCompanySelect,
+    handleOpenGroupCompanySelect,
     handleRemoveCompany,
+    handleAccessScopeChange,
     isConsulting,
+    isBusinessGroup,
     setValue,
     missingGroup,
+    missingScopeSelection,
+    isLoadingGroupMembers,
+    hasLoadedGroupMembers,
   };
 };
 
 export type IUseAddUser = ReturnType<typeof useAddUser>;
+
+export { inferUserAccessScope, getUserGroupLinkedCompanies };

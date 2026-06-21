@@ -31,17 +31,20 @@ const containerStyles: React.CSSProperties = {
 
 /**
  * Global loading screen that blocks the entire app until visual identity is loaded.
- * Shows a simple loading spinner, then renders children only when ready.
- * Uses pure CSS/inline styles to avoid any theme dependency.
+ * Only blocks when the authenticated user is known — never on token-without-user
+ * (logout race, invite signup, or session bootstrap).
  */
 export const GlobalLoadingScreen = ({ children }: GlobalLoadingScreenProps) => {
-  const { user, token } = useAuth();
+  const { user, isInitializingAuth } = useAuth();
   const { isLoading: isLoadingVisualIdentity } = useFetchVisualIdentity({
     companyId: user?.companyId || '',
   });
 
-  // Show loading only if user is logged in and visual identity is loading
-  if (token && (isLoadingVisualIdentity || !user?.companyId)) {
+  const showBootstrapLoader = isInitializingAuth;
+  const showVisualIdentityLoader =
+    !!user?.id && !!user.companyId && isLoadingVisualIdentity;
+
+  if (showBootstrapLoader || showVisualIdentityLoader) {
     return (
       <div style={containerStyles}>
         <style>

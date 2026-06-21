@@ -1,12 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Typography } from '@mui/material';
 import { SHeaderTag } from 'components/atoms/SHeaderTag/SHeaderTag';
 import { NextPage } from 'next';
 import { useRouter } from 'next/router';
+import { parseCookies } from 'nookies';
+import {
+  GetServerSideProps,
+  GetServerSidePropsContext,
+  GetServerSidePropsResult,
+} from 'next';
 
 import { useAuth } from 'core/contexts/AuthContext';
 import { RoutesEnum } from 'core/enums/routes.enums';
+import { withSSRGuest } from 'core/utils/auth/withSSRGuest';
 
 import { SLogo } from '../../components/atoms/SLogo';
 import { brandNameConstant } from '../../core/constants/brand.constant';
@@ -14,14 +21,28 @@ import { LoginForm } from './components/SignForm';
 import { STContainer, STSectionBox } from './index.styles';
 
 const Home: NextPage = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { push, query } = useRouter();
+  const inviteToken = query.token as string | undefined;
+  const clearedInviteSessionRef = useRef(false);
 
   useEffect(() => {
+    if (!inviteToken || clearedInviteSessionRef.current) return;
+
+    const hasSession = !!parseCookies()['nextauth.token'] || !!user?.id;
+    if (!hasSession) return;
+
+    clearedInviteSessionRef.current = true;
+    void signOut({ redirect: false });
+  }, [inviteToken, signOut, user?.id]);
+
+  useEffect(() => {
+    if (inviteToken) return;
+
     if (user) {
-      push(RoutesEnum.DASHBOARD + '?token=' + query.token);
+      push(RoutesEnum.DASHBOARD);
     }
-  }, [push, query.token, user]);
+  }, [push, inviteToken, user]);
 
   return (
     <>
@@ -55,8 +76,14 @@ const Home: NextPage = () => {
 
 export default Home;
 
-// export const getServerSideProps = withSSRGuest(async () => {
-//   return {
-//     props: {},
-//   };
-// });
+export const getServerSideProps: GetServerSideProps = async (
+  ctx: GetServerSidePropsContext,
+): Promise<GetServerSidePropsResult<any>> => {
+  if (ctx.query.token) {
+    return { props: {} };
+  }
+
+  return withSSRGuest(async () => ({
+    props: {},
+  }))(ctx);
+};

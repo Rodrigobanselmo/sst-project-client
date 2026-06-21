@@ -15,6 +15,7 @@ import { IModalButton } from 'components/molecules/SModal/components/SModalButto
 
 import { CompanyTag } from './components/CompanyTag';
 import { EditUserSelects } from './components/EditUserSelects';
+import { UserAccessScopeSection } from './components/UserAccessScopeSection';
 import { IUseAddUser } from './hooks/useAddUser';
 
 export const ModalAddUsersComponent = (props: IUseAddUser) => {
@@ -30,10 +31,16 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
     isEdit,
     handleOpenAccessSelect,
     handleOpenCompanySelect,
+    handleOpenGroupCompanySelect,
     handleRemoveCompany,
+    handleAccessScopeChange,
     isConsulting,
+    isBusinessGroup,
     setValue,
     missingGroup,
+    missingScopeSelection,
+    isLoadingGroupMembers,
+    hasLoadedGroupMembers,
   } = props;
 
   const buttons = [
@@ -131,6 +138,24 @@ export const ModalAddUsersComponent = (props: IUseAddUser) => {
           </SFlex>
         )}
       </SFlex>
+      {isBusinessGroup && (
+        <Box mt={10} mb={10}>
+          {isLoadingGroupMembers && !hasLoadedGroupMembers ? (
+            <SText fontSize={13} color="text.label">
+              Carregando empresas do grupo...
+            </SText>
+          ) : null}
+          <UserAccessScopeSection
+            scope={userData.accessScope}
+            onScopeChange={handleAccessScopeChange}
+            selectedCompanies={userData.companies ?? []}
+            onOpenCompanySelect={handleOpenGroupCompanySelect}
+            onRemoveCompany={handleRemoveCompany}
+            missingSelection={missingScopeSelection}
+            disabled={isLoadingGroupMembers && !hasLoadedGroupMembers}
+          />
+        </Box>
+      )}
       {isConsulting && (
         <>
           <SText fontSize={14} color={'text.label'}>

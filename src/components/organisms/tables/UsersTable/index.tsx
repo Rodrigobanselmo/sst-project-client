@@ -19,8 +19,10 @@ import { ModalAddAccessGroup } from 'components/organisms/modals/ModalAddAccessG
 import { ModalAddUsers } from 'components/organisms/modals/ModalAddUsers';
 import {
   convertToPermissionsMap,
+  inferUserAccessScope,
   initialUserState,
 } from 'components/organisms/modals/ModalAddUsers/hooks/useAddUser';
+import { UserAccessScopeEnum } from 'core/enums/user-access-scope.enum';
 import { ModalSelectAccessGroups } from 'components/organisms/modals/ModalSelectAccessGroup';
 import { StatusSelect } from 'components/organisms/tagSelects/StatusSelect';
 import dayjs from 'dayjs';
@@ -70,6 +72,8 @@ export const UsersTable: FC<
         (userCompany) => userCompany.companyId === company.id,
       ) || user?.companies?.[0];
 
+    const linkedCompanyIds = user.companies?.map((uc) => uc.companyId) ?? [];
+
     onStackOpenModal(ModalEnum.USER_ADD, {
       id: user.id,
       roles: (userCompany?.roles || []) as RoleEnum[],
@@ -82,6 +86,8 @@ export const UsersTable: FC<
       name: user.name,
       group: userCompany?.group || null,
       company: company,
+      linkedCompanyIds,
+      accessScope: inferUserAccessScope(company, linkedCompanyIds),
     } as typeof initialUserState);
   };
 
@@ -112,6 +118,7 @@ export const UsersTable: FC<
           onStackOpenModal(ModalEnum.USER_ADD, {
             company: company,
             companies: [company],
+            accessScope: UserAccessScopeEnum.SINGLE,
           })
         }
         style={{ minWidth: '300px' }}

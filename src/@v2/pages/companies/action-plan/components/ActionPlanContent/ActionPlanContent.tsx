@@ -30,10 +30,22 @@ export const ActionPlanContent = ({ companyId }: { companyId: string }) => {
   }, [workspaces?.results]);
 
   useEffect(() => {
-    if (!sortedFirstId || workspaceId) return;
-    setQueryParams({ tabWorkspaceId: sortedFirstId });
+    if (!workspaces?.results?.length) return;
+
+    const validWorkspaceIds = new Set(
+      workspaces.results.map((workspace) => workspace.id),
+    );
+
+    if (workspaceId && !validWorkspaceIds.has(workspaceId) && sortedFirstId) {
+      setQueryParams({ tabWorkspaceId: sortedFirstId }, { reset: false });
+      return;
+    }
+
+    if (!workspaceId && sortedFirstId) {
+      setQueryParams({ tabWorkspaceId: sortedFirstId });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortedFirstId, workspaceId]);
+  }, [sortedFirstId, workspaceId, workspaces?.results]);
 
   if (isLoadingAllWorkspaces) return <SSkeleton height={500} />;
 

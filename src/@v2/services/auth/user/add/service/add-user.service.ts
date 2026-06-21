@@ -10,6 +10,7 @@ export interface AddUserParams {
   employeeId?: number | null;
   phone?: string | null;
   cpf?: string | null;
+  companiesIds?: string[];
 }
 
 export async function addUserService({ companyId, ...body }: AddUserParams) {

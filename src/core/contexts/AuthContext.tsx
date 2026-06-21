@@ -4,6 +4,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useState,
 } from 'react';
 import { useStore } from 'react-redux';
 
@@ -35,6 +36,9 @@ import { api } from '../services/apiClient';
 import { signInService } from '@v2/services/auth/session/sign-in/service/sign-in.service';
 import { useMutateSignIn } from '@v2/services/auth/session/sign-in/hooks/useMutateSignIn';
 import { useApiResponseHandler } from '@v2/hooks/api/useApiResponseHandler';
+import { queryClient } from '../services/queryClient';
+import { v2QueryClient } from '@v2/services/query-client';
+import { resolveActiveCompanyContext } from '../utils/auth/resolve-active-company-context';
 
 export type SignInCredentials = {
   email: string;
@@ -51,10 +55,12 @@ type AuthContextData = {
   googleSignUp: (token?: string) => Promise<void | UserCredential>;
   googleSignIn: () => Promise<void | UserCredential>;
   googleSignLink: () => Promise<void | UserCredential>;
-  signOut: () => void;
+  signOut: (options?: { redirect?: boolean }) => Promise<void>;
+  clearAuthSession: () => void;
   refreshUser: (companyId?: string) => Promise<void>;
   user: Partial<IUser> | null;
   isAuthenticated: boolean;
+  isInitializingAuth: boolean;
   token: string | undefined;
 };
 
@@ -66,16 +72,26 @@ export const AuthContext = createContext({} as AuthContextData);
 
 let authChannel: BroadcastChannel;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
-export async function signOut(ctx?: any) {
-  destroyCookie(null, 'nextauth.token', { path: '/' });
+export function clearAuthSession(ctx?: any) {
+  destroyCookie(ctx, 'nextauth.token', { path: '/' });
+  destroyCookie(ctx, 'nextauth.refreshToken', { path: '/' });
 
-  destroyCookie(null, 'nextauth.refreshToken', { path: '/' });
+  delete api.defaults.headers.common['Authorization'];
+  if (typeof window !== 'undefined') {
+    delete (api.defaults.headers as any)['Authorization'];
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars
+export async function signOut(ctx?: any, options?: { redirect?: boolean }) {
+  clearAuthSession(ctx);
   if (authChannel) authChannel.postMessage('signOut');
 
-  await firebaseAuth.signOut();
+  await firebaseAuth.signOut().catch(() => {});
 
-  Router.push(RoutesEnum.LOGIN);
+  if (options?.redirect !== false && process.browser) {
+    Router.push(RoutesEnum.LOGIN);
+  }
 }
 
 export async function refreshToken(companyId?: string) {
@@ -126,21 +142,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { enqueueSnackbar } = useSnackbar();
   const { onErrorMessage, onSuccessMessage } = useApiResponseHandler();
   const isAuthenticated = !!user;
+  const [isInitializingAuth, setIsInitializingAuth] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return !!parseCookies()['nextauth.token'];
+  });
 
-  const signOutFunc = useCallback(() => {
-    dispatch(createUser(null));
-    signOut().then(() => {
+  const signOutFunc = useCallback(
+    async (options?: { redirect?: boolean }) => {
+      clearAuthSession();
+      queryClient.clear();
+      v2QueryClient.clear();
+      dispatch(createUser(null));
       dispatch(setIsFetchingData(false));
-    });
-  }, [dispatch]);
+      setIsInitializingAuth(false);
+      if (authChannel) authChannel.postMessage('signOut');
+      await firebaseAuth.signOut().catch(() => {});
+      if (options?.redirect !== false && process.browser) {
+        Router.push(RoutesEnum.LOGIN);
+      }
+    },
+    [dispatch],
+  );
 
   const getMe = useCallback(async () => {
     try {
       const response = await api.get(ApiRoutesEnum.ME);
+      const activeCompany = resolveActiveCompanyContext(response.data);
 
       dispatch(
         createUser({
           ...response.data,
+          ...activeCompany,
         }),
       );
 
@@ -151,16 +183,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
         router.replace(RoutesEnum.ONBOARD_USER);
       }
     } catch (error) {
-      signOutFunc();
+      await signOutFunc({ redirect: true });
+    } finally {
+      setIsInitializingAuth(false);
     }
   }, [dispatch, router, signOutFunc]);
 
   useEffect(() => {
     const { 'nextauth.token': token } = parseCookies();
-    // const { accessToken, refreshToken } = extractUrlTokens();
-    // if (accessToken) removeUrlTokens();
 
-    if (token) getMe();
+    if (!token) {
+      setIsInitializingAuth(false);
+      return;
+    }
+
+    setIsInitializingAuth(true);
+    void getMe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, store]);
 
@@ -192,18 +230,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       path: '/',
     });
 
+    const activeCompany = resolveActiveCompanyContext(user, {
+      companyId,
+      permissions,
+      roles,
+    });
+
     dispatch(
       createUser({
-        permissions,
-        roles,
-        companyId,
         ...user,
+        ...activeCompany,
       }),
     );
 
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (api.defaults.headers as any)['Authorization'] = `Bearer ${token}`;
+
+    setIsInitializingAuth(false);
 
     if (type === 'signIn') {
       router.push(redirect || RoutesEnum.DASHBOARD);
@@ -365,9 +409,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       value={{
         signIn,
         signOut: signOutFunc,
+        clearAuthSession,
         refreshUser,
         user,
         isAuthenticated,
+        isInitializingAuth,
         signUp,
         googleSignLink,
         googleSignIn,

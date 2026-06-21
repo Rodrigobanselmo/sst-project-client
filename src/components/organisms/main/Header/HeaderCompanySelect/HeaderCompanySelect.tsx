@@ -19,11 +19,16 @@ import {
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
 import { ICompany } from 'core/interfaces/api/ICompany';
-import { useQueryCompanies } from 'core/services/hooks/queries/useQueryCompanies';
+import {
+  IQueryCompaniesTypes,
+  useQueryCompanies,
+} from 'core/services/hooks/queries/useQueryCompanies';
 import { useQueryCompany } from 'core/services/hooks/queries/useQueryCompany';
 import { getCompanyName } from 'core/utils/helpers/companyName';
 import { useRouter } from 'next/router';
 import { useMemo } from 'react';
+
+import { usePermissionsAccess } from '@v2/hooks/usePermissionsAccess';
 
 import { RoutesParamsEnum } from '../Location/hooks/useLocation';
 import { STBox } from '../Tenant/Tenant';
@@ -39,6 +44,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
   const { data: company } = useQueryCompany();
   const { hasBusinessGroup, businessGroupId, isGroupConsolidated } =
     useHomeBusinessGroupScope();
+  const { isMasterAdmin } = usePermissionsAccess();
   const companyId = (query.companyId as string) || company.id;
   const { applyCompanyChange } = useApplyHeaderCompanyChange();
   const { applyAllGroupCompaniesScope, applyHomeCompanySelection } =
@@ -48,6 +54,12 @@ export function HeaderCompanySelect(): JSX.Element | null {
   const includeClinic = pathname.includes(RoutesParamsEnum.CLINIC);
   const showHomeGroupCompanyOptions =
     isHomeCompanyPage(pathname) && hasBusinessGroup && !!businessGroupId;
+
+  // Usuários comuns (ex.: escopo multiempresa por grupo) não têm permissão em
+  // GET /company; /company/by-user retorna apenas empresas com UserCompany ativo.
+  const companiesQueryType: IQueryCompaniesTypes = isMasterAdmin
+    ? ''
+    : '/by-user';
 
   const { companies, isLoading } = useQueryCompanies(
     1,
@@ -59,7 +71,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
         : {}),
     },
     COMPANIES_PAGE_TAKE,
-    '',
+    companiesQueryType,
   );
 
   const options: CompanyOption[] = useMemo(() => {
@@ -170,13 +182,16 @@ export function HeaderCompanySelect(): JSX.Element | null {
                   option.company.id !== companyId ||
                   isGroupConsolidated
                 ) {
-                  applyHomeCompanySelection(option.company, businessGroupId);
+                  void applyHomeCompanySelection(
+                    option.company,
+                    businessGroupId,
+                  );
                 }
                 return;
               }
 
               if (option.company.id !== companyId) {
-                applyCompanyChange(option.company);
+                void applyCompanyChange(option.company);
               }
             }
           }}
