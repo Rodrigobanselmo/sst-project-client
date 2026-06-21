@@ -24,6 +24,7 @@ export const ModalExamStep = ({
   control,
   setValue,
   setExamData,
+  loading,
 }: IUseEditExam) => {
   return (
     <SFlex direction="column" mt={8}>
@@ -193,6 +194,7 @@ export const ModalExamStep = ({
             <RiskSelect
               sx={{ minWidth: 500 }}
               large
+              disabled={loading}
               error={examData.error.risk}
               tooltipTitle={examData.risk?.name || ''}
               borderActive={examData.risk?.id ? 'info' : undefined}
@@ -219,6 +221,8 @@ export const ModalExamStep = ({
             sx={{ minWidth: '100%' }}
             asyncLoad
             large
+            disabled={loading}
+            selectedExamId={examData.examId || undefined}
             text={examData.exam?.name || 'selecione um exame'}
             error={examData.error.exam}
             tooltipTitle={examData.exam?.name || ''}

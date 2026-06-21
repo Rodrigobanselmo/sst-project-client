@@ -17,4 +17,6 @@ export interface IExamSelectProps
   onEnter?: (value: string) => void;
   onlyExam?: boolean;
   query?: IQueryExam;
+  /** Quando definido, o tag não exibe spinner de catálogo enquanto busca opções. */
+  selectedExamId?: number;
 }

@@ -28,6 +28,7 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
   selected,
   onlyExam = false,
   query,
+  selectedExamId,
   ...props
 }) => {
   const [search, setSearch] = useState('');
@@ -90,6 +91,13 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
 
   const examLength = String(selected ? selected.length : 0);
 
+  const hasSelectedExam =
+    Boolean(selectedExamId) ||
+    Boolean(selected?.length) ||
+    Boolean(text && text !== 'selecione um exame');
+
+  const tagLoading = isLoading && !hasSelectedExam;
+
   return (
     <STagSearchSelect
       options={options}
@@ -105,7 +113,8 @@ export const ExamSelect: FC<{ children?: any } & IExamSelectProps> = ({
       large={large}
       handleSelectMenu={handleSelectExam}
       selected={selected || []}
-      loading={isLoading}
+      isLoading={isLoading}
+      loading={tagLoading}
       endAdornment={(options: IExam | undefined) => {
         return (
           <STooltip enterDelay={1200} withWrapper title={'editar'}>

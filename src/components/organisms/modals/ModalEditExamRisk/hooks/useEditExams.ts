@@ -85,6 +85,15 @@ export const useEditExams = () => {
   const updateMutation = useMutUpdateExamRisk();
   const deleteMutation = useMutDeleteExamRisk();
 
+  const loading =
+    createMutation.isLoading ||
+    updateMutation.isLoading ||
+    deleteMutation.isLoading;
+
+  const refetchExamsRiskList = async () => {
+    await queryClient.refetchQueries([QueryEnum.EXAMS_RISK]);
+  };
+
   useEffect(() => {
     const initialData = getModalData<Partial<typeof initialExamRiskState>>(
       ModalEnum.EXAM_RISK,
@@ -116,6 +125,8 @@ export const useEditExams = () => {
   };
 
   const onCloseUnsaved = () => {
+    if (loading) return;
+
     const values = getValues();
 
     const beforeObject = cleanObjectValues({
@@ -207,17 +218,18 @@ export const useEditExams = () => {
     try {
       if (!submitData.id) {
         delete submitData.id;
-        await createMutation
-          .mutateAsync(submitData)
-          .then((exam) => examData.callback(exam));
+        const exam = await createMutation.mutateAsync(submitData);
+        examData.callback(exam);
       } else {
-        await updateMutation
-          .mutateAsync(submitData)
-          .then((exam) => examData.callback(exam));
+        const exam = await updateMutation.mutateAsync(submitData);
+        examData.callback(exam);
       }
 
+      await refetchExamsRiskList();
       onClose();
-    } catch (error) {}
+    } catch {
+      // Snackbar exibido pelo onError das mutations.
+    }
   };
 
   const onSelectCheck = (isChecked: boolean, type: keyof IExamRiskData) => {
@@ -227,15 +239,23 @@ export const useEditExams = () => {
     }));
   };
 
-  const onRemove = async () => {
-    const remove = async () => {
-      if (examData.id && companyId)
-        await deleteMutation.mutateAsync({
-          id: examData.id,
-          companyId: companyId,
-        });
+  const onRemove = () => {
+    if (loading) return;
 
-      onClose();
+    const remove = async () => {
+      try {
+        if (examData.id && companyId) {
+          await deleteMutation.mutateAsync({
+            id: examData.id,
+            companyId: companyId,
+          });
+          await refetchExamsRiskList();
+        }
+
+        onClose();
+      } catch {
+        // Snackbar exibido pelo onError da mutation.
+      }
     };
 
     preventDelete(remove);
@@ -249,7 +269,7 @@ export const useEditExams = () => {
     onClose,
     examData,
     onSubmit,
-    loading: false,
+    loading,
     control,
     handleSubmit,
     setExamData,
