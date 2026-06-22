@@ -32,6 +32,9 @@ export interface SSearchSelectProps<Value> {
   }) => ReactNode;
   onSearch?: (value: string) => void;
   popperStartCompoent?: React.ReactNode;
+  closeOnSelect?: boolean;
+  popperSelected?: Value[];
+  onPopperClean?: (event: React.SyntheticEvent) => void;
   renderStartAdornment?: (args: {
     option: Value | null | undefined;
   }) => ReactNode;
@@ -66,6 +69,9 @@ export function SSearchSelect<T>({
   renderStartAdornment,
   hideSearchInput,
   getOptionIsDisabled,
+  closeOnSelect = true,
+  popperSelected,
+  onPopperClean,
 }: SSearchSelectProps<T>) {
   const [shrink, setShrink] = useState(false);
 
@@ -92,13 +98,20 @@ export function SSearchSelect<T>({
         onChange={handleSelect}
         getOptionValue={(option) => getOptionValue(option)}
         onClose={() => setShrink(false)}
-        selected={value ? [value] : []}
+        selected={popperSelected ?? (value ? [value] : [])}
         onScrollEnd={onScrollEnd}
         options={options}
-        onClean={handleClean}
+        onClean={
+          onPopperClean
+            ? (event) => {
+                onPopperClean(event);
+              }
+            : handleClean
+        }
         onSearchFunc={onSearch}
         hideSearchInput={hideSearchInput}
         getOptionIsDisabled={getOptionIsDisabled}
+        closeOnSelect={closeOnSelect}
       >
         {Component && <Component />}
         {!Component && (

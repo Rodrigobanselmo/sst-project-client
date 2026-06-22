@@ -1,7 +1,7 @@
 import ClearIcon from '@mui/icons-material/Clear';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import InsertChartIcon from '@mui/icons-material/InsertChart';
-import PersonIcon from '@mui/icons-material/Person';
+import PieChartIcon from '@mui/icons-material/PieChart';
 import {
   Box,
   Button,
@@ -33,6 +33,8 @@ import { IndicatorsQualityLegend } from './components/IndicatorsQualityLegend/In
 import { IndicatorPercentScale } from './components/IndicatorPercentScale/IndicatorPercentScale';
 import { FormTextAnswers } from './components/FormTextAnswers/FormTextAnswers';
 import { SectionHeader } from './components/SectionHeader/SectionHeader';
+import { SAccordion } from '@v2/components/organisms/SAccordion/SAccordion';
+import { SAccordionBody } from '@v2/components/organisms/SAccordion/components/SAccordionBody/SAccordionBody';
 import { FormRisksAnalysis } from './components/FormRisksAnalysis/FormRisksAnalysis';
 import { FormParticipantsTable } from '../FormParticipantsTable/FormParticipantsTable';
 import { FormHierarchyGroupManager } from './components/FormHierarchyGroupManager/FormHierarchyGroupManager';
@@ -870,33 +872,46 @@ export const FormQuestionsDashboard = ({
       {/* Identifier Section */}
       {showIdicators && identifierQuestions.length > 0 && (
         <Box sx={{ p: 3 }}>
-          <SectionHeader
-            icon={<PersonIcon sx={{ fontSize: 30 }} />}
+          <SAccordion
+            defaultExpanded={false}
+            icon={<PieChartIcon sx={{ fontSize: 30 }} />}
             title="Informações de Identificação"
-          />
-          <SPaper
-            sx={{
-              p: 3,
+            subtitle={`${identifierQuestions.length} gráfico${identifierQuestions.length === 1 ? '' : 's'}`}
+            fontWeight="600"
+            accordionProps={{
+              TransitionProps: { unmountOnExit: false },
+              sx: {
+                boxShadow: 'none',
+                '&::before': { display: 'none' },
+              },
             }}
           >
-            <SFlex
-              gap={4}
-              display="grid"
-              gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
-            >
-              {identifierQuestions.map((question) => (
-                <Box key={question.id} p={4}>
-                  <FormQuestionPieChart
-                    question={question}
-                    colorScheme="identifier"
-                    chartType={chartsChartType}
-                    onCreateGroupAnalysis={handleCreateGroupAnalysis}
-                    isShareableLink={isShareableLink}
-                  />
-                </Box>
-              ))}
-            </SFlex>
-          </SPaper>
+            <SAccordionBody>
+              <SPaper
+                sx={{
+                  p: 3,
+                }}
+              >
+                <SFlex
+                  gap={4}
+                  display="grid"
+                  gridTemplateColumns="repeat(auto-fit, minmax(400px, 1fr))"
+                >
+                  {identifierQuestions.map((question) => (
+                    <Box key={question.id} p={4}>
+                      <FormQuestionPieChart
+                        question={question}
+                        colorScheme="identifier"
+                        chartType={chartsChartType}
+                        onCreateGroupAnalysis={handleCreateGroupAnalysis}
+                        isShareableLink={isShareableLink}
+                      />
+                    </Box>
+                  ))}
+                </SFlex>
+              </SPaper>
+            </SAccordionBody>
+          </SAccordion>
         </Box>
       )}
 

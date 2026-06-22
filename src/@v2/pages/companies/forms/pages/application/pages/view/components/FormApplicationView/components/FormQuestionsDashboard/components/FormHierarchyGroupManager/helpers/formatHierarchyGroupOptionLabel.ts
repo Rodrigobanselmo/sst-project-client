@@ -14,21 +14,34 @@ function formatHierarchyWithContext(option: HierarchyGroupOption): string {
 export function buildHierarchyGroupOptionLabels(
   options: HierarchyGroupOption[],
 ): Map<string, string> {
-  const nameCounts = new Map<string, number>();
-
-  for (const option of options) {
-    const key = option.name.trim().toLowerCase();
-    nameCounts.set(key, (nameCounts.get(key) ?? 0) + 1);
-  }
-
   return new Map(
-    options.map((option) => {
-      const isDuplicateName =
-        (nameCounts.get(option.name.trim().toLowerCase()) ?? 0) > 1;
-      const label = isDuplicateName
-        ? formatHierarchyWithContext(option)
-        : option.name;
-      return [option.id, label];
-    }),
+    options.map((option) => [option.id, formatHierarchyWithContext(option)]),
   );
+}
+
+function getHierarchyGroupOptionLabel(
+  option: HierarchyGroupOption,
+  labels: Map<string, string>,
+): string {
+  return labels.get(option.id) ?? option.name;
+}
+
+export function sortHierarchyGroupOptionsByLabel(
+  options: HierarchyGroupOption[],
+  labels: Map<string, string>,
+): HierarchyGroupOption[] {
+  return [...options].sort((a, b) => {
+    const labelA = getHierarchyGroupOptionLabel(a, labels);
+    const labelB = getHierarchyGroupOptionLabel(b, labels);
+
+    const byLabel = labelA.localeCompare(labelB, 'pt-BR', {
+      sensitivity: 'base',
+    });
+    if (byLabel !== 0) return byLabel;
+
+    const byName = a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' });
+    if (byName !== 0) return byName;
+
+    return a.id.localeCompare(b.id);
+  });
 }

@@ -3,6 +3,7 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { useFetchReadFormApplication } from '@v2/services/forms/form-application/read-form-application/hooks/useFetchReadFormApplication';
 import { useFormApplicationViewActions } from '../../hooks/useFormApplicationViewActions';
 import { FormApplicationInfo } from './components/FormApplicationInfo';
+import { FormApplicationActionsBar } from './components/FormApplicationActionsBar';
 import { useFetchBrowseFormQuestionsAnswers } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers/hooks/useFetchBrowseFormQuestionsAnswers';
 import { FormQuestionsDashboard } from './components/FormQuestionsDashboard/FormQuestionsDashboard';
 import { FormStatisticsCard } from './components/FormStatisticsCard/FormStatisticsCard';
@@ -43,21 +44,31 @@ export const FormApplicationView = ({
         mb={[20]}
         formApplication={formApplication}
         onEdit={handleEdit}
-        companyId={companyId}
-        modelQuestionCount={modelQuestionCount}
       />
       {!isLoading && formApplication && (
         <SFlex direction="column" gap={20}>
-          <FormStatisticsCard
-            totalAnswers={formApplication.totalAnswers}
-            respondedParticipantsCount={
-              formApplication.respondedParticipantsCount
-            }
-            totalParticipants={formApplication.totalParticipants}
-            averageTimeSpent={formApplication.averageTimeSpent}
-            participationGoal={formApplication.participationGoal}
-            isShareableLink={formApplication.isShareableLink}
-          />
+          <SFlex
+            justifyContent="space-between"
+            alignItems="center"
+            flexWrap="wrap"
+            gap={4}
+          >
+            <FormStatisticsCard
+              totalAnswers={formApplication.totalAnswers}
+              respondedParticipantsCount={
+                formApplication.respondedParticipantsCount
+              }
+              totalParticipants={formApplication.totalParticipants}
+              averageTimeSpent={formApplication.averageTimeSpent}
+              participationGoal={formApplication.participationGoal}
+              isShareableLink={formApplication.isShareableLink}
+            />
+            <FormApplicationActionsBar
+              formApplication={formApplication}
+              companyId={companyId}
+              modelQuestionCount={modelQuestionCount}
+            />
+          </SFlex>
           <FormQuestionsDashboard
             formQuestionsAnswers={formQuestionsAnswers}
             formApplication={formApplication}

@@ -1,8 +1,8 @@
-import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 import GroupWorkIcon from '@mui/icons-material/GroupWork';
 import {
   Box,
+  Checkbox,
   Chip,
   Dialog,
   DialogActions,
@@ -15,7 +15,9 @@ import {
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SSearchSelect } from '@v2/components/forms/fields/SSearchSelect/SSearchSelect';
-import { useEffect, useState } from 'react';
+import { SPopperSelectItem } from '@v2/components/organisms/SPopper/addons/SPopperSelectItem/SPopperSelectItem';
+import { useEffect, useMemo, useState } from 'react';
+import { sortHierarchyGroupOptionsByLabel } from '../helpers/formatHierarchyGroupOptionLabel';
 
 interface HierarchyOption {
   id: string;
@@ -75,14 +77,47 @@ export const UpsertHierarchyGroupModal = ({
     onClose();
   };
 
-  const availableOptions = availableHierarchies.filter(
-    (h) =>
-      selectedHierarchyIds.includes(h.id) ||
-      (eligibleHierarchyIds.has(h.id) && !assignedHierarchyIds.has(h.id)),
+  const toggleHierarchySelection = (hierarchyId: string) => {
+    setSelectedHierarchyIds((prev) =>
+      prev.includes(hierarchyId)
+        ? prev.filter((id) => id !== hierarchyId)
+        : [...prev, hierarchyId],
+    );
+  };
+
+  const availableOptions = useMemo(
+    () =>
+      sortHierarchyGroupOptionsByLabel(
+        availableHierarchies.filter(
+          (h) =>
+            selectedHierarchyIds.includes(h.id) ||
+            (eligibleHierarchyIds.has(h.id) && !assignedHierarchyIds.has(h.id)),
+        ),
+        hierarchyOptionLabels,
+      ),
+    [
+      availableHierarchies,
+      selectedHierarchyIds,
+      eligibleHierarchyIds,
+      assignedHierarchyIds,
+      hierarchyOptionLabels,
+    ],
+  );
+
+  const popperSelectedOptions = useMemo(
+    () =>
+      availableOptions.filter((option) =>
+        selectedHierarchyIds.includes(option.id),
+      ),
+    [availableOptions, selectedHierarchyIds],
   );
 
   const getHierarchyLabel = (id: string) => {
-    return hierarchyOptionLabels.get(id) ?? availableHierarchies.find((h) => h.id === id)?.name ?? id;
+    return (
+      hierarchyOptionLabels.get(id) ??
+      availableHierarchies.find((h) => h.id === id)?.name ??
+      id
+    );
   };
 
   const isValid = name.trim() && selectedHierarchyIds.length > 0;
@@ -124,21 +159,44 @@ export const UpsertHierarchyGroupModal = ({
             <SSearchSelect
               inputProps={{ sx: { width: '100%' } }}
               label="Adicionar setor ao agrupamento"
+              closeOnSelect={false}
+              popperSelected={popperSelectedOptions}
+              onPopperClean={() => setSelectedHierarchyIds([])}
               getOptionLabel={(option) =>
                 hierarchyOptionLabels.get(option.id) ?? option.name
               }
               getOptionValue={(option) => option?.id}
+              renderFullOption={({ option, label, isSelected, handleSelect }) => (
+                <SPopperSelectItem
+                  key={option.id}
+                  selected={isSelected}
+                  onClick={handleSelect}
+                  rerender={
+                    selectedHierarchyIds.length * 2 + (isSelected ? 1 : 0)
+                  }
+                  startAddon={
+                    <Checkbox
+                      checked={isSelected}
+                      size="small"
+                      tabIndex={-1}
+                      disableRipple
+                      sx={{
+                        p: 0,
+                        ml: 1,
+                        mr: 0.5,
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  }
+                  text={label}
+                />
+              )}
               onChange={(option) => {
-                if (option && !selectedHierarchyIds.includes(option.id)) {
-                  setSelectedHierarchyIds([...selectedHierarchyIds, option.id]);
-                }
+                if (!option) return;
+                toggleHierarchySelection(option.id);
               }}
               value={null}
-              options={availableOptions.filter(
-                (h) =>
-                  !selectedHierarchyIds.includes(h.id) &&
-                  eligibleHierarchyIds.has(h.id),
-              )}
+              options={availableOptions}
               placeholder="Busque e selecione setores..."
             />
           </Box>
@@ -174,11 +232,7 @@ export const UpsertHierarchyGroupModal = ({
                     <Chip
                       key={hId}
                       label={hierarchyName}
-                      onDelete={() =>
-                        setSelectedHierarchyIds(
-                          selectedHierarchyIds.filter((id) => id !== hId),
-                        )
-                      }
+                      onDelete={() => toggleHierarchySelection(hId)}
                       variant="filled"
                       sx={{
                         height: '32px',
