@@ -14,6 +14,10 @@ import {
 } from './components/HierarchyGroupsTable';
 import { UpsertHierarchyGroupModal } from './components/UpsertHierarchyGroupModal';
 import { DeleteHierarchyGroupModal } from './components/DeleteHierarchyGroupModal';
+import {
+  buildHierarchyGroupOptionLabels,
+  type HierarchyGroupOption,
+} from './helpers/formatHierarchyGroupOptionLabel';
 
 interface FormHierarchyGroupManagerProps {
   formApplication: FormApplicationReadModel;
@@ -51,13 +55,22 @@ export const FormHierarchyGroupManager = ({
     },
   );
 
-  const availableHierarchies = useMemo(() => {
-    if (!formQuestionsAnswersRisks?.entityMap) return [];
-    return Object.values(formQuestionsAnswersRisks.entityMap).map((h) => ({
+  const entityMap = formQuestionsAnswersRisks?.entityMap ?? {};
+  const eligibleEntityMap = formQuestionsAnswersRisks?.eligibleEntityMap ?? {};
+
+  const eligibleHierarchies = useMemo((): HierarchyGroupOption[] => {
+    return Object.values(eligibleEntityMap).map((h) => ({
       id: h.id,
       name: h.name,
+      establishment: h.establishment,
+      companyName: h.companyName,
     }));
-  }, [formQuestionsAnswersRisks?.entityMap]);
+  }, [eligibleEntityMap]);
+
+  const hierarchyOptionLabels = useMemo(
+    () => buildHierarchyGroupOptionLabels(eligibleHierarchies),
+    [eligibleHierarchies],
+  );
 
   const assignedHierarchyIds = useMemo(() => {
     const ids = new Set<string>();
@@ -69,15 +82,48 @@ export const FormHierarchyGroupManager = ({
   }, [hierarchyGroups, editingGroup]);
 
   const tableRows: HierarchyGroupRow[] = useMemo(() => {
+    const resolveLabel = (id: string): string => {
+      if (hierarchyOptionLabels.has(id)) {
+        return hierarchyOptionLabels.get(id)!;
+      }
+      const eligible = eligibleEntityMap[id];
+      if (eligible) return eligible.name;
+      return entityMap[id]?.name ?? id;
+    };
+
     return hierarchyGroups.map((group) => ({
       id: group.id,
       name: group.name,
       hierarchyIds: group.hierarchyIds,
-      hierarchyNames: group.hierarchyIds.map(
-        (id) => availableHierarchies.find((h) => h.id === id)?.name ?? id,
-      ),
+      hierarchyNames: group.hierarchyIds.map((id) => resolveLabel(id)),
     }));
-  }, [hierarchyGroups, availableHierarchies]);
+  }, [hierarchyGroups, hierarchyOptionLabels, eligibleEntityMap, entityMap]);
+
+  const modalHierarchies = useMemo((): HierarchyGroupOption[] => {
+    const byId = new Map(eligibleHierarchies.map((h) => [h.id, h]));
+
+    const selectedIds = editingGroup?.hierarchyIds ?? [];
+    for (const id of selectedIds) {
+      if (byId.has(id)) continue;
+      const fromEligible = eligibleEntityMap[id];
+      const fromEntity = entityMap[id];
+      const source = fromEligible ?? fromEntity;
+      if (!source) continue;
+      byId.set(id, {
+        id: source.id,
+        name: source.name,
+        establishment: fromEligible?.establishment,
+        companyName: fromEligible?.companyName,
+      });
+    }
+
+    return Array.from(byId.values());
+  }, [eligibleHierarchies, editingGroup, eligibleEntityMap, entityMap]);
+
+  const modalOptionLabels = useMemo(
+    () => buildHierarchyGroupOptionLabels(modalHierarchies),
+    [modalHierarchies],
+  );
 
   const handleOpenAddModal = () => {
     setEditingGroup(null);
@@ -85,8 +131,6 @@ export const FormHierarchyGroupManager = ({
   };
 
   const handleOpenEditModal = (group: HierarchyGroupRow) => {
-    console.log('Opening edit modal with group:', group);
-    console.log('Available hierarchies:', availableHierarchies);
     setEditingGroup(group);
     setUpsertModalOpen(true);
   };
@@ -181,7 +225,9 @@ export const FormHierarchyGroupManager = ({
         open={upsertModalOpen}
         onClose={handleCloseUpsertModal}
         onSave={handleSave}
-        availableHierarchies={availableHierarchies}
+        availableHierarchies={modalHierarchies}
+        eligibleHierarchyIds={new Set(Object.keys(eligibleEntityMap))}
+        hierarchyOptionLabels={modalOptionLabels}
         assignedHierarchyIds={assignedHierarchyIds}
         initialData={
           editingGroup

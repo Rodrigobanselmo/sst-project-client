@@ -16,6 +16,18 @@ export type Result = {
     string,
     { id: string; type: HierarchyTypeEnum; name: string; companyId: string }
   >;
+  /** Setores elegíveis para novos agrupamentos (ACTIVE + uso no escopo da campanha). */
+  eligibleEntityMap?: Record<
+    string,
+    {
+      id: string;
+      type: HierarchyTypeEnum;
+      name: string;
+      companyId: string;
+      establishment?: string;
+      companyName?: string;
+    }
+  >;
   // riskId -> { id: string; name: string; type: RiskEnum; subTypes: { sub_type: { id: number; name: string } }[] }
   riskMap: Record<
     string,

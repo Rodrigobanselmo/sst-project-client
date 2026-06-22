@@ -20,6 +20,8 @@ import { useEffect, useState } from 'react';
 interface HierarchyOption {
   id: string;
   name: string;
+  establishment?: string;
+  companyName?: string;
 }
 
 interface UpsertHierarchyGroupModalProps {
@@ -27,6 +29,8 @@ interface UpsertHierarchyGroupModalProps {
   onClose: () => void;
   onSave: (data: { name: string; hierarchyIds: string[] }) => void;
   availableHierarchies: HierarchyOption[];
+  eligibleHierarchyIds: Set<string>;
+  hierarchyOptionLabels: Map<string, string>;
   assignedHierarchyIds: Set<string>;
   initialData?: {
     name: string;
@@ -40,6 +44,8 @@ export const UpsertHierarchyGroupModal = ({
   onClose,
   onSave,
   availableHierarchies,
+  eligibleHierarchyIds,
+  hierarchyOptionLabels,
   assignedHierarchyIds,
   initialData,
   loading = false,
@@ -55,15 +61,8 @@ export const UpsertHierarchyGroupModal = ({
     if (open) {
       setName(initialData?.name || '');
       setSelectedHierarchyIds(initialData?.hierarchyIds || []);
-
-      // Debug log
-      console.log('Modal opened with data:', {
-        initialData,
-        availableHierarchies,
-        assignedHierarchyIds: Array.from(assignedHierarchyIds),
-      });
     }
-  }, [open, initialData, availableHierarchies, assignedHierarchyIds]);
+  }, [open, initialData]);
 
   const handleSave = () => {
     if (!name.trim() || selectedHierarchyIds.length === 0) return;
@@ -78,11 +77,12 @@ export const UpsertHierarchyGroupModal = ({
 
   const availableOptions = availableHierarchies.filter(
     (h) =>
-      selectedHierarchyIds.includes(h.id) || !assignedHierarchyIds.has(h.id),
+      selectedHierarchyIds.includes(h.id) ||
+      (eligibleHierarchyIds.has(h.id) && !assignedHierarchyIds.has(h.id)),
   );
 
-  const getHierarchyName = (id: string) => {
-    return availableHierarchies.find((h) => h.id === id)?.name ?? id;
+  const getHierarchyLabel = (id: string) => {
+    return hierarchyOptionLabels.get(id) ?? availableHierarchies.find((h) => h.id === id)?.name ?? id;
   };
 
   const isValid = name.trim() && selectedHierarchyIds.length > 0;
@@ -124,7 +124,9 @@ export const UpsertHierarchyGroupModal = ({
             <SSearchSelect
               inputProps={{ sx: { width: '100%' } }}
               label="Adicionar setor ao agrupamento"
-              getOptionLabel={(option) => option.name}
+              getOptionLabel={(option) =>
+                hierarchyOptionLabels.get(option.id) ?? option.name
+              }
               getOptionValue={(option) => option?.id}
               onChange={(option) => {
                 if (option && !selectedHierarchyIds.includes(option.id)) {
@@ -133,7 +135,9 @@ export const UpsertHierarchyGroupModal = ({
               }}
               value={null}
               options={availableOptions.filter(
-                (h) => !selectedHierarchyIds.includes(h.id),
+                (h) =>
+                  !selectedHierarchyIds.includes(h.id) &&
+                  eligibleHierarchyIds.has(h.id),
               )}
               placeholder="Busque e selecione setores..."
             />
@@ -165,7 +169,7 @@ export const UpsertHierarchyGroupModal = ({
                 }}
               >
                 {selectedHierarchyIds.map((hId) => {
-                  const hierarchyName = getHierarchyName(hId);
+                  const hierarchyName = getHierarchyLabel(hId);
                   return (
                     <Chip
                       key={hId}
