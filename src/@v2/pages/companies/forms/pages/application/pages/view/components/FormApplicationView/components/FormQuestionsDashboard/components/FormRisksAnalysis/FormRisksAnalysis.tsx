@@ -68,6 +68,7 @@ import {
   getRecentFormAiAnalysisBatchSummary,
   isOccupationalRiskEligibleForAiAnalysis,
 } from './form-ai-analysis.utils';
+import { ClearFormAiAnalysisModal } from './ClearFormAiAnalysisModal';
 
 import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
 import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
@@ -380,6 +381,7 @@ export const FormRisksAnalysis = ({
   );
   const [applyingItemKey, setApplyingItemKey] = useState<string | null>(null);
   const [showAiDialog, setShowAiDialog] = useState(false);
+  const [showClearAiDialog, setShowClearAiDialog] = useState(false);
   const [pendingAiAnalyze, setPendingAiAnalyze] =
     useState<PendingAiAnalyzeRequest | null>(null);
   const [addRiskMenu, setAddRiskMenu] = useState<{
@@ -1375,6 +1377,36 @@ export const FormRisksAnalysis = ({
     [riskMap, getEntitiesWithRisk],
   );
 
+  const clearAiRiskOptions = useMemo(
+    () =>
+      risksWithData.map((riskId) => ({
+        id: riskId,
+        label: riskMap[riskId]?.name ?? riskId,
+      })),
+    [risksWithData, riskMap],
+  );
+
+  const clearAiHierarchyOptions = useMemo(() => {
+    return Object.keys(entityMap)
+      .filter((entityId) => isEntityVisible(entityId))
+      .map((entityId) => ({
+        id: entityId,
+        label: entityMap[entityId]?.name ?? entityId,
+      }))
+      .sort((a, b) =>
+        a.label.localeCompare(b.label, 'pt-BR', { sensitivity: 'base' }),
+      );
+  }, [entityMap, isEntityVisible]);
+
+  const clearAiHierarchyGroupOptions = useMemo(
+    () =>
+      hierarchyGroups.map((group) => ({
+        id: group.id,
+        label: group.name,
+      })),
+    [hierarchyGroups],
+  );
+
   const fallbackHierarchyTargets = useMemo(() => {
     if (!formQuestionsAnswersAnalysis?.results?.length) return [];
 
@@ -1801,6 +1833,13 @@ export const FormRisksAnalysis = ({
             loading={isAnalyzing || hasProcessingAnalyses}
             onClick={handleAnalyzeButtonClick}
             disabled={hasProcessingAnalyses}
+          />
+          <SButton
+            variant="shade"
+            text="Limpar análises de IA"
+            color="danger"
+            onClick={() => setShowClearAiDialog(true)}
+            disabled={!hasPreviousAiRun && !hasProcessingAnalyses}
           />
           <SButton
             variant="shade"
@@ -2740,6 +2779,17 @@ export const FormRisksAnalysis = ({
         </FormProvider>
       </Dialog>
       )}
+
+      <ClearFormAiAnalysisModal
+        open={showClearAiDialog}
+        onClose={() => setShowClearAiDialog(false)}
+        companyId={accessCompanyId}
+        applicationId={formApplication.id}
+        riskOptions={clearAiRiskOptions}
+        hierarchyOptions={clearAiHierarchyOptions}
+        hierarchyGroupOptions={clearAiHierarchyGroupOptions}
+        hasProcessingAnalyses={hasProcessingAnalyses}
+      />
     </SPaper>
   );
 };
