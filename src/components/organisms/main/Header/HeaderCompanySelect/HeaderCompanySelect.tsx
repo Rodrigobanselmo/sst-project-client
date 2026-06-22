@@ -15,6 +15,7 @@ import { useSidebarDrawer } from 'core/contexts/SidebarContext';
 import {
   HOME_ALL_GROUP_COMPANIES_VALUE,
   isHomeCompanyPage,
+  shouldRestrictCompanySelectorToBusinessGroup,
 } from 'core/constants/home-business-group-scope.constants';
 import { IdsEnum } from 'core/enums/ids.enums';
 import { useHomeBusinessGroupScope } from 'core/hooks/useHomeBusinessGroupScope';
@@ -52,8 +53,13 @@ export function HeaderCompanySelect(): JSX.Element | null {
 
   const includeCompany = pathname.includes(RoutesParamsEnum.COMPANY);
   const includeClinic = pathname.includes(RoutesParamsEnum.CLINIC);
-  const showHomeGroupCompanyOptions =
-    isHomeCompanyPage(pathname) && hasBusinessGroup && !!businessGroupId;
+  const isHomePage = isHomeCompanyPage(pathname);
+  const restrictSelectorToBusinessGroup =
+    shouldRestrictCompanySelectorToBusinessGroup({
+      isCompanyRoute: includeCompany,
+      hasBusinessGroup,
+      businessGroupId,
+    });
 
   // Usuários comuns (ex.: escopo multiempresa por grupo) não têm permissão em
   // GET /company; /company/by-user retorna apenas empresas com UserCompany ativo.
@@ -66,7 +72,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
     {
       isClinic: includeClinic,
       disabled: !includeCompany,
-      ...(showHomeGroupCompanyOptions && businessGroupId
+      ...(restrictSelectorToBusinessGroup && businessGroupId
         ? { groupId: businessGroupId }
         : {}),
     },
@@ -87,7 +93,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
         company: c,
       }));
 
-    if (!showHomeGroupCompanyOptions) {
+    if (!restrictSelectorToBusinessGroup) {
       return companyOptions;
     }
 
@@ -98,7 +104,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
       },
       ...companyOptions,
     ];
-  }, [companies, showHomeGroupCompanyOptions]);
+  }, [companies, restrictSelectorToBusinessGroup]);
 
   const displayName = isGroupConsolidated
     ? 'Todas as empresas do grupo'
@@ -167,7 +173,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
             if (!option) return;
 
             if (
-              showHomeGroupCompanyOptions &&
+              restrictSelectorToBusinessGroup &&
               option.value === HOME_ALL_GROUP_COMPANIES_VALUE
             ) {
               if (!isGroupConsolidated && businessGroupId) {
@@ -177,7 +183,7 @@ export function HeaderCompanySelect(): JSX.Element | null {
             }
 
             if (option.company) {
-              if (showHomeGroupCompanyOptions) {
+              if (isHomePage) {
                 if (
                   option.company.id !== companyId ||
                   isGroupConsolidated

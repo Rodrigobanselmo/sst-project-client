@@ -3,10 +3,13 @@ import { useCallback } from 'react';
 
 import {
   BUSINESS_GROUP_ID_QUERY_KEY,
+  HOME_COMPANY_PAGE_PATHNAME,
   HOME_SCOPE_COMPANY,
   HOME_SCOPE_GROUP,
   HOME_SCOPE_QUERY_KEY,
+  isHomeCompanyPage,
 } from 'core/constants/home-business-group-scope.constants';
+import { CompanyActionEnum } from 'core/enums/company-action.enum';
 import { ICompany } from 'core/interfaces/api/ICompany';
 
 import { useApplyHeaderCompanyChange } from './useApplyHeaderCompanyChange';
@@ -17,19 +20,36 @@ export function useApplyHomeScopeChange() {
 
   const applyAllGroupCompaniesScope = useCallback(
     (businessGroupId: number) => {
-      const nextQuery = { ...router.query };
-      nextQuery[HOME_SCOPE_QUERY_KEY] = HOME_SCOPE_GROUP;
-      nextQuery[BUSINESS_GROUP_ID_QUERY_KEY] = String(businessGroupId);
-      delete nextQuery.tabWorkspaceId;
+      const routeCompanyId = router.query.companyId as string | undefined;
 
-      void router.replace(
-        {
-          pathname: router.pathname,
-          query: nextQuery,
+      if (isHomeCompanyPage(router.pathname)) {
+        const nextQuery = { ...router.query };
+        nextQuery[HOME_SCOPE_QUERY_KEY] = HOME_SCOPE_GROUP;
+        nextQuery[BUSINESS_GROUP_ID_QUERY_KEY] = String(businessGroupId);
+        delete nextQuery.tabWorkspaceId;
+
+        void router.replace(
+          {
+            pathname: router.pathname,
+            query: nextQuery,
+          },
+          undefined,
+          { shallow: true },
+        );
+        return;
+      }
+
+      if (!routeCompanyId) return;
+
+      void router.push({
+        pathname: HOME_COMPANY_PAGE_PATHNAME,
+        query: {
+          companyId: routeCompanyId,
+          stage: CompanyActionEnum.COMPANY_GROUP_PAGE,
+          [HOME_SCOPE_QUERY_KEY]: HOME_SCOPE_GROUP,
+          [BUSINESS_GROUP_ID_QUERY_KEY]: String(businessGroupId),
         },
-        undefined,
-        { shallow: true },
-      );
+      });
     },
     [router],
   );

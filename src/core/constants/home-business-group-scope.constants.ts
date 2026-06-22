@@ -15,3 +15,16 @@ export const HOME_GROUP_CONSOLIDATED_STAGE_MESSAGE =
 export function isHomeCompanyPage(pathname: string): boolean {
   return pathname === HOME_COMPANY_PAGE_PATHNAME;
 }
+
+/** Restringe o seletor do header ao grupo da empresa atual em qualquer rota de empresa. */
+export function shouldRestrictCompanySelectorToBusinessGroup(params: {
+  isCompanyRoute: boolean;
+  hasBusinessGroup: boolean;
+  businessGroupId: number | null;
+}): boolean {
+  return (
+    params.isCompanyRoute &&
+    params.hasBusinessGroup &&
+    !!params.businessGroupId
+  );
+}
