@@ -95,6 +95,7 @@ export const FormHierarchyGroupManager = ({
     return hierarchyGroups.map((group) => ({
       id: group.id,
       name: group.name,
+      description: group.description ?? null,
       hierarchyIds: group.hierarchyIds,
       hierarchyNames: group.hierarchyIds.map((id) => resolveLabel(id)),
     }));
@@ -152,20 +153,39 @@ export const FormHierarchyGroupManager = ({
     setDeletingGroup(null);
   };
 
-  const handleSave = (data: { name: string; hierarchyIds: string[] }) => {
+  const handleSave = (data: {
+    name: string;
+    description?: string | null;
+    hierarchyIds: string[];
+  }) => {
     const groups = editingGroup
       ? hierarchyGroups.map((g) =>
           g.id === editingGroup.id
-            ? { id: g.id, name: data.name, hierarchyIds: data.hierarchyIds }
-            : { id: g.id, name: g.name, hierarchyIds: g.hierarchyIds },
+            ? {
+                id: g.id,
+                name: data.name,
+                description: data.description ?? null,
+                hierarchyIds: data.hierarchyIds,
+              }
+            : {
+                id: g.id,
+                name: g.name,
+                description: g.description ?? null,
+                hierarchyIds: g.hierarchyIds,
+              },
         )
       : [
           ...hierarchyGroups.map((g) => ({
             id: g.id,
             name: g.name,
+            description: g.description ?? null,
             hierarchyIds: g.hierarchyIds,
           })),
-          { name: data.name, hierarchyIds: data.hierarchyIds },
+          {
+            name: data.name,
+            description: data.description ?? null,
+            hierarchyIds: data.hierarchyIds,
+          },
         ];
 
     upsertGroups(
@@ -235,6 +255,7 @@ export const FormHierarchyGroupManager = ({
           editingGroup
             ? {
                 name: editingGroup.name,
+                description: editingGroup.description ?? '',
                 hierarchyIds: editingGroup.hierarchyIds,
               }
             : undefined

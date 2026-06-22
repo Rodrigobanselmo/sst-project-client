@@ -18,6 +18,7 @@ import { SText } from '@v2/components/atoms/SText/SText';
 export interface HierarchyGroupRow {
   id: string;
   name: string;
+  description?: string | null;
   hierarchyIds: string[];
   hierarchyNames: string[];
 }
@@ -86,6 +87,21 @@ export const HierarchyGroupsTable = ({
             >
               <TableCell>
                 <SText fontWeight={500}>{group.name}</SText>
+                {group.description?.trim() && (
+                  <SText
+                    color="text.secondary"
+                    fontSize={12}
+                    mt={1}
+                    sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                    }}
+                  >
+                    {group.description.trim()}
+                  </SText>
+                )}
               </TableCell>
               <TableCell align="center">
                 <SText>{group.hierarchyIds.length}</SText>

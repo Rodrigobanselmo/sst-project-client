@@ -29,13 +29,18 @@ interface HierarchyOption {
 interface UpsertHierarchyGroupModalProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; hierarchyIds: string[] }) => void;
+  onSave: (data: {
+    name: string;
+    description?: string | null;
+    hierarchyIds: string[];
+  }) => void;
   availableHierarchies: HierarchyOption[];
   eligibleHierarchyIds: Set<string>;
   hierarchyOptionLabels: Map<string, string>;
   assignedHierarchyIds: Set<string>;
   initialData?: {
     name: string;
+    description?: string;
     hierarchyIds: string[];
   };
   loading?: boolean;
@@ -53,6 +58,7 @@ export const UpsertHierarchyGroupModal = ({
   loading = false,
 }: UpsertHierarchyGroupModalProps) => {
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [selectedHierarchyIds, setSelectedHierarchyIds] = useState<string[]>(
     [],
   );
@@ -62,17 +68,24 @@ export const UpsertHierarchyGroupModal = ({
   useEffect(() => {
     if (open) {
       setName(initialData?.name || '');
+      setDescription(initialData?.description || '');
       setSelectedHierarchyIds(initialData?.hierarchyIds || []);
     }
   }, [open, initialData]);
 
   const handleSave = () => {
     if (!name.trim() || selectedHierarchyIds.length === 0) return;
-    onSave({ name: name.trim(), hierarchyIds: selectedHierarchyIds });
+    const trimmedDescription = description.trim();
+    onSave({
+      name: name.trim(),
+      description: trimmedDescription ? trimmedDescription : null,
+      hierarchyIds: selectedHierarchyIds,
+    });
   };
 
   const handleClose = () => {
     setName('');
+    setDescription('');
     setSelectedHierarchyIds([]);
     onClose();
   };
@@ -153,6 +166,18 @@ export const UpsertHierarchyGroupModal = ({
             onChange={(e) => setName(e.target.value)}
             required
             autoFocus
+          />
+
+          <TextField
+            fullWidth
+            label="Justificativa do agrupamento"
+            placeholder="Descreva a premissa utilizada para formar este agrupamento, considerando similaridade organizacional, contexto de trabalho e preservação do anonimato."
+            value={description}
+            onChange={(e) => setDescription(e.target.value.slice(0, 500))}
+            multiline
+            minRows={3}
+            inputProps={{ maxLength: 500 }}
+            helperText={`${description.length}/500`}
           />
 
           <Box>

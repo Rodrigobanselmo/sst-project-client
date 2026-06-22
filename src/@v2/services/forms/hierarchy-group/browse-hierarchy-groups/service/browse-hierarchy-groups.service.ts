@@ -5,6 +5,7 @@ import { api } from 'core/services/apiClient';
 export interface HierarchyGroupResult {
   id: string;
   name: string;
+  description?: string | null;
   hierarchyIds: string[];
 }
 
