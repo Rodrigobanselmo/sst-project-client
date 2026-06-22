@@ -26,6 +26,7 @@ export type Result = {
       companyId: string;
       establishment?: string;
       companyName?: string;
+      participantCount?: number;
     }
   >;
   // riskId -> { id: string; name: string; type: RiskEnum; subTypes: { sub_type: { id: number; name: string } }[] }

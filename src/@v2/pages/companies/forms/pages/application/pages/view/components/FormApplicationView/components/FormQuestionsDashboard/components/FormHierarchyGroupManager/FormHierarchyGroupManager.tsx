@@ -64,6 +64,7 @@ export const FormHierarchyGroupManager = ({
       name: h.name,
       establishment: h.establishment,
       companyName: h.companyName,
+      participantCount: h.participantCount,
     }));
   }, [eligibleEntityMap]);
 
@@ -114,6 +115,7 @@ export const FormHierarchyGroupManager = ({
         name: source.name,
         establishment: fromEligible?.establishment,
         companyName: fromEligible?.companyName,
+        participantCount: fromEligible?.participantCount,
       });
     }
 

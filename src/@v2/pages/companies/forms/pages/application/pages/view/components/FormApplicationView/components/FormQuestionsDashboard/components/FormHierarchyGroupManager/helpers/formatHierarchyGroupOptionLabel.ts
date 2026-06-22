@@ -3,6 +3,7 @@ export type HierarchyGroupOption = {
   name: string;
   establishment?: string;
   companyName?: string;
+  participantCount?: number;
 };
 
 function formatHierarchyWithContext(option: HierarchyGroupOption): string {
@@ -11,11 +12,27 @@ function formatHierarchyWithContext(option: HierarchyGroupOption): string {
   return `${option.name} — ${context}`;
 }
 
+function formatParticipantCountSuffix(count: number): string {
+  return count === 1 ? '1 participante' : `${count} participantes`;
+}
+
+export function formatHierarchyGroupOptionLabel(
+  option: HierarchyGroupOption,
+): string {
+  const base = formatHierarchyWithContext(option);
+
+  if (option.participantCount == null) {
+    return base;
+  }
+
+  return `${base} — ${formatParticipantCountSuffix(option.participantCount)}`;
+}
+
 export function buildHierarchyGroupOptionLabels(
   options: HierarchyGroupOption[],
 ): Map<string, string> {
   return new Map(
-    options.map((option) => [option.id, formatHierarchyWithContext(option)]),
+    options.map((option) => [option.id, formatHierarchyGroupOptionLabel(option)]),
   );
 }
 
