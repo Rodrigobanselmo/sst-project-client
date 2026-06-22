@@ -2,6 +2,18 @@ import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-
 
 export const FORM_AI_ANALYSIS_BATCH_FRESHNESS_MS = 15 * 60 * 1000;
 
+/** Alinhado à API: MIN_OCCUPATIONAL_RISK_LEVEL = 3 (Moderado ou superior). */
+export const MIN_OCCUPATIONAL_RISK_LEVEL_FOR_AI_ANALYSIS = 3;
+
+export function isOccupationalRiskEligibleForAiAnalysis(
+  matriz: { level: number } | null | undefined,
+): boolean {
+  return (
+    matriz != null &&
+    matriz.level >= MIN_OCCUPATIONAL_RISK_LEVEL_FOR_AI_ANALYSIS
+  );
+}
+
 export const isRecentFormAiAnalysis = (updatedAt?: Date | string | null): boolean => {
   if (!updatedAt) return false;
   return new Date(updatedAt).getTime() > Date.now() - FORM_AI_ANALYSIS_BATCH_FRESHNESS_MS;

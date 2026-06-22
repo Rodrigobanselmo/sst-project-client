@@ -66,6 +66,7 @@ import type { AnalysisItemInventoryEntry } from '@v2/models/form/models/form-que
 import {
   getFormAiAnalysisErrorMessage,
   getRecentFormAiAnalysisBatchSummary,
+  isOccupationalRiskEligibleForAiAnalysis,
 } from './form-ai-analysis.utils';
 
 import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
@@ -2132,26 +2133,30 @@ export const FormRisksAnalysis = ({
                                 return null;
                               }
 
-                              if (
-                                !resolved.analysis &&
-                                resolved.failedAnalysis
-                              ) {
-                                return (
-                                  <Box mt={3}>
-                                    <Typography
-                                      variant="body2"
-                                      color="error.main"
-                                      sx={{ fontStyle: 'italic' }}
-                                    >
-                                      Análise de IA falhou:{' '}
-                                      {getFormAiAnalysisErrorMessage(
-                                        resolved.failedAnalysis.metadata as
-                                          | Record<string, unknown>
-                                          | undefined,
-                                      )}
-                                    </Typography>
-                                  </Box>
-                                );
+                              if (!resolved.analysis) {
+                                if (
+                                  resolved.failedAnalysis &&
+                                  isOccupationalRiskEligibleForAiAnalysis(matriz)
+                                ) {
+                                  return (
+                                    <Box mt={3}>
+                                      <Typography
+                                        variant="body2"
+                                        color="error.main"
+                                        sx={{ fontStyle: 'italic' }}
+                                      >
+                                        Análise de IA falhou:{' '}
+                                        {getFormAiAnalysisErrorMessage(
+                                          resolved.failedAnalysis.metadata as
+                                            | Record<string, unknown>
+                                            | undefined,
+                                        )}
+                                      </Typography>
+                                    </Box>
+                                  );
+                                }
+
+                                return null;
                               }
 
                               const isHierarchyGroupFallback =
