@@ -75,6 +75,9 @@ import {
 } from './form-ai-analysis.utils';
 import { ClearFormAiAnalysisModal } from './ClearFormAiAnalysisModal';
 import { HierarchyGroupRiskAnalysisCard } from './HierarchyGroupRiskAnalysisCard';
+import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
+import { buildAnalysisItemCodeRegistry } from '../../helpers/analysis-item-codes.utils';
+import type { AnalysisItemCodeEntry } from '../../helpers/analysis-item-codes.utils';
 import { extractApiError } from '@v2/utils/extract-api-error';
 
 import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
@@ -915,6 +918,7 @@ export const FormRisksAnalysis = ({
     itemStatus,
     onAddItem,
     isAddingItem,
+    itemCode,
     readOnly = false,
     onEditItem,
     onRemoveItem,
@@ -932,6 +936,7 @@ export const FormRisksAnalysis = ({
     itemStatus?: AnalysisItemInventoryEntry;
     onAddItem?: () => void;
     isAddingItem?: boolean;
+    itemCode?: string;
     readOnly?: boolean;
     onEditItem?: (newName: string) => void | Promise<boolean | void>;
     onRemoveItem?: () => void | Promise<void>;
@@ -1058,6 +1063,7 @@ export const FormRisksAnalysis = ({
                   }}
                 >
                   <SFlex alignItems="center" gap={1} flexWrap="wrap" mb={0.5}>
+                    {itemCode && <AnalysisItemCodeBadge code={itemCode} />}
                     <SText
                       className="item-name"
                       variant="body2"
@@ -1144,7 +1150,9 @@ export const FormRisksAnalysis = ({
                         }}
                         buttonProps={{
                           disabled: isAddingItem,
-                          title: 'Adicionar este item ao inventário',
+                          title: itemCode
+                            ? `Adicionar este item ao inventário (${itemCode})`
+                            : 'Adicionar este item ao inventário',
                           sx: {
                             minWidth: 'auto',
                             px: 1.5,
@@ -1814,6 +1822,136 @@ export const FormRisksAnalysis = ({
     ],
   );
 
+  const handleAddMemberAnalysisItem = useCallback(
+    async (
+      riskId: string,
+      entityId: string,
+      entry: AnalysisItemCodeEntry,
+    ) => {
+      if (!isRiskInInventory(riskId, entityId)) return;
+
+      const analysisResults = formQuestionsAnswersAnalysis?.results ?? [];
+
+      const memberResolved =
+        resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback({
+          riskId,
+          entityId,
+          results: analysisResults,
+          hierarchyGroups,
+        });
+
+      if (!memberResolved.analysis) {
+        enqueueSnackbar('Análise não encontrada para o setor', { variant: 'error' });
+        return;
+      }
+
+      const memberIsFallback =
+        memberResolved.source === 'hierarchy_group_fallback';
+
+      const itemStatus = memberIsFallback
+        ? resolveTargetAnalysisItemStatus({
+            riskId,
+            targetHierarchyId: entityId,
+            itemType: entry.itemType,
+            itemName: entry.nome,
+            itemIndex: entry.itemIndex,
+            sourceAnalysisId: memberResolved.analysis.id,
+            results: analysisResults,
+            analysisInventoryStatus,
+            riskDataForHierarchy: riskDataByHierarchyId.get(entityId),
+            locallyAppliedItemKeys,
+          })
+        : getAnalysisItemStatus(
+            memberResolved.analysis.id,
+            entry.itemType,
+            entry.itemIndex,
+          );
+
+      if (itemStatus?.existsInInventory === true) {
+        enqueueSnackbar(`Item ${entry.code} já está no inventário deste setor`, {
+          variant: 'info',
+        });
+        return;
+      }
+
+      const memberAnalysis = buildTargetAiAnalysisViewModel({
+        resolved: memberResolved,
+        targetHierarchyId: entityId,
+        targetProbability: getEffectiveProbability(entityId, riskId),
+      });
+
+      if (!memberAnalysis) {
+        enqueueSnackbar('Não foi possível preparar a análise do setor', {
+          variant: 'error',
+        });
+        return;
+      }
+
+      const memberLabel = formatRiskAnalysisMemberLabel({
+        entityId,
+        entityMap,
+        entityEstablishmentMap,
+      });
+
+      try {
+        await applyAnalysisItemsToInventory(
+          memberAnalysis,
+          {
+            fontesGeradoras:
+              entry.itemType === 'fontesGeradoras'
+                ? [{ nome: entry.nome }]
+                : undefined,
+            medidasEngenharia:
+              entry.itemType === 'medidasEngenhariaRecomendadas'
+                ? [{ nome: entry.nome }]
+                : undefined,
+            medidasAdministrativas:
+              entry.itemType === 'medidasAdministrativasRecomendadas'
+                ? [{ nome: entry.nome }]
+                : undefined,
+          },
+          {
+            skipMarkAnalysisApplied: memberIsFallback ? true : undefined,
+            suppressMutationFeedback: true,
+          },
+        );
+
+        await refetchFormRisksInventoryStatus(queryClient, {
+          companyId: accessCompanyId,
+          applicationId: formApplication.id,
+        });
+        void refetch();
+
+        enqueueSnackbar(`Item ${entry.code} aplicado em ${memberLabel}`, {
+          variant: 'success',
+        });
+      } catch (error) {
+        enqueueSnackbar(
+          extractApiError(error as never) || `Falha ao aplicar ${entry.code}`,
+          { variant: 'error' },
+        );
+      }
+    },
+    [
+      accessCompanyId,
+      analysisInventoryStatus,
+      applyAnalysisItemsToInventory,
+      entityEstablishmentMap,
+      entityMap,
+      formApplication.id,
+      formQuestionsAnswersAnalysis?.results,
+      getAnalysisItemStatus,
+      getEffectiveProbability,
+      hierarchyGroups,
+      isRiskInInventory,
+      locallyAppliedItemKeys,
+      queryClient,
+      refetch,
+      riskDataByHierarchyId,
+      enqueueSnackbar,
+    ],
+  );
+
   const getEntityOccupationalLevel = useCallback(
     (entityId: string, riskId: string) => {
       const risk = riskMap[riskId];
@@ -2292,6 +2430,9 @@ export const FormRisksAnalysis = ({
                             item,
                           )
                         }
+                        onAddMemberAnalysisItem={(entityId, entry) =>
+                          handleAddMemberAnalysisItem(riskId, entityId, entry)
+                        }
                       />
                     ))}
 
@@ -2577,6 +2718,8 @@ export const FormRisksAnalysis = ({
                                   }
                                 : undefined;
                               const displayAnalysisContent = sourceAnalysis.analysis;
+                              const itemCodeRegistry =
+                                buildAnalysisItemCodeRegistry(displayAnalysisContent);
                               const resolveDisplayedItemStatus = (
                                 itemType: AnalysisItemType,
                                 itemName: string,
@@ -2750,6 +2893,10 @@ export const FormRisksAnalysis = ({
                                                           sourceAnalysis.id
                                                         }
                                                         itemType="fontesGeradoras"
+                                                        itemCode={itemCodeRegistry.getCode(
+                                                          'fontesGeradoras',
+                                                          index,
+                                                        )}
                                                         analysis={sourceAnalysis}
                                                         backgroundColor="grey.50"
                                                         borderColor="grey.200"
@@ -2855,6 +3002,10 @@ export const FormRisksAnalysis = ({
                                                           sourceAnalysis.id
                                                         }
                                                         itemType="medidasEngenhariaRecomendadas"
+                                                        itemCode={itemCodeRegistry.getCode(
+                                                          'medidasEngenhariaRecomendadas',
+                                                          index,
+                                                        )}
                                                         analysis={sourceAnalysis}
                                                         backgroundColor="grey.50"
                                                         borderColor="grey.200"
@@ -2962,6 +3113,10 @@ export const FormRisksAnalysis = ({
                                                           sourceAnalysis.id
                                                         }
                                                         itemType="medidasAdministrativasRecomendadas"
+                                                        itemCode={itemCodeRegistry.getCode(
+                                                          'medidasAdministrativasRecomendadas',
+                                                          index,
+                                                        )}
                                                         analysis={sourceAnalysis}
                                                         backgroundColor="grey.50"
                                                         borderColor="grey.200"

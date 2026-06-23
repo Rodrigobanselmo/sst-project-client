@@ -1,6 +1,6 @@
 import CheckIcon from '@mui/icons-material/Check';
 import { Box, Chip, Typography } from '@mui/material';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
@@ -49,6 +49,11 @@ import {
   severityMap,
 } from './form-risks-analysis-sector.styles';
 import { RiskEntityAiAnalysisPanel } from './RiskEntityAiAnalysisPanel';
+import { MemberPendingItemCodeChip } from './MemberPendingItemCodeChip';
+import {
+  buildAnalysisItemCodeRegistry,
+  type AnalysisItemCodeEntry,
+} from '../../helpers/analysis-item-codes.utils';
 
 type AnalysisItemType =
   | 'fontesGeradoras'
@@ -148,6 +153,10 @@ export type HierarchyGroupRiskAnalysisCardProps = {
     item: { nome: string },
     memberEntityIds: string[],
   ) => Promise<void>;
+  onAddMemberAnalysisItem: (
+    entityId: string,
+    entry: AnalysisItemCodeEntry,
+  ) => Promise<void>;
 };
 
 export function HierarchyGroupRiskAnalysisCard({
@@ -181,6 +190,7 @@ export function HierarchyGroupRiskAnalysisCard({
   createInheritedAnalysisItemRemoveHandler,
   getAnalysisItemStatus,
   onAddAnalysisItemToAllGroupMembers,
+  onAddMemberAnalysisItem,
 }: HierarchyGroupRiskAnalysisCardProps) {
   const { resolved, hasMisalignedAnalyses, canonicalMemberId: displayCanonicalId } =
     resolveGroupRiskAnalysisDisplay({
@@ -220,6 +230,11 @@ export function HierarchyGroupRiskAnalysisCard({
   const sourceAnalysis = resolved.analysis;
   const displayAnalysisContent = sourceAnalysis?.analysis ?? null;
 
+  const itemCodeRegistry = useMemo(
+    () => buildAnalysisItemCodeRegistry(displayAnalysisContent),
+    [displayAnalysisContent],
+  );
+
   const isHierarchyGroupFallback = resolved.source === 'hierarchy_group_fallback';
 
   const panelAnalysis =
@@ -244,6 +259,9 @@ export function HierarchyGroupRiskAnalysisCard({
   const allMembersHaveRisk = membersPendingRiskAdd.length === 0;
 
   const [applyingGroupItemKey, setApplyingGroupItemKey] = useState<string | null>(
+    null,
+  );
+  const [applyingMemberItemKey, setApplyingMemberItemKey] = useState<string | null>(
     null,
   );
 
@@ -339,6 +357,19 @@ export function HierarchyGroupRiskAnalysisCard({
       onAddAnalysisItemToAllGroupMembers,
       sortedMemberEntityIds,
     ],
+  );
+
+  const handleMemberItemClick = useCallback(
+    async (entityId: string, entry: AnalysisItemCodeEntry) => {
+      const applyingKey = `${entityId}:${entry.code}`;
+      setApplyingMemberItemKey(applyingKey);
+      try {
+        await onAddMemberAnalysisItem(entityId, entry);
+      } finally {
+        setApplyingMemberItemKey(null);
+      }
+    },
+    [onAddMemberAnalysisItem],
   );
 
   return (
@@ -591,6 +622,18 @@ export function HierarchyGroupRiskAnalysisCard({
                 ? getApplyAnalysisButtonProps(memberAnalysis, memberFallbackOptions)
                 : null;
 
+            const pendingItemEntries = isRiskInInventory(riskId, entityId)
+              ? itemCodeRegistry.entries.filter((entry) => {
+                  const status = resolveMemberItemStatus(
+                    entityId,
+                    entry.itemType,
+                    entry.nome,
+                    entry.itemIndex,
+                  );
+                  return status?.existsInInventory !== true;
+                })
+              : [];
+
             return (
               <SFlex
                 key={entityId}
@@ -606,13 +649,35 @@ export function HierarchyGroupRiskAnalysisCard({
                   borderColor: 'grey.200',
                 }}
               >
-                <Typography variant="body2" fontWeight={500} sx={{ minWidth: 120 }}>
-                  {formatRiskAnalysisMemberLabel({
-                    entityId,
-                    entityMap,
-                    entityEstablishmentMap,
-                  })}
-                </Typography>
+                <SFlex direction="column" gap={0.25} sx={{ minWidth: 120 }}>
+                  <Typography variant="body2" fontWeight={500}>
+                    {formatRiskAnalysisMemberLabel({
+                      entityId,
+                      entityMap,
+                      entityEstablishmentMap,
+                    })}
+                  </Typography>
+                  {pendingItemEntries.length > 0 && (
+                    <SFlex direction="column" gap={0.5} mt={0.25}>
+                      <Typography variant="caption" color="text.secondary">
+                        Pendentes:
+                      </Typography>
+                      <SFlex gap={0.5} flexWrap="wrap" alignItems="center">
+                        {pendingItemEntries.map((entry) => (
+                          <MemberPendingItemCodeChip
+                            key={`${entityId}-${entry.code}`}
+                            code={entry.code}
+                            title={entry.nome}
+                            isApplying={
+                              applyingMemberItemKey === `${entityId}:${entry.code}`
+                            }
+                            onClick={() => handleMemberItemClick(entityId, entry)}
+                          />
+                        ))}
+                      </SFlex>
+                    </SFlex>
+                  )}
+                </SFlex>
                 {isRiskInInventory(riskId, entityId) ? (
                   <Box
                     sx={{

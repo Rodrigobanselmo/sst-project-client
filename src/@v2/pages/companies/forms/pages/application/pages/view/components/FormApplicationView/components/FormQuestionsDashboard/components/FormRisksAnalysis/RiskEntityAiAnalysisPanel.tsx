@@ -9,14 +9,16 @@ import type { IFormQuestionsAnswersAnalysisBrowseResultModel } from '@v2/models/
 import type { AnalysisItemInventoryEntry } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse.model';
 import type { AiRiskAnalysisResponse } from '@v2/services/forms/ai-analyze-risks/service/ai-analyze-risks.types';
 import { SIconDelete } from '@v2/assets/icons/SIconDelete/SIconDelete';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { AnalysisItemStatusBadges } from './AnalysisItemStatusBadges';
+import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
+import {
+  buildAnalysisItemCodeRegistry,
+  type AnalysisItemCodeType,
+} from '../../helpers/analysis-item-codes.utils';
 
-type AnalysisItemType =
-  | 'fontesGeradoras'
-  | 'medidasEngenhariaRecomendadas'
-  | 'medidasAdministrativasRecomendadas';
+type AnalysisItemType = AnalysisItemCodeType;
 
 type EditableAnalysisItemProps = {
   item: { nome: string; justificativa?: string };
@@ -30,6 +32,7 @@ type EditableAnalysisItemProps = {
   onAddItem?: () => void;
   isAddingItem?: boolean;
   addItemLabel?: string;
+  itemCode?: string;
   readOnly?: boolean;
   onEditItem?: (newName: string) => void | Promise<boolean | void>;
   onRemoveItem?: () => void | Promise<void>;
@@ -60,6 +63,7 @@ function EditableAnalysisItem({
   onAddItem,
   isAddingItem,
   addItemLabel = 'Adicionar',
+  itemCode,
   readOnly = false,
   onEditItem,
   onRemoveItem,
@@ -182,6 +186,7 @@ function EditableAnalysisItem({
               }}
             >
               <SFlex alignItems="center" gap={1} flexWrap="wrap" mb={0.5}>
+                {itemCode && <AnalysisItemCodeBadge code={itemCode} />}
                 <SText
                   className="item-name"
                   variant="body2"
@@ -268,7 +273,9 @@ function EditableAnalysisItem({
                     }}
                     buttonProps={{
                       disabled: isAddingItem,
-                      title: addItemLabel,
+                      title: itemCode
+                        ? `${addItemLabel} (${itemCode})`
+                        : addItemLabel,
                       sx: {
                         minWidth: 'auto',
                         px: 1.5,
@@ -399,6 +406,11 @@ export function RiskEntityAiAnalysisPanel({
   fallbackApplyOptions,
   groupPerItemAdd,
 }: RiskEntityAiAnalysisPanelProps) {
+  const itemCodeRegistry = useMemo(
+    () => buildAnalysisItemCodeRegistry(displayAnalysisContent),
+    [displayAnalysisContent],
+  );
+
   const resolveItemAddProps = (
     itemType: AnalysisItemType,
     itemIndex: number,
@@ -521,6 +533,7 @@ export function RiskEntityAiAnalysisPanel({
                         itemIndex={index}
                         analysisId={sourceAnalysis.id}
                         itemType="fontesGeradoras"
+                        itemCode={itemCodeRegistry.getCode('fontesGeradoras', index)}
                         analysis={sourceAnalysis}
                         backgroundColor="grey.50"
                         borderColor="grey.200"
@@ -582,6 +595,10 @@ export function RiskEntityAiAnalysisPanel({
                           itemIndex={index}
                           analysisId={sourceAnalysis.id}
                           itemType="medidasEngenhariaRecomendadas"
+                          itemCode={itemCodeRegistry.getCode(
+                            'medidasEngenhariaRecomendadas',
+                            index,
+                          )}
                           analysis={sourceAnalysis}
                           backgroundColor="grey.50"
                           borderColor="grey.200"
@@ -645,6 +662,10 @@ export function RiskEntityAiAnalysisPanel({
                           itemIndex={index}
                           analysisId={sourceAnalysis.id}
                           itemType="medidasAdministrativasRecomendadas"
+                          itemCode={itemCodeRegistry.getCode(
+                            'medidasAdministrativasRecomendadas',
+                            index,
+                          )}
                           analysis={sourceAnalysis}
                           backgroundColor="grey.50"
                           borderColor="grey.200"
