@@ -428,8 +428,12 @@ export const FormParticipantsRecorteExportButton = ({
           .group-row td:first-child{font-weight:700;background:#f0f0f0}
           .sector-row td:first-child{padding-left:24px;color:#555}
           @media print{
-            thead{display:table-header-group}
-            tr{page-break-inside:avoid}
+            table{page-break-inside:auto;border-collapse:collapse}
+            thead{display:table-header-group!important}
+            tbody{display:table-row-group}
+            tfoot{display:table-footer-group}
+            tr.est-row,tr.group-row{page-break-inside:avoid;break-inside:avoid}
+            tbody tr{page-break-inside:auto;break-inside:auto}
           }
       `;
 
