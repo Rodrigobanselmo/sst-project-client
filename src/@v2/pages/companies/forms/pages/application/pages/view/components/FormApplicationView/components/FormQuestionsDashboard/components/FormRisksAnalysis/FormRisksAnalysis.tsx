@@ -49,8 +49,13 @@ import { assignRisksFormApplication } from '@v2/services/forms/form-application/
 import { refetchFormRisksInventoryStatus } from '@v2/services/forms/form-application/shared/refetch-form-risks-inventory-status';
 import {
   useFetchBrowseFormQuestionsAnswersAnalysis,
-  hasRecentProcessingAnalyses,
 } from '@v2/services/forms/form-questions-answers-analysis/browse-form-questions-answers-analysis/hooks/useFetchBrowseFormQuestionsAnswersAnalysis';
+import {
+  hasRecentProcessingAnalyses,
+  hasStaleProcessingAnalyses,
+  isRecentlyProcessingAnalysis,
+  isStaleProcessingAnalysis,
+} from '@v2/services/forms/form-questions-answers-analysis/shared/form-ai-analysis-processing.utils';
 
 import { useMutateEditFormQuestionsAnswersAnalysis } from '@v2/services/forms/form-questions-answers-analysis/edit-form-questions-answers-analysis/hooks/useMutateEditFormQuestionsAnswersAnalysis';
 import { useFetchBrowseFormQuestionsAnswersRisks } from '@v2/services/forms/form-questions-answers/browse-form-questions-answers-risks/hooks/useFetchBrowseFormQuestionsAnswersRisks';
@@ -74,6 +79,7 @@ import {
   isOccupationalRiskEligibleForAiAnalysis,
 } from './form-ai-analysis.utils';
 import { ClearFormAiAnalysisModal } from './ClearFormAiAnalysisModal';
+import { RecoverFormAiAnalysisModal } from './RecoverFormAiAnalysisModal';
 import { HierarchyGroupRiskAnalysisCard } from './HierarchyGroupRiskAnalysisCard';
 import { AnalysisItemCodeBadge } from './AnalysisItemCodeBadge';
 import { buildAnalysisItemCodeRegistry } from '../../helpers/analysis-item-codes.utils';
@@ -267,6 +273,7 @@ const SECTOR_ROW_ELEMENT_LABELS = [
   'Analisar IA novamente deste setor',
   'Analisar IA deste setor',
   'Analisando IA...',
+  'Processamento interrompido',
   'Probabilidade: 04 Significativa',
   'Severidade: 05 Excessiva',
   'Risco Ocupacional: Não informado',
@@ -401,6 +408,7 @@ export const FormRisksAnalysis = ({
   const [applyingItemKey, setApplyingItemKey] = useState<string | null>(null);
   const [showAiDialog, setShowAiDialog] = useState(false);
   const [showClearAiDialog, setShowClearAiDialog] = useState(false);
+  const [showRecoverAiDialog, setShowRecoverAiDialog] = useState(false);
   const [pendingAiAnalyze, setPendingAiAnalyze] =
     useState<PendingAiAnalyzeRequest | null>(null);
   const [addRiskMenu, setAddRiskMenu] = useState<{
@@ -491,6 +499,10 @@ export const FormRisksAnalysis = ({
     return hasRecentProcessingAnalyses(formQuestionsAnswersAnalysis?.results);
   }, [formQuestionsAnswersAnalysis]);
 
+  const hasStaleAnalyses = useMemo(() => {
+    return hasStaleProcessingAnalyses(formQuestionsAnswersAnalysis?.results);
+  }, [formQuestionsAnswersAnalysis]);
+
   const hasPreviousAiRun = useMemo(
     () =>
       (formQuestionsAnswersAnalysis?.results ?? []).some(
@@ -507,7 +519,18 @@ export const FormRisksAnalysis = ({
         (result) =>
           result.riskId === riskId &&
           result.hierarchyId === hierarchyId &&
-          result.status === FormAiAnalysisStatusEnum.PROCESSING,
+          isRecentlyProcessingAnalysis(result),
+      ),
+    [formQuestionsAnswersAnalysis?.results],
+  );
+
+  const isTargetAnalysisStale = useCallback(
+    (riskId: string, hierarchyId: string) =>
+      (formQuestionsAnswersAnalysis?.results ?? []).some(
+        (result) =>
+          result.riskId === riskId &&
+          result.hierarchyId === hierarchyId &&
+          isStaleProcessingAnalysis(result),
       ),
     [formQuestionsAnswersAnalysis?.results],
   );
@@ -2264,6 +2287,13 @@ export const FormRisksAnalysis = ({
           />
           <SButton
             variant="shade"
+            text="Recuperar análises travadas"
+            color="info"
+            onClick={() => setShowRecoverAiDialog(true)}
+            disabled={!hasStaleAnalyses}
+          />
+          <SButton
+            variant="shade"
             text="Limpar análises de IA"
             color="danger"
             onClick={() => setShowClearAiDialog(true)}
@@ -2557,9 +2587,11 @@ export const FormRisksAnalysis = ({
                                 text={
                                   isTargetAnalysisProcessing(riskId, entityId)
                                     ? 'Analisando IA...'
-                                    : hasOwnAnalysisForPair(riskId, entityId)
-                                      ? 'Analisar IA novamente deste setor'
-                                      : 'Analisar IA deste setor'
+                                    : isTargetAnalysisStale(riskId, entityId)
+                                      ? 'Processamento interrompido'
+                                      : hasOwnAnalysisForPair(riskId, entityId)
+                                        ? 'Analisar IA novamente deste setor'
+                                        : 'Analisar IA deste setor'
                                 }
                                 loading={isTargetAnalysisProcessing(
                                   riskId,
@@ -3297,6 +3329,16 @@ export const FormRisksAnalysis = ({
         hierarchyOptions={clearAiHierarchyOptions}
         hierarchyGroupOptions={clearAiHierarchyGroupOptions}
         hasProcessingAnalyses={hasProcessingAnalyses}
+      />
+
+      <RecoverFormAiAnalysisModal
+        open={showRecoverAiDialog}
+        onClose={() => setShowRecoverAiDialog(false)}
+        companyId={accessCompanyId}
+        applicationId={formApplication.id}
+        riskOptions={clearAiRiskOptions}
+        hierarchyOptions={clearAiHierarchyOptions}
+        hierarchyGroupOptions={clearAiHierarchyGroupOptions}
       />
     </SPaper>
   );

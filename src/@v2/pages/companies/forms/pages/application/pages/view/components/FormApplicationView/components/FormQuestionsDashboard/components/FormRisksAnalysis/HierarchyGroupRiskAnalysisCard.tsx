@@ -28,6 +28,7 @@ import { resolveTargetAnalysisItemStatus } from '../../helpers/resolveTargetAnal
 import {
   resolveGroupRiskAnalysisDisplay,
   isGroupRiskAnalysisProcessing,
+  isGroupRiskAnalysisStale,
 } from '../../helpers/group-risk-analysis-display.utils';
 import { isOccupationalRiskEligibleForAiAnalysis } from './form-ai-analysis.utils';
 import { getFormAiAnalysisErrorMessage } from './form-ai-analysis.utils';
@@ -211,6 +212,12 @@ export function HierarchyGroupRiskAnalysisCard({
   const occupationalRiskLabel = resolveOccupationalRiskLabel(severity, probability);
 
   const isProcessing = isGroupRiskAnalysisProcessing({
+    riskId,
+    memberEntityIds,
+    results: analysisResults,
+  });
+
+  const isStale = isGroupRiskAnalysisStale({
     riskId,
     memberEntityIds,
     results: analysisResults,
@@ -452,9 +459,11 @@ export function HierarchyGroupRiskAnalysisCard({
             text={
               isProcessing
                 ? 'Analisando IA...'
-                : hasReanalysis
-                  ? 'Analisar IA novamente do agrupamento'
-                  : 'Analisar IA do agrupamento'
+                : isStale
+                  ? 'Processamento interrompido'
+                  : hasReanalysis
+                    ? 'Analisar IA novamente do agrupamento'
+                    : 'Analisar IA do agrupamento'
             }
             loading={isProcessing}
             disabled={isProcessing}

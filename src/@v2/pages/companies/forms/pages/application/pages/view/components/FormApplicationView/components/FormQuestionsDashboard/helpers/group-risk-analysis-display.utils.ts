@@ -1,5 +1,9 @@
 import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import type { IFormQuestionsAnswersAnalysisBrowseResultModel } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
+import {
+  isRecentlyProcessingAnalysis,
+  isStaleProcessingAnalysis,
+} from '@v2/services/forms/form-questions-answers-analysis/shared/form-ai-analysis-processing.utils';
 
 import type { HierarchyGroupForRiskAnalysis } from './expandRiskAnalysisEntitiesForHierarchyGroups';
 import { resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback } from './resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback';
@@ -50,7 +54,7 @@ export function pickCanonicalGroupMemberId(params: {
       (item) =>
         item.riskId === riskId &&
         item.hierarchyId === hierarchyId &&
-        item.status === FormAiAnalysisStatusEnum.PROCESSING,
+        isRecentlyProcessingAnalysis(item),
     ),
   );
   if (processingMember) return processingMember;
@@ -137,7 +141,22 @@ export function isGroupRiskAnalysisProcessing(params: {
       (item) =>
         item.riskId === params.riskId &&
         item.hierarchyId === hierarchyId &&
-        item.status === FormAiAnalysisStatusEnum.PROCESSING,
+        isRecentlyProcessingAnalysis(item),
+    ),
+  );
+}
+
+export function isGroupRiskAnalysisStale(params: {
+  riskId: string;
+  memberEntityIds: string[];
+  results: IFormQuestionsAnswersAnalysisBrowseResultModel[];
+}): boolean {
+  return params.memberEntityIds.some((hierarchyId) =>
+    params.results.some(
+      (item) =>
+        item.riskId === params.riskId &&
+        item.hierarchyId === hierarchyId &&
+        isStaleProcessingAnalysis(item),
     ),
   );
 }
