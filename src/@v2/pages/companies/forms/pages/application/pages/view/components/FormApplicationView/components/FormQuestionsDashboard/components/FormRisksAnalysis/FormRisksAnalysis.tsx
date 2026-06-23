@@ -19,6 +19,8 @@ import {
   sortRiskIdsForAnalysis,
 } from '../../helpers/buildRiskAnalysisViewContext';
 import { expandRiskAnalysisEntitiesForHierarchyGroups } from '../../helpers/expandRiskAnalysisEntitiesForHierarchyGroups';
+import { buildRiskAnalysisDisplayPartitions, formatRiskAnalysisMemberLabel } from '../../helpers/buildRiskAnalysisDisplayPartitions';
+import { pickCanonicalGroupMemberId } from '../../helpers/group-risk-analysis-display.utils';
 import { buildEnrichedInventoryStatusByKey } from '../../helpers/buildEnrichedInventoryStatusByKey';
 import { buildInventoryStatusKey } from '../../helpers/buildInventoryStatusKey';
 import {
@@ -41,7 +43,10 @@ import { useMutateAiAnalyzeFormQuestionsRisks } from '@v2/services/forms/ai-anal
 import { AiAnalyzeFormQuestionsRisksModeEnum } from '@v2/services/forms/ai-analyze-risks/service/ai-analyze-risks.types';
 import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
 import { useMutateApplyAiAnalysisAsRiskData } from '@v2/services/forms/form-application/apply-ai-analysis-as-risk-data/hooks/useMutateApplyAiAnalysisAsRiskData';
+import { applyAiAnalysisAsRiskData } from '@v2/services/forms/form-application/apply-ai-analysis-as-risk-data/service/apply-ai-analysis-as-risk-data.service';
 import { useMutateAssignRisksFormApplication } from '@v2/services/forms/form-application/assign-risks-form-application/hooks/useMutateAssignRisksFormApplication';
+import { assignRisksFormApplication } from '@v2/services/forms/form-application/assign-risks-form-application/service/assign-risks-form-application.service';
+import { refetchFormRisksInventoryStatus } from '@v2/services/forms/form-application/shared/refetch-form-risks-inventory-status';
 import {
   useFetchBrowseFormQuestionsAnswersAnalysis,
   hasRecentProcessingAnalyses,
@@ -55,7 +60,7 @@ import { SIconDelete } from '@v2/assets/icons/SIconDelete/SIconDelete';
 import { TextField } from '@mui/material';
 import { RecTypeEnum } from 'project/enum/recType.enum';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQueries } from '@tanstack/react-query';
+import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useAccess } from 'core/hooks/useAccess';
 import { useForm, FormProvider } from 'react-hook-form';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
@@ -69,6 +74,8 @@ import {
   isOccupationalRiskEligibleForAiAnalysis,
 } from './form-ai-analysis.utils';
 import { ClearFormAiAnalysisModal } from './ClearFormAiAnalysisModal';
+import { HierarchyGroupRiskAnalysisCard } from './HierarchyGroupRiskAnalysisCard';
+import { extractApiError } from '@v2/utils/extract-api-error';
 
 import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
 import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
@@ -117,6 +124,15 @@ const TARGET_REANALYSIS_CONFIRMATION = {
   title: 'Analisar IA novamente deste setor',
   message:
     'A análise deste risco/setor será executada novamente, complementando apenas fontes geradoras e recomendações faltantes. Itens já existentes não serão duplicados.',
+  confirmText: 'Continuar',
+  cancelText: 'Cancelar',
+  variant: 'warning' as const,
+};
+
+const GROUP_TARGET_REANALYSIS_CONFIRMATION = {
+  title: 'Analisar IA novamente do agrupamento',
+  message:
+    'A análise deste risco será executada novamente para o agrupamento de setores, complementando apenas fontes geradoras e recomendações faltantes. Itens já existentes não serão duplicados.',
   confirmText: 'Continuar',
   cancelText: 'Cancelar',
   variant: 'warning' as const,
@@ -422,6 +438,7 @@ export const FormRisksAnalysis = ({
     useMutateAiAnalyzeFormQuestionsRisks();
 
   const { enqueueSnackbar } = useSnackbar();
+  const queryClient = useQueryClient();
 
   const editAnalysisMutation = useMutateEditFormQuestionsAnswersAnalysis();
   const applyAiAnalysisAsRiskDataMutation =
@@ -746,6 +763,7 @@ export const FormRisksAnalysis = ({
       },
       options?: {
         skipMarkAnalysisApplied?: boolean;
+        suppressMutationFeedback?: boolean;
       },
     ) => {
       const hasItems =
@@ -755,7 +773,7 @@ export const FormRisksAnalysis = ({
 
       if (!hasItems) return false;
 
-      await applyAiAnalysisAsRiskDataMutation.mutateAsync({
+      const requestPayload = {
         companyId: accessCompanyId,
         applicationId: formApplication.id,
         hierarchyId: analysis.hierarchyId,
@@ -774,7 +792,13 @@ export const FormRisksAnalysis = ({
             recType: RecTypeEnum.ENG,
           })) ?? []),
         ],
-      });
+      };
+
+      if (options?.suppressMutationFeedback) {
+        await applyAiAnalysisAsRiskData(requestPayload);
+      } else {
+        await applyAiAnalysisAsRiskDataMutation.mutateAsync(requestPayload);
+      }
 
       if (!options?.skipMarkAnalysisApplied) {
         await editAnalysisMutation.mutateAsync({
@@ -1581,6 +1605,215 @@ export const FormRisksAnalysis = ({
     ],
   );
 
+  const handleAddAnalysisItemToAllGroupMembers = useCallback(
+    async (
+      riskId: string,
+      memberEntityIds: string[],
+      itemType: AnalysisItemType,
+      itemIndex: number,
+      item: { nome: string },
+    ) => {
+      const analysisResults = formQuestionsAnswersAnalysis?.results ?? [];
+      const successes: string[] = [];
+      const failures: Array<{ label: string; reason: string }> = [];
+
+      const resolveMemberItemStatusForGroup = (entityId: string) => {
+        const memberResolved =
+          resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback({
+            riskId,
+            entityId,
+            results: analysisResults,
+            hierarchyGroups,
+          });
+
+        if (!memberResolved.analysis) return undefined;
+
+        const memberIsFallback =
+          memberResolved.source === 'hierarchy_group_fallback';
+
+        return memberIsFallback
+          ? resolveTargetAnalysisItemStatus({
+              riskId,
+              targetHierarchyId: entityId,
+              itemType,
+              itemName: item.nome,
+              itemIndex,
+              sourceAnalysisId: memberResolved.analysis.id,
+              results: analysisResults,
+              analysisInventoryStatus,
+              riskDataForHierarchy: riskDataByHierarchyId.get(entityId),
+              locallyAppliedItemKeys,
+            })
+          : getAnalysisItemStatus(
+              memberResolved.analysis.id,
+              itemType,
+              itemIndex,
+            );
+      };
+
+      const membersNeedingItem = memberEntityIds.filter((entityId) => {
+        const status = resolveMemberItemStatusForGroup(entityId);
+        return status?.existsInInventory !== true;
+      });
+
+      if (membersNeedingItem.length === 0) {
+        enqueueSnackbar(
+          'Este item já está aplicado em todos os setores do agrupamento',
+          { variant: 'info' },
+        );
+        return;
+      }
+
+      const baseRiskAssignedLocally = new Set<string>();
+
+      for (const entityId of membersNeedingItem) {
+        const memberLabel = formatRiskAnalysisMemberLabel({
+          entityId,
+          entityMap,
+          entityEstablishmentMap,
+        });
+
+        const hasBaseRisk =
+          isRiskInInventory(riskId, entityId) ||
+          baseRiskAssignedLocally.has(entityId);
+
+        if (!hasBaseRisk) {
+          try {
+            await assignRisksFormApplication({
+              companyId: accessCompanyId,
+              applicationId: formApplication.id,
+              risks: [
+                {
+                  riskId,
+                  hierarchyId: entityId,
+                  probability: getEffectiveProbability(entityId, riskId),
+                },
+              ],
+            });
+            setLocallyAppliedInventoryKeys((prev) => {
+              const next = new Set(prev);
+              next.add(buildInventoryStatusKey(riskId, entityId));
+              return next;
+            });
+            baseRiskAssignedLocally.add(entityId);
+          } catch (error) {
+            failures.push({
+              label: memberLabel,
+              reason:
+                extractApiError(error as never) || 'Falha ao criar risco base',
+            });
+            continue;
+          }
+        }
+
+        const memberResolved =
+          resolveAiAnalysisForRiskEntityWithHierarchyGroupFallback({
+            riskId,
+            entityId,
+            results: analysisResults,
+            hierarchyGroups,
+          });
+
+        if (!memberResolved.analysis) {
+          failures.push({
+            label: memberLabel,
+            reason: 'Análise não encontrada para o setor',
+          });
+          continue;
+        }
+
+        const memberAnalysis = buildTargetAiAnalysisViewModel({
+          resolved: memberResolved,
+          targetHierarchyId: entityId,
+          targetProbability: getEffectiveProbability(entityId, riskId),
+        });
+
+        if (!memberAnalysis) {
+          failures.push({
+            label: memberLabel,
+            reason: 'Não foi possível preparar a análise do setor',
+          });
+          continue;
+        }
+
+        const memberIsFallback =
+          memberResolved.source === 'hierarchy_group_fallback';
+
+        try {
+          await applyAnalysisItemsToInventory(
+            memberAnalysis,
+            {
+              fontesGeradoras:
+                itemType === 'fontesGeradoras' ? [item] : undefined,
+              medidasEngenharia:
+                itemType === 'medidasEngenhariaRecomendadas' ? [item] : undefined,
+              medidasAdministrativas:
+                itemType === 'medidasAdministrativasRecomendadas'
+                  ? [item]
+                  : undefined,
+            },
+            {
+              skipMarkAnalysisApplied: memberIsFallback ? true : undefined,
+              suppressMutationFeedback: true,
+            },
+          );
+          successes.push(memberLabel);
+        } catch (error) {
+          failures.push({
+            label: memberLabel,
+            reason: extractApiError(error as never) || 'Falha ao aplicar item',
+          });
+        }
+      }
+
+      await refetchFormRisksInventoryStatus(queryClient, {
+        companyId: accessCompanyId,
+        applicationId: formApplication.id,
+      });
+      void refetch();
+
+      if (failures.length === 0) {
+        enqueueSnackbar(
+          `Item aplicado em ${successes.length} setor(es) do agrupamento`,
+          { variant: 'success' },
+        );
+        return;
+      }
+
+      if (successes.length > 0) {
+        const failedLabels = failures.map((failure) => failure.label).join(', ');
+        enqueueSnackbar(
+          `Item aplicado em ${successes.length}/${membersNeedingItem.length} setores. Falharam: ${failedLabels}`,
+          { variant: 'warning' },
+        );
+        return;
+      }
+
+      enqueueSnackbar(
+        `Não foi possível aplicar o item nos setores pendentes: ${failures.map((failure) => failure.label).join(', ')}`,
+        { variant: 'error' },
+      );
+    },
+    [
+      accessCompanyId,
+      analysisInventoryStatus,
+      applyAnalysisItemsToInventory,
+      entityEstablishmentMap,
+      entityMap,
+      formApplication.id,
+      formQuestionsAnswersAnalysis?.results,
+      getAnalysisItemStatus,
+      getEffectiveProbability,
+      hierarchyGroups,
+      isRiskInInventory,
+      locallyAppliedItemKeys,
+      queryClient,
+      refetch,
+      riskDataByHierarchyId,
+      enqueueSnackbar,
+    ],
+  );
+
   const getEntityOccupationalLevel = useCallback(
     (entityId: string, riskId: string) => {
       const risk = riskMap[riskId];
@@ -1677,6 +1910,27 @@ export const FormRisksAnalysis = ({
           hierarchyId: entityId,
         },
       ],
+    });
+  };
+
+  const handleAddRiskToGroupMembers = (
+    riskId: string,
+    memberEntityIds: string[],
+  ) => {
+    const risksToAdd = memberEntityIds
+      .filter((entityId) => !isRiskInInventory(riskId, entityId))
+      .map((entityId) => ({
+        riskId,
+        probability: getEffectiveProbability(entityId, riskId),
+        hierarchyId: entityId,
+      }));
+
+    if (risksToAdd.length === 0) return;
+
+    mutateAssignRisksFormApplication({
+      companyId: accessCompanyId,
+      applicationId: formApplication.id,
+      risks: risksToAdd,
     });
   };
 
@@ -1783,6 +2037,42 @@ export const FormRisksAnalysis = ({
     handleAnalyzeRisks(undefined, targetRequest);
   };
 
+  const handleGroupTargetAnalyze = async (
+    riskId: string,
+    memberEntityIds: string[],
+  ) => {
+    const canonicalHierarchyId = pickCanonicalGroupMemberId({
+      memberEntityIds,
+      riskId,
+      results: formQuestionsAnswersAnalysis?.results ?? [],
+    });
+
+    const hasGroupAnalysis = memberEntityIds.some((hierarchyId) =>
+      hasOwnAnalysisForPair(riskId, hierarchyId),
+    );
+
+    if (hasGroupAnalysis) {
+      const confirmed = await showConfirmation(GROUP_TARGET_REANALYSIS_CONFIRMATION);
+      if (!confirmed) return;
+    }
+
+    const targetRequest: PendingAiAnalyzeRequest = {
+      mode: AiAnalyzeFormQuestionsRisksModeEnum.TARGET,
+      riskId,
+      hierarchyId: canonicalHierarchyId,
+      successMessage: hasGroupAnalysis
+        ? 'Análise de IA do agrupamento reiniciada.'
+        : 'Análise de IA do agrupamento iniciada.',
+    };
+
+    if (isMaster) {
+      openAiAnalyzeDialog(targetRequest);
+      return;
+    }
+
+    handleAnalyzeRisks(undefined, targetRequest);
+  };
+
   const handleSaveDefaultPrompt = async () => {
     const content = getValues('customPrompt')?.trim();
     if (!content) {
@@ -1865,18 +2155,23 @@ export const FormRisksAnalysis = ({
           const isExpanded = expandedRisks[riskId] || false;
 
           const entitiesWithRisk = getEntitiesWithRisk(riskId);
+          const riskPartitions = buildRiskAnalysisDisplayPartitions({
+            entityIds: entitiesWithRisk,
+            hierarchyGroups,
+            entityMap,
+          });
           const groupByEstablishment = shouldGroupEntitiesByEstablishment(
-            entitiesWithRisk,
+            riskPartitions.ungrouped,
             entityMap,
             entityEstablishmentMap,
           );
-          const entityDisplayGroups = groupByEstablishment
+          const ungroupedEntityDisplayGroups = groupByEstablishment
             ? groupEntityIdsByEstablishment(
-                entitiesWithRisk,
+                riskPartitions.ungrouped,
                 entityMap,
                 entityEstablishmentMap,
               )
-            : [{ establishment: '', entityIds: entitiesWithRisk }];
+            : [{ establishment: '', entityIds: riskPartitions.ungrouped }];
 
           return (
             <SAccordion
@@ -1942,21 +2237,79 @@ export const FormRisksAnalysis = ({
                   </SFlex>
 
                   <SFlex direction="column" gap={4}>
-                    {entityDisplayGroups.map(
-                      ({ establishment, entityIds: groupEntityIds }) => (
-                        <Box key={establishment || 'all'}>
+                    {riskPartitions.groups.map(({ group, memberEntityIds }) => (
+                      <HierarchyGroupRiskAnalysisCard
+                        key={`${riskId}-group-${group.id}`}
+                        riskId={riskId}
+                        risk={risk}
+                        group={group}
+                        memberEntityIds={memberEntityIds}
+                        entityMap={entityMap}
+                        entityEstablishmentMap={entityEstablishmentMap}
+                        hierarchyGroups={hierarchyGroups}
+                        analysisResults={
+                          formQuestionsAnswersAnalysis?.results ?? []
+                        }
+                        getEffectiveProbability={getEffectiveProbability}
+                        isRiskInInventory={isRiskInInventory}
+                        analysisKey={`${riskId}-group-${group.id}`}
+                        isAnalysisExpanded={
+                          expandedAnalysis[`${riskId}-group-${group.id}`] ??
+                          false
+                        }
+                        onAnalysisToggle={handleAnalysisToggle}
+                        onAnalyzeGroup={handleGroupTargetAnalyze}
+                        onAddRiskToEntity={handleAddRiskToEntity}
+                        onAddRiskToAllGroupMembers={handleAddRiskToGroupMembers}
+                        onAddAnalysisAsRiskData={handleAddAnalysisAsRiskData}
+                        getApplyAnalysisButtonProps={getApplyAnalysisButtonProps}
+                        riskDataByHierarchyId={riskDataByHierarchyId}
+                        analysisInventoryStatus={analysisInventoryStatus}
+                        locallyAppliedItemKeys={locallyAppliedItemKeys}
+                        applyingItemKey={applyingItemKey}
+                        buildApplyingItemKey={buildApplyingItemKey}
+                        handleAddSingleAnalysisItem={handleAddSingleAnalysisItem}
+                        handleEditAnalysisItem={handleEditAnalysisItem}
+                        handleRemoveAnalysisItem={handleRemoveAnalysisItem}
+                        createInheritedAnalysisItemEditHandler={
+                          createInheritedAnalysisItemEditHandler
+                        }
+                        createInheritedAnalysisItemRemoveHandler={
+                          createInheritedAnalysisItemRemoveHandler
+                        }
+                        getAnalysisItemStatus={getAnalysisItemStatus}
+                        onAddAnalysisItemToAllGroupMembers={(
+                          itemType,
+                          itemIndex,
+                          item,
+                          memberEntityIds,
+                        ) =>
+                          handleAddAnalysisItemToAllGroupMembers(
+                            riskId,
+                            memberEntityIds,
+                            itemType,
+                            itemIndex,
+                            item,
+                          )
+                        }
+                      />
+                    ))}
+
+                    {ungroupedEntityDisplayGroups.map(
+                      ({ establishment, entityIds: ungroupedEntityIds }) => (
+                        <Box key={establishment || 'ungrouped-all'}>
                           {groupByEstablishment && establishment && (
                             <Typography
                               variant="subtitle2"
                               fontWeight={600}
                               color="text.secondary"
-                              sx={{ mb: 2, mt: groupEntityIds.length ? 0 : 0 }}
+                              sx={{ mb: 2 }}
                             >
                               {establishment}
                             </Typography>
                           )}
                           <SFlex direction="column" gap={4}>
-                            {groupEntityIds.map((entityId) => {
+                            {ungroupedEntityIds.map((entityId) => {
                       const entity = entityMap[entityId];
                       const severity = risk?.severity;
                       const probability = getEffectiveProbability(entityId, riskId);
