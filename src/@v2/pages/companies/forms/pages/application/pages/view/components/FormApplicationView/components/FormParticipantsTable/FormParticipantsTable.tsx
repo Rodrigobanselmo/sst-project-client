@@ -33,9 +33,13 @@ import { FormParticipantsGroupedByHierarchyType } from './components/FormPartici
 import { FormParticipantsGroupedByHierarchyGroup } from './components/FormParticipantsGroupedByHierarchyGroup';
 import { FormParticipantsGroupedBySector } from './components/FormParticipantsGroupedBySector';
 import { FormParticipantsGroupedBySectorWithHierarchyGroup } from './components/FormParticipantsGroupedBySectorWithHierarchyGroup';
+import { FormParticipantsGroupedByCombinedHierarchy } from './components/FormParticipantsGroupedByCombinedHierarchy';
 import {
+  COMBINED_HIERARCHY_GROUPING_CONFIGS_WITHOUT_ESTABLISHMENT,
+  COMBINED_HIERARCHY_GROUPING_CONFIGS_WITH_ESTABLISHMENT,
   ESTABLISHMENT_HIERARCHY_GROUPING_CONFIGS,
   FLAT_HIERARCHY_GROUPING_CONFIGS,
+  getCombinedHierarchyGroupingConfig,
   getEstablishmentHierarchyGroupingConfig,
   getFlatHierarchyGroupingConfig,
   getHierarchyGroupGroupingConfig,
@@ -602,8 +606,16 @@ export const FormParticipantsTable = ({
           />
         );
       }
-      default:
-        return null;
+      default: {
+        const combinedConfig = getCombinedHierarchyGroupingConfig(viewMode);
+        if (!combinedConfig) return null;
+        return (
+          <FormParticipantsGroupedByCombinedHierarchy
+            {...groupedTableProps}
+            config={combinedConfig}
+          />
+        );
+      }
           }
         })()}
       </>
@@ -746,6 +758,16 @@ export const FormParticipantsTable = ({
                 {config.selectLabel}
               </MenuItem>
             ))}
+            <ViewModeSelectCategory withTopSpacing>
+              Combinações hierárquicas
+            </ViewModeSelectCategory>
+            {COMBINED_HIERARCHY_GROUPING_CONFIGS_WITHOUT_ESTABLISHMENT.map(
+              (config) => (
+                <MenuItem key={config.viewMode} value={config.viewMode}>
+                  {config.selectLabel}
+                </MenuItem>
+              ),
+            )}
             {showEstablishmentViewModeOptions ? (
               <>
                 <ViewModeSelectCategory withTopSpacing>
@@ -788,6 +810,22 @@ export const FormParticipantsTable = ({
                     {config.selectLabel}
                   </MenuItem>
                 ))}
+                <ViewModeSelectCategory withTopSpacing>
+                  Estabelecimento + combinações hierárquicas
+                </ViewModeSelectCategory>
+                {COMBINED_HIERARCHY_GROUPING_CONFIGS_WITH_ESTABLISHMENT.map(
+                  (config) => (
+                    <MenuItem
+                      key={config.viewMode}
+                      value={config.viewMode}
+                      onMouseDown={handleEstablishmentViewModeSelect(
+                        config.viewMode as ParticipantsViewMode,
+                      )}
+                    >
+                      {config.selectLabel}
+                    </MenuItem>
+                  ),
+                )}
               </>
             ) : null}
           </Select>

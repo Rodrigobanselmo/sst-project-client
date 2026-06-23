@@ -3,6 +3,7 @@ import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum
 
 export const FORM_PARTICIPANT_MISSING_DIRECTORY_LABEL = 'Sem superintendência';
 export const FORM_PARTICIPANT_MISSING_MANAGEMENT_LABEL = 'Sem diretoria';
+export const FORM_PARTICIPANT_MISSING_SECTOR_LABEL = 'Sem setor';
 export const FORM_PARTICIPANT_MISSING_SUB_SECTOR_LABEL = 'Sem subsetor';
 
 export function getFormParticipantHierarchyLabelByType(

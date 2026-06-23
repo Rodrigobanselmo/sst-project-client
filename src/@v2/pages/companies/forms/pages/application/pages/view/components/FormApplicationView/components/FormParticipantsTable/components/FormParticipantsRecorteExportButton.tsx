@@ -17,6 +17,11 @@ import {
   getFormParticipantSectorLabel,
 } from '@v2/models/form/helpers/form-participant-hierarchy-display';
 import {
+  buildCombinedHierarchyNestedAggregates,
+  type CombinedHierarchyNestedGroup,
+} from '@v2/models/form/helpers/form-participants-aggregate-by-combined-hierarchy';
+import {
+  getCombinedHierarchyGroupingConfig,
   getEstablishmentHierarchyGroupingConfig,
   getFlatHierarchyGroupingConfig,
   getGroupedPdfTitle,
@@ -81,6 +86,7 @@ type AggregatePdfRow = {
 function renderAggregatePdfTableRow(
   g: AggregatePdfRow,
   rowClass: string,
+  indentPx = 0,
 ): string {
   const c = getResponseRateBarColor(g.responseRatePercent);
   const w = Math.min(100, Math.max(0, g.responseRatePercent));
@@ -88,14 +94,47 @@ function renderAggregatePdfTableRow(
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
   });
+  const indentStyle =
+    indentPx > 0 ? ` style="padding-left:${indentPx}px"` : '';
   return `<tr class="${rowClass}">
-    <td>${escapeHtml(g.label)}</td>
+    <td${indentStyle}>${escapeHtml(g.label)}</td>
     <td class="num">${g.total}</td>
     <td class="num">${g.responded}</td>
     <td class="num">${g.notResponded}</td>
     <td class="num">${pct}%</td>
     <td><div class="cellbar"><div style="width:${w}%;max-width:100%;background:${c}"></div></div></td>
   </tr>`;
+}
+
+function renderCombinedHierarchyNestedPdfRows(
+  groups: CombinedHierarchyNestedGroup[],
+): string[] {
+  const rows: string[] = [];
+
+  const visit = (group: CombinedHierarchyNestedGroup) => {
+    rows.push(
+      renderAggregatePdfTableRow(
+        group,
+        group.depth === 0 ? 'est-row' : 'group-row',
+        group.depth === 0 ? 0 : 8 + group.depth * 16,
+      ),
+    );
+
+    group.subgroups.forEach(visit);
+
+    group.leaves.forEach((leaf) => {
+      rows.push(
+        renderAggregatePdfTableRow(
+          leaf,
+          'sector-row',
+          24 + group.depth * 16,
+        ),
+      );
+    });
+  };
+
+  groups.forEach(visit);
+  return rows;
 }
 
 function renderFlatHierarchyPdfSection(
@@ -116,6 +155,20 @@ function renderFlatHierarchyPdfSection(
   return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
         <table><thead><tr>
           <th>${escapeHtml(config.groupColumnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
+          <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
+        </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
+}
+
+function renderCombinedHierarchyPdfSection(
+  rows: FormParticipantsBrowseResultModel[],
+  config: NonNullable<ReturnType<typeof getCombinedHierarchyGroupingConfig>>,
+): string {
+  const groups = buildCombinedHierarchyNestedAggregates(rows, config.levels);
+  const tableRows = renderCombinedHierarchyNestedPdfRows(groups).join('');
+
+  return `<h2 style="font-size:15px;margin:20px 0 8px">${escapeHtml(config.pdfSectionTitle)}</h2>
+        <table><thead><tr>
+          <th>${escapeHtml(config.columnLabel)}</th><th class="num">Participantes</th><th class="num">Responderam</th>
           <th class="num">Não responderam</th><th class="num">Taxa</th><th>Resposta</th>
         </tr></thead><tbody>${tableRows || '<tr><td colspan="6">Nenhum participante no recorte.</td></tr>'}</tbody></table>`;
 }
@@ -269,6 +322,11 @@ function buildGroupedTableSection(
   const flatConfig = getFlatHierarchyGroupingConfig(viewMode);
   if (flatConfig) return renderFlatHierarchyPdfSection(rows, flatConfig);
 
+  const combinedConfig = getCombinedHierarchyGroupingConfig(viewMode);
+  if (combinedConfig) {
+    return renderCombinedHierarchyPdfSection(rows, combinedConfig);
+  }
+
   const establishmentHierarchyConfig =
     getEstablishmentHierarchyGroupingConfig(viewMode);
   if (establishmentHierarchyConfig) {
@@ -369,6 +427,10 @@ export const FormParticipantsRecorteExportButton = ({
           .est-row td:first-child{font-weight:700;background:#f0f0f0}
           .group-row td:first-child{font-weight:700;background:#f0f0f0}
           .sector-row td:first-child{padding-left:24px;color:#555}
+          @media print{
+            thead{display:table-header-group}
+            tr{page-break-inside:avoid}
+          }
       `;
 
       const tableSection = buildGroupedTableSection(

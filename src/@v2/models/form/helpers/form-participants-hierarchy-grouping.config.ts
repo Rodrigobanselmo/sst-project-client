@@ -3,7 +3,25 @@ import {
   FORM_PARTICIPANT_MISSING_MANAGEMENT_LABEL,
   FORM_PARTICIPANT_MISSING_SUB_SECTOR_LABEL,
 } from '@v2/models/form/helpers/form-participant-hierarchy-display';
+import {
+  COMBINED_HIERARCHY_GROUPING_CONFIGS,
+  type CombinedHierarchyParticipantsViewMode,
+  getCombinedHierarchyGroupingConfig,
+  isCombinedHierarchyViewMode,
+} from '@v2/models/form/helpers/form-participants-combined-hierarchy-grouping.config';
 import { HierarchyTypeEnum } from '@v2/models/security/enums/hierarchy-type.enum';
+
+export type {
+  CombinedHierarchyGroupingConfig,
+  CombinedHierarchyParticipantsViewMode,
+} from '@v2/models/form/helpers/form-participants-combined-hierarchy-grouping.config';
+export {
+  COMBINED_HIERARCHY_GROUPING_CONFIGS,
+  COMBINED_HIERARCHY_GROUPING_CONFIGS_WITHOUT_ESTABLISHMENT,
+  COMBINED_HIERARCHY_GROUPING_CONFIGS_WITH_ESTABLISHMENT,
+  getCombinedHierarchyGroupingConfig,
+  isCombinedHierarchyViewMode,
+} from '@v2/models/form/helpers/form-participants-combined-hierarchy-grouping.config';
 
 export type ParticipantsViewMode =
   | 'list'
@@ -17,7 +35,8 @@ export type ParticipantsViewMode =
   | 'grouped_sub_sector'
   | 'grouped_establishment_directory'
   | 'grouped_establishment_management'
-  | 'grouped_establishment_sub_sector';
+  | 'grouped_establishment_sub_sector'
+  | CombinedHierarchyParticipantsViewMode;
 
 export type FormParticipantsPdfViewMode = ParticipantsViewMode;
 
@@ -52,6 +71,7 @@ export const ALL_PARTICIPANTS_VIEW_MODES: readonly ParticipantsViewMode[] = [
   'grouped_establishment_directory',
   'grouped_establishment_management',
   'grouped_establishment_sub_sector',
+  ...COMBINED_HIERARCHY_GROUPING_CONFIGS.map((config) => config.viewMode),
 ] as const;
 
 export type HierarchyGroupGroupingConfig = {
@@ -252,6 +272,8 @@ export function getParticipantsViewModeSelectLabel(
   }
   const flat = getFlatHierarchyGroupingConfig(viewMode);
   if (flat) return flat.selectLabel;
+  const combined = getCombinedHierarchyGroupingConfig(viewMode);
+  if (combined) return combined.selectLabel;
   const est = getEstablishmentHierarchyGroupingConfig(viewMode);
   if (est) return est.selectLabel;
   return viewMode;
@@ -260,6 +282,8 @@ export function getParticipantsViewModeSelectLabel(
 export function getGroupedPdfTitle(viewMode: ParticipantsViewMode): string {
   const flat = getFlatHierarchyGroupingConfig(viewMode);
   if (flat) return flat.pdfTitle;
+  const combined = getCombinedHierarchyGroupingConfig(viewMode);
+  if (combined) return combined.pdfTitle;
   const est = getEstablishmentHierarchyGroupingConfig(viewMode);
   if (est) return est.pdfTitle;
   const hierarchyGroup = getHierarchyGroupGroupingConfig(viewMode);
