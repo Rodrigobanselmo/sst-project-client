@@ -4,6 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
+import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
 import {
   FormAiAnalysisStatusEnum,
   type IFormQuestionsAnswersAnalysisBrowseResultModel,
@@ -78,6 +79,8 @@ export type HierarchyGroupRiskAnalysisCardProps = {
   isAnalysisExpanded: boolean;
   onAnalysisToggle: (analysisKey: string) => void;
   onAnalyzeGroup: (riskId: string, memberEntityIds: string[]) => void;
+  onConfigureAi?: () => void;
+  isMaster?: boolean;
   onAddRiskToEntity: (riskId: string, entityId: string) => void;
   onAddRiskToAllGroupMembers: (riskId: string, memberEntityIds: string[]) => void;
   entityEstablishmentMap?: Map<string, string>;
@@ -174,6 +177,8 @@ export function HierarchyGroupRiskAnalysisCard({
   isAnalysisExpanded,
   onAnalysisToggle,
   onAnalyzeGroup,
+  onConfigureAi,
+  isMaster,
   onAddRiskToEntity,
   onAddRiskToAllGroupMembers,
   entityEstablishmentMap,
@@ -453,10 +458,9 @@ export function HierarchyGroupRiskAnalysisCard({
               buttonProps={{ sx: groupCollectiveRiskButtonSx }}
             />
           )}
-          <SButton
-            variant="shade"
-            color="primary"
-            text={
+          <AiActionButtonGroup
+            variant="s-button-shade"
+            label={
               isProcessing
                 ? 'Analisando IA...'
                 : isStale
@@ -467,8 +471,13 @@ export function HierarchyGroupRiskAnalysisCard({
             }
             loading={isProcessing}
             disabled={isProcessing}
-            onClick={() => onAnalyzeGroup(riskId, memberEntityIds)}
-            buttonProps={{ sx: groupAnalyzeButtonSx }}
+            onExecute={() => onAnalyzeGroup(riskId, memberEntityIds)}
+            onConfigure={onConfigureAi}
+            isMaster={isMaster}
+            sButtonProps={{
+              color: 'primary',
+              buttonProps: { sx: groupAnalyzeButtonSx },
+            }}
           />
         </SFlex>
 

@@ -19,10 +19,10 @@ import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SRiskChip } from '@v2/components/molecules/SRiskChip/SRiskChip';
-
-import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
-import { SSelectForm } from '@v2/components/forms/controlled/SSelectForm/SSelectForm';
-import { useForm, FormProvider } from 'react-hook-form';
+import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
+import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
+import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
+import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
 import { SDisplaySimpleArray } from 'components/molecules/SDisplaySimpleArray';
 import { TypeInputModal } from 'components/organisms/modals/ModalSingleInput';
 import { ParagraphSelect } from 'components/organisms/tagSelects/ParagraphSelect';
@@ -43,44 +43,6 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 import { RiskTypeEnum } from '@v2/models/security/enums/risk-type.enum';
 import { useAccess } from 'core/hooks/useAccess';
 import { IdsEnum } from 'core/enums/ids.enums';
-import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
-
-interface AiAnalysisFormData {
-  customPrompt?: string;
-  model?: {
-    label: string;
-    value: string;
-  };
-}
-
-const AI_MODEL_OPTIONS = [
-  { label: 'GPT-5 (Premium) - $0.625/$5.00', value: 'gpt-5' },
-  { label: 'GPT-5 Mini (Balanceado) - $0.125/$1.00', value: 'gpt-5-mini' },
-  { label: 'GPT-5 Nano (Ultra Rápido) - $0.025/$0.20', value: 'gpt-5-nano' },
-  { label: 'GPT-4.1 (Avançado) - $1.00/$4.00', value: 'gpt-4.1' },
-  { label: 'GPT-4.1 Mini (Eficiente) - $0.20/$0.80', value: 'gpt-4.1-mini' },
-  { label: 'GPT-4.1 Nano (Econômico) - $0.05/$0.20', value: 'gpt-4.1-nano' },
-  { label: 'GPT-4o (Padrão) - $1.25/$5.00', value: 'gpt-4o' },
-  {
-    label: 'GPT-4o 2024-05-13 (Versão Específica) - $2.50/$7.50',
-    value: 'gpt-4o-2024-05-13',
-  },
-  { label: 'GPT-4o Mini (Rápido) - $0.075/$0.30', value: 'gpt-4o-mini' },
-  { label: 'O1 Mini (Raciocínio Rápido) - $0.55/$2.20', value: 'o1-mini' },
-  { label: 'O3 Mini (Análise Rápida) - $0.55/$2.20', value: 'o3-mini' },
-  { label: 'O4 Mini (Nova Geração) - $0.55/$2.20', value: 'o4-mini' },
-  {
-    label: 'O4 Mini Deep Research (Pesquisa Nova Geração) - $1.00/$4.00',
-    value: 'o4-mini-deep-research',
-  },
-
-  // { label: 'O3 Pro (Pesquisa Avançada) - $10.00/$40.00', value: 'o3-pro' },
-  // { label: 'O3 (Análise Profunda) - $1.00/$4.00', value: 'o3' },
-  // { label: 'O3 Deep Research (Pesquisa Especializada) - $5.00/$20.00', value: 'o3-deep-research', },
-  // { label: 'GPT-5 Pro (Máxima Performance) - $7.50/$60.00', value: 'gpt-5-pro' },
-  // { label: 'O1 (Raciocínio Avançado) - $7.50/$30.00', value: 'o1' },
-  // { label: 'O1 Pro (Raciocínio Premium) - $75.00/$300.00', value: 'o1-pro' },
-];
 
 // Removable Tag Component
 interface RemovableTagProps {
@@ -291,9 +253,9 @@ const RemovableTag: React.FC<RemovableTagProps> = ({
 
 export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   const { data: characterizationData, onAddArray, onClose } = props;
-  const methods = useForm<AiAnalysisFormData>();
-  const { handleSubmit } = methods;
   const { isMaster } = useAccess();
+  const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
 
   const [analysisResult, setAnalysisResult] = useState<Result | null>(null);
   const [addedRisks, setAddedRisks] = useState<Set<string>>(new Set());
@@ -497,7 +459,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   const upsertRiskDataMutation = useMutUpsertRiskData();
   const { data: riskGroupData } = useQueryRiskGroupData();
 
-  const onSubmit = async (formData: AiAnalysisFormData) => {
+  const handleAnalyze = async () => {
     if (
       !characterizationData.id ||
       !characterizationData.companyId ||
@@ -506,12 +468,14 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
       return;
     }
 
+    const masterOverrides = buildMasterAiRequestOverrides(isMaster, aiMasterConfig);
+
     const result = await aiAnalyzeMutation.mutateAsync({
       companyId: characterizationData.companyId,
       workspaceId: characterizationData.workspaceId,
       characterizationId: characterizationData.id,
-      customPrompt: formData.customPrompt,
-      model: formData.model?.value,
+      customPrompt: masterOverrides.customPrompt,
+      model: masterOverrides.model,
     });
 
     setAnalysisResult(result);
@@ -886,8 +850,7 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
   const isDisabled = !characterizationData.id;
 
   return (
-    <FormProvider {...methods}>
-      <Box sx={{ px: 5, pb: 10 }}>
+    <Box sx={{ px: 5, pb: 10 }}>
         <SFlex direction="column" gap={4}>
           <SText variant="h6" color="text.primary">
             Análise de IA da Caracterização
@@ -910,38 +873,19 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
           ) : (
             <>
               <Box>
-                <SFlex direction="column" gap={3}>
-                  {isMaster && (
-                    <SSearchSelectForm
-                      label="Modelo de IA"
-                      name="model"
-                      options={AI_MODEL_OPTIONS}
-                      getOptionLabel={(option) => option.label}
-                      getOptionValue={(option) => option.value}
-                    />
-                  )}
-
-                  <SInputMultilineForm
-                    label="Prompt Personalizado (Opcional)"
-                    name="customPrompt"
-                    placeholder="Digite instruções específicas para a análise de IA..."
-                    inputProps={{
-                      minRows: 4,
-                      maxRows: 8,
-                    }}
-                  />
-
-                  <SButton
-                    text="Analisar com IA"
-                    variant="contained"
-                    color="primary"
-                    loading={aiAnalyzeMutation.isPending}
-                    onClick={handleSubmit(onSubmit)}
-                    buttonProps={{
-                      sx: { alignSelf: 'flex-start' },
-                    }}
-                  />
-                </SFlex>
+                <AiActionButtonGroup
+                  variant="s-button-contained"
+                  label="Analisar com IA"
+                  loading={aiAnalyzeMutation.isPending}
+                  disabled={aiAnalyzeMutation.isPending}
+                  onExecute={() => void handleAnalyze()}
+                  onConfigure={() => setAiConfigDialogOpen(true)}
+                  isMaster={isMaster}
+                  sButtonProps={{
+                    color: 'primary',
+                    buttonProps: { sx: { alignSelf: 'flex-start' } },
+                  }}
+                />
               </Box>
 
               {analysisResult && (
@@ -1611,7 +1555,21 @@ export const ModalAiAnalysisContent = (props: IUseEditCharacterization) => {
             </>
           )}
         </SFlex>
+
+        {isMaster && (
+          <SystemAiPromptConfigDialog
+            open={aiConfigDialogOpen}
+            onClose={() => setAiConfigDialogOpen(false)}
+            onApply={setAiMasterConfig}
+            title="Configurar Análise de IA da Caracterização"
+            description="Configuração válida apenas para esta sessão. Não há prompt padrão persistido para caracterização."
+            promptLabel="Prompt personalizado (opcional)"
+            showSaveDefault={false}
+            showRestoreDefault={false}
+            promptMinRows={4}
+            promptMaxRows={8}
+          />
+        )}
       </Box>
-    </FormProvider>
   );
 };

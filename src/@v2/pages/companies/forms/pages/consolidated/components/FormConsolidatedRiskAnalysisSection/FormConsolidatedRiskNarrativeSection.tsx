@@ -4,28 +4,21 @@ import {
   Alert,
   Box,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Skeleton,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
-import { FormProvider, useForm } from 'react-hook-form';
 
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
-import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
-import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
+import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
+import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
+import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
+import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
 import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
-import {
-  AI_MODEL_OPTIONS,
-  AiModelOption,
-} from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/ai-model-options';
 import { getRiskNarrativeDiagnosticErrorMessage } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/risk-narrative-diagnostic.utils';
 import { RiskNarrativeMarkdown } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/RiskNarrativeMarkdown';
 import { useFetchConsolidatedViewRiskNarrativeDiagnostic } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewRiskNarrativeDiagnostic';
@@ -39,13 +32,6 @@ import {
 } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-risk-narrative.scope';
 import { readConsolidatedRiskNarrativeDiagnostic } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-risk-narrative.service';
 import { ConsolidatedRiskNarrativeScope } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-risk-narrative.types';
-import { useFetchSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useFetchSystemAiPrompt';
-import { useMutateUpsertSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useMutateUpsertSystemAiPrompt';
-
-type RiskNarrativeAiFormData = {
-  customPrompt?: string;
-  model?: AiModelOption;
-};
 
 type Props = {
   companyGroupId: number;
@@ -63,11 +49,8 @@ export function FormConsolidatedRiskNarrativeSection({
   const queryClient = useQueryClient();
   const { showConfirmation } = useConfirmationModal();
   const { enqueueSnackbar } = useSnackbar();
-  const [showDialog, setShowDialog] = useState(false);
-  const methods = useForm<RiskNarrativeAiFormData>({
-    defaultValues: { customPrompt: '' },
-  });
-  const { handleSubmit, reset, getValues } = methods;
+  const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
 
   const normalizedScope = useMemo(
     () => normalizeConsolidatedRiskNarrativeScope(scope),
@@ -103,22 +86,6 @@ export function FormConsolidatedRiskNarrativeSection({
 
   const { mutateAsync: generateDiagnostic, isPending: isGenerating } =
     useMutateGenerateConsolidatedViewRiskNarrativeDiagnostic();
-  const { mutate: mutateUpsertSystemAiPrompt, isPending: isSavingDefaultPrompt } =
-    useMutateUpsertSystemAiPrompt();
-
-  const { data: systemAiPrompt, isLoading: isLoadingSystemAiPrompt } =
-    useFetchSystemAiPrompt(
-      SystemAiPromptKeyEnum.RISK_NARRATIVE_DIAGNOSTIC,
-      isMaster && showDialog,
-    );
-
-  useEffect(() => {
-    if (!isMaster || !showDialog || !systemAiPrompt) return;
-    reset({
-      customPrompt: systemAiPrompt.content,
-      model: getValues('model'),
-    });
-  }, [getValues, isMaster, reset, showDialog, systemAiPrompt]);
 
   const status = narrativeDiagnostic?.status;
   const isDone =
@@ -155,15 +122,17 @@ export function FormConsolidatedRiskNarrativeSection({
 
     if (!confirmed) return false;
 
+    const masterOverrides = buildMasterAiRequestOverrides(isMaster, {
+      customPrompt,
+      model,
+    });
+
     const payload = {
       companyGroupId,
       applicationIds,
       scope: normalizedScope,
       regenerate,
-      ...(isMaster && customPrompt?.trim()
-        ? { customPrompt: customPrompt.trim() }
-        : {}),
-      ...(isMaster && model ? { model } : {}),
+      ...masterOverrides,
     };
 
     try {
@@ -224,47 +193,12 @@ export function FormConsolidatedRiskNarrativeSection({
   };
 
   const handleGenerate = async (regenerate: boolean) => {
-    if (isMaster) {
-      setShowDialog(true);
-      return;
-    }
-
-    await handleGenerateCommon({ regenerate });
-  };
-
-  const handleSaveDefaultPrompt = async () => {
-    const content = getValues('customPrompt')?.trim();
-    if (!content) {
-      enqueueSnackbar('O prompt não pode estar vazio.', { variant: 'warning' });
-      return;
-    }
-
-    const confirmed = await showConfirmation({
-      title: 'Definir como prompt padrão',
-      message:
-        'O conteúdo atual será salvo como prompt padrão para o diagnóstico narrativo consolidado de riscos. Deseja continuar?',
-      confirmText: 'Salvar',
-      cancelText: 'Cancelar',
-      variant: 'warning',
+    const masterOverrides = buildMasterAiRequestOverrides(isMaster, aiMasterConfig);
+    await handleGenerateCommon({
+      regenerate,
+      customPrompt: masterOverrides.customPrompt,
+      model: masterOverrides.model,
     });
-
-    if (!confirmed) return;
-
-    mutateUpsertSystemAiPrompt({
-      key: SystemAiPromptKeyEnum.RISK_NARRATIVE_DIAGNOSTIC,
-      content,
-    });
-  };
-
-  const onSubmitMaster = async (formData: RiskNarrativeAiFormData) => {
-    const started = await handleGenerateCommon({
-      regenerate: isDone,
-      customPrompt: formData.customPrompt,
-      model: formData.model?.value,
-    });
-    if (started) {
-      setShowDialog(false);
-    }
   };
 
   const showProcessing =
@@ -304,19 +238,23 @@ export function FormConsolidatedRiskNarrativeSection({
               riscos, fontes ou recomendações operacionais.
             </SText>
           </Box>
-          <SButton
-            variant="shade"
-            color="primary"
-            text={generateButtonLabel}
+          <AiActionButtonGroup
+            variant="s-button-shade"
+            label={generateButtonLabel}
             loading={isGenerating}
             disabled={showProcessing || isGenerating}
-            minWidth={300}
-            onClick={() => void handleGenerate(isDone)}
-            buttonProps={{
-              sx: {
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                px: 2.5,
+            onExecute={() => void handleGenerate(isDone)}
+            onConfigure={() => setAiConfigDialogOpen(true)}
+            isMaster={isMaster}
+            sButtonProps={{
+              color: 'primary',
+              minWidth: 300,
+              buttonProps: {
+                sx: {
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  px: 2.5,
+                },
               },
             }}
           />
@@ -367,67 +305,21 @@ export function FormConsolidatedRiskNarrativeSection({
           </SText>
         )}
 
-        {isMaster && (
-          <Dialog
-            open={showDialog}
-            onClose={() => setShowDialog(false)}
-            maxWidth="md"
-            fullWidth
-          >
-            <FormProvider {...methods}>
-              <form onSubmit={handleSubmit(onSubmitMaster)}>
-                <DialogTitle>
-                  Prompt padrão do diagnóstico narrativo consolidado de riscos
-                </DialogTitle>
-                <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <SSearchSelectForm
-                    name="model"
-                    label="Modelo de IA (opcional)"
-                    options={AI_MODEL_OPTIONS}
-                    getOptionLabel={(option) => option.label}
-                    getOptionValue={(option) => option.value}
-                    placeholder="Use o padrão configurado no backend"
-                  />
-                  {isLoadingSystemAiPrompt ? (
-                    <Skeleton variant="rectangular" height={220} />
-                  ) : (
-                    <SInputMultilineForm
-                      name="customPrompt"
-                      label="Prompt padrão do diagnóstico narrativo consolidado"
-                      placeholder="Prompt padrão do sistema será utilizado se vazio."
-                      fullWidth
-                      inputProps={{ minRows: 5, maxRows: 30 }}
-                    />
-                  )}
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'space-between', px: 3 }}>
-                  <SButton
-                    variant="outlined"
-                    color="primary"
-                    text="Definir como prompt padrão"
-                    loading={isSavingDefaultPrompt}
-                    disabled={isLoadingSystemAiPrompt || isGenerating}
-                    onClick={handleSaveDefaultPrompt}
-                  />
-                  <SFlex gap={2}>
-                    <SButton
-                      variant="outlined"
-                      text="Cancelar"
-                      onClick={() => setShowDialog(false)}
-                    />
-                    <SButton
-                      variant="contained"
-                      text={isDone ? 'Regerar Diagnóstico' : 'Iniciar Diagnóstico'}
-                      loading={isGenerating || isLoadingSystemAiPrompt}
-                      disabled={isLoadingSystemAiPrompt}
-                      onClick={handleSubmit(onSubmitMaster)}
-                    />
-                  </SFlex>
-                </DialogActions>
-              </form>
-            </FormProvider>
-          </Dialog>
-        )}
+      {isMaster && (
+        <SystemAiPromptConfigDialog
+          open={aiConfigDialogOpen}
+          onClose={() => setAiConfigDialogOpen(false)}
+          onApply={setAiMasterConfig}
+          promptKey={SystemAiPromptKeyEnum.RISK_NARRATIVE_DIAGNOSTIC}
+          title="Prompt padrão do diagnóstico narrativo consolidado de riscos"
+          promptLabel="Prompt padrão do diagnóstico narrativo consolidado"
+          modelLabel="Modelo de IA (opcional)"
+          modelPlaceholder="Use o padrão configurado no backend"
+          saveDefaultConfirmMessage="O conteúdo atual será salvo como prompt padrão para o diagnóstico narrativo consolidado de riscos. Deseja continuar?"
+          promptMinRows={5}
+          promptMaxRows={30}
+        />
+      )}
       </Box>
     </>
   );

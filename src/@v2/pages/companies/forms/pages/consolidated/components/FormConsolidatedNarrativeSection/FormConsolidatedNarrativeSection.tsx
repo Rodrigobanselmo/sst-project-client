@@ -4,28 +4,21 @@ import {
   Alert,
   Box,
   CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Skeleton,
 } from '@mui/material';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
-import { FormProvider, useForm } from 'react-hook-form';
 
 import { SButton } from '@v2/components/atoms/SButton/SButton';
 import { SFlex } from '@v2/components/atoms/SFlex/SFlex';
 import { SText } from '@v2/components/atoms/SText/SText';
-import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
-import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
+import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
+import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
+import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
+import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
 import { FormAiAnalysisStatusEnum } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse-result.model';
-import {
-  AI_MODEL_OPTIONS,
-  AiModelOption,
-} from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/FormRisksAnalysis/ai-model-options';
 import { getIndicatorsNarrativeDiagnosticErrorMessage } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/IndicatorsNarrativeDiagnosticSection/indicators-narrative-diagnostic.utils';
 import { IndicatorsNarrativeMarkdown } from '@v2/pages/companies/forms/pages/application/pages/view/components/FormApplicationView/components/FormQuestionsDashboard/components/IndicatorsNarrativeDiagnosticSection/IndicatorsNarrativeMarkdown';
 import { useFetchConsolidatedViewIndicatorsNarrativeDiagnostic } from '@v2/services/enterprise/company-group/consolidated-view/hooks/useFetchConsolidatedViewIndicatorsNarrativeDiagnostic';
@@ -40,13 +33,6 @@ import {
 } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.scope';
 import { readConsolidatedIndicatorsNarrativeDiagnostic } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.service';
 import { ConsolidatedIndicatorsNarrativeScope } from '@v2/services/enterprise/company-group/consolidated-view/service/consolidated-view-narrative.types';
-import { useFetchSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useFetchSystemAiPrompt';
-import { useMutateUpsertSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useMutateUpsertSystemAiPrompt';
-
-type ConsolidatedIndicatorsNarrativeAiFormData = {
-  customPrompt?: string;
-  model?: AiModelOption;
-};
 
 type Props = {
   companyGroupId: number;
@@ -81,13 +67,8 @@ export function FormConsolidatedNarrativeSection({
   const queryClient = useQueryClient();
   const { showConfirmation } = useConfirmationModal();
   const { enqueueSnackbar } = useSnackbar();
-  const [showDialog, setShowDialog] = useState(false);
-  const methods = useForm<ConsolidatedIndicatorsNarrativeAiFormData>({
-    defaultValues: {
-      customPrompt: '',
-    },
-  });
-  const { handleSubmit, reset, getValues } = methods;
+  const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
 
   const normalizedScope = useMemo(
     () => normalizeConsolidatedIndicatorsNarrativeScope(scope),
@@ -123,23 +104,10 @@ export function FormConsolidatedNarrativeSection({
 
   const { mutateAsync: generateDiagnostic, isPending: isGenerating } =
     useMutateGenerateConsolidatedViewIndicatorsNarrativeDiagnostic();
-  const { mutate: mutateUpsertSystemAiPrompt, isPending: isSavingDefaultPrompt } =
-    useMutateUpsertSystemAiPrompt();
 
   const promptKeyForMode = normalizedScope.showOnlyGroupIndicators
     ? SystemAiPromptKeyEnum.INDICATORS_NARRATIVE_DIAGNOSTIC_GROUPS_ONLY
     : SystemAiPromptKeyEnum.INDICATORS_NARRATIVE_DIAGNOSTIC_GROUPS_AND_QUESTIONS;
-
-  const { data: systemAiPrompt, isLoading: isLoadingSystemAiPrompt } =
-    useFetchSystemAiPrompt(promptKeyForMode, isMaster && showDialog);
-
-  useEffect(() => {
-    if (!isMaster || !showDialog || !systemAiPrompt) return;
-    reset({
-      customPrompt: systemAiPrompt.content,
-      model: getValues('model'),
-    });
-  }, [getValues, isMaster, reset, showDialog, systemAiPrompt]);
 
   const diagnosticForScope = consolidatedNarrativeMatchesViewMode(
     narrativeDiagnostic,
@@ -194,15 +162,17 @@ export function FormConsolidatedNarrativeSection({
 
     if (!confirmed) return false;
 
+    const masterOverrides = buildMasterAiRequestOverrides(isMaster, {
+      customPrompt,
+      model,
+    });
+
     const payload = {
       companyGroupId,
       applicationIds,
       scope: normalizedScope,
       regenerate,
-      ...(isMaster && customPrompt?.trim()
-        ? { customPrompt: customPrompt.trim() }
-        : {}),
-      ...(isMaster && model ? { model } : {}),
+      ...masterOverrides,
     };
 
     try {
@@ -281,47 +251,12 @@ export function FormConsolidatedNarrativeSection({
   };
 
   const handleGenerate = async (regenerate: boolean) => {
-    if (isMaster) {
-      setShowDialog(true);
-      return;
-    }
-
-    await handleGenerateCommon({ regenerate });
-  };
-
-  const handleSaveDefaultPrompt = async () => {
-    const content = getValues('customPrompt')?.trim();
-    if (!content) {
-      enqueueSnackbar('O prompt não pode estar vazio.', { variant: 'warning' });
-      return;
-    }
-
-    const confirmed = await showConfirmation({
-      title: 'Definir como prompt padrão',
-      message:
-        'O conteúdo atual será salvo como prompt padrão para o diagnóstico narrativo de indicadores. Deseja continuar?',
-      confirmText: 'Salvar',
-      cancelText: 'Cancelar',
-      variant: 'warning',
+    const masterOverrides = buildMasterAiRequestOverrides(isMaster, aiMasterConfig);
+    await handleGenerateCommon({
+      regenerate,
+      customPrompt: masterOverrides.customPrompt,
+      model: masterOverrides.model,
     });
-
-    if (!confirmed) return;
-
-    mutateUpsertSystemAiPrompt({
-      key: promptKeyForMode,
-      content,
-    });
-  };
-
-  const onSubmitMaster = async (formData: ConsolidatedIndicatorsNarrativeAiFormData) => {
-    const started = await handleGenerateCommon({
-      regenerate: isDone,
-      customPrompt: formData.customPrompt,
-      model: formData.model?.value,
-    });
-    if (started) {
-      setShowDialog(false);
-    }
   };
 
   const showProcessing =
@@ -369,13 +304,15 @@ export function FormConsolidatedNarrativeSection({
               perguntas). A geração só ocorre quando você solicitar.
             </SText>
           </Box>
-          <SButton
-            variant="shade"
-            color="primary"
-            text={generateButtonLabel}
+          <AiActionButtonGroup
+            variant="s-button-shade"
+            label={generateButtonLabel}
             loading={isGenerating}
             disabled={showProcessing || isGenerating}
-            onClick={() => void handleGenerate(isDone)}
+            onExecute={() => void handleGenerate(isDone)}
+            onConfigure={() => setAiConfigDialogOpen(true)}
+            isMaster={isMaster}
+            sButtonProps={{ color: 'primary' }}
           />
         </SFlex>
 
@@ -425,73 +362,29 @@ export function FormConsolidatedNarrativeSection({
           </SText>
         )}
 
-        {isMaster && (
-          <Dialog
-            open={showDialog}
-            onClose={() => setShowDialog(false)}
-            maxWidth="md"
-            fullWidth
-          >
-            <FormProvider {...methods}>
-              <form onSubmit={handleSubmit(onSubmitMaster)}>
-                <DialogTitle>
-                  {normalizedScope.showOnlyGroupIndicators
-                    ? 'Prompt padrão do diagnóstico consolidado (Indicadores — visão consolidada)'
-                    : 'Prompt padrão do diagnóstico completo com perguntas (Indicadores — visão consolidada)'}
-                </DialogTitle>
-                <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <SSearchSelectForm
-                    name="model"
-                    label="Modelo de IA (opcional)"
-                    options={AI_MODEL_OPTIONS}
-                    getOptionLabel={(option) => option.label}
-                    getOptionValue={(option) => option.value}
-                    placeholder="Use o padrão configurado no backend"
-                  />
-                  {isLoadingSystemAiPrompt ? (
-                    <Skeleton variant="rectangular" height={220} />
-                  ) : (
-                    <SInputMultilineForm
-                      name="customPrompt"
-                      label={
-                        normalizedScope.showOnlyGroupIndicators
-                          ? 'Prompt padrão do diagnóstico consolidado'
-                          : 'Prompt padrão do diagnóstico completo com perguntas'
-                      }
-                      placeholder="Prompt padrão do sistema será utilizado se vazio."
-                      fullWidth
-                      inputProps={{ minRows: 5, maxRows: 30 }}
-                    />
-                  )}
-                </DialogContent>
-                <DialogActions sx={{ justifyContent: 'space-between', px: 3 }}>
-                  <SButton
-                    variant="outlined"
-                    color="primary"
-                    text="Definir como prompt padrão"
-                    loading={isSavingDefaultPrompt}
-                    disabled={isLoadingSystemAiPrompt || isGenerating}
-                    onClick={handleSaveDefaultPrompt}
-                  />
-                  <SFlex gap={2}>
-                    <SButton
-                      variant="outlined"
-                      text="Cancelar"
-                      onClick={() => setShowDialog(false)}
-                    />
-                    <SButton
-                      variant="contained"
-                      text={isDone ? 'Regerar Diagnóstico' : 'Iniciar Diagnóstico'}
-                      loading={isGenerating || isLoadingSystemAiPrompt}
-                      disabled={isLoadingSystemAiPrompt}
-                      onClick={handleSubmit(onSubmitMaster)}
-                    />
-                  </SFlex>
-                </DialogActions>
-              </form>
-            </FormProvider>
-          </Dialog>
-        )}
+      {isMaster && (
+        <SystemAiPromptConfigDialog
+          open={aiConfigDialogOpen}
+          onClose={() => setAiConfigDialogOpen(false)}
+          onApply={setAiMasterConfig}
+          promptKey={promptKeyForMode}
+          title={
+            normalizedScope.showOnlyGroupIndicators
+              ? 'Prompt padrão do diagnóstico consolidado (Indicadores — visão consolidada)'
+              : 'Prompt padrão do diagnóstico completo com perguntas (Indicadores — visão consolidada)'
+          }
+          promptLabel={
+            normalizedScope.showOnlyGroupIndicators
+              ? 'Prompt padrão do diagnóstico consolidado'
+              : 'Prompt padrão do diagnóstico completo com perguntas'
+          }
+          modelLabel="Modelo de IA (opcional)"
+          modelPlaceholder="Use o padrão configurado no backend"
+          saveDefaultConfirmMessage="O conteúdo atual será salvo como prompt padrão para o diagnóstico narrativo de indicadores. Deseja continuar?"
+          promptMinRows={5}
+          promptMaxRows={30}
+        />
+      )}
       </Box>
 
       <Box

@@ -1,7 +1,5 @@
 import { FC, useMemo, useState } from 'react';
 
-import AutoFixHighOutlinedIcon from '@mui/icons-material/AutoFixHighOutlined';
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import {
   Alert,
   Box,
@@ -11,6 +9,8 @@ import {
 } from '@mui/material';
 import type { UseFormGetValues, UseFormSetValue, UseFormWatch } from 'react-hook-form';
 
+import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
+import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
 import { useAccess } from 'core/hooks/useAccess';
 import { useRiskFactorAiSuggestion } from '@v2/services/security/risk/risk-factor-ai-suggestions/hooks/useRiskFactorAiSuggestion';
 import type { RiskFactorAiSuggestionKnownDataPayload } from '@v2/services/security/risk/risk-factor-ai-suggestions/service/risk-factor-ai-suggestions.types';
@@ -165,12 +165,14 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
 
     const currentForm = buildCurrentFormSnapshot();
 
+    const masterOverrides = buildMasterAiRequestOverrides(isMaster, masterConfig);
+
     const payload = buildRiskFactorAiSuggestionPayload({
       form: currentForm,
       sourceContext,
       knownDataExtras,
-      customPrompt: isMaster ? masterConfig.customPrompt : undefined,
-      model: isMaster ? masterConfig.model : undefined,
+      customPrompt: masterOverrides.customPrompt,
+      model: masterOverrides.model,
     });
 
     try {
@@ -243,29 +245,14 @@ export const RiskFactorAiSuggestionButton: FC<RiskFactorAiSuggestionButtonProps>
 
   return (
     <Box sx={{ mt: 2, mb: 2 }}>
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-        <Button
-          size="small"
-          variant="outlined"
-          startIcon={<AutoFixHighOutlinedIcon />}
-          onClick={handleGenerate}
-          disabled={disabled || loading || (!form.name?.trim() && !form.cas?.trim())}
-        >
-          {loading ? 'Analisando com IA…' : label}
-        </Button>
-
-        {isMaster && (
-          <Button
-            size="small"
-            variant="text"
-            startIcon={<SettingsOutlinedIcon />}
-            onClick={() => setConfigDialogOpen(true)}
-            disabled={loading}
-          >
-            Configurar prompt/modelo
-          </Button>
-        )}
-      </Box>
+      <AiActionButtonGroup
+        label={loading ? 'Analisando com IA…' : label}
+        loading={loading}
+        disabled={disabled || (!form.name?.trim() && !form.cas?.trim())}
+        onExecute={() => void handleGenerate()}
+        onConfigure={() => setConfigDialogOpen(true)}
+        isMaster={isMaster}
+      />
 
       <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 1 }}>
         A sugestão é assistida e deve ser revisada tecnicamente antes de salvar.

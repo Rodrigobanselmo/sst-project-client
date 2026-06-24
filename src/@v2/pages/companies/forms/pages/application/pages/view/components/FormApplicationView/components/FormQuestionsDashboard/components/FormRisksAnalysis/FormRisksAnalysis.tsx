@@ -67,11 +67,12 @@ import { RecTypeEnum } from 'project/enum/recType.enum';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueries, useQueryClient } from '@tanstack/react-query';
 import { useAccess } from 'core/hooks/useAccess';
-import { useForm, FormProvider } from 'react-hook-form';
 import { useConfirmationModal } from '@v2/components/organisms/SModal/hooks/useConfirmationModal';
 import { SystemAiPromptKeyEnum } from '@v2/constants/enums/system-ai-prompt-key.enum';
-import { useFetchSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useFetchSystemAiPrompt';
-import { useMutateUpsertSystemAiPrompt } from '@v2/services/forms/system-ai-prompt/hooks/useMutateUpsertSystemAiPrompt';
+import { AiActionButtonGroup } from '@v2/components/molecules/AiActionButtonGroup/AiActionButtonGroup';
+import { buildMasterAiRequestOverrides } from '@v2/components/molecules/AiActionButtonGroup/build-master-ai-request-overrides.util';
+import type { SystemAiMasterConfig } from '@v2/components/molecules/AiActionButtonGroup/system-ai-master-config.types';
+import { SystemAiPromptConfigDialog } from '@v2/components/molecules/SystemAiPromptConfig/SystemAiPromptConfigDialog';
 import type { AnalysisItemInventoryEntry } from '@v2/models/form/models/form-questions-answers-analysis/form-questions-answers-analysis-browse.model';
 import {
   getFormAiAnalysisErrorMessage,
@@ -86,21 +87,12 @@ import { buildAnalysisItemCodeRegistry } from '../../helpers/analysis-item-codes
 import type { AnalysisItemCodeEntry } from '../../helpers/analysis-item-codes.utils';
 import { extractApiError } from '@v2/utils/extract-api-error';
 
-import { SSearchSelectForm } from '@v2/components/forms/controlled/SSearchSelectForm/SSearchSelectForm';
-import { SInputMultilineForm } from '@v2/components/forms/controlled/SInputMultilineForm/SInputMultilineForm';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
 import { getMatrizRisk } from 'core/utils/helpers/matriz';
 import {
   entityMatchesMassAddFilter,
   MassAddOccupationalRiskFilter,
   resolveOccupationalRiskLevel,
 } from 'core/utils/helpers/occupational-risk-level.util';
-import { AI_MODEL_OPTIONS } from './ai-model-options';
 
 const INHERITED_ANALYSIS_ITEM_EDIT_CONFIRMATION = {
   title: 'Editar item da análise do agrupamento',
@@ -145,13 +137,6 @@ const GROUP_TARGET_REANALYSIS_CONFIRMATION = {
   confirmText: 'Continuar',
   cancelText: 'Cancelar',
   variant: 'warning' as const,
-};
-
-type PendingAiAnalyzeRequest = {
-  mode: AiAnalyzeFormQuestionsRisksModeEnum;
-  riskId?: string;
-  hierarchyId?: string;
-  successMessage?: string;
 };
 
 type AnalysisItemType =
@@ -224,11 +209,6 @@ interface FormRisksAnalysisProps {
   visibleParticipantGroups?: ParticipantGroupForIndicators[];
   selectedGroupingQuestionId?: string | null;
   selectedGroupingLabel?: string | null;
-}
-
-interface AiAnalysisFormData {
-  customPrompt?: string;
-  model?: { label: string; value: string };
 }
 
 export const probabilityMap: Record<number, { label: string; color: string }> =
@@ -406,41 +386,14 @@ export const FormRisksAnalysis = ({
     () => new Set(),
   );
   const [applyingItemKey, setApplyingItemKey] = useState<string | null>(null);
-  const [showAiDialog, setShowAiDialog] = useState(false);
+  const [aiConfigDialogOpen, setAiConfigDialogOpen] = useState(false);
+  const [aiMasterConfig, setAiMasterConfig] = useState<SystemAiMasterConfig>({});
   const [showClearAiDialog, setShowClearAiDialog] = useState(false);
   const [showRecoverAiDialog, setShowRecoverAiDialog] = useState(false);
-  const [pendingAiAnalyze, setPendingAiAnalyze] =
-    useState<PendingAiAnalyzeRequest | null>(null);
   const [addRiskMenu, setAddRiskMenu] = useState<{
     anchorEl: HTMLElement;
     riskId: string;
   } | null>(null);
-
-  // Form for AI analysis configuration
-  const methods = useForm<AiAnalysisFormData>({
-    defaultValues: {
-      customPrompt: '',
-    },
-  });
-  const { handleSubmit, reset, getValues } = methods;
-
-  const { data: systemAiPrompt, isLoading: isLoadingSystemAiPrompt } =
-    useFetchSystemAiPrompt(
-      SystemAiPromptKeyEnum.RISK_SOURCES_RECOMMENDATIONS,
-      isMaster && showAiDialog,
-    );
-
-  const { mutate: mutateUpsertSystemAiPrompt, isPending: isSavingDefaultPrompt } =
-    useMutateUpsertSystemAiPrompt();
-
-  useEffect(() => {
-    if (!isMaster || !showAiDialog || !systemAiPrompt) return;
-
-    reset({
-      customPrompt: systemAiPrompt.content,
-      model: getValues('model'),
-    });
-  }, [getValues, isMaster, reset, showAiDialog, systemAiPrompt]);
 
   const { mutate: mutateAssignRisksFormApplication } =
     useMutateAssignRisksFormApplication();
@@ -547,16 +500,6 @@ export const FormRisksAnalysis = ({
       ),
     [formQuestionsAnswersAnalysis?.results],
   );
-
-  const openAiAnalyzeDialog = (request: PendingAiAnalyzeRequest) => {
-    setPendingAiAnalyze(request);
-    setShowAiDialog(true);
-  };
-
-  const closeAiAnalyzeDialog = () => {
-    setShowAiDialog(false);
-    setPendingAiAnalyze(null);
-  };
 
   const wasProcessingAnalysesRef = useRef(false);
   const batchFailureNotifiedRef = useRef(false);
@@ -2116,16 +2059,14 @@ export const FormRisksAnalysis = ({
     });
   };
 
-  const handleAnalyzeRisks = (
-    data?: AiAnalysisFormData,
-    options?: {
-      mode?: AiAnalyzeFormQuestionsRisksModeEnum;
-      riskId?: string;
-      hierarchyId?: string;
-      successMessage?: string;
-    },
-  ) => {
+  const handleAnalyzeRisks = (options?: {
+    mode?: AiAnalyzeFormQuestionsRisksModeEnum;
+    riskId?: string;
+    hierarchyId?: string;
+    successMessage?: string;
+  }) => {
     batchFailureNotifiedRef.current = false;
+    const masterOverrides = buildMasterAiRequestOverrides(isMaster, aiMasterConfig);
 
     mutateAiAnalyzeFormQuestionsRisks(
       {
@@ -2134,10 +2075,7 @@ export const FormRisksAnalysis = ({
         mode: options?.mode ?? AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
         riskId: options?.riskId,
         hierarchyId: options?.hierarchyId,
-        ...(isMaster && data?.customPrompt?.trim()
-          ? { customPrompt: data.customPrompt.trim() }
-          : {}),
-        ...(isMaster && data?.model?.value ? { model: data.model.value } : {}),
+        ...masterOverrides,
       },
       {
         onSuccess: () => {
@@ -2150,9 +2088,6 @@ export const FormRisksAnalysis = ({
         },
       },
     );
-
-    setShowAiDialog(false);
-    setPendingAiAnalyze(null);
   };
 
   const handleAnalyzeButtonClick = async () => {
@@ -2161,14 +2096,7 @@ export const FormRisksAnalysis = ({
       if (!confirmed) return;
     }
 
-    if (isMaster) {
-      openAiAnalyzeDialog({
-        mode: AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
-      });
-      return;
-    }
-
-    handleAnalyzeRisks(undefined, {
+    handleAnalyzeRisks({
       mode: AiAnalyzeFormQuestionsRisksModeEnum.FULL_INCREMENTAL,
     });
   };
@@ -2181,21 +2109,14 @@ export const FormRisksAnalysis = ({
       if (!confirmed) return;
     }
 
-    const targetRequest: PendingAiAnalyzeRequest = {
+    handleAnalyzeRisks({
       mode: AiAnalyzeFormQuestionsRisksModeEnum.TARGET,
       riskId,
       hierarchyId,
       successMessage: hasOwnAnalysis
         ? 'Análise de IA deste setor reiniciada.'
         : 'Análise de IA deste setor iniciada.',
-    };
-
-    if (isMaster) {
-      openAiAnalyzeDialog(targetRequest);
-      return;
-    }
-
-    handleAnalyzeRisks(undefined, targetRequest);
+    });
   };
 
   const handleGroupTargetAnalyze = async (
@@ -2217,52 +2138,22 @@ export const FormRisksAnalysis = ({
       if (!confirmed) return;
     }
 
-    const targetRequest: PendingAiAnalyzeRequest = {
+    handleAnalyzeRisks({
       mode: AiAnalyzeFormQuestionsRisksModeEnum.TARGET,
       riskId,
       hierarchyId: canonicalHierarchyId,
       successMessage: hasGroupAnalysis
         ? 'Análise de IA do agrupamento reiniciada.'
         : 'Análise de IA do agrupamento iniciada.',
-    };
-
-    if (isMaster) {
-      openAiAnalyzeDialog(targetRequest);
-      return;
-    }
-
-    handleAnalyzeRisks(undefined, targetRequest);
-  };
-
-  const handleSaveDefaultPrompt = async () => {
-    const content = getValues('customPrompt')?.trim();
-    if (!content) {
-      enqueueSnackbar('O prompt não pode estar vazio.', { variant: 'warning' });
-      return;
-    }
-
-    const confirmed = await showConfirmation({
-      title: 'Definir como prompt padrão',
-      message:
-        'O conteúdo atual do prompt será salvo como padrão do sistema para análises de Fontes Geradoras e Recomendações. Deseja continuar?',
-      confirmText: 'Salvar',
-      cancelText: 'Cancelar',
-      variant: 'warning',
-    });
-
-    if (!confirmed) return;
-
-    mutateUpsertSystemAiPrompt({
-      key: SystemAiPromptKeyEnum.RISK_SOURCES_RECOMMENDATIONS,
-      content,
     });
   };
 
-  const submitMasterAnalyze = handleSubmit((data) => {
-    if (!pendingAiAnalyze) return;
-
-    handleAnalyzeRisks(data, pendingAiAnalyze);
-  });
+  const generalAnalyzeButtonLabel =
+    hasProcessingAnalyses
+      ? 'Processando análise...'
+      : hasPreviousAiRun
+        ? 'Analisar com IA novamente'
+        : 'Analisar com IA';
 
   return (
     <SPaper sx={{ p: 4 }}>
@@ -2271,19 +2162,15 @@ export const FormRisksAnalysis = ({
           Análise de Riscos
         </SText>
         <SFlex gap={2}>
-          <SButton
-            variant="shade"
-            text={
-              hasProcessingAnalyses
-                ? 'Processando análise...'
-                : hasPreviousAiRun
-                  ? 'Analisar com IA novamente'
-                  : 'Analisar com IA'
-            }
-            color="primary"
+          <AiActionButtonGroup
+            variant="s-button-shade"
+            label={generalAnalyzeButtonLabel}
             loading={isAnalyzing || hasProcessingAnalyses}
-            onClick={handleAnalyzeButtonClick}
             disabled={hasProcessingAnalyses}
+            onExecute={() => void handleAnalyzeButtonClick()}
+            onConfigure={() => setAiConfigDialogOpen(true)}
+            isMaster={isMaster}
+            sButtonProps={{ color: 'primary' }}
           />
           <SButton
             variant="shade"
@@ -2291,6 +2178,11 @@ export const FormRisksAnalysis = ({
             color="info"
             onClick={() => setShowRecoverAiDialog(true)}
             disabled={!hasStaleAnalyses}
+            tooltip={
+              !hasStaleAnalyses
+                ? 'Nenhuma análise travada encontrada.'
+                : undefined
+            }
           />
           <SButton
             variant="shade"
@@ -2427,6 +2319,8 @@ export const FormRisksAnalysis = ({
                         }
                         onAnalysisToggle={handleAnalysisToggle}
                         onAnalyzeGroup={handleGroupTargetAnalyze}
+                        onConfigureAi={() => setAiConfigDialogOpen(true)}
+                        isMaster={isMaster}
                         onAddRiskToEntity={handleAddRiskToEntity}
                         onAddRiskToAllGroupMembers={handleAddRiskToGroupMembers}
                         onAddAnalysisAsRiskData={handleAddAnalysisAsRiskData}
@@ -2581,10 +2475,9 @@ export const FormRisksAnalysis = ({
                                   }}
                                 />
                               )}
-                              <SButton
-                                variant="shade"
-                                color="primary"
-                                text={
+                              <AiActionButtonGroup
+                                variant="s-button-shade"
+                                label={
                                   isTargetAnalysisProcessing(riskId, entityId)
                                     ? 'Analisando IA...'
                                     : isTargetAnalysisStale(riskId, entityId)
@@ -2593,19 +2486,16 @@ export const FormRisksAnalysis = ({
                                         ? 'Analisar IA novamente deste setor'
                                         : 'Analisar IA deste setor'
                                 }
-                                loading={isTargetAnalysisProcessing(
-                                  riskId,
-                                  entityId,
-                                )}
-                                disabled={isTargetAnalysisProcessing(
-                                  riskId,
-                                  entityId,
-                                )}
-                                onClick={() =>
-                                  handleTargetAnalyze(riskId, entityId)
+                                loading={isTargetAnalysisProcessing(riskId, entityId)}
+                                disabled={isTargetAnalysisProcessing(riskId, entityId)}
+                                onExecute={() =>
+                                  void handleTargetAnalyze(riskId, entityId)
                                 }
-                                buttonProps={{
-                                  sx: sectorActionButtonSx,
+                                onConfigure={() => setAiConfigDialogOpen(true)}
+                                isMaster={isMaster}
+                                sButtonProps={{
+                                  color: 'primary',
+                                  buttonProps: { sx: sectorActionButtonSx },
                                 }}
                               />
                             </SFlex>
@@ -3252,72 +3142,18 @@ export const FormRisksAnalysis = ({
       </Menu>
 
       {isMaster && (
-      <Dialog
-        open={showAiDialog}
-        onClose={closeAiAnalyzeDialog}
-        maxWidth="xl"
-        fullWidth
-        PaperProps={{
-          sx: {
-            height: '90vh',
-            maxHeight: '90vh',
-            width: '95vw',
-            maxWidth: '95vw',
-          },
-        }}
-      >
-        <DialogTitle>Configurar Análise de IA</DialogTitle>
-        <FormProvider {...methods}>
-          <form onSubmit={submitMasterAnalyze}>
-            <DialogContent>
-              <SSearchSelectForm
-                name="model"
-                label="Modelo de IA"
-                placeholder="Selecione o modelo de IA"
-                options={AI_MODEL_OPTIONS}
-                getOptionLabel={(option) => option.label}
-                getOptionValue={(option) => option.value}
-                boxProps={{ sx: { mb: 8 } }}
-              />
-              {isLoadingSystemAiPrompt ? (
-                <Skeleton variant="rectangular" height={320} />
-              ) : (
-                <SInputMultilineForm
-                  name="customPrompt"
-                  label="Prompt da análise"
-                  placeholder="Carregando prompt padrão do sistema..."
-                  fullWidth
-                  inputProps={{ minRows: 4, maxRows: 30 }}
-                />
-              )}
-            </DialogContent>
-            <DialogActions sx={{ justifyContent: 'space-between', px: 3 }}>
-              <SButton
-                variant="outlined"
-                color="primary"
-                text="Definir como prompt padrão"
-                loading={isSavingDefaultPrompt}
-                disabled={isLoadingSystemAiPrompt || isAnalyzing}
-                onClick={handleSaveDefaultPrompt}
-              />
-              <SFlex gap={2}>
-                <SButton
-                  variant="outlined"
-                  text="Cancelar"
-                  onClick={closeAiAnalyzeDialog}
-                />
-                <SButton
-                  variant="contained"
-                  text="Iniciar Análise"
-                  loading={isAnalyzing || isLoadingSystemAiPrompt}
-                  disabled={isLoadingSystemAiPrompt}
-                  onClick={submitMasterAnalyze}
-                />
-              </SFlex>
-            </DialogActions>
-          </form>
-        </FormProvider>
-      </Dialog>
+        <SystemAiPromptConfigDialog
+          open={aiConfigDialogOpen}
+          onClose={() => setAiConfigDialogOpen(false)}
+          onApply={setAiMasterConfig}
+          promptKey={SystemAiPromptKeyEnum.RISK_SOURCES_RECOMMENDATIONS}
+          title="Configurar Análise de IA"
+          promptLabel="Prompt da análise"
+          saveDefaultConfirmMessage="O conteúdo atual do prompt será salvo como padrão do sistema para análises de Fontes Geradoras e Recomendações. Deseja continuar?"
+          maxWidth="xl"
+          promptMinRows={4}
+          promptMaxRows={30}
+        />
       )}
 
       <ClearFormAiAnalysisModal
