@@ -1,13 +1,20 @@
-import { FC, useMemo, useState } from 'react';
+import { FC, useEffect, useMemo, useState } from 'react';
 
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import {
   Alert,
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   Divider,
   Grid,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -30,10 +37,76 @@ import {
   useMutateSetPrimaryBiologicalIndicatorRiskLink,
   useMutateUpdateBiologicalIndicatorStatus,
 } from '@v2/services/medicine/biological-indicator/hooks/useMutateBiologicalIndicatorCuration';
-import type { ExamCandidate } from '@v2/services/medicine/biological-indicator/service/biological-indicator.types';
+import type {
+  BiologicalIndicatorExamLink,
+  BiologicalIndicatorRiskLink,
+  ExamCandidate,
+} from '@v2/services/medicine/biological-indicator/service/biological-indicator.types';
 import { SAuthShow } from 'components/molecules/SAuthShow';
 import { RoutesEnum } from 'core/enums/routes.enums';
 import { RoleEnum } from 'project/enum/roles.enums';
+
+import {
+  BIOLOGICAL_INDICATOR_STATUS_LABELS,
+  BIOLOGICAL_INDICATOR_TABLE_LABELS,
+  BIOLOGICAL_INDICATOR_TYPE_LABELS,
+  NORMATIVE_REVIEW_HELPER_TEXT,
+  NORMATIVE_REVIEW_SUGGESTION_HELPER_TEXT,
+  PRIMARY_RISK_HELPER_TEXT,
+  buildNormativeReviewSuggestion,
+  formatNormativeSource,
+  formatTechnicalObservations,
+  getPendencyMessage,
+  getStatusChipColor,
+  requiresNormativeReview,
+} from './biological-indicator-labels.util';
+
+const ACTIVATION_STEPS = [
+  'Confirmar o vínculo indicador → risco',
+  'Marcar risco principal, quando houver múltiplos confirmados',
+  'Vincular exame complementar no catálogo',
+  'Confirmar o vínculo indicador → exame',
+  'Marcar exame padrão entre os confirmados',
+  'Resolver revisão normativa/médica, quando exigida',
+  'Clicar em "Ativar indicador"',
+];
+
+const ActivationSteps: FC = () => (
+  <Stack component="ol" spacing={1} sx={{ listStyle: 'none', m: 0, mb: 1.5, p: 0 }}>
+    {ACTIVATION_STEPS.map((step, index) => (
+      <Stack
+        key={step}
+        component="li"
+        direction="row"
+        spacing={1.5}
+        alignItems="flex-start"
+      >
+        <Box
+          sx={{
+            flexShrink: 0,
+            width: 22,
+            height: 22,
+            borderRadius: '50%',
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 12,
+            fontWeight: 600,
+            lineHeight: 1,
+            mt: '2px',
+          }}
+        >
+          {index + 1}
+        </Box>
+        <Typography variant="body2" color="text.secondary">
+          {step}
+        </Typography>
+      </Stack>
+    ))}
+  </Stack>
+);
 
 type Props = {
   indicatorId: string;
@@ -46,6 +119,25 @@ const InfoRow: FC<{ label: string; value?: string | null }> = ({ label, value })
     </Typography>
     <Typography variant="body2">{value || '—'}</Typography>
   </Box>
+);
+
+const LinkStateChips: FC<{
+  isConfirmed: boolean;
+  primaryLabel?: string;
+  isPrimaryOrDefault?: boolean;
+  requiresReview?: boolean;
+}> = ({ isConfirmed, primaryLabel, isPrimaryOrDefault, requiresReview }) => (
+  <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+    {isConfirmed ? (
+      <Chip size="small" color="success" label="Confirmado" />
+    ) : (
+      <Chip size="small" variant="outlined" label="Pendente" />
+    )}
+    {isPrimaryOrDefault && primaryLabel && (
+      <Chip size="small" color="primary" label={primaryLabel} />
+    )}
+    {requiresReview && <Chip size="small" color="warning" label="Revisão" />}
+  </Stack>
 );
 
 export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
@@ -62,17 +154,72 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
   const [examSearch, setExamSearch] = useState('');
   const [examMaterial, setExamMaterial] = useState('');
   const [reviewNotes, setReviewNotes] = useState('');
+  const [reviewNotesInitialized, setReviewNotesInitialized] = useState(false);
+  const [reviewNotesSuggested, setReviewNotesSuggested] = useState(false);
   const [linkNotes, setLinkNotes] = useState('');
+  const [rejectRiskTarget, setRejectRiskTarget] = useState<BiologicalIndicatorRiskLink | null>(
+    null,
+  );
+  const [rejectExamTarget, setRejectExamTarget] = useState<BiologicalIndicatorExamLink | null>(
+    null,
+  );
 
   const { data: examCandidates = [] } = useFetchBiologicalIndicatorExamCandidates(
     { search: examSearch, material: examMaterial, limit: 20 },
     Boolean(examSearch.trim() || examMaterial.trim()),
   );
 
-  const canActivate = useMemo(
-    () => indicator?.pendencies.length === 0 && indicator?.status === 'DRAFT',
+  const reviewRequired = useMemo(
+    () => (indicator ? requiresNormativeReview(indicator) : false),
     [indicator],
   );
+
+  const canActivate = useMemo(() => {
+    if (!indicator || indicator.status !== 'DRAFT') return false;
+
+    const blockingPendencies = indicator.pendencies.filter(
+      (p) => p.code !== 'NORMATIVE_REVIEW_REQUIRED',
+    );
+    if (blockingPendencies.length > 0) return false;
+
+    if (reviewRequired && !reviewNotes.trim()) return false;
+
+    return true;
+  }, [indicator, reviewRequired, reviewNotes]);
+
+  const confirmedRiskLinks = useMemo(
+    () => indicator?.riskLinks.filter((link) => link.isConfirmed) ?? [],
+    [indicator],
+  );
+
+  const setPrimaryPending = setPrimaryRisk.isPending;
+
+  useEffect(() => {
+    if (confirmedRiskLinks.length !== 1) return;
+    const onlyConfirmed = confirmedRiskLinks[0];
+    if (onlyConfirmed.isPrimary || setPrimaryPending) return;
+    setPrimaryRisk.mutate({ linkId: onlyConfirmed.id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmedRiskLinks, setPrimaryPending]);
+
+  useEffect(() => {
+    if (!indicator || reviewNotesInitialized) return;
+
+    const existingNotes = indicator.reviewNotes?.trim();
+    if (existingNotes) {
+      setReviewNotes(existingNotes);
+    } else if (reviewRequired) {
+      setReviewNotes(buildNormativeReviewSuggestion(indicator));
+      setReviewNotesSuggested(true);
+    }
+    setReviewNotesInitialized(true);
+  }, [indicator, reviewRequired, reviewNotesInitialized]);
+
+  const handleGenerateReviewSuggestion = () => {
+    if (!indicator) return;
+    setReviewNotes(buildNormativeReviewSuggestion(indicator));
+    setReviewNotesSuggested(true);
+  };
 
   if (isLoading) {
     return <Typography>Carregando indicador...</Typography>;
@@ -81,6 +228,12 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
   if (!indicator) {
     return <Alert severity="error">Indicador não encontrado.</Alert>;
   }
+
+  const statusLabel = BIOLOGICAL_INDICATOR_STATUS_LABELS[indicator.status];
+  const technicalObservations = formatTechnicalObservations(
+    indicator.technicalObservations,
+    indicator.technicalObservationsRaw,
+  );
 
   const handleActivate = () => {
     updateStatus.mutate({
@@ -98,12 +251,35 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
     });
   };
 
+  const handleRejectRisk = () => {
+    if (!rejectRiskTarget) return;
+    rejectRisk.mutate(
+      { linkId: rejectRiskTarget.id, notes: linkNotes || undefined },
+      { onSuccess: () => setRejectRiskTarget(null) },
+    );
+  };
+
+  const handleRejectExam = () => {
+    if (!rejectExamTarget) return;
+    rejectExam.mutate(
+      { linkId: rejectExamTarget.id, notes: linkNotes || undefined },
+      { onSuccess: () => setRejectExamTarget(null) },
+    );
+  };
+
   return (
     <SAuthShow roles={[RoleEnum.MASTER]}>
       <Box display="flex" flexDirection="column" gap={2}>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start" gap={2}>
           <Box>
-            <Typography variant="h5">{indicator.substanceName}</Typography>
+            <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
+              <Typography variant="h5">{indicator.substanceName}</Typography>
+              <Chip
+                size="small"
+                label={statusLabel}
+                color={getStatusChipColor(indicator.status)}
+              />
+            </Stack>
             <Typography variant="body2" color="text.secondary">
               {indicator.biologicalIndicatorOriginal}
             </Typography>
@@ -118,11 +294,11 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
             <Typography variant="subtitle2" gutterBottom>
               Pendências para ativação
             </Typography>
-            <ul style={{ margin: 0, paddingLeft: 20 }}>
+            <Box component="ul" sx={{ m: 0, pl: 2.5 }}>
               {indicator.pendencies.map((item) => (
-                <li key={item.code}>{item.message}</li>
+                <li key={item.code}>{getPendencyMessage(item.code, item.message)}</li>
               ))}
-            </ul>
+            </Box>
           </Alert>
         )}
 
@@ -132,10 +308,10 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
           </Typography>
           <Grid container spacing={2}>
             <Grid item xs={12} md={4}>
-              <InfoRow label="Fonte" value="NR-07" />
-              <InfoRow label="Anexo" value="I" />
-              <InfoRow label="Quadro" value={indicator.tableNumber} />
-              <InfoRow label="Tipo" value={indicator.indicatorType} />
+              <InfoRow label="Fonte normativa" value={formatNormativeSource(indicator.normativeSource)} />
+              <InfoRow label="Anexo" value={indicator.annex?.replace('ANNEX_', 'Anexo ') ?? 'Anexo I'} />
+              <InfoRow label="Quadro" value={BIOLOGICAL_INDICATOR_TABLE_LABELS[indicator.tableNumber]} />
+              <InfoRow label="Tipo" value={BIOLOGICAL_INDICATOR_TYPE_LABELS[indicator.indicatorType]} />
             </Grid>
             <Grid item xs={12} md={4}>
               <InfoRow label="Substância" value={indicator.substanceName} />
@@ -148,7 +324,7 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
                 label="Valor de referência"
                 value={`${indicator.referenceValue} ${indicator.unit}`}
               />
-              <InfoRow label="Status" value={indicator.status} />
+              <InfoRow label="Observações técnicas" value={technicalObservations} />
               <InfoRow
                 label="Revisão normativa obrigatória"
                 value={indicator.requiresNormativeReview ? 'Sim' : 'Não'}
@@ -163,6 +339,10 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
         <Paper sx={{ p: 2 }}>
           <Typography variant="h6" gutterBottom>
             Vínculos indicador → risco
+          </Typography>
+          <Typography variant="body2" color="text.secondary" gutterBottom>
+            Confirmar registra o vínculo na curadoria. Rejeitar remove apenas o vínculo
+            indicador → risco, sem apagar o indicador normativo nem o fator de risco do catálogo.
           </Typography>
           <Table size="small">
             <TableHead>
@@ -183,47 +363,63 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
                   <TableCell>{link.matchMethod}</TableCell>
                   <TableCell>{link.matchConfidence}</TableCell>
                   <TableCell>
-                    {link.isConfirmed && (
-                      <Chip size="small" color="success" label="Confirmado" sx={{ mr: 0.5 }} />
-                    )}
-                    {link.isPrimary && <Chip size="small" color="primary" label="Principal" />}
-                    {link.requiresReview && (
-                      <Chip size="small" color="warning" label="Revisão" sx={{ ml: 0.5 }} />
-                    )}
+                    <LinkStateChips
+                      isConfirmed={link.isConfirmed}
+                      primaryLabel="Principal"
+                      isPrimaryOrDefault={link.isPrimary}
+                      requiresReview={link.requiresReview}
+                    />
                   </TableCell>
                   <TableCell align="right">
-                    {!link.isConfirmed && (
+                    <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+                      {!link.isConfirmed && (
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          startIcon={<CheckIcon />}
+                          disabled={confirmRisk.isPending}
+                          onClick={() =>
+                            confirmRisk.mutate({ linkId: link.id, notes: linkNotes || undefined })
+                          }
+                        >
+                          Confirmar
+                        </Button>
+                      )}
+                      {link.isConfirmed && !link.isPrimary && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="primary"
+                          disabled={setPrimaryRisk.isPending}
+                          onClick={() => setPrimaryRisk.mutate({ linkId: link.id })}
+                        >
+                          Marcar principal
+                        </Button>
+                      )}
                       <Button
                         size="small"
-                        onClick={() =>
-                          confirmRisk.mutate({ linkId: link.id, notes: linkNotes || undefined })
-                        }
+                        variant="outlined"
+                        color="error"
+                        startIcon={<CloseIcon />}
+                        onClick={() => setRejectRiskTarget(link)}
                       >
-                        Confirmar
+                        Rejeitar
                       </Button>
-                    )}
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() =>
-                        rejectRisk.mutate({ linkId: link.id, notes: linkNotes || undefined })
-                      }
-                    >
-                      Rejeitar
-                    </Button>
-                    {link.isConfirmed && !link.isPrimary && (
-                      <Button
-                        size="small"
-                        onClick={() => setPrimaryRisk.mutate({ linkId: link.id })}
-                      >
-                        Principal
-                      </Button>
-                    )}
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
+          <Alert severity="info" icon={false} sx={{ mt: 2 }}>
+            <Typography variant="caption" component="div">
+              <strong>Confirmado:</strong> o vínculo indicador → risco foi aceito na curadoria.
+            </Typography>
+            <Typography variant="caption" component="div">
+              <strong>Principal:</strong> {PRIMARY_RISK_HELPER_TEXT}
+            </Typography>
+          </Alert>
           <TextField
             fullWidth
             size="small"
@@ -275,7 +471,12 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
                     <TableCell>{exam.analyses}</TableCell>
                     <TableCell>{exam.esocial27Code ?? '—'}</TableCell>
                     <TableCell align="right">
-                      <Button size="small" onClick={() => handleLinkExam(exam)}>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => handleLinkExam(exam)}
+                      >
                         Vincular
                       </Button>
                     </TableCell>
@@ -313,39 +514,50 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
                   <TableCell>{link.exam?.material ?? link.examMaterialSnapshot}</TableCell>
                   <TableCell>{link.matchMethod}</TableCell>
                   <TableCell>
-                    {link.isConfirmed && (
-                      <Chip size="small" color="success" label="Confirmado" sx={{ mr: 0.5 }} />
-                    )}
-                    {link.isDefault && <Chip size="small" color="primary" label="Padrão" />}
+                    <LinkStateChips
+                      isConfirmed={link.isConfirmed}
+                      primaryLabel="Padrão"
+                      isPrimaryOrDefault={link.isDefault}
+                      requiresReview={link.requiresReview}
+                    />
                   </TableCell>
                   <TableCell align="right">
-                    {!link.isConfirmed && (
+                    <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+                      {!link.isConfirmed && (
+                        <Button
+                          size="small"
+                          variant="contained"
+                          color="success"
+                          startIcon={<CheckIcon />}
+                          disabled={confirmExam.isPending}
+                          onClick={() =>
+                            confirmExam.mutate({ linkId: link.id, notes: linkNotes || undefined })
+                          }
+                        >
+                          Confirmar
+                        </Button>
+                      )}
+                      {link.isConfirmed && !link.isDefault && (
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="primary"
+                          disabled={setDefaultExam.isPending}
+                          onClick={() => setDefaultExam.mutate({ linkId: link.id })}
+                        >
+                          Marcar padrão
+                        </Button>
+                      )}
                       <Button
                         size="small"
-                        onClick={() =>
-                          confirmExam.mutate({ linkId: link.id, notes: linkNotes || undefined })
-                        }
+                        variant="outlined"
+                        color="error"
+                        startIcon={<CloseIcon />}
+                        onClick={() => setRejectExamTarget(link)}
                       >
-                        Confirmar
+                        Rejeitar
                       </Button>
-                    )}
-                    <Button
-                      size="small"
-                      color="error"
-                      onClick={() =>
-                        rejectExam.mutate({ linkId: link.id, notes: linkNotes || undefined })
-                      }
-                    >
-                      Rejeitar
-                    </Button>
-                    {link.isConfirmed && !link.isDefault && (
-                      <Button
-                        size="small"
-                        onClick={() => setDefaultExam.mutate({ linkId: link.id })}
-                      >
-                        Padrão
-                      </Button>
-                    )}
+                    </Stack>
                   </TableCell>
                 </TableRow>
               ))}
@@ -358,26 +570,107 @@ export const BiologicalIndicatorDetailPage: FC<Props> = ({ indicatorId }) => {
             Ativação do indicador
           </Typography>
           <Typography variant="body2" color="text.secondary" gutterBottom>
-            O indicador só pode ser ativado após confirmar risco, vincular e confirmar exame
-            padrão, e resolver revisão normativa quando exigida.
+            O indicador permanece em <strong>Rascunho</strong> até concluir todos os passos e
+            clicar em &quot;Ativar indicador&quot;. Somente então passa para <strong>Ativo</strong>.
           </Typography>
+          <ActivationSteps />
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            spacing={1}
+            mb={1}
+          >
+            <Typography variant="subtitle2">
+              Notas de revisão normativa/médica
+              {reviewRequired && (
+                <Chip
+                  size="small"
+                  color="warning"
+                  label="Revisão exigida"
+                  sx={{ ml: 1 }}
+                />
+              )}
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={!indicator}
+              onClick={handleGenerateReviewSuggestion}
+            >
+              Gerar texto sugerido
+            </Button>
+          </Stack>
           <TextField
             fullWidth
             multiline
-            minRows={2}
-            label="Notas de revisão normativa"
+            minRows={4}
+            placeholder={NORMATIVE_REVIEW_HELPER_TEXT}
+            helperText={
+              reviewNotesSuggested
+                ? NORMATIVE_REVIEW_SUGGESTION_HELPER_TEXT
+                : NORMATIVE_REVIEW_HELPER_TEXT
+            }
             value={reviewNotes}
-            onChange={(e) => setReviewNotes(e.target.value)}
+            onChange={(e) => {
+              setReviewNotes(e.target.value);
+              setReviewNotesSuggested(false);
+            }}
             sx={{ mb: 2, mt: 1 }}
           />
           <Button
             variant="contained"
+            color="primary"
             disabled={!canActivate || updateStatus.isPending}
             onClick={handleActivate}
           >
-            Ativar indicador (DRAFT → ACTIVE)
+            Ativar indicador (Rascunho → Ativo)
           </Button>
         </Paper>
+
+        <Dialog open={Boolean(rejectRiskTarget)} onClose={() => setRejectRiskTarget(null)}>
+          <DialogTitle>Rejeitar vínculo com risco</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Tem certeza que deseja rejeitar este vínculo? O indicador e o risco não serão
+              apagados, mas este vínculo deixará de ser considerado na curadoria.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRejectRiskTarget(null)}>Cancelar</Button>
+            <Button
+              color="error"
+              variant="contained"
+              startIcon={<CloseIcon />}
+              disabled={rejectRisk.isPending}
+              onClick={handleRejectRisk}
+            >
+              Rejeitar vínculo
+            </Button>
+          </DialogActions>
+        </Dialog>
+
+        <Dialog open={Boolean(rejectExamTarget)} onClose={() => setRejectExamTarget(null)}>
+          <DialogTitle>Rejeitar vínculo com exame</DialogTitle>
+          <DialogContent>
+            <Typography>
+              Tem certeza que deseja rejeitar este vínculo? O indicador e o exame não serão
+              apagados, mas este vínculo deixará de ser considerado na curadoria.
+            </Typography>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setRejectExamTarget(null)}>Cancelar</Button>
+            <Button
+              color="error"
+              variant="contained"
+              startIcon={<CloseIcon />}
+              disabled={rejectExam.isPending}
+              onClick={handleRejectExam}
+            >
+              Rejeitar vínculo
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </SAuthShow>
   );
